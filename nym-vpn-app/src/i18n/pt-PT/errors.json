@@ -25,5 +25,29 @@
   },
   "zknym": {
     "request-failed": "O pedido de zk-nym falhou"
+  },
+  "tunnel": {
+    "internal": "Erro interno",
+    "firewall": "Erro de firewall",
+    "routing": "Erro de encaminhamento",
+    "dns": "Erro de DNS",
+    "tun-device": "Erro do dispositivo",
+    "provider": "Erro do fornecedor",
+    "same-entry-exit-gw": "Não é possível estabelecer ligação com o mesmo nó de entrada e de saída. Por favor, altere a localização do nó de entrada ou de saída.",
+    "invalid-entry-gw-country": "País do nó de entrada inválido, por favor altere a localização do nó de entrada",
+    "invalid-exit-gw-country": "País do nó de saída inválido, alterar a localização do nó de saída",
+    "bad-bandwidth-increase": "Erro de aumento de banda larga",
+    "duplicate-tun-fd": "Duplicação do fd do túnel"
+  },
+  "connection-general": "Erro geral, verifique os registos para obter mais detalhes",
+  "no-bandwidth": "Sem banda larga",
+  "entry-gateway-down": "O gateway de entrada está em baixo",
+  "exit-gateway-down": {
+    "ipv4": "O gateway de saída está inativo (IPv4)",
+    "ipv6": "O gateway de saída está inativo (IPv6)"
+  },
+  "exit-gateway-routing": {
+    "ipv4": "Erro de encaminhamento do gateway de saída (IPv4)",
+    "ipv6": "Erro de encaminhamento do gateway de saída (IPv6)"
   }
 }
