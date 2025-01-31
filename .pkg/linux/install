@@ -561,7 +561,7 @@ _install() {
   fi
 
   cleanup
-  log "\n${BI_GRN}done$RS"
+  log "\n${BI_MGT}DONE$RS"
 }
 
 _uninstall_raw() {
@@ -605,7 +605,9 @@ _uninstall_raw() {
     fi
   fi
 
-  [[ "$_vpnd" == 0 ]] && stop_vpnd_service
+  if [ "$_vpnd" == 0 ]; then
+    stop_vpnd_service
+  fi
 }
 
 _uninstall_deb() {
@@ -637,7 +639,7 @@ if [ "$1" == uninstall ]; then
   else
     _uninstall_deb
   fi
-  log "\n${BI_GRN}done$RS"
+  log "\n${BI_MGT}DONE$RS"
   exit 0
 fi
 
