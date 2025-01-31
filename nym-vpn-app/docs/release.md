@@ -103,13 +103,13 @@ on new stable, the rest of the packages need to be updated manually.
 - refer to [update AUR](update_aur.md) for Arch Linux packages
 - refer to [update Flatpak](update_flatpak.md) for Flatpak package
 
-#### nymvpn.com
+#### nym.com
 
 The website should automatically scrap any new stable release. \
 Confirm all is looking as expected, e.g. download links, \
 the displayed version and hash are correct
 
-- https://nymvpn.com/en/download/linux
-- https://nymvpn.com/en/download/windows
+- https://nym.com/download/linux
+- https://nym.com/download/windows
 
 If not, it needs to be fixed in the nym-dot-com repo.

@@ -1,11 +1,11 @@
 # nym-vpn-app
 
-Desktop client application for [NymVPN](https://nymvpn.com/en), built with
-[tauri](https://v2.tauri.app/). Supports Linux and Windows.
+Desktop client application for [NymVPN](https://nym.com/), built with
+[tauri](https://tauri.app/). Supports Linux and Windows.
 
 For more information about NymVPN, its features, latest announcements,
 Help Center, or to download the latest stable release, visit
-[nymvpn.com](https://nymvpn.com/en).
+[nym.com](https://nym.com/en).
 
 ## Installation
 
@@ -72,7 +72,7 @@ Look for release tag `nym-vpn-app-v*`, download
 - protobuf
 
 Some system libraries are required depending on the host platform.
-Follow the instructions for your specific OS [here](https://v2.tauri.app/start/prerequisites/)
+Follow the instructions for your specific OS [here](https://tauri.app/start/prerequisites/)
 
 #### Install
 
@@ -142,7 +142,7 @@ Then press `o` to open the app in the browser.
 
 #### Tauri commands mock
 
-Browser mode requires some of the tauri [commands](https://v2.tauri.app/develop/calling-rust/#commands) (IPC calls) to be mocked.
+Browser mode requires some of the tauri [commands](https://tauri.app/develop/calling-rust/#commands) (IPC calls) to be mocked.
 When creating new tauri command, be sure to add the corresponding
 mock definition into `src/dev/tauri-cmd-mocks/` and update
 `src/dev/setup.ts` accordingly.
