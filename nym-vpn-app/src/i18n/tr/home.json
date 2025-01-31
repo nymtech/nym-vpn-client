@@ -5,7 +5,9 @@
     "connected": "Bağlantı sağlandı",
     "disconnected": "Bağlantı kesildi",
     "connecting": "Bağlanıyor",
-    "disconnecting": "Bağlantı koptu"
+    "disconnecting": "Bağlantı koptu",
+    "error": "Hata",
+    "offline": "Çevrimdışı"
   },
   "last-hop": "Çıkış lokasyonu",
   "first-hop": "Giriş lokasyonu",
