@@ -26,7 +26,6 @@ pub struct ProgressEventPayload {
 #[ts(export)]
 pub struct TunnelStateEvent {
     state: TunnelState,
-    // TODO not sure if this is still needed
     error: Option<BackendError>,
 }
 
