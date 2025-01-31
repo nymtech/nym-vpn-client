@@ -17,40 +17,38 @@ fun TunnelEvent.NewState.asTunnelState(): Tunnel.State {
 	}
 }
 
-fun EntryPoint.asString() : String {
-	return when(val entry = this) {
+fun EntryPoint.asString(): String {
+	return when (val entry = this) {
 		is EntryPoint.Gateway -> entry.identity
-		is EntryPoint.Location -> entry.location
+		is EntryPoint.Location -> entry.location.lowercase()
 		EntryPoint.Random -> "random"
 		EntryPoint.RandomLowLatency -> "randomlowlatency"
 	}
 }
 
-fun ExitPoint.asString() : String {
-	return when(val exit = this) {
+fun ExitPoint.asString(): String {
+	return when (val exit = this) {
 		is ExitPoint.Gateway -> exit.identity
-		is ExitPoint.Location -> exit.location
+		is ExitPoint.Location -> exit.location.lowercase()
 		is ExitPoint.Address -> exit.address
 	}
 }
 
-fun String.asEntryPoint() : EntryPoint {
+fun String.asEntryPoint(): EntryPoint {
 	return when {
 		this == "random" -> EntryPoint.Random
 		this == "randomlowlatency" -> EntryPoint.RandomLowLatency
-		this.length == 2 -> EntryPoint.Location(this)
+		this.length == 2 -> EntryPoint.Location(this.uppercase())
 		this.length == 44 -> EntryPoint.Gateway(this)
 		else -> EntryPoint.Random
 	}
 }
 
-fun String.asExitPoint() : ExitPoint {
+fun String.asExitPoint(): ExitPoint {
 	return when (this.length) {
-		2 -> ExitPoint.Location(this)
+		2 -> ExitPoint.Location(this.uppercase())
 		134 -> ExitPoint.Address(this)
 		44 -> ExitPoint.Gateway(this)
 		else -> throw Exception("Invalid exit id")
 	}
 }
-
-

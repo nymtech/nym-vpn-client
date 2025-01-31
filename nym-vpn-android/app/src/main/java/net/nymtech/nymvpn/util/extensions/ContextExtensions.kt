@@ -11,7 +11,6 @@ import android.os.Build
 import android.provider.Settings
 import android.service.quicksettings.TileService
 import android.widget.Toast
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import net.nymtech.nymvpn.BuildConfig
@@ -20,7 +19,6 @@ import net.nymtech.nymvpn.NymVpn.Companion.instance
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.service.android.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.vpn.model.Country
 import nym_vpn_lib.UserAgent
 import timber.log.Timber
 import java.util.Locale

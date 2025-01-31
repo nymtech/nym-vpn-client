@@ -98,7 +98,7 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 
 	private suspend fun setTileText() {
 		kotlin.runCatching {
-			//TODO fix
+			// TODO fix
 			val firstHopCountry = settingsRepository.getEntryPoint()
 			val lastHopCountry = settingsRepository.getExitPoint()
 			val mode = settingsRepository.getVpnMode()
@@ -114,9 +114,9 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 					}
 				}",
 			)
-//			setTileDescription(
-//				"${firstHopCountry.isoCode} -> ${lastHopCountry.isoCode}",
-//			)
+// 			setTileDescription(
+// 				"${firstHopCountry.isoCode} -> ${lastHopCountry.isoCode}",
+// 			)
 			qsTile.updateTile()
 		}
 	}

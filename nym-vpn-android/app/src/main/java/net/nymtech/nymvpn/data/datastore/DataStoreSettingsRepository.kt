@@ -8,7 +8,6 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
-import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
 import net.nymtech.vpn.util.extensions.asString
@@ -42,12 +41,11 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	}
 
 	override suspend fun setExitPoint(exit: ExitPoint) {
-		dataStoreManager.saveToDataStore(entryPoint, exit.asString())
+		dataStoreManager.saveToDataStore(exitPoint, exit.asString())
 	}
 
 	override suspend fun getExitPoint(): ExitPoint {
 		return dataStoreManager.getFromStore(exitPoint)?.asExitPoint() ?: ExitPoint.Location("FR")
-
 	}
 
 	override suspend fun getTheme(): Theme {

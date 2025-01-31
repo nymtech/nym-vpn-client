@@ -60,6 +60,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
+import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.VerticalDivider
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
@@ -73,6 +74,7 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
+import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -160,6 +162,11 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 	LaunchedEffect(refreshing) {
 		if (refreshing) viewModel.updateCountryCache(gatewayType)
 		refreshing = false
+	}
+
+	fun onSelectionChange(id: String) {
+		viewModel.onSelected(id, gatewayLocation)
+		navController.navigateAndForget(Route.Main())
 	}
 
 	Modal(show = showLocationTooltip, onDismiss = { showLocationTooltip = false }, title = {
@@ -304,7 +311,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 							SelectionItem(
 								onClick = {
 									country.twoLetterCountryISO?.let {
-										viewModel.onSelected(it, gatewayLocation)
+										onSelectionChange(it)
 									}
 								},
 								leading = {
@@ -362,12 +369,12 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 							gateways.filter { it.twoLetterCountryISO == country.twoLetterCountryISO }.map { gateway ->
 								SelectionItem(
 									onClick = {
-										viewModel.onSelected(gateway.identity , gatewayLocation)
+										onSelectionChange(gateway.identity)
 									},
 									leading = {
-										//TODO this will change, just random threshold for now
+										// TODO this will change, just random threshold for now
 										val icon = gateway.mixnetPerformance?.let {
-											when(it) {
+											when (it) {
 												in 0u..45u -> ImageVector.vectorResource(R.drawable.bars_1)
 												in 46u..75u -> ImageVector.vectorResource(R.drawable.bars_2)
 												in 76u..100u -> ImageVector.vectorResource(R.drawable.bars_3)
@@ -414,30 +421,6 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 						)
 					}
 				}
-// 				SelectionItemButton(
-// 					{
-// 						Image(
-// 							icon,
-// 							icon.name,
-// 							modifier =
-// 							Modifier
-// 								.padding(horizontal = 24.dp.scaledWidth(), 16.dp.scaledHeight())
-// 								.size(
-// 									iconSize,
-// 								),
-// 						)
-// 					},
-// 					buttonText = locale?.displayName ?: "Unknown",
-// 					onClick = {
-// 						viewModel.onSelected(gateway, gatewayLocation)
-// 						navController.navigateAndForget(Route.Main())
-// 					},
-// 					trailing = {
-// //						if (it.isoCode == selectedCountry.isoCode && !selectedCountry.isLowLatency) {
-// //							SelectedLabel()
-// //						}
-// 					},
-// 				)
 			}
 		}
 	}

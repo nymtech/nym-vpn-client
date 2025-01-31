@@ -29,7 +29,6 @@ import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
-import net.nymtech.vpn.model.Country
 import nym_vpn_lib.GatewayType
 import nym_vpn_lib.SystemMessage
 import nym_vpn_lib.UserAgent

@@ -317,7 +317,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 								.padding(horizontal = 16.dp.scaledWidth(), vertical = 16.dp.scaledHeight())
 								.size(
 									iconSize,
-								))
+								),
+						)
 					},
 
 					trailing = {
@@ -361,7 +362,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 								.padding(horizontal = 16.dp.scaledWidth(), vertical = 16.dp.scaledHeight())
 								.size(
 									iconSize,
-								))
+								),
+						)
 					},
 					trailing = {
 						Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
