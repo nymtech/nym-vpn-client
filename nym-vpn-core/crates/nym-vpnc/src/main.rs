@@ -120,7 +120,7 @@ fn construct_user_agent(daemon_info: InfoResponse) -> UserAgent {
     // Construct the platform string similar to how user agents are constructed in web browsers
     let name = System::name().unwrap_or("unknown".to_string());
     let os_long = System::long_os_version().unwrap_or("unknown".to_string());
-    let arch = System::cpu_arch().unwrap_or("unknown".to_string());
+    let arch = System::cpu_arch();
     let platform = format!("{}; {}; {}", name, os_long, arch);
 
     let git_commit = format!("{} ({})", bin_info.commit_sha, daemon_info.git_commit);
