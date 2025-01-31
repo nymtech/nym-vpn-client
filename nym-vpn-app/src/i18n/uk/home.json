@@ -5,7 +5,9 @@
     "connecting": "Підключення",
     "disconnecting": "Відключення",
     "connected": "Підключенно",
-    "disconnected": "Відключенно"
+    "disconnected": "Відключенно",
+    "error": "Помилка",
+    "offline": "Офлайн"
   },
   "last-hop": "Останнє підключення",
   "first-hop": "Перше підключення",
