@@ -17,4 +17,5 @@ interface BackendManager {
 	suspend fun refreshAccountLinks()
 	val stateFlow: Flow<TunnelManagerState>
 	fun getState(): Tunnel.State
+	fun initialize()
 }

@@ -14,12 +14,12 @@ import kotlinx.coroutines.plus
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
-import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
-import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
 import net.nymtech.nymvpn.manager.backend.model.MixnetConnectionState
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
+import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
+import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.toMB
 import net.nymtech.nymvpn.util.extensions.toUserAgent
@@ -63,6 +63,13 @@ class NymBackendManager @Inject constructor(
 			)
 		}
 	}.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.Eagerly, TunnelManagerState())
+
+	override fun initialize() {
+		applicationScope.launch {
+			val env = settingsRepository.getEnvironment()
+			backend.get().init(env, settingsRepository.isCredentialMode())
+		}
+	}
 
 	override fun getState(): Tunnel.State {
 		return backend.get().getState()

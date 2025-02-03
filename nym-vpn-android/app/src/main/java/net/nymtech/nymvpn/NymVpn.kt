@@ -13,17 +13,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.logcatutil.LogReader
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.module.qualifiers.MainDispatcher
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.timber.ReleaseTree
-import net.nymtech.vpn.backend.Backend
+import net.nymtech.vpn.backend.NymBackend
 import timber.log.Timber
 import timber.log.Timber.DebugTree
 import javax.inject.Inject
-import javax.inject.Provider
 
 @HiltAndroidApp
 class NymVpn : Application() {
@@ -44,7 +44,7 @@ class NymVpn : Application() {
 	lateinit var settingsRepository: SettingsRepository
 
 	@Inject
-	lateinit var backend: Provider<Backend>
+	lateinit var backendManager: BackendManager
 
 	@Inject
 	lateinit var logReader: LogReader
@@ -70,10 +70,14 @@ class NymVpn : Application() {
 		}
 
 		logReader.initialize()
+		backendManager.initialize()
 
+		NymBackend.setAlwaysOnCallback {
+			applicationScope.launch {
+				backendManager.startTunnel()
+			}
+		}
 		applicationScope.launch {
-			val env = settingsRepository.getEnvironment()
-			backend.get().init(env, settingsRepository.isCredentialMode())
 			settingsRepository.getLocale()?.let {
 				withContext(mainDispatcher) {
 					LocaleUtil.changeLocale(it)
