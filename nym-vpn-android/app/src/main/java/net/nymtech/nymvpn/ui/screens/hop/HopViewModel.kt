@@ -9,7 +9,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.service.country.CountryCacheService
-import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
 import nym_vpn_lib.GatewayType
@@ -27,11 +26,10 @@ constructor(
 	private val _uiState = MutableStateFlow(HopUiState())
 	val uiState = _uiState.asStateFlow()
 
-	fun onQueryChange(query: String, gateways: List<NymGateway>) {
+	fun onQueryChange(query: String) {
 		_uiState.update {
 			it.copy(
 				query = query.lowercase(),
-				queriedCountries = gateways.filter { country -> country.identity.lowercase().contains(query) },
 			)
 		}
 	}

@@ -8,6 +8,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -16,6 +17,7 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.theme.CustomColors
 
@@ -63,8 +65,14 @@ fun CustomTextField(
 					if (placeholder != null) {
 						placeholder()
 					}
+				} else {
+					Text(
+						value,
+						maxLines = 1,
+						overflow = TextOverflow.Ellipsis,
+						style = MaterialTheme.typography.bodyLarge,
+					)
 				}
-				it.invoke()
 			},
 			contentPadding = OutlinedTextFieldDefaults.contentPadding(top = 0.dp, bottom = 0.dp),
 			leadingIcon = leading,

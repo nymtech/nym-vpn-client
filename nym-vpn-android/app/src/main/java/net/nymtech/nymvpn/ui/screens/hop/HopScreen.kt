@@ -38,6 +38,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -96,6 +97,13 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 	val currentLocale = ConfigurationCompat.getLocales(context.resources.configuration)[0]
 	val collator = Collator.getInstance(currentLocale)
 
+	val selectedKey = remember {
+		when (gatewayLocation) {
+			GatewayLocation.ENTRY -> appUiState.entryPointName
+			GatewayLocation.EXIT -> appUiState.exitPointName
+		}
+	}
+
 	var showLocationTooltip by remember { mutableStateOf(false) }
 
 	LaunchedEffect(Unit) {
@@ -123,37 +131,48 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		)
 	}
 
-	val gatewayType = when (appUiState.settings.vpnMode) {
-		Tunnel.Mode.FIVE_HOP_MIXNET -> {
-			when (gatewayLocation) {
-				GatewayLocation.EXIT -> GatewayType.MIXNET_EXIT
-				GatewayLocation.ENTRY -> GatewayType.MIXNET_ENTRY
+	val gatewayType = remember {
+		when (appUiState.settings.vpnMode) {
+			Tunnel.Mode.FIVE_HOP_MIXNET -> {
+				when (gatewayLocation) {
+					GatewayLocation.EXIT -> GatewayType.MIXNET_EXIT
+					GatewayLocation.ENTRY -> GatewayType.MIXNET_ENTRY
+				}
+			}
+
+			Tunnel.Mode.TWO_HOP_MIXNET -> GatewayType.WG
+		}
+	}
+
+	val gateways = remember {
+		when (gatewayType) {
+			GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
+			GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
+			GatewayType.WG -> appUiState.gateways.wgGateways
+		}
+	}
+
+	val countries = remember(uiState.query) {
+		derivedStateOf {
+			gateways.distinctBy { it.twoLetterCountryISO }.filter { it.twoLetterCountryISO != null }
+				.map {
+					Locale(it.twoLetterCountryISO!!, it.twoLetterCountryISO!!)
+				}.filter { it.displayCountry.lowercase().contains(uiState.query) }
+				.sortedWith(compareBy(collator) { it.displayCountry })
+		}
+	}.value
+
+	val queriedGateways = remember(uiState.query) {
+		derivedStateOf {
+			if (!uiState.query.isBlank()) {
+				gateways.filter { it.identity.lowercase().contains(uiState.query) }.sortedWith(
+					compareBy(collator) { it.identity },
+				)
+			} else {
+				emptyList()
 			}
 		}
-		Tunnel.Mode.TWO_HOP_MIXNET -> GatewayType.WG
-	}
-
-	val gateways = when (gatewayType) {
-		GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
-		GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
-		GatewayType.WG -> appUiState.gateways.wgGateways
-	}
-
-// 	val selectedCountry = when (gatewayLocation) {
-// 		GatewayLocation.EXIT -> appUiState.exitCountry
-// 		GatewayLocation.ENTRY -> appUiState.entryCountry
-// 	}
-
-	val queriedCountries =
-		remember(uiState.queriedCountries) {
-			uiState.queriedCountries.sortedWith(compareBy(collator) { it.identity })
-		}
-
-	val allCountries = remember(gateways) {
-		gateways.sortedWith(compareBy(collator) { it.identity })
-	}
-
-	val displayGateways = if (uiState.query.isBlank()) allCountries else queriedCountries
+	}.value
 
 	LaunchedEffect(Unit) {
 		viewModel.updateCountryCache(gatewayType)
@@ -215,7 +234,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 						value = query,
 						onValueChange = {
 							query = it
-							viewModel.onQueryChange(it, gateways)
+							viewModel.onQueryChange(it)
 						},
 						modifier = Modifier
 							.fillMaxWidth()
@@ -301,8 +320,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 // 				}
 				}
 			}
-			items(gateways.distinctBy { it.twoLetterCountryISO }, key = { it.identity }) { country ->
-				val locale = country.twoLetterCountryISO?.let { Locale(it, it) }
+			items(countries, key = { it.displayCountry }) { country ->
 				Column(modifier = Modifier.padding(bottom = 8.dp)) {
 					var expanded by remember { mutableStateOf(false) }
 					val rotationAngle by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
@@ -310,18 +328,12 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 						listOf(
 							SelectionItem(
 								onClick = {
-									country.twoLetterCountryISO?.let {
-										onSelectionChange(it)
-									}
+									onSelectionChange(country.language)
 								},
 								leading = {
-									val icon = country.twoLetterCountryISO?.let {
-										ImageVector.vectorResource(
-											context.getFlagImageVectorByName(
-												it.lowercase(),
-											),
-										)
-									} ?: ImageVector.vectorResource(context.getFlagImageVectorByName("unknown"))
+									val icon = ImageVector.vectorResource(
+										context.getFlagImageVectorByName(country.language),
+									)
 									Image(
 										icon,
 										icon.name,
@@ -348,13 +360,14 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 										)
 									}
 								},
-								title = { Text(locale?.displayCountry ?: "Unknown", style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+								title = { Text(country.displayCountry, style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 								description = {
 									Text(
-										gateways.count { it.twoLetterCountryISO == country.twoLetterCountryISO }.toString() + " servers",
+										gateways.count { it.twoLetterCountryISO == country.language }.toString() + " servers",
 										style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
 									)
 								},
+								selected = country.language == selectedKey,
 							),
 						),
 						shape = RectangleShape,
@@ -366,7 +379,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 						exit = shrinkVertically() + fadeOut(),
 					) {
 						SurfaceSelectionGroupButton(
-							gateways.filter { it.twoLetterCountryISO == country.twoLetterCountryISO }.map { gateway ->
+							gateways.filter { it.twoLetterCountryISO == country.language }.map { gateway ->
 								SelectionItem(
 									onClick = {
 										onSelectionChange(gateway.identity)
@@ -414,12 +427,74 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 											style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
 										)
 									},
+									selected = selectedKey == gateway.identity,
 								)
 							},
 							shape = RectangleShape,
 							background = MaterialTheme.colorScheme.background,
+							divider = false,
 						)
 					}
+				}
+			}
+			if (queriedGateways.isNotEmpty()) {
+				item {
+					SurfaceSelectionGroupButton(
+						queriedGateways.map { gateway ->
+							SelectionItem(
+								onClick = {
+									onSelectionChange(gateway.identity)
+								},
+								leading = {
+									// TODO this will change, just random threshold for now
+									val icon = gateway.mixnetPerformance?.let {
+										when (it) {
+											in 0u..45u -> ImageVector.vectorResource(R.drawable.bars_1)
+											in 46u..75u -> ImageVector.vectorResource(R.drawable.bars_2)
+											in 76u..100u -> ImageVector.vectorResource(R.drawable.bars_3)
+											else -> ImageVector.vectorResource(R.drawable.bars_2)
+										}
+									} ?: ImageVector.vectorResource(R.drawable.bars_2)
+									Image(
+										icon,
+										icon.name,
+										modifier =
+										Modifier.height(16.dp).width(15.dp),
+									)
+								},
+								trailing = {
+									Row(
+										horizontalArrangement = Arrangement.spacedBy(16.dp),
+										verticalAlignment = Alignment.CenterVertically,
+									) {
+										val icon = Icons.Outlined.Info
+										VerticalDivider(modifier = Modifier.height(42.dp))
+										Icon(icon, icon.name, Modifier.size(iconSize))
+									}
+								},
+								title = {
+									Text(
+										"Unknown name",
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis,
+										style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+									)
+								},
+								description = {
+									Text(
+										gateway.identity,
+										maxLines = 1,
+										overflow = TextOverflow.Ellipsis,
+										style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+									)
+								},
+								selected = selectedKey == gateway.identity,
+							)
+						},
+						shape = RectangleShape,
+						background = MaterialTheme.colorScheme.background,
+						divider = false,
+					)
 				}
 			}
 		}

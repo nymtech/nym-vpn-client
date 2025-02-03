@@ -9,4 +9,5 @@ data class SelectionItem(
 	val description: (@Composable () -> Unit)? = null,
 	val onClick: () -> Unit = {},
 	val height: Int = 64,
+	val selected: Boolean = false,
 )
