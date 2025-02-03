@@ -145,8 +145,6 @@ constructor(
 	}
 
 	fun onAppStartup() = viewModelScope.launch {
-		val env = settingsRepository.getEnvironment()
-		backend.init(env, settingsRepository.isCredentialMode())
 		val theme = settingsRepository.getTheme()
 		uiState.takeWhile { it.settings.theme != theme }.onCompletion {
 			_isAppReady.emit(true)

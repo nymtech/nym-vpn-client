@@ -72,6 +72,8 @@ class NymVpn : Application() {
 		logReader.initialize()
 
 		applicationScope.launch {
+			val env = settingsRepository.getEnvironment()
+			backend.get().init(env, settingsRepository.isCredentialMode())
 			settingsRepository.getLocale()?.let {
 				withContext(mainDispatcher) {
 					LocaleUtil.changeLocale(it)
