@@ -74,6 +74,7 @@ pub async fn probe(entry_point: EntryPoint) -> anyhow::Result<ProbeResult> {
         .request_gateway(entry_gateway_id.to_string())
         .network_details(NymNetworkDetails::new_from_env())
         .debug_config(mixnet_debug_config())
+        .with_forget_me(ForgetMe::new_all())
         .build()?
         .connect_to_mixnet()
         .await;
