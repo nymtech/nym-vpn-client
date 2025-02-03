@@ -367,7 +367,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 										style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
 									)
 								},
-								selected = country.language == selectedKey,
+								selected = country.displayCountry == selectedKey,
 							),
 						),
 						shape = RectangleShape,
