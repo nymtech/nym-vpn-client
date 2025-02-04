@@ -464,7 +464,10 @@ impl TunnelMonitor {
         connected_mixnet: ConnectedMixnet,
     ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
         let connected_tunnel = connected_mixnet
-            .connect_wireguard_tunnel(self.tunnel_settings.enable_credentials_mode)
+            .connect_wireguard_tunnel(
+                self.tunnel_settings.enable_credentials_mode,
+                self.cancel_token.clone(),
+            )
             .await?;
         let conn_data = connected_tunnel.connection_data();
 
@@ -573,7 +576,10 @@ impl TunnelMonitor {
         connected_mixnet: ConnectedMixnet,
     ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
         let connected_tunnel = connected_mixnet
-            .connect_wireguard_tunnel(self.tunnel_settings.enable_credentials_mode)
+            .connect_wireguard_tunnel(
+                self.tunnel_settings.enable_credentials_mode,
+                self.cancel_token.clone(),
+            )
             .await?;
         let conn_data = connected_tunnel.connection_data();
 
