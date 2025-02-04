@@ -40,6 +40,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
   const [uiCountryList, setUiCountryList] = useState<UiCountry[]>([]);
   const selectedCountry =
     node === 'entry' ? entryNodeLocation : exitNodeLocation;
+  const countryList = node === 'entry' ? entryCountryList : exitCountryList;
 
   const [search, setSearch] = useState('');
   const [filteredCountries, setFilteredCountries] =
@@ -57,9 +58,8 @@ function NodeLocation({ node }: { node: NodeHop }) {
     }
   }, [node, vpnMode, fetchWgCountries, fetchMnCountries]);
 
-  // update the UI country list whenever the country list (likely from the backend)
+  // refresh the UI country list whenever the backend country data changes
   useEffect(() => {
-    const countryList = node === 'entry' ? entryCountryList : exitCountryList;
     const uiList = countryList
       .map((country) => {
         return {
@@ -71,7 +71,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
     setUiCountryList(uiList);
     setFilteredCountries(uiList);
     setSearch('');
-  }, [node, entryCountryList, exitCountryList, compare, getCountryName]);
+  }, [countryList, compare, getCountryName]);
 
   const filter = (value: string) => {
     if (value !== '') {
