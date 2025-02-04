@@ -49,7 +49,7 @@ export default function CountryList({
                   className="h-6"
                 />
                 <div className="dark:text-mercury-pinkish text-base truncate">
-                  {uiCountry.country.name}
+                  {uiCountry.i18n}
                 </div>
               </div>
               <div

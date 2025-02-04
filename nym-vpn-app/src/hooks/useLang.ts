@@ -43,7 +43,24 @@ function useLang() {
     [i18n],
   );
 
-  return { set };
+  /**
+   * Get the localized country name
+   *
+   * @param code - Two-letter country code
+   */
+  const getCountryName = useCallback(
+    (code: string) => {
+      const regionNames = new Intl.DisplayNames(i18n.language, {
+        type: 'region',
+        fallback: 'none',
+        style: 'long',
+      });
+      return regionNames.of(code);
+    },
+    [i18n.language],
+  );
+
+  return { set, getCountryName };
 }
 
 export default useLang;

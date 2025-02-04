@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { Country, NodeHop } from '../../types';
 import { useInAppNotify, useMainState } from '../../contexts';
 import { FlagIcon, MsIcon, countryCode } from '../../ui';
-import { useThrottle } from '../../hooks';
+import { useLang, useThrottle } from '../../hooks';
 import { HomeThrottleDelay } from '../../constants';
 
 type HopSelectProps = {
@@ -22,6 +22,7 @@ export default function HopSelect({
   const { state, daemonStatus } = useMainState();
   const { t } = useTranslation('home');
   const { push } = useInAppNotify();
+  const { getCountryName } = useLang();
 
   const showSnackbar = useThrottle(
     () => {
@@ -88,7 +89,7 @@ export default function HopSelect({
         <div
           className={clsx(['text-base truncate', disabled && 'cursor-default'])}
         >
-          {country.name}
+          {getCountryName(country.code) || country.name}
         </div>
       </div>
 
