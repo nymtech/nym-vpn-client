@@ -5,7 +5,7 @@ use std::time::Duration;
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
-use tokio::sync::mpsc;
+use tokio::{sync::mpsc, time::timeout};
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 use tokio_util::sync::CancellationToken;
 
@@ -415,8 +415,24 @@ impl<St: Storage> BandwidthController<St> {
             cancel_token
                 .run_until_cancelled(task_manager.wait_for_error())
                 .await;
+
+            // Signal all tasks to finish
             task_manager.signal_shutdown().ok();
             mixnet_error_tx.send(()).await.ok();
+
+            // Wait for all tasks to exit, since the tasks polls the status of the shutdown channel
+            // during its execution
+            if timeout(
+                Duration::from_secs(10),
+                task_manager.wait_for_graceful_shutdown(),
+            )
+            .await
+            .is_err()
+            {
+                tracing::error!(
+                    "Timeout waiting for task manager to finish waiting for its tasks to all exit"
+                );
+            }
         });
     }
 
