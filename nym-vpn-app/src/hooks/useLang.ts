@@ -60,7 +60,21 @@ function useLang() {
     [i18n.language],
   );
 
-  return { set, getCountryName };
+  /**
+   * Compare two strings according to the sort order of the current language
+   *
+   * @param a - The first string to compare
+   * @param b - The second string to compare
+   */
+  const compare = useCallback(
+    (a: string, b: string) => {
+      const collator = new Intl.Collator(i18n.language, {});
+      return collator.compare(a, b);
+    },
+    [i18n.language],
+  );
+
+  return { compare, set, getCountryName };
 }
 
 export default useLang;

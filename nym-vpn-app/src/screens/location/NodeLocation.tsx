@@ -34,7 +34,7 @@ function NodeLocation({ node }: { node: NodeHop }) {
 
   const { t } = useTranslation('nodeLocation');
   const { tE } = useI18nError();
-  const { getCountryName } = useLang();
+  const { compare, getCountryName } = useLang();
 
   // the country list as rendered in the UI
   const [uiCountryList, setUiCountryList] = useState<UiCountry[]>([]);
@@ -60,18 +60,18 @@ function NodeLocation({ node }: { node: NodeHop }) {
   // update the UI country list whenever the country list (likely from the backend)
   useEffect(() => {
     const countryList = node === 'entry' ? entryCountryList : exitCountryList;
-    const list = [
-      ...countryList.map((country) => {
+    const uiList = countryList
+      .map((country) => {
         return {
           country,
           i18n: getCountryName(country.code) || country.name,
         };
-      }),
-    ];
-    setUiCountryList(list);
-    setFilteredCountries(list);
+      })
+      .sort((a, b) => compare(a.i18n, b.i18n));
+    setUiCountryList(uiList);
+    setFilteredCountries(uiList);
     setSearch('');
-  }, [node, entryCountryList, exitCountryList, getCountryName]);
+  }, [node, entryCountryList, exitCountryList, compare, getCountryName]);
 
   const filter = (value: string) => {
     if (value !== '') {
