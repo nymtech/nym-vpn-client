@@ -12,6 +12,7 @@ use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{ConnectionStatsEvent, EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
+use tokio_util::sync::CancellationToken;
 
 use super::connected_tunnel::ConnectedTunnel;
 use crate::{
@@ -50,6 +51,7 @@ impl Connector {
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
         reconnect_mixnet_client_data: ReconnectMixnetClientData,
+        cancel_token: CancellationToken,
     ) -> Result<ConnectedTunnel, ConnectorError> {
         let result = Self::connect_inner(
             &self.task_manager,
@@ -59,6 +61,7 @@ impl Connector {
             selected_gateways,
             data_path,
             reconnect_mixnet_client_data,
+            cancel_token,
         )
         .await;
 
@@ -89,6 +92,7 @@ impl Connector {
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
         reconnect_mixnet_client_data: ReconnectMixnetClientData,
+        cancel_token: CancellationToken,
     ) -> Result<ConnectResult> {
         let auth_addresses =
             Self::setup_auth_addresses(&selected_gateways.entry, &selected_gateways.exit)?;
@@ -148,22 +152,26 @@ impl Connector {
                 shutdown,
                 reconnect_mixnet_client_data,
             )?;
-            let entry = bw
-                .get_initial_bandwidth(
-                    enable_credentials_mode,
-                    TicketType::V1WireguardEntry,
-                    gateway_directory_client,
-                    &mut wg_entry_gateway_client,
-                )
-                .await?;
-            let exit = bw
-                .get_initial_bandwidth(
-                    enable_credentials_mode,
-                    TicketType::V1WireguardExit,
-                    gateway_directory_client,
-                    &mut wg_exit_gateway_client,
-                )
-                .await?;
+            let entry_fut = bw.get_initial_bandwidth(
+                enable_credentials_mode,
+                TicketType::V1WireguardEntry,
+                gateway_directory_client,
+                &mut wg_entry_gateway_client,
+            );
+            let exit_fut = bw.get_initial_bandwidth(
+                enable_credentials_mode,
+                TicketType::V1WireguardExit,
+                gateway_directory_client,
+                &mut wg_exit_gateway_client,
+            );
+            let entry = cancel_token
+                .run_until_cancelled(entry_fut)
+                .await
+                .ok_or(tunnel::Error::Cancelled)??;
+            let exit = cancel_token
+                .run_until_cancelled(exit_fut)
+                .await
+                .ok_or(tunnel::Error::Cancelled)??;
 
             let bandwidth_controller_handle = tokio::spawn(bw.run());
 
