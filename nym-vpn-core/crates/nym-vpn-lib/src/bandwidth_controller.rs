@@ -436,6 +436,26 @@ impl<St: Storage> BandwidthController<St> {
         });
     }
 
+    async fn cleanup(mut self) {
+        self.reconnect_mixnet_client_data
+            .bw_controller_task_manager
+            .signal_shutdown()
+            .ok();
+        if timeout(
+            Duration::from_secs(10),
+            self.reconnect_mixnet_client_data
+                .bw_controller_task_manager
+                .wait_for_graceful_shutdown(),
+        )
+        .await
+        .is_err()
+        {
+            tracing::error!(
+                "Timeout waiting for task manager controlled by bandwidth controller to finish waiting for its tasks to all exit"
+            );
+        }
+    }
+
     pub(crate) async fn run(mut self)
     where
         <St as Storage>::StorageError: Send + Sync + 'static,
@@ -484,10 +504,7 @@ impl<St: Storage> BandwidthController<St> {
             }
         }
 
-        self.reconnect_mixnet_client_data
-            .bw_controller_task_manager
-            .wait_for_graceful_shutdown()
-            .await;
+        self.cleanup().await;
         tracing::debug!("BandwidthController: Exiting");
     }
 }
