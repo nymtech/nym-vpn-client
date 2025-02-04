@@ -64,7 +64,6 @@ function NodeLocation({ node }: { node: NodeHop }) {
       ...countryList.map((country) => {
         return {
           country,
-          // fallback to the country name if localization lookup failed
           i18n: getCountryName(country.code) || country.name,
         };
       }),
