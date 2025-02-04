@@ -42,12 +42,9 @@ import nym_vpn_lib.initEnvironment
 import nym_vpn_lib.initFallbackMainnetEnvironment
 import nym_vpn_lib.initLogger
 import nym_vpn_lib.isAccountMnemonicStored
+import nym_vpn_lib.login
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
-import nym_vpn_lib.storeAccountMnemonic
-import nym_vpn_lib.waitForRegisterDevice
-import nym_vpn_lib.waitForUpdateAccount
-import nym_vpn_lib.waitForUpdateDevice
 import timber.log.Timber
 
 class NymBackend private constructor(val context: Context) : Backend, TunnelStatusListener {
@@ -183,19 +180,7 @@ class NymBackend private constructor(val context: Context) : Backend, TunnelStat
 	override suspend fun storeMnemonic(mnemonic: String) {
 		initialized.await()
 		withContext(ioDispatcher) {
-			try {
-				storeAccountMnemonic(mnemonic)
-				waitForUpdateAccount()
-				waitForUpdateDevice()
-				waitForRegisterDevice()
-			} catch (e: VpnException) {
-				runCatching {
-					forgetAccount()
-				}.onFailure {
-					Timber.e(e)
-				}
-				throw e
-			}
+			login(mnemonic)
 		}
 	}
 
