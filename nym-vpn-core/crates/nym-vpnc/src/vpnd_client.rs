@@ -11,14 +11,12 @@ use tonic::transport::{Channel as TonicChannel, Endpoint as TonicEndpoint};
 use crate::config;
 
 #[derive(Debug, Clone)]
-pub(crate) enum ClientType {
+pub enum ClientType {
     Http,
     Ipc,
 }
 
-pub(crate) async fn get_client(
-    client_type: &ClientType,
-) -> anyhow::Result<NymVpndClient<TonicChannel>> {
+pub async fn get_client(client_type: &ClientType) -> anyhow::Result<NymVpndClient<TonicChannel>> {
     match client_type {
         ClientType::Http => get_http_client().await,
         ClientType::Ipc => get_ipc_client().await,
