@@ -467,5 +467,11 @@ impl<St: Storage> BandwidthController<St> {
                 }
             }
         }
+
+        self.reconnect_mixnet_client_data
+            .bw_controller_task_manager
+            .wait_for_graceful_shutdown()
+            .await;
+        tracing::debug!("BandwidthController: Exiting");
     }
 }

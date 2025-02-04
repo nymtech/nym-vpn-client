@@ -247,7 +247,7 @@ async fn shutdown_task_manager(mut task_manager: TaskManager) {
         tracing::error!("Failed to signal task manager shutdown");
     }
 
-    task_manager.wait_for_shutdown().await;
+    task_manager.wait_for_graceful_shutdown().await;
     tracing::debug!("Task manager finished");
 }
 
