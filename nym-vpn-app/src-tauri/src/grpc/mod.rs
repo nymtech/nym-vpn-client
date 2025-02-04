@@ -8,3 +8,4 @@ pub mod system_message;
 pub mod tunnel;
 mod version_check;
 pub mod vpnd_status;
+mod node;

@@ -15,7 +15,6 @@ import {
   DaemonInfo,
   DaemonStatus,
   NodeHop,
-  NodeLocation,
   ThemeMode,
   Tunnel,
   TunnelAction,
@@ -64,9 +63,8 @@ export type StateAction =
     }
   | {
       type: 'set-node-location';
-      payload: { hop: NodeHop; location: NodeLocation };
+      payload: { hop: NodeHop; location: Country };
     }
-  | { type: 'set-fastest-node-location'; country: Country }
   | { type: 'set-root-font-size'; size: number }
   | { type: 'set-code-deps-js'; dependencies: CodeDependency[] }
   | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
@@ -89,11 +87,8 @@ export const initialState: AppState = {
   autoConnect: false,
   monitoring: false,
   desktopNotifications: true,
-  // TODO ⚠ these should be set to 'Fastest' when the backend is ready
   entryNodeLocation: DefaultCountry,
-  // TODO ⚠ these should be set to 'Fastest' when the backend is ready
   exitNodeLocation: DefaultCountry,
-  fastestNodeLocation: DefaultCountry,
   entryCountryList: [],
   exitCountryList: [],
   entryCountriesLoading: true,
@@ -283,11 +278,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
         };
       }
       return state;
-    case 'set-fastest-node-location':
-      return {
-        ...state,
-        fastestNodeLocation: action.country,
-      };
     case 'set-root-font-size':
       return {
         ...state,

@@ -7,9 +7,3 @@ export type Country = {
   name: string;
   code: string;
 };
-
-export type NodeLocation = Country | 'Fastest';
-
-export function isCountry(location: NodeLocation): location is Country {
-  return (location as Country).code !== undefined;
-}

@@ -306,8 +306,8 @@ impl GrpcClient {
     #[instrument(skip_all)]
     pub async fn vpn_connect(
         &self,
-        entry_node: EntryNode,
-        exit_node: ExitNode,
+        entry_node: Country,
+        exit_node: Country,
         two_hop_mod: bool,
         credentials_mode: bool,
         netstack: bool,
@@ -316,8 +316,8 @@ impl GrpcClient {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(ConnectRequest {
-            entry: Some(entry_node),
-            exit: Some(exit_node),
+            entry: Some(EntryNode::from(entry_node)),
+            exit: Some(ExitNode::from(exit_node)),
             disable_routing: false,
             enable_two_hop: two_hop_mod,
             netstack,

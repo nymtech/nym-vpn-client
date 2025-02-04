@@ -3,15 +3,7 @@ import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useDialog, useMainDispatch, useMainState } from '../../contexts';
 import { kvSet } from '../../kvStore';
-import {
-  AppError,
-  Country,
-  NodeHop,
-  StateDispatch,
-  NodeLocation as TNodeLocation,
-  isCountry,
-} from '../../types';
-import { FastestFeatureEnabled } from '../../constants';
+import { AppError, Country, NodeHop, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { useI18nError } from '../../hooks';
 import { PageAnim, TextInput } from '../../ui';
@@ -20,7 +12,7 @@ import LocationDetailsDialog from './LocationDetailsDialog';
 
 export type UiCountry = {
   country: Country;
-  isFastest: boolean;
+  i18n?: string;
 };
 
 function NodeLocation({ node }: { node: NodeHop }) {
@@ -29,7 +21,6 @@ function NodeLocation({ node }: { node: NodeHop }) {
     exitNodeLocation,
     entryCountryList,
     exitCountryList,
-    fastestNodeLocation,
     entryCountriesLoading,
     exitCountriesLoading,
     fetchMnCountries,
@@ -43,12 +34,10 @@ function NodeLocation({ node }: { node: NodeHop }) {
   const { t } = useTranslation('nodeLocation');
   const { tE } = useI18nError();
 
-  // the countries list used for UI rendering, Fastest country is at first position
-  const [uiCountryList, setUiCountryList] = useState<UiCountry[]>(
-    FastestFeatureEnabled
-      ? [{ country: fastestNodeLocation, isFastest: true }]
-      : [],
-  );
+  // the countries list used for UI rendering
+  const [uiCountryList, setUiCountryList] = useState<UiCountry[]>([]);
+  const selectedCountry =
+    node === 'entry' ? entryNodeLocation : exitNodeLocation;
 
   const [search, setSearch] = useState('');
   const [filteredCountries, setFilteredCountries] =
@@ -66,17 +55,14 @@ function NodeLocation({ node }: { node: NodeHop }) {
     }
   }, [node, vpnMode, fetchWgCountries, fetchMnCountries]);
 
-  // update the UI country list whenever the country list or
-  // fastest country change (likely from the backend)
+  // update the UI country list whenever the country list (likely from the backend)
   useEffect(() => {
     const countryList = node === 'entry' ? entryCountryList : exitCountryList;
-    const list = [
-      ...countryList.map((country) => ({ country, isFastest: false })),
-    ];
+    const list = [...countryList.map((country) => ({ country }))];
     setUiCountryList(list);
     setFilteredCountries(list);
     setSearch('');
-  }, [node, entryCountryList, exitCountryList, fastestNodeLocation]);
+  }, [node, entryCountryList, exitCountryList]);
 
   const filter = (value: string) => {
     if (value !== '') {
@@ -93,25 +79,13 @@ function NodeLocation({ node }: { node: NodeHop }) {
     setSearch(value);
   };
 
-  const isCountrySelected = (
-    selectedNode: TNodeLocation,
-    country: UiCountry,
-  ): boolean => {
-    if (selectedNode === 'Fastest' && country.isFastest) {
-      return true;
-    }
-    return (
-      selectedNode !== 'Fastest' && selectedNode.code === country.country.code
-    );
-  };
-
   const handleCountrySelection = async (country: UiCountry) => {
-    const location = country.isFastest ? 'Fastest' : country.country;
+    const location = country.country;
 
     try {
-      await kvSet<TNodeLocation>(
+      await kvSet<Country>(
         node === 'entry' ? 'EntryNodeLocation' : 'ExitNodeLocation',
-        isCountry(location) ? location : 'Fastest',
+        location,
       );
       dispatch({
         type: 'set-node-location',
@@ -162,12 +136,9 @@ function NodeLocation({ node }: { node: NodeHop }) {
               onSelect={(country) => {
                 handleCountrySelection(country);
               }}
-              isSelected={(country: UiCountry) => {
-                return isCountrySelected(
-                  node === 'entry' ? entryNodeLocation : exitNodeLocation,
-                  country,
-                );
-              }}
+              isSelected={(country: UiCountry) =>
+                selectedCountry.code === country.country.code
+              }
             />
           )}
         </div>

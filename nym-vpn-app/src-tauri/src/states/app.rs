@@ -1,5 +1,4 @@
 use serde::{Deserialize, Serialize};
-use std::fmt;
 use tracing::{error, instrument};
 use ts_rs::TS;
 
@@ -7,7 +6,6 @@ use crate::events::AppHandleEventEmitter;
 use crate::grpc::tunnel::TunnelState;
 use crate::{
     cli::Cli,
-    country::Country,
     db::{Db, Key},
     fs::config::AppConfig,
     grpc::client::{VpndInfo, VpndStatus},
@@ -61,23 +59,5 @@ impl AppState {
         self.tunnel = state;
         app.emit_tunnel_update(&self.tunnel);
         Ok(())
-    }
-}
-
-#[derive(Default, Serialize, Deserialize, Debug, Clone, TS)]
-#[serde(untagged)]
-#[ts(export)]
-pub enum NodeLocation {
-    #[default]
-    Fastest,
-    Country(Country),
-}
-
-impl fmt::Display for NodeLocation {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            NodeLocation::Fastest => write!(f, "NodeLocation: Fastest"),
-            NodeLocation::Country(country) => write!(f, "NodeLocation: {}", country),
-        }
     }
 }

@@ -1,17 +1,13 @@
-use crate::country::FASTEST_NODE_LOCATION;
 use crate::db::{Db, Key};
 use crate::error::ErrorKey;
 use crate::grpc::client::{GrpcClient, VpndError};
 use crate::grpc::tunnel::TunnelState;
-use crate::states::app::NodeLocation;
 use crate::{
+    country::Country,
     error::BackendError,
     events::{AppHandleEventEmitter, ConnectProgressMsg},
     states::{app::VpnMode, SharedAppState},
 };
-use nym_vpn_proto::entry_node::EntryNodeEnum;
-use nym_vpn_proto::exit_node::ExitNodeEnum;
-use nym_vpn_proto::{EntryNode, ExitNode, Location};
 use tauri::State;
 use tracing::{debug, error, info, instrument, warn};
 
@@ -31,8 +27,8 @@ pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
     grpc: State<'_, GrpcClient>,
-    entry: NodeLocation,
-    exit: NodeLocation,
+    entry: Country,
+    exit: Country,
 ) -> Result<TunnelState, BackendError> {
     {
         let mut app_state = state.lock().await;
@@ -62,58 +58,8 @@ pub async fn connect(
     // release the lock
     drop(app_state);
 
-    let entry_node = match entry {
-        NodeLocation::Country(country) => {
-            info!("entry {}", country);
-            EntryNode {
-                entry_node_enum: Some(EntryNodeEnum::Location(Location {
-                    two_letter_iso_country_code: country.code.clone(),
-                    latitude: None,
-                    longitude: None,
-                })),
-            }
-        }
-        NodeLocation::Fastest => {
-            debug!(
-                "entry country set to `Fastest`, using {}",
-                FASTEST_NODE_LOCATION.clone()
-            );
-            EntryNode {
-                entry_node_enum: Some(EntryNodeEnum::Location(Location {
-                    two_letter_iso_country_code: FASTEST_NODE_LOCATION.code.clone(),
-                    latitude: None,
-                    longitude: None,
-                })),
-            }
-        }
-    };
-
-    let exit_node = match exit {
-        NodeLocation::Country(country) => {
-            info!("exit {}", country);
-            ExitNode {
-                exit_node_enum: Some(ExitNodeEnum::Location(Location {
-                    two_letter_iso_country_code: country.code.clone(),
-                    latitude: None,
-                    longitude: None,
-                })),
-            }
-        }
-        NodeLocation::Fastest => {
-            info!(
-                "exit country set to `Fastest`, using {}",
-                FASTEST_NODE_LOCATION.clone()
-            );
-            ExitNode {
-                exit_node_enum: Some(ExitNodeEnum::Location(Location {
-                    two_letter_iso_country_code: FASTEST_NODE_LOCATION.code.clone(),
-                    latitude: None,
-                    longitude: None,
-                })),
-            }
-        }
-    };
-
+    info!("entry {}", entry.code);
+    info!("exit {}", exit.code);
     let two_hop_mod = if let VpnMode::TwoHop = vpn_mode {
         info!("mode [wg]");
         true
@@ -132,8 +78,8 @@ pub async fn connect(
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
     match grpc
         .vpn_connect(
-            entry_node,
-            exit_node,
+            entry,
+            exit,
             two_hop_mod,
             credentials_mode,
             use_netstack_wireguard,

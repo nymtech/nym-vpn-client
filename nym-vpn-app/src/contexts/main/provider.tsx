@@ -14,10 +14,8 @@ import {
   Cli,
   Country,
   NodeHop,
-  NodeLocation,
   SystemMessage,
   VpnMode,
-  isCountry,
 } from '../../types';
 import { initFirstBatch, initSecondBatch } from '../../state/init';
 import { initialState, reducer } from '../../state';
@@ -218,10 +216,9 @@ function MainStateProvider({ children }: Props) {
   };
 
   const checkSelectedCountry = useCallback(
-    async (hop: NodeHop, countries: Country[], selected: NodeLocation) => {
+    async (hop: NodeHop, countries: Country[], selected: Country) => {
       if (
         countries.length > 0 &&
-        isCountry(selected) &&
         !countries.some((c) => c.code === selected.code)
       ) {
         const location =
@@ -230,9 +227,9 @@ function MainStateProvider({ children }: Props) {
           `selected ${hop} country [${selected.code}] not available, switching to [${location.code}]`,
         );
         try {
-          await kvSet<NodeLocation>(
+          await kvSet<Country>(
             hop === 'entry' ? 'EntryNodeLocation' : 'ExitNodeLocation',
-            isCountry(location) ? location : 'Fastest',
+            location,
           );
           dispatch({
             type: 'set-node-location',

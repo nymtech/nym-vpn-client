@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { FlagIcon, MsIcon, countryCode } from '../../ui';
+import { FlagIcon, countryCode } from '../../ui';
 import { UiCountry } from './NodeLocation';
 
 type CountryListProps = {
@@ -30,10 +30,7 @@ export default function CountryList({
     <ul className="flex flex-col w-full items-stretch gap-1">
       {countries.length > 0 ? (
         countries.map((uiCountry) => (
-          <li
-            key={uiCountry.isFastest ? 'fastest' : uiCountry.country.code}
-            className="list-none w-full"
-          >
+          <li key={uiCountry.country.code} className="list-none w-full">
             <div
               role="presentation"
               onKeyDown={() => onSelect(uiCountry)}
@@ -45,28 +42,16 @@ export default function CountryList({
               ])}
               onClick={() => onSelect(uiCountry)}
             >
-              {!uiCountry.isFastest && (
-                <div className="flex flex-row items-center m-1 gap-3 p-1 overflow-hidden">
-                  <FlagIcon
-                    code={uiCountry.country.code.toLowerCase() as countryCode}
-                    alt={uiCountry.country.code}
-                    className="h-6"
-                  />
-                  <div className="dark:text-mercury-pinkish text-base truncate">
-                    {uiCountry.country.name}
-                  </div>
+              <div className="flex flex-row items-center m-1 gap-3 p-1 overflow-hidden">
+                <FlagIcon
+                  code={uiCountry.country.code.toLowerCase() as countryCode}
+                  alt={uiCountry.country.code}
+                  className="h-6"
+                />
+                <div className="dark:text-mercury-pinkish text-base truncate">
+                  {uiCountry.country.name}
                 </div>
-              )}
-              {uiCountry.isFastest && (
-                <div className="flex flex-row items-center m-1 gap-3 p-1 overflow-hidden">
-                  <div className="w-7 max-h-6 flex justify-center items-center">
-                    <MsIcon icon="bolt" />
-                  </div>
-                  <div className="text-base truncate">{`${t('fastest', {
-                    ns: 'common',
-                  })} (${uiCountry.country.name})`}</div>
-                </div>
-              )}
+              </div>
               <div
                 className={clsx([
                   'pr-4 ml-2 flex items-center font-medium text-xs',

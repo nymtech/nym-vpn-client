@@ -15,7 +15,6 @@ import {
   AccountLinks,
   CodeDependency,
   Country,
-  NodeLocation,
   StateDispatch,
   ThemeMode,
   TunnelStateIpc,
@@ -83,35 +82,34 @@ export async function initFirstBatch(
     },
   };
 
-  const getEntryLocationRq: TauriReq<() => Promise<NodeLocation | undefined>> =
-    {
-      name: 'getEntryLocation',
-      request: () => kvGet<NodeLocation>('EntryNodeLocation'),
-      onFulfilled: (location) => {
-        if (location) {
-          dispatch({
-            type: 'set-node-location',
-            payload: {
-              hop: 'entry',
-              location: location === 'Fastest' ? 'Fastest' : location,
-            },
-          });
-        } else {
-          console.info('no entry country saved, using default', DefaultCountry);
-        }
-      },
-    };
+  const getEntryLocationRq: TauriReq<() => Promise<Country | undefined>> = {
+    name: 'getEntryLocation',
+    request: () => kvGet<Country>('EntryNodeLocation'),
+    onFulfilled: (location) => {
+      if (location) {
+        dispatch({
+          type: 'set-node-location',
+          payload: {
+            hop: 'entry',
+            location,
+          },
+        });
+      } else {
+        console.info('no entry country saved, using default', DefaultCountry);
+      }
+    },
+  };
 
-  const getExitLocationRq: TauriReq<() => Promise<NodeLocation | undefined>> = {
+  const getExitLocationRq: TauriReq<() => Promise<Country | undefined>> = {
     name: 'getExitLocation',
-    request: () => kvGet<NodeLocation>('ExitNodeLocation'),
+    request: () => kvGet<Country>('ExitNodeLocation'),
     onFulfilled: (location) => {
       if (location) {
         dispatch({
           type: 'set-node-location',
           payload: {
             hop: 'exit',
-            location: location === 'Fastest' ? 'Fastest' : location,
+            location,
           },
         });
       } else {

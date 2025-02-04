@@ -113,13 +113,13 @@ function Home() {
             </div>
             <div className="flex flex-col gap-5">
               <HopSelect
-                nodeLocation={entryNodeLocation}
+                country={entryNodeLocation}
                 onClick={() => navigate(routes.entryNodeLocation)}
                 nodeHop="entry"
                 disabled={daemonStatus === 'NotOk' || state !== 'Disconnected'}
               />
               <HopSelect
-                nodeLocation={exitNodeLocation}
+                country={exitNodeLocation}
                 onClick={() => navigate(routes.exitNodeLocation)}
                 nodeHop="exit"
                 disabled={daemonStatus === 'NotOk' || state !== 'Disconnected'}

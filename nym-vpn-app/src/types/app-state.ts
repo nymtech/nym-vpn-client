@@ -1,7 +1,7 @@
 import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
-import { Country, NodeHop, NodeLocation, ThemeMode, UiTheme } from './common';
+import { Country, NodeHop, ThemeMode, UiTheme } from './common';
 import { AccountLinks, ErrorKey, NetworkEnv } from './tauri-ipc';
 import { Tunnel, TunnelError } from './tunnel';
 
@@ -48,9 +48,8 @@ export type AppState = {
   autoConnect: boolean;
   monitoring: boolean;
   desktopNotifications: boolean;
-  entryNodeLocation: NodeLocation;
-  exitNodeLocation: NodeLocation;
-  fastestNodeLocation: Country;
+  entryNodeLocation: Country;
+  exitNodeLocation: Country;
   entryCountryList: Country[];
   exitCountryList: Country[];
   entryCountriesLoading: boolean;

@@ -17,8 +17,6 @@ export const DefaultCountry: Country = {
   name: 'Switzerland',
   code: 'CH',
 };
-// TODO disabled Fastest location until the backend is ready
-export const FastestFeatureEnabled = false;
 export const DefaultThemeMode = 'System';
 
 // Various external links
