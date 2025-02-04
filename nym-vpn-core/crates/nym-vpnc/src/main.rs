@@ -7,7 +7,7 @@ mod config;
 mod protobuf_conversion;
 mod vpnd_client;
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{bail, Context, Result};
 use clap::Parser;
 use cli::Internal;
 use itertools::Itertools;
@@ -179,9 +179,9 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
 }
 
 async fn handle_connect_success(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()> {
-    if connect_args.wait_until_connected {
+    if connect_args.wait {
         println!("Successfully sent connect command, waiting for connected state");
-        listen_until_connected_or_failed(opts).await
+        wait_until_connected(opts).await
     } else {
         println!("Successfully sent connect command");
         Ok(())
@@ -202,7 +202,7 @@ fn handle_connect_failure(error: nym_vpn_proto::ConnectRequestError) -> Result<(
     Ok(())
 }
 
-async fn listen_until_connected_or_failed(opts: CliOptions) -> Result<()> {
+async fn wait_until_connected(opts: CliOptions) -> Result<()> {
     let mut client = vpnd_client::get_client(&opts.client_type).await?;
 
     let mut stream = client.listen_to_tunnel_state(()).await?.into_inner();
@@ -210,10 +210,21 @@ async fn listen_until_connected_or_failed(opts: CliOptions) -> Result<()> {
         let new_state = TunnelState::try_from(new_state)?;
         println!("{}", new_state);
 
-        if matches!(new_state, TunnelState::Connected { .. }) {
-            break;
-        } else if matches!(new_state, TunnelState::Error(_)) {
-            return Err(anyhow!("Connection failed"));
+        match new_state {
+            TunnelState::Connected { .. } => {
+                break;
+            }
+            TunnelState::Offline { reconnect } => {
+                if reconnect {
+                    println!("Device is offline. Waiting for network connectivity.");
+                } else {
+                    bail!("Device is offline");
+                }
+            }
+            TunnelState::Error(reason) => {
+                bail!("Tunnel entered error state {:?}", reason);
+            }
+            _ => {}
         }
     }
     Ok(())

@@ -182,7 +182,7 @@ pub struct ConnectArgs {
 
     /// Blocks until the connection is established or failed
     #[arg(short, long)]
-    pub wait_until_connected: bool,
+    pub wait: bool,
 
     /// Use netstack based implementation for two-hop wireguard.
     #[arg(long, requires = "enable_two_hop")]
