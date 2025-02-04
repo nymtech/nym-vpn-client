@@ -50,7 +50,7 @@ async fn main() -> Result<()> {
 
     match args.command {
         Command::Connect(ref connect_args) => connect(opts, connect_args).await?,
-        Command::Disconnect => disconnect(opts).await?,
+        Command::Disconnect { wait } => disconnect(opts, wait).await?,
         Command::Status { listen } => status(listen, opts).await?,
         Command::Info => info(opts.client_type).await?,
         Command::SetNetwork(ref args) => set_network(opts.client_type, args).await?,
@@ -180,7 +180,7 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
 
 async fn handle_connect_success(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()> {
     if connect_args.wait {
-        println!("Successfully sent connect command, waiting for connected state");
+        println!("Successfully sent connect command. Waiting until connected or failed.");
         wait_until_connected(opts).await
     } else {
         println!("Successfully sent connect command");
@@ -230,7 +230,7 @@ async fn wait_until_connected(opts: CliOptions) -> Result<()> {
     Ok(())
 }
 
-async fn disconnect(opts: CliOptions) -> Result<()> {
+async fn disconnect(opts: CliOptions, wait: bool) -> Result<()> {
     let mut client = vpnd_client::get_client(&opts.client_type.clone()).await?;
     let response = client.vpn_disconnect(()).await?.into_inner();
 
@@ -239,25 +239,34 @@ async fn disconnect(opts: CliOptions) -> Result<()> {
     }
 
     if response.success {
-        println!("Successfully sent disconnect command, waiting for disconnected state");
-        listen_until_disconnected(opts).await
+        if wait {
+            println!("Successfully sent disconnect command. Waiting until disconnected.");
+            wait_until_disconnected(opts).await
+        } else {
+            println!("Successfully sent disconnect command");
+            Ok(())
+        }
     } else {
         println!("Disconnect command failed");
         Ok(())
     }
 }
 
-async fn listen_until_disconnected(opts: CliOptions) -> Result<()> {
+async fn wait_until_disconnected(opts: CliOptions) -> Result<()> {
     let mut client = vpnd_client::get_client(&opts.client_type).await?;
-
     let mut stream = client.listen_to_tunnel_state(()).await?.into_inner();
-
     while let Some(new_state) = stream.message().await? {
         let new_state = TunnelState::try_from(new_state)?;
         println!("{}", new_state);
 
-        if matches!(new_state, TunnelState::Disconnected | TunnelState::Error(_)) {
-            break;
+        match new_state {
+            TunnelState::Disconnected | TunnelState::Offline { .. } => {
+                break;
+            }
+            TunnelState::Error(reason) => {
+                bail!("Tunnel entered error state: {:?}", reason)
+            }
+            _ => {}
         }
     }
     Ok(())

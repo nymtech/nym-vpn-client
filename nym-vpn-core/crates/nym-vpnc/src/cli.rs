@@ -47,7 +47,11 @@ pub enum Command {
     Connect(ConnectArgs),
 
     /// Disconnect from the Nym network.
-    Disconnect,
+    Disconnect {
+        /// Blocks until disconnected.
+        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
+        wait: bool,
+    },
 
     /// Get the current status of the connection.
     Status {
