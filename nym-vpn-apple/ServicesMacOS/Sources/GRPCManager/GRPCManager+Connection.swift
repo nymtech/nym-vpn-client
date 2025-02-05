@@ -29,7 +29,6 @@ extension GRPCManager {
             call.response.whenComplete { [weak self] result in
                 switch result {
                 case .success(let response):
-                    print(response)
                     self?.logger.log(level: .info, "\(response)")
 
                     if response.hasError {

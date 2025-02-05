@@ -4,8 +4,8 @@ public struct ActionDialogConfiguration {
     let iconImageName: String?
     let titleLocalizedString: String?
     let subtitleLocalizedString: String?
-    let yesLocalizedString: String
-    let noLocalizedString: String
+    let yesLocalizedString: String?
+    let noLocalizedString: String?
     let yesAction: (() -> Void)?
     let noAction: (() -> Void)?
 
@@ -13,8 +13,8 @@ public struct ActionDialogConfiguration {
         iconImageName: String? = nil,
         titleLocalizedString: String? = nil,
         subtitleLocalizedString: String? = nil,
-        yesLocalizedString: String = "yes".localizedString,
-        noLocalizedString: String = "no".localizedString,
+        yesLocalizedString: String? = nil,
+        noLocalizedString: String? = nil,
         yesAction: (() -> Void)? = nil,
         noAction: (() -> Void)? = nil
     ) {

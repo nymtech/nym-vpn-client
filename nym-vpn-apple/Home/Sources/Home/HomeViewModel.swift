@@ -54,6 +54,7 @@ public class HomeViewModel: HomeFlowState {
     @MainActor @Published var statusInfoState = StatusInfoState.initialising
     @MainActor @Published var connectButtonState = ConnectButtonState.connect
     @MainActor @Published var isModeInfoOverlayDisplayed = false
+    @MainActor @Published var isOfflineOverlayDisplayed = false
     @MainActor @Published var snackBarMessage = ""
     @MainActor @Published var isSnackBarDisplayed = false {
         didSet {
@@ -63,6 +64,15 @@ public class HomeViewModel: HomeFlowState {
                 systemMessageManager.messageDidClose()
             }
         }
+    }
+
+    var offlineOverlayConfiguration: ActionDialogConfiguration {
+        ActionDialogConfiguration(
+            iconImageName: "exclamationmark.circle",
+            titleLocalizedString: "home.modal.noInternetConnection.title".localizedString,
+            subtitleLocalizedString: "home.modal.noInternetConnection.subtitle".localizedString,
+            yesLocalizedString: "close".localizedString
+        )
     }
 
     @MainActor @Published public var splashScreenDidDisplay = false
@@ -218,10 +228,13 @@ private extension HomeViewModel {
         // We use networkMonitor only as a source of truth for iOS disconnected state.
         // For macOS - we rely on daemon tunnel states.
 #if os(iOS)
-        networkMonitor.$isAvailable.sink { [weak self] isAvailable in
-            self?.offlineState(with: isAvailable)
-        }
-        .store(in: &cancellables)
+        networkMonitor.$isAvailable
+            .removeDuplicates()
+            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.global(qos: .background))
+            .sink { [weak self] isAvailable in
+                self?.offlineState(with: isAvailable)
+            }
+            .store(in: &cancellables)
 #endif
     }
 

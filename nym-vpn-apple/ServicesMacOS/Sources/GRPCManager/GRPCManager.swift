@@ -98,9 +98,7 @@ public final class GRPCManager: ObservableObject {
         call.response.whenComplete { [weak self] result in
             switch result {
             case .success(let response):
-                print(response)
                 self?.logger.log(level: .info, "\(response)")
-
             case .failure(let error):
                 self?.logger.log(level: .info, "Failed to connect to VPN: \(error)")
             }

@@ -9,7 +9,6 @@ extension GRPCManager {
             call.response.whenComplete { result in
                 switch result {
                 case .success(let response):
-                    print(response)
                     continuation.resume(returning: response.deviceIdentity)
                 case .failure(let error):
                     continuation.resume(throwing: error)

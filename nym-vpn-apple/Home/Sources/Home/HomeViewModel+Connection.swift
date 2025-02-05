@@ -4,8 +4,16 @@ public extension HomeViewModel {
         else {
             return
         }
+
 #if os(iOS)
         impactGenerator.impact()
+
+        if !networkMonitor.isAvailable && connectionManager.currentTunnelStatus == .disconnected {
+            Task { @MainActor in
+                isOfflineOverlayDisplayed = true
+            }
+            return
+        }
 #endif
         Task {
             lastError = nil

@@ -10,15 +10,7 @@ extension TunnelStatus {
             self = .connecting
         case .connected:
             self = .connected
-        case let .disconnecting(actionAfterDisconnect):
-            switch actionAfterDisconnect {
-            case .nothing, .error:
-                self = .disconnecting
-            case .reconnect:
-                self = .connecting
-            case .offline:
-                self = .offlineReconnect
-            }
+        case .disconnecting:
             self = .disconnecting
         case .error:
             self = .disconnected

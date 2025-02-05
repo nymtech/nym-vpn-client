@@ -6,7 +6,7 @@ import TunnelStatus
 extension HomeViewModel {
     func setupGRPCManagerObservers() {
         grpcManager.$tunnelStatus
-            .debounce(for: .seconds(0.15), scheduler: DispatchQueue.global(qos: .background))
+            .removeDuplicates()
             .receive(on: RunLoop.main)
             .sink { [weak self] status in
                 self?.updateUI(with: status)

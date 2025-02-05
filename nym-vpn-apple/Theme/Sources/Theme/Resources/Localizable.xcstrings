@@ -320,6 +320,17 @@
         }
       }
     },
+    "close" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        }
+      }
+    },
     "connect" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -932,6 +943,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Error: Failed to install and authorize daemon"
+          }
+        }
+      }
+    },
+    "home.modal.noInternetConnection.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It appears you are not connected to the internet. Please check your internet connection and try to connect."
+          }
+        }
+      }
+    },
+    "home.modal.noInternetConnection.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection"
           }
         }
       }
