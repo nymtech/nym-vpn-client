@@ -88,6 +88,7 @@ class NymBackendManager @Inject constructor(
 		return try {
 			backend.getCompleted().getState()
 		} catch (e: IllegalStateException) {
+			Timber.e(e)
 			Tunnel.State.Down
 		}
 	}
