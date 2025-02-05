@@ -1,6 +1,7 @@
 // Copyright 2023-2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::SocketAddr;
 use std::{fmt, net::IpAddr};
 
 use nym_sdk::UserAgent;
@@ -12,7 +13,6 @@ use tracing::{debug, error, info, warn};
 use url::Url;
 
 use crate::entries::gateway::NymNodeList;
-use crate::helpers::try_resolve_hostname;
 use crate::{
     entries::{
         country::Country,
@@ -107,21 +107,17 @@ impl Config {
         }
     }
 
-    async fn url_to_ips(url: &Url) -> Result<Vec<IpAddr>> {
-        match url.host() {
-            Some(url::Host::Ipv4(addr)) => Ok(vec![addr.into()]),
-            Some(url::Host::Ipv6(addr)) => Ok(vec![addr.into()]),
-            Some(url::Host::Domain(hostname)) => try_resolve_hostname(hostname).await,
-            None => Err(Error::NoHostForUrl(url.clone())),
-        }
-    }
-
     pub fn nyxd_url(&self) -> &Url {
         &self.nyxd_url
     }
 
-    pub async fn nyxd_ips(&self) -> Result<Vec<IpAddr>> {
-        Self::url_to_ips(&self.nyxd_url).await
+    pub fn nyxd_socket_addrs(&self) -> Result<Vec<SocketAddr>> {
+        self.nyxd_url
+            .socket_addrs(|| None)
+            .map_err(|reason| Error::UrlError {
+                url: self.nyxd_url.clone(),
+                reason,
+            })
     }
 
     pub fn with_custom_nyxd_url(mut self, nyxd_url: Url) -> Self {
@@ -133,8 +129,13 @@ impl Config {
         &self.api_url
     }
 
-    pub async fn api_ips(&self) -> Result<Vec<IpAddr>> {
-        Self::url_to_ips(&self.api_url).await
+    pub fn api_socket_addrs(&self) -> Result<Vec<SocketAddr>> {
+        self.api_url
+            .socket_addrs(|| None)
+            .map_err(|reason| Error::UrlError {
+                url: self.api_url.clone(),
+                reason,
+            })
     }
 
     pub fn with_custom_api_url(mut self, api_url: Url) -> Self {
@@ -146,9 +147,14 @@ impl Config {
         self.nym_vpn_api_url.as_ref()
     }
 
-    pub async fn nym_vpn_api_ips(&self) -> Result<Option<Vec<IpAddr>>> {
+    pub fn nym_vpn_api_socket_addrs(&self) -> Result<Option<Vec<SocketAddr>>> {
         if let Some(url) = &self.nym_vpn_api_url {
-            Self::url_to_ips(url).await.map(Some)
+            Ok(Some(url.socket_addrs(|| None).map_err(|reason| {
+                Error::UrlError {
+                    url: url.clone(),
+                    reason,
+                }
+            })?))
         } else {
             Ok(None)
         }

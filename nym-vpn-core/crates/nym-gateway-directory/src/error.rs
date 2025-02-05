@@ -82,8 +82,8 @@ pub enum Error {
     #[error("failed to lookup gateway ip for gateway {0}")]
     FailedToLookupIp(String),
 
-    #[error("provided url doesn't parse to a host")]
-    NoHostForUrl(Url),
+    #[error("the url {url} doesn't parse to a host and port: {reason}")]
+    UrlError { url: Url, reason: std::io::Error },
 
     #[error("the provided gateway information is malformed")]
     MalformedGateway,
