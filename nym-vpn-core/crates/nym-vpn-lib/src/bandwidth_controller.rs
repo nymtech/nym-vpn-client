@@ -5,7 +5,7 @@ use std::time::Duration;
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
-use tokio::sync::mpsc;
+use tokio::{sync::mpsc, time::timeout};
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 use tokio_util::sync::CancellationToken;
 
