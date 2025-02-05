@@ -84,6 +84,7 @@ impl Connector {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     async fn connect_inner(
         task_manager: &TaskManager,
         mixnet_client: SharedMixnetClient,
