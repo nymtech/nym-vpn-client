@@ -9,7 +9,7 @@
     <string name="disconnecting">डिसकनेक्ट हो रहा है</string>
     <string name="five_hop_mixnet">"अनाम  (mixnet)"</string>
     <string name="five_hop_description">भुगतान, ईमेल और मेसेज के लिए</string>
-	<string name="first_hop">उद्भव स्थान</string>
+    <string name="first_hop">उद्भव स्थान</string>
     <string name="last_hop">VPN आखरी स्थान</string>
     <string name="connect">कनेक्ट</string>
     <string name="last_hop_selection">VPN आखरी स्थान</string>
@@ -198,4 +198,5 @@
     <string name="device_id">डिवाइस आईडी</string>
     <string name="unexpected_error">एक अप्रत्याशित त्रुटि हुई:</string>
     <string name="no_active_subscription">कोई सक्रिय सदस्यता नहीं पाई गई।</string>
+    <string name="disabled_while_connecting">VPN से जुड़ते समय अक्षम</string>
 </resources>
