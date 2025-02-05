@@ -462,16 +462,16 @@ impl From<nym_gateway_directory::UxScores> for UxScores {
 }
 
 #[derive(Debug, PartialEq, uniffi::Record, Clone)]
-pub struct Gateway {
+pub struct GatewayInfo {
     pub id: NodeIdentity,
     pub moniker: String,
     pub location: Option<Location>,
     pub scores: Option<UxScores>,
 }
 
-impl From<nym_gateway_directory::Gateway> for Gateway {
+impl From<nym_gateway_directory::Gateway> for GatewayInfo {
     fn from(value: nym_gateway_directory::Gateway) -> Self {
-        Gateway {
+        GatewayInfo {
             moniker: value.moniker,
             location: value.location.map(Location::from),
             id: value.identity,

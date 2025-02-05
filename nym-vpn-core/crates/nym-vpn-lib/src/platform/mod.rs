@@ -69,7 +69,7 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 use crate::tunnel_provider::ios::OSTunProvider;
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
-    AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, Gateway, GatewayMinPerformance,
+    AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayInfo, GatewayMinPerformance,
     GatewayType, Location, NetworkEnvironment, SystemMessage, UserAgent,
 };
 use uniffi_lib_types::TunnelEvent;
@@ -294,7 +294,7 @@ pub fn getGateways(
     gw_type: GatewayType,
     user_agent: UserAgent,
     min_gateway_performance: Option<GatewayMinPerformance>,
-) -> Result<Vec<Gateway>, VpnError> {
+) -> Result<Vec<GatewayInfo>, VpnError> {
     RUNTIME.block_on(get_gateways(gw_type, user_agent, min_gateway_performance))
 }
 
@@ -302,7 +302,7 @@ async fn get_gateways(
     gw_type: GatewayType,
     user_agent: UserAgent,
     min_gateway_performance: Option<GatewayMinPerformance>,
-) -> Result<Vec<Gateway>, VpnError> {
+) -> Result<Vec<GatewayInfo>, VpnError> {
     let network_env = environment::current_environment_details().await?;
     let nyxd_url = network_env.nyxd_url().ok_or(VpnError::InternalError {
         details: "Nyxd URL not found".to_string(),
@@ -325,7 +325,7 @@ async fn get_gateways(
             gateways
                 .into_inner()
                 .into_iter()
-                .map(Gateway::from)
+                .map(GatewayInfo::from)
                 .collect()
         })
         .map_err(VpnError::from)
