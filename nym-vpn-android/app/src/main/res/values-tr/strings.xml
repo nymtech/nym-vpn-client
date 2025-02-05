@@ -10,7 +10,7 @@
     <string name="five_hop_mixnet">Anonim (mixnet)</string>
     <string name="disconnecting">Bağlantı koptu</string>
     <string name="first_hop">Giriş lokasyonu</string>
-	<string name="disconnected">Bağlantı kesildi</string>
+    <string name="disconnected">Bağlantı kesildi</string>
     <string name="init_client">İstemci başlatılıyor…</string>
     <string name="establishing_connection">Bağlantı kuruluyor</string>
     <string name="connection_time">Bağlantı süresi</string>
@@ -122,7 +122,7 @@
     <string name="mode_selection">Mod seçimi</string>
     <string name="five_hop_explanation">Bağlantınızı mixnet üzerinden 5 sunucuya yönlendirerek maksimum düzeyde gizliliğin tadını çıkarın. Ödemeleri, e-postaları ve mesajları güvenli bir şekilde yönetmek için mükemmeldir.</string>
     <string name="continue_reading">Okumaya devam edin</string>
-	<string name="entry_location">Giriş konumu</string>
+    <string name="entry_location">Giriş konumu</string>
     <string name="exit_location">Çıkış konumu</string>
     <string name="language">Dil</string>
     <string name="entry_location_selector">Entry konumu seçici</string>
@@ -198,4 +198,6 @@
     <string name="no_internet">Cihazınızın internet bağlantısı yok</string>
     <string name="waiting_for_connection">Cihaz çevrimiçi olduğunda bağlanacaktır</string>
     <string name="loading">Yükleniyor</string>
+    <string name="two_hop_explanation">Maksimum hızı 2 sunucu bağlantısıyla deneyimleyin. Bu mod, hızlı tarama, akış ve dosya paylaşımı için ideal olan, sansüre dirençli bir WireGuard versiyonu olan AmneziaWG\'yi kullanır.</string>
+    <string name="disabled_while_connecting">VPN bağlantısı sırasında devre dışı bırakıldı</string>
 </resources>
