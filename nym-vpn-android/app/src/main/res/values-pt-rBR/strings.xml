@@ -92,7 +92,7 @@
     <string name="app_shortcuts">Atalhos do aplicativo</string>
     <string name="enable_shortcuts">Ativar atalhos do aplicativo</string>
     <string name="five_hop_mixnet">Anônimo (mixnet)</string>
-	<string name="last_hop_selection">Local de saída</string>
+    <string name="last_hop_selection">Local de saída</string>
     <string name="privacy_policy">Declaração de privacidade</string>
     <string name="licenses">Licenças</string>
     <string name="open_github">Abrir um problema no GitHub</string>
@@ -198,4 +198,6 @@
     <string name="same_entry_exit_message">Para fins de privacidade, o NymVPN não usará o mesmo gateway para entrada e saída. Reconecte-se ou escolha locais diferentes.</string>
     <string name="device_id">ID do dispositivo:</string>
     <string name="loading">Carregando</string>
+    <string name="two_hop_explanation">Experimente a velocidade máxima com a conectividade de 2 servidores. Esse modo aproveita o AmneziaWG, uma versão resistente à censura do WireGuard, ideal para navegação rápida, streaming e compartilhamento de arquivos.</string>
+    <string name="disabled_while_connecting">Desativado durante a conexão com a VPN</string>
 </resources>
