@@ -26,17 +26,9 @@ public struct ActionDialogView: View {
                         .frame(height: 16)
                     title()
                     subtitle()
-                    HStack {
-                        Spacer()
-                        yesButton()
 
-                        Spacer()
-                            .frame(width: 16)
-
-                        noButton()
-                        Spacer()
-                    }
-                    .padding(24)
+                    buttons()
+                        .padding(24)
                 }
                 .background(NymColor.modeInfoViewBackground)
                 .cornerRadius(16)
@@ -86,8 +78,27 @@ private extension ActionDialogView {
     }
 
     @ViewBuilder
-    func yesButton() -> some View {
-        GenericButton(title: viewModel.configuration.yesLocalizedString)
+    func buttons() -> some View {
+        HStack {
+            Spacer()
+            if let yesLocalizedString = viewModel.configuration.yesLocalizedString {
+                yesButton(text: yesLocalizedString)
+            }
+
+            if let noLocalizedString = viewModel.configuration.noLocalizedString {
+                Spacer()
+                    .frame(width: 16)
+
+                noButton(text: noLocalizedString)
+            }
+
+            Spacer()
+        }
+    }
+
+    @ViewBuilder
+    func yesButton(text: String) -> some View {
+        GenericButton(title: text)
             .onTapGesture {
 #if os(iOS)
                 viewModel.impactGenerator.success()
@@ -98,8 +109,8 @@ private extension ActionDialogView {
     }
 
     @ViewBuilder
-    func noButton() -> some View {
-        GenericButton(title: viewModel.configuration.noLocalizedString, borderOnly: true)
+    func noButton(text: String) -> some View {
+        GenericButton(title: text, borderOnly: true)
             .onTapGesture {
 #if os(iOS)
                 viewModel.impactGenerator.impact()

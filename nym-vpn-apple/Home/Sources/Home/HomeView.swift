@@ -41,17 +41,10 @@ private extension HomeView {
                 .ignoresSafeArea()
         }
         .overlay {
-            if viewModel.isModeInfoOverlayDisplayed {
-                ModeSelectionInfoView(
-                    viewModel:
-                        ModeSelectionInfoViewModel(
-                            externalLinkManager: viewModel.externalLinkManager,
-                            isDisplayed: $viewModel.isModeInfoOverlayDisplayed
-                        )
-                )
-                .transition(.opacity)
-                .animation(.easeInOut, value: viewModel.isModeInfoOverlayDisplayed)
-            }
+            modeInfoOverlay()
+        }
+        .overlay {
+            offlineOverlay()
         }
         .snackbar(
             isDisplayed: $viewModel.isSnackBarDisplayed,
@@ -198,5 +191,37 @@ private extension HomeView {
             }
             Spacer()
             .frame(height: viewModel.appSettings.isSmallScreen || Device.isMacOS ? 24 : 8)
+    }
+}
+
+// MARK: - Overlays -
+private extension HomeView {
+    @ViewBuilder
+    func modeInfoOverlay() -> some View {
+        if viewModel.isModeInfoOverlayDisplayed {
+            ModeSelectionInfoView(
+                viewModel:
+                    ModeSelectionInfoViewModel(
+                        externalLinkManager: viewModel.externalLinkManager,
+                        isDisplayed: $viewModel.isModeInfoOverlayDisplayed
+                    )
+            )
+            .transition(.opacity)
+            .animation(.easeInOut, value: viewModel.isModeInfoOverlayDisplayed)
+        }
+    }
+
+    @ViewBuilder
+    func offlineOverlay() -> some View {
+        if viewModel.isOfflineOverlayDisplayed {
+            ActionDialogView(
+                viewModel: ActionDialogViewModel(
+                    isDisplayed: $viewModel.isOfflineOverlayDisplayed,
+                    configuration: viewModel.offlineOverlayConfiguration
+                )
+            )
+            .transition(.opacity)
+            .animation(.easeInOut, value: viewModel.isOfflineOverlayDisplayed)
+        }
     }
 }
