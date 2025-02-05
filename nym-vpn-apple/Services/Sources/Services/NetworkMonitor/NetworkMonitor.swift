@@ -34,7 +34,7 @@ private extension NetworkMonitor {
 
     func setupNetworkMonitor() {
         monitor.pathUpdateHandler = { [weak self] path in
-            let isConnected = path.status == .satisfied
+            let isConnected = path.status == .satisfied || path.status == .requiresConnection
             let interfaceType = NWInterface.InterfaceType.allCases.first { path.usesInterfaceType($0) }
 
             guard self?.connectionManager.currentTunnelStatus != .connected,
@@ -56,7 +56,7 @@ private extension NetworkMonitor {
                 switch status {
                 case .connected, .connecting, .reasserting, .restarting, .unknown:
                     isAvailable = true
-                case .offline, .offlineRecconnect:
+                case .offline, .offlineReconnect:
                     isAvailable = false
                 case .disconnected, .disconnecting:
                     break

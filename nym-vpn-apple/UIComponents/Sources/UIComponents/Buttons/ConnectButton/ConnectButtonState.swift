@@ -23,7 +23,7 @@ public enum ConnectButtonState {
             self = .disconnecting
         case .offline, .unknown:
             self = .noInternet
-        case .offlineRecconnect:
+        case .offlineReconnect:
             self = .noInternetReconnect
         }
     }

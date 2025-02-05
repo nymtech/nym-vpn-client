@@ -23,7 +23,7 @@ public enum StatusInfoState: Equatable {
             self = isOnline ? .unknown : .noInternet
         case .offline:
             self = .noInternet
-        case .offlineRecconnect:
+        case .offlineReconnect:
             self = .noInternetReconnect
         }
     }

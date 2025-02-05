@@ -8,7 +8,7 @@ public enum TunnelStatus: Int, Equatable, Codable {
     case reasserting
     case restarting // Restarting tunnel (done after saving modifications to an active tunnel)
     case offline
-    case offlineRecconnect
+    case offlineReconnect
     case unknown
 
     public init(from systemStatus: NEVPNStatus) {

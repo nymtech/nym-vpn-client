@@ -17,13 +17,13 @@ extension TunnelStatus {
             case .reconnect:
                 self = .connecting
             case .offline:
-                self = .offlineRecconnect
+                self = .offlineReconnect
             }
             self = .disconnecting
         case .error:
             self = .disconnected
         case let .offline(reconnect):
-            self = reconnect ? .offlineRecconnect : .offline
+            self = reconnect ? .offlineReconnect : .offline
         }
     }
 }

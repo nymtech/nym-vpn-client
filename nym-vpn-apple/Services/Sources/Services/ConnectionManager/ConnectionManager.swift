@@ -175,7 +175,7 @@ public final class ConnectionManager: ObservableObject {
             guard !isAutoConnect else { return }
             if grpcManager.tunnelStatus == .connected
                 || grpcManager.tunnelStatus == .connecting
-                || grpcManager.tunnelStatus == .offlineRecconnect {
+                || grpcManager.tunnelStatus == .offlineReconnect {
                 isDisconnecting = true
                 grpcManager.disconnect()
             } else {
@@ -300,7 +300,7 @@ private extension ConnectionManager {
         guard let activeTunnel else { return false }
 
         switch activeTunnel.status {
-        case .connected, .connecting, .reasserting, .restarting, .offlineRecconnect:
+        case .connected, .connecting, .reasserting, .restarting, .offlineReconnect:
             return true
         case .disconnecting, .disconnected, .offline, .unknown:
             return false
