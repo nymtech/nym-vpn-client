@@ -140,7 +140,12 @@ private extension ConfigurationManager {
         logger.info("🛜 env: \(currentEnv.rawValue)")
         print("🛜 env: \(currentEnv.rawValue)")
 #if os(iOS)
-        try await setEnvVariables()
+        do {
+            try await setEnvVariables()
+        } catch {
+            guard currentEnv == .mainnet else { return }
+            try await setFallbackEnvVariables()
+        }
 #elseif os(macOS)
         try setDaemonEnvironmentVariables()
 #endif
@@ -151,6 +156,12 @@ private extension ConfigurationManager {
     func setEnvVariables() async throws {
         try await Task(priority: .background) {
             try await initEnvironmentAsync(networkName: currentEnv.rawValue)
+        }.value
+    }
+
+    func setFallbackEnvVariables() async throws {
+        try await Task(priority: .background) {
+            try initFallbackMainnetEnvironment()
         }.value
     }
 #elseif os(macOS)
