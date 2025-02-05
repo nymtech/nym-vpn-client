@@ -12,7 +12,12 @@ extension PacketTunnelProvider {
         switch message {
         case .status:
             guard let tunnelState = await tunnelActor.tunnelState else { return nil }
-            return try? JSONEncoder().encode(TunnelStatus(from: tunnelState))
+            do {
+                return try JSONEncoder().encode(TunnelStatus(from: tunnelState))
+            } catch {
+                logger.error("AppMessage: \(error.localizedDescription)")
+                return nil
+            }
         }
     }
 }
