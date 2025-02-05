@@ -8,7 +8,7 @@
     <string name="connecting">Connexion</string>
     <string name="five_hop_mixnet">Anonyme</string>
     <string name="five_hop_description">Pour les paiements, emails et messages</string>
-	<string name="two_hop_description">Pour la navigation, le streaming et les téléchargements</string>
+    <string name="two_hop_description">Pour la navigation, le streaming et les téléchargements</string>
     <string name="first_hop">Nœud d\'entrée</string>
     <string name="last_hop">Nœud de sortie</string>
     <string name="connect">Connecter</string>
@@ -133,4 +133,6 @@
     <string name="new_to_nym">Nouveau sur NymVPN ?</string>
     <string name="enter_access_code">S\'il vous plaît, entrer votre code d\'accès.</string>
     <string name="get_in_touch">Contactez-nous</string>
+    <string name="two_hop_explanation">Profitez d\'une vitesse maximale avec 2 serveurs. Ce mode est basé sur AmneziaWG, une version dérivée de WireGuard incluant une protection renforcée contre la censure. Parfait pour la navigation rapide, la diffusion en continu et le partage de fichiers.</string>
+    <string name="disabled_while_connecting">Désactivé lors de la connexion au VPN</string>
 </resources>
