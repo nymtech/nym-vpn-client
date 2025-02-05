@@ -146,6 +146,14 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
+	fun whenDisconnected(callback: () -> Unit) {
+		when (uiState.connectionState) {
+			ConnectionState.Disconnected, ConnectionState.Offline -> callback.invoke()
+			ConnectionState.WaitingForConnection, is ConnectionState.Connecting -> snackbar.showMessage(context.getString(R.string.disabled_while_connecting))
+			else -> snackbar.showMessage(context.getString(R.string.disabled_while_connected))
+		}
+	}
+
 	val vpnActivityResultState =
 		rememberLauncherForActivityResult(
 			ActivityResultContracts.StartActivityForResult(),
@@ -271,10 +279,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 						title = stringResource(R.string.two_hop_title),
 						description = stringResource(R.string.two_hop_description),
 						onClick = {
-							if (uiState.connectionState == ConnectionState.Disconnected) {
+							whenDisconnected {
 								viewModel.onTwoHopSelected()
-							} else {
-								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 							}
 						},
 						selected = appUiState.settings.vpnMode == Tunnel.Mode.TWO_HOP_MIXNET,
@@ -284,10 +290,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 						title = stringResource(R.string.five_hop_mixnet),
 						description = stringResource(R.string.five_hop_description),
 						onClick = {
-							if (uiState.connectionState == ConnectionState.Disconnected) {
+							whenDisconnected {
 								viewModel.onFiveHopSelected()
-							} else {
-								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 							}
 						},
 						selected = appUiState.settings.vpnMode == Tunnel.Mode.FIVE_HOP_MIXNET,
@@ -300,7 +304,10 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			) {
 				GroupLabel(title = stringResource(R.string.connect_to))
 				val trailingIcon = ImageVector.vectorResource(R.drawable.link_arrow_right)
-				val selectionEnabled = uiState.connectionState is ConnectionState.Disconnected
+				val indication = when (uiState.connectionState) {
+					ConnectionState.Disconnected, ConnectionState.Offline -> ripple()
+					else -> null
+				}
 				CustomTextField(
 					value = firstHopName,
 					readOnly = true,
@@ -322,14 +329,12 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 						.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
 						.clickable(
 							remember { MutableInteractionSource() },
-							indication = if (selectionEnabled) ripple() else null,
+							indication = indication,
 						) {
-							if (selectionEnabled) {
+							whenDisconnected {
 								navController.goFromRoot(
 									Route.EntryLocation,
 								)
-							} else {
-								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 							}
 						},
 				)
@@ -352,13 +357,11 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 						.fillMaxWidth()
 						.height(60.dp.scaledHeight())
 						.defaultMinSize(minHeight = 1.dp, minWidth = 1.dp)
-						.clickable(remember { MutableInteractionSource() }, indication = if (selectionEnabled) ripple() else null) {
-							if (selectionEnabled) {
+						.clickable(remember { MutableInteractionSource() }, indication = indication) {
+							whenDisconnected {
 								navController.goFromRoot(
 									Route.ExitLocation,
 								)
-							} else {
-								snackbar.showMessage(context.getString(R.string.disabled_while_connected))
 							}
 						},
 				)
@@ -370,12 +373,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
 								scope.launch {
-									if (!appUiState.managerState.isMnemonicStored
-									) {
-										return@launch navController.goFromRoot(Route.Credential)
-									}
-									// TODO show users they can't connect while offline
-									if (uiState.connectionState is ConnectionState.Offline) return@launch
+									if (!appUiState.managerState.isMnemonicStored) return@launch navController.goFromRoot(Route.Credential)
+									if (uiState.connectionState is ConnectionState.Offline) return@launch snackbar.showMessage(context.getString(R.string.no_internet))
 									onConnectPressed()
 								}
 							},
