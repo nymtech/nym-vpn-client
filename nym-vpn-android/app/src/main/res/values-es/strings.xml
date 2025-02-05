@@ -8,7 +8,7 @@
     <string name="connecting">Conectando</string>
     <string name="five_hop_mixnet">Anónimo (mixnet)</string>
     <string name="five_hop_description">Para pagos, correos electrónicos, mensajes</string>
-	<string name="two_hop_description">Mejor para navegar, streaming, compartir</string>
+    <string name="two_hop_description">Mejor para navegar, streaming, compartir</string>
     <string name="first_hop">Ubicación de entrada</string>
     <string name="last_hop">Ubicación de salida</string>
     <string name="connect">Conectar</string>
@@ -122,7 +122,7 @@
     <string name="mode_selection">Seleccione el modo</string>
     <string name="continue_reading">Continúa leyendo</string>
     <string name="five_hop_explanation">Disfrute de la máxima privacidad enrutando su conexión a través de 5 servidores mediante mixnet. Perfecto para gestionar pagos, correos electrónicos y mensajes de forma segura.</string>
-	<string name="entry_location">Gateway de entrada</string>
+    <string name="entry_location">Gateway de entrada</string>
     <string name="exit_location">Gateway de salida</string>
     <string name="appearance">Apariencia</string>
     <string name="language">Idioma</string>
@@ -198,4 +198,6 @@
     <string name="offline">Sin internet</string>
     <string name="waiting_for_connection">Se conectará cuando el dispositivo este online</string>
     <string name="no_internet">Tu dispositivo no tiene conexión a Internet</string>
+    <string name="two_hop_explanation">Experimenta la máxima velocidad con la conectividad de 2 servidores. Este modo aprovecha AmneziaWG, una versión de WireGuard resistente a la censura, ideal para navegar, transmitir y compartir archivos con rapidez.</string>
+    <string name="disabled_while_connecting">Desactivado al conectar a VPN</string>
 </resources>
