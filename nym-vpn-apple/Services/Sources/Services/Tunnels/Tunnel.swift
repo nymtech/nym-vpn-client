@@ -113,7 +113,7 @@ private extension Tunnel {
         pollingTask = Task {
             while isPolling {
                 await pollTunnelStatus()
-                try? await Task.sleep(for: .seconds(2))
+                try? await Task.sleep(for: .seconds(1))
             }
         }
     }

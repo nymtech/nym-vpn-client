@@ -26,6 +26,7 @@ public enum VPNErrorReason: LocalizedError {
     case requestZkNym(successes: [String], failed: [RequestZkNymFailure])
     case statisticsRecipient
     case unregisterDeviceApiClientFailure(details: String)
+    case invalidMnemonic(details: String)
     case unkownTunnelState
 
     public static let domain = "ErrorHandler.VPNErrorReason"
@@ -100,6 +101,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .statisticsRecipient
         case let .UnregisterDeviceApiClientFailure(details: details):
             self = .unregisterDeviceApiClientFailure(details: details)
+        case let .InvalidMnemonic(details: details):
+            self = .invalidMnemonic(details: details)
         }
     }
 
@@ -178,6 +181,14 @@ public enum VPNErrorReason: LocalizedError {
                 successes: successes,
                 failed: failures
             )
+        case 21:
+            self = .statisticsRecipient
+        case 22:
+            self = .unregisterDeviceApiClientFailure(
+                details: nsError.userInfo["details"] as? String ?? "Something went wrong."
+            )
+        case 23:
+            self = .invalidMnemonic(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
         default:
             self = .unkownTunnelState
         }
@@ -263,8 +274,10 @@ private extension VPNErrorReason {
             return 21
         case .unregisterDeviceApiClientFailure:
             return 22
-        case .unkownTunnelState:
+        case .invalidMnemonic:
             return 23
+        case .unkownTunnelState:
+            return 24
         }
     }
 
@@ -312,6 +325,8 @@ private extension VPNErrorReason {
         case .statisticsRecipient:
             return "The VPN statistics recipient is not available."
         case let .unregisterDeviceApiClientFailure(details: details):
+            return details
+        case let .invalidMnemonic(details: details):
             return details
         case .unkownTunnelState:
             return "Unknown tunnel error reason."

@@ -1,10 +1,11 @@
 import GRPC
+import Foundation
 import SwiftProtobuf
 import ErrorReason
 
 extension GRPCManager {
     func setupListenToTunnelStateChangesObserver() {
-        let call = client.listenToTunnelStateChanges(Google_Protobuf_Empty()) { [weak self] tunnelState in
+        let call = client.listenToTunnelState(Google_Protobuf_Empty()) { [weak self] tunnelState in
             self?.updateTunnelStatus(with: tunnelState)
         }
 
@@ -22,8 +23,9 @@ extension GRPCManager {
 extension GRPCManager {
     func updateTunnelStatus(with state: Nym_Vpn_TunnelState) {
         switch state.state {
-        case .connected:
+        case let .connected(details):
             tunnelStatus = .connected
+            connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)
         case .connecting:
             tunnelStatus = .connecting
         case .disconnected:

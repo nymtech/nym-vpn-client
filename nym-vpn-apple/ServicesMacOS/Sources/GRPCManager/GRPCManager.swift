@@ -40,7 +40,8 @@ public final class GRPCManager: ObservableObject {
     public var daemonVersion = "unknown"
 
     public var requiresUpdate: Bool {
-        daemonVersion != AppVersionProvider.libVersion
+        print("daemonVersion: \(daemonVersion), requiredVersion: \(AppVersionProvider.libVersion)")
+        return daemonVersion != AppVersionProvider.libVersion
     }
 
     private init() {
@@ -87,26 +88,6 @@ public final class GRPCManager: ObservableObject {
                 }
             }
         }
-    }
-
-    public func status() {
-        logger.log(level: .info, "Status")
-        let call = client.vpnStatus(Google_Protobuf_Empty())
-
-        call.response.whenComplete { [weak self] result in
-            switch result {
-            case let .success(response):
-                self?.connectedDate = Date(timeIntervalSince1970: response.details.since.timeIntervalSince1970)
-
-                // TODO: use new tunnel status
-                // TODO: https://github.com/nymtech/nym-vpn-client/pull/1950
-//                self?.updateTunnelStatus(with: response.status)
-            case let .failure(error):
-                print("Call failed with error: \(error)")
-            }
-        }
-
-        _ = try? call.status.wait()
     }
 
     // MARK: - Connection -

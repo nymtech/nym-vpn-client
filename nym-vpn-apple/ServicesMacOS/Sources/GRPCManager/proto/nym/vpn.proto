@@ -263,265 +263,6 @@ message DisconnectResponse {
   bool success = 1;
 }
 
-enum ConnectionStatus {
-  STATUS_UNSPECIFIED = 0;
-  UNKNOWN = 1;
-  NOT_CONNECTED = 2;
-  CONNECTING = 3;
-  CONNECTED = 4;
-  DISCONNECTING = 5;
-  CONNECTION_FAILED = 6;
-}
-
-message ConnectionDetails {
-  Gateway entry_gateway = 1;
-  Gateway exit_gateway = 2;
-  ConnectedStateDetails protocol_details = 3;
-  google.protobuf.Timestamp since = 4;
-}
-
-message StatusResponse {
-  ConnectionStatus status = 1;
-  ConnectionDetails details = 2;
-  Error error = 3;
-}
-
-message ConnectionStateChange {
-  ConnectionStatus status = 1;
-  Error error = 2;
-}
-
-message ConnectionStatusUpdate {
-  enum StatusType {
-    STATUS_TYPE_UNSPECIFIED = 0;
-
-    // Status message that is not mapped to a specific type
-    UNKNOWN = 1;
-
-    // Connection to entry gateway established
-    // NOTE: currently not implemented by vpnd
-    ENTRY_GATEWAY_CONNECTION_ESTABLISHED = 2;
-
-    // Connection to exit router established
-    // NOTE: currently not implemented by vpnd
-    EXIT_ROUTER_CONNECTION_ESTABLISHED = 3;
-
-    // End-to-end tunnel established and operational
-    TUNNEL_END_TO_END_CONNECTION_ESTABLISHED = 4;
-
-    // Entry gateway not routing our mixnet messages
-    ENTRY_GATEWAY_NOT_ROUTING_MIXNET_MESSAGES = 5;
-
-    // The exit router is not responding to IPv4 traffic
-    EXIT_ROUTER_NOT_RESPONDING_TO_IPV4_PING = 6;
-
-    // The exit router is not responding to IPv6 traffic
-    EXIT_ROUTER_NOT_RESPONDING_TO_IPV6_PING = 7;
-
-    // The ip packet router connected to on the exit side is not routing IPv4 traffic
-    EXIT_ROUTER_NOT_ROUTING_IPV4_TRAFFIC = 8;
-
-    // The ip packet router connected to on the exit side is not routing IPv6 traffic
-    EXIT_ROUTER_NOT_ROUTING_IPV6_TRAFFIC = 9;
-
-    // The end-to-end IPv4 connection appears to be operation correctly
-    CONNECTION_OK_IPV4 = 10;
-
-    // The end-to-end IPv6 connection appears to be operation correctly
-    CONNECTION_OK_IPV6 = 11;
-
-    // Remaining bandwidth available
-    REMAINING_BANDWIDTH = 12;
-
-    // The user has run out of available bandwidth
-    NO_BANDWIDTH = 13;
-
-    // Wireguard tunnel errors sent through the status channel. This error case
-    // will go away in the future.
-    WG_TUNNEL_ERROR = 14;
-
-    // Event containing the statistics for the current mixnet connection.
-    // Includes real and cover packets send and received, retransmissions, acks
-    // received.
-    MIXNET_BANDWIDTH_RATE = 15;
-  }
-
-  StatusType kind = 1;
-
-  // Detailed message for logging and debugging
-  string message = 2;
-
-  // Optional additional details
-  map<string, string> details = 3;
-}
-
-// TODO: consider rename this to something like `ConnectionError`, to
-// distinguish from all other types of errors.
-message Error {
-  enum ErrorType {
-    ERROR_TYPE_UNSPECIFIED = 0;
-
-    // An error that was not explicitly handled by the vpn service. This should
-    // not happen but it will while we iterate on mapping out all possible
-    // errors
-    UNHANDLED = 1;
-
-    // The vpn exiting with an error that isn't handled by the automatic
-    // conversion. If this happens it's a bug.
-    UNHANDLED_EXIT = 49;
-
-    // An internal error that indicates a programmer error and should not
-    // happen. If it did an invariant was probably broken at some point.
-    INTERNAL = 33;
-
-    // If the credential storage does not contain any valid credentials when
-    // connecting
-    NO_VALID_CREDENTIALS = 2;
-
-    // Generic connection timeout. This could happen  in a number of contexts,
-    // and the provided details needs to be investigated to determine what went
-    // wrong
-    TIMEOUT = 6;
-
-    // Timeout starting the mixnet client
-    MIXNET_TIMEOUT = 7;
-
-    // Failed to setup the mixnet storage paths
-    MIXNET_STORAGE_PATHS = 19;
-
-    // Failed to create a mixnet client with default storage setup
-    MIXNET_DEFAULT_STORAGE = 20;
-
-    // Failed to build the mixnet client instance
-    MIXNET_BUILD_CLIENT = 21;
-
-    // Failed to connect to the mixnet
-    MIXNET_CONNECT = 22;
-
-    // Failed to connect to the mixnet entry gateway
-    MIXNET_ENTRY_GATEWAY = 23;
-
-    // Failed to connect to the IPR
-    IPR_FAILED_TO_CONNECT = 25;
-
-    // Failed to connect to one of the authenticators
-    AUTHENTICATOR_FAILED_TO_CONNECT = 34;
-
-    // Failed to connect to the authenticator, timeout waiting for the connect
-    // response
-    AUTHENTICATOR_CONNECT_TIMEOUT = 35;
-
-    // Failed to connect to the authenticator, the response was invalid
-    AUTHENTICATOR_INVALID_RESPONSE = 36;
-
-    // Failed to verify the registration data provided by the authenticator
-    AUTHENTICATOR_REGISTRATION_DATA_VERIFICATION = 37;
-
-    // Failed to parse the socket addr provided by the authenticator when
-    // setting up the wireguard configuration
-    AUTHENTICATOR_ENTRY_GATEWAY_SOCKET_ADDR = 38;
-
-    // Failed to parse the IPv4 provided by the authenticator when setting up
-    // the wireguard configuration
-    AUTHENTICATOR_ENTRY_GATEWAY_IPV4 = 39;
-
-    // The authenticator responded with a response tagged with a version we
-    // can't understand.
-    AUTHENTICATOR_WRONG_VERSION = 40;
-
-    // The authenticator, or someone else, responded with a reply that we can't
-    // read.
-    AUTHENTICATOR_MALFORMED_REPLY = 41;
-
-    // Not authenticator address found for the gateway(s) we're trying to use
-    AUTHENTICATOR_ADDRESS_NOT_FOUND = 47;
-
-    // Authentication with the authenticators was not possible, as we we don't
-    // have addresses for them. This is likely an internal programming error.
-    AUTHENTICATOR_AUTHENTICATION_NOT_POSSIBLE = 48;
-
-    // Looking up gateways can fail in a number of ways.
-    GATEWAY_DIRECTORY = 8;
-
-    // Failing to lookup gateways
-    GATEWAY_DIRECTORY_LOOKUP_GATEWAYS = 9;
-
-    // Failing to lookup gateway identity
-    GATEWAY_DIRECTORY_LOOKUP_GATEWAY_IDENTITY = 10;
-
-    // Failing to lookup the IPR address
-    GATEWAY_DIRECTORY_LOOKUP_ROUTER_ADDRESS = 11;
-
-    // Failing to lookup the gateway IP
-    GATEWAY_DIRECTORY_LOOKUP_IP = 12;
-
-    // Failing to lookup the entry gateway
-    GATEWAY_DIRECTORY_ENTRY = 13;
-
-    // Entry gateway identity not found
-    GATEWAY_DIRECTORY_ENTRY_ID = 24;
-
-    // Failing to lookup the entry gateway for a given location
-    GATEWAY_DIRECTORY_ENTRY_LOCATION = 14;
-
-    // Failing to lookup the exit gateway
-    GATEWAY_DIRECTORY_EXIT = 15;
-
-    // Failing to lookup the exit gateway for a given location
-    GATEWAY_DIRECTORY_EXIT_LOCATION = 16;
-
-    // Invalid configuration attempted, with the same entry and exit gateway
-    GATEWAY_DIRECTORY_SAME_ENTRY_AND_EXIT_GW = 17;
-
-    // Client ran out of allocated bandwidth
-    OUT_OF_BANDWIDTH = 18;
-
-    // The user has no available bandwidth to setup tunnel
-    OUT_OF_BANDWIDTH_WHEN_SETTING_UP_TUNNEL = 26;
-
-    // Failed to bring up the wg interface up
-    BRING_INTERFACE_UP = 27;
-
-    // Failed to init firewall subsystem
-    FIREWALL_INIT = 28;
-
-    // Failed to reset the firewall policy
-    FIREWALL_RESET_POLICY = 29;
-
-    // Failed to init the DNS subsystem
-    DNS_INIT = 30;
-
-    // Failed to set DNS
-    DNS_SET = 31;
-
-    // Failed to find the default network interface
-    FIND_DEFAULT_INTERFACE = 32;
-
-    // Failed to add ipv6 default route to capture ipv6 traffic
-    ADD_IPV6_ROUTE = 42;
-
-    // General failure for the tun device
-    TUN = 43;
-
-    // General failure for routing
-    ROUTING = 44;
-
-    // General failure setting up the wireguard configuration
-    WIREGUARD_CONFIG = 45;
-
-    // General failure for the mixnet connection monitor
-    MIXNET_CONNECTION_MONITOR = 46;
-  }
-
-  ErrorType kind = 1;
-
-  // Detailed error message for logging and debugging
-  string message = 2;
-
-  // Optional additional details
-  map<string, string> details = 3;
-}
-
 message AsEntry {
   bool can_connect = 1;
   bool can_route = 2;
@@ -1136,6 +877,70 @@ message TunnelState {
   }
 }
 
+message TunnelEvent {
+  oneof event {
+    TunnelState tunnel_state = 1;
+    MixnetEvent mixnet_event = 2;
+  }
+}
+
+message MixnetEvent {
+  message BandwidthEvent {
+    message NoBandwidth {}
+    message RemainingBandwidth {
+      int64 value = 1;
+    }
+    oneof event {
+      NoBandwidth no_bandwidth = 1;
+      RemainingBandwidth remaining_bandwidth = 2;
+    }
+  }
+
+  enum ConnectionEvent {
+    ENTRY_GATEWAY_DOWN = 0;
+    EXIT_GATEWAY_DOWN_IPV4 = 1;
+    EXIT_GATEWAY_DOWN_IPV6 = 2;
+    EXIT_GATEWAY_ROUTING_ERROR_IPV4 = 3;
+    EXIT_GATEWAY_ROUTING_ERROR_IPV6 = 4;
+    CONNECTED_IPV4 = 5;
+    CONNECTED_IPV6 = 6;
+  }
+
+  message SphinxPacketRates {
+    double real_packets_sent = 1;
+    double real_packets_sent_size = 2;
+    double cover_packets_sent = 3;
+    double cover_packets_sent_size = 4;
+
+    double real_packets_received = 5;
+    double real_packets_received_size = 6;
+    double cover_packets_received = 7;
+    double cover_packets_received_size = 8;
+
+    double total_acks_received = 9;
+    double total_acks_received_size = 10;
+    double real_acks_received = 11;
+    double real_acks_received_size = 12;
+    double cover_acks_received = 13;
+    double cover_acks_received_size = 14;
+
+    double real_packets_queued = 15;
+    double retransmissions_queued = 16;
+    double reply_surbs_queued = 17;
+    double additional_reply_surbs_queued = 18;
+  }
+
+  message ConnectionStatisticsEvent {
+    SphinxPacketRates rates = 1;
+  }
+
+  oneof event {
+    BandwidthEvent bandwidth_event = 1;
+    ConnectionEvent connection_event = 2;
+    ConnectionStatisticsEvent connection_statistics_event = 3;
+  }
+}
+
 service NymVpnd {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
@@ -1155,19 +960,14 @@ service NymVpnd {
   // Disconnect and stop the tunnel
   rpc VpnDisconnect (google.protobuf.Empty) returns (DisconnectResponse) {}
 
-  // Get the current tunnel and connection status
-  rpc VpnStatus (google.protobuf.Empty) returns (StatusResponse) {}
+  // Get the current tunnel state
+  rpc GetTunnelState (google.protobuf.Empty) returns (TunnelState) {}
 
-  // Listen for events that indicate that the connection state changes, such as
-  // from Connecting -> Connected
-  rpc ListenToConnectionStateChanges (google.protobuf.Empty) returns (stream ConnectionStateChange) {}
+  // Listen for current tunnel state and subsequent changes to it. Emits current state as the first value.
+  rpc ListenToTunnelState (google.protobuf.Empty) returns (stream TunnelState) {}
 
-  // Listen for tunnel state changes
-  rpc ListenToTunnelStateChanges (google.protobuf.Empty) returns (stream TunnelState) {}
-
-  // Listen for general status evens emitted by nym-vpnd, which in turn might
-  // originate from elsewhere such as remote gateways.
-  rpc ListenToConnectionStatus (google.protobuf.Empty) returns (stream ConnectionStatusUpdate) {}
+  /// Listen for daemon events.
+  rpc ListenToEvents(google.protobuf.Empty) returns (stream TunnelEvent) {}
 
   // List the available gateways for the selected mode
   rpc ListGateways (ListGatewaysRequest) returns (ListGatewaysResponse) {}

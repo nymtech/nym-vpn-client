@@ -31,11 +31,6 @@ extension HomeViewModel {
         .store(in: &cancellables)
     }
 
-    func updateConnectedStartDateMacOS(with status: TunnelStatus) {
-        guard status == .connected, !connectionManager.isDisconnecting else { return }
-        grpcManager.status()
-    }
-
     func updateTimeConnected() {
         Task { @MainActor [weak self] in
             guard let self,

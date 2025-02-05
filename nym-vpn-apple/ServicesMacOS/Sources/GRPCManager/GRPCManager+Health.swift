@@ -30,7 +30,6 @@ private extension GRPCManager {
         guard isServing else { return }
 
         Task(priority: .background) { [weak self] in
-            self?.status()
             _ = try? await self?.version()
         }
     }

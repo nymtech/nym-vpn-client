@@ -310,9 +310,6 @@ extension HomeViewModel {
                 } else {
                     statusInfoState = StatusInfoState(tunnelStatus: newStatus, isOnline: networkMonitor.isAvailable)
                 }
-#if os(macOS)
-                updateConnectedStartDateMacOS(with: status)
-#endif
             }
         }
     }

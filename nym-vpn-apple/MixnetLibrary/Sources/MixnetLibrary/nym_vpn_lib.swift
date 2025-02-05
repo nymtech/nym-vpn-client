@@ -1151,14 +1151,14 @@ public func FfiConverterTypeChainDetails_lower(_ value: ChainDetails) -> RustBuf
 
 
 public struct ConnectionData {
-    public var entryGateway: BoxedNodeIdentity
-    public var exitGateway: BoxedNodeIdentity
+    public var entryGateway: Gateway
+    public var exitGateway: Gateway
     public var connectedAt: OffsetDateTime?
     public var tunnel: TunnelConnectionData
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(entryGateway: BoxedNodeIdentity, exitGateway: BoxedNodeIdentity, connectedAt: OffsetDateTime?, tunnel: TunnelConnectionData) {
+    public init(entryGateway: Gateway, exitGateway: Gateway, connectedAt: OffsetDateTime?, tunnel: TunnelConnectionData) {
         self.entryGateway = entryGateway
         self.exitGateway = exitGateway
         self.connectedAt = connectedAt
@@ -1198,16 +1198,16 @@ public struct FfiConverterTypeConnectionData: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ConnectionData {
         return
             try ConnectionData(
-                entryGateway: FfiConverterTypeBoxedNodeIdentity.read(from: &buf), 
-                exitGateway: FfiConverterTypeBoxedNodeIdentity.read(from: &buf), 
+                entryGateway: FfiConverterTypeGateway.read(from: &buf), 
+                exitGateway: FfiConverterTypeGateway.read(from: &buf), 
                 connectedAt: FfiConverterOptionTypeOffsetDateTime.read(from: &buf), 
                 tunnel: FfiConverterTypeTunnelConnectionData.read(from: &buf)
         )
     }
 
     public static func write(_ value: ConnectionData, into buf: inout [UInt8]) {
-        FfiConverterTypeBoxedNodeIdentity.write(value.entryGateway, into: &buf)
-        FfiConverterTypeBoxedNodeIdentity.write(value.exitGateway, into: &buf)
+        FfiConverterTypeGateway.write(value.entryGateway, into: &buf)
+        FfiConverterTypeGateway.write(value.exitGateway, into: &buf)
         FfiConverterOptionTypeOffsetDateTime.write(value.connectedAt, into: &buf)
         FfiConverterTypeTunnelConnectionData.write(value.tunnel, into: &buf)
     }
@@ -1599,6 +1599,61 @@ public func FfiConverterTypeFeatureFlags_lower(_ value: FeatureFlags) -> RustBuf
 }
 
 
+public struct Gateway {
+    /**
+     * Gateway id in base58.
+     */
+    public var id: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(
+        /**
+         * Gateway id in base58.
+         */id: String) {
+        self.id = id
+    }
+}
+
+
+
+extension Gateway: Equatable, Hashable {
+    public static func ==(lhs: Gateway, rhs: Gateway) -> Bool {
+        if lhs.id != rhs.id {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
+
+public struct FfiConverterTypeGateway: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Gateway {
+        return
+            try Gateway(
+                id: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: Gateway, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.id, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeGateway_lift(_ buf: RustBuffer) throws -> Gateway {
+    return try FfiConverterTypeGateway.lift(buf)
+}
+
+public func FfiConverterTypeGateway_lower(_ value: Gateway) -> RustBuffer {
+    return FfiConverterTypeGateway.lower(value)
+}
+
+
 public struct GatewayMinPerformance {
     public var mixnetMinPerformance: UInt64?
     public var vpnMinPerformance: UInt64?
@@ -1871,137 +1926,15 @@ public func FfiConverterTypeLocation_lower(_ value: Location) -> RustBuffer {
 }
 
 
-public struct MixConnectionInfo {
-    public var nymAddress: Recipient
-    public var entryGateway: NodeIdentity
-
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(nymAddress: Recipient, entryGateway: NodeIdentity) {
-        self.nymAddress = nymAddress
-        self.entryGateway = entryGateway
-    }
-}
-
-
-
-extension MixConnectionInfo: Equatable, Hashable {
-    public static func ==(lhs: MixConnectionInfo, rhs: MixConnectionInfo) -> Bool {
-        if lhs.nymAddress != rhs.nymAddress {
-            return false
-        }
-        if lhs.entryGateway != rhs.entryGateway {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(nymAddress)
-        hasher.combine(entryGateway)
-    }
-}
-
-
-public struct FfiConverterTypeMixConnectionInfo: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MixConnectionInfo {
-        return
-            try MixConnectionInfo(
-                nymAddress: FfiConverterTypeRecipient.read(from: &buf), 
-                entryGateway: FfiConverterTypeNodeIdentity.read(from: &buf)
-        )
-    }
-
-    public static func write(_ value: MixConnectionInfo, into buf: inout [UInt8]) {
-        FfiConverterTypeRecipient.write(value.nymAddress, into: &buf)
-        FfiConverterTypeNodeIdentity.write(value.entryGateway, into: &buf)
-    }
-}
-
-
-public func FfiConverterTypeMixConnectionInfo_lift(_ buf: RustBuffer) throws -> MixConnectionInfo {
-    return try FfiConverterTypeMixConnectionInfo.lift(buf)
-}
-
-public func FfiConverterTypeMixConnectionInfo_lower(_ value: MixConnectionInfo) -> RustBuffer {
-    return FfiConverterTypeMixConnectionInfo.lower(value)
-}
-
-
-public struct MixExitConnectionInfo {
-    public var exitGateway: NodeIdentity
-    public var exitIpr: Recipient
-    public var ips: IpPair
-
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(exitGateway: NodeIdentity, exitIpr: Recipient, ips: IpPair) {
-        self.exitGateway = exitGateway
-        self.exitIpr = exitIpr
-        self.ips = ips
-    }
-}
-
-
-
-extension MixExitConnectionInfo: Equatable, Hashable {
-    public static func ==(lhs: MixExitConnectionInfo, rhs: MixExitConnectionInfo) -> Bool {
-        if lhs.exitGateway != rhs.exitGateway {
-            return false
-        }
-        if lhs.exitIpr != rhs.exitIpr {
-            return false
-        }
-        if lhs.ips != rhs.ips {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(exitGateway)
-        hasher.combine(exitIpr)
-        hasher.combine(ips)
-    }
-}
-
-
-public struct FfiConverterTypeMixExitConnectionInfo: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MixExitConnectionInfo {
-        return
-            try MixExitConnectionInfo(
-                exitGateway: FfiConverterTypeNodeIdentity.read(from: &buf), 
-                exitIpr: FfiConverterTypeRecipient.read(from: &buf), 
-                ips: FfiConverterTypeIpPair.read(from: &buf)
-        )
-    }
-
-    public static func write(_ value: MixExitConnectionInfo, into buf: inout [UInt8]) {
-        FfiConverterTypeNodeIdentity.write(value.exitGateway, into: &buf)
-        FfiConverterTypeRecipient.write(value.exitIpr, into: &buf)
-        FfiConverterTypeIpPair.write(value.ips, into: &buf)
-    }
-}
-
-
-public func FfiConverterTypeMixExitConnectionInfo_lift(_ buf: RustBuffer) throws -> MixExitConnectionInfo {
-    return try FfiConverterTypeMixExitConnectionInfo.lift(buf)
-}
-
-public func FfiConverterTypeMixExitConnectionInfo_lower(_ value: MixExitConnectionInfo) -> RustBuffer {
-    return FfiConverterTypeMixExitConnectionInfo.lower(value)
-}
-
-
 public struct MixnetConnectionData {
-    public var nymAddress: BoxedRecepient
-    public var exitIpr: BoxedRecepient
+    public var nymAddress: NymAddress
+    public var exitIpr: NymAddress
     public var ipv4: Ipv4Addr
     public var ipv6: Ipv6Addr
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(nymAddress: BoxedRecepient, exitIpr: BoxedRecepient, ipv4: Ipv4Addr, ipv6: Ipv6Addr) {
+    public init(nymAddress: NymAddress, exitIpr: NymAddress, ipv4: Ipv4Addr, ipv6: Ipv6Addr) {
         self.nymAddress = nymAddress
         self.exitIpr = exitIpr
         self.ipv4 = ipv4
@@ -2041,16 +1974,16 @@ public struct FfiConverterTypeMixnetConnectionData: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MixnetConnectionData {
         return
             try MixnetConnectionData(
-                nymAddress: FfiConverterTypeBoxedRecepient.read(from: &buf), 
-                exitIpr: FfiConverterTypeBoxedRecepient.read(from: &buf), 
+                nymAddress: FfiConverterTypeNymAddress.read(from: &buf), 
+                exitIpr: FfiConverterTypeNymAddress.read(from: &buf), 
                 ipv4: FfiConverterTypeIpv4Addr.read(from: &buf), 
                 ipv6: FfiConverterTypeIpv6Addr.read(from: &buf)
         )
     }
 
     public static func write(_ value: MixnetConnectionData, into buf: inout [UInt8]) {
-        FfiConverterTypeBoxedRecepient.write(value.nymAddress, into: &buf)
-        FfiConverterTypeBoxedRecepient.write(value.exitIpr, into: &buf)
+        FfiConverterTypeNymAddress.write(value.nymAddress, into: &buf)
+        FfiConverterTypeNymAddress.write(value.exitIpr, into: &buf)
         FfiConverterTypeIpv4Addr.write(value.ipv4, into: &buf)
         FfiConverterTypeIpv6Addr.write(value.ipv6, into: &buf)
     }
@@ -2157,6 +2090,55 @@ public func FfiConverterTypeNetworkEnvironment_lift(_ buf: RustBuffer) throws ->
 
 public func FfiConverterTypeNetworkEnvironment_lower(_ value: NetworkEnvironment) -> RustBuffer {
     return FfiConverterTypeNetworkEnvironment.lower(value)
+}
+
+
+public struct NymAddress {
+    public var nymAddress: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(nymAddress: String) {
+        self.nymAddress = nymAddress
+    }
+}
+
+
+
+extension NymAddress: Equatable, Hashable {
+    public static func ==(lhs: NymAddress, rhs: NymAddress) -> Bool {
+        if lhs.nymAddress != rhs.nymAddress {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(nymAddress)
+    }
+}
+
+
+public struct FfiConverterTypeNymAddress: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NymAddress {
+        return
+            try NymAddress(
+                nymAddress: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: NymAddress, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.nymAddress, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeNymAddress_lift(_ buf: RustBuffer) throws -> NymAddress {
+    return try FfiConverterTypeNymAddress.lift(buf)
+}
+
+public func FfiConverterTypeNymAddress_lower(_ value: NymAddress) -> RustBuffer {
+    return FfiConverterTypeNymAddress.lower(value)
 }
 
 
@@ -3111,88 +3093,15 @@ public func FfiConverterTypeWireguardConnectionData_lower(_ value: WireguardConn
 }
 
 
-public struct WireguardConnectionInfo {
-    public var gatewayId: NodeIdentity
+public struct WireguardNode {
+    public var endpoint: SocketAddr
     public var publicKey: String
     public var privateIpv4: Ipv4Addr
     public var privateIpv6: Ipv6Addr
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(gatewayId: NodeIdentity, publicKey: String, privateIpv4: Ipv4Addr, privateIpv6: Ipv6Addr) {
-        self.gatewayId = gatewayId
-        self.publicKey = publicKey
-        self.privateIpv4 = privateIpv4
-        self.privateIpv6 = privateIpv6
-    }
-}
-
-
-
-extension WireguardConnectionInfo: Equatable, Hashable {
-    public static func ==(lhs: WireguardConnectionInfo, rhs: WireguardConnectionInfo) -> Bool {
-        if lhs.gatewayId != rhs.gatewayId {
-            return false
-        }
-        if lhs.publicKey != rhs.publicKey {
-            return false
-        }
-        if lhs.privateIpv4 != rhs.privateIpv4 {
-            return false
-        }
-        if lhs.privateIpv6 != rhs.privateIpv6 {
-            return false
-        }
-        return true
-    }
-
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(gatewayId)
-        hasher.combine(publicKey)
-        hasher.combine(privateIpv4)
-        hasher.combine(privateIpv6)
-    }
-}
-
-
-public struct FfiConverterTypeWireguardConnectionInfo: FfiConverterRustBuffer {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> WireguardConnectionInfo {
-        return
-            try WireguardConnectionInfo(
-                gatewayId: FfiConverterTypeNodeIdentity.read(from: &buf), 
-                publicKey: FfiConverterString.read(from: &buf), 
-                privateIpv4: FfiConverterTypeIpv4Addr.read(from: &buf), 
-                privateIpv6: FfiConverterTypeIpv6Addr.read(from: &buf)
-        )
-    }
-
-    public static func write(_ value: WireguardConnectionInfo, into buf: inout [UInt8]) {
-        FfiConverterTypeNodeIdentity.write(value.gatewayId, into: &buf)
-        FfiConverterString.write(value.publicKey, into: &buf)
-        FfiConverterTypeIpv4Addr.write(value.privateIpv4, into: &buf)
-        FfiConverterTypeIpv6Addr.write(value.privateIpv6, into: &buf)
-    }
-}
-
-
-public func FfiConverterTypeWireguardConnectionInfo_lift(_ buf: RustBuffer) throws -> WireguardConnectionInfo {
-    return try FfiConverterTypeWireguardConnectionInfo.lift(buf)
-}
-
-public func FfiConverterTypeWireguardConnectionInfo_lower(_ value: WireguardConnectionInfo) -> RustBuffer {
-    return FfiConverterTypeWireguardConnectionInfo.lower(value)
-}
-
-
-public struct WireguardNode {
-    public var endpoint: SocketAddr
-    public var publicKey: BoxedPublicKey
-    public var privateIpv4: Ipv4Addr
-    public var privateIpv6: Ipv6Addr
-
-    // Default memberwise initializers are never public by default, so we
-    // declare one manually.
-    public init(endpoint: SocketAddr, publicKey: BoxedPublicKey, privateIpv4: Ipv4Addr, privateIpv6: Ipv6Addr) {
+    public init(endpoint: SocketAddr, publicKey: String, privateIpv4: Ipv4Addr, privateIpv6: Ipv6Addr) {
         self.endpoint = endpoint
         self.publicKey = publicKey
         self.privateIpv4 = privateIpv4
@@ -3233,7 +3142,7 @@ public struct FfiConverterTypeWireguardNode: FfiConverterRustBuffer {
         return
             try WireguardNode(
                 endpoint: FfiConverterTypeSocketAddr.read(from: &buf), 
-                publicKey: FfiConverterTypeBoxedPublicKey.read(from: &buf), 
+                publicKey: FfiConverterString.read(from: &buf), 
                 privateIpv4: FfiConverterTypeIpv4Addr.read(from: &buf), 
                 privateIpv6: FfiConverterTypeIpv6Addr.read(from: &buf)
         )
@@ -3241,7 +3150,7 @@ public struct FfiConverterTypeWireguardNode: FfiConverterRustBuffer {
 
     public static func write(_ value: WireguardNode, into buf: inout [UInt8]) {
         FfiConverterTypeSocketAddr.write(value.endpoint, into: &buf)
-        FfiConverterTypeBoxedPublicKey.write(value.publicKey, into: &buf)
+        FfiConverterString.write(value.publicKey, into: &buf)
         FfiConverterTypeIpv4Addr.write(value.privateIpv4, into: &buf)
         FfiConverterTypeIpv6Addr.write(value.privateIpv6, into: &buf)
     }
@@ -4767,6 +4676,8 @@ public enum VpnError {
     case StatisticsRecipient
     case UnregisterDeviceApiClientFailure(details: String
     )
+    case InvalidMnemonic(details: String
+    )
 }
 
 
@@ -4830,6 +4741,9 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             )
         case 22: return .StatisticsRecipient
         case 23: return .UnregisterDeviceApiClientFailure(
+            details: try FfiConverterString.read(from: &buf)
+            )
+        case 24: return .InvalidMnemonic(
             details: try FfiConverterString.read(from: &buf)
             )
 
@@ -4951,6 +4865,11 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         
         case let .UnregisterDeviceApiClientFailure(details):
             writeInt(&buf, Int32(23))
+            FfiConverterString.write(details, into: &buf)
+            
+        
+        case let .InvalidMnemonic(details):
+            writeInt(&buf, Int32(24))
             FfiConverterString.write(details, into: &buf)
             
         }
@@ -5759,108 +5678,6 @@ fileprivate struct FfiConverterDictionaryStringTypeFlagValue: FfiConverterRustBu
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
  */
-public typealias BoxedNodeIdentity = String
-public struct FfiConverterTypeBoxedNodeIdentity: FfiConverter {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> BoxedNodeIdentity {
-        return try FfiConverterString.read(from: &buf)
-    }
-
-    public static func write(_ value: BoxedNodeIdentity, into buf: inout [UInt8]) {
-        return FfiConverterString.write(value, into: &buf)
-    }
-
-    public static func lift(_ value: RustBuffer) throws -> BoxedNodeIdentity {
-        return try FfiConverterString.lift(value)
-    }
-
-    public static func lower(_ value: BoxedNodeIdentity) -> RustBuffer {
-        return FfiConverterString.lower(value)
-    }
-}
-
-
-public func FfiConverterTypeBoxedNodeIdentity_lift(_ value: RustBuffer) throws -> BoxedNodeIdentity {
-    return try FfiConverterTypeBoxedNodeIdentity.lift(value)
-}
-
-public func FfiConverterTypeBoxedNodeIdentity_lower(_ value: BoxedNodeIdentity) -> RustBuffer {
-    return FfiConverterTypeBoxedNodeIdentity.lower(value)
-}
-
-
-
-/**
- * Typealias from the type name used in the UDL file to the builtin type.  This
- * is needed because the UDL type name is used in function/method signatures.
- */
-public typealias BoxedPublicKey = String
-public struct FfiConverterTypeBoxedPublicKey: FfiConverter {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> BoxedPublicKey {
-        return try FfiConverterString.read(from: &buf)
-    }
-
-    public static func write(_ value: BoxedPublicKey, into buf: inout [UInt8]) {
-        return FfiConverterString.write(value, into: &buf)
-    }
-
-    public static func lift(_ value: RustBuffer) throws -> BoxedPublicKey {
-        return try FfiConverterString.lift(value)
-    }
-
-    public static func lower(_ value: BoxedPublicKey) -> RustBuffer {
-        return FfiConverterString.lower(value)
-    }
-}
-
-
-public func FfiConverterTypeBoxedPublicKey_lift(_ value: RustBuffer) throws -> BoxedPublicKey {
-    return try FfiConverterTypeBoxedPublicKey.lift(value)
-}
-
-public func FfiConverterTypeBoxedPublicKey_lower(_ value: BoxedPublicKey) -> RustBuffer {
-    return FfiConverterTypeBoxedPublicKey.lower(value)
-}
-
-
-
-/**
- * Typealias from the type name used in the UDL file to the builtin type.  This
- * is needed because the UDL type name is used in function/method signatures.
- */
-public typealias BoxedRecepient = String
-public struct FfiConverterTypeBoxedRecepient: FfiConverter {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> BoxedRecepient {
-        return try FfiConverterString.read(from: &buf)
-    }
-
-    public static func write(_ value: BoxedRecepient, into buf: inout [UInt8]) {
-        return FfiConverterString.write(value, into: &buf)
-    }
-
-    public static func lift(_ value: RustBuffer) throws -> BoxedRecepient {
-        return try FfiConverterString.lift(value)
-    }
-
-    public static func lower(_ value: BoxedRecepient) -> RustBuffer {
-        return FfiConverterString.lower(value)
-    }
-}
-
-
-public func FfiConverterTypeBoxedRecepient_lift(_ value: RustBuffer) throws -> BoxedRecepient {
-    return try FfiConverterTypeBoxedRecepient.lift(value)
-}
-
-public func FfiConverterTypeBoxedRecepient_lower(_ value: BoxedRecepient) -> RustBuffer {
-    return FfiConverterTypeBoxedRecepient.lower(value)
-}
-
-
-
-/**
- * Typealias from the type name used in the UDL file to the builtin type.  This
- * is needed because the UDL type name is used in function/method signatures.
- */
 public typealias IpAddr = String
 public struct FfiConverterTypeIpAddr: FfiConverter {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> IpAddr {
@@ -5887,40 +5704,6 @@ public func FfiConverterTypeIpAddr_lift(_ value: RustBuffer) throws -> IpAddr {
 
 public func FfiConverterTypeIpAddr_lower(_ value: IpAddr) -> RustBuffer {
     return FfiConverterTypeIpAddr.lower(value)
-}
-
-
-
-/**
- * Typealias from the type name used in the UDL file to the builtin type.  This
- * is needed because the UDL type name is used in function/method signatures.
- */
-public typealias IpPair = String
-public struct FfiConverterTypeIpPair: FfiConverter {
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> IpPair {
-        return try FfiConverterString.read(from: &buf)
-    }
-
-    public static func write(_ value: IpPair, into buf: inout [UInt8]) {
-        return FfiConverterString.write(value, into: &buf)
-    }
-
-    public static func lift(_ value: RustBuffer) throws -> IpPair {
-        return try FfiConverterString.lift(value)
-    }
-
-    public static func lower(_ value: IpPair) -> RustBuffer {
-        return FfiConverterString.lower(value)
-    }
-}
-
-
-public func FfiConverterTypeIpPair_lift(_ value: RustBuffer) throws -> IpPair {
-    return try FfiConverterTypeIpPair.lift(value)
-}
-
-public func FfiConverterTypeIpPair_lower(_ value: IpPair) -> RustBuffer {
-    return FfiConverterTypeIpPair.lower(value)
 }
 
 
@@ -6519,6 +6302,26 @@ public func isAccountMnemonicStoredRaw(path: String)throws  -> Bool {
 })
 }
 /**
+ * Import the account mnemonic
+ */
+public func login(mnemonic: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_login(
+        FfiConverterString.lower(mnemonic),$0
+    )
+}
+}
+/**
+ * Store the account mnemonic
+ * This is a version that can be called when the account controller is not running.
+ */
+public func loginRaw(mnemonic: String, path: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_loginraw(
+        FfiConverterString.lower(mnemonic),
+        FfiConverterString.lower(path),$0
+    )
+}
+}
+/**
  * Shutdown the library by stopping the account controller and cleaning up any resources.
  */
 public func shutdown()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
@@ -6541,26 +6344,6 @@ public func startVpn(config: VpnConfig)throws  {try rustCallWithError(FfiConvert
  */
 public func stopVpn()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_stopvpn($0
-    )
-}
-}
-/**
- * Store the account mnemonic
- */
-public func storeAccountMnemonic(mnemonic: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
-    uniffi_nym_vpn_lib_fn_func_storeaccountmnemonic(
-        FfiConverterString.lower(mnemonic),$0
-    )
-}
-}
-/**
- * Store the account mnemonic
- * This is a version that can be called when the account controller is not running.
- */
-public func storeAccountMnemonicRaw(mnemonic: String, path: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
-    uniffi_nym_vpn_lib_fn_func_storeaccountmnemonicraw(
-        FfiConverterString.lower(mnemonic),
-        FfiConverterString.lower(path),$0
     )
 }
 }
@@ -6822,6 +6605,12 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_isaccountmnemonicstoredraw() != 63584) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_nym_vpn_lib_checksum_func_login() != 9301) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_loginraw() != 2219) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_nym_vpn_lib_checksum_func_shutdown() != 33036) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -6829,12 +6618,6 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_stopvpn() != 16058) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_func_storeaccountmnemonic() != 9242) {
-        return InitializationResult.apiChecksumMismatch
-    }
-    if (uniffi_nym_vpn_lib_checksum_func_storeaccountmnemonicraw() != 51317) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_updateaccountstate() != 46396) {

@@ -43,7 +43,7 @@ public final class CredentialsManager {
                     try FileManager.default.createDirectory(at: dataFolderURL, withIntermediateDirectories: true)
                 }
 
-                try storeAccountMnemonicRaw(mnemonic: credential, path: dataFolderURL.path())
+                try loginRaw(mnemonic: credential, path: dataFolderURL.path())
 #elseif os(macOS)
                 try await helperInstallManager.installIfNeeded()
                 try await grpcManager.storeAccount(with: credential)
