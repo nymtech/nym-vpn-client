@@ -6,7 +6,7 @@
     <string name="disconnecting">Trennen</string>
     <string name="connecting">Verbinden</string>
     <string name="five_hop_mixnet">Anonym (Mixnet)</string>
-	<string name="two_hop_description">Ideal zum browsen, streamen, file-sharing</string>
+    <string name="two_hop_description">Ideal zum browsen, streamen, file-sharing</string>
     <string name="app_name">NymVPN</string>
     <string name="five_hop_description">Für Zahlungen, E-Mails, Nachrichten</string>
     <string name="first_hop">Eintrittsregion</string>
@@ -140,4 +140,5 @@
     <string name="five_hop_explanation">Geniess die höchste Sicherheit indem du deine Verbindung durch 5 Server (Mixnet) leitest. Ideal für die sichere Abwicklung von Zahlungen, E-Mails und Nachrichten.</string>
     <string name="always_on_message">Probleme? Stell sicher, dass \"Always on\" VPN in anderen Apps deaktiviert ist</string>
     <string name="new_to_nym">Neu bei NymVPN?</string>
+    <string name="disabled_while_connecting">Deaktiviert während Verbindung mit dem VPN besteht</string>
 </resources>
