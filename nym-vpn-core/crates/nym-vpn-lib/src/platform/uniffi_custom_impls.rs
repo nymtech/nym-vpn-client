@@ -429,7 +429,7 @@ impl From<nym_vpn_network_config::feature_flags::FlagValue> for FlagValue {
     }
 }
 
-#[derive(uniffi::Record)]
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
 pub struct UxScore {
     pub max_score: u8,
     pub current_score: u8,
@@ -446,7 +446,7 @@ impl From<nym_gateway_directory::UxScore> for UxScore {
     }
 }
 
-#[derive(uniffi::Record)]
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
 pub struct UxScores {
     pub mix_score: UxScore,
     pub wg_score: UxScore,
@@ -461,7 +461,7 @@ impl From<nym_gateway_directory::UxScores> for UxScores {
     }
 }
 
-#[derive(uniffi::Record)]
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
 pub struct Gateway {
     pub id: NodeIdentity,
     pub moniker: String,
@@ -480,7 +480,7 @@ impl From<nym_gateway_directory::Gateway> for Gateway {
     }
 }
 
-#[derive(uniffi::Record)]
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
 pub struct Location {
     pub two_letter_iso_country_code: String,
 }
