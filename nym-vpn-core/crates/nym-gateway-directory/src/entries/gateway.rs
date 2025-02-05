@@ -9,7 +9,7 @@ use rand::seq::IteratorRandom;
 use std::{fmt, net::IpAddr};
 use tracing::error;
 
-use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
+use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress, UxScore};
 
 use super::ux_scores::UxScores;
 
@@ -18,6 +18,7 @@ pub type NymNode = Gateway;
 #[derive(Clone)]
 pub struct Gateway {
     pub identity: NodeIdentity,
+    pub moniker: String,
     pub location: Option<Location>,
     pub ipr_address: Option<IpPacketRouterAddress>,
     pub authenticator_address: Option<AuthAddress>,
@@ -156,6 +157,16 @@ impl From<nym_vpn_api_client::response::Probe> for Probe {
     }
 }
 
+impl From<nym_vpn_api_client::response::UxScore> for UxScore {
+    fn from(score: nym_vpn_api_client::response::UxScore) -> Self {
+        UxScore {
+            max_score: score.max_score,
+            current_score: score.current_score,
+            color_hex: score.color,
+        }
+    }
+}
+
 impl From<nym_vpn_api_client::response::ProbeOutcome> for ProbeOutcome {
     fn from(outcome: nym_vpn_api_client::response::ProbeOutcome) -> Self {
         ProbeOutcome {
@@ -229,6 +240,7 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
 
         Ok(Gateway {
             identity,
+            moniker: gateway.name,
             location: Some(gateway.location.into()),
             ipr_address,
             authenticator_address,
@@ -238,7 +250,10 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             clients_ws_port: Some(gateway.entry.ws_port),
             clients_wss_port: gateway.entry.wss_port,
             mixnet_performance: Some(gateway.performance),
-            ux_scores: None,
+            ux_scores: Some(UxScores {
+                mix_score: gateway.gateway_ux_score_mixnet.into(),
+                wg_score: gateway.gateway_ux_score_vpn.into(),
+            }),
             version: gateway.build_information.map(|info| info.build_version),
         })
     }
@@ -299,6 +314,7 @@ impl TryFrom<nym_validator_client::models::NymNodeDescription> for Gateway {
         let ips = node_description.description.host_information.ip_address;
         Ok(Gateway {
             identity,
+            moniker: String::new(),
             location,
             ipr_address,
             authenticator_address,

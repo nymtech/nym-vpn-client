@@ -557,7 +557,7 @@ message Probe {
 message UxScore {
   uint32 max_score = 1;
   uint32 current_score = 2;
-  uint32 color_hex = 3;
+  string color_hex = 3;
 }
 
 message UxScores {
@@ -570,6 +570,7 @@ message GatewayResponse {
   Location location = 2;
   Probe last_probe = 3;
   UxScores scores = 4;
+  string moniker = 5;
 }
 
 enum GatewayType {

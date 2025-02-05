@@ -272,6 +272,7 @@ impl IntoIterator for NymDirectoryGatewaysResponse {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct NymDirectoryGateway {
     pub identity_key: String,
+    pub name: String,
     pub ip_packet_router: Option<IpPacketRouter>,
     pub authenticator: Option<Authenticator>,
     pub location: Location,
@@ -280,6 +281,8 @@ pub struct NymDirectoryGateway {
     pub mix_port: u16,
     pub role: Role,
     pub entry: EntryInformation,
+    pub gateway_ux_score_vpn: UxScore,
+    pub gateway_ux_score_mixnet: UxScore,
     // The performance data here originates from the nym-api, and is effectively mixnet performance
     // at the time of writing this
     pub performance: Percent,
@@ -291,6 +294,13 @@ pub struct EntryInformation {
     pub hostname: Option<String>,
     pub ws_port: u16,
     pub wss_port: Option<u16>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct UxScore {
+    pub max_score: u8,
+    pub current_score: u8,
+    pub color: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

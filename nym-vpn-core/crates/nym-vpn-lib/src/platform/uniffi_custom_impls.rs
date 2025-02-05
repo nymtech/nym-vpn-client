@@ -433,7 +433,7 @@ impl From<nym_vpn_network_config::feature_flags::FlagValue> for FlagValue {
 pub struct UxScore {
     pub max_score: u8,
     pub current_score: u8,
-    pub color_hex: u16,
+    pub color_hex: String,
 }
 
 impl From<nym_gateway_directory::UxScore> for UxScore {
@@ -464,6 +464,7 @@ impl From<nym_gateway_directory::UxScores> for UxScores {
 #[derive(uniffi::Record)]
 pub struct Gateway {
     pub id: NodeIdentity,
+    pub moniker: String,
     pub location: Option<Location>,
     pub scores: Option<UxScores>,
 }
@@ -471,6 +472,7 @@ pub struct Gateway {
 impl From<nym_gateway_directory::Gateway> for Gateway {
     fn from(value: nym_gateway_directory::Gateway) -> Self {
         Gateway {
+            moniker: value.moniker,
             location: value.location.map(Location::from),
             id: value.identity,
             scores: value.ux_scores.map(UxScores::from),

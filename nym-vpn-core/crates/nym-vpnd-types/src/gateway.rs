@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Gateway {
     pub identity_key: String,
+    pub moniker: String,
     pub location: Option<Location>,
     pub last_probe: Option<Probe>,
     pub scores: Option<UxScores>,
@@ -43,7 +44,7 @@ impl fmt::Display for Probe {
 pub struct UxScore {
     pub max_score: u8,
     pub current_score: u8,
-    pub color_hex: u16,
+    pub color_hex: String,
 }
 
 impl fmt::Display for UxScore {
@@ -139,6 +140,7 @@ impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
                 .keys
                 .ed25519
                 .to_string(),
+            moniker: String::new(),
             location: None,
             last_probe: None,
             scores: None,
@@ -218,6 +220,7 @@ impl From<nym_vpn_lib::gateway_directory::Gateway> for Gateway {
     fn from(gateway: nym_vpn_lib::gateway_directory::Gateway) -> Self {
         Self {
             identity_key: gateway.identity.to_string(),
+            moniker: gateway.moniker,
             location: gateway.location.map(Location::from),
             last_probe: gateway.last_probe.map(Probe::from),
             scores: gateway.ux_scores.map(UxScores::from),

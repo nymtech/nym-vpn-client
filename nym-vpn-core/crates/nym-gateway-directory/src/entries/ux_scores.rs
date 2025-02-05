@@ -5,7 +5,7 @@
 pub struct UxScore {
     pub max_score: u8,
     pub current_score: u8,
-    pub color_hex: u16,
+    pub color_hex: String,
 }
 
 #[derive(Clone)]

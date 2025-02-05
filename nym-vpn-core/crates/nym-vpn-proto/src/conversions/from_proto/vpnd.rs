@@ -18,7 +18,7 @@ impl From<crate::UxScore> for nym_vpnd_types::gateway::UxScore {
         Self {
             max_score: score.max_score as u8,
             current_score: score.current_score as u8,
-            color_hex: score.color_hex as u16,
+            color_hex: score.color_hex,
         }
     }
 }
@@ -102,6 +102,7 @@ impl TryFrom<crate::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
             .id
             .map(|id| id.id)
             .ok_or_else(|| ConversionError::generic("missing gateway id"))?;
+        let moniker = gateway.moniker;
         let location = gateway
             .location
             .map(nym_vpnd_types::gateway::Location::from);
@@ -115,6 +116,7 @@ impl TryFrom<crate::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
             .transpose()?;
         Ok(Self {
             identity_key,
+            moniker,
             location,
             last_probe,
             scores,
