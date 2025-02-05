@@ -110,7 +110,8 @@ public final class Tunnel: NSObject, ObservableObject {
 private extension Tunnel {
     func startPollingTunnelStatus() {
         isPolling = true
-        pollingTask = Task {
+        pollingTask = Task { [weak self] in
+            guard let self else { return }
             while isPolling {
                 await pollTunnelStatus()
                 try? await Task.sleep(for: .seconds(1))
