@@ -18,7 +18,7 @@
     <string name="enable_shortcuts">启用app快捷方式</string>
     <string name="alpha_help_message">在 alpha 阶段帮助我们完善应用程序！您的反馈对于发现和解决问题至关重要。</string>
     <string name="notification_permission_message">需要在应用程序关闭时保持 VPN 服务运行。</string>
-	<string name="disconnected">未连接</string>
+    <string name="disconnected">未连接</string>
     <string name="disconnecting">断开连接</string>
     <string name="connecting">正在连接</string>
     <string name="five_hop_mixnet">匿名</string>
@@ -122,7 +122,7 @@
     <string name="mode_selection">模式选择</string>
     <string name="five_hop_explanation">通过 mixnet 通过 5 个服务器路由连接，享受最高级别的隐私保护。是安全处理付款、电子邮件和信息的完美选择。</string>
     <string name="continue_reading">继续阅读</string>
-	<string name="entry_location_selector">输入位置选择器</string>
+    <string name="entry_location_selector">输入位置选择器</string>
     <string name="entry_location">第一跳选择</string>
     <string name="exit_location">最后一跳选择</string>
     <string name="language">语言</string>
@@ -194,4 +194,5 @@
     <string name="missing_mnemonic">缺失的助记词</string>
     <string name="log_in">登录</string>
     <string name="share">分享</string>
+    <string name="disabled_while_connecting">连接 VPN 时禁用</string>
 </resources>
