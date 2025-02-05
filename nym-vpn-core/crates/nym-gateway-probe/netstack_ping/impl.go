@@ -22,19 +22,13 @@ import (
 )
 
 var fileUrls = []string{
-	"http://212.183.159.230/20MB.zip",
 	"https://proof.ovh.net/files/1Mb.dat",
 	"https://proof.ovh.net/files/10Mb.dat",
-	"http://ipv6.download.thinkbroadband.com/5MB.zip",
-	"http://ipv6.download.thinkbroadband.com/10MB.zip",
 }
 
 var fileUrlsV6 = []string{
-	"http://212.183.159.230/20MB.zip",
 	"https://proof.ovh.net/files/1Mb.dat",
 	"https://proof.ovh.net/files/10Mb.dat",
-	"http://ipv6.download.thinkbroadband.com/5MB.zip",
-	"http://ipv6.download.thinkbroadband.com/10MB.zip",
 }
 
 type Netstack struct{}
