@@ -1,6 +1,8 @@
 package net.nymtech.nymvpn.manager.backend
 
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -11,6 +13,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
+import kotlinx.coroutines.withContext
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
@@ -19,14 +22,17 @@ import net.nymtech.nymvpn.manager.backend.model.MixnetConnectionState
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.module.qualifiers.MainDispatcher
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.toMB
 import net.nymtech.nymvpn.util.extensions.toUserAgent
 import net.nymtech.nymvpn.util.extensions.toUserMessage
 import net.nymtech.vpn.backend.Backend
+import net.nymtech.vpn.backend.NymBackend
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendEvent
+import net.nymtech.vpn.model.Country
 import net.nymtech.vpn.util.exceptions.BackendException
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
@@ -36,21 +42,24 @@ import nym_vpn_lib.ConnectionEvent
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ErrorStateReason
 import nym_vpn_lib.ExitPoint
+import nym_vpn_lib.GatewayType
 import nym_vpn_lib.MixnetEvent
+import nym_vpn_lib.SystemMessage
 import nym_vpn_lib.TunnelState
 import nym_vpn_lib.VpnException
 import timber.log.Timber
 import javax.inject.Inject
-import javax.inject.Provider
 
 class NymBackendManager @Inject constructor(
 	private val settingsRepository: SettingsRepository,
 	private val notificationService: NotificationService,
-	private val backend: Provider<Backend>,
-	private val context: Context,
+	@ApplicationContext private val context: Context,
 	@ApplicationScope private val applicationScope: CoroutineScope,
 	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
+	@MainDispatcher private val mainDispatcher: CoroutineDispatcher,
 ) : BackendManager {
+
+	private val backend = CompletableDeferred<Backend>()
 
 	private val _state = MutableStateFlow(TunnelManagerState())
 	override val stateFlow: Flow<TunnelManagerState> = _state.onStart {
@@ -67,17 +76,25 @@ class NymBackendManager @Inject constructor(
 	override fun initialize() {
 		applicationScope.launch {
 			val env = settingsRepository.getEnvironment()
-			backend.get().init(env, settingsRepository.isCredentialMode())
+			val credentialMode = settingsRepository.isCredentialMode()
+			val nymBackend = withContext(mainDispatcher) {
+				NymBackend.getInstance(context, env, credentialMode)
+			}
+			backend.complete(nymBackend)
 		}
 	}
 
 	override fun getState(): Tunnel.State {
-		return backend.get().getState()
+		return try {
+			backend.getCompleted().getState()
+		} catch (e: IllegalStateException) {
+			Tunnel.State.Down
+		}
 	}
 
 	override suspend fun stopTunnel() {
 		runCatching {
-			backend.get().stop()
+			backend.await().stop()
 		}
 	}
 
@@ -94,7 +111,7 @@ class NymBackendManager @Inject constructor(
 				backendEvent = ::onBackendEvent,
 				credentialMode = settingsRepository.isCredentialMode(),
 			)
-			backend.get().start(tunnel, context.toUserAgent())
+			backend.await().start(tunnel, context.toUserAgent())
 		}.onFailure {
 			if (it is BackendException) {
 				when (it) {
@@ -134,18 +151,18 @@ class NymBackendManager @Inject constructor(
 	}
 
 	override suspend fun storeMnemonic(mnemonic: String) {
-		backend.get().storeMnemonic(mnemonic)
+		backend.await().storeMnemonic(mnemonic)
 		emitMnemonicStored(true)
 		updateDeviceId()
 		refreshAccountLinks()
 	}
 
 	override suspend fun isMnemonicStored(): Boolean {
-		return backend.get().isMnemonicStored()
+		return backend.await().isMnemonicStored()
 	}
 
 	override suspend fun removeMnemonic() {
-		backend.get().removeMnemonic()
+		backend.await().removeMnemonic()
 		emitMnemonicStored(false)
 		refreshAccountLinks()
 	}
@@ -162,19 +179,27 @@ class NymBackendManager @Inject constructor(
 	}
 
 	private suspend fun getDeviceId(): String {
-		return backend.get().getDeviceIdentity()
+		return backend.await().getDeviceIdentity()
 	}
 
 	override suspend fun getAccountSummary(): AccountStateSummary {
-		return backend.get().getAccountSummary()
+		return backend.await().getAccountSummary()
 	}
 
 	override suspend fun getAccountLinks(): AccountLinks? {
 		return try {
-			backend.get().getAccountLinks()
+			backend.await().getAccountLinks()
 		} catch (_: Exception) {
 			null
 		}
+	}
+
+	override suspend fun getSystemMessages(): List<SystemMessage> {
+		return backend.await().getSystemMessages()
+	}
+
+	override suspend fun getGatewayCountries(gatewayType: GatewayType): List<Country> {
+		return backend.await().getGatewayCountries(gatewayType, context.toUserAgent())
 	}
 
 	override suspend fun refreshAccountLinks() {
@@ -232,7 +257,7 @@ class NymBackendManager @Inject constructor(
 					emitBackendUiEvent(BackendUiEvent.Failure(state.v1))
 					launchBackendFailureNotification(state.v1)
 					applicationScope.launch(ioDispatcher) {
-						backend.get().stop()
+						backend.await().stop()
 					}
 				}
 				else -> Unit

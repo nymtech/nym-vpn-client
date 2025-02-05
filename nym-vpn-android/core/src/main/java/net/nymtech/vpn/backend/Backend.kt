@@ -9,8 +9,6 @@ import nym_vpn_lib.UserAgent
 
 interface Backend {
 
-	suspend fun init(environment: Tunnel.Environment, credentialMode: Boolean?)
-
 	suspend fun getAccountSummary(): AccountStateSummary
 
 	suspend fun getAccountLinks(): AccountLinks

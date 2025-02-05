@@ -3,8 +3,11 @@ package net.nymtech.nymvpn.manager.backend
 import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.model.Country
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
+import nym_vpn_lib.GatewayType
+import nym_vpn_lib.SystemMessage
 
 interface BackendManager {
 	suspend fun stopTunnel()
@@ -14,6 +17,8 @@ interface BackendManager {
 	suspend fun removeMnemonic()
 	suspend fun getAccountSummary(): AccountStateSummary
 	suspend fun getAccountLinks(): AccountLinks?
+	suspend fun getSystemMessages(): List<SystemMessage>
+	suspend fun getGatewayCountries(gatewayType: GatewayType): List<Country>
 	suspend fun refreshAccountLinks()
 	val stateFlow: Flow<TunnelManagerState>
 	fun getState(): Tunnel.State

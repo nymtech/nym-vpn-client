@@ -14,6 +14,7 @@ import net.nymtech.connectivity.NetworkService
 import net.nymtech.logcatutil.LogReader
 import net.nymtech.logcatutil.LogcatReader
 import net.nymtech.nymvpn.data.GatewayRepository
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.shortcut.DynamicShortcutManager
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
@@ -24,9 +25,6 @@ import net.nymtech.nymvpn.service.country.CountryDataStoreCacheService
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.service.notification.VpnAlertNotifications
 import net.nymtech.nymvpn.util.FileUtils
-import net.nymtech.nymvpn.util.extensions.toUserAgent
-import net.nymtech.vpn.backend.Backend
-import net.nymtech.vpn.backend.NymBackend
 import javax.inject.Singleton
 
 @InstallIn(SingletonComponent::class)
@@ -41,14 +39,8 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideCountryCacheService(backend: Backend, gatewayRepository: GatewayRepository, @ApplicationContext context: Context): CountryCacheService {
-		return CountryDataStoreCacheService(gatewayRepository, backend, context.toUserAgent())
-	}
-
-	@Singleton
-	@Provides
-	fun provideBackend(@ApplicationContext context: Context): Backend {
-		return NymBackend.getInstance(context)
+	fun provideCountryCacheService(backendManager: BackendManager, gatewayRepository: GatewayRepository): CountryCacheService {
+		return CountryDataStoreCacheService(gatewayRepository, backendManager)
 	}
 
 	@Singleton

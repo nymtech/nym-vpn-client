@@ -1,21 +1,18 @@
 package net.nymtech.nymvpn.service.country
 
 import net.nymtech.nymvpn.data.GatewayRepository
-import net.nymtech.vpn.backend.Backend
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import nym_vpn_lib.GatewayType
-import nym_vpn_lib.UserAgent
 import timber.log.Timber
 import javax.inject.Inject
-import kotlin.onFailure
 
 class CountryDataStoreCacheService @Inject constructor(
 	private val gatewayRepository: GatewayRepository,
-	private val backend: Backend,
-	private val userAgent: UserAgent,
+	private val backend: BackendManager,
 ) : CountryCacheService {
 	override suspend fun updateExitCountriesCache(): Result<Unit> {
 		return runCatching {
-			val countries = backend.getGatewayCountries(GatewayType.MIXNET_EXIT, userAgent)
+			val countries = backend.getGatewayCountries(GatewayType.MIXNET_EXIT)
 			gatewayRepository.setExitCountries(countries)
 			Timber.d("Updated mixnet exit countries cache")
 		}.onFailure {
@@ -25,7 +22,7 @@ class CountryDataStoreCacheService @Inject constructor(
 
 	override suspend fun updateEntryCountriesCache(): Result<Unit> {
 		return runCatching {
-			val countries = backend.getGatewayCountries(GatewayType.MIXNET_ENTRY, userAgent)
+			val countries = backend.getGatewayCountries(GatewayType.MIXNET_ENTRY)
 			gatewayRepository.setEntryCountries(countries)
 			Timber.d("Updated mixnet entry countries cache")
 		}.onFailure {
@@ -35,7 +32,7 @@ class CountryDataStoreCacheService @Inject constructor(
 
 	override suspend fun updateWgCountriesCache(): Result<Unit> {
 		return kotlin.runCatching {
-			val countries = backend.getGatewayCountries(GatewayType.WG, userAgent)
+			val countries = backend.getGatewayCountries(GatewayType.WG)
 			gatewayRepository.setWgCountries(countries)
 			Timber.d("Updated wg countries cache")
 		}.onFailure {

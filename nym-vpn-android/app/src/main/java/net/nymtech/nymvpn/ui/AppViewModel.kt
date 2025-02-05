@@ -24,7 +24,6 @@ import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
-import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.Country
 import nym_vpn_lib.SystemMessage
@@ -39,7 +38,6 @@ constructor(
 	gatewayRepository: GatewayRepository,
 	private val countryCacheService: CountryCacheService,
 	private val backendManager: BackendManager,
-	private val backend: Backend,
 	networkService: NetworkService,
 ) : ViewModel() {
 
@@ -137,7 +135,7 @@ constructor(
 
 	private suspend fun checkSystemMessages() {
 		runCatching {
-			val messages = backend.getSystemMessages()
+			val messages = backendManager.getSystemMessages()
 			messages.firstOrNull()?.let {
 				_systemMessage.emit(it)
 			}
