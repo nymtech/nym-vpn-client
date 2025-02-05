@@ -8,7 +8,7 @@
     <string name="connecting">Conectando</string>
     <string name="five_hop_mixnet">Anônimo (mixnet)</string>
     <string name="five_hop_description">Para pagamentos, e-mails e mensagens</string>
-	<string name="two_hop_description">Melhor para navegação, transmissão e compartilhamento</string>
+    <string name="two_hop_description">Melhor para navegação, transmissão e compartilhamento</string>
     <string name="first_hop">Primeiro salto</string>
     <string name="last_hop">Último salto</string>
     <string name="connect">Conectar</string>
@@ -198,4 +198,6 @@
     <string name="unexpected_error">Ocorreu um erro inesperado:</string>
     <string name="no_active_subscription">Não foi detectada nenhuma subscrição ativa.</string>
     <string name="loading">Carregando</string>
+    <string name="disabled_while_connecting">Desativado durante a ligação à VPN</string>
+    <string name="two_hop_explanation">Experimente a velocidade máxima com a conetividade de 2 servidores. Este modo utiliza o AmneziaWG, uma versão do WireGuard resistente à censura, ideal para navegação rápida, transmissão e partilha de ficheiros.</string>
 </resources>
