@@ -4,7 +4,7 @@
     <string name="connected">Подключено</string>
     <string name="connecting">Подключение</string>
     <string name="five_hop_mixnet">Анонимный (микснет)</string>
-	<string name="first_hop">Локация входа</string>
+    <string name="first_hop">Локация входа</string>
     <string name="last_hop">Локация выхода</string>
     <string name="connect">Подключиться</string>
     <string name="disconnect">Отключиться</string>
@@ -122,7 +122,7 @@
     <string name="mode_selection">Выбор режима</string>
     <string name="continue_reading">Продолжить чтение</string>
     <string name="five_hop_explanation">Наивысший уровень конфиденциальности с маршрутизацией соединения сквозь 5 серверов через микснет. Идеально подходит для безопасной обработки платежей, электронных писем и сообщений.</string>
-	<string name="entry_location">Локация входа</string>
+    <string name="entry_location">Локация входа</string>
     <string name="exit_location">Локация выхода</string>
     <string name="language">Язык</string>
     <string name="gateway_modal_description">Мы определяем местоположение серверов на основе их IP-адресов, но фактические местоположения могут незначительно отличаться.</string>
@@ -198,4 +198,6 @@
     <string name="waiting_for_connection">Подключится, как только устройство будет в сети</string>
     <string name="loading">Загрузка</string>
     <string name="no_internet">Ваше устройство не подключено к интернету</string>
+    <string name="disabled_while_connecting">Неактивно при подключении к VPN</string>
+    <string name="two_hop_explanation">Получите максимальную скорость благодаря подключению к двум серверам. В этом режиме используется AmneziaWG, защищенная от цензуры версия WireGuard, которая идеально подходит для быстрого просмотра страниц, стриминга и обмена файлами.</string>
 </resources>
