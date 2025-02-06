@@ -200,4 +200,5 @@
     <string name="no_internet">Ваше устройство не подключено к интернету</string>
     <string name="disabled_while_connecting">Неактивно при подключении к VPN</string>
     <string name="two_hop_explanation">Получите максимальную скорость благодаря подключению к двум серверам. В этом режиме используется AmneziaWG, защищенная от цензуры версия WireGuard, которая идеально подходит для быстрого просмотра страниц, стриминга и обмена файлами.</string>
+    <string name="two_hop_title">Быстрый (WireGuard<small>*</small>)</string>
 </resources>
