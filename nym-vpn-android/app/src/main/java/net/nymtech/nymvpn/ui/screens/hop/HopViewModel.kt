@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.service.country.CountryCacheService
+import net.nymtech.nymvpn.service.country.GatewayCacheService
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
 import nym_vpn_lib.GatewayType
@@ -20,7 +20,7 @@ class HopViewModel
 @Inject
 constructor(
 	private val settingsRepository: SettingsRepository,
-	private val countryCacheService: CountryCacheService,
+	private val gatewayCacheService: GatewayCacheService,
 ) : ViewModel() {
 
 	private val _uiState = MutableStateFlow(HopUiState())
@@ -38,9 +38,9 @@ constructor(
 		var error = false
 		_uiState.update { it.copy(error = false) }
 		when (type) {
-			GatewayType.MIXNET_ENTRY -> countryCacheService.updateEntryGatewayCache().onFailure { error = true }
-			GatewayType.MIXNET_EXIT -> countryCacheService.updateExitGatewayCache().onFailure { error = true }
-			GatewayType.WG -> countryCacheService.updateWgGatewayCache().onFailure { error = true }
+			GatewayType.MIXNET_ENTRY -> gatewayCacheService.updateEntryGatewayCache().onFailure { error = true }
+			GatewayType.MIXNET_EXIT -> gatewayCacheService.updateExitGatewayCache().onFailure { error = true }
+			GatewayType.WG -> gatewayCacheService.updateWgGatewayCache().onFailure { error = true }
 		}
 		_uiState.update { it.copy(error = error) }
 	}

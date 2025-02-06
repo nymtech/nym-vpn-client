@@ -16,16 +16,16 @@ class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager)
 		val WG_COUNTRIES = stringPreferencesKey("WG_GATEWAYS")
 	}
 
-	override suspend fun setEntryCountries(countries: List<NymGateway>) {
-		dataStoreManager.saveToDataStore(ENTRY_COUNTRIES, countries.toString())
+	override suspend fun setEntryGateways(gateways: List<NymGateway>) {
+		dataStoreManager.saveToDataStore(ENTRY_COUNTRIES, gateways.toString())
 	}
 
-	override suspend fun setExitCountries(countries: List<NymGateway>) {
-		dataStoreManager.saveToDataStore(EXIT_COUNTRIES, countries.toString())
+	override suspend fun setExitGateways(gateways: List<NymGateway>) {
+		dataStoreManager.saveToDataStore(EXIT_COUNTRIES, gateways.toString())
 	}
 
-	override suspend fun setWgCountries(countries: List<NymGateway>) {
-		dataStoreManager.saveToDataStore(WG_COUNTRIES, countries.toString())
+	override suspend fun setWgGateways(gateways: List<NymGateway>) {
+		dataStoreManager.saveToDataStore(WG_COUNTRIES, gateways.toString())
 	}
 
 	override val gatewayFlow: Flow<Gateways> =

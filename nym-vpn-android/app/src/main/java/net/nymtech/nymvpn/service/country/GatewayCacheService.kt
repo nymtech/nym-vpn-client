@@ -1,6 +1,6 @@
 package net.nymtech.nymvpn.service.country
 
-interface CountryCacheService {
+interface GatewayCacheService {
 	suspend fun updateExitGatewayCache(): Result<Unit>
 
 	suspend fun updateEntryGatewayCache(): Result<Unit>

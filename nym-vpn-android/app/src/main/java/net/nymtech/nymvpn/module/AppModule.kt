@@ -20,8 +20,8 @@ import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
 import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.module.qualifiers.DefaultDispatcher
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
-import net.nymtech.nymvpn.service.country.CountryCacheService
-import net.nymtech.nymvpn.service.country.CountryDataStoreCacheService
+import net.nymtech.nymvpn.service.country.GatewayCacheService
+import net.nymtech.nymvpn.service.country.GatewayDataStoreCacheService
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.service.notification.VpnAlertNotifications
 import net.nymtech.nymvpn.util.FileUtils
@@ -39,8 +39,8 @@ object AppModule {
 
 	@Singleton
 	@Provides
-	fun provideCountryCacheService(backendManager: BackendManager, gatewayRepository: GatewayRepository): CountryCacheService {
-		return CountryDataStoreCacheService(gatewayRepository, backendManager)
+	fun provideCountryCacheService(backendManager: BackendManager, gatewayRepository: GatewayRepository): GatewayCacheService {
+		return GatewayDataStoreCacheService(gatewayRepository, backendManager)
 	}
 
 	@Singleton

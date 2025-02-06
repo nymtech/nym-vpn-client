@@ -6,14 +6,14 @@ import nym_vpn_lib.GatewayType
 import timber.log.Timber
 import javax.inject.Inject
 
-class CountryDataStoreCacheService @Inject constructor(
+class GatewayDataStoreCacheService @Inject constructor(
 	private val gatewayRepository: GatewayRepository,
 	private val backend: BackendManager,
-) : CountryCacheService {
+) : GatewayCacheService {
 	override suspend fun updateExitGatewayCache(): Result<Unit> {
 		return runCatching {
 			val countries = backend.getGateways(GatewayType.MIXNET_EXIT)
-			gatewayRepository.setExitCountries(countries)
+			gatewayRepository.setExitGateways(countries)
 			Timber.d("Updated mixnet exit countries cache")
 		}.onFailure {
 			Timber.e(it)
@@ -23,7 +23,7 @@ class CountryDataStoreCacheService @Inject constructor(
 	override suspend fun updateEntryGatewayCache(): Result<Unit> {
 		return runCatching {
 			val countries = backend.getGateways(GatewayType.MIXNET_ENTRY)
-			gatewayRepository.setEntryCountries(countries)
+			gatewayRepository.setEntryGateways(countries)
 			Timber.d("Updated mixnet entry countries cache")
 		}.onFailure {
 			Timber.e(it)
@@ -33,7 +33,7 @@ class CountryDataStoreCacheService @Inject constructor(
 	override suspend fun updateWgGatewayCache(): Result<Unit> {
 		return kotlin.runCatching {
 			val countries = backend.getGateways(GatewayType.WG)
-			gatewayRepository.setWgCountries(countries)
+			gatewayRepository.setWgGateways(countries)
 			Timber.d("Updated wg countries cache")
 		}.onFailure {
 			Timber.e(it)

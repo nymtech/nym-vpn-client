@@ -18,7 +18,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
-import net.nymtech.nymvpn.service.country.CountryCacheService
+import net.nymtech.nymvpn.service.country.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
@@ -35,7 +35,7 @@ class AppViewModel
 constructor(
 	private val settingsRepository: SettingsRepository,
 	gatewayRepository: GatewayRepository,
-	private val countryCacheService: CountryCacheService,
+	private val gatewayCacheService: GatewayCacheService,
 	private val backendManager: BackendManager,
 	networkService: NetworkService,
 ) : ViewModel() {
@@ -145,13 +145,13 @@ constructor(
 			_isAppReady.emit(true)
 		}.collect()
 		launch {
-			countryCacheService.updateExitGatewayCache()
+			gatewayCacheService.updateExitGatewayCache()
 		}
 		launch {
-			countryCacheService.updateEntryGatewayCache()
+			gatewayCacheService.updateEntryGatewayCache()
 		}
 		launch {
-			countryCacheService.updateWgGatewayCache()
+			gatewayCacheService.updateWgGatewayCache()
 		}
 		launch {
 			Timber.d("Checking for system messages")

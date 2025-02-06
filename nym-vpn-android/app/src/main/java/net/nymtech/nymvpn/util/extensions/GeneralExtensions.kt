@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.util.extensions
 
-import net.nymtech.vpn.model.Country
 import java.util.Locale
 import kotlin.math.round
 import kotlin.time.Duration
@@ -15,10 +14,6 @@ fun Long.convertSecondsToTimeString(): String {
 
 fun String.capitalize(locale: Locale): String {
 	return this.replaceFirstChar { if (it.isLowerCase()) it.titlecase(locale) else it.toString() }
-}
-
-fun Set<Country>.default(): Country {
-	return this.firstOrNull() ?: Country(isDefault = true)
 }
 
 fun Long.toMB(): String {
