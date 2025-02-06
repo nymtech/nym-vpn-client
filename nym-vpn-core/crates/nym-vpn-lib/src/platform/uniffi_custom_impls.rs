@@ -393,7 +393,47 @@ impl From<nym_vpn_network_config::feature_flags::FlagValue> for FlagValue {
     }
 }
 
-#[derive(uniffi::Record)]
+#[derive(Debug, PartialEq, uniffi::Enum, Clone)]
+pub enum Score {
+    High,
+    Medium,
+    Low,
+    None,
+}
+
+impl From<nym_gateway_directory::Score> for Score {
+    fn from(value: nym_gateway_directory::Score) -> Self {
+        match value {
+            nym_gateway_directory::Score::High => Score::High,
+            nym_gateway_directory::Score::Medium => Score::Medium,
+            nym_gateway_directory::Score::Low => Score::Low,
+            nym_gateway_directory::Score::None => Score::None,
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
+pub struct GatewayInfo {
+    pub id: NodeIdentity,
+    pub moniker: String,
+    pub location: Option<Location>,
+    pub mixnet_score: Option<Score>,
+    pub wg_score: Option<Score>,
+}
+
+impl From<nym_gateway_directory::Gateway> for GatewayInfo {
+    fn from(value: nym_gateway_directory::Gateway) -> Self {
+        GatewayInfo {
+            moniker: value.moniker,
+            location: value.location.map(Location::from),
+            id: value.identity,
+            mixnet_score: value.mixnet_score.map(Score::from),
+            wg_score: value.wg_score.map(Score::from),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
 pub struct Location {
     pub two_letter_iso_country_code: String,
 }

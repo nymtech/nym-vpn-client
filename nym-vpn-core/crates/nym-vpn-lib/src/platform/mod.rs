@@ -69,7 +69,7 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 use crate::tunnel_provider::ios::OSTunProvider;
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
-    AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayMinPerformance,
+    AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayInfo, GatewayMinPerformance,
     GatewayType, Location, NetworkEnvironment, SystemMessage, UserAgent,
 };
 use uniffi_lib_types::TunnelEvent;
@@ -285,6 +285,50 @@ async fn get_gateway_countries(
         .lookup_countries(gw_type.into())
         .await
         .map(|countries| countries.into_iter().map(Location::from).collect())
+        .map_err(VpnError::from)
+}
+
+/// Get the list of gateways available of the given type.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getGateways(
+    gw_type: GatewayType,
+    user_agent: UserAgent,
+    min_gateway_performance: Option<GatewayMinPerformance>,
+) -> Result<Vec<GatewayInfo>, VpnError> {
+    RUNTIME.block_on(get_gateways(gw_type, user_agent, min_gateway_performance))
+}
+
+async fn get_gateways(
+    gw_type: GatewayType,
+    user_agent: UserAgent,
+    min_gateway_performance: Option<GatewayMinPerformance>,
+) -> Result<Vec<GatewayInfo>, VpnError> {
+    let network_env = environment::current_environment_details().await?;
+    let nyxd_url = network_env.nyxd_url().ok_or(VpnError::InternalError {
+        details: "Nyxd URL not found".to_string(),
+    })?;
+    let api_url = network_env.api_url().ok_or(VpnError::InternalError {
+        details: "API URL not found".to_string(),
+    })?;
+    let nym_vpn_api_url = Some(network_env.vpn_api_url());
+    let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
+    let directory_config = nym_gateway_directory::Config {
+        nyxd_url,
+        api_url,
+        nym_vpn_api_url,
+        min_gateway_performance,
+    };
+    GatewayClient::new(directory_config, user_agent.into())?
+        .lookup_gateways(gw_type.into())
+        .await
+        .map(|gateways| {
+            gateways
+                .into_inner()
+                .into_iter()
+                .map(GatewayInfo::from)
+                .collect()
+        })
         .map_err(VpnError::from)
 }
 
