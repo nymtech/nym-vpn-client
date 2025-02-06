@@ -74,7 +74,7 @@ echo "iOS Checksum: $ios_checksum"
 # -----------------------------------------------------------------------------
 
 if [[ -f "$PACKAGE_FILE_PATH" ]]; then
-    sed -i '' "s|https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v[^\"]*_ios_universal\.zip|$ios_download_link|g" "$PACKAGE_FILE_PATH"
+    sed -i '' "s|url: \".*\"|url: \"$ios_download_link\"|g" "$PACKAGE_FILE_PATH"
     sed -i '' "s|checksum: \".*\"|checksum: \"$ios_checksum\"|g" "$PACKAGE_FILE_PATH"
     echo "Package.swift has been successfully updated with iOS URL and checksum."
 else

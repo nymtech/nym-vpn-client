@@ -123,9 +123,8 @@ private extension SettingsViewModel {
         }
         newSections.append(
             contentsOf: [
-                connectionSection(),
-                themeSection(),
                 feedbackSection(),
+                themeSection(),
                 legalSection()
             ]
         )
@@ -162,28 +161,6 @@ private extension SettingsViewModel {
         )
     }
 
-    func connectionSection() -> SettingsSection {
-        .connection(
-            viewModels: [
-//                SettingsListItemViewModel(
-//                    accessory: .arrow,
-//                    title: "autoConnectTitle".localizedString,
-//                    subtitle: "autoConnectSubtitle".localizedString,
-//                    imageName: "autoConnect",
-//                    action: {}
-//                ),
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "logs".localizedString,
-                    imageName: "logs",
-                    action: { [weak self] in
-                        self?.navigateToLogs()
-                    }
-                )
-            ]
-        )
-    }
-
     func themeSection() -> SettingsSection {
         .theme(
             viewModels: [
@@ -208,6 +185,14 @@ private extension SettingsViewModel {
                     imageName: "support",
                     action: { [weak self] in
                         self?.navigateToSupportAndFeedback()
+                    }
+                ),
+                SettingsListItemViewModel(
+                    accessory: .arrow,
+                    title: "logs".localizedString,
+                    imageName: "logs",
+                    action: { [weak self] in
+                        self?.navigateToLogs()
                     }
                 ),
                 SettingsListItemViewModel(
