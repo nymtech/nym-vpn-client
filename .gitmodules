@@ -3,4 +3,4 @@
 	url = https://github.com/mullvad/windows-libraries.git
 [submodule "third-party/windows/libwfp"]
 	path = third-party/windows/libwfp
-	url = https://github.com/mullvad/libwfp.git
+	url = git@github.com:nymtech/libwfp.git
