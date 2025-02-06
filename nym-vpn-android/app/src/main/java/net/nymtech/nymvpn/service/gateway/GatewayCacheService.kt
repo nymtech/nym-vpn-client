@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.service.country
+package net.nymtech.nymvpn.service.gateway
 
 interface GatewayCacheService {
 	suspend fun updateExitGatewayCache(): Result<Unit>

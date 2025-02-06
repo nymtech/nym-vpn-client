@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.service.country
+package net.nymtech.nymvpn.service.gateway
 
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager

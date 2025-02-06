@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.service.country.GatewayCacheService
+import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
 import nym_vpn_lib.GatewayType

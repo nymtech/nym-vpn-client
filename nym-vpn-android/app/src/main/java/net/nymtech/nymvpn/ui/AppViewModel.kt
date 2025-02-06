@@ -18,7 +18,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
-import net.nymtech.nymvpn.service.country.GatewayCacheService
+import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
