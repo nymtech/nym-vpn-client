@@ -69,7 +69,7 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 use crate::tunnel_provider::ios::OSTunProvider;
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
-    AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayInfo, GatewayMinPerformance,
+    AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayMinPerformance,
     GatewayType, Location, NetworkEnvironment, SystemMessage, UserAgent,
 };
 use uniffi_lib_types::TunnelEvent;
