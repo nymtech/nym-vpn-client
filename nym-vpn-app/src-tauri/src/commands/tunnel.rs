@@ -58,8 +58,8 @@ pub async fn connect(
     // release the lock
     drop(app_state);
 
-    info!("entry {}", entry.code);
-    info!("exit {}", exit.code);
+    info!("entry [{}]", entry.code);
+    info!("exit [{}]", exit.code);
     let two_hop_mod = if let VpnMode::TwoHop = vpn_mode {
         info!("mode [wg]");
         true
