@@ -281,11 +281,10 @@ pub struct NymDirectoryGateway {
     pub mix_port: u16,
     pub role: Role,
     pub entry: EntryInformation,
-    pub gateway_ux_score_vpn: UxScore,
-    pub gateway_ux_score_mixnet: UxScore,
     // The performance data here originates from the nym-api, and is effectively mixnet performance
     // at the time of writing this
     pub performance: Percent,
+    pub wg_performance: Percent,
     pub build_information: Option<BuildInformation>,
 }
 

@@ -9,9 +9,9 @@ use rand::seq::IteratorRandom;
 use std::{fmt, net::IpAddr};
 use tracing::error;
 
-use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress, UxScore};
+use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
 
-use super::ux_scores::UxScores;
+use super::score::Score;
 
 pub type NymNode = Gateway;
 
@@ -28,7 +28,9 @@ pub struct Gateway {
     pub clients_ws_port: Option<u16>,
     pub clients_wss_port: Option<u16>,
     pub mixnet_performance: Option<Percent>,
-    pub ux_scores: Option<UxScores>,
+    pub wg_performance: Option<Percent>,
+    pub wg_score: Option<Score>,
+    pub mixnet_score: Option<Score>,
     pub version: Option<String>,
 }
 
@@ -157,12 +159,17 @@ impl From<nym_vpn_api_client::response::Probe> for Probe {
     }
 }
 
-impl From<nym_vpn_api_client::response::UxScore> for UxScore {
-    fn from(score: nym_vpn_api_client::response::UxScore) -> Self {
-        UxScore {
-            max_score: score.max_score,
-            current_score: score.current_score,
-            color_hex: score.color,
+impl From<Percent> for Score {
+    fn from(percent: Percent) -> Self {
+        let rounded_percent = percent.round_to_integer();
+        if rounded_percent >= 80 {
+            Score::High
+        } else if rounded_percent >= 60 {
+            Score::Medium
+        } else if rounded_percent > 0 {
+            Score::Low
+        } else {
+            Score::None
         }
     }
 }
@@ -250,10 +257,9 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             clients_ws_port: Some(gateway.entry.ws_port),
             clients_wss_port: gateway.entry.wss_port,
             mixnet_performance: Some(gateway.performance),
-            ux_scores: Some(UxScores {
-                mix_score: gateway.gateway_ux_score_mixnet.into(),
-                wg_score: gateway.gateway_ux_score_vpn.into(),
-            }),
+            mixnet_score: Some(Score::from(gateway.performance)),
+            wg_performance: Some(gateway.wg_performance),
+            wg_score: Some(Score::from(gateway.wg_performance)),
             version: gateway.build_information.map(|info| info.build_version),
         })
     }
@@ -324,7 +330,9 @@ impl TryFrom<nym_validator_client::models::NymNodeDescription> for Gateway {
             clients_ws_port,
             clients_wss_port,
             mixnet_performance: None,
-            ux_scores: None,
+            wg_performance: None,
+            wg_score: None,
+            mixnet_score: None,
             version,
         })
     }

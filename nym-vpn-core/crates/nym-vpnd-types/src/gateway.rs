@@ -5,13 +5,16 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
+use nym_vpn_lib::gateway_directory::Score as GwScore;
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Gateway {
     pub identity_key: String,
     pub moniker: String,
     pub location: Option<Location>,
     pub last_probe: Option<Probe>,
-    pub scores: Option<UxScores>,
+    pub mixnet_score: Option<Score>,
+    pub wg_score: Option<Score>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -41,29 +44,24 @@ impl fmt::Display for Probe {
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct UxScore {
-    pub max_score: u8,
-    pub current_score: u8,
-    pub color_hex: String,
+pub enum Score {
+    High,
+    Medium,
+    Low,
+    None,
 }
 
-impl fmt::Display for UxScore {
-    #[rustfmt::skip]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}/{}", self.current_score, self.max_score)
-    }
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-pub struct UxScores {
-    pub mix_score: UxScore,
-    pub wg_score: UxScore,
-}
-
-impl fmt::Display for UxScores {
-    #[rustfmt::skip]
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "mixnet score: {}\nwireguard score: {}", self.mix_score, self.wg_score)
+impl Score {
+    pub fn from_i32(value: i32) -> Self {
+        if (value == 3) {
+            Self::High
+        } else if value == 2 {
+            Self::Medium
+        } else if value == 1 {
+            Self::Low
+        } else {
+            Self::None
+        }
     }
 }
 
@@ -143,7 +141,8 @@ impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
             moniker: String::new(),
             location: None,
             last_probe: None,
-            scores: None,
+            wg_score: None,
+            mixnet_score: None,
         }
     }
 }
@@ -158,21 +157,13 @@ impl From<nym_vpn_lib::gateway_directory::Location> for Location {
     }
 }
 
-impl From<nym_vpn_lib::gateway_directory::UxScore> for UxScore {
-    fn from(score: nym_vpn_lib::gateway_directory::UxScore) -> Self {
-        Self {
-            max_score: score.max_score,
-            current_score: score.current_score,
-            color_hex: score.color_hex,
-        }
-    }
-}
-
-impl From<nym_vpn_lib::gateway_directory::UxScores> for UxScores {
-    fn from(scores: nym_vpn_lib::gateway_directory::UxScores) -> Self {
-        Self {
-            mix_score: scores.mix_score.into(),
-            wg_score: scores.wg_score.into(),
+impl From<GwScore> for Score {
+    fn from(score: GwScore) -> Self {
+        match score {
+            GwScore::High => Score::High,
+            GwScore::Medium => Score::Medium,
+            GwScore::Low => Score::Low,
+            GwScore::None => Score::None,
         }
     }
 }
@@ -223,7 +214,8 @@ impl From<nym_vpn_lib::gateway_directory::Gateway> for Gateway {
             moniker: gateway.moniker,
             location: gateway.location.map(Location::from),
             last_probe: gateway.last_probe.map(Probe::from),
-            scores: gateway.ux_scores.map(UxScores::from),
+            wg_score: gateway.wg_score.map(Score::from),
+            mixnet_score: gateway.mixnet_score.map(Score::from),
         }
     }
 }

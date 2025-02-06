@@ -429,34 +429,21 @@ impl From<nym_vpn_network_config::feature_flags::FlagValue> for FlagValue {
     }
 }
 
-#[derive(Debug, PartialEq, uniffi::Record, Clone)]
-pub struct UxScore {
-    pub max_score: u8,
-    pub current_score: u8,
-    pub color_hex: String,
+#[derive(Debug, PartialEq, uniffi::Enum, Clone)]
+pub enum Score {
+    High,
+    Medium,
+    Low,
+    None,
 }
 
-impl From<nym_gateway_directory::UxScore> for UxScore {
-    fn from(value: nym_gateway_directory::UxScore) -> Self {
-        UxScore {
-            max_score: value.max_score,
-            current_score: value.current_score,
-            color_hex: value.color_hex,
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, uniffi::Record, Clone)]
-pub struct UxScores {
-    pub mix_score: UxScore,
-    pub wg_score: UxScore,
-}
-
-impl From<nym_gateway_directory::UxScores> for UxScores {
-    fn from(value: nym_gateway_directory::UxScores) -> Self {
-        UxScores {
-            mix_score: value.mix_score.into(),
-            wg_score: value.wg_score.into(),
+impl From<nym_gateway_directory::Score> for Score {
+    fn from(value: nym_gateway_directory::Score) -> Self {
+        match value {
+            nym_gateway_directory::Score::High => Score::High,
+            nym_gateway_directory::Score::Medium => Score::Medium,
+            nym_gateway_directory::Score::Low => Score::Low,
+            nym_gateway_directory::Score::None => Score::None,
         }
     }
 }
@@ -466,7 +453,8 @@ pub struct GatewayInfo {
     pub id: NodeIdentity,
     pub moniker: String,
     pub location: Option<Location>,
-    pub scores: Option<UxScores>,
+    pub mixnet_score: Option<Score>,
+    pub wg_score: Option<Score>,
 }
 
 impl From<nym_gateway_directory::Gateway> for GatewayInfo {
@@ -475,7 +463,8 @@ impl From<nym_gateway_directory::Gateway> for GatewayInfo {
             moniker: value.moniker,
             location: value.location.map(Location::from),
             id: value.identity,
-            scores: value.ux_scores.map(UxScores::from),
+            mixnet_score: value.mixnet_score.map(Score::from),
+            wg_score: value.wg_score.map(Score::from),
         }
     }
 }
