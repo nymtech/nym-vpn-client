@@ -20,6 +20,7 @@ import net.nymtech.connectivity.NetworkConnectivityService
 import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.vpn.model.BackendEvent
 import net.nymtech.vpn.model.Country
+import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.Constants
 import net.nymtech.vpn.util.Constants.LOG_LEVEL
 import net.nymtech.vpn.util.LifecycleVpnService
@@ -225,20 +226,18 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		}
 	}
 
-	override suspend fun getGatewayCountries(type: GatewayType, userAgent: UserAgent): List<Country> {
-		return withContext(ioDispatcher) {
-			initialized.await()
-			nym_vpn_lib.getGatewayCountries(type, userAgent, null).map {
-				Country(isoCode = it.twoLetterIsoCountryCode)
-			}
-		}
-	}
-
 	override suspend fun getSystemMessages(): List<SystemMessage> {
 		return withContext(ioDispatcher) {
 			initialized.await()
 			nym_vpn_lib.getSystemMessages()
 		}
+	}
+
+	override suspend fun getGateways(
+		type: GatewayType,
+		userAgent: UserAgent,
+	): List<NymGateway> {
+		return emptyList()
 	}
 
 	override suspend fun start(tunnel: Tunnel, userAgent: UserAgent) {
