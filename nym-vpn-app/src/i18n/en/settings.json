@@ -29,7 +29,7 @@
     "emptyData": "No license data available"
   },
   "logs": {
-    "title": "Logs",
+    "title": "Logs (stored locally)",
     "desc": "Copy or delete logs"
   },
   "faq": "FAQ",
