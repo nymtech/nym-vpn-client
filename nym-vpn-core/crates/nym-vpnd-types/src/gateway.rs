@@ -53,7 +53,7 @@ pub enum Score {
 
 impl Score {
     pub fn from_i32(value: i32) -> Self {
-        if (value == 3) {
+        if value == 3 {
             Self::High
         } else if value == 2 {
             Self::Medium
