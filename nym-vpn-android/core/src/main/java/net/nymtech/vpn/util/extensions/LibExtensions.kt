@@ -49,6 +49,6 @@ fun String.asExitPoint(): ExitPoint {
 		2 -> ExitPoint.Location(this.uppercase())
 		134 -> ExitPoint.Address(this)
 		44 -> ExitPoint.Gateway(this)
-		else -> throw Exception("Invalid exit id")
+		else -> throw IllegalArgumentException("Invalid exit id")
 	}
 }
