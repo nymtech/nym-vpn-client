@@ -32,7 +32,7 @@ import net.nymtech.vpn.backend.Backend
 import net.nymtech.vpn.backend.NymBackend
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.BackendEvent
-import net.nymtech.vpn.model.Country
+import net.nymtech.vpn.model.NymGateway
 import net.nymtech.vpn.util.exceptions.BackendException
 import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
@@ -181,8 +181,8 @@ class NymBackendManager @Inject constructor(
 		return backend.await().getSystemMessages()
 	}
 
-	override suspend fun getGatewayCountries(gatewayType: GatewayType): List<Country> {
-		return backend.await().getGatewayCountries(gatewayType, context.toUserAgent())
+	override suspend fun getGateways(gatewayType: GatewayType): List<NymGateway> {
+		return backend.await().getGateways(gatewayType, context.toUserAgent())
 	}
 
 	override suspend fun refreshAccountLinks() {

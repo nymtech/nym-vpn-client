@@ -12,31 +12,31 @@ class CountryDataStoreCacheService @Inject constructor(
 ) : CountryCacheService {
 	override suspend fun updateExitGatewayCache(): Result<Unit> {
 		return runCatching {
-			val countries = backend.getGateways(GatewayType.MIXNET_EXIT, userAgent)
+			val countries = backend.getGateways(GatewayType.MIXNET_EXIT)
 			gatewayRepository.setExitCountries(countries)
 			Timber.d("Updated mixnet exit countries cache")
 		}.onFailure {
-			Timber.w("Failed to get exit countries: ${it.message}")
+			Timber.e(it)
 		}
 	}
 
 	override suspend fun updateEntryGatewayCache(): Result<Unit> {
 		return runCatching {
-			val countries = backend.getGateways(GatewayType.MIXNET_ENTRY, userAgent)
+			val countries = backend.getGateways(GatewayType.MIXNET_ENTRY)
 			gatewayRepository.setEntryCountries(countries)
 			Timber.d("Updated mixnet entry countries cache")
 		}.onFailure {
-			Timber.w("Failed to get entry countries: ${it.message}")
+			Timber.e(it)
 		}
 	}
 
 	override suspend fun updateWgGatewayCache(): Result<Unit> {
 		return kotlin.runCatching {
-			val countries = backend.getGateways(GatewayType.WG, userAgent)
+			val countries = backend.getGateways(GatewayType.WG)
 			gatewayRepository.setWgCountries(countries)
 			Timber.d("Updated wg countries cache")
 		}.onFailure {
-			Timber.w("Failed to get wg countries: ${it.message}")
+			Timber.e(it)
 		}
 	}
 }

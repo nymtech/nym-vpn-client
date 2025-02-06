@@ -26,7 +26,9 @@ data class AppUiState(
 	}
 
 	val entryPointName: String = when (val entry = settings.entryPoint) {
-		is EntryPoint.Gateway -> entry.identity
+		is EntryPoint.Gateway -> {
+			gateways.entryGateways.firstOrNull { it.identity == entry.identity }?.name ?: entry.identity
+		}
 		is EntryPoint.Location -> Locale(entry.location, entry.location).displayCountry
 		else -> with(Settings.DEFAULT_ENTRY_POINT.location) {
 			Locale(this, this).displayCountry
@@ -35,7 +37,9 @@ data class AppUiState(
 
 	val exitPointName: String = when (val exit = settings.exitPoint) {
 		is ExitPoint.Address -> exit.address
-		is ExitPoint.Gateway -> exit.identity
+		is ExitPoint.Gateway -> {
+			gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.name ?: exit.identity
+		}
 		is ExitPoint.Location -> Locale(exit.location, exit.location).displayCountry
 	}
 }

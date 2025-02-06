@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.ui
 
-import android.os.Build
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,8 +14,6 @@ import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.connectivity.NetworkService
-import net.nymtech.nymvpn.BuildConfig
-import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
@@ -28,9 +25,7 @@ import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Tunnel
-import nym_vpn_lib.GatewayType
 import nym_vpn_lib.SystemMessage
-import nym_vpn_lib.UserAgent
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -156,15 +151,7 @@ constructor(
 			countryCacheService.updateEntryGatewayCache()
 		}
 		launch {
-			backend.getGateways(
-				GatewayType.WG,
-				UserAgent(
-					Constants.APP_PROJECT_NAME,
-					BuildConfig.VERSION_NAME,
-					"${Build.VERSION.SDK_INT}; ${NymVpn.getCPUArchitecture()}; ${BuildConfig.FLAVOR}",
-					BuildConfig.COMMIT_HASH,
-				),
-			)
+			countryCacheService.updateWgGatewayCache()
 		}
 		launch {
 			Timber.d("Checking for system messages")

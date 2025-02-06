@@ -4,44 +4,26 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
-import nym_vpn_lib.Gateway
+import nym_vpn_lib.GatewayInfo
 import nym_vpn_lib.NodeIdentity
-import nym_vpn_lib.Percent
+import nym_vpn_lib.Score
 
 @Serializable
 data class NymGateway(
 	val identity: NodeIdentity,
 	val twoLetterCountryISO: String?,
-	val mixnetPerformance: Percent?,
-	val probeResult: ProbeResult?,
+	val mixnetScore: Score?,
+	val wgScore: Score?,
+	val name: String,
 ) {
 	companion object {
-		fun from(gateway: Gateway): NymGateway {
+		fun from(gateway: GatewayInfo): NymGateway {
 			return NymGateway(
-				identity = gateway.identity,
+				identity = gateway.id,
+				name = gateway.moniker,
 				twoLetterCountryISO = gateway.location?.twoLetterIsoCountryCode?.lowercase(),
-				mixnetPerformance = gateway.mixnetPerformance,
-				probeResult = gateway.lastProbe?.let {
-					ProbeResult(
-						lastUpdatedUtc = it.lastUpdatedUtc,
-						entryCanRoute = it.outcome.asEntry.canRoute,
-						entryCanConnect = it.outcome.asEntry.canConnect,
-						exitCanConnect = it.outcome.asExit?.canConnect,
-						exitCanRouteIpV4 = it.outcome.asExit?.canRouteIpV4,
-						exitCanRouteIpV6 = it.outcome.asExit?.canRouteIpV6,
-						exitCanRouteIpExternalV4 = it.outcome.asExit?.canRouteIpExternalV4,
-						exitCanRouteIpExternalV6 = it.outcome.asExit?.canRouteIpExternalV6,
-						wgProbeResult = it.outcome.wg?.let {
-							WgProbeResult(
-								canRegister = it.canRegister,
-								canHandshake = it.canHandshake,
-								canResolveDns = it.canResolveDns,
-								pingHostsPerformance = it.pingHostsPerformance,
-								pingIpsPerformance = it.pingHostsPerformance,
-							)
-						},
-					)
-				},
+				mixnetScore = gateway.mixnetScore,
+				wgScore = gateway.wgScore,
 			)
 		}
 
@@ -79,25 +61,3 @@ data class NymGateway(
 		return ExitPoint.Gateway(identity)
 	}
 }
-
-@Serializable
-data class ProbeResult(
-	val lastUpdatedUtc: String?,
-	val entryCanConnect: Boolean?,
-	val entryCanRoute: Boolean,
-	var exitCanConnect: Boolean?,
-	val exitCanRouteIpV4: Boolean?,
-	val exitCanRouteIpExternalV4: Boolean?,
-	var exitCanRouteIpV6: Boolean?,
-	var exitCanRouteIpExternalV6: Boolean?,
-	var wgProbeResult: WgProbeResult?,
-)
-
-@Serializable
-data class WgProbeResult(
-	val canRegister: Boolean,
-	var canHandshake: Boolean,
-	var canResolveDns: Boolean,
-	var pingHostsPerformance: Float,
-	var pingIpsPerformance: Float,
-)

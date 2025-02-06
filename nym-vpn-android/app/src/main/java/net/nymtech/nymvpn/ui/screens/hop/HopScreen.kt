@@ -28,6 +28,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -80,7 +81,9 @@ import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib.GatewayType
+import nym_vpn_lib.Score
 import java.text.Collator
 import java.util.Locale
 
@@ -186,6 +189,21 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 	fun onSelectionChange(id: String) {
 		viewModel.onSelected(id, gatewayLocation)
 		navController.navigateAndForget(Route.Main())
+	}
+
+	@Composable
+	fun getScoreIcon(gateway: NymGateway): ImageVector {
+		val score = when (gatewayType) {
+			GatewayType.MIXNET_ENTRY, GatewayType.MIXNET_EXIT -> gateway.mixnetScore
+			GatewayType.WG -> gateway.wgScore
+		}
+		return when (score) {
+			Score.HIGH -> ImageVector.vectorResource(R.drawable.bars_3)
+			Score.MEDIUM -> ImageVector.vectorResource(R.drawable.bars_2)
+			Score.LOW -> ImageVector.vectorResource(R.drawable.bar_1)
+			Score.NONE -> Icons.Default.QuestionMark
+			null -> Icons.Default.QuestionMark
+		}
 	}
 
 	Modal(show = showLocationTooltip, onDismiss = { showLocationTooltip = false }, title = {
@@ -385,15 +403,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 										onSelectionChange(gateway.identity)
 									},
 									leading = {
-										// TODO this will change, just random threshold for now
-										val icon = gateway.mixnetPerformance?.let {
-											when (it) {
-												in 0u..45u -> ImageVector.vectorResource(R.drawable.bars_1)
-												in 46u..75u -> ImageVector.vectorResource(R.drawable.bars_2)
-												in 76u..100u -> ImageVector.vectorResource(R.drawable.bars_3)
-												else -> ImageVector.vectorResource(R.drawable.bars_2)
-											}
-										} ?: ImageVector.vectorResource(R.drawable.bars_2)
+										val icon = getScoreIcon(gateway)
 										Image(
 											icon,
 											icon.name,
@@ -413,7 +423,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 									},
 									title = {
 										Text(
-											"Unknown name",
+											gateway.name,
 											maxLines = 1,
 											overflow = TextOverflow.Ellipsis,
 											style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
@@ -446,15 +456,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 									onSelectionChange(gateway.identity)
 								},
 								leading = {
-									// TODO this will change, just random threshold for now
-									val icon = gateway.mixnetPerformance?.let {
-										when (it) {
-											in 0u..45u -> ImageVector.vectorResource(R.drawable.bars_1)
-											in 46u..75u -> ImageVector.vectorResource(R.drawable.bars_2)
-											in 76u..100u -> ImageVector.vectorResource(R.drawable.bars_3)
-											else -> ImageVector.vectorResource(R.drawable.bars_2)
-										}
-									} ?: ImageVector.vectorResource(R.drawable.bars_2)
+									val icon = getScoreIcon(gateway)
 									Image(
 										icon,
 										icon.name,
@@ -474,7 +476,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 								},
 								title = {
 									Text(
-										"Unknown name",
+										gateway.name,
 										maxLines = 1,
 										overflow = TextOverflow.Ellipsis,
 										style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
