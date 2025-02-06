@@ -411,17 +411,17 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 											Modifier.height(16.dp).width(15.dp),
 										)
 									},
-									//TODO disable info dialog for now
-//									trailing = {
-//										Row(
-//											horizontalArrangement = Arrangement.spacedBy(16.dp),
-//											verticalAlignment = Alignment.CenterVertically,
-//										) {
-//											val icon = Icons.Outlined.Info
-//											VerticalDivider(modifier = Modifier.height(42.dp))
-//											Icon(icon, icon.name, Modifier.size(iconSize))
-//										}
-//									},
+									// TODO disable info dialog for now
+// 									trailing = {
+// 										Row(
+// 											horizontalArrangement = Arrangement.spacedBy(16.dp),
+// 											verticalAlignment = Alignment.CenterVertically,
+// 										) {
+// 											val icon = Icons.Outlined.Info
+// 											VerticalDivider(modifier = Modifier.height(42.dp))
+// 											Icon(icon, icon.name, Modifier.size(iconSize))
+// 										}
+// 									},
 									title = {
 										Text(
 											gateway.name,
