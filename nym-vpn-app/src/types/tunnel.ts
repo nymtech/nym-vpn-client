@@ -47,7 +47,7 @@ export function isTunnelError(state: TunnelState): state is TunnelStateError {
 export type Tunnel = {
   entryGwId: string;
   exitGwId: string;
-  connectedAt: number | null;
+  connectedAt: number | null; // unix timestamp
   data: TunnelData;
 };
 

@@ -3091,7 +3091,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.2-hu#6e6675f7bffcc795f08a17c0e6d15c8a7cbcb829"
+source = "git+https://github.com/nymtech/nym?branch=2025.2-hu-fork#1e5f249275396f804ca8e866bff326b2c61fd2d5"
 dependencies = [
  "const-str",
  "log",
@@ -3103,7 +3103,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.2-hu#6e6675f7bffcc795f08a17c0e6d15c8a7cbcb829"
+source = "git+https://github.com/nymtech/nym?branch=2025.2-hu-fork#1e5f249275396f804ca8e866bff326b2c61fd2d5"
 dependencies = [
  "async-trait",
  "http 1.2.0",

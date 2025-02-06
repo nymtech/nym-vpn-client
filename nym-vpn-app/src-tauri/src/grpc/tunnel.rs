@@ -1,9 +1,8 @@
-use serde::Serialize;
-use time::OffsetDateTime;
-use ts_rs::TS;
-
 use nym_vpn_proto as p;
 use p::tunnel_state::{ActionAfterDisconnect, ErrorStateReason, State};
+use serde::Serialize;
+use tracing::warn;
+use ts_rs::TS;
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export)]
@@ -47,7 +46,7 @@ pub enum TunnelData {
 pub struct Tunnel {
     pub entry_gw_id: String,
     pub exit_gw_id: String,
-    pub connected_at: Option<i64>,
+    pub connected_at: Option<i64>, // unix timestamp
     pub data: TunnelData,
 }
 
@@ -80,6 +79,10 @@ impl TunnelState {
                     .map(Tunnel::try_from)
                     .transpose()?
                     .ok_or("missing tunnel data")?;
+                if tunnel.connected_at.is_none() {
+                    // just in case
+                    warn!("connected but missing connected_at timestamp");
+                }
                 TunnelState::Connected(tunnel)
             }
             State::Disconnecting(action) => {
@@ -149,11 +152,6 @@ impl TryFrom<p::ConnectionData> for Tunnel {
     type Error = &'static str;
 
     fn try_from(p_data: p::ConnectionData) -> Result<Self, Self::Error> {
-        let connected_at = p_data
-            .connected_at
-            .map(|t| OffsetDateTime::from_unix_timestamp(t.seconds))
-            .ok_or("failed to parse connection timestamp")?;
-
         Ok(Tunnel {
             entry_gw_id: p_data
                 .entry_gateway
@@ -165,7 +163,7 @@ impl TryFrom<p::ConnectionData> for Tunnel {
                 .ok_or("missing exit gateway ID")?
                 .id
                 .clone(),
-            connected_at: connected_at.map(|t| t.unix_timestamp()).ok(),
+            connected_at: p_data.connected_at.map(|t| t.seconds),
             data: p_data.tunnel.ok_or("missing tunnel data")?.try_into()?,
         })
     }

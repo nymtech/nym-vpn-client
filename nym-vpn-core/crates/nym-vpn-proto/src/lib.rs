@@ -11,3 +11,6 @@ pub const VPN_FD_SET: &[u8] = tonic::include_file_descriptor_set!("vpn_descripto
 
 #[cfg(feature = "conversions")]
 pub mod conversions;
+
+// Re-export needed prost types
+pub use prost_types::Timestamp;
