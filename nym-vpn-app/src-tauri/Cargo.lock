@@ -3119,7 +3119,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.3.0-dev"
+version = "1.3.0-nectarine.0"
 dependencies = [
  "anyhow",
  "build-info",
