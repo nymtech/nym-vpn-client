@@ -28,7 +28,11 @@ function Home() {
       return;
     }
     dispatch({ type: 'disconnect' });
-    if (state === 'Connected' || state === 'Connecting') {
+    if (
+      state === 'Connected' ||
+      state === 'Connecting' ||
+      state === 'OfflineAutoReconnect'
+    ) {
       console.info('disconnect');
       if (state === 'Connecting') {
         dispatch({ type: 'new-progress-message', message: 'Canceling' });
@@ -41,7 +45,7 @@ function Home() {
           console.warn('backend error:', e);
           dispatch({ type: 'set-error', error: e as BackendError });
         });
-    } else if (state === 'Disconnected') {
+    } else if (state === 'Disconnected' || state === 'Error') {
       console.info('connect');
       dispatch({ type: 'connect' });
       invoke('connect', { entry: entryNodeLocation, exit: exitNodeLocation })
@@ -66,25 +70,31 @@ function Home() {
   }, [navigate]);
 
   const getButtonText = useCallback(() => {
+    const stop = capFirst(t('stop', { ns: 'glossary' }));
     switch (state) {
       case 'Connected':
         return t('disconnect');
       case 'Disconnected':
+      case 'Error':
         return t('connect');
       case 'Connecting':
-        return capFirst(t('stop', { ns: 'glossary' }));
+        return stop;
       case 'Disconnecting':
         return null;
-      default:
-        return '-';
+      case 'Offline':
+        return t('connect');
+      case 'OfflineAutoReconnect':
+        return stop;
     }
   }, [state, t]);
 
   const getButtonColor = () => {
     switch (state) {
       case 'Disconnected':
+      case 'Offline':
         return 'malachite';
       case 'Connecting':
+      case 'OfflineAutoReconnect':
         return 'gray';
       case 'Connected':
       case 'Disconnecting':

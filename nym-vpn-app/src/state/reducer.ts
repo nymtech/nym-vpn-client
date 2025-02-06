@@ -238,8 +238,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
     case 'set-tunnel-offline':
       return {
         ...state,
-        state: 'Offline',
-        // reconnect: action.reconnect,
+        state: action.reconnect ? 'OfflineAutoReconnect' : 'Offline',
         tunnel: null,
         tunnelError: null,
       };

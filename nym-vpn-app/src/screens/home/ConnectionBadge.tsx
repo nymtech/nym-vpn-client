@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { motion } from 'motion/react';
 import { TunnelState } from '../../types';
+import { PulseDot } from '../../ui';
 
 function ConnectionBadge({ state }: { state: TunnelState }) {
   const { t } = useTranslation('home');
@@ -35,9 +36,12 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
       'dark:bg-oil dark:bg-opacity-15',
     ],
     Offline: [
-      'bg-cement-feet bg-opacity-10',
-      'text-liquid-lava',
-      'dark:bg-oil dark:bg-opacity-15',
+      'bg-rose-bruni/5 dark:bg-rouge-basque/10',
+      'text-baltic-sea dark:text-mercury-pinkish',
+    ],
+    OfflineAutoReconnect: [
+      'bg-cement-feet/10 dark:bg-oil/15',
+      'text-baltic-sea dark:text-white',
     ],
   };
 
@@ -71,23 +75,9 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
     >
       {getStatusText(state)}
       {(state === 'Connecting' || state === 'Disconnecting') && (
-        <div
-          className={clsx([
-            'relative flex justify-center items-center',
-            // use static pixel sizes for animated elements to avoid glitches
-            // with the different UI scaling factors
-            'h-[12px] w-[12px]',
-          ])}
-        >
-          <div className="animate-ping absolute h-full w-full rounded-full bg-cornflower opacity-75" />
-          <div
-            className={clsx([
-              'relative rounded-full bg-cornflower',
-              'h-[8px] w-[8px]',
-            ])}
-          />
-        </div>
+        <PulseDot color="cornflower" />
       )}
+      {state === 'OfflineAutoReconnect' && <PulseDot color="red" />}
     </motion.div>
   );
 }
