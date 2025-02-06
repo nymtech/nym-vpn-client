@@ -66,7 +66,14 @@ fun SupportScreen(appViewModel: AppViewModel) {
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
-					leadingIcon = ImageVector.vectorResource(R.drawable.faq),
+					leading = {
+						val icon = ImageVector.vectorResource(R.drawable.faq)
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
 						Icon(icon, icon.name, Modifier.size(iconSize))
@@ -75,11 +82,19 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					onClick = { context.openWebUrl(context.getString(R.string.faq_url)) },
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
-					leadingIcon = ImageVector.vectorResource(R.drawable.send),
+					leading = {
+						val icon = ImageVector.vectorResource(R.drawable.send)
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
 						Icon(icon, icon.name, Modifier.size(iconSize))
@@ -90,11 +105,19 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					},
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
-					leadingIcon = ImageVector.vectorResource(R.drawable.github),
+					leading = {
+						val icon = ImageVector.vectorResource(R.drawable.github)
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
 						Icon(icon, icon.name, Modifier.size(iconSize))
@@ -107,11 +130,19 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					},
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
-					leadingIcon = ImageVector.vectorResource(R.drawable.matrix),
+					leading = {
+						val icon = ImageVector.vectorResource(R.drawable.matrix)
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
 						Icon(icon, icon.name, Modifier.size(iconSize))
@@ -122,11 +153,19 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					},
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
-					leadingIcon = ImageVector.vectorResource(R.drawable.discord),
+					leading = {
+						val icon = ImageVector.vectorResource(R.drawable.discord)
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
 						Icon(icon, icon.name, Modifier.size(iconSize))
@@ -137,6 +176,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 					},
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 	}
 }

@@ -60,7 +60,14 @@ fun AppearanceScreen(appViewModel: AppViewModel) {
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
-					Icons.Outlined.Translate,
+					{
+						val icon = Icons.Outlined.Translate
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
 						Icon(icon, icon.name, Modifier.size(iconSize))
@@ -69,11 +76,19 @@ fun AppearanceScreen(appViewModel: AppViewModel) {
 					onClick = { navController.navigate(Route.Language) },
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
-					Icons.Outlined.Contrast,
+					{
+						val icon = Icons.Outlined.Contrast
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
 						Icon(icon, icon.name, Modifier.size(iconSize))
@@ -82,6 +97,7 @@ fun AppearanceScreen(appViewModel: AppViewModel) {
 					onClick = { navController.navigate(Route.Display) },
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 	}
 }

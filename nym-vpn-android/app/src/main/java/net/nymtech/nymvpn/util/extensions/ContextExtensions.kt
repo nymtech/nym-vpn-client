@@ -11,7 +11,6 @@ import android.os.Build
 import android.provider.Settings
 import android.service.quicksettings.TileService
 import android.widget.Toast
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import net.nymtech.nymvpn.BuildConfig
@@ -20,7 +19,6 @@ import net.nymtech.nymvpn.NymVpn.Companion.instance
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.service.android.tile.VpnQuickTile
 import net.nymtech.nymvpn.util.Constants
-import net.nymtech.vpn.model.Country
 import nym_vpn_lib.UserAgent
 import timber.log.Timber
 import java.util.Locale
@@ -32,16 +30,6 @@ private const val BASELINE_DENSITY = 2.625
 val Context.actionBarSize
 	get() = theme.obtainStyledAttributes(intArrayOf(android.R.attr.actionBarSize))
 		.let { attrs -> attrs.getDimension(0, 0F).toInt().also { attrs.recycle() } }
-
-fun Context.buildCountryNameString(country: Country): String {
-	return buildAnnotatedString {
-		if (country.isLowLatency) {
-			append(getString(R.string.automatic))
-		} else {
-			append(country.name)
-		}
-	}.text
-}
 
 fun Context.setAppLocale(locale: Locale): Context {
 	Locale.setDefault(locale)

@@ -393,47 +393,7 @@ impl From<nym_vpn_network_config::feature_flags::FlagValue> for FlagValue {
     }
 }
 
-#[derive(Debug, PartialEq, uniffi::Enum, Clone)]
-pub enum Score {
-    High,
-    Medium,
-    Low,
-    None,
-}
-
-impl From<nym_gateway_directory::Score> for Score {
-    fn from(value: nym_gateway_directory::Score) -> Self {
-        match value {
-            nym_gateway_directory::Score::High => Score::High,
-            nym_gateway_directory::Score::Medium => Score::Medium,
-            nym_gateway_directory::Score::Low => Score::Low,
-            nym_gateway_directory::Score::None => Score::None,
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, uniffi::Record, Clone)]
-pub struct GatewayInfo {
-    pub id: NodeIdentity,
-    pub moniker: String,
-    pub location: Option<Location>,
-    pub mixnet_score: Option<Score>,
-    pub wg_score: Option<Score>,
-}
-
-impl From<nym_gateway_directory::Gateway> for GatewayInfo {
-    fn from(value: nym_gateway_directory::Gateway) -> Self {
-        GatewayInfo {
-            moniker: value.moniker,
-            location: value.location.map(Location::from),
-            id: value.identity,
-            mixnet_score: value.mixnet_score.map(Score::from),
-            wg_score: value.wg_score.map(Score::from),
-        }
-    }
-}
-
-#[derive(Debug, PartialEq, uniffi::Record, Clone)]
+#[derive(uniffi::Record)]
 pub struct Location {
     pub two_letter_iso_country_code: String,
 }
@@ -534,6 +494,27 @@ impl From<UserAgent> for NymUserAgent {
             git_commit: value.git_commit,
         }
     }
+}
+
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
+pub struct MixConnectionInfo {
+    pub nym_address: Recipient,
+    pub entry_gateway: NodeIdentity,
+}
+
+#[derive(Debug, PartialEq, uniffi::Record, Clone)]
+pub struct MixExitConnectionInfo {
+    pub exit_gateway: NodeIdentity,
+    pub exit_ipr: Recipient,
+    pub ips: IpPair,
+}
+
+#[derive(uniffi::Record, Clone, Debug, PartialEq)]
+pub struct WireguardConnectionInfo {
+    pub gateway_id: NodeIdentity,
+    pub public_key: String,
+    pub private_ipv4: Ipv4Addr,
+    pub private_ipv6: Ipv6Addr,
 }
 
 #[derive(uniffi::Enum)]

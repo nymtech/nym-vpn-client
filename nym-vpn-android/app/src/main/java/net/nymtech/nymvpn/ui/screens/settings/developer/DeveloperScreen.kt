@@ -1,6 +1,5 @@
 package net.nymtech.nymvpn.ui.screens.settings.developer
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,10 +14,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.outlined.AdminPanelSettings
-import androidx.compose.material.icons.outlined.AirlineStops
 import androidx.compose.material.icons.outlined.Bolt
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.Place
 import androidx.compose.material3.DropdownMenuItem
@@ -40,17 +36,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.common.Modal
-import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
-import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
@@ -65,14 +55,10 @@ import net.nymtech.vpn.backend.Tunnel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: DeveloperViewModel = hiltViewModel()) {
+fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
 	val navController = LocalNavController.current
-	val clipboardManager = LocalClipboardManager.current
 	val padding = WindowInsets.systemBars.asPaddingValues()
 
-	var showEntryModal by remember { mutableStateOf(false) }
-	var showExitModal by remember { mutableStateOf(false) }
-	var gatewayId by remember { mutableStateOf("") }
 	var environmentExpanded by remember { mutableStateOf(false) }
 	var credentialExpanded by remember { mutableStateOf(false) }
 
@@ -98,36 +84,6 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 			),
 		)
 	}
-
-	Modal(showEntryModal, { showEntryModal = false }, { Text("Entry gateway id") }, {
-		TextField(gatewayId, onValueChange = { gatewayId = it })
-	}, confirmButton = {
-		MainStyledButton(
-			onClick = {
-				viewModel.onEntryGateway(gatewayId)
-				gatewayId = ""
-				showEntryModal = false
-			},
-			content = {
-				Text(text = "Save")
-			},
-		)
-	}, icon = Icons.Outlined.AirlineStops)
-
-	Modal(showExitModal, { showExitModal = false }, { Text("Exit gateway id") }, {
-		TextField(gatewayId, onValueChange = { gatewayId = it })
-	}, confirmButton = {
-		MainStyledButton(
-			onClick = {
-				viewModel.onExitGateway(gatewayId)
-				gatewayId = ""
-				showExitModal = false
-			},
-			content = {
-				Text(text = "Save")
-			},
-		)
-	}, icon = Icons.Outlined.AirlineStops)
 
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -182,6 +138,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 						trailing = null,
 					),
 				),
+				background = MaterialTheme.colorScheme.surface,
 			)
 		}
 		appUiState.managerState.mixnetConnectionState?.let {
@@ -234,12 +191,20 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 						trailing = null,
 					),
 				),
+				background = MaterialTheme.colorScheme.surface,
 			)
 		}
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
-					Icons.Outlined.Place,
+					{
+						val icon = Icons.Outlined.Place
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					title = {
 						ExposedDropdownMenuBox(
 							expanded = environmentExpanded,
@@ -280,7 +245,14 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 					trailing = null,
 				),
 				SelectionItem(
-					Icons.Outlined.Key,
+					{
+						val icon = Icons.Outlined.Key
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					title = {
 						ExposedDropdownMenuBox(
 							expanded = credentialExpanded,
@@ -324,68 +296,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMode
 					trailing = null,
 				),
 			),
-		)
-		SurfaceSelectionGroupButton(
-			listOf(
-				SelectionItem(
-					Icons.Outlined.AdminPanelSettings,
-					{
-						ScaledSwitch(
-							appUiState.settings.isManualGatewayOverride,
-							onClick = { viewModel.onManualGatewayOverride(it) },
-						)
-					},
-					title = { Text("Manual gateways", style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					description = {
-						Text(
-							"Override country selection",
-							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-						)
-					},
-				),
-				SelectionItem(
-					Icons.Outlined.AirlineStops,
-					{
-						val icon = Icons.Outlined.Edit
-						Icon(icon, icon.name)
-					},
-					title = { Text("Entry gateway id", style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					description = appUiState.settings.entryGatewayId?.let {
-						{
-							Text(
-								it,
-								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-								modifier = Modifier.clickable { clipboardManager.setText(AnnotatedString(it)) },
-							)
-						}
-					},
-					onClick = {
-						gatewayId = appUiState.settings.entryGatewayId ?: ""
-						showEntryModal = true
-					},
-				),
-				SelectionItem(
-					Icons.Outlined.AirlineStops,
-					{
-						val icon = Icons.Outlined.Edit
-						Icon(icon, icon.name)
-					},
-					title = { Text("Exit gateway id", style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					description = appUiState.settings.exitGatewayId?.let {
-						{
-							Text(
-								it,
-								style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-								modifier = Modifier.clickable { clipboardManager.setText(AnnotatedString(it)) },
-							)
-						}
-					},
-					onClick = {
-						gatewayId = appUiState.settings.exitGatewayId ?: ""
-						showExitModal = true
-					},
-				),
-			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 	}
 }

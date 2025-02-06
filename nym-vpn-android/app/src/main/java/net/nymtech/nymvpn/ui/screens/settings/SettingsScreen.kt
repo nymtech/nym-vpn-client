@@ -107,7 +107,14 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 			SurfaceSelectionGroupButton(
 				listOf(
 					SelectionItem(
-						Icons.Outlined.Person,
+						{
+							val icon = Icons.Outlined.Person
+							Icon(
+								icon,
+								icon.name,
+								modifier = Modifier.size(iconSize.scaledWidth()),
+							)
+						},
 						{
 							val icon = Icons.AutoMirrored.Outlined.Launch
 							Icon(icon, icon.name, Modifier.size(iconSize))
@@ -136,12 +143,20 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						},
 					),
 				),
+				background = MaterialTheme.colorScheme.surface,
 			)
 		}
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
-					ImageVector.vectorResource(R.drawable.auto),
+					{
+						val icon = ImageVector.vectorResource(R.drawable.auto)
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						ScaledSwitch(
 							appUiState.settings.autoStartEnabled,
@@ -157,7 +172,14 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					},
 				),
 				SelectionItem(
-					Icons.Outlined.AdminPanelSettings,
+					{
+						val icon = Icons.Outlined.AdminPanelSettings
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
 						Icon(icon, icon.name, Modifier.size(iconSize))
@@ -168,11 +190,19 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					},
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			mutableListOf(
 				SelectionItem(
-					Icons.AutoMirrored.Outlined.ViewQuilt,
+					{
+						val icon = Icons.AutoMirrored.Outlined.ViewQuilt
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
 						Icon(icon, icon.name, Modifier.size(iconSize))
@@ -181,7 +211,14 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					onClick = { navController.navigate(Route.Appearance) },
 				),
 				SelectionItem(
-					Icons.Outlined.Notifications,
+					{
+						val icon = Icons.Outlined.Notifications
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
 						Icon(icon, icon.name, Modifier.size(iconSize))
@@ -195,7 +232,14 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
 					this.add(
 						SelectionItem(
-							Icons.Outlined.AppShortcut,
+							{
+								val icon = Icons.Outlined.AppShortcut
+								Icon(
+									icon,
+									icon.name,
+									modifier = Modifier.size(iconSize.scaledWidth()),
+								)
+							},
 							{
 								ScaledSwitch(
 									appUiState.settings.isShortcutsEnabled,
@@ -213,11 +257,19 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					)
 				}
 			},
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
 				SelectionItem(
-					ImageVector.vectorResource(R.drawable.support),
+					{
+						val icon = ImageVector.vectorResource(R.drawable.support)
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
 						Icon(icon, icon.name, Modifier.size(iconSize))
@@ -231,7 +283,14 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					onClick = { navController.navigate(Route.Support) },
 				),
 				SelectionItem(
-					ImageVector.vectorResource(R.drawable.logs),
+					{
+						val icon = ImageVector.vectorResource(R.drawable.logs)
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
 						Icon(icon, icon.name, Modifier.size(iconSize))
@@ -266,6 +325,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 // 					},
 // 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(
 			listOf(
@@ -278,6 +338,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					onClick = { navController.navigate(Route.Legal) },
 				),
 			),
+			background = MaterialTheme.colorScheme.surface,
 		)
 		if (appUiState.managerState.isMnemonicStored) {
 			SurfaceSelectionGroupButton(
@@ -294,6 +355,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						trailing = {},
 					),
 				),
+				background = MaterialTheme.colorScheme.surface,
 			)
 		}
 		Column(

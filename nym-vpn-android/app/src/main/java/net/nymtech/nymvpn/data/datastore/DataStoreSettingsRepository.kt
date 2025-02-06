@@ -8,15 +8,18 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
-import net.nymtech.vpn.model.Country
+import net.nymtech.vpn.util.extensions.asEntryPoint
+import net.nymtech.vpn.util.extensions.asExitPoint
+import net.nymtech.vpn.util.extensions.asString
+import nym_vpn_lib.EntryPoint
+import nym_vpn_lib.ExitPoint
 import timber.log.Timber
 
 class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager) :
 	SettingsRepository {
 
-	private val default = Country(isDefault = true)
-	private val firstHopCountry = stringPreferencesKey("FIRST_HOP_COUNTRY")
-	private val lastHopCountry = stringPreferencesKey("LAST_HOP_COUNTRY")
+	private val entryPoint = stringPreferencesKey("ENTRY_POINT")
+	private val exitPoint = stringPreferencesKey("EXIT_POINT")
 	private val theme = stringPreferencesKey("THEME")
 	private val vpnMode = stringPreferencesKey("TUNNEL_MODE")
 	private val errorReporting = booleanPreferencesKey("ERROR_REPORTING")
@@ -27,16 +30,24 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val environment = stringPreferencesKey("ENVIRONMENT")
 	private val manualGatewayOverride = booleanPreferencesKey("MANUAL_GATEWAYS")
 	private val credentialMode = booleanPreferencesKey("CREDENTIAL_MODE")
-	private val entryGateway = stringPreferencesKey("ENTRY_GATEWAY_ID")
-	private val exitGateway = stringPreferencesKey("EXIT_GATEWAY_ID")
 	private val locale = stringPreferencesKey("LOCALE")
 
-	override suspend fun init() {
-		val firstHop = dataStoreManager.getFromStore(firstHopCountry)
-		val lastHop = dataStoreManager.getFromStore(lastHopCountry)
-		if (firstHop == null) setFirstHopCountry(Country(isDefault = true))
-		if (lastHop == null) setLastHopCountry(Country(isDefault = true))
+	override suspend fun setEntryPoint(entry: EntryPoint) {
+		dataStoreManager.saveToDataStore(entryPoint, entry.asString())
 	}
+
+	override suspend fun getEntryPoint(): EntryPoint {
+		return dataStoreManager.getFromStore(entryPoint)?.asEntryPoint() ?: EntryPoint.Location("FR")
+	}
+
+	override suspend fun setExitPoint(exit: ExitPoint) {
+		dataStoreManager.saveToDataStore(exitPoint, exit.asString())
+	}
+
+	override suspend fun getExitPoint(): ExitPoint {
+		return dataStoreManager.getFromStore(exitPoint)?.asExitPoint() ?: ExitPoint.Location("FR")
+	}
+
 	override suspend fun getTheme(): Theme {
 		return dataStoreManager.getFromStore(theme)?.let {
 			try {
@@ -63,26 +74,8 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		} ?: Tunnel.Mode.TWO_HOP_MIXNET
 	}
 
-	override suspend fun getFirstHopCountry(): Country {
-		val country = dataStoreManager.getFromStore(firstHopCountry)
-		return Country.from(country) ?: default
-	}
-
-	override suspend fun setFirstHopCountry(country: Country) {
-		dataStoreManager.saveToDataStore(firstHopCountry, country.toString())
-	}
-
 	override suspend fun setVpnMode(mode: Tunnel.Mode) {
 		dataStoreManager.saveToDataStore(vpnMode, mode.name)
-	}
-
-	override suspend fun getLastHopCountry(): Country {
-		val country = dataStoreManager.getFromStore(lastHopCountry)
-		return Country.from(country) ?: default
-	}
-
-	override suspend fun setLastHopCountry(country: Country) {
-		return dataStoreManager.saveToDataStore(lastHopCountry, country.toString())
 	}
 
 	override suspend fun isAutoStartEnabled(): Boolean {
@@ -141,10 +134,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(manualGatewayOverride, enabled)
 	}
 
-	override suspend fun isManualGatewayOverride(): Boolean {
-		return dataStoreManager.getFromStore(manualGatewayOverride) ?: Settings.MANUAL_GATEWAY_OVERRIDE
-	}
-
 	override suspend fun setCredentialMode(enabled: Boolean?) {
 		if (enabled == null) return dataStoreManager.clear(credentialMode)
 		dataStoreManager.saveToDataStore(credentialMode, enabled)
@@ -152,22 +141,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 
 	override suspend fun isCredentialMode(): Boolean? {
 		return dataStoreManager.getFromStore(credentialMode)
-	}
-
-	override suspend fun setEntryGatewayId(id: String) {
-		dataStoreManager.saveToDataStore(entryGateway, id)
-	}
-
-	override suspend fun setExitGatewayId(id: String) {
-		dataStoreManager.saveToDataStore(exitGateway, id)
-	}
-
-	override suspend fun getEntryGatewayId(): String? {
-		return dataStoreManager.getFromStore(entryGateway)
-	}
-
-	override suspend fun getExitGatewayId(): String? {
-		return dataStoreManager.getFromStore(exitGateway)
 	}
 
 	override suspend fun getLocale(): String? {
@@ -198,14 +171,11 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						analyticsEnabled = pref[analytics]
 							?: Settings.REPORTING_DEFAULT,
 						isAnalyticsShown = pref[analyticsShown] ?: Settings.ANALYTICS_SHOWN_DEFAULT,
-						firstHopCountry = Country.from(pref[firstHopCountry]) ?: default,
-						lastHopCountry = Country.from(pref[lastHopCountry]) ?: default,
+						entryPoint = pref[entryPoint]?.asEntryPoint() ?: Settings.DEFAULT_ENTRY_POINT,
+						exitPoint = pref[exitPoint]?.asExitPoint() ?: Settings.DEFAULT_EXIT_POINT,
 						isShortcutsEnabled = pref[applicationShortcuts] ?: Settings.SHORTCUTS_DEFAULT,
 						environment = pref[environment]?.let { Tunnel.Environment.valueOf(it) } ?: Settings.DEFAULT_ENVIRONMENT,
-						isManualGatewayOverride = pref[manualGatewayOverride] ?: Settings.MANUAL_GATEWAY_OVERRIDE,
 						isCredentialMode = pref[credentialMode],
-						entryGatewayId = pref[entryGateway],
-						exitGatewayId = pref[exitGateway],
 						locale = pref[locale],
 					)
 				} catch (e: IllegalArgumentException) {

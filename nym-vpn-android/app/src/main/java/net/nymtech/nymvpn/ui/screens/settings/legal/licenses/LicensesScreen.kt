@@ -124,6 +124,7 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 						},
 					),
 				),
+				background = MaterialTheme.colorScheme.surface,
 			)
 		}
 		item {

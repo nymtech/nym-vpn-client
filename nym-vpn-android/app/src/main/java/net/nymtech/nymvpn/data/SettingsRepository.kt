@@ -4,19 +4,18 @@ import kotlinx.coroutines.flow.Flow
 import net.nymtech.nymvpn.data.domain.Settings
 import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.vpn.backend.Tunnel
-import net.nymtech.vpn.model.Country
+import nym_vpn_lib.EntryPoint
+import nym_vpn_lib.ExitPoint
 
 interface SettingsRepository {
 
-	suspend fun init()
+	suspend fun setEntryPoint(entry: EntryPoint)
 
-	suspend fun getFirstHopCountry(): Country
+	suspend fun getEntryPoint(): EntryPoint
 
-	suspend fun setFirstHopCountry(country: Country)
+	suspend fun setExitPoint(exit: ExitPoint)
 
-	suspend fun getLastHopCountry(): Country
-
-	suspend fun setLastHopCountry(country: Country)
+	suspend fun getExitPoint(): ExitPoint
 
 	suspend fun getTheme(): Theme
 
@@ -52,19 +51,9 @@ interface SettingsRepository {
 
 	suspend fun setManualGatewayOverride(enabled: Boolean)
 
-	suspend fun isManualGatewayOverride(): Boolean
-
 	suspend fun setCredentialMode(enabled: Boolean?)
 
 	suspend fun isCredentialMode(): Boolean?
-
-	suspend fun setEntryGatewayId(id: String)
-
-	suspend fun setExitGatewayId(id: String)
-
-	suspend fun getEntryGatewayId(): String?
-
-	suspend fun getExitGatewayId(): String?
 
 	suspend fun getLocale(): String?
 

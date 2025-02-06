@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
@@ -38,6 +39,7 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
@@ -147,7 +149,14 @@ fun AnalyticsScreen(appViewModel: AppViewModel, navController: NavController, ap
 			SurfaceSelectionGroupButton(
 				items = listOf(
 					SelectionItem(
-						Icons.Outlined.BugReport,
+						leading = {
+							val icon = Icons.Outlined.BugReport
+							Icon(
+								icon,
+								icon.name,
+								modifier = Modifier.size(iconSize.scaledWidth()),
+							)
+						},
 						title = {
 							Text(
 								stringResource(R.string.error_reporting),
@@ -191,6 +200,7 @@ fun AnalyticsScreen(appViewModel: AppViewModel, navController: NavController, ap
 // 						height = 80,
 // 					),
 				),
+				background = MaterialTheme.colorScheme.surface,
 			)
 			MainStyledButton(onClick = {
 				appViewModel.setAnalyticsShown()

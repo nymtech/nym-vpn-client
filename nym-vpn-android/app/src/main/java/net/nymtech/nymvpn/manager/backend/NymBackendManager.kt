@@ -126,29 +126,11 @@ class NymBackendManager @Inject constructor(
 	}
 
 	private suspend fun getEntryPoint(): EntryPoint {
-		val isManualGatewaysEnabled = settingsRepository.isManualGatewayOverride()
-		val entryCountry = settingsRepository.getFirstHopCountry()
-		if (!isManualGatewaysEnabled) return entryCountry.toEntryPoint()
-		val gatewayId = settingsRepository.getEntryGatewayId() ?: return entryCountry.toEntryPoint()
-		return try {
-			EntryPoint.Gateway(identity = gatewayId)
-		} catch (e: Exception) {
-			Timber.e(e)
-			entryCountry.toEntryPoint()
-		}
+		return settingsRepository.getEntryPoint()
 	}
 
 	private suspend fun getExitPoint(): ExitPoint {
-		val isManualGatewaysEnabled = settingsRepository.isManualGatewayOverride()
-		val exitCountry = settingsRepository.getLastHopCountry()
-		if (!isManualGatewaysEnabled) return exitCountry.toExitPoint()
-		val gatewayId = settingsRepository.getExitGatewayId() ?: return exitCountry.toExitPoint()
-		return try {
-			ExitPoint.Gateway(identity = gatewayId)
-		} catch (e: Exception) {
-			Timber.e(e)
-			exitCountry.toExitPoint()
-		}
+		return settingsRepository.getExitPoint()
 	}
 
 	override suspend fun storeMnemonic(mnemonic: String) {

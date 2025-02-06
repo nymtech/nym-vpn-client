@@ -5,36 +5,26 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.domain.Gateways
-import net.nymtech.vpn.model.Country
+import net.nymtech.vpn.model.NymGateway
 import timber.log.Timber
 
 class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager) :
 	GatewayRepository {
 	companion object {
-		val ENTRY_COUNTRIES = stringPreferencesKey("ENTRY_COUNTRIES")
-		val EXIT_COUNTRIES = stringPreferencesKey("EXIT_COUNTRIES")
-		val WG_COUNTRIES = stringPreferencesKey("WG_COUNTRIES")
+		val ENTRY_COUNTRIES = stringPreferencesKey("ENTRY_GATEWAYS")
+		val EXIT_COUNTRIES = stringPreferencesKey("EXIT_GATEWAYS")
+		val WG_COUNTRIES = stringPreferencesKey("WG_GATEWAYS")
 	}
 
-	override suspend fun setEntryCountries(countries: List<Country>) {
+	override suspend fun setEntryCountries(countries: List<NymGateway>) {
 		dataStoreManager.saveToDataStore(ENTRY_COUNTRIES, countries.toString())
 	}
 
-	override suspend fun getEntryCountries(): List<Country> {
-		val countries = dataStoreManager.getFromStore(ENTRY_COUNTRIES)
-		return Country.fromCollectionString(countries)
-	}
-
-	override suspend fun setExitCountries(countries: List<Country>) {
+	override suspend fun setExitCountries(countries: List<NymGateway>) {
 		dataStoreManager.saveToDataStore(EXIT_COUNTRIES, countries.toString())
 	}
 
-	override suspend fun getExitCountries(): List<Country> {
-		val countries = dataStoreManager.getFromStore(EXIT_COUNTRIES)
-		return Country.fromCollectionString(countries)
-	}
-
-	override suspend fun setWgCountries(countries: List<Country>) {
+	override suspend fun setWgCountries(countries: List<NymGateway>) {
 		dataStoreManager.saveToDataStore(WG_COUNTRIES, countries.toString())
 	}
 
@@ -43,9 +33,9 @@ class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager)
 			prefs?.let { pref ->
 				try {
 					Gateways(
-						exitCountries = Country.fromCollectionString(pref[EXIT_COUNTRIES]),
-						entryCountries = Country.fromCollectionString(pref[ENTRY_COUNTRIES]),
-						wgCountries = Country.fromCollectionString(pref[WG_COUNTRIES]),
+						exitGateways = NymGateway.fromCollectionString(pref[EXIT_COUNTRIES]),
+						entryGateways = NymGateway.fromCollectionString(pref[ENTRY_COUNTRIES]),
+						wgGateways = NymGateway.fromCollectionString(pref[WG_COUNTRIES]),
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -42,6 +43,7 @@ import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.ui.screens.settings.account.model.Device
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.nymvpn.util.extensions.showToast
@@ -176,7 +178,14 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 					items =
 					emptyList<Device>().map {
 						SelectionItem(
-							ImageVector.vectorResource(it.type.icon()),
+							{
+								val icon = ImageVector.vectorResource(it.type.icon())
+								Icon(
+									icon,
+									icon.name,
+									modifier = Modifier.size(iconSize.scaledWidth()),
+								)
+							},
 							trailing = {
 								IconButton(
 									onClick = { /*TODO handle item delete from authorized*/ },
@@ -190,6 +199,7 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 							},
 						)
 					},
+					background = MaterialTheme.colorScheme.surface,
 				)
 			}
 		}
