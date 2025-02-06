@@ -7,7 +7,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Fast (Wireguard*)"
+            "value" : "Fast (WireGuard*)"
           }
         }
       }
@@ -1118,7 +1118,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Logs"
+            "value" : "Logs (stored locally)"
           }
         }
       }
