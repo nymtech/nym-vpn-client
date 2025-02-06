@@ -200,4 +200,5 @@
     <string name="waiting_for_connection">Підключиться, як тільки пристрій увімкнеться в мережу</string>
     <string name="two_hop_explanation">Відчуйте максимальну швидкість завдяки підключенню до 2 серверів. У цьому режимі використовується AmneziaWG, захищена від цензури версія WireGuard, що ідеально підходить для швидкого перегляду веб-сторінок, потокового передавання даних і обміну файлами.</string>
     <string name="disabled_while_connecting">Вимкнено під час підключення до VPN</string>
+    <string name="two_hop_title">Швидкий (WireGuard<small>*</small>)</string>
 </resources>
