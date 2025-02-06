@@ -9,8 +9,8 @@
     "error": "Error",
     "offline": "No internet"
   },
-  "offline-subtext": "Your device has no internet connection",
-  "offline-reconnect-subtext": "Will connect once the device goes online",
+  "offline-message": "Your device has no internet connection",
+  "offline-reconnect-message": "Will connect once the device goes online",
   "last-hop": "Exit location",
   "first-hop": "Entry location",
   "connecting-message": "Establishing connection",

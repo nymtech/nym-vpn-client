@@ -9,8 +9,8 @@
     "error": "Error",
     "offline": "Pas de connexion Internet"
   },
-  "offline-subtext": "L'appareil n'est pas connecté à Internet",
-  "offline-reconnect-subtext": "Se reconnectera une fois la connexion Internet établie",
+  "offline-message": "L'appareil n'est pas connecté à Internet",
+  "offline-reconnect-message": "Se reconnectera une fois la connexion Internet établie",
   "last-hop": "Nœud de sortie",
   "first-hop": "Nœud d'entrée",
   "connecting-message": "Connexion en cours",

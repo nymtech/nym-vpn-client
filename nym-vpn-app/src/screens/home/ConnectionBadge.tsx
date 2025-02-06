@@ -19,9 +19,9 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
       'dark:text-coal-mine-dark',
     ],
     Connecting: [
-      'bg-cement-feet bg-opacity-10',
+      'bg-cement-feet/10',
       'text-baltic-sea',
-      'dark:bg-oil dark:bg-opacity-15',
+      'dark:bg-oil/15',
       'dark:text-white',
     ],
     Disconnecting: [
@@ -36,11 +36,11 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
       'dark:bg-oil dark:bg-opacity-15',
     ],
     Offline: [
-      'bg-rose-bruni/95 dark:bg-rouge-basque/90',
+      'bg-rose-bruni/95 dark:bg-rouge-basque/85',
       'text-baltic-sea dark:text-mercury-pinkish',
     ],
     OfflineAutoReconnect: [
-      'bg-cement-feet/90 dark:bg-oil/85',
+      'bg-cement-feet/10 dark:bg-oil/15',
       'text-baltic-sea dark:text-white',
     ],
   };
