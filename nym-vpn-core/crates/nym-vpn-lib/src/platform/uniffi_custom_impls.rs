@@ -536,27 +536,6 @@ impl From<UserAgent> for NymUserAgent {
     }
 }
 
-#[derive(Debug, PartialEq, uniffi::Record, Clone)]
-pub struct MixConnectionInfo {
-    pub nym_address: Recipient,
-    pub entry_gateway: NodeIdentity,
-}
-
-#[derive(Debug, PartialEq, uniffi::Record, Clone)]
-pub struct MixExitConnectionInfo {
-    pub exit_gateway: NodeIdentity,
-    pub exit_ipr: Recipient,
-    pub ips: IpPair,
-}
-
-#[derive(uniffi::Record, Clone, Debug, PartialEq)]
-pub struct WireguardConnectionInfo {
-    pub gateway_id: NodeIdentity,
-    pub public_key: String,
-    pub private_ipv4: Ipv4Addr,
-    pub private_ipv6: Ipv6Addr,
-}
-
 #[derive(uniffi::Enum)]
 pub enum EntryPoint {
     Gateway { identity: NodeIdentity },

@@ -246,7 +246,7 @@ pub fn getAccountState() -> Result<AccountStateSummary, VpnError> {
     RUNTIME.block_on(account::get_account_state())
 }
 
-/// Get the liset of countries that have gateways available of the given type.
+/// Get the list of countries that have gateways available of the given type.
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getGatewayCountries(
