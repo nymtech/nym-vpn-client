@@ -21,6 +21,8 @@ function Home() {
   const navigate = useNavigate();
   const { t } = useTranslation('home');
   const loading = state === 'Disconnecting';
+  const hopSelectDisabled =
+    daemonStatus === 'NotOk' || state !== 'Disconnected';
 
   const handleClick = () => {
     if (state === 'Disconnected' && !account) {
@@ -126,13 +128,13 @@ function Home() {
                 country={entryNodeLocation}
                 onClick={() => navigate(routes.entryNodeLocation)}
                 nodeHop="entry"
-                disabled={daemonStatus === 'NotOk' || state !== 'Disconnected'}
+                disabled={hopSelectDisabled}
               />
               <HopSelect
                 country={exitNodeLocation}
                 onClick={() => navigate(routes.exitNodeLocation)}
                 nodeHop="exit"
-                disabled={daemonStatus === 'NotOk' || state !== 'Disconnected'}
+                disabled={hopSelectDisabled}
               />
             </div>
           </div>
