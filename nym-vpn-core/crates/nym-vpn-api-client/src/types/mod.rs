@@ -12,4 +12,4 @@ pub use account::VpnApiAccount;
 pub use device::{Device, DeviceStatus};
 pub use gateway::{GatewayMinPerformance, GatewayType};
 
-pub use nym_contracts_common::Percent;
+pub use nym_contracts_common::{NaiveFloat, Percent};

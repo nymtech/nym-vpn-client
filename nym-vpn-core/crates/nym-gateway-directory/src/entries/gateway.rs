@@ -4,7 +4,7 @@
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::{NodeId, RoutingNode};
-use nym_vpn_api_client::types::Percent;
+use nym_vpn_api_client::types::{NaiveFloat, Percent};
 use rand::seq::IteratorRandom;
 use std::{fmt, net::IpAddr};
 use tracing::error;
@@ -244,6 +244,13 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             .cloned()
             .map(|ip| ip.to_string());
         let host = hostname.or(first_ip_address);
+        let wg_performance = gateway.last_probe.as_ref().and_then(|probe| {
+            probe
+                .outcome
+                .wg
+                .as_ref()
+                .and_then(|p| Percent::naive_try_from_f64(p.ping_hosts_performance as f64).ok())
+        });
 
         Ok(Gateway {
             identity,
@@ -258,8 +265,8 @@ impl TryFrom<nym_vpn_api_client::response::NymDirectoryGateway> for Gateway {
             clients_wss_port: gateway.entry.wss_port,
             mixnet_performance: Some(gateway.performance),
             mixnet_score: Some(Score::from(gateway.performance)),
-            wg_performance: Some(gateway.wg_performance),
-            wg_score: Some(Score::from(gateway.wg_performance)),
+            wg_performance,
+            wg_score: wg_performance.map(Score::from),
             version: gateway.build_information.map(|info| info.build_version),
         })
     }
