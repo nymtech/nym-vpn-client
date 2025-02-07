@@ -81,6 +81,7 @@ jobs:
           make generate-uniffi-ios
           git status
           git diff
+          ls -al crates/nym-vpn-lib/uniffi
 
       - name: Get rust version used for build
         id: rust-version
