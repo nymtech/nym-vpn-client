@@ -73,6 +73,12 @@ jobs:
           cargo swift package -p ios -n NymVpnLib --${{ env.CARGO_TARGET }}
           ls -la ../target/universal-ios/release/ || true
 
+      - name: Generate uniffi
+        working-directory: nym-vpn-core
+        run: |
+          make generate-uniffi-ios
+          ls -al crates/nym-vpn-lib/uniffi
+
       - name: Get rust version used for build
         id: rust-version
         run: |
@@ -81,9 +87,11 @@ jobs:
       - name: Move things around to prepare for upload
         env:
           SRC_DIR: nym-vpn-core/crates/nym-vpn-lib/NymVpnLib/RustFramework.xcframework
+          UNIFFI_DIR: nym-vpn-core/crates/nym-vpn-lib/uniffi
         run: |
           mkdir ${{ env.UPLOAD_DIR_IOS }}
           cp -vpr ${{ env.SRC_DIR }} ${{ env.UPLOAD_DIR_IOS }}
+          cp -vpr ${{ env.UNIFFI_DIR }} ${{ env.UPLOAD_DIR_IOS }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
