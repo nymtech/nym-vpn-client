@@ -50,6 +50,7 @@ jobs:
       - name: Update nym-vpn-apple to use latest core
         run: |
           ./scripts/update-nym-vpn-apple-to-latest-core.sh
+          git status
           git diff || echo "No changes detected"
           git diff > mac-plist-changes.patch
 
@@ -70,12 +71,14 @@ jobs:
           protoc --swift_out=. proto/grpc/health.proto
           protoc --grpc-swift_out=. proto/grpc/health.proto
           git diff
+          git status
 
       - name: Compile protobuf (vpn)
         run: |
           protoc --swift_out=. proto/nym/vpn.proto
           protoc --grpc-swift_out=. proto/nym/vpn.proto
           git diff
+          git status
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

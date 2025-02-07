@@ -69,6 +69,8 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           make generate-uniffi-ios
+          git status
+          git diff
 
       - name: Build nym-vpn-lib
         working-directory: nym-vpn-core/crates/nym-vpn-lib
