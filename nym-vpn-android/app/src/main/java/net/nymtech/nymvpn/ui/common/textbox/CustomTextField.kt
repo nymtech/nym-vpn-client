@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.common.textbox
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
@@ -20,6 +21,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.theme.CustomColors
+import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -66,12 +68,17 @@ fun CustomTextField(
 						placeholder()
 					}
 				} else {
-					Text(
-						value,
-						maxLines = 1,
-						overflow = TextOverflow.Ellipsis,
-						style = MaterialTheme.typography.bodyLarge,
-					)
+					if (singleLine) {
+						Text(
+							value,
+							maxLines = 1,
+							overflow = TextOverflow.Ellipsis,
+							style = MaterialTheme.typography.bodyLarge,
+							modifier = Modifier.offset(x = (-4).dp.scaledWidth()),
+						)
+					} else {
+						it.invoke()
+					}
 				}
 			},
 			contentPadding = OutlinedTextFieldDefaults.contentPadding(top = 0.dp, bottom = 0.dp),

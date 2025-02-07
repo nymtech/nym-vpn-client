@@ -311,7 +311,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 					enabled = false,
 					label = {
 						Text(
-							stringResource(R.string.first_hop),
+							stringResource(R.string.entry),
 							style = MaterialTheme.typography.bodySmall,
 						)
 					},
@@ -356,7 +356,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 					enabled = false,
 					label = {
 						Text(
-							stringResource(R.string.last_hop),
+							stringResource(R.string.exit),
 							style = MaterialTheme.typography.bodySmall,
 						)
 					},
