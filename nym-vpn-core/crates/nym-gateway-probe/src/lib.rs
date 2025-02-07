@@ -16,7 +16,7 @@ use clap::Args;
 use futures::StreamExt;
 use nym_authenticator_client::{AuthenticatorResponse, AuthenticatorVersion, ClientMessage};
 use nym_authenticator_requests::{v2, v3, v4};
-use nym_client_core::ForgetMe;
+use nym_client_core::config::ForgetMe;
 use nym_config::defaults::{
     mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6},
     NymNetworkDetails,
