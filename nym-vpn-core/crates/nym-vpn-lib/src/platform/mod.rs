@@ -281,11 +281,14 @@ async fn get_gateway_countries(
         nym_vpn_api_url,
         min_gateway_performance,
     };
-    GatewayClient::new(directory_config, user_agent.into())?
+    GatewayClient::new(directory_config, user_agent.into())
+        .map_err(VpnError::internal)?
         .lookup_countries(gw_type.into())
         .await
         .map(|countries| countries.into_iter().map(Location::from).collect())
-        .map_err(VpnError::from)
+        .map_err(|err| VpnError::NetworkConnectionError {
+            details: err.to_string(),
+        })
 }
 
 /// Get the list of gateways available of the given type.
@@ -319,7 +322,8 @@ async fn get_gateways(
         nym_vpn_api_url,
         min_gateway_performance,
     };
-    GatewayClient::new(directory_config, user_agent.into())?
+    GatewayClient::new(directory_config, user_agent.into())
+        .map_err(VpnError::internal)?
         .lookup_gateways(gw_type.into())
         .await
         .map(|gateways| {
@@ -329,7 +333,9 @@ async fn get_gateways(
                 .map(GatewayInfo::from)
                 .collect()
         })
-        .map_err(VpnError::from)
+        .map_err(|err| VpnError::NetworkConnectionError {
+            details: err.to_string(),
+        })
 }
 
 /// Start the VPN by first establishing that the account is ready to connect, including requesting

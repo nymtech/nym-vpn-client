@@ -5,13 +5,16 @@ use nym_vpn_lib_types::AccountCommandError;
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
 pub enum VpnError {
-    #[error("{details}")]
+    #[error("internal error:{details}")]
     InternalError { details: String },
 
-    #[error("{details}")]
+    #[error("storage error: {details}")]
+    Storage { details: String },
+
+    #[error("network error: {details}")]
     NetworkConnectionError { details: String },
 
-    #[error("{details}")]
+    #[error("API usage error: {details}")]
     InvalidStateError { details: String },
 
     #[error("no account stored")]
@@ -35,20 +38,34 @@ pub enum VpnError {
     #[error("failed to remove device from nym vpn api: {details}")]
     UnregisterDevice { details: String },
 
-    #[error("failed to store account: {0}")]
-    StoreAccount(super::uniffi_lib_types::StoreAccountError),
+    #[error("failed to store account: {details}")]
+    StoreAccount {
+        #[from]
+        details: super::uniffi_lib_types::StoreAccountError,
+    },
 
-    #[error("sync account failed: {0}")]
-    SyncAccount(super::uniffi_lib_types::SyncAccountError),
+    #[error("sync account failed: {details}")]
+    SyncAccount {
+        #[from]
+        details: super::uniffi_lib_types::SyncAccountError,
+    },
+    #[error("sync device failed: {details}")]
+    SyncDevice {
+        #[from]
+        details: super::uniffi_lib_types::SyncDeviceError,
+    },
 
-    #[error("sync device failed: {0}")]
-    SyncDevice(super::uniffi_lib_types::SyncDeviceError),
-
-    #[error("device registration failed: {0}")]
-    RegisterDevice(super::uniffi_lib_types::RegisterDeviceError),
+    #[error("device registration failed: {details}")]
+    RegisterDevice {
+        #[from]
+        details: super::uniffi_lib_types::RegisterDeviceError,
+    },
 
     #[error("failed to request zk nym")]
-    RequestZkNym(super::uniffi_lib_types::RequestZkNymError),
+    RequestZkNym {
+        #[from]
+        details: super::uniffi_lib_types::RequestZkNymError,
+    },
 
     #[error("when requesting zk nym, some were reported as failed")]
     RequestZkNymBundle {
@@ -56,8 +73,19 @@ pub enum VpnError {
         failed: Vec<super::uniffi_lib_types::RequestZkNymError>,
     },
 
-    #[error("failed to forget account: {0}")]
-    ForgetAccount(super::uniffi_lib_types::ForgetAccountError),
+    #[error("failed to forget account: {details}")]
+    ForgetAccount {
+        #[from]
+        details: super::uniffi_lib_types::ForgetAccountError,
+    },
+}
+
+impl VpnError {
+    pub fn internal(details: impl ToString) -> Self {
+        Self::InternalError {
+            details: details.to_string(),
+        }
+    }
 }
 
 impl From<AccountCommandError> for VpnError {
@@ -67,18 +95,18 @@ impl From<AccountCommandError> for VpnError {
             AccountCommandError::Internal(err) => Self::InternalError { details: err },
             AccountCommandError::NoAccountStored => Self::NoAccountStored,
             AccountCommandError::NoDeviceStored => Self::NoDeviceIdentity,
-            AccountCommandError::StoreAccount(e) => Self::StoreAccount(e.into()),
-            AccountCommandError::SyncAccount(e) => Self::SyncAccount(e.into()),
-            AccountCommandError::SyncDevice(e) => Self::SyncDevice(e.into()),
-            AccountCommandError::RegisterDevice(e) => Self::RegisterDevice(e.into()),
-            AccountCommandError::RequestZkNym(e) => Self::RequestZkNym(e.into()),
+            AccountCommandError::StoreAccount(e) => Self::StoreAccount { details: e.into() },
+            AccountCommandError::SyncAccount(e) => Self::SyncAccount { details: e.into() },
+            AccountCommandError::SyncDevice(e) => Self::SyncDevice { details: e.into() },
+            AccountCommandError::RegisterDevice(e) => Self::RegisterDevice { details: e.into() },
+            AccountCommandError::RequestZkNym(e) => Self::RequestZkNym { details: e.into() },
             AccountCommandError::RequestZkNymBundle { successes, failed } => {
                 Self::RequestZkNymBundle {
                     successes: successes.into_iter().map(|e| e.into()).collect(),
                     failed: failed.into_iter().map(|e| e.into()).collect(),
                 }
             }
-            AccountCommandError::ForgetAccount(e) => Self::ForgetAccount(e.into()),
+            AccountCommandError::ForgetAccount(e) => Self::ForgetAccount { details: e.into() },
         }
     }
 }
@@ -91,17 +119,17 @@ impl From<crate::Error> for VpnError {
     }
 }
 
-impl From<nym_gateway_directory::Error> for VpnError {
-    fn from(value: nym_gateway_directory::Error) -> Self {
-        Self::NetworkConnectionError {
+impl From<nym_vpn_store::keys::persistence::OnDiskKeysError> for VpnError {
+    fn from(value: nym_vpn_store::keys::persistence::OnDiskKeysError) -> Self {
+        Self::Storage {
             details: value.to_string(),
         }
     }
 }
 
-impl From<nym_vpn_api_client::VpnApiClientError> for VpnError {
-    fn from(value: nym_vpn_api_client::VpnApiClientError) -> Self {
-        Self::NetworkConnectionError {
+impl From<nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorageError> for VpnError {
+    fn from(value: nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorageError) -> Self {
+        Self::Storage {
             details: value.to_string(),
         }
     }
