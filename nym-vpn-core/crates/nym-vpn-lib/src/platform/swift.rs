@@ -46,7 +46,12 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
     match file {
         Ok(f) => {
             // Initialize the logger with file output
-            fmt().with_writer(f).with_env_filter(filter).init();
+            fmt()
+                .compact()
+                .with_writer(f)
+                .with_env_filter(filter)
+                .with_ansi(false)
+                .init();
 
             tracing::info!(
                 "Logger initialized: level = {}, path = {:?}",
@@ -64,6 +69,7 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
             let oslogger_layer = OsLogger::new("net.nymtech.vpn.agent", "default");
 
             tracing_subscriber::registry()
+                .compact()
                 .with(oslogger_layer)
                 .with(filter)
                 .init();
