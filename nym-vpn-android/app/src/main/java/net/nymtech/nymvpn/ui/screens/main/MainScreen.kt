@@ -78,6 +78,7 @@ import net.nymtech.nymvpn.ui.model.StateMessage.StartError
 import net.nymtech.nymvpn.ui.screens.permission.Permission
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
@@ -211,7 +212,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			modifier = Modifier.padding(top = 68.dp.scaledHeight()),
 		) {
 			SnackbarHost(hostState = screenSnackbar, Modifier)
-			ConnectionStateDisplay(connectionState = uiState.connectionState)
+			ConnectionStateDisplay(connectionState = uiState.connectionState, appUiState.settings.theme ?: Theme.AUTOMATIC)
 			uiState.stateMessage.let {
 				when (it) {
 					is StateMessage.Status ->
