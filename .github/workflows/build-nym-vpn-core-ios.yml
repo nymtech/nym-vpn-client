@@ -72,15 +72,11 @@ jobs:
         run: |
           cargo swift package -p ios -n NymVpnLib --${{ env.CARGO_TARGET }}
           ls -la ../target/universal-ios/release/ || true
-          git status
-          git diff
 
       - name: Generate uniffi
         working-directory: nym-vpn-core
         run: |
           make generate-uniffi-ios
-          git status
-          git diff
           ls -al crates/nym-vpn-lib/uniffi
 
       - name: Get rust version used for build
