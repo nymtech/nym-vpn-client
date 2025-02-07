@@ -18,6 +18,7 @@ export { default as RouteLoading } from './RouteLoading';
 export { default as FlagIcon } from './FlagIcon';
 export { default as Notifications } from './Notifications';
 export { default as Link } from './Link';
+export { default as PulseDot } from './PulseDot';
 export * from './Button';
 export * from './ButtonIcon';
 export * from './ButtonText';

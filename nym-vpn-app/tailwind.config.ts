@@ -100,6 +100,11 @@ export default {
         // [L] link text, button ring
         moss: '#0B8A42',
       },
+      // offline badge bg dark and light
+      'rouge-basque': '#672D32',
+      'rose-bruni': '#F3CAC8',
+      // pulsing dot for offline auto-reconnect state
+      'rouge-ecarlate': '#E02C4D',
     },
     extend: {
       fontFamily: {

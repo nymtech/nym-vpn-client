@@ -14,6 +14,8 @@ function TunnelState() {
   const loading =
     state.state === 'Connecting' || state.state === 'Disconnecting';
   const isError = state.tunnelError || state.error;
+  const isOffline =
+    state.state === 'Offline' || state.state === 'OfflineAutoReconnect';
 
   const { t } = useTranslation('home');
   const { tE } = useI18nError();
@@ -42,31 +44,48 @@ function TunnelState() {
     </>
   );
 
+  const InfoMessage = (message: string) => (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.1, ease: 'easeOut' }}
+      className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default select-none"
+    >
+      <p className="text-sm text-dim-gray dark:text-mercury-mist font-bold">
+        {message}
+      </p>
+    </motion.div>
+  );
+
   return (
     <div className="h-full min-h-52 flex flex-col justify-center items-center gap-y-2">
       <div className="flex flex-1 items-end cursor-default select-none">
         {showBadge && <ConnectionBadge state={state.state} />}
       </div>
       <div className="w-full flex flex-col flex-1 items-center overflow-hidden">
-        {loading && state.progressMessages.length > 0 && !state.error && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.1, ease: 'easeOut' }}
-            className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default select-none"
-          >
-            <p className="text-sm text-dim-gray dark:text-mercury-mist font-bold">
-              {t(
-                `connection-progress.${
-                  state.progressMessages[state.progressMessages.length - 1]
-                }`,
-                {
-                  ns: 'backendMessages',
-                },
-              )}
-            </p>
-          </motion.div>
-        )}
+        {loading &&
+          state.progressMessages.length > 0 &&
+          !state.error &&
+          InfoMessage(
+            t(
+              `connection-progress.${
+                state.progressMessages[state.progressMessages.length - 1]
+              }`,
+              {
+                ns: 'backendMessages',
+              },
+            ),
+          )}
+        {isOffline &&
+          !isError &&
+          InfoMessage(
+            t(
+              state.state === 'Offline'
+                ? 'offline-message'
+                : 'offline-reconnect-message',
+              { ns: 'home' },
+            ),
+          )}
         {state.state === 'Connected' && <ConnectionTimer />}
         {isError && (
           <motion.div

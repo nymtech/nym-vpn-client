@@ -11,7 +11,8 @@ export type TunnelState =
   | 'Connecting'
   | 'Disconnecting'
   | 'Error'
-  | 'Offline';
+  | 'Offline'
+  | 'OfflineAutoReconnect';
 
 export type VpnMode = 'TwoHop' | 'Mixnet';
 
