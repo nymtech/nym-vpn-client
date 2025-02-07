@@ -174,7 +174,7 @@ which = { version = "7.0", default-features = false }
 wmi = "0.14"
 widestring = "1.0"
 windows-service = "0.7.0"
-windows-sys = "0.52"
+windows-sys = "0.59"
 windows-core = "0.58"
 windows = "0.58"
 x25519-dalek = "2.0"
