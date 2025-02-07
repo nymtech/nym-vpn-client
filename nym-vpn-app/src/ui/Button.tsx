@@ -45,7 +45,7 @@ function Button({
           return 'bg-malachite';
         }
       case 'gray':
-        return 'bg-dim-gray dark:bg-dusty-grey';
+        return 'bg-dim-gray bg-opacity-70 dark:bg-dusty-grey dark:bg-opacity-100';
       case 'cornflower':
         return 'bg-cornflower';
     }
@@ -72,7 +72,7 @@ function Button({
         'transition data-[disabled]:opacity-60 data-[active]:ring-0',
         outline
           ? 'data-[hover]:ring-1 data-[hover]:ring-malachite'
-          : 'data-[hover]:bg-opacity-75 data-[hover]:dark:bg-opacity-85',
+          : 'data-[hover]:bg-opacity-80 data-[hover]:dark:bg-opacity-85',
         'shadow tracking-normal cursor-default',
         getColorStyle(),
         className && className,

@@ -21,6 +21,8 @@ function Home() {
   const navigate = useNavigate();
   const { t } = useTranslation('home');
   const loading = state === 'Disconnecting';
+  const hopSelectDisabled =
+    daemonStatus === 'NotOk' || state !== 'Disconnected';
 
   const handleClick = () => {
     if (state === 'Disconnected' && !account) {
@@ -28,7 +30,11 @@ function Home() {
       return;
     }
     dispatch({ type: 'disconnect' });
-    if (state === 'Connected' || state === 'Connecting') {
+    if (
+      state === 'Connected' ||
+      state === 'Connecting' ||
+      state === 'OfflineAutoReconnect'
+    ) {
       console.info('disconnect');
       if (state === 'Connecting') {
         dispatch({ type: 'new-progress-message', message: 'Canceling' });
@@ -41,7 +47,7 @@ function Home() {
           console.warn('backend error:', e);
           dispatch({ type: 'set-error', error: e as BackendError });
         });
-    } else if (state === 'Disconnected') {
+    } else if (state === 'Disconnected' || state === 'Error') {
       console.info('connect');
       dispatch({ type: 'connect' });
       invoke('connect', { entry: entryNodeLocation, exit: exitNodeLocation })
@@ -66,25 +72,31 @@ function Home() {
   }, [navigate]);
 
   const getButtonText = useCallback(() => {
+    const stop = capFirst(t('stop', { ns: 'glossary' }));
     switch (state) {
       case 'Connected':
         return t('disconnect');
       case 'Disconnected':
+      case 'Error':
         return t('connect');
       case 'Connecting':
-        return capFirst(t('stop', { ns: 'glossary' }));
+        return stop;
       case 'Disconnecting':
         return null;
-      default:
-        return '-';
+      case 'Offline':
+        return t('connect');
+      case 'OfflineAutoReconnect':
+        return stop;
     }
   }, [state, t]);
 
   const getButtonColor = () => {
     switch (state) {
       case 'Disconnected':
+      case 'Offline':
         return 'malachite';
       case 'Connecting':
+      case 'OfflineAutoReconnect':
         return 'gray';
       case 'Connected':
       case 'Disconnecting':
@@ -116,13 +128,13 @@ function Home() {
                 country={entryNodeLocation}
                 onClick={() => navigate(routes.entryNodeLocation)}
                 nodeHop="entry"
-                disabled={daemonStatus === 'NotOk' || state !== 'Disconnected'}
+                disabled={hopSelectDisabled}
               />
               <HopSelect
                 country={exitNodeLocation}
                 onClick={() => navigate(routes.exitNodeLocation)}
                 nodeHop="exit"
-                disabled={daemonStatus === 'NotOk' || state !== 'Disconnected'}
+                disabled={hopSelectDisabled}
               />
             </div>
           </div>
@@ -130,7 +142,7 @@ function Home() {
         <Button
           onClick={handleClick}
           color={getButtonColor()}
-          disabled={loading || daemonStatus === 'NotOk'}
+          disabled={loading || daemonStatus === 'NotOk' || state === 'Offline'}
           spinner={loading}
           className={clsx(['h-14', loading && 'data-[disabled]:opacity-80'])}
         >

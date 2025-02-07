@@ -7,8 +7,10 @@
     "connecting": "Connecting",
     "disconnecting": "Disconnecting",
     "error": "Error",
-    "offline": "Offline"
+    "offline": "No internet"
   },
+  "offline-message": "Your device has no internet connection",
+  "offline-reconnect-message": "Will connect once the device goes online",
   "last-hop": "Exit location",
   "first-hop": "Entry location",
   "connecting-message": "Establishing connection",
@@ -31,9 +33,9 @@
     "connected": "Disabled while connected to VPN",
     "connecting": "Disabled while connecting to VPN",
     "disconnecting": "Disabled while disconnecting from VPN",
+    "offline": "Disabled when there is no internet connection",
     "daemon-not-connected": "The NymVPN app is currently not connected to the NymVPN daemon."
   },
-  "windows-no-fast-mode": "As we transition Fast mode to WireGuard, this option is temporarily unavailable.",
   "modes-dialog": {
     "title": "Mode selection",
     "privacy-description": "Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages.",

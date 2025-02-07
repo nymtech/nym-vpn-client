@@ -37,14 +37,20 @@ export default function HopSelect({
         case 'Disconnecting':
           text = t('snackbar-disabled-message.disconnecting');
           break;
+        case 'Offline':
+        case 'OfflineAutoReconnect':
+          text = t('snackbar-disabled-message.offline');
+          break;
       }
       if (daemonStatus === 'NotOk') {
         text = t('snackbar-disabled-message.daemon-not-connected');
       }
-      push({
-        text,
-        position: 'top',
-      });
+      if (text.length > 0) {
+        push({
+          text,
+          position: 'top',
+        });
+      }
     },
     HomeThrottleDelay,
     [state, daemonStatus],
