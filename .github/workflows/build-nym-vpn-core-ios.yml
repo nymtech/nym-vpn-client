@@ -66,6 +66,7 @@ jobs:
           path: ${{ env.WG_GO_LIB_PATH }}
 
       - name: Generate uniffi
+        working-directory: nym-vpn-core
         run: |
           make generate-uniffi-ios
 
