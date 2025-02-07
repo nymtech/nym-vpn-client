@@ -14,14 +14,15 @@ data class AppUiState(
 	val managerState: TunnelManagerState = TunnelManagerState(),
 	val networkStatus: NetworkStatus = NetworkStatus.Unknown,
 ) {
+
 	val entryPointCountry = when (val entry = settings.entryPoint) {
-		is EntryPoint.Gateway -> gateways.entryGateways.firstOrNull { it.identity == entry.identity }?.twoLetterCountryISO ?: "unknown"
+		is EntryPoint.Gateway -> gateways.entryGateways.firstOrNull { it.identity == entry.identity }?.twoLetterCountryISO
 		is EntryPoint.Location -> entry.location
-		else -> "unknown"
+		else -> null
 	}
 	val exitPointCountry = when (val exit = settings.exitPoint) {
-		is ExitPoint.Address -> "unknown"
-		is ExitPoint.Gateway -> gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.twoLetterCountryISO ?: "unknown"
+		is ExitPoint.Address -> null
+		is ExitPoint.Gateway -> gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.twoLetterCountryISO
 		is ExitPoint.Location -> exit.location
 	}
 
@@ -41,5 +42,17 @@ data class AppUiState(
 			gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.name ?: exit.identity
 		}
 		is ExitPoint.Location -> Locale(exit.location, exit.location).displayCountry
+	}
+
+	val exitPointId: String = when (val exit = settings.exitPoint) {
+		is ExitPoint.Address -> exit.address
+		is ExitPoint.Gateway -> exit.identity
+		is ExitPoint.Location -> exit.location.lowercase()
+	}
+
+	val entryPointId = when (val entry = settings.entryPoint) {
+		is EntryPoint.Gateway -> entry.identity
+		is EntryPoint.Location -> entry.location.lowercase()
+		else -> null
 	}
 }

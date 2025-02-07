@@ -150,6 +150,74 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 			listOf(
 				SelectionItem(
 					{
+						val icon = ImageVector.vectorResource(R.drawable.support)
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
+					title = {
+						Text(
+							stringResource(R.string.support_and_feedback),
+							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+						)
+					},
+					onClick = { navController.navigate(Route.Support) },
+				),
+				SelectionItem(
+					{
+						val icon = ImageVector.vectorResource(R.drawable.logs)
+						Icon(
+							icon,
+							icon.name,
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
+					{
+						val icon = Icons.AutoMirrored.Outlined.ArrowRight
+						Icon(icon, icon.name, Modifier.size(iconSize))
+					},
+					title = { Text(stringResource(R.string.local_logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+					onClick = { navController.navigate(Route.Logs) },
+				),
+				// TODO disable until api ready
+// 				SelectionItem(
+// 					Icons.Outlined.Analytics,
+// 					title = {
+// 						Text(
+// 							stringResource(R.string.anonymous_analytics),
+// 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+// 						)
+// 					},
+// 					description = {
+// 						Text(
+// 							stringResource(id = R.string.anonymous_analytics_description),
+// 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+// 						)
+// 					},
+// 					trailing = {
+// 						ScaledSwitch(
+// 							appUiState.settings.analyticsEnabled,
+// 							{ appViewModel.onAnalyticsReportingSelected() },
+// 							modifier =
+// 							Modifier
+// 								.height(32.dp.scaledHeight())
+// 								.width(52.dp.scaledWidth()),
+// 						)
+// 					},
+// 				),
+			),
+			background = MaterialTheme.colorScheme.surface,
+		)
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(
+					{
 						val icon = ImageVector.vectorResource(R.drawable.auto)
 						Icon(
 							icon,
@@ -257,74 +325,6 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					)
 				}
 			},
-			background = MaterialTheme.colorScheme.surface,
-		)
-		SurfaceSelectionGroupButton(
-			listOf(
-				SelectionItem(
-					{
-						val icon = ImageVector.vectorResource(R.drawable.support)
-						Icon(
-							icon,
-							icon.name,
-							modifier = Modifier.size(iconSize.scaledWidth()),
-						)
-					},
-					{
-						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
-					},
-					title = {
-						Text(
-							stringResource(R.string.support_and_feedback),
-							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-						)
-					},
-					onClick = { navController.navigate(Route.Support) },
-				),
-				SelectionItem(
-					{
-						val icon = ImageVector.vectorResource(R.drawable.logs)
-						Icon(
-							icon,
-							icon.name,
-							modifier = Modifier.size(iconSize.scaledWidth()),
-						)
-					},
-					{
-						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
-					},
-					title = { Text(stringResource(R.string.logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-					onClick = { navController.navigate(Route.Logs) },
-				),
-				// TODO disable until api ready
-// 				SelectionItem(
-// 					Icons.Outlined.Analytics,
-// 					title = {
-// 						Text(
-// 							stringResource(R.string.anonymous_analytics),
-// 							style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-// 						)
-// 					},
-// 					description = {
-// 						Text(
-// 							stringResource(id = R.string.anonymous_analytics_description),
-// 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-// 						)
-// 					},
-// 					trailing = {
-// 						ScaledSwitch(
-// 							appUiState.settings.analyticsEnabled,
-// 							{ appViewModel.onAnalyticsReportingSelected() },
-// 							modifier =
-// 							Modifier
-// 								.height(32.dp.scaledHeight())
-// 								.width(52.dp.scaledWidth()),
-// 						)
-// 					},
-// 				),
-			),
 			background = MaterialTheme.colorScheme.surface,
 		)
 		SurfaceSelectionGroupButton(

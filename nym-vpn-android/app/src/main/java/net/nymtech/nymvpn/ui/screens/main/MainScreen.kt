@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Speed
@@ -77,6 +78,7 @@ import net.nymtech.nymvpn.ui.model.StateMessage.StartError
 import net.nymtech.nymvpn.ui.screens.permission.Permission
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
+import net.nymtech.nymvpn.ui.theme.Theme
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
@@ -210,7 +212,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			modifier = Modifier.padding(top = 68.dp.scaledHeight()),
 		) {
 			SnackbarHost(hostState = screenSnackbar, Modifier)
-			ConnectionStateDisplay(connectionState = uiState.connectionState)
+			ConnectionStateDisplay(connectionState = uiState.connectionState, appUiState.settings.theme ?: Theme.AUTOMATIC)
 			uiState.stateMessage.let {
 				when (it) {
 					is StateMessage.Status ->
@@ -310,12 +312,14 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 					enabled = false,
 					label = {
 						Text(
-							stringResource(R.string.first_hop),
+							stringResource(R.string.entry),
 							style = MaterialTheme.typography.bodySmall,
 						)
 					},
 					leading = {
-						val image = ImageVector.vectorResource(context.getFlagImageVectorByName(appUiState.entryPointCountry))
+						val image = appUiState.entryPointCountry?.let {
+							ImageVector.vectorResource(context.getFlagImageVectorByName(it))
+						} ?: Icons.Default.QuestionMark
 						Image(
 							image,
 							image.name,
@@ -353,12 +357,14 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 					enabled = false,
 					label = {
 						Text(
-							stringResource(R.string.last_hop),
+							stringResource(R.string.exit),
 							style = MaterialTheme.typography.bodySmall,
 						)
 					},
 					leading = {
-						val image = ImageVector.vectorResource(context.getFlagImageVectorByName(appUiState.exitPointCountry))
+						val image = appUiState.exitPointCountry?.let {
+							ImageVector.vectorResource(context.getFlagImageVectorByName(it))
+						} ?: Icons.Default.QuestionMark
 						Image(
 							image,
 							image.name,

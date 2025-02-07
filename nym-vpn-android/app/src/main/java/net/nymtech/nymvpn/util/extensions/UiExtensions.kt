@@ -15,6 +15,8 @@ import nym_vpn_lib.ErrorStateReason
 import nym_vpn_lib.VpnException
 import kotlin.reflect.KClass
 import net.nymtech.nymvpn.R
+import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.model.NymGateway
 
 fun Dp.scaledHeight(): Dp {
 	return NymVpn.instance.resizeHeight(this)
@@ -73,5 +75,14 @@ fun VpnException.toUserMessage(context: Context): String {
 		is VpnException.OutOfBandwidth -> context.getString(R.string.no_bandwidth)
 		is VpnException.VpnApiTimeout -> context.getString(R.string.network_error)
 		else -> context.getString(R.string.unexpected_error) + " ${this.javaClass.simpleName}"
+	}
+}
+
+fun List<NymGateway>.scoreSorted(mode: Tunnel.Mode): List<NymGateway> {
+	return this.sortedBy {
+		when (mode) {
+			Tunnel.Mode.FIVE_HOP_MIXNET -> it.mixnetScore
+			Tunnel.Mode.TWO_HOP_MIXNET -> it.wgScore
+		}
 	}
 }

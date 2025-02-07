@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -54,8 +56,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.os.ConfigurationCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -80,6 +91,7 @@ import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
+import net.nymtech.nymvpn.util.extensions.scoreSorted
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib.GatewayType
@@ -95,6 +107,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 	val navController = LocalNavController.current
 
 	var refreshing by remember { mutableStateOf(false) }
+	var query by rememberSaveable { mutableStateOf("") }
 	val pullRefreshState = rememberPullToRefreshState()
 
 	val currentLocale = ConfigurationCompat.getLocales(context.resources.configuration)[0]
@@ -102,8 +115,8 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 
 	val selectedKey = remember {
 		when (gatewayLocation) {
-			GatewayLocation.ENTRY -> appUiState.entryPointName
-			GatewayLocation.EXIT -> appUiState.exitPointName
+			GatewayLocation.ENTRY -> appUiState.entryPointId
+			GatewayLocation.EXIT -> appUiState.exitPointId
 		}
 	}
 
@@ -115,8 +128,8 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 				title = {
 					NavTitle(
 						when (gatewayLocation) {
-							GatewayLocation.EXIT -> stringResource(R.string.exit_location)
-							GatewayLocation.ENTRY -> stringResource(R.string.entry_location)
+							GatewayLocation.EXIT -> stringResource(R.string.exit)
+							GatewayLocation.ENTRY -> stringResource(R.string.entry)
 						},
 					)
 				},
@@ -157,10 +170,13 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 
 	val countries = remember(uiState.query) {
 		derivedStateOf {
+			val query = uiState.query.lowercase()
 			gateways.distinctBy { it.twoLetterCountryISO }.filter { it.twoLetterCountryISO != null }
 				.map {
 					Locale(it.twoLetterCountryISO!!, it.twoLetterCountryISO!!)
-				}.filter { it.displayCountry.lowercase().contains(uiState.query) }
+				}.filter {
+					it.displayCountry.lowercase().contains(query) || it.country.lowercase().contains(query) || it.isO3Country.lowercase().contains(query)
+				}
 				.sortedWith(compareBy(collator) { it.displayCountry })
 		}
 	}.value
@@ -230,7 +246,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 			verticalArrangement = Arrangement.Top,
 			modifier =
 			Modifier
-				.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars),
+				.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars).imePadding(),
 		) {
 			item {
 				Column(
@@ -247,7 +263,6 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 								horizontal = 16.dp.scaledWidth(),
 							),
 					)
-					var query: String by rememberSaveable { mutableStateOf("") }
 					CustomTextField(
 						value = query,
 						onValueChange = {
@@ -303,54 +318,83 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 					}
 				}
 			}
-			if (gateways.isNotEmpty()) {
+			if (query != "" && countries.isEmpty() && queriedGateways.isEmpty() && gateways.isNotEmpty()) {
 				item {
-// 				if (gatewayLocation == GatewayLocation.ENTRY) {
-// 					val icon = ImageVector.vectorResource(R.drawable.bolt)
-// 					SelectionItemButton(
-// 						{
-// 							Icon(
-// 								icon,
-// 								icon.name,
-// 								modifier =
-// 								Modifier
-// 									.padding(
-// 										horizontal = 24.dp.scaledWidth(),
-// 										vertical = 16.dp.scaledHeight(),
-// 									)
-// 									.size(
-// 										iconSize,
-// 									),
-// 								tint = MaterialTheme.colorScheme.onSurface,
-// 							)
-// 						},
-// 						stringResource(R.string.automatic),
-// 						onClick = {
-// 							viewModel.onSelected(Country(isLowLatency = true), gatewayLocation)
-// 							navController.navigateAndForget(Route.Main())
-// 						},
-// 						trailing = {
-// 							if (selectedCountry.isLowLatency == true) {
-// 								SelectedLabel()
-// 							}
-// 						},
-// 					)
-// 				}
+					val annotatedString = buildAnnotatedString {
+						append(stringResource(R.string.try_another_server_name))
+						append(" ")
+						withLink(
+							link = LinkAnnotation.Url(
+								url = stringResource(R.string.contact_url),
+								styles = TextLinkStyles(
+									style = SpanStyle(
+										textDecoration = TextDecoration.Underline,
+									),
+
+								),
+							),
+						) {
+							append(stringResource(R.string.contact_for_help))
+						}
+						append(" ")
+						append(stringResource(R.string.or_learn))
+						append(" ")
+						withLink(
+							link = LinkAnnotation.Url(
+								url = stringResource(R.string.docs_url),
+								styles = TextLinkStyles(
+									style = SpanStyle(
+										textDecoration = TextDecoration.Underline,
+									),
+								),
+							),
+						) {
+							append(stringResource(R.string.how_to_run_gateway))
+						}
+					}
+					Column(
+						horizontalAlignment = Alignment.CenterHorizontally,
+						verticalArrangement = Arrangement.spacedBy(5.dp.scaledHeight(), Alignment.Top),
+						modifier = Modifier.padding(horizontal = 16.dp.scaledWidth()).fillMaxWidth(),
+					) {
+						Text(
+							stringResource(R.string.no_results_found),
+							textAlign = TextAlign.Center,
+							style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground).copy(
+								letterSpacing = 0.5.sp,
+								fontWeight = FontWeight(400),
+							),
+						)
+						Text(
+							annotatedString,
+							textAlign = TextAlign.Center,
+							style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.outline).copy(
+								letterSpacing = 0.5.sp,
+								fontWeight = FontWeight(400),
+							),
+						)
+					}
 				}
 			}
 			items(countries, key = { it.displayCountry }) { country ->
 				Column(modifier = Modifier.padding(bottom = 8.dp)) {
 					var expanded by remember { mutableStateOf(false) }
+
+					LaunchedEffect(Unit) {
+						expanded = gateways.filter { it.twoLetterCountryISO == country.country.lowercase() }.any { it.identity == selectedKey }
+					}
+
 					val rotationAngle by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
+					val countryCode = country.country.lowercase()
 					SurfaceSelectionGroupButton(
 						listOf(
 							SelectionItem(
 								onClick = {
-									onSelectionChange(country.language)
+									onSelectionChange(countryCode)
 								},
 								leading = {
 									val icon = ImageVector.vectorResource(
-										context.getFlagImageVectorByName(country.language),
+										context.getFlagImageVectorByName(countryCode),
 									)
 									Image(
 										icon,
@@ -381,11 +425,11 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 								title = { Text(country.displayCountry, style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 								description = {
 									Text(
-										gateways.count { it.twoLetterCountryISO == country.language }.toString() + " servers",
+										"${gateways.count { it.twoLetterCountryISO == countryCode }}  ${stringResource(R.string.servers)}",
 										style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
 									)
 								},
-								selected = country.displayCountry == selectedKey,
+								selected = countryCode == selectedKey,
 							),
 						),
 						shape = RectangleShape,
@@ -397,21 +441,21 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 						exit = shrinkVertically() + fadeOut(),
 					) {
 						SurfaceSelectionGroupButton(
-							gateways.filter { it.twoLetterCountryISO == country.language }.map { gateway ->
-								SelectionItem(
-									onClick = {
-										onSelectionChange(gateway.identity)
-									},
-									leading = {
-										val icon = getScoreIcon(gateway)
-										Image(
-											icon,
-											icon.name,
-											modifier =
-											Modifier.height(16.dp).width(15.dp),
-										)
-									},
-									// TODO disable info dialog for now
+							gateways.filter { it.twoLetterCountryISO == countryCode }
+								.scoreSorted(appUiState.settings.vpnMode).map { gateway ->
+									SelectionItem(
+										onClick = {
+											onSelectionChange(gateway.identity)
+										},
+										leading = {
+											val icon = getScoreIcon(gateway)
+											Image(
+												icon,
+												icon.name,
+												modifier = Modifier.height(16.dp).width(15.dp),
+											)
+										},
+										// TODO disable info dialog for now
 // 									trailing = {
 // 										Row(
 // 											horizontalArrangement = Arrangement.spacedBy(16.dp),
@@ -422,36 +466,44 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 // 											Icon(icon, icon.name, Modifier.size(iconSize))
 // 										}
 // 									},
-									title = {
-										Text(
-											gateway.name,
-											maxLines = 1,
-											overflow = TextOverflow.Ellipsis,
-											style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-										)
-									},
-									description = {
-										Text(
-											gateway.identity,
-											maxLines = 1,
-											overflow = TextOverflow.Ellipsis,
-											style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
-										)
-									},
-									selected = selectedKey == gateway.identity,
-								)
-							},
+										title = {
+											Text(
+												gateway.name,
+												maxLines = 1,
+												overflow = TextOverflow.Ellipsis,
+												style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+											)
+										},
+										description = {
+											Text(
+												gateway.identity,
+												maxLines = 1,
+												overflow = TextOverflow.Ellipsis,
+												style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+											)
+										},
+										selected = selectedKey == gateway.identity,
+									)
+								},
 							shape = RectangleShape,
 							background = MaterialTheme.colorScheme.background,
 							divider = false,
 						)
+					}
+					if (expanded && queriedGateways.isNotEmpty() &&
+						countries.lastOrNull() == country
+					) {
+						Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
 					}
 				}
 			}
 			if (queriedGateways.isNotEmpty()) {
 				item {
 					SurfaceSelectionGroupButton(
-						queriedGateways.map { gateway ->
+						queriedGateways.scoreSorted(appUiState.settings.vpnMode).map { gateway ->
+							val locale = gateway.twoLetterCountryISO?.let {
+								Locale(it, it)
+							}
 							SelectionItem(
 								onClick = {
 									onSelectionChange(gateway.identity)
@@ -465,16 +517,17 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 										Modifier.height(16.dp).width(15.dp),
 									)
 								},
-								trailing = {
-									Row(
-										horizontalArrangement = Arrangement.spacedBy(16.dp),
-										verticalAlignment = Alignment.CenterVertically,
-									) {
-										val icon = Icons.Outlined.Info
-										VerticalDivider(modifier = Modifier.height(42.dp))
-										Icon(icon, icon.name, Modifier.size(iconSize))
-									}
-								},
+								// TODO disable for now
+// 								trailing = {
+// 									Row(
+// 										horizontalArrangement = Arrangement.spacedBy(16.dp),
+// 										verticalAlignment = Alignment.CenterVertically,
+// 									) {
+// 										val icon = Icons.Outlined.Info
+// 										VerticalDivider(modifier = Modifier.height(42.dp))
+// 										Icon(icon, icon.name, Modifier.size(iconSize))
+// 									}
+// 								},
 								title = {
 									Text(
 										gateway.name,
@@ -485,7 +538,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 								},
 								description = {
 									Text(
-										gateway.identity,
+										"${locale?.displayCountry ?: stringResource(R.string.unknown)}, ${gateway.identity}",
 										maxLines = 1,
 										overflow = TextOverflow.Ellipsis,
 										style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
