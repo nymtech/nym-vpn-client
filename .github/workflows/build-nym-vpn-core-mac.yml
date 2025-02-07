@@ -60,6 +60,11 @@ jobs:
           path: mac-plist-changes.patch
           retention-days: 3
 
+      - name: Install swift-protobuf
+        run: |
+          brew install swift-protobuf
+          brew install grpc-swift
+
       - name: Compile protobuf (health)
         run: |
           protoc --swift_out=. proto/grpc/health.proto
