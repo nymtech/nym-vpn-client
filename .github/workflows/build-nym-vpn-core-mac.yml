@@ -43,6 +43,11 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Install swift-protobuf
+        run: |
+          brew install swift-protobuf
+          brew install grpc-swift
+
       - name: Install cargo-get
         run: |
           cargo install --locked cargo-get || true
@@ -50,6 +55,7 @@ jobs:
       - name: Update nym-vpn-apple to use latest core
         run: |
           ./scripts/update-nym-vpn-apple-to-latest-core.sh
+          git status
           git diff || echo "No changes detected"
           git diff > mac-plist-changes.patch
 
@@ -115,12 +121,41 @@ jobs:
           SRC_NATIVE_BINARY: nym-vpn-core/target/${{ env.CARGO_TARGET }}/
           SRC_X86_64_BINARY: nym-vpn-core/target/x86_64-apple-darwin/${{ env.CARGO_TARGET }}/
         run: |
-          mkdir ${{ env.UPLOAD_DIR_MAC }}
+          mkdir -p ${{ env.UPLOAD_DIR_MAC }}
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnc ${{ env.SRC_NATIVE_BINARY }}/nym-vpnc ${{ env.SRC_X86_64_BINARY }}/nym-vpnc
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnd ${{ env.SRC_NATIVE_BINARY }}/nym-vpnd ${{ env.SRC_X86_64_BINARY }}/nym-vpnd
           #lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.SRC_X86_64_BINARY }}/nym-gateway-probe
           # Native only for nym-gateway-probe
           cp ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe
+
+      - name: Compile protobuf for swift (health)
+        run: |
+          protoc --swift_out=. proto/grpc/health.proto
+          protoc --grpc-swift_out=. proto/grpc/health.proto
+
+      - name: Compile protobuf for swift (vpn)
+        run: |
+          protoc --swift_out=. proto/nym/vpn.proto
+          protoc --grpc-swift_out=. proto/nym/vpn.proto
+
+      - name: Upload generated protobuf files for swift
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-proto-files
+          path: |
+            proto/nym/vpn.grpc.swift
+            proto/nym/vpn.pb.swift
+            proto/grpc/health.grpc.swift
+            proto/grpc/health.pb.swift
+          retention-days: 3
+
+      - name: Include generated proto files for swift in the bundled upload
+        run: |
+          mkdir -p ${{ env.UPLOAD_DIR_MAC }}
+          cp -v proto/nym/vpn.grpc.swift ${{ env.UPLOAD_DIR_MAC }}
+          cp -v proto/nym/vpn.pb.swift ${{ env.UPLOAD_DIR_MAC }}
+          cp -v proto/grpc/health.grpc.swift ${{ env.UPLOAD_DIR_MAC }}
+          cp -v proto/grpc/health.pb.swift ${{ env.UPLOAD_DIR_MAC }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -128,3 +163,4 @@ jobs:
           name: ${{ env.UPLOAD_DIR_MAC }}
           path: ${{ env.UPLOAD_DIR_MAC }}
           retention-days: 1
+
