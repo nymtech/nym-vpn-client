@@ -65,13 +65,6 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.WG_GO_LIB_PATH }}
 
-      - name: Generate uniffi
-        working-directory: nym-vpn-core
-        run: |
-          make generate-uniffi-ios
-          git status
-          git diff
-
       - name: Build nym-vpn-lib
         working-directory: nym-vpn-core/crates/nym-vpn-lib
         env:
@@ -79,6 +72,15 @@ jobs:
         run: |
           cargo swift package -p ios -n NymVpnLib --${{ env.CARGO_TARGET }}
           ls -la ../target/universal-ios/release/ || true
+          git status
+          git diff
+
+      - name: Generate uniffi
+        working-directory: nym-vpn-core
+        run: |
+          make generate-uniffi-ios
+          git status
+          git diff
 
       - name: Get rust version used for build
         id: rust-version
