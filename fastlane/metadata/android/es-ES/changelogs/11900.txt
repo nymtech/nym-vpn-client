@@ -1,0 +1,3 @@
+Novedades:
+- Detección fuera de línea
+- Corrección de errores

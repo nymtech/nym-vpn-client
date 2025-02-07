@@ -1,0 +1,2 @@
+Novedades:
+- Corrección del fallo de fondo
