@@ -60,6 +60,29 @@ jobs:
           path: mac-plist-changes.patch
           retention-days: 3
 
+      - name: Compile protobuf (health)
+        run: |
+          protoc --swift_out=. proto/grpc/health.proto
+          protoc --grpc-swift_out=. proto/grpc/health.proto
+          git diff
+
+      - name: Compile protobuf (vpn)
+        run: |
+          protoc --swift_out=. proto/nym/vpn.proto
+          protoc --grpc-swift_out=. proto/nym/vpn.proto
+          git diff
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: swift-proto-files
+          path: |
+            vpn.grpc.swift
+            vpn.pb.swift
+            health.grpc.swift
+            health.pb.swift
+          retention-days: 1
+
       - name: Get workspace version
         id: workspace-version
         uses: nicolaiunrein/cargo-get@master
@@ -128,3 +151,4 @@ jobs:
           name: ${{ env.UPLOAD_DIR_MAC }}
           path: ${{ env.UPLOAD_DIR_MAC }}
           retention-days: 1
+
