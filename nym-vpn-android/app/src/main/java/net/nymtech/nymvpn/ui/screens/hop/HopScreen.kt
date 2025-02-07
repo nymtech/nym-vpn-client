@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -102,8 +104,8 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 
 	val selectedKey = remember {
 		when (gatewayLocation) {
-			GatewayLocation.ENTRY -> appUiState.entryPointName
-			GatewayLocation.EXIT -> appUiState.exitPointName
+			GatewayLocation.ENTRY -> appUiState.entryPointId
+			GatewayLocation.EXIT -> appUiState.exitPointId
 		}
 	}
 
@@ -157,10 +159,13 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 
 	val countries = remember(uiState.query) {
 		derivedStateOf {
+			val query = uiState.query.lowercase()
 			gateways.distinctBy { it.twoLetterCountryISO }.filter { it.twoLetterCountryISO != null }
 				.map {
 					Locale(it.twoLetterCountryISO!!, it.twoLetterCountryISO!!)
-				}.filter { it.displayCountry.lowercase().contains(uiState.query) }
+				}.filter {
+					it.displayCountry.lowercase().contains(query) || it.country.lowercase().contains(query) || it.isO3Country.lowercase().contains(query)
+				}
 				.sortedWith(compareBy(collator) { it.displayCountry })
 		}
 	}.value
@@ -230,7 +235,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 			verticalArrangement = Arrangement.Top,
 			modifier =
 			Modifier
-				.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars),
+				.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars).imePadding(),
 		) {
 			item {
 				Column(
@@ -342,15 +347,16 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 				Column(modifier = Modifier.padding(bottom = 8.dp)) {
 					var expanded by remember { mutableStateOf(false) }
 					val rotationAngle by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
+					val countryCode = country.country.lowercase()
 					SurfaceSelectionGroupButton(
 						listOf(
 							SelectionItem(
 								onClick = {
-									onSelectionChange(country.language)
+									onSelectionChange(countryCode)
 								},
 								leading = {
 									val icon = ImageVector.vectorResource(
-										context.getFlagImageVectorByName(country.language),
+										context.getFlagImageVectorByName(countryCode),
 									)
 									Image(
 										icon,
@@ -381,11 +387,11 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 								title = { Text(country.displayCountry, style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 								description = {
 									Text(
-										gateways.count { it.twoLetterCountryISO == country.language }.toString() + " servers",
+										gateways.count { it.twoLetterCountryISO == countryCode }.toString() + " servers",
 										style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
 									)
 								},
-								selected = country.displayCountry == selectedKey,
+								selected = countryCode == selectedKey,
 							),
 						),
 						shape = RectangleShape,
@@ -397,7 +403,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 						exit = shrinkVertically() + fadeOut(),
 					) {
 						SurfaceSelectionGroupButton(
-							gateways.filter { it.twoLetterCountryISO == country.language }.map { gateway ->
+							gateways.filter { it.twoLetterCountryISO == countryCode }.map { gateway ->
 								SelectionItem(
 									onClick = {
 										onSelectionChange(gateway.identity)
@@ -407,8 +413,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 										Image(
 											icon,
 											icon.name,
-											modifier =
-											Modifier.height(16.dp).width(15.dp),
+											modifier = Modifier.height(16.dp).width(15.dp),
 										)
 									},
 									// TODO disable info dialog for now
@@ -446,12 +451,20 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 							divider = false,
 						)
 					}
+					if (expanded && queriedGateways.isNotEmpty() &&
+						countries.lastOrNull() == country
+					) {
+						Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
+					}
 				}
 			}
 			if (queriedGateways.isNotEmpty()) {
 				item {
 					SurfaceSelectionGroupButton(
 						queriedGateways.map { gateway ->
+							val locale = gateway.twoLetterCountryISO?.let {
+								Locale(it, it)
+							}
 							SelectionItem(
 								onClick = {
 									onSelectionChange(gateway.identity)
@@ -465,16 +478,17 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 										Modifier.height(16.dp).width(15.dp),
 									)
 								},
-								trailing = {
-									Row(
-										horizontalArrangement = Arrangement.spacedBy(16.dp),
-										verticalAlignment = Alignment.CenterVertically,
-									) {
-										val icon = Icons.Outlined.Info
-										VerticalDivider(modifier = Modifier.height(42.dp))
-										Icon(icon, icon.name, Modifier.size(iconSize))
-									}
-								},
+								// TODO disable for now
+// 								trailing = {
+// 									Row(
+// 										horizontalArrangement = Arrangement.spacedBy(16.dp),
+// 										verticalAlignment = Alignment.CenterVertically,
+// 									) {
+// 										val icon = Icons.Outlined.Info
+// 										VerticalDivider(modifier = Modifier.height(42.dp))
+// 										Icon(icon, icon.name, Modifier.size(iconSize))
+// 									}
+// 								},
 								title = {
 									Text(
 										gateway.name,
@@ -485,7 +499,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 								},
 								description = {
 									Text(
-										gateway.identity,
+										"${locale?.displayCountry ?: stringResource(R.string.unknown)}, ${gateway.identity}",
 										maxLines = 1,
 										overflow = TextOverflow.Ellipsis,
 										style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),

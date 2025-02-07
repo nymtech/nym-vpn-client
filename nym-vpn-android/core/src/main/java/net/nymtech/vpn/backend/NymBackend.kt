@@ -235,6 +235,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 	override suspend fun getGateways(type: GatewayType, userAgent: UserAgent): List<NymGateway> {
 		return withContext(ioDispatcher) {
+			initialized.await()
 			nym_vpn_lib.getGateways(type, userAgent, GatewayMinPerformance(0u, 0u)).map(NymGateway::from)
 		}
 	}
