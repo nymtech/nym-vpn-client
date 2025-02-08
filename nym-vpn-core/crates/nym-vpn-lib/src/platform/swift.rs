@@ -82,7 +82,7 @@ fn create_log_dir<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
 
 fn try_make_writer(path: PathBuf) -> Option<tracing_appender::rolling::RollingFileAppender> {
     create_log_dir(&path).ok();
-    let path = path.canonicalize().ok()?;
+    // let path = path.canonicalize().ok()?;
 
     let (maybe_log_dir, filename) = if path.is_dir() {
         (
