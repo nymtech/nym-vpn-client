@@ -46,7 +46,7 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
 
         // Attempt to open the log file for writing
         OpenOptions::new()
-            .append(true)
+            .truncate(true)
             .create(true)
             .open(path)
             .ok()
