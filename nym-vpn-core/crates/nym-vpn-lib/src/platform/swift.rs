@@ -1,7 +1,10 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::PathBuf, str::FromStr};
+use std::{
+    path::{Path, PathBuf},
+    str::FromStr,
+};
 
 use tracing_oslog::OsLogger;
 use tracing_subscriber::{
@@ -63,7 +66,23 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
     };
 }
 
+fn create_log_dir<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
+    if let Some(parent) = path.as_ref().parent() {
+        if !parent.exists() {
+            std::fs::create_dir_all(parent).inspect_err(|e| {
+                tracing::error!(
+                    "Failed to create log directory: {parent:?} - {error}",
+                    parent = parent,
+                    error = e
+                );
+            })?;
+        }
+    }
+    Ok(())
+}
+
 fn try_make_writer(path: PathBuf) -> Option<tracing_appender::rolling::RollingFileAppender> {
+    create_log_dir(&path).ok()?;
     let path = path.canonicalize().ok()?;
 
     let (maybe_log_dir, filename) = if path.is_dir() {
