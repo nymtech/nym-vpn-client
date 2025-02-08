@@ -70,7 +70,7 @@ fn create_log_dir<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
     if let Some(parent) = path.as_ref().parent() {
         if !parent.exists() {
             std::fs::create_dir_all(parent).inspect_err(|e| {
-                tracing::error!(
+                eprintln!(
                     "Failed to create log directory: {parent:?} - {error}",
                     parent = parent,
                     error = e
