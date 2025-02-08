@@ -9,7 +9,6 @@ use tracing_subscriber::{filter::LevelFilter, fmt, layer::SubscriberExt, util::S
 pub(crate) const DEFAULT_LOG_FILE: &str = "nym-vpn-lib.log";
 
 pub fn init_logs(level: String, path: Option<PathBuf>) {
-    // Set log level
     let filter = tracing_subscriber::EnvFilter::builder()
         .with_default_directive(
             LevelFilter::from_str(&level)
@@ -35,7 +34,7 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
     if let Some(parent) = log_path.parent() {
         if !parent.exists() {
             if let Err(e) = std::fs::create_dir_all(parent) {
-                eprintln!("Failed to create log directory {:?}: {}", parent, e);
+                eprintln!("Failed to create log directory {}: {e}", parent.display());
             }
         }
     }
@@ -54,9 +53,8 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
                 .init();
 
             tracing::info!(
-                "Logger initialized: level = {}, path = {:?}",
-                level,
-                log_path
+                "Logger initialized: level = {level}, path = {}",
+                log_path.display(),
             );
         }
         Err(e) => {
@@ -65,9 +63,7 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
                 log_path, e
             );
 
-            // Initialize fallback logging with `os_log` for macOS/iOS
             let oslogger_layer = OsLogger::new("net.nymtech.vpn.agent", "default");
-
             tracing_subscriber::registry()
                 .compact()
                 .with(oslogger_layer)
