@@ -4,11 +4,15 @@
 use std::{fs::OpenOptions, io::Write, path::PathBuf, str::FromStr};
 
 use tracing_oslog::OsLogger;
-use tracing_subscriber::{filter::LevelFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
+use tracing_subscriber::{
+    filter::LevelFilter, fmt::Layer, layer::SubscriberExt, util::SubscriberInitExt, Registry,
+};
 
 pub(crate) const DEFAULT_LOG_FILE: &str = "nym-vpn-lib.log";
 
 pub fn init_logs(level: String, path: Option<PathBuf>) {
+    let oslogger_layer = OsLogger::new("net.nymtech.vpn.agent", "default");
+
     let filter = tracing_subscriber::EnvFilter::builder()
         .with_default_directive(
             LevelFilter::from_str(&level)
@@ -27,54 +31,45 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
         .add_directive("handlebars::proto=warn".parse().unwrap())
         .add_directive("sled::proto=warn".parse().unwrap());
 
-    // Determine log file path
-    let log_path = path.unwrap_or_else(|| PathBuf::from(DEFAULT_LOG_FILE));
+    let registry = Registry::default().with(oslogger_layer);
 
-    // Ensure log directory exists
-    if let Some(parent) = log_path.parent() {
-        if !parent.exists() {
-            if let Err(e) = std::fs::create_dir_all(parent) {
-                eprintln!("Failed to create log directory {}: {e}", parent.display());
+    let file_layer = path.as_ref().and_then(|path| {
+        // Ensure log directory exists
+        if let Some(parent) = path.parent() {
+            if !parent.exists() {
+                if let Err(e) = std::fs::create_dir_all(parent) {
+                    eprintln!("Failed to create log directory {}: {e}", parent.display());
+                }
             }
         }
+
+        // Attempting to get the tracing_appending solution to work was not successful.
+        // Falling back to a more basic solution that does not support log rotation, for now.
+
+        // Attempt to open the log file for writing
+        OpenOptions::new()
+            .append(true)
+            .create(true)
+            .open(path)
+            .map(|f| Layer::default().with_writer(f).with_ansi(false).compact())
+            .ok()
+    });
+
+    let result = if let Some(file_layer) = file_layer {
+        registry.with(file_layer).with(filter).try_init()
+    } else {
+        registry.with(filter).try_init()
+    };
+
+    if let Err(err) = result {
+        eprintln!("Failed to initialize logger: {err}");
+    } else {
+        tracing::debug!("Logger initialized level: {level}, path?:{path:?}");
     }
 
-    // Attempt to open the log file for writing
-    let file = OpenOptions::new().append(true).create(true).open(&log_path);
-
-    match file {
-        Ok(f) => {
-            // Initialize the logger with file output
-            fmt()
-                .compact()
-                .with_writer(f)
-                .with_env_filter(filter)
-                .with_ansi(false)
-                .init();
-
-            tracing::info!(
-                "Logger initialized: level = {level}, path = {}",
-                log_path.display(),
-            );
-        }
-        Err(e) => {
-            eprintln!(
-                "Failed to open log file {:?}: {}. Falling back to os_log.",
-                log_path, e
-            );
-
-            let oslogger_layer = OsLogger::new("net.nymtech.vpn.agent", "default");
-            tracing_subscriber::registry()
-                .compact()
-                .with(oslogger_layer)
-                .with(filter)
-                .init();
-
-            tracing::info!("Logger initialized with os_log due to file creation failure.");
-        }
-    }
-
-    // Ensure logs are flushed immediately
-    std::io::stdout().flush().unwrap();
-    std::io::stderr().flush().unwrap();
+    // Ensure logs are flushed immediately.
+    // I'm not 100% this is necessary, if someone with a device could check and remove if not
+    // needed that would be great.
+    std::io::stdout().flush().ok();
+    std::io::stderr().flush().ok();
 }
