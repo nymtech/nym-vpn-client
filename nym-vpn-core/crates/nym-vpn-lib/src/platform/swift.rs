@@ -8,8 +8,6 @@ use tracing_subscriber::{
     filter::LevelFilter, fmt::Layer, layer::SubscriberExt, util::SubscriberInitExt, Registry,
 };
 
-pub(crate) const DEFAULT_LOG_FILE: &str = "nym-vpn-lib.log";
-
 pub fn init_logs(level: String, path: Option<PathBuf>) {
     let oslogger_layer = OsLogger::new("net.nymtech.vpn.agent", "default");
 
@@ -51,8 +49,13 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
             .append(true)
             .create(true)
             .open(path)
-            .map(|f| Layer::default().with_writer(f).with_ansi(false).compact())
             .ok()
+            .map(|file| {
+                Layer::default()
+                    .with_writer(file)
+                    .with_ansi(false)
+                    .compact()
+            })
     });
 
     let result = if let Some(file_layer) = file_layer {
