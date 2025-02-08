@@ -69,10 +69,4 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
     } else {
         tracing::debug!("Logger initialized level: {level}, path?:{path:?}");
     }
-
-    // Ensure logs are flushed immediately.
-    // I'm not 100% this is necessary, if someone with a device could check and remove if not
-    // needed that would be great.
-    std::io::stdout().flush().ok();
-    std::io::stderr().flush().ok();
 }
