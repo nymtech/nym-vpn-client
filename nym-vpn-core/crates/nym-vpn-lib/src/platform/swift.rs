@@ -71,9 +71,8 @@ fn create_log_dir<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
         if !parent.exists() {
             std::fs::create_dir_all(parent).inspect_err(|e| {
                 eprintln!(
-                    "Failed to create log directory: {parent:?} - {error}",
-                    parent = parent,
-                    error = e
+                    "Failed to create log directory: {parent} - {e}",
+                    parent = parent.display(),
                 );
             })?;
         }
@@ -82,7 +81,7 @@ fn create_log_dir<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
 }
 
 fn try_make_writer(path: PathBuf) -> Option<tracing_appender::rolling::RollingFileAppender> {
-    create_log_dir(&path).ok()?;
+    create_log_dir(&path).ok();
     let path = path.canonicalize().ok()?;
 
     let (maybe_log_dir, filename) = if path.is_dir() {
