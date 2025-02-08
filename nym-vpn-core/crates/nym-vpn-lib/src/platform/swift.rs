@@ -1,7 +1,7 @@
 // Copyright 2023-2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fs::OpenOptions, io::Write, path::PathBuf, str::FromStr};
+use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
 use tracing_oslog::OsLogger;
 use tracing_subscriber::{
