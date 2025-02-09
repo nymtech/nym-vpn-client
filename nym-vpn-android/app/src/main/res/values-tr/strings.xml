@@ -200,4 +200,14 @@
     <string name="loading">Yükleniyor</string>
     <string name="two_hop_explanation">Maksimum hızı 2 sunucu bağlantısıyla deneyimleyin. Bu mod, hızlı tarama, akış ve dosya paylaşımı için ideal olan, sansüre dirençli bir WireGuard versiyonu olan AmneziaWG\'yi kullanır.</string>
     <string name="disabled_while_connecting">VPN bağlantısı sırasında devre dışı bırakıldı</string>
+    <string name="servers">sunucular</string>
+    <string name="or_learn">ya da öğrenin</string>
+    <string name="exit">Çıkış</string>
+    <string name="entry">Giriş</string>
+    <string name="how_to_run_gateway">Gateway nasıl çalıştırılır.</string>
+    <string name="contact_for_help">Yardım için bizimle iletişime geçin</string>
+    <string name="local_logs">Günlükler (yerel olarak saklanır)</string>
+    <string name="try_another_server_name">Başka bir konum deneyin veya sunucu adını kontrol edin.</string>
+    <string name="no_results_found">Sonuç bulunamadı.</string>
+    <string name="two_hop_title">Hızlı (WireGuard<small>*</small>)</string>
 </resources>
