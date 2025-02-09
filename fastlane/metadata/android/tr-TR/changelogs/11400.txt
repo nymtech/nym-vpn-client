@@ -1,0 +1,6 @@
+Yenilikler:
+- Anonim kimlik bilgileri eklendi
+- Tünel güvenilirliği iyileştirildi
+- Arayüz güncellemeleri
+- Ağ değişiklikleri yönetimi geliştirildi
+- Diğer düzeltmeler ve iyileştirmeler

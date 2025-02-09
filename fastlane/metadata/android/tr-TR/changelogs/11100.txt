@@ -1,0 +1,4 @@
+Yenilikler:
+- Pil performansında iyileştirmeler
+- QR tarayıcı hatası giderildi
+- Çeşitli düzeltmeler ve iyileştirmeler

@@ -1,0 +1,2 @@
+Yenilikler:
+- Arka planda çökme hatası düzeltildi
