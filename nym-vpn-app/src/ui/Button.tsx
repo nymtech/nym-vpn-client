@@ -40,14 +40,16 @@ function Button({
     switch (color) {
       case 'malachite':
         if (outline) {
-          return 'border border-malachite outline-malachite';
+          return ['border border-malachite outline-malachite'];
         } else {
-          return 'bg-malachite';
+          return ['bg-malachite data-hover:bg-malachite/80 dark:data-hover:bg-opacity/85'];
         }
       case 'gray':
-        return 'bg-dim-gray bg-opacity-70 dark:bg-dusty-grey dark:bg-opacity-100';
+        return [
+          'bg-dim-gray/70 dark:bg-dusty-grey',
+        ];
       case 'cornflower':
-        return 'bg-cornflower';
+        return ['bg-cornflower'];
     }
   };
 
@@ -68,13 +70,11 @@ function Button({
         'flex justify-center items-center w-full',
         'rounded-lg text-lg font-bold py-3 px-6',
         outline ? getOutilineTextColor() : 'text-black dark:text-baltic-sea',
-        'focus:outline-none data-[focus]:ring-2 data-[focus]:ring-black data-[focus]:dark:ring-white',
-        'transition data-[disabled]:opacity-60 data-[active]:ring-0',
-        outline
-          ? 'data-[hover]:ring-1 data-[hover]:ring-malachite'
-          : 'data-[hover]:bg-opacity-80 data-[hover]:dark:bg-opacity-85',
-        'shadow tracking-normal cursor-default',
-        getColorStyle(),
+        'focus:outline-hidden data-focus:ring-2 data-focus:ring-black dark:data-focus:ring-white',
+        'transition data-disabled:opacity-60 data-active:ring-0',
+        outline && 'data-hover:ring-1 data-hover:ring-malachite',
+        'shadow-sm tracking-normal cursor-default',
+        ...getColorStyle(),
         className && className,
       ])}
       onClick={onClick}

@@ -27,8 +27,8 @@ function ButtonText({
       case 'rain':
         return [
           'bg-faded-lavender dark:bg-ash',
-          'data-[hover]:text-oil data-[hover]:bg-cement-feet/30',
-          'data-[hover]:dark:text-laughing-jack data-[hover]:dark:bg-baltic-sea-jaguar/80',
+          'data-hover:text-oil data-hover:bg-cement-feet/30',
+          'dark:data-hover:text-laughing-jack dark:data-hover:bg-baltic-sea-jaguar/80',
         ];
     }
   };
@@ -37,8 +37,8 @@ function ButtonText({
     <HuButton
       className={clsx([
         'rounded-lg px-2',
-        'focus:outline-none data-[focus]:ring-0',
-        'transition data-[disabled]:opacity-60 data-[active]:ring-0',
+        'focus:outline-hidden data-focus:ring-0',
+        'transition data-disabled:opacity-60 data-active:ring-0',
         'tracking-normal cursor-default',
         truncate && 'overflow-hidden',
         className && className,

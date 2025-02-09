@@ -107,7 +107,7 @@ function NetworkModeSelect() {
       >
         <label>{t('select-mode-label')}</label>
         <Button
-          className="w-6 focus:outline-none cursor-default"
+          className="w-6 focus:outline-hidden cursor-default"
           onClick={() => setIsDialogModesOpen(true)}
         >
           <MsIcon
@@ -115,7 +115,7 @@ function NetworkModeSelect() {
             className={clsx([
               'text-xl',
               'text-cement-feet dark:text-mercury-mist transition duration-150',
-              'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-gun-powder hover:dark:text-mercury-pinkish',
+              'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-gun-powder dark:hover:text-mercury-pinkish',
             ])}
           />
         </Button>
