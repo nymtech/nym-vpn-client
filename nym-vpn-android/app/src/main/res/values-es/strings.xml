@@ -201,4 +201,13 @@
     <string name="two_hop_explanation">Experimenta la máxima velocidad con la conectividad de 2 servidores. Este modo aprovecha AmneziaWG, una versión de WireGuard resistente a la censura, ideal para navegar, transmitir y compartir archivos con rapidez.</string>
     <string name="disabled_while_connecting">Desactivado al conectar a VPN</string>
     <string name="two_hop_title">Rápido(WireGuard<small>*</small>)</string>
+    <string name="how_to_run_gateway">Cómo correr un gateway.</string>
+    <string name="no_results_found">No hay resultados.</string>
+    <string name="or_learn">o aprender</string>
+    <string name="servers">servidores</string>
+    <string name="exit">Salida</string>
+    <string name="entry">Entrada</string>
+    <string name="try_another_server_name">Prueba con otra ubicación o comprueba el nombre del servidor.</string>
+    <string name="contact_for_help">Contáctanos para ayudarte</string>
+    <string name="local_logs">Registros(guardados localmente)</string>
 </resources>
