@@ -201,4 +201,13 @@
     <string name="disabled_while_connecting">Неактивно при подключении к VPN</string>
     <string name="two_hop_explanation">Получите максимальную скорость благодаря подключению к двум серверам. В этом режиме используется AmneziaWG, защищенная от цензуры версия WireGuard, которая идеально подходит для быстрого просмотра страниц, стриминга и обмена файлами.</string>
     <string name="two_hop_title">Быстрый (WireGuard<small>*</small>)</string>
+    <string name="contact_for_help">Для помощи свяжитесь с нами</string>
+    <string name="exit">Выход</string>
+    <string name="entry">Вход</string>
+    <string name="how_to_run_gateway">как установить шлюз.</string>
+    <string name="or_learn">или научиться</string>
+    <string name="servers">сервера</string>
+    <string name="no_results_found">Ничего не найдено.</string>
+    <string name="try_another_server_name">Попробуйте другую локацию или проверьте имя сервера.</string>
+    <string name="local_logs">Логи (сохранены локально)</string>
 </resources>
