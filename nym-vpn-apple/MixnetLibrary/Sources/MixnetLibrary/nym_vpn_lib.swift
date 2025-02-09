@@ -1654,6 +1654,87 @@ public func FfiConverterTypeGateway_lower(_ value: Gateway) -> RustBuffer {
 }
 
 
+public struct GatewayInfo {
+    public var id: NodeIdentity
+    public var moniker: String
+    public var location: Location?
+    public var mixnetScore: Score?
+    public var wgScore: Score?
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(id: NodeIdentity, moniker: String, location: Location?, mixnetScore: Score?, wgScore: Score?) {
+        self.id = id
+        self.moniker = moniker
+        self.location = location
+        self.mixnetScore = mixnetScore
+        self.wgScore = wgScore
+    }
+}
+
+
+
+extension GatewayInfo: Equatable, Hashable {
+    public static func ==(lhs: GatewayInfo, rhs: GatewayInfo) -> Bool {
+        if lhs.id != rhs.id {
+            return false
+        }
+        if lhs.moniker != rhs.moniker {
+            return false
+        }
+        if lhs.location != rhs.location {
+            return false
+        }
+        if lhs.mixnetScore != rhs.mixnetScore {
+            return false
+        }
+        if lhs.wgScore != rhs.wgScore {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+        hasher.combine(moniker)
+        hasher.combine(location)
+        hasher.combine(mixnetScore)
+        hasher.combine(wgScore)
+    }
+}
+
+
+public struct FfiConverterTypeGatewayInfo: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> GatewayInfo {
+        return
+            try GatewayInfo(
+                id: FfiConverterTypeNodeIdentity.read(from: &buf), 
+                moniker: FfiConverterString.read(from: &buf), 
+                location: FfiConverterOptionTypeLocation.read(from: &buf), 
+                mixnetScore: FfiConverterOptionTypeScore.read(from: &buf), 
+                wgScore: FfiConverterOptionTypeScore.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: GatewayInfo, into buf: inout [UInt8]) {
+        FfiConverterTypeNodeIdentity.write(value.id, into: &buf)
+        FfiConverterString.write(value.moniker, into: &buf)
+        FfiConverterOptionTypeLocation.write(value.location, into: &buf)
+        FfiConverterOptionTypeScore.write(value.mixnetScore, into: &buf)
+        FfiConverterOptionTypeScore.write(value.wgScore, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeGatewayInfo_lift(_ buf: RustBuffer) throws -> GatewayInfo {
+    return try FfiConverterTypeGatewayInfo.lift(buf)
+}
+
+public func FfiConverterTypeGatewayInfo_lower(_ value: GatewayInfo) -> RustBuffer {
+    return FfiConverterTypeGatewayInfo.lower(value)
+}
+
+
 public struct GatewayMinPerformance {
     public var mixnetMinPerformance: UInt64?
     public var vpnMinPerformance: UInt64?
@@ -4351,6 +4432,75 @@ extension RequestZkNymResult: Equatable, Hashable {}
 // Note that we don't yet support `indirect` for enums.
 // See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
+public enum Score {
+    
+    case high
+    case medium
+    case low
+    case none
+}
+
+
+public struct FfiConverterTypeScore: FfiConverterRustBuffer {
+    typealias SwiftType = Score
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Score {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .high
+        
+        case 2: return .medium
+        
+        case 3: return .low
+        
+        case 4: return .none
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: Score, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .high:
+            writeInt(&buf, Int32(1))
+        
+        
+        case .medium:
+            writeInt(&buf, Int32(2))
+        
+        
+        case .low:
+            writeInt(&buf, Int32(3))
+        
+        
+        case .none:
+            writeInt(&buf, Int32(4))
+        
+        }
+    }
+}
+
+
+public func FfiConverterTypeScore_lift(_ buf: RustBuffer) throws -> Score {
+    return try FfiConverterTypeScore.lift(buf)
+}
+
+public func FfiConverterTypeScore_lower(_ value: Score) -> RustBuffer {
+    return FfiConverterTypeScore.lower(value)
+}
+
+
+
+extension Score: Equatable, Hashable {}
+
+
+
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
 public enum SubscriptionState {
     
     case notActive
@@ -5133,6 +5283,27 @@ fileprivate struct FfiConverterOptionTypeIpv6Settings: FfiConverterRustBuffer {
     }
 }
 
+fileprivate struct FfiConverterOptionTypeLocation: FfiConverterRustBuffer {
+    typealias SwiftType = Location?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeLocation.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeLocation.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
 fileprivate struct FfiConverterOptionTypeAccountRegistered: FfiConverterRustBuffer {
     typealias SwiftType = AccountRegistered?
 
@@ -5233,6 +5404,27 @@ fileprivate struct FfiConverterOptionTypeRequestZkNymResult: FfiConverterRustBuf
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterTypeRequestZkNymResult.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
+fileprivate struct FfiConverterOptionTypeScore: FfiConverterRustBuffer {
+    typealias SwiftType = Score?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeScore.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeScore.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -5402,6 +5594,28 @@ fileprivate struct FfiConverterSequenceString: FfiConverterRustBuffer {
         seq.reserveCapacity(Int(len))
         for _ in 0 ..< len {
             seq.append(try FfiConverterString.read(from: &buf))
+        }
+        return seq
+    }
+}
+
+fileprivate struct FfiConverterSequenceTypeGatewayInfo: FfiConverterRustBuffer {
+    typealias SwiftType = [GatewayInfo]
+
+    public static func write(_ value: [GatewayInfo], into buf: inout [UInt8]) {
+        let len = Int32(value.count)
+        writeInt(&buf, len)
+        for item in value {
+            FfiConverterTypeGatewayInfo.write(item, into: &buf)
+        }
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> [GatewayInfo] {
+        let len: Int32 = try readInt(&buf)
+        var seq = [GatewayInfo]()
+        seq.reserveCapacity(Int(len))
+        for _ in 0 ..< len {
+            seq.append(try FfiConverterTypeGatewayInfo.read(from: &buf))
         }
         return seq
     }
@@ -6213,11 +6427,23 @@ public func getDeviceIdentityRaw(path: String)throws  -> String {
 })
 }
 /**
- * Get the liset of countries that have gateways available of the given type.
+ * Get the list of countries that have gateways available of the given type.
  */
 public func getGatewayCountries(gwType: GatewayType, userAgent: UserAgent, minGatewayPerformance: GatewayMinPerformance?)throws  -> [Location] {
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
+        FfiConverterTypeGatewayType.lower(gwType),
+        FfiConverterTypeUserAgent.lower(userAgent),
+        FfiConverterOptionTypeGatewayMinPerformance.lower(minGatewayPerformance),$0
+    )
+})
+}
+/**
+ * Get the list of gateways available of the given type.
+ */
+public func getGateways(gwType: GatewayType, userAgent: UserAgent, minGatewayPerformance: GatewayMinPerformance?)throws  -> [GatewayInfo] {
+    return try  FfiConverterSequenceTypeGatewayInfo.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_getgateways(
         FfiConverterTypeGatewayType.lower(gwType),
         FfiConverterTypeUserAgent.lower(userAgent),
         FfiConverterOptionTypeGatewayMinPerformance.lower(minGatewayPerformance),$0
@@ -6581,7 +6807,10 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_getdeviceidentityraw() != 1193) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 28627) {
+    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 35020) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_getgateways() != 39408) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getsystemmessages() != 3453) {
