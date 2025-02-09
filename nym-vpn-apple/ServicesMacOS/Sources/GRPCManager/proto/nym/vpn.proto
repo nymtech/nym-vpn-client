@@ -299,6 +299,16 @@ message GatewayResponse {
   Gateway id = 1;
   Location location = 2;
   Probe last_probe = 3;
+  optional Score wg_score = 4;
+  optional Score mixnet_score = 5;
+  string moniker = 6;
+}
+
+enum Score {
+  NONE = 0;
+  LOW = 1;
+  MEDIUM = 2;
+  HIGH = 3;
 }
 
 enum GatewayType {
