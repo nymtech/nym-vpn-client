@@ -13,7 +13,7 @@ function PulseDot({ color }: PulseDotProps) {
         'relative flex justify-center items-center',
         // use static pixel sizes for animated elements to avoid glitches
         // with the different UI scaling factors
-        'h-[12px] w-[12px]',
+        'h-[10px] w-[10px]',
       ])}
     >
       <div
@@ -23,7 +23,7 @@ function PulseDot({ color }: PulseDotProps) {
         )}
       />
       <div
-        className={clsx('relative rounded-full', 'h-[8px] w-[8px]', dotColor)}
+        className={clsx('relative rounded-full', 'h-[6px] w-[6px]', dotColor)}
       />
     </div>
   );

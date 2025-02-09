@@ -28,7 +28,7 @@ function SettingsGroup({ settings, className }: Props) {
           className={clsx([
             'cursor-default',
             'bg-white dark:bg-octave relative flex px-5 py-2 focus:outline-hidden min-h-16',
-            'hover:bg-white/50 dark:hover:bg-octave/70',
+            'hover:bg-white/70 dark:hover:bg-octave/85',
             'transition duration-75',
             index === 0 && 'rounded-t-lg',
             index === settings.length - 1 &&

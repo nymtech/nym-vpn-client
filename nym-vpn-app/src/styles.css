@@ -3,12 +3,10 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
-  /*****************/
-  /* override default Tailwind's color palette */
+  /* override default color palette */
   --color-*: initial;
   /*****************/
   --color-transparent: transparent;
-  --color-current: currentColor;
   --color-white: #fff;
   --color-black: #000;
   --color-baltic-sea-jaguar: #2b2831;
@@ -19,22 +17,18 @@
   --color-vert-menthe: #2bc761;
   --color-liquid-lava: #f97316;
   --color-vert-prasin: #47c45d;
-  --color-flawed-white: #fffbfe;
   --color-mercury-pinkish: #e6e1e5;
-  --color-mercury: #e1efe7;
   --color-mercury-mist: #938f99;
   --color-coal-mine-dark: #56545a;
   --color-coal-mine-light: #a4a4a4;
   --color-dim-gray: #696571;
   --color-cement-feet: #79747e;
   --color-gun-powder: #49454f;
+  --color-mine-shaft: #2b3234;
+  --color-bombay: #b0adb6;
   --color-laughing-jack: #cac4d0;
-  --color-wind-chime: #dedee1;
   --color-oil: #313033;
-  --color-ghost: #c7c7d1;
   --color-dusty-grey: #ceccd1;
-  --color-onyx: #3a373f;
-  --color-platinum: #e2e8ec;
   --color-aluminium: #8da3b1;
   --color-poivre-noir: #484649;
   --color-seashell: #fff2ef;
@@ -52,24 +46,6 @@
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-icon: Material Symbols Outlined;
   --font-icon--font-variation-settings: 'opsz' 24;
-}
-
-/*
-  The default border color has changed to `currentColor` in Tailwind CSS v4,
-  so we've added these compatibility styles to make sure everything still
-  looks the same as it did with Tailwind CSS v3.
-
-  If we ever want to remove these styles, we need to add an explicit border
-  color utility to any element that depends on these defaults.
-*/
-@layer base {
-  *,
-  ::after,
-  ::before,
-  ::backdrop,
-  ::file-selector-button {
-    border-color: var(--color-gray-200, currentColor);
-  }
 }
 
 @utility transition-noborder {
