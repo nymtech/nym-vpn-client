@@ -36,6 +36,9 @@ pub enum GatewayDirectoryError {
 
     #[error("unable to use same entry and exit gateway for location: {requested_location}")]
     SameEntryAndExitGatewayFromCountry { requested_location: String },
+
+    #[error("unable to use same entry and exit gateway: {identity}")]
+    SameEntryAndExitGateway { identity: String },
 }
 
 pub use super::tunnel_state_machine::Error;

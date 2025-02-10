@@ -20,6 +20,24 @@ pub async fn select_gateways(
     // The set of exit gateways is smaller than the set of entry gateways, so we start by selecting
     // the exit gateway and then filter out the exit gateway from the set of entry gateways.
 
+    match (entry_point.as_ref(), &exit_point.as_ref()) {
+        (
+            EntryPoint::Gateway {
+                identity: entry_identity,
+            },
+            ExitPoint::Gateway {
+                identity: exit_identity,
+            },
+        ) => {
+            if (entry_identity == exit_identity) {
+                return Err(GatewayDirectoryError::SameEntryAndExitGateway {
+                    identity: entry_identity.to_string(),
+                });
+            }
+        }
+        _ => {}
+    };
+
     let (mut entry_gateways, exit_gateways) = match tunnel_type {
         TunnelType::Wireguard => {
             let all_gateways = gateway_directory_client
