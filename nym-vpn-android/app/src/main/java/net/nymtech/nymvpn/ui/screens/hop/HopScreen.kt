@@ -217,8 +217,8 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 			Score.HIGH -> ImageVector.vectorResource(R.drawable.bars_3)
 			Score.MEDIUM -> ImageVector.vectorResource(R.drawable.bars_2)
 			Score.LOW -> ImageVector.vectorResource(R.drawable.bar_1)
-			Score.NONE -> Icons.Default.QuestionMark
-			null -> Icons.Default.QuestionMark
+			Score.NONE -> ImageVector.vectorResource(R.drawable.faq)
+			null -> ImageVector.vectorResource(R.drawable.faq)
 		}
 	}
 

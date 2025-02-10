@@ -364,7 +364,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 					leading = {
 						val image = appUiState.exitPointCountry?.let {
 							ImageVector.vectorResource(context.getFlagImageVectorByName(it))
-						} ?: Icons.Default.QuestionMark
+						} ?: ImageVector.vectorResource(R.drawable.faq)
 						Image(
 							image,
 							image.name,
