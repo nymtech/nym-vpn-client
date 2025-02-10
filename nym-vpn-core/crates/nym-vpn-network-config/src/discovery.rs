@@ -8,6 +8,7 @@ use url::Url;
 
 use crate::{
     response::{DiscoveryResponse, NymNetworkDetailsResponse, NymWellknownDiscoveryItem},
+    system_configuration::SystemConfiguration,
     AccountManagement, FeatureFlags, SystemMessages,
 };
 
@@ -39,6 +40,7 @@ pub struct Discovery {
     // Additional context
     pub(super) account_management: Option<AccountManagement>,
     pub(super) feature_flags: Option<FeatureFlags>,
+    pub(super) system_configuration: Option<SystemConfiguration>,
     pub(super) system_messages: SystemMessages,
 }
 
@@ -193,6 +195,10 @@ impl TryFrom<DiscoveryResponse> for Discovery {
                 .ok()
         });
 
+        let system_configuration = discovery
+            .system_configuration
+            .map(SystemConfiguration::from);
+
         let system_messages = discovery
             .system_messages
             .map(SystemMessages::from)
@@ -204,6 +210,7 @@ impl TryFrom<DiscoveryResponse> for Discovery {
             nym_vpn_api_url: discovery.nym_vpn_api_url.parse()?,
             account_management,
             feature_flags,
+            system_configuration,
             system_messages,
         })
     }
@@ -245,7 +252,7 @@ mod tests {
 
     use crate::{
         account_management::AccountManagementPaths, feature_flags::FlagValue,
-        system_messages::Properties, SystemMessage,
+        system_configuration::ScoreThresholds, system_messages::Properties, SystemMessage,
     };
 
     use super::*;
@@ -359,6 +366,13 @@ mod tests {
                     "true".to_owned(),
                 )])),
             }]),
+            system_configuration: Some(SystemConfiguration {
+                score_thresholds: ScoreThresholds {
+                    high: 75,
+                    medium: 50,
+                    low: 25,
+                },
+            }),
         };
         assert_eq!(network, expected_network);
     }

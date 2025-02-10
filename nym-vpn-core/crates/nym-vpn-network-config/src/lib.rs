@@ -13,6 +13,7 @@ mod envs;
 mod nym_network;
 mod nym_vpn_network;
 mod refresh;
+mod system_configuration;
 mod util;
 
 pub use account_management::{AccountManagement, ParsedAccountLinks};
@@ -22,6 +23,7 @@ use futures_util::FutureExt;
 pub use nym_network::NymNetwork;
 use nym_sdk::mixnet::Recipient;
 pub use nym_vpn_network::NymVpnNetwork;
+use system_configuration::{ScoreThresholds, SystemConfiguration};
 pub use system_messages::{SystemMessage, SystemMessages};
 
 use discovery::Discovery;
@@ -42,6 +44,7 @@ pub struct Network {
     pub nym_network: NymNetwork,
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
+    pub system_configuration: Option<SystemConfiguration>,
 }
 
 impl Network {
@@ -50,6 +53,7 @@ impl Network {
             nym_network: NymNetwork::mainnet_default(),
             nym_vpn_network: NymVpnNetwork::mainnet_default(),
             feature_flags: None,
+            system_configuration: None,
         }
     }
 
@@ -68,6 +72,7 @@ impl Network {
     pub fn fetch(network_name: &str) -> anyhow::Result<Self> {
         let discovery = Discovery::fetch(network_name)?;
         let feature_flags = discovery.feature_flags.clone();
+        let system_configuration = discovery.system_configuration.clone();
         let nym_network = discovery.fetch_nym_network_details()?;
         let nym_vpn_network = NymVpnNetwork::from(discovery);
 
@@ -75,6 +80,7 @@ impl Network {
             nym_network,
             nym_vpn_network,
             feature_flags,
+            system_configuration,
         })
     }
 
@@ -167,6 +173,18 @@ impl Network {
     pub fn get_feature_flag_stats_recipient(&self) -> Option<Recipient> {
         self.get_feature_flag("statistics", "recipient")
     }
+
+    pub fn get_feature_flag_score_thresholds(&self) -> Option<ScoreThresholds> {
+        if let (Some(high), Some(medium), Some(low)) = (
+            self.get_feature_flag("score_threshold", "high"),
+            self.get_feature_flag("score_threshold", "medium"),
+            self.get_feature_flag("score_threshold", "low"),
+        ) {
+            Some(ScoreThresholds { high, medium, low })
+        } else {
+            None
+        }
+    }
 }
 
 pub fn discover_networks(config_path: &Path) -> anyhow::Result<RegisteredNetworks> {
@@ -194,6 +212,11 @@ pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Ne
         tracing::debug!("Feature flags: {}", feature_flags);
     }
 
+    let system_configuration = discovery.system_configuration.clone();
+    if let Some(ref system_configuration) = system_configuration {
+        tracing::debug!("System configuration: {}", system_configuration);
+    }
+
     // Using discovery, fetch and setup nym network details
     let nym_network = NymNetwork::ensure_exists(config_path, &discovery)?;
 
@@ -204,6 +227,7 @@ pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Ne
         nym_network,
         nym_vpn_network,
         feature_flags,
+        system_configuration,
     })
 }
 
@@ -215,5 +239,6 @@ pub fn manual_env(network_details: &NymNetworkDetails) -> anyhow::Result<Network
         nym_network,
         nym_vpn_network,
         feature_flags: None,
+        system_configuration: None,
     })
 }

@@ -70,6 +70,7 @@ fn default_mainnet_discovery() {
                     nym_vpn_api_url: "{}".parse().expect("Failed to parse NYM VPN API URL"),
                     account_management: Default::default(),
                     feature_flags: Default::default(),
+                    system_configuration: Default::default(),
                     system_messages: Default::default(),
                 }}
             }}
