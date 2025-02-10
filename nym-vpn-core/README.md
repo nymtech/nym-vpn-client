@@ -32,3 +32,22 @@ cargo build --release
 
 You may need to adjust your `RUSTFLAGS` or `.cargo/config.toml` to ensure that
 the golang wireguard library links properly.
+
+## Build for Windows from MacOS
+
+Install toolchain
+```sh
+brew install mingw-w64
+rustup target add x86_64-pc-windows-gnu
+```
+
+Configure linker in .cargo/config.toml:
+```toml
+[target.x86_64-pc-windows-gnu]
+linker = "x86_64-w64-mingw32-gcc"
+```
+
+Then
+```sh
+cargo build --target=x86_64-pc-windows-gnu -p nym-vpn-lib
+```
