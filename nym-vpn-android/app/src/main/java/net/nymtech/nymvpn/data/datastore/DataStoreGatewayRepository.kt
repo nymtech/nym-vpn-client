@@ -11,21 +11,21 @@ import timber.log.Timber
 class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager) :
 	GatewayRepository {
 	companion object {
-		val ENTRY_COUNTRIES = stringPreferencesKey("ENTRY_GATEWAYS")
-		val EXIT_COUNTRIES = stringPreferencesKey("EXIT_GATEWAYS")
-		val WG_COUNTRIES = stringPreferencesKey("WG_GATEWAYS")
+		val ENTRY_GATEWAYS = stringPreferencesKey("ENTRY_GATEWAYS")
+		val EXIT_GATEWAYS = stringPreferencesKey("EXIT_GATEWAYS")
+		val WG_GATEWAYS = stringPreferencesKey("WG_GATEWAYS")
 	}
 
 	override suspend fun setEntryGateways(gateways: List<NymGateway>) {
-		dataStoreManager.saveToDataStore(ENTRY_COUNTRIES, gateways.toString())
+		dataStoreManager.saveToDataStore(ENTRY_GATEWAYS, gateways.toString())
 	}
 
 	override suspend fun setExitGateways(gateways: List<NymGateway>) {
-		dataStoreManager.saveToDataStore(EXIT_COUNTRIES, gateways.toString())
+		dataStoreManager.saveToDataStore(EXIT_GATEWAYS, gateways.toString())
 	}
 
 	override suspend fun setWgGateways(gateways: List<NymGateway>) {
-		dataStoreManager.saveToDataStore(WG_COUNTRIES, gateways.toString())
+		dataStoreManager.saveToDataStore(WG_GATEWAYS, gateways.toString())
 	}
 
 	override val gatewayFlow: Flow<Gateways> =
@@ -33,9 +33,9 @@ class DataStoreGatewayRepository(private val dataStoreManager: DataStoreManager)
 			prefs?.let { pref ->
 				try {
 					Gateways(
-						exitGateways = NymGateway.fromCollectionString(pref[EXIT_COUNTRIES]),
-						entryGateways = NymGateway.fromCollectionString(pref[ENTRY_COUNTRIES]),
-						wgGateways = NymGateway.fromCollectionString(pref[WG_COUNTRIES]),
+						exitGateways = NymGateway.fromCollectionString(pref[EXIT_GATEWAYS]),
+						entryGateways = NymGateway.fromCollectionString(pref[ENTRY_GATEWAYS]),
+						wgGateways = NymGateway.fromCollectionString(pref[WG_GATEWAYS]),
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

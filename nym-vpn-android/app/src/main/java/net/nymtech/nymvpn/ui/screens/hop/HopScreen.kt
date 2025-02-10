@@ -160,7 +160,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		}
 	}
 
-	val gateways = remember {
+	val gateways = remember(appUiState.gateways) {
 		when (gatewayType) {
 			GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
 			GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
