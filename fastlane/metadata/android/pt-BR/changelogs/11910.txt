@@ -1,0 +1,2 @@
+Novidades:
+Correção de falha ao rodar em segundo plano

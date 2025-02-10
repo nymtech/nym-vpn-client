@@ -1,0 +1,3 @@
+Novidades:
+- Detecção de modo offline
+- Correção de bugs
