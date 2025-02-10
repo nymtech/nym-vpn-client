@@ -6,7 +6,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
     VpnApiClient,
 };
-use nym_vpn_lib_types::RegisterDeviceError;
+use nym_vpn_lib_types::{RegisterDeviceError, VpnApiErrorResponse};
 
 use crate::{
     shared_state::{DeviceState, RegisterDeviceResult},
@@ -102,7 +102,7 @@ pub(crate) async fn register_device(
         .register_device(account, device)
         .await
         .map_err(|err| {
-            crate::util::into_endpoint_failure(err)
+            VpnApiErrorResponse::try_from(err)
                 .map(RegisterDeviceError::RegisterDeviceEndpointFailure)
                 .unwrap_or_else(RegisterDeviceError::unexpected_response)
         })?;

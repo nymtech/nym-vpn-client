@@ -7,7 +7,7 @@ use nym_vpn_api_client::{
     response::NymVpnDevicesResponse,
     types::{Device, VpnApiAccount},
 };
-use nym_vpn_lib_types::SyncDeviceError;
+use nym_vpn_lib_types::{SyncDeviceError, VpnApiErrorResponse};
 use tracing::Level;
 
 use crate::shared_state::{DeviceState, SharedAccountState};
@@ -104,7 +104,7 @@ async fn update_state(
     tracing::debug!("Updating device state");
 
     let devices = vpn_api_client.get_devices(account).await.map_err(|err| {
-        crate::util::into_endpoint_failure(err)
+        VpnApiErrorResponse::try_from(err)
             .map(SyncDeviceError::SyncDeviceEndpointFailure)
             .unwrap_or_else(SyncDeviceError::unexpected_response)
     })?;

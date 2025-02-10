@@ -85,15 +85,3 @@ pub fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
 
     Ok(())
 }
-
-pub fn into_endpoint_failure(
-    err: nym_vpn_api_client::VpnApiClientError,
-) -> Result<nym_vpn_lib_types::VpnApiErrorResponse, nym_vpn_api_client::VpnApiClientError> {
-    nym_vpn_api_client::response::NymErrorResponse::try_from(err).map(|res| {
-        nym_vpn_lib_types::VpnApiErrorResponse {
-            message: res.message,
-            message_id: res.message_id,
-            code_reference_id: res.code_reference_id,
-        }
-    })
-}

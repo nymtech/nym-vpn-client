@@ -86,3 +86,16 @@ pub struct VpnApiErrorResponse {
     pub message_id: Option<String>,
     pub code_reference_id: Option<String>,
 }
+
+#[cfg(feature = "nym-type-conversions")]
+impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiErrorResponse {
+    type Error = nym_vpn_api_client::VpnApiClientError;
+
+    fn try_from(err: nym_vpn_api_client::VpnApiClientError) -> Result<Self, Self::Error> {
+        nym_vpn_api_client::response::NymErrorResponse::try_from(err).map(|res| Self {
+            message: res.message,
+            message_id: res.message_id,
+            code_reference_id: res.code_reference_id,
+        })
+    }
+}

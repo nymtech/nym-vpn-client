@@ -20,7 +20,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
     VpnApiClient,
 };
-use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess};
+use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiErrorResponse};
 use time::Date;
 
 use crate::storage::{PendingCredentialRequest, VpnCredentialStorage};
@@ -158,7 +158,7 @@ impl RequestZkNymTask {
             )
             .await
             .map_err(|err| {
-                crate::util::into_endpoint_failure(err)
+                VpnApiErrorResponse::try_from(err)
                     .map(|response| RequestZkNymError::RequestZkNymEndpointFailure {
                         response,
                         ticket_type: request.ticketbook_type.to_string(),
@@ -226,7 +226,7 @@ impl RequestZkNymTask {
                     }
                 }
                 Err(error) => {
-                    return Err(crate::util::into_endpoint_failure(error)
+                    return Err(VpnApiErrorResponse::try_from(error)
                         .map(|response| RequestZkNymError::PollZkNymEndpointFailure { response })
                         .unwrap_or_else(RequestZkNymError::unexpected_response));
                 }
@@ -564,7 +564,7 @@ impl RequestZkNymTask {
             .confirm_zk_nym_download_by_id(&self.account, &self.device, id)
             .await
             .map_err(|err| {
-                crate::util::into_endpoint_failure(err)
+                VpnApiErrorResponse::try_from(err)
                     .map(
                         |response| RequestZkNymError::ConfirmZkNymDownloadEndpointFailure {
                             response,

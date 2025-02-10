@@ -5,7 +5,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
 use nym_vpn_api_client::VpnApiClient;
-use nym_vpn_lib_types::RequestZkNymError;
+use nym_vpn_lib_types::{RequestZkNymError, VpnApiErrorResponse};
 
 // Generic struct to store cached data during the request process, both between concurrent requests
 // for different types, and between requests for the same type.
@@ -44,7 +44,7 @@ impl CachedData {
                 .get_directory_zk_nyms_ticketbook_partial_verification_keys()
                 .await
                 .map_err(|err| {
-                    crate::util::into_endpoint_failure(err)
+                    VpnApiErrorResponse::try_from(err)
                         .map(|source| {
                             RequestZkNymError::GetPartialVerificationKeysEndpointFailure {
                                 response: source,

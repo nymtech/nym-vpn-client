@@ -8,7 +8,9 @@ use nym_vpn_api_client::{
     response::{NymVpnAccountResponse, NymVpnDevice, NymVpnUsage},
     types::{DeviceStatus, VpnApiAccount},
 };
-use nym_vpn_lib_types::{AccountCommandError, ForgetAccountError, StoreAccountError};
+use nym_vpn_lib_types::{
+    AccountCommandError, ForgetAccountError, StoreAccountError, VpnApiErrorResponse,
+};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
 use tokio::{
@@ -273,7 +275,7 @@ where
             .get_account(&account)
             .await
             .map_err(|e| {
-                crate::util::into_endpoint_failure(e)
+                VpnApiErrorResponse::try_from(e)
                     .map(StoreAccountError::GetAccountEndpointFailure)
                     .unwrap_or_else(|e| StoreAccountError::UnexpectedResponse(e.to_string()))
                     .into()
@@ -406,7 +408,7 @@ where
             .update_device(&account, &device, DeviceStatus::DeleteMe)
             .await
             .map_err(|err| {
-                crate::util::into_endpoint_failure(err)
+                VpnApiErrorResponse::try_from(err)
                     .map(ForgetAccountError::UpdateDeviceErrorResponse)
                     .unwrap_or_else(|err| ForgetAccountError::UnexpectedResponse(err.to_string()))
                     .into()

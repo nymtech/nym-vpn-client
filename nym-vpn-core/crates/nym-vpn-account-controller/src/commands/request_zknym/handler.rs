@@ -14,7 +14,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
     VpnApiClient,
 };
-use nym_vpn_lib_types::{AccountCommandError, RequestZkNymError, RequestZkNymSuccess};
+use nym_vpn_lib_types::{AccountCommandError, RequestZkNymError, RequestZkNymSuccess, VpnApiErrorResponse};
 use tokio::task::JoinSet;
 
 use crate::{
@@ -246,7 +246,7 @@ impl RequestZkNymCommandHandler {
             .await
             .map(|response| response.items.into_iter().map(|item| item.id).collect())
             .map_err(|err| {
-                crate::util::into_endpoint_failure(err)
+                VpnApiErrorResponse::try_from(err)
                     .map(|response| {
                         RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure { response }
                     })
