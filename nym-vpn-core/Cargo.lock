@@ -5128,7 +5128,7 @@ dependencies = [
  "dirs",
  "eventlog",
  "futures",
- "http 0.2.12",
+ "http 1.2.0",
  "log-panics",
  "maplit",
  "nym-bandwidth-controller",
