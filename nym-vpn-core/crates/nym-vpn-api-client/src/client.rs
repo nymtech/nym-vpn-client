@@ -128,7 +128,7 @@ impl VpnApiClient {
 
     #[allow(unused)]
     async fn get_authorized_debug<T, E>(
-        &mut self,
+        &self,
         path: PathSegments<'_>,
         account: &VpnApiAccount,
         device: Option<&Device>,
