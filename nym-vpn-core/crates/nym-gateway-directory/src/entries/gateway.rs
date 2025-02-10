@@ -100,12 +100,16 @@ impl Gateway {
         mix_thresholds: Option<ScoreThresholds>,
         wg_thresholds: Option<ScoreThresholds>,
     ) {
-        self.mixnet_score
-            .as_mut()
-            .map(|score| score.update_to_new_thresholds(mix_thresholds));
-        self.wg_score
-            .as_mut()
-            .map(|score| score.update_to_new_thresholds(wg_thresholds));
+        if let Some(mix_thresholds) = mix_thresholds {
+            self.mixnet_score
+                .as_mut()
+                .map(|score| score.update_to_new_thresholds(mix_thresholds));
+        }
+        if let Some(wg_thresholds) = wg_thresholds {
+            self.wg_score
+                .as_mut()
+                .map(|score| score.update_to_new_thresholds(wg_thresholds));
+        }
     }
 }
 
