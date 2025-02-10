@@ -42,8 +42,9 @@ jobs:
 
       # To avoid running out of disk space, skip generating debug symbols
       - name: Set debug to false
+        working-directory: nym-vpn-core
         run: |
-          sed -i.bak 's/\[profile.dev\]/\[profile.dev\]\ndebug = false/' Cargo.toml
+          sed -i.bak '1s/^/\[profile.dev\]\ndebug = false\n\n/' Cargo.toml
           git diff
 
       - name: Build wireguard
