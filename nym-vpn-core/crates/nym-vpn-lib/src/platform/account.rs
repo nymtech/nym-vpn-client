@@ -373,11 +373,11 @@ pub(crate) mod raw {
         remove_credential_storage_raw(&path_buf).await?;
 
         // Then remove the rest of the files, that we own indirectly
-        nym_vpn_account_controller::util::remove_files_for_account(&path_buf).map_err(|err| {
-            VpnError::Storage {
+        nym_vpn_account_controller::storage_cleanup::remove_files_for_account(&path_buf).map_err(
+            |err| VpnError::Storage {
                 details: err.to_string(),
-            }
-        })?;
+            },
+        )?;
 
         Ok(())
     }
