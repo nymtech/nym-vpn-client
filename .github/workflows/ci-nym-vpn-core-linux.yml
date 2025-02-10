@@ -40,6 +40,13 @@ jobs:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # To avoid running out of disk space, skip generating debug symbols
+      - name: Set debug to false
+        working-directory: nym-vpn-core
+        run: |
+          sed -i.bak '1s/^/\[profile.dev\]\ndebug = false\n\n/' Cargo.toml
+          git diff
+
       - name: Build wireguard
         shell: bash
         run: |
