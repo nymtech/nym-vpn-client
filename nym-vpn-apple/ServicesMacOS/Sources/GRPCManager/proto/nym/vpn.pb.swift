@@ -20,6 +20,54 @@ fileprivate struct _GeneratedWithProtocGenSwiftVersion: SwiftProtobuf.ProtobufAP
   typealias Version = _2
 }
 
+enum Nym_Vpn_Score: SwiftProtobuf.Enum {
+  typealias RawValue = Int
+  case none // = 0
+  case low // = 1
+  case medium // = 2
+  case high // = 3
+  case UNRECOGNIZED(Int)
+
+  init() {
+    self = .none
+  }
+
+  init?(rawValue: Int) {
+    switch rawValue {
+    case 0: self = .none
+    case 1: self = .low
+    case 2: self = .medium
+    case 3: self = .high
+    default: self = .UNRECOGNIZED(rawValue)
+    }
+  }
+
+  var rawValue: Int {
+    switch self {
+    case .none: return 0
+    case .low: return 1
+    case .medium: return 2
+    case .high: return 3
+    case .UNRECOGNIZED(let i): return i
+    }
+  }
+
+}
+
+#if swift(>=4.2)
+
+extension Nym_Vpn_Score: CaseIterable {
+  // The compiler won't synthesize support with the UNRECOGNIZED case.
+  static let allCases: [Nym_Vpn_Score] = [
+    .none,
+    .low,
+    .medium,
+    .high,
+  ]
+}
+
+#endif  // swift(>=4.2)
+
 enum Nym_Vpn_GatewayType: SwiftProtobuf.Enum {
   typealias RawValue = Int
   case unspecified // = 0
@@ -1630,6 +1678,29 @@ struct Nym_Vpn_GatewayResponse {
   var hasLastProbe: Bool {return _storage._lastProbe != nil}
   /// Clears the value of `lastProbe`. Subsequent reads from it will return its default value.
   mutating func clearLastProbe() {_uniqueStorage()._lastProbe = nil}
+
+  var wgScore: Nym_Vpn_Score {
+    get {return _storage._wgScore ?? .none}
+    set {_uniqueStorage()._wgScore = newValue}
+  }
+  /// Returns true if `wgScore` has been explicitly set.
+  var hasWgScore: Bool {return _storage._wgScore != nil}
+  /// Clears the value of `wgScore`. Subsequent reads from it will return its default value.
+  mutating func clearWgScore() {_uniqueStorage()._wgScore = nil}
+
+  var mixnetScore: Nym_Vpn_Score {
+    get {return _storage._mixnetScore ?? .none}
+    set {_uniqueStorage()._mixnetScore = newValue}
+  }
+  /// Returns true if `mixnetScore` has been explicitly set.
+  var hasMixnetScore: Bool {return _storage._mixnetScore != nil}
+  /// Clears the value of `mixnetScore`. Subsequent reads from it will return its default value.
+  mutating func clearMixnetScore() {_uniqueStorage()._mixnetScore = nil}
+
+  var moniker: String {
+    get {return _storage._moniker}
+    set {_uniqueStorage()._moniker = newValue}
+  }
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -4279,6 +4350,7 @@ extension Nym_Vpn_MixnetEvent.ConnectionEvent: CaseIterable {
 #endif  // swift(>=4.2)
 
 #if swift(>=5.5) && canImport(_Concurrency)
+extension Nym_Vpn_Score: @unchecked Sendable {}
 extension Nym_Vpn_GatewayType: @unchecked Sendable {}
 extension Nym_Vpn_AccountRegistered: @unchecked Sendable {}
 extension Nym_Vpn_MnemonicState: @unchecked Sendable {}
@@ -4419,6 +4491,15 @@ extension Nym_Vpn_MixnetEvent.ConnectionStatisticsEvent: @unchecked Sendable {}
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "nym.vpn"
+
+extension Nym_Vpn_Score: SwiftProtobuf._ProtoNameProviding {
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    0: .same(proto: "NONE"),
+    1: .same(proto: "LOW"),
+    2: .same(proto: "MEDIUM"),
+    3: .same(proto: "HIGH"),
+  ]
+}
 
 extension Nym_Vpn_GatewayType: SwiftProtobuf._ProtoNameProviding {
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -6404,12 +6485,18 @@ extension Nym_Vpn_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._Message
     1: .same(proto: "id"),
     2: .same(proto: "location"),
     3: .standard(proto: "last_probe"),
+    4: .standard(proto: "wg_score"),
+    5: .standard(proto: "mixnet_score"),
+    6: .same(proto: "moniker"),
   ]
 
   fileprivate class _StorageClass {
     var _id: Nym_Vpn_Gateway? = nil
     var _location: Nym_Vpn_Location? = nil
     var _lastProbe: Nym_Vpn_Probe? = nil
+    var _wgScore: Nym_Vpn_Score? = nil
+    var _mixnetScore: Nym_Vpn_Score? = nil
+    var _moniker: String = String()
 
     #if swift(>=5.10)
       // This property is used as the initial default value for new instances of the type.
@@ -6427,6 +6514,9 @@ extension Nym_Vpn_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._Message
       _id = source._id
       _location = source._location
       _lastProbe = source._lastProbe
+      _wgScore = source._wgScore
+      _mixnetScore = source._mixnetScore
+      _moniker = source._moniker
     }
   }
 
@@ -6448,6 +6538,9 @@ extension Nym_Vpn_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._Message
         case 1: try { try decoder.decodeSingularMessageField(value: &_storage._id) }()
         case 2: try { try decoder.decodeSingularMessageField(value: &_storage._location) }()
         case 3: try { try decoder.decodeSingularMessageField(value: &_storage._lastProbe) }()
+        case 4: try { try decoder.decodeSingularEnumField(value: &_storage._wgScore) }()
+        case 5: try { try decoder.decodeSingularEnumField(value: &_storage._mixnetScore) }()
+        case 6: try { try decoder.decodeSingularStringField(value: &_storage._moniker) }()
         default: break
         }
       }
@@ -6469,6 +6562,15 @@ extension Nym_Vpn_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._Message
       try { if let v = _storage._lastProbe {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
       } }()
+      try { if let v = _storage._wgScore {
+        try visitor.visitSingularEnumField(value: v, fieldNumber: 4)
+      } }()
+      try { if let v = _storage._mixnetScore {
+        try visitor.visitSingularEnumField(value: v, fieldNumber: 5)
+      } }()
+      if !_storage._moniker.isEmpty {
+        try visitor.visitSingularStringField(value: _storage._moniker, fieldNumber: 6)
+      }
     }
     try unknownFields.traverse(visitor: &visitor)
   }
@@ -6481,6 +6583,9 @@ extension Nym_Vpn_GatewayResponse: SwiftProtobuf.Message, SwiftProtobuf._Message
         if _storage._id != rhs_storage._id {return false}
         if _storage._location != rhs_storage._location {return false}
         if _storage._lastProbe != rhs_storage._lastProbe {return false}
+        if _storage._wgScore != rhs_storage._wgScore {return false}
+        if _storage._mixnetScore != rhs_storage._mixnetScore {return false}
+        if _storage._moniker != rhs_storage._moniker {return false}
         return true
       }
       if !storagesAreEqual {return false}

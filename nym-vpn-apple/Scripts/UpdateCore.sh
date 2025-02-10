@@ -76,7 +76,7 @@ else
 fi
 
 # Construct the macOS download link using the extracted base version
-macos_download_link="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v${VERSION}/$(curl -s "$RELEASE_URL" | grep 'macos_universal.tar.gz' | awk '{print $7}' | head -n 1)"
+macos_download_link="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v${VERSION}/$(curl -s "$RELEASE_URL" | grep 'macos_universal.tar.gz' | awk '{print $2}' | head -n 1)"
 
 echo "macOS Download link: $macos_download_link"
 
