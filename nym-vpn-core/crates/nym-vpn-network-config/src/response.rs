@@ -40,6 +40,12 @@ pub(super) struct SystemMessageResponse {
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub(super) struct SystemConfigurationResponse {
+    pub(super) mix_thresholds: ScoreThresholdsResponse,
+    pub(super) wg_thresholds: ScoreThresholdsResponse,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+pub(super) struct ScoreThresholdsResponse {
     pub(super) high: u8,
     pub(super) medium: u8,
     pub(super) low: u8,

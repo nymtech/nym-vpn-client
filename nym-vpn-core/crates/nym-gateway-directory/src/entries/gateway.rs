@@ -95,16 +95,17 @@ impl Gateway {
         }
     }
 
-    pub fn update_to_new_thresholds(&mut self, thresholds: Option<ScoreThresholds>) {
-        let Some(thresholds) = thresholds else {
-            return;
-        };
-        self.wg_score
-            .as_mut()
-            .map(|score| score.update_to_new_thresholds(thresholds));
+    pub fn update_to_new_thresholds(
+        &mut self,
+        mix_thresholds: Option<ScoreThresholds>,
+        wg_thresholds: Option<ScoreThresholds>,
+    ) {
         self.mixnet_score
             .as_mut()
-            .map(|score| score.update_to_new_thresholds(thresholds));
+            .map(|score| score.update_to_new_thresholds(mix_thresholds));
+        self.wg_score
+            .as_mut()
+            .map(|score| score.update_to_new_thresholds(wg_thresholds));
     }
 }
 

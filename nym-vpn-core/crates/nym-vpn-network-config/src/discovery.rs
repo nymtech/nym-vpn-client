@@ -367,10 +367,15 @@ mod tests {
                 )])),
             }]),
             system_configuration: Some(SystemConfiguration {
-                score_thresholds: ScoreThresholds {
+                mix_thresholds: ScoreThresholds {
                     high: 75,
                     medium: 50,
                     low: 25,
+                },
+                wg_thresholds: ScoreThresholds {
+                    high: 80,
+                    medium: 60,
+                    low: 0,
                 },
             }),
         };

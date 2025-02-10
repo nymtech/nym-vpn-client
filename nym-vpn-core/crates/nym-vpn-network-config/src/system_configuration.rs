@@ -7,18 +7,24 @@ use serde::{Deserialize, Serialize};
 
 use crate::response::SystemConfigurationResponse;
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SystemConfiguration {
-    pub score_thresholds: ScoreThresholds,
+    pub mix_thresholds: ScoreThresholds,
+    pub wg_thresholds: ScoreThresholds,
 }
 
 impl From<SystemConfigurationResponse> for SystemConfiguration {
     fn from(value: SystemConfigurationResponse) -> Self {
         SystemConfiguration {
-            score_thresholds: ScoreThresholds {
-                high: value.high,
-                medium: value.medium,
-                low: value.low,
+            mix_thresholds: ScoreThresholds {
+                high: value.mix_thresholds.high,
+                medium: value.mix_thresholds.medium,
+                low: value.mix_thresholds.low,
+            },
+            wg_thresholds: ScoreThresholds {
+                high: value.wg_thresholds.high,
+                medium: value.wg_thresholds.medium,
+                low: value.wg_thresholds.low,
             },
         }
     }
@@ -26,11 +32,15 @@ impl From<SystemConfigurationResponse> for SystemConfiguration {
 
 impl fmt::Display for SystemConfiguration {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{:?}", self.score_thresholds)
+        write!(
+            f,
+            "mixnet score thresholds: {:?}\nwireguard score thresholds: {:?}",
+            self.mix_thresholds, self.wg_thresholds
+        )
     }
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct ScoreThresholds {
     pub high: u8,
     pub medium: u8,

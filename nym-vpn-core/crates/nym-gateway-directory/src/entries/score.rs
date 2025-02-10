@@ -16,7 +16,10 @@ pub enum Score {
 }
 
 impl Score {
-    pub fn update_to_new_thresholds(&mut self, thresholds: ScoreThresholds) {
+    pub fn update_to_new_thresholds(&mut self, thresholds: Option<ScoreThresholds>) {
+        let Some(thresholds) = thresholds else {
+            return;
+        };
         let score = match self {
             Score::None => return,
             Score::High(score) | Score::Medium(score) | Score::Low(score) => *score,
