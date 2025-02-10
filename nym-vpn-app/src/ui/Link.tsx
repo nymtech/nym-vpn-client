@@ -16,7 +16,7 @@ function Link({ text, url, icon, className, textClassName }: LinkProps) {
     <Button
       as="a"
       className={clsx([
-        'focus:outline-none select-none cursor-default',
+        'focus:outline-hidden select-none cursor-default',
         'inline-flex flex-row items-center gap-1 text-malachite-moss dark:text-malachite',
         className && className,
       ])}
@@ -35,7 +35,7 @@ function Link({ text, url, icon, className, textClassName }: LinkProps) {
           </span>
           {icon && (
             <MsIcon
-              className="!no-underline hover:!no-underline"
+              className="no-underline! hover:no-underline!"
               icon={typeof icon === 'string' ? icon : 'open_in_new'}
             />
           )}

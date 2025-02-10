@@ -50,8 +50,8 @@ function NetworkEnvSelect({ current }: Props) {
           className={clsx(
             'mt-3 block w-full appearance-none rounded-lg border-none',
             'bg-black/5 dark:bg-white/5 py-1.5 px-3 text-sm/6 text-black dark:text-white',
-            'focus:outline-none data-[focus]:outline-2 data-[focus]:-outline-offset-2',
-            'data-[focus]:outline-black/25 dark:data-[focus]:outline-white/25',
+            'focus:outline-hidden data-focus:outline-2 data-focus:-outline-offset-2',
+            'data-focus:outline-black/25 dark:data-focus:outline-white/25',
             // Make the text of each option black on Windows
             '*:text-black',
           )}

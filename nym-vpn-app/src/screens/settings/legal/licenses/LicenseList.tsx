@@ -27,7 +27,7 @@ const Row = ({
   return (
     <div className="flex flex-col justify-center px-4" style={style}>
       <SettingsMenuCard
-        className="min-h-12 !py-3"
+        className="min-h-12 py-3!"
         key={name}
         title={`${name} ${version ? ` v${version}` : ''}`}
         desc={Array.isArray(licenses) ? licenses.join(', ') : licenses}

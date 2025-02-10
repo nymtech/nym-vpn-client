@@ -54,7 +54,7 @@ function Snackbar({
           whileHover={{ opacity: 1 }}
           whileTap={{ opacity: 1 }}
           transition={{ duration: 0.15 }}
-          className="w-6 ml-4 focus:outline-none text-black dark:text-white cursor-default"
+          className="w-6 ml-4 focus:outline-hidden text-black dark:text-white cursor-default"
           onClick={() => onClose()}
         >
           <MsIcon icon="close" className="text-3xl" />

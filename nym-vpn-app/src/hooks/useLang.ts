@@ -55,7 +55,13 @@ function useLang() {
         fallback: 'none',
         style: 'long',
       });
-      return regionNames.of(code);
+      let name = null;
+      try {
+        name = regionNames.of(code);
+      } catch (e) {
+        console.warn(e);
+      }
+      return name;
     },
     [i18n.language],
   );

@@ -35,7 +35,7 @@ function SettingsMenuCard({
         'flex flex-row justify-between items-center gap-4 select-none',
         'bg-white dark:bg-octave px-5 rounded-lg min-h-16',
         desc ? 'py-2' : 'py-4',
-        !noHoverEffect && 'hover:bg-white/50 hover:dark:bg-octave/70',
+        !noHoverEffect && 'hover:bg-white/70 dark:hover:bg-octave/85',
         'transition cursor-default',
         disabled && 'opacity-50 pointer-events-none',
         className,

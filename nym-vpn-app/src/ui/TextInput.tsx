@@ -48,7 +48,7 @@ function TextInput({
           'text-base bg-faded-lavender dark:bg-ash transition',
           'w-full flex flex-row justify-between items-center py-3 px-4',
           'text-baltic-sea dark:text-mercury-pinkish',
-          'placeholder:text-cement-feet placeholder:dark:text-mercury-mist',
+          'placeholder:text-cement-feet dark:placeholder:text-mercury-mist',
           ...inputStates,
           className,
           label && 'relative',

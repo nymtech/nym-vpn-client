@@ -1,6 +1,94 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* override default color palette */
+  --color-*: initial;
+  /*****************/
+  --color-transparent: transparent;
+  --color-white: #fff;
+  --color-black: #000;
+  --color-baltic-sea-jaguar: #2b2831;
+  --color-baltic-sea: #1c1b1f;
+  --color-cornflower: #7075ff;
+  --color-teaberry: #e33b5a;
+  --color-comet: #625b71;
+  --color-vert-menthe: #2bc761;
+  --color-liquid-lava: #f97316;
+  --color-vert-prasin: #47c45d;
+  --color-mercury-pinkish: #e6e1e5;
+  --color-mercury-mist: #938f99;
+  --color-coal-mine-dark: #56545a;
+  --color-coal-mine-light: #a4a4a4;
+  --color-dim-gray: #696571;
+  --color-cement-feet: #79747e;
+  --color-gun-powder: #49454f;
+  --color-mine-shaft: #2b3234;
+  --color-bombay: #b0adb6;
+  --color-laughing-jack: #cac4d0;
+  --color-oil: #313033;
+  --color-dusty-grey: #ceccd1;
+  --color-aluminium: #8da3b1;
+  --color-poivre-noir: #484649;
+  --color-seashell: #fff2ef;
+  --color-ash: #242b2d;
+  --color-octave: #32373d;
+  --color-octave-arsenic: #374042;
+  --color-faded-lavender: #ebeef4;
+  --color-malachite: #14e76f;
+  --color-malachite-moss: #0b8a42;
+  --color-rouge-basque: #672d32;
+  --color-rose-bruni: #f3cac8;
+  --color-rouge-ecarlate: #e02c4d;
+
+  --font-sans: Lato, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-icon: Material Symbols Outlined;
+  --font-icon--font-variation-settings: 'opsz' 24;
+}
+
+@utility transition-noborder {
+  transition-property: color, background-color, text-decoration-color, fill,
+    stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+
+@utility animate-pulse-fast {
+  animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@utility loader {
+  border: 6px solid;
+  border-radius: 50%;
+  display: inline-block;
+  box-sizing: border-box;
+  animation: rotation 1s linear infinite;
+}
+
+@utility tooltip {
+  /* Tooltip
+   *  usage:
+   *  <div class="attach-tooltip">
+   *    <span>Hover me</span>
+   *    <div class="tooltip">Tooltip content</div>
+   *  </div>
+   */
+  @apply invisible absolute p-2 px-3 rounded-sm shadow-md
+        bg-seashell dark:bg-poivre-noir text-sm
+        transition-opacity duration-200 opacity-0 ease-out;
+
+  .attach-tooltip:hover & {
+    @apply visible opacity-100 z-50;
+  }
+}
+
+@utility attach-tooltip {
+  &:hover .tooltip {
+    @apply visible opacity-100 z-50;
+  }
+}
 
 @layer base {
   .font-rendering {
@@ -54,50 +142,14 @@
 }
 
 @layer components {
-  .transition-noborder {
-    transition-property: color, background-color, text-decoration-color, fill,
-      stroke, opacity, box-shadow, transform, filter, backdrop-filter;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 150ms;
-  }
-
   @keyframes pulse-fast {
     50% {
       opacity: 0.6;
     }
   }
-  .animate-pulse-fast {
-    animation: pulse-fast 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  .loader {
-    border: 6px solid;
-    border-radius: 50%;
-    display: inline-block;
-    box-sizing: border-box;
-    animation: rotation 1s linear infinite;
-  }
-
   @keyframes rotation {
     to {
       transform: rotate(1turn);
     }
-  }
-
-  /* Tooltip
-   *  usage:
-   *  <div class="attach-tooltip">
-   *    <span>Hover me</span>
-   *    <div class="tooltip">Tooltip content</div>
-   *  </div>
-   */
-  .tooltip {
-    @apply invisible absolute p-2 px-3 rounded shadow-md
-        bg-seashell dark:bg-poivre-noir text-sm
-        transition-opacity duration-200 opacity-0 ease-out;
-  }
-
-  .attach-tooltip:hover .tooltip {
-    @apply visible opacity-100 z-50;
   }
 }

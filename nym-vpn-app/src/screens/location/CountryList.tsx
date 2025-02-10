@@ -36,8 +36,7 @@ export default function CountryList({
               onKeyDown={() => onSelect(uiCountry)}
               className={clsx([
                 'flex flex-row justify-between',
-                'hover:bg-gun-powder hover:bg-opacity-10',
-                'dark:hover:bg-laughing-jack dark:hover:bg-opacity-10',
+                'hover:bg-gun-powder/10 dark:hover:bg-laughing-jack/10',
                 'rounded-lg px-3 py-1 transition duration-75 cursor-default',
               ])}
               onClick={() => onSelect(uiCountry)}

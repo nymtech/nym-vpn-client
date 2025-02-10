@@ -121,34 +121,31 @@ function NodeLocation({ node }: { node: NodeHop }) {
         onClose={() => close('location-info')}
       />
       <PageAnim className="h-full flex flex-col">
-        <div className="h-70 flex flex-col justify-center items-center gap-y-2 pt-3">
-          <div className="w-full flex flex-row items-center px-4 mb-2">
-            <TextInput
-              value={search}
-              onChange={filter}
-              placeholder={t('search-country')}
-              leftIcon="search"
-              label={t('input-label')}
-            />
-          </div>
-          <span className="mt-2" />
-          {error ? (
-            renderError(error)
-          ) : (
-            <CountryList
-              countries={filteredCountries}
-              loading={
-                node === 'entry' ? entryCountriesLoading : exitCountriesLoading
-              }
-              onSelect={(country) => {
-                handleCountrySelection(country);
-              }}
-              isSelected={(country: UiCountry) =>
-                selectedCountry.code === country.country.code
-              }
-            />
-          )}
+        <div className="w-full max-w-md px-4 mt-4 mb-6">
+          <TextInput
+            value={search}
+            onChange={filter}
+            placeholder={t('search-country')}
+            leftIcon="search"
+            label={t('input-label')}
+          />
         </div>
+        {error ? (
+          renderError(error)
+        ) : (
+          <CountryList
+            countries={filteredCountries}
+            loading={
+              node === 'entry' ? entryCountriesLoading : exitCountriesLoading
+            }
+            onSelect={(country) => {
+              handleCountrySelection(country);
+            }}
+            isSelected={(country: UiCountry) =>
+              selectedCountry.code === country.country.code
+            }
+          />
+        )}
       </PageAnim>
     </>
   );
