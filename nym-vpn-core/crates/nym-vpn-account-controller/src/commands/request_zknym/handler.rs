@@ -14,7 +14,9 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
     VpnApiClient,
 };
-use nym_vpn_lib_types::{AccountCommandError, RequestZkNymError, RequestZkNymSuccess, VpnApiErrorResponse};
+use nym_vpn_lib_types::{
+    AccountCommandError, RequestZkNymError, RequestZkNymSuccess, VpnApiErrorResponse,
+};
 use tokio::task::JoinSet;
 
 use crate::{
