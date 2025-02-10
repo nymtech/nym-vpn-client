@@ -521,7 +521,7 @@ impl tunnel::Error {
     fn error_state_reason(&self) -> Option<ErrorStateReason> {
         match self {
             Self::SelectGateways(e) => match e {
-                GatewayDirectoryError::SameEntryAndExitGatewayFromCountry { .. } => {
+                GatewayDirectoryError::SameEntryAndExitGateway { .. } => {
                     Some(ErrorStateReason::SameEntryAndExitGateway)
                 }
 
