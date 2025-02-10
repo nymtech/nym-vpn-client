@@ -404,9 +404,9 @@ pub enum Score {
 impl From<nym_gateway_directory::Score> for Score {
     fn from(value: nym_gateway_directory::Score) -> Self {
         match value {
-            nym_gateway_directory::Score::High => Score::High,
-            nym_gateway_directory::Score::Medium => Score::Medium,
-            nym_gateway_directory::Score::Low => Score::Low,
+            nym_gateway_directory::Score::High(_) => Score::High,
+            nym_gateway_directory::Score::Medium(_) => Score::Medium,
+            nym_gateway_directory::Score::Low(_) => Score::Low,
             nym_gateway_directory::Score::None => Score::None,
         }
     }

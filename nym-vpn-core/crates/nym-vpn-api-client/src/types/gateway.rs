@@ -54,3 +54,10 @@ pub enum GatewayType {
     MixnetExit,
     Wg,
 }
+
+#[derive(Clone, Copy, Debug)]
+pub struct ScoreThresholds {
+    pub high: u8,
+    pub medium: u8,
+    pub low: u8,
+}

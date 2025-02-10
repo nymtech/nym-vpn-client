@@ -59,6 +59,7 @@ use std::{env, path::PathBuf, sync::Arc, time::Duration};
 
 use account::AccountControllerHandle;
 use lazy_static::lazy_static;
+use nym_vpn_api_client::types::ScoreThresholds;
 use tokio::{runtime::Runtime, sync::Mutex};
 
 use self::error::VpnError;
@@ -275,11 +276,17 @@ async fn get_gateway_countries(
     })?;
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
     let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
+    let score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
+        high: sc.score_thresholds.high,
+        medium: sc.score_thresholds.medium,
+        low: sc.score_thresholds.low,
+    });
     let directory_config = nym_gateway_directory::Config {
         nyxd_url,
         api_url,
         nym_vpn_api_url,
         min_gateway_performance,
+        score_thresholds,
     };
     GatewayClient::new(directory_config, user_agent.into())?
         .lookup_countries(gw_type.into())
@@ -313,11 +320,17 @@ async fn get_gateways(
     })?;
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
     let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
+    let score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
+        high: sc.score_thresholds.high,
+        medium: sc.score_thresholds.medium,
+        low: sc.score_thresholds.low,
+    });
     let directory_config = nym_gateway_directory::Config {
         nyxd_url,
         api_url,
         nym_vpn_api_url,
         min_gateway_performance,
+        score_thresholds,
     };
     GatewayClient::new(directory_config, user_agent.into())?
         .lookup_gateways(gw_type.into())
