@@ -25,15 +25,21 @@ public final class LogFileManager: ObservableObject {
     public static func logFileURL(logFileType: LogFileType) -> URL? {
         let fileManager = FileManager.default
         var logsDirectory: URL?
-        #if os(macOS)
-        logsDirectory = try? fileManager
-            .url(for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
-        #else
+#if os(macOS)
+        switch logFileType {
+        case .app:
+            logsDirectory = try? fileManager
+                .url(for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+        case .daemon:
+            return URL(fileURLWithPath: "/var/log/nym-vpnd/nym-vpnd.log")
+        }
+
+#else
         logsDirectory = fileManager
             .containerURL(
                 forSecurityApplicationGroupIdentifier: Constants.groupID.rawValue
             )
-        #endif
+#endif
 
         guard var logsDirectory else { return nil }
         logsDirectory = logsDirectory

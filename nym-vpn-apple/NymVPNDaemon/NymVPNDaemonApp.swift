@@ -60,13 +60,16 @@ struct NymVPNDaemonApp: App {
             }
             CommandGroup(after: .help) {
                 Button("helper.uninstallHelper".localizedString) {
-                    let result = HelperManager.shared.uninstallHelper()
-                    if result {
-                        alertTitle = "helper.successfullyUninstalled".localizedString
-                    } else {
-                        alertTitle = "error.unexpected".localizedString
+                    Task {
+                        do {
+                            try await HelperManager.shared.uninstall()
+                            alertTitle = "helper.successfullyUninstalled".localizedString
+                        } catch {
+                            alertTitle = error.localizedDescription
+                        }
+
+                        isDisplayingAlert = true
                     }
-                    isDisplayingAlert = true
                 }
             }
         }
@@ -86,7 +89,6 @@ private extension NymVPNDaemonApp {
         NotificationsManager.shared.setup()
         ThemeConfiguration.setup()
         SentryManager.shared.setup()
-        HelperManager.shared.setup(helperName: Constants.helperName.rawValue)
         Migrations.shared.setup()
     }
 }

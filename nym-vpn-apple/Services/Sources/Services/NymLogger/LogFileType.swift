@@ -5,5 +5,6 @@ public enum LogFileType: String, CaseIterable {
     case library
 #elseif os(macOS)
     case app
+    case daemon
 #endif
 }

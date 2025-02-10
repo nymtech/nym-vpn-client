@@ -6,7 +6,7 @@ import ConfigurationManager
 import CountriesManagerTypes
 #if os(macOS)
 import GRPCManager
-import HelperInstallManager
+import HelperManager
 #endif
 #if os(iOS)
 import MixnetLibrary
@@ -21,7 +21,7 @@ public final class CountriesManager: ObservableObject {
     let logger = Logger(label: "CountriesManager")
 #if os(macOS)
     let grpcManager: GRPCManager
-    let helperInstallManager: HelperInstallManager
+    let helperManager: HelperManager
 
     var daemonVersion: String?
 #endif
@@ -35,7 +35,7 @@ public final class CountriesManager: ObservableObject {
     public static let shared = CountriesManager(
         appSettings: .shared,
         grpcManager: .shared,
-        helperInstallManager: .shared,
+        helperManager: .shared,
         configurationManager: .shared
     )
 #endif
@@ -68,13 +68,13 @@ public final class CountriesManager: ObservableObject {
     public init(
         appSettings: AppSettings,
         grpcManager: GRPCManager,
-        helperInstallManager: HelperInstallManager,
+        helperManager: HelperManager,
         configurationManager: ConfigurationManager
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.grpcManager = grpcManager
-        self.helperInstallManager = helperInstallManager
+        self.helperManager = helperManager
         self.entryCountries = []
         self.exitCountries = []
         self.vpnCountries = []
@@ -144,7 +144,7 @@ private extension CountriesManager {
 
 #if os(macOS)
     func setupDaemonStateObserver() {
-        helperInstallManager.$daemonState.sink { [weak self] daemonState in
+        helperManager.$daemonState.sink { [weak self] daemonState in
             guard daemonState == .running else { return }
             Task(priority: .background) {
                 try? await Task.sleep(for: .seconds(5))
