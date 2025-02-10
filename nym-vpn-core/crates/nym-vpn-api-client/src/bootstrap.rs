@@ -44,7 +44,10 @@ impl BootstrapVpnApiClient {
             .map_err(VpnApiClientError::FailedToGetNetworkEnvs)
     }
 
-    pub async fn get_wellknown_discovery(&self, network_name: &str) -> Result<NymWellknownDiscoveryItemResponse> {
+    pub async fn get_wellknown_discovery(
+        &self,
+        network_name: &str,
+    ) -> Result<NymWellknownDiscoveryItemResponse> {
         self.inner
             .get_json(
                 &[
