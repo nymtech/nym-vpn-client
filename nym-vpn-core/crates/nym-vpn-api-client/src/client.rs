@@ -1,7 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, time::Duration};
+use std::{
+    fmt,
+    sync::Arc,
+    time::{Duration, Instant},
+};
 
 use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
@@ -9,20 +13,19 @@ use nym_http_api_client::{HttpClientError, Params, PathSegments, UserAgent, NO_P
 use reqwest::Url;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use crate::request::{UpdateDeviceRequestBody, UpdateDeviceRequestStatus};
-use crate::response::{NymVpnHealthResponse, NymVpnUsagesResponse};
 use crate::types::DeviceStatus;
 use crate::{
     error::{Result, VpnApiClientError},
     request::{
         ApplyFreepassRequestBody, CreateSubscriptionKind, CreateSubscriptionRequestBody,
-        RegisterDeviceRequestBody, RequestZkNymRequestBody,
+        RegisterDeviceRequestBody, RequestZkNymRequestBody, UpdateDeviceRequestBody,
+        UpdateDeviceRequestStatus,
     },
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
-        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
-        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymPost,
-        NymVpnZkNymResponse, StatusOk,
+        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnHealthResponse,
+        NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse,
+        NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymResponse, StatusOk,
     },
     routes,
     types::{Device, GatewayMinPerformance, GatewayType, VpnApiAccount},
@@ -33,9 +36,13 @@ pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 // GET requests can unfortunately take a long time over the mixnet
 pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(60);
 
+// If the skew is older than this, we'll update it.
+const MAX_SKEW_UPDATE_AGE: Duration = Duration::from_secs(5 * 60);
+
 #[derive(Clone, Debug)]
 pub struct VpnApiClient {
     inner: nym_http_api_client::Client,
+    synced_skew_unix_epoch: Arc<tokio::sync::Mutex<Option<(i64, Instant)>>>,
 }
 
 impl VpnApiClient {
@@ -47,7 +54,10 @@ impl VpnApiClient {
                     .with_timeout(NYM_VPN_API_TIMEOUT)
             })
             .and_then(|builder| builder.build())
-            .map(|c| Self { inner: c })
+            .map(|c| Self {
+                inner: c,
+                synced_skew_unix_epoch: Arc::new(tokio::sync::Mutex::new(None)),
+            })
             .map_err(VpnApiClientError::FailedToCreateVpnApiClient)
     }
 
@@ -56,10 +66,36 @@ impl VpnApiClient {
     }
 
     async fn get_vpn_api_unix_timestamp(&self) -> Option<i64> {
-        match self.get_health().await {
-            Ok(response) => Some(response.timestamp_utc.timestamp()),
-            Err(_) => None,
+        self.get_health()
+            .await
+            .map(|response| response.timestamp_utc.timestamp())
+            .ok()
+    }
+
+    async fn get_new_time_skew(&self) -> Option<i64> {
+        let device_timestamp = std::time::UNIX_EPOCH
+            .elapsed()
+            .map(|t| t.as_secs() as i64)
+            .inspect_err(|err| tracing::error!("Failed to get device timestamp: {err}"))
+            .ok()?;
+
+        let api_timestamp = self.get_vpn_api_unix_timestamp().await?;
+        let skew = api_timestamp - device_timestamp;
+        Some(skew)
+    }
+
+    async fn get_time_skew(&self) -> Option<i64> {
+        let mut guard = self.synced_skew_unix_epoch.lock().await;
+        let should_update_skew = guard
+            .as_ref()
+            .map(|(_, i)| i.elapsed() > MAX_SKEW_UPDATE_AGE)
+            .unwrap_or(true);
+
+        if should_update_skew {
+            *guard = Some((self.get_new_time_skew().await?, Instant::now()));
         }
+
+        guard.as_ref().map(|(skew, _)| *skew)
     }
 
     async fn get_authorized<T, E>(
@@ -72,19 +108,15 @@ impl VpnApiClient {
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
-        let request = self.inner.create_get_request(path, NO_PARAMS).bearer_auth(
-            account
-                .jwt(self.get_vpn_api_unix_timestamp().await)
-                .to_string(),
-        );
+        let request = self
+            .inner
+            .create_get_request(path, NO_PARAMS)
+            .bearer_auth(account.jwt(self.get_time_skew().await).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(self.get_time_skew().await)),
             ),
             None => request,
         };
@@ -96,7 +128,7 @@ impl VpnApiClient {
 
     #[allow(unused)]
     async fn get_authorized_debug<T, E>(
-        &self,
+        &mut self,
         path: PathSegments<'_>,
         account: &VpnApiAccount,
         device: Option<&Device>,
@@ -105,19 +137,15 @@ impl VpnApiClient {
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
-        let request = self.inner.create_get_request(path, NO_PARAMS).bearer_auth(
-            account
-                .jwt(self.get_vpn_api_unix_timestamp().await)
-                .to_string(),
-        );
+        let request = self
+            .inner
+            .create_get_request(path, NO_PARAMS)
+            .bearer_auth(account.jwt(self.get_time_skew().await).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(self.get_time_skew().await)),
             ),
             None => request,
         };
@@ -190,19 +218,12 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_post_request(path, NO_PARAMS, json_body)
-            .bearer_auth(
-                account
-                    .jwt(self.get_vpn_api_unix_timestamp().await)
-                    .to_string(),
-            );
+            .bearer_auth(account.jwt(self.get_time_skew().await).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(self.get_time_skew().await)),
             ),
             None => request,
         };
@@ -225,19 +246,12 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_delete_request(path, NO_PARAMS)
-            .bearer_auth(
-                account
-                    .jwt(self.get_vpn_api_unix_timestamp().await)
-                    .to_string(),
-            );
+            .bearer_auth(account.jwt(self.get_time_skew().await).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(self.get_time_skew().await)),
             ),
             None => request,
         };
@@ -262,19 +276,12 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_patch_request(path, NO_PARAMS, json_body)
-            .bearer_auth(
-                account
-                    .jwt(self.get_vpn_api_unix_timestamp().await)
-                    .to_string(),
-            );
+            .bearer_auth(account.jwt(self.get_time_skew().await).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(self.get_time_skew().await)),
             ),
             None => request,
         };

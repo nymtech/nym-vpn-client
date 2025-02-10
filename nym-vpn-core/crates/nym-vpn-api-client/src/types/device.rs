@@ -18,9 +18,9 @@ impl Device {
         self.keypair.public_key()
     }
 
-    pub(crate) fn jwt(&self, vpn_api_unix_epoch: Option<i64>) -> Jwt {
-        match vpn_api_unix_epoch {
-            Some(epoch) => Jwt::new_ecdsa_synced(&self.keypair, epoch),
+    pub(crate) fn jwt(&self, skew_unix_epoch: Option<i64>) -> Jwt {
+        match skew_unix_epoch {
+            Some(epoch) => Jwt::new_ecdsa_synced2(&self.keypair, epoch),
             None => Jwt::new_ecdsa(&self.keypair),
         }
     }

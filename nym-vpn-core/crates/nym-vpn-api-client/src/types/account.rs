@@ -25,9 +25,9 @@ impl VpnApiAccount {
         self.wallet.get_accounts().unwrap()[0].address().to_string()
     }
 
-    pub(crate) fn jwt(&self, vpn_api_unix_epoch: Option<i64>) -> Jwt {
-        match vpn_api_unix_epoch {
-            Some(epoch) => Jwt::new_secp256k1_synced(&self.wallet, epoch),
+    pub(crate) fn jwt(&self, time_skew: Option<i64>) -> Jwt {
+        match time_skew {
+            Some(epoch) => Jwt::new_secp256k1_synced2(&self.wallet, epoch),
             None => Jwt::new_secp256k1(&self.wallet),
         }
     }
