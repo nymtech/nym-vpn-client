@@ -81,7 +81,10 @@ impl VpnApiClient {
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt()),
+                format!(
+                    "Bearer {}",
+                    device.jwt(self.get_vpn_api_unix_timestamp().await)
+                ),
             ),
             None => request,
         };
@@ -111,7 +114,10 @@ impl VpnApiClient {
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt()),
+                format!(
+                    "Bearer {}",
+                    device.jwt(self.get_vpn_api_unix_timestamp().await)
+                ),
             ),
             None => request,
         };
@@ -193,7 +199,10 @@ impl VpnApiClient {
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt()),
+                format!(
+                    "Bearer {}",
+                    device.jwt(self.get_vpn_api_unix_timestamp().await)
+                ),
             ),
             None => request,
         };
@@ -225,7 +234,10 @@ impl VpnApiClient {
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt()),
+                format!(
+                    "Bearer {}",
+                    device.jwt(self.get_vpn_api_unix_timestamp().await)
+                ),
             ),
             None => request,
         };
@@ -259,7 +271,10 @@ impl VpnApiClient {
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt()),
+                format!(
+                    "Bearer {}",
+                    device.jwt(self.get_vpn_api_unix_timestamp().await)
+                ),
             ),
             None => request,
         };

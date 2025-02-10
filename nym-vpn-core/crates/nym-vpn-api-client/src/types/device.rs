@@ -18,8 +18,11 @@ impl Device {
         self.keypair.public_key()
     }
 
-    pub(crate) fn jwt(&self) -> Jwt {
-        Jwt::new_ecdsa(&self.keypair)
+    pub(crate) fn jwt(&self, vpn_api_unix_epoch: Option<i64>) -> Jwt {
+        match vpn_api_unix_epoch {
+            Some(epoch) => Jwt::new_ecdsa_synced(&self.keypair, epoch),
+            None => Jwt::new_ecdsa(&self.keypair),
+        }
     }
 
     pub fn sign<M: AsRef<[u8]>>(&self, message: M) -> DeviceSignature {
