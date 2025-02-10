@@ -83,11 +83,11 @@ function RadioGroup<K extends Key>({
               value={option.key}
               className={({ checked }) =>
                 clsx([
-                  'bg-white dark:bg-octave relative flex rounded-lg px-5 py-2 focus:outline-none',
+                  'bg-white dark:bg-octave relative flex rounded-lg px-5 py-2 focus:outline-hidden',
                   checked &&
                     'border border-malachite-moss hover:border-malachite-moss',
                   checked &&
-                    'dark:border-malachite hover:dark:border-malachite',
+                    'dark:border-malachite dark:hover:border-malachite',
                   !checked && 'border border-white dark:border-octave',
                   !option.disabled &&
                     !checked &&

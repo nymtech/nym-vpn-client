@@ -23,7 +23,7 @@ function Dialog({ open, onClose, children }: DialogProps) {
       as="div"
       className={clsx([
         uiTheme === 'Dark' && 'dark',
-        'relative z-50 focus:outline-none select-none cursor-default',
+        'relative z-50 focus:outline-hidden select-none cursor-default',
       ])}
       open={open}
       onClose={onClose}
@@ -31,7 +31,7 @@ function Dialog({ open, onClose, children }: DialogProps) {
       <DialogBackdrop
         transition
         className={clsx([
-          'fixed inset-0 bg-black/30 duration-200 ease-out data-[closed]:opacity-0',
+          'fixed inset-0 bg-black/30 duration-200 ease-out data-closed:opacity-0',
         ])}
       />
       <div className="fixed inset-0 z-50 w-screen overflow-y-auto">
@@ -42,7 +42,7 @@ function Dialog({ open, onClose, children }: DialogProps) {
               'text-base min-w-80 overflow-x-hidden',
               'max-w-md rounded-xl bg-white dark:bg-octave p-6',
               'flex flex-col items-center gap-6',
-              'duration-200 ease-out data-[closed]:opacity-0',
+              'duration-200 ease-out data-closed:opacity-0',
             ])}
           >
             {children}

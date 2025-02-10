@@ -39,19 +39,34 @@ function Button({
   const getColorStyle = () => {
     switch (color) {
       case 'malachite':
-        if (outline) {
-          return 'border border-malachite outline-malachite';
-        } else {
-          return 'bg-malachite';
-        }
+        return [
+          'bg-malachite data-hover:bg-malachite/75',
+          'dark:data-hover:bg-malachite/80',
+        ];
       case 'gray':
-        return 'bg-dim-gray bg-opacity-70 dark:bg-dusty-grey dark:bg-opacity-100';
+        return [
+          'bg-dim-gray/70 data-hover:bg-dim-gray/85',
+          'dark:bg-dusty-grey dark:data-hover:bg-dusty-grey/80',
+        ];
       case 'cornflower':
-        return 'bg-cornflower';
+        return [
+          'bg-cornflower data-hover:bg-cornflower/85',
+          'dark:data-hover:bg-cornflower/80',
+        ];
     }
   };
 
-  const getOutilineTextColor = () => {
+  const getOutlineColorStyle = () => {
+    switch (color) {
+      case 'malachite':
+        return 'border border-malachite outline-malachite';
+      default:
+        // TODO add style for other colors
+        return null;
+    }
+  };
+
+  const getOutlineTextColor = () => {
     switch (color) {
       case 'malachite':
         return 'text-malachite';
@@ -62,19 +77,19 @@ function Button({
     }
   };
 
+  const colorStyle = outline ? getOutlineColorStyle() : getColorStyle();
+
   return (
     <HuButton
       className={clsx([
         'flex justify-center items-center w-full',
         'rounded-lg text-lg font-bold py-3 px-6',
-        outline ? getOutilineTextColor() : 'text-black dark:text-baltic-sea',
-        'focus:outline-none data-[focus]:ring-2 data-[focus]:ring-black data-[focus]:dark:ring-white',
-        'transition data-[disabled]:opacity-60 data-[active]:ring-0',
-        outline
-          ? 'data-[hover]:ring-1 data-[hover]:ring-malachite'
-          : 'data-[hover]:bg-opacity-80 data-[hover]:dark:bg-opacity-85',
-        'shadow tracking-normal cursor-default',
-        getColorStyle(),
+        outline ? getOutlineTextColor() : 'text-black dark:text-baltic-sea',
+        'focus:outline-hidden data-focus:ring-2 data-focus:ring-black dark:data-focus:ring-white',
+        'transition data-disabled:opacity-60 data-active:ring-0',
+        outline && 'data-hover:ring-1 data-hover:ring-malachite',
+        'shadow-sm tracking-normal cursor-default',
+        colorStyle,
         className && className,
       ])}
       onClick={onClick}

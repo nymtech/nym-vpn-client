@@ -35,7 +35,7 @@ function MainLayout({
           'h-full flex flex-col overflow-auto overscroll-auto p-4',
           (location.pathname === routes.licensesRust ||
             location.pathname === routes.licensesJs) &&
-            '!p-0',
+            'p-0!',
         ])}
       >
         <div className="grow">

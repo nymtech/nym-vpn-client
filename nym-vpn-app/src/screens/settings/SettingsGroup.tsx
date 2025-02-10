@@ -27,8 +27,8 @@ function SettingsGroup({ settings, className }: Props) {
           onClick={setting.onClick}
           className={clsx([
             'cursor-default',
-            'bg-white dark:bg-octave relative flex px-5 py-2 focus:outline-none min-h-16',
-            'hover:bg-white/50 hover:dark:bg-octave/70',
+            'bg-white dark:bg-octave relative flex px-5 py-2 focus:outline-hidden min-h-16',
+            'hover:bg-white/70 dark:hover:bg-octave/85',
             'transition duration-75',
             index === 0 && 'rounded-t-lg',
             index === settings.length - 1 &&
@@ -40,7 +40,7 @@ function SettingsGroup({ settings, className }: Props) {
             index === settings.length - 1 && 'rounded-b-lg',
             setting.desc ? 'py-2' : 'py-4',
             setting.disabled &&
-              'opacity-50 pointer-events-none !cursor-default',
+              'opacity-50 pointer-events-none cursor-default!',
           ])}
         >
           <div
