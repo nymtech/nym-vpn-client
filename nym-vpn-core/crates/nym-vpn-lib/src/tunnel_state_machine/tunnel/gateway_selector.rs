@@ -29,7 +29,7 @@ pub async fn select_gateways(
         },
     ) = (entry_point.as_ref(), &exit_point.as_ref())
     {
-        if (entry_identity == exit_identity) {
+        if entry_identity == exit_identity {
             return Err(GatewayDirectoryError::SameEntryAndExitGateway {
                 identity: entry_identity.to_string(),
             });
