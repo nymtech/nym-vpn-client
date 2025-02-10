@@ -55,8 +55,8 @@ impl Jwt {
         Jwt::new_secp256k1_with_now(wallet, timestamp)
     }
 
-    pub fn new_secp256k1_synced2(wallet: &DirectSecp256k1HdWallet, skew_unix_epoch: i64) -> Jwt {
-        Jwt::new_secp256k1_with_now(wallet, Self::synced_timestamp2(skew_unix_epoch))
+    pub fn new_secp256k1_synced(wallet: &DirectSecp256k1HdWallet, skew_unix_epoch: i64) -> Jwt {
+        Jwt::new_secp256k1_with_now(wallet, Self::synced_timestamp(skew_unix_epoch))
     }
 
     pub fn new_secp256k1_with_now(wallet: &DirectSecp256k1HdWallet, now: u128) -> Jwt {
@@ -99,11 +99,11 @@ impl Jwt {
         Jwt::new_ecdsa_with_now(key_pair, timestamp)
     }
 
-    pub fn new_ecdsa_synced2(key_pair: &ed25519::KeyPair, skew_unix_epoch: i64) -> Jwt {
-        Jwt::new_ecdsa_with_now(key_pair, Self::synced_timestamp2(skew_unix_epoch))
+    pub fn new_ecdsa_synced(key_pair: &ed25519::KeyPair, skew_unix_epoch: i64) -> Jwt {
+        Jwt::new_ecdsa_with_now(key_pair, Self::synced_timestamp(skew_unix_epoch))
     }
 
-    fn synced_timestamp2(skew_unix_epoch: i64) -> u128 {
+    fn synced_timestamp(skew_unix_epoch: i64) -> u128 {
         let device_timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as i64;
         tracing::debug!("using skew: {}", skew_unix_epoch);
         (device_timestamp + skew_unix_epoch) as u128
