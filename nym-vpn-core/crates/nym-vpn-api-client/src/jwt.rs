@@ -56,10 +56,7 @@ impl Jwt {
     }
 
     pub fn new_secp256k1_synced(wallet: &DirectSecp256k1HdWallet, vpn_api_unix_epoch: i64) -> Jwt {
-        let device_timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as i64;
-        let skew = vpn_api_unix_epoch - device_timestamp;
-        tracing::debug!("skew: {}", skew);
-        Jwt::new_secp256k1_with_now(wallet, (device_timestamp + skew) as u128)
+        Jwt::new_secp256k1_with_now(wallet, Self::synced_timestamp(vpn_api_unix_epoch))
     }
 
     pub fn new_secp256k1_with_now(wallet: &DirectSecp256k1HdWallet, now: u128) -> Jwt {
@@ -100,6 +97,17 @@ impl Jwt {
     pub fn new_ecdsa(key_pair: &ed25519::KeyPair) -> Jwt {
         let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as u128;
         Jwt::new_ecdsa_with_now(key_pair, timestamp)
+    }
+
+    pub fn new_ecdsa_synced(key_pair: &ed25519::KeyPair, vpn_api_unix_epoch: i64) -> Jwt {
+        Jwt::new_ecdsa_with_now(key_pair, Self::synced_timestamp(vpn_api_unix_epoch))
+    }
+
+    fn synced_timestamp(vpn_api_unix_epoch: i64) -> u128 {
+        let device_timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as i64;
+        let skew = vpn_api_unix_epoch - device_timestamp;
+        tracing::debug!("skew: {}", skew);
+        (device_timestamp + skew) as u128
     }
 
     pub fn new_ecdsa_with_now(key_pair: &ed25519::KeyPair, now: u128) -> Jwt {

@@ -51,6 +51,7 @@ object CustomColors {
 	val outlineVariant = Color(0xFF49454F)
 	val statusGreen = Color(0x1A47C45D)
 	val statusRed = Color(0xFF672D32)
+	val statusRedLight = Color(0xFFF3CAC8)
 	val statusDefaultDark = Color(0xFF313033).copy(alpha = 0.16f)
 	val statusDefaultLight = Color(0xFF625B71).copy(alpha = 0.16f)
 	val disconnect = Color(0xFF7075FF)
