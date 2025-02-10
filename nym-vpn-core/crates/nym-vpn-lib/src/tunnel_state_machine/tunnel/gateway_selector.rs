@@ -79,8 +79,8 @@ pub async fn select_gateways(
             } if Some(requested_location.as_str())
                 == exit_gateway.two_letter_iso_country_code() =>
             {
-                GatewayDirectoryError::SameEntryAndExitGatewayFromCountry {
-                    requested_location: requested_location.to_string(),
+                GatewayDirectoryError::SameEntryAndExitGateway {
+                    identity: exit_gateway.identity.to_string(),
                 }
             }
             _ => GatewayDirectoryError::FailedToSelectEntryGateway { source },
