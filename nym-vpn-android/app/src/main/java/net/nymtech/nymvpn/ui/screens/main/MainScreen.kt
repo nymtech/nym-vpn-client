@@ -92,7 +92,7 @@ import net.nymtech.vpn.backend.Tunnel
 
 @Composable
 fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewModel = hiltViewModel()) {
-	val uiState = remember(appUiState) {
+	val uiState = remember(appUiState.managerState, appUiState.networkStatus) {
 		with(appUiState) {
 			val connectionState = when {
 				managerState.tunnelState != Tunnel.State.Down && networkStatus == NetworkStatus.Disconnected -> ConnectionState.WaitingForConnection
@@ -364,7 +364,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 					leading = {
 						val image = appUiState.exitPointCountry?.let {
 							ImageVector.vectorResource(context.getFlagImageVectorByName(it))
-						} ?: Icons.Default.QuestionMark
+						} ?: ImageVector.vectorResource(R.drawable.faq)
 						Image(
 							image,
 							image.name,

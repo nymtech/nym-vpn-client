@@ -30,7 +30,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -160,7 +159,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		}
 	}
 
-	val gateways = remember {
+	val gateways = remember(appUiState.gateways) {
 		when (gatewayType) {
 			GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
 			GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
@@ -217,8 +216,8 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 			Score.HIGH -> ImageVector.vectorResource(R.drawable.bars_3)
 			Score.MEDIUM -> ImageVector.vectorResource(R.drawable.bars_2)
 			Score.LOW -> ImageVector.vectorResource(R.drawable.bar_1)
-			Score.NONE -> Icons.Default.QuestionMark
-			null -> Icons.Default.QuestionMark
+			Score.NONE -> ImageVector.vectorResource(R.drawable.faq)
+			null -> ImageVector.vectorResource(R.drawable.faq)
 		}
 	}
 

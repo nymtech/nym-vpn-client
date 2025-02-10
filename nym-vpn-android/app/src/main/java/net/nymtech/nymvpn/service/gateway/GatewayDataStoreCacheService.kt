@@ -12,8 +12,8 @@ class GatewayDataStoreCacheService @Inject constructor(
 ) : GatewayCacheService {
 	override suspend fun updateExitGatewayCache(): Result<Unit> {
 		return runCatching {
-			val countries = backend.getGateways(GatewayType.MIXNET_EXIT)
-			gatewayRepository.setExitGateways(countries)
+			val gateways = backend.getGateways(GatewayType.MIXNET_EXIT)
+			gatewayRepository.setExitGateways(gateways)
 			Timber.d("Updated mixnet exit countries cache")
 		}.onFailure {
 			Timber.e(it)
@@ -22,8 +22,8 @@ class GatewayDataStoreCacheService @Inject constructor(
 
 	override suspend fun updateEntryGatewayCache(): Result<Unit> {
 		return runCatching {
-			val countries = backend.getGateways(GatewayType.MIXNET_ENTRY)
-			gatewayRepository.setEntryGateways(countries)
+			val gateways = backend.getGateways(GatewayType.MIXNET_ENTRY)
+			gatewayRepository.setEntryGateways(gateways)
 			Timber.d("Updated mixnet entry countries cache")
 		}.onFailure {
 			Timber.e(it)
@@ -32,8 +32,8 @@ class GatewayDataStoreCacheService @Inject constructor(
 
 	override suspend fun updateWgGatewayCache(): Result<Unit> {
 		return kotlin.runCatching {
-			val countries = backend.getGateways(GatewayType.WG)
-			gatewayRepository.setWgGateways(countries)
+			val gateways = backend.getGateways(GatewayType.WG)
+			gatewayRepository.setWgGateways(gateways)
 			Timber.d("Updated wg countries cache")
 		}.onFailure {
 			Timber.e(it)
