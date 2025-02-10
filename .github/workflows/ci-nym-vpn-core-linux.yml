@@ -41,17 +41,9 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       # To avoid running out of disk space, skip generating debug symbols
-      - name: Set debug to false (unix)
-        if: matrix.os == 'ubuntu-20.04' || matrix.os == 'macos-latest'
+      - name: Set debug to false
         run: |
           sed -i.bak 's/\[profile.dev\]/\[profile.dev\]\ndebug = false/' Cargo.toml
-          git diff
-
-      - name: Set debug to false (win)
-        if: matrix.os == 'windows-latest'
-        shell: pwsh
-        run: |
-          (Get-Content Cargo.toml) -replace '\[profile.dev\]', "`$&`ndebug = false" | Set-Content Cargo.toml
           git diff
 
       - name: Build wireguard
