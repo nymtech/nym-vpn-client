@@ -1,4 +1,5 @@
-Téléchargez NymVPN et sécurisez votre activité en ligne. Avec notre application VPN, vous pouvez masquer votre adresse IP, chiffrer votre trafic, cacher votre identité en ligne, et bien plus encore.
+Téléchargez le VPN le plus sûr de Nym et sécurisez votre activité en ligne.
+Avec notre application VPN, vous pouvez masquer votre adresse IP, chiffrer votre trafic, cacher votre identité en ligne, et bien plus encore.
 
 De nombreuses entités sur Internet peuvent espionner votre activité et s'emparer de vos données. Les gouvernements, les grandes entreprises technologiques, les courtiers en données, les fournisseurs d'accès à Internet et les annonceurs peuvent tous essayer de surveiller votre activité en ligne. Les récents scandales de fuites de données ont clairement montré que nous ne pouvons même pas faire confiance aux entreprises VPN traditionnelles.
 

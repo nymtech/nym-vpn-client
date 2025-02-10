@@ -1,0 +1,5 @@
+Nouveautés :
+- Sélecteur de langue dans l'application
+- Plus de langues
+- Synchronisation des statuts améliorée
+- Diverses corrections d'anomalies et améliorations

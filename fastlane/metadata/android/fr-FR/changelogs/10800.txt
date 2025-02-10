@@ -1,0 +1,3 @@
+Nouveautés :
+- Corrections et amélioration de l'interface utilisateur
+- Améliorations diverses
