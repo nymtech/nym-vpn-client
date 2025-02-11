@@ -57,7 +57,7 @@ fmt-check: ## Check rustfmt
 #  Debian package builds
 # -----------------------------------------------------------------------------
 
-deb: build-deb-vpn-cli build-deb-vpnd build-deb-vpnc  ## Build debian packages
+deb: build-deb-vpnd build-deb-vpnc  ## Build debian packages
 
 build-deb-vpnd:
 	cargo deb -p nym-vpnd
