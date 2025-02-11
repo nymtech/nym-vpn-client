@@ -3,12 +3,7 @@
 
 use std::{fs, path::Path};
 
-use nym_client_core::config::disk_persistence::{
-    DEFAULT_ACK_KEY_FILENAME, DEFAULT_GATEWAYS_DETAILS_DB_FILENAME,
-    DEFAULT_PRIVATE_ENCRYPTION_KEY_FILENAME, DEFAULT_PRIVATE_IDENTITY_KEY_FILENAME,
-    DEFAULT_PUBLIC_ENCRYPTION_KEY_FILENAME, DEFAULT_PUBLIC_IDENTITY_KEY_FILENAME,
-    DEFAULT_REPLY_SURB_DB_FILENAME,
-};
+use nym_sdk::mixnet::StoragePaths;
 use nym_vpn_store::keys::persistence::{
     DEFAULT_PRIVATE_DEVICE_KEY_FILENAME, DEFAULT_PUBLIC_DEVICE_KEY_FILENAME,
 };
@@ -32,14 +27,6 @@ pub fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
         DEFAULT_PUBLIC_DEVICE_KEY_FILENAME,
     ];
 
-    let mixnet_keys = [
-        DEFAULT_PRIVATE_IDENTITY_KEY_FILENAME,
-        DEFAULT_PUBLIC_IDENTITY_KEY_FILENAME,
-        DEFAULT_PRIVATE_ENCRYPTION_KEY_FILENAME,
-        DEFAULT_PUBLIC_ENCRYPTION_KEY_FILENAME,
-        DEFAULT_ACK_KEY_FILENAME,
-    ];
-
     let wireguard_keys = [
         DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME,
         DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME,
@@ -51,27 +38,38 @@ pub fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
         DEFAULT_FREE_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME,
     ];
 
+    let vpn_paths = device_key
+        .iter()
+        .chain(wireguard_keys.iter())
+        .map(|file| data_dir.join(file));
+
+    let storage_paths = StoragePaths::new_from_dir(data_dir).map_err(Error::StoragePaths)?;
+
     let mixnet_db = [
-        DEFAULT_REPLY_SURB_DB_FILENAME,
-        DEFAULT_GATEWAYS_DETAILS_DB_FILENAME,
+        storage_paths.reply_surb_database_paths(),
+        storage_paths.gateway_registrations_paths(),
     ];
 
-    let files_to_remove = device_key
-        .iter()
-        .chain(mixnet_keys.iter())
-        .chain(wireguard_keys.iter())
-        .chain(mixnet_db.iter());
+    let mixnet_keys = [
+        storage_paths.private_identity,
+        storage_paths.public_identity,
+        storage_paths.private_encryption,
+        storage_paths.public_encryption,
+        storage_paths.ack_key,
+    ];
 
-    for file in files_to_remove {
-        let file_path = data_dir.join(file);
-        if file_path.exists() {
-            tracing::info!("removing file: {:?}", file);
-            fs::remove_file(file_path)
-                .inspect_err(|err| {
-                    tracing::error!("failed to remove file: {err:?}");
-                })
-                .ok();
-        }
+    let files_to_remove = vpn_paths
+        .chain(mixnet_keys)
+        .chain(mixnet_db.into_iter().flatten())
+        .filter(|path| path.exists());
+
+    for file_path in files_to_remove {
+        tracing::info!("removing file: {}", file_path.display());
+        fs::remove_file(file_path)
+            .inspect_err(|err| {
+                tracing::error!("failed to remove file: {err}");
+            })
+            .ok();
     }
 
     // Warn if there are any files left in the data directory

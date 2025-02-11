@@ -75,8 +75,13 @@ impl VpnCredentialStorage {
             StoragePaths::new_from_dir(&self.data_dir).map_err(Error::StoragePaths)?;
 
         tracing::debug!("Removing credential storage file");
-        std::fs::remove_file(&storage_paths.credential_database_path)
-            .map_err(Error::RemoveCredentialStorage)?;
+        for path in storage_paths
+            .credential_database_paths()
+            .into_iter()
+            .filter(|path| path.exists())
+        {
+            std::fs::remove_file(&path).map_err(Error::RemoveCredentialStorage)?;
+        }
 
         // Finally we recreate the storage
         tracing::debug!("Recreating credential storage");
