@@ -169,7 +169,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 
 	val countries = remember(uiState.query) {
 		derivedStateOf {
-			val query = uiState.query.lowercase()
+			val query = uiState.query
 			gateways.distinctBy { it.twoLetterCountryISO }.filter { it.twoLetterCountryISO != null }
 				.map {
 					Locale(it.twoLetterCountryISO!!, it.twoLetterCountryISO!!)
@@ -183,7 +183,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 	val queriedGateways = remember(uiState.query) {
 		derivedStateOf {
 			if (!uiState.query.isBlank()) {
-				gateways.filter { it.identity.lowercase().contains(uiState.query) }.sortedWith(
+				gateways.filter { it.identity.lowercase().contains(uiState.query) || it.name.lowercase().contains(query) }.sortedWith(
 					compareBy(collator) { it.identity },
 				)
 			} else {
