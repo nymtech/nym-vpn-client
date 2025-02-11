@@ -12,7 +12,7 @@ use tracing::Level;
 
 use crate::shared_state::{DeviceState, SharedAccountState};
 
-use super::{AccountCommandError, AccountCommandResult};
+use super::AccountCommandResult;
 
 type PreviousDevicesResponse = Arc<tokio::sync::Mutex<Option<NymVpnDevicesResponse>>>;
 
@@ -80,7 +80,7 @@ impl SyncDeviceStateCommandHandler {
         err,
         level = Level::DEBUG,
     )]
-    async fn run_inner(self) -> Result<DeviceState, AccountCommandError> {
+    async fn run_inner(self) -> Result<DeviceState, SyncDeviceError> {
         tracing::debug!("Running sync device state command handler: {}", self.id);
         update_state(
             &self.account,
@@ -90,7 +90,6 @@ impl SyncDeviceStateCommandHandler {
             &self.previous_devices_response,
         )
         .await
-        .map_err(AccountCommandError::SyncDevice)
     }
 }
 

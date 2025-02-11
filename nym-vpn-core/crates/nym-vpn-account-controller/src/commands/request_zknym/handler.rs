@@ -14,9 +14,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
     VpnApiClient,
 };
-use nym_vpn_lib_types::{
-    AccountCommandError, RequestZkNymError, RequestZkNymSuccess, VpnApiErrorResponse,
-};
+use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiErrorResponse};
 use tokio::task::JoinSet;
 
 use crate::{
@@ -116,12 +114,12 @@ impl RequestZkNymCommandHandler {
         ret,
         err,
     )]
-    async fn request_zk_nyms_outer(self) -> Result<RequestZkNymSummary, AccountCommandError> {
+    async fn request_zk_nyms_outer(self) -> Result<RequestZkNymSummary, RequestZkNymError> {
         tracing::debug!("Running zk-nym request command handler: {}", self.id);
 
         // Defensive check for something that should not be possible
         if self.account_state.is_zk_nym_request_in_progress().await {
-            return Err(AccountCommandError::internal(
+            return Err(RequestZkNymError::internal(
                 "duplicate zk-nym request command",
             ));
         }
@@ -141,7 +139,7 @@ impl RequestZkNymCommandHandler {
                 self.account_state
                     .set_zk_nym_request(RequestZkNymResult::from(err.clone()))
                     .await;
-                Err(AccountCommandError::from(err))
+                Err(err)
             }
         }
     }

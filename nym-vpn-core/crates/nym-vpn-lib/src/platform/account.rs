@@ -145,7 +145,9 @@ pub(super) async fn wait_for_update_account(
         .await?
         .ensure_update_account()
         .await
-        .map_err(VpnError::from)
+        .map_err(|err| VpnError::SyncAccount {
+            details: err.into(),
+        })
 }
 
 pub(super) async fn wait_for_update_device() -> Result<DeviceState, VpnError> {
@@ -153,7 +155,9 @@ pub(super) async fn wait_for_update_device() -> Result<DeviceState, VpnError> {
         .await?
         .ensure_update_device()
         .await
-        .map_err(VpnError::from)
+        .map_err(|err| VpnError::SyncDevice {
+            details: err.into(),
+        })
 }
 
 pub(super) async fn wait_for_register_device() -> Result<(), VpnError> {
@@ -161,7 +165,9 @@ pub(super) async fn wait_for_register_device() -> Result<(), VpnError> {
         .await?
         .ensure_register_device()
         .await
-        .map_err(VpnError::from)
+        .map_err(|err| VpnError::RegisterDevice {
+            details: err.into(),
+        })
 }
 
 pub(super) async fn wait_for_available_zk_nyms() -> Result<(), VpnError> {
@@ -169,7 +175,9 @@ pub(super) async fn wait_for_available_zk_nyms() -> Result<(), VpnError> {
         .await?
         .ensure_available_zk_nyms()
         .await
-        .map_err(VpnError::from)
+        .map_err(|err| VpnError::RequestZkNym {
+            details: err.into(),
+        })
 }
 
 pub(super) async fn wait_for_account_ready_to_connect(
@@ -197,7 +205,9 @@ pub(super) async fn update_account_state() -> Result<(), VpnError> {
         .await?
         .sync_account_state()
         .await
-        .map_err(VpnError::from)
+        .map_err(|err| VpnError::SyncAccount {
+            details: err.into(),
+        })
         .map(|_| ())
 }
 

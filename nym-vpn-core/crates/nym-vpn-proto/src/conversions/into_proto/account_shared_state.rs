@@ -8,7 +8,6 @@ use nym_vpn_account_controller::{
     },
     AccountStateSummary,
 };
-use nym_vpn_lib_types::RegisterDeviceError;
 
 use crate::{
     get_account_state_response::{
@@ -22,6 +21,7 @@ use crate::{
         },
         AccountStateSummary as ProtoAccountStateSummary,
     },
+    RegisterDeviceError as ProtoRegisterDeviceError,
     RegisterDeviceResult as ProtoRegisterDeviceResult, RequestZkNymError as ProtoRequestZkNymError,
     RequestZkNymResult as ProtoRequestZkNymResult, RequestZkNymSuccess as ProtoRequestZkNymSuccess,
 };
@@ -101,23 +101,15 @@ impl From<RegisterDeviceResult> for ProtoRegisterDeviceResult {
         match device_registration {
             RegisterDeviceResult::InProgress => Self {
                 kind: crate::register_device_result::RegisterDeviceResultType::InProgress as i32,
-                ..Default::default()
+                error: None,
             },
             RegisterDeviceResult::Success => Self {
                 kind: crate::register_device_result::RegisterDeviceResultType::Success as i32,
-                ..Default::default()
+                error: None,
             },
-            RegisterDeviceResult::Failed(err) => match err {
-                RegisterDeviceError::RegisterDeviceEndpointFailure(err) => Self {
-                    kind: crate::register_device_result::RegisterDeviceResultType::Failed as i32,
-                    message: Some(err.message),
-                    message_id: err.message_id,
-                },
-                RegisterDeviceError::UnexpectedResponse(err) => Self {
-                    kind: crate::register_device_result::RegisterDeviceResultType::Failed as i32,
-                    message: Some(err),
-                    message_id: None,
-                },
+            RegisterDeviceResult::Failed(err) => Self {
+                kind: crate::register_device_result::RegisterDeviceResultType::Failed as i32,
+                error: Some(ProtoRegisterDeviceError::from(err)),
             },
         }
     }

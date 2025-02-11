@@ -6,7 +6,9 @@ pub(crate) mod request_zknym;
 pub(crate) mod sync_account;
 pub(crate) mod sync_device;
 
-use nym_vpn_lib_types::AccountCommandError;
+use nym_vpn_lib_types::{
+    AccountCommandError, RegisterDeviceError, RequestZkNymError, SyncAccountError, SyncDeviceError,
+};
 use nym_vpn_store::mnemonic::Mnemonic;
 use request_zknym::RequestZkNymSummary;
 
@@ -15,7 +17,7 @@ use std::{collections::HashMap, sync::Arc};
 use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
 use tokio::sync::oneshot;
 
-use crate::{shared_state::DeviceState, AvailableTicketbooks};
+use crate::{shared_state::DeviceState, AvailableTicketbooks, Error};
 
 #[derive(Debug, Default)]
 pub(crate) struct RunningCommands {
@@ -51,22 +53,24 @@ impl RunningCommands {
 }
 
 #[derive(Debug)]
-pub struct ReturnSender<T> {
-    sender: oneshot::Sender<Result<T, AccountCommandError>>,
+pub struct ReturnSender<T, E> {
+    sender: oneshot::Sender<Result<T, E>>,
 }
 
-impl<T> ReturnSender<T>
+impl<T, E> ReturnSender<T, E>
 where
     T: std::fmt::Debug,
+    E: std::fmt::Debug,
 {
-    pub fn new() -> (Self, oneshot::Receiver<Result<T, AccountCommandError>>) {
+    pub fn new() -> (Self, oneshot::Receiver<Result<T, E>>) {
         let (sender, receiver) = oneshot::channel();
         (Self { sender }, receiver)
     }
 
-    pub fn send(self, response: Result<T, AccountCommandError>)
+    pub fn send(self, response: Result<T, E>)
     where
         T: Send,
+        E: Send,
     {
         self.sender
             .send(response)
@@ -79,21 +83,21 @@ where
 
 #[derive(Debug, strum::Display)]
 pub enum AccountCommand {
-    StoreAccount(ReturnSender<()>, Mnemonic),
-    ForgetAccount(ReturnSender<()>),
-    SyncAccountState(Option<ReturnSender<NymVpnAccountSummaryResponse>>),
-    SyncDeviceState(Option<ReturnSender<DeviceState>>),
-    GetUsage(ReturnSender<Vec<NymVpnUsage>>),
-    GetDeviceIdentity(ReturnSender<String>),
-    RegisterDevice(Option<ReturnSender<NymVpnDevice>>),
-    GetDevices(ReturnSender<Vec<NymVpnDevice>>),
-    GetActiveDevices(ReturnSender<Vec<NymVpnDevice>>),
-    RequestZkNym(Option<ReturnSender<RequestZkNymSummary>>),
+    StoreAccount(ReturnSender<(), AccountCommandError>, Mnemonic),
+    ForgetAccount(ReturnSender<(), AccountCommandError>),
+    SyncAccountState(Option<ReturnSender<NymVpnAccountSummaryResponse, SyncAccountError>>),
+    SyncDeviceState(Option<ReturnSender<DeviceState, SyncDeviceError>>),
+    GetUsage(ReturnSender<Vec<NymVpnUsage>, AccountCommandError>),
+    GetDeviceIdentity(ReturnSender<String, AccountCommandError>),
+    RegisterDevice(Option<ReturnSender<NymVpnDevice, RegisterDeviceError>>),
+    GetDevices(ReturnSender<Vec<NymVpnDevice>, AccountCommandError>),
+    GetActiveDevices(ReturnSender<Vec<NymVpnDevice>, AccountCommandError>),
+    RequestZkNym(Option<ReturnSender<RequestZkNymSummary, RequestZkNymError>>),
     GetDeviceZkNym,
     GetZkNymsAvailableForDownload,
     GetZkNymById(String),
     ConfirmZkNymIdDownloaded(String),
-    GetAvailableTickets(ReturnSender<AvailableTicketbooks>),
+    GetAvailableTickets(ReturnSender<AvailableTicketbooks, AccountCommandError>),
 }
 
 impl AccountCommand {
@@ -101,34 +105,48 @@ impl AccountCommand {
         self.to_string()
     }
 
-    pub fn return_error(self, error: AccountCommandError) {
-        tracing::warn!("Returning error: {:?}", error);
+    pub fn return_no_account(self, error: Error) {
+        tracing::warn!("No account found: {error}");
         match self {
             AccountCommand::SyncAccountState(Some(tx)) => {
-                tx.send(Err(error));
+                tx.send(Err(SyncAccountError::NoAccountStored));
             }
             AccountCommand::SyncDeviceState(Some(tx)) => {
-                tx.send(Err(error));
+                tx.send(Err(SyncDeviceError::NoAccountStored));
             }
             AccountCommand::RegisterDevice(Some(tx)) => {
-                tx.send(Err(error));
+                tx.send(Err(RegisterDeviceError::NoAccountStored));
             }
             AccountCommand::RequestZkNym(Some(tx)) => {
-                tx.send(Err(error));
+                tx.send(Err(RequestZkNymError::NoAccountStored));
+            }
+            _ => {}
+        }
+    }
+
+    pub fn return_no_device(self, error: Error) {
+        tracing::warn!("No device found: {error}");
+        match self {
+            AccountCommand::SyncDeviceState(Some(tx)) => {
+                tx.send(Err(SyncDeviceError::NoDeviceStored));
+            }
+            AccountCommand::RegisterDevice(Some(tx)) => {
+                tx.send(Err(RegisterDeviceError::NoDeviceStored));
+            }
+            AccountCommand::RequestZkNym(Some(tx)) => {
+                tx.send(Err(RequestZkNymError::NoDeviceStored));
             }
             _ => {}
         }
     }
 }
 
-// WIP: Fix this clippy
-#[allow(clippy::large_enum_variant)]
 #[derive(Debug)]
 pub(crate) enum AccountCommandResult {
-    SyncAccountState(Result<NymVpnAccountSummaryResponse, AccountCommandError>),
-    SyncDeviceState(Result<DeviceState, AccountCommandError>),
-    RegisterDevice(Result<NymVpnDevice, AccountCommandError>),
-    RequestZkNym(Result<RequestZkNymSummary, AccountCommandError>),
+    SyncAccountState(Result<NymVpnAccountSummaryResponse, SyncAccountError>),
+    SyncDeviceState(Result<DeviceState, SyncDeviceError>),
+    RegisterDevice(Result<NymVpnDevice, RegisterDeviceError>),
+    RequestZkNym(Result<RequestZkNymSummary, RequestZkNymError>),
 }
 
 #[cfg(test)]

@@ -25,6 +25,12 @@ impl From<RequestZkNymSuccess> for ProtoRequestZkNymSuccess {
 impl From<RequestZkNymErrorReason> for ProtoRequestZkNymError {
     fn from(error: RequestZkNymErrorReason) -> Self {
         let outcome = match error {
+            RequestZkNymErrorReason::NoAccountStored => {
+                Some(crate::request_zk_nym_error::Outcome::NoAccountStored(true))
+            }
+            RequestZkNymErrorReason::NoDeviceStored => {
+                Some(crate::request_zk_nym_error::Outcome::NoDeviceStored(true))
+            }
             RequestZkNymErrorReason::VpnApi(vpn_api_endpoint_failure) => Some(
                 crate::request_zk_nym_error::Outcome::VpnApi(vpn_api_endpoint_failure.into()),
             ),

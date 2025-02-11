@@ -3,12 +3,11 @@
 
 use std::fmt;
 
-use crate::{account::AccountCommandError, RequestZkNymErrorReason};
+use crate::{RequestZkNymError, RequestZkNymErrorReason};
 
 use super::{
     account::{
-        forget_account::ForgetAccountError, register_device::RegisterDeviceError,
-        request_zknym::RequestZkNymSuccess, store_account::StoreAccountError,
+        register_device::RegisterDeviceError, request_zknym::RequestZkNymSuccess,
         sync_account::SyncAccountError, sync_device::SyncDeviceError,
     },
     connection_data::{ConnectionData, TunnelConnectionData},
@@ -159,18 +158,6 @@ pub enum ErrorStateReason {
     /// Failure to duplicate tunnel file descriptor.
     DuplicateTunFd,
 
-    /// Account related error not specifically handled.
-    Account(String),
-
-    /// Failure to perform the requested action due to no account stored.
-    NoAccountStored,
-
-    /// Failure to perform the requested action due to no device stored.
-    NoDeviceStored,
-
-    /// Failure to store account.
-    StoreAccount(StoreAccountError),
-
     /// Failure to sync account with the VPN API.
     SyncAccount(SyncAccountError),
 
@@ -189,32 +176,30 @@ pub enum ErrorStateReason {
         failed: Vec<RequestZkNymErrorReason>,
     },
 
-    /// Failure to forget account.
-    ForgetAccount(ForgetAccountError),
-
     /// Program errors that must not happen.
     Internal,
 }
 
-impl From<AccountCommandError> for ErrorStateReason {
-    fn from(value: AccountCommandError) -> Self {
-        match value {
-            AccountCommandError::General(err) => ErrorStateReason::Account(err),
-            AccountCommandError::Internal(err) => ErrorStateReason::Account(err),
-            AccountCommandError::NoAccountStored => ErrorStateReason::NoAccountStored,
-            AccountCommandError::NoDeviceStored => ErrorStateReason::NoDeviceStored,
-            AccountCommandError::StoreAccount(err) => ErrorStateReason::StoreAccount(err),
-            AccountCommandError::SyncAccount(err) => ErrorStateReason::SyncAccount(err),
-            AccountCommandError::SyncDevice(err) => ErrorStateReason::SyncDevice(err),
-            AccountCommandError::RegisterDevice(err) => ErrorStateReason::RegisterDevice(err),
-            AccountCommandError::RequestZkNym(err) => ErrorStateReason::RequestZkNym(err.into()),
-            AccountCommandError::RequestZkNymBundle { successes, failed } => {
-                ErrorStateReason::RequestZkNymBundle {
-                    successes,
-                    failed: failed.into_iter().map(Into::into).collect(),
-                }
-            }
-            AccountCommandError::ForgetAccount(err) => ErrorStateReason::ForgetAccount(err),
-        }
+impl From<SyncAccountError> for ErrorStateReason {
+    fn from(value: SyncAccountError) -> Self {
+        ErrorStateReason::SyncAccount(value)
+    }
+}
+
+impl From<SyncDeviceError> for ErrorStateReason {
+    fn from(value: SyncDeviceError) -> Self {
+        ErrorStateReason::SyncDevice(value)
+    }
+}
+
+impl From<RegisterDeviceError> for ErrorStateReason {
+    fn from(value: RegisterDeviceError) -> Self {
+        ErrorStateReason::RegisterDevice(value)
+    }
+}
+
+impl From<RequestZkNymError> for ErrorStateReason {
+    fn from(value: RequestZkNymError) -> Self {
+        ErrorStateReason::RequestZkNym(value.into())
     }
 }

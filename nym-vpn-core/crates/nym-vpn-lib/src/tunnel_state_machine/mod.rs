@@ -562,7 +562,10 @@ impl tunnel::Error {
 impl account::Error {
     fn error_state_reason(self) -> Option<ErrorStateReason> {
         match self {
-            Self::Account(e) => Some(e.into()),
+            Self::SyncAccount(e) => Some(e.into()),
+            Self::SyncDevice(e) => Some(e.into()),
+            Self::RegisterDevice(e) => Some(e.into()),
+            Self::RequestZkNym(e) => Some(e.into()),
             Self::Cancelled => None,
         }
     }

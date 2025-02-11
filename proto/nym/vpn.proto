@@ -381,8 +381,6 @@ message TunnelState {
     BAD_BANDWIDTH_INCREASE = 8;
     DUPLICATE_TUN_FD = 9;
     INTERNAL = 10;
-    NO_ACCOUNT_STORED = 11;
-    NO_DEVICE_STORED = 12;
   }
 
   enum ActionAfterDisconnect {
@@ -405,14 +403,11 @@ message TunnelState {
   message Error {
     oneof error_state_reason {
       BaseErrorStateReason base_reason = 1;
-      GeneralAccountError general_account = 2;
-      StoreAccountError store_account = 3;
-      SyncAccountError sync_account = 4;
-      SyncDeviceError sync_device = 5;
-      RegisterDeviceError register_device = 6;
-      RequestZkNymError request_zk_nym = 7;
-      RequestZkNymBundle request_zk_nym_bundle = 8;
-      ForgetAccountError forget_account = 9;
+      SyncAccountError sync_account = 2;
+      SyncDeviceError sync_device = 3;
+      RegisterDeviceError register_device = 4;
+      RequestZkNymError request_zk_nym = 5;
+      RequestZkNymBundle request_zk_nym_bundle = 6;
     }
   }
   message Offline {

@@ -9,7 +9,7 @@ use tracing::Level;
 
 use crate::shared_state::{AccountRegistered, AccountSummary, SharedAccountState};
 
-use super::{AccountCommandError, AccountCommandResult};
+use super::AccountCommandResult;
 
 type PreviousAccountSummaryResponse = Arc<tokio::sync::Mutex<Option<NymVpnAccountSummaryResponse>>>;
 
@@ -71,9 +71,7 @@ impl SyncStateCommandHandler {
         err,
         level = Level::DEBUG,
     )]
-    pub(crate) async fn run_inner(
-        self,
-    ) -> Result<NymVpnAccountSummaryResponse, AccountCommandError> {
+    pub(crate) async fn run_inner(self) -> Result<NymVpnAccountSummaryResponse, SyncAccountError> {
         tracing::debug!("Running sync account state command handler: {}", self.id);
         let update_result = update_state(
             &self.account,
@@ -81,8 +79,7 @@ impl SyncStateCommandHandler {
             &self.vpn_api_client,
             &self.previous_account_summary_response,
         )
-        .await
-        .map_err(AccountCommandError::SyncAccount);
+        .await;
 
         tracing::debug!("Current state: {:?}", self.account_state.lock().await);
         update_result

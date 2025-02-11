@@ -178,29 +178,18 @@ where
     }
 
     async fn handle_request_zk_nym(&mut self, command: AccountCommand) {
-        let account = self
-            .update_mnemonic_state()
-            .await
-            .map_err(|_err| AccountCommandError::NoAccountStored);
-
-        let account = match account {
+        let account = match self.update_mnemonic_state().await {
             Ok(account) => account,
             Err(err) => {
-                command.return_error(err);
+                command.return_no_account(err);
                 return;
             }
         };
 
-        let device = self
-            .account_storage
-            .load_device_keys()
-            .await
-            .map_err(|_err| AccountCommandError::NoDeviceStored);
-
-        let device = match device {
+        let device = match self.account_storage.load_device_keys().await {
             Ok(device) => device,
             Err(err) => {
-                command.return_error(err);
+                command.return_no_device(err);
                 return;
             }
         };
@@ -416,15 +405,10 @@ where
     }
 
     async fn handle_sync_account_state(&mut self, command: AccountCommand) {
-        let account = self
-            .update_mnemonic_state()
-            .await
-            .map_err(|_err| AccountCommandError::NoAccountStored);
-
-        let account = match account {
+        let account = match self.update_mnemonic_state().await {
             Ok(account) => account,
             Err(err) => {
-                command.return_error(err);
+                command.return_no_account(err);
                 return;
             }
         };
@@ -437,29 +421,18 @@ where
     }
 
     async fn handle_sync_device_state(&mut self, command: AccountCommand) {
-        let account = self
-            .update_mnemonic_state()
-            .await
-            .map_err(|_err| AccountCommandError::NoAccountStored);
-
-        let account = match account {
+        let account = match self.update_mnemonic_state().await {
             Ok(account) => account,
             Err(err) => {
-                command.return_error(err);
+                command.return_no_account(err);
                 return;
             }
         };
 
-        let device = self
-            .account_storage
-            .load_device_keys()
-            .await
-            .map_err(|_err| AccountCommandError::NoDeviceStored);
-
-        let device = match device {
+        let device = match self.account_storage.load_device_keys().await {
             Ok(device) => device,
             Err(err) => {
-                command.return_error(err);
+                command.return_no_device(err);
                 return;
             }
         };
@@ -500,29 +473,18 @@ where
     }
 
     async fn handle_register_device(&mut self, command: AccountCommand) {
-        let account = self
-            .update_mnemonic_state()
-            .await
-            .map_err(|_err| AccountCommandError::NoAccountStored);
-
-        let account = match account {
+        let account = match self.update_mnemonic_state().await {
             Ok(account) => account,
             Err(err) => {
-                command.return_error(err);
+                command.return_no_account(err);
                 return;
             }
         };
 
-        let device = self
-            .account_storage
-            .load_device_keys()
-            .await
-            .map_err(|_err| AccountCommandError::NoDeviceStored);
-
-        let device = match device {
+        let device = match self.account_storage.load_device_keys().await {
             Ok(device) => device,
             Err(err) => {
-                command.return_error(err);
+                command.return_no_device(err);
                 return;
             }
         };

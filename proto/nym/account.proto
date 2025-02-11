@@ -41,22 +41,30 @@ message StoreAccountError {
 
 message SyncAccountError {
   oneof error_detail {
-    VpnApiErrorResponse error_response = 1;
-    string unexpected_response = 2;
+    bool no_account_stored = 1;
+    VpnApiErrorResponse error_response = 2;
+    string unexpected_response = 3;
+    string internal = 4;
   }
 }
 
 message SyncDeviceError {
   oneof error_detail {
-    VpnApiErrorResponse error_response = 1;
-    string unexpected_response = 2;
+    bool no_account_stored = 1;
+    bool no_device_stored = 2;
+    VpnApiErrorResponse error_response = 3;
+    string unexpected_response = 4;
+    string internal = 5;
   }
 }
 
 message RegisterDeviceError {
   oneof error_detail {
-    VpnApiErrorResponse error_response = 1;
-    string unexpected_response = 2;
+    bool no_account_stored = 1;
+    bool no_device_stored = 2;
+    VpnApiErrorResponse error_response = 3;
+    string unexpected_response = 4;
+    string internal = 5;
   }
 }
 
@@ -85,10 +93,12 @@ message RequestZkNymSuccess {
 
 message RequestZkNymError {
   oneof outcome {
-    VpnApiErrorResponse vpn_api = 1;
-    string unexpected_vpn_api_response = 2;
-    string storage = 3;
-    string internal = 4;
+    bool no_account_stored = 1;
+    bool no_device_stored = 2;
+    VpnApiErrorResponse vpn_api = 3;
+    string unexpected_vpn_api_response = 4;
+    string storage = 5;
+    string internal = 6;
   }
 }
 
@@ -209,8 +219,7 @@ message RegisterDeviceResult {
   }
 
   RegisterDeviceResultType kind = 1;
-  optional string message = 2;
-  optional string message_id = 3;
+  optional RegisterDeviceError error = 2;
 }
 
 // The status of a zk-nym request. A request can have multiple successes

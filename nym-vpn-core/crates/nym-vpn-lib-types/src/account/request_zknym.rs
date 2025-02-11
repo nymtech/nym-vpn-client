@@ -5,6 +5,12 @@ use super::VpnApiErrorResponse;
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
 pub enum RequestZkNymError {
+    #[error("no account stored")]
+    NoAccountStored,
+
+    #[error("no device stored")]
+    NoDeviceStored,
+
     #[error("failed to get zk-nyms available for download: {response}")]
     GetZkNymsAvailableForDownloadEndpointFailure { response: VpnApiErrorResponse },
 
@@ -158,6 +164,12 @@ impl RequestZkNymError {
 // Simplified version of the error enum suitable for app API
 #[derive(thiserror::Error, Debug, PartialEq, Eq, Clone)]
 pub enum RequestZkNymErrorReason {
+    #[error("no account stored")]
+    NoAccountStored,
+
+    #[error("no device stored")]
+    NoDeviceStored,
+
     #[error(transparent)]
     VpnApi(VpnApiErrorResponse),
 
@@ -174,6 +186,8 @@ pub enum RequestZkNymErrorReason {
 impl From<RequestZkNymError> for RequestZkNymErrorReason {
     fn from(err: RequestZkNymError) -> Self {
         match err {
+            RequestZkNymError::NoAccountStored => Self::NoAccountStored,
+            RequestZkNymError::NoDeviceStored => Self::NoDeviceStored,
             RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure { response }
             | RequestZkNymError::RequestZkNymEndpointFailure {
                 response,

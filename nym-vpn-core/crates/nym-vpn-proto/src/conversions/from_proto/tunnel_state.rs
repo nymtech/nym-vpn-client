@@ -53,12 +53,6 @@ impl TryFrom<ProtoErrorStateReason> for ErrorStateReason {
 
                 Self::from(proto_base_reason)
             }
-            ProtoErrorStateReason::GeneralAccount(general_account_error) => {
-                Self::Account(general_account_error.into())
-            }
-            ProtoErrorStateReason::StoreAccount(store_account_error) => {
-                Self::StoreAccount(store_account_error.try_into()?)
-            }
             ProtoErrorStateReason::SyncAccount(sync_account_error) => {
                 Self::SyncAccount(sync_account_error.try_into()?)
             }
@@ -86,9 +80,6 @@ impl TryFrom<ProtoErrorStateReason> for ErrorStateReason {
                     failed: failures,
                 }
             }
-            ProtoErrorStateReason::ForgetAccount(forget_account_error) => {
-                Self::ForgetAccount(forget_account_error.try_into()?)
-            }
         })
     }
 }
@@ -109,8 +100,6 @@ impl From<ProtoBaseErrorStateReason> for ErrorStateReason {
             ProtoBaseErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
             ProtoBaseErrorStateReason::DuplicateTunFd => Self::DuplicateTunFd,
             ProtoBaseErrorStateReason::Internal => Self::Internal,
-            ProtoBaseErrorStateReason::NoAccountStored => Self::NoAccountStored,
-            ProtoBaseErrorStateReason::NoDeviceStored => Self::NoDeviceStored,
         }
     }
 }

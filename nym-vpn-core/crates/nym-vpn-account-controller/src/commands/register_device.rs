@@ -13,7 +13,7 @@ use crate::{
     SharedAccountState,
 };
 
-use super::{AccountCommandError, AccountCommandResult};
+use super::AccountCommandResult;
 
 pub(crate) struct RegisterDeviceCommandHandler {
     id: uuid::Uuid,
@@ -55,14 +55,14 @@ impl RegisterDeviceCommandHandler {
         ret,
         err,
     )]
-    async fn register_device(self) -> Result<NymVpnDevice, AccountCommandError> {
+    async fn register_device(self) -> Result<NymVpnDevice, RegisterDeviceError> {
         tracing::debug!("Running register device command handler: {}", self.id);
 
         // Defensive check for something that should not be possible
         if let Some(RegisterDeviceResult::InProgress) =
             self.account_state.lock().await.register_device_result
         {
-            return Err(AccountCommandError::internal(
+            return Err(RegisterDeviceError::internal(
                 "duplicate register device command",
             ));
         }
@@ -86,7 +86,7 @@ impl RegisterDeviceCommandHandler {
                 self.account_state
                     .set_device_registration(RegisterDeviceResult::Failed(err.clone()))
                     .await;
-                Err(AccountCommandError::RegisterDevice(err))
+                Err(err)
             }
         }
     }

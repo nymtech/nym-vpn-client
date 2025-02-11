@@ -407,7 +407,13 @@ impl TunnelMonitor {
 
     async fn setup_account(&mut self) -> Result<()> {
         self.send_event(TunnelMonitorEvent::SyncingAccount);
-        account::wait_for_sync(
+        account::wait_for_account_sync(
+            self.account_controller_tx.clone(),
+            self.cancel_token.clone(),
+        )
+        .await?;
+
+        account::wait_for_device_sync(
             self.account_controller_tx.clone(),
             self.cancel_token.clone(),
         )

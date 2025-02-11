@@ -25,9 +25,9 @@ impl TryFrom<ProtoStoreAccountError> for StoreAccountError {
     type Error = ConversionError;
 
     fn try_from(value: ProtoStoreAccountError) -> Result<Self, Self::Error> {
-        let error_detail = value
-            .error_detail
-            .ok_or(ConversionError::NoValueSet("StoreAccountError"))?;
+        let error_detail = value.error_detail.ok_or(ConversionError::NoValueSet(
+            "StoreAccountError.error_detail",
+        ))?;
         Ok(match error_detail {
             crate::store_account_error::ErrorDetail::StorageError(err) => Self::Storage(err),
             crate::store_account_error::ErrorDetail::ErrorResponse(vpn_api_endpoint_failure) => {
@@ -46,14 +46,16 @@ impl TryFrom<ProtoSyncAccountError> for SyncAccountError {
     fn try_from(value: ProtoSyncAccountError) -> Result<Self, Self::Error> {
         let error_detail = value
             .error_detail
-            .ok_or(ConversionError::NoValueSet("SyncAccountError"))?;
+            .ok_or(ConversionError::NoValueSet("SyncAccountError.error_detail"))?;
         Ok(match error_detail {
+            crate::sync_account_error::ErrorDetail::NoAccountStored(_) => Self::NoAccountStored,
             crate::sync_account_error::ErrorDetail::ErrorResponse(vpn_api_endpoint_failure) => {
                 Self::SyncAccountEndpointFailure(vpn_api_endpoint_failure.into())
             }
             crate::sync_account_error::ErrorDetail::UnexpectedResponse(err) => {
                 Self::UnexpectedResponse(err)
             }
+            crate::sync_account_error::ErrorDetail::Internal(err) => Self::Internal(err),
         })
     }
 }
@@ -64,14 +66,17 @@ impl TryFrom<ProtoSyncDeviceError> for SyncDeviceError {
     fn try_from(value: ProtoSyncDeviceError) -> Result<Self, Self::Error> {
         let error_detail = value
             .error_detail
-            .ok_or(ConversionError::NoValueSet("SyncDeviceError"))?;
+            .ok_or(ConversionError::NoValueSet("SyncDeviceError.error_detail"))?;
         Ok(match error_detail {
+            crate::sync_device_error::ErrorDetail::NoAccountStored(_) => Self::NoAccountStored,
+            crate::sync_device_error::ErrorDetail::NoDeviceStored(_) => Self::NoDeviceStored,
             crate::sync_device_error::ErrorDetail::ErrorResponse(vpn_api_endpoint_failure) => {
                 Self::SyncDeviceEndpointFailure(vpn_api_endpoint_failure.into())
             }
             crate::sync_device_error::ErrorDetail::UnexpectedResponse(err) => {
                 Self::UnexpectedResponse(err)
             }
+            crate::sync_device_error::ErrorDetail::Internal(err) => Self::Internal(err),
         })
     }
 }
@@ -80,16 +85,19 @@ impl TryFrom<ProtoRegisterDeviceError> for RegisterDeviceError {
     type Error = ConversionError;
 
     fn try_from(value: ProtoRegisterDeviceError) -> Result<Self, Self::Error> {
-        let error_detail = value
-            .error_detail
-            .ok_or(ConversionError::NoValueSet("RegisterDeviceError"))?;
+        let error_detail = value.error_detail.ok_or(ConversionError::NoValueSet(
+            "RegisterDeviceError.error_detail",
+        ))?;
         Ok(match error_detail {
+            crate::register_device_error::ErrorDetail::NoAccountStored(_) => Self::NoAccountStored,
+            crate::register_device_error::ErrorDetail::NoDeviceStored(_) => Self::NoDeviceStored,
             crate::register_device_error::ErrorDetail::ErrorResponse(vpn_api_endpoint_failure) => {
                 Self::RegisterDeviceEndpointFailure(vpn_api_endpoint_failure.into())
             }
             crate::register_device_error::ErrorDetail::UnexpectedResponse(err) => {
                 Self::UnexpectedResponse(err)
             }
+            crate::register_device_error::ErrorDetail::Internal(err) => Self::Internal(err),
         })
     }
 }
@@ -106,9 +114,11 @@ impl TryFrom<ProtoRequestZkNymError> for RequestZkNymErrorReason {
     fn try_from(value: ProtoRequestZkNymError) -> Result<Self, Self::Error> {
         let error_outcome = value
             .outcome
-            .ok_or(ConversionError::NoValueSet("RequestZkNymError.error"))?;
+            .ok_or(ConversionError::NoValueSet("RequestZkNymError.outcome"))?;
 
         Ok(match error_outcome {
+            crate::request_zk_nym_error::Outcome::NoAccountStored(_) => Self::NoAccountStored,
+            crate::request_zk_nym_error::Outcome::NoDeviceStored(_) => Self::NoDeviceStored,
             crate::request_zk_nym_error::Outcome::VpnApi(vpn_api_endpoint_failure) => {
                 Self::VpnApi(vpn_api_endpoint_failure.into())
             }
@@ -125,9 +135,9 @@ impl TryFrom<ProtoForgetAccountError> for ForgetAccountError {
     type Error = ConversionError;
 
     fn try_from(value: ProtoForgetAccountError) -> Result<Self, Self::Error> {
-        let error_detail = value
-            .error_detail
-            .ok_or(ConversionError::NoValueSet("ForgetAccountError"))?;
+        let error_detail = value.error_detail.ok_or(ConversionError::NoValueSet(
+            "ForgetAccountError.error_detail",
+        ))?;
         Ok(match error_detail {
             crate::forget_account_error::ErrorDetail::RegistrationInProgress(_) => {
                 Self::RegistrationInProgress

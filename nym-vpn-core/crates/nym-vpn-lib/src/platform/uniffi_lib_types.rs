@@ -231,12 +231,6 @@ pub enum ErrorStateReason {
     InvalidExitGatewayCountry,
     BadBandwidthIncrease,
     DuplicateTunFd,
-    Internal,
-
-    Account(String),
-    NoAccountStored,
-    NoDeviceStored,
-    StoreAccountError(StoreAccountError),
     SyncAccount(SyncAccountError),
     SyncDevice(SyncDeviceError),
     RegisterDevice(RegisterDeviceError),
@@ -245,7 +239,7 @@ pub enum ErrorStateReason {
         successes: Vec<RequestZkNymSuccess>,
         failed: Vec<RequestZkNymError>,
     },
-    ForgetAccount(ForgetAccountError),
+    Internal,
 }
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
@@ -274,61 +268,85 @@ impl From<CoreStoreAccountError> for StoreAccountError {
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
 pub enum SyncAccountError {
+    #[error("no account stored")]
+    NoAccountStored,
     #[error("vpn api endpoint failure: {0}")]
     ErrorResponse(VpnApiErrorResponse),
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
+    #[error("internal error: {0}")]
+    Internal(String),
 }
 
 impl From<CoreSyncAccountError> for SyncAccountError {
     fn from(value: CoreSyncAccountError) -> Self {
         match value {
+            CoreSyncAccountError::NoAccountStored => Self::NoAccountStored,
             CoreSyncAccountError::SyncAccountEndpointFailure(failure) => {
                 Self::ErrorResponse(failure.into())
             }
             CoreSyncAccountError::UnexpectedResponse(response) => {
                 Self::UnexpectedResponse(response)
             }
+            CoreSyncAccountError::Internal(err) => Self::Internal(err),
         }
     }
 }
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
 pub enum SyncDeviceError {
+    #[error("no account stored")]
+    NoAccountStored,
+    #[error("no device stored")]
+    NoDeviceStored,
     #[error("vpn api endpoint failure: {0}")]
     ErrorResponse(VpnApiErrorResponse),
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
+    #[error("internal error: {0}")]
+    Internal(String),
 }
 
 impl From<CoreSyncDeviceError> for SyncDeviceError {
     fn from(value: CoreSyncDeviceError) -> Self {
         match value {
+            CoreSyncDeviceError::NoAccountStored => Self::NoAccountStored,
+            CoreSyncDeviceError::NoDeviceStored => Self::NoDeviceStored,
             CoreSyncDeviceError::SyncDeviceEndpointFailure(failure) => {
                 Self::ErrorResponse(failure.into())
             }
             CoreSyncDeviceError::UnexpectedResponse(response) => Self::UnexpectedResponse(response),
+            CoreSyncDeviceError::Internal(err) => Self::Internal(err),
         }
     }
 }
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
 pub enum RegisterDeviceError {
+    #[error("no account stored")]
+    NoAccountStored,
+    #[error("no device stored")]
+    NoDeviceStored,
     #[error("vpn api endpoint failure: {0}")]
     ErrorResponse(VpnApiErrorResponse),
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
+    #[error("internal error: {0}")]
+    Internal(String),
 }
 
 impl From<CoreRegisterDeviceError> for RegisterDeviceError {
     fn from(value: CoreRegisterDeviceError) -> Self {
         match value {
+            CoreRegisterDeviceError::NoAccountStored => Self::NoAccountStored,
+            CoreRegisterDeviceError::NoDeviceStored => Self::NoDeviceStored,
             CoreRegisterDeviceError::RegisterDeviceEndpointFailure(failure) => {
                 Self::ErrorResponse(failure.into())
             }
             CoreRegisterDeviceError::UnexpectedResponse(response) => {
                 Self::UnexpectedResponse(response)
             }
+            CoreRegisterDeviceError::Internal(err) => Self::Internal(err),
         }
     }
 }
@@ -346,6 +364,10 @@ impl From<CoreRequestZkNymSuccess> for RequestZkNymSuccess {
 
 #[derive(uniffi::Error, thiserror::Error, Clone, Debug, PartialEq, Eq)]
 pub enum RequestZkNymError {
+    #[error("no account stored")]
+    NoAccountStored,
+    #[error("no device stored")]
+    NoDeviceStored,
     #[error(transparent)]
     VpnApi(VpnApiErrorResponse),
     #[error("nym-vpn-api: unexpected error response: {0}")]
@@ -359,6 +381,8 @@ pub enum RequestZkNymError {
 impl From<CoreRequestZkNymErrorReason> for RequestZkNymError {
     fn from(error: CoreRequestZkNymErrorReason) -> Self {
         match error {
+            CoreRequestZkNymErrorReason::NoAccountStored => Self::NoAccountStored,
+            CoreRequestZkNymErrorReason::NoDeviceStored => Self::NoDeviceStored,
             CoreRequestZkNymErrorReason::VpnApi(err) => Self::VpnApi(err.into()),
             CoreRequestZkNymErrorReason::UnexpectedVpnApiResponse(response) => {
                 Self::UnexpectedVpnApiResponse(response)
@@ -459,12 +483,6 @@ impl From<CoreErrorStateReason> for ErrorStateReason {
             CoreErrorStateReason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
             CoreErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
             CoreErrorStateReason::DuplicateTunFd => Self::DuplicateTunFd,
-            CoreErrorStateReason::Internal => Self::Internal,
-
-            CoreErrorStateReason::Account(err) => Self::Account(err),
-            CoreErrorStateReason::NoAccountStored => Self::NoAccountStored,
-            CoreErrorStateReason::NoDeviceStored => Self::NoDeviceStored,
-            CoreErrorStateReason::StoreAccount(err) => Self::StoreAccountError(err.into()),
             CoreErrorStateReason::SyncAccount(err) => Self::SyncAccount(err.into()),
             CoreErrorStateReason::SyncDevice(err) => Self::SyncDevice(err.into()),
             CoreErrorStateReason::RegisterDevice(err) => Self::RegisterDevice(err.into()),
@@ -478,7 +496,7 @@ impl From<CoreErrorStateReason> for ErrorStateReason {
                     failed: failed.into_iter().map(RequestZkNymError::from).collect(),
                 }
             }
-            CoreErrorStateReason::ForgetAccount(err) => Self::ForgetAccount(err.into()),
+            CoreErrorStateReason::Internal => Self::Internal,
         }
     }
 }
