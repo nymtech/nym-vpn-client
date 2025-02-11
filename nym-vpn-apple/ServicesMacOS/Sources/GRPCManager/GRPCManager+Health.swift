@@ -16,6 +16,7 @@ extension GRPCManager {
                 if status.code == .unavailable {
                     self?.tunnelStatus = .disconnected
                     self?.isServing = false
+                    self?.daemonVersion = "unknown"
                     self?.setup()
                 }
             case let .failure(error):

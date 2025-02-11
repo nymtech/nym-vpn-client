@@ -1,98 +1,80 @@
 import SecurityFoundation
 import ServiceManagement
+import GRPCManager
 import Shell
 
 // Any changes made to Info.plist & Launchd.plist - are used to create daemon in nym-vpnd.
 
 public final class HelperManager {
+    private let grpcManager: GRPCManager
+    private let daemon = SMAppService.daemon(plistName: "net.nymtech.vpn.helper.plist")
+
+    private var pollingTask: Task<Void, Never>?
+    private var isInstalledAndUpToDate: Bool {
+        daemon.status == .enabled && !grpcManager.requiresUpdate && grpcManager.isServing
+    }
+
     public static let shared = HelperManager()
 
-    private var helperName = ""
+    @Published public var daemonState = DaemonState.unknown
 
-    public func setup(helperName: String) {
-        self.helperName = helperName
+    public init(grpcManager: GRPCManager = .shared) {
+        self.grpcManager = grpcManager
+        setup()
     }
 
-    public func installHelper() async throws {
-        try await authorizeAndInstallHelper()
+    public func isInstallNeeded() -> Bool {
+        // If .connected, no need to perform install checks to be able to disconnect
+        guard grpcManager.tunnelStatus != .connected, !isInstalledAndUpToDate else { return false }
+        return true
     }
 
-    public func uninstallHelper() -> Bool {
-        let domain = kSMDomainSystemLaunchd
-        var authRef: AuthorizationRef?
-        let status = AuthorizationCreate(nil, nil, [], &authRef)
-
-        guard status == errAuthorizationSuccess,
-              let authorization = authRef
-        else {
-            return false
-        }
-
-        var cfError: Unmanaged<CFError>?
-        return SMJobRemove(domain, helperName as CFString, authorization, true, &cfError)
-    }
-}
-
-private extension HelperManager {
-    func authorizeAndInstallHelper() async throws {
-        var authRef: AuthorizationRef?
-        let status = AuthorizationCreate(nil, nil, [], &authRef)
-        guard status == errAuthorizationSuccess, let authRef = authRef
-        else {
-            throw DaemonError.authorizationDenied
-        }
-
-        var cfError: Unmanaged<CFError>?
-
-        let rightName = kSMRightBlessPrivilegedHelper
-
-        let result = rightName.withCString { cStringName -> Bool in
-            var authItem = AuthorizationItem(
-                name: cStringName,
-                valueLength: 0,
-                value: nil,
-                flags: 0
-            )
-
-            return withUnsafeMutablePointer(to: &authItem) { authItemPointer -> Bool in
-                var authRights = AuthorizationRights(count: 1, items: authItemPointer)
-                let authFlags: AuthorizationFlags = [.interactionAllowed, .preAuthorize, .extendRights]
-                let status = AuthorizationCopyRights(authRef, &authRights, nil, authFlags, nil)
-                if status == errAuthorizationSuccess {
-                    // Place to execute your authorized action:
-                    return installHelper(with: authRef, error: &cfError)
-                }
-                return false
+    public func install() throws {
+        do {
+            switch daemon.status {
+            case .notRegistered, .notFound:
+                try? daemon.register()
+                try install()
+            case .enabled:
+                return
+            case .requiresApproval:
+                SMAppService.openSystemSettingsLoginItems()
+            @unknown default:
+                break
             }
-        }
-        if !result {
-            throw DaemonError.authorizationDenied
-        }
-        if let error = cfError?.takeRetainedValue() {
+        } catch {
+            daemonState = .unknown
             throw error
         }
     }
 
-    func installHelper(with authRef: AuthorizationRef?, error: inout Unmanaged<CFError>?) -> Bool {
-        // TODO: refactor using SMAPPService
-        if !SMJobBless(kSMDomainSystemLaunchd, helperName as CFString, authRef, &error) {
-            // TODO: throw
-            print("SMJobBless error: \(String(describing: error))")
-            return false
+    public func uninstall() async throws {
+        do {
+            try await daemon.unregister()
+            try await Task.sleep(for: .seconds(1))
+            updateDaemonState()
         }
+    }
+}
 
-        if !isHelperAuthorized() {
-            SMAppService.openSystemSettingsLoginItems()
-        }
-        return true
+// MARK: - Private -
+private extension HelperManager {
+    func setup() {
+        updateDaemonState()
+        starPolling()
     }
 
-    func isHelperAuthorized() -> Bool {
-        if let url = URL(string: "/Library/LaunchDaemons/\(helperName).plist"),
-           SMAppService.statusForLegacyPlist(at: url) == .enabled {
-            return true
+    func updateDaemonState() {
+        switch daemon.status {
+        case .notRegistered, .notFound:
+            daemonState = .unknown
+        case .enabled:
+            daemonState = isInstalledAndUpToDate ? .running : .authorized
+        case .requiresApproval:
+            daemonState = .requiresAuthorization
+        @unknown default:
+            break
         }
-        return false
     }
 
     func isHelperRunning() -> Bool {
@@ -101,5 +83,18 @@ private extension HelperManager {
             return false
         }
         return true
+    }
+}
+
+// MARK: - Polling -
+private extension HelperManager {
+    func starPolling() {
+        pollingTask = Task(priority: .background) { [weak self] in
+            guard let self else { return }
+            while pollingTask != nil {
+                updateDaemonState()
+                try? await Task.sleep(for: .seconds(2))
+            }
+        }
     }
 }

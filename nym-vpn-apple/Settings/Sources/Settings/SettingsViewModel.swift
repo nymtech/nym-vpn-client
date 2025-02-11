@@ -6,6 +6,10 @@ import ConfigurationManager
 import ConnectionManager
 import CredentialsManager
 import ExternalLinkManager
+#if os(macOS)
+import HelperInstall
+import HelperManager
+#endif
 import UIComponents
 
 public class SettingsViewModel: SettingsFlowState {
@@ -14,6 +18,9 @@ public class SettingsViewModel: SettingsFlowState {
     private let connectionManager: ConnectionManager
     private let credentialsManager: CredentialsManager
     private let externalLinkManager: ExternalLinkManager
+#if os(macOS)
+    private let helperManager: HelperManager
+#endif
 
     private var cancellables = Set<AnyCancellable>()
     private var deviceIdentifier: String? {
@@ -45,6 +52,7 @@ public class SettingsViewModel: SettingsFlowState {
         )
     }
 
+#if os(iOS)
     public init(
         path: Binding<NavigationPath>,
         appSettings: AppSettings = .shared,
@@ -61,45 +69,85 @@ public class SettingsViewModel: SettingsFlowState {
         super.init(path: path)
         setup()
     }
-
-    func navigateHome() {
-        path = .init()
+#elseif os(macOS)
+    public init(
+        path: Binding<NavigationPath>,
+        appSettings: AppSettings = .shared,
+        configurationManager: ConfigurationManager = .shared,
+        connectionManager: ConnectionManager = .shared,
+        credentialsManager: CredentialsManager = .shared,
+        externalLinkManager: ExternalLinkManager = .shared,
+        helperManager: HelperManager = .shared
+    ) {
+        self.appSettings = appSettings
+        self.configurationManager = configurationManager
+        self.connectionManager = connectionManager
+        self.credentialsManager = credentialsManager
+        self.externalLinkManager = externalLinkManager
+        self.helperManager = helperManager
+        super.init(path: path)
+        setup()
     }
+#endif
 
     func appVersion() -> String {
         AppVersionProvider.appVersion()
     }
 
-    func navigateToAddCredentialsOrCredential() {
-        guard configurationManager.isSantaClaus else { return }
-        path.append(SettingLink.addCredentials)
+    @MainActor func navigateHome() {
+        path = .init()
     }
 
-    func navigateToSantasMenu() {
+    @MainActor func navigateToAddCredentialsOrCredential() {
+#if os(macOS)
+        guard !helperManager.isInstallNeeded()
+        else {
+            navigateToInstallHelper()
+            return
+        }
+#endif
+        if credentialsManager.isValidCredentialImported {
+            navigateToAccount()
+        } else {
+            path.append(SettingLink.addCredentials)
+        }
+    }
+
+    @MainActor func navigateToSantasMenu() {
+        guard configurationManager.isSantaClaus else { return }
         path.append(SettingLink.santasMenu)
     }
 }
 
 private extension SettingsViewModel {
-    func navigateToTheme() {
+    @MainActor func navigateToTheme() {
         path.append(SettingLink.theme)
     }
 
-    func navigateToLogs() {
+    @MainActor func navigateToLogs() {
         path.append(SettingLink.logs)
     }
 
-    func navigateToSupportAndFeedback() {
+    @MainActor func navigateToSupportAndFeedback() {
         path.append(SettingLink.support)
     }
 
-    func navigateToLegal() {
+    @MainActor func navigateToLegal() {
         path.append(SettingLink.legal)
     }
 
-    func navigateToAccount() {
+    @MainActor func navigateToAccount() {
         try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
     }
+
+#if os(macOS)
+    @MainActor func navigateToInstallHelper() {
+        let action = HelperAfterInstallAction { [weak self] in
+            self?.navigateToAddCredentialsOrCredential()
+        }
+        path.append(SettingLink.installHelper(afterInstallAction: action))
+    }
+#endif
 }
 
 // MARK: - Setup -
@@ -154,7 +202,9 @@ private extension SettingsViewModel {
                     subtitle: deviceIdentifier,
                     imageName: "person",
                     action: { [weak self] in
-                        self?.navigateToAccount()
+                        Task { @MainActor in
+                            self?.navigateToAccount()
+                        }
                     }
                 )
             ]
@@ -169,7 +219,9 @@ private extension SettingsViewModel {
                     title: "settings.appearance".localizedString,
                     imageName: "appearance",
                     action: { [weak self] in
-                        self?.navigateToTheme()
+                        Task { @MainActor in
+                            self?.navigateToTheme()
+                        }
                     }
                 )
             ]
@@ -184,7 +236,9 @@ private extension SettingsViewModel {
                     title: "settings.supportAndFeedback".localizedString,
                     imageName: "support",
                     action: { [weak self] in
-                        self?.navigateToSupportAndFeedback()
+                        Task { @MainActor in
+                            self?.navigateToSupportAndFeedback()
+                        }
                     }
                 ),
                 SettingsListItemViewModel(
@@ -192,7 +246,9 @@ private extension SettingsViewModel {
                     title: "logs".localizedString,
                     imageName: "logs",
                     action: { [weak self] in
-                        self?.navigateToLogs()
+                        Task { @MainActor in
+                            self?.navigateToLogs()
+                        }
                     }
                 ),
                 SettingsListItemViewModel(
@@ -220,7 +276,9 @@ private extension SettingsViewModel {
                     accessory: .arrow,
                     title: "legal".localizedString,
                     action: { [weak self] in
-                        self?.navigateToLegal()
+                        Task { @MainActor in
+                            self?.navigateToLegal()
+                        }
                     }
                 )
             ]

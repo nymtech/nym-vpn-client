@@ -38,6 +38,7 @@
 		D954C0BC2B51C1CA00C6BAAC /* PacketTunnelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = D954C0BB2B51C1CA00C6BAAC /* PacketTunnelProvider.swift */; };
 		D954C0C12B51C1CA00C6BAAC /* NymMixnetTunnel.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = D954C0B82B51C1CA00C6BAAC /* NymMixnetTunnel.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		D956711E2D5144AE003BB2EA /* PacketTunneProvider+Messaging.swift in Sources */ = {isa = PBXBuildFile; fileRef = D956711D2D5144A6003BB2EA /* PacketTunneProvider+Messaging.swift */; };
+		D956A8052D4B9627006651E7 /* net.nymtech.vpn.helper.plist in Embed Helper Plist */ = {isa = PBXBuildFile; fileRef = D9FB33DF2BECF09D009C3419 /* net.nymtech.vpn.helper.plist */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		D9643C6E2CEBC53A00F6B9A7 /* UserNotifications.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D9643C6D2CEBC53A00F6B9A7 /* UserNotifications.framework */; };
 		D9643C702CEBC90700F6B9A7 /* NotificationMessages in Frameworks */ = {isa = PBXBuildFile; productRef = D9643C6F2CEBC90700F6B9A7 /* NotificationMessages */; };
 		D96680D12CC4FC7200267FA1 /* Device in Frameworks */ = {isa = PBXBuildFile; productRef = D96680D02CC4FC7200267FA1 /* Device */; };
@@ -62,7 +63,6 @@
 		D99A147A2B357E9900F2728B /* NymVPNApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99A14792B357E9900F2728B /* NymVPNApp.swift */; };
 		D99A148C2B35A74200F2728B /* Theme in Frameworks */ = {isa = PBXBuildFile; productRef = D99A148B2B35A74200F2728B /* Theme */; };
 		D9A1C1292D3E68CF00D33C0F /* NetworkMonitor in Frameworks */ = {isa = PBXBuildFile; productRef = D9A1C1282D3E68CF00D33C0F /* NetworkMonitor */; };
-		D9A8580E2CF3A2AA0030843A /* HelperInstallManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9A8580D2CF3A2AA0030843A /* HelperInstallManager */; };
 		D9ABF2842BF4989B009089FA /* Shell in Frameworks */ = {isa = PBXBuildFile; productRef = D9ABF2832BF4989B009089FA /* Shell */; };
 		D9AC152E2BF3845E0041E334 /* net.nymtech.vpn.helper in Embed Helper Tool */ = {isa = PBXBuildFile; fileRef = D9AC152C2BF384580041E334 /* net.nymtech.vpn.helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		D9B7BAF82C4866A0005AF2D6 /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9B7BAF72C4866A0005AF2D6 /* NymLogger */; };
@@ -75,6 +75,7 @@
 		D9BEF2E12BEB660D0036C566 /* GRPCManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9BEF2E02BEB660D0036C566 /* GRPCManager */; };
 		D9BEF2E32BEB8D7E0036C566 /* Constants in Frameworks */ = {isa = PBXBuildFile; productRef = D9BEF2E22BEB8D7E0036C566 /* Constants */; };
 		D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */ = {isa = PBXBuildFile; productRef = D9BEF2E42BEBA4010036C566 /* AppSettings */; };
+		D9BF292B2D5A23F500CDFC9A /* HelperInstall in Frameworks */ = {isa = PBXBuildFile; productRef = D9BF292A2D5A23F500CDFC9A /* HelperInstall */; };
 		D9CDF2DC2BF49909007E5DAF /* Home in Frameworks */ = {isa = PBXBuildFile; productRef = D9CDF2DB2BF49909007E5DAF /* Home */; };
 		D9CE3E1B2D525FF0000DD5DD /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D9CE3E1A2D525FF0000DD5DD /* TunnelStatus */; };
 		D9CE3E1D2D526139000DD5DD /* TunnelStatus+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CE3E1C2D526132000DD5DD /* TunnelStatus+Extensions.swift */; };
@@ -144,6 +145,17 @@
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		D956A8042D4B9609006651E7 /* Embed Helper Plist */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = Contents/Library/LaunchDaemons;
+			dstSubfolderSpec = 1;
+			files = (
+				D956A8052D4B9627006651E7 /* net.nymtech.vpn.helper.plist in Embed Helper Plist */,
+			);
+			name = "Embed Helper Plist";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		D99820962BB6E73C000C1FEE /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -157,8 +169,8 @@
 		D9FB33E52BECFA64009C3419 /* Embed Helper Tool */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
-			dstPath = Contents/Library/LaunchServices;
-			dstSubfolderSpec = 1;
+			dstPath = "";
+			dstSubfolderSpec = 6;
 			files = (
 				D9AC152E2BF3845E0041E334 /* net.nymtech.vpn.helper in Embed Helper Tool */,
 			);
@@ -283,7 +295,6 @@
 				D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */,
 				D9FB33DE2BECD47E009C3419 /* Theme in Frameworks */,
 				D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */,
-				D9A8580E2CF3A2AA0030843A /* HelperInstallManager in Frameworks */,
 				D9144C5F2CC105B20021A617 /* CountriesManager in Frameworks */,
 				D924A8E82C33F3DA00465E84 /* ExternalLinkManager in Frameworks */,
 				D9B7BAF82C4866A0005AF2D6 /* NymLogger in Frameworks */,
@@ -295,6 +306,7 @@
 				D92FBA2B2C6B6AB300D743DF /* ConfigurationManager in Frameworks */,
 				D9E9F1A02C3807A00056EB8C /* Sparkle in Frameworks */,
 				D90E2A9D2D11CFA000EBEC69 /* ConnectionTypes in Frameworks */,
+				D9BF292B2D5A23F500CDFC9A /* HelperInstall in Frameworks */,
 				D96680D32CC4FC7800267FA1 /* Device in Frameworks */,
 				D916EE672C90F2A700FADEEF /* Migrations in Frameworks */,
 				D9E9F19D2C3806BB0056EB8C /* AutoUpdater in Frameworks */,
@@ -558,6 +570,7 @@
 				D9BEF2CE2BEB63310036C566 /* Resources */,
 				D94127BD2C00AB2E009EDB7A /* Run Swiftlint */,
 				D9FB33E52BECFA64009C3419 /* Embed Helper Tool */,
+				D956A8042D4B9609006651E7 /* Embed Helper Plist */,
 			);
 			buildRules = (
 			);
@@ -587,8 +600,8 @@
 				D9E552B32CE9E8FB008C74F6 /* SystemMessageManager */,
 				D9E552BB2CEA5A74008C74F6 /* SystemMessageModels */,
 				D9FA77C72CEBB32C003362D7 /* NotificationsManager */,
-				D9A8580D2CF3A2AA0030843A /* HelperInstallManager */,
 				D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */,
+				D9BF292A2D5A23F500CDFC9A /* HelperInstall */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -1450,10 +1463,6 @@
 			isa = XCSwiftPackageProductDependency;
 			productName = NetworkMonitor;
 		};
-		D9A8580D2CF3A2AA0030843A /* HelperInstallManager */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = HelperInstallManager;
-		};
 		D9ABF2832BF4989B009089FA /* Shell */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = Shell;
@@ -1485,6 +1494,10 @@
 		D9BEF2E42BEBA4010036C566 /* AppSettings */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = AppSettings;
+		};
+		D9BF292A2D5A23F500CDFC9A /* HelperInstall */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = HelperInstall;
 		};
 		D9CDF2DB2BF49909007E5DAF /* Home */ = {
 			isa = XCSwiftPackageProductDependency;

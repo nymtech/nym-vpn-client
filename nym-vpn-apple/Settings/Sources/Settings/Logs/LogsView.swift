@@ -156,6 +156,7 @@ private extension LogsView {
         }
     }
 
+    @ViewBuilder
     func logsView() -> some View {
         ScrollViewReader { proxy in
             ScrollView(.vertical) {
