@@ -16,7 +16,8 @@ import UIComponents
 import ImpactGenerator
 #elseif os(macOS)
 import GRPCManager
-import HelperInstallManager
+import HelperInstall
+import HelperManager
 #endif
 
 public class HomeViewModel: HomeFlowState {
@@ -35,7 +36,7 @@ public class HomeViewModel: HomeFlowState {
     let impactGenerator: ImpactGenerator
 #elseif os(macOS)
     let grpcManager: GRPCManager
-    let helperInstallManager: HelperInstallManager
+    let helperManager: HelperManager
 #endif
     let systemMessageManager: SystemMessageManager
     let anonymousButtonViewModel = NetworkButtonViewModel(type: .mixnet5hop)
@@ -108,7 +109,7 @@ public class HomeViewModel: HomeFlowState {
         credentialsManager: CredentialsManager = .shared,
         networkMonitor: NetworkMonitor = .shared,
         grpcManager: GRPCManager = .shared,
-        helperInstallManager: HelperInstallManager = .shared,
+        helperManager: HelperManager = .shared,
         externalLinkManager: ExternalLinkManager = .shared,
         systemMessageManager: SystemMessageManager = .shared
     ) {
@@ -118,7 +119,7 @@ public class HomeViewModel: HomeFlowState {
         self.credentialsManager = credentialsManager
         self.networkMonitor = networkMonitor
         self.grpcManager = grpcManager
-        self.helperInstallManager = helperInstallManager
+        self.helperManager = helperManager
         self.externalLinkManager = externalLinkManager
         self.systemMessageManager = systemMessageManager
         super.init()
@@ -135,28 +136,31 @@ public class HomeViewModel: HomeFlowState {
 // MARK: - Navigation -
 
 public extension HomeViewModel {
-    func navigateToSettings() {
-        Task { @MainActor in
-            path.append(HomeLink.settings)
-        }
+    @MainActor func navigateToSettings() {
+        path.append(HomeLink.settings)
     }
 
-    func navigateToFirstHopSelection() {
-        Task { @MainActor in
-            path.append(HomeLink.entryHop)
-        }
+    @MainActor func navigateToFirstHopSelection() {
+        path.append(HomeLink.entryHop)
     }
 
-    func navigateToLastHopSelection() {
-        Task { @MainActor in
-            path.append(HomeLink.exitHop)
-        }
+    @MainActor func navigateToLastHopSelection() {
+        path.append(HomeLink.exitHop)
     }
 
     @MainActor func navigateToAddCredentials() {
         path.append(HomeLink.settings)
         path.append(SettingLink.addCredentials)
     }
+
+#if os(macOS)
+    @MainActor func navigateToInstallHelper() {
+        let action = HelperAfterInstallAction { [weak self] in
+            self?.connectDisconnect()
+        }
+        path.append(HomeLink.installHelper(afterInstallAction: action))
+    }
+#endif
 }
 
 // MARK: - Configuration -
@@ -167,7 +171,6 @@ private extension HomeViewModel {
 
 #if os(macOS)
         setupGRPCManagerObservers()
-        setupDaemonStateObserver()
 #endif
         setupCountriesManagerObservers()
         setupSystemMessageObservers()

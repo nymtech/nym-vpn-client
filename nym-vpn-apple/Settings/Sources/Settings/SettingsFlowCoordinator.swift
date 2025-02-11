@@ -1,5 +1,8 @@
 import SwiftUI
 import AppSettings
+#if os(macOS)
+import HelperInstall
+#endif
 import NymLogger
 
 struct SettingsFlowCoordinator<Content: View>: View {
@@ -32,6 +35,15 @@ struct SettingsFlowCoordinator<Content: View>: View {
             LicenseView(viewModel: LicenseViewModel(path: $flowState.path, details: details))
         case .santasMenu:
             SantasView(viewModel: SantasViewModel(path: $flowState.path))
+#if os(macOS)
+        case let .installHelper(afterInstallAction):
+            HelperInstallView(
+                viewModel: HelperInstallViewModel(
+                    path: $flowState.path,
+                    afterInstallAction: afterInstallAction
+                )
+            )
+#endif
         }
     }
 }

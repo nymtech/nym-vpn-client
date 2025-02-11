@@ -848,6 +848,116 @@
         }
       }
     },
+    "helper.installView.authorize" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorize"
+          }
+        }
+      }
+    },
+    "helper.installView.continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        }
+      }
+    },
+    "helper.installView.daemonText" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NymVPN uses a background service(daemon) to keep your connection secure.\n\nDaemon handles encryption and network routing, even when the app isn’t open, so your online activity stays protected at all times.\n\nOnce registered and authorized, the daemon launches automatically."
+          }
+        }
+      }
+    },
+    "helper.installView.pageTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Install daemon"
+          }
+        }
+      }
+    },
+    "helper.installView.registerAndAuhtorize" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Register & authorize"
+          }
+        }
+      }
+    },
+    "helper.installView.step.authorize" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Authorize daemon"
+          }
+        }
+      }
+    },
+    "helper.installView.step.install" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Register daemon"
+          }
+        }
+      }
+    },
+    "helper.installView.step.isRunning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daemon is running"
+          }
+        }
+      }
+    },
+    "helper.installView.step.waitingToStart" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for daemon start"
+          }
+        }
+      }
+    },
+    "helper.installView.waitingToStart" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starting daemon"
+          }
+        }
+      }
+    },
     "helper.successfullyUninstalled" : {
       "extractionState" : "manual",
       "localizations" : {

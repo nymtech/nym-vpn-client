@@ -1,3 +1,7 @@
+import Foundation
+#if os(macOS)
+import ServiceManagement
+#endif
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
@@ -28,13 +32,16 @@ public final class Migrations {
     public func setup() {
         migrateToMainnet()
         migrateCountryNames()
+        #if os(macOS)
+        migrateDaemon()
+        #endif
     }
 }
 
 private extension Migrations {
     func migrateToMainnet() {
         guard appSettings.currentEnv != "mainnet",
-              configurationManager.isSantaClaus
+              !configurationManager.isSantaClaus
         else {
             return
         }
@@ -54,4 +61,27 @@ private extension Migrations {
             appSettings.exitCountryCode = ""
         }
     }
+
+#if os(macOS)
+    func migrateDaemon() {
+        guard let url = URL(string: "/Library/LaunchDaemons/net.nymtech.vpn.helper.plist"),
+              SMAppService.statusForLegacyPlist(at: url) == .enabled
+        else {
+            return
+        }
+
+        let domain = kSMDomainSystemLaunchd
+        var authRef: AuthorizationRef?
+        let status = AuthorizationCreate(nil, nil, [], &authRef)
+
+        guard status == errAuthorizationSuccess,
+              let authorization = authRef
+        else {
+            return
+        }
+
+        var cfError: Unmanaged<CFError>?
+        SMJobRemove(domain, "net.nymtech.vpn.helper" as CFString, authorization, true, &cfError)
+    }
+#endif
 }

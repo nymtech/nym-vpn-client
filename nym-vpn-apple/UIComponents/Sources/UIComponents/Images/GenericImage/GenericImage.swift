@@ -22,6 +22,7 @@ public struct GenericImage: View {
         if let systemImageName {
             Image(systemName: systemImageName)
                 .resizable()
+                .scaledToFit()
         }
     }
 }

@@ -15,22 +15,6 @@ extension HomeViewModel {
             .store(in: &cancellables)
     }
 
-    func setupDaemonStateObserver() {
-        helperInstallManager.$daemonState.sink { [weak self] state in
-            switch state {
-            case .installing:
-                self?.updateStatusInfoState(with: .installingDaemon)
-                self?.updateConnectButtonState(with: .installingDaemon)
-            case .installed:
-                self?.updateStatusInfoState(with: .unknown)
-                self?.updateConnectButtonState(with: .connect)
-            case .unknown, .running:
-                break
-            }
-        }
-        .store(in: &cancellables)
-    }
-
     func updateTimeConnected() {
         Task { @MainActor [weak self] in
             guard let self,

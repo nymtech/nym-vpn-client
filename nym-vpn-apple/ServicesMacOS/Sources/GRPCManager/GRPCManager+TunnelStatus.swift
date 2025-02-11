@@ -26,8 +26,9 @@ extension GRPCManager {
         case let .connected(details):
             tunnelStatus = .connected
             connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)
-        case .connecting:
+        case let .connecting(details):
             tunnelStatus = .connecting
+            connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)
         case .disconnected:
             tunnelStatus = .disconnected
         case .disconnecting:
