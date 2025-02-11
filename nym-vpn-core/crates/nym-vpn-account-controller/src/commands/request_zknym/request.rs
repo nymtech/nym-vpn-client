@@ -116,7 +116,7 @@ impl RequestZkNymTask {
         &self,
         ticketbook_type: TicketType,
     ) -> Result<ZkNymRequestData, RequestZkNymError> {
-        tracing::info!("Constructing zk-nym request");
+        tracing::debug!("Constructing zk-nym request");
 
         let ecash_keypair = self
             .account
@@ -146,7 +146,7 @@ impl RequestZkNymTask {
         &self,
         request: &ZkNymRequestData,
     ) -> Result<NymVpnZkNymPost, RequestZkNymError> {
-        tracing::info!("Requesting zk-nym ticketbook");
+        tracing::debug!("Requesting zk-nym ticketbook");
         self.vpn_api_client
             .request_zk_nym(
                 &self.account,
