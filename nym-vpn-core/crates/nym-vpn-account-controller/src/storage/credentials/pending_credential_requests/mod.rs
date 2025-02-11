@@ -15,6 +15,7 @@ use sqlite::SqliteZkNymRequestsStorageManager;
 use sqlx::ConnectOptions;
 use time::OffsetDateTime;
 use tracing::log::LevelFilter;
+use windows_sys::Win32::Foundation::{FALSE, TRUE};
 use windows_sys::Win32::System::SystemServices::SECURITY_DESCRIPTOR_REVISION;
 use error::PendingCredentialRequestsStorageError;
 use models::{PendingCredentialRequest, PendingCredentialRequestStored};
@@ -199,98 +200,77 @@ fn set_file_permission_owner_rw_unix<P: AsRef<Path>>(path: P) -> Result<(), std:
 #[cfg(windows)]
 fn set_file_permission_owner_rw_windows<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
     use std::ptr;
-    use std::ffi::CString;
-    use windows_sys::Win32::Foundation::*;
+    use std::mem;
+    use widestring::U16CString;
     use windows_sys::Win32::Security::*;
     use windows_sys::Win32::Storage::FileSystem::*;
-    use windows_sys::Win32::System::Threading::*;
-    //use windows_sys::Win32::System::SystemServices;
 
     let file_path = path.as_ref();
-    let c_file_path = CString::new(file_path.to_str().unwrap()).map_err(|_| std::io::Error::from(std::io::ErrorKind::InvalidInput))?;
+    let wide_path = U16CString::from_os_str(file_path.as_os_str())
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, format!("Invalid UTF-16 conversion: {e}")))?;
 
-    // Get token of service
-    let mut token_handle: HANDLE = std::ptr::null_mut();
+    let mut sid_size = SECURITY_MAX_SID_SIZE as u32;
+    let mut system_sid = vec![0u8; sid_size as usize];
+
     unsafe {
-        if OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token_handle) == 0 {
-            return Err(std::io::Error::last_os_error());
-        }
-    }
-
-    let mut sid_size = 0;
-    let mut domain_size = 0;
-    let mut sid_type: SID_NAME_USE = 0;
-
-    // Get the size of SID
-    // FIXME: "SYSTEM" need to be changed to the required account(here and below)
-    unsafe {
-        LookupAccountNameA(
-            ptr::null(),
-            b"SYSTEM\0".as_ptr(),
+        if CreateWellKnownSid(
+            WinLocalSystemSid,
             ptr::null_mut(),
+            system_sid.as_mut_ptr().cast(),
             &mut sid_size,
-            ptr::null_mut(),
-            &mut domain_size,
-            &mut sid_type,
-        );
-    }
-
-    if sid_size == 0 {
-        return Err(std::io::Error::last_os_error());
-    }
-
-    let mut sid_buffer = vec![0u8; sid_size as usize];
-    let mut domain_buffer = vec![0u8; domain_size as usize];
-
-    unsafe {
-        if LookupAccountNameA(
-            ptr::null(),
-            b"SYSTEM\0".as_ptr(),
-            sid_buffer.as_mut_ptr() as *mut c_void,
-            &mut sid_size,
-            domain_buffer.as_mut_ptr() as *mut _,
-            &mut domain_size,
-            &mut sid_type,
         ) == 0
         {
             return Err(std::io::Error::last_os_error());
         }
     }
 
-    // Create ACL and Security-Descriptor for service only
-    let sid = sid_buffer.as_mut_ptr() as *mut c_void;
-    let acl_size = std::mem::size_of::<ACL>() as u32
-        + std::mem::size_of::<ACCESS_ALLOWED_ACE>() as u32
-        + unsafe { GetLengthSid(sid) };
+    let sid_ptr = system_sid.as_mut_ptr().cast();
+
+    let acl_size = mem::size_of::<ACL>() as u32
+        + mem::size_of::<ACCESS_ALLOWED_ACE>() as u32
+        + unsafe { GetLengthSid(sid_ptr) };
+
     let mut acl_buffer = vec![0u8; acl_size as usize];
     let acl = acl_buffer.as_mut_ptr() as *mut ACL;
 
     unsafe {
-        InitializeAcl(acl, acl_size, ACL_REVISION);
-        AddAccessAllowedAce(acl, ACL_REVISION, FILE_GENERIC_READ | FILE_GENERIC_WRITE, sid as *mut c_void);
+        if InitializeAcl(acl, acl_size, ACL_REVISION) == 0 {
+            return Err(std::io::Error::last_os_error());
+        }
+
+        if AddAccessAllowedAce(acl, ACL_REVISION, FILE_GENERIC_READ | FILE_GENERIC_WRITE, sid_ptr.cast()) == 0 {
+            return Err(std::io::Error::last_os_error());
+        }
     }
 
-    let mut security_desc = SECURITY_DESCRIPTOR {
-        Revision: SECURITY_DESCRIPTOR_REVISION as u8,
-        Sbz1: 0,
-        Control: 0,
-        Owner: ptr::null_mut(),
-        Group: ptr::null_mut(),
-        Sacl: ptr::null_mut(),
-        Dacl: ptr::null_mut(),
-    };
-    unsafe {
-        InitializeSecurityDescriptor(&mut security_desc as *mut _ as *mut c_void, SECURITY_DESCRIPTOR_REVISION);
-        SetSecurityDescriptorDacl(&mut security_desc as *mut _ as *mut c_void, 1, acl, 0);
-    }
+    let mut security_desc: SECURITY_DESCRIPTOR = unsafe { mem::zeroed() };
 
-    // Set file permissions
     unsafe {
-        if SetFileSecurityA(
-            c_file_path.as_ptr() as *const u8,
-            DACL_SECURITY_INFORMATION,
-            &mut security_desc as *mut _ as *mut _
+        if InitializeSecurityDescriptor(
+            &mut security_desc as *mut _ as *mut _,
+            SECURITY_DESCRIPTOR_REVISION,
+        ) == 0
+        {
+            return Err(std::io::Error::last_os_error());
+        }
+
+        if SetSecurityDescriptorDacl(
+            &mut security_desc as *mut _ as *mut c_void,
+            TRUE,
+            acl,
+            FALSE,
         ) == 0 {
+            return Err(std::io::Error::last_os_error());
+        }
+    }
+
+    unsafe {
+        if SetFileSecurityW(
+            wide_path.as_ptr(),
+            DACL_SECURITY_INFORMATION,
+            &mut security_desc as *mut _ as *mut _,
+        ) == 0
+        {
             return Err(std::io::Error::last_os_error());
         }
     }
