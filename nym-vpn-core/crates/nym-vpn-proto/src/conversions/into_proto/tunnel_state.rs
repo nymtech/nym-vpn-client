@@ -23,7 +23,6 @@ use crate::{
     },
     Address as ProtoAddress, ConnectionData as ProtoConnectionData,
     ForgetAccountError as ProtoForgetAccountError, Gateway as ProtoGateway,
-    GeneralAccountError as ProtoGeneralAccountError,
     MixnetConnectionData as ProtoMixnetConnectionData,
     RegisterDeviceError as ProtoRegisterDeviceError, RequestZkNymBundle as ProtoRequestZkNymBundle,
     RequestZkNymError as ProtoRequestZkNymError, RequestZkNymSuccess as ProtoRequestZkNymSuccess,
@@ -102,14 +101,6 @@ impl From<ErrorStateReason> for ProtoErrorStateReason {
                         .collect(),
                 })
             }
-        }
-    }
-}
-
-impl From<String> for ProtoGeneralAccountError {
-    fn from(value: String) -> Self {
-        Self {
-            error_message: value,
         }
     }
 }

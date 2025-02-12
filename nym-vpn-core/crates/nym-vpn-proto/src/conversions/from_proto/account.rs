@@ -8,18 +8,11 @@ use nym_vpn_lib_types::{
 
 use crate::{
     conversions::ConversionError, ForgetAccountError as ProtoForgetAccountError,
-    GeneralAccountError as ProtoGeneralAccountError,
     RegisterDeviceError as ProtoRegisterDeviceError, RequestZkNymError as ProtoRequestZkNymError,
     RequestZkNymSuccess as ProtoRequestZkNymSuccess, StoreAccountError as ProtoStoreAccountError,
     SyncAccountError as ProtoSyncAccountError, SyncDeviceError as ProtoSyncDeviceError,
     VpnApiErrorResponse as ProtoVpnApiErrorResponse,
 };
-
-impl From<ProtoGeneralAccountError> for String {
-    fn from(value: ProtoGeneralAccountError) -> Self {
-        value.error_message
-    }
-}
 
 impl TryFrom<ProtoStoreAccountError> for StoreAccountError {
     type Error = ConversionError;

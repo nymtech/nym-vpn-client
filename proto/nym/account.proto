@@ -27,10 +27,6 @@ message AccountError {
   map<string, string> details = 3;
 }
 
-message GeneralAccountError {
-  string error_message = 1;
-}
-
 message StoreAccountError {
   oneof error_detail {
     string storage_error = 1;
