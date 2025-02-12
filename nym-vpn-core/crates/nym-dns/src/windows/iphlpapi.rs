@@ -126,7 +126,7 @@ impl DnsMonitorT for DnsMonitor {
         Ok(DnsMonitor { current_guid: None })
     }
 
-    fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
+    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
         let servers = config.tunnel_config();
         let guid = guid_from_luid(&luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?)
             .map_err(Error::ObtainInterfaceGuid)?;
@@ -155,7 +155,7 @@ impl DnsMonitorT for DnsMonitor {
         Ok(())
     }
 
-    fn reset(&mut self) -> Result<(), Error> {
+    async fn reset(&mut self) -> Result<(), Error> {
         if let Some(guid) = self.current_guid.take() {
             set_interface_dns_servers_v4(&guid, &[])
                 .and(set_interface_dns_servers_v6(&guid, &[]))
@@ -164,7 +164,7 @@ impl DnsMonitorT for DnsMonitor {
         Ok(())
     }
 
-    fn reset_before_interface_removal(&mut self) -> Result<(), Self::Error> {
+    async fn reset_before_interface_removal(&mut self) -> Result<(), Self::Error> {
         // do nothing since the tunnel interface goes away
         let _ = self.current_guid.take();
         Ok(())

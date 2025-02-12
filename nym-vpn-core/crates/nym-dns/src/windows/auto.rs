@@ -16,29 +16,33 @@ enum InnerMonitor {
 }
 
 impl InnerMonitor {
-    fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), super::Error> {
+    async fn set(
+        &mut self,
+        interface: &str,
+        config: ResolvedDnsConfig,
+    ) -> Result<(), super::Error> {
         match self {
-            InnerMonitor::Iphlpapi(monitor) => monitor.set(interface, config)?,
-            InnerMonitor::Netsh(monitor) => monitor.set(interface, config)?,
-            InnerMonitor::Tcpip(monitor) => monitor.set(interface, config)?,
+            InnerMonitor::Iphlpapi(monitor) => monitor.set(interface, config).await?,
+            InnerMonitor::Netsh(monitor) => monitor.set(interface, config).await?,
+            InnerMonitor::Tcpip(monitor) => monitor.set(interface, config).await?,
         }
         Ok(())
     }
 
-    fn reset(&mut self) -> Result<(), super::Error> {
+    async fn reset(&mut self) -> Result<(), super::Error> {
         match self {
-            InnerMonitor::Iphlpapi(monitor) => monitor.reset()?,
-            InnerMonitor::Netsh(monitor) => monitor.reset()?,
-            InnerMonitor::Tcpip(monitor) => monitor.reset()?,
+            InnerMonitor::Iphlpapi(monitor) => monitor.reset().await?,
+            InnerMonitor::Netsh(monitor) => monitor.reset().await?,
+            InnerMonitor::Tcpip(monitor) => monitor.reset().await?,
         }
         Ok(())
     }
 
-    fn reset_before_interface_removal(&mut self) -> Result<(), super::Error> {
+    async fn reset_before_interface_removal(&mut self) -> Result<(), super::Error> {
         match self {
-            InnerMonitor::Iphlpapi(monitor) => monitor.reset_before_interface_removal()?,
-            InnerMonitor::Netsh(monitor) => monitor.reset_before_interface_removal()?,
-            InnerMonitor::Tcpip(monitor) => monitor.reset_before_interface_removal()?,
+            InnerMonitor::Iphlpapi(monitor) => monitor.reset_before_interface_removal().await?,
+            InnerMonitor::Netsh(monitor) => monitor.reset_before_interface_removal().await?,
+            InnerMonitor::Tcpip(monitor) => monitor.reset_before_interface_removal().await?,
         }
         Ok(())
     }
@@ -57,26 +61,26 @@ impl DnsMonitorT for DnsMonitor {
         Ok(Self { current_monitor })
     }
 
-    fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Self::Error> {
-        let result = self.current_monitor.set(interface, config.clone());
+    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Self::Error> {
+        let result = self.current_monitor.set(interface, config.clone()).await;
         if self.fallback_due_to_dnscache(&result) {
-            return self.set(interface, config);
+            return Box::pin(self.set(interface, config)).await;
         }
         result
     }
 
-    fn reset(&mut self) -> Result<(), Self::Error> {
-        let result = self.current_monitor.reset();
+    async fn reset(&mut self) -> Result<(), Self::Error> {
+        let result = self.current_monitor.reset().await;
         if self.fallback_due_to_dnscache(&result) {
-            return self.reset();
+            return Box::pin(self.reset()).await;
         }
         result
     }
 
-    fn reset_before_interface_removal(&mut self) -> Result<(), Self::Error> {
-        let result = self.current_monitor.reset_before_interface_removal();
+    async fn reset_before_interface_removal(&mut self) -> Result<(), Self::Error> {
+        let result = self.current_monitor.reset_before_interface_removal().await;
         if self.fallback_due_to_dnscache(&result) {
-            return self.reset_before_interface_removal();
+            return Box::pin(self.reset_before_interface_removal()).await;
         }
         result
     }

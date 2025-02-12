@@ -73,7 +73,7 @@ impl DnsMonitorT for DnsMonitor {
         })
     }
 
-    fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
+    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
         let servers = config.tunnel_config();
         let interface_luid = luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?;
         let interface_index =
@@ -116,7 +116,7 @@ impl DnsMonitorT for DnsMonitor {
         Ok(())
     }
 
-    fn reset(&mut self) -> Result<(), Error> {
+    async fn reset(&mut self) -> Result<(), Error> {
         if let Some(index) = self.current_index.take() {
             let mut netsh_input = String::new();
             netsh_input.push_str(&create_netsh_flush_command(index, IpVersion::V4));
@@ -129,7 +129,7 @@ impl DnsMonitorT for DnsMonitor {
         Ok(())
     }
 
-    fn reset_before_interface_removal(&mut self) -> Result<(), Self::Error> {
+    async fn reset_before_interface_removal(&mut self) -> Result<(), Self::Error> {
         // do nothing since the tunnel interface goes away
         let _ = self.current_index.take();
         Ok(())
