@@ -310,11 +310,16 @@ pub(crate) mod raw {
 
     async fn remove_credential_storage_raw<P: AsRef<Path>>(path: P) -> Result<(), VpnError> {
         let storage_paths = StoragePaths::new_from_dir(&path).map_err(VpnError::internal)?;
-        std::fs::remove_file(storage_paths.credential_database_path).map_err(|err| {
-            VpnError::Storage {
+        for path in storage_paths
+            .credential_database_paths()
+            .into_iter()
+            .filter(|p| p.exists())
+        {
+            std::fs::remove_file(path).map_err(|err| VpnError::InternalError {
                 details: err.to_string(),
-            }
-        })
+            })?;
+        }
+        Ok(())
     }
 
     async fn create_vpn_api_client() -> Result<VpnApiClient, VpnError> {
