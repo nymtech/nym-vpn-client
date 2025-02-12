@@ -186,7 +186,7 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
-        if: ${{ inputs.publish == 'true' || inputs.publish == true || contains(env.TAG_NAME, 'nightly') }}
+        if: ${{ inputs.publish == 'true' || inputs.publish == true || contains(env.TAG_NAME, 'nightly') || github.event_name == 'push' }}
         run: |
           echo "Setting up the release notes"
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
