@@ -173,6 +173,7 @@ vergen = { version = "8.3.1", default-features = false }
 which = { version = "7.0", default-features = false }
 wmi = "0.14"
 widestring = "1.0"
+winreg = "0.52"
 windows-service = "0.7.0"
 windows-sys = "0.52"
 windows-core = "0.58"
