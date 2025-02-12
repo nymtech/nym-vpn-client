@@ -50,32 +50,38 @@ impl DnsMonitorT for DnsMonitor {
         Ok(DnsMonitor { inner })
     }
 
-    fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
+    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
         match self.inner {
-            DnsMonitorHolder::Auto(ref mut inner) => inner.set(interface, config)?,
-            DnsMonitorHolder::Iphlpapi(ref mut inner) => inner.set(interface, config)?,
-            DnsMonitorHolder::Netsh(ref mut inner) => inner.set(interface, config)?,
-            DnsMonitorHolder::Tcpip(ref mut inner) => inner.set(interface, config)?,
+            DnsMonitorHolder::Auto(ref mut inner) => inner.set(interface, config).await?,
+            DnsMonitorHolder::Iphlpapi(ref mut inner) => inner.set(interface, config).await?,
+            DnsMonitorHolder::Netsh(ref mut inner) => inner.set(interface, config).await?,
+            DnsMonitorHolder::Tcpip(ref mut inner) => inner.set(interface, config).await?,
         }
         Ok(())
     }
 
-    fn reset(&mut self) -> Result<(), Error> {
+    async fn reset(&mut self) -> Result<(), Error> {
         match self.inner {
-            DnsMonitorHolder::Auto(ref mut inner) => inner.reset()?,
-            DnsMonitorHolder::Iphlpapi(ref mut inner) => inner.reset()?,
-            DnsMonitorHolder::Netsh(ref mut inner) => inner.reset()?,
-            DnsMonitorHolder::Tcpip(ref mut inner) => inner.reset()?,
+            DnsMonitorHolder::Auto(ref mut inner) => inner.reset().await?,
+            DnsMonitorHolder::Iphlpapi(ref mut inner) => inner.reset().await?,
+            DnsMonitorHolder::Netsh(ref mut inner) => inner.reset().await?,
+            DnsMonitorHolder::Tcpip(ref mut inner) => inner.reset().await?,
         }
         Ok(())
     }
 
-    fn reset_before_interface_removal(&mut self) -> Result<(), Error> {
+    async fn reset_before_interface_removal(&mut self) -> Result<(), Error> {
         match self.inner {
-            DnsMonitorHolder::Auto(ref mut inner) => inner.reset_before_interface_removal()?,
-            DnsMonitorHolder::Iphlpapi(ref mut inner) => inner.reset_before_interface_removal()?,
-            DnsMonitorHolder::Netsh(ref mut inner) => inner.reset_before_interface_removal()?,
-            DnsMonitorHolder::Tcpip(ref mut inner) => inner.reset_before_interface_removal()?,
+            DnsMonitorHolder::Auto(ref mut inner) => inner.reset_before_interface_removal().await?,
+            DnsMonitorHolder::Iphlpapi(ref mut inner) => {
+                inner.reset_before_interface_removal().await?
+            }
+            DnsMonitorHolder::Netsh(ref mut inner) => {
+                inner.reset_before_interface_removal().await?
+            }
+            DnsMonitorHolder::Tcpip(ref mut inner) => {
+                inner.reset_before_interface_removal().await?
+            }
         }
         Ok(())
     }
