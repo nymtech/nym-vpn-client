@@ -2,25 +2,26 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{DnsMonitorT, ResolvedDnsConfig};
-use nym_common::ErrorExt;
-use nym_windows::net::{index_from_luid, luid_from_alias};
 use std::{
     ffi::OsString,
-    io::{self, Write},
+    io,
     net::IpAddr,
-    os::windows::prelude::{AsRawHandle, OsStringExt},
+    os::windows::prelude::OsStringExt,
     path::PathBuf,
-    process::{Child, Command, ExitStatus, Stdio},
+    process::{ExitStatus, Stdio},
     time::Duration,
 };
-use windows_sys::Win32::{
-    Foundation::{MAX_PATH, WAIT_OBJECT_0, WAIT_TIMEOUT},
-    System::{
-        SystemInformation::GetSystemDirectoryW,
-        Threading::{WaitForSingleObject, INFINITE},
-    },
+
+use tokio::{
+    io::AsyncWriteExt,
+    process::{Child, Command},
 };
+use windows_sys::Win32::{Foundation::MAX_PATH, System::SystemInformation::GetSystemDirectoryW};
+
+use nym_common::ErrorExt;
+use nym_windows::net::{index_from_luid, luid_from_alias};
+
+use crate::{DnsMonitorT, ResolvedDnsConfig};
 
 const NETSH_TIMEOUT: Duration = Duration::from_secs(10);
 
@@ -111,7 +112,7 @@ impl DnsMonitorT for DnsMonitor {
             netsh_input.push_str(&create_netsh_flush_command(interface_index, IpVersion::V6));
         }
 
-        run_netsh_with_timeout(netsh_input, NETSH_TIMEOUT)?;
+        run_netsh_with_timeout(netsh_input, NETSH_TIMEOUT).await?;
 
         Ok(())
     }
@@ -122,7 +123,7 @@ impl DnsMonitorT for DnsMonitor {
             netsh_input.push_str(&create_netsh_flush_command(index, IpVersion::V4));
             netsh_input.push_str(&create_netsh_flush_command(index, IpVersion::V6));
 
-            if let Err(error) = run_netsh_with_timeout(netsh_input, NETSH_TIMEOUT) {
+            if let Err(error) = run_netsh_with_timeout(netsh_input, NETSH_TIMEOUT).await {
                 tracing::error!("{}", error.display_chain_with_msg("Failed to reset DNS"));
             }
         }
@@ -136,7 +137,7 @@ impl DnsMonitorT for DnsMonitor {
     }
 }
 
-fn run_netsh_with_timeout(netsh_input: String, timeout: Duration) -> Result<(), Error> {
+async fn run_netsh_with_timeout(netsh_input: String, timeout: Duration) -> Result<(), Error> {
     tracing::debug!("running netsh:\n{}", netsh_input);
 
     let sysdir = get_system_dir().map_err(Error::GetSystemDir)?;
@@ -152,10 +153,11 @@ fn run_netsh_with_timeout(netsh_input: String, timeout: Duration) -> Result<(), 
     let mut stdin = subproc.stdin.take().unwrap();
     stdin
         .write_all(netsh_input.as_bytes())
+        .await
         .map_err(Error::NetshInput)?;
     drop(stdin);
 
-    match wait_for_child(&mut subproc, timeout) {
+    match wait_for_child(&mut subproc, timeout).await {
         Ok(Some(status)) => {
             if !status.success() {
                 return Err(Error::Netsh(status.code()));
@@ -170,14 +172,10 @@ fn run_netsh_with_timeout(netsh_input: String, timeout: Duration) -> Result<(), 
     }
 }
 
-fn wait_for_child(subproc: &mut Child, timeout: Duration) -> io::Result<Option<ExitStatus>> {
-    let dur_millis = u32::try_from(timeout.as_millis()).unwrap_or(INFINITE);
-
-    let subproc_handle = subproc.as_raw_handle();
-    match unsafe { WaitForSingleObject(subproc_handle as isize, dur_millis) } {
-        WAIT_OBJECT_0 => subproc.try_wait(),
-        WAIT_TIMEOUT => Ok(None),
-        _error => Err(io::Error::last_os_error()),
+async fn wait_for_child(subproc: &mut Child, timeout: Duration) -> io::Result<Option<ExitStatus>> {
+    match tokio::time::timeout(timeout, subproc.wait()).await {
+        Ok(result) => result.map(Some),
+        Err(_elapsed) => Ok(None),
     }
 }
 
