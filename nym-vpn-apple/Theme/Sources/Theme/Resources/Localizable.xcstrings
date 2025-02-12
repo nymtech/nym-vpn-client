@@ -969,6 +969,17 @@
         }
       }
     },
+    "helper.installView.step.versionMatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version OK"
+          }
+        }
+      }
+    },
     "helper.installView.step.versionMismatch" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1294,7 +1305,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Logs(stored locally)"
+            "value" : "Logs (stored locally)"
           }
         }
       }

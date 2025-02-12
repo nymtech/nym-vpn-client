@@ -14,7 +14,6 @@ import Tunnels
 import UIComponents
 #if os(iOS)
 import ImpactGenerator
-import ErrorHandler
 #elseif os(macOS)
 import GRPCManager
 import HelperInstall
@@ -249,22 +248,7 @@ private extension HomeViewModel {
             if let error {
                 self?.updateStatusInfoState(with: .error(message: error.localizedDescription))
             }
-
-            if let vpnError = error as? VPNErrorReason, vpnError == .noAccountStored {
-                Task { @MainActor [weak self] in
-                    self?.navigateToAddCredentials()
-                }
-            }
-        }
-        .store(in: &cancellables)
-#elseif os(macOS)
-        grpcManager.$errorReason.sink { [weak self] error in
-            self?.lastError = error
-        }
-        .store(in: &cancellables)
-
-        grpcManager.$generalError.sink { [weak self] error in
-            self?.lastError = error
+            self?.navigateToAddCredetialsIfNeeded(error: error)
         }
         .store(in: &cancellables)
 #endif

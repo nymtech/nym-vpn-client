@@ -43,8 +43,7 @@ public final class GRPCManager: ObservableObject {
     }
 
     public var requiresUpdate: Bool {
-        print("daemonVersion: \(daemonVersion), requiredVersion: \(AppVersionProvider.libVersion)")
-        return daemonVersion != AppVersionProvider.libVersion
+        daemonVersion != AppVersionProvider.libVersion
     }
 
     private init() {

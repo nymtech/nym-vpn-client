@@ -32,9 +32,6 @@ public final class HelperManager {
     }
 
     public func isInstallNeeded() -> Bool {
-        if grpcManager.requiresUpdate {
-            try? daemon.register()
-        }
         // If .connected, no need to perform install checks to be able to disconnect
         guard grpcManager.tunnelStatus != .connected, !isInstalledAndUpToDate else { return false }
         return true

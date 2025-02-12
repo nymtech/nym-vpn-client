@@ -29,7 +29,9 @@ enum HelperInstallStep: Hashable, Identifiable {
                 \("helper.installView.step.currentVersion".localizedString) - \(currentVersion)
                 """
             } else {
-                "helper.installView.step.verifyingVersion".localizedString
+                currentVersion == requiredVersion
+                ? "helper.installView.step.versionMatch".localizedString
+                : "helper.installView.step.verifyingVersion".localizedString
             }
         }
     }
