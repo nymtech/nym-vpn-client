@@ -29,13 +29,14 @@ extension GRPCManager {
             call.response.whenComplete { [weak self] result in
                 switch result {
                 case .success(let response):
-                    self?.logger.log(level: .info, "\(response)")
-
                     if response.hasError {
-
                         if response.error.kind == .noAccountStored {
                             self?.generalError = GeneralNymError.noMnemonicStored
                             continuation.resume(throwing: GeneralNymError.noMnemonicStored)
+                        } else if !response.error.zkNymError.isEmpty,
+                                  let firstError = response.error.zkNymError.first,
+                                  firstError.hasMessage {
+                            continuation.resume(throwing: GeneralNymError.library(message: firstError.message))
                         } else {
                             continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
                         }

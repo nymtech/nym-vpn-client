@@ -150,12 +150,12 @@ private extension TunnelsManager {
                     level: .debug,
                     "Tunnel '\(tunnel.name)' connection status changed to '\(tunnel.tunnel.connection.status)'"
                 )
+                tunnel.updateStatus()
 #if os(iOS)
                 Task { [weak self] in
                     await self?.updateLastTunnelErrorIfNeeded()
                 }
 #endif
-                tunnel.updateStatus()
             }
             .store(in: &cancellables)
     }

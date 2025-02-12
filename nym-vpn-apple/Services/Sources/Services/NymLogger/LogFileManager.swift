@@ -34,7 +34,7 @@ public final class LogFileManager: ObservableObject {
             return URL(fileURLWithPath: "/var/log/nym-vpnd/nym-vpnd.log")
         }
 
-#else
+#elseif os(iOS)
         logsDirectory = fileManager
             .containerURL(
                 forSecurityApplicationGroupIdentifier: Constants.groupID.rawValue

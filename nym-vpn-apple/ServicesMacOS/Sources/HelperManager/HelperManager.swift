@@ -1,5 +1,6 @@
 import SecurityFoundation
 import ServiceManagement
+import AppVersionProvider
 import GRPCManager
 import Shell
 
@@ -15,6 +16,13 @@ public final class HelperManager {
     }
 
     public static let shared = HelperManager()
+
+    public var requiredVersion: String {
+        grpcManager.requiredVersion
+    }
+    public var currentVersion: String {
+        grpcManager.daemonVersion
+    }
 
     @Published public var daemonState = DaemonState.unknown
 
@@ -55,6 +63,25 @@ public final class HelperManager {
             updateDaemonState()
         }
     }
+
+    public func update() throws {
+        daemonState = .updating
+        Task(priority: .background) {
+            do {
+                try await uninstall()
+                try daemon.register()
+                try await Task.sleep(for: .seconds(1))
+                Task { @MainActor [weak self] in
+                    self?.daemonState = .running
+                }
+            } catch {
+                Task { @MainActor [weak self] in
+                    self?.daemonState = .running
+                }
+                throw error
+            }
+        }
+    }
 }
 
 // MARK: - Private -
@@ -65,11 +92,13 @@ private extension HelperManager {
     }
 
     func updateDaemonState() {
+        guard daemonState != .updating else { return }
+
         switch daemon.status {
         case .notRegistered, .notFound:
             daemonState = .unknown
         case .enabled:
-            daemonState = isInstalledAndUpToDate ? .running : .authorized
+            daemonState = isInstalledAndUpToDate ? .running : .requiresUpdate
         case .requiresApproval:
             daemonState = .requiresAuthorization
         @unknown default:
