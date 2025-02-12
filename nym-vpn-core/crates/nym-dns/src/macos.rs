@@ -2,8 +2,6 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_routing::debounce::BurstGuard;
-use parking_lot::Mutex;
 use std::{
     collections::{BTreeSet, HashMap},
     fmt, mem,
@@ -12,6 +10,7 @@ use std::{
     thread,
     time::Duration,
 };
+
 use system_configuration::{
     core_foundation::{
         array::CFArray,
@@ -24,6 +23,9 @@ use system_configuration::{
     dynamic_store::{SCDynamicStore, SCDynamicStoreBuilder, SCDynamicStoreCallBackContext},
     sys::schema_definitions::{kSCPropNetDNSServerAddresses, kSCPropNetInterfaceDeviceName},
 };
+use tokio::sync::Mutex;
+
+use nym_routing::debounce::BurstGuard;
 
 use super::ResolvedDnsConfig;
 
@@ -373,15 +375,15 @@ impl super::DnsMonitorT for DnsMonitor {
         })
     }
 
-    fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<()> {
+    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<()> {
         let servers: Vec<_> = config.addresses().collect();
 
-        let mut state = self.state.lock();
+        let mut state = self.state.lock().await;
         state.apply_new_config(&self.store, interface, &servers)
     }
 
-    fn reset(&mut self) -> Result<()> {
-        self.state.lock().reset(&self.store)
+    async fn reset(&mut self) -> Result<()> {
+        self.state.lock().await.reset(&self.store)
     }
 }
 
@@ -421,7 +423,7 @@ fn create_dynamic_store(state: Arc<Mutex<State>>) -> Result<SCDynamicStore> {
         BURST_LONGEST_BUFFER_PERIOD,
         move || {
             if let Some(store) = &*store_container.read().unwrap() {
-                state.lock().update_and_apply_state(&store.store);
+                state.blocking_lock().update_and_apply_state(&store.store);
             }
         },
     );
