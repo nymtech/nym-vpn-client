@@ -248,6 +248,12 @@ private extension HomeViewModel {
             if let error {
                 self?.updateStatusInfoState(with: .error(message: error.localizedDescription))
             }
+
+            if let vpnError = error as? VPNErrorReason, vpnError == .noAccountStored {
+                Task { @MainActor [weak self] in
+                    self?.navigateToAddCredentials()
+                }
+            }
         }
         .store(in: &cancellables)
 #elseif os(macOS)
