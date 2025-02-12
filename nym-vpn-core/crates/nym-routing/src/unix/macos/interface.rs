@@ -2,7 +2,6 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::channel::mpsc::{self, UnboundedReceiver, UnboundedSender};
 use ipnetwork::IpNetwork;
 use nix::{
     net::if_::if_nametoindex,
@@ -13,6 +12,7 @@ use std::{
     io,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
 };
+use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
 use super::data::{Destination, RouteMessage};
 use system_configuration::{
@@ -112,7 +112,7 @@ impl PrimaryInterfaceMonitor {
         let store = SCDynamicStoreBuilder::new("nym-routing").build();
         let prefs = SCPreferences::default(&CFString::new("nym-routing"));
 
-        let (tx, rx) = mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
         Self::start_listener(tx);
 
         (Self { store, prefs }, rx)
@@ -154,7 +154,7 @@ impl PrimaryInterfaceMonitor {
         for k in changed_keys.iter() {
             tracing::debug!("Interface change, key {}", k.to_string());
         }
-        let _ = tx.unbounded_send(InterfaceEvent::Update);
+        let _ = tx.send(InterfaceEvent::Update);
     }
 
     /// Retrieve the best current default route. This is based on the primary interface, or else
