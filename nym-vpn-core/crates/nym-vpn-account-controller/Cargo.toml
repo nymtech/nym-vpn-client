@@ -41,9 +41,8 @@ tracing.workspace = true
 url.workspace = true
 uuid.workspace = true
 zeroize.workspace = true
-windows = "0.59.0"
 windows-sys = { version = "0.59.0", features = ["Win32_System_Threading", "Win32_System_SystemServices"] }
-widestring = "1.0"
+widestring.workspace = true
 
 [build-dependencies]
 sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }
