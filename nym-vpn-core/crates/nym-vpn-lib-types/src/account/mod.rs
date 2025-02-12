@@ -10,19 +10,19 @@ pub mod sync_device;
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
 pub enum AccountCommandError {
-    // Catch all for any error not specifically handled
-    #[error("general error: {0}")]
-    General(String),
-
     // Internal error that should not happen
     #[error("internal error: {0}")]
     Internal(String),
 
-    // Top level error that can happen for any command
+    #[error("storage error: {0}")]
+    Storage(String),
+
+    #[error("vpn api error: {0}")]
+    VpnApi(#[from] VpnApiErrorResponse),
+
     #[error("no account stored")]
     NoAccountStored,
 
-    // Top level error that can happen for any command
     #[error("no device stored")]
     NoDeviceStored,
 
@@ -57,10 +57,6 @@ pub enum AccountCommandError {
 impl AccountCommandError {
     pub fn internal(message: impl ToString) -> Self {
         AccountCommandError::Internal(message.to_string())
-    }
-
-    pub fn general(message: impl ToString) -> Self {
-        AccountCommandError::General(message.to_string())
     }
 }
 

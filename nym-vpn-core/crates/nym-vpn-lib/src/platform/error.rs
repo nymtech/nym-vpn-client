@@ -26,6 +26,12 @@ pub enum VpnError {
     #[error("no device identity stored")]
     NoDeviceIdentity,
 
+    #[error("vpn-api error: {details}")]
+    VpnApi {
+        #[from]
+        details: super::uniffi_lib_types::VpnApiErrorResponse,
+    },
+
     #[error("timeout connecting to nym-vpn-api")]
     VpnApiTimeout,
 
@@ -91,8 +97,9 @@ impl VpnError {
 impl From<AccountCommandError> for VpnError {
     fn from(value: AccountCommandError) -> Self {
         match value {
-            AccountCommandError::General(err) => Self::InternalError { details: err },
             AccountCommandError::Internal(err) => Self::InternalError { details: err },
+            AccountCommandError::Storage(err) => Self::Storage { details: err },
+            AccountCommandError::VpnApi(e) => Self::VpnApi { details: e.into() },
             AccountCommandError::NoAccountStored => Self::NoAccountStored,
             AccountCommandError::NoDeviceStored => Self::NoDeviceIdentity,
             AccountCommandError::StoreAccount(e) => Self::StoreAccount { details: e.into() },

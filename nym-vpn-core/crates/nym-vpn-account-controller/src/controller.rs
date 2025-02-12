@@ -451,12 +451,16 @@ where
             .account_storage
             .load_account()
             .await
-            .map_err(AccountCommandError::general)?;
+            .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
         let usage = self
             .vpn_api_client
             .get_usage(&account)
             .await
-            .map_err(AccountCommandError::general)?;
+            .map_err(|err| {
+                VpnApiErrorResponse::try_from(err)
+                    .map(AccountCommandError::from)
+                    .unwrap_or_else(AccountCommandError::internal)
+            })?;
         tracing::info!("Usage: {:#?}", usage);
         Ok(usage.items)
     }
@@ -507,13 +511,17 @@ where
             .account_storage
             .load_account()
             .await
-            .map_err(AccountCommandError::general)?;
+            .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
 
         let devices = self
             .vpn_api_client
             .get_devices(&account)
             .await
-            .map_err(AccountCommandError::general)?;
+            .map_err(|err| {
+                VpnApiErrorResponse::try_from(err)
+                    .map(AccountCommandError::from)
+                    .unwrap_or_else(AccountCommandError::internal)
+            })?;
 
         tracing::info!("The account has the following devices associated to it:");
         // TODO: pagination
@@ -532,13 +540,17 @@ where
             .account_storage
             .load_account()
             .await
-            .map_err(AccountCommandError::general)?;
+            .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
 
         let devices = self
             .vpn_api_client
             .get_active_devices(&account)
             .await
-            .map_err(AccountCommandError::general)?;
+            .map_err(|err| {
+                VpnApiErrorResponse::try_from(err)
+                    .map(AccountCommandError::from)
+                    .unwrap_or_else(AccountCommandError::internal)
+            })?;
 
         tracing::info!("The account has the following active devices associated to it:");
         // TODO: pagination
@@ -634,11 +646,11 @@ where
         guard
             .print_info()
             .await
-            .map_err(AccountCommandError::general)?;
+            .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
         guard
             .get_available_ticketbooks()
             .await
-            .map_err(AccountCommandError::general)
+            .map_err(|err| AccountCommandError::Storage(err.to_string()))
     }
 
     fn queue_command(&self, command: AccountCommand) {
