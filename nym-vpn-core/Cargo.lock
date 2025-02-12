@@ -3883,7 +3883,6 @@ dependencies = [
  "nym-routing",
  "nym-windows",
  "once_cell",
- "parking_lot",
  "resolv-conf",
  "system-configuration 0.6.1",
  "thiserror 2.0.12",
