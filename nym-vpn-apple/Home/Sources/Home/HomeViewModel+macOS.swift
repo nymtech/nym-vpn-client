@@ -1,5 +1,6 @@
 #if os(macOS)
 import Combine
+import Constants
 import Foundation
 import TunnelStatus
 
@@ -13,6 +14,21 @@ extension HomeViewModel {
                 self?.updateTimeConnected()
             }
             .store(in: &cancellables)
+
+        grpcManager.$errorReason.sink { [weak self] error in
+            self?.lastError = error
+        }
+        .store(in: &cancellables)
+
+        grpcManager.$generalError.sink { [weak self] error in
+            self?.lastError = error
+            if error == GeneralNymError.noMnemonicStored {
+                Task { @MainActor [weak self] in
+                    self?.navigateToAddCredentials()
+                }
+            }
+        }
+        .store(in: &cancellables)
     }
 
     func updateTimeConnected() {

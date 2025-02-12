@@ -133,7 +133,7 @@ private extension Tunnel {
         else {
             return
         }
-        guard status != newTunnelStatus else { return }
+        guard isPolling, status != newTunnelStatus else { return }
         status = newTunnelStatus
     }
 }
