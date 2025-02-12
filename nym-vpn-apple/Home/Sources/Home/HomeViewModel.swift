@@ -14,6 +14,7 @@ import Tunnels
 import UIComponents
 #if os(iOS)
 import ImpactGenerator
+import ErrorHandler
 #elseif os(macOS)
 import GRPCManager
 import HelperInstall
@@ -271,7 +272,6 @@ private extension HomeViewModel {
 #if os(iOS)
     func configureTunnelStatusObservation(with tunnel: Tunnel) {
         tunnelStatusUpdateCancellable = tunnel.$status
-            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.global(qos: .background))
             .removeDuplicates()
             .receive(on: RunLoop.main)
             .sink { [weak self] status in

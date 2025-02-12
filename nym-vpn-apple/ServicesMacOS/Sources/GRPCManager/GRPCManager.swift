@@ -38,6 +38,9 @@ public final class GRPCManager: ObservableObject {
     @Published public var isServing = false
     @Published public var networkName: String?
     public var daemonVersion = "unknown"
+    public var requiredVersion: String {
+        AppVersionProvider.libVersion
+    }
 
     public var requiresUpdate: Bool {
         print("daemonVersion: \(daemonVersion), requiredVersion: \(AppVersionProvider.libVersion)")

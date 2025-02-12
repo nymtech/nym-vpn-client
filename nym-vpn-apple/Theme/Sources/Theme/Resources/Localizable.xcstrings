@@ -975,7 +975,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Version mismatch:"
+            "value" : "Daemon version mismatch:"
           }
         }
       }
@@ -998,6 +998,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Update"
+          }
+        }
+      }
+    },
+    "helper.installView.updating" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updating…"
           }
         }
       }

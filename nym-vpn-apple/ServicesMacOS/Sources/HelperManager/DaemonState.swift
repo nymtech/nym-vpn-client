@@ -4,4 +4,6 @@ public enum DaemonState {
     case requiresAuthorization
     case authorized
     case running
+    case requiresUpdate
+    case updating
 }
