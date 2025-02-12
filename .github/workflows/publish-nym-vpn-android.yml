@@ -138,6 +138,7 @@ jobs:
           draft: false
           make_latest: ${{ inputs.release_type == 'release' }}
           prerelease: ${{ inputs.release_type != 'release' }}
+          target_commitish: ${{ github.sha }}
           files: |
             ${{ github.workspace }}/temp/*
 
