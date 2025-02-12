@@ -5,6 +5,7 @@ use std::time::Duration;
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
+use nym_vpn_network_config::resolve_nym_network_details;
 use tokio::{sync::mpsc, time::timeout};
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 use tokio_util::sync::CancellationToken;
@@ -85,7 +86,8 @@ pub enum CredentialNyxdClientError {
 }
 
 fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient> {
-    let network = NymNetworkDetails::new_from_env();
+    let mut network = NymNetworkDetails::new_from_env();
+    resolve_nym_network_details(&mut network);
     let config = NyxdClientConfig::try_from_nym_network_details(&network)
         .map_err(CredentialNyxdClientError::FailedToCreateNyxdClientConfig)?;
 

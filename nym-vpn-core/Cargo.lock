@@ -4017,6 +4017,7 @@ dependencies = [
  "nym-topology",
  "nym-validator-client",
  "nym-vpn-api-client",
+ "nym-vpn-network-config",
  "rand 0.8.5",
  "serde",
  "thiserror 2.0.11",

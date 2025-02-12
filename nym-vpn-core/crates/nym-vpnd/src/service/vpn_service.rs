@@ -26,6 +26,7 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib::{
     gateway_directory::{self, EntryPoint, ExitPoint},
+    nym_config::defaults::NymNetworkDetails,
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
@@ -113,6 +114,7 @@ pub(crate) struct ConnectOptions {
     pub(crate) min_gateway_mixnet_performance: Option<Percent>,
     pub(crate) min_gateway_vpn_performance: Option<Percent>,
     pub(crate) user_agent: Option<UserAgent>,
+    pub(crate) nym_network_details: NymNetworkDetails,
 }
 
 #[derive(Clone, Debug)]
@@ -599,6 +601,7 @@ where
             min_gateway_performance: options
                 .min_gateway_mixnet_performance
                 .map(|p| p.round_to_integer()),
+            network_details: options.nym_network_details,
         };
 
         let tunnel_type = if options.enable_two_hop {

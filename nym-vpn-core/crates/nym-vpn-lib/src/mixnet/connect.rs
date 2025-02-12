@@ -6,7 +6,6 @@ use std::{os::fd::RawFd, sync::Arc};
 use std::{path::PathBuf, result::Result, time::Duration};
 
 use nym_client_core::config::StatsReporting;
-use nym_config::defaults::NymNetworkDetails;
 use nym_gateway_directory::Recipient;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths};
@@ -43,6 +42,7 @@ fn apply_mixnet_client_config(
         disable_background_cover_traffic,
         min_mixnode_performance,
         min_gateway_performance,
+        network_details: _,
     } = mixnet_client_config;
 
     tracing::info!(
@@ -128,7 +128,7 @@ pub(crate) async fn setup_mixnet_client(
             .map_err(MixnetError::FailedToCreateMixnetClientWithDefaultStorage)?
             .with_user_agent(user_agent)
             .request_gateway(mixnet_entry_gateway.to_string())
-            .network_details(NymNetworkDetails::new_from_env())
+            .network_details(mixnet_client_config.network_details)
             .debug_config(debug_config)
             .custom_shutdown(task_client)
             .credentials_mode(enable_credentials_mode)
@@ -148,7 +148,7 @@ pub(crate) async fn setup_mixnet_client(
         let builder = MixnetClientBuilder::new_ephemeral()
             .with_user_agent(user_agent)
             .request_gateway(mixnet_entry_gateway.to_string())
-            .network_details(NymNetworkDetails::new_from_env())
+            .network_details(mixnet_client_config.network_details)
             .debug_config(debug_config)
             .custom_shutdown(task_client)
             .credentials_mode(enable_credentials_mode)

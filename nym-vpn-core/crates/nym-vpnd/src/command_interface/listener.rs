@@ -8,6 +8,8 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
+use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
+use nym_vpn_network_config::resolve_nym_network_details;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
 use nym_vpn_api_client::types::GatewayMinPerformance;
@@ -889,6 +891,8 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
                     })
             })
             .transpose()?;
+        let mut nym_network_details = NymNetworkDetails::new_from_env();
+        resolve_nym_network_details(&mut nym_network_details);
 
         let min_mixnode_performance = request.min_mixnode_performance.map(threshold_into_percent);
         let min_gateway_mixnet_performance = request
@@ -922,6 +926,7 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             min_gateway_mixnet_performance,
             min_gateway_vpn_performance,
             user_agent,
+            nym_network_details,
         })
     }
 }

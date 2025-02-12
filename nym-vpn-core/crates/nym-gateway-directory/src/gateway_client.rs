@@ -7,6 +7,7 @@ use std::{fmt, net::IpAddr};
 use nym_sdk::UserAgent;
 use nym_validator_client::{models::NymNodeDescription, nym_nodes::SkimmedNode, NymApiClient};
 use nym_vpn_api_client::types::{GatewayMinPerformance, Percent};
+use nym_vpn_network_config::resolve_nym_network_details;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
 use tracing::{debug, error, info, warn};
@@ -57,7 +58,8 @@ impl fmt::Display for Config {
 
 impl Config {
     fn new_mainnet() -> Self {
-        let mainnet_network_defaults = nym_sdk::NymNetworkDetails::default();
+        let mut mainnet_network_defaults = nym_sdk::NymNetworkDetails::default();
+        resolve_nym_network_details(&mut mainnet_network_defaults);
         let default_nyxd_url = mainnet_network_defaults
             .endpoints
             .first()
@@ -83,7 +85,8 @@ impl Config {
     }
 
     pub fn new_from_env() -> Self {
-        let network = nym_sdk::NymNetworkDetails::new_from_env();
+        let mut network = nym_sdk::NymNetworkDetails::new_from_env();
+        resolve_nym_network_details(&mut network);
         let nyxd_url = network
             .endpoints
             .first()
