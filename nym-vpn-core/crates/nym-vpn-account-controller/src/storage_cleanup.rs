@@ -61,13 +61,13 @@ pub fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
     let files_to_remove = vpn_paths.chain(mixnet_paths);
 
     for file_path in files_to_remove {
-        tracing::info!("removing file: {}", file_path.display());
-        match fs::remove_file(file_path) {
-            Ok(_) => {}
-            Err(err) if err.kind() == io::ErrorKind::NotFound => {}
-            Err(err) => {
-                tracing::error!("failed to remove file: {}", err);
+        tracing::info!("Removing file: {}", file_path.display());
+        match fs::remove_file(&file_path) {
+            Ok(_) => tracing::trace!("Removed file: {}", file_path.display()),
+            Err(err) if err.kind() == io::ErrorKind::NotFound => {
+                tracing::trace!("File not found, skipping: {}", file_path.display());
             }
+            Err(err) => tracing::error!("Failed to remove file {}: {err}", file_path.display()),
         }
     }
 
@@ -77,7 +77,7 @@ pub fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
         .filter_map(|file| file.ok())
         .map(|file| file.path());
     for file in remaining_files {
-        tracing::info!("file left in data directory: {}", file.display());
+        tracing::info!("File left in data directory: {}", file.display());
     }
 
     Ok(())
