@@ -54,7 +54,8 @@ pub async fn connect(
         .dns_server
         .clone()
         .map(|ip| nym_vpn_proto::Dns { ip });
-    let credentials_mode = app_state.credentials_mode;
+    // TODO uncomment this
+    // let credentials_mode = app_state.credentials_mode;
     // release the lock
     drop(app_state);
 
@@ -67,11 +68,7 @@ pub async fn connect(
         info!("mode [mixnet]");
         false
     };
-    if credentials_mode {
-        info!("credentials mode [on]");
-    } else {
-        info!("credentials mode [off]");
-    }
+    info!("credentials mode [off]");
 
     let use_netstack_wireguard = false;
 
@@ -81,7 +78,8 @@ pub async fn connect(
             entry,
             exit,
             two_hop_mod,
-            credentials_mode,
+            // TODO use value from app state
+            false,
             use_netstack_wireguard,
             dns,
         )
