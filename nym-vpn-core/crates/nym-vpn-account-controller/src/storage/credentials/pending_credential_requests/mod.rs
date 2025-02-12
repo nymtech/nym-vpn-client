@@ -6,19 +6,22 @@ pub mod models;
 
 mod sqlite;
 
+use error::PendingCredentialRequestsStorageError;
+use models::{PendingCredentialRequest, PendingCredentialRequestStored};
+use sqlite::SqliteZkNymRequestsStorageManager;
+use sqlx::ConnectOptions;
+#[cfg(windows)]
+use std::os::raw::c_void;
 use std::{
     path::{Path, PathBuf},
     time::Duration,
 };
-use std::os::raw::c_void;
-use sqlite::SqliteZkNymRequestsStorageManager;
-use sqlx::ConnectOptions;
 use time::OffsetDateTime;
 use tracing::log::LevelFilter;
+#[cfg(windows)]
 use windows_sys::Win32::Foundation::{FALSE, TRUE};
+#[cfg(windows)]
 use windows_sys::Win32::System::SystemServices::SECURITY_DESCRIPTOR_REVISION;
-use error::PendingCredentialRequestsStorageError;
-use models::{PendingCredentialRequest, PendingCredentialRequestStored};
 
 // Consider requests older than 60 days as stale
 const DEFAULT_STALE_REQUESTS_MAX_AGE: Duration = Duration::from_secs(60 * 60 * 24 * 60);
@@ -199,17 +202,21 @@ fn set_file_permission_owner_rw_unix<P: AsRef<Path>>(path: P) -> Result<(), std:
 
 #[cfg(windows)]
 fn set_file_permission_owner_rw_windows<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
-    use std::ptr;
     use std::mem;
+    use std::ptr;
     use widestring::U16CString;
     use windows_sys::Win32::Security::*;
     use windows_sys::Win32::Storage::FileSystem::*;
 
     let file_path = path.as_ref();
-    let wide_path = U16CString::from_os_str(file_path.as_os_str())
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::InvalidInput, format!("Invalid UTF-16 conversion: {e}")))?;
+    let wide_path = U16CString::from_os_str(file_path.as_os_str()).map_err(|e| {
+        std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            format!("Invalid UTF-16 conversion: {e}"),
+        )
+    })?;
 
-    let mut sid_size = SECURITY_MAX_SID_SIZE as u32;
+    let mut sid_size = SECURITY_MAX_SID_SIZE;
     let mut system_sid = vec![0u8; sid_size as usize];
 
     unsafe {
@@ -238,7 +245,13 @@ fn set_file_permission_owner_rw_windows<P: AsRef<Path>>(path: P) -> Result<(), s
             return Err(std::io::Error::last_os_error());
         }
 
-        if AddAccessAllowedAce(acl, ACL_REVISION, FILE_GENERIC_READ | FILE_GENERIC_WRITE, sid_ptr.cast()) == 0 {
+        if AddAccessAllowedAce(
+            acl,
+            ACL_REVISION,
+            FILE_GENERIC_READ | FILE_GENERIC_WRITE,
+            sid_ptr.cast(),
+        ) == 0
+        {
             return Err(std::io::Error::last_os_error());
         }
     }
@@ -259,7 +272,8 @@ fn set_file_permission_owner_rw_windows<P: AsRef<Path>>(path: P) -> Result<(), s
             TRUE,
             acl,
             FALSE,
-        ) == 0 {
+        ) == 0
+        {
             return Err(std::io::Error::last_os_error());
         }
     }
