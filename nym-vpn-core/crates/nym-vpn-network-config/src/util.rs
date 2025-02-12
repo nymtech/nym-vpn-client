@@ -36,7 +36,6 @@ pub fn resolve_nym_network_details(network_details: &mut NymNetworkDetails) {
             url.set_ip_host(sock_addr.ip()).ok();
             ep.nyxd_url = url.to_string();
         }
-
         if let Some(mut url) = ep.websocket_url() {
             if let Some(sock_addr) = url
                 .socket_addrs(|| None)
@@ -47,6 +46,48 @@ pub fn resolve_nym_network_details(network_details: &mut NymNetworkDetails) {
                 url.set_ip_host(sock_addr.ip()).ok();
                 ep.websocket_url = Some(url.to_string());
             }
+        }
+    }
+    if let Some(mut url) = network_details.nym_vpn_api_url() {
+        if let Some(sock_addr) = url
+            .socket_addrs(|| None)
+            .ok()
+            .map(|sock_addrs| sock_addrs.first().cloned())
+            .flatten()
+        {
+            url.set_ip_host(sock_addr.ip()).ok();
+            network_details.nym_vpn_api_url = Some(url.to_string());
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use url::Host;
+
+    use super::*;
+
+    #[test]
+    fn test_resolve_network_details() {
+        let mut details = NymNetworkDetails::new_mainnet();
+        resolve_nym_network_details(&mut details);
+        assert!(matches!(
+            details.nym_vpn_api_url().unwrap().host().unwrap(),
+            Host::Ipv4(_) | Host::Ipv6(_)
+        ));
+        for ep in details.endpoints {
+            assert!(matches!(
+                ep.api_url().unwrap().host().unwrap(),
+                Host::Ipv4(_) | Host::Ipv6(_)
+            ));
+            assert!(matches!(
+                ep.nyxd_url().host().unwrap(),
+                Host::Ipv4(_) | Host::Ipv6(_)
+            ));
+            assert!(matches!(
+                ep.websocket_url().unwrap().host().unwrap(),
+                Host::Ipv4(_) | Host::Ipv6(_)
+            ));
         }
     }
 }
