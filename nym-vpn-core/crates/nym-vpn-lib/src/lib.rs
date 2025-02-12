@@ -23,7 +23,6 @@ pub use nym_config;
 pub use nym_connection_monitor as connection_monitor;
 pub use nym_gateway_directory as gateway_directory;
 pub use nym_ip_packet_requests::IpPair;
-use nym_sdk::NymNetworkDetails;
 pub use nym_sdk::{
     mixnet::{NodeIdentity, Recipient, StoragePaths},
     UserAgent,
@@ -61,9 +60,6 @@ pub struct MixnetClientConfig {
 
     /// The minimum performance of gateways to use.
     pub min_gateway_performance: Option<u8>,
-
-    /// The network details used for mixnet client creation.
-    pub network_details: NymNetworkDetails,
 }
 
 #[derive(Debug, Clone, Copy)]

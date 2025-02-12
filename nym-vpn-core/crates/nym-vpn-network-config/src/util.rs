@@ -19,8 +19,7 @@ pub fn resolve_nym_network_details(network_details: &mut NymNetworkDetails) {
             if let Some(sock_addr) = url
                 .socket_addrs(|| None)
                 .ok()
-                .map(|sock_addrs| sock_addrs.first().cloned())
-                .flatten()
+                .and_then(|sock_addrs| sock_addrs.first().cloned())
             {
                 url.set_ip_host(sock_addr.ip()).ok();
                 ep.api_url = Some(url.to_string());
@@ -30,8 +29,7 @@ pub fn resolve_nym_network_details(network_details: &mut NymNetworkDetails) {
         if let Some(sock_addr) = url
             .socket_addrs(|| None)
             .ok()
-            .map(|sock_addrs| sock_addrs.first().cloned())
-            .flatten()
+            .and_then(|sock_addrs| sock_addrs.first().cloned())
         {
             url.set_ip_host(sock_addr.ip()).ok();
             ep.nyxd_url = url.to_string();
@@ -40,8 +38,7 @@ pub fn resolve_nym_network_details(network_details: &mut NymNetworkDetails) {
             if let Some(sock_addr) = url
                 .socket_addrs(|| None)
                 .ok()
-                .map(|sock_addrs| sock_addrs.first().cloned())
-                .flatten()
+                .and_then(|sock_addrs| sock_addrs.first().cloned())
             {
                 url.set_ip_host(sock_addr.ip()).ok();
                 ep.websocket_url = Some(url.to_string());
@@ -52,8 +49,7 @@ pub fn resolve_nym_network_details(network_details: &mut NymNetworkDetails) {
         if let Some(sock_addr) = url
             .socket_addrs(|| None)
             .ok()
-            .map(|sock_addrs| sock_addrs.first().cloned())
-            .flatten()
+            .and_then(|sock_addrs| sock_addrs.first().cloned())
         {
             url.set_ip_host(sock_addr.ip()).ok();
             network_details.nym_vpn_api_url = Some(url.to_string());
