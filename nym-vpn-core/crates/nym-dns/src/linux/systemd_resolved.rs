@@ -2,13 +2,14 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::IpAddr;
+
 use nym_common::{
     linux::{iface_index, IfaceIndexLookupError},
     ErrorExt,
 };
 use nym_dbus::systemd_resolved::{AsyncHandle, SystemdResolved as DbusInterface};
 use nym_routing::RouteManagerHandle;
-use std::net::IpAddr;
 
 pub(crate) use nym_dbus::systemd_resolved::Error as SystemdDbusError;
 
