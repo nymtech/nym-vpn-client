@@ -100,6 +100,7 @@ async fn run_service_inner(
     let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
         tunnel_event_rx,
         None,
+        network_env.clone(),
         shutdown_token.child_token(),
     );
 
