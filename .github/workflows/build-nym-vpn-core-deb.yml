@@ -56,7 +56,7 @@ jobs:
         run: cargo install --locked cargo-edit
 
       - name: Append timestamp if it's a dev version
-        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.output }}
+        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
 
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4

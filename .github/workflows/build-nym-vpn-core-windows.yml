@@ -64,7 +64,7 @@ jobs:
 
       - name: Append timestamp if it's a dev version
         shell: bash
-        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.output }}
+        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
 
       - name: Download wireguard-go-windows artifacts
         uses: actions/download-artifact@v4
