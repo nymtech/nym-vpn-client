@@ -4,11 +4,8 @@ on:
     - cron: "4 2 * * *"
   workflow_dispatch:
     inputs:
-      tag_name:
-        description: "Tag name for release"
-        required: false
-        default: nym-vpn-core-nightly
-      publish:
+      publish_to_github:
+        description: "If the build should be published to github. Will only have an effect if the version is set to a non-pre-release version."
         type: boolean
         default: false
         required: true
@@ -86,7 +83,7 @@ jobs:
       - name: Install cargo-edit
         run: cargo install --locked cargo-edit
 
-      - name: Append timestamp if it's a dev version
+      - name: Append timestamp if it's a pre-release version
         run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version-pre.outputs.output }}
 
       - name: Get nym-vpn-core workspace version (post-append)
@@ -100,7 +97,7 @@ jobs:
 
       # Setup TAG_NAME, which is used as a general "name"
       - if: github.event_name == 'workflow_dispatch'
-        run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
+        run: echo "TAG_NAME=nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}" >> $GITHUB_ENV
       - if: github.event_name == 'schedule'
         run: echo 'TAG_NAME=nym-vpn-core-nightly' >> $GITHUB_ENV
       - if: github.event_name == 'push'
@@ -111,12 +108,14 @@ jobs:
         run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
 
       - name: Generate checksums and create tar.gz archive per platform
+        env:
+          BASENAME: nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}
         run: |
-          ARCHIVE_LINUX=nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}_linux_x86_64
-          ARCHIVE_MAC=nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}_macos_universal
-          ARCHIVE_ANDROID=nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}_android_aarch64
-          ARCHIVE_IOS=nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}_ios_universal
-          ARCHIVE_WINDOWS=nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }}_windows_x86_64
+          ARCHIVE_LINUX=${BASENAME}_linux_x86_64
+          ARCHIVE_MAC=${BASENAME}_macos_universal
+          ARCHIVE_ANDROID=${BASENAME}_android_aarch64
+          ARCHIVE_IOS=${BASENAME}_ios_universal
+          ARCHIVE_WINDOWS=${BASENAME}_windows_x86_64
           echo "ARCHIVE_LINUX=${ARCHIVE_LINUX}" >> $GITHUB_ENV
           echo "ARCHIVE_MAC=${ARCHIVE_MAC}" >> $GITHUB_ENV
           echo "ARCHIVE_ANDROID=${ARCHIVE_ANDROID}" >> $GITHUB_ENV
@@ -164,16 +163,6 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Setting subject, prerelease and notes files
-        if: ${{ contains(env.TAG_NAME, 'nightly') }}
-        run: |
-          (echo "SUBJECT=nym-vpn-core-v${{ steps.workspace-version.outputs.metadata }} nightly prerelease build";
-           echo 'PRERELEASE=--prerelease';
-           echo 'NOTES_FILE=release-notes/release-notes-core-nightly.md') >> $GITHUB_ENV
-          gh release delete nym-vpn-core-nightly --yes || true
-          git push origin :nym-vpn-core-nightly || true
-
-      - name: Removing --prerelease if needed
-        if: ${{ !contains(env.TAG_NAME, 'nightly') }}
         run: |
           (echo "SUBJECT=$TAG_NAME"
            echo 'PRERELEASE='
@@ -186,7 +175,7 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
-        if: ${{ inputs.publish == 'true' || inputs.publish == true || contains(env.TAG_NAME, 'nightly') || github.event_name == 'push' }}
+        if: ${{ inputs.publish_to_github == 'true' || inputs.publish_to_github == true || github.event_name == 'push' }}
         run: |
           echo "Setting up the release notes"
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
@@ -201,7 +190,7 @@ jobs:
           test -f ${{ env.ARCHIVE_IOS }}.zip &&         gh release upload $TAG_NAME ${{ env.ARCHIVE_IOS }}.zip ${{ env.ARCHIVE_IOS }}.zip.sha256sum
           test -f ${{ env.ARCHIVE_ANDROID }}.tar.gz &&  gh release upload $TAG_NAME ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum
           test -f ${{ env.ARCHIVE_WINDOWS }}.zip &&     gh release upload $TAG_NAME ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum
-          test -d ${{ env.UPLOAD_DIR_DEB }} &&   gh release upload $TAG_NAME ${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum
+          test -d ${{ env.UPLOAD_DIR_DEB }} &&          gh release upload $TAG_NAME ${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum
 
       # Upload to CI server
 
@@ -245,6 +234,7 @@ jobs:
           TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/nym-vpn-core
 
   gen-hashes:
+    if: ${{ inputs.publish_to_github == 'true' || inputs.publish_to_github == true || github.event_name == 'push' }}
     uses: ./.github/workflows/gen-hashes-json.yml
     needs: publish
     with:
