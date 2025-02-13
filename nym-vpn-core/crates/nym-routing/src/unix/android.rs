@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::imp::RouteManagerCommand;
-use futures::{channel::mpsc, stream::StreamExt};
+use tokio::sync::mpsc;
 
 /// Stub error type for routing errors on Android.
 #[derive(Debug, thiserror::Error)]
@@ -21,10 +21,9 @@ impl RouteManagerImpl {
 
     pub(crate) async fn run(
         self,
-        manage_rx: mpsc::UnboundedReceiver<RouteManagerCommand>,
+        mut manage_rx: mpsc::UnboundedReceiver<RouteManagerCommand>,
     ) -> Result<(), Error> {
-        let mut manage_rx = manage_rx.fuse();
-        while let Some(command) = manage_rx.next().await {
+        while let Some(command) = manage_rx.recv().await {
             match command {
                 RouteManagerCommand::Shutdown(tx) => {
                     tx.send(()).map_err(|()| Error)?;

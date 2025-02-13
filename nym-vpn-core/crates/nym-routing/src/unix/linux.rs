@@ -15,11 +15,7 @@ use std::{
     num::NonZeroI32,
 };
 
-use futures::{
-    channel::mpsc::{UnboundedReceiver, UnboundedSender},
-    future::FutureExt,
-    StreamExt, TryStream, TryStreamExt,
-};
+use futures::{future::FutureExt, TryStream, TryStreamExt};
 use ipnetwork::IpNetwork;
 use libc::RT_TABLE_COMPAT;
 use netlink_packet_core::{
@@ -41,6 +37,7 @@ use rtnetlink::{
     Handle, IpVersion,
 };
 use std::sync::LazyLock;
+use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
 static SUPPRESS_RULE_V4: LazyLock<RuleMessage> = LazyLock::new(|| {
     let mut rule = RuleMessage::default();
@@ -360,13 +357,12 @@ impl RouteManagerImpl {
         mut self,
         manage_rx: UnboundedReceiver<RouteManagerCommand>,
     ) -> Result<()> {
-        let mut manage_rx = manage_rx.fuse();
         loop {
-            futures::select! {
-                command = manage_rx.select_next_some() => {
+            tokio::select! {
+                command = manage_rx.recv() => {
                     self.process_command(command).await?;
                 },
-                (route_change, _socket) = self.messages.select_next_some().fuse() => {
+                (route_change, _socket) = self.messages.recv() => {
                     if let Err(error) = self.process_netlink_message(route_change) {
                         tracing::error!("{}", error.display_chain_with_msg("Failed to process netlink message"));
                     }
@@ -754,7 +750,7 @@ impl RouteManagerImpl {
     }
 
     fn listen(&mut self) -> UnboundedReceiver<CallbackMessage> {
-        let (tx, rx) = futures::channel::mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
         self.listeners.push(tx);
         rx
     }
