@@ -162,10 +162,9 @@ jobs:
           fi
           echo 'EOF' >> $GITHUB_ENV
 
-      - name: Setting subject, prerelease and notes files
+      - name: Setting subject and notes files
         run: |
           (echo "SUBJECT=$TAG_NAME"
-           echo 'PRERELEASE='
            echo 'NOTES_FILE=release-notes/release-notes-core.md') >> $GITHUB_ENV
 
       - name: Build info
@@ -180,7 +179,7 @@ jobs:
           echo "Setting up the release notes"
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
           echo "Creating the release"
-          gh release create $TAG_NAME ${{ env.PRERELEASE }} \
+          gh release create $TAG_NAME \
             --notes-file "$RUNNER_TEMP/release-notes.md" \
             --title "$SUBJECT" \
             --target $GITHUB_SHA
