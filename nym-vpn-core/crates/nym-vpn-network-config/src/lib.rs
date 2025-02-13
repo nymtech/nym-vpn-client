@@ -15,7 +15,6 @@ mod nym_vpn_network;
 mod refresh;
 mod util;
 
-pub use crate::util::resolve_nym_network_details;
 pub use account_management::{AccountManagement, ParsedAccountLinks};
 pub use feature_flags::FeatureFlags;
 use feature_flags::FlagValue;
@@ -51,8 +50,8 @@ pub struct Network {
 
 impl Network {
     pub fn mainnet_default() -> Option<Self> {
-        let mut network_details = NymNetworkDetails::new_mainnet();
-        resolve_nym_network_details(&mut network_details);
+        let network_details = NymNetworkDetails::new_mainnet();
+        // resolve_nym_network_details(&mut network_details);
         let nym_network = NymNetwork::new(network_details.clone());
         let nyxd_url = nym_network
             .network

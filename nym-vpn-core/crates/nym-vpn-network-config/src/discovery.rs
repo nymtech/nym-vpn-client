@@ -7,7 +7,6 @@ use anyhow::Context;
 use url::Url;
 
 use crate::{
-    resolve_nym_network_details,
     response::{DiscoveryResponse, NymNetworkDetailsResponse, NymWellknownDiscoveryItem},
     AccountManagement, FeatureFlags, SystemMessages,
 };
@@ -165,14 +164,14 @@ impl Discovery {
         // TODO: integrate with validator-client and/or nym-vpn-api-client
         let url = nym_network_details_endpoint(&self.nym_api_url);
         tracing::debug!("Fetching nym network details from: {}", url);
-        let mut network_details: NymNetworkDetailsResponse = reqwest::blocking::get(url.clone())
+        let network_details: NymNetworkDetailsResponse = reqwest::blocking::get(url.clone())
             .with_context(|| format!("Failed to fetch network details from {}", url))?
             .json()
             .with_context(|| "Failed to parse network details")?;
         if network_details.network.network_name != self.network_name {
             anyhow::bail!("Network name mismatch between requested and fetched network details")
         }
-        resolve_nym_network_details(&mut network_details.network);
+        // resolve_nym_network_details(&mut network_details.network);
         Ok(NymNetwork {
             network: network_details.network,
         })

@@ -13,6 +13,7 @@ pub(crate) fn get_age_of_file(file_path: &PathBuf) -> anyhow::Result<Option<Dura
     Ok(Some(metadata.modified()?.elapsed()?))
 }
 
+#[allow(unused)]
 pub fn resolve_nym_network_details(network_details: &mut NymNetworkDetails) {
     for ep in network_details.endpoints.iter_mut() {
         if let Some(mut url) = ep.api_url() {

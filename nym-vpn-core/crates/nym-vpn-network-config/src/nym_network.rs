@@ -6,8 +6,6 @@ use std::path::{Path, PathBuf};
 use anyhow::Context;
 use nym_config::defaults::NymNetworkDetails;
 
-use crate::util::resolve_nym_network_details;
-
 use super::{discovery::Discovery, MAX_FILE_AGE, NETWORKS_SUBDIR};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
@@ -38,8 +36,8 @@ impl NymNetwork {
         let path = Self::path(config_dir, network_name);
         tracing::debug!("Reading network details from: {}", path.display());
         let file_str = std::fs::read_to_string(path)?;
-        let mut network: NymNetworkDetails = serde_json::from_str(&file_str)?;
-        resolve_nym_network_details(&mut network);
+        let network: NymNetworkDetails = serde_json::from_str(&file_str)?;
+        // resolve_nym_network_details(&mut network);
         Ok(Self { network })
     }
 
