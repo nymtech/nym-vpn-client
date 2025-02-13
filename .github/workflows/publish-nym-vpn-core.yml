@@ -84,7 +84,7 @@ jobs:
         run: cargo install --locked cargo-edit
 
       - name: Append timestamp if it's a pre-release version
-        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version-pre.outputs.output }}
+        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version-pre.outputs.metadata }}
 
       - name: Get nym-vpn-core workspace version (post-append)
         id: workspace-version
