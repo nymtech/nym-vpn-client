@@ -151,11 +151,12 @@ jobs:
 
       - name: Include generated proto files for swift in the bundled upload
         run: |
-          mkdir -p ${{ env.UPLOAD_DIR_MAC }}
-          cp -v proto/nym/vpn.grpc.swift ${{ env.UPLOAD_DIR_MAC }}
-          cp -v proto/nym/vpn.pb.swift ${{ env.UPLOAD_DIR_MAC }}
-          cp -v proto/grpc/health.grpc.swift ${{ env.UPLOAD_DIR_MAC }}
-          cp -v proto/grpc/health.pb.swift ${{ env.UPLOAD_DIR_MAC }}
+          mkdir -p ${{ env.UPLOAD_DIR_MAC }}/proto/nym
+          mkdir -p ${{ env.UPLOAD_DIR_MAC }}/proto/grpc
+          cp -v proto/nym/vpn.grpc.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
+          cp -v proto/nym/vpn.pb.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
+          cp -v proto/grpc/health.grpc.swift ${{ env.UPLOAD_DIR_MAC }}/proto/grpc
+          cp -v proto/grpc/health.pb.swift ${{ env.UPLOAD_DIR_MAC }}/proto/grpc
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
