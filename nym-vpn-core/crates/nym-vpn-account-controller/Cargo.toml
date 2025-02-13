@@ -42,7 +42,7 @@ tracing.workspace = true
 url.workspace = true
 uuid.workspace = true
 zeroize.workspace = true
-windows-sys = { version = "0.59.0", workspace = true, features = ["Win32_System_Threading", "Win32_System_SystemServices"] }
+windows-sys = { version = "0.59.0", features = ["Win32_System_Threading", "Win32_System_SystemServices"] }
 widestring.workspace = true
 
 [build-dependencies]

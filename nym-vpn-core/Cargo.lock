@@ -4905,6 +4905,8 @@ dependencies = [
  "tracing",
  "url",
  "uuid",
+ "widestring",
+ "windows-sys 0.52.0",
  "zeroize",
 ]
 
