@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_to_github:
-        description: "If the build should be published to github. Will only have an effect if the version is set to a non-pre-release version."
+        description: "If the build should be published to github. Only has an effect for pre-releases, if the version is not a pre-release then it will be automatically published."
         type: boolean
         default: false
         required: true
@@ -174,7 +174,7 @@ jobs:
           echo 'EOF' >> $GITHUB_ENV
 
       - name: Publish release
-        if: ${{ inputs.publish_to_github == 'true' || inputs.publish_to_github == true || github.event_name == 'push' }}
+        if: ${{ !contains(steps.workspace-version.outputs.metadata, '-') || inputs.publish_to_github == true || inputs.publish_to_github == 'true' }}
         run: |
           echo "Setting up the release notes"
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
@@ -233,7 +233,7 @@ jobs:
           TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/nym-vpn-core
 
   gen-hashes:
-    if: ${{ inputs.publish_to_github == 'true' || inputs.publish_to_github == true || github.event_name == 'push' }}
+    if: ${{ !contains(steps.workspace-version.outputs.metadata, '-') || inputs.publish_to_github == true || inputs.publish_to_github == 'true' }}
     uses: ./.github/workflows/gen-hashes-json.yml
     needs: publish
     with:
