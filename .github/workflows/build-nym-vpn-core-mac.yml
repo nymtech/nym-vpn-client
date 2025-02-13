@@ -159,7 +159,7 @@ jobs:
           mkdir -p ${{ env.UPLOAD_DIR_MAC }}/proto/grpc
           cp -v proto/nym/vpn.grpc.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
           cp -v proto/nym/vpn.pb.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
-          cp -v proto/nym/account.grpc.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
+          #cp -v proto/nym/account.grpc.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
           cp -v proto/nym/account.pb.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
           cp -v proto/grpc/health.grpc.swift ${{ env.UPLOAD_DIR_MAC }}/proto/grpc
           cp -v proto/grpc/health.pb.swift ${{ env.UPLOAD_DIR_MAC }}/proto/grpc
