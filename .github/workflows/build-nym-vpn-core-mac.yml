@@ -135,8 +135,8 @@ jobs:
 
       - name: Compile protobuf for swift (vpn)
         run: |
-          protoc --swift_out=. proto/nym/vpn.proto
-          protoc --grpc-swift_out=. proto/nym/vpn.proto
+          protoc --swift_out=. proto/nym/vpn.proto proto/nym/account.proto
+          protoc --grpc-swift_out=. proto/nym/vpn.proto proto/nym/account.proto
 
       - name: Upload generated protobuf files for swift
         uses: actions/upload-artifact@v4
