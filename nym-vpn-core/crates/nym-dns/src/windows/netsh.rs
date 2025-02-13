@@ -165,7 +165,7 @@ async fn run_netsh_with_timeout(netsh_input: String, timeout: Duration) -> Resul
             Ok(())
         }
         Ok(None) => {
-            let _ = subproc.kill();
+            let _ = subproc.kill().await;
             Err(Error::NetshTimeout)
         }
         Err(error) => Err(Error::WaitNetsh(error)),
