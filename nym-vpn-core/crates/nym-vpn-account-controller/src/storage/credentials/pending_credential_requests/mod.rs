@@ -289,6 +289,9 @@ fn set_file_permission_owner_rw_windows<P: AsRef<Path>>(path: P) -> Result<(), s
         }
     }
 
-    tracing::info!("Successfully set file permissions for {}", file_path.display());
+    tracing::info!(
+        "Successfully set file permissions for {}",
+        file_path.display()
+    );
     Ok(())
 }
