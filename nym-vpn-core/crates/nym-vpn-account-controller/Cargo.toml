@@ -23,6 +23,7 @@ nym-http-api-client.workspace = true
 nym-sdk.workspace = true
 nym-validator-client.workspace = true
 nym-vpn-api-client = { path = "../nym-vpn-api-client" }
+nym-vpn-lib-types = { path = "../nym-vpn-lib-types", features = ["nym-type-conversions"] }
 nym-vpn-network-config = { path = "../nym-vpn-network-config" }
 nym-vpn-store = { path = "../nym-vpn-store" }
 nym-wg-gateway-client = { path = "../nym-wg-gateway-client" }

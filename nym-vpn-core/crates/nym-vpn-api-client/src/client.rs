@@ -55,6 +55,7 @@ impl VpnApiClient {
         self.inner.current_url()
     }
 
+    #[allow(unused)]
     async fn get_vpn_api_unix_timestamp(&self) -> Option<i64> {
         match self.get_health().await {
             Ok(response) => Some(response.timestamp_utc.timestamp()),
@@ -72,19 +73,15 @@ impl VpnApiClient {
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
-        let request = self.inner.create_get_request(path, NO_PARAMS).bearer_auth(
-            account
-                .jwt(self.get_vpn_api_unix_timestamp().await)
-                .to_string(),
-        );
+        let request = self
+            .inner
+            .create_get_request(path, NO_PARAMS)
+            .bearer_auth(account.jwt(None).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(None)),
             ),
             None => request,
         };
@@ -105,19 +102,15 @@ impl VpnApiClient {
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
-        let request = self.inner.create_get_request(path, NO_PARAMS).bearer_auth(
-            account
-                .jwt(self.get_vpn_api_unix_timestamp().await)
-                .to_string(),
-        );
+        let request = self
+            .inner
+            .create_get_request(path, NO_PARAMS)
+            .bearer_auth(account.jwt(None).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(None)),
             ),
             None => request,
         };
@@ -190,19 +183,12 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_post_request(path, NO_PARAMS, json_body)
-            .bearer_auth(
-                account
-                    .jwt(self.get_vpn_api_unix_timestamp().await)
-                    .to_string(),
-            );
+            .bearer_auth(account.jwt(None).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(None)),
             ),
             None => request,
         };
@@ -225,19 +211,12 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_delete_request(path, NO_PARAMS)
-            .bearer_auth(
-                account
-                    .jwt(self.get_vpn_api_unix_timestamp().await)
-                    .to_string(),
-            );
+            .bearer_auth(account.jwt(None).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(None)),
             ),
             None => request,
         };
@@ -262,19 +241,12 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_patch_request(path, NO_PARAMS, json_body)
-            .bearer_auth(
-                account
-                    .jwt(self.get_vpn_api_unix_timestamp().await)
-                    .to_string(),
-            );
+            .bearer_auth(account.jwt(None).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(None)),
             ),
             None => request,
         };

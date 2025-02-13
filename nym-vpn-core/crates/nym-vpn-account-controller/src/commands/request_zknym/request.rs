@@ -20,29 +20,15 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
     VpnApiClient,
 };
-use serde::{Deserialize, Serialize};
+use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiErrorResponse};
 use time::Date;
 
-use crate::{
-    commands::VpnApiEndpointFailure,
-    storage::{PendingCredentialRequest, VpnCredentialStorage},
-};
+use crate::storage::{PendingCredentialRequest, VpnCredentialStorage};
 
-use super::{cached_data::CachedData, RequestZkNymError, ZkNymId};
+use super::{cached_data::CachedData, ZkNymId};
 
 const ZK_NYM_POLLING_TIMEOUT: Duration = Duration::from_secs(60);
 const ZK_NYM_POLLING_INTERVAL: Duration = Duration::from_secs(5);
-
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
-pub struct RequestZkNymSuccess {
-    pub id: ZkNymId,
-}
-
-impl RequestZkNymSuccess {
-    pub fn new(id: ZkNymId) -> Self {
-        RequestZkNymSuccess { id }
-    }
-}
 
 pub(super) struct RequestZkNymTask {
     account: VpnApiAccount,
@@ -130,7 +116,7 @@ impl RequestZkNymTask {
         &self,
         ticketbook_type: TicketType,
     ) -> Result<ZkNymRequestData, RequestZkNymError> {
-        tracing::info!("Constructing zk-nym request");
+        tracing::debug!("Constructing zk-nym request");
 
         let ecash_keypair = self
             .account
@@ -160,7 +146,7 @@ impl RequestZkNymTask {
         &self,
         request: &ZkNymRequestData,
     ) -> Result<NymVpnZkNymPost, RequestZkNymError> {
-        tracing::info!("Requesting zk-nym ticketbook");
+        tracing::debug!("Requesting zk-nym ticketbook");
         self.vpn_api_client
             .request_zk_nym(
                 &self.account,
@@ -172,9 +158,9 @@ impl RequestZkNymTask {
             )
             .await
             .map_err(|err| {
-                VpnApiEndpointFailure::try_from(err)
-                    .map(|source| RequestZkNymError::RequestZkNymEndpointFailure {
-                        source,
+                VpnApiErrorResponse::try_from(err)
+                    .map(|response| RequestZkNymError::RequestZkNymEndpointFailure {
+                        response,
                         ticket_type: request.ticketbook_type.to_string(),
                     })
                     .unwrap_or_else(RequestZkNymError::unexpected_response)
@@ -240,8 +226,8 @@ impl RequestZkNymTask {
                     }
                 }
                 Err(error) => {
-                    return Err(VpnApiEndpointFailure::try_from(error)
-                        .map(|source| RequestZkNymError::PollZkNymEndpointFailure { source })
+                    return Err(VpnApiErrorResponse::try_from(error)
+                        .map(|response| RequestZkNymError::PollZkNymEndpointFailure { response })
                         .unwrap_or_else(RequestZkNymError::unexpected_response));
                 }
             }
@@ -578,10 +564,10 @@ impl RequestZkNymTask {
             .confirm_zk_nym_download_by_id(&self.account, &self.device, id)
             .await
             .map_err(|err| {
-                VpnApiEndpointFailure::try_from(err)
+                VpnApiErrorResponse::try_from(err)
                     .map(
-                        |source| RequestZkNymError::ConfirmZkNymDownloadEndpointFailure {
-                            source,
+                        |response| RequestZkNymError::ConfirmZkNymDownloadEndpointFailure {
+                            response,
                             id: id.to_string(),
                         },
                     )

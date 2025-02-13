@@ -125,9 +125,6 @@ pub enum Internal {
     /// Get the account usage from the nym-vpn-api.
     GetAccountUsage,
 
-    /// Evaluate the current state of the device and determine if it is ready to connect.
-    IsReadyToConnect,
-
     /// Manually reset the device identity. A seed can be provided as a way to generate a stable
     /// identity for testing.
     ResetDeviceIdentity(ResetDeviceIdentityArgs),

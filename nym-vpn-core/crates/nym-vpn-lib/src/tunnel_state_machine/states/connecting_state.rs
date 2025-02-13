@@ -56,6 +56,7 @@ impl ConnectingState {
             shared_state.tun_provider.clone(),
             shared_state.nym_config.clone(),
             shared_state.tunnel_settings.clone(),
+            shared_state.account_command_tx.clone(),
         );
 
         (
@@ -101,6 +102,18 @@ impl TunnelStateHandler for ConnectingState {
            Some(monitor_event) = self.monitor_event_receiver.recv() => {
             match monitor_event {
                 TunnelMonitorEvent::InitializingClient => {
+                    NextTunnelState::SameState(self)
+                }
+                TunnelMonitorEvent::SyncingAccount => {
+                    NextTunnelState::SameState(self)
+                }
+                TunnelMonitorEvent::RegisteringDevice => {
+                    NextTunnelState::SameState(self)
+                }
+                TunnelMonitorEvent::RequestingZkNyms => {
+                    NextTunnelState::SameState(self)
+                }
+                TunnelMonitorEvent::SelectingGateways => {
                     NextTunnelState::SameState(self)
                 }
                 TunnelMonitorEvent::EstablishingTunnel(conn_data) => {

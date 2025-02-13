@@ -145,7 +145,9 @@ pub(super) async fn wait_for_update_account(
         .await?
         .ensure_update_account()
         .await
-        .map_err(VpnError::from)
+        .map_err(|err| VpnError::SyncAccount {
+            details: err.into(),
+        })
 }
 
 pub(super) async fn wait_for_update_device() -> Result<DeviceState, VpnError> {
@@ -153,7 +155,9 @@ pub(super) async fn wait_for_update_device() -> Result<DeviceState, VpnError> {
         .await?
         .ensure_update_device()
         .await
-        .map_err(VpnError::from)
+        .map_err(|err| VpnError::SyncDevice {
+            details: err.into(),
+        })
 }
 
 pub(super) async fn wait_for_register_device() -> Result<(), VpnError> {
@@ -161,7 +165,9 @@ pub(super) async fn wait_for_register_device() -> Result<(), VpnError> {
         .await?
         .ensure_register_device()
         .await
-        .map_err(VpnError::from)
+        .map_err(|err| VpnError::RegisterDevice {
+            details: err.into(),
+        })
 }
 
 pub(super) async fn wait_for_available_zk_nyms() -> Result<(), VpnError> {
@@ -169,7 +175,9 @@ pub(super) async fn wait_for_available_zk_nyms() -> Result<(), VpnError> {
         .await?
         .ensure_available_zk_nyms()
         .await
-        .map_err(VpnError::from)
+        .map_err(|err| VpnError::RequestZkNym {
+            details: err.into(),
+        })
 }
 
 pub(super) async fn wait_for_account_ready_to_connect(
@@ -197,7 +205,9 @@ pub(super) async fn update_account_state() -> Result<(), VpnError> {
         .await?
         .sync_account_state()
         .await
-        .map_err(VpnError::from)
+        .map_err(|err| VpnError::SyncAccount {
+            details: err.into(),
+        })
         .map(|_| ())
 }
 
@@ -237,55 +247,46 @@ pub(super) async fn get_device_id() -> Result<String, VpnError> {
         .map_err(VpnError::from)
 }
 
-// Raw API that does not interact with the account controller
+// Raw API that directly accesses storage without going through the account controller.
+// This API places the responsibility of ensuring the account controller is not running on
+// the caller.
+//
+// WARN: This API was added mostly as a workaround for unblocking the iOS client, and is not a
+// sustainable long term solution.
 pub(crate) mod raw {
     use std::path::Path;
 
-    use super::*;
-    use crate::platform::environment;
     use nym_sdk::mixnet::StoragePaths;
-    use nym_vpn_api_client::response::NymVpnAccountResponse;
-    use nym_vpn_api_client::types::{Device, DeviceStatus};
-    use nym_vpn_api_client::VpnApiClient;
+    use nym_vpn_api_client::{
+        response::NymVpnAccountResponse,
+        types::{Device, DeviceStatus},
+        VpnApiClient,
+    };
 
-    async fn setup_account_storage(
-        path: &str,
-    ) -> Result<crate::storage::VpnClientOnDiskStorage, VpnError> {
+    use crate::{platform::environment, storage::VpnClientOnDiskStorage};
+
+    use super::*;
+
+    async fn setup_account_storage(path: &str) -> Result<VpnClientOnDiskStorage, VpnError> {
         assert_account_controller_not_running().await?;
         let path = PathBuf::from_str(path).map_err(|err| VpnError::InvalidAccountStoragePath {
             details: err.to_string(),
         })?;
-        Ok(crate::storage::VpnClientOnDiskStorage::new(path))
+        Ok(VpnClientOnDiskStorage::new(path))
     }
 
     pub(crate) async fn login_raw(mnemonic: &str, path: &str) -> Result<(), VpnError> {
         let mnemonic = parse_mnemonic(mnemonic).await?;
         get_account_by_mnemonic_raw(mnemonic.clone()).await?;
         let storage = setup_account_storage(path).await?;
-        storage
-            .store_mnemonic(mnemonic)
-            .await
-            .map_err(|err| VpnError::InternalError {
-                details: err.to_string(),
-            })?;
-        storage
-            .init_keys(None)
-            .await
-            .map_err(|err| VpnError::InternalError {
-                details: err.to_string(),
-            })?;
-
+        storage.store_mnemonic(mnemonic).await?;
+        storage.init_keys(None).await?;
         Ok(())
     }
 
     pub(crate) async fn is_account_mnemonic_stored_raw(path: &str) -> Result<bool, VpnError> {
         let storage = setup_account_storage(path).await?;
-        storage
-            .is_mnemonic_stored()
-            .await
-            .map_err(|err| VpnError::InternalError {
-                details: err.to_string(),
-            })
+        storage.is_mnemonic_stored().await.map_err(Into::into)
     }
 
     pub(crate) async fn get_account_id_raw(path: &str) -> Result<String, VpnError> {
@@ -304,32 +305,33 @@ pub(crate) mod raw {
             .remove_mnemonic()
             .await
             .map(|_| true)
-            .map_err(|err| VpnError::InternalError {
-                details: err.to_string(),
-            })
+            .map_err(Into::into)
     }
 
     async fn remove_credential_storage_raw<P: AsRef<Path>>(path: P) -> Result<(), VpnError> {
-        let storage_paths =
-            StoragePaths::new_from_dir(&path).map_err(|err| VpnError::InternalError {
-                details: err.to_string(),
-            })?;
-
-        std::fs::remove_file(storage_paths.credential_database_path).map_err(|err| {
-            VpnError::InternalError {
-                details: err.to_string(),
+        let storage_paths = StoragePaths::new_from_dir(&path).map_err(VpnError::internal)?;
+        for path in storage_paths.credential_database_paths() {
+            tracing::info!("Removing file: {}", path.display());
+            match std::fs::remove_file(&path) {
+                Ok(_) => tracing::trace!("Removed file: {}", path.display()),
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                    tracing::trace!("File not found, skipping: {}", path.display())
+                }
+                Err(e) => {
+                    tracing::error!("Failed to remove file {}: {e}", path.display());
+                    return Err(VpnError::InternalError {
+                        details: e.to_string(),
+                    });
+                }
             }
-        })
+        }
+        Ok(())
     }
 
     async fn create_vpn_api_client() -> Result<VpnApiClient, VpnError> {
         let network_env = environment::current_environment_details().await?;
         let user_agent = crate::util::construct_user_agent();
-        VpnApiClient::new(network_env.vpn_api_url(), user_agent).map_err(|e| {
-            VpnError::InternalError {
-                details: e.to_string(),
-            }
-        })
+        VpnApiClient::new(network_env.vpn_api_url(), user_agent).map_err(VpnError::internal)
     }
 
     async fn load_device(path: &str) -> Result<Device, VpnError> {
@@ -355,10 +357,10 @@ pub(crate) mod raw {
         vpn_api_client
             .update_device(&account, &device, DeviceStatus::DeleteMe)
             .await
-            .map_err(|err| VpnError::UnregisterDeviceApiClientFailure {
+            .map(|_| ())
+            .map_err(|err| VpnError::UnregisterDevice {
                 details: err.to_string(),
-            })?;
-        Ok(())
+            })
     }
 
     async fn get_account_by_mnemonic_raw(
@@ -380,14 +382,11 @@ pub(crate) mod raw {
                 details: err.to_string(),
             })?;
 
-        match unregister_device_raw(path).await {
-            Ok(_) => {
-                tracing::info!("Device has been unregistered");
-            }
-            Err(error) => {
-                tracing::error!("Failed to unregister device: {error:?}");
-            }
-        }
+        unregister_device_raw(path)
+            .await
+            .inspect(|_| tracing::info!("Device has been unregistered"))
+            .inspect_err(|err| tracing::error!("Failed to unregister device: {err:?}"))
+            .ok();
 
         // First remove the files we own directly
         remove_account_mnemonic_raw(path).await?;
@@ -395,11 +394,11 @@ pub(crate) mod raw {
         remove_credential_storage_raw(&path_buf).await?;
 
         // Then remove the rest of the files, that we own indirectly
-        nym_vpn_account_controller::util::remove_files_for_account(&path_buf).map_err(|err| {
-            VpnError::InternalError {
+        nym_vpn_account_controller::storage_cleanup::remove_files_for_account(&path_buf).map_err(
+            |err| VpnError::Storage {
                 details: err.to_string(),
-            }
-        })?;
+            },
+        )?;
 
         Ok(())
     }
@@ -415,11 +414,6 @@ pub(crate) mod raw {
 
     pub(crate) async fn remove_device_identity_raw(path: &str) -> Result<(), VpnError> {
         let storage = setup_account_storage(path).await?;
-        storage
-            .remove_keys()
-            .await
-            .map_err(|err| VpnError::InternalError {
-                details: err.to_string(),
-            })
+        storage.remove_keys().await.map_err(VpnError::internal)
     }
 }

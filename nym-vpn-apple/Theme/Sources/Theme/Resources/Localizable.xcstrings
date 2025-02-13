@@ -914,6 +914,17 @@
         }
       }
     },
+    "helper.installView.step.currentVersion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "current"
+          }
+        }
+      }
+    },
     "helper.installView.step.install" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -936,6 +947,50 @@
         }
       }
     },
+    "helper.installView.step.requiredVersion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "required"
+          }
+        }
+      }
+    },
+    "helper.installView.step.verifyingVersion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifying version"
+          }
+        }
+      }
+    },
+    "helper.installView.step.versionMatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version OK"
+          }
+        }
+      }
+    },
+    "helper.installView.step.versionMismatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daemon version mismatch:"
+          }
+        }
+      }
+    },
     "helper.installView.step.waitingToStart" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -943,6 +998,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Waiting for daemon start"
+          }
+        }
+      }
+    },
+    "helper.installView.update" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update"
+          }
+        }
+      }
+    },
+    "helper.installView.updating" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updating…"
           }
         }
       }

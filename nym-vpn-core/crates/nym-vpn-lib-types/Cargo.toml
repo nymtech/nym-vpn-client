@@ -10,19 +10,22 @@ license.workspace = true
 
 [features]
 nym-type-conversions = [
-    "dep:nym-statistics-common",
     "dep:nym-bandwidth-controller",
-    "dep:nym-gateway-directory",
-    "dep:nym-wg-gateway-client",
     "dep:nym-connection-monitor",
+    "dep:nym-gateway-directory",
+    "dep:nym-statistics-common",
+    "dep:nym-vpn-api-client",
+    "dep:nym-wg-gateway-client",
 ]
 
 [dependencies]
-time.workspace = true
 si-scale.workspace = true
+thiserror.workspace = true
+time.workspace = true
 
-nym-statistics-common = { workspace = true, optional = true }
 nym-bandwidth-controller = { workspace = true, optional = true }
-nym-gateway-directory = { path = "../nym-gateway-directory", optional = true }
-nym-wg-gateway-client = { path = "../nym-wg-gateway-client", optional = true }
 nym-connection-monitor = { path = "../nym-connection-monitor", optional = true }
+nym-gateway-directory = { path = "../nym-gateway-directory", optional = true }
+nym-statistics-common = { workspace = true, optional = true }
+nym-vpn-api-client = { path = "../nym-vpn-api-client", optional = true }
+nym-wg-gateway-client = { path = "../nym-wg-gateway-client", optional = true }

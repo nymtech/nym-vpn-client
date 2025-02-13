@@ -8,7 +8,7 @@ import HelperInstall
 import Settings
 
 struct HomeFlowCoordinator<Content: View>: View {
-    @ObservedObject var state: HomeFlowState
+    @StateObject var state: HomeFlowState
 
     let content: () -> Content
 

@@ -14,18 +14,15 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
     VpnApiClient,
 };
+use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiErrorResponse};
 use tokio::task::JoinSet;
 
 use crate::{
-    commands::{AccountCommandResult, VpnApiEndpointFailure},
-    shared_state::RequestZkNymResult,
-    storage::VpnCredentialStorage,
-    AccountCommandError, SharedAccountState,
+    commands::AccountCommandResult, shared_state::RequestZkNymResult,
+    storage::VpnCredentialStorage, SharedAccountState,
 };
 
-use super::{
-    cached_data::CachedData, request::RequestZkNymTask, RequestZkNymError, RequestZkNymSuccess,
-};
+use super::{cached_data::CachedData, request::RequestZkNymTask};
 
 // The maximum number of zk-nym requests that can fail in a row before we disable background
 // refresh
@@ -117,12 +114,12 @@ impl RequestZkNymCommandHandler {
         ret,
         err,
     )]
-    async fn request_zk_nyms_outer(self) -> Result<RequestZkNymSummary, AccountCommandError> {
+    async fn request_zk_nyms_outer(self) -> Result<RequestZkNymSummary, RequestZkNymError> {
         tracing::debug!("Running zk-nym request command handler: {}", self.id);
 
         // Defensive check for something that should not be possible
         if self.account_state.is_zk_nym_request_in_progress().await {
-            return Err(AccountCommandError::internal(
+            return Err(RequestZkNymError::internal(
                 "duplicate zk-nym request command",
             ));
         }
@@ -142,7 +139,7 @@ impl RequestZkNymCommandHandler {
                 self.account_state
                     .set_zk_nym_request(RequestZkNymResult::from(err.clone()))
                     .await;
-                Err(AccountCommandError::from(err))
+                Err(err)
             }
         }
     }
@@ -249,12 +246,10 @@ impl RequestZkNymCommandHandler {
             .await
             .map(|response| response.items.into_iter().map(|item| item.id).collect())
             .map_err(|err| {
-                VpnApiEndpointFailure::try_from(err)
-                    .map(
-                        |source| RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure {
-                            source,
-                        },
-                    )
+                VpnApiErrorResponse::try_from(err)
+                    .map(|response| {
+                        RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure { response }
+                    })
                     .unwrap_or_else(RequestZkNymError::unexpected_response)
             })
     }

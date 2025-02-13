@@ -10,8 +10,7 @@ pub(crate) use config::{
     DEFAULT_GLOBAL_CONFIG_FILE, DEFAULT_LOG_FILE,
 };
 pub(crate) use error::{
-    AccountError, AccountNotReady, SetNetworkError, VpnServiceConnectError,
-    VpnServiceDisconnectError,
+    AccountError, SetNetworkError, VpnServiceConnectError, VpnServiceDisconnectError,
 };
 pub(crate) use vpn_service::{
     ConnectArgs, ConnectOptions, NymVpnService, VpnServiceCommand, VpnServiceInfo,
