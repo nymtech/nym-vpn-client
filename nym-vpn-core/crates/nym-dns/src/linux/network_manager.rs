@@ -2,9 +2,10 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::IpAddr;
+
 pub use nym_dbus::network_manager::Error;
 use nym_dbus::network_manager::{self, DeviceConfig, NetworkManager as DBus};
-use std::net::IpAddr;
 
 pub type Result<T> = std::result::Result<T, Error>;
 
