@@ -49,8 +49,29 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
                 }
             }
         }
-        // no file path provided -- init os_log logger
-        None => registry.with(filter).try_init(),
+
+        // Attempting to get the tracing_appending solution to work was not successful.
+        // Falling back to a more basic solution that does not support log rotation, for now.
+
+        // Attempt to open the log file for writing
+        OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(path)
+            .ok()
+            .map(|file| {
+                Layer::default()
+                    .with_writer(file)
+                    .with_ansi(false)
+                    .compact()
+            })
+    });
+
+    let result = if let Some(file_layer) = file_layer {
+        registry.with(file_layer).with(filter).try_init()
+    } else {
+        registry.with(filter).try_init()
     };
 
     match result {
