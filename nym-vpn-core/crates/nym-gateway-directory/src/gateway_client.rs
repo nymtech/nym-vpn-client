@@ -7,7 +7,6 @@ use std::{fmt, net::IpAddr};
 use nym_sdk::UserAgent;
 use nym_validator_client::{models::NymNodeDescription, nym_nodes::SkimmedNode, NymApiClient};
 use nym_vpn_api_client::types::{GatewayMinPerformance, Percent};
-use nym_vpn_network_config::resolve_nym_network_details;
 use rand::prelude::SliceRandom;
 use rand::thread_rng;
 use tracing::{debug, error, info, warn};
@@ -31,12 +30,6 @@ pub struct Config {
     pub min_gateway_performance: Option<GatewayMinPerformance>,
 }
 
-impl Default for Config {
-    fn default() -> Self {
-        Self::new_mainnet()
-    }
-}
-
 fn to_string<T: fmt::Display>(value: &Option<T>) -> String {
     match value {
         Some(value) => value.to_string(),
@@ -57,59 +50,6 @@ impl fmt::Display for Config {
 }
 
 impl Config {
-    fn new_mainnet() -> Self {
-        let mut mainnet_network_defaults = nym_sdk::NymNetworkDetails::default();
-        resolve_nym_network_details(&mut mainnet_network_defaults);
-        let default_nyxd_url = mainnet_network_defaults
-            .endpoints
-            .first()
-            .expect("rust sdk mainnet default incorrectly configured")
-            .nyxd_url();
-        let default_api_url = mainnet_network_defaults
-            .endpoints
-            .first()
-            .expect("rust sdk mainnet default incorrectly configured")
-            .api_url()
-            .expect("rust sdk mainnet default api_url not parseable");
-
-        let default_nym_vpn_api_url = mainnet_network_defaults
-            .nym_vpn_api_url()
-            .expect("rust sdk mainnet default nym-vpn-api url not parseable");
-
-        Config {
-            nyxd_url: default_nyxd_url,
-            api_url: default_api_url,
-            nym_vpn_api_url: Some(default_nym_vpn_api_url),
-            min_gateway_performance: None,
-        }
-    }
-
-    pub fn new_from_env() -> Self {
-        let mut network = nym_sdk::NymNetworkDetails::new_from_env();
-        resolve_nym_network_details(&mut network);
-        let nyxd_url = network
-            .endpoints
-            .first()
-            .expect("network environment endpoints not correctly configured")
-            .nyxd_url();
-        let api_url = network
-            .endpoints
-            .first()
-            .expect("network environment endpoints not correctly configured")
-            .api_url()
-            .expect("network environment api_url not parseable");
-
-        // The vpn api url is strictly not needed, so skip the expect here
-        let nym_vpn_api_url = network.nym_vpn_api_url();
-
-        Config {
-            nyxd_url,
-            api_url,
-            nym_vpn_api_url,
-            min_gateway_performance: None,
-        }
-    }
-
     pub fn nyxd_url(&self) -> &Url {
         &self.nyxd_url
     }
@@ -485,11 +425,37 @@ mod test {
         }
     }
 
+    fn new_mainnet() -> Config {
+        let mainnet_network_defaults = nym_sdk::NymNetworkDetails::default();
+        let default_nyxd_url = mainnet_network_defaults
+            .endpoints
+            .first()
+            .expect("rust sdk mainnet default incorrectly configured")
+            .nyxd_url();
+        let default_api_url = mainnet_network_defaults
+            .endpoints
+            .first()
+            .expect("rust sdk mainnet default incorrectly configured")
+            .api_url()
+            .expect("rust sdk mainnet default api_url not parseable");
+
+        let default_nym_vpn_api_url = mainnet_network_defaults
+            .nym_vpn_api_url()
+            .expect("rust sdk mainnet default nym-vpn-api url not parseable");
+
+        Config {
+            nyxd_url: default_nyxd_url,
+            api_url: default_api_url,
+            nym_vpn_api_url: Some(default_nym_vpn_api_url),
+            min_gateway_performance: None,
+        }
+    }
+
     // TODO: Remove ignore when magura hits mainnet
     #[ignore]
     #[tokio::test]
     async fn lookup_described_gateways() {
-        let config = Config::new_mainnet();
+        let config = new_mainnet();
         let client = GatewayClient::new(config, user_agent()).unwrap();
         let gateways = client.lookup_described_nodes().await.unwrap();
         assert!(!gateways.is_empty());
@@ -499,7 +465,7 @@ mod test {
     #[ignore]
     #[tokio::test]
     async fn lookup_gateways_in_nym_vpn_api() {
-        let config = Config::new_mainnet();
+        let config = new_mainnet();
         let client = GatewayClient::new(config, user_agent()).unwrap();
         let gateways = client
             .lookup_gateways(GatewayType::MixnetExit)

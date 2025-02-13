@@ -16,9 +16,7 @@ pub struct NymNetwork {
 }
 
 impl NymNetwork {
-    pub fn mainnet_default() -> Self {
-        let mut network = NymNetworkDetails::new_mainnet();
-        resolve_nym_network_details(&mut network);
+    pub fn new(network: NymNetworkDetails) -> Self {
         Self { network }
     }
 

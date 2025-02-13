@@ -6,7 +6,7 @@ use std::env;
 use nym_config::defaults::{var_names, NymNetworkDetails};
 use url::Url;
 
-use crate::{resolve_nym_network_details, AccountManagement, ParsedAccountLinks, SystemMessages};
+use crate::{AccountManagement, ParsedAccountLinks, SystemMessages};
 
 use super::discovery::Discovery;
 
@@ -18,9 +18,7 @@ pub struct NymVpnNetwork {
 }
 
 impl NymVpnNetwork {
-    pub fn mainnet_default() -> Self {
-        let mut network_details = NymNetworkDetails::new_mainnet();
-        resolve_nym_network_details(&mut network_details);
+    pub fn new(network_details: NymNetworkDetails) -> Self {
         // These expects are safe because we are using the hardcoded mainnet defaults
         #[allow(clippy::expect_used)]
         Self {

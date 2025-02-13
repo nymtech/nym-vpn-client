@@ -8,11 +8,8 @@ use std::{path::PathBuf, result::Result, time::Duration};
 use nym_client_core::config::StatsReporting;
 use nym_gateway_directory::Recipient;
 use nym_mixnet_client::SharedMixnetClient;
-use nym_sdk::{
-    mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths},
-    NymNetworkDetails,
-};
-use nym_vpn_network_config::resolve_nym_network_details;
+use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths};
+use nym_vpn_network_config::Network;
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
 
 use super::MixnetError;
@@ -82,6 +79,7 @@ fn apply_mixnet_client_config(
 
 #[allow(clippy::too_many_arguments)]
 pub(crate) async fn setup_mixnet_client(
+    network_env: &Network,
     mixnet_entry_gateway: NodeIdentity,
     mixnet_client_key_storage_path: &Option<PathBuf>,
     mut task_client: nym_task::TaskClient,
@@ -105,8 +103,6 @@ pub(crate) async fn setup_mixnet_client(
         ..Default::default()
     };
     let user_agent = nym_bin_common::bin_info_owned!().into();
-    let mut nym_network_details = NymNetworkDetails::new_from_env();
-    resolve_nym_network_details(&mut nym_network_details);
 
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
         tracing::debug!("Using custom key storage path: {:?}", path);
@@ -133,7 +129,7 @@ pub(crate) async fn setup_mixnet_client(
             .map_err(MixnetError::FailedToCreateMixnetClientWithDefaultStorage)?
             .with_user_agent(user_agent)
             .request_gateway(mixnet_entry_gateway.to_string())
-            .network_details(nym_network_details)
+            .network_details(network_env.nym_network.network.clone())
             .debug_config(debug_config)
             .custom_shutdown(task_client)
             .credentials_mode(enable_credentials_mode)
@@ -153,7 +149,7 @@ pub(crate) async fn setup_mixnet_client(
         let builder = MixnetClientBuilder::new_ephemeral()
             .with_user_agent(user_agent)
             .request_gateway(mixnet_entry_gateway.to_string())
-            .network_details(nym_network_details)
+            .network_details(network_env.nym_network.network.clone())
             .debug_config(debug_config)
             .custom_shutdown(task_client)
             .credentials_mode(enable_credentials_mode)

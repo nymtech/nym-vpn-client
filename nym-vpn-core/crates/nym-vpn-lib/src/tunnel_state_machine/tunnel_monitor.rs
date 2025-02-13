@@ -292,6 +292,7 @@ impl TunnelMonitor {
         };
         let mut connected_mixnet = tunnel::connect_mixnet(
             connect_options,
+            &self.nym_config.network_env,
             self.cancel_token.child_token(),
             #[cfg(unix)]
             Arc::new(connection_fd_callback),
@@ -465,6 +466,7 @@ impl TunnelMonitor {
     ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
+                &self.nym_config.network_env,
                 self.tunnel_settings.enable_credentials_mode,
                 self.cancel_token.clone(),
             )
@@ -580,6 +582,7 @@ impl TunnelMonitor {
     ) -> Result<(TunnelConnectionData, AnyTunnelHandle)> {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
+                &self.nym_config.network_env,
                 self.tunnel_settings.enable_credentials_mode,
                 self.cancel_token.clone(),
             )

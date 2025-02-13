@@ -128,12 +128,6 @@ pub enum ConfigSetupError {
     #[cfg(unix)]
     #[error("failed to set permissions for directory {dir}: {error}")]
     SetPermissions { dir: PathBuf, error: std::io::Error },
-
-    #[error("missing nym-api URL")]
-    MissingApiUrl,
-
-    #[error("missing nyxd URL")]
-    MissingNyxdUrl,
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
