@@ -1,14 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use chrono::{DateTime, Utc};
+use std::{collections::HashSet, fmt, net::IpAddr};
+
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 use serde::{Deserialize, Serialize};
-use std::collections::HashSet;
-use std::fmt;
-use std::net::IpAddr;
+use time::OffsetDateTime;
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
 
@@ -64,7 +63,8 @@ pub struct NymVpnAccountSummaryFairUsage {
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnHealthResponse {
     pub status: String,
-    pub timestamp_utc: DateTime<Utc>,
+    #[serde(with = "time::serde::rfc3339")]
+    pub timestamp_utc: OffsetDateTime,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

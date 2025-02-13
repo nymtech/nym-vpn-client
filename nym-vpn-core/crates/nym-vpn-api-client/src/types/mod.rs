@@ -8,7 +8,7 @@ mod gateway;
 #[cfg(test)]
 mod test_fixtures;
 
-pub use account::VpnApiAccount;
+pub use account::{VpnApiAccount, VpnApiTime};
 pub use device::{Device, DeviceStatus};
 pub use gateway::{GatewayMinPerformance, GatewayType};
 

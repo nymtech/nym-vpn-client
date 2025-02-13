@@ -7,25 +7,25 @@ use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
 use nym_http_api_client::{HttpClientError, Params, PathSegments, UserAgent, NO_PARAMS};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use time::OffsetDateTime;
 use url::Url;
 
-use crate::request::{UpdateDeviceRequestBody, UpdateDeviceRequestStatus};
-use crate::response::{NymVpnHealthResponse, NymVpnUsagesResponse, NymWellknownDiscoveryItem};
-use crate::types::DeviceStatus;
 use crate::{
     error::{Result, VpnApiClientError},
     request::{
         ApplyFreepassRequestBody, CreateSubscriptionKind, CreateSubscriptionRequestBody,
-        RegisterDeviceRequestBody, RequestZkNymRequestBody,
+        RegisterDeviceRequestBody, RequestZkNymRequestBody, UpdateDeviceRequestBody,
+        UpdateDeviceRequestStatus,
     },
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
-        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
-        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymPost,
-        NymVpnZkNymResponse, StatusOk,
+        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnHealthResponse,
+        NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse,
+        NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymResponse,
+        NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
-    types::{Device, GatewayMinPerformance, GatewayType, VpnApiAccount},
+    types::{Device, DeviceStatus, GatewayMinPerformance, GatewayType, VpnApiAccount, VpnApiTime},
 };
 
 pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
@@ -55,12 +55,16 @@ impl VpnApiClient {
         self.inner.current_url()
     }
 
-    #[allow(unused)]
-    async fn get_vpn_api_unix_timestamp(&self) -> Option<i64> {
-        match self.get_health().await {
-            Ok(response) => Some(response.timestamp_utc.timestamp()),
-            Err(_) => None,
-        }
+    pub async fn get_remote_time(&self) -> Result<VpnApiTime> {
+        let time_before = OffsetDateTime::now_utc();
+        let remote_timestamp = self.get_health().await?.timestamp_utc;
+        let time_after = OffsetDateTime::now_utc();
+
+        Ok(VpnApiTime::from_remote_timestamp(
+            time_before,
+            remote_timestamp,
+            time_after,
+        ))
     }
 
     async fn get_authorized<T, E>(

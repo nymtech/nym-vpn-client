@@ -3,7 +3,10 @@
 
 use std::sync::Arc;
 
-use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
+use nym_vpn_api_client::{
+    response::NymVpnAccountSummaryResponse,
+    types::{VpnApiAccount, VpnApiTime},
+};
 use nym_vpn_lib_types::{SyncAccountError, VpnApiErrorResponse};
 use tracing::Level;
 
@@ -86,6 +89,16 @@ impl SyncStateCommandHandler {
     }
 }
 
+fn handle_remote_time(remote_time: VpnApiTime) {
+    if remote_time.is_synced() {
+        tracing::info!("{remote_time}");
+    } else {
+        tracing::warn!(
+            "The time skew between the local and remote time is too large ({remote_time})."
+        );
+    }
+}
+
 async fn update_state(
     account: &VpnApiAccount,
     account_state: &SharedAccountState,
@@ -93,7 +106,15 @@ async fn update_state(
     previous_account_summary_response: &PreviousAccountSummaryResponse,
 ) -> Result<NymVpnAccountSummaryResponse, SyncAccountError> {
     tracing::debug!("Updating account state");
-    let response = vpn_api_client.get_account_summary(account).await;
+    let (remote_time, response) = tokio::join!(
+        vpn_api_client.get_remote_time(),
+        vpn_api_client.get_account_summary(account)
+    );
+
+    match remote_time {
+        Ok(remote_time) => handle_remote_time(remote_time),
+        Err(err) => tracing::error!("Failed to get remote time: {err}"),
+    }
 
     let account_summary = match response {
         Ok(account_summary) => account_summary,
