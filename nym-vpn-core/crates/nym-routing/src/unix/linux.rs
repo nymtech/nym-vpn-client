@@ -15,11 +15,7 @@ use std::{
     num::NonZeroI32,
 };
 
-use futures::{
-    channel::mpsc::{UnboundedReceiver, UnboundedSender},
-    future::FutureExt,
-    StreamExt, TryStream, TryStreamExt,
-};
+use futures::{future::FutureExt, StreamExt, TryStream, TryStreamExt};
 use ipnetwork::IpNetwork;
 use libc::RT_TABLE_COMPAT;
 use netlink_packet_core::{
@@ -41,6 +37,7 @@ use rtnetlink::{
     Handle, IpVersion,
 };
 use std::sync::LazyLock;
+use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
 static SUPPRESS_RULE_V4: LazyLock<RuleMessage> = LazyLock::new(|| {
     let mut rule = RuleMessage::default();
@@ -441,7 +438,7 @@ impl RouteManagerImpl {
 
     fn notify_change_listeners(&mut self, message: CallbackMessage) {
         self.listeners
-            .retain(|listener| listener.unbounded_send(message.clone()).is_ok());
+            .retain(|listener| listener.send(message.clone()).is_ok());
     }
 
     // Tries to coax a Route out of a RouteMessage
@@ -754,7 +751,7 @@ impl RouteManagerImpl {
     }
 
     fn listen(&mut self) -> UnboundedReceiver<CallbackMessage> {
-        let (tx, rx) = futures::channel::mpsc::unbounded();
+        let (tx, rx) = mpsc::unbounded_channel();
         self.listeners.push(tx);
         rx
     }

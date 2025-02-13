@@ -451,8 +451,6 @@ mod test {
         }
     }
 
-    // TODO: Remove ignore when magura hits mainnet
-    #[ignore]
     #[tokio::test]
     async fn lookup_described_gateways() {
         let config = new_mainnet();
@@ -461,8 +459,6 @@ mod test {
         assert!(!gateways.is_empty());
     }
 
-    // TODO: Remove ignore when magura hits mainnet
-    #[ignore]
     #[tokio::test]
     async fn lookup_gateways_in_nym_vpn_api() {
         let config = new_mainnet();
