@@ -25,6 +25,7 @@ use windows_sys::Win32::System::SystemServices::SECURITY_DESCRIPTOR_REVISION;
 
 // Consider requests older than 60 days as stale
 const DEFAULT_STALE_REQUESTS_MAX_AGE: Duration = Duration::from_secs(60 * 60 * 24 * 60);
+const SECURITY_MAX_SID_SIZE: u32 = 68;
 
 #[derive(Clone)]
 pub(crate) struct PendingCredentialRequestsStorage {
