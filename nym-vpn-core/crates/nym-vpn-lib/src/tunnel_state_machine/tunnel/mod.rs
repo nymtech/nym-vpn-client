@@ -25,10 +25,7 @@ use tokio_util::sync::CancellationToken;
 #[cfg(windows)]
 use super::route_handler;
 use super::{MixnetEvent, TunnelType};
-use crate::{
-    bandwidth_controller::ReconnectMixnetClientData, GatewayDirectoryError, MixnetClientConfig,
-    MixnetError,
-};
+use crate::{GatewayDirectoryError, MixnetClientConfig, MixnetError};
 pub use any_tunnel_handle::AnyTunnelHandle;
 use status_listener::StatusListener;
 pub use tombstone::Tombstone;
@@ -42,7 +39,6 @@ pub struct ConnectedMixnet {
     selected_gateways: SelectedGateways,
     data_path: Option<PathBuf>,
     mixnet_client: SharedMixnetClient,
-    reconnect_mixnet_client_data: ReconnectMixnetClientData,
 }
 
 impl ConnectedMixnet {
@@ -113,7 +109,6 @@ impl ConnectedMixnet {
                 enable_credentials_mode,
                 self.selected_gateways,
                 self.data_path,
-                self.reconnect_mixnet_client_data,
                 cancel_token,
             )
             .await
@@ -128,7 +123,8 @@ impl ConnectedMixnet {
 
     /// Gracefully shutdown the mixnet client and consume the struct.
     pub async fn dispose(self) {
-        shutdown_task_manager(self.task_manager).await;
+        tracing::debug!("Shutting down connected mixnet");
+        shutdown_mixnet_client(self.task_manager, self.mixnet_client).await;
     }
 }
 
@@ -177,20 +173,9 @@ pub async fn connect_mixnet(
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<ConnectedMixnet> {
     let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
-    let bw_controller_task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
-
-    let task_client = match options.tunnel_type {
-        TunnelType::Mixnet => task_manager.subscribe_named("mixnet_client_main"),
-        TunnelType::Wireguard => bw_controller_task_manager.subscribe_named("mixnet_client_main"),
-    };
+    let task_client = task_manager.subscribe_named("mixnet_client_main");
 
     let mut mixnet_client_config = options.mixnet_client_config.clone().unwrap_or_default();
-    let reconnect_mixnet_client_data = ReconnectMixnetClientData::new(
-        options.clone(),
-        network_env.clone(),
-        bw_controller_task_manager,
-        mixnet_client_config.clone(),
-    );
     let user_agent = options
         .user_agent
         .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
@@ -239,9 +224,9 @@ pub async fn connect_mixnet(
             data_path: options.data_path,
             gateway_directory_client,
             mixnet_client,
-            reconnect_mixnet_client_data,
         }),
         Err(e) => {
+            tracing::error!("JON: Failed to connect to mixnet: {:?}", e);
             shutdown_task_manager(task_manager).await;
             Err(e)
         }
@@ -249,13 +234,24 @@ pub async fn connect_mixnet(
 }
 
 async fn shutdown_task_manager(mut task_manager: TaskManager) {
-    tracing::debug!("Shutting down task manager");
     if task_manager.signal_shutdown().is_err() {
         tracing::error!("Failed to signal task manager shutdown");
     }
 
+    tracing::debug!("Waiting for task manager to shutdown");
     task_manager.wait_for_graceful_shutdown().await;
-    tracing::debug!("Task manager finished");
+}
+
+async fn shutdown_mixnet_client(mut task_manager: TaskManager, mixnet_client: SharedMixnetClient) {
+    if let Err(e) = task_manager.signal_shutdown() {
+        tracing::error!("Failed to signal task manager shutdown: {}", e);
+    }
+
+    tracing::debug!("Disposing mixnet client");
+    mixnet_client.dispose().await;
+
+    tracing::debug!("Waiting for task manager to shutdown");
+    task_manager.wait_for_graceful_shutdown().await;
 }
 
 #[derive(Debug, thiserror::Error)]

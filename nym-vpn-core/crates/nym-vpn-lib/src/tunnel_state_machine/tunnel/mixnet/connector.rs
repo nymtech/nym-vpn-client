@@ -120,8 +120,9 @@ impl Connector {
         })
     }
 
-    /// Gracefully shutdown task manager and consume the struct.
+    /// Gracefully shutdown task manager and mixnet client, and consume the struct.
     pub async fn dispose(self) {
-        tunnel::shutdown_task_manager(self.task_manager).await;
+        tracing::debug!("Shutting down mixnet client");
+        tunnel::shutdown_mixnet_client(self.task_manager, self.mixnet_client).await;
     }
 }
