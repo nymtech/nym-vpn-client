@@ -58,6 +58,7 @@ jobs:
       contents: write
     outputs:
       tag: ${{ steps.set_tag.outputs.tag }}
+      ok_to_publish: ${{ steps.determine-ok-to-publish.outputs.ok_to_publish }}
 
     steps:
       - name: Checkout repo
@@ -94,6 +95,21 @@ jobs:
 
       - name: Download artifacts
         uses: actions/download-artifact@v4
+
+      - name: Determine if we should publish
+        id: determine-ok-to-publish
+        run: |
+          version="${{ steps.workspace-version.outputs.metadata }}"
+          should_publish="false"
+          # If version does NOT contain '-' => stable => auto-publish
+          if [[ "$version" != *"-"* ]]; then
+            should_publish="true"
+          fi
+          # Or if the user explicitly sets publish_to_github
+          if [[ "${{ inputs.publish_to_github }}" == "true" ]]; then
+            should_publish="true"
+          fi
+          echo "ok_to_publish=$should_publish" >> "$GITHUB_OUTPUT"
 
       # Setup TAG_NAME, which is used as a general "name"
       - if: github.event_name == 'workflow_dispatch'
@@ -173,8 +189,8 @@ jobs:
           cat build-info/build-info.txt >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-      - name: Publish release
-        if: ${{ !contains(steps.workspace-version.outputs.metadata, '-') || inputs.publish_to_github == true || inputs.publish_to_github == 'true' }}
+      - name: Publish release to github
+        if: ${{ steps.determine-ok-to-publish.outputs.ok_to_publish == 'true' }}
         run: |
           echo "Setting up the release notes"
           envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
@@ -205,7 +221,7 @@ jobs:
           mkdir -p $OUTPUT_DIR
           echo $OUTPUT_DIR
 
-      - name: Prepare build output
+      - name: Prepare build output artifacts
         shell: bash
         run: |
           cp -v ${{ env.ARCHIVE_LINUX }}.tar.gz ${{ env.OUTPUT_DIR }} || true
@@ -233,9 +249,9 @@ jobs:
           TARGET: ${{ secrets.CI_WWW_REMOTE_TARGET }}/builds/nym-vpn-client/nym-vpn-core
 
   gen-hashes:
-    if: ${{ !contains(steps.workspace-version.outputs.metadata, '-') || inputs.publish_to_github == true || inputs.publish_to_github == 'true' }}
-    uses: ./.github/workflows/gen-hashes-json.yml
     needs: publish
+    if: ${{ needs.publish.outputs.ok_to_publish == 'true' }}
+    uses: ./.github/workflows/gen-hashes-json.yml
     with:
       release_tag: ${{ needs.publish.outputs.tag }}
     secrets: inherit
