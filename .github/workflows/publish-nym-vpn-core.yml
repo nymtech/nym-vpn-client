@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       publish_to_github:
-        description: "If the build should be published to github. Only has an effect for pre-releases, if the version is not a pre-release then it will be automatically published."
+        description: "If the build should be published to github. Only has an effect when the workspace version is a pre-release, if the version is not a pre-release then it will be automatically published."
         type: boolean
         default: false
         required: true
