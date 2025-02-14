@@ -1,17 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { disable, enable, isEnabled } from '@tauri-apps/plugin-autostart';
+import { useMainDispatch, useMainState } from '../contexts';
+import { StateDispatch } from '../types';
 
 /* thin wrapper around tauri autostart plugin */
 function useAutostart() {
-  const [enabled, setEnabled] = useState(false);
+  const { autostart } = useMainState();
+  const dispatch = useMainDispatch() as StateDispatch;
 
   useEffect(() => {
     const init = async () => {
       const enabled = await isEnabled();
-      setEnabled(enabled);
+      dispatch({ type: 'set-autostart', enabled });
     };
     init();
-  }, []);
+  }, [dispatch]);
 
   const toggle = async () => {
     const enabled = await isEnabled();
@@ -20,10 +23,10 @@ function useAutostart() {
     } else {
       await enable();
     }
-    setEnabled(!enabled);
+    dispatch({ type: 'set-autostart', enabled: !enabled });
   };
 
-  return { enabled, toggle };
+  return { enabled: autostart, toggle };
 }
 
 export default useAutostart;

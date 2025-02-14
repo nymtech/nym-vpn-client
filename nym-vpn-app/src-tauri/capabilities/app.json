@@ -3,9 +3,7 @@
   "identifier": "app",
   "description": "Capability for the app main window",
   "local": true,
-  "windows": [
-    "main"
-  ],
+  "windows": ["main"],
   "permissions": [
     "core:default",
     "core:window:allow-create",
@@ -36,7 +34,7 @@
           "path": "$HOME/.cache/nym-vpn-app/log"
         },
         {
-          "path": "%USERPROFILE%\\AppData\\Local\\nym-vpn-app\\log"
+          "path": "$HOME\\AppData\\Local\\nym-vpn-app\\log"
         }
       ]
     },

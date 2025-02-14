@@ -68,6 +68,7 @@ export type StateAction =
   | { type: 'set-root-font-size'; size: number }
   | { type: 'set-code-deps-js'; dependencies: CodeDependency[] }
   | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
+  | { type: 'set-autostart'; enabled: boolean }
   | { type: 'set-account'; stored: boolean }
   | { type: 'set-entry-countries-error'; payload: AppError | null }
   | { type: 'set-exit-countries-error'; payload: AppError | null }
@@ -84,6 +85,7 @@ export const initialState: AppState = {
   uiTheme: 'Light',
   themeMode: DefaultThemeMode,
   progressMessages: [],
+  autostart: false,
   autoConnect: false,
   monitoring: false,
   desktopNotifications: true,
@@ -306,6 +308,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         accountLinks: action.links,
+      };
+    case 'set-autostart':
+      return {
+        ...state,
+        autostart: action.enabled,
       };
 
     case 'reset':

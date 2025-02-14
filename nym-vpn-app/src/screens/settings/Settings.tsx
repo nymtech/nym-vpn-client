@@ -154,7 +154,8 @@ function Settings() {
         ]}
       />
       <SettingsMenuCard
-        title={t('autostart')}
+        title={t('autostart.title')}
+        desc={t('autostart.desc')}
         leadingIcon="computer"
         onClick={handleAutostartChanged}
         trailingComponent={

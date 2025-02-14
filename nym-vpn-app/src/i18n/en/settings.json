@@ -47,5 +47,8 @@
     "account-id": "Account ID",
     "device-id": "Device ID"
   },
-  "autostart": "Launch NymVPN when system start"
+  "autostart": {
+    "title": "Autostart",
+    "desc": "Launch NymVPN when system starts"
+  }
 }
