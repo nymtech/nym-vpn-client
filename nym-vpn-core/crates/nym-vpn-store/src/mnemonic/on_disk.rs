@@ -2,16 +2,18 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::{MnemonicStorage, MnemonicStorageError, StoredMnemonic};
+#[cfg(windows)]
 use std::os::raw::c_void;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
+#[cfg(windows)]
 use std::path::Path;
 use std::{
     fs::{self, File},
-    mem,
     path::PathBuf,
-    ptr,
 };
+#[cfg(windows)]
+use std::{mem, ptr};
 #[cfg(windows)]
 use widestring::U16CString;
 #[cfg(windows)]

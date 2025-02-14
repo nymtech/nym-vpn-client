@@ -19,13 +19,14 @@ use std::{
 use time::OffsetDateTime;
 use tracing::log::LevelFilter;
 #[cfg(windows)]
+use winapi::um::winnt::SECURITY_MAX_SID_SIZE;
+#[cfg(windows)]
 use windows_sys::Win32::Foundation::{FALSE, TRUE};
 #[cfg(windows)]
 use windows_sys::Win32::System::SystemServices::SECURITY_DESCRIPTOR_REVISION;
 
 // Consider requests older than 60 days as stale
 const DEFAULT_STALE_REQUESTS_MAX_AGE: Duration = Duration::from_secs(60 * 60 * 24 * 60);
-const SECURITY_MAX_SID_SIZE: u32 = 68;
 
 #[derive(Clone)]
 pub(crate) struct PendingCredentialRequestsStorage {
@@ -217,7 +218,7 @@ fn set_file_permission_owner_rw_windows<P: AsRef<Path>>(path: P) -> Result<(), s
         )
     })?;
 
-    let mut sid_size = SECURITY_MAX_SID_SIZE;
+    let mut sid_size: u32 = SECURITY_MAX_SID_SIZE as u32;
     let mut system_sid = vec![0u8; sid_size as usize];
 
     unsafe {

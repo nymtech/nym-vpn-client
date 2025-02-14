@@ -5,9 +5,9 @@ use nym_vpn_lib::gateway_directory;
 use serde::{de::DeserializeOwned, Serialize};
 #[cfg(windows)]
 use std::os::raw::c_void;
-#[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
-use std::{fmt, fs, mem, path::PathBuf, ptr};
+use std::{fmt, fs, path::PathBuf};
+#[cfg(windows)]
+use std::{mem, ptr};
 #[cfg(windows)]
 use widestring::U16CString;
 #[cfg(windows)]
