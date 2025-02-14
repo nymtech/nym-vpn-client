@@ -15,7 +15,7 @@ use std::{
     num::NonZeroI32,
 };
 
-use futures::{future::FutureExt, TryStream, TryStreamExt};
+use futures::{future::FutureExt, StreamExt, TryStream, TryStreamExt};
 use ipnetwork::IpNetwork;
 use libc::RT_TABLE_COMPAT;
 use netlink_packet_core::{
@@ -136,7 +136,10 @@ pub enum Error {
 
 pub struct RouteManagerImpl {
     handle: Handle,
-    messages: UnboundedReceiver<(NetlinkMessage<RouteNetlinkMessage>, SocketAddr)>,
+    messages: futures::channel::mpsc::UnboundedReceiver<(
+        NetlinkMessage<RouteNetlinkMessage>,
+        SocketAddr,
+    )>,
     iface_map: BTreeMap<u32, NetworkInterface>,
     listeners: Vec<UnboundedSender<CallbackMessage>>,
 
@@ -355,14 +358,14 @@ impl RouteManagerImpl {
 
     pub(crate) async fn run(
         mut self,
-        manage_rx: UnboundedReceiver<RouteManagerCommand>,
+        mut manage_rx: UnboundedReceiver<RouteManagerCommand>,
     ) -> Result<()> {
         loop {
             tokio::select! {
                 command = manage_rx.recv() => {
                     self.process_command(command).await?;
                 },
-                (route_change, _socket) = self.messages.recv() => {
+                Some((route_change, _socket)) = self.messages.next() => {
                     if let Err(error) = self.process_netlink_message(route_change) {
                         tracing::error!("{}", error.display_chain_with_msg("Failed to process netlink message"));
                     }
@@ -371,35 +374,37 @@ impl RouteManagerImpl {
         }
     }
 
-    async fn process_command(&mut self, command: RouteManagerCommand) -> Result<()> {
+    async fn process_command(&mut self, command: Option<RouteManagerCommand>) -> Result<()> {
         match command {
-            RouteManagerCommand::Shutdown(shutdown_signal) => {
+            None | Some(RouteManagerCommand::Shutdown(_)) => {
                 tracing::trace!("Shutting down route manager");
                 self.destructor().await;
                 tracing::trace!("Route manager done");
-                let _ = shutdown_signal.send(());
+                if let Some(RouteManagerCommand::Shutdown(shutdown_signal)) = command {
+                    let _ = shutdown_signal.send(());
+                }
                 return Err(Error::Shutdown);
             }
-            RouteManagerCommand::AddRoutes(routes, result_tx) => {
+            Some(RouteManagerCommand::AddRoutes(routes, result_tx)) => {
                 tracing::debug!("Adding routes: {:?}", routes);
                 let _ = result_tx.send(self.add_required_routes(routes.clone()).await);
             }
-            RouteManagerCommand::CreateRoutingRules(enable_ipv6, result_tx) => {
+            Some(RouteManagerCommand::CreateRoutingRules(enable_ipv6, result_tx)) => {
                 let _ = result_tx.send(self.create_routing_rules(enable_ipv6).await);
             }
-            RouteManagerCommand::ClearRoutingRules(result_tx) => {
+            Some(RouteManagerCommand::ClearRoutingRules(result_tx)) => {
                 let _ = result_tx.send(self.clear_routing_rules().await);
             }
-            RouteManagerCommand::NewChangeListener(result_tx) => {
+            Some(RouteManagerCommand::NewChangeListener(result_tx)) => {
                 let _ = result_tx.send(self.listen());
             }
-            RouteManagerCommand::GetDestinationRoute(destination, mark, result_tx) => {
+            Some(RouteManagerCommand::GetDestinationRoute(destination, mark, result_tx)) => {
                 let _ = result_tx.send(self.get_destination_route(&destination, mark).await);
             }
-            RouteManagerCommand::GetMtuForRoute(ip, result_tx) => {
+            Some(RouteManagerCommand::GetMtuForRoute(ip, result_tx)) => {
                 let _ = result_tx.send(self.get_mtu_for_route(ip).await);
             }
-            RouteManagerCommand::ClearRoutes => {
+            Some(RouteManagerCommand::ClearRoutes) => {
                 tracing::debug!("Clearing routes");
                 self.cleanup_routes().await;
             }
@@ -437,7 +442,7 @@ impl RouteManagerImpl {
 
     fn notify_change_listeners(&mut self, message: CallbackMessage) {
         self.listeners
-            .retain(|listener| listener.unbounded_send(message.clone()).is_ok());
+            .retain(|listener| listener.send(message.clone()).is_ok());
     }
 
     // Tries to coax a Route out of a RouteMessage

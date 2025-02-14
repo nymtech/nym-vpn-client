@@ -267,7 +267,7 @@ impl RouteManagerHandle {
     pub async fn create_routing_rules(&self) -> Result<(), Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::CreateRoutingRules(true, response_tx))
+            .send(RouteManagerCommand::CreateRoutingRules(true, response_tx))
             .map_err(|_| Error::RouteManagerDown)?;
         response_rx
             .await
@@ -280,7 +280,7 @@ impl RouteManagerHandle {
     pub async fn clear_routing_rules(&self) -> Result<(), Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::ClearRoutingRules(response_tx))
+            .send(RouteManagerCommand::ClearRoutingRules(response_tx))
             .map_err(|_| Error::RouteManagerDown)?;
         response_rx
             .await
@@ -290,10 +290,10 @@ impl RouteManagerHandle {
 
     /// Listen for route changes.
     #[cfg(target_os = "linux")]
-    pub async fn change_listener(&self) -> Result<impl Stream<Item = CallbackMessage>, Error> {
+    pub async fn change_listener(&self) -> Result<mpsc::UnboundedReceiver<CallbackMessage>, Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::NewChangeListener(response_tx))
+            .send(RouteManagerCommand::NewChangeListener(response_tx))
             .map_err(|_| Error::RouteManagerDown)?;
         response_rx.await.map_err(|_| Error::ManagerChannelDown)
     }
@@ -307,7 +307,7 @@ impl RouteManagerHandle {
     ) -> Result<Option<Route>, Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::GetDestinationRoute(
+            .send(RouteManagerCommand::GetDestinationRoute(
                 destination,
                 mark,
                 response_tx,
@@ -324,7 +324,7 @@ impl RouteManagerHandle {
     pub async fn get_mtu_for_route(&self, ip: IpAddr) -> Result<u16, Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::GetMtuForRoute(ip, response_tx))
+            .send(RouteManagerCommand::GetMtuForRoute(ip, response_tx))
             .map_err(|_| Error::RouteManagerDown)?;
         response_rx
             .await
