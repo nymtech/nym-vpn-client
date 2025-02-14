@@ -23,7 +23,6 @@ use tracing::{debug, error, info, instrument, warn};
 pub use super::account_links::AccountLinks;
 pub use super::error::VpndError;
 pub use super::feature_flags::FeatureFlags;
-pub use super::ready_to_connect::ReadyToConnect;
 pub use super::system_message::SystemMessage;
 use super::tunnel::TunnelState;
 use super::version_check::VersionCheck;
@@ -443,24 +442,6 @@ impl GrpcClient {
             IsAccountStoredResp::IsStored(v) => Ok(v),
             IsAccountStoredResp::Error(e) => Err(VpndError::Response(e.into())),
         }
-    }
-
-    /// Check the local account state and device info, if it is ready to connect
-    #[instrument(skip_all)]
-    pub async fn is_ready_to_connect(&self) -> Result<ReadyToConnect, VpndError> {
-        let mut vpnd = self.vpnd().await?;
-
-        let request = Request::new(());
-        let response = vpnd.is_ready_to_connect(request).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
-        let response = response.into_inner();
-        debug!("grpc response: {:?}", response);
-        response.kind().try_into().map_err(|e: String| {
-            error!("{e}");
-            VpndError::internal(&e)
-        })
     }
 
     /// Get the account identity \

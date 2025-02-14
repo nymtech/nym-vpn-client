@@ -226,7 +226,6 @@ async fn main() -> Result<()> {
             account::get_account_id,
             account::get_device_id,
             account::account_links,
-            account::ready_to_connect,
             cmd_daemon::daemon_status,
             cmd_daemon::set_network,
             cmd_daemon::system_messages,
