@@ -182,6 +182,7 @@ x25519-dalek = "2.0"
 zeroize = "1.6.0"
 
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
 nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
 nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
 nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
