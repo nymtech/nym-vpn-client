@@ -15,6 +15,7 @@ use ts_rs::TS;
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "kebab-case")]
+#[serde(tag = "key", content = "data")]
 pub enum TunnelError {
     Internal,
     Firewall,
@@ -45,12 +46,12 @@ pub enum TunnelError {
     RegisterDeviceInternal(String),
     RegisterDeviceVpnApi(Option<String>),
     // RequestZkNymError mapping
-    ReqZkNymNoAccountStored(bool),
-    ReqZkNymNoDeviceStored(bool),
-    ReqZkNymUnexpectedResponse(String),
-    ReqZkNymStorage(String),
-    ReqZkNymInternal(String),
-    ReqZkNymVpnApi(Option<String>),
+    ReqZknymNoAccountStored(bool),
+    ReqZknymNoDeviceStored(bool),
+    ReqZknymUnexpectedResponse(String),
+    ReqZknymStorage(String),
+    ReqZknymInternal(String),
+    ReqZknymVpnApi(Option<String>),
 }
 
 impl From<Option<ErrorStateReason>> for TunnelError {
@@ -151,12 +152,12 @@ impl From<RequestZkNymError> for TunnelError {
             return TunnelError::Internal;
         };
         match e {
-            ZkNymErr::NoAccountStored(b) => TunnelError::ReqZkNymNoAccountStored(b),
-            ZkNymErr::NoDeviceStored(b) => TunnelError::ReqZkNymNoDeviceStored(b),
-            ZkNymErr::UnexpectedVpnApiResponse(s) => TunnelError::ReqZkNymUnexpectedResponse(s),
-            ZkNymErr::Storage(s) => TunnelError::ReqZkNymStorage(s),
-            ZkNymErr::Internal(s) => TunnelError::ReqZkNymInternal(s),
-            ZkNymErr::VpnApi(res) => TunnelError::ReqZkNymVpnApi(res.code_reference_id),
+            ZkNymErr::NoAccountStored(b) => TunnelError::ReqZknymNoAccountStored(b),
+            ZkNymErr::NoDeviceStored(b) => TunnelError::ReqZknymNoDeviceStored(b),
+            ZkNymErr::UnexpectedVpnApiResponse(s) => TunnelError::ReqZknymUnexpectedResponse(s),
+            ZkNymErr::Storage(s) => TunnelError::ReqZknymStorage(s),
+            ZkNymErr::Internal(s) => TunnelError::ReqZknymInternal(s),
+            ZkNymErr::VpnApi(res) => TunnelError::ReqZknymVpnApi(res.code_reference_id),
         }
     }
 }

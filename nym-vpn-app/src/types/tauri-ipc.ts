@@ -44,18 +44,10 @@ export type ErrorKey =
   | 'AccountInvalidMnemonic'
   | 'AccountStorage'
   | 'AccountIsConnected'
-  | 'ConnectGeneral'
-  | 'ConnectNoAccountStored'
-  | 'ConnectNoDeviceStored'
-  | 'ConnectUpdateAccount'
-  | 'ConnectUpdateDevice'
-  | 'ConnectRegisterDevice'
-  | 'ConnectRequestZkNym'
   | 'GetMixnetEntryCountriesQuery'
   | 'GetMixnetExitCountriesQuery'
   | 'GetWgCountriesQuery'
-  | 'InvalidNetworkName'
-  | 'MaxRegisteredDevices';
+  | 'InvalidNetworkName';
 
 export type StartupErrorKey = 'StartupOpenDb' | 'StartupOpenDbLocked';
 
@@ -94,5 +86,3 @@ export type AccountLinks = {
   signIn?: string | null;
   account?: string | null;
 };
-
-export type ReadyToConnect = 'ready' | { not_ready: string };

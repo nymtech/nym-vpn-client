@@ -11,7 +11,14 @@ function useI18nError() {
   const { t } = useTranslation('errors');
 
   const translateError = useCallback(
-    (key: ErrorKey | TunnelError) => {
+    (error: ErrorKey | TunnelError) => {
+      let key: string;
+      if (typeof error === 'object') {
+        key = error.key;
+      } else {
+        key = error;
+      }
+
       switch (key) {
         // tunnel state errors
         case 'internal':
@@ -36,6 +43,54 @@ function useI18nError() {
           return t('tunnel.bad-bandwidth-increase');
         case 'duplicate-tun-fd':
           return t('tunnel.duplicate-tun-fd');
+        case 'sync-account-no-account-stored':
+          return t('sync-account', { reason: t('account.not-stored') });
+        case 'sync-account-unexpected-response':
+          return t('sync-account', {
+            reason: t('account.unexpected-response'),
+          });
+        case 'sync-account-internal':
+          return t('sync-account', { reason: t('account.internal') });
+        case 'sync-account-vpn-api':
+          return t('sync-account', { reason: t('account.vpn-api') });
+        case 'sync-device-no-account-stored':
+          return t('sync-device', { reason: t('account.not-stored') });
+        case 'sync-device-no-device-stored':
+          return t('sync-device', { reason: t('account.no-device-stored') });
+        case 'sync-device-unexpected-response':
+          return t('sync-device', { reason: t('account.unexpected-response') });
+        case 'sync-device-internal':
+          return t('sync-device', { reason: t('account.internal') });
+        case 'sync-device-vpn-api':
+          return t('sync-device', { reason: t('account.vpn-api') });
+        case 'register-device-no-account-stored':
+          return t('register-device', { reason: t('account.not-stored') });
+        case 'register-device-no-device-stored':
+          return t('register-device', {
+            reason: t('account.no-device-stored'),
+          });
+        case 'register-device-unexpected-response':
+          return t('register-device', {
+            reason: t('account.unexpected-response'),
+          });
+        case 'register-device-internal':
+          return t('register-device', { reason: t('account.internal') });
+        case 'register-device-vpn-api':
+          return t('register-device', { reason: t('account.vpn-api') });
+        case 'req-zknym-no-account-stored':
+          return t('request-zknym', { reason: t('account.not-stored') });
+        case 'req-zknym-no-device-stored':
+          return t('request-zknym', { reason: t('account.no-device-stored') });
+        case 'req-zknym-unexpected-response':
+          return t('request-zknym', {
+            reason: t('account.unexpected-response'),
+          });
+        case 'req-zknym-storage':
+          return t('request-zknym', { reason: t('account.storage') });
+        case 'req-zknym-internal':
+          return t('request-zknym', { reason: t('account.internal') });
+        case 'req-zknym-vpn-api':
+          return t('request-zknym', { reason: t('account.vpn-api') });
         // mixnet event errors
         case 'EntryGwDown':
           return t('entry-gateway-down');
@@ -62,20 +117,6 @@ function useI18nError() {
           return t('account.storage');
         case 'AccountIsConnected':
           return t('account.is-connected');
-        case 'ConnectGeneral':
-          return t('connection-general');
-        case 'ConnectNoAccountStored':
-          return t('account.not-stored');
-        case 'ConnectNoDeviceStored':
-          return t('account.no-device-stored');
-        case 'ConnectUpdateAccount':
-          return t('account.update');
-        case 'ConnectUpdateDevice':
-          return t('account.update-device');
-        case 'ConnectRegisterDevice':
-          return t('account.register-device');
-        case 'ConnectRequestZkNym':
-          return t('zknym.request-failed');
         case 'GetMixnetEntryCountriesQuery':
           return t('countries-request.entry');
         case 'GetMixnetExitCountriesQuery':
@@ -86,8 +127,6 @@ function useI18nError() {
           return t('daemon.invalid-network');
         case 'UnknownError':
           return t('unknown');
-        case 'MaxRegisteredDevices':
-          return t('account.maximum-registered-devices');
 
         default:
           console.warn(`Unknown error key: ${key}`);
