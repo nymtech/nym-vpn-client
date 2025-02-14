@@ -8,12 +8,19 @@ use std::os::raw::c_void;
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
 use std::{fmt, fs, mem, path::PathBuf, ptr};
+#[cfg(windows)]
 use widestring::U16CString;
+#[cfg(windows)]
 use winapi::um::winnt::SECURITY_MAX_SID_SIZE;
+#[cfg(windows)]
 use windows_sys::Win32::Foundation::*;
+#[cfg(windows)]
 use windows_sys::Win32::Security::Authorization::{SetNamedSecurityInfoW, SE_FILE_OBJECT};
+#[cfg(windows)]
 use windows_sys::Win32::Security::*;
+#[cfg(windows)]
 use windows_sys::Win32::Storage::FileSystem::*;
+#[cfg(windows)]
 use windows_sys::Win32::System::SystemServices::SECURITY_DESCRIPTOR_REVISION;
 
 #[cfg(not(windows))]
