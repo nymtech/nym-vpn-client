@@ -13,7 +13,7 @@ import Constants
 import TunnelStatus
 
 public final class GRPCManager: ObservableObject {
-    private let group = MultiThreadedEventLoopGroup(numberOfThreads: 4)
+    private let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
     private let channel: GRPCChannel
     private let unixDomainSocket = "/var/run/nym-vpn.sock"
 
@@ -43,7 +43,7 @@ public final class GRPCManager: ObservableObject {
     }
 
     public var requiresUpdate: Bool {
-        daemonVersion != AppVersionProvider.libVersion
+        daemonVersion.compare(AppVersionProvider.libVersion, options: .numeric) == .orderedAscending
     }
 
     private init() {

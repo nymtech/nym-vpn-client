@@ -19,6 +19,8 @@ public struct HelperInstallView: View {
             Spacer()
             allStepsView()
             Spacer()
+            errorMessage()
+            Spacer()
             actionButton()
         }
         .navigationBarBackButtonHidden(true)
@@ -68,12 +70,38 @@ extension HelperInstallView {
 
     @ViewBuilder
     func stepView(step: HelperInstallStep) -> some View {
-        HStack {
-            PulsingImageView(systemImageName: step.systemImageName, imageColor: step.imageColor)
+        switch step {
+        case .uninstallOldDeamon:
             Text(step.title)
-                .textStyle(.Body.Large.semibold)
+                .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.modeInfoViewTitle)
+                .padding(.horizontal, 16)
+            Spacer()
+                .frame(height: 16)
+
+            GenericButton(title: "helper.installView.copy".localizedString, borderOnly: true)
+                .padding(.horizontal, 16)
+                .onTapGesture {
+                    viewModel.copyCommands()
+                }
+        default:
+            HStack {
+                PulsingImageView(systemImageName: step.systemImageName, imageColor: step.imageColor)
+                Text(step.title)
+                    .textStyle(.Body.Large.semibold)
+                    .lineLimit(3)
+                    .foregroundStyle(NymColor.modeInfoViewTitle)
+            }
+            .padding(.horizontal, 16)
         }
-        .padding(.horizontal, 16)
+    }
+
+    @ViewBuilder
+    func errorMessage() -> some View {
+        if let message = viewModel.error?.localizedDescription {
+            Text(message)
+                .textStyle(.Body.Large.semibold)
+                .foregroundStyle(NymColor.sysError)
+        }
     }
 }

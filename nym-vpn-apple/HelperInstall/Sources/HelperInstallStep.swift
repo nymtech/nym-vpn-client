@@ -2,6 +2,7 @@ import SwiftUI
 import Theme
 
 enum HelperInstallStep: Hashable, Identifiable {
+    case uninstallOldDeamon
     case register(isRegistered: Bool)
     case authorize(isAuthorized: Bool)
     case running(isRunning: Bool)
@@ -13,6 +14,8 @@ enum HelperInstallStep: Hashable, Identifiable {
 
     var title: String {
         switch self {
+        case .uninstallOldDeamon:
+            "helper.installView.step.uninstallOldDaemon".localizedString
         case .register:
             "helper.installView.step.install".localizedString
         case .authorize:
@@ -22,22 +25,24 @@ enum HelperInstallStep: Hashable, Identifiable {
             ? "helper.installView.step.isRunning".localizedString
             : "helper.installView.step.waitingToStart".localizedString
         case let .versionCheck(needsUpdate, requiredVersion, currentVersion):
-            if needsUpdate, currentVersion != "unknown" {
-                """
+            if currentVersion != "unknown", requiredVersion != currentVersion {
+                 """
                 \("helper.installView.step.versionMismatch".localizedString)
                 \("helper.installView.step.requiredVersion".localizedString) - \(requiredVersion)
                 \("helper.installView.step.currentVersion".localizedString) - \(currentVersion)
                 """
+            } else if needsUpdate {
+                "helper.installView.step.verifyingVersion".localizedString
             } else {
-                currentVersion == requiredVersion
-                ? "helper.installView.step.versionMatch".localizedString
-                : "helper.installView.step.verifyingVersion".localizedString
+                "helper.installView.step.versionMatch".localizedString
             }
         }
     }
 
     var systemImageName: String {
         switch self {
+        case .uninstallOldDeamon:
+            "trash.circle"
         case let .register(isRegistered):
             isRegistered ? "shield.lefthalf.filled.badge.checkmark" : "xmark.shield"
         case let .authorize(isAuthorized):
@@ -53,8 +58,10 @@ enum HelperInstallStep: Hashable, Identifiable {
         switch self {
         case let .register(isOn), let .authorize(isOn), let .running(isOn):
             isOn ? NymColor.primaryOrange : NymColor.noInternet
-        case let .versionCheck(requiresUpdate, _, _):
-            requiresUpdate ? NymColor.noInternet : NymColor.primaryOrange
+        case let .versionCheck(_, requiredVersion, currentVersion):
+            requiredVersion == currentVersion ? NymColor.primaryOrange : NymColor.noInternet
+        case .uninstallOldDeamon:
+            NymColor.noInternet
         }
     }
 }
