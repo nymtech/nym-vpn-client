@@ -63,20 +63,22 @@ public final class CredentialsManager {
     }
 
     public func removeCredential() async throws {
-        do {
+        try await Task(priority: .background) {
+            do {
 #if os(iOS)
-            let dataFolderURL = try dataFolderURL()
-            try forgetAccountRaw(path: dataFolderURL.path())
+                let dataFolderURL = try dataFolderURL()
+                try forgetAccountRaw(path: dataFolderURL.path())
 #endif
 
 #if os(macOS)
-            try await grpcManager.forgetAccount()
+                try await grpcManager.forgetAccount()
 #endif
-            checkCredentialImport()
-        } catch {
-            // TODO: need modal for alerts
-            throw error
-        }
+                checkCredentialImport()
+            } catch {
+                // TODO: need modal for alerts
+                throw error
+            }
+        }.value
     }
 
     public func dataFolderURL() throws -> URL {

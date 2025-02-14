@@ -870,6 +870,17 @@
         }
       }
     },
+    "helper.installView.copy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy commands"
+          }
+        }
+      }
+    },
     "helper.installView.daemonText" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -958,6 +969,17 @@
         }
       }
     },
+    "helper.installView.step.uninstallOldDaemon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Due to our migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required. Please execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
+          }
+        }
+      }
+    },
     "helper.installView.step.verifyingVersion" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1020,6 +1042,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Updating…"
+          }
+        }
+      }
+    },
+    "helper.installView.verifying" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifying…"
           }
         }
       }
