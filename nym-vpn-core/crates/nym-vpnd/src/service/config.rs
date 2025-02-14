@@ -1,12 +1,20 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
-use std::{fmt, fs, path::PathBuf};
-
 use nym_vpn_lib::gateway_directory;
 use serde::{de::DeserializeOwned, Serialize};
+#[cfg(windows)]
+use std::os::raw::c_void;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
+use std::{fmt, fs, mem, path::PathBuf, ptr};
+use widestring::U16CString;
+use winapi::um::winnt::SECURITY_MAX_SID_SIZE;
+use windows_sys::Win32::Foundation::*;
+use windows_sys::Win32::Security::Authorization::{SetNamedSecurityInfoW, SE_FILE_OBJECT};
+use windows_sys::Win32::Security::*;
+use windows_sys::Win32::Storage::FileSystem::*;
+use windows_sys::Win32::System::SystemServices::SECURITY_DESCRIPTOR_REVISION;
 
 #[cfg(not(windows))]
 const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
@@ -125,7 +133,6 @@ pub enum ConfigSetupError {
         error: std::io::Error,
     },
 
-    #[cfg(unix)]
     #[error("failed to set permissions for directory {dir}: {error}")]
     SetPermissions { dir: PathBuf, error: std::io::Error },
 
@@ -228,6 +235,7 @@ pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError
     #[cfg(unix)]
     {
         // Set directory permissions to 700 (rwx------)
+        use std::os::unix::fs::PermissionsExt;
         let permissions = fs::Permissions::from_mode(0o700);
         fs::set_permissions(data_dir, permissions).map_err(|error| {
             ConfigSetupError::SetPermissions {
@@ -237,7 +245,119 @@ pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError
         })?;
     }
 
-    // TODO: same for windows?
+    #[cfg(windows)]
+    {
+        let wide_path = U16CString::from_os_str(data_dir.as_os_str()).map_err(|e| {
+            ConfigSetupError::SetPermissions {
+                dir: data_dir.clone(),
+                error: std::io::Error::new(
+                    std::io::ErrorKind::InvalidInput,
+                    format!("Invalid UTF-16 conversion: {e}"),
+                ),
+            }
+        })?;
+
+        let mut sid_size: u32 = SECURITY_MAX_SID_SIZE as u32;
+        let mut system_sid = vec![0u8; sid_size as usize];
+
+        unsafe {
+            if CreateWellKnownSid(
+                WinLocalSystemSid,
+                ptr::null_mut(),
+                system_sid.as_mut_ptr().cast(),
+                &mut sid_size,
+            ) == 0
+            {
+                return Err(ConfigSetupError::SetPermissions {
+                    dir: data_dir.clone(),
+                    error: std::io::Error::last_os_error(),
+                });
+            }
+        }
+
+        let sid_ptr = system_sid.as_mut_ptr().cast();
+
+        let acl_size = mem::size_of::<ACL>() as u32
+            + mem::size_of::<ACCESS_ALLOWED_ACE>() as u32
+            + unsafe { GetLengthSid(sid_ptr) };
+
+        let mut acl_buffer = vec![0u8; acl_size as usize];
+        let acl = acl_buffer.as_mut_ptr() as *mut ACL;
+
+        unsafe {
+            if InitializeAcl(acl, acl_size, ACL_REVISION) == 0 {
+                return Err(ConfigSetupError::SetPermissions {
+                    dir: data_dir.clone(),
+                    error: std::io::Error::last_os_error(),
+                });
+            }
+
+            if AddAccessAllowedAceEx(
+                acl,
+                ACL_REVISION,
+                OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE,
+                FILE_GENERIC_READ | FILE_GENERIC_WRITE,
+                sid_ptr.cast(),
+            ) == 0
+            {
+                return Err(ConfigSetupError::SetPermissions {
+                    dir: data_dir.clone(),
+                    error: std::io::Error::last_os_error(),
+                });
+            }
+        }
+
+        let mut security_desc: SECURITY_DESCRIPTOR = unsafe { mem::zeroed() };
+
+        unsafe {
+            if InitializeSecurityDescriptor(
+                &mut security_desc as *mut _ as *mut _,
+                SECURITY_DESCRIPTOR_REVISION,
+            ) == 0
+            {
+                return Err(ConfigSetupError::SetPermissions {
+                    dir: data_dir.clone(),
+                    error: std::io::Error::last_os_error(),
+                });
+            }
+
+            if SetSecurityDescriptorDacl(
+                &mut security_desc as *mut _ as *mut c_void,
+                TRUE,
+                acl,
+                FALSE,
+            ) == 0
+            {
+                return Err(ConfigSetupError::SetPermissions {
+                    dir: data_dir.clone(),
+                    error: std::io::Error::last_os_error(),
+                });
+            }
+        }
+
+        unsafe {
+            if SetNamedSecurityInfoW(
+                wide_path.as_ptr() as *mut _,
+                SE_FILE_OBJECT,
+                DACL_SECURITY_INFORMATION,
+                ptr::null_mut(),
+                ptr::null_mut(),
+                acl,
+                ptr::null_mut(),
+            ) != ERROR_SUCCESS
+            {
+                return Err(ConfigSetupError::SetPermissions {
+                    dir: data_dir.clone(),
+                    error: std::io::Error::last_os_error(),
+                });
+            }
+        }
+
+        tracing::info!(
+            "Successfully set directory permissions for {}",
+            data_dir.display()
+        );
+    }
 
     Ok(())
 }

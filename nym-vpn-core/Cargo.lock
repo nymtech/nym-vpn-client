@@ -5174,6 +5174,7 @@ dependencies = [
  "tracing-subscriber",
  "url",
  "vergen",
+ "widestring",
  "winapi",
  "windows-service",
  "windows-sys 0.52.0",
