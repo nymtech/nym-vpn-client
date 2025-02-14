@@ -104,6 +104,7 @@ impl From<VpndError> for BackendError {
 /// Enum of the possible specialized errors emitted by the daemon
 /// or the app backend side, to be passed to the UI layer
 #[derive(Debug, Serialize, TS, Clone)]
+#[serde(rename_all = "kebab-case")]
 #[ts(export)]
 pub enum ErrorKey {
     /// Generic unhandled error

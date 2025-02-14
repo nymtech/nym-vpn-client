@@ -31,23 +31,23 @@ export type DbKey =
  * backend side
  * */
 export type ErrorKey =
-  | 'UnknownError'
-  | 'InternalError'
-  | 'GrpcError'
-  | 'NotConnectedToDaemon'
-  | 'EntryGwDown'
-  | 'ExitGwDownIpv4'
-  | 'ExitGwDownIpv6'
-  | 'ExitGwRoutingErrorIpv4'
-  | 'ExitGwRoutingErrorIpv6'
-  | 'NoBandwidth'
-  | 'AccountInvalidMnemonic'
-  | 'AccountStorage'
-  | 'AccountIsConnected'
-  | 'GetMixnetEntryCountriesQuery'
-  | 'GetMixnetExitCountriesQuery'
-  | 'GetWgCountriesQuery'
-  | 'InvalidNetworkName';
+  | 'unknown-error'
+  | 'internal-error'
+  | 'grpc-error'
+  | 'not-connected-to-daemon'
+  | 'entry-gw-down'
+  | 'exit-gw-down-ipv4'
+  | 'exit-gw-down-ipv6'
+  | 'exit-gw-routing-error-ipv4'
+  | 'exit-gw-routing-error-ipv6'
+  | 'no-bandwidth'
+  | 'account-invalid-mnemonic'
+  | 'account-storage'
+  | 'account-is-connected'
+  | 'get-mixnet-entry-countries-query'
+  | 'get-mixnet-exit-countries-query'
+  | 'get-wg-countries-query'
+  | 'invalid-network-name';
 
 export type StartupErrorKey = 'StartupOpenDb' | 'StartupOpenDbLocked';
 

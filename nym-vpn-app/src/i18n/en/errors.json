@@ -30,10 +30,10 @@
     "internal": "internal error",
     "vpn-api": "VPN API error"
   },
-  "sync-account": "sync account: {{reason}}",
-  "sync-device": "sync device: {{reason}}",
-  "register-device": "register device: {{reason}}",
-  "request-zknym": "zknym request: {{reason}}",
+  "sync-account": "Sync account: {{reason}}",
+  "sync-device": "Sync device: {{reason}}",
+  "register-device": "Register device: {{reason}}",
+  "request-zknym": "Zknym request: {{reason}}",
   "countries-request": {
     "entry": "Failed to fetch the available entry node countries",
     "exit": "Failed to fetch the available exit node countries",
