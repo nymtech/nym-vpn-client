@@ -32,7 +32,6 @@ pub(crate) async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> 
     Ok(ips)
 }
 
-#[allow(unused)]
 pub async fn allowed_ips(config: &Config) -> Result<Vec<SocketAddr>> {
     let mut ips = vec![];
 
