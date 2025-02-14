@@ -41,7 +41,7 @@ public final class HelperManager {
         do {
             switch daemon.status {
             case .notRegistered, .notFound:
-                try? daemon.register()
+                try daemon.register()
                 try install()
             case .enabled:
                 return
@@ -82,6 +82,10 @@ public final class HelperManager {
             }
         }
     }
+
+    public func requiresDaemonMigration() -> Bool {
+        currentVersion.compare("1.2.0", options: .numeric) != .orderedDescending
+    }
 }
 
 // MARK: - Private -
@@ -93,17 +97,29 @@ private extension HelperManager {
 
     func updateDaemonState() {
         guard daemonState != .updating else { return }
+        var newState: DaemonState
 
         switch daemon.status {
         case .notRegistered, .notFound:
-            daemonState = .unknown
+            newState = .unknown
         case .enabled:
-            daemonState = isInstalledAndUpToDate ? .running : .requiresUpdate
+            if currentVersion != "unknown" {
+                newState = isInstalledAndUpToDate ? .running : .requiresUpdate
+            } else {
+                newState = .authorized
+            }
         case .requiresApproval:
-            daemonState = .requiresAuthorization
+            newState = .requiresAuthorization
         @unknown default:
-            break
+            newState = .unknown
         }
+
+        if requiresDaemonMigration() {
+            newState = .requiresManualRemoval
+        }
+
+        guard newState != daemonState else { return }
+        daemonState = newState
     }
 
     func isHelperRunning() -> Bool {

@@ -1,4 +1,5 @@
 public enum DaemonState {
+    case requiresManualRemoval
     case unknown
     case registered
     case requiresAuthorization

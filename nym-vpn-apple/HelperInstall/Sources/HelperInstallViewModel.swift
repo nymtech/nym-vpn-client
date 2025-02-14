@@ -19,6 +19,7 @@ import Theme
     @Binding var path: NavigationPath
     @Published var steps: [HelperInstallStep] = []
     @Published var secondsRemaining: Int = 5
+    @Published var error: Error?
 
     public init(
         path: Binding<NavigationPath>,
@@ -37,7 +38,10 @@ import Theme
 
 @MainActor extension HelperInstallViewModel {
     func buttonAction() {
+        error = nil
         switch helperManager.daemonState {
+        case .requiresManualRemoval:
+            break
         case .unknown, .registered, .requiresAuthorization:
             install()
         case .authorized, .updating:
@@ -63,6 +67,8 @@ import Theme
             "helper.installView.update".localizedString
         case .updating:
             "helper.installView.updating".localizedString
+        case .requiresManualRemoval:
+            "helper.installView.verifying".localizedString
         }
     }
 
@@ -70,9 +76,20 @@ import Theme
         switch helperManager.daemonState {
         case .unknown, .registered, .requiresAuthorization, .running, .requiresUpdate:
             NymColor.primaryOrange
-        case .authorized, .updating:
+        case .authorized, .updating, .requiresManualRemoval:
             NymColor.sysSecondary
         }
+    }
+
+    func copyCommands() {
+        let text = """
+sudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist
+sudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist
+sudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper
+sfltool resetbtm
+"""
+        NSPasteboard.general.prepareForNewContents()
+        NSPasteboard.general.setString(text, forType: .string)
     }
 }
 
@@ -107,28 +124,49 @@ import Theme
     }
 
     func updateSteps() {
-        steps = [
-            .register(isRegistered: isDaemonRegistered()),
-            .authorize(isAuthorized: isDaemonAuthorized()),
-            .running(isRunning: isDaemonRunning()),
-            .versionCheck(
-                requiresUpdate: requiresUpdate(),
-                requiredVersion: helperManager.requiredVersion,
-                currentVersion: helperManager.currentVersion
-            )
-        ]
+        var newSteps = [HelperInstallStep]()
+        if requiresDaemonMigration() {
+            newSteps.append(.uninstallOldDeamon)
+        } else {
+            newSteps.append(contentsOf: [
+                .register(isRegistered: isDaemonRegistered()),
+                .authorize(isAuthorized: isDaemonAuthorized()),
+                .running(isRunning: isDaemonRunning()),
+                .versionCheck(
+                    requiresUpdate: requiresUpdate(),
+                    requiredVersion: helperManager.requiredVersion,
+                    currentVersion: helperManager.currentVersion
+                )
+            ])
+        }
+        steps = newSteps
     }
 
     func install() {
-        try? helperManager.install()
+        do {
+            try helperManager.install()
+        } catch {
+            self.error = error
+        }
     }
 
     func update() {
-        try? helperManager.update()
+        do {
+            try helperManager.update()
+        } catch {
+            self.error = error
+        }
     }
 
     func startCountdownIfNeeded() {
-        guard isDaemonRegistered(), isDaemonAuthorized(), isDaemonRunning(), !requiresUpdate() else { return }
+        guard isDaemonRegistered(),
+              isDaemonAuthorized(),
+              isDaemonRunning(),
+              !requiresUpdate(),
+              !requiresDaemonMigration()
+        else {
+            return
+        }
         timerCancellable = Timer.publish(every: 1.0, on: .main, in: .common)
             .autoconnect()
             .sink { [weak self] _ in
@@ -148,6 +186,10 @@ import Theme
 }
 
 @MainActor private extension HelperInstallViewModel {
+    func requiresDaemonMigration() -> Bool {
+        helperManager.daemonState == .requiresManualRemoval
+    }
+
     func isDaemonRegistered() -> Bool {
         switch helperManager.daemonState {
         case .registered, .requiresAuthorization, .authorized, .running, .requiresUpdate, .updating:
