@@ -33,7 +33,7 @@
             <li>deb package (requires to setup the Nym deb repository): <code>nym-vpnd</code></li>
             <li>AUR packages: <code>nym-vpnd</code> and <code>nym-vpnd-bin</code></li>
         </ul>
-        <p>For more details, please check https://nymvpn.com/en/download/linux</p>
+        <p>For more details, please check https://nym.com/en/download/linux</p>
         <p>
             Alternatively you can get the binary directly from the GitHub releases:
         </p>

@@ -115,7 +115,7 @@ function Login() {
               <span className="dark:text-mercury-pinkish truncate">
                 {t('create-account.text')}
               </span>
-              <Link text={t('create-account.link')} url={signUpUrl} />
+              <Link text={t('create-account.link')} url={signUpUrl} icon />
             </div>
           )}
         </div>

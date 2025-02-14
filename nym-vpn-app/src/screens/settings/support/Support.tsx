@@ -1,4 +1,4 @@
-import { open } from '@tauri-apps/plugin-shell';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useTranslation } from 'react-i18next';
 import {
   ContactSupportUrl,
@@ -18,48 +18,48 @@ function Support() {
       <SettingsMenuCard
         title={t('support.faq')}
         onClick={() => {
-          open(FaqUrl);
+          openUrl(FaqUrl);
         }}
         leadingIcon="help"
-        trailingIcon="arrow_right"
+        trailingIcon="open_in_new"
       />
       <SettingsMenuCard
         title={t('support.get-in-touch')}
         onClick={() => {
-          open(ContactSupportUrl);
+          openUrl(ContactSupportUrl);
         }}
         leadingIcon="send"
-        trailingIcon="arrow_right"
+        trailingIcon="open_in_new"
       />
       <SettingsMenuCard
         title={t('support.github')}
         onClick={() => {
-          open(GitHubIssuesUrl);
+          openUrl(GitHubIssuesUrl);
         }}
         leadingComponent={
           <GitHubIcon className="w-6 h-7 fill-baltic-sea dark:fill-mercury-pinkish" />
         }
-        trailingIcon="arrow_right"
+        trailingIcon="open_in_new"
       />
       <SettingsMenuCard
         title={t('support.matrix')}
         onClick={() => {
-          open(MatrixRoomUrl);
+          openUrl(MatrixRoomUrl);
         }}
         leadingComponent={
           <ElementIcon className="w-6 h-6 fill-baltic-sea dark:fill-mercury-pinkish" />
         }
-        trailingIcon="arrow_right"
+        trailingIcon="open_in_new"
       />
       <SettingsMenuCard
         title={t('support.discord')}
         onClick={() => {
-          open(DiscordInviteUrl);
+          openUrl(DiscordInviteUrl);
         }}
         leadingComponent={
           <DiscordIcon className="w-6 h-6 fill-baltic-sea dark:fill-mercury-pinkish" />
         }
-        trailingIcon="arrow_right"
+        trailingIcon="open_in_new"
       />
     </PageAnim>
   );

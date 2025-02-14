@@ -1,4 +1,4 @@
-import { open } from '@tauri-apps/plugin-shell';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { PrivacyPolicyUrl, ToSUrl } from '../../../constants';
@@ -17,16 +17,16 @@ function Legal() {
           {
             title: t('legal.tos'),
             onClick: () => {
-              open(ToSUrl);
+              openUrl(ToSUrl);
             },
-            trailing: <MsIcon icon="arrow_right" />,
+            trailing: <MsIcon icon="open_in_new" />,
           },
           {
             title: t('legal.policy'),
             onClick: () => {
-              open(PrivacyPolicyUrl);
+              openUrl(PrivacyPolicyUrl);
             },
-            trailing: <MsIcon icon="arrow_right" />,
+            trailing: <MsIcon icon="open_in_new" />,
           },
         ]}
       />

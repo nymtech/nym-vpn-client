@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
-import { open } from '@tauri-apps/plugin-shell';
+import { openPath, openUrl } from '@tauri-apps/plugin-opener';
 import { useDesktopNotifications, useThrottle } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
@@ -56,7 +56,7 @@ function Settings() {
 
   const handleGoToAccount = () => {
     if (accountLoginUrl) {
-      open(accountLoginUrl);
+      openUrl(accountLoginUrl);
     }
   };
 
@@ -80,7 +80,7 @@ function Settings() {
     try {
       const logDir = await invoke<string | undefined>('log_dir');
       if (logDir) {
-        await open(logDir);
+        await openPath(logDir);
       }
     } catch (e) {
       console.error(e);

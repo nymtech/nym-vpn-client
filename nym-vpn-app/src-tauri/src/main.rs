@@ -95,6 +95,8 @@ async fn main() -> Result<()> {
     info!("app version: {}", pkg_info.version);
     info!("Starting tauri app");
     tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, None))
         .plugin(
             tauri_plugin_window_state::Builder::new()
                 .with_state_flags(StateFlags::SIZE | StateFlags::POSITION)
@@ -111,7 +113,6 @@ async fn main() -> Result<()> {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_os::init())
-        .plugin(tauri_plugin_shell::init())
         .setup(move |app| {
             info!("app setup");
 

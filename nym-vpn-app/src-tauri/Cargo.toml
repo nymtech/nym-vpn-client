@@ -39,7 +39,7 @@ itertools = "0.14"
 clap = { version = "4.5", features = ["derive"] }
 build-info = "0.0.39"
 sled = "0.34.7"
-strum = { version = "0.26", features = ["derive"] }
+strum = { version = "0.27", features = ["derive"] }
 tonic = { version = "0.11", features = ["channel"] }
 parity-tokio-ipc = "0.9.0"
 tower = "0.4.8"
@@ -51,7 +51,6 @@ semver = "1.0"
 nym-vpn-proto = { path = "../../nym-vpn-core/crates/nym-vpn-proto" }
 
 # tauri deps
-tauri-plugin-shell = "2.0.1"
 tauri-plugin-os = "2.0.1"
 tauri-plugin-notification = "2.0.1"
 tauri-plugin-dialog = "2.0.1"
@@ -60,6 +59,8 @@ tauri-plugin-clipboard-manager = "2.0.1"
 tauri-plugin-updater = "2.0.1"
 tauri-plugin-single-instance = "2.0.1"
 tauri-plugin-window-state = "2.0.1"
+tauri-plugin-opener = "2"
+tauri-plugin-autostart = "2"
 
 [target."cfg(windows)".dependencies]
 windows = { version = "0.58.0", features = [
