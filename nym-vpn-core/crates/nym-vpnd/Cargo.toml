@@ -55,14 +55,14 @@ nym-task.workspace = true
 nym-validator-client.workspace = true
 
 # Local crates
-nym-vpn-account-controller = { path = "../nym-vpn-account-controller" }
-nym-vpn-api-client = { path = "../nym-vpn-api-client" }
-nym-vpn-lib = { path = "../nym-vpn-lib" }
-nym-vpn-lib-types = { path = "../nym-vpn-lib-types" }
-nym-vpn-network-config = { path = "../nym-vpn-network-config" }
-nym-vpn-proto = { path = "../nym-vpn-proto", features = ["conversions"] }
-nym-vpn-store = { path = "../nym-vpn-store" }
-nym-vpnd-types = { path = "../nym-vpnd-types" }
+nym-vpn-account-controller = { workspace = true }
+nym-vpn-api-client = { workspace = true }
+nym-vpn-lib = { workspace = true }
+nym-vpn-lib-types = { workspace = true }
+nym-vpn-network-config = { workspace = true }
+nym-vpn-proto = { workspace = true, features = ["conversions"] }
+nym-vpn-store = { workspace = true }
+nym-vpnd-types = { workspace = true }
 
 [target.'cfg(windows)'.dependencies]
 windows-service.workspace = true

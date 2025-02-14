@@ -102,6 +102,7 @@ hex = "0.4"
 http = "0.2.12"                                                     # version compatible with tonic
 inotify = "0.11"
 ipnetwork = "0.20"
+rs-release = "0.1.7"
 itertools = "0.13.0"
 lazy_static = "1.5.0"
 libc = "0.2"
@@ -179,6 +180,30 @@ winreg = "0.52"
 wmi = "0.14"
 x25519-dalek = "2.0"
 zeroize = "1.6.0"
+
+nym-apple-dispatch = { path = "crates/nym-apple-dispatch" }
+nym-apple-network = { path = "crates/nym-apple-network" }
+nym-authenticator-client = { path = "crates/nym-authenticator-client" }
+nym-common = { path = "crates/nym-common" }
+nym-connection-monitor = { path = "crates/nym-connection-monitor" }
+nym-dbus = { path = "crates/nym-dbus" }
+nym-dns = { path = "crates/nym-dns" }
+nym-gateway-directory = { path = "crates/nym-gateway-directory" }
+nym-ip-packet-client = { path = "crates/nym-ip-packet-client" }
+nym-mixnet-client = { path = "crates/nym-mixnet-client" }
+nym-offline-monitor = { path = "crates/nym-offline-monitor" }
+nym-routing = { path = "crates/nym-routing" }
+nym-vpn-account-controller = { path = "crates/nym-vpn-account-controller" }
+nym-vpn-api-client = { path = "crates/nym-vpn-api-client" }
+nym-vpn-lib = { path = "crates/nym-vpn-lib" }
+nym-vpn-lib-types = { path = "crates/nym-vpn-lib-types" }
+nym-vpn-network-config = { path = "crates/nym-vpn-network-config" }
+nym-vpn-proto = { path = "crates/nym-vpn-proto" }
+nym-vpn-store = { path = "crates/nym-vpn-store" }
+nym-vpnd-types = { path = "crates/nym-vpnd-types" }
+nym-wg-gateway-client = { path = "crates/nym-wg-gateway-client" }
+nym-wg-go = { path = "crates/nym-wg-go" }
+nym-windows = { path = "crates/nym-windows" }
 
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
 nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }

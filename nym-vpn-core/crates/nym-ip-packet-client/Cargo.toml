@@ -11,9 +11,9 @@ license.workspace = true
 [dependencies]
 bytes.workspace = true
 futures.workspace = true
-nym-gateway-directory = { path = "../nym-gateway-directory" }
+nym-gateway-directory = { workspace = true }
 nym-ip-packet-requests.workspace = true
-nym-mixnet-client = { path = "../nym-mixnet-client" }
+nym-mixnet-client = { workspace = true }
 nym-sdk.workspace = true
 thiserror.workspace = true
 tokio-util.workspace = true

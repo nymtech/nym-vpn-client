@@ -13,7 +13,7 @@ futures.workspace = true
 tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 
-nym-common = { path = "../nym-common" }
+nym-common.workspace = true
 
 [target.'cfg(windows)'.dependencies.windows-sys]
 workspace = true

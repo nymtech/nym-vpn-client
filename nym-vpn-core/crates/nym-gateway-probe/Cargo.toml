@@ -46,12 +46,12 @@ nym-bin-common.workspace = true
 nym-client-core.workspace = true
 nym-crypto.workspace = true
 nym-config.workspace = true
-nym-connection-monitor = { path = "../nym-connection-monitor" }
+nym-connection-monitor = { workspace = true }
 nym-credentials-interface.workspace = true
-nym-gateway-directory = { path = "../nym-gateway-directory" }
-nym-ip-packet-client = { path = "../nym-ip-packet-client" }
-nym-authenticator-client = { path = "../nym-authenticator-client" }
-nym-mixnet-client = { path = "../nym-mixnet-client" }
+nym-gateway-directory = { workspace = true }
+nym-ip-packet-client = { workspace = true }
+nym-authenticator-client = { workspace = true }
+nym-mixnet-client = { workspace = true }
 nym-wireguard-types.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true

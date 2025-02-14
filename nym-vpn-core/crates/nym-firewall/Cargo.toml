@@ -14,8 +14,8 @@ libc.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 
-nym-dns = { path = "../nym-dns" }
-nym-common = { path = "../nym-common" }
+nym-dns.workspace = true
+nym-common.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 pfctl.workspace = true
@@ -27,10 +27,9 @@ inotify.workspace = true
 resolv-conf.workspace = true
 nftnl = { workspace = true, features = ["nftnl-1-1-0"] }
 mnl = { workspace = true, features = ["mnl-1-0-4"] }
-nym-common = { path = "../nym-common" }
 
 [target.'cfg(windows)'.dependencies]
-nym-windows = { path = "../nym-windows" }
+nym-windows.workspace = true
 
 log.workspace = true
 wmi.workspace = true

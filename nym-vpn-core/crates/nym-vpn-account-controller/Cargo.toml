@@ -22,11 +22,11 @@ nym-ecash-time.workspace = true
 nym-http-api-client.workspace = true
 nym-sdk.workspace = true
 nym-validator-client.workspace = true
-nym-vpn-api-client = { path = "../nym-vpn-api-client" }
-nym-vpn-lib-types = { path = "../nym-vpn-lib-types", features = ["nym-type-conversions"] }
-nym-vpn-network-config = { path = "../nym-vpn-network-config" }
-nym-vpn-store = { path = "../nym-vpn-store" }
-nym-wg-gateway-client = { path = "../nym-wg-gateway-client" }
+nym-vpn-api-client = { workspace = true }
+nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
+nym-vpn-network-config = { workspace = true }
+nym-vpn-store = { workspace = true }
+nym-wg-gateway-client = { workspace = true }
 serde.workspace = true
 serde_json.workspace = true
 si-scale.workspace = true

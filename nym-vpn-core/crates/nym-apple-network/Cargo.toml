@@ -15,4 +15,4 @@ objc2.workspace = true
 nix = { workspace = true, features = ["socket", "net"] }
 thiserror.workspace = true
 
-nym-apple-dispatch = { path = "../nym-apple-dispatch" }
+nym-apple-dispatch.workspace = true

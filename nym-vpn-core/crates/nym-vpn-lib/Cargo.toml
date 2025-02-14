@@ -65,36 +65,34 @@ nym-topology.workspace = true
 nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
 
-nym-authenticator-client = { path = "../nym-authenticator-client" }
-nym-connection-monitor = { path = "../nym-connection-monitor" }
-nym-gateway-directory = { path = "../nym-gateway-directory" }
-nym-ip-packet-client = { path = "../nym-ip-packet-client" }
-nym-mixnet-client = { path = "../nym-mixnet-client" }
-nym-vpn-account-controller = { path = "../nym-vpn-account-controller" }
-nym-vpn-api-client = { path = "../nym-vpn-api-client" }
-nym-vpn-network-config = { path = "../nym-vpn-network-config" }
-nym-vpn-store = { path = "../nym-vpn-store" }
-nym-wg-gateway-client = { path = "../nym-wg-gateway-client" }
-nym-wg-go = { path = "../nym-wg-go" }
-nym-apple-network = { path = "../nym-apple-network" }
-nym-apple-dispatch = { path = "../nym-apple-dispatch" }
-nym-offline-monitor = { path = "../nym-offline-monitor" }
-nym-vpn-lib-types = { path = "../nym-vpn-lib-types", features = [
-    "nym-type-conversions",
-] }
+nym-authenticator-client.workspace = true
+nym-connection-monitor.workspace = true
+nym-gateway-directory.workspace = true
+nym-ip-packet-client.workspace = true
+nym-mixnet-client.workspace = true
+nym-vpn-account-controller.workspace = true
+nym-vpn-api-client.workspace = true
+nym-vpn-network-config.workspace = true
+nym-vpn-store.workspace = true
+nym-wg-gateway-client.workspace = true
+nym-wg-go.workspace = true
+nym-apple-network.workspace = true
+nym-apple-dispatch.workspace = true
+nym-offline-monitor.workspace = true
+nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 
 [target.'cfg(unix)'.dependencies]
 nix = { workspace = true, features = ["socket", "net", "fs"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
-nym-windows = { path = "../nym-windows" }
-nym-routing = { path = "../nym-routing" }
-nym-dns = { path = "../nym-dns" }
+nym-windows.workspace = true
+nym-routing.workspace = true
+nym-dns.workspace = true
 
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
-nym-routing = { path = "../nym-routing" }
-nym-dns = { path = "../nym-dns" }
+nym-routing.workspace = true
+nym-dns.workspace = true
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger.workspace = true

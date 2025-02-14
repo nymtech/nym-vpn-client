@@ -16,6 +16,7 @@ nym-api-requests.workspace = true
 nym-config.workspace = true
 nym-sdk.workspace = true
 nym-validator-client.workspace = true
+nym-vpn-api-client.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
@@ -24,8 +25,6 @@ tokio = { workspace = true, features = ["time", "macros"] }
 tokio-util.workspace = true
 tracing.workspace = true
 url = { workspace = true, features = ["serde"] }
-
-nym-vpn-api-client = { path = "../nym-vpn-api-client" }
 
 [build-dependencies]
 serde_json.workspace = true
