@@ -24,4 +24,4 @@ tracing-subscriber.workspace = true
 futures.workspace = true
 semver.workspace = true
 
-nym-mixnet-client = { path = "../nym-mixnet-client" }
+nym-mixnet-client = { workspace = true }

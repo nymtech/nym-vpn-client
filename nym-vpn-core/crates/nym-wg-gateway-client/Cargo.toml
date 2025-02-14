@@ -30,6 +30,6 @@ tokio-stream.workspace = true
 tracing.workspace = true
 si-scale.workspace = true
 
-nym-authenticator-client = { path = "../nym-authenticator-client" }
-nym-gateway-directory = { path = "../nym-gateway-directory" }
-nym-wg-go = { path = "../nym-wg-go" }
+nym-authenticator-client = { workspace = true }
+nym-gateway-directory = { workspace = true }
+nym-wg-go = { workspace = true }

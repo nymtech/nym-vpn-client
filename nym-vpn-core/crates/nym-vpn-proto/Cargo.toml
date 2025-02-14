@@ -15,14 +15,14 @@ tonic-reflection.workspace = true
 tonic.workspace = true
 
 nym-config = { workspace = true, optional = true }
-nym-gateway-directory = { path = "../nym-gateway-directory", optional = true }
+nym-gateway-directory = { workspace = true, optional = true }
 nym-http-api-client.workspace = true
 nym-sdk = { workspace = true, optional = true }
-nym-vpn-account-controller = { path = "../nym-vpn-account-controller", optional = true }
-nym-vpn-api-client = { path = "../nym-vpn-api-client", optional = true }
-nym-vpn-network-config = { path = "../nym-vpn-network-config", optional = true }
-nym-vpnd-types = { path = "../nym-vpnd-types", optional = true }
-nym-vpn-lib-types = { path = "../nym-vpn-lib-types", optional = true }
+nym-vpn-account-controller = { workspace = true, optional = true }
+nym-vpn-api-client = { workspace = true, optional = true }
+nym-vpn-network-config = { workspace = true, optional = true }
+nym-vpnd-types = { workspace = true, optional = true }
+nym-vpn-lib-types = { workspace = true, optional = true }
 thiserror = { workspace = true, optional = true }
 time = { workspace = true, optional = true }
 url = { workspace = true, optional = true }

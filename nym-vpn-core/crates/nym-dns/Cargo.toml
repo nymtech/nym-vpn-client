@@ -19,9 +19,9 @@ tokio = { workspace = true, features = ["macros"] }
 futures.workspace = true
 triggered.workspace = true
 
-nym-routing = { path = "../nym-routing" }
-nym-dbus = { path = "../nym-dbus" }
-nym-common = { path = "../nym-common" }
+nym-routing = { workspace = true }
+nym-dbus = { workspace = true }
+nym-common = { workspace = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
 system-configuration.workspace = true
@@ -37,8 +37,8 @@ duct.workspace = true
 once_cell.workspace = true
 winreg = { workspace = true, features = ["transactions"] }
 
-nym-windows = { path = "../nym-windows" }
-nym-common = { path = "../nym-common" }
+nym-windows = { workspace = true }
+nym-common = { workspace = true }
 
 [target.'cfg(windows)'.dependencies.windows-sys]
 workspace = true

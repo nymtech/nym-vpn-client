@@ -12,4 +12,4 @@ license.workspace = true
 nym-validator-client.workspace = true
 serde.workspace = true
 
-nym-vpn-lib = { path = "../nym-vpn-lib" }
+nym-vpn-lib = { workspace = true }
