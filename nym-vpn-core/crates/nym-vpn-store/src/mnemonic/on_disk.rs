@@ -18,6 +18,7 @@ use widestring::U16CString;
 use winapi::um::winnt::SECURITY_MAX_SID_SIZE;
 #[cfg(windows)]
 use windows_sys::Win32::Foundation::*;
+#[cfg(windows)]
 use windows_sys::Win32::Security::Authorization::{SetNamedSecurityInfoW, SE_FILE_OBJECT};
 #[cfg(windows)]
 use windows_sys::Win32::Security::*;
