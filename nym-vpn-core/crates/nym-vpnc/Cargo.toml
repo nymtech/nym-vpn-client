@@ -24,12 +24,12 @@ tonic.workspace = true
 tower.workspace = true
 
 nym-bin-common.workspace = true
-nym-gateway-directory = { path = "../nym-gateway-directory" }
+nym-gateway-directory = { workspace = true }
 nym-http-api-client.workspace = true
-nym-vpn-network-config = { path = "../nym-vpn-network-config" }
-nym-vpn-proto = { path = "../nym-vpn-proto", features = ["conversions"] }
-nym-vpnd-types = { path = "../nym-vpnd-types" }
-nym-vpn-lib-types = { path = "../nym-vpn-lib-types" }
+nym-vpn-network-config = { workspace = true }
+nym-vpn-proto = { workspace = true, features = ["conversions"] }
+nym-vpnd-types = { workspace = true }
+nym-vpn-lib-types = { workspace = true }
 
 [build-dependencies]
 vergen = { workspace = true, default-features = false, features = [

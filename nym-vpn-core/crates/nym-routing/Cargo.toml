@@ -20,7 +20,7 @@ tokio = { workspace = true, features = [
 ] }
 
 [target.'cfg(not(target_os="android"))'.dependencies]
-nym-common = { path = "../nym-common" }
+nym-common.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
 libc.workspace = true
@@ -36,7 +36,7 @@ nix = { workspace = true, features = ["socket", "fs", "net"] }
 system-configuration.workspace = true
 
 [target.'cfg(windows)'.dependencies]
-nym-windows = { path = "../nym-windows" }
+nym-windows.workspace = true
 widestring.workspace = true
 
 [target.'cfg(windows)'.dependencies.windows-sys]

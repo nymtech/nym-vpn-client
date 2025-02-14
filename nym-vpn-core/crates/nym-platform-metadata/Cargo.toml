@@ -13,8 +13,8 @@ default = ["network-manager"]
 network-manager = ["nym-dbus"]
 
 [target.'cfg(target_os = "linux")'.dependencies]
-rs-release = "0.1.7"
-nym-dbus = { path = "../nym-dbus", optional = true }
+rs-release.workspace = true
+nym-dbus = { workspace = true, optional = true }
 
 [target.'cfg(windows)'.dependencies.windows-sys]
 workspace = true
