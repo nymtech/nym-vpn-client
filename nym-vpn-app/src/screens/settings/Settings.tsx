@@ -3,7 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { openPath, openUrl } from '@tauri-apps/plugin-opener';
-import { useDesktopNotifications, useThrottle } from '../../hooks';
+import {
+  useAutostart,
+  useDesktopNotifications,
+  useThrottle,
+} from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
@@ -19,7 +23,6 @@ const ThrottleDelay = 10000; // ms
 
 function Settings() {
   const {
-    autoConnect,
     monitoring,
     daemonStatus,
     account,
@@ -32,6 +35,7 @@ function Settings() {
   const { t } = useTranslation('settings');
   const { exit } = useExit();
   const { push } = useInAppNotify();
+  const { enabled: autostartEnabled, toggle: toggleAutostart } = useAutostart();
   const toggleDNotifications = useDesktopNotifications();
   const accountLoginUrl = accountLinks?.signIn;
 
@@ -48,10 +52,8 @@ function Settings() {
     checkAccount();
   }, [dispatch]);
 
-  const handleAutoConnectChanged = () => {
-    const isChecked = !autoConnect;
-    dispatch({ type: 'set-auto-connect', autoConnect: isChecked });
-    kvSet('Autoconnect', isChecked);
+  const handleAutostartChanged = async () => {
+    await toggleAutostart();
   };
 
   const handleGoToAccount = () => {
@@ -89,7 +91,15 @@ function Settings() {
 
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
-      {!account && (
+      {account ? (
+        <SettingsMenuCard
+          title={capFirst(t('account', { ns: 'glossary' }))}
+          onClick={handleGoToAccount}
+          leadingIcon="person"
+          trailingIcon="open_in_new"
+          disabled={!accountLoginUrl}
+        />
+      ) : (
         <Button
           onClick={() => navigate(routes.login)}
           disabled={
@@ -99,28 +109,16 @@ function Settings() {
           {t('login-button')}
         </Button>
       )}
-      {account && (
-        <SettingsMenuCard
-          title={capFirst(t('account', { ns: 'glossary' }))}
-          onClick={handleGoToAccount}
-          leadingIcon="person"
-          trailingIcon="open_in_new"
-          disabled={!accountLoginUrl}
-        />
-      )}
       <SettingsGroup
         settings={[
           {
-            title: t('auto-connect.title'),
-            desc: t('auto-connect.desc'),
-            leadingIcon: 'hdr_auto',
-            disabled: true,
-            onClick: handleAutoConnectChanged,
+            title: t('support.title'),
+            leadingIcon: 'question_answer',
+            onClick: () => navigate(routes.support),
             trailing: (
-              <Switch
-                checked={autoConnect}
-                onChange={handleAutoConnectChanged}
-                disabled
+              <MsIcon
+                icon="arrow_right"
+                className="dark:text-mercury-pinkish"
               />
             ),
           },
@@ -136,7 +134,35 @@ function Settings() {
               />
             ),
           },
+          {
+            title: t('error-monitoring.title'),
+            desc: (
+              <span>
+                {`(${t('via', { ns: 'glossary' })} `}
+                <span className="text-malachite-moss dark:text-malachite">
+                  {t('sentry', { ns: 'common' })}
+                </span>
+                {`), ${t('error-monitoring.desc', { ns: 'settings' })}`}
+              </span>
+            ),
+            leadingIcon: 'bug_report',
+            onClick: handleMonitoringChanged,
+            trailing: (
+              <Switch checked={monitoring} onChange={handleMonitoringChanged} />
+            ),
+          },
         ]}
+      />
+      <SettingsMenuCard
+        title={t('autostart')}
+        leadingIcon="computer"
+        onClick={handleAutostartChanged}
+        trailingComponent={
+          <Switch
+            checked={autostartEnabled}
+            onChange={handleAutostartChanged}
+          />
+        }
       />
       <SettingsGroup
         settings={[
@@ -160,38 +186,6 @@ function Settings() {
                 checked={desktopNotifications}
                 onChange={toggleDNotifications}
               />
-            ),
-          },
-        ]}
-      />
-      <SettingsGroup
-        settings={[
-          {
-            title: t('support.title'),
-            leadingIcon: 'question_answer',
-            onClick: () => navigate(routes.support),
-            trailing: (
-              <MsIcon
-                icon="arrow_right"
-                className="dark:text-mercury-pinkish"
-              />
-            ),
-          },
-          {
-            title: t('error-monitoring.title'),
-            desc: (
-              <span>
-                {`(${t('via', { ns: 'glossary' })} `}
-                <span className="text-malachite-moss dark:text-malachite">
-                  {t('sentry', { ns: 'common' })}
-                </span>
-                {`), ${t('error-monitoring.desc', { ns: 'settings' })}`}
-              </span>
-            ),
-            leadingIcon: 'bug_report',
-            onClick: handleMonitoringChanged,
-            trailing: (
-              <Switch checked={monitoring} onChange={handleMonitoringChanged} />
             ),
           },
         ]}

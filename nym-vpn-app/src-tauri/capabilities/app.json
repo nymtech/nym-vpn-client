@@ -39,6 +39,9 @@
           "path": "%USERPROFILE%\\AppData\\Local\\nym-vpn-app\\log"
         }
       ]
-    }
+    },
+    "autostart:allow-enable",
+    "autostart:allow-disable",
+    "autostart:allow-is-enabled"
   ]
 }
