@@ -20,6 +20,7 @@ nym-sdk.workspace = true
 nym-topology.workspace = true
 nym-validator-client.workspace = true
 nym-vpn-api-client = { path = "../nym-vpn-api-client" }
+nym-vpn-network-config = { path = "../nym-vpn-network-config" }
 rand.workspace = true
 serde.workspace = true
 thiserror.workspace = true

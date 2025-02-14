@@ -22,7 +22,10 @@ pub(crate) async fn init_environment(network_name: &str) -> Result<(), VpnError>
 }
 
 pub(crate) async fn init_fallback_mainnet_environment() -> Result<(), VpnError> {
-    let network = nym_vpn_network_config::Network::mainnet_default();
+    let network =
+        nym_vpn_network_config::Network::mainnet_default().ok_or(VpnError::InternalError {
+            details: "mainnet is not consistent".to_string(),
+        })?;
     network.export_to_env();
 
     let mut guard = NETWORK_ENVIRONMENT.lock().await;

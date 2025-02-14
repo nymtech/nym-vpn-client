@@ -5,10 +5,7 @@ use tokio::sync::{mpsc::UnboundedSender, oneshot, watch};
 use zeroize::Zeroizing;
 
 use nym_vpn_account_controller::{AccountStateSummary, AvailableTicketbooks};
-use nym_vpn_api_client::{
-    response::{NymVpnDevice, NymVpnUsage},
-    types::GatewayMinPerformance,
-};
+use nym_vpn_api_client::response::{NymVpnDevice, NymVpnUsage};
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
 use nym_vpn_lib_types::TunnelState;
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
@@ -115,9 +112,9 @@ impl CommandInterfaceConnectionHandler {
         &self,
         gw_type: GatewayType,
         user_agent: nym_vpn_lib::UserAgent,
-        min_gateway_performance: GatewayMinPerformance,
+        directory_config: nym_vpn_lib::gateway_directory::Config,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
-        let gateways = directory_client(user_agent, min_gateway_performance)?
+        let gateways = directory_client(user_agent, directory_config)?
             .lookup_gateways(gw_type.clone())
             .await
             .map_err(|source| ListGatewayError::GetGateways { gw_type, source })?;
@@ -129,9 +126,9 @@ impl CommandInterfaceConnectionHandler {
         &self,
         gw_type: GatewayType,
         user_agent: nym_vpn_lib::UserAgent,
-        min_gateway_performance: GatewayMinPerformance,
+        directory_config: nym_vpn_lib::gateway_directory::Config,
     ) -> Result<Vec<gateway::Country>, ListGatewayError> {
-        let gateways = directory_client(user_agent, min_gateway_performance)?
+        let gateways = directory_client(user_agent, directory_config)?
             .lookup_countries(gw_type.clone())
             .await
             .map_err(|source| ListGatewayError::GetCountries { gw_type, source })?;
@@ -296,10 +293,8 @@ impl CommandInterfaceConnectionHandler {
 
 fn directory_client(
     user_agent: nym_vpn_lib::UserAgent,
-    min_gateway_performance: GatewayMinPerformance,
+    directory_config: nym_vpn_lib::gateway_directory::Config,
 ) -> Result<GatewayClient, ListGatewayError> {
-    let directory_config = nym_vpn_lib::gateway_directory::Config::new_from_env()
-        .with_min_gateway_performance(min_gateway_performance);
     GatewayClient::new(directory_config, user_agent)
         .map_err(|source| ListGatewayError::CreateGatewayDirectoryClient { source })
 }

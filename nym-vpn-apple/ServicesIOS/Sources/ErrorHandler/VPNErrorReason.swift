@@ -225,6 +225,12 @@ public enum VPNErrorReason: LocalizedError {
     }
 }
 
+extension VPNErrorReason: Equatable {
+    public static func == (lhs: VPNErrorReason, rhs: VPNErrorReason) -> Bool {
+        lhs.errorCode == rhs.errorCode
+    }
+}
+
 private extension VPNErrorReason {
     var errorCode: Int {
         switch self {

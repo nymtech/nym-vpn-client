@@ -18,6 +18,7 @@ use nym_ip_packet_requests::IpPair;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
+use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -95,6 +96,7 @@ impl ConnectedMixnet {
     /// Creates a tunnel over WireGuard.
     pub async fn connect_wireguard_tunnel(
         self,
+        network: &Network,
         enable_credentials_mode: bool,
         cancel_token: CancellationToken,
     ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
@@ -106,6 +108,7 @@ impl ConnectedMixnet {
 
         match connector
             .connect(
+                network,
                 enable_credentials_mode,
                 self.selected_gateways,
                 self.data_path,
@@ -168,6 +171,7 @@ pub async fn select_gateways(
 
 pub async fn connect_mixnet(
     options: MixnetConnectOptions,
+    network_env: &Network,
     cancel_token: CancellationToken,
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<ConnectedMixnet> {
@@ -182,6 +186,7 @@ pub async fn connect_mixnet(
     let mut mixnet_client_config = options.mixnet_client_config.clone().unwrap_or_default();
     let reconnect_mixnet_client_data = ReconnectMixnetClientData::new(
         options.clone(),
+        network_env.clone(),
         bw_controller_task_manager,
         mixnet_client_config.clone(),
     );
@@ -204,6 +209,7 @@ pub async fn connect_mixnet(
     let connect_fut = tokio::time::timeout(
         MIXNET_CLIENT_STARTUP_TIMEOUT,
         crate::mixnet::setup_mixnet_client(
+            network_env,
             options.selected_gateways.entry.identity(),
             &options.data_path,
             task_client,

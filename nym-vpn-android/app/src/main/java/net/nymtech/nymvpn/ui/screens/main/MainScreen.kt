@@ -428,7 +428,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 									color = MaterialTheme.colorScheme.background,
 								)
 							},
-							color = MaterialTheme.colorScheme.secondary,
+							color = CustomColors.disconnect,
 						)
 					}
 

@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.ui.theme.CustomColors
 
 @Composable
-fun Pulse(color: Color = CustomColors.disconnect) {
+fun Pulse(color: Color = CustomColors.pulse) {
 	MultiplePulsarEffect(pulsarColor = color) { modifier ->
 		Canvas(modifier = modifier.size(5.dp), onDraw = {
 			drawCircle(color = color)

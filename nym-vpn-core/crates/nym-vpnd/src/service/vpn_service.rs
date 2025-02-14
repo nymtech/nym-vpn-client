@@ -37,7 +37,7 @@ use zeroize::Zeroizing;
 use crate::config::GlobalConfigFile;
 
 use super::{
-    config::{ConfigSetupError, NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
+    config::{NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
     error::{AccountError, Error, Result, SetNetworkError},
     VpnServiceConnectError, VpnServiceDisconnectError,
 };
@@ -256,12 +256,8 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
         let tunnel_settings = TunnelSettings::default();
-        let nyxd_url = network_env
-            .nyxd_url()
-            .ok_or(Error::ConfigSetup(ConfigSetupError::MissingNyxdUrl))?;
-        let api_url = network_env
-            .api_url()
-            .ok_or(Error::ConfigSetup(ConfigSetupError::MissingApiUrl))?;
+        let nyxd_url = network_env.nyxd_url();
+        let api_url = network_env.api_url();
         let gateway_config = gateway_directory::Config {
             nyxd_url,
             api_url,
@@ -271,6 +267,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let nym_config = NymConfig {
             data_path: Some(data_dir.clone()),
             gateway_config,
+            network_env: network_env.clone(),
         };
 
         let state_machine_handle = TunnelStateMachine::spawn(

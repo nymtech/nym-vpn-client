@@ -28,6 +28,7 @@ use discovery::Discovery;
 use envs::RegisteredNetworks;
 use nym_config::defaults::NymNetworkDetails;
 use tokio::join;
+use url::Url;
 
 use std::{fmt::Debug, path::Path, str::FromStr, time::Duration};
 
@@ -40,17 +41,35 @@ const MAX_FILE_AGE: Duration = Duration::from_secs(60);
 #[derive(Clone, Debug)]
 pub struct Network {
     pub nym_network: NymNetwork,
+    // extract at least one nyxd URL and one api URL, which must exist
+    pub nyxd_url: Url,
+    pub api_url: Url,
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
 }
 
 impl Network {
-    pub fn mainnet_default() -> Self {
-        Network {
-            nym_network: NymNetwork::mainnet_default(),
-            nym_vpn_network: NymVpnNetwork::mainnet_default(),
+    pub fn mainnet_default() -> Option<Self> {
+        let network_details = NymNetworkDetails::new_mainnet();
+        // resolve_nym_network_details(&mut network_details);
+        let nym_network = NymNetwork::new(network_details.clone());
+        let nyxd_url = nym_network
+            .network
+            .endpoints
+            .first()
+            .map(|ep| ep.nyxd_url())?;
+        let api_url = nym_network
+            .network
+            .endpoints
+            .first()
+            .and_then(|ep| ep.api_url())?;
+        Some(Network {
+            nym_network,
+            nyxd_url,
+            api_url,
+            nym_vpn_network: NymVpnNetwork::new(network_details),
             feature_flags: None,
-        }
+        })
     }
 
     pub fn nym_network_details(&self) -> &NymNetworkDetails {
@@ -69,10 +88,24 @@ impl Network {
         let discovery = Discovery::fetch(network_name)?;
         let feature_flags = discovery.feature_flags.clone();
         let nym_network = discovery.fetch_nym_network_details()?;
+        let nyxd_url = nym_network
+            .network
+            .endpoints
+            .first()
+            .map(|ep| ep.nyxd_url())
+            .ok_or(anyhow::anyhow!("no nyxd endpoint found in nym network"))?;
+        let api_url = nym_network
+            .network
+            .endpoints
+            .first()
+            .and_then(|ep| ep.api_url())
+            .ok_or(anyhow::anyhow!("no nyxd endpoint found in nym network"))?;
         let nym_vpn_network = NymVpnNetwork::from(discovery);
 
         Ok(Network {
             nym_network,
+            nyxd_url,
+            api_url,
             nym_vpn_network,
             feature_flags,
         })
@@ -105,18 +138,12 @@ impl Network {
         Ok(network_name == vpn_network_name)
     }
 
-    pub fn nyxd_url(&self) -> Option<url::Url> {
-        self.nym_network_details()
-            .endpoints
-            .first()
-            .map(|endpoint| endpoint.nyxd_url())
+    pub fn nyxd_url(&self) -> Url {
+        self.nyxd_url.clone()
     }
 
-    pub fn api_url(&self) -> Option<url::Url> {
-        self.nym_network_details()
-            .endpoints
-            .first()
-            .and_then(|endpoint| endpoint.api_url())
+    pub fn api_url(&self) -> Url {
+        self.api_url.clone()
     }
 
     pub fn vpn_api_url(&self) -> url::Url {
@@ -196,12 +223,26 @@ pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Ne
 
     // Using discovery, fetch and setup nym network details
     let nym_network = NymNetwork::ensure_exists(config_path, &discovery)?;
+    let nyxd_url = nym_network
+        .network
+        .endpoints
+        .first()
+        .map(|ep| ep.nyxd_url())
+        .ok_or(anyhow::anyhow!("no nyxd endpoint found in nym network"))?;
+    let api_url = nym_network
+        .network
+        .endpoints
+        .first()
+        .and_then(|ep| ep.api_url())
+        .ok_or(anyhow::anyhow!("no nyxd endpoint found in nym network"))?;
 
     // Using discovery, setup nym vpn network details
     let nym_vpn_network = NymVpnNetwork::from(discovery);
 
     Ok(Network {
         nym_network,
+        nyxd_url,
+        api_url,
         nym_vpn_network,
         feature_flags,
     })
@@ -209,10 +250,24 @@ pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Ne
 
 pub fn manual_env(network_details: &NymNetworkDetails) -> anyhow::Result<Network> {
     let nym_network = NymNetwork::from(network_details.clone());
+    let nyxd_url = nym_network
+        .network
+        .endpoints
+        .first()
+        .map(|ep| ep.nyxd_url())
+        .ok_or(anyhow::anyhow!("no nyxd endpoint found in nym network"))?;
+    let api_url = nym_network
+        .network
+        .endpoints
+        .first()
+        .and_then(|ep| ep.api_url())
+        .ok_or(anyhow::anyhow!("no nyxd endpoint found in nym network"))?;
     let nym_vpn_network = NymVpnNetwork::try_from(network_details)?;
 
     Ok(Network {
         nym_network,
+        nyxd_url,
+        api_url,
         nym_vpn_network,
         feature_flags: None,
     })

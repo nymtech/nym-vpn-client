@@ -1,14 +1,12 @@
-// Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
+// Copyright 2023-2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::PathBuf, str::FromStr};
+use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
 use tracing_oslog::OsLogger;
 use tracing_subscriber::{
     filter::LevelFilter, fmt::Layer, layer::SubscriberExt, util::SubscriberInitExt, Registry,
 };
-
-pub(crate) const DEFAULT_LOG_FILE: &str = "nym-vpn-lib.log";
 
 pub fn init_logs(level: String, path: Option<PathBuf>) {
     let oslogger_layer = OsLogger::new("net.nymtech.vpn.agent", "default");
@@ -33,59 +31,43 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
 
     let registry = Registry::default().with(oslogger_layer);
 
-    let result = match path {
-        Some(ref log_path) => {
-            // If a path was provided attempt to add a tracing_subscriber Layer that logs  to file
-            match try_make_writer(log_path.clone()) {
-                Some(appender) => {
-                    let (non_blocking, _) = tracing_appender::non_blocking(appender);
-                    let file_appender_layer = Layer::default().with_writer(non_blocking);
-                    registry.with(file_appender_layer).with(filter).try_init()
-                }
-                None => {
-                    // if we failed to make the file appender init just the os_log version.
-                    tracing::error!("Failed to initialize file logger: bad path: \"{log_path:?}\"");
-                    registry.with(filter).try_init()
+    let file_layer = path.as_ref().and_then(|path| {
+        // Ensure log directory exists
+        if let Some(parent) = path.parent() {
+            if !parent.exists() {
+                if let Err(e) = std::fs::create_dir_all(parent) {
+                    eprintln!("Failed to create log directory {}: {e}", parent.display());
                 }
             }
         }
-        // no file path provided -- init os_log logger
-        None => registry.with(filter).try_init(),
-    };
 
-    match result {
-        Ok(_) => {
-            tracing::debug!("Logger initialized level: {level}, path?:{path:?}");
-        }
-        Err(e) => {
-            tracing::error!("Failed to initialize os_log: {}", e);
-        }
-    };
-}
+        // Attempting to get the tracing_appending solution to work was not successful.
+        // Falling back to a more basic solution that does not support log rotation, for now.
 
-fn try_make_writer(path: PathBuf) -> Option<tracing_appender::rolling::RollingFileAppender> {
-    let path = path.canonicalize().ok()?;
+        // Attempt to open the log file for writing
+        OpenOptions::new()
+            .write(true)
+            .create(true)
+            .truncate(true)
+            .open(path)
+            .ok()
+            .map(|file| {
+                Layer::default()
+                    .with_writer(file)
+                    .with_ansi(false)
+                    .compact()
+            })
+    });
 
-    let (maybe_log_dir, filename) = if path.is_dir() {
-        (
-            Some(path.as_path()),
-            ::std::path::Path::new(DEFAULT_LOG_FILE),
-        )
-    } else if path.is_file() {
-        (
-            path.parent(),
-            ::std::path::Path::new(path.file_name().unwrap()),
-        )
+    let result = if let Some(file_layer) = file_layer {
+        registry.with(file_layer).with(filter).try_init()
     } else {
-        return None;
+        registry.with(filter).try_init()
     };
 
-    // make sure that the path provides a directory, the directory exists and we have permission to access it.
-    if !maybe_log_dir.is_some_and(|d| d.try_exists().is_ok_and(|exists| exists)) {
-        return None;
-    };
-
-    let log_dir = maybe_log_dir.unwrap();
-
-    Some(tracing_appender::rolling::never(log_dir, filename))
+    if let Err(err) = result {
+        eprintln!("Failed to initialize logger: {err}");
+    } else {
+        tracing::debug!("Logger initialized level: {level}, path?:{path:?}");
+    }
 }

@@ -3208,7 +3208,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.3-ruta#54aef7c24279ba647808f45f3813e6fa82e4cf55"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.3-ruta-vpn-fork#e3ce0a0cae4905b5dcba57ca4247d22a1d88e9ae"
 dependencies = [
  "const-str",
  "log",
@@ -3220,7 +3220,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.3-ruta#54aef7c24279ba647808f45f3813e6fa82e4cf55"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.3-ruta-vpn-fork#e3ce0a0cae4905b5dcba57ca4247d22a1d88e9ae"
 dependencies = [
  "async-trait",
  "hickory-resolver",

@@ -5,6 +5,7 @@ use std::{net::SocketAddr, path::PathBuf, time::Duration};
 
 use futures::FutureExt;
 use nym_vpn_lib_types::TunnelEvent;
+use nym_vpn_network_config::Network;
 use nym_vpn_proto::{nym_vpnd_server::NymVpndServer, VPN_FD_SET};
 use tokio::{
     sync::{
@@ -52,6 +53,7 @@ async fn run_uri_listener<T>(
     addr: SocketAddr,
     shutdown_token: CancellationToken,
     health_service: HealthServer<T>,
+    network_env: Network,
 ) -> Result<(), tonic::transport::Error>
 where
     T: Health,
@@ -61,7 +63,8 @@ where
         .register_encoded_file_descriptor_set(VPN_FD_SET)
         .build()
         .unwrap();
-    let command_interface = CommandInterface::new_with_uri(vpn_command_tx, tunnel_event_rx, addr);
+    let command_interface =
+        CommandInterface::new_with_uri(vpn_command_tx, tunnel_event_rx, addr, network_env);
 
     Server::builder()
         .trace_fn(grpc_span)
@@ -78,6 +81,7 @@ async fn run_socket_listener<T>(
     socket_path: PathBuf,
     shutdown_token: CancellationToken,
     health_service: HealthServer<T>,
+    network_env: Network,
 ) -> Result<(), tonic::transport::Error>
 where
     T: Health,
@@ -88,7 +92,7 @@ where
         .build()
         .unwrap();
     let command_interface =
-        CommandInterface::new_with_path(vpn_command_tx, tunnel_event_rx, &socket_path);
+        CommandInterface::new_with_path(vpn_command_tx, tunnel_event_rx, &socket_path, network_env);
     command_interface.remove_previous_socket_file();
 
     // Wrap the unix socket into a stream that can be used by tonic
@@ -131,6 +135,7 @@ async fn setup_health_service(
 pub(crate) fn start_command_interface(
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
     command_interface_options: Option<CommandInterfaceOptions>,
+    network_env: Network,
     shutdown_token: CancellationToken,
 ) -> (JoinHandle<()>, UnboundedReceiver<VpnServiceCommand>) {
     tracing::info!("Starting command interface");
@@ -153,6 +158,7 @@ pub(crate) fn start_command_interface(
                 socket_path.to_path_buf(),
                 shutdown_token.child_token(),
                 health_service.clone(),
+                network_env.clone(),
             ));
         }
 
@@ -163,6 +169,7 @@ pub(crate) fn start_command_interface(
                 uri_addr,
                 shutdown_token.child_token(),
                 health_service,
+                network_env,
             ));
         }
 

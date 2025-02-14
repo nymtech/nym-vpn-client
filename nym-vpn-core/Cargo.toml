@@ -103,20 +103,19 @@ hickory-resolver = "0.24.3"
 http = "0.2.12"                                                     # version compatible with tonic
 inotify = "0.11"
 ipnetwork = "0.20"
-is_elevated = "0.1.2"
 itertools = "0.13.0"
 lazy_static = "1.5.0"
 libc = "0.2"
 log = "0.4.25"
 log-panics = "2"
 maplit = "1.0.2"
+mnl = "0.2.2"
 netdev = "0.31.0"
 netlink-packet-core = "0.7.0"
 netlink-packet-route = "0.19.0"
 netlink-sys = "0.8.7"
 nftnl = "0.7.0"
 nix = "0.29"
-mnl = "0.2.2"
 objc2 = "0.5"
 objc2-foundation = "0.2"
 once_cell = "1.20"
@@ -171,36 +170,38 @@ url = "2.5"
 uuid = "1.12"
 vergen = { version = "8.3.1", default-features = false }
 which = { version = "7.0", default-features = false }
-wmi = "0.14"
 widestring = "1.0"
+winapi = "0.3"
+windows = "0.58"
+windows-core = "0.58"
 windows-service = "0.7.0"
 windows-sys = "0.52"
-windows-core = "0.58"
-windows = "0.58"
+winreg = "0.52"
+wmi = "0.14"
 x25519-dalek = "2.0"
 zeroize = "1.6.0"
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-task = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-task = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "release/2025.3-ruta-vpn-fork" }

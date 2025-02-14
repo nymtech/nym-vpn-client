@@ -267,12 +267,8 @@ async fn get_gateway_countries(
     min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<Location>, VpnError> {
     let network_env = environment::current_environment_details().await?;
-    let nyxd_url = network_env.nyxd_url().ok_or(VpnError::InternalError {
-        details: "Nyxd URL not found".to_string(),
-    })?;
-    let api_url = network_env.api_url().ok_or(VpnError::InternalError {
-        details: "API URL not found".to_string(),
-    })?;
+    let nyxd_url = network_env.nyxd_url();
+    let api_url = network_env.api_url();
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
     let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
     let directory_config = nym_gateway_directory::Config {
@@ -308,12 +304,8 @@ async fn get_gateways(
     min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<GatewayInfo>, VpnError> {
     let network_env = environment::current_environment_details().await?;
-    let nyxd_url = network_env.nyxd_url().ok_or(VpnError::InternalError {
-        details: "Nyxd URL not found".to_string(),
-    })?;
-    let api_url = network_env.api_url().ok_or(VpnError::InternalError {
-        details: "API URL not found".to_string(),
-    })?;
+    let nyxd_url = network_env.nyxd_url();
+    let api_url = network_env.api_url();
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
     let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
     let directory_config = nym_gateway_directory::Config {

@@ -68,24 +68,21 @@ pub(super) async fn start_state_machine(
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
 
-    let api_url = network_env.api_url().ok_or(VpnError::InternalError {
-        details: "API URL not found".to_string(),
-    })?;
-    let nyxd_url = network_env.nyxd_url().ok_or(VpnError::InternalError {
-        details: "Nyxd URL not found".to_string(),
-    })?;
+    let api_url = network_env.api_url();
+    let nyxd_url = network_env.nyxd_url();
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
 
     let gateway_config = GatewayDirectoryConfig {
         nyxd_url,
         api_url,
         nym_vpn_api_url,
-        ..Default::default()
+        min_gateway_performance: None,
     };
 
     let nym_config = NymConfig {
         data_path: config.credential_data_path,
         gateway_config,
+        network_env,
     };
 
     let tunnel_settings = TunnelSettings {

@@ -129,14 +129,16 @@ jobs:
           cp ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe
 
       - name: Compile protobuf for swift (health)
+        working-directory: proto/grpc
         run: |
-          protoc --swift_out=. proto/grpc/health.proto
-          protoc --grpc-swift_out=. proto/grpc/health.proto
+          protoc --swift_out=. health.proto
+          protoc --grpc-swift_out=. health.proto
 
       - name: Compile protobuf for swift (vpn)
+        working-directory: proto/nym
         run: |
-          protoc --swift_out=. proto/nym/vpn.proto
-          protoc --grpc-swift_out=. proto/nym/vpn.proto
+          protoc --swift_out=. vpn.proto account.proto
+          protoc --grpc-swift_out=. vpn.proto account.proto
 
       - name: Upload generated protobuf files for swift
         uses: actions/upload-artifact@v4
@@ -145,17 +147,22 @@ jobs:
           path: |
             proto/nym/vpn.grpc.swift
             proto/nym/vpn.pb.swift
+            proto/nym/account.grpc.swift
+            proto/nym/account.pb.swift
             proto/grpc/health.grpc.swift
             proto/grpc/health.pb.swift
           retention-days: 3
 
       - name: Include generated proto files for swift in the bundled upload
         run: |
-          mkdir -p ${{ env.UPLOAD_DIR_MAC }}
-          cp -v proto/nym/vpn.grpc.swift ${{ env.UPLOAD_DIR_MAC }}
-          cp -v proto/nym/vpn.pb.swift ${{ env.UPLOAD_DIR_MAC }}
-          cp -v proto/grpc/health.grpc.swift ${{ env.UPLOAD_DIR_MAC }}
-          cp -v proto/grpc/health.pb.swift ${{ env.UPLOAD_DIR_MAC }}
+          mkdir -p ${{ env.UPLOAD_DIR_MAC }}/proto/nym
+          mkdir -p ${{ env.UPLOAD_DIR_MAC }}/proto/grpc
+          cp -v proto/nym/vpn.grpc.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
+          cp -v proto/nym/vpn.pb.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
+          #cp -v proto/nym/account.grpc.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
+          cp -v proto/nym/account.pb.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
+          cp -v proto/grpc/health.grpc.swift ${{ env.UPLOAD_DIR_MAC }}/proto/grpc
+          cp -v proto/grpc/health.pb.swift ${{ env.UPLOAD_DIR_MAC }}/proto/grpc
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

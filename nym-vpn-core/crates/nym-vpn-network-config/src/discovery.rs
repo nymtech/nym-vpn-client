@@ -171,6 +171,7 @@ impl Discovery {
         if network_details.network.network_name != self.network_name {
             anyhow::bail!("Network name mismatch between requested and fetched network details")
         }
+        // resolve_nym_network_details(&mut network_details.network);
         Ok(NymNetwork {
             network: network_details.network,
         })

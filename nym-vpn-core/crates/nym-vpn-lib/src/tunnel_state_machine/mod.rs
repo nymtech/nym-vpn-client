@@ -24,6 +24,7 @@ use std::sync::Arc;
 use std::{net::IpAddr, path::PathBuf};
 
 use nym_vpn_account_controller::AccountControllerCommander;
+use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -297,6 +298,7 @@ pub struct SharedState {
 pub struct NymConfig {
     pub data_path: Option<PathBuf>,
     pub gateway_config: GatewayDirectoryConfig,
+    pub network_env: Network,
 }
 
 pub struct TunnelStateMachine {

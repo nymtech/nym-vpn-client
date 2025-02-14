@@ -12,13 +12,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
-      # Disabled due panic on latest code:
-      #
-      #    thread '<unnamed>' panicked at /home/runner/.cargo/registry/src/index.crates.io-6f17d22bba15001f/krates-0.17.1/src/builder.rs:1257:48:
-      #    cargo metadata resolved a dependency for a dependency not specified by the crate: NodeDep { name: "axum_client_ip", pkg: Kid { name: "axum-client-ip", version: "0.6.1" }, dep_kinds: [DepKindInfo { kind: Normal, cfg: None }] }
-      #
-      #- uses: EmbarkStudios/cargo-deny-action@v2
-      #  with:
-      #    manifest-path: ./nym-vpn-core/Cargo.toml
-      #    command: check licenses bans sources
-      #    arguments: --all-features
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          manifest-path: ./nym-vpn-core/Cargo.toml
+          command: check licenses bans sources
+          arguments: --all-features

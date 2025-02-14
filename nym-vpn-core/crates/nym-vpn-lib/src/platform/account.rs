@@ -310,11 +310,22 @@ pub(crate) mod raw {
 
     async fn remove_credential_storage_raw<P: AsRef<Path>>(path: P) -> Result<(), VpnError> {
         let storage_paths = StoragePaths::new_from_dir(&path).map_err(VpnError::internal)?;
-        std::fs::remove_file(storage_paths.credential_database_path).map_err(|err| {
-            VpnError::Storage {
-                details: err.to_string(),
+        for path in storage_paths.credential_database_paths() {
+            tracing::info!("Removing file: {}", path.display());
+            match std::fs::remove_file(&path) {
+                Ok(_) => tracing::trace!("Removed file: {}", path.display()),
+                Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                    tracing::trace!("File not found, skipping: {}", path.display())
+                }
+                Err(e) => {
+                    tracing::error!("Failed to remove file {}: {e}", path.display());
+                    return Err(VpnError::InternalError {
+                        details: e.to_string(),
+                    });
+                }
             }
-        })
+        }
+        Ok(())
     }
 
     async fn create_vpn_api_client() -> Result<VpnApiClient, VpnError> {

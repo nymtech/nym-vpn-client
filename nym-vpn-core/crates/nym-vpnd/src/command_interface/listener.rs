@@ -8,6 +8,7 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
+use nym_vpn_network_config::Network;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
 use nym_vpn_api_client::types::GatewayMinPerformance;
@@ -50,6 +51,8 @@ pub(super) struct CommandInterface {
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
 
     listener: ListenerType,
+
+    network_env: Network,
 }
 
 impl CommandInterface {
@@ -57,11 +60,13 @@ impl CommandInterface {
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
         tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
         socket_path: &Path,
+        network_env: Network,
     ) -> Self {
         Self {
             vpn_command_tx,
             tunnel_event_rx,
             listener: ListenerType::Path(socket_path.to_path_buf()),
+            network_env,
         }
     }
 
@@ -69,11 +74,13 @@ impl CommandInterface {
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
         tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
         uri: SocketAddr,
+        network_env: Network,
     ) -> Self {
         Self {
             vpn_command_tx,
             tunnel_event_rx,
             listener: ListenerType::Uri(uri),
+            network_env,
         }
     }
 
@@ -307,13 +314,19 @@ impl NymVpnd for CommandInterface {
         let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
         let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
-        let min_gateway_performance = GatewayMinPerformance {
+        let min_gateway_performance = Some(GatewayMinPerformance {
             mixnet_min_performance: min_mixnet_performance,
             vpn_min_performance: min_vpn_performance,
+        });
+        let directory_config = nym_vpn_lib::gateway_directory::Config {
+            nyxd_url: self.network_env.nyxd_url(),
+            api_url: self.network_env.api_url(),
+            nym_vpn_api_url: Some(self.network_env.vpn_api_url()),
+            min_gateway_performance,
         };
 
         let gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_gateways(gw_type, user_agent, min_gateway_performance)
+            .handle_list_gateways(gw_type, user_agent, directory_config)
             .await
             .map_err(|err| {
                 let msg = format!("Failed to list gateways: {:?}", err);
@@ -360,13 +373,19 @@ impl NymVpnd for CommandInterface {
         let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
         let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
-        let min_gateway_performance = GatewayMinPerformance {
+        let min_gateway_performance = Some(GatewayMinPerformance {
             mixnet_min_performance: min_mixnet_performance,
             vpn_min_performance: min_vpn_performance,
+        });
+        let directory_config = nym_vpn_lib::gateway_directory::Config {
+            nyxd_url: self.network_env.nyxd_url(),
+            api_url: self.network_env.api_url(),
+            nym_vpn_api_url: Some(self.network_env.vpn_api_url()),
+            min_gateway_performance,
         };
 
         let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_countries(gw_type, user_agent, min_gateway_performance)
+            .handle_list_countries(gw_type, user_agent, directory_config)
             .await
             .map_err(|err| {
                 let msg = format!("Failed to list entry countries: {:?}", err);

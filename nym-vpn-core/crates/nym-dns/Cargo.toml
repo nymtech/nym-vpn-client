@@ -35,7 +35,7 @@ duct.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 once_cell.workspace = true
-winreg = { version = "0.52", features = ["transactions"] }
+winreg = { workspace = true, features = ["transactions"] }
 
 nym-windows = { path = "../nym-windows" }
 nym-common = { path = "../nym-common" }
