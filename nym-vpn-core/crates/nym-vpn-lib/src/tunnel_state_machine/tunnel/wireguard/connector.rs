@@ -17,7 +17,7 @@ use tokio_util::sync::CancellationToken;
 
 use super::connected_tunnel::ConnectedTunnel;
 use crate::{
-    bandwidth_controller::{BandwidthController, ReconnectMixnetClientData},
+    bandwidth_controller::BandwidthController,
     tunnel_state_machine::tunnel::{
         self, gateway_selector::SelectedGateways, AnyConnector, ConnectorError, Error, Result,
     },
@@ -52,7 +52,6 @@ impl Connector {
         enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
-        reconnect_mixnet_client_data: ReconnectMixnetClientData,
         cancel_token: CancellationToken,
     ) -> Result<ConnectedTunnel, ConnectorError> {
         let result = Self::connect_inner(
@@ -63,7 +62,6 @@ impl Connector {
             enable_credentials_mode,
             selected_gateways,
             data_path,
-            reconnect_mixnet_client_data,
             cancel_token,
         )
         .await;
@@ -96,7 +94,6 @@ impl Connector {
         enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
-        reconnect_mixnet_client_data: ReconnectMixnetClientData,
         cancel_token: CancellationToken,
     ) -> Result<ConnectResult> {
         let auth_addresses =
@@ -156,7 +153,6 @@ impl Connector {
                 wg_entry_gateway_client.light_client(),
                 wg_exit_gateway_client.light_client(),
                 shutdown,
-                reconnect_mixnet_client_data,
             )?;
             let entry_fut = bw.get_initial_bandwidth(
                 enable_credentials_mode,
@@ -190,7 +186,6 @@ impl Connector {
                 wg_entry_gateway_client.light_client(),
                 wg_exit_gateway_client.light_client(),
                 shutdown,
-                reconnect_mixnet_client_data,
             )?;
             let entry = bw
                 .get_initial_bandwidth(
@@ -241,9 +236,10 @@ impl Connector {
         ))
     }
 
-    /// Gracefully shutdown task manager and consume the struct.
+    /// Gracefully shutdown task manager and mixnet client, and consume the struct.
     pub async fn dispose(self) {
-        tunnel::shutdown_task_manager(self.task_manager).await;
+        tracing::debug!("Shutting down mixnet client");
+        tunnel::shutdown_mixnet_client(self.task_manager, self.mixnet_client).await;
     }
 }
 
