@@ -69,7 +69,8 @@ jobs:
 
   build-windows:
     # needs: [build-wireguard-go-windows,build-mullvad-windows]
-    runs-on: custom-windows-11
+    # TODO switch back on 'custom-windows-11' once rust toolchain setup is fixed
+    runs-on: windows-latest
     env:
       CPP_BUILD_MODES: ${{ needs.build-mullvad-windows.outputs.CPP_BUILD_MODES }}
     outputs:
@@ -143,6 +144,13 @@ jobs:
       #     mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib '${{ env.TAURI_SRC }}'
       #     mv '${{ env.LIBS_PATH }}/libwg.dll' '${{ env.TAURI_SRC }}'
       #     mv '${{ env.LIBS_PATH }}/libwg.lib' '${{ env.TAURI_SRC }}'
+
+      # TODO remove this once switch back on 'custom-windows-11'
+      - name: Install winget
+        uses: Cyberboss/install-winget@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          wget_release_id: latest
 
       - name: Install yq
         run: |
