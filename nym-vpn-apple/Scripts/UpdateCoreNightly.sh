@@ -1,12 +1,14 @@
 #!/bin/bash
 
 # Updates the lib and daemon in the iOS+macOS project using nightly builds.
-# This script uses the nightly release available at:
-# https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-core-nightly
+# This script now uses the builds available at:
+# https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core/
+#
+# If no tag is provided as an argument, it defaults to using the 'develop' folder.
 #
 # It extracts the asset filenames (which include a 14-digit timestamp) and derives:
-#   - The library version (e.g. 1.3.0-dev.20250205030839)
-#   - The daemon version (e.g. 1.3.0)
+#   - The library version (e.g. 1.4.0-dev.20250212031000)
+#   - The daemon version (e.g. 1.4.0)
 #
 # Must be run from nym-vpn-apple/Scripts.
 
@@ -23,28 +25,48 @@ error_handler() {
 trap 'error_handler $LINENO' ERR
 
 # -----------------------------------------------------------------------------
-# 1. Get release page content and extract asset filenames, timestamp, and versions
+# 0. Determine the build tag and the latest timestamp folder to use.
 # -----------------------------------------------------------------------------
+# Use the first command-line argument if provided, else default to 'develop'
+TAG="${1:-develop}"
+BASE_URL="https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core"
+TAG_URL="${BASE_URL}/${TAG}"
 
-RELEASE_URL="https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-core-nightly"
-PACKAGE_FILE_PATH="../MixnetLibrary/Package.swift"
+echo "Using build tag: ${TAG}"
+echo "Fetching folder listing from $TAG_URL..."
+# Use -L to follow redirects.
+folder_listing=$(curl -Ls "$TAG_URL")
+
+# Extract directories with 12-digit names (e.g. 202502241842/)
+latest_folder=$(echo "$folder_listing" | grep -Eo '[0-9]{12}/' | tr -d '/' | sort | tail -n 1)
+if [[ -z "$latest_folder" ]]; then
+    echo "❌ Error: Could not determine the latest timestamp folder from $TAG_URL"
+    exit 1
+fi
+
+echo "Latest timestamp folder: $latest_folder"
+RELEASE_URL="${TAG_URL}/${latest_folder}"
 
 echo "Fetching release page content from $RELEASE_URL..."
-release_page_content=$(curl -s "$RELEASE_URL")
+release_page_content=$(curl -Ls "$RELEASE_URL")
 
-ios_asset=$(echo "$release_page_content" | grep -Eo 'nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]{14}_ios_universal\.zip' | head -n 1)
+# -----------------------------------------------------------------------------
+# 1. Extract asset filenames, timestamp, and versions from the release page content.
+# -----------------------------------------------------------------------------
+
+ios_asset=$(echo "$release_page_content" | grep -Eo 'nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]{12}_ios_universal\.zip' | head -n 1)
 if [[ -z "$ios_asset" ]]; then
     echo "❌ Error: Could not find iOS asset filename in the release page."
     exit 1
 fi
 
-TIMESTAMP=$(echo "$ios_asset" | grep -Eo '[0-9]{14}')
+TIMESTAMP=$(echo "$ios_asset" | grep -Eo '[0-9]{12}')
 if [[ -z "$TIMESTAMP" ]]; then
     echo "❌ Error: Could not extract timestamp from iOS asset filename."
     exit 1
 fi
 
-LIB_VERSION=$(echo "$ios_asset" | sed -E 's/nym-vpn-core-v([0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]{14})_ios_universal\.zip/\1/')
+LIB_VERSION=$(echo "$ios_asset" | sed -E 's/nym-vpn-core-v([0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]{12})_ios_universal\.zip/\1/')
 if [[ -z "$LIB_VERSION" ]]; then
     echo "❌ Error: Could not extract lib version from iOS asset filename."
     exit 1
@@ -59,10 +81,16 @@ fi
 echo "Extracted LIB version: $LIB_VERSION"
 echo "Derived Daemon version: $DAEMON_VERSION"
 
-ios_download_link="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-nightly/${ios_asset}"
-ios_checksum=$(echo "$release_page_content" | grep -E -A 1 "nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]{14}_ios_universal\.zip" | grep -Eo '[a-f0-9]{64}' | head -n 1)
+ios_download_link="${RELEASE_URL}/${ios_asset}"
+
+# -----------------------------------------------------------------------------
+# 2. Fetch the iOS checksum from the corresponding .sha256sum file.
+# -----------------------------------------------------------------------------
+ios_checksum_url="${RELEASE_URL}/${ios_asset}.sha256sum"
+echo "Fetching iOS checksum from $ios_checksum_url..."
+ios_checksum=$(curl -Ls "$ios_checksum_url" | grep -Eo '[a-f0-9]{64}' | head -n 1)
 if [[ -z "$ios_checksum" ]]; then
-    echo "❌ Error: Could not extract iOS checksum from the release page."
+    echo "❌ Error: Could not extract iOS checksum from $ios_checksum_url"
     exit 1
 fi
 
@@ -70,8 +98,9 @@ echo "iOS Download link: $ios_download_link"
 echo "iOS Checksum: $ios_checksum"
 
 # -----------------------------------------------------------------------------
-# 2. Update Package.swift with the new iOS asset URL and checksum
+# 3. Update Package.swift with the new iOS asset URL and checksum.
 # -----------------------------------------------------------------------------
+PACKAGE_FILE_PATH="../MixnetLibrary/Package.swift"
 
 if [[ -f "$PACKAGE_FILE_PATH" ]]; then
     sed -i '' "s|url: \".*\"|url: \"$ios_download_link\"|g" "$PACKAGE_FILE_PATH"
@@ -83,29 +112,29 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 3. Update the libVersion in AppVersionProvider.swift with LIB_VERSION (with timestamp)
+# 4. Update the libVersion in AppVersionProvider.swift with LIB_VERSION (with timestamp).
 # -----------------------------------------------------------------------------
+LIB_VERSION_NO_TIMESTAMP=$(echo "$LIB_VERSION" | sed -E 's/\.[^.]+$//')
 
 app_version_file="../ServicesMutual/Sources/AppVersionProvider/AppVersionProvider.swift"
 if [[ -f "$app_version_file" ]]; then
-    sed -i '' "s/public static let libVersion = \".*\"/public static let libVersion = \"$LIB_VERSION\"/g" "$app_version_file"
-    echo "libVersion updated to $LIB_VERSION in $app_version_file."
+    sed -i '' "s/public static let libVersion = \".*\"/public static let libVersion = \"$LIB_VERSION_NO_TIMESTAMP\"/g" "$app_version_file"
+    echo "libVersion updated to $LIB_VERSION_NO_TIMESTAMP in $app_version_file."
 else
-    echo "❌ Error: AppVersionProvider.swift file not found at $app_version_file."
+    echo "❌ Error: AppVersionProvider.swift file not found at $app_version_file"
     exit 1
 fi
 
 # -----------------------------------------------------------------------------
-# 4. Process macOS asset: extract the asset filename, download and extract it.
+# 5. Process macOS asset: extract the asset filename, download and extract it.
 # -----------------------------------------------------------------------------
-
-macos_asset=$(echo "$release_page_content" | grep -Eo 'nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]{14}_macos_universal\.tar\.gz' | head -n 1)
+macos_asset=$(echo "$release_page_content" | grep -Eo 'nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]{12}_macos_universal\.tar\.gz' | head -n 1)
 if [[ -z "$macos_asset" ]]; then
     echo "❌ Error: Could not find macOS asset filename in the release page."
     exit 1
 fi
 
-macos_download_link="https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-nightly/${macos_asset}"
+macos_download_link="${RELEASE_URL}/${macos_asset}"
 echo "macOS Download link: $macos_download_link"
 curl -LO "$macos_download_link"
 echo "macOS file downloaded successfully: $(basename "$macos_download_link")"
@@ -129,6 +158,16 @@ else
     exit 1
 fi
 
+if [[ -d "${extracted_folder_name}/proto" ]]; then
+    rm -rf "../ServicesMacOS/Sources/GRPCManager/proto"
+    cp -a "${extracted_folder_name}/proto" "../ServicesMacOS/Sources/GRPCManager"
+    echo "proto directory has been copied (with all folders and files) to ../ServicesMacOS/Sources/GRPCManager and overwritten."
+else
+    echo "❌ Error: ${extracted_folder_name}/proto not found."
+    exit 1
+fi
+
+
 if [[ -f "$tar_file_name" ]]; then
     echo "Removing downloaded tar.gz file: $tar_file_name"
     rm -f "$tar_file_name"
@@ -146,33 +185,28 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 5. Download, extract, and build the source tar.gz for the nightly release
+# 6. Download iOS package, extract it, and copy uniffi/nym_vpn_lib.swift to destination.
 # -----------------------------------------------------------------------------
+ios_zip_file=$(basename "$ios_download_link")
+echo "Downloading iOS package: $ios_zip_file"
+curl -LO "$ios_download_link"
+echo "iOS package downloaded successfully: $ios_zip_file"
 
-tar_file_url="https://github.com/nymtech/nym-vpn-client/archive/refs/tags/nym-vpn-core-nightly.tar.gz"
-source_tar_file=$(basename "$tar_file_url")
-curl -LO "$tar_file_url"
-echo "Source tar file downloaded successfully: $source_tar_file"
-tar -xzf "$source_tar_file"
-echo "✅ Source tar file extracted successfully."
-source_folder=$(tar -tf "$source_tar_file" | head -n 1 | cut -f1 -d"/")
+echo "Extracting iOS package..."
+# Extract the zip file in the current directory.
+unzip -q "$ios_zip_file"
+echo "✅ iOS package extracted successfully."
 
-cd "${source_folder}" || exit 1
-make build-wireguard-ios
-cd "nym-vpn-core" || exit 1
-make build-vpn-lib-swift
-make generate-uniffi-ios
-cd ..
-cd ..
-echo "✅ Makefile executed successfully."
-rm -f "$source_tar_file"
-echo "✅ Cleaned up the source tar file."
+# Identify the extracted folder.
+# Assumes the zip file creates a top-level directory matching the pattern nym-vpn-core-v*ios_universal.
+extracted_folder=$(find . -maxdepth 1 -type d -name "nym-vpn-core-v*ios_universal" | head -n 1 | sed 's|^\./||')
+if [[ -z "$extracted_folder" ]]; then
+    echo "❌ Error: Could not find the extracted folder for the iOS package."
+    exit 1
+fi
 
-# -----------------------------------------------------------------------------
-# 6. Copy generated Swift file from the source to the MixnetLibrary
-# -----------------------------------------------------------------------------
-
-source_swift_file="${source_folder}/nym-vpn-core/crates/nym-vpn-lib/uniffi/nym_vpn_lib.swift"
+# Define the source Swift file and destination path.
+source_swift_file="${extracted_folder}/uniffi/nym_vpn_lib.swift"
 destination_swift_path="../MixnetLibrary/Sources/MixnetLibrary/"
 
 if [[ -f "$source_swift_file" ]]; then
@@ -183,35 +217,10 @@ else
     exit 1
 fi
 
-# -----------------------------------------------------------------------------
-# 7. Process proto files: generate Swift gRPC files and copy them to the destination
-# -----------------------------------------------------------------------------
-
-proto_folder="${source_folder}/proto/nym"
-destination_proto_folder="../../../../ServicesMacOS/Sources/GRPCManager/proto/nym"
-
-cd "$proto_folder"
-echo "✅ Changed directory to $proto_folder"
-protoc --swift_out=. vpn.proto
-echo "✅ vpn.pb.swift generated successfully."
-protoc --grpc-swift_out=. vpn.proto
-echo "✅ vpn.grpc.swift generated successfully."
-mkdir -p "$destination_proto_folder"
-cp vpn.grpc.swift vpn.pb.swift vpn.proto "$destination_proto_folder"
-echo "✅ Files copied successfully to $destination_proto_folder."
-cd -
-
-# -----------------------------------------------------------------------------
-# 8. Update daemon Info.plist and final cleanup
-# -----------------------------------------------------------------------------
-
-sh UpdateDaemonInfoPlist.sh "$DAEMON_VERSION"
-
-if [[ -d "$source_folder" ]]; then
-    rm -rf "$source_folder"
-    echo "✅ Cleaned up extracted source folder: $source_folder"
-else
-    echo "❌ Extracted source folder not found: $source_folder"
-fi
+# Cleanup the downloaded ZIP file and the extracted folder.
+echo "Cleaning up..."
+rm -f "$ios_zip_file"
+rm -rf "$extracted_folder"
+echo "Cleanup completed."
 
 echo "✅ Update completed successfully for nightly build (LIB_VERSION: $LIB_VERSION, Daemon: $DAEMON_VERSION)."

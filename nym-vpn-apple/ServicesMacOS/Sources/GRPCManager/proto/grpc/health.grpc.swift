@@ -1,4 +1,3 @@
-// swiftlint:disable all
 //
 // DO NOT EDIT.
 // swift-format-ignore-file
@@ -486,4 +485,3 @@ internal enum Grpc_Health_V1_HealthServerMetadata {
     )
   }
 }
-// swiftlint:enable all
