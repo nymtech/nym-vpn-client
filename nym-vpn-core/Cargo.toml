@@ -99,7 +99,6 @@ eventlog = "0.3.0"
 futures = "0.3.31"
 futures-util = "0.3"
 hex = "0.4"
-hickory-resolver = "0.24.3"
 http = "0.2.12"                                                     # version compatible with tonic
 inotify = "0.11"
 ipnetwork = "0.20"
