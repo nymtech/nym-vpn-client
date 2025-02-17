@@ -446,7 +446,7 @@ impl TunnelMonitor {
         let interface_addrs = self.tunnel_settings.mixnet_tunnel_options.interface_addrs;
 
         let connected_tunnel = connected_mixnet
-            .connect_mixnet_tunnel(interface_addrs)
+            .connect_mixnet_tunnel(interface_addrs, self.cancel_token.clone())
             .await?;
         let assigned_addresses = connected_tunnel.assigned_addresses();
 

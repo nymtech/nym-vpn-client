@@ -9,6 +9,7 @@ use nym_ip_packet_requests::IpPair;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::ConnectionStatsEvent;
 use nym_task::TaskManager;
+use tokio_util::sync::CancellationToken;
 
 use super::connected_tunnel::ConnectedTunnel;
 use crate::tunnel_state_machine::tunnel::{
@@ -47,12 +48,14 @@ impl Connector {
         self,
         selected_gateways: SelectedGateways,
         nym_ips: Option<IpPair>,
+        cancel_token: CancellationToken,
     ) -> Result<ConnectedTunnel, ConnectorError> {
         let result = Self::connect_inner(
             selected_gateways,
             nym_ips,
             self.mixnet_client.clone(),
             &self.gateway_directory_client,
+            cancel_token,
         )
         .await;
 
@@ -78,12 +81,16 @@ impl Connector {
         nym_ips: Option<IpPair>,
         mixnet_client: SharedMixnetClient,
         gateway_directory_client: &GatewayClient,
+        cancel_token: CancellationToken,
     ) -> Result<AssignedAddresses> {
         let mixnet_client_address = mixnet_client.nym_address().await;
         let gateway_used = mixnet_client_address.gateway().to_base58_string();
-        let entry_mixnet_gateway_ip: IpAddr = gateway_directory_client
-            .lookup_gateway_ip(&gateway_used)
+
+        let entry_mixnet_gateway_ip_fut = gateway_directory_client.lookup_gateway_ip(&gateway_used);
+        let entry_mixnet_gateway_ip: IpAddr = cancel_token
+            .run_until_cancelled(entry_mixnet_gateway_ip_fut)
             .await
+            .ok_or(tunnel::Error::Cancelled)?
             .map_err(|source| Error::LookupGatewayIp {
                 gateway_id: gateway_used,
                 source,

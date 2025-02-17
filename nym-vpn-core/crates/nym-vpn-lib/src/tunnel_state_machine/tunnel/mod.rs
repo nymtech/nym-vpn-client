@@ -74,6 +74,7 @@ impl ConnectedMixnet {
     pub async fn connect_mixnet_tunnel(
         self,
         interface_addresses: Option<IpPair>, // known as config.nym_ips
+        cancel_token: CancellationToken,
     ) -> Result<mixnet::connected_tunnel::ConnectedTunnel> {
         let connector = mixnet::connector::Connector::new(
             self.task_manager,
@@ -82,7 +83,7 @@ impl ConnectedMixnet {
         );
 
         match connector
-            .connect(self.selected_gateways, interface_addresses)
+            .connect(self.selected_gateways, interface_addresses, cancel_token)
             .await
         {
             Ok(connected_tunnel) => Ok(connected_tunnel),
