@@ -70,8 +70,7 @@ jobs:
   build-windows:
     # needs: [build-wireguard-go-windows,build-mullvad-windows]
     # TODO switch back on 'custom-windows-11' once rust toolchain setup is fixed
-#    runs-on: windows-latest
-    runs-on: custom-windows-11
+    runs-on: windows-latest
     env:
       CPP_BUILD_MODES: ${{ needs.build-mullvad-windows.outputs.CPP_BUILD_MODES }}
     outputs:
@@ -93,9 +92,8 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Install rust toolchain
-        uses: brndnmtthws/rust-action-rustup@v1
+        uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
           components: rustfmt, clippy
 
       - name: Install cargo-license
@@ -147,16 +145,10 @@ jobs:
       #     mv '${{ env.LIBS_PATH }}/libwg.dll' '${{ env.TAURI_SRC }}'
       #     mv '${{ env.LIBS_PATH }}/libwg.lib' '${{ env.TAURI_SRC }}'
 
-      # TODO remove this once switch back on 'custom-windows-11'
-#      - name: Install winget
-#        uses: Cyberboss/install-winget@v1
-#        with:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          wget_release_id: latest
-
-      - name: Install yq
-        run: |
-          winget list MikeFarah.yq || winget install --disable-interactivity --id MikeFarah.yq
+# TODO uncomment when switching back to 'custom-windows-11'
+#      - name: Install yq
+#        run: |
+#          winget list MikeFarah.yq || winget install --disable-interactivity --id MikeFarah.yq
 
       - name: Get nym-vpn-core release tag
         if: inputs.core_release_tag
@@ -179,11 +171,18 @@ jobs:
           echo "core_release_tag: nym-vpn-core-nightly"
           "core_release_tag=nym-vpn-core-nightly" >> $env:GITHUB_ENV
 
+# TODO
+#      - name: Get nym-vpn-core asset url
+#        run: |
+#          $asset_url = curl -sSL -H "Accept: application/vnd.github+json" `
+#            https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/${{ env.core_release_tag }} |
+#            yq '.assets.[] | select(.name | test("^nym-vpn-core-v.+_windows_x86_64\.zip$")) | .browser_download_url'
+#          echo "core_asset_url: $asset_url"
+#          "core_asset_url=$asset_url" >> $env:GITHUB_ENV
+
       - name: Get nym-vpn-core asset url
         run: |
-          $asset_url = curl -sSL -H "Accept: application/vnd.github+json" `
-            https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/${{ env.core_release_tag }} |
-            yq '.assets.[] | select(.name | test("^nym-vpn-core-v.+_windows_x86_64\.zip$")) | .browser_download_url'
+          $asset_url = https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v1.3.2/nym-vpn-core-v1.3.2_windows_x86_64.zip
           echo "core_asset_url: $asset_url"
           "core_asset_url=$asset_url" >> $env:GITHUB_ENV
 
