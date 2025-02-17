@@ -226,7 +226,6 @@ pub async fn connect_mixnet(
             mixnet_client,
         }),
         Err(e) => {
-            tracing::error!("JON: Failed to connect to mixnet: {:?}", e);
             shutdown_task_manager(task_manager).await;
             Err(e)
         }
