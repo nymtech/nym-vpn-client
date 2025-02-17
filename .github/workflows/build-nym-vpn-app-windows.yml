@@ -70,7 +70,8 @@ jobs:
   build-windows:
     # needs: [build-wireguard-go-windows,build-mullvad-windows]
     # TODO switch back on 'custom-windows-11' once rust toolchain setup is fixed
-    runs-on: windows-latest
+#    runs-on: windows-latest
+    runs-on: custom-windows-11
     env:
       CPP_BUILD_MODES: ${{ needs.build-mullvad-windows.outputs.CPP_BUILD_MODES }}
     outputs:
@@ -92,8 +93,9 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Install rust toolchain
-        uses: dtolnay/rust-toolchain@stable
+        uses: brndnmtthws/rust-action-rustup@v1
         with:
+          toolchain: stable
           components: rustfmt, clippy
 
       - name: Install cargo-license
@@ -146,11 +148,11 @@ jobs:
       #     mv '${{ env.LIBS_PATH }}/libwg.lib' '${{ env.TAURI_SRC }}'
 
       # TODO remove this once switch back on 'custom-windows-11'
-      - name: Install winget
-        uses: Cyberboss/install-winget@v1
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          wget_release_id: latest
+#      - name: Install winget
+#        uses: Cyberboss/install-winget@v1
+#        with:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#          wget_release_id: latest
 
       - name: Install yq
         run: |
