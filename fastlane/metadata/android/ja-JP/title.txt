@@ -1,1 +1,1 @@
-NymVPN: 高速かつ安全なVPN
+NymVPN: Nymが提供するセキュアなVPN
