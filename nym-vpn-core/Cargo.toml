@@ -167,7 +167,7 @@ tun = { version = "0.6.1", features = ["async"] }
 tungstenite = "0.26.1"
 uniffi = { version = "0.27.3", features = ["cli"] }
 url = "2.5"
-uuid = "1.12"
+uuid = "1.13"
 vergen = { version = "8.3.1", default-features = false }
 which = { version = "7.0", default-features = false }
 widestring = "1.0"
