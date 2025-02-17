@@ -1,0 +1,6 @@
+Nouveautés :
+- Ajout d'identifiants anonymes
+- Amélioration de la fiabilité du tunnel
+- Mises à jour de l'interface utilisateur
+- Amélioration de la gestion des changements de réseau
+- Autres corrections et améliorations

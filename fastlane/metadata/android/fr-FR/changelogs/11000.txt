@@ -1,0 +1,5 @@
+Nouveautés :
+- Amélioration de la vitesse de deux sauts avec WireGuard
+- Amélioration des performances de l'application
+- Améliorations de l'interface utilisateur
+- Diverses corrections de bugs
