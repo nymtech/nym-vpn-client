@@ -68,7 +68,7 @@ pub async fn connect(
         info!("mode [mixnet]");
         false
     };
-    info!("credentials mode [off]");
+    info!("credentials mode [ON]");
 
     let use_netstack_wireguard = false;
 
@@ -79,7 +79,7 @@ pub async fn connect(
             exit,
             two_hop_mod,
             // TODO use value from app state
-            false,
+            true,
             use_netstack_wireguard,
             dns,
         )
