@@ -93,19 +93,6 @@ public final class GRPCManager: ObservableObject {
     }
 
     // MARK: - Connection -
-    public func isReadyToConnect() {
-        logger.log(level: .info, "isReadyToConnect")
-
-        let call = client.isReadyToConnect(Google_Protobuf_Empty())
-        call.response.whenComplete { [weak self] result in
-            switch result {
-            case .success(let response):
-                self?.logger.log(level: .info, "\(response)")
-            case .failure(let error):
-                self?.logger.log(level: .info, "Failed to connect to VPN: \(error)")
-            }
-        }
-    }
 
     public func disconnect() {
         logger.log(level: .info, "Disconnecting")
@@ -125,91 +112,6 @@ public final class GRPCManager: ObservableObject {
             _ = try call.status.wait()
         } catch {
             print("Error waiting for call status: \(error)")
-        }
-    }
-
-    // MARK: - Countries -
-    public func entryCountryCodes() async throws -> [String] {
-        logger.log(level: .info, "Fetching entry countries")
-        return try await withCheckedThrowingContinuation { continuation in
-            var request = Nym_Vpn_ListCountriesRequest()
-            request.kind = .mixnetEntry
-            request.userAgent = userAgent
-
-            let call = client.listCountries(request, callOptions: nil)
-            call.response.whenComplete { result in
-                switch result {
-                case let .success(countries):
-                    continuation.resume(returning: countries.countries.map { $0.twoLetterIsoCountryCode })
-                case let .failure(error):
-                    continuation.resume(throwing: error)
-                }
-            }
-
-            call.status.whenComplete { [weak self] result in
-                switch result {
-                case .success:
-                    break
-                case let .failure(error):
-                    self?.logger.log(level: .error, "\(error.localizedDescription)")
-                }
-            }
-        }
-    }
-
-    public func exitCountryCodes() async throws -> [String] {
-        logger.log(level: .info, "Fetching exit countries")
-        return try await withCheckedThrowingContinuation { continuation in
-            var request = Nym_Vpn_ListCountriesRequest()
-            request.kind = .mixnetExit
-            request.userAgent = userAgent
-
-            let call = client.listCountries(request, callOptions: nil)
-            call.response.whenComplete { result in
-                switch result {
-                case let .success(countries):
-                    continuation.resume(returning: countries.countries.map { $0.twoLetterIsoCountryCode })
-                case let .failure(error):
-                    continuation.resume(throwing: error)
-                }
-            }
-
-            call.status.whenComplete { [weak self] result in
-                switch result {
-                case .success:
-                    break
-                case let .failure(error):
-                    self?.logger.log(level: .error, "\(error.localizedDescription)")
-                }
-            }
-        }
-    }
-
-    public func vpnCountryCodes() async throws -> [String] {
-        logger.log(level: .info, "Fetching VPN countries")
-        return try await withCheckedThrowingContinuation { continuation in
-            var request = Nym_Vpn_ListCountriesRequest()
-            request.kind = .wg
-            request.userAgent = userAgent
-
-            let call = client.listCountries(request, callOptions: nil)
-            call.response.whenComplete { result in
-                switch result {
-                case let .success(countries):
-                    continuation.resume(returning: countries.countries.map { $0.twoLetterIsoCountryCode })
-                case let .failure(error):
-                    continuation.resume(throwing: error)
-                }
-            }
-
-            call.status.whenComplete { [weak self] result in
-                switch result {
-                case .success:
-                    break
-                case let .failure(error):
-                    self?.logger.log(level: .error, "\(error.localizedDescription)")
-                }
-            }
         }
     }
 }

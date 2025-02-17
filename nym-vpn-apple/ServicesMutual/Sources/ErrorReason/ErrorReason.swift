@@ -16,6 +16,11 @@ public enum ErrorReason: LocalizedError {
     case invalidExitGatewayCountry
     case badBandwidthIncrease
     case duplicateTunFd
+    case syncAccount(details: String)
+    case syncDevice(details: String)
+    case registerDevice(details: String)
+    case requestZknym(details: String)
+    case requestZkNymBundle(successes: [String], failed: [String])
     case offline
     case unknown
 
@@ -46,6 +51,75 @@ public enum ErrorReason: LocalizedError {
             self = .badBandwidthIncrease
         case .duplicateTunFd:
             self = .duplicateTunFd
+        case let .syncAccount(details: details):
+            let messageString: String
+            switch details {
+            case .noAccountStored:
+                messageString = "No account stored. Please add a mnemonic."
+            case let .errorResponse(vpnApiErrorResponse):
+                messageString = vpnApiErrorResponse.message
+            case let .unexpectedResponse(message), let .internal(message):
+                messageString = message
+            }
+            self = .syncAccount(details: messageString)
+        case let .syncDevice(details: details):
+            let messageString: String
+            switch details {
+            case .noAccountStored:
+                messageString = "No account stored. Please add a mnemonic."
+            case .noDeviceStored:
+                messageString = "No device stored. Please reatry."
+            case let .errorResponse(vpnApiErrorResponse):
+                messageString = vpnApiErrorResponse.message
+            case let .unexpectedResponse(message), let .internal(message):
+                messageString = message
+            }
+            self = .syncDevice(details: messageString)
+        case let .registerDevice(details: details):
+            let messageString: String
+            switch details {
+            case .noAccountStored:
+                messageString = "No account stored. Please add a mnemonic."
+            case .noDeviceStored:
+                messageString = "No device stored. Please reatry."
+            case let .errorResponse(vpnApiErrorResponse):
+                messageString = vpnApiErrorResponse.message
+            case let .unexpectedResponse(message):
+                messageString = message
+            case let .internal(message):
+                messageString = message
+            }
+            self = .registerDevice(details: messageString)
+        case let .requestZkNym(details: details):
+            let messageString: String
+            switch details {
+            case .noAccountStored:
+                messageString = "No account stored. Please add a mnemonic."
+            case .noDeviceStored:
+                messageString = "No device stored. Please reatry."
+            case let .vpnApi(vpnApiErrorResponse):
+                messageString = vpnApiErrorResponse.message
+            case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
+                messageString = message
+            }
+            self = .requestZknym(details: messageString)
+        case let .requestZkNymBundle(successes: successes, failed: failed):
+            let newFailed = failed.compactMap {
+                switch $0 {
+                case .noAccountStored:
+                    return "No account stored"
+                case .noDeviceStored:
+                    return "No device stored"
+                case let .vpnApi(vpnApiErrorResponse):
+                    return vpnApiErrorResponse.message
+                case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
+                    return message
+                }
+            }
+            self = .requestZkNymBundle(
+                successes: successes.compactMap { $0.id },
+                failed: newFailed
+            )
         }
     }
 #endif
@@ -73,6 +147,20 @@ public enum ErrorReason: LocalizedError {
             self = .invalidExitGatewayCountry
         case 9:
             self = .badBandwidthIncrease
+        case 10:
+            self = .duplicateTunFd
+        case 11:
+            self = .syncAccount(details: "")
+        case 12:
+            self = .syncDevice(details: "")
+        case 13:
+            self = .registerDevice(details: "")
+        case 14:
+            self = .requestZknym(details: "")
+        case 15:
+            self = .requestZkNymBundle(successes: [], failed: [])
+        case 16:
+            self = .offline
         default:
             self = .unknown
         }
@@ -150,10 +238,20 @@ extension ErrorReason {
             "errorReason.badBandwidthIncrease".localizedString
         case .duplicateTunFd:
             "errorReason.duplicateTunFd".localizedString
-        case .offline:
-            "errorReason.offline".localizedString
         case .unknown:
             "errorReason.unknown".localizedString
+        case let .syncAccount(details: details):
+            details
+        case let .syncDevice(details: details):
+            details
+        case let .registerDevice(details: details):
+            details
+        case let .requestZknym(details: details):
+            details
+        case let .requestZkNymBundle(successes: successes, failed: failed):
+            "\(successes.first ?? "") \(failed.first ?? "")"
+        case .offline:
+            "errorReason.offline".localizedString
         }
     }
 }

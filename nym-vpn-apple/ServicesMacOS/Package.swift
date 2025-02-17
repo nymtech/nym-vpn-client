@@ -33,8 +33,9 @@ let package = Package(
             name: "GRPCManager",
             dependencies: [
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
-                .product(name: "SystemMessageModels", package: "ServicesMutual"),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
+                .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
+                .product(name: "SystemMessageModels", package: "ServicesMutual"),
                 .product(name: "Base58Swift", package: "Base58Swift"),
                 .product(name: "GRPC", package: "grpc-swift")
             ],

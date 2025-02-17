@@ -20,6 +20,7 @@ let package = Package(
         .library(name: "DarwinNotificationCenter", targets: ["DarwinNotificationCenter"]),
         .library(name: "Device", targets: ["Device"]),
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
+        .library(name: "GatewayManager", targets: ["GatewayManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Migrations", targets: ["Migrations"]),
         .library(name: "NetworkMonitor", targets: ["NetworkMonitor"]),
@@ -125,6 +126,15 @@ let package = Package(
                 "Constants"
             ],
             path: "Sources/Services/ExternalLinkManager"
+        ),
+        .target(
+            name: "GatewayManager",
+            dependencies: [
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
+                .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
+            ],
+            path: "Sources/Services/GatewayManager"
         ),
         .target(
             name: "Keychain",

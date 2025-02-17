@@ -11,7 +11,7 @@ public final class ConnectionStorage {
     private let configurationManager: ConfigurationManager
     private let countriesManager: CountriesManager
 
-    private var countryType: CountryType {
+    private var gatewayType: NodeType {
         connectionType == .wireguard ? .vpn : .entry
     }
 
@@ -62,15 +62,15 @@ private extension ConnectionStorage {
         guard let gateway = EntryGateway.from(jsonString: jsonString)
         else {
             // Fallback to Switzerland or first country
-            return .country(fallbackCountry(countryType: countryType))
+            return .country(fallbackCountry(gatewayType: gatewayType))
         }
 
         switch gateway {
         case let .country(country):
-            let existingCountry = existingCountry(with: country.code, countryType: countryType)
+            let existingCountry = existingCountry(with: country.code, gatewayType: gatewayType)
             return .country(existingCountry)
         case let .lowLatencyCountry(country):
-            let country = existingCountry(with: country.code, countryType: countryType)
+            let country = existingCountry(with: country.code, gatewayType: gatewayType)
             return .lowLatencyCountry(country)
         case let .gateway(identifier):
             return .gateway(identifier)
@@ -88,12 +88,12 @@ private extension ConnectionStorage {
         let jsonString = appSettings.exitRouter ?? ""
         guard let router = ExitRouter.from(jsonString: jsonString)
         else {
-            return .country(fallbackCountry(countryType: countryType))
+            return .country(fallbackCountry(gatewayType: gatewayType))
         }
 
         switch router {
         case let .country(country):
-            let existingCountry = existingCountry(with: country.code, countryType: countryType)
+            let existingCountry = existingCountry(with: country.code, gatewayType: gatewayType)
             return .country(existingCountry)
         case let .gateway(identifier):
             return .gateway(identifier)
@@ -106,19 +106,19 @@ private extension ConnectionStorage {
     /// - Parameter countryCode: String
     /// - Parameter isEntryHop: Bool. Determines from which country array(entry/exit) to return the country from
     /// - Returns: String with countryCode
-    func existingCountry(with countryCode: String, countryType: CountryType) -> Country {
-        let country = countriesManager.country(with: countryCode, countryType: countryType)
+    func existingCountry(with countryCode: String, gatewayType: NodeType) -> Country {
+        let country = countriesManager.country(with: countryCode, gatewayType: gatewayType)
 
         if let country {
             return country
         } else {
-            return fallbackCountry(countryType: countryType)
+            return fallbackCountry(gatewayType: gatewayType)
         }
     }
 
-    func fallbackCountry(countryType: CountryType) -> Country {
+    func fallbackCountry(gatewayType: NodeType) -> Country {
         let fallbackCountry = Country(name: "Switzerland", code: "CH")
-        switch countryType {
+        switch gatewayType {
         case .entry:
             if countriesManager.entryCountries.contains(where: { $0.code == "CH" }) {
                 return fallbackCountry

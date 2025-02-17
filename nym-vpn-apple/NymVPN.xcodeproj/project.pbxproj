@@ -67,6 +67,8 @@
 		D9AC152E2BF3845E0041E334 /* net.nymtech.vpn.helper in Embed Helper Tool */ = {isa = PBXBuildFile; fileRef = D9AC152C2BF384580041E334 /* net.nymtech.vpn.helper */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		D9B7BAF82C4866A0005AF2D6 /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9B7BAF72C4866A0005AF2D6 /* NymLogger */; };
 		D9B7BAFC2C4866AF005AF2D6 /* NymLogger in Frameworks */ = {isa = PBXBuildFile; productRef = D9B7BAFB2C4866AF005AF2D6 /* NymLogger */; };
+		D9BA3B6D2D5BF65000A5B99A /* GatewayManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9BA3B6C2D5BF65000A5B99A /* GatewayManager */; };
+		D9BA3B6F2D5BF65700A5B99A /* GatewayManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9BA3B6E2D5BF65700A5B99A /* GatewayManager */; };
 		D9BB53552BAC4AE500917C97 /* Tunnels in Frameworks */ = {isa = PBXBuildFile; productRef = D9BB53542BAC4AE500917C97 /* Tunnels */; };
 		D9BD6A142BD84EF400B42D6F /* SentryManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9BD6A132BD84EF400B42D6F /* SentryManager */; };
 		D9BEF2D32BEB63310036C566 /* NymVPNDaemonApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9BEF2D22BEB63310036C566 /* NymVPNDaemonApp.swift */; };
@@ -283,6 +285,7 @@
 				D9E552B22CE9E8F6008C74F6 /* SystemMessageManager in Frameworks */,
 				D92219E62BA1CF99005EE6AC /* SystemConfiguration.framework in Frameworks */,
 				D9144C5B2CC1057A0021A617 /* CountriesManagerTypes in Frameworks */,
+				D9BA3B6F2D5BF65700A5B99A /* GatewayManager in Frameworks */,
 				D9E552B82CE9E909008C74F6 /* ErrorHandler in Frameworks */,
 				D9D483582BEBA72F0005A41C /* UIComponents in Frameworks */,
 			);
@@ -292,6 +295,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9BA3B6D2D5BF65000A5B99A /* GatewayManager in Frameworks */,
 				D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */,
 				D9FB33DE2BECD47E009C3419 /* Theme in Frameworks */,
 				D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */,
@@ -556,6 +560,7 @@
 				D90E2A9E2D11CFA700EBEC69 /* ConnectionTypes */,
 				D9A1C1282D3E68CF00D33C0F /* NetworkMonitor */,
 				D98E52302D4005ED00AE92C3 /* ErrorReason */,
+				D9BA3B6E2D5BF65700A5B99A /* GatewayManager */,
 			);
 			productName = NymVPN;
 			productReference = D99A14762B357E9900F2728B /* NymVPN.app */;
@@ -602,6 +607,7 @@
 				D9FA77C72CEBB32C003362D7 /* NotificationsManager */,
 				D90E2A9C2D11CFA000EBEC69 /* ConnectionTypes */,
 				D9BF292A2D5A23F500CDFC9A /* HelperInstall */,
+				D9BA3B6C2D5BF65000A5B99A /* GatewayManager */,
 			);
 			productName = NymVPNDaemon;
 			productReference = D9BEF2D02BEB63310036C566 /* NymVPN.app */;
@@ -1474,6 +1480,14 @@
 		D9B7BAFB2C4866AF005AF2D6 /* NymLogger */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = NymLogger;
+		};
+		D9BA3B6C2D5BF65000A5B99A /* GatewayManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GatewayManager;
+		};
+		D9BA3B6E2D5BF65700A5B99A /* GatewayManager */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = GatewayManager;
 		};
 		D9BB53542BAC4AE500917C97 /* Tunnels */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -62,9 +62,7 @@ public final class CountriesManager: ObservableObject {
 
         setup()
     }
-#endif
-
-#if os(macOS)
+#elseif os(macOS)
     public init(
         appSettings: AppSettings,
         grpcManager: GRPCManager,
@@ -100,8 +98,8 @@ public final class CountriesManager: ObservableObject {
         }
     }
 
-    public func country(with code: String, countryType: CountryType) -> Country? {
-        switch countryType {
+    public func country(with code: String, gatewayType: NodeType) -> Country? {
+        switch gatewayType {
         case .entry:
             return entryCountries.first(where: { $0.code == code })
         case .exit:
@@ -236,7 +234,7 @@ private extension CountriesManager {
     }
 
     func fetchEntryCountries() async throws {
-            let countryCodes = try await grpcManager.entryCountryCodes()
+            let countryCodes = try await grpcManager.countryCodes(for: .entry)
             let countries = countryCodes.compactMap { countryCode in
                 country(with: countryCode)
             }
@@ -251,7 +249,7 @@ private extension CountriesManager {
     }
 
     func fetchExitCountries() async throws {
-        let countryCodes = try await grpcManager.exitCountryCodes()
+        let countryCodes = try await grpcManager.countryCodes(for: .exit)
         let countries = countryCodes.compactMap { countryCode in
             country(with: countryCode)
         }
@@ -266,7 +264,7 @@ private extension CountriesManager {
     }
 
     func fetchVPNCountries() async throws {
-        let countryCodes = try await grpcManager.vpnCountryCodes()
+        let countryCodes = try await grpcManager.countryCodes(for: .vpn)
         let countries = countryCodes.compactMap { countryCode in
             country(with: countryCode)
         }
