@@ -141,7 +141,7 @@ impl Connector {
             )
         };
 
-        let shutdown = task_manager.subscribe_named("bandwidth controller");
+        let shutdown = task_manager.subscribe_named("bandwidth_controller");
         let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =
             data_path.as_ref()
         {
