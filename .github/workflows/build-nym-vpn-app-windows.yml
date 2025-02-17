@@ -182,7 +182,7 @@ jobs:
 
       - name: Get nym-vpn-core asset url
         run: |
-          $asset_url = https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v1.3.2/nym-vpn-core-v1.3.2_windows_x86_64.zip
+          $asset_url = "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-core-v1.3.2/nym-vpn-core-v1.3.2_windows_x86_64.zip"
           echo "core_asset_url: $asset_url"
           "core_asset_url=$asset_url" >> $env:GITHUB_ENV
 
