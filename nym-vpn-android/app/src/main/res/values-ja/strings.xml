@@ -199,4 +199,15 @@
     <string name="selected_exit_unavailable">選択した国は出口として利用できません。別の国を選択してください。</string>
     <string name="loading">読み込み中</string>
     <string name="disabled_while_connecting">VPN接続中は無効です</string>
+    <string name="entry">入口</string>
+    <string name="how_to_run_gateway">gatewayの実行方法</string>
+    <string name="contact_for_help">お問い合わせはこちら</string>
+    <string name="servers">サーバー</string>
+    <string name="local_logs">ログ（ローカルに保存）</string>
+    <string name="no_results_found">見つかりませんでした。</string>
+    <string name="two_hop_explanation">最速な2サーバー接続をお試しください。検閲耐性のあるWireGuardを改良したAmneziaWGを採用しており、高速なブラウジング、ストリーミング、ファイル共有に最適です。</string>
+    <string name="exit">出口</string>
+    <string name="or_learn">学ぶ</string>
+    <string name="try_another_server_name">別の地点を試すか、サーバー名を確認してください。</string>
+    <string name="two_hop_title">高速 (WireGuard<small>*</small>)</string>
 </resources>
