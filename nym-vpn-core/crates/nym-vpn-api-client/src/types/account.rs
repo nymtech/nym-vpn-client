@@ -11,6 +11,8 @@ use time::{Duration, OffsetDateTime};
 
 use crate::{error::Result, jwt::Jwt, VpnApiClientError};
 
+const MAX_ACCEPTABLE_SKEW_SECONDS: i64 = 30;
+
 #[derive(Clone, Debug)]
 pub struct VpnApiAccount {
     wallet: DirectSecp256k1HdWallet,
@@ -100,7 +102,7 @@ impl VpnApiTime {
     }
 
     pub fn is_synced(&self) -> bool {
-        self.skew().abs().whole_seconds() < 30
+        self.skew().abs().whole_seconds() < MAX_ACCEPTABLE_SKEW_SECONDS
     }
 
     pub fn estimate_remote_now(&self) -> OffsetDateTime {
