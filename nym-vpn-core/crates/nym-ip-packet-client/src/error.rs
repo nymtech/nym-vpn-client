@@ -28,6 +28,9 @@ pub enum Error {
     #[error("timeout waiting for connect response from exit gateway (ipr)")]
     TimeoutWaitingForConnectResponse,
 
+    #[error("connection cancelled")]
+    Cancelled,
+
     #[error("connect request denied: {reason}")]
     StaticConnectRequestDenied { reason: StaticConnectFailureReason },
 

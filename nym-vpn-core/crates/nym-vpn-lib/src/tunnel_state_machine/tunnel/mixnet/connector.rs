@@ -98,7 +98,7 @@ impl Connector {
 
         let exit_mix_addresses = selected_gateways.exit.ipr_address.unwrap();
 
-        let mut ipr_client = IprClientConnect::new(mixnet_client.clone()).await;
+        let mut ipr_client = IprClientConnect::new(mixnet_client.clone(), cancel_token).await;
         let interface_addresses = ipr_client
             .connect(exit_mix_addresses.0, nym_ips)
             .await

@@ -37,7 +37,7 @@ use nym_ip_packet_requests::{
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, ReconstructedMessage};
 use nym_wireguard_types::PeerPublicKey;
-use tokio_util::codec::Decoder;
+use tokio_util::{codec::Decoder, sync::CancellationToken};
 use tracing::*;
 use types::WgProbeResults;
 
@@ -589,7 +589,9 @@ async fn do_ping(
         "Connecting to exit gateway: {}",
         exit_router_address.gateway().to_base58_string()
     );
-    let mut ipr_client = IprClientConnect::new(shared_mixnet_client.clone()).await;
+    // The IPR supports cancellation, but it's unused in the gateway probe
+    let cancel_token = CancellationToken::new();
+    let mut ipr_client = IprClientConnect::new(shared_mixnet_client.clone(), cancel_token).await;
     let Ok(our_ips) = ipr_client.connect(exit_router_address.0, None).await else {
         return Ok(ProbeOutcome {
             as_entry,

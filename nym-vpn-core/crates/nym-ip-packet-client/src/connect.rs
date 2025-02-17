@@ -6,6 +6,7 @@ use std::time::Duration;
 use nym_ip_packet_requests::IpPair;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{MixnetClientSender, MixnetMessageSender, Recipient, TransmissionLane};
+use tokio_util::sync::CancellationToken;
 use tracing::{debug, error};
 
 use crate::{
@@ -39,10 +40,11 @@ pub struct IprClientConnect {
     mixnet_sender: MixnetClientSender,
     nym_address: Recipient,
     connected: ConnectionState,
+    cancel_token: CancellationToken,
 }
 
 impl IprClientConnect {
-    pub async fn new(mixnet_client: SharedMixnetClient) -> Self {
+    pub async fn new(mixnet_client: SharedMixnetClient, cancel_token: CancellationToken) -> Self {
         let mixnet_sender = mixnet_client.lock().await.as_ref().unwrap().split_sender();
         let nym_address = *mixnet_client
             .inner()
@@ -56,6 +58,7 @@ impl IprClientConnect {
             mixnet_sender,
             nym_address,
             connected: ConnectionState::Disconnected,
+            cancel_token,
         }
     }
 
@@ -197,6 +200,10 @@ impl IprClientConnect {
 
         loop {
             tokio::select! {
+                _ = self.cancel_token.cancelled() => {
+                    error!("Cancelled while waiting for reply to connect request");
+                    return Err(Error::Cancelled);
+                },
                 _ = &mut timeout => {
                     error!("Timed out waiting for reply to connect request");
                     return Err(Error::TimeoutWaitingForConnectResponse);
