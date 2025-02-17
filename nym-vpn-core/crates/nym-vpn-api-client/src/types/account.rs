@@ -97,18 +97,21 @@ impl VpnApiTime {
 
     // Local time minus remote time. Meaning if the value is positive, the local time is ahead
     // of the remote time.
-    pub fn skew(&self) -> Duration {
+    pub fn local_time_ahead_skew(&self) -> Duration {
         self.local_time - self.estimated_remote_time
     }
 
     pub fn is_synced(&self) -> bool {
-        self.skew().abs().whole_seconds() < MAX_ACCEPTABLE_SKEW_SECONDS
+        self.local_time_ahead_skew().abs().whole_seconds() < MAX_ACCEPTABLE_SKEW_SECONDS
     }
 
     pub fn estimate_remote_now(&self) -> OffsetDateTime {
-        tracing::debug!("Estimating remote now using skew: {}", self.skew());
-        let now = OffsetDateTime::now_utc();
-        now - self.skew()
+        tracing::debug!(
+            "Estimating remote now using (local time ahead) skew: {}",
+            self.local_time_ahead_skew()
+        );
+        let local_time_now = OffsetDateTime::now_utc();
+        local_time_now - self.local_time_ahead_skew()
     }
 
     pub fn estimate_remote_now_unix(&self) -> u128 {
@@ -123,7 +126,7 @@ impl fmt::Display for VpnApiTime {
             "Local time: {}, Remote time: {}, Skew: {}",
             self.local_time,
             self.estimated_remote_time,
-            self.skew(),
+            self.local_time_ahead_skew(),
         )
     }
 }
