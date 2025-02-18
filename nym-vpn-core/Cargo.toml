@@ -148,7 +148,7 @@ thiserror = "2.0"
 time = "0.3.37"
 tokio = "1.42"
 tokio-stream = "0.1.17"
-tokio-tungstenite = "0.26.1"
+tokio-tungstenite = "0.26.2"
 tokio-util = { version = "0.7.13", features = ["codec"] }
 toml = "0.8"
 tonic = "0.11.0"
