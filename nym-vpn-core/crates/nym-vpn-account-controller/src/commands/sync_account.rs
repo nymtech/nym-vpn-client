@@ -46,6 +46,13 @@ impl WaitingSyncAccountCommandHandler {
             previous_account_summary_response: self.previous_account_summary_response.clone(),
         }
     }
+
+    pub(crate) fn update_vpn_api_client(
+        &mut self,
+        vpn_api_client: nym_vpn_api_client::VpnApiClient,
+    ) {
+        self.vpn_api_client = vpn_api_client;
+    }
 }
 
 pub(crate) struct SyncStateCommandHandler {

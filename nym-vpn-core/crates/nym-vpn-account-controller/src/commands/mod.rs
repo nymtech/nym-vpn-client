@@ -98,6 +98,10 @@ pub enum AccountCommand {
     GetZkNymById(String),
     ConfirmZkNymIdDownloaded(String),
     GetAvailableTickets(ReturnSender<AvailableTicketbooks, AccountCommandError>),
+    ResetVpnApiClient(
+        ReturnSender<(), AccountCommandError>,
+        nym_vpn_api_client::VpnApiClient,
+    ),
 }
 
 impl AccountCommand {

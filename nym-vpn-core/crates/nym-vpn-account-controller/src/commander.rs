@@ -128,6 +128,17 @@ impl AccountControllerCommander {
             .map_err(RequestZkNymError::internal)?;
         rx.await.map_err(RequestZkNymError::internal)?
     }
+
+    pub async fn reset_vpn_api_client(
+        &self,
+        vpn_api_client: nym_vpn_api_client::VpnApiClient,
+    ) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::ResetVpnApiClient(tx, vpn_api_client))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
 }
 
 // Set of commands used to ensure that the account controller is in the correct state before

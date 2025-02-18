@@ -27,6 +27,10 @@ impl CachedData {
         }
     }
 
+    pub fn update_vpn_api_client(&mut self, vpn_api_client: VpnApiClient) {
+        self.vpn_api_client = vpn_api_client;
+    }
+
     pub async fn get_partial_verification_keys(
         &self,
         epoch_id: u64,

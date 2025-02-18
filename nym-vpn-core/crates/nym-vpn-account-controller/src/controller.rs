@@ -734,6 +734,16 @@ where
                 let result = self.handle_get_available_tickets().await;
                 result_tx.send(result);
             }
+            AccountCommand::ResetVpnApiClient(result_tx, vpn_api_client) => {
+                self.vpn_api_client = vpn_api_client.clone();
+                self.waiting_sync_account_command_handler
+                    .update_vpn_api_client(vpn_api_client.clone());
+                self.waiting_sync_device_command_handler
+                    .update_vpn_api_client(vpn_api_client.clone());
+                self.waiting_request_zknym_command_handler
+                    .update_vpn_api_client(vpn_api_client);
+                result_tx.send(Ok(()));
+            }
         };
     }
 
