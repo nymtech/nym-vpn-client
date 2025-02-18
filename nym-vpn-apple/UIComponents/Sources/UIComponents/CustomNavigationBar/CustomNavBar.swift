@@ -28,7 +28,7 @@ public struct CustomNavBar: View {
             Spacer()
             if let title {
                 Text(title)
-                    .textStyle(.Title.Large.primary)
+                    .textStyle(.TitleLegacy.Large.primary)
             } else {
                 Image("logoText", bundle: .module)
                     .frame(width: 110, height: 16)
@@ -49,7 +49,7 @@ private extension CustomNavBar {
         if isHomeScreen {
             return NymColor.background
         } else {
-            return NymColor.navigationBarBackground
+            return NymColor.elevation
         }
     }
 }

@@ -16,7 +16,7 @@ public struct SearchView: View {
     }
 
     public var body: some View {
-        StrokeBorderView(strokeTitle: strokeTitle) {
+        StrokeBorderView(strokeTitle: strokeTitle, strokeTitleLeftMargin: 40) {
             HStack {
                 searchImage()
                 searchTextfield()
@@ -48,12 +48,12 @@ extension SearchView {
             if searchText.isEmpty {
                 Text(searchCountryTitle)
                     .foregroundStyle(NymColor.sysOutline)
-                    .textStyle(.Body.Large.regular)
+                    .textStyle(.BodyLegacy.Large.regular)
             }
             TextField("", text: $searchText)
                 .foregroundStyle(NymColor.sysOnSurface)
                 .textFieldStyle(PlainTextFieldStyle())
-                .textStyle(.Body.Large.semibold)
+                .textStyle(.BodyLegacy.Large.semibold)
                 .focused($isSearchFocused)
         }
     }

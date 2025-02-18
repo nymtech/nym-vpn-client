@@ -18,10 +18,10 @@ public struct NetworkButton: View {
                 VStack(alignment: .leading) {
                     Text(viewModel.title)
                         .foregroundStyle(NymColor.sysOnSurface)
-                        .textStyle(.Body.Large.semibold)
+                        .textStyle(.BodyLegacy.Large.semibold)
                     Text(viewModel.subtitle)
                         .foregroundStyle(NymColor.sysOutline)
-                        .textStyle(viewModel.isSmallScreen ? .Body.Small.primary : .Body.Medium.regular)
+                        .textStyle(viewModel.isSmallScreen ? .BodyLegacy.Small.primary : .BodyLegacy.Medium.regular)
                 }
                 .padding(.leading, 8)
                 Spacer()

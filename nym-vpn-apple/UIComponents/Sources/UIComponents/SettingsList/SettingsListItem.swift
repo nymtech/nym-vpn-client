@@ -66,11 +66,11 @@ private extension SettingsListItem {
         VStack(alignment: .leading) {
             Text(viewModel.title)
                 .foregroundStyle(NymColor.sysOnSurface)
-                .textStyle(.Body.Large.semibold)
+                .textStyle(.BodyLegacy.Large.semibold)
             if let subtitle = viewModel.subtitle {
                 BouncingMarqueeTextView(
                     text: subtitle,
-                    textStyle: .Body.Medium.regular,
+                    textStyle: .BodyLegacy.Medium.regular,
                     fontColor: NymColor.sysOutline,
                     speed: 70,
                     pauseDuration: 1.0

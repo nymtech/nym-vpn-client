@@ -18,11 +18,11 @@ public struct SettingButton: View {
                 VStack(alignment: .leading) {
                     Text(viewModel.title)
                         .foregroundStyle(NymColor.sysOnSurface)
-                        .textStyle(.Body.Large.semibold)
+                        .textStyle(.BodyLegacy.Large.semibold)
                     if let subtitle = viewModel.subtitle {
                         Text(subtitle)
                             .foregroundStyle(NymColor.sysOutline)
-                            .textStyle(.Body.Medium.regular)
+                            .textStyle(.BodyLegacy.Medium.regular)
                     }
                 }
                 .padding(.leading, 8)

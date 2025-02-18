@@ -75,7 +75,7 @@ private extension LogsView {
 
             Text(title)
                 .foregroundStyle(NymColor.sysOnSurface)
-                .textStyle(.Label.Medium.primary)
+                .textStyle(.LabelLegacy.Medium.primary)
         }
         .contentShape(Rectangle())
     }

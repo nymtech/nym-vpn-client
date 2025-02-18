@@ -36,7 +36,7 @@ private extension StatusInfoView {
     func infoLabel() -> some View {
         Text(infoState.localizedTitle)
             .foregroundStyle(infoState.textColor)
-            .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.bold)
+            .textStyle(isSmallScreen ? .LabelLegacy.Medium.primary : .LabelLegacy.Large.bold)
             .lineLimit(3, reservesSpace: infoState.localizedTitle.count > 30 ? true : false)
             .multilineTextAlignment(.center)
             .transition(.opacity)
@@ -57,7 +57,7 @@ private extension StatusInfoView {
 
                 Text("\(String(format: "%02d:%02d:%02d", hours, minutes, seconds))")
                     .foregroundStyle(NymColor.statusTimer)
-                    .textStyle(isSmallScreen ? .Label.Medium.primary : .Label.Large.bold)
+                    .textStyle(isSmallScreen ? .LabelLegacy.Medium.primary : .LabelLegacy.Large.bold)
                     .transition(.opacity)
                     .animation(.easeInOut, value: timeConnected)
             }

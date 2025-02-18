@@ -56,7 +56,7 @@ private extension LocationInfoView {
     @ViewBuilder
     func title() -> some View {
         Text(viewModel.titleLocalizedString)
-            .textStyle(NymTextStyle.Label.Huge.bold)
+            .textStyle(NymTextStyle.LabelLegacy.Huge.bold)
             .foregroundStyle(NymColor.sysOnSurface)
 
         Spacer()
@@ -68,7 +68,7 @@ private extension LocationInfoView {
         HStack {
             Text(viewModel.messageLocalizedString)
                 .foregroundStyle(NymColor.modeInfoViewDescription)
-                .textStyle(.Body.Medium.regular)
+                .textStyle(.BodyLegacy.Medium.regular)
                 .multilineTextAlignment(.center)
 
             Spacer()
@@ -83,7 +83,7 @@ private extension LocationInfoView {
     func continueReadingLink() -> some View {
         HStack {
             Text(viewModel.readMoreLocalizedString)
-                .textStyle(.Body.Medium.regular)
+                .textStyle(.BodyLegacy.Medium.regular)
                 .foregroundStyle(NymColor.primaryOrange)
 
             GenericImage(imageName: viewModel.readMoreLinkImageName)

@@ -1,5 +1,5 @@
 public enum GatewayNodeScore: Codable {
-    case none
+    case noScore
     case low
     case medium
     case high

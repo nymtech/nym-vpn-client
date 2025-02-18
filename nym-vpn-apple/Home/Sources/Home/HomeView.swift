@@ -90,7 +90,7 @@ private extension HomeView {
     func networkModeSection() -> some View {
         HStack {
             Text(viewModel.networkSelectLocalizedTitle)
-                .textStyle(.Title.Medium.primary)
+                .textStyle(.TitleLegacy.Medium.primary)
             Spacer()
             Image(systemName: "info.circle")
                 .foregroundColor(NymColor.sysOutline)
@@ -130,7 +130,7 @@ private extension HomeView {
         HStack {
             Text(viewModel.connectToLocalizedTitle)
                 .foregroundStyle(NymColor.sysOnSurfaceWhite)
-                .textStyle(.Title.Medium.primary)
+                .textStyle(.TitleLegacy.Medium.primary)
             Spacer()
         }
         .padding(.horizontal, 16)
@@ -160,7 +160,7 @@ private extension HomeView {
         )
         .animation(.default, value: viewModel.connectionManager.entryGateway)
         .onTapGesture {
-            viewModel.navigateToFirstHopSelection()
+            viewModel.navigateToEntryGateways()
         }
         Spacer()
             .frame(height: 20)
@@ -178,7 +178,7 @@ private extension HomeView {
         )
         .animation(.default, value: viewModel.connectionManager.exitRouter)
         .onTapGesture {
-            viewModel.navigateToLastHopSelection()
+            viewModel.navigateToExitGateways()
         }
     }
 

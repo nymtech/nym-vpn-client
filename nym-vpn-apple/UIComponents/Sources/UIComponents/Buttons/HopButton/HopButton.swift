@@ -10,7 +10,7 @@ public struct HopButton: View {
     }
 
     public var body: some View {
-        StrokeBorderView(strokeTitle: viewModel.hopType.hopLocalizedTitle) {
+        StrokeBorderView(strokeTitle: viewModel.hopType.hopLocalizedTitle, strokeTitleLeftMargin: 30) {
             HStack {
                 flagOrBoltImage()
                     .padding(.horizontal, 12)
@@ -46,6 +46,6 @@ private extension HopButton {
     func titleText(with text: String) -> some View {
         Text(text)
             .foregroundStyle(NymColor.sysOnSurface)
-            .textStyle(.Body.Large.semibold)
+            .textStyle(.BodyLegacy.Large.semibold)
     }
 }

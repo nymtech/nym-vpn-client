@@ -4,9 +4,11 @@ import Theme
 public struct StrokeBorderView<Content: View>: View {
     @ViewBuilder private let content: Content
     private let strokeTitle: String
+    private let strokeTitleLeftMargin: CGFloat
 
-    public init(strokeTitle: String, @ViewBuilder content: () -> Content) {
+    public init(strokeTitle: String, strokeTitleLeftMargin: CGFloat, @ViewBuilder content: () -> Content) {
         self.strokeTitle = strokeTitle
+        self.strokeTitleLeftMargin = strokeTitleLeftMargin
         self.content = content()
     }
 
@@ -29,10 +31,10 @@ public struct StrokeBorderView<Content: View>: View {
         .overlay(alignment: .topLeading) {
             Text(strokeTitle)
                 .foregroundStyle(NymColor.sysOnSurface)
-                .textStyle(.Body.Small.primary)
+                .textStyle(.BodyLegacy.Small.primary)
                 .padding(4)
                 .background(NymColor.background)
-                .position(x: 40, y: 0)
+                .position(x: strokeTitleLeftMargin, y: 0)
         }
     }
 }

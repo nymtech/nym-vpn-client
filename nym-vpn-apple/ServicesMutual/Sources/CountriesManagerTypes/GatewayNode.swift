@@ -11,7 +11,7 @@ public struct GatewayNode: Codable {
         wgScore: GatewayNodeScore,
         mixnetScore: GatewayNodeScore,
         moniker: String? = nil
-    ){
+    ) {
         self.id = id
         self.countryCode = countryCode
         self.wgScore = wgScore

@@ -16,7 +16,7 @@ public struct GenericButton: View {
         HStack {
             Text(title)
                 .foregroundStyle(borderOnly ? mainColor : NymColor.connectTitle)
-                .textStyle(.Label.Huge.bold)
+                .textStyle(.LabelLegacy.Huge.bold)
         }
         .frame(maxWidth: .infinity, minHeight: 56, maxHeight: 56)
         .background(borderOnly ? .clear : mainColor)
