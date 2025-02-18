@@ -5,7 +5,7 @@ use std::{fmt, time::Duration};
 
 use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
-use nym_http_api_client::{HttpClientError, Params, PathSegments, UserAgent, NO_PARAMS};
+use nym_http_api_client::{ApiClient, HttpClientError, Params, PathSegments, UserAgent, NO_PARAMS};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use time::OffsetDateTime;
 use url::Url;
@@ -158,8 +158,8 @@ impl VpnApiClient {
     ) -> std::result::Result<T, HttpClientError<E>>
     where
         for<'a> T: Deserialize<'a>,
-        K: AsRef<str>,
-        V: AsRef<str>,
+        K: AsRef<str> + Sync,
+        V: AsRef<str> + Sync,
         E: fmt::Display + fmt::Debug + DeserializeOwned,
     {
         let response = (|| async { self.inner.get_json(path, params).await })
