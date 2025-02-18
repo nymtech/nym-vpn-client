@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_http_api_client::NO_PARAMS;
+use nym_http_api_client::{ApiClient, NO_PARAMS};
 
 use url::Url;
 
