@@ -71,8 +71,8 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 fun VpnException.toUserMessage(context: Context): String {
 	return when (this) {
 		is VpnException.NetworkConnectionException -> context.getString(R.string.network_error)
-//		is VpnException.NoActiveSubscription -> context.getString(R.string.no_active_subscription)
-//		is VpnException.OutOfBandwidth -> context.getString(R.string.no_bandwidth)
+// 		is VpnException.NoActiveSubscription -> context.getString(R.string.no_active_subscription)
+// 		is VpnException.OutOfBandwidth -> context.getString(R.string.no_bandwidth)
 		is VpnException.VpnApiTimeout -> context.getString(R.string.network_error)
 		else -> context.getString(R.string.unexpected_error) + " ${this.javaClass.simpleName}"
 	}
