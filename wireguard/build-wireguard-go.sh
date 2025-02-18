@@ -168,7 +168,7 @@ function build_android {
         docker run --rm \
             -v "$(pwd)/../":/workspace \
             --entrypoint "/workspace/wireguard/$LIB_DIR/build-android.sh" \
-            --env ANDROID_NDK_HOME="/opt/android/android-ndk-r20b" \
+            --env ANDROID_NDK_HOME="/opt/android/android-ndk-r25c" \
             docker.io/pronebird1337/nymtech-android-app@sha256:$docker_image_hash
     else
         patch_go_runtime
