@@ -468,6 +468,8 @@ mod test {
             api_url: default_api_url,
             nym_vpn_api_url: Some(default_nym_vpn_api_url),
             min_gateway_performance: None,
+            mix_score_thresholds: None,
+            wg_score_thresholds: None,
         }
     }
 
