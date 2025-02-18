@@ -42,15 +42,17 @@
   --color-rose-bruni: #f3cac8;
   --color-rouge-ecarlate: #e02c4d;
 
-  --font-sans: Lato, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+  --font-sans:
+    Lato, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-icon: Material Symbols Outlined;
   --font-icon--font-variation-settings: 'opsz' 24;
 }
 
 @utility transition-noborder {
-  transition-property: color, background-color, text-decoration-color, fill,
-    stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-property:
+    color, background-color, text-decoration-color, fill, stroke, opacity,
+    box-shadow, transform, filter, backdrop-filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }

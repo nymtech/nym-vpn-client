@@ -48,7 +48,7 @@
     "i18next": "^24.0.5",
     "i18next-browser-languagedetector": "^8.0.0",
     "lodash-es": "^4.17.21",
-    "motion": "^11.18.0",
+    "motion": "^12.4.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-i18next": "^15.0.0",
