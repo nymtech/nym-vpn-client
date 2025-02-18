@@ -1,4 +1,5 @@
 use nym_vpn_proto as p;
+use nym_vpn_proto::VpnApiErrorResponse;
 use p::register_device_error::ErrorDetail as RegDeviceErr;
 use p::request_zk_nym_error::Outcome as ZkNymErr;
 use p::sync_account_error::ErrorDetail as SyncAccountErr;
@@ -9,10 +10,12 @@ use p::{
     RegisterDeviceError, RequestZkNymBundle, RequestZkNymError, SyncAccountError, SyncDeviceError,
 };
 use serde::Serialize;
+use std::fmt;
+use strum::Display;
 use tracing::{error, warn};
 use ts_rs::TS;
 
-#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[derive(Serialize, Clone, Debug, Display, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "key", content = "data")]
@@ -32,26 +35,26 @@ pub enum TunnelError {
     SyncAccountNoAccountStored(bool),
     SyncAccountUnexpectedResponse(String),
     SyncAccountInternal(String),
-    SyncAccountVpnApi(Option<String>),
+    SyncAccountVpnApi(String),
     // SyncDeviceError mapping
     SyncDeviceNoAccountStored(bool),
     SyncDeviceNoDeviceStored(bool),
     SyncDeviceUnexpectedResponse(String),
     SyncDeviceInternal(String),
-    SyncDeviceVpnApi(Option<String>),
+    SyncDeviceVpnApi(String),
     // RegisterDeviceError mapping
     RegisterDeviceNoAccountStored(bool),
     RegisterDeviceNoDeviceStored(bool),
     RegisterDeviceUnexpectedResponse(String),
     RegisterDeviceInternal(String),
-    RegisterDeviceVpnApi(Option<String>),
+    RegisterDeviceVpnApi(String),
     // RequestZkNymError mapping
     ReqZknymNoAccountStored(bool),
     ReqZknymNoDeviceStored(bool),
     ReqZknymUnexpectedResponse(String),
     ReqZknymStorage(String),
     ReqZknymInternal(String),
-    ReqZknymVpnApi(Option<String>),
+    ReqZknymVpnApi(String),
 }
 
 impl From<Option<ErrorStateReason>> for TunnelError {
@@ -103,7 +106,7 @@ impl From<SyncAccountError> for TunnelError {
             SyncAccountErr::UnexpectedResponse(s) => TunnelError::SyncAccountUnexpectedResponse(s),
             SyncAccountErr::Internal(s) => TunnelError::SyncAccountInternal(s),
             SyncAccountErr::ErrorResponse(res) => {
-                TunnelError::SyncAccountVpnApi(res.code_reference_id)
+                TunnelError::SyncAccountVpnApi(VpnApiError(res).to_string())
             }
         }
     }
@@ -121,7 +124,7 @@ impl From<SyncDeviceError> for TunnelError {
             SyncDeviceErr::UnexpectedResponse(s) => TunnelError::SyncDeviceUnexpectedResponse(s),
             SyncDeviceErr::Internal(s) => TunnelError::SyncDeviceInternal(s),
             SyncDeviceErr::ErrorResponse(res) => {
-                TunnelError::SyncDeviceVpnApi(res.code_reference_id)
+                TunnelError::SyncDeviceVpnApi(VpnApiError(res).to_string())
             }
         }
     }
@@ -139,7 +142,7 @@ impl From<RegisterDeviceError> for TunnelError {
             RegDeviceErr::UnexpectedResponse(s) => TunnelError::RegisterDeviceUnexpectedResponse(s),
             RegDeviceErr::Internal(s) => TunnelError::RegisterDeviceInternal(s),
             RegDeviceErr::ErrorResponse(res) => {
-                TunnelError::RegisterDeviceVpnApi(res.code_reference_id)
+                TunnelError::RegisterDeviceVpnApi(VpnApiError(res).to_string())
             }
         }
     }
@@ -157,7 +160,7 @@ impl From<RequestZkNymError> for TunnelError {
             ZkNymErr::UnexpectedVpnApiResponse(s) => TunnelError::ReqZknymUnexpectedResponse(s),
             ZkNymErr::Storage(s) => TunnelError::ReqZknymStorage(s),
             ZkNymErr::Internal(s) => TunnelError::ReqZknymInternal(s),
-            ZkNymErr::VpnApi(res) => TunnelError::ReqZknymVpnApi(res.code_reference_id),
+            ZkNymErr::VpnApi(res) => TunnelError::ReqZknymVpnApi(VpnApiError(res).to_string()),
         }
     }
 }
@@ -172,5 +175,17 @@ impl From<RequestZkNymBundle> for TunnelError {
         }
         // let's suppose: get the first one and we good? ><
         bundle.failures[0].clone().into()
+    }
+}
+
+struct VpnApiError(VpnApiErrorResponse);
+
+impl fmt::Display for VpnApiError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        if let Some(id) = &self.0.message_id {
+            write!(f, "{}, ID [{}]", self.0.message, id)
+        } else {
+            write!(f, "{}", self.0.message)
+        }
     }
 }

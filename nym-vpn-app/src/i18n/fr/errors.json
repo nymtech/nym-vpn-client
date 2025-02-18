@@ -31,9 +31,9 @@
     "is-connected": "Impossible d'effectuer cette action lorsque connecté au VPN",
     "not-stored": "pas de compte stocké",
     "no-device-stored": "pas d'appareil stocké",
-    "unexpected-response": "réponse inattendue",
+    "unexpected-response": "réponse inattendue : {{details}}",
     "internal": "erreur interne",
-    "vpn-api": "erreur API VPN"
+    "vpn-api": "erreur API VPN : {{details}}"
   },
   "sync-account": "Synchronisation du compte : {{reason}}",
   "sync-device": "Synchronisation de l'appareil : {{reason}}",

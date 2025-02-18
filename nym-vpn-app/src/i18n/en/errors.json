@@ -26,9 +26,9 @@
     "is-connected": "Unable to proceed while connected",
     "not-stored": "no account stored",
     "no-device-stored": "no device stored",
-    "unexpected-response": "unexpected response",
+    "unexpected-response": "unexpected response: {{details}}",
     "internal": "internal error",
-    "vpn-api": "VPN API error"
+    "vpn-api": "VPN API error: {{details}}"
   },
   "sync-account": "Sync account: {{reason}}",
   "sync-device": "Sync device: {{reason}}",

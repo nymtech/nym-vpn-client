@@ -217,7 +217,10 @@ impl GrpcClient {
             error!("failed to parse tunnel state: {}", e);
             VpndError::internal("failed to parse tunnel state")
         })?;
-        info!("tunnel state {}", tunnel);
+        match &tunnel {
+            TunnelState::Error(e) => warn!("tunnel error: {}", e),
+            _ => info!("tunnel state {}", tunnel),
+        }
         let s_state = app.state::<SharedAppState>();
         let mut app_state = s_state.lock().await;
         app_state.update_tunnel(app, tunnel.clone()).await?;
@@ -290,7 +293,10 @@ impl GrpcClient {
                 error!("failed to parse tunnel state: {}", e);
                 VpndError::internal("failed to parse tunnel state")
             })?;
-            info!("tunnel state {}", tunnel);
+            match &tunnel {
+                TunnelState::Error(e) => warn!("tunnel error: {}", e),
+                _ => info!("tunnel state {}", tunnel),
+            }
             let s_state = app.state::<SharedAppState>();
             let mut app_state = s_state.lock().await;
             app_state.update_tunnel(app, tunnel).await?;

@@ -44,24 +44,28 @@ function useI18nError() {
             return t('sync-account', { reason: t('account.not-stored') });
           case 'sync-account-unexpected-response':
             return t('sync-account', {
-              reason: t('account.unexpected-response'),
+              reason: t('account.unexpected-response', { details: error.data }),
             });
           case 'sync-account-internal':
             return t('sync-account', { reason: t('account.internal') });
           case 'sync-account-vpn-api':
-            return t('sync-account', { reason: t('account.vpn-api') });
+            return t('sync-account', {
+              reason: t('account.vpn-api', { details: error.data }),
+            });
           case 'sync-device-no-account-stored':
             return t('sync-device', { reason: t('account.not-stored') });
           case 'sync-device-no-device-stored':
             return t('sync-device', { reason: t('account.no-device-stored') });
           case 'sync-device-unexpected-response':
             return t('sync-device', {
-              reason: t('account.unexpected-response'),
+              reason: t('account.unexpected-response', { details: error.data }),
             });
           case 'sync-device-internal':
             return t('sync-device', { reason: t('account.internal') });
           case 'sync-device-vpn-api':
-            return t('sync-device', { reason: t('account.vpn-api') });
+            return t('sync-device', {
+              reason: t('account.vpn-api', { details: error.data }),
+            });
           case 'register-device-no-account-stored':
             return t('register-device', { reason: t('account.not-stored') });
           case 'register-device-no-device-stored':
@@ -70,12 +74,14 @@ function useI18nError() {
             });
           case 'register-device-unexpected-response':
             return t('register-device', {
-              reason: t('account.unexpected-response'),
+              reason: t('account.unexpected-response', { details: error.data }),
             });
           case 'register-device-internal':
             return t('register-device', { reason: t('account.internal') });
           case 'register-device-vpn-api':
-            return t('register-device', { reason: t('account.vpn-api') });
+            return t('register-device', {
+              reason: t('account.vpn-api', { details: error.data }),
+            });
           case 'req-zknym-no-account-stored':
             return t('request-zknym', { reason: t('account.not-stored') });
           case 'req-zknym-no-device-stored':
@@ -84,14 +90,16 @@ function useI18nError() {
             });
           case 'req-zknym-unexpected-response':
             return t('request-zknym', {
-              reason: t('account.unexpected-response'),
+              reason: t('account.unexpected-response', { details: error.data }),
             });
           case 'req-zknym-storage':
             return t('request-zknym', { reason: t('account.storage') });
           case 'req-zknym-internal':
             return t('request-zknym', { reason: t('account.internal') });
           case 'req-zknym-vpn-api':
-            return t('request-zknym', { reason: t('account.vpn-api') });
+            return t('request-zknym', {
+              reason: t('account.vpn-api', { details: error.data }),
+            });
         }
 
         console.warn('unhandled tunnel error', error);

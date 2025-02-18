@@ -81,23 +81,23 @@ export type TunnelError =
   | { key: 'sync-account-no-account-stored'; data: boolean }
   | { key: 'sync-account-unexpected-response'; data: string }
   | { key: 'sync-account-internal'; data: string }
-  | { key: 'sync-account-vpn-api'; data: string | null }
+  | { key: 'sync-account-vpn-api'; data: string }
   | { key: 'sync-device-no-account-stored'; data: boolean }
   | { key: 'sync-device-no-device-stored'; data: boolean }
   | { key: 'sync-device-unexpected-response'; data: string }
   | { key: 'sync-device-internal'; data: string }
-  | { key: 'sync-device-vpn-api'; data: string | null }
+  | { key: 'sync-device-vpn-api'; data: string }
   | { key: 'register-device-no-account-stored'; data: boolean }
   | { key: 'register-device-no-device-stored'; data: boolean }
   | { key: 'register-device-unexpected-response'; data: string }
   | { key: 'register-device-internal'; data: string }
-  | { key: 'register-device-vpn-api'; data: string | null }
+  | { key: 'register-device-vpn-api'; data: string }
   | { key: 'req-zknym-no-account-stored'; data: boolean }
   | { key: 'req-zknym-no-device-stored'; data: boolean }
   | { key: 'req-zknym-unexpected-response'; data: string }
   | { key: 'req-zknym-storage'; data: string }
   | { key: 'req-zknym-internal'; data: string }
-  | { key: 'req-zknym-vpn-api'; data: string | null };
+  | { key: 'req-zknym-vpn-api'; data: string };
 
 export type TunnelStateEvent = {
   state: TunnelState;
