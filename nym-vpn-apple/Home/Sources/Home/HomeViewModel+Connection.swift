@@ -19,19 +19,14 @@ public extension HomeViewModel {
             lastError = nil
             resetStatusInfoState()
 #if os(macOS)
-            guard helperInstallManager.daemonState != .installing else { return }
-            do {
-                try await helperInstallManager.installIfNeeded()
-            } catch {
-                updateStatusInfoState(with: .error(message: error.localizedDescription))
-                updateConnectButtonState(with: .connect)
+            guard !helperManager.isInstallNeeded()
+            else {
+                await navigateToInstallHelper()
                 return
             }
-
-            updateStatusInfoState(with: .unknown)
-            updateConnectButtonState(with: .connect)
 #endif
-            guard credentialsManager.isValidCredentialImported
+            // TODO: move to connection manager, do not check is valid imported if .connected
+            guard credentialsManager.isValidCredentialImported || lastTunnelStatus != .connected
             else {
                 await navigateToAddCredentials()
                 return

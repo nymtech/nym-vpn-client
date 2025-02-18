@@ -3,10 +3,7 @@
 
 use std::net::{IpAddr, SocketAddr};
 
-use hickory_resolver::{
-    config::{ResolverConfig, ResolverOpts},
-    TokioAsyncResolver,
-};
+use nym_http_api_client::HickoryDnsResolver;
 use tracing::debug;
 
 use crate::{error::Result, Config, Error};
@@ -14,8 +11,8 @@ use crate::{error::Result, Config, Error};
 #[allow(unused)]
 pub(crate) async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     debug!("Trying to resolve hostname: {hostname}");
-    let resolver = TokioAsyncResolver::tokio(ResolverConfig::default(), ResolverOpts::default());
-    let addrs = resolver.lookup_ip(hostname).await.map_err(|err| {
+    let resolver = HickoryDnsResolver::default();
+    let addrs = resolver.resolve_str(hostname).await.map_err(|err| {
         tracing::error!("Failed to resolve gateway hostname: {}", err);
         Error::FailedToDnsResolveGateway {
             hostname: hostname.to_string(),
@@ -32,11 +29,11 @@ pub(crate) async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> 
     Ok(ips)
 }
 
-#[allow(unused)]
 pub async fn allowed_ips(config: &Config) -> Result<Vec<SocketAddr>> {
     let mut ips = vec![];
 
-    let mut nyxd_ips = config.nyxd_socket_addrs();
+    let mut nyxd_ips = config.nyxd_socket_addrs()?;
+    ips.append(&mut nyxd_ips);
 
     let mut api_ips = config.api_socket_addrs()?;
     ips.append(&mut api_ips);

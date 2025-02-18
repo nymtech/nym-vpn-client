@@ -105,6 +105,23 @@ pub enum VpnApiClientError {
 
     #[error("failed to get usage")]
     FailedToGetUsage(#[source] HttpClientError<UnexpectedError>),
+
+    #[error("failed to get registered network environments")]
+    FailedToGetNetworkEnvs(#[source] HttpClientError<UnexpectedError>),
+
+    #[error("failed to get discovery info")]
+    FailedToGetDiscoveryInfo(#[source] HttpClientError<UnexpectedError>),
+
+    #[error("failed to get vpn network Details")]
+    FailedToGetVpnNetworkDetails(#[source] HttpClientError<UnexpectedError>),
 }
 
 pub type Result<T> = std::result::Result<T, VpnApiClientError>;
+
+impl TryFrom<VpnApiClientError> for NymErrorResponse {
+    type Error = VpnApiClientError;
+
+    fn try_from(response: VpnApiClientError) -> std::result::Result<Self, Self::Error> {
+        crate::response::extract_error_response(&response).ok_or(response)
+    }
+}

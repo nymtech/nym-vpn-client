@@ -12,10 +12,10 @@ pkgdesc='NymVPN desktop client'
 arch=('x86_64')
 url='https://github.com/nymtech/nym-vpn-client'
 license=('GPL-3.0-only')
-depends=('gcc-libs' 'bash' 'cairo' 'gtk3' 'webkit2gtk-4.1' 'gdk-pixbuf2' 'glib2' 'openssl' 'libsoup3' 'nym-vpnd')
+depends=('gcc-libs' 'cairo' 'gtk3' 'webkit2gtk-4.1' 'gdk-pixbuf2' 'glib2' 'libsoup3' 'hicolor-icon-theme' 'nym-vpnd')
 makedepends=()
 provides=('nym-vpn-app')
-conflicts=('nymvpn-x' 'nym-vpn-app')
+conflicts=('nym-vpn-app')
 options=(!debug)
 source=("$url/releases/download/$_release_tag/nym-vpn_${_pkgver}_linux_x64"
     'nym-vpn.desktop'

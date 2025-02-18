@@ -1,8 +1,10 @@
 use nym_vpn_proto as p;
-use p::tunnel_state::{ActionAfterDisconnect, ErrorStateReason, State};
+use p::tunnel_state::{ActionAfterDisconnect, State};
 use serde::Serialize;
 use tracing::warn;
 use ts_rs::TS;
+
+use super::tunnel_error::TunnelError;
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export)]
@@ -88,7 +90,7 @@ impl TunnelState {
             State::Disconnecting(action) => {
                 TunnelState::Disconnecting(TunnelAction::from_proto(action.after_disconnect()))
             }
-            State::Error(e) => TunnelState::Error(e.reason().into()),
+            State::Error(e) => TunnelState::Error(e.error_state_reason.into()),
             State::Offline(o) => TunnelState::Offline {
                 reconnect: o.reconnect,
             },
@@ -172,23 +174,6 @@ impl TryFrom<p::ConnectionData> for Tunnel {
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "kebab-case")]
-pub enum TunnelError {
-    Internal,
-    Firewall,
-    Routing,
-    Dns,
-    TunDevice,
-    TunnelProvider,
-    SameEntryAndExitGw,
-    InvalidEntryGwCountry,
-    InvalidExitGwCountry,
-    BadBandwidthIncrease,
-    DuplicateTunFd,
-}
-
-#[derive(Serialize, Clone, Debug, PartialEq, TS)]
-#[ts(export)]
-#[serde(rename_all = "kebab-case")]
 pub enum TunnelAction {
     Error,
     Reconnect,
@@ -215,24 +200,6 @@ impl From<ActionAfterDisconnect> for OptionalTunnelAction {
             ActionAfterDisconnect::Reconnect => OptionalTunnelAction(Some(TunnelAction::Reconnect)),
             ActionAfterDisconnect::Offline => OptionalTunnelAction(Some(TunnelAction::Offline)),
             _ => OptionalTunnelAction(None),
-        }
-    }
-}
-
-impl From<ErrorStateReason> for TunnelError {
-    fn from(reason: ErrorStateReason) -> Self {
-        match reason {
-            ErrorStateReason::Internal => TunnelError::Internal,
-            ErrorStateReason::Firewall => TunnelError::Firewall,
-            ErrorStateReason::Routing => TunnelError::Routing,
-            ErrorStateReason::Dns => TunnelError::Dns,
-            ErrorStateReason::TunDevice => TunnelError::TunDevice,
-            ErrorStateReason::TunnelProvider => TunnelError::TunnelProvider,
-            ErrorStateReason::SameEntryAndExitGateway => TunnelError::SameEntryAndExitGw,
-            ErrorStateReason::InvalidEntryGatewayCountry => TunnelError::InvalidEntryGwCountry,
-            ErrorStateReason::InvalidExitGatewayCountry => TunnelError::InvalidExitGwCountry,
-            ErrorStateReason::BadBandwidthIncrease => TunnelError::BadBandwidthIncrease,
-            ErrorStateReason::DuplicateTunFd => TunnelError::DuplicateTunFd,
         }
     }
 }

@@ -2,6 +2,7 @@ import i18n from 'i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { isEnabled as isAutostartEnabled } from '@tauri-apps/plugin-autostart';
 import {
   CountryCacheDuration,
   DefaultCountry,
@@ -297,9 +298,21 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     },
   };
 
+  const getAutostart: TauriReq<() => Promise<boolean>> = {
+    name: 'getAutostart',
+    request: () => isAutostartEnabled(),
+    onFulfilled: (enabled) => {
+      dispatch({
+        type: 'set-autostart',
+        enabled,
+      });
+    },
+  };
+
   await fireRequests([
     getEntryCountriesRq,
     getExitCountriesRq,
     getAccountLinksRq,
+    getAutostart,
   ]);
 }

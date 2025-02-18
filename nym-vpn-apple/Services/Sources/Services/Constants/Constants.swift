@@ -2,7 +2,6 @@ import Foundation
 
 public enum Constants: String {
     case groupID = "group.net.nymtech.vpn"
-    case helperName = "net.nymtech.vpn.helper"
 
     case supportURL = "https://support.nym.com/hc"
     case termsOfUseURL = "https://nym.com/vpn-terms"

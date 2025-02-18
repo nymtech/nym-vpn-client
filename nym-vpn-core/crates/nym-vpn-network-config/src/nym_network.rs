@@ -14,10 +14,8 @@ pub struct NymNetwork {
 }
 
 impl NymNetwork {
-    pub fn mainnet_default() -> Self {
-        Self {
-            network: NymNetworkDetails::new_mainnet(),
-        }
+    pub fn new(network: NymNetworkDetails) -> Self {
+        Self { network }
     }
 
     fn path(config_dir: &Path, network_name: &str) -> PathBuf {
@@ -39,6 +37,7 @@ impl NymNetwork {
         tracing::debug!("Reading network details from: {}", path.display());
         let file_str = std::fs::read_to_string(path)?;
         let network: NymNetworkDetails = serde_json::from_str(&file_str)?;
+        // resolve_nym_network_details(&mut network);
         Ok(Self { network })
     }
 

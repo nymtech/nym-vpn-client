@@ -3,6 +3,7 @@
 
 use std::path::PathBuf;
 
+use nym_vpn_network_config::Network;
 use tokio::task::JoinHandle;
 
 use nym_authenticator_client::AuthClient;
@@ -47,6 +48,7 @@ impl Connector {
     }
     pub async fn connect(
         self,
+        network: &Network,
         enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
@@ -55,6 +57,7 @@ impl Connector {
     ) -> Result<ConnectedTunnel, ConnectorError> {
         let result = Self::connect_inner(
             &self.task_manager,
+            network,
             self.mixnet_client.clone(),
             &self.gateway_directory_client,
             enable_credentials_mode,
@@ -87,6 +90,7 @@ impl Connector {
     #[allow(clippy::too_many_arguments)]
     async fn connect_inner(
         task_manager: &TaskManager,
+        network: &Network,
         mixnet_client: SharedMixnetClient,
         gateway_directory_client: &GatewayClient,
         enable_credentials_mode: bool,
@@ -148,6 +152,7 @@ impl Connector {
                 .map_err(Error::SetupStoragePaths)?;
             let bw = BandwidthController::new(
                 storage,
+                network,
                 wg_entry_gateway_client.light_client(),
                 wg_exit_gateway_client.light_client(),
                 shutdown,
@@ -181,6 +186,7 @@ impl Connector {
             let storage = EphemeralCredentialStorage::default();
             let bw = BandwidthController::new(
                 storage,
+                network,
                 wg_entry_gateway_client.light_client(),
                 wg_exit_gateway_client.light_client(),
                 shutdown,

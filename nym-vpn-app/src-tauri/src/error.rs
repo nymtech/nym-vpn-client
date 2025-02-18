@@ -9,12 +9,9 @@ use nym_vpn_proto::set_network_request_error::SetNetworkRequestErrorType;
 use nym_vpn_proto::{AccountError, ConnectRequestError, GatewayType, SetNetworkRequestError};
 use serde::Serialize;
 use thiserror::Error;
-use tracing::warn;
 use ts_rs::TS;
 
 use crate::grpc::client::VpndError;
-
-const MAX_REG_DEVICES_ID_PATTERN: &str = "register-device.max-devices-exceeded";
 
 #[derive(Error, Debug, Serialize, TS, Clone)]
 #[ts(export)]
@@ -38,7 +35,7 @@ impl BackendError {
         }
     }
 
-    pub fn with_data(message: &str, key: ErrorKey, data: HashMap<&str, String>) -> Self {
+    pub fn _with_data(message: &str, key: ErrorKey, data: HashMap<&str, String>) -> Self {
         Self {
             message: message.to_string(),
             key,
@@ -107,6 +104,7 @@ impl From<VpndError> for BackendError {
 /// Enum of the possible specialized errors emitted by the daemon
 /// or the app backend side, to be passed to the UI layer
 #[derive(Debug, Serialize, TS, Clone)]
+#[serde(rename_all = "kebab-case")]
 #[ts(export)]
 pub enum ErrorKey {
     /// Generic unhandled error
@@ -132,23 +130,12 @@ pub enum ErrorKey {
     AccountInvalidMnemonic,
     AccountStorage,
     AccountIsConnected,
-    // Other account related errors, forwarded from `connect_request_error::ConnectRequestErrorType`
-    ConnectGeneral,
-    ConnectNoAccountStored,
-    ConnectNoDeviceStored,
-    ConnectUpdateAccount,
-    ConnectUpdateDevice,
-    ConnectRegisterDevice,
-    ConnectRequestZkNym,
     // Failure when querying countries from gRPC
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,
     GetWgCountriesQuery,
     // Forwarded from proto `set_network_request_error::SetNetworkRequestErrorType`
     InvalidNetworkName,
-    /// Custom error for the "maximum number of registered devices reached" error as it's not
-    /// yet specialized in the backend
-    MaxRegisteredDevices,
 }
 
 impl From<AccountError> for BackendError {
@@ -180,43 +167,18 @@ impl From<AccountError> for BackendError {
 impl From<ConnectRequestErrorType> for ErrorKey {
     fn from(error: ConnectRequestErrorType) -> Self {
         match error {
+            // let's keep this 0brain pattern matching for the sake
+            // of reference and safety in case of future changes
             ConnectRequestErrorType::Internal | ConnectRequestErrorType::Unspecified => {
                 ErrorKey::InternalError
             }
-            ConnectRequestErrorType::General => ErrorKey::ConnectGeneral,
-            ConnectRequestErrorType::NoAccountStored => ErrorKey::ConnectNoAccountStored,
-            ConnectRequestErrorType::NoDeviceStored => ErrorKey::ConnectNoDeviceStored,
-            ConnectRequestErrorType::UpdateAccount => ErrorKey::ConnectUpdateAccount,
-            ConnectRequestErrorType::UpdateDevice => ErrorKey::ConnectUpdateDevice,
-            ConnectRequestErrorType::RegisterDevice => ErrorKey::ConnectRegisterDevice,
-            ConnectRequestErrorType::RequestZkNym => ErrorKey::ConnectRequestZkNym,
         }
     }
 }
 
 impl From<ConnectRequestError> for BackendError {
     fn from(error: ConnectRequestError) -> Self {
-        let message = error.message.clone();
-
-        // TODO trick to handle "Maximum number of registered devices reached" error which is
-        //  not yet specialized in the backend
-        if let Some(true) = error
-            .message_id
-            .as_ref()
-            .map(|id| id.contains(MAX_REG_DEVICES_ID_PATTERN))
-        {
-            return BackendError::new(&message, ErrorKey::MaxRegisteredDevices);
-        }
-        if !error.zk_nym_error.is_empty() {
-            let mut data = HashMap::new();
-            for zk_err in &error.zk_nym_error {
-                warn!("zk-nym error: {:?}", zk_err);
-                data.insert(zk_err.kind().as_str_name(), format!("{:?}", zk_err));
-            }
-            return BackendError::with_data(&message, ErrorKey::from(error.kind()), data);
-        }
-
-        BackendError::new(&message, ErrorKey::from(error.kind()))
+        BackendError::new(&error.message, ErrorKey::from(error.kind()))
     }
 }
 

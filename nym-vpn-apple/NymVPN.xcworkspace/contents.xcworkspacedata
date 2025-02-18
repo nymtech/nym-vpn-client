@@ -8,6 +8,9 @@
       location = "group:AutoUpdates">
    </FileRef>
    <FileRef
+      location = "group:HelperInstall">
+   </FileRef>
+   <FileRef
       location = "group:Home">
    </FileRef>
    <FileRef

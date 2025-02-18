@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { Button } from '@headlessui/react';
-import { open } from '@tauri-apps/plugin-shell';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import MsIcon from './MsIcon';
 
 type LinkProps = {
@@ -16,11 +16,11 @@ function Link({ text, url, icon, className, textClassName }: LinkProps) {
     <Button
       as="a"
       className={clsx([
-        'focus:outline-none select-none cursor-default',
+        'focus:outline-hidden select-none cursor-default',
         'inline-flex flex-row items-center gap-1 text-malachite-moss dark:text-malachite',
         className && className,
       ])}
-      onClick={() => open(url)}
+      onClick={() => openUrl(url)}
     >
       {({ hover }) => (
         <>
@@ -35,7 +35,7 @@ function Link({ text, url, icon, className, textClassName }: LinkProps) {
           </span>
           {icon && (
             <MsIcon
-              className="!no-underline hover:!no-underline"
+              className="no-underline! hover:no-underline!"
               icon={typeof icon === 'string' ? icon : 'open_in_new'}
             />
           )}

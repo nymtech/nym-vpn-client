@@ -5,6 +5,7 @@ use std::time::Duration;
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
+use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, time::timeout};
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 use tokio_util::sync::CancellationToken;
@@ -14,7 +15,7 @@ use nym_credentials_interface::TicketType;
 use nym_gateway_directory::GatewayClient;
 use nym_sdk::{
     mixnet::{ConnectionStatsEvent, CredentialStorage as Storage},
-    NymNetworkDetails, TaskClient,
+    TaskClient,
 };
 use nym_task::TaskManager;
 use nym_validator_client::{
@@ -77,26 +78,15 @@ pub enum CredentialNyxdClientError {
     #[error("failed to create nyxd client config: {0}")]
     FailedToCreateNyxdClientConfig(nym_validator_client::nyxd::error::NyxdError),
 
-    #[error("no nyxd endpoints found")]
-    NoNyxdEndpointsFound,
-
     #[error("failed to connect using nyxd client: {0}")]
     FailedToConnectUsingNyxdClient(nym_validator_client::nyxd::error::NyxdError),
 }
 
-fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient> {
-    let network = NymNetworkDetails::new_from_env();
-    let config = NyxdClientConfig::try_from_nym_network_details(&network)
+fn get_nyxd_client(network: &Network) -> Result<QueryHttpRpcNyxdClient> {
+    let config = NyxdClientConfig::try_from_nym_network_details(&network.nym_network.network)
         .map_err(CredentialNyxdClientError::FailedToCreateNyxdClientConfig)?;
 
-    // Safe to use pick the first one?
-    let nyxd_url = network
-        .endpoints
-        .first()
-        .ok_or(CredentialNyxdClientError::NoNyxdEndpointsFound)?
-        .nyxd_url();
-
-    Ok(NyxdClient::connect(config, nyxd_url.as_str())
+    Ok(NyxdClient::connect(config, network.nyxd_url().as_str())
         .map_err(CredentialNyxdClientError::FailedToConnectUsingNyxdClient)?)
 }
 
@@ -161,6 +151,7 @@ impl DepletionRate {
 
 pub struct ReconnectMixnetClientData {
     options: MixnetConnectOptions,
+    network_env: Network,
     bw_controller_task_manager: TaskManager,
     mixnet_client_config: MixnetClientConfig,
 }
@@ -168,11 +159,13 @@ pub struct ReconnectMixnetClientData {
 impl ReconnectMixnetClientData {
     pub fn new(
         options: MixnetConnectOptions,
+        network_env: Network,
         bw_controller_task_manager: TaskManager,
         mixnet_client_config: MixnetClientConfig,
     ) -> Self {
         Self {
             options,
+            network_env,
             bw_controller_task_manager,
             mixnet_client_config,
         }
@@ -186,6 +179,7 @@ impl ReconnectMixnetClientData {
         let mixnet_client = match tokio::time::timeout(
             MIXNET_CLIENT_STARTUP_TIMEOUT,
             crate::mixnet::setup_mixnet_client(
+                &self.network_env,
                 entry_gateway,
                 &self.options.data_path,
                 self.bw_controller_task_manager
@@ -230,12 +224,13 @@ pub(crate) struct BandwidthController<St> {
 impl<St: Storage> BandwidthController<St> {
     pub(crate) fn new(
         storage: St,
+        network: &Network,
         wg_entry_gateway_client: WgGatewayLightClient,
         wg_exit_gateway_client: WgGatewayLightClient,
         shutdown: TaskClient,
         reconnect_mixnet_client_data: ReconnectMixnetClientData,
     ) -> Result<Self> {
-        let client = get_nyxd_client()?;
+        let client = get_nyxd_client(network)?;
         let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
         let timeout_check_interval =
             IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));

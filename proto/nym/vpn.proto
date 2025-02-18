@@ -5,6 +5,8 @@ package nym.vpn;
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
 
+import "account.proto";
+
 // Represents the identity of a gateway
 message Gateway {
   string id = 1;
@@ -202,38 +204,12 @@ message ConnectRequestError {
 
     // Unspecified internal error
     INTERNAL = 1;
-
-    // General error
-    GENERAL = 2;
-
-    // No account recovery phrase stored
-    NO_ACCOUNT_STORED = 3;
-
-    // No device keys stored
-    NO_DEVICE_STORED = 4;
-
-    // Update account failed
-    UPDATE_ACCOUNT = 5;
-
-    // Update device failed
-    UPDATE_DEVICE = 6;
-
-    // Device registration failed
-    REGISTER_DEVICE = 7;
-
-    // Requesting zk-nym failed
-    REQUEST_ZK_NYM = 8;
   }
 
   ConnectRequestErrorType kind = 1;
 
   // Internal message for logging and debugging
   string message = 2;
-
-  optional string message_id = 3;
-
-  // When we have an error request zk-nyms, this is the set of zk-nym failures
-  repeated RequestZkNymError zk_nym_error = 4;
 }
 
 message ConnectRequest {
@@ -254,7 +230,6 @@ message ConnectRequest {
 }
 
 message ConnectResponse {
-  // TODO: consider simplifying by removing the bool
   bool success = 1;
   ConnectRequestError error = 2;
 }
@@ -342,39 +317,6 @@ message ListCountriesResponse {
   repeated Location countries = 1;
 }
 
-message StoreAccountRequest {
-  string mnemonic = 1;
-  uint32 nonce = 2;
-}
-
-message StoreAccountResponse {
-  bool success = 1;
-  AccountError error = 2;
-}
-
-message IsAccountStoredResponse {
-  oneof resp {
-    bool is_stored = 1;
-    AccountError error = 2;
-  }
-}
-
-message ForgetAccountResponse {
-  bool success = 1;
-  AccountError error = 2;
-}
-
-message AccountIdentity {
-  optional string account_identity = 1;
-}
-
-message GetAccountIdentityResponse {
-  oneof id {
-    AccountIdentity account_identity = 1;
-    AccountError error = 2;
-  }
-}
-
 message GetAccountLinksRequest {
   string locale = 1;
 }
@@ -384,418 +326,6 @@ message GetAccountLinksResponse {
     AccountManagement links = 1;
     AccountError error = 2;
   }
-}
-
-enum AccountRegistered {
-  ACCOUNT_REGISTERED_UNSPECIFIED = 0;
-  ACCOUNT_REGISTERED = 1;
-  ACCOUNT_NOT_REGISTERED = 2;
-}
-
-enum MnemonicState {
-  MNEMONIC_STATE_UNSPECIFIED = 0;
-  MNEMONIC_STATE_NOT_STORED = 1;
-  MNEMONIC_STATE_STORED = 2;
-}
-
-enum AccountState {
-  ACCOUNT_STATE_UNSPECIFIED = 0;
-  ACCOUNT_STATE_NOT_REGISTERED = 1;
-  ACCOUNT_STATE_INACTIVE = 2;
-  ACCOUNT_STATE_ACTIVE = 3;
-  ACCOUNT_STATE_DELETE_ME = 4;
-}
-
-enum SubscriptionState {
-  SUBSCRIPTION_STATE_UNSPECIFIED = 0;
-  SUBSCRIPTION_STATE_NOT_REGISTERED = 1;
-  SUBSCRIPTION_STATE_PENDING = 2;
-  SUBSCRIPTION_STATE_ACTIVE = 3;
-  SUBSCRIPTION_STATE_COMPLETE = 4;
-}
-
-message DeviceSummary {
-  uint64 active = 1;
-  uint64 max = 2;
-  uint64 remaining = 3;
-}
-
-message AccountSummary {
-  AccountState account = 1;
-  SubscriptionState subscription = 2;
-  DeviceSummary device_summary = 3;
-}
-
-enum DeviceState {
-  DEVICE_STATE_UNSPECIFIED = 0;
-  DEVICE_STATE_NOT_REGISTERED = 1;
-  DEVICE_STATE_INACTIVE = 2;
-  DEVICE_STATE_ACTIVE = 3;
-  DEVICE_STATE_DELETE_ME = 4;
-}
-
-message RegisterDeviceResult {
-  enum RegisterDeviceResultType {
-    REGISTER_DEVICE_RESULT_UNSPECIFIED = 0;
-    IN_PROGRESS = 1;
-    SUCCESS = 2;
-    FAILED = 3;
-  }
-
-  RegisterDeviceResultType kind = 1;
-  optional string message = 2;
-  optional string message_id = 3;
-}
-
-// The status of a zk-nym request. A request can have multiple successes
-// and failures, depending on how many ticket types were requested.
-message RequestZkNymResult {
-  enum RequestZkNymResultType {
-    REQUEST_ZK_NYM_RESULT_UNSPECIFIED = 0;
-    IN_PROGRESS = 1;
-    DONE = 4;
-    ERROR = 5;
-  }
-
-  RequestZkNymResultType kind = 1;
-  repeated RequestZkNymSuccess successes = 2;
-  repeated RequestZkNymError failures = 3;
-}
-
-message RequestZkNymSuccess {
-  string id = 1;
-}
-
-message RequestZkNymError {
-  enum RequestZkNymErrorType {
-    REQUEST_ZK_NYM_ERROR_TYPE_UNSPECIFIED = 0;
-
-    // Unspecified internal error
-    INTERNAL = 1;
-
-    // General error
-    GENERAL = 2;
-
-    // Error returned from the nym-vpn-api endpoint for get the zk-nyms that
-    // are available for download or resume.
-    GET_ZK_NYMS_AVAILABLE_FOR_DOWNLOAD_ENDPOINT_FAILURE = 9;
-
-    // Failed to create the ecash key pair
-    CREATE_ECASH_KEY_PAIR = 10;
-
-    // Failed to construct the withdrawal request
-    CONSTRUCT_WITHDRAWAL_REQUEST = 11;
-
-    // Error returned from the nym-vpn-api endpoint
-    REQUEST_ZK_NYM_ENDPOINT_FAILURE = 3;
-
-    // The vpn-api response contained an invalid ticket type
-    INVALID_TICKET_TYPE_IN_RESPONSE = 12;
-
-    // The vpn-api response contained a ticket type that didn't match the one
-    // we requested
-    TICKET_TYPE_MISMATCH = 13;
-
-    // Error returned from the nym-vpn-api polling endpoint
-    POLL_ZK_NYM_ENDPOINT_FAILURE = 4;
-
-    // The task polling for the result failed
-    POLLING_TASK_ERROR = 5;
-
-    // Timeout polling for the result
-    POLLING_TIMEOUT = 6;
-
-    // Request finished correctly, but the nym-vpn-api returned an error
-    // with the result.
-    FINISHED_WITH_ERROR = 7;
-
-    // The vpn-api response is missing the blinded shares
-    MISSING_BLINDED_SHARES = 14;
-
-    // The vpn-api response is missing the master verification key
-    RESPONSE_HAS_INVALID_MASTER_VERIFICATION_KEY = 15;
-
-    // The vpn-api response has an inconsistent epoch id
-    EPOCH_ID_MISMATCH = 16;
-
-    // The vpn-api response has an inconsistent expiration date
-    EXPIRATION_DATE_MISMATCH = 17;
-
-    // Error returned from the nym-vpn-api endpoint for getting the partial
-    // verification keys
-    GET_PARTIAL_VERIFICATION_KEYS_ENDPOINT_FAILURE = 18;
-
-    // Missing the master verification key in storage
-    NO_MASTER_VERIFICATION_KEY_IN_STORAGE = 19;
-
-    // Missing coin index signatures in storage
-    NO_COIN_INDEX_SIGNATURES_IN_STORAGE = 20;
-
-    // Missing expiration date signatures in storage
-    NO_EXPIRATION_DATE_SIGNATURES_IN_STORAGE = 21;
-
-    // The verification key is invalid
-    INVALID_VERIFICATION_KEY = 22;
-
-    // Failed to deserialize the blinded signature
-    DESERIALIZE_BLINDED_SIGNATURE = 23;
-
-    // Missing index when decoding keys
-    DECODED_KEYS_MISSING_INDEX = 24;
-
-    // Failed to import the ticketbook into local storage
-    IMPORT = 8;
-
-    // Failed to aggregate the wallets
-    AGGREGATE_WALLETS = 25;
-
-    // The error returned from the vpn-api endpoint when confirming the zk-nym
-    // download
-    CONFIRM_ZK_NYM_DOWNLOAD_ENDPOINT_FAILURE = 26;
-
-    // Error importing the zknym due to the storage missing the pending request data
-    MISSING_PENDING_REQUEST = 27;
-
-    // Error removing the pending request from storage
-    REMOVE_PENDING_REQUEST = 28;
-
-    // General credential storage error
-    CREDENTIAL_STORAGE = 29;
-
-    // The vpn-api response contained an unexpected error
-    UNEXPECTED_ERROR_RESPONSE = 30;
-  }
-
-  RequestZkNymErrorType kind = 1;
-  optional string id = 2;
-  optional string ticketbook_type = 3;
-  optional string message = 4;
-  optional string message_id = 5;
-}
-
-message AccountStateSummary {
-  optional MnemonicState mnemonic = 1;
-  optional AccountRegistered account_registered = 2;
-  optional AccountSummary account_summary = 3;
-  optional DeviceState device = 4;
-  optional RegisterDeviceResult register_device_result = 5;
-  // NOTE: don't reuse tag 6
-  // bool pending_zk_nym = 6;
-  optional RequestZkNymResult request_zk_nym_result = 7;
-}
-
-message GetAccountStateResponse {
-  oneof result {
-    AccountStateSummary account = 1;
-    AccountError error = 2;
-  }
-}
-
-message RefreshAccountStateResponse {}
-
-message AccountUsages {
-  repeated AccountUsage account_usages = 1;
-}
-
-message AccountUsage {
-  string created_on_utc = 1;
-  string last_updated_utc = 2;
-  string id = 3;
-  string subscription_id = 4;
-  string valid_until_utc = 5;
-  string valid_from_utc = 6;
-  double bandwidth_allowance_gb = 7;
-  double bandwidth_used_gb = 8;
-}
-
-message GetAccountUsageResponse {
-  oneof result {
-    AccountUsages account_usages = 1;
-    AccountError error = 2;
-  }
-}
-
-message ResetDeviceIdentityRequest {
-  // 32 byte seed, [u8; 32]
-  optional bytes seed = 1;
-}
-
-message ResetDeviceIdentityResponse {
-  bool success = 1;
-  AccountError error = 2;
-}
-
-message GetDeviceIdentityResponse {
-  oneof id {
-    string device_identity = 1;
-    AccountError error = 2;
-  }
-}
-
-message RegisterDeviceResponse {
-  string json = 1;
-  AccountError error = 2;
-}
-
-enum DeviceStatus {
-  DEVICE_STATUS_UNSPECIFIED = 0;
-  DEVICE_STATUS_ACTIVE = 1;
-  DEVICE_STATUS_INACTIVE = 2;
-  DEVICE_STATUS_DELETE_ME = 3;
-}
-
-message Device {
-  string created_on_utc = 1;
-  string last_updated_utc = 2;
-  string device_identity_key = 3;
-  DeviceStatus status = 4;
-}
-
-message Devices {
-  repeated Device devices = 1;
-}
-
-message GetDevicesResponse {
-  oneof result {
-    Devices devices = 1;
-    AccountError error = 2;
-  }
-}
-
-message GetActiveDevicesResponse {
-  oneof result {
-    Devices devices = 1;
-    AccountError error = 2;
-  }
-}
-
-message RequestZkNymResponse {
-  string json = 1;
-  AccountError error = 2;
-}
-
-message GetDeviceZkNymsResponse {
-  string json = 1;
-  AccountError error = 2;
-}
-
-message GetZkNymsAvailableForDownloadResponse {
-  string json = 1;
-  AccountError error = 2;
-}
-
-message GetZkNymByIdRequest {
-  string id = 1;
-}
-
-message GetZkNymByIdResponse {
-  string json = 1;
-  AccountError error = 2;
-}
-
-message ConfirmZkNymDownloadedRequest {
-  string id = 1;
-}
-
-message ConfirmZkNymDownloadedResponse {
-  AccountError error = 2;
-}
-
-message AvailableTickets {
-  // Remaining number of mixnet entry tickets
-  uint64 mixnet_entry_tickets = 1;
-  // Remaining mixnet entry data in bytes
-  uint64 mixnet_entry_data = 2;
-  // Remaining mixnet entry data formatted to a string using SI units
-  string mixnet_entry_data_si = 3;
-
-  // Remaining number of mixnet exit tickets
-  uint64 mixnet_exit_tickets = 4;
-  // Remaining mixnet exit data in bytes
-  uint64 mixnet_exit_data = 5;
-  // Remaining mixnet exit data formatted to a string using SI units
-  string mixnet_exit_data_si = 6;
-
-  // Remaining number of vpn entry tickets
-  uint64 vpn_entry_tickets = 7;
-  // Remaining vpn entry data in bytes
-  uint64 vpn_entry_data = 8;
-  // Remaining vpn entry data formatted to a string using SI units
-  string vpn_entry_data_si = 9;
-
-  // Remaining number of vpn exit tickets
-  uint64 vpn_exit_tickets = 10;
-  // Remaining vpn exit data in bytes
-  uint64 vpn_exit_data = 11;
-  // Remaining vpn exit data formatted to a string using SI units
-  string vpn_exit_data_si = 12;
-}
-
-message GetAvailableTicketsResponse {
-  oneof resp {
-    AvailableTickets available_tickets = 1;
-    AccountError error = 2;
-  }
-}
-
-message IsReadyToConnectResponse {
-  enum IsReadyToConnectResponseType {
-    IS_READY_TO_CONNECT_RESPONSE_TYPE_UNSPECIFIED = 0;
-
-    // We are ready to attempt to connect
-    READY = 1;
-
-    // No account recovery phrase stored
-    NO_ACCOUNT_STORED = 2;
-
-    // The account is not synced
-    ACCOUNT_NOT_SYNCED = 3;
-
-    // The account is not registered
-    ACCOUNT_NOT_REGISTERED = 4;
-
-    // The account is not active
-    ACCOUNT_NOT_ACTIVE = 5;
-
-    // The account does not have an active subscription
-    NO_ACTIVE_SUBSCRIPTION = 6;
-
-    // The device is not registered
-    DEVICE_NOT_REGISTERED = 7;
-
-    // The device is not active
-    // NOTE: in the future we will try to re-active an inactive device on
-    // connect
-    DEVICE_NOT_ACTIVE = 8;
-
-    // The device has reached the maximum number of devices
-    MAX_DEVICES_REACHED = 9;
-  }
-
-  IsReadyToConnectResponseType kind = 1;
-}
-
-message AccountError {
-  enum AccountErrorType {
-    STORE_ACCOUNT_ERROR_UNSPECIFIED = 0;
-
-    // The provided mnemonic was not able to be parsed
-    INVALID_MNEMONIC = 1;
-
-    // General error from the storage backend
-    STORAGE = 2;
-
-    // Unable to proceed while connected
-    IS_CONNECTED = 3;
-  }
-
-  AccountErrorType kind = 1;
-
-  // Detailed error message for logging and debugging
-  string message = 2;
-
-  // Optional additional details
-  map<string, string> details = 3;
 }
 
 message ConnectionData {
@@ -831,7 +361,7 @@ message TunnelConnectionData {
   message Wireguard {
     WireguardConnectionData data = 2;
   }
-  
+
   oneof state {
     Mixnet mixnet = 1;
     Wireguard wireguard = 2;
@@ -839,18 +369,18 @@ message TunnelConnectionData {
 }
 
 message TunnelState {
-  enum ErrorStateReason {
-      FIREWALL = 0;
-      ROUTING = 1;
-      DNS = 2;
-      TUN_DEVICE = 3;
-      TUNNEL_PROVIDER = 4;
-      SAME_ENTRY_AND_EXIT_GATEWAY = 5;
-      INVALID_ENTRY_GATEWAY_COUNTRY = 6;
-      INVALID_EXIT_GATEWAY_COUNTRY = 7;
-      BAD_BANDWIDTH_INCREASE = 8;
-      DUPLICATE_TUN_FD = 9;
-      INTERNAL = 10;
+  enum BaseErrorStateReason {
+    FIREWALL = 0;
+    ROUTING = 1;
+    DNS = 2;
+    TUN_DEVICE = 3;
+    TUNNEL_PROVIDER = 4;
+    SAME_ENTRY_AND_EXIT_GATEWAY = 5;
+    INVALID_ENTRY_GATEWAY_COUNTRY = 6;
+    INVALID_EXIT_GATEWAY_COUNTRY = 7;
+    BAD_BANDWIDTH_INCREASE = 8;
+    DUPLICATE_TUN_FD = 9;
+    INTERNAL = 10;
   }
 
   enum ActionAfterDisconnect {
@@ -865,13 +395,20 @@ message TunnelState {
     optional ConnectionData connection_data = 1;
   }
   message Connected {
-    ConnectionData connection_data = 1; 
+    ConnectionData connection_data = 1;
   }
   message Disconnecting {
     ActionAfterDisconnect after_disconnect = 1;
   }
   message Error {
-    ErrorStateReason reason = 1;
+    oneof error_state_reason {
+      BaseErrorStateReason base_reason = 1;
+      SyncAccountError sync_account = 2;
+      SyncDeviceError sync_device = 3;
+      RegisterDeviceError register_device = 4;
+      RequestZkNymError request_zk_nym = 5;
+      RequestZkNymBundle request_zk_nym_bundle = 6;
+    }
   }
   message Offline {
     bool reconnect = 1;
@@ -1016,9 +553,6 @@ service NymVpnd {
   // Get the account usage from the nym-vpn-api
   rpc GetAccountUsage (google.protobuf.Empty) returns (GetAccountUsageResponse) {}
 
-  // Check if the local account state is ready to connect
-  rpc IsReadyToConnect (google.protobuf.Empty) returns (IsReadyToConnectResponse) {}
-
   // Reset the device identity
   rpc ResetDeviceIdentity (ResetDeviceIdentityRequest) returns (ResetDeviceIdentityResponse) {}
 
@@ -1032,7 +566,7 @@ service NymVpnd {
   rpc GetDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
 
   // Get the list of active devices associated with this account from the nym-vpn-api
-  rpc GetActiveDevices (google.protobuf.Empty) returns (GetActiveDevicesResponse) {}
+  rpc GetActiveDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
 
   // Request new zk-nyms (ticketbooks) from the nym-vpn-api
   rpc RequestZkNym (google.protobuf.Empty) returns (RequestZkNymResponse) {}

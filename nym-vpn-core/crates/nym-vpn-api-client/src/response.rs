@@ -1,13 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use chrono::{DateTime, Utc};
+use std::{collections::HashSet, fmt, net::IpAddr};
+
 use itertools::Itertools;
 use nym_contracts_common::Percent;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWalletSharesResponse;
 use serde::{Deserialize, Serialize};
-use std::fmt;
-use std::net::IpAddr;
+use time::OffsetDateTime;
 
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
 
@@ -63,7 +63,8 @@ pub struct NymVpnAccountSummaryFairUsage {
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnHealthResponse {
     pub status: String,
-    pub timestamp_utc: DateTime<Utc>,
+    #[serde(with = "time::serde::rfc3339")]
+    pub timestamp_utc: OffsetDateTime,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -479,7 +480,7 @@ impl From<String> for NymDirectoryCountry {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymErrorResponse {
     pub message: String,
@@ -566,3 +567,60 @@ fn extract_error_response_inner(
         _ => None,
     }
 }
+
+// The response type we fetch from the discovery endpoint
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct NymWellknownDiscoveryItemResponse {
+    pub network_name: String,
+    pub nym_api_url: String,
+    pub nym_vpn_api_url: String,
+    pub account_management: Option<AccountManagementResponse>,
+    pub feature_flags: Option<serde_json::Value>,
+    pub system_messages: Option<Vec<SystemMessageResponse>>,
+    pub system_configuration: Option<SystemConfigurationResponse>,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+pub struct AccountManagementResponse {
+    pub url: String,
+    pub paths: AccountManagementPathsResponse,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+pub struct AccountManagementPathsResponse {
+    pub sign_up: String,
+    pub sign_in: String,
+    pub account: String,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct SystemMessageResponse {
+    pub name: String,
+    pub display_from: String,
+    pub display_until: String,
+    pub message: String,
+    pub properties: serde_json::Value,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+pub struct SystemConfigurationResponse {
+    pub mix_thresholds: ScoreThresholdsResponse,
+    pub wg_thresholds: ScoreThresholdsResponse,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+pub struct ScoreThresholdsResponse {
+    pub high: u8,
+    pub medium: u8,
+    pub low: u8,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+pub struct NymWellknownDiscoveryItem {
+    pub network_name: String,
+    pub nym_api_url: String,
+    pub nym_vpn_api_url: String,
+}
+
+pub type RegisteredNetworksResponse = HashSet<String>;

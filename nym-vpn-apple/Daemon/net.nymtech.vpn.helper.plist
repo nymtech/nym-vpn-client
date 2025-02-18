@@ -6,20 +6,19 @@
 	<string>net.nymtech.vpn.helper</string>
 	<key>ProgramArguments</key>
 	<array>
-		<string>Contents/Daemon</string>
+		<string>Contents/MacOS/net.nymtech.vpn.helper</string>
+		<string>--run-as-service</string>
 	</array>
 	<key>KeepAlive</key>
 	<true/>
 	<key>RunAtLoad</key>
 	<true/>
 	<key>BundleProgram</key>
-	<string>Contents/Daemon</string>
+	<string>Contents/MacOS/net.nymtech.vpn.helper</string>
 	<key>MachServices</key>
 	<dict>
 		<key>net.nymtech.vpn.helper</key>
 		<true/>
 	</dict>
-	<key>Program</key>
-	<string>Contents/Agents/net.nymtech.vpn.helper</string>
 </dict>
 </plist>

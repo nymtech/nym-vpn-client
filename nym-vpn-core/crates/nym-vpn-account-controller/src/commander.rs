@@ -2,13 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
+use nym_vpn_lib_types::{
+    AccountCommandError, RegisterDeviceError, RequestZkNymError, SyncAccountError, SyncDeviceError,
+};
 use nym_vpn_store::mnemonic::Mnemonic;
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
-    commands::{
-        request_zknym::RequestZkNymSummary, AccountCommand, AccountCommandError, ReturnSender,
-    },
+    commands::{request_zknym::RequestZkNymSummary, AccountCommand, ReturnSender},
     error::Error,
     shared_state::{AccountRegistered, DeviceState, SharedAccountState},
     AvailableTicketbooks,
@@ -56,20 +57,20 @@ impl AccountControllerCommander {
 
     pub async fn sync_account_state(
         &self,
-    ) -> Result<NymVpnAccountSummaryResponse, AccountCommandError> {
+    ) -> Result<NymVpnAccountSummaryResponse, SyncAccountError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::SyncAccountState(Some(tx)))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(SyncAccountError::internal)?;
+        rx.await.map_err(SyncAccountError::internal)?
     }
 
-    pub async fn sync_device_state(&self) -> Result<DeviceState, AccountCommandError> {
+    pub async fn sync_device_state(&self) -> Result<DeviceState, SyncDeviceError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::SyncDeviceState(Some(tx)))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(SyncDeviceError::internal)?;
+        rx.await.map_err(SyncDeviceError::internal)?
     }
 
     pub async fn get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
@@ -88,12 +89,12 @@ impl AccountControllerCommander {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn register_device(&self) -> Result<NymVpnDevice, AccountCommandError> {
+    pub async fn register_device(&self) -> Result<NymVpnDevice, RegisterDeviceError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::RegisterDevice(Some(tx)))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(RegisterDeviceError::internal)?;
+        rx.await.map_err(RegisterDeviceError::internal)?
     }
 
     pub async fn get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
@@ -120,12 +121,12 @@ impl AccountControllerCommander {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn request_zk_nyms(&self) -> Result<RequestZkNymSummary, AccountCommandError> {
+    pub async fn request_zk_nyms(&self) -> Result<RequestZkNymSummary, RequestZkNymError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::RequestZkNym(Some(tx)))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(RequestZkNymError::internal)?;
+        rx.await.map_err(RequestZkNymError::internal)?
     }
 }
 
@@ -135,7 +136,8 @@ impl AccountControllerCommander {
 impl AccountControllerCommander {
     pub async fn ensure_update_account(
         &self,
-    ) -> Result<Option<NymVpnAccountSummaryResponse>, AccountCommandError> {
+    ) -> Result<Option<NymVpnAccountSummaryResponse>, SyncAccountError> {
+        tracing::debug!("Ensuring account is synced");
         let state = self.shared_state.lock().await.clone();
         match state.account_registered {
             Some(AccountRegistered::Registered) => return Ok(None),
@@ -144,7 +146,8 @@ impl AccountControllerCommander {
         self.sync_account_state().await.map(Some)
     }
 
-    pub async fn ensure_update_device(&self) -> Result<DeviceState, AccountCommandError> {
+    pub async fn ensure_update_device(&self) -> Result<DeviceState, SyncDeviceError> {
+        tracing::debug!("Ensuring device is synced");
         let state = self.shared_state.lock().await.clone();
         match state.device {
             Some(DeviceState::Active) => return Ok(DeviceState::Active),
@@ -156,7 +159,8 @@ impl AccountControllerCommander {
         self.sync_device_state().await
     }
 
-    pub async fn ensure_register_device(&self) -> Result<(), AccountCommandError> {
+    pub async fn ensure_register_device(&self) -> Result<(), RegisterDeviceError> {
+        tracing::debug!("Ensuring device is registered");
         let state = self.shared_state.lock().await.clone();
         match state.device {
             Some(DeviceState::Active) => return Ok(()),
@@ -168,10 +172,12 @@ impl AccountControllerCommander {
         self.register_device().await.map(|_device| ())
     }
 
-    pub async fn ensure_available_zk_nyms(&self) -> Result<(), AccountCommandError> {
+    pub async fn ensure_available_zk_nyms(&self) -> Result<(), RequestZkNymError> {
+        tracing::debug!("Ensuring available zk-nyms in the local credential store");
         if self
             .get_available_tickets()
-            .await?
+            .await
+            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
             .is_all_ticket_types_above_threshold(0)
         {
             // If all ticket types are above zero, we're good to go. Additional ticketbooks will
@@ -183,8 +189,8 @@ impl AccountControllerCommander {
         let results = self.request_zk_nyms().await?;
 
         // If any of them failed, return an error
-        if results.iter().any(Result::is_err) {
-            Err(AccountCommandError::from(results))
+        if let Some(Err(err)) = results.into_iter().find(Result::is_err) {
+            Err(err.clone())
         } else {
             Ok(())
         }
@@ -194,6 +200,7 @@ impl AccountControllerCommander {
         &self,
         credential_mode: bool,
     ) -> Result<(), AccountCommandError> {
+        tracing::debug!("Waiting for account to be ready to connect");
         self.ensure_update_account().await?;
         self.ensure_update_device().await?;
         self.ensure_register_device().await?;

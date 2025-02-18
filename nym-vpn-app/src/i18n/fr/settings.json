@@ -46,5 +46,9 @@
   "logout-confirmation": {
     "title": "Etes-vous sûr ?",
     "description": "Vous aurez besoin de votre code d'accès pour reconnecter votre appareil."
+  },
+  "autostart": {
+    "title": "Autostart",
+    "desc": "Lancer NymVPN au démarrage du système"
   }
 }

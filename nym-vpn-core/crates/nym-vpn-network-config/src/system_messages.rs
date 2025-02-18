@@ -7,7 +7,9 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
-use crate::response::SystemMessageResponse;
+use nym_vpn_api_client::response::{SystemConfigurationResponse, SystemMessageResponse};
+
+use crate::system_configuration::{ScoreThresholds, SystemConfiguration};
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct SystemMessages {
@@ -150,6 +152,23 @@ impl TryFrom<SystemMessageResponse> for SystemMessage {
             message: response.message,
             properties,
         })
+    }
+}
+
+impl From<SystemConfigurationResponse> for SystemConfiguration {
+    fn from(value: SystemConfigurationResponse) -> Self {
+        SystemConfiguration {
+            mix_thresholds: ScoreThresholds {
+                high: value.mix_thresholds.high,
+                medium: value.mix_thresholds.medium,
+                low: value.mix_thresholds.low,
+            },
+            wg_thresholds: ScoreThresholds {
+                high: value.wg_thresholds.high,
+                medium: value.wg_thresholds.medium,
+                low: value.wg_thresholds.low,
+            },
+        }
     }
 }
 

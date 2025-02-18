@@ -10,37 +10,27 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
   const statusBadgeDynStyles = {
     Connected: [
       'text-malachite-moss dark:text-malachite',
-      'bg-vert-prasin bg-opacity-10',
+      'bg-vert-prasin/10 dark:bg-mine-shaft',
     ],
     Disconnected: [
-      'bg-cement-feet bg-opacity-10',
-      'text-coal-mine-light',
-      'dark:bg-oil dark:bg-opacity-15',
-      'dark:text-coal-mine-dark',
+      'bg-cement-feet/8 text-coal-mine-light',
+      'dark:bg-mine-shaft dark:text-bombay',
     ],
     Connecting: [
-      'bg-cement-feet/10',
-      'text-baltic-sea',
-      'dark:bg-oil/15',
-      'dark:text-white',
+      'bg-cement-feet/8 text-baltic-sea',
+      'dark:bg-mine-shaft dark:text-white',
     ],
     Disconnecting: [
-      'bg-cement-feet bg-opacity-10',
-      'text-baltic-sea',
-      'dark:bg-oil dark:bg-opacity-15',
-      'dark:text-white',
+      'bg-cement-feet/8 text-baltic-sea',
+      'dark:bg-mine-shaft dark:text-white',
     ],
-    Error: [
-      'bg-cement-feet bg-opacity-10',
-      'text-teaberry',
-      'dark:bg-oil dark:bg-opacity-15',
-    ],
+    Error: ['bg-cement-feet/8', 'text-teaberry', 'dark:bg-mine-shaft'],
     Offline: [
       'bg-rose-bruni/95 dark:bg-rouge-basque/85',
       'text-baltic-sea dark:text-mercury-pinkish',
     ],
     OfflineAutoReconnect: [
-      'bg-cement-feet/10 dark:bg-oil/15',
+      'bg-cement-feet/8 dark:bg-mine-shaft',
       'text-baltic-sea dark:text-white',
     ],
   };

@@ -7,7 +7,7 @@ use super::{error::VpnError, NETWORK_ENVIRONMENT};
 
 pub(crate) async fn init_environment(network_name: &str) -> Result<(), VpnError> {
     let network = nym_vpn_network_config::Network::fetch(network_name).map_err(|err| {
-        VpnError::InternalError {
+        VpnError::NetworkConnectionError {
             details: err.to_string(),
         }
     })?;
@@ -22,7 +22,10 @@ pub(crate) async fn init_environment(network_name: &str) -> Result<(), VpnError>
 }
 
 pub(crate) async fn init_fallback_mainnet_environment() -> Result<(), VpnError> {
-    let network = nym_vpn_network_config::Network::mainnet_default();
+    let network =
+        nym_vpn_network_config::Network::mainnet_default().ok_or(VpnError::InternalError {
+            details: "mainnet is not consistent".to_string(),
+        })?;
     network.export_to_env();
 
     let mut guard = NETWORK_ENVIRONMENT.lock().await;
@@ -67,9 +70,7 @@ pub(crate) async fn get_account_links(locale: &str) -> Result<AccountLinks, VpnE
             network
                 .nym_vpn_network
                 .try_into_parsed_links(locale, account_id.as_deref())
-                .map_err(|err| VpnError::InternalError {
-                    details: err.to_string(),
-                })
+                .map_err(VpnError::internal)
         })
         .map(AccountLinks::from)
 }
@@ -78,16 +79,17 @@ pub(crate) async fn get_account_links_raw(
     path: &str,
     locale: &str,
 ) -> Result<AccountLinks, VpnError> {
+    // If the account ID is not found, we are not logged in, so we don't need to pass it to the
+    // API. But we can still get the links that don't require an account ID.
     let account_id = super::account::raw::get_account_id_raw(path).await.ok();
+
     current_environment_details()
         .await
         .and_then(|network| {
             network
                 .nym_vpn_network
                 .try_into_parsed_links(locale, account_id.as_deref())
-                .map_err(|err| VpnError::InternalError {
-                    details: err.to_string(),
-                })
+                .map_err(VpnError::internal)
         })
         .map(AccountLinks::from)
 }

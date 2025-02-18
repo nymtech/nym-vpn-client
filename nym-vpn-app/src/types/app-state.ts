@@ -46,6 +46,7 @@ export type AppState = {
   // `themeMode` is the current user selected mode, could be `System`, `Dark` or `Light`
   //  if `System` is selected, the app follows the system theme
   themeMode: ThemeMode;
+  autostart: boolean;
   autoConnect: boolean;
   monitoring: boolean;
   desktopNotifications: boolean;

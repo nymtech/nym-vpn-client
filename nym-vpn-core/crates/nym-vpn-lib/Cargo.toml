@@ -18,7 +18,6 @@ bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
 futures.workspace = true
-hickory-resolver.workspace = true
 ipnetwork.workspace = true
 itertools.workspace = true
 lazy_static.workspace = true

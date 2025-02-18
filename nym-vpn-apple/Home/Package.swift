@@ -17,11 +17,14 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../HelperInstall"),
         .package(path: "../UIComponents"),
         .package(path: "../Settings"),
         .package(path: "../Services"),
+        .package(path: "../ServicesIOS"),
         .package(path: "../ServicesMacOS"),
-        .package(path: "../ServicesMutual")
+        .package(path: "../ServicesMutual"),
+        .package(path: "../Theme")
     ],
     targets: [
         .target(
@@ -33,11 +36,14 @@ let package = Package(
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "Device", package: "Services"),
+                .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "ExternalLinkManager", package: "Services"),
+                .product(name: "HelperInstall", package: "HelperInstall", condition: .when(platforms: [.macOS])),
                 .product(name: "NetworkMonitor", package: "Services"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                .product(name: "SystemMessageManager", package: "Services")
+                .product(name: "SystemMessageManager", package: "Services"),
+                .product(name: "Theme", package: "Theme")
             ],
             path: "Sources"
         ),

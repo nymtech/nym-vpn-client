@@ -8,14 +8,14 @@ import ErrorHandler
 import MixnetLibrary
 #elseif os(macOS)
 import GRPCManager
-import HelperInstallManager
+import HelperManager
 #endif
 
 public final class CredentialsManager {
     private let logger = Logger(label: "CredentialsManager")
 #if os(macOS)
     private let grpcManager = GRPCManager.shared
-    private let helperInstallManager = HelperInstallManager.shared
+    private let helperManager = HelperManager.shared
 #endif
     private let appSettings = AppSettings.shared
 
@@ -45,7 +45,6 @@ public final class CredentialsManager {
 
                 try loginRaw(mnemonic: credential, path: dataFolderURL.path())
 #elseif os(macOS)
-                try await helperInstallManager.installIfNeeded()
                 try await grpcManager.storeAccount(with: credential)
 #endif
                 checkCredentialImport()
@@ -64,21 +63,22 @@ public final class CredentialsManager {
     }
 
     public func removeCredential() async throws {
-        do {
+        try await Task(priority: .background) {
+            do {
 #if os(iOS)
-            let dataFolderURL = try dataFolderURL()
-            try forgetAccountRaw(path: dataFolderURL.path())
+                let dataFolderURL = try dataFolderURL()
+                try forgetAccountRaw(path: dataFolderURL.path())
 #endif
 
 #if os(macOS)
-            try? await helperInstallManager.installIfNeeded()
-            try await grpcManager.forgetAccount()
+                try await grpcManager.forgetAccount()
 #endif
-            checkCredentialImport()
-        } catch {
-            // TODO: need modal for alerts
-            throw error
-        }
+                checkCredentialImport()
+            } catch {
+                // TODO: need modal for alerts
+                throw error
+            }
+        }.value
     }
 
     public func dataFolderURL() throws -> URL {
@@ -114,9 +114,9 @@ private extension CredentialsManager {
         }
         .store(in: &cancellables)
 
-        helperInstallManager.$daemonState.sink { [weak self] state in
-            guard state == .running || state == .installed else { return }
-            self?.checkCredentialImport()
+        helperManager.$daemonState.sink { [weak self] state in
+            guard let self, state == .running, !self.appSettings.isCredentialImported else { return }
+            checkCredentialImport()
         }
         .store(in: &cancellables)
 #endif
@@ -145,6 +145,7 @@ private extension CredentialsManager {
 
     func updateIsCredentialImported(with value: Bool) {
         Task { @MainActor in
+            guard appSettings.isCredentialImported != value else { return }
             appSettings.isCredentialImported = value
         }
     }

@@ -1,3 +1,7 @@
+import Foundation
+#if os(macOS)
+import ServiceManagement
+#endif
 import AppSettings
 import ConfigurationManager
 import ConnectionTypes
@@ -34,7 +38,7 @@ public final class Migrations {
 private extension Migrations {
     func migrateToMainnet() {
         guard appSettings.currentEnv != "mainnet",
-              configurationManager.isSantaClaus
+              !configurationManager.isSantaClaus
         else {
             return
         }

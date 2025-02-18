@@ -177,7 +177,7 @@ export default function TopBar() {
         },
         rightIcon: 'info',
         rightIconClassName:
-          'text-cement-feet dark:text-mercury-mist hover:text-gun-powder hover:dark:text-mercury-pinkish',
+          'text-cement-feet dark:text-mercury-mist hover:text-gun-powder dark:hover:text-mercury-pinkish',
         handleRightNav: () => {
           show('location-info');
         },
@@ -190,7 +190,7 @@ export default function TopBar() {
         },
         rightIcon: 'info',
         rightIconClassName:
-          'text-cement-feet dark:text-mercury-mist hover:text-gun-powder hover:dark:text-mercury-pinkish',
+          'text-cement-feet dark:text-mercury-mist hover:text-gun-powder dark:hover:text-mercury-pinkish',
         handleRightNav: () => {
           show('location-info');
         },
@@ -246,14 +246,14 @@ export default function TopBar() {
           transition={{ duration: 0.15, ease: 'easeOut' }}
         >
           <button
-            className="w-6 mx-4 focus:outline-none cursor-default"
+            className="w-6 mx-4 focus:outline-hidden cursor-default"
             onClick={currentNavLocation.handleLeftNav}
           >
             <MsIcon
               icon={currentNavLocation.leftIcon}
               className={clsx([
                 'dark:text-laughing-jack transition duration-150',
-                'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black hover:dark:text-white',
+                'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black dark:hover:text-white',
               ])}
             />
           </button>
@@ -269,14 +269,14 @@ export default function TopBar() {
           transition={{ duration: 0.15, ease: 'easeOut' }}
         >
           <button
-            className="w-6 mx-4 focus:outline-none cursor-default"
+            className="w-6 mx-4 focus:outline-hidden cursor-default"
             onClick={currentNavLocation.handleRightNav}
           >
             <MsIcon
               icon={currentNavLocation.rightIcon}
               className={clsx([
                 'dark:text-laughing-jack transition duration-150',
-                'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black hover:dark:text-white',
+                'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black dark:hover:text-white',
                 currentNavLocation.rightIconClassName,
               ])}
             />

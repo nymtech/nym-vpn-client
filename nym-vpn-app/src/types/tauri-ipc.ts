@@ -31,31 +31,23 @@ export type DbKey =
  * backend side
  * */
 export type ErrorKey =
-  | 'UnknownError'
-  | 'InternalError'
-  | 'GrpcError'
-  | 'NotConnectedToDaemon'
-  | 'EntryGwDown'
-  | 'ExitGwDownIpv4'
-  | 'ExitGwDownIpv6'
-  | 'ExitGwRoutingErrorIpv4'
-  | 'ExitGwRoutingErrorIpv6'
-  | 'NoBandwidth'
-  | 'AccountInvalidMnemonic'
-  | 'AccountStorage'
-  | 'AccountIsConnected'
-  | 'ConnectGeneral'
-  | 'ConnectNoAccountStored'
-  | 'ConnectNoDeviceStored'
-  | 'ConnectUpdateAccount'
-  | 'ConnectUpdateDevice'
-  | 'ConnectRegisterDevice'
-  | 'ConnectRequestZkNym'
-  | 'GetMixnetEntryCountriesQuery'
-  | 'GetMixnetExitCountriesQuery'
-  | 'GetWgCountriesQuery'
-  | 'InvalidNetworkName'
-  | 'MaxRegisteredDevices';
+  | 'unknown-error'
+  | 'internal-error'
+  | 'grpc-error'
+  | 'not-connected-to-daemon'
+  | 'entry-gw-down'
+  | 'exit-gw-down-ipv4'
+  | 'exit-gw-down-ipv6'
+  | 'exit-gw-routing-error-ipv4'
+  | 'exit-gw-routing-error-ipv6'
+  | 'no-bandwidth'
+  | 'account-invalid-mnemonic'
+  | 'account-storage'
+  | 'account-is-connected'
+  | 'get-mixnet-entry-countries-query'
+  | 'get-mixnet-exit-countries-query'
+  | 'get-wg-countries-query'
+  | 'invalid-network-name';
 
 export type StartupErrorKey = 'StartupOpenDb' | 'StartupOpenDbLocked';
 
@@ -94,5 +86,3 @@ export type AccountLinks = {
   signIn?: string | null;
   account?: string | null;
 };
-
-export type ReadyToConnect = 'ready' | { not_ready: string };

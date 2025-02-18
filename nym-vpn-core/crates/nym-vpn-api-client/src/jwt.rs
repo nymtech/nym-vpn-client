@@ -9,6 +9,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sha2::{Digest, Sha256};
 
+use crate::types::VpnApiTime;
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub(crate) struct JwtHeader {
     /// Type that is always "jwt"
@@ -55,11 +57,8 @@ impl Jwt {
         Jwt::new_secp256k1_with_now(wallet, timestamp)
     }
 
-    pub fn new_secp256k1_synced(wallet: &DirectSecp256k1HdWallet, vpn_api_unix_epoch: i64) -> Jwt {
-        let device_timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as i64;
-        let skew = vpn_api_unix_epoch - device_timestamp;
-        tracing::debug!("skew: {}", skew);
-        Jwt::new_secp256k1_with_now(wallet, (device_timestamp + skew) as u128)
+    pub fn new_secp256k1_synced(wallet: &DirectSecp256k1HdWallet, remote_time: VpnApiTime) -> Jwt {
+        Jwt::new_secp256k1_with_now(wallet, remote_time.estimate_remote_now_unix())
     }
 
     pub fn new_secp256k1_with_now(wallet: &DirectSecp256k1HdWallet, now: u128) -> Jwt {
@@ -100,6 +99,10 @@ impl Jwt {
     pub fn new_ecdsa(key_pair: &ed25519::KeyPair) -> Jwt {
         let timestamp = std::time::UNIX_EPOCH.elapsed().unwrap().as_secs() as u128;
         Jwt::new_ecdsa_with_now(key_pair, timestamp)
+    }
+
+    pub fn new_ecdsa_synced(key_pair: &ed25519::KeyPair, remote_time: VpnApiTime) -> Jwt {
+        Jwt::new_ecdsa_with_now(key_pair, remote_time.estimate_remote_now_unix())
     }
 
     pub fn new_ecdsa_with_now(key_pair: &ed25519::KeyPair, now: u128) -> Jwt {

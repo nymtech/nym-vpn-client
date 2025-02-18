@@ -47,7 +47,7 @@ export function tunnelUpdate(state: TunnelStateIpc, dispatch: StateDispatch) {
     return;
   }
   if (isTunnelError(state)) {
-    console.log(`tunnel [error] - ${state.error}`);
+    console.log('tunnel [error]', state.error);
     dispatch({
       type: 'set-tunnel-inerror',
       error: state.error,

@@ -20,21 +20,20 @@
     "bad-bandwidth-increase": "Bandwidth increase error",
     "duplicate-tun-fd": "Duplicate tunnel fd"
   },
-  "connection-general": "General error, check the logs to get more details",
-  "zknym": {
-    "request-failed": "Requesting zk-nym failed"
-  },
   "account": {
     "invalid-recovery-phrase": "Invalid access code",
     "storage": "Storage backend error",
     "is-connected": "Unable to proceed while connected",
-    "not-stored": "No account access code stored",
-    "no-device-stored": "No device keys stored",
-    "update": "Update account failed",
-    "update-device": "Update device failed",
-    "register-device": "Device registration failed",
-    "maximum-registered-devices": "Device registration failed: the maximum number of registered devices has been reached"
+    "not-stored": "no account stored",
+    "no-device-stored": "no device stored",
+    "unexpected-response": "unexpected response",
+    "internal": "internal error",
+    "vpn-api": "VPN API error"
   },
+  "sync-account": "Sync account: {{reason}}",
+  "sync-device": "Sync device: {{reason}}",
+  "register-device": "Register device: {{reason}}",
+  "request-zknym": "Zknym request: {{reason}}",
   "countries-request": {
     "entry": "Failed to fetch the available entry node countries",
     "exit": "Failed to fetch the available exit node countries",

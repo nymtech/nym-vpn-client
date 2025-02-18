@@ -13,6 +13,7 @@ pub(crate) fn setup_environment(
     let network_env = if let Some(ref env) = args.config_env_file {
         nym_vpn_lib::nym_config::defaults::setup_env(Some(env));
         let network_details = NymNetworkDetails::new_from_env();
+        // resolve_nym_network_details(&mut network_details);
         nym_vpn_network_config::manual_env(&network_details)?
     } else {
         let network_name = global_config_file.network_name.clone();

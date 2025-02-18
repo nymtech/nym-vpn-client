@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib_types::{
-    ActionAfterDisconnect, ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData,
-    TunnelConnectionData, TunnelState, WireguardConnectionData, WireguardNode,
+    ActionAfterDisconnect, ConnectionData, ErrorStateReason, ForgetAccountError, Gateway,
+    MixnetConnectionData, RegisterDeviceError, StoreAccountError, SyncAccountError,
+    SyncDeviceError, TunnelConnectionData, TunnelState, VpnApiErrorResponse,
+    WireguardConnectionData, WireguardNode,
 };
 
 use crate::{
@@ -12,14 +14,21 @@ use crate::{
         Wireguard as ProtoWireguardConnectionDataVariant,
     },
     tunnel_state::{
-        ActionAfterDisconnect as ProtoActionAfterDisconnect, Connected as ProtoConnected,
+        error::ErrorStateReason as ProtoErrorStateReason,
+        ActionAfterDisconnect as ProtoActionAfterDisconnect,
+        BaseErrorStateReason as ProtoBaseErrorStateReason, Connected as ProtoConnected,
         Connecting as ProtoConnecting, Disconnected as ProtoDisconnected,
-        Disconnecting as ProtoDisconnecting, Error as ProtoError,
-        ErrorStateReason as ProtoErrorStateReason, Offline as ProtoOffline, State as ProtoState,
+        Disconnecting as ProtoDisconnecting, Error as ProtoError, Offline as ProtoOffline,
+        State as ProtoState,
     },
-    Address as ProtoAddress, ConnectionData as ProtoConnectionData, Gateway as ProtoGateway,
+    Address as ProtoAddress, ConnectionData as ProtoConnectionData,
+    ForgetAccountError as ProtoForgetAccountError, Gateway as ProtoGateway,
     MixnetConnectionData as ProtoMixnetConnectionData,
-    TunnelConnectionData as ProtoTunnelConnectionData, TunnelState as ProtoTunnelState,
+    RegisterDeviceError as ProtoRegisterDeviceError, RequestZkNymBundle as ProtoRequestZkNymBundle,
+    RequestZkNymError as ProtoRequestZkNymError, RequestZkNymSuccess as ProtoRequestZkNymSuccess,
+    StoreAccountError as ProtoStoreAccountError, SyncAccountError as ProtoSyncAccountError,
+    SyncDeviceError as ProtoSyncDeviceError, TunnelConnectionData as ProtoTunnelConnectionData,
+    TunnelState as ProtoTunnelState, VpnApiErrorResponse as ProtoVpnApiErrorResponse,
     WireguardConnectionData as ProtoWireguardConnectionData, WireguardNode as ProtoWireguardNode,
 };
 
@@ -37,17 +46,225 @@ impl From<ActionAfterDisconnect> for ProtoActionAfterDisconnect {
 impl From<ErrorStateReason> for ProtoErrorStateReason {
     fn from(value: ErrorStateReason) -> Self {
         match value {
-            ErrorStateReason::Firewall => Self::Firewall,
-            ErrorStateReason::Routing => Self::Routing,
-            ErrorStateReason::Dns => Self::Dns,
-            ErrorStateReason::TunDevice => Self::TunDevice,
-            ErrorStateReason::TunnelProvider => Self::TunnelProvider,
-            ErrorStateReason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
-            ErrorStateReason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
-            ErrorStateReason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
-            ErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
-            ErrorStateReason::DuplicateTunFd => Self::DuplicateTunFd,
-            ErrorStateReason::Internal => Self::Internal,
+            ErrorStateReason::Firewall => {
+                Self::BaseReason(ProtoBaseErrorStateReason::Firewall as i32)
+            }
+            ErrorStateReason::Routing => {
+                Self::BaseReason(ProtoBaseErrorStateReason::Routing as i32)
+            }
+            ErrorStateReason::Dns => Self::BaseReason(ProtoBaseErrorStateReason::Dns as i32),
+            ErrorStateReason::TunDevice => {
+                Self::BaseReason(ProtoBaseErrorStateReason::TunDevice as i32)
+            }
+            ErrorStateReason::TunnelProvider => {
+                Self::BaseReason(ProtoBaseErrorStateReason::TunnelProvider as i32)
+            }
+            ErrorStateReason::SameEntryAndExitGateway => {
+                Self::BaseReason(ProtoBaseErrorStateReason::SameEntryAndExitGateway as i32)
+            }
+            ErrorStateReason::InvalidEntryGatewayCountry => {
+                Self::BaseReason(ProtoBaseErrorStateReason::InvalidEntryGatewayCountry as i32)
+            }
+            ErrorStateReason::InvalidExitGatewayCountry => {
+                Self::BaseReason(ProtoBaseErrorStateReason::InvalidExitGatewayCountry as i32)
+            }
+            ErrorStateReason::BadBandwidthIncrease => {
+                Self::BaseReason(ProtoBaseErrorStateReason::BadBandwidthIncrease as i32)
+            }
+            ErrorStateReason::DuplicateTunFd => {
+                Self::BaseReason(ProtoBaseErrorStateReason::DuplicateTunFd as i32)
+            }
+            ErrorStateReason::Internal => {
+                Self::BaseReason(ProtoBaseErrorStateReason::Internal as i32)
+            }
+            ErrorStateReason::SyncAccount(sync_account_error) => {
+                Self::SyncAccount(sync_account_error.into())
+            }
+            ErrorStateReason::SyncDevice(sync_device_error) => {
+                Self::SyncDevice(sync_device_error.into())
+            }
+            ErrorStateReason::RegisterDevice(register_device_error) => {
+                Self::RegisterDevice(register_device_error.into())
+            }
+            ErrorStateReason::RequestZkNym(request_zk_nym_error) => {
+                Self::RequestZkNym(request_zk_nym_error.into())
+            }
+            ErrorStateReason::RequestZkNymBundle { successes, failed } => {
+                Self::RequestZkNymBundle(ProtoRequestZkNymBundle {
+                    successes: successes
+                        .into_iter()
+                        .map(ProtoRequestZkNymSuccess::from)
+                        .collect(),
+                    failures: failed
+                        .into_iter()
+                        .map(ProtoRequestZkNymError::from)
+                        .collect(),
+                })
+            }
+        }
+    }
+}
+
+impl From<StoreAccountError> for ProtoStoreAccountError {
+    fn from(value: StoreAccountError) -> Self {
+        match value {
+            StoreAccountError::Storage(err) => ProtoStoreAccountError {
+                error_detail: Some(crate::store_account_error::ErrorDetail::StorageError(err)),
+            },
+            StoreAccountError::GetAccountEndpointFailure(vpn_api_endpoint_failure) => {
+                ProtoStoreAccountError {
+                    error_detail: Some(crate::store_account_error::ErrorDetail::ErrorResponse(
+                        vpn_api_endpoint_failure.into(),
+                    )),
+                }
+            }
+            StoreAccountError::UnexpectedResponse(err) => ProtoStoreAccountError {
+                error_detail: Some(crate::store_account_error::ErrorDetail::UnexpectedResponse(
+                    err,
+                )),
+            },
+        }
+    }
+}
+
+impl From<SyncAccountError> for ProtoSyncAccountError {
+    fn from(value: SyncAccountError) -> Self {
+        match value {
+            SyncAccountError::NoAccountStored => ProtoSyncAccountError {
+                error_detail: Some(crate::sync_account_error::ErrorDetail::NoAccountStored(
+                    true,
+                )),
+            },
+            SyncAccountError::SyncAccountEndpointFailure(vpn_api_endpoint_failure) => {
+                ProtoSyncAccountError {
+                    error_detail: Some(crate::sync_account_error::ErrorDetail::ErrorResponse(
+                        vpn_api_endpoint_failure.into(),
+                    )),
+                }
+            }
+            SyncAccountError::UnexpectedResponse(err) => ProtoSyncAccountError {
+                error_detail: Some(crate::sync_account_error::ErrorDetail::UnexpectedResponse(
+                    err,
+                )),
+            },
+            SyncAccountError::Internal(err) => ProtoSyncAccountError {
+                error_detail: Some(crate::sync_account_error::ErrorDetail::Internal(err)),
+            },
+        }
+    }
+}
+
+impl From<SyncDeviceError> for ProtoSyncDeviceError {
+    fn from(value: SyncDeviceError) -> Self {
+        match value {
+            SyncDeviceError::NoAccountStored => ProtoSyncDeviceError {
+                error_detail: Some(crate::sync_device_error::ErrorDetail::NoAccountStored(true)),
+            },
+            SyncDeviceError::NoDeviceStored => ProtoSyncDeviceError {
+                error_detail: Some(crate::sync_device_error::ErrorDetail::NoDeviceStored(true)),
+            },
+            SyncDeviceError::SyncDeviceEndpointFailure(vpn_api_endpoint_failure) => {
+                ProtoSyncDeviceError {
+                    error_detail: Some(crate::sync_device_error::ErrorDetail::ErrorResponse(
+                        vpn_api_endpoint_failure.into(),
+                    )),
+                }
+            }
+            SyncDeviceError::UnexpectedResponse(err) => ProtoSyncDeviceError {
+                error_detail: Some(crate::sync_device_error::ErrorDetail::UnexpectedResponse(
+                    err,
+                )),
+            },
+            SyncDeviceError::Internal(err) => ProtoSyncDeviceError {
+                error_detail: Some(crate::sync_device_error::ErrorDetail::Internal(err)),
+            },
+        }
+    }
+}
+
+impl From<RegisterDeviceError> for ProtoRegisterDeviceError {
+    fn from(value: RegisterDeviceError) -> Self {
+        match value {
+            RegisterDeviceError::NoAccountStored => ProtoRegisterDeviceError {
+                error_detail: Some(crate::register_device_error::ErrorDetail::NoAccountStored(
+                    true,
+                )),
+            },
+            RegisterDeviceError::NoDeviceStored => ProtoRegisterDeviceError {
+                error_detail: Some(crate::register_device_error::ErrorDetail::NoDeviceStored(
+                    true,
+                )),
+            },
+            RegisterDeviceError::RegisterDeviceEndpointFailure(vpn_api_endpoint_failure) => {
+                ProtoRegisterDeviceError {
+                    error_detail: Some(crate::register_device_error::ErrorDetail::ErrorResponse(
+                        vpn_api_endpoint_failure.into(),
+                    )),
+                }
+            }
+            RegisterDeviceError::UnexpectedResponse(err) => ProtoRegisterDeviceError {
+                error_detail: Some(
+                    crate::register_device_error::ErrorDetail::UnexpectedResponse(err),
+                ),
+            },
+            RegisterDeviceError::Internal(err) => ProtoRegisterDeviceError {
+                error_detail: Some(crate::register_device_error::ErrorDetail::Internal(err)),
+            },
+        }
+    }
+}
+
+impl From<ForgetAccountError> for ProtoForgetAccountError {
+    fn from(value: ForgetAccountError) -> Self {
+        match value {
+            ForgetAccountError::RegistrationInProgress => Self {
+                error_detail: Some(
+                    crate::forget_account_error::ErrorDetail::RegistrationInProgress(true),
+                ),
+            },
+            ForgetAccountError::UpdateDeviceErrorResponse(vpn_api_endpoint_failure) => Self {
+                error_detail: Some(crate::forget_account_error::ErrorDetail::ErrorResponse(
+                    vpn_api_endpoint_failure.into(),
+                )),
+            },
+            ForgetAccountError::UnexpectedResponse(err) => Self {
+                error_detail: Some(
+                    crate::forget_account_error::ErrorDetail::UnexpectedResponse(err),
+                ),
+            },
+            ForgetAccountError::RemoveAccount(err) => Self {
+                error_detail: Some(crate::forget_account_error::ErrorDetail::RemoveAccount(err)),
+            },
+            ForgetAccountError::RemoveDeviceKeys(err) => Self {
+                error_detail: Some(crate::forget_account_error::ErrorDetail::RemoveDeviceKeys(
+                    err,
+                )),
+            },
+            ForgetAccountError::ResetCredentialStorage(err) => Self {
+                error_detail: Some(
+                    crate::forget_account_error::ErrorDetail::ResetCredentialStore(err),
+                ),
+            },
+            ForgetAccountError::RemoveAccountFiles(err) => Self {
+                error_detail: Some(
+                    crate::forget_account_error::ErrorDetail::RemoveAccountFiles(err),
+                ),
+            },
+            ForgetAccountError::InitDeviceKeys(err) => Self {
+                error_detail: Some(crate::forget_account_error::ErrorDetail::InitDeviceKeys(
+                    err,
+                )),
+            },
+        }
+    }
+}
+
+impl From<VpnApiErrorResponse> for ProtoVpnApiErrorResponse {
+    fn from(value: VpnApiErrorResponse) -> Self {
+        Self {
+            message: value.message,
+            message_id: value.message_id,
+            code_reference_id: value.code_reference_id,
         }
     }
 }
@@ -71,7 +288,7 @@ impl From<TunnelState> for ProtoTunnelState {
             }
             TunnelState::Offline { reconnect } => ProtoState::Offline(ProtoOffline { reconnect }),
             TunnelState::Error(reason) => ProtoState::Error(ProtoError {
-                reason: ProtoErrorStateReason::from(reason) as i32,
+                error_state_reason: Some(ProtoErrorStateReason::from(reason)),
             }),
         };
 

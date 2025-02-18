@@ -1,6 +1,7 @@
 package net.nymtech.nymvpn.ui.common.textbox
 
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -12,6 +13,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.SolidColor
@@ -42,6 +44,8 @@ fun CustomTextField(
 	enabled: Boolean = true,
 ) {
 	val interactionSource = remember { MutableInteractionSource() }
+	val isFocused by interactionSource.collectIsFocusedAsState()
+
 	val space = " "
 	BasicTextField(
 		value = value,
@@ -63,7 +67,7 @@ fun CustomTextField(
 		OutlinedTextFieldDefaults.DecorationBox(
 			value = space + value,
 			innerTextField = {
-				if (value.isEmpty()) {
+				if (value.isEmpty() && !isFocused) {
 					if (placeholder != null) {
 						placeholder()
 					}

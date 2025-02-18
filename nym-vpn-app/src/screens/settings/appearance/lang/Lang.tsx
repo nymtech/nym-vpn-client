@@ -18,8 +18,7 @@ function Lang() {
               role="presentation"
               className={clsx([
                 'flex flex-row justify-between items-center w-full',
-                'hover:bg-gun-powder hover:bg-opacity-10',
-                'dark:hover:bg-laughing-jack dark:hover:bg-opacity-10',
+                'hover:bg-gun-powder/10 dark:hover:bg-laughing-jack/10',
                 'rounded-lg px-3 py-1 transition duration-75 cursor-default',
               ])}
               onClick={() => set(lang.code)}

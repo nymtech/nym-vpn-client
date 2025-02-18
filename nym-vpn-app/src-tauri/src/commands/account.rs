@@ -2,7 +2,6 @@ use tauri::State;
 use tracing::{error, info, instrument, warn};
 
 use crate::grpc::account_links::AccountLinks;
-use crate::grpc::client::ReadyToConnect;
 use crate::{error::BackendError, grpc::client::GrpcClient};
 
 #[instrument(skip_all)]
@@ -47,17 +46,6 @@ pub async fn is_account_stored(grpc: State<'_, GrpcClient>) -> Result<bool, Back
         })
         .inspect(|stored| {
             info!("account stored: {stored}");
-        })
-}
-
-#[instrument(skip_all)]
-#[tauri::command]
-pub async fn ready_to_connect(grpc: State<'_, GrpcClient>) -> Result<ReadyToConnect, BackendError> {
-    grpc.is_ready_to_connect()
-        .await
-        .map_err(|e| e.into())
-        .inspect(|state| {
-            info!("ready to connect: {state}");
         })
 }
 

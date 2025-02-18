@@ -1,5 +1,6 @@
 #if os(macOS)
 import Combine
+import Constants
 import Foundation
 import TunnelStatus
 
@@ -13,19 +14,18 @@ extension HomeViewModel {
                 self?.updateTimeConnected()
             }
             .store(in: &cancellables)
-    }
 
-    func setupDaemonStateObserver() {
-        helperInstallManager.$daemonState.sink { [weak self] state in
-            switch state {
-            case .installing:
-                self?.updateStatusInfoState(with: .installingDaemon)
-                self?.updateConnectButtonState(with: .installingDaemon)
-            case .installed:
-                self?.updateStatusInfoState(with: .unknown)
-                self?.updateConnectButtonState(with: .connect)
-            case .unknown, .running:
-                break
+        grpcManager.$errorReason.sink { [weak self] error in
+            self?.lastError = error
+        }
+        .store(in: &cancellables)
+
+        grpcManager.$generalError.sink { [weak self] error in
+            self?.lastError = error
+            if error == GeneralNymError.noMnemonicStored {
+                Task { @MainActor [weak self] in
+                    self?.navigateToAddCredentials()
+                }
             }
         }
         .store(in: &cancellables)

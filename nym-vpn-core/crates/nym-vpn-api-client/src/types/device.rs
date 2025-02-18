@@ -8,6 +8,8 @@ use sha2::Digest as _;
 
 use crate::{jwt::Jwt, request::UpdateDeviceRequestStatus};
 
+use super::VpnApiTime;
+
 #[derive(Clone)]
 pub struct Device {
     keypair: Arc<ed25519::KeyPair>,
@@ -18,8 +20,11 @@ impl Device {
         self.keypair.public_key()
     }
 
-    pub(crate) fn jwt(&self) -> Jwt {
-        Jwt::new_ecdsa(&self.keypair)
+    pub(crate) fn jwt(&self, remote_time: Option<VpnApiTime>) -> Jwt {
+        match remote_time {
+            Some(remote_time) => Jwt::new_ecdsa_synced(&self.keypair, remote_time),
+            None => Jwt::new_ecdsa(&self.keypair),
+        }
     }
 
     pub fn sign<M: AsRef<[u8]>>(&self, message: M) -> DeviceSignature {

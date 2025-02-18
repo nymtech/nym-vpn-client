@@ -37,7 +37,7 @@ function ConnectionTimer() {
       <p className="text-sm font-bold text-dim-gray dark:text-mercury-mist">
         {t('connection-time')}
       </p>
-      <p className="text-sm font-bold text-baltic-sea dark:text-flawed-white">
+      <p className="text-sm font-bold text-baltic-sea dark:text-white">
         {connectionTime}
       </p>
     </motion.div>

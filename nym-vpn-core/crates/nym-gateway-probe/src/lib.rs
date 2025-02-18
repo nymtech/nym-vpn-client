@@ -136,10 +136,12 @@ impl From<&NymNode> for TestedNodeDetails {
 }
 
 /// Obtain nym-node for testing
-pub async fn get_nym_node(identity: NodeIdentity) -> anyhow::Result<NymNode> {
-    let config = GatewayDirectoryConfig::new_from_env();
+pub async fn get_nym_node(
+    config: GatewayDirectoryConfig,
+    identity: NodeIdentity,
+) -> anyhow::Result<NymNode> {
     let user_agent = nym_bin_common::bin_info_local_vergen!().into();
-    let nodes_client = GatewayDirectoryClient::new(config.clone(), user_agent)?;
+    let nodes_client = GatewayDirectoryClient::new(config, user_agent)?;
     let nodes = nodes_client.lookup_all_nymnodes().await?;
     let node = nodes
         .node_with_identity(&identity)
@@ -147,18 +149,14 @@ pub async fn get_nym_node(identity: NodeIdentity) -> anyhow::Result<NymNode> {
     Ok(node.clone())
 }
 
-pub async fn fetch_gateways(
-    min_gateway_performance: GatewayMinPerformance,
-) -> anyhow::Result<GatewayList> {
-    lookup_gateways(min_gateway_performance).await
+pub async fn fetch_gateways(gateway_config: GatewayDirectoryConfig) -> anyhow::Result<GatewayList> {
+    lookup_gateways(gateway_config).await
 }
 
 pub async fn fetch_gateways_with_ipr(
-    min_gateway_performance: GatewayMinPerformance,
+    gateway_config: GatewayDirectoryConfig,
 ) -> anyhow::Result<GatewayList> {
-    Ok(lookup_gateways(min_gateway_performance)
-        .await?
-        .into_exit_gateways())
+    Ok(lookup_gateways(gateway_config).await?.into_exit_gateways())
 }
 
 pub struct Probe {
@@ -191,20 +189,20 @@ impl Probe {
 
     pub async fn probe(
         self,
-        min_gateway_performance: GatewayMinPerformance,
+        gateway_config: GatewayDirectoryConfig,
         ignore_egress_epoch_role: bool,
         only_wireguard: bool,
     ) -> anyhow::Result<ProbeResult> {
         let entry_point = self.entrypoint;
 
         // Setup the entry gateways
-        let gateways = lookup_gateways(min_gateway_performance).await?;
+        let gateways = lookup_gateways(gateway_config.clone()).await?;
         let entry_gateway = entry_point.lookup_gateway(&gateways).await?;
         let tested_entry = self.tested_node.is_same_as_entry();
 
         let node_info: TestedNodeDetails = match self.tested_node {
             TestedNode::Custom { identity } => {
-                let node = get_nym_node(identity).await?;
+                let node = get_nym_node(gateway_config.clone(), identity).await?;
                 info!(
                     "testing node {} (via entry {})",
                     node.identity, entry_gateway.identity
@@ -227,7 +225,7 @@ impl Probe {
             .request_gateway(mixnet_entry_gateway_id.to_string())
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(mixnet_debug_config(
-                min_gateway_performance,
+                gateway_config.min_gateway_performance,
                 ignore_egress_epoch_role,
             ))
             .with_forget_me(ForgetMe::new_all())
@@ -508,11 +506,7 @@ async fn wg_probe(
     Ok(wg_outcome)
 }
 
-async fn lookup_gateways(
-    min_gateway_performance: GatewayMinPerformance,
-) -> anyhow::Result<GatewayList> {
-    let gateway_config = GatewayDirectoryConfig::new_from_env()
-        .with_min_gateway_performance(min_gateway_performance);
+async fn lookup_gateways(gateway_config: GatewayDirectoryConfig) -> anyhow::Result<GatewayList> {
     info!("nym-api: {}", gateway_config.api_url());
     info!(
         "nym-vpn-api: {}",
@@ -523,13 +517,13 @@ async fn lookup_gateways(
     );
 
     let user_agent = nym_bin_common::bin_info_local_vergen!().into();
-    let gateway_client = GatewayDirectoryClient::new(gateway_config.clone(), user_agent)?;
+    let gateway_client = GatewayDirectoryClient::new(gateway_config, user_agent)?;
     let gateways = gateway_client.lookup_all_gateways_from_nym_api().await?;
     Ok(gateways)
 }
 
 fn mixnet_debug_config(
-    min_gateway_performance: GatewayMinPerformance,
+    min_gateway_performance: Option<GatewayMinPerformance>,
     ignore_egress_epoch_role: bool,
 ) -> nym_client_core::config::DebugConfig {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
@@ -537,7 +531,9 @@ fn mixnet_debug_config(
         .traffic
         .disable_main_poisson_packet_distribution = true;
     debug_config.cover_traffic.disable_loop_cover_traffic_stream = true;
-    if let Some(minimum_gateway_performance) = min_gateway_performance.mixnet_min_performance {
+    if let Some(minimum_gateway_performance) =
+        min_gateway_performance.and_then(|p| p.mixnet_min_performance)
+    {
         debug_config.topology.minimum_gateway_performance =
             minimum_gateway_performance.round_to_integer();
     }

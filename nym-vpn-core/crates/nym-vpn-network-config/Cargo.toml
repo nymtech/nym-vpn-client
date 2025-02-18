@@ -12,13 +12,10 @@ license.workspace = true
 anyhow.workspace = true
 futures-util.workspace = true
 itertools.workspace = true
+nym-api-requests.workspace = true
 nym-config.workspace = true
 nym-sdk.workspace = true
-reqwest = { workspace = true, default-features = false, features = [
-    "blocking",
-    "rustls-tls",
-    "json",
-] }
+nym-validator-client.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true
@@ -27,6 +24,8 @@ tokio = { workspace = true, features = ["time", "macros"] }
 tokio-util.workspace = true
 tracing.workspace = true
 url = { workspace = true, features = ["serde"] }
+
+nym-vpn-api-client = { path = "../nym-vpn-api-client" }
 
 [build-dependencies]
 serde_json.workspace = true

@@ -29,14 +29,14 @@
     "invalid-recovery-phrase": "Code d'accès invalide",
     "storage": "Erreur de stockage backend",
     "is-connected": "Impossible d'effectuer cette action lorsque connecté au VPN",
-    "not-stored": "Aucun code d'accès stocké",
-    "no-device-stored": "Aucune clé d'appareil stockée",
-    "update": "La mise à jour du compte utilisateur a échouée",
-    "update-device": "La mise à jour de l'appareil a échouée",
-    "register-device": "L'enregistrement de l'appareil a échoué",
-    "maximum-registered-devices": "L'enregistrement de l'appareil a échoué : le nombre maximum d'appareils enregistrés a été atteint"
+    "not-stored": "pas de compte stocké",
+    "no-device-stored": "pas d'appareil stocké",
+    "unexpected-response": "réponse inattendue",
+    "internal": "erreur interne",
+    "vpn-api": "erreur API VPN"
   },
-  "zknym": {
-    "request-failed": "La requête de zk-nym a échoué"
-  }
+  "sync-account": "Synchronisation du compte : {{reason}}",
+  "sync-device": "Synchronisation de l'appareil : {{reason}}",
+  "register-device": "Enregistrement de l'appareil : {{reason}}",
+  "request-zknym": "Requête \"Zknym\" : {{reason}}"
 }

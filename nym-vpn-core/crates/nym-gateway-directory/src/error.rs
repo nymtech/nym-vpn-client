@@ -26,7 +26,7 @@ pub enum Error {
     #[error("failed to resolve gateway hostname: {hostname}: {source}")]
     FailedToDnsResolveGateway {
         hostname: String,
-        source: hickory_resolver::error::ResolveError,
+        source: nym_http_api_client::HickoryDnsError,
     },
 
     #[error("resolved hostname {0} but no IP address found")]

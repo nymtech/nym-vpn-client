@@ -24,9 +24,9 @@ fi
 
 echo "Current version is: $CURRENT_VERSION"
 
-# Check if the version ends with "-dev". If so, append a timestamp
-if [[ "$CURRENT_VERSION" == *"-dev" ]]; then
-    TIMESTAMP="$(date +'%Y%m%d%H%M%S')"
+# Check if the version ends with a pre-release field. If so, append a timestamp
+if [[ "$CURRENT_VERSION" =~ (-dev|-alpha|-beta|-rc)$ ]]; then
+    TIMESTAMP="$(date +'%Y%m%d%H%M')"
     NEW_VERSION="${CURRENT_VERSION}.${TIMESTAMP}"
 else
     NEW_VERSION="$CURRENT_VERSION"

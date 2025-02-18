@@ -2,10 +2,13 @@ import SwiftUI
 import AppSettings
 import ConnectionManager
 import CountriesManager
+#if os(macOS)
+import HelperInstall
+#endif
 import Settings
 
 struct HomeFlowCoordinator<Content: View>: View {
-    @ObservedObject var state: HomeFlowState
+    @StateObject var state: HomeFlowState
 
     let content: () -> Content
 
@@ -29,6 +32,15 @@ private extension HomeFlowCoordinator {
             exitHop()
         case .settings:
             SettingsView(viewModel: SettingsViewModel(path: $state.path))
+#if os(macOS)
+        case let .installHelper(afterInstallAction):
+            HelperInstallView(
+                viewModel: HelperInstallViewModel(
+                    path: $state.path,
+                    afterInstallAction: afterInstallAction
+                )
+            )
+#endif
         }
     }
 }

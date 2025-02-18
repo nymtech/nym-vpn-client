@@ -144,7 +144,7 @@ function Home() {
           color={getButtonColor()}
           disabled={loading || daemonStatus === 'NotOk' || state === 'Offline'}
           spinner={loading}
-          className={clsx(['h-14', loading && 'data-[disabled]:opacity-80'])}
+          className={clsx(['h-14', loading && 'data-disabled:opacity-80'])}
         >
           {getButtonText()}
         </Button>

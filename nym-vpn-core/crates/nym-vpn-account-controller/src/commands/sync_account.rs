@@ -3,15 +3,16 @@
 
 use std::sync::Arc;
 
-use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
+use nym_vpn_api_client::{
+    response::NymVpnAccountSummaryResponse,
+    types::{VpnApiAccount, VpnApiTime},
+};
+use nym_vpn_lib_types::{SyncAccountError, VpnApiErrorResponse};
 use tracing::Level;
 
-use crate::{
-    commands::VpnApiEndpointFailure,
-    shared_state::{AccountRegistered, AccountSummary, SharedAccountState},
-};
+use crate::shared_state::{AccountRegistered, AccountSummary, SharedAccountState};
 
-use super::{AccountCommandError, AccountCommandResult};
+use super::AccountCommandResult;
 
 type PreviousAccountSummaryResponse = Arc<tokio::sync::Mutex<Option<NymVpnAccountSummaryResponse>>>;
 
@@ -73,9 +74,7 @@ impl SyncStateCommandHandler {
         err,
         level = Level::DEBUG,
     )]
-    pub(crate) async fn run_inner(
-        self,
-    ) -> Result<NymVpnAccountSummaryResponse, AccountCommandError> {
+    pub(crate) async fn run_inner(self) -> Result<NymVpnAccountSummaryResponse, SyncAccountError> {
         tracing::debug!("Running sync account state command handler: {}", self.id);
         let update_result = update_state(
             &self.account,
@@ -84,8 +83,19 @@ impl SyncStateCommandHandler {
             &self.previous_account_summary_response,
         )
         .await;
+
         tracing::debug!("Current state: {:?}", self.account_state.lock().await);
         update_result
+    }
+}
+
+fn handle_remote_time(remote_time: VpnApiTime) {
+    if remote_time.is_synced() {
+        tracing::info!("{remote_time}");
+    } else {
+        tracing::warn!(
+            "The time skew between the local and remote time is too large ({remote_time})."
+        );
     }
 }
 
@@ -94,28 +104,27 @@ async fn update_state(
     account_state: &SharedAccountState,
     vpn_api_client: &nym_vpn_api_client::VpnApiClient,
     previous_account_summary_response: &PreviousAccountSummaryResponse,
-) -> Result<NymVpnAccountSummaryResponse, AccountCommandError> {
+) -> Result<NymVpnAccountSummaryResponse, SyncAccountError> {
     tracing::debug!("Updating account state");
-    let response = vpn_api_client.get_account_summary(account).await;
+    let (remote_time, response) = tokio::join!(
+        vpn_api_client.get_remote_time(),
+        vpn_api_client.get_account_summary(account)
+    );
+
+    match remote_time {
+        Ok(remote_time) => handle_remote_time(remote_time),
+        Err(err) => tracing::error!("Failed to get remote time: {err}"),
+    }
 
     let account_summary = match response {
         Ok(account_summary) => account_summary,
         Err(err) => {
-            if let Some(e) = nym_vpn_api_client::response::extract_error_response(&err) {
-                tracing::warn!(message = %e.message, message_id=?e.message_id, code_reference_id=?e.code_reference_id, "nym-vpn-api reports");
-                // TODO: check the message_id to confirm it's an error saying we are not registered
-                account_state
-                    .set_account_registered(AccountRegistered::NotRegistered)
-                    .await;
-                return Err(AccountCommandError::SyncAccountEndpointFailure(
-                    VpnApiEndpointFailure {
-                        message: e.message.clone(),
-                        message_id: e.message_id.clone(),
-                        code_reference_id: e.code_reference_id.clone(),
-                    },
-                ));
-            }
-            return Err(AccountCommandError::General(err.to_string()));
+            account_state
+                .set_account_registered(AccountRegistered::NotRegistered)
+                .await;
+            return Err(VpnApiErrorResponse::try_from(err)
+                .map(SyncAccountError::SyncAccountEndpointFailure)
+                .unwrap_or_else(SyncAccountError::unexpected_response));
         }
     };
 
