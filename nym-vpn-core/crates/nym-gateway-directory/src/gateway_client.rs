@@ -1,7 +1,6 @@
 // Copyright 2023-2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::SocketAddr;
 use std::{fmt, net::IpAddr};
 
 use nym_sdk::UserAgent;
@@ -54,15 +53,6 @@ impl Config {
         &self.nyxd_url
     }
 
-    pub fn nyxd_socket_addrs(&self) -> Result<Vec<SocketAddr>> {
-        self.nyxd_url
-            .socket_addrs(|| None)
-            .map_err(|reason| Error::UrlError {
-                url: self.nyxd_url.clone(),
-                reason,
-            })
-    }
-
     pub fn with_custom_nyxd_url(mut self, nyxd_url: Url) -> Self {
         self.nyxd_url = nyxd_url;
         self
@@ -72,15 +62,6 @@ impl Config {
         &self.api_url
     }
 
-    pub fn api_socket_addrs(&self) -> Result<Vec<SocketAddr>> {
-        self.api_url
-            .socket_addrs(|| None)
-            .map_err(|reason| Error::UrlError {
-                url: self.api_url.clone(),
-                reason,
-            })
-    }
-
     pub fn with_custom_api_url(mut self, api_url: Url) -> Self {
         self.api_url = api_url;
         self
@@ -88,19 +69,6 @@ impl Config {
 
     pub fn nym_vpn_api_url(&self) -> Option<&Url> {
         self.nym_vpn_api_url.as_ref()
-    }
-
-    pub fn nym_vpn_api_socket_addrs(&self) -> Result<Option<Vec<SocketAddr>>> {
-        if let Some(url) = &self.nym_vpn_api_url {
-            Ok(Some(url.socket_addrs(|| None).map_err(|reason| {
-                Error::UrlError {
-                    url: url.clone(),
-                    reason,
-                }
-            })?))
-        } else {
-            Ok(None)
-        }
     }
 
     pub fn with_custom_nym_vpn_api_url(mut self, nym_vpn_api_url: Url) -> Self {
