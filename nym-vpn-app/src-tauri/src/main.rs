@@ -16,12 +16,12 @@ use crate::{
 use crate::fs::path::APP_CONFIG_DIR;
 use anyhow::{anyhow, Result};
 use clap::Parser;
-use commands::country as cmd_country;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
 use commands::dev as cmd_dev;
 use commands::env as cmd_env;
 use commands::fs as cmd_fs;
+use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
 use commands::window as cmd_window;
 use commands::*;
@@ -219,7 +219,7 @@ async fn main() -> Result<()> {
             cmd_db::db_set,
             cmd_db::db_get,
             cmd_db::db_flush,
-            cmd_country::get_countries,
+            cmd_gw::get_gateways,
             cmd_window::show_main_window,
             cmd_window::set_background_color,
             commands::cli::cli_args,

@@ -5,8 +5,8 @@ use tracing::instrument;
 use ts_rs::TS;
 
 use crate::grpc::client::GrpcClient;
+use crate::grpc::gateway::Gateway;
 use crate::{
-    country::Country,
     error::{BackendError, ErrorKey},
     states::app::VpnMode,
 };
@@ -19,11 +19,11 @@ pub enum NodeType {
 
 #[instrument(skip(grpc))]
 #[tauri::command]
-pub async fn get_countries(
+pub async fn get_gateways(
     vpn_mode: VpnMode,
     node_type: Option<NodeType>,
     grpc: State<'_, GrpcClient>,
-) -> Result<Vec<Country>, BackendError> {
+) -> Result<Vec<Gateway>, BackendError> {
     let gw_type = match vpn_mode {
         VpnMode::Mixnet => match node_type.ok_or_else(|| {
             BackendError::internal("node type must be provided for Mixnet mode", None)
@@ -33,7 +33,7 @@ pub async fn get_countries(
         },
         VpnMode::TwoHop => GatewayType::Wg,
     };
-    grpc.countries(gw_type).await.map_err(|e| {
+    grpc.gateways(gw_type).await.map_err(|e| {
         BackendError::with_details(
             &format!("failed to get countries for {:?}", gw_type),
             ErrorKey::from(gw_type),

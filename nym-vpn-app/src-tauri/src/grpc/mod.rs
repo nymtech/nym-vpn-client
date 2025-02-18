@@ -3,6 +3,7 @@ pub mod client;
 pub mod error;
 pub mod events;
 pub mod feature_flags;
+pub mod gateway;
 mod node;
 pub mod system_message;
 mod timestamp;

@@ -2,7 +2,6 @@ use std::env::consts::{ARCH, OS};
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use itertools::Itertools;
 use nym_vpn_proto::tunnel_event::Event;
 use nym_vpn_proto::{
     get_account_identity_response::Id as AccountIdRes,
@@ -10,7 +9,7 @@ use nym_vpn_proto::{
     get_device_identity_response::Id as DeviceIdRes, health_check_response::ServingStatus,
     health_client::HealthClient, is_account_stored_response::Resp as IsAccountStoredResp,
     nym_vpnd_client::NymVpndClient, ConnectRequest, Dns, EntryNode, ExitNode, GatewayType,
-    GetAccountLinksRequest, HealthCheckRequest, InfoResponse, ListCountriesRequest, Location,
+    GetAccountLinksRequest, HealthCheckRequest, InfoResponse, ListGatewaysRequest, Location,
     SetNetworkRequest, StoreAccountRequest, UserAgent,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
@@ -22,17 +21,19 @@ use tracing::{debug, error, info, instrument, warn};
 
 pub use super::account_links::AccountLinks;
 pub use super::error::VpndError;
+use super::events::MixnetEvent;
 pub use super::feature_flags::FeatureFlags;
+use super::gateway::Gateway;
 pub use super::system_message::SystemMessage;
 use super::tunnel::TunnelState;
 use super::version_check::VersionCheck;
 pub use super::vpnd_status::{VpndInfo, VpndStatus};
+
 use crate::cli::Cli;
 use crate::country::Country;
 use crate::env::VPND_COMPAT_REQ;
 use crate::error::BackendError;
 use crate::fs::config::AppConfig;
-use crate::grpc::events::MixnetEvent;
 use crate::{events::AppHandleEventEmitter, states::SharedAppState};
 
 const VPND_SERVICE: &str = "nym.vpn.NymVpnd";
@@ -523,34 +524,36 @@ impl GrpcClient {
         }
     }
 
-    /// Get the list of available countries for entry gateways
+    /// Get the list of available gateways
     #[instrument(skip(self))]
-    pub async fn countries(&self, gw_type: GatewayType) -> Result<Vec<Country>, VpndError> {
+    pub async fn gateways(&self, gw_type: GatewayType) -> Result<Vec<Gateway>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(ListCountriesRequest {
+        let request = Request::new(ListGatewaysRequest {
             kind: gw_type as i32,
             user_agent: Some(self.user_agent.clone()),
             min_mixnet_performance: None,
             min_vpn_performance: None,
         });
-        let response = vpnd.list_countries(request).await.map_err(|e| {
+        let response = vpnd.list_gateways(request).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;
-        debug!("countries count: {}", response.get_ref().countries.len());
+        debug!("gateways count: {}", response.get_ref().gateways.len());
 
-        let countries: Vec<Country> = response
-            .get_ref()
-            .countries
-            .iter()
-            .filter_map(|location| Country::try_from(location).ok())
-            .unique()
-            .sorted_by(|a, b| a.name.cmp(&b.name))
+        let gateways: Vec<Gateway> = response
+            .into_inner()
+            .gateways
+            .into_iter()
+            .filter_map(|gateway| {
+                Gateway::from_proto(gateway, gw_type.into())
+                    .inspect_err(|e| warn!("failed to parse gateway from proto: {e}"))
+                    .ok()
+            })
             .collect();
-        debug!("filtered countries count: {}", countries.len());
+        debug!("parsed gateway count: {}", gateways.len());
 
-        Ok(countries)
+        Ok(gateways)
     }
 
     /// Watch the connection with the grpc server
