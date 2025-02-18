@@ -48,7 +48,7 @@
     "i18next": "^24.0.5",
     "i18next-browser-languagedetector": "^8.0.0",
     "lodash-es": "^4.17.21",
-    "motion": "^12.4.3",
+    "motion": "^12.4.4",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-i18next": "^15.0.0",
@@ -58,7 +58,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.8.0",
-    "@tailwindcss/vite": "^4.0.5",
+    "@tailwindcss/vite": "^4.0.7",
     "@tauri-apps/cli": "^2.0.1",
     "@types/eslint__js": "^8.42.3",
     "@types/lodash-es": "^4.17.0",
