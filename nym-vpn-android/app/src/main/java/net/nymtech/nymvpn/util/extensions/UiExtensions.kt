@@ -61,18 +61,18 @@ fun NavController.goFromRoot(route: Route) {
 
 fun ErrorStateReason.toUserMessage(context: Context): String {
 	return when (this) {
-		ErrorStateReason.SAME_ENTRY_AND_EXIT_GATEWAY -> context.getString(R.string.same_entry_exit_message)
-		ErrorStateReason.INVALID_ENTRY_GATEWAY_COUNTRY -> context.getString(R.string.selected_entry_unavailable)
-		ErrorStateReason.INVALID_EXIT_GATEWAY_COUNTRY -> context.getString(R.string.selected_exit_unavailable)
-		else -> context.getString(R.string.unexpected_error) + " ${this.name}"
+		ErrorStateReason.SameEntryAndExitGateway -> context.getString(R.string.same_entry_exit_message)
+		ErrorStateReason.InvalidEntryGatewayCountry -> context.getString(R.string.selected_entry_unavailable)
+		ErrorStateReason.InvalidExitGatewayCountry -> context.getString(R.string.selected_exit_unavailable)
+		else -> context.getString(R.string.unexpected_error) + " ${this.javaClass.simpleName}"
 	}
 }
 
 fun VpnException.toUserMessage(context: Context): String {
 	return when (this) {
 		is VpnException.NetworkConnectionException -> context.getString(R.string.network_error)
-		is VpnException.NoActiveSubscription -> context.getString(R.string.no_active_subscription)
-		is VpnException.OutOfBandwidth -> context.getString(R.string.no_bandwidth)
+//		is VpnException.NoActiveSubscription -> context.getString(R.string.no_active_subscription)
+//		is VpnException.OutOfBandwidth -> context.getString(R.string.no_bandwidth)
 		is VpnException.VpnApiTimeout -> context.getString(R.string.network_error)
 		else -> context.getString(R.string.unexpected_error) + " ${this.javaClass.simpleName}"
 	}
