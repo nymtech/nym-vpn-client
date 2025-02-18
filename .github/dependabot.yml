@@ -43,8 +43,8 @@ updates:
     directory: /nym-vpn-app
     schedule:
       interval: weekly
-    assignees:
-      - "doums"
+#    assignees:
+#      - "doums"
     groups:
       patch-updates:
         patterns:
