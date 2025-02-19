@@ -8,7 +8,11 @@ on:
         type: boolean
         default: false
       core_release_tag:
-        description: "nym-vpn-core release tag to use for Windows build (as it bundles the daemon)"
+        description: "nym-vpn-core release tag from GH to use for Windows, to get the daemon"
+        required: false
+        type: string
+      core_artifact_url:
+        description: "direct nym-vpn-core artifact URL for Windows, to get the daemon"
         required: false
         type: string
       sign:
@@ -156,7 +160,7 @@ jobs:
           "core_release_tag=${{ inputs.core_release_tag }}" >> $env:GITHUB_ENV
 
       - name: Get nym-vpn-core release tag (latest stable)
-        if: ${{ !inputs.core_release_tag && !inputs.dev_mode }}
+        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && !inputs.dev_mode }}
         run: |
           $release_tag = curl -sSL -H "Accept: application/vnd.github+json" `
             https://api.github.com/repos/nymtech/nym-vpn-client/releases |
@@ -165,7 +169,7 @@ jobs:
           "core_release_tag=$release_tag" >> $env:GITHUB_ENV
 
       - name: Get nym-vpn-core artifact url (latest dev)
-        if: ${{ !inputs.core_release_tag && inputs.dev_mode }}
+        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && inputs.dev_mode }}
         shell: bash
         run: |
           latest=$(curl -s ${{ env.VPNCORE_DEV_BUILDS_URL }} \
@@ -187,6 +191,12 @@ jobs:
             yq '.assets.[] | select(.name | test("^nym-vpn-core-v.+_windows_x86_64\.zip$")) | .browser_download_url'
           echo "core_asset_url: $asset_url"
           "core_asset_url=$asset_url" >> $env:GITHUB_ENV
+
+      - name: Use nym-vpn-core artifact url from inputs
+        if: ${{ inputs.core_artifact_url }}
+        run: |
+          echo "core_asset_url: ${{ inputs.core_artifact_url }}"
+          "core_asset_url=${{ inputs.core_artifact_url }}" >> $env:GITHUB_ENV
 
       - name: Download nym-vpn-core artifact
         run: |
