@@ -2,6 +2,7 @@ name: Build and Push WG Android Docker Image to DockerHub
 
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   docker:
