@@ -53,10 +53,7 @@ function Login() {
       });
       MCache.del('account-id');
       MCache.del('device-id');
-
-      // reset any previous error
       dispatch({ type: 'reset-error' });
-      dispatch({ type: 'set-tunnel-error', error: null });
     } catch (e: unknown) {
       const eT = e as BackendError;
       console.info('backend error:', e);

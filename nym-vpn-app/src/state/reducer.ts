@@ -213,6 +213,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
           ? dayjs.unix(action.tunnel.connectedAt)
           : dayjs(),
         tunnelError: null,
+        error: null,
       };
     case 'set-tunnel-disconnected':
       return {
@@ -255,7 +256,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
     case 'set-error':
       return { ...state, error: action.error };
     case 'reset-error':
-      return { ...state, error: null };
+      return { ...state, error: null, tunnelError: null };
     case 'new-progress-message':
       return {
         ...state,

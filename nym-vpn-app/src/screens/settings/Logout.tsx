@@ -35,6 +35,7 @@ function Logout() {
       });
       MCache.del('account-id');
       MCache.del('device-id');
+      dispatch({ type: 'reset-error' });
     } catch (e) {
       console.warn('failed to logout', e);
       push({
