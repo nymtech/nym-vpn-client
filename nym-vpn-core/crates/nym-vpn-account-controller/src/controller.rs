@@ -745,7 +745,7 @@ where
                         self.user_agent.clone(),
                         static_api_addresses.as_deref(),
                     )
-                    .and_then(|new_vpn_api_client| {
+                    .map(|new_vpn_api_client| {
                         self.vpn_api_client = new_vpn_api_client.clone();
                         self.waiting_sync_account_command_handler
                             .update_vpn_api_client(new_vpn_api_client.clone());
@@ -753,12 +753,10 @@ where
                             .update_vpn_api_client(new_vpn_api_client.clone());
                         self.waiting_request_zknym_command_handler
                             .update_vpn_api_client(new_vpn_api_client);
-                        Ok(())
                     })
                     .map_err(|e| {
                         AccountCommandError::internal(format!(
-                            "Failed to set static addresses: {}",
-                            e.to_string()
+                            "Failed to set static addresses: {e}",
                         ))
                     }),
                 );
