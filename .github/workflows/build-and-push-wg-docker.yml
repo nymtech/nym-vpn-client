@@ -23,6 +23,5 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           push: true
-          context: nymtech/android-wg-patched
-          tags: latest
+          tags: nymtech/android-wg-patched:latest
           file: ./wireguard/Dockerfile_AndroidPatchedGoruntime
