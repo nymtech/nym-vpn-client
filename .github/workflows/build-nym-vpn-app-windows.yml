@@ -76,7 +76,7 @@ jobs:
     runs-on: custom-windows-11
     env:
       CPP_BUILD_MODES: ${{ needs.build-mullvad-windows.outputs.CPP_BUILD_MODES }}
-      VPNCORE_DEV_BUILDS_URL: https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core/develop
+      VPN_CORE_BUILDS_URL: https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
 
@@ -172,11 +172,11 @@ jobs:
         if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && inputs.dev_mode }}
         shell: bash
         run: |
-          latest=$(curl -s ${{ env.VPNCORE_DEV_BUILDS_URL }} \
+          latest=$(curl -s ${{ env.VPN_CORE_BUILDS_URL }}/develop \
               | grep -oP '(?<=<a href=")\d+/' \
               | sort -r \
               | head -n 1)
-          latest_url=${{ env.VPNCORE_DEV_BUILDS_URL }}/"$latest"
+          latest_url="${{ env.VPN_CORE_BUILDS_URL }}/develop/$latest"
           artifact=$(curl -s "$latest_url" \
               | grep -oP '(?<=^<a href=")nym-vpn-core-v.+_windows_x86_64\.zip(?=">)')
           artifact_url="$latest_url$artifact"
