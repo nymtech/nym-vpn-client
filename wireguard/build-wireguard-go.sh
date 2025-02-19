@@ -162,14 +162,14 @@ function build_unix {
 
 function build_android {
     echo "Building for android"
-    local docker_image_hash="992c4d5c7dcd00eacf6f3e3667ce86b8e185f011352bdd9f79e467fef3e27abd"
+    local docker_image_hash="fe6c1ded2e1f8a7e6ff0da2800c98b9d564d4723cc63ae46b1a8a3af33f78d1f"
 
     if $IS_DOCKER_BUILD; then
         docker run --rm \
             -v "$(pwd)/../":/workspace \
             --entrypoint "/workspace/wireguard/$LIB_DIR/build-android.sh" \
             --env ANDROID_NDK_HOME="/opt/android/android-ndk-r25c" \
-            docker.io/pronebird1337/nymtech-android-app@sha256:$docker_image_hash
+            docker.io/nymtech/android-wg-patched:latest@sha256:$docker_image_hash
     else
         patch_go_runtime
         ./$LIB_DIR/build-android.sh
