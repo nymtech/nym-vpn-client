@@ -7,6 +7,9 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./wireguard/libwg
     steps:
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
@@ -24,5 +27,5 @@ jobs:
         with:
           push: true
           tags: nymtech/android-wg-patched:latest
-          file: ${{ github.workspace }}/wireguard/libwg/Dockerfile_AndroidPatchedGoruntime
+          file: Dockerfile_AndroidPatchedGoruntime
           context: .
