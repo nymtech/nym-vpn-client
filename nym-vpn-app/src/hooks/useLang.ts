@@ -26,7 +26,7 @@ function useLang() {
       }
       console.info('set language:', lng);
       if (updateDb) {
-        kvSet('UiLanguage', lng);
+        kvSet('ui-language', lng);
       }
       await i18n.changeLanguage(lng);
       switch (lng) {

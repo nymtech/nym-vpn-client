@@ -51,7 +51,7 @@ function App() {
 
   useEffect(() => {
     const setLng = async () => {
-      const lng = await kvGet<string | undefined>('UiLanguage');
+      const lng = await kvGet<string | undefined>('ui-language');
       if (lng && i18n.language !== lng) {
         await set(lng as LngTag, false);
       }

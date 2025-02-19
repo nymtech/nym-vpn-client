@@ -15,7 +15,7 @@ import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
 
 function Home() {
-  const { state, entryNodeLocation, exitNodeLocation, daemonStatus, account } =
+  const { state, entryNode, exitNode, daemonStatus, account } =
     useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
@@ -52,7 +52,7 @@ function Home() {
       console.info('connect');
       dispatch({ type: 'reset-error' });
       dispatch({ type: 'connect' });
-      invoke('connect', { entry: entryNodeLocation, exit: exitNodeLocation })
+      invoke('connect', { entry: entryNode, exit: exitNode })
         .then((result) => {
           console.log(result);
         })
@@ -65,7 +65,7 @@ function Home() {
 
   useEffect(() => {
     const showWelcomeScreen = async () => {
-      const seen = await kvGet<boolean>('WelcomeScreenSeen');
+      const seen = await kvGet<boolean>('welcome-screen-seen');
       if (!seen) {
         navigate(routes.welcome);
       }
@@ -131,13 +131,13 @@ function Home() {
             </div>
             <div className="flex flex-col gap-5">
               <HopSelect
-                country={entryNodeLocation}
+                country={entryNode}
                 onClick={() => navigate(routes.entryNodeLocation)}
                 nodeHop="entry"
                 disabled={hopSelectDisabled}
               />
               <HopSelect
-                country={exitNodeLocation}
+                country={exitNode}
                 onClick={() => navigate(routes.exitNodeLocation)}
                 nodeHop="exit"
                 disabled={hopSelectDisabled}

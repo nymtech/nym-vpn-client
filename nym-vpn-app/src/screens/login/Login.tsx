@@ -9,7 +9,7 @@ import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
 import { BackendError, StateDispatch } from '../../types';
 import { Button, Link, PageAnim, TextArea } from '../../ui';
-import { MCache } from '../../cache';
+import { CCache } from '../../cache';
 
 type AddError = {
   error: string;
@@ -19,9 +19,9 @@ type AddError = {
 function Login() {
   const [phrase, setPhrase] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<AddError | null>(null);
 
   const { daemonStatus, accountLinks, state } = useMainState();
-  const [error, setError] = useState<AddError | null>(null);
 
   const { push } = useInAppNotify();
   const navigate = useNavigate();
@@ -57,8 +57,8 @@ function Login() {
         position: 'top',
         closeIcon: true,
       });
-      MCache.del('account-id');
-      MCache.del('device-id');
+      await CCache.del('account-id');
+      await CCache.del('device-id');
       dispatch({ type: 'reset-error' });
     } catch (e: unknown) {
       const eT = e as BackendError;

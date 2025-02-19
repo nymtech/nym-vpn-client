@@ -19,7 +19,7 @@ import { initFirstBatch, initSecondBatch } from '../../state/init';
 import { initialState, reducer } from '../../state';
 import { useTauriEvents } from '../../state/useTauriEvents';
 import { S_STATE } from '../../static';
-import { MCache } from '../../cache';
+import { CCache } from '../../cache';
 
 let initialized = false;
 
@@ -106,7 +106,7 @@ function MainStateProvider({ children }: Props) {
       return;
     }
     console.info(`network env changed ${networkEnv}, clearing cache`);
-    MCache.clear();
+    CCache.clear();
   }, [networkEnv]);
 
   useEffect(() => {
@@ -138,8 +138,8 @@ function MainStateProvider({ children }: Props) {
   // use cached values if any, otherwise query from daemon
   const fetchGateways = async (vpnMode: VpnMode, node: NodeHop) => {
     // first try to load from cache
-    let gateways = MCache.get<GatewaysByCountry[]>(
-      vpnMode === 'Mixnet' ? `mx-${node}-countries` : 'wg-countries',
+    let gateways = await CCache.get<GatewaysByCountry[]>(
+      vpnMode === 'Mixnet' ? `mx-${node}-gateways` : 'wg-gateways',
     );
     // fallback to daemon query
     if (!gateways) {
@@ -149,8 +149,8 @@ function MainStateProvider({ children }: Props) {
           vpnMode,
           nodeType: node === 'entry' ? 'Entry' : 'Exit',
         });
-        MCache.set(
-          vpnMode === 'Mixnet' ? `mx-${node}-countries` : 'wg-countries',
+        await CCache.set(
+          vpnMode === 'Mixnet' ? `mx-${node}-gateways` : 'wg-gateways',
           gateways,
           CountryCacheDuration,
         );

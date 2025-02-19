@@ -34,7 +34,7 @@ pub struct AppState {
 impl AppState {
     pub fn new(db: &Db, config: &AppConfig, cli: &Cli) -> Self {
         let vpn_mode = db
-            .get_typed::<VpnMode>(Key::VpnMode)
+            .get_typed::<VpnMode>(Key::VpnMode.as_ref())
             .inspect_err(|e| error!("failed to retrieve vpn mode from db: {e}"))
             .ok()
             .flatten()

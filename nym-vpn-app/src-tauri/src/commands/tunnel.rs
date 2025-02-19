@@ -156,7 +156,7 @@ pub async fn set_vpn_mode(
     state.vpn_mode = mode.clone();
     drop(state);
 
-    db.insert(Key::VpnMode, &mode)
+    db.insert(Key::VpnMode.as_ref(), &mode)
         .map_err(|_| BackendError::internal("Failed to save vpn mode in db", None))?;
     Ok(())
 }

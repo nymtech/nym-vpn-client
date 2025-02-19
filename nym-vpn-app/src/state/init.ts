@@ -4,7 +4,7 @@ import { getVersion } from '@tauri-apps/api/app';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { isEnabled as isAutostartEnabled } from '@tauri-apps/plugin-autostart';
 import {
-  CountryCacheDuration,
+  // CountryCacheDuration,
   DefaultCountry,
   DefaultRootFontSize,
   DefaultThemeMode,
@@ -26,7 +26,6 @@ import {
   VpndStatus,
 } from '../types';
 import { S_STATE } from '../static';
-import { MCache } from '../cache';
 import { Notification } from '../contexts';
 import { tunnelUpdate } from './tunnelUpdate';
 import { TauriReq, daemonStatusUpdate, fireRequests } from './helper';
@@ -42,7 +41,7 @@ const getDaemonStatus = async () => {
 
 // init gateway list
 const getMxEntryGateways = async () => {
-  const mode = (await kvGet<VpnMode>('VpnMode')) || DefaultVpnMode;
+  const mode = (await kvGet<VpnMode>('vpn-mode')) || DefaultVpnMode;
   if (mode === 'TwoHop') {
     return;
   }
@@ -54,7 +53,7 @@ const getMxEntryGateways = async () => {
 };
 
 const getMxExitGateways = async () => {
-  const mode = (await kvGet<VpnMode>('VpnMode')) || DefaultVpnMode;
+  const mode = (await kvGet<VpnMode>('vpn-mode')) || DefaultVpnMode;
   if (mode === 'TwoHop') {
     return;
   }
@@ -70,7 +69,7 @@ const getMxExitGateways = async () => {
 const getTheme = async () => {
   const winTheme: UiTheme =
     (await getCurrentWebviewWindow().theme()) === 'dark' ? 'Dark' : 'Light';
-  const themeMode = await kvGet<ThemeMode>('UiTheme');
+  const themeMode = await kvGet<ThemeMode>('ui-theme');
   return { winTheme, themeMode };
 };
 
@@ -97,7 +96,7 @@ export async function initFirstBatch(
   const getEntryNodeRq: TauriReq<() => Promise<Gateway | Country | undefined>> =
     {
       name: 'getEntryNode',
-      request: () => kvGet<Gateway | Country>('EntryNode'),
+      request: () => kvGet<Gateway | Country>('entry-node'),
       onFulfilled: (node) => {
         if (node) {
           dispatch({
@@ -119,7 +118,7 @@ export async function initFirstBatch(
   const getExitNodeRq: TauriReq<() => Promise<Gateway | Country | undefined>> =
     {
       name: 'getExitNode',
-      request: () => kvGet<Gateway | Country>('ExitNode'),
+      request: () => kvGet<Gateway | Country>('exit-node'),
       onFulfilled: (node) => {
         if (node) {
           dispatch({
@@ -175,7 +174,7 @@ export async function initFirstBatch(
 
   const getVpnModeRq: TauriReq<() => Promise<VpnMode | undefined>> = {
     name: 'getVpnMode',
-    request: () => kvGet<VpnMode>('VpnMode'),
+    request: () => kvGet<VpnMode>('vpn-mode'),
     onFulfilled: (vpnMode) => {
       S_STATE.vpnModeInit = true;
       dispatch({ type: 'set-vpn-mode', mode: vpnMode || DefaultVpnMode });
@@ -186,7 +185,7 @@ export async function initFirstBatch(
     () => Promise<boolean | undefined>
   > = {
     name: 'getDesktopNotificationsRq',
-    request: () => kvGet<boolean>('DesktopNotifications'),
+    request: () => kvGet<boolean>('desktop-notifications'),
     onFulfilled: (enabled) => {
       dispatch({
         type: 'set-desktop-notifications',
@@ -197,7 +196,7 @@ export async function initFirstBatch(
 
   const getRootFontSizeRq: TauriReq<() => Promise<number | undefined>> = {
     name: 'getRootFontSize',
-    request: () => kvGet<number>('UiRootFontSize'),
+    request: () => kvGet<number>('ui-root-font-size'),
     onFulfilled: (size) => {
       // if a font size was saved, set the UI font size accordingly
       if (size) {
@@ -212,7 +211,7 @@ export async function initFirstBatch(
 
   const getMonitoringRq: TauriReq<() => Promise<boolean | undefined>> = {
     name: 'getMonitoring',
-    request: () => kvGet<boolean>('Monitoring'),
+    request: () => kvGet<boolean>('monitoring'),
     onFulfilled: (monitoring) => {
       dispatch({ type: 'set-monitoring', monitoring: monitoring || false });
     },

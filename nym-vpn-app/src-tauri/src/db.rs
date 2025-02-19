@@ -8,7 +8,7 @@ use std::{
     io,
     path::PathBuf,
 };
-use strum::{AsRefStr, EnumIter, EnumString};
+use strum::{AsRefStr, EnumIter};
 use thiserror::Error;
 use tracing::{debug, error, info, instrument, warn};
 use ts_rs::TS;
@@ -20,12 +20,12 @@ const DB_DIR: &str = "db";
 pub type JsonValue = Value;
 
 #[allow(dead_code)]
-#[derive(Deserialize, Serialize, AsRefStr, EnumString, EnumIter, Debug, Clone, Copy, TS)]
-#[strum(serialize_all = "snake_case")]
+#[derive(Deserialize, Serialize, AsRefStr, EnumIter, Debug, Clone, Copy, TS)]
+#[strum(serialize_all = "kebab-case")]
+#[serde(rename_all = "kebab-case")]
 #[ts(export)]
 pub enum Key {
     Monitoring,
-    Autoconnect,
     UiTheme,
     UiRootFontSize,
     UiLanguage,
@@ -34,6 +34,12 @@ pub enum Key {
     ExitNode,
     WelcomeScreenSeen,
     DesktopNotifications,
+    // some cache
+    MxEntryGateways,
+    MxExitGateways,
+    WgGateways,
+    AccountId,
+    DeviceId,
 }
 
 impl Display for Key {
@@ -107,7 +113,7 @@ impl Db {
     #[instrument(skip(self))]
     fn discard_deserialize<T>(
         &self,
-        key: Key,
+        key: &str,
         result: Result<Option<T>, DbError>,
     ) -> Result<Option<T>, DbError>
     where
@@ -123,8 +129,8 @@ impl Db {
 
     /// Get the value for a key as raw bytes
     #[instrument(skip(self))]
-    pub fn get_raw(&self, key: Key) -> Result<Option<IVec>, DbError> {
-        self.db.get(key.as_ref()).map_err(|e| {
+    pub fn get_raw(&self, key: &str) -> Result<Option<IVec>, DbError> {
+        self.db.get(key).map_err(|e| {
             error!("failed to get key [{key}]: {e}");
             DbError::Db(e)
         })
@@ -132,7 +138,7 @@ impl Db {
 
     /// Get the value for a key as a deserialized type
     #[instrument(skip(self))]
-    pub fn get_typed<T>(&self, key: Key) -> Result<Option<T>, DbError>
+    pub fn get_typed<T>(&self, key: &str) -> Result<Option<T>, DbError>
     where
         T: DeserializeOwned + fmt::Debug,
     {
@@ -151,7 +157,7 @@ impl Db {
 
     /// Get the value for a key as a deserialized JSON value
     #[instrument(skip(self))]
-    pub fn get(&self, key: Key) -> Result<Option<JsonValue>, DbError> {
+    pub fn get(&self, key: &str) -> Result<Option<JsonValue>, DbError> {
         let res = self
             .get_raw(key)?
             .map(|v| serde_json::from_slice::<Value>(&v))
@@ -167,7 +173,7 @@ impl Db {
 
     /// Insert a key to a new JSON value returning the previous value if any
     #[instrument(skip(self))]
-    pub fn insert<T>(&self, key: Key, value: T) -> Result<Option<JsonValue>, DbError>
+    pub fn insert<T>(&self, key: &str, value: T) -> Result<Option<JsonValue>, DbError>
     where
         T: Serialize + std::fmt::Debug,
     {
@@ -177,7 +183,7 @@ impl Db {
         })?;
         let res = self
             .db
-            .insert(key.as_ref(), json_value)?
+            .insert(key, json_value)?
             .map(|v| serde_json::from_slice::<Value>(&v))
             .transpose()
             .map_err(|e| {
@@ -200,8 +206,8 @@ impl Db {
 
     /// Remove a key returning the previous value if any
     #[instrument(skip(self))]
-    pub fn remove_raw(&self, key: Key) -> Result<Option<IVec>, DbError> {
-        self.db.remove(key.as_ref()).map_err(|e| {
+    pub fn remove_raw(&self, key: &str) -> Result<Option<IVec>, DbError> {
+        self.db.remove(key).map_err(|e| {
             error!("failed to remove key [{key}]: {e}");
             DbError::Db(e)
         })
@@ -209,10 +215,10 @@ impl Db {
 
     /// Remove a key returning the previous value if any
     #[instrument(skip(self))]
-    pub fn remove(&self, key: Key) -> Result<Option<JsonValue>, DbError> {
+    pub fn remove(&self, key: &str) -> Result<Option<JsonValue>, DbError> {
         let res = self
             .db
-            .remove(key.as_ref())?
+            .remove(key)?
             .map(|v| serde_json::from_slice::<Value>(&v))
             .transpose()
             .map_err(|e| {

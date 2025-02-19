@@ -23,7 +23,7 @@ function UiScaler() {
   const handleFinalChange = (size: number) => {
     document.documentElement.style.fontSize = `${size}px`;
     dispatch({ type: 'set-root-font-size', size });
-    kvSet('UiRootFontSize', size);
+    kvSet('ui-root-font-size', size);
   };
 
   return (

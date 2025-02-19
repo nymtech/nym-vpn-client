@@ -20,7 +20,7 @@ function useDesktopNotifications() {
           type: 'set-desktop-notifications',
           enabled: permission === 'granted',
         });
-        kvSet('DesktopNotifications', permission === 'granted');
+        kvSet('desktop-notifications', permission === 'granted');
       }
     };
 
@@ -41,7 +41,7 @@ function useDesktopNotifications() {
         type: 'set-desktop-notifications',
         enabled: enabled,
       });
-      kvSet('DesktopNotifications', enabled);
+      kvSet('desktop-notifications', enabled);
     }
   }, [dispatch, desktopNotifications]);
 

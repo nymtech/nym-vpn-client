@@ -26,7 +26,7 @@ function Display() {
         type: 'set-theme-mode',
         mode,
       });
-      kvSet('UiTheme', mode);
+      kvSet('ui-theme', mode);
       try {
         let theme: 'Dark' | 'Light';
         if (mode === 'System') {

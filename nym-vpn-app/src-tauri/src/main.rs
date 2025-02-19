@@ -218,6 +218,7 @@ async fn main() -> Result<()> {
             cmd_dev::set_credentials_mode,
             cmd_db::db_set,
             cmd_db::db_get,
+            cmd_db::db_del,
             cmd_db::db_flush,
             cmd_gw::get_gateways,
             cmd_window::show_main_window,

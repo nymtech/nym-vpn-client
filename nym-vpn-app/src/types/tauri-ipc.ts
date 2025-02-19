@@ -15,18 +15,20 @@ export type Cli = {
 export type NetworkEnv = 'mainnet' | 'canary' | 'qa' | 'sandbox';
 
 export type DbKey =
-  | 'Monitoring'
-  | 'Autoconnect'
-  | 'UiTheme'
-  | 'UiRootFontSize'
-  | 'UiLanguage'
-  | 'VpnMode'
-  | 'EntryNode'
-  | 'ExitNode'
-  | 'WindowSize'
-  | 'WindowPosition'
-  | 'WelcomeScreenSeen'
-  | 'DesktopNotifications';
+  | 'monitoring'
+  | 'ui-theme'
+  | 'ui-root-font-size'
+  | 'ui-language'
+  | 'vpn-mode'
+  | 'entry-node'
+  | 'exit-node'
+  | 'welcome-screen-seen'
+  | 'desktop-notifications'
+  | 'mx-entry-gateways'
+  | 'mx-exit-gateways'
+  | 'wg-gateways'
+  | 'account-id'
+  | 'device-id';
 
 /*
  * Enum of the possible specialized errors emitted by the daemon or from the

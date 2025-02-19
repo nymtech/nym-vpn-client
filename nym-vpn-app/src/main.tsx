@@ -48,7 +48,7 @@ dayjs.extend(duration);
 async function setSplashTheme(window: WebviewWindow) {
   let isDarkMode = false;
 
-  const mode = await kvGet<ThemeMode>('UiTheme');
+  const mode = await kvGet<ThemeMode>('ui-theme');
   if (mode === 'Dark') {
     isDarkMode = true;
   }
@@ -101,7 +101,7 @@ async function setSplashTheme(window: WebviewWindow) {
     return;
   }
 
-  const monitoring = await kvGet<boolean>('Monitoring');
+  const monitoring = await kvGet<boolean>('monitoring');
 
   if (monitoring) {
     await initSentry();

@@ -1,24 +1,27 @@
-// simple in-memory cache
+import { kvDel, kvFlush, kvGet, kvSet } from '../kvStore';
+import { DbKey } from '../types';
 
-export type MCached<T> = {
+export type CCached<T> = {
   value: T;
   // timestamp in ms
   expiry?: number;
 };
 
-export type CKey =
-  | 'mx-entry-countries'
-  | 'mx-exit-countries'
-  | 'wg-countries'
+export type CKey = Extract<
+  DbKey,
+  | 'mx-entry-gateways'
+  | 'mx-exit-gateways'
+  | 'wg-gateways'
   | 'account-id'
-  | 'device-id';
-
-const cache = new Map<CKey, MCached<never>>();
+  | 'device-id'
+>;
 
 /**
- * In-memory cache, with optional expiry
+ * Cache on-db, with optional expiry
+ * Just a simple wrapper around the kvStore that adds time-to-live
+ * to the values
  */
-export const MCache = {
+export const CCache = {
   /**
    * Get a key
    *
@@ -26,27 +29,27 @@ export const MCache = {
    * @param stale - Accept stale (expired) data
    * @returns The cached value if any
    */
-  get: <T>(key: CKey, stale = false): T | null => {
-    const cached = cache.get(key);
+  get: async <T>(key: CKey, stale = false): Promise<T | null> => {
+    const cached = await kvGet<CCached<T>>(key);
     if (!cached) {
       console.log(`no cache data for [${key}]`);
       return null;
     }
     if (!cached.expiry) {
       console.log(`cache data [${key}]`, cached.value);
-      return cached.value as T;
+      return cached.value;
     }
     if (Date.now() < cached.expiry) {
       console.log(`cache data [${key}]`, cached.value);
-      return cached.value as T;
+      return cached.value;
     }
     console.log(`cache data is stale [${key}]`);
     if (stale) {
       console.log(`cache data [${key}]`, cached.value);
-      cache.delete(key);
-      return cached.value as T;
+      await kvDel(key);
+      return cached.value;
     }
-    cache.delete(key);
+    await kvDel(key);
     return null;
   },
   /**
@@ -56,10 +59,10 @@ export const MCache = {
    * @param value - The date to cache
    * @param ttl - The time to live from now in seconds
    */
-  set: <T>(key: CKey, value: T, ttl?: number): void => {
+  set: async <T>(key: CKey, value: T, ttl?: number): Promise<void> => {
     if (!ttl) {
       console.log(`set cache [${key}]`, value);
-      cache.set(key, { value: value as never });
+      await kvSet(key, { value: value });
       return;
     }
     const expiry = Date.now() + ttl * 1000;
@@ -67,22 +70,27 @@ export const MCache = {
       `set cache [${key}], expiry ${new Date(expiry).toString()}`,
       value,
     );
-    cache.set(key, { value: value as never, expiry });
+    await kvSet(key, { value: value, expiry });
   },
   /**
    * Remove a key
    *
    * @param key - Key
    */
-  del: (key: CKey): void => {
+  del: async <T>(key: CKey): Promise<void> => {
     console.log(`delete cache [${key}]`);
-    cache.delete(key);
+    await kvDel<CCached<T>>(key);
   },
   /**
    * Clear all cache
    */
-  clear: (): void => {
+  clear: async (): Promise<void> => {
     console.log(`clear cache`);
-    cache.clear();
+    await kvDel('mx-entry-gateways');
+    await kvDel('mx-exit-gateways');
+    await kvDel('wg-gateways');
+    await kvDel('account-id');
+    await kvDel('device-id');
+    await kvFlush();
   },
 } as const;

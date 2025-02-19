@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
 import { useMainState } from '../../../contexts';
-import { MCache } from '../../../cache';
+import { CCache } from '../../../cache';
 import { useClipboard } from '../../../hooks';
 import { ButtonText } from '../../../ui';
 
@@ -18,7 +18,7 @@ function AccountData() {
   const { t } = useTranslation('settings');
 
   const getAccountId = async () => {
-    const id = MCache.get<string>('account-id');
+    const id = await CCache.get<string>('account-id');
     if (id) {
       setAccountId(id);
       return;
@@ -26,7 +26,7 @@ function AccountData() {
     try {
       const id = await invoke<string | null>('get_account_id');
       setAccountId(id);
-      MCache.set('account-id', id, IdsTimeToLive);
+      CCache.set('account-id', id, IdsTimeToLive);
     } catch (e) {
       console.warn('failed to get account id', e);
       setAccountId(null);
@@ -34,7 +34,7 @@ function AccountData() {
   };
 
   const getDeviceId = async () => {
-    const id = MCache.get<string>('device-id');
+    const id = await CCache.get<string>('device-id');
     if (id) {
       setDeviceId(id);
       return;
@@ -42,7 +42,7 @@ function AccountData() {
     try {
       const id = await invoke<string | null>('get_device_id');
       setDeviceId(id);
-      MCache.set('device-id', id, IdsTimeToLive);
+      await CCache.set('device-id', id, IdsTimeToLive);
     } catch (e) {
       console.warn('failed to get device id', e);
       setDeviceId(null);

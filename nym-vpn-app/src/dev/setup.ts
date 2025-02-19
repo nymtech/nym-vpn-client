@@ -104,13 +104,13 @@ export function mockTauriIPC() {
         return;
       }
       switch ((args as Record<string, unknown>).key as DbKey) {
-        case 'UiRootFontSize':
+        case 'ui-root-font-size':
           res = 12;
           break;
-        case 'UiTheme':
+        case 'ui-theme':
           res = 'Dark';
           break;
-        case 'WelcomeScreenSeen':
+        case 'welcome-screen-seen':
           res = true;
           break;
         default:

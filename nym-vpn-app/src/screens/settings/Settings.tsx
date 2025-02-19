@@ -75,7 +75,7 @@ function Settings() {
     const isChecked = !monitoring;
     showMonitoringAlert();
     dispatch({ type: 'set-monitoring', monitoring: isChecked });
-    kvSet('Monitoring', isChecked);
+    kvSet('monitoring', isChecked);
   };
 
   const handleLogs = async () => {
