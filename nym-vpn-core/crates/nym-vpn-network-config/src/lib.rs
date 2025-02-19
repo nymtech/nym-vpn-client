@@ -89,7 +89,7 @@ impl Network {
     pub fn fetch(network_name: &str) -> anyhow::Result<Self> {
         let discovery = Discovery::fetch(network_name)?;
         let feature_flags = discovery.feature_flags.clone();
-        let system_configuration = discovery.system_configuration.clone();
+        let system_configuration = discovery.system_configuration;
         let nym_network = discovery.fetch_nym_network_details()?;
         let nyxd_url = nym_network
             .network
@@ -237,7 +237,7 @@ pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Ne
         tracing::debug!("Feature flags: {}", feature_flags);
     }
 
-    let system_configuration = discovery.system_configuration.clone();
+    let system_configuration = discovery.system_configuration;
     if let Some(ref system_configuration) = system_configuration {
         tracing::debug!("System configuration: {}", system_configuration);
     }
