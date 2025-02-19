@@ -67,6 +67,11 @@ In order to inspect firewall logs, use the following commands:
 
 Use the following command to print firewall rules: `sudo pfctl -a nym -sa`
 
+
+### Linux
+
+Use the following command to print firewall rules: `sudo nft list ruleset`
+
 ## Build winfw for Windows
 
 Winfw is a library written in C++ that is a part of `nym-vpn-lib` and provides essential facilities for interacting with firewall on Windows.

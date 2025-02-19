@@ -360,6 +360,7 @@ impl LocalResolver {
 
 /// Flush the DNS cache.
 fn flush_system_cache() {
+    #[cfg(target_os = "macos")]
     if let Err(error) = kill_mdnsresponder() {
         tracing::error!("Failed to kill mDNSResponder: {error}");
     }
@@ -368,6 +369,7 @@ fn flush_system_cache() {
 const MDNS_RESPONDER_PATH: &str = "/usr/sbin/mDNSResponder";
 
 /// Find and kill mDNSResponder. The OS will restart the service.
+#[cfg(target_os = "macos")]
 fn kill_mdnsresponder() -> io::Result<()> {
     if let Some(mdns_pid) = nym_macos::process::pid_of_path(MDNS_RESPONDER_PATH) {
         nix::sys::signal::kill(

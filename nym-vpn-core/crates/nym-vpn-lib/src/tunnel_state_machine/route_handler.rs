@@ -105,6 +105,7 @@ impl RouteHandler {
         let mut routes = HashSet::new();
 
         match routing_config {
+            #[allow(unused)]
             RoutingConfig::Mixnet {
                 tun_name,
                 entry_gateway_address,
@@ -125,6 +126,7 @@ impl RouteHandler {
                     Node::device(tun_name.to_owned()),
                 ));
             }
+            #[allow(unused)]
             RoutingConfig::Wireguard {
                 entry_tun_name,
                 exit_tun_name,
@@ -152,6 +154,7 @@ impl RouteHandler {
                     Node::device(exit_tun_name.to_owned()),
                 ));
             }
+            #[allow(unused)]
             RoutingConfig::WireguardNetstack {
                 exit_tun_name,
                 entry_gateway_address,
@@ -213,16 +216,3 @@ impl fmt::Display for Error {
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
-
-#[cfg(target_os = "linux")]
-impl DefaultInterface {
-    fn as_node(&self) -> Node {
-        let iface_name = self.interface_name().to_owned();
-        if let Some(gateway) = self.gateway_ip() {
-            Node::new(gateway, iface_name)
-        } else {
-            // based on tests this does not work!
-            Node::device(iface_name)
-        }
-    }
-}
