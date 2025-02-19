@@ -1,3 +1,5 @@
+import { Country } from './common';
+
 export type BackendError = {
   message: string;
   key: ErrorKey;
@@ -85,4 +87,23 @@ export type AccountLinks = {
   signUp?: string | null;
   signIn?: string | null;
   account?: string | null;
+};
+
+export type GatewayType = 'mx-entry' | 'mx-exit' | 'wg';
+
+export type Score = 'low' | 'medium' | 'high';
+
+export type Gateway = {
+  id: string;
+  type: GatewayType;
+  name: string;
+  country: Country;
+  mxScore: Score | null;
+  wgScore: Score | null;
+};
+
+export type GatewaysByCountry = {
+  country: Country;
+  gateways: Gateway[];
+  type: GatewayType;
 };

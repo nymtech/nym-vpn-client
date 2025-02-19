@@ -8,7 +8,7 @@ use nym_vpn_proto::{
     get_account_links_response::Res as AccountLinkRes,
     get_device_identity_response::Id as DeviceIdRes, health_check_response::ServingStatus,
     health_client::HealthClient, is_account_stored_response::Resp as IsAccountStoredResp,
-    nym_vpnd_client::NymVpndClient, ConnectRequest, Dns, EntryNode, ExitNode, GatewayType,
+    nym_vpnd_client::NymVpndClient, ConnectRequest, Dns, EntryNode, ExitNode,
     GetAccountLinksRequest, HealthCheckRequest, InfoResponse, ListGatewaysRequest, Location,
     SetNetworkRequest, StoreAccountRequest, UserAgent,
 };
@@ -23,7 +23,7 @@ pub use super::account_links::AccountLinks;
 pub use super::error::VpndError;
 use super::events::MixnetEvent;
 pub use super::feature_flags::FeatureFlags;
-use super::gateway::Gateway;
+use super::gateway::{Gateway, GatewayType};
 pub use super::system_message::SystemMessage;
 use super::tunnel::TunnelState;
 use super::version_check::VersionCheck;
@@ -530,7 +530,7 @@ impl GrpcClient {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(ListGatewaysRequest {
-            kind: gw_type as i32,
+            kind: nym_vpn_proto::GatewayType::from(gw_type) as i32,
             user_agent: Some(self.user_agent.clone()),
             min_mixnet_performance: None,
             min_vpn_performance: None,
@@ -546,7 +546,7 @@ impl GrpcClient {
             .gateways
             .into_iter()
             .filter_map(|gateway| {
-                Gateway::from_proto(gateway, gw_type.into())
+                Gateway::from_proto(gateway, gw_type)
                     .inspect_err(|e| warn!("failed to parse gateway from proto: {e}"))
                     .ok()
             })

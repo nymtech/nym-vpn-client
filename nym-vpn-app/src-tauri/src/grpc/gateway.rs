@@ -1,11 +1,11 @@
 use crate::country::Country;
 use anyhow::{anyhow, Result};
 use nym_vpn_proto as p;
-use serde::Serialize;
-use tracing::{error, warn};
+use serde::{Deserialize, Serialize};
+use tracing::{error, instrument, warn};
 use ts_rs::TS;
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Deserialize, Clone, Copy, Debug, strum::Display, TS)]
 #[ts(export)]
 #[serde(rename_all = "kebab-case")]
 pub enum GatewayType {
@@ -14,7 +14,7 @@ pub enum GatewayType {
     Wg,
 }
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export)]
 #[serde(rename_all = "kebab-case")]
 pub enum Score {
@@ -23,7 +23,7 @@ pub enum Score {
     High,
 }
 
-#[derive(Serialize, Clone, Debug, TS)]
+#[derive(Serialize, Deserialize, Clone, Debug, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct Gateway {
@@ -37,6 +37,7 @@ pub struct Gateway {
 }
 
 impl Gateway {
+    #[instrument]
     pub fn from_proto(gateway: p::GatewayResponse, gw_type: GatewayType) -> Result<Self> {
         let Some(id) = gateway.id else {
             warn!("missing gateway ID in GatewayResponse");
@@ -95,6 +96,16 @@ impl From<p::GatewayType> for GatewayType {
             p::GatewayType::Wg => GatewayType::Wg,
             // this should never happen
             p::GatewayType::Unspecified => panic!("unspecified gateway type"),
+        }
+    }
+}
+
+impl From<GatewayType> for p::GatewayType {
+    fn from(gw_type: GatewayType) -> Self {
+        match gw_type {
+            GatewayType::MxEntry => p::GatewayType::MixnetEntry,
+            GatewayType::MxExit => p::GatewayType::MixnetExit,
+            GatewayType::Wg => p::GatewayType::Wg,
         }
     }
 }

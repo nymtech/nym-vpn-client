@@ -6,12 +6,13 @@ use std::{
 use nym_vpn_proto::account_error::AccountErrorType;
 use nym_vpn_proto::connect_request_error::ConnectRequestErrorType;
 use nym_vpn_proto::set_network_request_error::SetNetworkRequestErrorType;
-use nym_vpn_proto::{AccountError, ConnectRequestError, GatewayType, SetNetworkRequestError};
+use nym_vpn_proto::{AccountError, ConnectRequestError, SetNetworkRequestError};
 use serde::Serialize;
 use thiserror::Error;
 use ts_rs::TS;
 
 use crate::grpc::client::VpndError;
+use crate::grpc::gateway::GatewayType;
 
 #[derive(Error, Debug, Serialize, TS, Clone)]
 #[ts(export)]
@@ -185,10 +186,9 @@ impl From<ConnectRequestError> for BackendError {
 impl From<GatewayType> for ErrorKey {
     fn from(value: GatewayType) -> Self {
         match value {
-            GatewayType::MixnetEntry => ErrorKey::GetMixnetEntryCountriesQuery,
-            GatewayType::MixnetExit => ErrorKey::GetMixnetExitCountriesQuery,
+            GatewayType::MxEntry => ErrorKey::GetMixnetEntryCountriesQuery,
+            GatewayType::MxExit => ErrorKey::GetMixnetExitCountriesQuery,
             GatewayType::Wg => ErrorKey::GetWgCountriesQuery,
-            _ => ErrorKey::UnknownError, // & `Unspecified`
         }
     }
 }
