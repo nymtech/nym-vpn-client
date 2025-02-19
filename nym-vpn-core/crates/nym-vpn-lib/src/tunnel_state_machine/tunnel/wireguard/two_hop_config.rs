@@ -48,7 +48,7 @@ pub struct TwoHopConfig {
 }
 
 impl TwoHopConfig {
-    //get port dynamically to avoid binding to already bound ports
+    /// Get port dynamically to avoid binding to already bound ports
     fn get_dynamic_port(default_port: u16) -> u16 {
         UdpSocket::bind("0.0.0.0:0")
             .and_then(|socket| socket.local_addr())
