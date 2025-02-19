@@ -2,6 +2,7 @@ name: build-and-push-wg-docker
 
 on:
   workflow_dispatch:
+  push:
 
 jobs:
   docker:
