@@ -755,7 +755,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "First hop selection"
+            "value" : "Entry"
           }
         }
       }
@@ -778,6 +778,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Random low latency"
+          }
+        }
+      }
+    },
+    "gatewaySelector.servers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "servers"
           }
         }
       }
@@ -1118,7 +1129,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "First hop"
+            "value" : "Entry"
           }
         }
       }
@@ -1129,7 +1140,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Last hop"
+            "value" : "Exit"
           }
         }
       }
@@ -1228,7 +1239,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Last hop selection"
+            "value" : "Exit"
           }
         }
       }
@@ -1547,7 +1558,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Search country"
+            "value" : "Search location or server"
           }
         }
       }

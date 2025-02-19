@@ -54,12 +54,12 @@ public class HopListViewModel: ObservableObject {
         navigateHome()
     }
 
-    func connectionSelect(with gatewayIdentifier: String) {
+    func connectionSelect(with gateway: GatewayNode) {
         switch type {
         case .entry:
-            connectionManager.entryGateway = .gateway(gatewayIdentifier)
+            connectionManager.entryGateway = .gateway(gateway)
         case .exit:
-            connectionManager.exitRouter = .gateway(gatewayIdentifier)
+            connectionManager.exitRouter = .gateway(gateway)
         }
         navigateHome()
     }

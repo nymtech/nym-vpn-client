@@ -117,19 +117,4 @@ private extension HopListView {
             viewModel.connectionSelect(with: country)
         }
     }
-
-    @ViewBuilder
-    func gatewayButton(with identifier: String) -> some View {
-        GatewayCellButton(
-            viewModel: GatewayCellButtonViewModel(
-                type: .gateway(identifier: identifier),
-                isSelected: false
-            )
-        )
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea(.all)
-        .onTapGesture {
-            viewModel.connectionSelect(with: identifier)
-        }
-    }
 }

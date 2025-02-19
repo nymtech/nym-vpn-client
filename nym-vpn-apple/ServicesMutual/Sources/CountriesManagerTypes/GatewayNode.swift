@@ -19,3 +19,9 @@ public struct GatewayNode: Codable {
         self.moniker = moniker
     }
 }
+
+extension GatewayNode: Equatable {
+    public static func == (lhs: GatewayNode, rhs: GatewayNode) -> Bool {
+        lhs.id == rhs.id
+    }
+}

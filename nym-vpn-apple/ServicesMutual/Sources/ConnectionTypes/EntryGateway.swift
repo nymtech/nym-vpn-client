@@ -5,7 +5,7 @@ import Theme
 public enum EntryGateway: Codable, Equatable {
     case country(Country)
     case lowLatencyCountry(Country)
-    case gateway(String)
+    case gateway(GatewayNode)
     case randomLowLatency
     case random
 
@@ -37,8 +37,8 @@ extension EntryGateway: GatewayInfoProtocol {
             "gateway.randomLowLatency".localizedString
         case .random:
             "gateway.random".localizedString
-        case let .gateway(identifier):
-            identifier
+        case let .gateway(gateway):
+            gateway.moniker ?? gateway.id
         }
     }
 

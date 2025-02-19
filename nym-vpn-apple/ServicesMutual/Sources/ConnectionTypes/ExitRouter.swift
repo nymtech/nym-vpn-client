@@ -4,7 +4,7 @@ import Theme
 
 public enum ExitRouter: Codable, Equatable {
     case country(Country)
-    case gateway(String)
+    case gateway(GatewayNode)
 
     public var isCountry: Bool {
         switch self {
@@ -21,8 +21,8 @@ extension ExitRouter: GatewayInfoProtocol {
         switch self {
         case let .country(country):
             country.name
-        case let .gateway(identifier):
-            identifier
+        case let .gateway(gateway):
+            gateway.moniker ?? gateway.id
         }
     }
 

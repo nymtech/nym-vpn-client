@@ -26,10 +26,10 @@ private extension HomeFlowCoordinator {
     @ViewBuilder
     private func linkDestination(link: HomeLink) -> some View {
         switch link {
-        case .entryHop:
-            entryHop()
-        case .exitHop:
-            exitHop()
+        case .entryGateways:
+            GatewaysView(viewModel: GatewaysViewModel(type: .entry, path: $state.path))
+        case .exitGateways:
+            GatewaysView(viewModel: GatewaysViewModel(type: .exit, path: $state.path))
         case .settings:
             SettingsView(viewModel: SettingsViewModel(path: $state.path))
 #if os(macOS)
@@ -42,23 +42,5 @@ private extension HomeFlowCoordinator {
             )
 #endif
         }
-    }
-}
-
-private extension HomeFlowCoordinator {
-    private func entryHop() -> some View {
-        let viewModel = HopListViewModel(
-            type: .entry,
-            path: $state.path
-        )
-        return HopListView(viewModel: viewModel)
-    }
-
-    private func exitHop() -> some View {
-        let viewModel = HopListViewModel(
-            type: .exit,
-            path: $state.path
-        )
-        return HopListView(viewModel: viewModel)
     }
 }

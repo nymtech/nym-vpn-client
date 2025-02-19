@@ -5,8 +5,8 @@ import HelperInstall
 #endif
 
 enum HomeLink: Hashable, Identifiable {
-    case entryHop
-    case exitHop
+    case entryGateways
+    case exitGateways
     case settings
 #if os(macOS)
     case installHelper(afterInstallAction: HelperAfterInstallAction)

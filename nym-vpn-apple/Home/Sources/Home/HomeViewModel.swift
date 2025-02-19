@@ -140,12 +140,12 @@ public extension HomeViewModel {
         path.append(HomeLink.settings)
     }
 
-    @MainActor func navigateToFirstHopSelection() {
-        path.append(HomeLink.entryHop)
+    @MainActor func navigateToEntryGateways() {
+        path.append(HomeLink.entryGateways)
     }
 
-    @MainActor func navigateToLastHopSelection() {
-        path.append(HomeLink.exitHop)
+    @MainActor func navigateToExitGateways() {
+        path.append(HomeLink.exitGateways)
     }
 
     @MainActor func navigateToAddCredentials() {
