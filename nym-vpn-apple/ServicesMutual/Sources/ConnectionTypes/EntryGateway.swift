@@ -46,7 +46,9 @@ extension EntryGateway: GatewayInfoProtocol {
         switch self {
         case let .country(country), let .lowLatencyCountry(country):
             country.code
-        case .randomLowLatency, .random, .gateway:
+        case let .gateway(gateway):
+            gateway.countryCode
+        case .randomLowLatency, .random:
             nil
         }
     }
@@ -57,6 +59,15 @@ extension EntryGateway: GatewayInfoProtocol {
             false
         case .gateway:
             true
+        }
+    }
+
+    public var gatewayId: String? {
+        switch self {
+        case let .gateway(gateway):
+            gateway.id
+        case .country, .lowLatencyCountry, .randomLowLatency, .random:
+            nil
         }
     }
 }

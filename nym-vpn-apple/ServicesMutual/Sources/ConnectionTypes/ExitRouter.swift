@@ -43,6 +43,15 @@ extension ExitRouter: GatewayInfoProtocol {
             true
         }
     }
+
+    public var gatewayId: String? {
+        switch self {
+        case .country:
+            nil
+        case let .gateway(gateway):
+            gateway.id
+        }
+    }
 }
 
 extension ExitRouter {

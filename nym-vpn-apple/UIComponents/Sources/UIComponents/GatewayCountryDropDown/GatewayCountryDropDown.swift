@@ -1,30 +1,36 @@
 import SwiftUI
 import ConnectionManager
+import CountriesManager
 import CountriesManagerTypes
 import Theme
 
 public struct GatewayCountryDropDown: View {
     private let country: Country
     private let servers: [GatewayNode]
-    private let isSelected: Bool
+//    private let isSelected: Bool
     private let hopType: HopType
 
     @EnvironmentObject private var connectionManager: ConnectionManager
+    @EnvironmentObject private var countriesManager: CountriesManager
     @State private var isExpanded = false
     @Binding private var path: NavigationPath
+    @Binding private var isServerModalDisplayed: Bool
+    @Binding private var serverInfoModalServer: GatewayNode?
 
     public init(
         country: Country,
         servers: [GatewayNode],
-        isSelected: Bool,
         type: HopType,
-        path: Binding<NavigationPath>
+        path: Binding<NavigationPath>,
+        isServerModalDisplayed: Binding<Bool>,
+        serverInfoModalServer: Binding<GatewayNode?>
     ) {
         self.country = country
         self.servers = servers
-        self.isSelected = isSelected
         self.hopType = type
         _path = path
+        _isServerModalDisplayed = isServerModalDisplayed
+        _serverInfoModalServer = serverInfoModalServer
     }
 
     public var body: some View {
@@ -32,7 +38,13 @@ public struct GatewayCountryDropDown: View {
             countryCell()
             if isExpanded {
                 ForEach(servers, id: \.id) { server in
-                    GatewayCell(server: server, type: hopType, path: $path)
+                    GatewayCell(
+                        server: server,
+                        type: hopType,
+                        path: $path,
+                        isServerModalDisplayed: $isServerModalDisplayed,
+                        serverInfoModalServer: $serverInfoModalServer
+                    )
                 }
             }
         }
@@ -47,7 +59,7 @@ private extension GatewayCountryDropDown {
             HStack(spacing: 0) {
                 isSelectedMarker()
                 FlagImage(countryCode: country.code)
-                    .padding(16)
+                    .padding(EdgeInsets(top: 0, leading: isSelected() ? 12 : 16, bottom: 0, trailing: 16))
                 VStack(alignment: .leading, spacing: 0) {
                     countryNameTitle()
                     serverCountNumberSubtitle()
@@ -81,10 +93,8 @@ private extension GatewayCountryDropDown {
 
     @ViewBuilder
     func isSelectedMarker() -> some View {
-        if isSelected {
-            UnevenRoundedRectangle(bottomTrailingRadius: 4, topTrailingRadius: 4)
-                .foregroundColor(NymColor.accent)
-                .frame(width: 4)
+        if isSelected() {
+            SelectionMarker()
         }
     }
 
@@ -95,7 +105,7 @@ private extension GatewayCountryDropDown {
     }
 
     func serverCountNumberSubtitle() -> some View {
-        Text("\(servers.count) " + "servers".localizedString)
+        Text("\(servers.count) \("servers".localizedString)")
             .foregroundStyle(NymColor.gray1)
             .textStyle(.BodyLegacy.Small.primary)
     }
@@ -113,5 +123,16 @@ private extension GatewayCountryDropDown {
             .padding(16)
             .rotationEffect(.degrees(isExpanded ? 180 : 0))
             .animation(.easeInOut, value: isExpanded)
+    }
+}
+
+private extension GatewayCountryDropDown {
+    func isSelected() -> Bool {
+        switch hopType {
+        case .entry:
+            connectionManager.entryGateway.countryCode == country.code && !isExpanded
+        case .exit:
+            connectionManager.exitRouter.countryCode == country.code && !isExpanded
+        }
     }
 }

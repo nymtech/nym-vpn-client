@@ -859,6 +859,28 @@
         }
       }
     },
+    "getewaySelector.close" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        }
+      }
+    },
+    "getewaySelector.identityKey" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Identity key:"
+          }
+        }
+      }
+    },
     "helper.installView.authorize" : {
       "extractionState" : "manual",
       "localizations" : {

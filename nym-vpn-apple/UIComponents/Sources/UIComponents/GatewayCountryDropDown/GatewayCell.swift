@@ -9,16 +9,27 @@ public struct GatewayCell: View {
 
     @EnvironmentObject private var connectionManager: ConnectionManager
     @Binding private var path: NavigationPath
+    @Binding private var isServerModalDisplayed: Bool
+    @Binding private var serverInfoModalServer: GatewayNode?
 
-    public init(server: GatewayNode, type: HopType, path: Binding<NavigationPath>) {
+    public init(
+        server: GatewayNode,
+        type: HopType,
+        path: Binding<NavigationPath>,
+        isServerModalDisplayed: Binding<Bool>,
+        serverInfoModalServer: Binding<GatewayNode?>
+    ) {
         self.server = server
         self.hoptype = type
         _path = path
+        _isServerModalDisplayed = isServerModalDisplayed
+        _serverInfoModalServer = serverInfoModalServer
     }
 
     public var body: some View {
         HStack(spacing: 0) {
             HStack(spacing: 0) {
+                selectionMarkerView()
                 scoreImage()
                 serverDetails()
             }
@@ -39,13 +50,30 @@ public struct GatewayCell: View {
             infoButton()
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    print("display server info")
+                    serverInfoModalServer = server
+                    isServerModalDisplayed.toggle()
                 }
         }
     }
 }
 
 extension GatewayCell {
+    func isSelected() -> Bool {
+        switch hoptype {
+        case .entry:
+            connectionManager.entryGateway.gatewayId == server.id && connectionManager.entryGateway.isGateway
+        case .exit:
+            connectionManager.exitRouter.gatewayId == server.id && connectionManager.exitRouter.isGateway
+        }
+    }
+
+    @ViewBuilder
+    func selectionMarkerView() -> some View {
+        if isSelected() {
+            SelectionMarker()
+        }
+    }
+
     func scoreImage() -> some View {
         GenericImage(imageName: scoreImageName())
             .frame(width: 16, height: 16)
