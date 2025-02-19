@@ -25,4 +25,4 @@ jobs:
           push: true
           tags: nymtech/android-wg-patched:latest
           file: ${{ github.workspace }}/wireguard/libwg/Dockerfile_AndroidPatchedGoruntime
-          context: .
+          context: ${{ github.workspace }}/wireguard/libwg/.
