@@ -7,12 +7,7 @@ on:
 jobs:
   docker:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./wireguard/libwg
     steps:
-      - name: Checkout nym-vpn-client
-        uses: actions/checkout@v4
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
       - name: Set up Docker Buildx
@@ -28,4 +23,4 @@ jobs:
           push: true
           tags: nymtech/android-wg-patched:latest
           file: Dockerfile_AndroidPatchedGoruntime
-          context: .
+          context: "{{defaultContext}}:wireguard/libwg"
