@@ -22,6 +22,8 @@ use nym_windows::net::{self as winnet, AddressFamily};
 
 #[cfg(windows)]
 use crate::tunnel_state_machine::route_handler::RouteHandler;
+#[cfg(target_os = "linux")]
+use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 #[cfg(unix)]
 use crate::tunnel_state_machine::tunnel::wireguard::fd::DupFd;
 use crate::{
@@ -104,7 +106,7 @@ impl ConnectedTunnel {
             options.dns.clone(),
             self.entry_mtu(),
             #[cfg(target_os = "linux")]
-            None,
+            Some(TUNNEL_FWMARK),
         );
 
         let wg_exit_config = WgNodeConfig::with_gateway_data(
@@ -219,7 +221,7 @@ impl ConnectedTunnel {
             options.dns.clone(),
             self.entry_mtu(),
             #[cfg(target_os = "linux")]
-            None,
+            Some(TUNNEL_FWMARK),
         );
 
         let wg_exit_config = WgNodeConfig::with_gateway_data(

@@ -2,19 +2,19 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    env,
-    ffi::CStr,
-    fs, io,
-    net::{IpAddr, Ipv4Addr},
-    sync::LazyLock,
-};
-
 use ipnetwork::IpNetwork;
 use nftnl::{
     expr::{self, IcmpCode, Payload, RejectionType, Verdict},
     nft_expr, table, Batch, Chain, FinalizedBatch, ProtoFamily, Rule, Table,
 };
+use std::{
+    env,
+    ffi::CStr,
+    fs, io,
+    net::{IpAddr, Ipv4Addr, SocketAddr},
+    sync::LazyLock,
+};
+
 use nym_common::linux::IfaceIndexLookupError;
 
 use super::{
@@ -24,6 +24,8 @@ use super::{
     },
     split_tunnel, FirewallArguments, FirewallPolicy,
 };
+
+use crate::{AllowedClients, TunnelInterface, DNS_TCP_PORTS, DNS_UDP_PORTS};
 
 /// Priority for rules that tag split tunneling packets. Equals NF_IP_PRI_MANGLE.
 const MANGLE_CHAIN_PRIORITY: i32 = libc::NF_IP_PRI_MANGLE;
@@ -239,6 +241,31 @@ impl Firewall {
     }
 }
 
+fn get_allow_dns_endpoints_when_connecting(server: IpAddr) -> Vec<AllowedEndpoint> {
+    let mut allowed_endpoints = Vec::with_capacity(DNS_TCP_PORTS.len() + DNS_UDP_PORTS.len());
+
+    // Allow requests on other interfaces
+    for tcp_port in DNS_TCP_PORTS {
+        let address = SocketAddr::new(server, tcp_port);
+        let allowed_endpoint = AllowedEndpoint::new(
+            Endpoint::from_socket_address(address, TransportProtocol::Tcp),
+            AllowedClients::Root,
+        );
+        allowed_endpoints.push(allowed_endpoint);
+    }
+
+    for udp_port in DNS_UDP_PORTS {
+        let address = SocketAddr::new(server, udp_port);
+        let allowed_endpoint = AllowedEndpoint::new(
+            Endpoint::from_socket_address(address, TransportProtocol::Udp),
+            AllowedClients::Root,
+        );
+        allowed_endpoints.push(allowed_endpoint);
+    }
+
+    allowed_endpoints
+}
+
 struct PolicyBatch<'a> {
     batch: Batch,
     in_chain: Chain<'a>,
@@ -324,20 +351,22 @@ impl<'a> PolicyBatch<'a> {
         } = policy
         {
             for server in dns_config.tunnel_config() {
-                let allow_rule = allow_tunnel_dns_rule(
-                    &self.mangle_chain,
-                    &tunnel.interface,
-                    TransportProtocol::Udp,
-                    *server,
-                )?;
-                self.batch.add(&allow_rule, nftnl::MsgType::Add);
-                let allow_rule = allow_tunnel_dns_rule(
-                    &self.mangle_chain,
-                    &tunnel.interface,
-                    TransportProtocol::Tcp,
-                    *server,
-                )?;
-                self.batch.add(&allow_rule, nftnl::MsgType::Add);
+                for tunnel in tunnel.inner_metadatas() {
+                    let allow_rule = allow_tunnel_dns_rule(
+                        &self.mangle_chain,
+                        &tunnel.interface,
+                        TransportProtocol::Udp,
+                        *server,
+                    )?;
+                    self.batch.add(&allow_rule, nftnl::MsgType::Add);
+                    let allow_rule = allow_tunnel_dns_rule(
+                        &self.mangle_chain,
+                        &tunnel.interface,
+                        TransportProtocol::Tcp,
+                        *server,
+                    )?;
+                    self.batch.add(&allow_rule, nftnl::MsgType::Add);
+                }
             }
         }
 
@@ -371,7 +400,14 @@ impl<'a> PolicyBatch<'a> {
         // Block remaining marked outgoing in-tunnel traffic
         if let FirewallPolicy::Connected { tunnel, .. } = policy {
             let mut block_tunnel_rule = Rule::new(&self.nat_chain);
-            check_iface(&mut block_tunnel_rule, Direction::Out, &tunnel.interface)?;
+            for tunnel_metadata in tunnel.inner_metadatas() {
+                check_iface(
+                    &mut block_tunnel_rule,
+                    Direction::Out,
+                    &tunnel_metadata.interface,
+                )?;
+            }
+
             block_tunnel_rule.add_expr(&nft_expr!(ct mark));
             block_tunnel_rule.add_expr(&nft_expr!(cmp == split_tunnel::MARK));
             add_verdict(&mut block_tunnel_rule, &Verdict::Drop);
@@ -400,7 +436,13 @@ impl<'a> PolicyBatch<'a> {
         // for excluded processes
         if let FirewallPolicy::Connected { tunnel, .. } = policy {
             let mut prerouting_rule = Rule::new(&self.prerouting_chain);
-            check_not_iface(&mut prerouting_rule, Direction::In, &tunnel.interface)?;
+            for tunnel_metadata in tunnel.inner_metadatas() {
+                check_iface(
+                    &mut prerouting_rule,
+                    Direction::In,
+                    &tunnel_metadata.interface,
+                )?;
+            }
             prerouting_rule.add_expr(&nft_expr!(ct mark));
             prerouting_rule.add_expr(&nft_expr!(cmp == split_tunnel::MARK));
             prerouting_rule.add_expr(&nft_expr!(immediate data fwmark));
@@ -544,67 +586,127 @@ impl<'a> PolicyBatch<'a> {
     fn add_policy_specific_rules(&mut self, policy: &FirewallPolicy, fwmark: u32) -> Result<()> {
         let allow_lan = match policy {
             FirewallPolicy::Connecting {
-                peer_endpoint,
+                peer_endpoints,
                 tunnel,
                 allow_lan,
-                allowed_endpoint,
-                allowed_tunnel_traffic,
+                dns_config,
+                allowed_endpoints,
+                allowed_entry_tunnel_traffic,
+                allowed_exit_tunnel_traffic,
             } => {
-                self.add_allow_tunnel_endpoint_rules(peer_endpoint, fwmark);
-                self.add_allow_endpoint_rules(allowed_endpoint);
+                let dns_endpoints = dns_config
+                    .non_tunnel_config()
+                    .iter()
+                    .flat_map(|server| get_allow_dns_endpoints_when_connecting(*server))
+                    .collect::<Vec<_>>();
+
+                // todo: we should do fwmark, at some point
+                peer_endpoints
+                    .iter()
+                    .for_each(|endpoint| self.add_allow_endpoint_rules(endpoint));
+                allowed_endpoints
+                    .iter()
+                    .chain(dns_endpoints.iter())
+                    .for_each(|endpoint| self.add_allow_endpoint_rules(endpoint));
 
                 // Important to block DNS after allow relay rule (so the relay can operate
                 // over port 53) but before allow LAN (so DNS does not leak to the LAN)
                 self.add_drop_dns_rule();
 
                 if let Some(tunnel) = tunnel {
-                    match allowed_tunnel_traffic {
+                    let (entry_tunnel, exit_tunnel) = match tunnel {
+                        TunnelInterface::One(tunnel) => (None, tunnel),
+                        TunnelInterface::Two { entry, exit } => (Some(entry), exit),
+                    };
+                    if let Some(entry_tunnel) = entry_tunnel {
+                        match allowed_entry_tunnel_traffic {
+                            AllowedTunnelTraffic::All => {
+                                self.add_allow_tunnel_rules(&entry_tunnel.interface)?;
+                            }
+                            AllowedTunnelTraffic::None => (),
+                            AllowedTunnelTraffic::One(endpoint) => {
+                                self.add_allow_in_tunnel_endpoint_rules(
+                                    &entry_tunnel.interface,
+                                    endpoint,
+                                )?;
+                            }
+                            AllowedTunnelTraffic::Two(endpoint1, endpoint2) => {
+                                self.add_allow_in_tunnel_endpoint_rules(
+                                    &entry_tunnel.interface,
+                                    endpoint1,
+                                )?;
+                                self.add_allow_in_tunnel_endpoint_rules(
+                                    &entry_tunnel.interface,
+                                    endpoint2,
+                                )?;
+                            }
+                        }
+                    }
+
+                    match allowed_exit_tunnel_traffic {
                         AllowedTunnelTraffic::All => {
-                            self.add_allow_tunnel_rules(&tunnel.interface)?;
+                            self.add_allow_tunnel_rules(&exit_tunnel.interface)?;
                         }
                         AllowedTunnelTraffic::None => (),
                         AllowedTunnelTraffic::One(endpoint) => {
-                            self.add_allow_in_tunnel_endpoint_rules(&tunnel.interface, endpoint)?;
+                            self.add_allow_in_tunnel_endpoint_rules(
+                                &exit_tunnel.interface,
+                                endpoint,
+                            )?;
                         }
                         AllowedTunnelTraffic::Two(endpoint1, endpoint2) => {
-                            self.add_allow_in_tunnel_endpoint_rules(&tunnel.interface, endpoint1)?;
-                            self.add_allow_in_tunnel_endpoint_rules(&tunnel.interface, endpoint2)?;
+                            self.add_allow_in_tunnel_endpoint_rules(
+                                &exit_tunnel.interface,
+                                endpoint1,
+                            )?;
+                            self.add_allow_in_tunnel_endpoint_rules(
+                                &exit_tunnel.interface,
+                                endpoint2,
+                            )?;
                         }
                     }
+
                     if *allow_lan {
-                        self.add_block_cve_2019_14899(tunnel);
+                        self.add_block_cve_2019_14899(exit_tunnel);
                     }
                 }
+
                 *allow_lan
             }
             FirewallPolicy::Connected {
-                peer_endpoint,
+                peer_endpoints,
                 tunnel,
                 allow_lan,
+                allowed_endpoints,
                 dns_config,
             } => {
-                self.add_allow_tunnel_endpoint_rules(peer_endpoint, fwmark);
+                peer_endpoints
+                    .iter()
+                    .for_each(|endpoint| self.add_allow_tunnel_endpoint_rules(endpoint, fwmark));
+                allowed_endpoints
+                    .iter()
+                    .for_each(|endpoint| self.add_allow_endpoint_rules(endpoint));
 
                 for server in dns_config.tunnel_config() {
                     self.add_allow_tunnel_dns_rule(
-                        &tunnel.interface,
+                        &tunnel.exit_metadata().interface,
                         TransportProtocol::Udp,
                         *server,
                     )?;
                     self.add_allow_tunnel_dns_rule(
-                        &tunnel.interface,
+                        &tunnel.exit_metadata().interface,
                         TransportProtocol::Tcp,
                         *server,
                     )?;
                 }
                 for server in dns_config.non_tunnel_config() {
                     self.add_allow_local_dns_rule(
-                        &tunnel.interface,
+                        &tunnel.exit_metadata().interface,
                         TransportProtocol::Udp,
                         *server,
                     )?;
                     self.add_allow_local_dns_rule(
-                        &tunnel.interface,
+                        &tunnel.exit_metadata().interface,
                         TransportProtocol::Tcp,
                         *server,
                     )?;
@@ -613,19 +715,23 @@ impl<'a> PolicyBatch<'a> {
                 // Important to block DNS *before* we allow the tunnel and allow LAN. So DNS
                 // can't leak to the wrong IPs in the tunnel or on the LAN.
                 self.add_drop_dns_rule();
-                self.add_allow_tunnel_rules(&tunnel.interface)?;
-                if *allow_lan {
-                    self.add_block_cve_2019_14899(tunnel);
+
+                for tunnel in tunnel.inner_metadatas() {
+                    self.add_allow_tunnel_rules(&tunnel.interface)?;
+                    if *allow_lan {
+                        self.add_block_cve_2019_14899(tunnel);
+                    }
                 }
+
                 *allow_lan
             }
             FirewallPolicy::Blocked {
                 allow_lan,
-                allowed_endpoint,
+                allowed_endpoints,
             } => {
-                if let Some(endpoint) = allowed_endpoint {
-                    self.add_allow_endpoint_rules(endpoint);
-                }
+                allowed_endpoints
+                    .iter()
+                    .for_each(|endpoint| self.add_allow_endpoint_rules(endpoint));
 
                 // Important to drop DNS before allowing LAN (to stop DNS leaking to the LAN)
                 self.add_drop_dns_rule();

@@ -1,9 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#[cfg(target_os = "linux")]
+use nix::sys::socket::{sockopt::Mark, SetSockOpt};
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::net::Ipv4Addr;
-#[cfg(any(target_os = "ios", target_os = "android"))]
+#[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
 use std::os::fd::BorrowedFd;
 #[cfg(any(target_os = "android", target_os = "ios"))]
 use std::os::fd::{AsRawFd, IntoRawFd};
@@ -56,6 +58,8 @@ use crate::tunnel_provider;
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
+#[cfg(target_os = "linux")]
+use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 use crate::tunnel_state_machine::{account, WireguardMultihopMode};
 
 /// Default MTU for mixnet tun device.
@@ -354,8 +358,13 @@ impl TunnelMonitor {
         let tun_provider = self.tun_provider.clone();
         #[cfg(unix)]
         let connection_fd_callback = move |_fd: RawFd| {
+            tracing::debug!("Callback on connection fd");
             #[cfg(target_os = "android")]
             tun_provider.bypass(_fd);
+            #[cfg(target_os = "linux")]
+            if let Err(err) = Mark.set(unsafe { &BorrowedFd::borrow_raw(_fd) }, &TUNNEL_FWMARK) {
+                tracing::error!("Could not fwmark mixnet fd: {err}");
+            }
         };
         let mut connected_mixnet = tunnel::connect_mixnet(
             connect_options,
@@ -579,6 +588,7 @@ impl TunnelMonitor {
         {
             let routing_config = RoutingConfig::Mixnet {
                 tun_name: tun_name.clone(),
+                #[cfg(not(target_os = "linux"))]
                 entry_gateway_address: assigned_addresses.entry_mixnet_gateway_ip,
             };
 
@@ -642,6 +652,7 @@ impl TunnelMonitor {
 
         let routing_config = RoutingConfig::WireguardNetstack {
             exit_tun_name: exit_tun_name.clone(),
+            #[cfg(not(target_os = "linux"))]
             entry_gateway_address: conn_data.entry.endpoint.ip(),
         };
 
@@ -835,6 +846,7 @@ impl TunnelMonitor {
         let routing_config = RoutingConfig::Wireguard {
             entry_tun_name: entry_tunnel_metadata.interface.clone(),
             exit_tun_name: exit_tunnel_metadata.interface.clone(),
+            #[cfg(not(target_os = "linux"))]
             entry_gateway_address: conn_data.entry.endpoint.ip(),
             exit_gateway_address: conn_data.exit.endpoint.ip(),
         };

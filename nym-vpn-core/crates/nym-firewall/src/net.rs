@@ -292,3 +292,19 @@ pub enum TunnelInterface {
         exit: TunnelMetadata,
     },
 }
+
+impl TunnelInterface {
+    pub fn exit_metadata(&self) -> &TunnelMetadata {
+        match self {
+            TunnelInterface::One(tunnel_metadata) => tunnel_metadata,
+            TunnelInterface::Two { entry: _, exit } => exit,
+        }
+    }
+
+    pub fn inner_metadatas(&self) -> Vec<&TunnelMetadata> {
+        match self {
+            TunnelInterface::One(tunnel_metadata) => vec![tunnel_metadata],
+            TunnelInterface::Two { entry, exit } => vec![entry, exit],
+        }
+    }
+}
