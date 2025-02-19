@@ -243,7 +243,7 @@ mod tests {
 
     use crate::{
         account_management::AccountManagementPaths, feature_flags::FlagValue,
-        system_configuration::ScoreThresholds, system_messages::Properties, SystemMessage,
+        system_messages::Properties, SystemMessage,
     };
 
     use super::*;
@@ -345,18 +345,7 @@ mod tests {
                     "true".to_owned(),
                 )])),
             }]),
-            system_configuration: Some(SystemConfiguration {
-                mix_thresholds: ScoreThresholds {
-                    high: 75,
-                    medium: 50,
-                    low: 25,
-                },
-                wg_thresholds: ScoreThresholds {
-                    high: 80,
-                    medium: 60,
-                    low: 0,
-                },
-            }),
+            system_configuration: None,
         };
         assert_eq!(network, expected_network);
     }
