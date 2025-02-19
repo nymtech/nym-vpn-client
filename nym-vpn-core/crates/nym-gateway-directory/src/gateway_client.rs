@@ -1,6 +1,7 @@
 // Copyright 2023-2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::SocketAddr;
 use std::{fmt, net::IpAddr};
 
 use nym_sdk::UserAgent;
@@ -82,6 +83,27 @@ impl Config {
     ) -> Self {
         self.min_gateway_performance = Some(min_gateway_performance);
         self
+    }
+}
+
+pub struct ResolvedConfig {
+    pub nyxd_socket_addrs: Vec<SocketAddr>,
+    pub api_socket_addrs: Vec<SocketAddr>,
+    pub nym_vpn_api_socket_addres: Option<Vec<SocketAddr>>,
+}
+
+impl Iterator for ResolvedConfig {
+    type Item = SocketAddr;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.nyxd_socket_addrs
+            .pop()
+            .or_else(|| self.api_socket_addrs.pop())
+            .or_else(|| {
+                self.nym_vpn_api_socket_addres
+                    .as_mut()
+                    .and_then(|addrs| addrs.pop())
+            })
     }
 }
 

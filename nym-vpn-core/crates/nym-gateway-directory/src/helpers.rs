@@ -6,7 +6,7 @@ use std::net::{IpAddr, SocketAddr};
 use nym_http_api_client::HickoryDnsResolver;
 use tracing::debug;
 
-use crate::{error::Result, Config, Error};
+use crate::{error::Result, gateway_client::ResolvedConfig, Config, Error};
 
 async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     debug!("Trying to resolve hostname: {hostname}");
@@ -28,34 +28,37 @@ async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     Ok(ips)
 }
 
-pub async fn allowed_ips(config: &Config) -> Result<Vec<SocketAddr>> {
-    let mut socket_addrs = vec![];
-    let mut urls = vec![];
-
-    urls.push(config.nyxd_url());
-    urls.push(config.api_url());
-    if let Some(vpn_api_url) = config.nym_vpn_api_url() {
-        urls.push(vpn_api_url);
-    }
-
-    for unresolved_url in urls {
-        let port = unresolved_url
-            .port_or_known_default()
-            .ok_or(Error::UrlError {
-                url: unresolved_url.clone(),
-                reason: "missing port".to_string(),
-            })?;
-        let hostname = unresolved_url.host_str().ok_or(Error::UrlError {
+async fn url_to_socket_addr(unresolved_url: &url::Url) -> Result<Vec<SocketAddr>> {
+    let port = unresolved_url
+        .port_or_known_default()
+        .ok_or(Error::UrlError {
             url: unresolved_url.clone(),
-            reason: "missing hostname".to_string(),
+            reason: "missing port".to_string(),
         })?;
-        socket_addrs.extend(
-            try_resolve_hostname(hostname)
-                .await?
-                .into_iter()
-                .map(|ip| SocketAddr::new(ip, port)),
-        );
-    }
+    let hostname = unresolved_url.host_str().ok_or(Error::UrlError {
+        url: unresolved_url.clone(),
+        reason: "missing hostname".to_string(),
+    })?;
 
-    Ok(socket_addrs)
+    Ok(try_resolve_hostname(hostname)
+        .await?
+        .into_iter()
+        .map(|ip| SocketAddr::new(ip, port))
+        .collect())
+}
+
+pub async fn resolve_config(config: &Config) -> Result<ResolvedConfig> {
+    let nyxd_socket_addrs = url_to_socket_addr(config.nyxd_url()).await?;
+    let api_socket_addrs = url_to_socket_addr(config.api_url()).await?;
+    let nym_vpn_api_socket_addres = if let Some(vpn_api_url) = config.nym_vpn_api_url() {
+        Some(url_to_socket_addr(vpn_api_url).await?)
+    } else {
+        None
+    };
+
+    Ok(ResolvedConfig {
+        nyxd_socket_addrs,
+        api_socket_addrs,
+        nym_vpn_api_socket_addres,
+    })
 }
