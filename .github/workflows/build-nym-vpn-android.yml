@@ -98,14 +98,10 @@ jobs:
         with:
           go-version: '1.23.6'  # If this changes, we need a PR to Fdroid to update pipeline for reproducibility 
 
-      - uses: dtolnay/rust-toolchain@1.84.1 # If this changes, we need a PR to Fdroid to update pipeline for reproducibility 
-
-      - name: Add all targets
-        run: |
-          rustup target add \
-            aarch64-linux-android \
-            x86_64-linux-android \
-            i686-linux-android
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.84.1
+          targets: aarch64-linux-android # If this changes, we need a PR to Fdroid to update pipeline for reproducibility 
 
       - name: Install cargo deps
         run: |
