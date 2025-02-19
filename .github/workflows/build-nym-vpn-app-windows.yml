@@ -72,6 +72,7 @@ jobs:
     runs-on: custom-windows-11
     env:
       CPP_BUILD_MODES: ${{ needs.build-mullvad-windows.outputs.CPP_BUILD_MODES }}
+      VPNCORE_DEV_BUILDS_URL: https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core/develop
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
 
@@ -154,7 +155,7 @@ jobs:
           echo "core_release_tag: ${{ inputs.core_release_tag }}"
           "core_release_tag=${{ inputs.core_release_tag }}" >> $env:GITHUB_ENV
 
-      - name: Get nym-vpn-core release tag
+      - name: Get nym-vpn-core release tag (latest stable)
         if: ${{ !inputs.core_release_tag && !inputs.dev_mode }}
         run: |
           $release_tag = curl -sSL -H "Accept: application/vnd.github+json" `
@@ -163,13 +164,23 @@ jobs:
           echo "core_release_tag: $release_tag"
           "core_release_tag=$release_tag" >> $env:GITHUB_ENV
 
-      - name: Get nym-vpn-core release tag (dev)
+      - name: Get nym-vpn-core artifact url (latest dev)
         if: ${{ !inputs.core_release_tag && inputs.dev_mode }}
+        shell: bash
         run: |
-          echo "core_release_tag: nym-vpn-core-nightly"
-          "core_release_tag=nym-vpn-core-nightly" >> $env:GITHUB_ENV
+          latest=$(curl -s ${{ env.VPNCORE_DEV_BUILDS_URL }} \
+              | grep -oP '(?<=<a href=")\d+/' \
+              | sort -r \
+              | head -n 1)
+          latest_url=${{ env.VPNCORE_DEV_BUILDS_URL }}/"$latest"
+          artifact=$(curl -s "$latest_url" \
+              | grep -oP '(?<=^<a href=")nym-vpn-core-v.+_windows_x86_64\.zip(?=">)')
+          artifact_url="$latest_url$artifact"
+          echo "$artifact_url"
+          echo "core_asset_url=$artifact_url" >> $GITHUB_ENV
 
-      - name: Get nym-vpn-core asset url
+      - name: Get nym-vpn-core artifact url (${{ env.core_release_tag }})
+        if: ${{ env.core_release_tag }}
         run: |
           $asset_url = curl -sSL -H "Accept: application/vnd.github+json" `
             https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/${{ env.core_release_tag }} |
