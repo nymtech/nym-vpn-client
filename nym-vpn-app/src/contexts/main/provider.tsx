@@ -1,6 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
 import React, { useCallback, useEffect, useReducer } from 'react';
-import { useTranslation } from 'react-i18next';
 import { CountryCacheDuration } from '../../constants';
 import {
   MainDispatchContext,
@@ -8,11 +7,10 @@ import {
   useInAppNotify,
 } from '../index';
 import { sleep } from '../../util';
-import { kvSet } from '../../kvStore';
 import {
   BackendError,
   Cli,
-  Country,
+  GatewaysByCountry,
   NodeHop,
   SystemMessage,
   VpnMode,
@@ -32,10 +30,11 @@ type Props = {
 function MainStateProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
   const {
-    entryCountryList,
-    exitCountryList,
-    entryNodeLocation,
-    exitNodeLocation,
+    mxEntryGateways,
+    mxExitGateways,
+    wgGateways,
+    entryNode,
+    exitNode,
     vpnMode,
     networkEnv,
   } = state;
@@ -43,7 +42,7 @@ function MainStateProvider({ children }: Props) {
   const { push } = useInAppNotify();
   useTauriEvents(dispatch, push);
 
-  const { t } = useTranslation();
+  // const { t } = useTranslation();
 
   // initialize app state
   useEffect(() => {
@@ -93,10 +92,10 @@ function MainStateProvider({ children }: Props) {
       return;
     }
     if (vpnMode === 'Mixnet') {
-      fetchCountries(vpnMode, 'entry');
-      fetchCountries(vpnMode, 'exit');
+      fetchGateways(vpnMode, 'entry');
+      fetchGateways(vpnMode, 'exit');
     } else {
-      fetchCountries(vpnMode, 'entry');
+      fetchGateways(vpnMode, 'entry');
     }
   }, [vpnMode]);
 
@@ -137,149 +136,90 @@ function MainStateProvider({ children }: Props) {
   }, [push]);
 
   // use cached values if any, otherwise query from daemon
-  const fetchCountries = async (vpnMode: VpnMode, node: NodeHop) => {
+  const fetchGateways = async (vpnMode: VpnMode, node: NodeHop) => {
     // first try to load from cache
-    let countries = MCache.get<Country[]>(
-      vpnMode === 'Mixnet' ? `mn-${node}-countries` : 'wg-countries',
+    let gateways = MCache.get<GatewaysByCountry[]>(
+      vpnMode === 'Mixnet' ? `mx-${node}-countries` : 'wg-countries',
     );
     // fallback to daemon query
-    if (!countries) {
-      console.info(`fetching countries for ${vpnMode} ${node}`);
+    if (!gateways) {
+      console.info(`fetching gateways for ${vpnMode} ${node}`);
       try {
-        countries = await invoke<Country[]>('get_countries', {
+        gateways = await invoke<GatewaysByCountry[]>('get_gateways', {
           vpnMode,
           nodeType: node === 'entry' ? 'Entry' : 'Exit',
         });
         MCache.set(
-          vpnMode === 'Mixnet' ? `mn-${node}-countries` : 'wg-countries',
-          countries,
+          vpnMode === 'Mixnet' ? `mx-${node}-countries` : 'wg-countries',
+          gateways,
           CountryCacheDuration,
         );
       } catch (e) {
         console.warn(`Failed to fetch ${node} countries:`, e);
-        dispatch({
-          type:
-            node === 'entry'
-              ? 'set-entry-countries-error'
-              : 'set-exit-countries-error',
-          payload: e as BackendError,
-        });
-        if (vpnMode === 'TwoHop') {
-          // in 2hop mode, the error must be set for both entry and exit
+        if (vpnMode === 'Mixnet') {
           dispatch({
             type:
               node === 'entry'
-                ? 'set-exit-countries-error'
-                : 'set-entry-countries-error',
+                ? 'set-mx-entry-gateways-error'
+                : 'set-mx-exit-gateways-error',
+            payload: e as BackendError,
+          });
+        } else {
+          dispatch({
+            type: 'set-wg-gateways-error',
             payload: e as BackendError,
           });
         }
       }
     }
-    if (!countries) {
-      console.warn('no countries found');
+    if (!gateways) {
+      console.warn('no gateways found');
       return;
     }
     if (vpnMode === 'Mixnet') {
       dispatch({
-        type: 'set-country-list',
+        type: 'set-mx-gateways',
         payload: {
           hop: node,
-          countries,
+          gateways,
         },
       });
       // reset any previous error
       dispatch({
         type:
           node === 'entry'
-            ? 'set-entry-countries-error'
-            : 'set-exit-countries-error',
+            ? 'set-mx-entry-gateways-error'
+            : 'set-mx-exit-gateways-error',
         payload: null,
       });
     } else {
-      // in 2hop mode, the country list is the same for both entry and exit
+      // in 2hop mode, the gateway list is the same for both entry and exit
       dispatch({
-        type: 'set-fast-country-list',
+        type: 'set-wg-gateways',
         payload: {
-          countries,
+          gateways,
         },
       });
       dispatch({
-        type: 'set-entry-countries-error',
-        payload: null,
-      });
-      dispatch({
-        type: 'set-exit-countries-error',
+        type: 'set-wg-gateways-error',
         payload: null,
       });
     }
   };
 
-  const checkSelectedCountry = useCallback(
-    async (hop: NodeHop, countries: Country[], selected: Country) => {
-      if (
-        countries.length > 0 &&
-        !countries.some((c) => c.code === selected.code)
-      ) {
-        const location =
-          countries[Math.floor(Math.random() * countries.length)];
-        console.info(
-          `selected ${hop} country [${selected.code}] not available, switching to [${location.code}]`,
-        );
-        try {
-          await kvSet<Country>(
-            hop === 'entry' ? 'EntryNodeLocation' : 'ExitNodeLocation',
-            location,
-          );
-          dispatch({
-            type: 'set-node-location',
-            payload: { hop, location },
-          });
-          push({
-            text: t(
-              hop === 'entry'
-                ? 'location-not-available.entry'
-                : 'location-not-available.exit',
-              {
-                ns: 'nodeLocation',
-                location: location.name,
-              },
-            ),
-            position: 'top',
-            closeIcon: true,
-            autoHideDuration: 10000,
-          });
-        } catch (e) {
-          console.warn(`failed to update the selected country: ${e}`);
-        }
-      }
-    },
-    [push, t],
-  );
-
   useEffect(() => {
-    // if the current country is not in the list of available countries, pick a random one
-    if (entryCountryList.length > 0) {
-      checkSelectedCountry('entry', entryCountryList, entryNodeLocation);
-    }
-    if (exitCountryList.length > 0) {
-      checkSelectedCountry('exit', exitCountryList, exitNodeLocation);
-    }
-  }, [
-    checkSelectedCountry,
-    entryNodeLocation,
-    exitNodeLocation,
-    entryCountryList,
-    exitCountryList,
-  ]);
+    // TODO implement this
+    // if the selected current gateway (or country) is not available
+    // pick a random one
+  }, [entryNode, exitNode, mxEntryGateways, mxExitGateways, wgGateways]);
 
-  const fetchMnCountries = useCallback(
-    async (node: NodeHop) => fetchCountries(vpnMode, node),
+  const fetchMxGateways = useCallback(
+    async (node: NodeHop) => fetchGateways(vpnMode, node),
     [vpnMode],
   );
 
-  const fetchWgCountries = useCallback(
-    async () => fetchCountries(vpnMode, 'entry'),
+  const fetchWgGateways = useCallback(
+    async () => fetchGateways(vpnMode, 'entry'),
     [vpnMode],
   );
 
@@ -287,8 +227,8 @@ function MainStateProvider({ children }: Props) {
     <MainStateContext.Provider
       value={{
         ...state,
-        fetchMnCountries,
-        fetchWgCountries,
+        fetchMxGateways,
+        fetchWgGateways,
       }}
     >
       <MainDispatchContext.Provider value={dispatch}>

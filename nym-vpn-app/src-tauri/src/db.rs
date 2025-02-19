@@ -30,8 +30,8 @@ pub enum Key {
     UiRootFontSize,
     UiLanguage,
     VpnMode,
-    EntryNodeLocation,
-    ExitNodeLocation,
+    EntryNode,
+    ExitNode,
     WelcomeScreenSeen,
     DesktopNotifications,
 }

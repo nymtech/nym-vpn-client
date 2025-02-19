@@ -7,8 +7,8 @@ export type MCached<T> = {
 };
 
 export type CKey =
-  | 'mn-entry-countries'
-  | 'mn-exit-countries'
+  | 'mx-entry-countries'
+  | 'mx-exit-countries'
   | 'wg-countries'
   | 'account-id'
   | 'device-id';
