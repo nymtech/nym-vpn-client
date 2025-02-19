@@ -17,8 +17,10 @@ type AddError = {
 };
 
 function Login() {
-  const { daemonStatus, accountLinks } = useMainState();
   const [phrase, setPhrase] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const { daemonStatus, accountLinks } = useMainState();
   const [error, setError] = useState<AddError | null>(null);
 
   const { push } = useInAppNotify();
@@ -35,30 +37,36 @@ function Login() {
     }
   };
 
-  const handleClick = () => {
-    if (phrase.length === 0) {
+  const handleClick = async () => {
+    if (phrase.length === 0 || loading) {
       return;
     }
-    invoke<number | null>('add_account', { mnemonic: phrase.trim() })
-      .then(() => {
-        navigate(routes.root);
-        dispatch({ type: 'set-account', stored: true });
-        push({
-          text: t('added-notification'),
-          position: 'top',
-          closeIcon: true,
-        });
-        MCache.del('account-id');
-        MCache.del('device-id');
-      })
-      .catch((e: unknown) => {
-        const eT = e as BackendError;
-        console.info('backend error:', e);
-        setError({
-          error: tE(eT.key),
-          details: eT.data?.reason,
-        });
+    setLoading(true);
+    try {
+      await invoke<number | null>('add_account', { mnemonic: phrase.trim() });
+      navigate(routes.root);
+      dispatch({ type: 'set-account', stored: true });
+      push({
+        text: t('added-notification'),
+        position: 'top',
+        closeIcon: true,
       });
+      MCache.del('account-id');
+      MCache.del('device-id');
+
+      // reset any previous error
+      dispatch({ type: 'reset-error' });
+      dispatch({ type: 'set-tunnel-error', error: null });
+    } catch (e: unknown) {
+      const eT = e as BackendError;
+      console.info('backend error:', e);
+      setError({
+        error: tE(eT.key),
+        details: eT.data?.reason,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

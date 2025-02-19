@@ -26,7 +26,7 @@ import {
 export type StateAction =
   | { type: 'init-done' }
   | { type: 'set-tunnel'; tunnel: Tunnel }
-  | { type: 'set-tunnel-error'; error: TunnelError }
+  | { type: 'set-tunnel-error'; error: TunnelError | null }
   | { type: 'set-daemon-status'; status: DaemonStatus }
   | { type: 'set-daemon-info'; info: DaemonInfo }
   | { type: 'set-vpn-mode'; mode: VpnMode }

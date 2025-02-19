@@ -185,6 +185,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-compression"
+version = "0.4.18"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df895a515f70646414f4b45c0b79082783b80552b373a68283012928df56f522"
+dependencies = [
+ "flate2",
+ "futures-core",
+ "memchr",
+ "pin-project-lite",
+ "tokio",
+]
+
+[[package]]
 name = "async-executor"
 version = "1.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3272,7 +3285,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.3-ruta-vpn-fork#e3ce0a0cae4905b5dcba57ca4247d22a1d88e9ae"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#63a8f96ea59f355335c1539dc22f31783dc155e9"
 dependencies = [
  "const-str",
  "log",
@@ -3284,7 +3297,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.3-ruta-vpn-fork#e3ce0a0cae4905b5dcba57ca4247d22a1d88e9ae"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#63a8f96ea59f355335c1539dc22f31783dc155e9"
 dependencies = [
  "async-trait",
  "hickory-resolver",
@@ -4508,6 +4521,7 @@ version = "0.12.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "43e734407157c3c2034e0258f5e4473ddb361b1e85f95a66690d67264d7cd1da"
 dependencies = [
+ "async-compression",
  "base64 0.22.1",
  "bytes",
  "futures-core",
