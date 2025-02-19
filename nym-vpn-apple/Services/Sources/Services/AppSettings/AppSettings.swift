@@ -61,11 +61,6 @@ public final class AppSettings: ObservableObject {
     )
     public var currentEnv: String = "mainnet"
 
-    @AppStorage(AppSettingKey.santaEntryGateways.rawValue)
-    public var santaEntryGatewaysData = Data()
-    @AppStorage(AppSettingKey.santaExitGateways.rawValue)
-    public var santaExitGatewaysData = Data()
-
     @AppStorage(AppSettingKey.isZknymEnabled.rawValue)
     public var isZknymEnabled: Bool?
 

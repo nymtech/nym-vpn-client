@@ -250,9 +250,11 @@ private extension ConnectionManager {
 private extension ConnectionManager {
     func setupGRPCManagerObservers() {
         grpcManager.$tunnelStatus.sink { [weak self] status in
-            guard self?.currentTunnelStatus != status else { return }
-            self?.currentTunnelStatus = status
-            self?.scheduleNotificationIfNeeded()
+            Task { @MainActor [weak self] in
+                guard self?.currentTunnelStatus != status else { return }
+                self?.currentTunnelStatus = status
+                self?.scheduleNotificationIfNeeded()
+            }
         }
         .store(in: &cancellables)
     }

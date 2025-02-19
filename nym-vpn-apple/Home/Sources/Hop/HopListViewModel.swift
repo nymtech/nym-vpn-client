@@ -26,34 +26,6 @@ public class HopListViewModel: ObservableObject {
         }
     }
 
-    private var santasEntryGateways: [String] {
-        get {
-            guard configurationManager.isSantaClaus,
-                  let decoded = try? JSONDecoder().decode([String].self, from: appSettings.santaEntryGatewaysData)
-            else {
-                return []
-            }
-            return decoded
-        }
-        set {
-            appSettings.santaEntryGatewaysData = (try? JSONEncoder().encode(newValue)) ?? Data()
-        }
-    }
-
-    private var santasExitGateways: [String] {
-        get {
-            guard configurationManager.isSantaClaus,
-                  let decoded = try? JSONDecoder().decode([String].self, from: appSettings.santaExitGatewaysData)
-            else {
-                return []
-            }
-            return decoded
-        }
-        set {
-            appSettings.santaExitGatewaysData = (try? JSONEncoder().encode(newValue)) ?? Data()
-        }
-    }
-
     public init(
         type: HopType,
         path: Binding<NavigationPath>,
@@ -113,15 +85,6 @@ public class HopListViewModel: ObservableObject {
 
     func displayInfoTooltip() {
         isGeolocationModalDisplayed.toggle()
-    }
-
-    func santasGateways() -> [String] {
-        switch type {
-        case .entry:
-            santasEntryGateways
-        case .exit:
-            santasExitGateways
-        }
     }
 }
 

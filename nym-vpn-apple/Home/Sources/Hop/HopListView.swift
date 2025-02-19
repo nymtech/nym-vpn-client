@@ -28,7 +28,6 @@ public struct HopListView: View {
                 noSearchResultsView()
                 quickestConnection()
                 availableCountryList()
-                santaGatewaysList()
             }
             .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
             .ignoresSafeArea(.all)
@@ -116,15 +115,6 @@ private extension HopListView {
         .ignoresSafeArea(.all)
         .onTapGesture {
             viewModel.connectionSelect(with: country)
-        }
-    }
-
-    @ViewBuilder
-    func santaGatewaysList() -> some View {
-        if !viewModel.santasGateways().isEmpty {
-            ForEach(viewModel.santasGateways(), id: \.self) { identifier in
-                gatewayButton(with: identifier)
-            }
         }
     }
 

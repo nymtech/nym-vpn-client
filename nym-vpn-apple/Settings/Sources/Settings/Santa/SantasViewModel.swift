@@ -49,32 +49,6 @@ public final class SantasViewModel: ObservableObject {
 #endif
     }
 
-    var entryGateways: [String] {
-        get {
-            guard let decoded = try? JSONDecoder().decode([String].self, from: appSettings.santaEntryGatewaysData)
-            else {
-                return []
-            }
-            return decoded
-        }
-        set {
-            appSettings.santaEntryGatewaysData = (try? JSONEncoder().encode(newValue)) ?? Data()
-        }
-    }
-
-    var exitGateways: [String] {
-        get {
-            guard let decoded = try? JSONDecoder().decode([String].self, from: appSettings.santaExitGatewaysData)
-            else {
-                return []
-            }
-            return decoded
-        }
-        set {
-            appSettings.santaExitGatewaysData = (try? JSONEncoder().encode(newValue)) ?? Data()
-        }
-    }
-
 #if os(iOS)
     init(
         path: Binding<NavigationPath>,
@@ -105,50 +79,6 @@ public final class SantasViewModel: ObservableObject {
 
     func changeEnvironment(to env: Env) {
         configurationManager.updateEnv(to: env)
-        objectWillChange.send()
-    }
-
-    func clearEntryGateway() {
-        entryGateways.removeAll()
-        objectWillChange.send()
-    }
-
-    func clearExitGateway() {
-        exitGateways.removeAll()
-        objectWillChange.send()
-    }
-
-    func pasteEntryGateway() {
-        let gateway: String?
-#if os(iOS)
-        gateway = UIPasteboard.general.string
-#elseif os(macOS)
-        gateway = NSPasteboard.general.string(forType: .string)
-#endif
-        guard let gateway,
-              gateway.count == 44,
-              !entryGateways.contains(gateway)
-        else {
-            return
-        }
-        entryGateways.append(gateway)
-        objectWillChange.send()
-    }
-
-    func pasteExitGateway() {
-        let gateway: String?
-#if os(iOS)
-        gateway = UIPasteboard.general.string
-#elseif os(macOS)
-        gateway = NSPasteboard.general.string(forType: .string)
-#endif
-        guard let gateway,
-              gateway.count == 44,
-              !exitGateways.contains(gateway)
-        else {
-            return
-        }
-        exitGateways.append(gateway)
         objectWillChange.send()
     }
 
