@@ -21,7 +21,10 @@ pub trait HarbourMasterApiClientExt: ApiClient {
     async fn get_gateways_page(
         &self,
         page: u32,
-    ) -> Result<PagedResult<Gateway>, HarbourMasterApiError> {
+    ) -> Result<PagedResult<Gateway>, HarbourMasterApiError>
+    where
+        Self: Sync,
+    {
         debug!("Fetching gateways page {}", page);
         self.get_json(
             &[routes::API_VERSION, routes::GATEWAYS, routes::SKINNY],
@@ -32,7 +35,10 @@ pub trait HarbourMasterApiClientExt: ApiClient {
 
     // BEWARE: pagination isn't yet implemented in the harbourmaster API as far as I can tell, so
     // just set the pagination size large enough to cover it in one go for now.
-    async fn get_gateways(&self) -> Result<Vec<Gateway>, HarbourMasterApiError> {
+    async fn get_gateways(&self) -> Result<Vec<Gateway>, HarbourMasterApiError>
+    where
+        Self: Sync,
+    {
         debug!("Fetching gateways");
         let mut gateways = Vec::new();
         let mut page = 0;
