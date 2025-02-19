@@ -86,6 +86,9 @@ where
 
     // Listen for cancellation signals
     cancel_token: CancellationToken,
+
+    // User agent used by api client.
+    user_agent: UserAgent,
 }
 
 impl<S> AccountController<S>
@@ -128,7 +131,7 @@ where
 
         // Client to query the VPN API
         let vpn_api_client =
-            nym_vpn_api_client::VpnApiClient::new(network_env.vpn_api_url(), user_agent)
+            nym_vpn_api_client::VpnApiClient::new(network_env.vpn_api_url(), user_agent.clone())
                 .map_err(Error::SetupVpnApiClient)?;
 
         // We expose the account state as a shared object that can be queried without having to ask
@@ -163,6 +166,7 @@ where
             waiting_request_zknym_command_handler,
             background_zk_nym_refresh: credentials_mode,
             cancel_token,
+            user_agent,
         })
     }
 
@@ -734,15 +738,30 @@ where
                 let result = self.handle_get_available_tickets().await;
                 result_tx.send(result);
             }
-            AccountCommand::ResetVpnApiClient(result_tx, vpn_api_client) => {
-                self.vpn_api_client = vpn_api_client.clone();
-                self.waiting_sync_account_command_handler
-                    .update_vpn_api_client(vpn_api_client.clone());
-                self.waiting_sync_device_command_handler
-                    .update_vpn_api_client(vpn_api_client.clone());
-                self.waiting_request_zknym_command_handler
-                    .update_vpn_api_client(vpn_api_client);
-                result_tx.send(Ok(()));
+            AccountCommand::SetStaticApiAddresses(result_tx, static_api_addresses) => {
+                result_tx.send(
+                    nym_vpn_api_client::VpnApiClient::new_with_resolver_overrides(
+                        self.vpn_api_client.current_url().clone(),
+                        self.user_agent.clone(),
+                        static_api_addresses.as_deref(),
+                    )
+                    .and_then(|new_vpn_api_client| {
+                        self.vpn_api_client = new_vpn_api_client.clone();
+                        self.waiting_sync_account_command_handler
+                            .update_vpn_api_client(new_vpn_api_client.clone());
+                        self.waiting_sync_device_command_handler
+                            .update_vpn_api_client(new_vpn_api_client.clone());
+                        self.waiting_request_zknym_command_handler
+                            .update_vpn_api_client(new_vpn_api_client);
+                        Ok(())
+                    })
+                    .map_err(|e| {
+                        AccountCommandError::internal(format!(
+                            "Failed to set static addresses: {}",
+                            e.to_string()
+                        ))
+                    }),
+                );
             }
         };
     }

@@ -12,7 +12,7 @@ use nym_vpn_lib_types::{
 use nym_vpn_store::mnemonic::Mnemonic;
 use request_zknym::RequestZkNymSummary;
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 
 use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
 use tokio::sync::oneshot;
@@ -98,9 +98,9 @@ pub enum AccountCommand {
     GetZkNymById(String),
     ConfirmZkNymIdDownloaded(String),
     GetAvailableTickets(ReturnSender<AvailableTicketbooks, AccountCommandError>),
-    ResetVpnApiClient(
+    SetStaticApiAddresses(
         ReturnSender<(), AccountCommandError>,
-        nym_vpn_api_client::VpnApiClient,
+        Option<Vec<SocketAddr>>,
     ),
 }
 
