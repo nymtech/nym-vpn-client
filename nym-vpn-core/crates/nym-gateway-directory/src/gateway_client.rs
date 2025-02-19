@@ -92,18 +92,15 @@ pub struct ResolvedConfig {
     pub nym_vpn_api_socket_addres: Option<Vec<SocketAddr>>,
 }
 
-impl Iterator for ResolvedConfig {
-    type Item = SocketAddr;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        self.nyxd_socket_addrs
-            .pop()
-            .or_else(|| self.api_socket_addrs.pop())
-            .or_else(|| {
-                self.nym_vpn_api_socket_addres
-                    .as_mut()
-                    .and_then(|addrs| addrs.pop())
-            })
+impl ResolvedConfig {
+    pub fn all_socket_addrs(&self) -> Vec<SocketAddr> {
+        let mut socket_addrs = vec![];
+        socket_addrs.extend(self.nyxd_socket_addrs.iter());
+        socket_addrs.extend(self.api_socket_addrs.iter());
+        if let Some(vpn_api_socket_addrs) = &self.nym_vpn_api_socket_addres {
+            socket_addrs.extend(vpn_api_socket_addrs.iter());
+        }
+        socket_addrs
     }
 }
 
