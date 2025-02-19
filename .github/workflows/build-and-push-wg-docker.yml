@@ -25,3 +25,4 @@ jobs:
           push: true
           tags: nymtech/android-wg-patched:latest
           file: ./wireguard/Dockerfile_AndroidPatchedGoruntime
+          context: .
