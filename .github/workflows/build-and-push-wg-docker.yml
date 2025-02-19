@@ -27,4 +27,5 @@ jobs:
         with:
           push: true
           tags: nymtech/android-wg-patched
-          file: Dockerfile_AndroidPatchedGoruntime
+          context: ./
+          file: ./Dockerfile_AndroidPatchedGoruntime
