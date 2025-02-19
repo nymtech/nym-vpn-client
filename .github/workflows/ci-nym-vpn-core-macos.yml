@@ -58,9 +58,9 @@ jobs:
       - name: Run tests
         working-directory: nym-vpn-core
         run: |
-          cargo test --verbose --workspace
+          cargo test --verbose --workspace --locked
 
       - name: Clippy
         working-directory: nym-vpn-core
         run: |
-          cargo clippy --workspace -- -Dwarnings
+          cargo clippy --workspace --locked -- -Dwarnings

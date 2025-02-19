@@ -130,14 +130,14 @@ jobs:
       - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --workspace --exclude nym-gateway-probe
+          cargo build --verbose --workspace --exclude nym-gateway-probe --locked
 
       - name: Run tests
         working-directory: nym-vpn-core
         run: |
-          cargo test --verbose --workspace --exclude nym-gateway-probe
+          cargo test --verbose --workspace --exclude nym-gateway-probe --locked
 
       - name: Clippy
         working-directory: nym-vpn-core
         run: |
-          cargo clippy --workspace --exclude nym-gateway-probe -- -Dwarnings
+          cargo clippy --workspace --exclude nym-gateway-probe --locked -- -Dwarnings
