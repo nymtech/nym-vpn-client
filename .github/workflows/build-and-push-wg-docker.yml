@@ -1,4 +1,4 @@
-name: Build and Push WG Android Docker Image to DockerHub
+name: build-and-push-wg-docker
 
 on:
   workflow_dispatch:
