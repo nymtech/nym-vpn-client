@@ -34,12 +34,7 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
 
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: '1.84.1'  # If this changes, we need a PR to Fdroid to update pipeline for reproducibility 
-          override: true
-          components: rustfmt, clippy
+      - uses: dtolnay/rust-toolchain@1.84.1 # If this changes, we need a PR to Fdroid to update pipeline for reproducibility 
 
       - name: Add android target
         run: |

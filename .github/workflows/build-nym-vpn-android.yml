@@ -93,8 +93,12 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Add rust stable toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23.6'  # If this changes, we need a PR to Fdroid to update pipeline for reproducibility 
+
+      - uses: dtolnay/rust-toolchain@1.84.1 # If this changes, we need a PR to Fdroid to update pipeline for reproducibility 
 
       - name: Add all targets
         run: |

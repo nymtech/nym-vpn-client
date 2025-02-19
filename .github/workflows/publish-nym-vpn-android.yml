@@ -233,12 +233,7 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Set up Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: '1.84.1'  # If this changes, we need a PR to Fdroid to update pipeline for reproducibility 
-          override: true
-          components: rustfmt, clippy
+      - uses: dtolnay/rust-toolchain@1.84.1 # If this changes, we need a PR to Fdroid to update pipeline for reproducibility 
 
       - name: Add android target
         run: |
