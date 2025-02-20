@@ -30,6 +30,9 @@ on:
       core_release_tag:
         required: false
         type: string
+      core_artifact_url:
+        required: false
+        type: string
       sign:
         required: false
         type: boolean
