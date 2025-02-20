@@ -12,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -85,14 +84,9 @@ class MainActivity : AppCompatActivity() {
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
 
-	@OptIn(ExperimentalLayoutApi::class)
 	override fun onCreate(savedInstanceState: Bundle?) {
 		val appViewModel by viewModels<AppViewModel>()
-		installSplashScreen().apply {
-			setKeepOnScreenCondition {
-				!appViewModel.isAppReady.value
-			}
-		}
+		installSplashScreen().setKeepOnScreenCondition { false }
 
 		enableEdgeToEdge(
 			statusBarStyle = SystemBarStyle.auto(TRANSPARENT, TRANSPARENT),
@@ -178,8 +172,7 @@ class MainActivity : AppCompatActivity() {
 						) { padding ->
 							NavHost(
 								navController,
-								// startDestination = Route.Splash,
-								startDestination = Route.Main(),
+								startDestination = Route.Splash,
 								modifier =
 								Modifier
 									.fillMaxSize()
@@ -190,7 +183,7 @@ class MainActivity : AppCompatActivity() {
 								popExitTransition = { fadeOut(tween(200)) },
 							) {
 								composable<Route.Splash> {
-									SplashScreen(appViewModel, appState)
+									SplashScreen(appViewModel)
 								}
 								composable<Route.Main> {
 									val args = it.toRoute<Route.Main>()
