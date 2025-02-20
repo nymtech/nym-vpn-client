@@ -109,3 +109,9 @@ export type GatewaysByCountry = {
   gateways: Gateway[];
   type: GatewayType;
 };
+
+export function isGateway(node: Gateway | Country): node is Gateway {
+  return (
+    (node as Gateway).id !== undefined && (node as Gateway).type !== undefined
+  );
+}

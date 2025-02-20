@@ -1,13 +1,13 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { Country, NodeHop } from '../../types';
+import { Country, Gateway, NodeHop, isGateway } from '../../types';
 import { useInAppNotify, useMainState } from '../../contexts';
 import { FlagIcon, MsIcon, countryCode } from '../../ui';
 import { useLang, useThrottle } from '../../hooks';
 import { HomeThrottleDelay } from '../../constants';
 
 type HopSelectProps = {
-  country: Country;
+  node: Country | Gateway;
   onClick: () => void;
   nodeHop: NodeHop;
   disabled?: boolean;
@@ -15,7 +15,7 @@ type HopSelectProps = {
 
 export default function HopSelect({
   nodeHop,
-  country,
+  node,
   onClick,
   disabled,
 }: HopSelectProps) {
@@ -64,6 +64,34 @@ export default function HopSelect({
     }
   };
 
+  const SelectedCountry = (country: Country) => (
+    <div className="flex flex-row items-center gap-3 overflow-hidden">
+      <FlagIcon
+        code={country.code.toLowerCase() as countryCode}
+        alt={country.code}
+      />
+      <div
+        className={clsx(['text-base truncate', disabled && 'cursor-default'])}
+      >
+        {getCountryName(country.code) || country.name}
+      </div>
+    </div>
+  );
+
+  const SelectedGateway = (gateway: Gateway) => (
+    <div className="flex flex-row items-center gap-3 overflow-hidden">
+      <FlagIcon
+        code={gateway.country.code.toLowerCase() as countryCode}
+        alt={gateway.country.code}
+      />
+      <div
+        className={clsx(['text-base truncate', disabled && 'cursor-default'])}
+      >
+        {gateway.name}
+      </div>
+    </div>
+  );
+
   return (
     <div
       className={clsx([
@@ -87,18 +115,7 @@ export default function HopSelect({
       >
         {nodeHop === 'entry' ? t('first-hop') : t('last-hop')}
       </div>
-      <div className="flex flex-row items-center gap-3 overflow-hidden">
-        <FlagIcon
-          code={country.code.toLowerCase() as countryCode}
-          alt={country.code}
-        />
-        <div
-          className={clsx(['text-base truncate', disabled && 'cursor-default'])}
-        >
-          {getCountryName(country.code) || country.name}
-        </div>
-      </div>
-
+      {isGateway(node) ? SelectedGateway(node) : SelectedCountry(node)}
       <MsIcon icon="arrow_right" className="pointer-events-none" />
     </div>
   );
