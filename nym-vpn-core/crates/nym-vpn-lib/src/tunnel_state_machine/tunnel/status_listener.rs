@@ -69,7 +69,9 @@ impl StatusListener {
 
     fn send_event(&self, event: MixnetEvent) {
         if let Err(e) = self.tx.send(event) {
-            tracing::error!("Failed to send event: {}", e);
+            if !self.cancel_token.is_cancelled() {
+                tracing::error!("Failed to send mixnet event: {}", e);
+            }
         }
     }
 }
