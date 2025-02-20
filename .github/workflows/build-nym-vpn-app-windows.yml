@@ -171,6 +171,9 @@ jobs:
           echo "core_release_tag: $release_tag"
           "core_release_tag=$release_tag" >> $env:GITHUB_ENV
 
+      # TODO ⚠⚠ TO BE FIXED!
+      # this currently fails with the following grep error:
+      # `grep: -P supports only unibyte and UTF-8 locales`
       - name: Get nym-vpn-core artifact url (latest dev)
         if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && inputs.dev_mode }}
         shell: bash
