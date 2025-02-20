@@ -20,7 +20,7 @@ function Login() {
   const [phrase, setPhrase] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const { daemonStatus, accountLinks } = useMainState();
+  const { daemonStatus, accountLinks, state } = useMainState();
   const [error, setError] = useState<AddError | null>(null);
 
   const { push } = useInAppNotify();
@@ -41,6 +41,12 @@ function Login() {
     if (phrase.length === 0 || loading) {
       return;
     }
+    // kinda overkill but who knows?
+    if (state !== 'Disconnected') {
+      console.warn(`cannot login while tunnel state is ${state}`);
+      return;
+    }
+
     setLoading(true);
     try {
       await invoke<number | null>('add_account', { mnemonic: phrase.trim() });
@@ -107,7 +113,7 @@ function Login() {
         <div className="w-full flex flex-col justify-center items-center gap-6 mb-2">
           <Button
             onClick={handleClick}
-            disabled={daemonStatus === 'NotOk'}
+            disabled={daemonStatus === 'NotOk' || state !== 'Disconnected'}
             className={clsx(
               daemonStatus === 'NotOk' &&
                 'opacity-50 disabled:opacity-50 hover:opacity-50',

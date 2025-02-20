@@ -15,7 +15,7 @@ import { MCache } from '../../cache';
 function Logout() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { account, daemonStatus } = useMainState();
+  const { account, daemonStatus, state } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
   const { tE } = useI18nError();
@@ -26,6 +26,16 @@ function Logout() {
   const logout = async () => {
     setIsOpen(false);
     navigate(routes.root);
+    if (state !== 'Disconnected') {
+      console.warn(`cannot logout while tunnel state is ${state}`);
+      push({
+        text: t('logout.from-state', { ns: 'notifications', state }),
+        position: 'top',
+        autoHideDuration: 5000,
+      });
+      return;
+    }
+
     try {
       await invoke('forget_account');
       dispatch({ type: 'set-account', stored: false });
@@ -59,7 +69,7 @@ function Logout() {
       <SettingsMenuCard
         title={logoutCopy}
         onClick={() => setIsOpen(true)}
-        disabled={daemonStatus === 'NotOk'}
+        disabled={daemonStatus === 'NotOk' || state !== 'Disconnected'}
       />
       <Dialog open={isOpen} onClose={onClose}>
         <div className="flex flex-col items-center gap-4 w-11/12">
