@@ -66,6 +66,7 @@ struct NymVPNDaemonApp: App {
         }
         .windowResizability(.contentSize)
         .commands {
+            CommandGroup(replacing: .newItem, addition: {})
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesView(viewModel: checkForUpdatesViewModel)
             }

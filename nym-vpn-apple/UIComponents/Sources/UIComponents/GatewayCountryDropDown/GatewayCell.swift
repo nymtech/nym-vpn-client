@@ -5,7 +5,7 @@ import Theme
 
 public struct GatewayCell: View {
     private let server: GatewayNode
-    private let hoptype: HopType
+    private let hopType: HopType
 
     @EnvironmentObject private var connectionManager: ConnectionManager
     @Binding private var path: NavigationPath
@@ -20,7 +20,7 @@ public struct GatewayCell: View {
         serverInfoModalServer: Binding<GatewayNode?>
     ) {
         self.server = server
-        self.hoptype = type
+        self.hopType = type
         _path = path
         _isServerModalDisplayed = isServerModalDisplayed
         _serverInfoModalServer = serverInfoModalServer
@@ -35,7 +35,7 @@ public struct GatewayCell: View {
             }
             .contentShape(Rectangle())
             .onTapGesture {
-                switch hoptype {
+                switch hopType {
                 case .entry:
                     connectionManager.entryGateway = .gateway(server)
                 case .exit:
@@ -59,7 +59,7 @@ public struct GatewayCell: View {
 
 extension GatewayCell {
     func isSelected() -> Bool {
-        switch hoptype {
+        switch hopType {
         case .entry:
             connectionManager.entryGateway.gatewayId == server.id && connectionManager.entryGateway.isGateway
         case .exit:

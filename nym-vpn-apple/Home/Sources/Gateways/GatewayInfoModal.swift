@@ -142,11 +142,20 @@ private extension GatewayInfoModal {
                     .contentShape(Rectangle())
                     .frame(width: 16, height: 16)
                     .onTapGesture {
-                        print("copy copy copy")
+                        copyToPasteboard()
                     }
             }
         }
         .padding(.horizontal, 24)
+    }
+
+    func copyToPasteboard() {
+#if os(iOS)
+        UIPasteboard.general.string = server.id
+#elseif os(macOS)
+        NSPasteboard.general.prepareForNewContents()
+        NSPasteboard.general.setString(server.id, forType: .string)
+#endif
     }
 
     func identityKeyTitle() -> some View {
