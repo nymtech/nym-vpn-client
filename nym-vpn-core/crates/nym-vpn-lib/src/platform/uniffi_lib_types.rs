@@ -511,24 +511,25 @@ impl From<CoreErrorStateReason> for ErrorStateReason {
                     message: reason.to_string(),
                 },
             },
-            CoreErrorStateReason::RequestZkNymBundle { successes, failed } => {
-                if let Some(err) = failed
+            CoreErrorStateReason::RequestZkNymBundle {
+                successes: _,
+                failed,
+            } => {
+                if let Some(RequestZkNymErrorReason::VpnApi(e)) = failed
                     .iter()
                     .find(|e| matches!(e, RequestZkNymErrorReason::VpnApi { .. }))
                 {
-                    if let RequestZkNymErrorReason::VpnApi(e) = err {
-                        return match e.message_id.as_ref() {
-                            Some(id) if id.contains(BANDWIDTH_LIMIT_REACHED_MESSAGE_ID) => {
-                                Self::BandwidthExceeded
-                            }
-                            Some(id) if id.contains(SUBSCRIPTION_EXPIRED_MESSAGE_ID) => {
-                                Self::SubscriptionExpired
-                            }
-                            _ => Self::Network {
-                                message: e.clone().message,
-                            },
-                        };
-                    }
+                    return match e.message_id.as_ref() {
+                        Some(id) if id.contains(BANDWIDTH_LIMIT_REACHED_MESSAGE_ID) => {
+                            Self::BandwidthExceeded
+                        }
+                        Some(id) if id.contains(SUBSCRIPTION_EXPIRED_MESSAGE_ID) => {
+                            Self::SubscriptionExpired
+                        }
+                        _ => Self::Network {
+                            message: e.clone().message,
+                        },
+                    };
                 }
                 if let Some(err) = failed
                     .iter()
