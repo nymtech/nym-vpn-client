@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import React, { useCallback, useEffect, useReducer } from 'react';
-import { CountryCacheDuration } from '../../constants';
+import { GatewaysCacheDuration } from '../../constants';
 import {
   MainDispatchContext,
   MainStateContext,
@@ -152,7 +152,7 @@ function MainStateProvider({ children }: Props) {
         await CCache.set(
           vpnMode === 'Mixnet' ? `mx-${node}-gateways` : 'wg-gateways',
           gateways,
-          CountryCacheDuration,
+          GatewaysCacheDuration,
         );
       } catch (e) {
         console.warn(`Failed to fetch ${node} countries:`, e);

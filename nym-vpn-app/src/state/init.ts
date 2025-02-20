@@ -4,11 +4,10 @@ import { getVersion } from '@tauri-apps/api/app';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { isEnabled as isAutostartEnabled } from '@tauri-apps/plugin-autostart';
 import {
-  // CountryCacheDuration,
   DefaultCountry,
   DefaultRootFontSize,
   DefaultThemeMode,
-  DefaultVpnMode,
+  GatewaysCacheDuration,
 } from '../constants';
 import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
@@ -18,15 +17,16 @@ import {
   Country,
   Gateway,
   GatewaysByCountry,
+  NodeHop,
   StateDispatch,
   ThemeMode,
   TunnelStateIpc,
   UiTheme,
-  VpnMode,
   VpndStatus,
 } from '../types';
 import { S_STATE } from '../static';
 import { Notification } from '../contexts';
+import { CCache } from '../cache';
 import { tunnelUpdate } from './tunnelUpdate';
 import { TauriReq, daemonStatusUpdate, fireRequests } from './helper';
 
@@ -40,31 +40,26 @@ const getDaemonStatus = async () => {
 };
 
 // init gateway list
-const getMxEntryGateways = async () => {
-  const mode = (await kvGet<VpnMode>('vpn-mode')) || DefaultVpnMode;
-  if (mode === 'TwoHop') {
-    return;
+const getMxGateways = async (node: NodeHop) => {
+  let gateways = await CCache.get<GatewaysByCountry[]>(`mx-${node}-gateways`);
+  if (!gateways) {
+    gateways = await invoke<GatewaysByCountry[] | null>('get_gateways', {
+      vpnMode: 'Mixnet',
+      nodeType: node === 'entry' ? 'Entry' : 'Exit',
+    });
   }
-  const gateways = await invoke<GatewaysByCountry[]>('get_gateways', {
-    vpnMode: mode,
-    nodeType: 'Entry',
-  });
-  return { gateways, mode };
+  return gateways;
 };
 
-const getMxExitGateways = async () => {
-  const mode = (await kvGet<VpnMode>('vpn-mode')) || DefaultVpnMode;
-  if (mode === 'TwoHop') {
-    return;
+const getWgGateways = async () => {
+  let gateways = await CCache.get<GatewaysByCountry[]>(`wg-gateways`);
+  if (!gateways) {
+    gateways = await invoke<GatewaysByCountry[] | null>('get_gateways', {
+      vpnMode: 'TwoHop',
+    });
   }
-  const gateways = await invoke<GatewaysByCountry[]>('get_gateways', {
-    vpnMode: mode,
-    nodeType: 'Exit',
-  });
-  return { gateways, mode };
+  return gateways;
 };
-
-// TODO add Wg gateways init
 
 const getTheme = async () => {
   const winTheme: UiTheme =
@@ -172,15 +167,6 @@ export async function initFirstBatch(
     },
   };
 
-  const getVpnModeRq: TauriReq<() => Promise<VpnMode | undefined>> = {
-    name: 'getVpnMode',
-    request: () => kvGet<VpnMode>('vpn-mode'),
-    onFulfilled: (vpnMode) => {
-      S_STATE.vpnModeInit = true;
-      dispatch({ type: 'set-vpn-mode', mode: vpnMode || DefaultVpnMode });
-    },
-  };
-
   const getDesktopNotificationsRq: TauriReq<
     () => Promise<boolean | undefined>
   > = {
@@ -243,7 +229,6 @@ export async function initFirstBatch(
   await fireRequests([
     initStateRq,
     initDaemonStatusRq,
-    getVpnModeRq,
     getEntryNodeRq,
     getExitNodeRq,
     getVersionRq,
@@ -258,57 +243,64 @@ export async function initFirstBatch(
 }
 
 export async function initSecondBatch(dispatch: StateDispatch) {
-  const getMxEntryGatewaysRq: TauriReq<typeof getMxEntryGateways> = {
-    name: 'get_gateways',
-    request: () => getMxEntryGateways(),
-    onFulfilled: (res) => {
-      if (!res) return;
-      const { gateways, mode } = res;
-
-      // TODO
-      // dispatch({
-      //   type: 'set-country-list',
-      //   payload: {
-      //     hop: 'entry',
-      //     countries,
-      //   },
-      // });
-      // MCache.set(
-      //   mode === 'Mixnet' ? `mx-entry-countries` : 'wg-countries',
-      //   countries,
-      //   CountryCacheDuration,
-      // );
-      // dispatch({
-      //   type: 'set-countries-loading',
-      //   payload: { hop: 'entry', loading: false },
-      // });
+  const getMxEntryGatewaysRq: TauriReq<typeof getMxGateways> = {
+    name: 'get_mx_entry_gateways',
+    request: () => getMxGateways('entry'),
+    onFulfilled: (gateways) => {
+      if (!gateways) return;
+      dispatch({
+        type: 'set-mx-gateways',
+        payload: {
+          hop: 'entry',
+          gateways: gateways || [],
+        },
+      });
+      CCache.set('mx-entry-gateways', gateways || [], GatewaysCacheDuration);
+      dispatch({
+        type: 'set-gateways-loading',
+        payload: { hop: 'entry', loading: false },
+      });
     },
   };
 
-  const getMxExitGatewaysRq: TauriReq<typeof getMxExitGateways> = {
-    name: 'get_gateways',
-    request: () => getMxExitGateways(),
-    onFulfilled: (res) => {
-      if (!res) return;
-      const { gateways, mode } = res;
+  const getMxExitGatewaysRq: TauriReq<typeof getMxGateways> = {
+    name: 'get_mx_exit_gateways',
+    request: () => getMxGateways('exit'),
+    onFulfilled: (gateways) => {
+      dispatch({
+        type: 'set-mx-gateways',
+        payload: {
+          hop: 'exit',
+          gateways: gateways || [],
+        },
+      });
+      CCache.set('mx-exit-gateways', gateways || [], GatewaysCacheDuration);
+      dispatch({
+        type: 'set-gateways-loading',
+        payload: { hop: 'exit', loading: false },
+      });
+    },
+  };
 
-      // TODO
-      // dispatch({
-      //   type: 'set-country-list',
-      //   payload: {
-      //     hop: 'exit',
-      //     countries,
-      //   },
-      // });
-      // MCache.set(
-      //   mode === 'Mixnet' ? `mx-exit-countries` : 'wg-countries',
-      //   countries,
-      //   CountryCacheDuration,
-      // );
-      // dispatch({
-      //   type: 'set-countries-loading',
-      //   payload: { hop: 'exit', loading: false },
-      // });
+  const getWgGatewaysRq: TauriReq<typeof getWgGateways> = {
+    name: 'get_wg_gateways',
+    request: () => getWgGateways(),
+    onFulfilled: (gateways) => {
+      dispatch({
+        type: 'set-wg-gateways',
+        payload: {
+          gateways: gateways || [],
+        },
+      });
+      CCache.set('wg-gateways', gateways || [], GatewaysCacheDuration);
+      dispatch({
+        type: 'set-gateways-loading',
+        payload: { hop: 'entry', loading: false },
+      });
+      dispatch({
+        type: 'set-gateways-loading',
+        payload: { hop: 'exit', loading: false },
+      });
     },
   };
 
@@ -335,10 +327,12 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     },
   };
 
-  await fireRequests([
-    getMxEntryGatewaysRq,
-    getMxExitGatewaysRq,
-    getAccountLinksRq,
-    getAutostart,
-  ]);
+  let gatewayRequests;
+  if (S_STATE.vpnModeAtStart === 'TwoHop') {
+    gatewayRequests = [getWgGatewaysRq];
+  } else {
+    gatewayRequests = [getMxEntryGatewaysRq, getMxExitGatewaysRq];
+  }
+
+  await fireRequests([...gatewayRequests, getAccountLinksRq, getAutostart]);
 }

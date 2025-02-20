@@ -12,9 +12,10 @@ import App from './App';
 import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
 import initSentry from './sentry';
-import { StartupError as TStartupError, ThemeMode } from './types';
+import { StartupError as TStartupError, ThemeMode, VpnMode } from './types';
 import { StartupError } from './screens';
 import { init } from './log';
+import { DefaultVpnMode } from './constants';
 import { S_STATE } from './static';
 
 // needed locales to load for dayjs
@@ -80,6 +81,8 @@ async function setSplashTheme(window: WebviewWindow) {
     console.info('dev mode enabled');
     S_STATE.devMode = true;
   }
+
+  S_STATE.vpnModeAtStart = (await kvGet<VpnMode>('vpn-mode')) || DefaultVpnMode;
 
   // check for unrecoverable errors
   const error = await invoke<TStartupError | undefined>('startup_error');
