@@ -617,6 +617,28 @@
         }
       }
     },
+    "errorReason.noAccountStored" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No account stored. Please add a mnemonic."
+          }
+        }
+      }
+    },
+    "errorReason.noDeviceStored" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device not registered. Please retry."
+          }
+        }
+      }
+    },
     "errorReason.offline" : {
       "extractionState" : "manual",
       "localizations" : {

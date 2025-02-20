@@ -4,6 +4,7 @@ import AppSettings
 import ConfigurationManager
 import ConnectionManager
 import CountriesManager
+import GatewayManager
 import Home
 import Extensions
 import KeyboardManager
@@ -62,15 +63,17 @@ private extension NymVPNApp {
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label, logFileManager: logFileManager)
         }
+        ThemeConfiguration.setup()
         Task {
             // Things dependant on environment beeing set.
             try await ConfigurationManager.shared.setup()
+            CountriesManager.shared.setup()
+            GatewayManager.shared.setup()
             SystemMessageManager.shared.setup()
+            NotificationsManager.shared.setup()
+            SentryManager.shared.setup()
+            Migrations.shared.setup()
         }
-        NotificationsManager.shared.setup()
-        ThemeConfiguration.setup()
-        SentryManager.shared.setup()
-        Migrations.shared.setup()
     }
 
     func configureScreenSize() {

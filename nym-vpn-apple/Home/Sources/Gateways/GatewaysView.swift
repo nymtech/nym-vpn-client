@@ -53,6 +53,8 @@ public struct GatewaysView: View {
                         isDisplayed: $viewModel.isGeolocationModalDisplayed
                     )
                 )
+                .transition(.opacity)
+                .animation(.easeInOut, value: viewModel.isGeolocationModalDisplayed)
             }
         }
         .overlay {

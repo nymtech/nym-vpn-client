@@ -7,6 +7,7 @@ import ConnectionManager
 import ConfigurationManager
 import Constants
 import CountriesManager
+import GatewayManager
 import Home
 import HelperManager
 import NotificationsManager
@@ -15,8 +16,6 @@ import Migrations
 import SentryManager
 import SystemMessageManager
 import Theme
-
-import GatewayManager
 
 @main
 struct NymVPNDaemonApp: App {
@@ -93,16 +92,16 @@ private extension NymVPNDaemonApp {
         LoggingSystem.bootstrap { label in
             FileLogHandler(label: label, logFileManager: logFileManager)
         }
+        ThemeConfiguration.setup()
         Task {
             // Things dependant on environment beeing set.
             try await ConfigurationManager.shared.setup()
+            CountriesManager.shared.setup()
+            GatewayManager.shared.setup()
             SystemMessageManager.shared.setup()
+            NotificationsManager.shared.setup()
+            SentryManager.shared.setup()
+            Migrations.shared.setup()
         }
-        NotificationsManager.shared.setup()
-        ThemeConfiguration.setup()
-        SentryManager.shared.setup()
-        Migrations.shared.setup()
-
-        GatewayManager.shared
     }
 }

@@ -49,11 +49,13 @@ private extension Migrations {
 
     func migrateCountryNames() {
         // Introduced in v1.6.0
-        if let entryCountry = countriesManager.country(with: appSettings.entryCountryCode) {
+        if !appSettings.entryCountryCode.isEmpty,
+            let entryCountry = countriesManager.country(with: appSettings.entryCountryCode) {
             appSettings.entryGateway = EntryGateway.country(entryCountry).toJson()
             appSettings.entryCountryCode = ""
         }
-        if let exitCountry = countriesManager.country(with: appSettings.exitCountryCode) {
+        if !appSettings.exitCountryCode.isEmpty,
+            let exitCountry = countriesManager.country(with: appSettings.exitCountryCode) {
             appSettings.entryGateway = EntryGateway.country(exitCountry).toJson()
             appSettings.exitCountryCode = ""
         }

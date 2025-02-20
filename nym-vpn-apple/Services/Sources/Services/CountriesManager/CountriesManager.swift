@@ -60,7 +60,8 @@ public final class CountriesManager: ObservableObject {
         self.exitCountries = []
         self.vpnCountries = []
 
-        setup()
+        loadCountryStore()
+        loadPrebundledCountriesIfNecessary()
     }
 #elseif os(macOS)
     public init(
@@ -77,9 +78,19 @@ public final class CountriesManager: ObservableObject {
         self.exitCountries = []
         self.vpnCountries = []
 
-        setup()
+        loadCountryStore()
+        loadPrebundledCountriesIfNecessary()
     }
 #endif
+
+    public func setup() {
+        setupAutoUpdates()
+        configureEnvironmentChange()
+        fetchCountries()
+#if os(macOS)
+        setupDaemonStateObserver()
+#endif
+    }
 
     @objc public func fetchCountries() {
         guard !isLoading, needsReload()
@@ -112,20 +123,9 @@ public final class CountriesManager: ObservableObject {
 
 // MARK: - Setup -
 private extension CountriesManager {
-    func setup() {
-        loadCountryStore()
-        loadPrebundledCountriesIfNecessary()
-        setupAutoUpdates()
-        configureEnvironmentChange()
-        fetchCountries()
-#if os(macOS)
-        setupDaemonStateObserver()
-#endif
-    }
-
     func setupAutoUpdates() {
         timer = Timer.scheduledTimer(
-            timeInterval: 600,
+            timeInterval: 1800,
             target: self,
             selector: #selector(fetchCountries),
             userInfo: nil,
@@ -172,7 +172,7 @@ private extension CountriesManager {
         guard entryCountries.isEmpty || exitCountries.isEmpty || vpnCountries.isEmpty else { return }
         guard let entryCountriesURL = Bundle.main.url(forResource: "gatewaysEntryCountries", withExtension: "json"),
               let exitCountriesURL = Bundle.main.url(forResource: "gatewaysExitCountries", withExtension: "json"),
-              let vpnCountriesURL = Bundle.main.url(forResource: "vpnCountries", withExtension: "json")
+              let vpnCountriesURL = Bundle.main.url(forResource: "gatewaysVpnCountries", withExtension: "json")
         else {
             updateError(with: GeneralNymError.noPrebundledCountries)
             return
@@ -349,7 +349,7 @@ private extension CountriesManager {
 
 extension CountriesManager {
     public func country(with countryCode: String) -> Country? {
-        guard let countryName = Locale.current.localizedString(forRegionCode: countryCode)
+        guard !countryCode.isEmpty, let countryName = Locale.current.localizedString(forRegionCode: countryCode)
         else {
             logger.log(level: .error, "Failed resolving country code for: \(countryCode)")
             return nil
@@ -362,12 +362,12 @@ extension CountriesManager {
 private extension CountriesManager {
     func needsReload() -> Bool {
         guard let lastFetchDate = countryStore.lastFetchDate else { return true }
-        return isLongerThan10Minutes(date: lastFetchDate)
+        return isLongerThan30Minutes(date: lastFetchDate)
     }
 
-    func isLongerThan10Minutes(date: Date) -> Bool {
+    func isLongerThan30Minutes(date: Date) -> Bool {
         let difference = Date().timeIntervalSince(date)
-        return difference > 600 ? true : false
+        return difference > 1800 ? true : false
     }
 
     func loadCountriesFromCountryStore() {

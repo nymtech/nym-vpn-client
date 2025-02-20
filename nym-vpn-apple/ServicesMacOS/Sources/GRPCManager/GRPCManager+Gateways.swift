@@ -1,7 +1,7 @@
 import CountriesManagerTypes
 
 extension GRPCManager {
-    public func gateways(for type: NodeType) async throws -> [String] {
+    public func gateways(for type: NodeType) async throws -> [GatewayNode] {
         logger.log(level: .info, "Fetching countries: \(type.rawValue)")
         return try await withCheckedThrowingContinuation { continuation in
 
@@ -13,8 +13,10 @@ extension GRPCManager {
             call.response.whenComplete { result in
                 switch result {
                 case let .success(gateways):
-                    print(gateways)
-                    continuation.resume(returning: [])
+                    let newGateways = gateways.gateways.compactMap {
+                        GatewayNode(with: $0)
+                    }
+                    continuation.resume(returning: newGateways)
                 case let .failure(error):
                     continuation.resume(throwing: error)
                 }

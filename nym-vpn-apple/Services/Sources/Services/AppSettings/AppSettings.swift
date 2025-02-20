@@ -54,6 +54,8 @@ public final class AppSettings: ObservableObject {
     public var lastConnectionIntent: String?
     @AppStorage(AppSettingKey.countryStore.rawValue)
     public var countryStore: String?
+    @AppStorage(AppSettingKey.gatewayStore.rawValue)
+    public var gatewayStore: String?
 
     @AppStorage(
         AppSettingKey.currentEnv.rawValue,
@@ -100,6 +102,7 @@ public enum AppSettingKey: String {
     case lastConnectionIntent
     case currentEnv
     case countryStore
+    case gatewayStore
     case santaEntryGateways
     case santaExitGateways
     case isZknymEnabled

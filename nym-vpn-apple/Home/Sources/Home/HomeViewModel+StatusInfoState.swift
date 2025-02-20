@@ -1,7 +1,5 @@
 import UIComponents
-#if os(iOS)
-import ErrorHandler
-#endif
+import ErrorReason
 
 extension HomeViewModel {
     func resetStatusInfoState() {
@@ -16,12 +14,12 @@ extension HomeViewModel {
     }
 
     func navigateToAddCredetialsIfNeeded(error: Error?) {
-#if os(iOS)
-        if let vpnError = error as? VPNErrorReason, vpnError == .noAccountStored {
+        if credentialsManager.isValidCredentialImported,
+           let errorReason = error as? ErrorReason,
+           errorReason == .noAccountStored {
             Task { @MainActor [weak self] in
                 self?.navigateToAddCredentials()
             }
         }
-#endif
     }
 }

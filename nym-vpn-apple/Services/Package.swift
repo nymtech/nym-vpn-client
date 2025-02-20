@@ -68,6 +68,7 @@ let package = Package(
             dependencies: [
                 "CredentialsManager",
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
+                "GatewayManager",
                 "NotificationMessages",
                 "Tunnels",
                 "TunnelMixnet"
@@ -100,7 +101,7 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 "Constants",
-                .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
+                .product(name: "ErrorReason", package: "ServicesMutual"),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
@@ -130,6 +131,8 @@ let package = Package(
         .target(
             name: "GatewayManager",
             dependencies: [
+                "AppSettings",
+                "Constants",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),

@@ -285,13 +285,16 @@ public extension ConnectionManager {
 #if os(iOS)
 private extension ConnectionManager {
     func connect(with config: MixnetConfig) async throws {
-        do {
-            try await tunnelsManager.loadTunnels()
-            let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config)
-            activeTunnel = tunnel
-            try await tunnelsManager.connect(tunnel: tunnel)
-        } catch {
-            throw error
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            do {
+                try await tunnelsManager.loadTunnels()
+                let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config)
+                activeTunnel = tunnel
+                try await tunnelsManager.connect(tunnel: tunnel)
+            } catch {
+                throw error
+            }
         }
     }
 
@@ -459,14 +462,16 @@ private extension ConnectionManager {
     func setupConnectionErrorObserver() {
 #if os(iOS)
         tunnelsManager.$lastError.sink { [weak self] newError in
-            self?.lastError = newError
+            Task { @MainActor [weak self] in
+                self?.lastError = newError
+            }
         }
         .store(in: &cancellables)
-#endif
-
-#if os(macOS)
+#elseif os(macOS)
         grpcManager.$errorReason.sink { [weak self] newError in
-            self?.lastError = newError
+            Task { @MainActor [weak self] in
+                self?.lastError = newError
+            }
         }
         .store(in: &cancellables)
 #endif

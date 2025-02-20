@@ -5,6 +5,7 @@ import ConnectionManager
 import CountriesManager
 import CredentialsManager
 import ExternalLinkManager
+import GatewayManager
 import NetworkMonitor
 import Settings
 import SystemMessageManager
@@ -31,6 +32,7 @@ public class HomeViewModel: HomeFlowState {
     let countriesManager: CountriesManager
     let credentialsManager: CredentialsManager
     let externalLinkManager: ExternalLinkManager
+    let gatewayManager: GatewayManager
     let networkMonitor: NetworkMonitor
 #if os(iOS)
     let impactGenerator: ImpactGenerator
@@ -86,6 +88,7 @@ public class HomeViewModel: HomeFlowState {
         credentialsManager: CredentialsManager = .shared,
         networkMonitor: NetworkMonitor = .shared,
         externalLinkManager: ExternalLinkManager = .shared,
+        gatewayManager: GatewayManager = .shared,
         impactGenerator: ImpactGenerator = .shared,
         systemMessageManager: SystemMessageManager = .shared
     ) {
@@ -94,6 +97,7 @@ public class HomeViewModel: HomeFlowState {
         self.countriesManager = countriesManager
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
+        self.gatewayManager = gatewayManager
         self.impactGenerator = impactGenerator
         self.networkMonitor = networkMonitor
         self.systemMessageManager = systemMessageManager
@@ -111,6 +115,7 @@ public class HomeViewModel: HomeFlowState {
         grpcManager: GRPCManager = .shared,
         helperManager: HelperManager = .shared,
         externalLinkManager: ExternalLinkManager = .shared,
+        gatewayManager: GatewayManager = .shared,
         systemMessageManager: SystemMessageManager = .shared
     ) {
         self.appSettings = appSettings
@@ -121,6 +126,7 @@ public class HomeViewModel: HomeFlowState {
         self.grpcManager = grpcManager
         self.helperManager = helperManager
         self.externalLinkManager = externalLinkManager
+        self.gatewayManager = gatewayManager
         self.systemMessageManager = systemMessageManager
         super.init()
 
@@ -173,6 +179,7 @@ private extension HomeViewModel {
         setupGRPCManagerObservers()
 #endif
         setupCountriesManagerObservers()
+        setupGatewayManagerObserver()
         setupSystemMessageObservers()
         setupNetworkMonitorObservers()
         updateTimeConnected()
@@ -203,6 +210,13 @@ private extension HomeViewModel {
 
     func setupCountriesManagerObservers() {
         countriesManager.$lastError.sink { [weak self] error in
+            self?.lastError = error
+        }
+        .store(in: &cancellables)
+    }
+
+    func setupGatewayManagerObserver() {
+        gatewayManager.$lastError.sink { [weak self] error in
             self?.lastError = error
         }
         .store(in: &cancellables)

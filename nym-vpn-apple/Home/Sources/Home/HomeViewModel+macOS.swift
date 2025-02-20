@@ -17,16 +17,7 @@ extension HomeViewModel {
 
         grpcManager.$errorReason.sink { [weak self] error in
             self?.lastError = error
-        }
-        .store(in: &cancellables)
-
-        grpcManager.$generalError.sink { [weak self] error in
-            self?.lastError = error
-            if error == GeneralNymError.noMnemonicStored {
-                Task { @MainActor [weak self] in
-                    self?.navigateToAddCredentials()
-                }
-            }
+            self?.navigateToAddCredetialsIfNeeded(error: error)
         }
         .store(in: &cancellables)
     }

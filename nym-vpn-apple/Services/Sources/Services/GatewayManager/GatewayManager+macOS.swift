@@ -17,6 +17,8 @@ extension GatewayManager {
             gatewayStore.exit = exitGateways
             gatewayStore.vpn = vpnGateways
             gatewayStore.lastFetchDate = Date()
+
+            storeGatewayStore()
         } catch {
             logger.error("Failed to fetch: \(error.localizedDescription)")
         }

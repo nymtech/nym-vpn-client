@@ -51,7 +51,9 @@ public struct GatewayCell: View {
                 .contentShape(Rectangle())
                 .onTapGesture {
                     serverInfoModalServer = server
-                    isServerModalDisplayed.toggle()
+                    withAnimation {
+                        isServerModalDisplayed.toggle()
+                    }
                 }
         }
     }

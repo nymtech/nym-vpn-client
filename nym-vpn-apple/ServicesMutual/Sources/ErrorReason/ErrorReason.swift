@@ -5,6 +5,11 @@ import MixnetLibrary
 import Theme
 
 public enum ErrorReason: LocalizedError {
+    // App
+    case offline
+    case noAccountStored
+    case noDeviceStored
+    // Tunnel
     case firewall
     case routing
     case dns
@@ -21,7 +26,6 @@ public enum ErrorReason: LocalizedError {
     case registerDevice(details: String)
     case requestZknym(details: String)
     case requestZkNymBundle(successes: [String], failed: [String])
-    case offline
     case unknown
 
     public static let domain = "ErrorHandler.ErrorReason"
@@ -55,7 +59,8 @@ public enum ErrorReason: LocalizedError {
             let messageString: String
             switch details {
             case .noAccountStored:
-                messageString = "No account stored. Please add a mnemonic."
+                self = .noAccountStored
+                return
             case let .errorResponse(vpnApiErrorResponse):
                 messageString = vpnApiErrorResponse.message
             case let .unexpectedResponse(message), let .internal(message):
@@ -66,9 +71,11 @@ public enum ErrorReason: LocalizedError {
             let messageString: String
             switch details {
             case .noAccountStored:
-                messageString = "No account stored. Please add a mnemonic."
+                self = .noAccountStored
+                return
             case .noDeviceStored:
-                messageString = "No device stored. Please reatry."
+                self = .noDeviceStored
+                return
             case let .errorResponse(vpnApiErrorResponse):
                 messageString = vpnApiErrorResponse.message
             case let .unexpectedResponse(message), let .internal(message):
@@ -79,9 +86,11 @@ public enum ErrorReason: LocalizedError {
             let messageString: String
             switch details {
             case .noAccountStored:
-                messageString = "No account stored. Please add a mnemonic."
+                self = .noAccountStored
+                return
             case .noDeviceStored:
-                messageString = "No device stored. Please reatry."
+                self = .noDeviceStored
+                return
             case let .errorResponse(vpnApiErrorResponse):
                 messageString = vpnApiErrorResponse.message
             case let .unexpectedResponse(message):
@@ -94,9 +103,11 @@ public enum ErrorReason: LocalizedError {
             let messageString: String
             switch details {
             case .noAccountStored:
-                messageString = "No account stored. Please add a mnemonic."
+                self = .noAccountStored
+                return
             case .noDeviceStored:
-                messageString = "No device stored. Please reatry."
+                self = .noDeviceStored
+                return
             case let .vpnApi(vpnApiErrorResponse):
                 messageString = vpnApiErrorResponse.message
             case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
@@ -150,17 +161,36 @@ public enum ErrorReason: LocalizedError {
         case 10:
             self = .duplicateTunFd
         case 11:
-            self = .syncAccount(details: "")
+            self = .syncAccount(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
         case 12:
-            self = .syncDevice(details: "")
+            self = .syncDevice(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
         case 13:
-            self = .registerDevice(details: "")
+            self = .registerDevice(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
         case 14:
-            self = .requestZknym(details: "")
+            self = .requestZknym(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
         case 15:
-            self = .requestZkNymBundle(successes: [], failed: [])
+            let decoder = JSONDecoder()
+            var successes = [String]()
+            var failures = [String]()
+            if let successesString = nsError.userInfo["requestZknymSuccesses"] as? String,
+               let jsonData = successesString.data(using: .utf8),
+                let decodedSuccesses = try? decoder.decode([String].self, from: jsonData) {
+                successes = decodedSuccesses
+            }
+            if let failuresString = nsError.userInfo["requestZknymFailures"] as? String,
+               let jsonData = failuresString.data(using: .utf8),
+               let decodedFailures = try? decoder.decode([String].self, from: jsonData) {
+                failures = decodedFailures
+            }
+            self = .requestZkNymBundle(successes: successes, failed: failures)
         case 16:
+            self = .unknown
+        case 17:
             self = .offline
+        case 18:
+            self = .noAccountStored
+        case 19:
+            self = .noDeviceStored
         default:
             self = .unknown
         }
@@ -171,9 +201,22 @@ public enum ErrorReason: LocalizedError {
     }
 
     public var nsError: NSError {
-        let userInfo: [String: String] = [
-            NSLocalizedDescriptionKey: description
+        let jsonEncoder = JSONEncoder()
+        var userInfo: [String: String] = [
+            "details": description
         ]
+        if let requestZknymDetails,
+           !requestZknymDetails.successes.isEmpty,
+           let jsonData = try? jsonEncoder.encode(requestZknymDetails.successes),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            userInfo["requestZknymSuccesses"] = jsonString
+        }
+        if let requestZknymDetails,
+           !requestZknymDetails.failures.isEmpty,
+           let jsonData = try? jsonEncoder.encode(requestZknymDetails.failures),
+           let jsonString = String(data: jsonData, encoding: .utf8) {
+            userInfo["requestZknymFailures"] = jsonString
+        }
         return NSError(
             domain: ErrorReason.domain,
             code: errorCode,
@@ -207,14 +250,39 @@ extension ErrorReason {
             9
         case .duplicateTunFd:
             10
-        default:
+        case .syncAccount:
             11
+        case .syncDevice:
+            12
+        case .registerDevice:
+            13
+        case .requestZknym:
+            14
+        case .requestZkNymBundle:
+            15
+        case .unknown:
+            16
+        case .offline:
+            17
+        case .noAccountStored:
+            18
+        case .noDeviceStored:
+            19
+        }
+    }
+
+    var requestZknymDetails: (successes: [String], failures: [String])? {
+        switch self {
+        case let .requestZkNymBundle(successes: successes, failed: failed):
+            return (successes, failed)
+        default:
+            return nil
         }
     }
 }
 
-extension ErrorReason {
-    private var description: String {
+private extension ErrorReason {
+    var description: String {
         switch self {
         case .firewall:
             "errorReason.firewall".localizedString
@@ -252,6 +320,16 @@ extension ErrorReason {
             "\(successes.first ?? "") \(failed.first ?? "")"
         case .offline:
             "errorReason.offline".localizedString
+        case .noAccountStored:
+            "errorReason.noAccountStored".localizedString
+        case .noDeviceStored:
+            "errorReason.noDeviceStored".localizedString
         }
+    }
+}
+
+extension ErrorReason: Equatable {
+    public static func == (lhs: ErrorReason, rhs: ErrorReason) -> Bool {
+        lhs.errorCode == rhs.errorCode
     }
 }

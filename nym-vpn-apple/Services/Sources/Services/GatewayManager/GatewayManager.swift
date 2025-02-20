@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import AppSettings
 import CountriesManagerTypes
 import Logging
 #if os(iOS)
@@ -9,6 +10,7 @@ import GRPCManager
 #endif
 
 public final class GatewayManager {
+    let appSettings: AppSettings
 #if os(macOS)
     let grpcManager: GRPCManager
 #endif
@@ -24,39 +26,44 @@ public final class GatewayManager {
     @Published public var entry: [GatewayNode]
     @Published public var exit: [GatewayNode]
     @Published public var vpn: [GatewayNode]
+    @Published public var lastError: Error?
 
 #if os(iOS)
-    public init() {
+    public init(appSettings: AppSettings = .shared) {
+        self.appSettings = appSettings
         self.entry = []
         self.exit = []
         self.vpn = []
-
-        setup()
+        loadGatewayStore()
+        loadPrebundledServersIfNecessary()
     }
 #elseif os(macOS)
-    public init(grpcManager: GRPCManager = .shared) {
+    public init(appSettings: AppSettings = .shared, grpcManager: GRPCManager = .shared) {
+        self.appSettings = appSettings
         self.grpcManager = grpcManager
         self.entry = []
         self.exit = []
         self.vpn = []
-
-        setup()
+        loadGatewayStore()
+        loadPrebundledServersIfNecessary()
     }
 #endif
+
+    public func setup() {
+        updateGateways()
+        setupAutoUpdates()
+    }
 }
 
 private extension GatewayManager {
-    func setup() {
-        updateGateways()
-        func setupAutoUpdates() {
-            timer = Timer.scheduledTimer(
-                timeInterval: 600,
-                target: self,
-                selector: #selector(updateGateways),
-                userInfo: nil,
-                repeats: true
-            )
-        }
+    func setupAutoUpdates() {
+        timer = Timer.scheduledTimer(
+            timeInterval: 600,
+            target: self,
+            selector: #selector(updateGateways),
+            userInfo: nil,
+            repeats: true
+        )
     }
 
     @objc func updateGateways() {
@@ -89,6 +96,14 @@ private extension GatewayManager {
             exit = gatewayStore.exit
             entry = gatewayStore.entry
             vpn = gatewayStore.vpn
+        }
+    }
+}
+
+extension GatewayManager {
+    func updateError(with error: Error) {
+        Task { @MainActor in
+            lastError = error
         }
     }
 }

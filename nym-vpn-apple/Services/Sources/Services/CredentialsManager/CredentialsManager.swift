@@ -3,8 +3,8 @@ import Logging
 import Foundation
 import AppSettings
 import Constants
+import ErrorReason
 #if os(iOS)
-import ErrorHandler
 import MixnetLibrary
 #elseif os(macOS)
 import GRPCManager
@@ -102,9 +102,10 @@ private extension CredentialsManager {
 
     func setupGRPCManagerObservers() {
 #if os(macOS)
-        grpcManager.$generalError.sink { [weak self] error in
+        grpcManager.$errorReason.sink { [weak self] error in
             guard let self,
-                  error == GeneralNymError.noMnemonicStored
+                  let errorReason = error as? ErrorReason,
+                  errorReason == .noAccountStored
             else {
                 return
             }

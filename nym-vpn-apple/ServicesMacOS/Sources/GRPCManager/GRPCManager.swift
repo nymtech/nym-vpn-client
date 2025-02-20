@@ -32,8 +32,7 @@ public final class GRPCManager: ObservableObject {
     }
 
     @Published public var tunnelStatus: TunnelStatus = .disconnected
-    @Published public var errorReason: ErrorReason?
-    @Published public var generalError: GeneralNymError?
+    @Published public var errorReason: Error?
     @Published public var connectedDate: Date?
     @Published public var isServing = false
     @Published public var networkName: String?

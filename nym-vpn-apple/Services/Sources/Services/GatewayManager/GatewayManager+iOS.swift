@@ -14,19 +14,13 @@ extension GatewayManager {
         )
         Task(priority: .background) {
             do {
-                let entryServers = try getGateways(gwType: .mixnetEntry, userAgent: userAgent, minGatewayPerformance: nil)
-                let exitServers = try getGateways(gwType: .mixnetExit, userAgent: userAgent, minGatewayPerformance: nil)
-                let vpnServers = try getGateways(gwType: .wg, userAgent: userAgent, minGatewayPerformance: nil)
+                let entryNodes = try getGateways(gwType: .mixnetEntry, userAgent: userAgent, minGatewayPerformance: nil)
+                let exitNodes = try getGateways(gwType: .mixnetExit, userAgent: userAgent, minGatewayPerformance: nil)
+                let vpnNodes = try getGateways(gwType: .wg, userAgent: userAgent, minGatewayPerformance: nil)
 
-                let entryGateways = entryServers.map {
-                    GatewayNode(with: $0)
-                }
-                let exitGateways = exitServers.map {
-                    GatewayNode(with: $0)
-                }
-                let vpnGateways = vpnServers.map {
-                    GatewayNode(with: $0)
-                }
+                let entryGateways = entryNodes.map { GatewayNode(with: $0) }
+                let exitGateways = exitNodes.map { GatewayNode(with: $0) }
+                let vpnGateways = vpnNodes.map { GatewayNode(with: $0) }
 
                 entry = entryGateways
                 exit = exitGateways
@@ -35,7 +29,10 @@ extension GatewayManager {
                 gatewayStore.entry = entryGateways
                 gatewayStore.exit = exitGateways
                 gatewayStore.vpn = vpnGateways
+
                 gatewayStore.lastFetchDate = Date()
+
+                storeGatewayStore()
             } catch {
                 logger.error("Failed to fetch: \(error.localizedDescription)")
             }

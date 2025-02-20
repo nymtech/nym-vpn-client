@@ -4,6 +4,9 @@ import CountriesManager
 import CountriesManagerTypes
 import Theme
 import UIComponents
+#if os(iOS)
+import ImpactGenerator
+#endif
 
 public struct GatewayInfoModal: View {
     private let server: GatewayNode
@@ -152,6 +155,7 @@ private extension GatewayInfoModal {
     func copyToPasteboard() {
 #if os(iOS)
         UIPasteboard.general.string = server.id
+        ImpactGenerator.shared.impact()
 #elseif os(macOS)
         NSPasteboard.general.prepareForNewContents()
         NSPasteboard.general.setString(server.id, forType: .string)

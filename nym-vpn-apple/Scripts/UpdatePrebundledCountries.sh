@@ -25,10 +25,10 @@ ENTRY_COUNTRIES_URL="https://nymvpn.com/api/public/v1/directory/gateways/entry/c
 ENTRY_COUNTRIES_FILE_NAME="../NymVPN/Resources/gatewaysEntryCountries.json"
 
 VPN_COUNTRIES_URL="https://nymvpn.com/api/public/v1/directory/gateways/countries?show_vpn_only=true"
-ENTRY_COUNTRIES_FILE_NAME="../NymVPN/Resources/vpnCountries.json"
+VPN_COUNTRIES_FILE_NAME="../NymVPN/Resources/gatewaysVpnCountries.json"
 
 curl $EXIT_COUNTRIES_URL > $EXIT_COUNTRIES_FILE_NAME
 curl $ENTRY_COUNTRIES_URL > $ENTRY_COUNTRIES_FILE_NAME
-curl $VPN_COUNTRIES_URL > $ENTRY_COUNTRIES_FILE_NAME
+curl $VPN_COUNTRIES_URL > $VPN_COUNTRIES_FILE_NAME
 
 echo "✅ 🇨🇭 🇩🇪 🇫🇷  Prebundled countries updated successfully"

@@ -78,6 +78,14 @@
 		D9BEF2E32BEB8D7E0036C566 /* Constants in Frameworks */ = {isa = PBXBuildFile; productRef = D9BEF2E22BEB8D7E0036C566 /* Constants */; };
 		D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */ = {isa = PBXBuildFile; productRef = D9BEF2E42BEBA4010036C566 /* AppSettings */; };
 		D9BF292B2D5A23F500CDFC9A /* HelperInstall in Frameworks */ = {isa = PBXBuildFile; productRef = D9BF292A2D5A23F500CDFC9A /* HelperInstall */; };
+		D9CACB072D67B6DB0004F9E0 /* gatewaysVpnCountries.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB062D67B6DB0004F9E0 /* gatewaysVpnCountries.json */; };
+		D9CACB082D67B6DB0004F9E0 /* gatewaysVpnCountries.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB062D67B6DB0004F9E0 /* gatewaysVpnCountries.json */; };
+		D9CACB0C2D67B7090004F9E0 /* gatewaysEntry.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB092D67B7090004F9E0 /* gatewaysEntry.json */; };
+		D9CACB0D2D67B7090004F9E0 /* gatewaysExit.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB0A2D67B7090004F9E0 /* gatewaysExit.json */; };
+		D9CACB0E2D67B7090004F9E0 /* gatewaysVpn.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB0B2D67B7090004F9E0 /* gatewaysVpn.json */; };
+		D9CACB0F2D67B7090004F9E0 /* gatewaysEntry.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB092D67B7090004F9E0 /* gatewaysEntry.json */; };
+		D9CACB102D67B7090004F9E0 /* gatewaysExit.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB0A2D67B7090004F9E0 /* gatewaysExit.json */; };
+		D9CACB112D67B7090004F9E0 /* gatewaysVpn.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB0B2D67B7090004F9E0 /* gatewaysVpn.json */; };
 		D9CDF2DC2BF49909007E5DAF /* Home in Frameworks */ = {isa = PBXBuildFile; productRef = D9CDF2DB2BF49909007E5DAF /* Home */; };
 		D9CE3E1B2D525FF0000DD5DD /* TunnelStatus in Frameworks */ = {isa = PBXBuildFile; productRef = D9CE3E1A2D525FF0000DD5DD /* TunnelStatus */; };
 		D9CE3E1D2D526139000DD5DD /* TunnelStatus+Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CE3E1C2D526132000DD5DD /* TunnelStatus+Extensions.swift */; };
@@ -101,8 +109,6 @@
 		D9F236232C64E64E00CCC433 /* LibLicences.json in Resources */ = {isa = PBXBuildFile; fileRef = D9F236222C64E64E00CCC433 /* LibLicences.json */; };
 		D9F236252C650A9200CCC433 /* LibLicences.json in Resources */ = {isa = PBXBuildFile; fileRef = D9F236242C650A9200CCC433 /* LibLicences.json */; };
 		D9F699E02B4C1862005576A9 /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = D9F699DF2B4C1862005576A9 /* Settings */; };
-		D9F75F4E2CA409320005AC82 /* vpnCountries.json in Resources */ = {isa = PBXBuildFile; fileRef = D9F75F4D2CA409320005AC82 /* vpnCountries.json */; };
-		D9F75F4F2CA409320005AC82 /* vpnCountries.json in Resources */ = {isa = PBXBuildFile; fileRef = D9F75F4D2CA409320005AC82 /* vpnCountries.json */; };
 		D9FA77C82CEBB32C003362D7 /* NotificationsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9FA77C72CEBB32C003362D7 /* NotificationsManager */; };
 		D9FB33DA2BECC163009C3419 /* Extensions in Frameworks */ = {isa = PBXBuildFile; productRef = D9FB33D92BECC163009C3419 /* Extensions */; };
 		D9FB33DC2BECD473009C3419 /* SentryManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9FB33DB2BECD473009C3419 /* SentryManager */; };
@@ -210,6 +216,10 @@
 		D9BEF2D62BEB63320036C566 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D9BEF2D92BEB63320036C566 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		D9BEF2DB2BEB63320036C566 /* NymVPNDaemon.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NymVPNDaemon.entitlements; sourceTree = "<group>"; };
+		D9CACB062D67B6DB0004F9E0 /* gatewaysVpnCountries.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatewaysVpnCountries.json; sourceTree = "<group>"; };
+		D9CACB092D67B7090004F9E0 /* gatewaysEntry.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatewaysEntry.json; sourceTree = "<group>"; };
+		D9CACB0A2D67B7090004F9E0 /* gatewaysExit.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatewaysExit.json; sourceTree = "<group>"; };
+		D9CACB0B2D67B7090004F9E0 /* gatewaysVpn.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatewaysVpn.json; sourceTree = "<group>"; };
 		D9CE3E1C2D526132000DD5DD /* TunnelStatus+Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "TunnelStatus+Extensions.swift"; sourceTree = "<group>"; };
 		D9CF05D52BA1CBE000489055 /* Network.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Network.framework; path = System/Library/Frameworks/Network.framework; sourceTree = SDKROOT; };
 		D9CF05D82BA1CC7100489055 /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
@@ -226,7 +236,6 @@
 		D9EACBD52BC016D60094CDDF /* NymVPNUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NymVPNUITests.swift; sourceTree = "<group>"; };
 		D9F236222C64E64E00CCC433 /* LibLicences.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LibLicences.json; sourceTree = "<group>"; };
 		D9F236242C650A9200CCC433 /* LibLicences.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = LibLicences.json; sourceTree = "<group>"; };
-		D9F75F4D2CA409320005AC82 /* vpnCountries.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = vpnCountries.json; sourceTree = "<group>"; };
 		D9FB33DF2BECF09D009C3419 /* net.nymtech.vpn.helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = net.nymtech.vpn.helper.plist; sourceTree = "<group>"; };
 		D9FB33E72BECFD1F009C3419 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk/System/Library/Frameworks/ServiceManagement.framework; sourceTree = DEVELOPER_DIR; };
 		D9FB33F22BEE320B009C3419 /* Launchd.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Launchd.plist; sourceTree = "<group>"; };
@@ -367,9 +376,12 @@
 			isa = PBXGroup;
 			children = (
 				D9DE89442CFE54F7006C4071 /* LaunchLogo */,
-				D9F75F4D2CA409320005AC82 /* vpnCountries.json */,
 				D96B94DC2C2AB62D00E98B15 /* gatewaysEntryCountries.json */,
 				D96B94DD2C2AB62D00E98B15 /* gatewaysExitCountries.json */,
+				D9CACB062D67B6DB0004F9E0 /* gatewaysVpnCountries.json */,
+				D9CACB092D67B7090004F9E0 /* gatewaysEntry.json */,
+				D9CACB0A2D67B7090004F9E0 /* gatewaysExit.json */,
+				D9CACB0B2D67B7090004F9E0 /* gatewaysVpn.json */,
 				D955FA002B73CF6F005BA27D /* Info.plist */,
 				D9F236222C64E64E00CCC433 /* LibLicences.json */,
 				D9879AF52CFE166400CF1B5D /* LaunchScreen.storyboard */,
@@ -698,7 +710,11 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9CACB0C2D67B7090004F9E0 /* gatewaysEntry.json in Resources */,
+				D9CACB0D2D67B7090004F9E0 /* gatewaysExit.json in Resources */,
+				D9CACB0E2D67B7090004F9E0 /* gatewaysVpn.json in Resources */,
 				D9879AF72CFE166400CF1B5D /* LaunchScreen.storyboard in Resources */,
+				D9CACB082D67B6DB0004F9E0 /* gatewaysVpnCountries.json in Resources */,
 				D96B94E02C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
 				D9DE893E2CFE54CD006C4071 /* launchLogo@3x.png in Resources */,
 				D9DE893F2CFE54CD006C4071 /* launchLogo.png in Resources */,
@@ -706,7 +722,6 @@
 				D96B94DE2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */,
 				D9264E262B3DA062004594A8 /* Assets.xcassets in Resources */,
 				D9F236232C64E64E00CCC433 /* LibLicences.json in Resources */,
-				D9F75F4F2CA409320005AC82 /* vpnCountries.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -720,10 +735,13 @@
 				D9DE89422CFE54CD006C4071 /* launchLogo.png in Resources */,
 				D9DE89432CFE54CD006C4071 /* launchLogo@2x.png in Resources */,
 				D96B94E12C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
+				D9CACB0F2D67B7090004F9E0 /* gatewaysEntry.json in Resources */,
+				D9CACB102D67B7090004F9E0 /* gatewaysExit.json in Resources */,
+				D9CACB112D67B7090004F9E0 /* gatewaysVpn.json in Resources */,
 				D96B94DF2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */,
 				D9BEF2D72BEB63320036C566 /* Assets.xcassets in Resources */,
+				D9CACB072D67B6DB0004F9E0 /* gatewaysVpnCountries.json in Resources */,
 				D9F236252C650A9200CCC433 /* LibLicences.json in Resources */,
-				D9F75F4E2CA409320005AC82 /* vpnCountries.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
