@@ -64,15 +64,18 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.SameEntryAndExitGateway -> context.getString(R.string.same_entry_exit_message)
 		ErrorStateReason.InvalidEntryGatewayCountry -> context.getString(R.string.selected_entry_unavailable)
 		ErrorStateReason.InvalidExitGatewayCountry -> context.getString(R.string.selected_exit_unavailable)
-		else -> context.getString(R.string.unexpected_error) + " ${this.javaClass.simpleName}"
+		ErrorStateReason.BandwidthExceeded -> context.getString(R.string.no_bandwidth)
+		is ErrorStateReason.Internal -> context.getString(R.string.unexpected_error) + " ${this.message}"
+		ErrorStateReason.MaxDevicesReached -> context.getString(R.string.max_devices_reached)
+		is ErrorStateReason.Network -> context.getString(R.string.network_error)
+		ErrorStateReason.SubscriptionExpired -> context.getString(R.string.no_active_subscription)
+		ErrorStateReason.Firewall -> context.getString(R.string.firewall_error)
 	}
 }
 
 fun VpnException.toUserMessage(context: Context): String {
 	return when (this) {
 		is VpnException.NetworkConnectionException -> context.getString(R.string.network_error)
-// 		is VpnException.NoActiveSubscription -> context.getString(R.string.no_active_subscription)
-// 		is VpnException.OutOfBandwidth -> context.getString(R.string.no_bandwidth)
 		is VpnException.VpnApiTimeout -> context.getString(R.string.network_error)
 		else -> context.getString(R.string.unexpected_error) + " ${this.javaClass.simpleName}"
 	}

@@ -224,4 +224,5 @@
 	<string name="docs_url" translatable="false">https://nym.com/docs</string>
 	<string name="servers">servers</string>
 	<string name="local_logs">Logs (stored locally)</string>
+    <string name="firewall_error">A firewall error has occurred.</string>
 </resources>

@@ -6,23 +6,12 @@
 use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 
 use nym_vpn_api_client::response::NymErrorResponse;
-use nym_vpn_lib_types::{
-    ActionAfterDisconnect as CoreActionAfterDisconnect, BandwidthEvent as CoreBandwidthEvent,
-    ConnectionData as CoreConnectionData, ConnectionEvent as CoreConnectionEvent,
-    ConnectionStatisticsEvent as CoreConnectionStatisticsEvent,
-    ErrorStateReason as CoreErrorStateReason, ForgetAccountError as CoreForgetAccountError,
-    Gateway as CoreGateway, MixnetConnectionData as CoreMixnetConnectionData,
-    MixnetEvent as CoreMixnetEvent, NymAddress as CoreNymAddress,
-    RegisterDeviceError as CoreRegisterDeviceError, RequestZkNymError as CoreRequestZkNymError,
-    RequestZkNymErrorReason as CoreRequestZkNymErrorReason,
-    RequestZkNymSuccess as CoreRequestZkNymSuccess, SphinxPacketRates as CoreSphinxPacketRates,
-    StoreAccountError as CoreStoreAccountError, SyncAccountError as CoreSyncAccountError,
-    SyncDeviceError as CoreSyncDeviceError, TunnelConnectionData as CoreTunnelConnectionData,
-    TunnelEvent as CoreTunnelEvent, TunnelState as CoreTunnelState,
-    VpnApiErrorResponse as CoreVpnApiErrorResponse,
-    WireguardConnectionData as CoreWireguardConnectionData, WireguardNode as CoreWireguardNode,
-};
+use nym_vpn_lib_types::{ActionAfterDisconnect as CoreActionAfterDisconnect, BandwidthEvent as CoreBandwidthEvent, ConnectionData as CoreConnectionData, ConnectionEvent as CoreConnectionEvent, ConnectionStatisticsEvent as CoreConnectionStatisticsEvent, ErrorStateReason as CoreErrorStateReason, ForgetAccountError as CoreForgetAccountError, Gateway as CoreGateway, MixnetConnectionData as CoreMixnetConnectionData, MixnetEvent as CoreMixnetEvent, NymAddress as CoreNymAddress, RegisterDeviceError as CoreRegisterDeviceError, RequestZkNymError as CoreRequestZkNymError, RequestZkNymErrorReason as CoreRequestZkNymErrorReason, RequestZkNymErrorReason, RequestZkNymSuccess as CoreRequestZkNymSuccess, SphinxPacketRates as CoreSphinxPacketRates, StoreAccountError as CoreStoreAccountError, SyncAccountError as CoreSyncAccountError, SyncDeviceError as CoreSyncDeviceError, TunnelConnectionData as CoreTunnelConnectionData, TunnelEvent as CoreTunnelEvent, TunnelState as CoreTunnelState, VpnApiErrorResponse as CoreVpnApiErrorResponse, WireguardConnectionData as CoreWireguardConnectionData, WireguardNode as CoreWireguardNode};
 use time::OffsetDateTime;
+
+const MAX_DEVICES_REACHED_MESSAGE_ID: &str = "nym-vpn-website.public-api.register-device.max-devices-exceeded";
+const SUBSCRIPTION_EXPIRED_MESSAGE_ID: &str = "nym-vpn-website.public-api.device.zk-nym.request_failed.no_active_subscription";
+const BANDWIDTH_LIMIT_REACHED_MESSAGE_ID: &str = "nym-vpn-website.public-api.device.zk-nym.request_failed.fair_usage_used_for_month";
 
 #[derive(uniffi::Enum)]
 pub enum TunnelEvent {
@@ -222,24 +211,18 @@ impl From<CoreActionAfterDisconnect> for ActionAfterDisconnect {
 #[derive(uniffi::Enum)]
 pub enum ErrorStateReason {
     Firewall,
-    Routing,
-    Dns,
-    TunDevice,
-    TunnelProvider,
     SameEntryAndExitGateway,
     InvalidEntryGatewayCountry,
     InvalidExitGatewayCountry,
-    BadBandwidthIncrease,
-    DuplicateTunFd,
-    SyncAccount(SyncAccountError),
-    SyncDevice(SyncDeviceError),
-    RegisterDevice(RegisterDeviceError),
-    RequestZkNym(RequestZkNymError),
-    RequestZkNymBundle {
-        successes: Vec<RequestZkNymSuccess>,
-        failed: Vec<RequestZkNymError>,
+    MaxDevicesReached,
+    BandwidthExceeded,
+    SubscriptionExpired,
+    Network {
+        message: String,
     },
-    Internal,
+    Internal {
+        message: String
+    },
 }
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
@@ -471,32 +454,55 @@ impl From<NymErrorResponse> for VpnApiErrorResponse {
 }
 
 impl From<CoreErrorStateReason> for ErrorStateReason {
+
     fn from(value: CoreErrorStateReason) -> Self {
         match value {
-            CoreErrorStateReason::Firewall => Self::Firewall,
-            CoreErrorStateReason::Routing => Self::Routing,
-            CoreErrorStateReason::Dns => Self::Dns,
-            CoreErrorStateReason::TunDevice => Self::TunDevice,
-            CoreErrorStateReason::TunnelProvider => Self::TunnelProvider,
             CoreErrorStateReason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
             CoreErrorStateReason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
             CoreErrorStateReason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
-            CoreErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
-            CoreErrorStateReason::DuplicateTunFd => Self::DuplicateTunFd,
-            CoreErrorStateReason::SyncAccount(err) => Self::SyncAccount(err.into()),
-            CoreErrorStateReason::SyncDevice(err) => Self::SyncDevice(err.into()),
-            CoreErrorStateReason::RegisterDevice(err) => Self::RegisterDevice(err.into()),
-            CoreErrorStateReason::RequestZkNym(err) => Self::RequestZkNym(err.into()),
-            CoreErrorStateReason::RequestZkNymBundle { successes, failed } => {
-                Self::RequestZkNymBundle {
-                    successes: successes
-                        .into_iter()
-                        .map(RequestZkNymSuccess::from)
-                        .collect(),
-                    failed: failed.into_iter().map(RequestZkNymError::from).collect(),
+            CoreErrorStateReason::BadBandwidthIncrease => Self::Network { message: value.to_string() },
+            CoreErrorStateReason::SyncAccount(err) => Self::Network { message: err.to_string() },
+            CoreErrorStateReason::SyncDevice(err) => Self::Network { message: err.to_string() },
+            CoreErrorStateReason::RegisterDevice(err) => {
+                if err.message_id().is_some_and(|id|{ id.contains(MAX_DEVICES_REACHED_MESSAGE_ID) }) {
+                    Self::MaxDevicesReached
+                } else {
+                    Self::Network { message: err.to_string() }
                 }
+            },
+            CoreErrorStateReason::RequestZkNym(err) => {
+                match err {
+                    RequestZkNymErrorReason::VpnApi(e) => {
+                        match e.message_id.as_ref() {
+                            Some(id) if id.contains(BANDWIDTH_LIMIT_REACHED_MESSAGE_ID) => Self::BandwidthExceeded,
+                            Some(id) if id.contains(SUBSCRIPTION_EXPIRED_MESSAGE_ID) => Self::SubscriptionExpired,
+                            _ => Self::Network { message: e.message },
+                        }
+                    }
+                    RequestZkNymErrorReason::UnexpectedVpnApiResponse(message) => Self::Network { message },
+                    reason => Self::Internal { message: reason.to_string() },
+                }
+            },
+            CoreErrorStateReason::RequestZkNymBundle { successes, failed } => {
+                if let Some(err) = failed.iter().find(|e| matches!(e, RequestZkNymErrorReason::VpnApi { .. })) {
+                    if let RequestZkNymErrorReason::VpnApi(e) = err {
+                        return match e.message_id.as_ref() {
+                            Some(id) if id.contains(BANDWIDTH_LIMIT_REACHED_MESSAGE_ID) => Self::BandwidthExceeded,
+                            Some(id) if id.contains(SUBSCRIPTION_EXPIRED_MESSAGE_ID) => Self::SubscriptionExpired,
+                            _ => Self::Network { message: e.clone().message },
+                        }
+                    }
+                }
+                if let Some(err) = failed.iter().find(|e| matches!(e, RequestZkNymErrorReason::UnexpectedVpnApiResponse { .. })) {
+                    return Self::Network { message: err.to_string() }
+                }
+                Self::Internal { message: failed.into_iter().map(|e| e.to_string()).collect() }
             }
-            CoreErrorStateReason::Internal => Self::Internal,
+            CoreErrorStateReason::Firewall => Self::Firewall,
+            CoreErrorStateReason::Internal | CoreErrorStateReason::Routing | CoreErrorStateReason::TunDevice 
+            | CoreErrorStateReason::TunnelProvider | CoreErrorStateReason::DuplicateTunFd | CoreErrorStateReason::Dns => Self::Internal {
+                message: value.to_string()
+            }
         }
     }
 }
