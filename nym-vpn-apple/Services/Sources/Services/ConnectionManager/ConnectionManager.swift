@@ -228,19 +228,25 @@ private extension ConnectionManager {
 private extension ConnectionManager {
     func setupTunnelManagerObservers() {
         tunnelsManager.$isLoaded.sink { [weak self] isLoaded in
-            self?.isTunnelManagerLoaded = isLoaded
+            Task { @MainActor [weak self] in
+                self?.isTunnelManagerLoaded = isLoaded
+            }
         }
         .store(in: &cancellables)
 
         tunnelsManager.$activeTunnel.sink { [weak self] tunnel in
-            self?.activeTunnel = tunnel
+            Task { @MainActor [weak self] in
+                self?.activeTunnel = tunnel
+            }
         }
         .store(in: &cancellables)
     }
 
     func configureTunnelStatusObserver(tunnel: Tunnel) {
         tunnelStatusUpdateCancellable = tunnel.$status.sink { [weak self] status in
-            self?.currentTunnelStatus = status
+            Task { @MainActor [weak self] in
+                self?.currentTunnelStatus = status
+            }
         }
     }
 }

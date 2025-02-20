@@ -329,9 +329,11 @@ private extension CountriesManager {
             countryStore.vpnCountries = newVpnCountries
             countryStore.lastFetchDate = Date()
 
-            entryCountries = newEntryCountries
-            exitCountries = newExitCountries
-            vpnCountries = newVpnCountries
+            Task { @MainActor [weak self] in
+                self?.entryCountries = newEntryCountries
+                self?.exitCountries = newExitCountries
+                self?.vpnCountries = newVpnCountries
+            }
 
             storeCountryStore()
 

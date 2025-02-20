@@ -30,8 +30,8 @@ extension ExitRouter: GatewayInfoProtocol {
         switch self {
         case let .country(country):
             country.code
-        case .gateway:
-            nil
+        case let .gateway(gateway):
+            gateway.countryCode
         }
     }
 

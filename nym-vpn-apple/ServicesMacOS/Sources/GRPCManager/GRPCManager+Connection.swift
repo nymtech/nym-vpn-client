@@ -65,9 +65,9 @@ private extension GRPCManager {
             var location = Nym_Vpn_Location()
             location.twoLetterIsoCountryCode = country.code
             entryNode.location = location
-        case let .gateway(identifier):
+        case let .gateway(node):
             var gateway = Nym_Vpn_Gateway()
-            gateway.id = identifier
+            gateway.id = node.id
             entryNode.gateway = gateway
         case .randomLowLatency:
             entryNode.randomLowLatency = Google_Protobuf_Empty()
@@ -84,9 +84,9 @@ private extension GRPCManager {
             var location = Nym_Vpn_Location()
             location.twoLetterIsoCountryCode = country.code
             exitNode.location = location
-        case let .gateway(identifier):
+        case let .gateway(node):
             var gateway = Nym_Vpn_Gateway()
-            gateway.id = identifier
+            gateway.id = node.id
             exitNode.gateway = gateway
         }
         return exitNode

@@ -83,6 +83,8 @@ extension GatewayCell {
     func serverDetails() -> some View {
         VStack(alignment: .leading, spacing: 0) {
             serverTitle()
+            Spacer()
+                .frame(height: 4)
             serverSubtitle()
         }
     }

@@ -130,6 +130,7 @@ let package = Package(
         .target(
             name: "GatewayManager",
             dependencies: [
+                .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
