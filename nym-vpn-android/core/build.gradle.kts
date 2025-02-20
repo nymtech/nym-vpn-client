@@ -113,7 +113,6 @@ dependencies {
 	detektPlugins(libs.detekt.rules.compose)
 }
 
-
 tasks {
 	val clean by getting(Delete::class) {
 		delete.add("./src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so")
