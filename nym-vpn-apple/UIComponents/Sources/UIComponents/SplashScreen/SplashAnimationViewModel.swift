@@ -11,19 +11,7 @@ public struct SplashAnimationViewModel {
         _splashScreenDidDisplay = splashScreenDidDisplay
     }
 
-    var animationName: String {
-        switch appSettings.currentAppearance {
-#if os(iOS)
-        case .automatic:
-            let userInterfaceStyle = UITraitCollection.current.userInterfaceStyle
-            return userInterfaceStyle == .dark ? "launchDark" : "launchLight"
-#endif
-        case .light:
-            return "launchLight"
-        case .dark:
-            return "launchDark"
-        }
-    }
+    let animationName = "launchAnimation"
 
     @MainActor func didFinishDisplayingAnimation() {
         splashScreenDidDisplay = true

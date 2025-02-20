@@ -2,6 +2,8 @@ import SwiftUI
 import Logging
 import AppSettings
 import ConfigurationManager
+import ConnectionManager
+import CountriesManager
 import Home
 import Extensions
 import KeyboardManager
@@ -19,8 +21,11 @@ struct NymVPNApp: App {
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
     private var appearance: AppSetting.Appearance = .automatic
     @ObservedObject private var appSettings = AppSettings.shared
+    @ObservedObject private var connectionManager = ConnectionManager.shared
+    @ObservedObject private var countriesManager = CountriesManager.shared
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var welcomeViewModel = WelcomeViewModel()
+    @State private var splashScreenDidDisplay = false
 
     init() {
         setup()
@@ -29,7 +34,9 @@ struct NymVPNApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                if !appSettings.welcomeScreenDidDisplay {
+                if !splashScreenDidDisplay {
+                    LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
+                } else if !appSettings.welcomeScreenDidDisplay {
                     WelcomeView(viewModel: welcomeViewModel)
                         .transition(.slide)
                 } else {
@@ -42,6 +49,8 @@ struct NymVPNApp: App {
                 configureScreenSize()
             }
             .environmentObject(appSettings)
+            .environmentObject(connectionManager)
+            .environmentObject(countriesManager)
             .environmentObject(KeyboardManager.shared)
             .environmentObject(logFileManager)
         }
