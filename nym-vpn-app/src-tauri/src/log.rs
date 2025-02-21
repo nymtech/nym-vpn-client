@@ -1,4 +1,3 @@
-use crate::cli::LogLevel;
 use crate::fs::path::APP_LOG_DIR;
 use crate::{env, Cli};
 use std::{fs, path::PathBuf};
@@ -36,10 +35,8 @@ pub async fn setup_tracing(cli: &Cli) -> Result<Option<WorkerGuard>> {
         .add_directive("netlink_proto=info".parse()?);
 
     if let Some(log_level) = cli.log_level.as_ref() {
-        if *log_level != LogLevel::Info {
-            filter = filter
-                .add_directive(format!("{}={}", env!("CARGO_CRATE_NAME"), log_level).parse()?);
-        }
+        filter =
+            filter.add_directive(format!("{}={}", env!("CARGO_CRATE_NAME"), log_level).parse()?);
     }
 
     if cli.log_file || env::is_truthy(ENV_LOG_FILE) {
