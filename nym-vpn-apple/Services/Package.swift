@@ -102,6 +102,7 @@ let package = Package(
                 "AppSettings",
                 "Constants",
                 .product(name: "ErrorReason", package: "ServicesMutual"),
+                .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),

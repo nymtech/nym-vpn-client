@@ -5,6 +5,7 @@ import AppSettings
 import Constants
 import ErrorReason
 #if os(iOS)
+import ErrorHandler
 import MixnetLibrary
 #elseif os(macOS)
 import GRPCManager

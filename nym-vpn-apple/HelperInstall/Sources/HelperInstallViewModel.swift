@@ -115,6 +115,8 @@ sfltool resetbtm
     func setupDaemonStateObserver() {
         daemonStateCancellable = helperManager.$daemonState
             .receive(on: RunLoop.main)
+            .removeDuplicates()
+            .delay(for: .seconds(3), scheduler: RunLoop.main)
             .sink { [weak self] newState in
                 guard let self, newState != lastDaemonState else { return }
                 lastDaemonState = newState
@@ -132,11 +134,7 @@ sfltool resetbtm
                 .register(isRegistered: isDaemonRegistered()),
                 .authorize(isAuthorized: isDaemonAuthorized()),
                 .running(isRunning: isDaemonRunning()),
-                .versionCheck(
-                    requiresUpdate: requiresUpdate(),
-                    requiredVersion: helperManager.requiredVersion,
-                    currentVersion: helperManager.currentVersion
-                )
+                .versionCheck(requiresUpdate: requiresUpdate())
             ])
         }
         steps = newSteps
@@ -163,12 +161,14 @@ sfltool resetbtm
               isDaemonAuthorized(),
               isDaemonRunning(),
               !requiresUpdate(),
-              !requiresDaemonMigration()
+              !requiresDaemonMigration(),
+              timerCancellable == nil
         else {
             return
         }
         timerCancellable = Timer.publish(every: 1.0, on: .main, in: .common)
             .autoconnect()
+            .receive(on: RunLoop.main)
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 if let daemonStateCancellable {
