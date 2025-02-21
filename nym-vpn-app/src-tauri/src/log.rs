@@ -49,12 +49,13 @@ pub async fn setup_tracing(cli: &Cli) -> Result<Option<WorkerGuard>> {
         let old = rotate_log_file(log_dir.clone()).ok().flatten();
 
         let appender = rolling::never(log_dir.clone(), LOG_FILE);
-        let (_, guard) = tracing_appender::non_blocking(appender);
+        let (writer, guard) = tracing_appender::non_blocking(appender);
 
         tracing_subscriber::fmt()
             .with_env_filter(filter)
             .compact()
             .with_ansi(false)
+            .with_writer(writer)
             .init();
 
         if let Some(old) = old {
