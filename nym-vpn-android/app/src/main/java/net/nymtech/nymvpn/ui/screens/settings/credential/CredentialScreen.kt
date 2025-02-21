@@ -74,15 +74,15 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 	val navController = LocalNavController.current
 	val keyboardController = LocalSoftwareKeyboardController.current
 
-	val success = viewModel.success.collectAsStateWithLifecycle(null)
-	val showMaxDevicesModal = viewModel.showMaxDevicesModal.collectAsStateWithLifecycle(null)
+	val success by viewModel.success.collectAsStateWithLifecycle(null)
+	val showMaxDevicesModal by viewModel.showMaxDevicesModal.collectAsStateWithLifecycle(null)
 	var showModal by remember { mutableStateOf(false) }
 	var loading by remember { mutableStateOf(false) }
 
-	LaunchedEffect(success.value) {
+	LaunchedEffect(success) {
 		loading = false
-		if (success.value == true) navController.navigateAndForget(Route.Main())
-		if (success.value == false && showMaxDevicesModal.value == true) showModal = true
+		if (success == true) navController.navigateAndForget(Route.Main())
+		if (success == false && showMaxDevicesModal == true) showModal = true
 	}
 
 	val onDismiss = {
@@ -194,7 +194,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 				},
 				value = mnemonic,
 				onValueChange = {
-					if (success.value == false) viewModel.resetSuccess()
+					if (success == false) viewModel.resetSuccess()
 					mnemonic = it
 				},
 				keyboardActions = KeyboardActions(onDone = {
@@ -205,7 +205,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 					.width(358.dp.scaledWidth())
 					.height(212.dp.scaledHeight()),
 				supportingText = {
-					if (success.value == false) {
+					if (success == false) {
 						Text(
 							modifier = Modifier.fillMaxWidth(),
 							text = stringResource(R.string.invalid_recovery_phrase),
@@ -213,7 +213,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 						)
 					}
 				},
-				isError = success.value == false,
+				isError = success == false,
 				label = { Text(text = stringResource(id = R.string.recovery_phrase), color = MaterialTheme.colorScheme.onSurface) },
 				textStyle = MaterialTheme.typography.bodyMedium.copy(
 					color = MaterialTheme.colorScheme.onSurface,
@@ -236,7 +236,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 							onSubmit()
 						},
 						content = {
-							if (loading) {
+							if (loading && success == null) {
 								SpinningIcon(Icons.Outlined.Refresh)
 							} else {
 								Text(

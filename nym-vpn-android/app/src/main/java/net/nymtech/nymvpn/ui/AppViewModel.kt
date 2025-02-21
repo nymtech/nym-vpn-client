@@ -3,6 +3,7 @@ package net.nymtech.nymvpn.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,11 +14,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import net.nymtech.connectivity.NetworkService
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
@@ -38,6 +41,7 @@ constructor(
 	private val gatewayCacheService: GatewayCacheService,
 	private val backendManager: BackendManager,
 	networkService: NetworkService,
+	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
 	private val _navBarState = MutableStateFlow(NavBarState())
@@ -79,7 +83,7 @@ constructor(
 		settingsRepository.setAnalyticsShown(true)
 	}
 
-	fun logout() = viewModelScope.launch {
+	suspend fun logout() = withContext(ioDispatcher) {
 		runCatching {
 			if (backendManager.getState() == Tunnel.State.Down) {
 				backendManager.removeMnemonic()

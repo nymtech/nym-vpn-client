@@ -26,6 +26,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -38,6 +43,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
@@ -341,18 +347,29 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 			background = MaterialTheme.colorScheme.surface,
 		)
 		if (appUiState.managerState.isMnemonicStored) {
+			var loggingOut by remember { mutableStateOf(false) }
+			val scope = rememberCoroutineScope()
 			SurfaceSelectionGroupButton(
 				listOf(
 					SelectionItem(
-						title = { Text(stringResource(R.string.log_out), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
+						title = {
+							Text(
+								if (loggingOut) stringResource(R.string.logging_out) else stringResource(R.string.log_out),
+								style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+							)
+						},
 						onClick = {
-							if (appUiState.managerState.tunnelState == Tunnel.State.Down) {
+							scope.launch {
+								if (appUiState.managerState.tunnelState != Tunnel.State.Down) {
+									return@launch snackbar.showMessage(
+										context.getString(R.string.action_requires_tunnel_down),
+									)
+								}
+								loggingOut = true
 								appViewModel.logout()
-							} else {
-								snackbar.showMessage(context.getString(R.string.action_requires_tunnel_down))
+								loggingOut = false
 							}
 						},
-						trailing = {},
 					),
 				),
 				background = MaterialTheme.colorScheme.surface,
