@@ -567,6 +567,10 @@ impl tunnel::Error {
             | Self::BandwidthController(_)
             | Self::Wireguard(_)
             | Self::Cancelled => None,
+            #[cfg(target_os = "ios")]
+            Self::ResolveDns64(_) => None,
+            #[cfg(windows)]
+            Self::AddDefaultRouteListener(_) => None,
         }
     }
 }
