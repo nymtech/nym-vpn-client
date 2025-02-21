@@ -1,6 +1,7 @@
 use nym_vpn_proto as p;
 use p::tunnel_state::{ActionAfterDisconnect, State};
 use serde::Serialize;
+use std::fmt::{Display, Formatter};
 use tracing::warn;
 use ts_rs::TS;
 
@@ -52,7 +53,7 @@ pub struct Tunnel {
     pub data: TunnelData,
 }
 
-#[derive(Default, Debug, Clone, Serialize, PartialEq, TS, strum::Display)]
+#[derive(Default, Debug, Clone, Serialize, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub enum TunnelState {
@@ -171,9 +172,10 @@ impl TryFrom<p::ConnectionData> for Tunnel {
     }
 }
 
-#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[derive(Serialize, Clone, Debug, PartialEq, TS, strum::Display)]
 #[ts(export)]
 #[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "kebab-case")]
 pub enum TunnelAction {
     Error,
     Reconnect,
@@ -200,6 +202,29 @@ impl From<ActionAfterDisconnect> for OptionalTunnelAction {
             ActionAfterDisconnect::Reconnect => OptionalTunnelAction(Some(TunnelAction::Reconnect)),
             ActionAfterDisconnect::Offline => OptionalTunnelAction(Some(TunnelAction::Offline)),
             _ => OptionalTunnelAction(None),
+        }
+    }
+}
+
+impl Display for TunnelState {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TunnelState::Disconnected => write!(f, "disconnected"),
+            TunnelState::Connected(_) => write!(f, "connected"),
+            TunnelState::Connecting(_) => write!(f, "connecting"),
+            TunnelState::Disconnecting(a) => {
+                if let Some(action) = a {
+                    write!(f, "disconnecting - next action ({})", action)
+                } else {
+                    write!(f, "disconnecting")
+                }
+            }
+            TunnelState::Error(e) => {
+                write!(f, "error - {}", e)
+            }
+            TunnelState::Offline { reconnect } => {
+                write!(f, "offline - reconnect ({})", reconnect)
+            }
         }
     }
 }

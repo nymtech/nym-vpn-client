@@ -7,7 +7,7 @@ export type ButtonProps = {
   children: ReactNode;
   onClick: () => void;
   disabled?: boolean;
-  color?: 'malachite' | 'cornflower' | 'gray';
+  color?: 'malachite' | 'cornflower' | 'gray' | 'red';
   outline?: boolean;
   className?: string;
   spinner?: boolean;
@@ -53,6 +53,11 @@ function Button({
           'bg-cornflower data-hover:bg-cornflower/85',
           'dark:data-hover:bg-cornflower/80',
         ];
+      case 'red':
+        return [
+          'bg-rouge-ecarlate data-hover:bg-rouge-ecarlate/85',
+          'dark:data-hover:bg-rouge-ecarlate/80',
+        ];
     }
   };
 
@@ -74,6 +79,8 @@ function Button({
         return 'text-dim-gray dark:text-dusty-grey';
       case 'cornflower':
         return 'text-cornflower';
+      case 'red':
+        return 'text-rouge-ecarlate';
     }
   };
 

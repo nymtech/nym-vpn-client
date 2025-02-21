@@ -33,7 +33,8 @@ function Home() {
     if (
       state === 'Connected' ||
       state === 'Connecting' ||
-      state === 'OfflineAutoReconnect'
+      state === 'OfflineAutoReconnect' ||
+      state === 'Error'
     ) {
       console.info('disconnect');
       if (state === 'Connecting') {
@@ -47,7 +48,7 @@ function Home() {
           console.warn('backend error:', e);
           dispatch({ type: 'set-error', error: e as BackendError });
         });
-    } else if (state === 'Disconnected' || state === 'Error') {
+    } else if (state === 'Disconnected') {
       console.info('connect');
       dispatch({ type: 'reset-error' });
       dispatch({ type: 'connect' });
@@ -74,11 +75,11 @@ function Home() {
 
   const getButtonText = useCallback(() => {
     const stop = capFirst(t('stop', { ns: 'glossary' }));
+    const cancel = capFirst(t('cancel', { ns: 'glossary' }));
     switch (state) {
       case 'Connected':
         return t('disconnect');
       case 'Disconnected':
-      case 'Error':
         return t('connect');
       case 'Connecting':
         return stop;
@@ -88,6 +89,8 @@ function Home() {
         return t('connect');
       case 'OfflineAutoReconnect':
         return stop;
+      case 'Error':
+        return cancel;
     }
   }, [state, t]);
 
@@ -102,6 +105,8 @@ function Home() {
       case 'Connected':
       case 'Disconnecting':
         return 'cornflower';
+      case 'Error':
+        return 'red';
       default:
         return 'gray';
     }
