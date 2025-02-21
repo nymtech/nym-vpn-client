@@ -6,7 +6,7 @@
     "disconnected": "Déconnecté",
     "connecting": "Connexion",
     "disconnecting": "Déconnexion",
-    "error": "Error",
+    "error": "Erreur",
     "offline": "Pas de connexion Internet"
   },
   "offline-message": "L'appareil n'est pas connecté à Internet",
