@@ -1,1 +1,1 @@
-NymVPN：快速安全的 VPN
+NymVPN：Nym的安全VPN
