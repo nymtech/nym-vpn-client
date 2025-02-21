@@ -92,7 +92,7 @@ function Button({
         'flex justify-center items-center w-full',
         'rounded-lg text-lg font-bold py-3 px-6',
         outline ? getOutlineTextColor() : 'text-black dark:text-baltic-sea',
-        'focus:outline-hidden data-focus:ring-2 data-focus:ring-black dark:data-focus:ring-white',
+        'focus:outline-hidden',
         'transition data-disabled:opacity-60 data-active:ring-0',
         outline && 'data-hover:ring-1 data-hover:ring-malachite',
         'shadow-sm tracking-normal cursor-default',
