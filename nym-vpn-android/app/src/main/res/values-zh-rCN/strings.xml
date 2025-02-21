@@ -195,4 +195,19 @@
     <string name="log_in">登录</string>
     <string name="share">分享</string>
     <string name="disabled_while_connecting">连接 VPN 时禁用</string>
+    <string name="no_internet">您的设备没有网络连接</string>
+    <string name="waiting_for_connection">设备上线后即可连接</string>
+    <string name="offline">无网络</string>
+    <string name="exit">退出</string>
+    <string name="entry">进入</string>
+    <string name="how_to_run_gateway">如何运行网关</string>
+    <string name="or_learn">或学习</string>
+    <string name="try_another_server_name">尝试其他位置或检查服务器名称。</string>
+    <string name="local_logs">日志（本地存储）</string>
+    <string name="no_results_found">未找到结果。</string>
+    <string name="contact_for_help">联系我们寻求帮助</string>
+    <string name="servers">服务器</string>
+    <string name="two_hop_title">快速 (WireGuard<small>*</small>)</string>
+    <string name="two_hop_explanation">通过双服务器连接体验最高速度。 该模式采用 AmneziaWG，这是一种抗审查版本的 WireGuard，是快速浏览、流媒体和文件共享的理想选择。</string>
+    <string name="loading">加载中</string>
 </resources>
