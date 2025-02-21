@@ -54,7 +54,7 @@ impl WindowsVersion {
             .collect();
 
         let ntdll = unsafe { GetModuleHandleW(module_name.as_ptr()) };
-        if ntdll == 0 {
+        if ntdll.is_null() {
             return Err(io::Error::last_os_error());
         }
 
