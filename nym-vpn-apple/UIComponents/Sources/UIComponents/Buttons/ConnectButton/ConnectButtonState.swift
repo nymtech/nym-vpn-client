@@ -49,8 +49,10 @@ public enum ConnectButtonState {
             NymColor.primaryOrange
         case .disconnect:
             NymColor.disconnect
-        case .stop, .disconnecting, .installingDaemon, .noInternetReconnect:
+        case .disconnecting, .installingDaemon, .noInternetReconnect:
             NymColor.sysSecondary
+        case .stop:
+            NymColor.error
         }
     }
 }

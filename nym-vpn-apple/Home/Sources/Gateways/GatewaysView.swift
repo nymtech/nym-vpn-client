@@ -29,6 +29,8 @@ public struct GatewaysView: View {
                 ScrollView {
                     countriesGatewaysList()
                     noSearchResultsView()
+                    foundCountriesList()
+                    foundGatewaysList()
                 }
                 .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
                 .ignoresSafeArea(.all)
@@ -106,7 +108,7 @@ private extension GatewaysView {
 
     @ViewBuilder
     func noSearchResultsView() -> some View {
-        if !viewModel.searchText.isEmpty {
+        if !viewModel.searchText.isEmpty, viewModel.foundGateways.isEmpty, viewModel.foundCountries.isEmpty {
             VStack {
                 Text("search.noResults".localizedString)
                     .foregroundStyle(NymColor.primary)
@@ -149,6 +151,36 @@ private extension GatewaysView {
                         .textStyle(.Body.Large.regular)
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    func foundCountriesList() -> some View {
+        ForEach(viewModel.foundCountries, id: \.name) { country in
+            GatewayCountryDropDown(
+                country: country,
+                servers: viewModel.gatewaysInCountry(with: country.code),
+                type: viewModel.type,
+                path: $viewModel.path,
+                isServerModalDisplayed: $viewModel.isServerInfoModalDisplayed,
+                serverInfoModalServer: $viewModel.serverInfoModalServer,
+                scrollToServer: $viewModel.scrollToServer
+            )
+        }
+        Spacer()
+            .frame(height: 24)
+    }
+
+    @ViewBuilder
+    func foundGatewaysList() -> some View {
+        ForEach(viewModel.foundGateways, id: \.id) { server in
+            GatewayCell(
+                server: server,
+                type: viewModel.type,
+                path: $viewModel.path,
+                isServerModalDisplayed: $viewModel.isServerInfoModalDisplayed,
+                serverInfoModalServer: $viewModel.serverInfoModalServer
+            )
         }
     }
 }
