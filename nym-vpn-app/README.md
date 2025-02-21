@@ -127,6 +127,8 @@ In a PowerShell terminal run
 
 ```powershell
 $env:RUST_LOG='debug,nym_vpn_app=trace'; cargo tauri dev; $env:RUST_LOG=$null
+# or using cli flag -L
+cargo tauri dev -- -- -Ltrace
 ```
 
 ## Dev in the browser

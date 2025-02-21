@@ -1,6 +1,6 @@
 use crate::db::{Db, Key};
 use anyhow::{anyhow, Result};
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::path::PathBuf;
@@ -37,6 +37,19 @@ pub fn attach_console() {
     }
 }
 
+#[derive(
+    Parser, Serialize, Deserialize, Debug, Clone, PartialEq, Eq, ValueEnum, strum::Display,
+)]
+#[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
+pub enum LogLevel {
+    Trace,
+    Debug,
+    Info,
+    Warn,
+    Error,
+}
+
 #[derive(Parser, Serialize, Deserialize, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
@@ -63,6 +76,10 @@ pub struct Cli {
     /// Enable writing app logs to a file
     #[arg(short, long)]
     pub log_file: bool,
+
+    /// Set the log level
+    #[arg(short = 'L', long)]
+    pub log_level: Option<LogLevel>,
 
     /// Open a console to see the logs
     #[arg(short, long)]
