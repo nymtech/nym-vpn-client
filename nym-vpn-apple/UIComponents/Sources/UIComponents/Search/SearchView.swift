@@ -3,7 +3,7 @@ import Theme
 
 public struct SearchView: View {
     private let strokeTitle = "search".localizedString
-    private let searchCountryTitle = "searchCountry".localizedString
+    private let searchTitle = "search.title".localizedString
     private let searchImageName = "searchIcon"
 
     @FocusState.Binding private var isSearchFocused: Bool
@@ -46,7 +46,7 @@ extension SearchView {
     func searchTextfield() -> some View {
         ZStack(alignment: .leading) {
             if searchText.isEmpty {
-                Text(searchCountryTitle)
+                Text(searchTitle)
                     .foregroundStyle(NymColor.sysOutline)
                     .textStyle(.BodyLegacy.Large.regular)
             }

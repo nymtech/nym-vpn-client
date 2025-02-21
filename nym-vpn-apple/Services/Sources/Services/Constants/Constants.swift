@@ -6,7 +6,8 @@ public enum Constants: String {
     case supportURL = "https://support.nym.com/hc"
     case termsOfUseURL = "https://nym.com/vpn-terms"
     case privacyPolicyURL = "https://nym.com/vpn-privacy-statement"
-    case emailLink = "https://support.nym.com/hc/requests/new"
+    case newSupportRequest = "https://support.nym.com/hc/requests/new"
+    case operatorDocs = "https://nym.com/docs"
 
     case discordLink = "https://nym.com/go/discord"
     case ghIssuesLink = "https://nym.com/go/github/nym-vpn-client/issues"

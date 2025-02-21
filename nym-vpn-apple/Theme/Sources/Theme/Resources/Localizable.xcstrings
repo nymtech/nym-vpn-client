@@ -1585,18 +1585,62 @@
         }
       }
     },
+    "search.contactUsForHelp" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contact us for help"
+          }
+        }
+      }
+    },
+    "search.howToRunGateway" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "how to run a gateway"
+          }
+        }
+      }
+    },
     "search.noResults" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No results found. Please try another search."
+            "value" : "No results found."
           }
         }
       }
     },
-    "searchCountry" : {
+    "search.noResultsSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try another location or check the server name."
+          }
+        }
+      }
+    },
+    "search.or" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "or learn"
+          }
+        }
+      }
+    },
+    "search.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {

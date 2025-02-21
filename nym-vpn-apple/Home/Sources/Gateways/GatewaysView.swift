@@ -1,4 +1,5 @@
 import SwiftUI
+import Constants
 import CountriesManagerTypes
 import Device
 import ExternalLinkManager
@@ -27,7 +28,7 @@ public struct GatewaysView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     countriesGatewaysList()
-                    //                noSearchResultsView()
+                    noSearchResultsView()
                 }
                 .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
                 .ignoresSafeArea(.all)
@@ -88,28 +89,66 @@ private extension GatewaysView {
 
     @ViewBuilder
     func countriesGatewaysList() -> some View {
-        ForEach(viewModel.countries, id: \.name) { country in
-            GatewayCountryDropDown(
-                country: country,
-                servers: viewModel.gatewaysInCountry(with: country.code),
-                type: viewModel.type,
-                path: $viewModel.path,
-                isServerModalDisplayed: $viewModel.isServerInfoModalDisplayed,
-                serverInfoModalServer: $viewModel.serverInfoModalServer,
-                scrollToServer: $viewModel.scrollToServer
-            )
+        if viewModel.searchText.isEmpty {
+            ForEach(viewModel.countries, id: \.name) { country in
+                GatewayCountryDropDown(
+                    country: country,
+                    servers: viewModel.gatewaysInCountry(with: country.code),
+                    type: viewModel.type,
+                    path: $viewModel.path,
+                    isServerModalDisplayed: $viewModel.isServerInfoModalDisplayed,
+                    serverInfoModalServer: $viewModel.serverInfoModalServer,
+                    scrollToServer: $viewModel.scrollToServer
+                )
+            }
         }
     }
 
-//    @ViewBuilder
-//    func noSearchResultsView() -> some View {
-//        if !viewModel.searchText.isEmpty && viewModel.countries?.isEmpty ?? true {
-//            VStack {
-//                Text(viewModel.noResultsText)
-//                    .textStyle(.Body.Medium.regular)
-//                    .padding(.top, 96)
-//                Spacer()
-//            }
-//        }
-//    }
+    @ViewBuilder
+    func noSearchResultsView() -> some View {
+        if !viewModel.searchText.isEmpty {
+            VStack {
+                Text("search.noResults".localizedString)
+                    .foregroundStyle(NymColor.primary)
+                    .textStyle(.Body.Large.regular)
+                Spacer()
+                    .frame(height: 4)
+                Text("search.noResultsSubtitle".localizedString)
+                    .foregroundStyle(NymColor.gray1)
+                    .textStyle(.Body.Large.regular)
+                Spacer()
+                    .frame(height: 4)
+
+                contactUsForHelpLinkView()
+                Spacer()
+                    .frame(height: 4)
+            }
+        }
+    }
+
+    @ViewBuilder
+    func contactUsForHelpLinkView() -> some View {
+        if let newSupportRequestURL = URL(string: Constants.newSupportRequest.rawValue),
+           let operatorURL = URL(string: Constants.operatorDocs.rawValue) {
+            HStack(spacing: 0) {
+                Link(destination: newSupportRequestURL) {
+                    Text("search.contactUsForHelp".localizedString)
+                        .underline()
+                        .foregroundStyle(NymColor.gray1)
+                        .textStyle(.Body.Large.regular)
+                }
+
+                Text(" \("search.or".localizedString) ")
+                    .foregroundStyle(NymColor.gray1)
+                    .textStyle(.Body.Large.regular)
+
+                Link(destination: operatorURL) {
+                    Text("search.howToRunGateway".localizedString)
+                        .underline()
+                        .foregroundStyle(NymColor.gray1)
+                        .textStyle(.Body.Large.regular)
+                }
+            }
+        }
+    }
 }
