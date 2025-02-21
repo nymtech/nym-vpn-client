@@ -10,7 +10,13 @@ export function useExit() {
   const dispatch = useMainDispatch() as StateDispatch;
 
   const exit = async () => {
-    if (state.state === 'Connected') {
+    console.info('app exit');
+    if (
+      state.state === 'Connected' ||
+      state.state === 'Error' ||
+      state.state === 'Connecting' ||
+      state.state === 'OfflineAutoReconnect'
+    ) {
       // TODO add a timeout to prevent the app from hanging
       // in bad disconnect scenarios
       dispatch({ type: 'disconnect' });
