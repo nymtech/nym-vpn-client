@@ -25,7 +25,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Speed
@@ -319,7 +318,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 					leading = {
 						val image = appUiState.entryPointCountry?.let {
 							ImageVector.vectorResource(context.getFlagImageVectorByName(it))
-						} ?: Icons.Default.QuestionMark
+						} ?: ImageVector.vectorResource(R.drawable.faq)
 						Image(
 							image,
 							image.name,

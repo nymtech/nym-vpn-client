@@ -38,8 +38,8 @@ fun String.asEntryPoint(): EntryPoint {
 	return when {
 		this == "random" -> EntryPoint.Random
 		this == "randomlowlatency" -> EntryPoint.RandomLowLatency
-		this.length == 2 -> EntryPoint.Location(this.uppercase())
-		this.length == 44 -> EntryPoint.Gateway(this)
+		length == 2 -> EntryPoint.Location(this.uppercase())
+		length == 44 || length == 43 -> EntryPoint.Gateway(this)
 		else -> EntryPoint.Random
 	}
 }
@@ -48,7 +48,7 @@ fun String.asExitPoint(): ExitPoint {
 	return when (this.length) {
 		2 -> ExitPoint.Location(this.uppercase())
 		134 -> ExitPoint.Address(this)
-		44 -> ExitPoint.Gateway(this)
+		44, 43 -> ExitPoint.Gateway(this)
 		else -> throw IllegalArgumentException("Invalid exit id")
 	}
 }
