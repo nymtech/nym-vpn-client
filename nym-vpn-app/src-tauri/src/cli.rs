@@ -207,10 +207,6 @@ commit date:   {}
 ",
             git.commit_id, git.commit_timestamp,
         );
-
-        if let Some(branch) = git.branch.as_ref() {
-            print!("git branch:    {}", branch);
-        }
     }
     println!();
 }
