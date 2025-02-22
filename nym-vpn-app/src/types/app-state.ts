@@ -1,11 +1,12 @@
 import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
-import { Country, NodeHop, ThemeMode, UiTheme } from './common';
+import { Country, ThemeMode, UiTheme } from './common';
 import {
   AccountLinks,
   ErrorKey,
   Gateway,
+  GatewayType,
   GatewaysByCountry,
   NetworkEnv,
 } from './tauri-ipc';
@@ -72,8 +73,9 @@ export type AppState = {
   // TODO just a boolean for now to indicate if the user has added an account
   account: boolean;
   accountLinks?: AccountLinks | null;
-  fetchMxGateways: FetchMxGatewaysFn;
-  fetchWgGateways: FetchWgGatewaysFn;
+
+  // methods
+  fetchGateways: FetchGatewaysFn;
 };
 
 export type ConnectProgressMsg = 'Initializing' | 'InitDone' | 'Canceling';
@@ -84,8 +86,9 @@ export type ProgressEventPayload = {
 
 export type StateDispatch = Dispatch<StateAction>;
 
-export type FetchMxGatewaysFn = (node: NodeHop) => Promise<void> | undefined;
-export type FetchWgGatewaysFn = () => Promise<void> | undefined;
+export type FetchGatewaysFn = (
+  nodeType: GatewayType,
+) => Promise<void> | undefined;
 
 export type AppError = {
   message: string;

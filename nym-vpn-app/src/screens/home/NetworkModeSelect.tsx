@@ -13,7 +13,7 @@ import { S_STATE } from '../../static';
 import ModeDetailsDialog from './ModeDetailsDialog';
 
 function NetworkModeSelect() {
-  const state = useMainState();
+  const { state, vpnMode, fetchGateways } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const [isDialogModesOpen, setIsDialogModesOpen] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -22,12 +22,18 @@ function NetworkModeSelect() {
   const { t } = useTranslation('home');
 
   const handleNetworkModeChange = async (value: VpnMode) => {
-    if (state.state === 'Disconnected' && value !== state.vpnMode) {
+    if (state === 'Disconnected' && value !== vpnMode) {
       setLoading(true);
       try {
         await invoke<void>('set_vpn_mode', { mode: value });
         dispatch({ type: 'set-vpn-mode', mode: value });
         console.info('vpn mode set to', value);
+        if (value === 'Mixnet') {
+          fetchGateways('mx-entry');
+          fetchGateways('mx-exit');
+        } else {
+          fetchGateways('wg');
+        }
       } catch (e) {
         console.warn(e);
       } finally {
@@ -39,7 +45,7 @@ function NetworkModeSelect() {
   const showSnackbar = useThrottle(
     () => {
       let text = null;
-      switch (state.state) {
+      switch (state) {
         case 'Connected':
           text = t('snackbar-disabled-message.connected');
           break;
@@ -59,11 +65,11 @@ function NetworkModeSelect() {
       });
     },
     HomeThrottleDelay,
-    [state.state],
+    [state],
   );
 
   const handleDisabledState = () => {
-    if (state.state !== 'Disconnected') {
+    if (state !== 'Disconnected') {
       showSnackbar();
     }
   };
@@ -82,20 +88,20 @@ function NetworkModeSelect() {
         key: 'TwoHop',
         label: t('fast-mode.title'),
         desc: t('fast-mode.desc'),
-        disabled: state.state !== 'Disconnected' || loading,
+        disabled: state !== 'Disconnected' || loading,
         icon: (checked) => <span className={iconStyle(checked)}>speed</span>,
       },
       {
         key: 'Mixnet',
         label: t('privacy-mode.title'),
         desc: t('privacy-mode.desc'),
-        disabled: state.state !== 'Disconnected' || loading,
+        disabled: state !== 'Disconnected' || loading,
         icon: (checked) => (
           <span className={iconStyle(checked)}>visibility_off</span>
         ),
       },
     ];
-  }, [loading, state.state, t]);
+  }, [loading, state, t]);
 
   return (
     <div>
@@ -127,7 +133,7 @@ function NetworkModeSelect() {
       <div className="select-none" onClick={handleDisabledState}>
         <RadioGroup
           key={`_${S_STATE.vpnModeInit}`}
-          defaultValue={state.vpnMode}
+          defaultValue={vpnMode}
           options={vpnModes}
           onChange={handleNetworkModeChange}
           radioIcons={false}

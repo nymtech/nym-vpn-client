@@ -540,7 +540,10 @@ impl GrpcClient {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;
-        debug!("gateways count: {}", response.get_ref().gateways.len());
+        debug!(
+            "proto gateways count: {}",
+            response.get_ref().gateways.len()
+        );
 
         let gateways: Vec<Gateway> = response
             .into_inner()

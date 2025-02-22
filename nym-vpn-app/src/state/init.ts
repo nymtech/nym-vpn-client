@@ -7,6 +7,7 @@ import {
   DefaultCountry,
   DefaultRootFontSize,
   DefaultThemeMode,
+  DefaultVpnMode,
   GatewaysCacheDuration,
 } from '../constants';
 import { getJsLicenses, getRustLicenses } from '../data';
@@ -22,6 +23,7 @@ import {
   ThemeMode,
   TunnelStateIpc,
   UiTheme,
+  VpnMode,
   VpndStatus,
 } from '../types';
 import { S_STATE } from '../static';
@@ -46,8 +48,7 @@ const getMxGateways = async (node: NodeHop) => {
   );
   if (!gateways) {
     gateways = await invoke<GatewaysByCountry[] | null>('get_gateways', {
-      vpnMode: 'Mixnet',
-      nodeType: node === 'entry' ? 'Entry' : 'Exit',
+      nodeType: node === 'entry' ? 'mx-entry' : 'mx-exit',
     });
     await CCache.set(
       `cache-mx-${node}-gateways`,
@@ -62,7 +63,7 @@ const getWgGateways = async () => {
   let gateways = await CCache.get<GatewaysByCountry[]>(`cache-wg-gateways`);
   if (!gateways) {
     gateways = await invoke<GatewaysByCountry[] | null>('get_gateways', {
-      vpnMode: 'TwoHop',
+      nodeType: 'wg',
     });
     await CCache.set(
       'cache-wg-gateways',
@@ -179,6 +180,15 @@ export async function initFirstBatch(
     },
   };
 
+  const getVpnModeRq: TauriReq<() => Promise<VpnMode | undefined>> = {
+    name: 'getVpnMode',
+    request: () => kvGet<VpnMode>('vpn-mode'),
+    onFulfilled: (vpnMode) => {
+      S_STATE.vpnModeInit = true;
+      dispatch({ type: 'set-vpn-mode', mode: vpnMode || DefaultVpnMode });
+    },
+  };
+
   const getDesktopNotificationsRq: TauriReq<
     () => Promise<boolean | undefined>
   > = {
@@ -241,6 +251,7 @@ export async function initFirstBatch(
   await fireRequests([
     initStateRq,
     initDaemonStatusRq,
+    getVpnModeRq,
     getEntryNodeRq,
     getExitNodeRq,
     getVersionRq,

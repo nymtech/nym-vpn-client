@@ -255,8 +255,8 @@ impl Db {
     {
         match &value {
             Ok(Some(v)) => {
-                if key.contains("gateways") {
-                    debug!("get key [{key}] BIGVAL");
+                if key.starts_with("cache") {
+                    debug!("get key [{key}] SOMEVAL");
                 } else {
                     debug!("get key [{key}] {v:?}");
                 }

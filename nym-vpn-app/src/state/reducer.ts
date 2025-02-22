@@ -3,7 +3,6 @@ import {
   DefaultCountry,
   DefaultRootFontSize,
   DefaultThemeMode,
-  DefaultVpnMode,
 } from '../constants';
 import {
   AccountLinks,
@@ -57,6 +56,14 @@ export type StateAction =
       payload: { hop: NodeHop; gateways: GatewaysByCountry[] };
     }
   | {
+      type: 'set-mx-entry-gateways';
+      payload: { gateways: GatewaysByCountry[] };
+    }
+  | {
+      type: 'set-mx-exit-gateways';
+      payload: { gateways: GatewaysByCountry[] };
+    }
+  | {
       type: 'set-wg-gateways';
       payload: { gateways: GatewaysByCountry[] };
     }
@@ -86,7 +93,7 @@ export const initialState: AppState = {
   daemonStatus: 'NotOk',
   networkEnv: 'mainnet',
   version: null,
-  vpnMode: S_STATE.vpnModeAtStart || DefaultVpnMode,
+  vpnMode: S_STATE.vpnModeAtStart,
   uiTheme: 'Light',
   themeMode: DefaultThemeMode,
   progressMessages: [],
@@ -105,11 +112,8 @@ export const initialState: AppState = {
   codeDepsRust: [],
   codeDepsJs: [],
   account: false,
-  fetchMxGateways: async () => {
+  fetchGateways: async () => {
     /*  SCARECROW */
-  },
-  fetchWgGateways: async () => {
-    /* SCARECROW */
   },
 };
 
@@ -169,6 +173,16 @@ export function reducer(state: AppState, action: StateAction): AppState {
           mxEntryGateways: action.payload.gateways,
         };
       }
+      return {
+        ...state,
+        mxExitGateways: action.payload.gateways,
+      };
+    case 'set-mx-entry-gateways':
+      return {
+        ...state,
+        mxEntryGateways: action.payload.gateways,
+      };
+    case 'set-mx-exit-gateways':
       return {
         ...state,
         mxExitGateways: action.payload.gateways,

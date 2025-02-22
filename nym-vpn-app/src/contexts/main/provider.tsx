@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import React, { useCallback, useEffect, useReducer } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import { GatewaysCacheDuration } from '../../constants';
 import {
   MainDispatchContext,
@@ -10,11 +10,10 @@ import { sleep } from '../../util';
 import {
   BackendError,
   Cli,
+  GatewayType,
   GatewaysByCountry,
   NetworkEnv,
-  NodeHop,
   SystemMessage,
-  VpnMode,
 } from '../../types';
 import { initFirstBatch, initSecondBatch } from '../../state/init';
 import { initialState, reducer } from '../../state';
@@ -22,6 +21,11 @@ import { useTauriEvents } from '../../state/useTauriEvents';
 import { S_STATE } from '../../static';
 import { CCache } from '../../cache';
 import { kvGet, kvSet } from '../../kvStore';
+import {
+  gwTypeToCacheKey,
+  gwTypeToDispatchError,
+  gwTypeToDispatchSet,
+} from './util';
 
 let initialized = false;
 
@@ -37,7 +41,6 @@ function MainStateProvider({ children }: Props) {
     wgGateways,
     entryNode,
     exitNode,
-    vpnMode,
     networkEnv,
   } = state;
 
@@ -88,23 +91,10 @@ function MainStateProvider({ children }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // whenever the vpn mode changes, refresh the countries or use cached ones
-  useEffect(() => {
-    if (!S_STATE.vpnModeInit) {
-      return;
-    }
-    if (vpnMode === 'Mixnet') {
-      fetchGateways(vpnMode, 'entry');
-      fetchGateways(vpnMode, 'exit');
-    } else {
-      fetchGateways(vpnMode, 'entry');
-    }
-  }, [vpnMode]);
-
   // whenever the network environment changes (e.i. daemon has been reconfigured),
   // clear cache
   useEffect(() => {
-    const updateNetEnv = async () => {
+    const handleNetEnvUpdate = async () => {
       const env = await kvGet<NetworkEnv>('last-network-env');
       if (env === networkEnv) {
         return;
@@ -114,7 +104,7 @@ function MainStateProvider({ children }: Props) {
       await CCache.clear();
     };
 
-    updateNetEnv();
+    handleNetEnvUpdate();
   }, [networkEnv]);
 
   useEffect(() => {
@@ -144,39 +134,24 @@ function MainStateProvider({ children }: Props) {
   }, [push]);
 
   // use cached values if any, otherwise query from daemon
-  const fetchGateways = async (vpnMode: VpnMode, node: NodeHop) => {
+  const fetchGateways = async (nodeType: GatewayType) => {
+    const cacheKey = gwTypeToCacheKey(nodeType);
     // first try to load from cache
-    let gateways = await CCache.get<GatewaysByCountry[]>(
-      vpnMode === 'Mixnet' ? `cache-mx-${node}-gateways` : 'cache-wg-gateways',
-    );
+    let gateways = await CCache.get<GatewaysByCountry[]>(cacheKey);
+
     // fallback to daemon query
     if (!gateways) {
-      console.info(`fetching gateways for ${vpnMode} ${node}`);
+      console.info(`fetching gateways for ${nodeType}`);
       try {
         gateways = await invoke<GatewaysByCountry[]>('get_gateways', {
-          vpnMode,
-          nodeType: node === 'entry' ? 'Entry' : 'Exit',
+          nodeType,
         });
-        await CCache.set(
-          vpnMode === 'Mixnet'
-            ? `cache-mx-${node}-gateways`
-            : 'cache-wg-gateways',
-          gateways,
-          GatewaysCacheDuration,
-        );
+        await CCache.set(cacheKey, gateways, GatewaysCacheDuration);
       } catch (e) {
-        console.warn(`Failed to fetch ${node} countries:`, e);
-        if (vpnMode === 'Mixnet') {
+        console.warn(`Failed to fetch ${nodeType} gateways:`, e);
+        if (nodeType === 'mx-entry') {
           dispatch({
-            type:
-              node === 'entry'
-                ? 'set-mx-entry-gateways-error'
-                : 'set-mx-exit-gateways-error',
-            payload: e as BackendError,
-          });
-        } else {
-          dispatch({
-            type: 'set-wg-gateways-error',
+            type: gwTypeToDispatchError(nodeType),
             payload: e as BackendError,
           });
         }
@@ -184,37 +159,19 @@ function MainStateProvider({ children }: Props) {
     }
     if (!gateways) {
       console.warn('no gateways found');
-      return;
+      gateways = [];
     }
-    if (vpnMode === 'Mixnet') {
-      dispatch({
-        type: 'set-mx-gateways',
-        payload: {
-          hop: node,
-          gateways,
-        },
-      });
-      // reset any previous error
-      dispatch({
-        type:
-          node === 'entry'
-            ? 'set-mx-entry-gateways-error'
-            : 'set-mx-exit-gateways-error',
-        payload: null,
-      });
-    } else {
-      // in 2hop mode, the gateway list is the same for both entry and exit
-      dispatch({
-        type: 'set-wg-gateways',
-        payload: {
-          gateways,
-        },
-      });
-      dispatch({
-        type: 'set-wg-gateways-error',
-        payload: null,
-      });
-    }
+    dispatch({
+      type: gwTypeToDispatchSet(nodeType),
+      payload: {
+        gateways,
+      },
+    });
+    // reset any errors
+    dispatch({
+      type: gwTypeToDispatchError(nodeType),
+      payload: null,
+    });
   };
 
   useEffect(() => {
@@ -223,22 +180,11 @@ function MainStateProvider({ children }: Props) {
     // pick a random one
   }, [entryNode, exitNode, mxEntryGateways, mxExitGateways, wgGateways]);
 
-  const fetchMxGateways = useCallback(
-    async (node: NodeHop) => fetchGateways(vpnMode, node),
-    [vpnMode],
-  );
-
-  const fetchWgGateways = useCallback(
-    async () => fetchGateways(vpnMode, 'entry'),
-    [vpnMode],
-  );
-
   return (
     <MainStateContext.Provider
       value={{
         ...state,
-        fetchMxGateways,
-        fetchWgGateways,
+        fetchGateways,
       }}
     >
       <MainDispatchContext.Provider value={dispatch}>

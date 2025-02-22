@@ -1,16 +1,15 @@
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
+use std::fmt;
 use tauri::State;
-use tracing::instrument;
+use tracing::{debug, info, instrument, trace};
 use ts_rs::TS;
 
 use crate::country::Country;
+use crate::error::{BackendError, ErrorKey};
 use crate::grpc::client::GrpcClient;
 use crate::grpc::gateway::{Gateway, GatewayType};
-use crate::{
-    error::{BackendError, ErrorKey},
-    states::app::VpnMode,
-};
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
 pub enum NodeType {
@@ -50,36 +49,49 @@ fn group_by_country(gateways: Vec<Gateway>, gw_type: GatewayType) -> Vec<Gateway
             },
         )
         .into_values()
+        .sorted_by_key(|g| g.country.name.clone())
         .collect()
 }
 
 #[instrument(skip(grpc))]
 #[tauri::command]
 pub async fn get_gateways(
-    vpn_mode: VpnMode,
-    node_type: Option<NodeType>,
+    node_type: GatewayType,
     grpc: State<'_, GrpcClient>,
 ) -> Result<Vec<GatewaysByCountry>, BackendError> {
-    let gw_type = match vpn_mode {
-        VpnMode::Mixnet => match node_type.ok_or_else(|| {
-            BackendError::internal("node type must be provided for Mixnet mode", None)
-        })? {
-            NodeType::Entry => GatewayType::MxEntry,
-            NodeType::Exit => GatewayType::MxExit,
-        },
-        VpnMode::TwoHop => GatewayType::Wg,
-    };
-    let gateways = grpc.gateways(gw_type).await.map_err(|e| {
-        BackendError::with_details(
-            &format!("failed to get gateways for {}", gw_type),
-            ErrorKey::from(gw_type),
-            e.to_string(),
-        )
-    });
-    gateways
-        .map(|gws| group_by_country(gws, gw_type))
-        .inspect(|_| {
-            // TODO remove this
-            // debug!("gateways by country {:#?}", list);
+    info!("fetching gateways");
+    let gateways = grpc
+        .gateways(node_type)
+        .await
+        .map_err(|e| {
+            BackendError::with_details(
+                &format!("failed to get gateways for {}", node_type),
+                ErrorKey::from(node_type),
+                e.to_string(),
+            )
         })
+        .inspect(|gateways| {
+            info!("gateways #{}", gateways.len());
+        });
+
+    gateways
+        .map(|gws| group_by_country(gws, node_type))
+        .inspect(|list| {
+            debug!("countries #{}", list.len());
+            for gateways in list {
+                trace!("{}", gateways);
+            }
+        })
+}
+
+impl fmt::Display for GatewaysByCountry {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "[{}] {}: #{}",
+            self.country.code,
+            self.country.name,
+            self.gateways.len()
+        )
+    }
 }

@@ -6,7 +6,6 @@ import {
   isVpndNonCompat,
   isVpndOk,
 } from '../types';
-import { S_STATE } from '../static';
 import { Notification } from '../contexts';
 
 export type TauriReq<
@@ -65,9 +64,6 @@ export function daemonStatusUpdate(
   }
   if (info) {
     dispatch({ type: 'set-daemon-info', info });
-    if (info.network) {
-      S_STATE.networkEnvInit = true;
-    }
   }
 }
 
