@@ -34,12 +34,13 @@ pub enum Key {
     ExitNode,
     WelcomeScreenSeen,
     DesktopNotifications,
-    // some cache
-    MxEntryGateways,
-    MxExitGateways,
-    WgGateways,
-    AccountId,
-    DeviceId,
+    LastNetworkEnv,
+    // some data cache (no semantic difference)
+    CacheMxEntryGateways,
+    CacheMxExitGateways,
+    CacheWgGateways,
+    CacheAccountId,
+    CacheDeviceId,
 }
 
 impl Display for Key {
@@ -151,7 +152,7 @@ impl Db {
                 DbError::Deserialize(e)
             });
 
-        debug!("get key [{key}] with value {res:?}");
+        Db::get_log(key, &res);
         self.discard_deserialize(key, res)
     }
 
@@ -167,7 +168,7 @@ impl Db {
                 DbError::Deserialize(e)
             });
 
-        debug!("get key [{key}] with value {res:?}");
+        Db::get_log(key, &res);
         self.discard_deserialize(key, res)
     }
 
@@ -175,7 +176,7 @@ impl Db {
     #[instrument(skip(self))]
     pub fn insert<T>(&self, key: &str, value: T) -> Result<Option<JsonValue>, DbError>
     where
-        T: Serialize + std::fmt::Debug,
+        T: Serialize + fmt::Debug,
     {
         let json_value = serde_json::to_vec(&value).map_err(|e| {
             error!("failed to serialize value for [{key}]: {e}");
@@ -199,8 +200,7 @@ impl Db {
             });
             debug!("flushed db");
         });
-
-        debug!("inserted key [{key}] with value {value:?}");
+        debug!("set key [{key}]");
         self.discard_deserialize(key, res)
     }
 
@@ -235,16 +235,38 @@ impl Db {
             debug!("flushed db");
         });
 
-        debug!("removed key [{key}]");
+        debug!("del key [{key}]");
         self.discard_deserialize(key, res)
     }
 
     /// Asynchronously flushes all dirty IO buffers and calls fsync
     #[instrument(skip(self))]
     pub async fn flush(&self) -> Result<usize, DbError> {
+        debug!("flush");
         self.db.flush_async().await.map_err(|e| {
             error!("failed to flush: {e}");
             DbError::Db(e)
         })
+    }
+
+    fn get_log<T>(key: &str, value: &Result<Option<T>, DbError>)
+    where
+        T: DeserializeOwned + fmt::Debug,
+    {
+        match &value {
+            Ok(Some(v)) => {
+                if key.contains("gateways") {
+                    debug!("get key [{key}] BIGVAL");
+                } else {
+                    debug!("get key [{key}] {v:?}");
+                }
+            }
+            Ok(None) => {
+                debug!("get key [{key}] NOTSET");
+            }
+            Err(e) => {
+                error!("failed to get key [{key}]: {e}");
+            }
+        }
     }
 }

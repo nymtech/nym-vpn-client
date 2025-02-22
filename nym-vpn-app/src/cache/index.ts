@@ -9,17 +9,17 @@ export type CCached<T> = {
 
 export type CKey = Extract<
   DbKey,
-  | 'mx-entry-gateways'
-  | 'mx-exit-gateways'
-  | 'wg-gateways'
-  | 'account-id'
-  | 'device-id'
+  | 'cache-mx-entry-gateways'
+  | 'cache-mx-exit-gateways'
+  | 'cache-wg-gateways'
+  | 'cache-account-id'
+  | 'cache-device-id'
 >;
 
 /**
- * Cache on-db, with optional expiry
- * Just a simple wrapper around the kvStore that adds time-to-live
- * to the values
+ * Cache on-db, with optional expiry.
+ * Simple wrapper around the kvStore that attach
+ * time-to-live to the stored values.
  */
 export const CCache = {
   /**
@@ -36,16 +36,16 @@ export const CCache = {
       return null;
     }
     if (!cached.expiry) {
-      console.log(`cache data [${key}]`, cached.value);
+      console.log(`cache data available [${key}]`);
       return cached.value;
     }
     if (Date.now() < cached.expiry) {
-      console.log(`cache data [${key}]`, cached.value);
+      console.log(`cache data available [${key}]`);
       return cached.value;
     }
     console.log(`cache data is stale [${key}]`);
     if (stale) {
-      console.log(`cache data [${key}]`, cached.value);
+      console.log(`cache data available [${key}]`);
       await kvDel(key);
       return cached.value;
     }
@@ -61,15 +61,12 @@ export const CCache = {
    */
   set: async <T>(key: CKey, value: T, ttl?: number): Promise<void> => {
     if (!ttl) {
-      console.log(`set cache [${key}]`, value);
+      console.log(`set cache [${key}], no expiry`);
       await kvSet(key, { value: value });
       return;
     }
     const expiry = Date.now() + ttl * 1000;
-    console.log(
-      `set cache [${key}], expiry ${new Date(expiry).toString()}`,
-      value,
-    );
+    console.log(`set cache [${key}], expiry in ${ttl}s`);
     await kvSet(key, { value: value, expiry });
   },
   /**
@@ -86,11 +83,11 @@ export const CCache = {
    */
   clear: async (): Promise<void> => {
     console.log(`clear cache`);
-    await kvDel('mx-entry-gateways');
-    await kvDel('mx-exit-gateways');
-    await kvDel('wg-gateways');
-    await kvDel('account-id');
-    await kvDel('device-id');
+    await kvDel('cache-mx-entry-gateways');
+    await kvDel('cache-mx-exit-gateways');
+    await kvDel('cache-wg-gateways');
+    await kvDel('cache-account-id');
+    await kvDel('cache-device-id');
     await kvFlush();
   },
 } as const;

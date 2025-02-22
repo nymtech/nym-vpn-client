@@ -84,6 +84,7 @@ export const initialState: AppState = {
   tunnel: null,
   tunnelError: null,
   daemonStatus: 'NotOk',
+  networkEnv: 'mainnet',
   version: null,
   vpnMode: S_STATE.vpnModeAtStart || DefaultVpnMode,
   uiTheme: 'Light',

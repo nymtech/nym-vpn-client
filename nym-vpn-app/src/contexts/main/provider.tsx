@@ -11,6 +11,7 @@ import {
   BackendError,
   Cli,
   GatewaysByCountry,
+  NetworkEnv,
   NodeHop,
   SystemMessage,
   VpnMode,
@@ -20,6 +21,7 @@ import { initialState, reducer } from '../../state';
 import { useTauriEvents } from '../../state/useTauriEvents';
 import { S_STATE } from '../../static';
 import { CCache } from '../../cache';
+import { kvGet, kvSet } from '../../kvStore';
 
 let initialized = false;
 
@@ -102,11 +104,17 @@ function MainStateProvider({ children }: Props) {
   // whenever the network environment changes (e.i. daemon has been reconfigured),
   // clear cache
   useEffect(() => {
-    if (!S_STATE.networkEnvInit) {
-      return;
-    }
-    console.info(`network env changed ${networkEnv}, clearing cache`);
-    CCache.clear();
+    const updateNetEnv = async () => {
+      const env = await kvGet<NetworkEnv>('last-network-env');
+      if (env === networkEnv) {
+        return;
+      }
+      console.info(`network env changed [${networkEnv}], clearing cache`);
+      await kvSet('last-network-env', networkEnv);
+      await CCache.clear();
+    };
+
+    updateNetEnv();
   }, [networkEnv]);
 
   useEffect(() => {
@@ -139,7 +147,7 @@ function MainStateProvider({ children }: Props) {
   const fetchGateways = async (vpnMode: VpnMode, node: NodeHop) => {
     // first try to load from cache
     let gateways = await CCache.get<GatewaysByCountry[]>(
-      vpnMode === 'Mixnet' ? `mx-${node}-gateways` : 'wg-gateways',
+      vpnMode === 'Mixnet' ? `cache-mx-${node}-gateways` : 'cache-wg-gateways',
     );
     // fallback to daemon query
     if (!gateways) {
@@ -150,7 +158,9 @@ function MainStateProvider({ children }: Props) {
           nodeType: node === 'entry' ? 'Entry' : 'Exit',
         });
         await CCache.set(
-          vpnMode === 'Mixnet' ? `mx-${node}-gateways` : 'wg-gateways',
+          vpnMode === 'Mixnet'
+            ? `cache-mx-${node}-gateways`
+            : 'cache-wg-gateways',
           gateways,
           GatewaysCacheDuration,
         );

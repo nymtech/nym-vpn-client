@@ -41,7 +41,7 @@ export type AppState = {
   tunnelError?: TunnelError | null;
   daemonStatus: DaemonStatus;
   daemonVersion?: string;
-  networkEnv?: NetworkEnv;
+  networkEnv: NetworkEnv;
   version: string | null;
   error?: AppError | null;
   progressMessages: ConnectProgressMsg[];

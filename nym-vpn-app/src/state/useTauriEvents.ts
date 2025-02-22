@@ -37,8 +37,8 @@ export function useTauriEvents(
           `received event [${event}], status: ${status === 'notOk' ? status : JSON.stringify(status)}`,
         );
         daemonStatusUpdate(status, dispatch, push);
-        await CCache.del('account-id');
-        await CCache.del('device-id');
+        await CCache.del('cache-account-id');
+        await CCache.del('cache-device-id');
 
         // refresh account status
         if (isVpndOk(status) || isVpndNonCompat(status)) {

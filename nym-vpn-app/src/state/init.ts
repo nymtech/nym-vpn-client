@@ -41,22 +41,34 @@ const getDaemonStatus = async () => {
 
 // init gateway list
 const getMxGateways = async (node: NodeHop) => {
-  let gateways = await CCache.get<GatewaysByCountry[]>(`mx-${node}-gateways`);
+  let gateways = await CCache.get<GatewaysByCountry[]>(
+    `cache-mx-${node}-gateways`,
+  );
   if (!gateways) {
     gateways = await invoke<GatewaysByCountry[] | null>('get_gateways', {
       vpnMode: 'Mixnet',
       nodeType: node === 'entry' ? 'Entry' : 'Exit',
     });
+    await CCache.set(
+      `cache-mx-${node}-gateways`,
+      gateways || [],
+      GatewaysCacheDuration,
+    );
   }
   return gateways;
 };
 
 const getWgGateways = async () => {
-  let gateways = await CCache.get<GatewaysByCountry[]>(`wg-gateways`);
+  let gateways = await CCache.get<GatewaysByCountry[]>(`cache-wg-gateways`);
   if (!gateways) {
     gateways = await invoke<GatewaysByCountry[] | null>('get_gateways', {
       vpnMode: 'TwoHop',
     });
+    await CCache.set(
+      'cache-wg-gateways',
+      gateways || [],
+      GatewaysCacheDuration,
+    );
   }
   return gateways;
 };
@@ -255,7 +267,6 @@ export async function initSecondBatch(dispatch: StateDispatch) {
           gateways: gateways || [],
         },
       });
-      CCache.set('mx-entry-gateways', gateways || [], GatewaysCacheDuration);
       dispatch({
         type: 'set-gateways-loading',
         payload: { hop: 'entry', loading: false },
@@ -274,7 +285,6 @@ export async function initSecondBatch(dispatch: StateDispatch) {
           gateways: gateways || [],
         },
       });
-      CCache.set('mx-exit-gateways', gateways || [], GatewaysCacheDuration);
       dispatch({
         type: 'set-gateways-loading',
         payload: { hop: 'exit', loading: false },
@@ -292,7 +302,6 @@ export async function initSecondBatch(dispatch: StateDispatch) {
           gateways: gateways || [],
         },
       });
-      CCache.set('wg-gateways', gateways || [], GatewaysCacheDuration);
       dispatch({
         type: 'set-gateways-loading',
         payload: { hop: 'entry', loading: false },

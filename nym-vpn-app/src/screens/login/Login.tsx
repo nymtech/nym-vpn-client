@@ -57,8 +57,8 @@ function Login() {
         position: 'top',
         closeIcon: true,
       });
-      await CCache.del('account-id');
-      await CCache.del('device-id');
+      await CCache.del('cache-account-id');
+      await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });
     } catch (e: unknown) {
       const eT = e as BackendError;

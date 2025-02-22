@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use tauri::State;
-use tracing::{debug, instrument};
+use tracing::instrument;
 use ts_rs::TS;
 
 use crate::country::Country;
@@ -78,8 +78,8 @@ pub async fn get_gateways(
     });
     gateways
         .map(|gws| group_by_country(gws, gw_type))
-        .inspect(|list| {
+        .inspect(|_| {
             // TODO remove this
-            debug!("gateways by country {:#?}", list);
+            // debug!("gateways by country {:#?}", list);
         })
 }

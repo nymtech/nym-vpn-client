@@ -24,11 +24,12 @@ export type DbKey =
   | 'exit-node'
   | 'welcome-screen-seen'
   | 'desktop-notifications'
-  | 'mx-entry-gateways'
-  | 'mx-exit-gateways'
-  | 'wg-gateways'
-  | 'account-id'
-  | 'device-id';
+  | 'last-network-env'
+  | 'cache-mx-entry-gateways'
+  | 'cache-mx-exit-gateways'
+  | 'cache-wg-gateways'
+  | 'cache-account-id'
+  | 'cache-device-id';
 
 /*
  * Enum of the possible specialized errors emitted by the daemon or from the

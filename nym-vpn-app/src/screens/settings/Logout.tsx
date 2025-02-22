@@ -43,8 +43,8 @@ function Logout() {
         text: t('logout.success', { ns: 'notifications' }),
         position: 'top',
       });
-      await CCache.del('account-id');
-      await CCache.del('device-id');
+      await CCache.del('cache-account-id');
+      await CCache.del('cache-device-id');
       dispatch({ type: 'reset-error' });
     } catch (e) {
       console.warn('failed to logout', e);

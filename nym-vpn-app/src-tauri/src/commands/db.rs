@@ -13,7 +13,7 @@ pub async fn db_get(db: State<'_, Db>, key: String) -> Result<Option<JsonValue>,
         .map_err(|_| BackendError::internal(&format!("Failed to get key [{key}]"), None))
 }
 
-#[instrument(skip(db))]
+#[instrument(skip(db, value))]
 #[tauri::command]
 pub async fn db_set(
     db: State<'_, Db>,

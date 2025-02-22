@@ -18,7 +18,7 @@ function AccountData() {
   const { t } = useTranslation('settings');
 
   const getAccountId = async () => {
-    const id = await CCache.get<string>('account-id');
+    const id = await CCache.get<string>('cache-account-id');
     if (id) {
       setAccountId(id);
       return;
@@ -26,7 +26,7 @@ function AccountData() {
     try {
       const id = await invoke<string | null>('get_account_id');
       setAccountId(id);
-      CCache.set('account-id', id, IdsTimeToLive);
+      CCache.set('cache-account-id', id, IdsTimeToLive);
     } catch (e) {
       console.warn('failed to get account id', e);
       setAccountId(null);
@@ -34,7 +34,7 @@ function AccountData() {
   };
 
   const getDeviceId = async () => {
-    const id = await CCache.get<string>('device-id');
+    const id = await CCache.get<string>('cache-device-id');
     if (id) {
       setDeviceId(id);
       return;
@@ -42,7 +42,7 @@ function AccountData() {
     try {
       const id = await invoke<string | null>('get_device_id');
       setDeviceId(id);
-      await CCache.set('device-id', id, IdsTimeToLive);
+      await CCache.set('cache-device-id', id, IdsTimeToLive);
     } catch (e) {
       console.warn('failed to get device id', e);
       setDeviceId(null);

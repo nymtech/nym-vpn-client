@@ -7,7 +7,6 @@ import { AppError, Country, NodeHop, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { useI18nError, useLang } from '../../hooks';
 import { PageAnim, TextInput } from '../../ui';
-import CountryList from './CountryList';
 import LocationDetailsDialog from './LocationDetailsDialog';
 
 // Thin wrapper around `Country` that includes localization
@@ -17,19 +16,8 @@ export type UiCountry = {
 };
 
 function Node({ node }: { node: NodeHop }) {
-  const {
-    entryNodeLocation,
-    exitNodeLocation,
-    entryCountryList,
-    exitCountryList,
-    entryCountriesLoading,
-    exitCountriesLoading,
-    fetchMnCountries,
-    fetchWgCountries,
-    entryCountriesError,
-    exitCountriesError,
-    vpnMode,
-  } = useMainState();
+  const { entryNode, exitNode, vpnMode, fetchMxGateways, fetchWgGateways } =
+    useMainState();
   const { isOpen, close } = useDialog();
 
   const { t } = useTranslation('nodeLocation');
@@ -38,40 +26,23 @@ function Node({ node }: { node: NodeHop }) {
 
   // the country list as rendered in the UI
   const [uiCountryList, setUiCountryList] = useState<UiCountry[]>([]);
-  const selectedCountry =
-    node === 'entry' ? entryNodeLocation : exitNodeLocation;
-  const countryList = node === 'entry' ? entryCountryList : exitCountryList;
+  const selectedCountry = node === 'entry' ? entryNode : exitNode;
 
   const [search, setSearch] = useState('');
   const [filteredCountries, setFilteredCountries] =
     useState<UiCountry[]>(uiCountryList);
 
-  const dispatch = useMainDispatch() as StateDispatch;
-  const navigate = useNavigate();
+  // const dispatch = useMainDispatch() as StateDispatch;
+  // const navigate = useNavigate();
 
   // refresh cache (if stale)
   useEffect(() => {
     if (vpnMode === 'Mixnet') {
-      fetchMnCountries(node);
+      fetchMxGateways(node);
     } else {
-      fetchWgCountries();
+      fetchWgGateways();
     }
-  }, [node, vpnMode, fetchWgCountries, fetchMnCountries]);
-
-  // refresh the UI country list whenever the backend country data changes
-  useEffect(() => {
-    const uiList = countryList
-      .map((country) => {
-        return {
-          country,
-          i18n: getCountryName(country.code) || country.name,
-        };
-      })
-      .sort((a, b) => compare(a.i18n, b.i18n));
-    setUiCountryList(uiList);
-    setFilteredCountries(uiList);
-    setSearch('');
-  }, [countryList, compare, getCountryName]);
+  }, [node, vpnMode, fetchMxGateways, fetchWgGateways]);
 
   const filter = (value: string) => {
     if (value !== '') {
@@ -85,34 +56,6 @@ function Node({ node }: { node: NodeHop }) {
     }
     setSearch(value);
   };
-
-  const handleCountrySelection = async (country: UiCountry) => {
-    const location = country.country;
-
-    try {
-      await kvSet<Country>(
-        node === 'entry' ? 'EntryNodeLocation' : 'ExitNodeLocation',
-        location,
-      );
-      dispatch({
-        type: 'set-node-location',
-        payload: { hop: node, location },
-      });
-    } catch (e) {
-      console.warn(e);
-    }
-    navigate(routes.root);
-  };
-
-  const error =
-    (node === 'entry' && entryCountriesError) ||
-    (node === 'exit' && exitCountriesError);
-
-  const renderError = (e: AppError) => (
-    <div className="w-4/5 h-2/3 overflow-auto break-words text-center">
-      <p className="text-sm text-teaberry font-bold">{`${tE(e.key)}: ${e.message} ${e.data?.details || '-'}`}</p>
-    </div>
-  );
 
   return (
     <>
@@ -130,22 +73,7 @@ function Node({ node }: { node: NodeHop }) {
             label={t('input-label')}
           />
         </div>
-        {error ? (
-          renderError(error)
-        ) : (
-          <CountryList
-            countries={filteredCountries}
-            loading={
-              node === 'entry' ? entryCountriesLoading : exitCountriesLoading
-            }
-            onSelect={(country) => {
-              handleCountrySelection(country);
-            }}
-            isSelected={(country: UiCountry) =>
-              selectedCountry.code === country.country.code
-            }
-          />
-        )}
+        TODO
       </PageAnim>
     </>
   );
