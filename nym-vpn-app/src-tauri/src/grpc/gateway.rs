@@ -2,6 +2,7 @@ use crate::country::Country;
 use anyhow::{anyhow, Result};
 use nym_vpn_proto as p;
 use serde::{Deserialize, Serialize};
+use std::fmt;
 use tracing::{error, instrument, warn};
 use ts_rs::TS;
 
@@ -107,5 +108,11 @@ impl From<GatewayType> for p::GatewayType {
             GatewayType::MxExit => p::GatewayType::MixnetExit,
             GatewayType::Wg => p::GatewayType::Wg,
         }
+    }
+}
+
+impl fmt::Display for Gateway {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "[{}] ({}) {}", self.id, self.name, self.country)
     }
 }

@@ -1,9 +1,8 @@
 use crate::db::{Db, Key};
 use crate::error::ErrorKey;
-use crate::grpc::client::{GrpcClient, VpndError};
+use crate::grpc::client::{GrpcClient, NodeConnect, VpndError};
 use crate::grpc::tunnel::TunnelState;
 use crate::{
-    country::Country,
     error::BackendError,
     events::{AppHandleEventEmitter, ConnectProgressMsg},
     states::{app::VpnMode, SharedAppState},
@@ -27,8 +26,8 @@ pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
     grpc: State<'_, GrpcClient>,
-    entry: Country,
-    exit: Country,
+    entry: NodeConnect,
+    exit: NodeConnect,
 ) -> Result<TunnelState, BackendError> {
     {
         let mut app_state = state.lock().await;
@@ -58,8 +57,8 @@ pub async fn connect(
     // release the lock
     drop(app_state);
 
-    info!("entry [{}]", entry.code);
-    info!("exit [{}]", exit.code);
+    info!("entry {}", entry);
+    info!("exit {}", exit);
     let two_hop_mod = if let VpnMode::TwoHop = vpn_mode {
         info!("mode [wg]");
         true

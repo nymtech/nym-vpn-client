@@ -8,9 +8,9 @@ use nym_vpn_proto::{
     get_account_links_response::Res as AccountLinkRes,
     get_device_identity_response::Id as DeviceIdRes, health_check_response::ServingStatus,
     health_client::HealthClient, is_account_stored_response::Resp as IsAccountStoredResp,
-    nym_vpnd_client::NymVpndClient, ConnectRequest, Dns, EntryNode, ExitNode,
-    GetAccountLinksRequest, HealthCheckRequest, InfoResponse, ListGatewaysRequest, Location,
-    SetNetworkRequest, StoreAccountRequest, UserAgent,
+    nym_vpnd_client::NymVpndClient, ConnectRequest, Dns, GetAccountLinksRequest,
+    HealthCheckRequest, InfoResponse, ListGatewaysRequest, Location, SetNetworkRequest,
+    StoreAccountRequest, UserAgent,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use tauri::{AppHandle, Manager, PackageInfo};
@@ -24,6 +24,7 @@ pub use super::error::VpndError;
 use super::events::MixnetEvent;
 pub use super::feature_flags::FeatureFlags;
 use super::gateway::{Gateway, GatewayType};
+pub use super::node::NodeConnect;
 pub use super::system_message::SystemMessage;
 use super::tunnel::TunnelState;
 use super::version_check::VersionCheck;
@@ -312,8 +313,8 @@ impl GrpcClient {
     #[instrument(skip_all)]
     pub async fn vpn_connect(
         &self,
-        entry_node: Country,
-        exit_node: Country,
+        entry_node: NodeConnect,
+        exit_node: NodeConnect,
         two_hop_mod: bool,
         credentials_mode: bool,
         netstack: bool,
@@ -322,8 +323,8 @@ impl GrpcClient {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(ConnectRequest {
-            entry: Some(EntryNode::from(entry_node)),
-            exit: Some(ExitNode::from(exit_node)),
+            entry: Some(entry_node.into()),
+            exit: Some(exit_node.into()),
             disable_routing: false,
             enable_two_hop: two_hop_mod,
             netstack,
