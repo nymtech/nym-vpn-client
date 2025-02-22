@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { FlagIcon, countryCode } from '../../ui';
-import { UiCountry } from './NodeLocation';
+import { UiCountry } from './Node';
 
 type CountryListProps = {
   countries: UiCountry[];

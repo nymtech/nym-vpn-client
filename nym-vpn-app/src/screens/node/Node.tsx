@@ -16,7 +16,7 @@ export type UiCountry = {
   i18n: string;
 };
 
-function NodeLocation({ node }: { node: NodeHop }) {
+function Node({ node }: { node: NodeHop }) {
   const {
     entryNodeLocation,
     exitNodeLocation,
@@ -151,4 +151,4 @@ function NodeLocation({ node }: { node: NodeHop }) {
   );
 }
 
-export default NodeLocation;
+export default Node;
