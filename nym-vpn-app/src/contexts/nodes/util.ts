@@ -1,5 +1,5 @@
 import { isCountry, isGateway } from '../../types';
-import { Node } from './types';
+import { Node, SelectedKind, UiCountry, UiGateway } from './types';
 
 export function isSelected(node: Node, selected: Node) {
   if (isGateway(node) && isGateway(selected)) {
@@ -11,8 +11,20 @@ export function isSelected(node: Node, selected: Node) {
   return false;
 }
 
-export function isSelectedNodeType(node: Node, selectedEntry: Node, selectedExit: Node): 'entry' | 'exit' | false {
+export function isSelectedNodeType(
+  node: Node,
+  selectedEntry: Node,
+  selectedExit: Node,
+): SelectedKind {
   if (isSelected(node, selectedEntry)) return 'entry';
   if (isSelected(node, selectedExit)) return 'exit';
   return false;
+}
+
+export function uiNodeToRaw({
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  isSelected,
+  ...node
+}: UiCountry | UiGateway): Node {
+  return node;
 }

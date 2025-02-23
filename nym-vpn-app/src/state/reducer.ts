@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import * as _ from 'lodash-es';
 import {
   DefaultCountry,
   DefaultRootFontSize,
@@ -157,23 +158,24 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ...state,
         desktopNotifications: action.enabled,
       };
-    case 'set-gateways':
+    case 'set-gateways': {
+      let prop: keyof AppState = 'wgGateways';
       if (action.payload.type === 'mx-entry') {
-        return {
-          ...state,
-          mxEntryGateways: action.payload.gateways,
-        };
+        prop = 'mxEntryGateways';
       }
       if (action.payload.type === 'mx-exit') {
+        prop = 'mxExitGateways';
+      }
+      if (!_.isEqual(action.payload.gateways, state[prop])) {
+        // TODO remove this log
+        console.log(`***STATE UPDATE [${action.payload.type}] gateways***`);
         return {
           ...state,
-          mxExitGateways: action.payload.gateways,
+          [prop]: action.payload.gateways,
         };
       }
-      return {
-        ...state,
-        wgGateways: action.payload.gateways,
-      };
+      return state;
+    }
     case 'set-gateways-loading':
       if (action.payload.type === 'mx-entry') {
         return {

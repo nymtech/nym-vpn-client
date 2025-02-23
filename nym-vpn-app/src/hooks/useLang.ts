@@ -12,7 +12,7 @@ import { kvSet } from '../kvStore';
 function useLang() {
   const { i18n } = useTranslation();
 
-  const displayNames = useMemo(() => {
+  const regionNames = useMemo(() => {
     return new Intl.DisplayNames(i18n.language, {
       type: 'region',
       fallback: 'none',
@@ -64,13 +64,13 @@ function useLang() {
     (code: string) => {
       let name = null;
       try {
-        name = displayNames.of(code);
+        name = regionNames.of(code);
       } catch (e) {
         console.warn(e);
       }
       return name;
     },
-    [displayNames],
+    [regionNames],
   );
 
   /**

@@ -47,7 +47,10 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
           });
 
           return {
-            country: country.country,
+            country: {
+              ...country.country,
+              isSelected: isCountrySelected,
+            },
             type: country.type,
             gateways,
             isSelected: isCountrySelected,
