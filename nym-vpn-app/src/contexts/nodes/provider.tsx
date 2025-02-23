@@ -65,12 +65,14 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
 
   const toGatewayList = useCallback(
     (list: UiGatewaysByCountry[]) => {
-      return list
-        .reduce<UiGateway[]>((acc, cur) => {
-          return [...acc, ...cur.gateways];
-        }, [])
-        // TODO instead sort by score?
-        .sort((a, b) => compare(a.name, b.name));
+      return (
+        list
+          .reduce<UiGateway[]>((acc, cur) => {
+            return [...acc, ...cur.gateways];
+          }, [])
+          // TODO instead sort by score?
+          .sort((a, b) => compare(a.name, b.name))
+      );
     },
     [compare],
   );
