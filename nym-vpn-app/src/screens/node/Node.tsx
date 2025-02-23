@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import {
   UiCountry,
   UiGateway,
+  UiGatewaysByCountry,
   useDialog,
   useMainDispatch,
   useMainState,
@@ -17,12 +18,14 @@ import LocationDetailsDialog from './LocationDetailsDialog';
 import { NodeList } from './list';
 
 function Node({ node }: { node: NodeHop }) {
-  const { vpnMode, fetchGateways } = useMainState();
+  const { vpnMode } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
 
   const { isOpen, close } = useDialog();
-  const { nodes, loading } = useNodesState();
+  const { nodes, loading, gateways } = useNodesState();
 
+  const [uiNodes, setUiNodes] = useState<UiGatewaysByCountry[]>(nodes);
+  const [uiGateways, setUiGateways] = useState<UiGateway[]>(gateways);
   const [search, setSearch] = useState('');
 
   // const navigate = useNavigate();
@@ -30,27 +33,31 @@ function Node({ node }: { node: NodeHop }) {
 
   // console.log(nodes);
 
-  // refresh cache (if stale)
+  // refresh the UI list whenever the backend country data changes
   useEffect(() => {
-    if (vpnMode === 'Mixnet') {
-      fetchGateways(`mx-${node}`);
-    } else {
-      fetchGateways('wg');
-    }
-  }, [node, vpnMode, fetchGateways]);
+    setUiNodes(nodes);
+    setUiGateways([]);
+    setSearch('');
+  }, [nodes, gateways]);
 
-  // const filter = (value: string) => {
-  //   if (value !== '') {
-  //     const list = uiCountryList.filter((uiCountry) => {
-  //       // toLowerCase() is used to make it case-insensitive
-  //       return uiCountry.i18n.toLowerCase().includes(value.toLowerCase());
-  //     });
-  //     setFilteredCountries(list);
-  //   } else {
-  //     setFilteredCountries(uiCountryList);
-  //   }
-  //   setSearch(value);
-  // };
+  const filter = (value: string) => {
+    if (value.length > 0) {
+      const filteredNodes = nodes.filter((node) => {
+        // toLowerCase() is used to make it case-insensitive
+        return node.i18n.toLowerCase().includes(value.toLowerCase());
+      });
+      const filteredGw = gateways.filter((gw) => {
+        return gw.name.toLowerCase().includes(value.toLowerCase());
+      });
+      console.log(`filteredGw ${filteredGw.length}`);
+      setUiNodes(filteredNodes);
+      setUiGateways(filteredGw);
+    } else {
+      setUiNodes(nodes);
+      setUiGateways([]);
+    }
+    setSearch(value);
+  };
 
   const handleSelect = async (selected: UiCountry | UiGateway) => {
     if (selected.isSelected === 'exit' || selected.isSelected === 'entry') {
@@ -86,9 +93,7 @@ function Node({ node }: { node: NodeHop }) {
         <div className="w-full max-w-md px-4 mt-4 mb-6">
           <TextInput
             value={search}
-            onChange={() => {
-              /* TODO call filter fn */
-            }}
+            onChange={filter}
             placeholder={t('search-country')}
             leftIcon="search"
             label={t('input-label')}
@@ -96,7 +101,12 @@ function Node({ node }: { node: NodeHop }) {
         </div>
         {loading && <div>loading...</div>}
         {!loading && (
-          <NodeList nodes={nodes} onSelect={handleSelect} vpnMode={vpnMode} />
+          <NodeList
+            nodes={uiNodes}
+            gateways={uiGateways}
+            onSelect={handleSelect}
+            vpnMode={vpnMode}
+          />
         )}
       </PageAnim>
     </>

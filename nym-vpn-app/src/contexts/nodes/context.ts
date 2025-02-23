@@ -1,13 +1,15 @@
 import { createContext, useContext } from 'react';
-import { UiGatewaysByCountry } from './types';
+import { UiGateway, UiGatewaysByCountry } from './types';
 
 type NodesState = {
   nodes: UiGatewaysByCountry[];
+  gateways: UiGateway[];
   loading: boolean;
 };
 
 const initialState: NodesState = {
   nodes: [],
+  gateways: [],
   loading: false,
 };
 
