@@ -1,6 +1,7 @@
 use crate::country::Country;
 use anyhow::{anyhow, Result};
 use nym_vpn_proto as p;
+use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use tracing::{error, instrument, warn};
@@ -15,10 +16,12 @@ pub enum GatewayType {
     Wg,
 }
 
-#[derive(Serialize, Deserialize, Clone, Debug, TS)]
+#[derive(Serialize, Deserialize, Clone, Debug, PartialEq, Eq, PartialOrd, Ord, TS, Default)]
 #[ts(export)]
 #[serde(rename_all = "kebab-case")]
 pub enum Score {
+    #[default]
+    None,
     Low,
     Medium,
     High,
@@ -33,8 +36,8 @@ pub struct Gateway {
     pub kind: GatewayType,
     pub name: String,
     pub country: Country,
-    pub mx_score: Option<Score>,
-    pub wg_score: Option<Score>,
+    pub mx_score: Score,
+    pub wg_score: Score,
 }
 
 impl Gateway {
@@ -56,7 +59,7 @@ impl Gateway {
                     .inspect_err(|e| error!("failed to parse proto gw mixnet score: {}", e))
             })
             .transpose()?
-            .and_then(Score::from);
+            .unwrap_or(p::Score::None);
 
         let wg_score = gateway
             .wg_score
@@ -65,27 +68,38 @@ impl Gateway {
                     .inspect_err(|e| error!("failed to parse proto gw wireguard score: {}", e))
             })
             .transpose()?
-            .and_then(Score::from);
+            .unwrap_or(p::Score::None);
 
         Ok(Self {
             id: id.id,
             kind: gw_type,
             name: gateway.moniker,
             country: Country::try_from(&location)?,
-            mx_score,
-            wg_score,
+            mx_score: Score::from(mx_score),
+            wg_score: Score::from(wg_score),
         })
     }
 }
 
 impl Score {
-    fn from(score: p::Score) -> Option<Self> {
-        match score {
-            p::Score::None => None,
-            p::Score::Low => Some(Score::Low),
-            p::Score::Medium => Some(Score::Medium),
-            p::Score::High => Some(Score::High),
+    fn from(_score: p::Score) -> Self {
+        let mut rng = rand::rng();
+        let x = rng.random_range(1..=10);
+        match x {
+            1..=2 => Score::None,
+            3..=4 => Score::Low,
+            5..=7 => Score::Medium,
+            8..=10 => Score::High,
+            _ => Score::None,
         }
+
+        // TODO restore this
+        // match score {
+        //     p::Score::None => Score::None,
+        //     p::Score::Low => Score::Low,
+        //     p::Score::Medium => Score::Medium,
+        //     p::Score::High => Score::High,
+        // }
     }
 }
 

@@ -94,15 +94,15 @@ export type AccountLinks = {
 
 export type GatewayType = 'mx-entry' | 'mx-exit' | 'wg';
 
-export type Score = 'low' | 'medium' | 'high';
+export type Score = 'none' | 'low' | 'medium' | 'high';
 
 export type Gateway = {
   id: string;
   type: GatewayType;
   name: string;
   country: Country;
-  mxScore: Score | null;
-  wgScore: Score | null;
+  mxScore: Score;
+  wgScore: Score;
 };
 
 export type GatewaysByCountry = {

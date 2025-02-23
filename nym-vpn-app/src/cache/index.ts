@@ -19,7 +19,7 @@ export type CKey = Extract<
 /**
  * Cache on-db, with optional expiry.
  * Simple wrapper around the kvStore that attach
- * time-to-live to the stored values.
+ * a 'time-to-live' to the stored values.
  */
 export const CCache = {
   /**
@@ -61,12 +61,12 @@ export const CCache = {
    */
   set: async <T>(key: CKey, value: T, ttl?: number): Promise<void> => {
     if (!ttl) {
-      console.log(`set cache [${key}], no expiry`);
+      console.log(`set cache [${key}]`);
       await kvSet(key, { value: value });
       return;
     }
     const expiry = Date.now() + ttl * 1000;
-    console.log(`set cache [${key}], expiry in ${ttl}s`);
+    console.log(`set cache [${key}] (${ttl}s)`);
     await kvSet(key, { value: value, expiry });
   },
   /**

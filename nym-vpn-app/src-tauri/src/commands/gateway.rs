@@ -53,6 +53,16 @@ fn group_by_country(gateways: Vec<Gateway>, gw_type: GatewayType) -> Vec<Gateway
         .collect()
 }
 
+fn sort_by_perf(mut gw_by_countries: Vec<GatewaysByCountry>) -> Vec<GatewaysByCountry> {
+    for group in gw_by_countries.iter_mut() {
+        group.gateways.sort_by(|a, b| match a.kind {
+            GatewayType::Wg => a.wg_score.cmp(&b.wg_score).reverse(),
+            _ => a.mx_score.cmp(&b.mx_score).reverse(),
+        });
+    }
+    gw_by_countries
+}
+
 #[instrument(skip(grpc))]
 #[tauri::command]
 pub async fn get_gateways(
@@ -76,10 +86,15 @@ pub async fn get_gateways(
 
     gateways
         .map(|gws| group_by_country(gws, node_type))
+        .map(sort_by_perf)
         .inspect(|list| {
             debug!("countries #{}", list.len());
             for gateways in list {
                 trace!("{}", gateways);
+                gateways.gateways.iter().for_each(|gw| match gw.kind {
+                    GatewayType::Wg => trace!("wg {:?}", gw.wg_score),
+                    _ => trace!("mx {:?}", gw.mx_score),
+                });
             }
         })
 }
