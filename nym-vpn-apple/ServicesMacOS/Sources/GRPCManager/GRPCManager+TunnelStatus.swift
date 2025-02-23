@@ -84,20 +84,30 @@ extension GRPCManager {
                 return nil
             }
         case let .syncDevice(reason):
-            if reason.noAccountStored {
-                return ErrorReason.noAccountStored
-            } else if reason.noDeviceStored {
-                return ErrorReason.noDeviceStored
-            } else {
-                return nil
+            switch reason.errorDetail {
+            case let .noAccountStored(isOn):
+                return isOn ? ErrorReason.noAccountStored : nil
+            case let .noDeviceStored(isOn):
+                return isOn ? ErrorReason.noDeviceStored : nil
+            case let .errorResponse(details):
+                return GeneralNymError.library(message: details.message)
+            case let .unexpectedResponse(message), let .internal(message):
+                return GeneralNymError.library(message: message)
+            case .none:
+                return GeneralNymError.somethingWentWrong
             }
         case let .registerDevice(reason):
-            if reason.noAccountStored {
-                return ErrorReason.noAccountStored
-            } else if reason.noDeviceStored {
-                return ErrorReason.noDeviceStored
-            } else {
-                return nil
+            switch reason.errorDetail {
+            case let .noAccountStored(isOn):
+                return isOn ? ErrorReason.noAccountStored : nil
+            case let .noDeviceStored(isOn):
+                return isOn ? ErrorReason.noDeviceStored : nil
+            case let .errorResponse(details):
+                return GeneralNymError.library(message: details.message)
+            case let .unexpectedResponse(message), let .internal(message):
+                return GeneralNymError.library(message: message)
+            case .none:
+                return GeneralNymError.somethingWentWrong
             }
         case let .requestZkNym(reason):
             switch reason.outcome {

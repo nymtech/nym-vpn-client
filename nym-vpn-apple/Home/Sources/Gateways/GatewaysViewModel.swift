@@ -12,6 +12,7 @@ import UIComponents
     private let gatewayManager: GatewayManager
 
     let type: HopType
+    let minimumSearchSymbols = 2
 
     @Binding var path: NavigationPath
     @Published var isGeolocationModalDisplayed = false
@@ -93,6 +94,7 @@ import UIComponents
     }
 
     func searchCountriesGateways() {
+        guard searchText.count >= minimumSearchSymbols else { return }
         foundCountries = countries.filter {
             $0.name.lowercased().contains(searchText.lowercased())
             || $0.code.lowercased().contains(searchText.lowercased())
@@ -103,4 +105,3 @@ import UIComponents
         }
     }
 }
-

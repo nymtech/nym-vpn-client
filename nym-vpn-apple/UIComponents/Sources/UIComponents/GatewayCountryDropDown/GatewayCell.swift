@@ -127,7 +127,7 @@ extension GatewayCell {
     }
 
     func infoButton() -> some View {
-        GenericImage(systemImageName: "questionmark.circle")
+        GenericImage(systemImageName: "info.circle")
             .frame(width: 24, height: 24)
             .padding(16)
     }

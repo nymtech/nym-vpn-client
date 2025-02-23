@@ -134,6 +134,7 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 "Constants",
+                "ConfigurationManager",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),

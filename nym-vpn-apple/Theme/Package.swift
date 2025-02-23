@@ -25,7 +25,7 @@ let package = Package(
                 .copy("Resources/Fonts/Lato-SemiBold.ttf"),
                 .copy("Resources/Fonts/Lato-Medium.ttf"),
                 .copy("Resources/Fonts/LabGrotesque-Regular.ttf"),
-                .copy("Resources/Fonts/LabGrotesque-Mono.ttf"),
+                .copy("Resources/Fonts/LabGrotesqueMono-Regular.ttf"),
                 .process("Resources/Colors.xcassets"),
                 .process("Resources/Localizable.xcstrings")
             ]

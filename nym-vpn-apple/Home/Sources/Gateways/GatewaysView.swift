@@ -91,7 +91,7 @@ private extension GatewaysView {
 
     @ViewBuilder
     func countriesGatewaysList() -> some View {
-        if viewModel.searchText.isEmpty {
+        if viewModel.searchText.count < viewModel.minimumSearchSymbols {
             ForEach(viewModel.countries, id: \.name) { country in
                 GatewayCountryDropDown(
                     country: country,
@@ -108,7 +108,9 @@ private extension GatewaysView {
 
     @ViewBuilder
     func noSearchResultsView() -> some View {
-        if !viewModel.searchText.isEmpty, viewModel.foundGateways.isEmpty, viewModel.foundCountries.isEmpty {
+        if viewModel.searchText.count >= viewModel.minimumSearchSymbols,
+           viewModel.foundGateways.isEmpty,
+           viewModel.foundCountries.isEmpty {
             VStack {
                 Text("search.noResults".localizedString)
                     .foregroundStyle(NymColor.primary)
