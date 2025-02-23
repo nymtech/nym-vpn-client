@@ -15,11 +15,13 @@ extension HomeViewModel {
             }
             .store(in: &cancellables)
 
-        grpcManager.$errorReason.sink { [weak self] error in
-            self?.lastError = error
-            self?.navigateToAddCredetialsIfNeeded(error: error)
-        }
-        .store(in: &cancellables)
+        grpcManager.$errorReason
+            .dropFirst()
+            .sink { [weak self] error in
+                self?.lastError = error
+                self?.navigateToAddCredetialsIfNeeded(error: error)
+            }
+            .store(in: &cancellables)
     }
 
     func updateTimeConnected() {

@@ -93,8 +93,7 @@ public final class ConfigurationManager {
     public func updateEnv(to env: Env) {
         Task(priority: .background) { [weak self] in
             guard let self else { return }
-            guard isTestFlight || Device.isMacOS,
-                  env != currentEnv
+            guard isTestFlight || Device.isMacOS
             else {
                 return
             }

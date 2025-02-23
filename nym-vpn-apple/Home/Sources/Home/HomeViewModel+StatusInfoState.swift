@@ -14,8 +14,7 @@ extension HomeViewModel {
     }
 
     func navigateToAddCredetialsIfNeeded(error: Error?) {
-        if credentialsManager.isValidCredentialImported,
-           let errorReason = error as? ErrorReason,
+        if let errorReason = error as? ErrorReason,
            errorReason == .noAccountStored {
             Task { @MainActor [weak self] in
                 self?.navigateToAddCredentials()

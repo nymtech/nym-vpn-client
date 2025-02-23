@@ -1,13 +1,16 @@
 import SwiftUI
 import ConnectionManager
+import CountriesManager
 import CountriesManagerTypes
 import Theme
 
 public struct GatewayCell: View {
     private let server: GatewayNode
     private let hopType: HopType
+    private let isSearching: Bool
 
     @EnvironmentObject private var connectionManager: ConnectionManager
+    @EnvironmentObject private var countriesManager: CountriesManager
     @Binding private var path: NavigationPath
     @Binding private var isServerModalDisplayed: Bool
     @Binding private var serverInfoModalServer: GatewayNode?
@@ -17,10 +20,12 @@ public struct GatewayCell: View {
         type: HopType,
         path: Binding<NavigationPath>,
         isServerModalDisplayed: Binding<Bool>,
-        serverInfoModalServer: Binding<GatewayNode?>
+        serverInfoModalServer: Binding<GatewayNode?>,
+        isSearching: Bool = false
     ) {
         self.server = server
         self.hopType = type
+        self.isSearching = isSearching
         _path = path
         _isServerModalDisplayed = isServerModalDisplayed
         _serverInfoModalServer = serverInfoModalServer
@@ -98,8 +103,16 @@ extension GatewayCell {
             .textStyle(.BodyLegacy.Large.regular)
     }
 
+    func serverSubtitleString() -> String {
+        if isSearching, let country = countriesManager.country(with: server.countryCode) {
+            "\(country.name), \(server.id)"
+        } else {
+            server.id
+        }
+    }
+
     func serverSubtitle() -> some View {
-        Text(server.id)
+        Text(serverSubtitleString())
             .lineLimit(1)
             .truncationMode(.middle)
             .foregroundStyle(NymColor.gray1)

@@ -164,7 +164,8 @@ private extension GatewaysView {
                 path: $viewModel.path,
                 isServerModalDisplayed: $viewModel.isServerInfoModalDisplayed,
                 serverInfoModalServer: $viewModel.serverInfoModalServer,
-                scrollToServer: $viewModel.scrollToServer
+                scrollToServer: $viewModel.scrollToServer,
+                isSearching: true
             )
         }
         Spacer()
@@ -179,7 +180,8 @@ private extension GatewaysView {
                 type: viewModel.type,
                 path: $viewModel.path,
                 isServerModalDisplayed: $viewModel.isServerInfoModalDisplayed,
-                serverInfoModalServer: $viewModel.serverInfoModalServer
+                serverInfoModalServer: $viewModel.serverInfoModalServer,
+                isSearching: true
             )
         }
     }

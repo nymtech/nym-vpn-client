@@ -8,6 +8,7 @@ public struct GatewayCountryDropDown: View {
     private let country: Country
     private let servers: [GatewayNode]
     private let hopType: HopType
+    private let isSearching: Bool
 
     @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var countriesManager: CountriesManager
@@ -24,11 +25,13 @@ public struct GatewayCountryDropDown: View {
         path: Binding<NavigationPath>,
         isServerModalDisplayed: Binding<Bool>,
         serverInfoModalServer: Binding<GatewayNode?>,
-        scrollToServer: Binding<GatewayNode?>
+        scrollToServer: Binding<GatewayNode?>,
+        isSearching: Bool = false
     ) {
         self.country = country
         self.servers = servers
         self.hopType = type
+        self.isSearching = isSearching
         _path = path
         _isServerModalDisplayed = isServerModalDisplayed
         _serverInfoModalServer = serverInfoModalServer
@@ -38,7 +41,7 @@ public struct GatewayCountryDropDown: View {
     public var body: some View {
         VStack(spacing: 0) {
             countryCell()
-            if isExpanded {
+            if isExpanded, !isSearching {
                 ForEach(servers, id: \.id) { server in
                     GatewayCell(
                         server: server,

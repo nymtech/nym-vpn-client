@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import AppSettings
+import ConfigurationManager
 import CountriesManagerTypes
 import Logging
 #if os(iOS)
@@ -11,6 +12,7 @@ import GRPCManager
 
 public final class GatewayManager {
     let appSettings: AppSettings
+    let configurationManager: ConfigurationManager
 #if os(macOS)
     let grpcManager: GRPCManager
 #endif
@@ -29,8 +31,9 @@ public final class GatewayManager {
     @Published public var lastError: Error?
 
 #if os(iOS)
-    public init(appSettings: AppSettings = .shared) {
+    public init(appSettings: AppSettings = .shared, configurationManager: ConfigurationManager = .shared) {
         self.appSettings = appSettings
+        self.configurationManager = configurationManager
         self.entry = []
         self.exit = []
         self.vpn = []
@@ -38,8 +41,13 @@ public final class GatewayManager {
         loadPrebundledServersIfNecessary()
     }
 #elseif os(macOS)
-    public init(appSettings: AppSettings = .shared, grpcManager: GRPCManager = .shared) {
+    public init(
+        appSettings: AppSettings = .shared,
+        configurationManager: ConfigurationManager = .shared,
+        grpcManager: GRPCManager = .shared
+    ) {
         self.appSettings = appSettings
+        self.configurationManager = configurationManager
         self.grpcManager = grpcManager
         self.entry = []
         self.exit = []
@@ -52,6 +60,7 @@ public final class GatewayManager {
     public func setup() {
         updateGateways()
         setupAutoUpdates()
+        configureEnvironmentChange()
     }
 }
 
@@ -96,6 +105,15 @@ private extension GatewayManager {
             exit = gatewayStore.exit
             entry = gatewayStore.entry
             vpn = gatewayStore.vpn
+        }
+    }
+
+    func configureEnvironmentChange() {
+        configurationManager.environmentDidChange = { [weak self] in
+            self?.gatewayStore.lastFetchDate = nil
+            Task {
+                await self?.fetchGateways()
+            }
         }
     }
 }

@@ -213,9 +213,7 @@ private extension ConnectionManager {
     func setup() {
 #if os(iOS)
         setupTunnelManagerObservers()
-#endif
-
-#if os(macOS)
+#elseif os(macOS)
         setupGRPCManagerObservers()
 #endif
         setupCountriesManagerObserver()
