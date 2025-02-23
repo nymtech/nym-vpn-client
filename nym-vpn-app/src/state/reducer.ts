@@ -14,6 +14,7 @@ import {
   DaemonInfo,
   DaemonStatus,
   Gateway,
+  GatewayType,
   GatewaysByCountry,
   NodeHop,
   ThemeMode,
@@ -52,24 +53,16 @@ export type StateAction =
   | { type: 'set-theme-mode'; mode: ThemeMode }
   | { type: 'system-theme-changed'; theme: UiTheme }
   | {
-      type: 'set-mx-gateways';
-      payload: { hop: NodeHop; gateways: GatewaysByCountry[] };
-    }
-  | {
-      type: 'set-mx-entry-gateways';
-      payload: { gateways: GatewaysByCountry[] };
-    }
-  | {
-      type: 'set-mx-exit-gateways';
-      payload: { gateways: GatewaysByCountry[] };
-    }
-  | {
-      type: 'set-wg-gateways';
-      payload: { gateways: GatewaysByCountry[] };
+      type: 'set-gateways';
+      payload: { type: GatewayType; gateways: GatewaysByCountry[] };
     }
   | {
       type: 'set-gateways-loading';
-      payload: { hop: NodeHop; loading: boolean };
+      payload: { type: GatewayType; loading: boolean };
+    }
+  | {
+      type: 'set-gateways-error';
+      payload: { type: GatewayType; error: AppError | null };
     }
   | {
       type: 'set-node';
@@ -80,9 +73,6 @@ export type StateAction =
   | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
   | { type: 'set-autostart'; enabled: boolean }
   | { type: 'set-account'; stored: boolean }
-  | { type: 'set-mx-entry-gateways-error'; payload: AppError | null }
-  | { type: 'set-mx-exit-gateways-error'; payload: AppError | null }
-  | { type: 'set-wg-gateways-error'; payload: AppError | null }
   | { type: 'set-account-links'; links: AccountLinks | null };
 
 export const initialState: AppState = {
@@ -106,8 +96,9 @@ export const initialState: AppState = {
   mxEntryGateways: [],
   mxExitGateways: [],
   wgGateways: [],
-  entryGatewaysLoading: false,
-  exitGatewaysLoading: false,
+  mxEntryGatewaysLoading: true,
+  mxExitGatewaysLoading: true,
+  wgGatewaysLoading: true,
   rootFontSize: DefaultRootFontSize,
   codeDepsRust: [],
   codeDepsJs: [],
@@ -166,42 +157,39 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ...state,
         desktopNotifications: action.enabled,
       };
-    case 'set-mx-gateways':
-      if (action.payload.hop === 'entry') {
+    case 'set-gateways':
+      if (action.payload.type === 'mx-entry') {
         return {
           ...state,
           mxEntryGateways: action.payload.gateways,
         };
       }
-      return {
-        ...state,
-        mxExitGateways: action.payload.gateways,
-      };
-    case 'set-mx-entry-gateways':
-      return {
-        ...state,
-        mxEntryGateways: action.payload.gateways,
-      };
-    case 'set-mx-exit-gateways':
-      return {
-        ...state,
-        mxExitGateways: action.payload.gateways,
-      };
-    case 'set-wg-gateways':
+      if (action.payload.type === 'mx-exit') {
+        return {
+          ...state,
+          mxExitGateways: action.payload.gateways,
+        };
+      }
       return {
         ...state,
         wgGateways: action.payload.gateways,
       };
     case 'set-gateways-loading':
-      if (action.payload.hop === 'entry') {
+      if (action.payload.type === 'mx-entry') {
         return {
           ...state,
-          entryGatewaysLoading: action.payload.loading,
+          mxEntryGatewaysLoading: action.payload.loading,
+        };
+      }
+      if (action.payload.type === 'mx-exit') {
+        return {
+          ...state,
+          mxExitGatewaysLoading: action.payload.loading,
         };
       }
       return {
         ...state,
-        exitGatewaysLoading: action.payload.loading,
+        wgGatewaysLoading: action.payload.loading,
       };
     case 'set-tunnel':
       return {
@@ -314,20 +302,22 @@ export function reducer(state: AppState, action: StateAction): AppState {
         ...state,
         codeDepsRust: action.dependencies,
       };
-    case 'set-mx-entry-gateways-error':
+    case 'set-gateways-error':
+      if (action.payload.type === 'mx-entry') {
+        return {
+          ...state,
+          mxEntryGatewaysError: action.payload.error,
+        };
+      }
+      if (action.payload.type === 'mx-exit') {
+        return {
+          ...state,
+          mxExitGatewaysError: action.payload.error,
+        };
+      }
       return {
         ...state,
-        mxEntryGatewaysError: action.payload,
-      };
-    case 'set-mx-exit-gateways-error':
-      return {
-        ...state,
-        mxExitGatewaysError: action.payload,
-      };
-    case 'set-wg-gateways-error':
-      return {
-        ...state,
-        wgGatewaysError: action.payload,
+        wgGatewaysError: action.payload.error,
       };
     case 'set-account-links':
       return {

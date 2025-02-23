@@ -62,8 +62,9 @@ export type AppState = {
   mxEntryGateways: GatewaysByCountry[];
   mxExitGateways: GatewaysByCountry[];
   wgGateways: GatewaysByCountry[];
-  entryGatewaysLoading: boolean;
-  exitGatewaysLoading: boolean;
+  mxEntryGatewaysLoading: boolean;
+  mxExitGatewaysLoading: boolean;
+  wgGatewaysLoading: boolean;
   mxEntryGatewaysError?: AppError | null;
   mxExitGatewaysError?: AppError | null;
   wgGatewaysError?: AppError | null;

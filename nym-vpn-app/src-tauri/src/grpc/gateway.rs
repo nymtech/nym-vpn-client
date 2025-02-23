@@ -83,6 +83,7 @@ impl Gateway {
 
 impl Score {
     fn from(_score: p::Score) -> Self {
+        // TODO nuke this
         let mut rng = rand::rng();
         let x = rng.random_range(1..=10);
         match x {

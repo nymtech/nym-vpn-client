@@ -1,1 +1,1 @@
-export { default as NodeLocation } from './Node';
+export { default as NodeEntry } from './NodeEntry';

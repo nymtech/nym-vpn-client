@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import React, { useEffect, useReducer } from 'react';
+import React, { useCallback, useEffect, useReducer } from 'react';
 import { GatewaysCacheDuration } from '../../constants';
 import {
   MainDispatchContext,
@@ -21,11 +21,7 @@ import { useTauriEvents } from '../../state/useTauriEvents';
 import { S_STATE } from '../../static';
 import { CCache } from '../../cache';
 import { kvGet, kvSet } from '../../kvStore';
-import {
-  gwTypeToCacheKey,
-  gwTypeToDispatchError,
-  gwTypeToDispatchSet,
-} from './util';
+import { gwTypeToCacheKey } from './util';
 
 let initialized = false;
 
@@ -134,7 +130,7 @@ function MainStateProvider({ children }: Props) {
   }, [push]);
 
   // use cached values if any, otherwise query from daemon
-  const fetchGateways = async (nodeType: GatewayType) => {
+  const fetchGateways = useCallback(async (nodeType: GatewayType) => {
     const cacheKey = gwTypeToCacheKey(nodeType);
     // first try to load from cache
     let gateways = await CCache.get<GatewaysByCountry[]>(cacheKey);
@@ -151,28 +147,35 @@ function MainStateProvider({ children }: Props) {
         console.warn(`Failed to fetch ${nodeType} gateways:`, e);
         if (nodeType === 'mx-entry') {
           dispatch({
-            type: gwTypeToDispatchError(nodeType),
-            payload: e as BackendError,
+            type: 'set-gateways-error',
+            payload: {
+              type: nodeType,
+              error: e as BackendError,
+            },
           });
         }
       }
     }
     if (!gateways) {
-      console.warn('no gateways found');
+      console.warn(`no gateways found for ${nodeType}`);
       gateways = [];
     }
     dispatch({
-      type: gwTypeToDispatchSet(nodeType),
+      type: 'set-gateways',
       payload: {
+        type: nodeType,
         gateways,
       },
     });
     // reset any errors
     dispatch({
-      type: gwTypeToDispatchError(nodeType),
-      payload: null,
+      type: 'set-gateways-error',
+      payload: {
+        type: nodeType,
+        error: null,
+      },
     });
-  };
+  }, []);
 
   useEffect(() => {
     // TODO implement this

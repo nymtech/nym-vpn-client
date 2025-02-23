@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { LngTag } from '../i18n';
 import { kvSet } from '../kvStore';
@@ -11,6 +11,18 @@ import { kvSet } from '../kvStore';
  */
 function useLang() {
   const { i18n } = useTranslation();
+
+  const displayNames = useMemo(() => {
+    return new Intl.DisplayNames(i18n.language, {
+      type: 'region',
+      fallback: 'none',
+      style: 'long',
+    });
+  }, [i18n.language]);
+
+  const collator = useMemo(() => {
+    return new Intl.Collator(i18n.language, {});
+  }, [i18n.language]);
 
   /**
    * Sets the i18n language.
@@ -50,20 +62,15 @@ function useLang() {
    */
   const getCountryName = useCallback(
     (code: string) => {
-      const regionNames = new Intl.DisplayNames(i18n.language, {
-        type: 'region',
-        fallback: 'none',
-        style: 'long',
-      });
       let name = null;
       try {
-        name = regionNames.of(code);
+        name = displayNames.of(code);
       } catch (e) {
         console.warn(e);
       }
       return name;
     },
-    [i18n.language],
+    [displayNames],
   );
 
   /**
@@ -74,10 +81,9 @@ function useLang() {
    */
   const compare = useCallback(
     (a: string, b: string) => {
-      const collator = new Intl.Collator(i18n.language, {});
       return collator.compare(a, b);
     },
-    [i18n.language],
+    [collator],
   );
 
   return { compare, set, getCountryName };

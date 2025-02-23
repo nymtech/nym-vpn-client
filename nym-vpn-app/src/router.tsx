@@ -14,7 +14,7 @@ import {
   LicenseList,
   Login,
   MainLayout,
-  NodeLocation,
+  NodeEntry,
   Settings,
   SettingsRouteIndex,
   Support,
@@ -137,12 +137,12 @@ const router = createRouterFn([
       },
       {
         path: routes.entryNodeLocation,
-        element: <NodeLocation node="entry" />,
+        element: <NodeEntry node="entry" />,
         errorElement: <Error />,
       },
       {
         path: routes.exitNodeLocation,
-        element: <NodeLocation node="exit" />,
+        element: <NodeEntry node="exit" />,
         errorElement: <Error />,
       },
     ],

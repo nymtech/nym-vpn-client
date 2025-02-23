@@ -116,3 +116,9 @@ export function isGateway(node: Gateway | Country): node is Gateway {
     (node as Gateway).id !== undefined && (node as Gateway).type !== undefined
   );
 }
+
+export function isCountry(node: Gateway | Country): node is Country {
+  return (
+    (node as Country).code !== undefined && (node as Country).name !== undefined
+  );
+}

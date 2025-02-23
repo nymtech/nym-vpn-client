@@ -272,15 +272,15 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     onFulfilled: (gateways) => {
       if (!gateways) return;
       dispatch({
-        type: 'set-mx-gateways',
+        type: 'set-gateways',
         payload: {
-          hop: 'entry',
+          type: 'mx-entry',
           gateways: gateways || [],
         },
       });
       dispatch({
         type: 'set-gateways-loading',
-        payload: { hop: 'entry', loading: false },
+        payload: { type: 'mx-entry', loading: false },
       });
     },
   };
@@ -290,15 +290,15 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     request: () => getMxGateways('exit'),
     onFulfilled: (gateways) => {
       dispatch({
-        type: 'set-mx-gateways',
+        type: 'set-gateways',
         payload: {
-          hop: 'exit',
+          type: 'mx-exit',
           gateways: gateways || [],
         },
       });
       dispatch({
         type: 'set-gateways-loading',
-        payload: { hop: 'exit', loading: false },
+        payload: { type: 'mx-exit', loading: false },
       });
     },
   };
@@ -308,18 +308,15 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     request: () => getWgGateways(),
     onFulfilled: (gateways) => {
       dispatch({
-        type: 'set-wg-gateways',
+        type: 'set-gateways',
         payload: {
+          type: 'wg',
           gateways: gateways || [],
         },
       });
       dispatch({
         type: 'set-gateways-loading',
-        payload: { hop: 'entry', loading: false },
-      });
-      dispatch({
-        type: 'set-gateways-loading',
-        payload: { hop: 'exit', loading: false },
+        payload: { type: 'wg', loading: false },
       });
     },
   };

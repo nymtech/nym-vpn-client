@@ -1,60 +1,73 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
-import { useDialog, useMainDispatch, useMainState } from '../../contexts';
-import { kvSet } from '../../kvStore';
-import { AppError, Country, NodeHop, StateDispatch } from '../../types';
-import { routes } from '../../router';
-import { useI18nError, useLang } from '../../hooks';
+import {
+  useDialog,
+  useMainDispatch,
+  useMainState,
+  useNodesState,
+} from '../../contexts';
+import { Country, Gateway, NodeHop, StateDispatch } from '../../types';
 import { PageAnim, TextInput } from '../../ui';
+import { kvSet } from '../../kvStore';
 import LocationDetailsDialog from './LocationDetailsDialog';
 
-// Thin wrapper around `Country` that includes localization
-export type UiCountry = {
-  country: Country;
-  i18n: string;
-};
+let initialized = false;
 
 function Node({ node }: { node: NodeHop }) {
-  const { entryNode, exitNode, vpnMode, fetchMxGateways, fetchWgGateways } =
-    useMainState();
+  const { vpnMode, fetchGateways } = useMainState();
+  const dispatch = useMainDispatch() as StateDispatch;
+
   const { isOpen, close } = useDialog();
-
-  const { t } = useTranslation('nodeLocation');
-  const { tE } = useI18nError();
-  const { compare, getCountryName } = useLang();
-
-  // the country list as rendered in the UI
-  const [uiCountryList, setUiCountryList] = useState<UiCountry[]>([]);
-  const selectedCountry = node === 'entry' ? entryNode : exitNode;
+  const { nodes, loading } = useNodesState();
 
   const [search, setSearch] = useState('');
-  const [filteredCountries, setFilteredCountries] =
-    useState<UiCountry[]>(uiCountryList);
+
+  const { t } = useTranslation('nodeLocation');
+
+  // console.log(nodes);
+
+  // refresh cache (if stale)
+  useEffect(() => {
+    if (initialized) {
+      return;
+    }
+    initialized = true;
+    if (vpnMode === 'Mixnet') {
+      fetchGateways(`mx-${node}`);
+    } else {
+      fetchGateways('wg');
+    }
+  }, [node, vpnMode, fetchGateways]);
 
   // const dispatch = useMainDispatch() as StateDispatch;
   // const navigate = useNavigate();
 
-  // refresh cache (if stale)
-  useEffect(() => {
-    if (vpnMode === 'Mixnet') {
-      fetchMxGateways(node);
-    } else {
-      fetchWgGateways();
-    }
-  }, [node, vpnMode, fetchMxGateways, fetchWgGateways]);
+  // const filter = (value: string) => {
+  //   if (value !== '') {
+  //     const list = uiCountryList.filter((uiCountry) => {
+  //       // toLowerCase() is used to make it case-insensitive
+  //       return uiCountry.i18n.toLowerCase().includes(value.toLowerCase());
+  //     });
+  //     setFilteredCountries(list);
+  //   } else {
+  //     setFilteredCountries(uiCountryList);
+  //   }
+  //   setSearch(value);
+  // };
 
-  const filter = (value: string) => {
-    if (value !== '') {
-      const list = uiCountryList.filter((uiCountry) => {
-        // toLowerCase() is used to make it case-insensitive
-        return uiCountry.i18n.toLowerCase().includes(value.toLowerCase());
+  const handleSelection = async (selected: Country | Gateway) => {
+    // TODO cancel if the selected node is already assigned
+    // to the other hop
+    try {
+      await kvSet(node === 'entry' ? 'entry-node' : 'exit-node', selected);
+      dispatch({
+        type: 'set-node',
+        payload: { hop: node, node: selected },
       });
-      setFilteredCountries(list);
-    } else {
-      setFilteredCountries(uiCountryList);
+    } catch (e) {
+      console.warn(e);
     }
-    setSearch(value);
+    // navigate(routes.root);
   };
 
   return (
@@ -67,13 +80,38 @@ function Node({ node }: { node: NodeHop }) {
         <div className="w-full max-w-md px-4 mt-4 mb-6">
           <TextInput
             value={search}
-            onChange={filter}
+            onChange={() => {
+              /* TODO call filter fn */
+            }}
             placeholder={t('search-country')}
             leftIcon="search"
             label={t('input-label')}
           />
         </div>
-        TODO
+        {loading && <div>loading...</div>}
+        {!loading &&
+          nodes.map(({ i18n, country, gateways, isSelected }) => (
+            <div key={country.code} onClick={() => handleSelection(country)}>
+              <div className="text-2xl font-bold text-malachite">{`[${country.code}] ${i18n} selected: ${isSelected}`}</div>
+              {gateways.map((gateway) => (
+                <div
+                  className="ml-4 text-liquid-lava"
+                  key={gateway.id}
+                  onClick={() => handleSelection(gateway)}
+                >
+                  <span className="text-cornflower font-mono">
+                    {gateway.id.slice(0, 6)}
+                  </span>
+                  <span>{` ${gateway.name.slice(0, 30)}`}</span>
+                  <span className="text-cornflower font-mono">
+                    {vpnMode === 'Mixnet'
+                      ? ` ${gateway.mxScore}`
+                      : ` ${gateway.wgScore}`}
+                  </span>
+                </div>
+              ))}
+            </div>
+          ))}
       </PageAnim>
     </>
   );
