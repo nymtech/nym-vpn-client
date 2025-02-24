@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.module
+package net.nymtech.nymvpn.di
 
 import dagger.Module
 import dagger.Provides
@@ -8,8 +8,8 @@ import dagger.hilt.android.scopes.ServiceScoped
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
-import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
-import net.nymtech.nymvpn.module.qualifiers.ServiceScope
+import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.di.qualifiers.ServiceScope
 
 @Module
 @InstallIn(ServiceComponent::class)

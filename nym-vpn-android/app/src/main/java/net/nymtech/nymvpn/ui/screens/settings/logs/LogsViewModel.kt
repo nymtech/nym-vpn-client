@@ -13,8 +13,8 @@ import kotlinx.coroutines.withContext
 import net.nymtech.logcatutil.LogReader
 import net.nymtech.logcatutil.model.LogMessage
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
-import net.nymtech.nymvpn.module.qualifiers.MainDispatcher
+import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.extensions.chunked
 import net.nymtech.nymvpn.util.extensions.launchShareFile
