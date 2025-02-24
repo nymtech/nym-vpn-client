@@ -13,7 +13,11 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
   const { t } = useTranslation('nodeLocation');
 
   return (
-    <Dialog open={isOpen} onClose={onClose}>
+    <Dialog
+      open={isOpen}
+      onClose={onClose}
+      className="flex flex-col items-center gap-6"
+    >
       <div className="flex flex-col items-center gap-4">
         <MsIcon
           icon="info"
@@ -38,7 +42,7 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
       />
 
       <Button onClick={onClose} className="mt-2">
-        <span className="text-base text-black dark:text-baltic-sea">
+        <span className="text-lg text-black dark:text-baltic-sea">
           {capFirst(t('ok', { ns: 'glossary' }))}
         </span>
       </Button>

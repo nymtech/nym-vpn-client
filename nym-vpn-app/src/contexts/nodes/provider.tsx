@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Country, Gateway, GatewaysByCountry } from '../../types';
+import { Country, Gateway, GatewaysByCountry, NodeHop } from '../../types';
 import { useMainState } from '../main';
 import { useLang } from '../../hooks';
 import { NodesContext } from './context';
-import { UiGateway, UiGatewaysByCountry } from './types';
+import { GwSelectedKind, UiGateway, UiGatewaysByCountry } from './types';
 import { isSelectedNodeType } from './util';
 
 export type NodesStateProviderProps = {
   children: React.ReactNode;
-  nodeType: 'entry' | 'exit';
+  nodeType: NodeHop;
 };
 
 function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
@@ -43,7 +43,11 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
           const gateways = country.gateways.map<UiGateway>((gw) => {
             return {
               ...gw,
-              isSelected: isSelectedNodeType(gw, selectedEntry, selectedExit),
+              isSelected: isSelectedNodeType(
+                gw,
+                selectedEntry,
+                selectedExit,
+              ) as GwSelectedKind,
             };
           });
 
@@ -80,6 +84,7 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
   useEffect(() => {
     setLoading(true);
     let list = [];
+    // TODO remove those logs
     if (vpnMode === 'Mixnet' && nodeType === 'entry') {
       console.log('___rendering list for mx-entry');
       list = uifyGateways(mxEntryGateways, entryNode, exitNode);
@@ -111,6 +116,8 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
         nodes,
         gateways: gatewayList,
         loading,
+        node: nodeType,
+        vpnMode,
       }}
     >
       {children}

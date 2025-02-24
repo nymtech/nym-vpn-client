@@ -1,71 +1,105 @@
 import * as Accordion from '@radix-ui/react-accordion';
+import { motion } from 'motion/react';
 import clsx from 'clsx';
-import { UiCountry, UiGateway, UiGatewaysByCountry } from '../../../contexts';
-import { VpnMode } from '../../../types';
+import {
+  SelectedKind,
+  UiCountry,
+  UiGateway,
+  UiGatewaysByCountry,
+} from '../../../contexts';
+import { NodeHop, VpnMode } from '../../../types';
+import CountryInfo from './CountryInfo';
+import GatewayItem from './GatewayItem';
+import FoldButton from './FoldButton';
 
 export type NodeListProps = {
   nodes: UiGatewaysByCountry[];
   gateways: UiGateway[];
   onSelect: (node: UiCountry | UiGateway) => void;
+  onNodeDetails: (node: UiGateway | UiCountry) => void;
+  node: NodeHop;
   vpnMode: VpnMode;
 };
 
-type AccordionTriggerProps = {
-  children: React.ReactNode;
-  ref?: React.Ref<never>;
-};
-const AccordionTrigger = ({ children, ref }: AccordionTriggerProps) => (
-  <Accordion.Header className="flex">
-    <Accordion.Trigger className={clsx('')} ref={ref}>
-      {children}
-    </Accordion.Trigger>
-  </Accordion.Header>
-);
-
-type GatewayItemProps = {
-  gateway: UiGateway;
-  onSelect: (node: UiGateway) => void;
-  vpnMode: VpnMode;
-};
-
-function NodeList({ nodes, gateways, onSelect, vpnMode }: NodeListProps) {
-  const GatewayItem = ({ gateway }: GatewayItemProps) => (
-    <div
-      className="ml-4 text-liquid-lava"
-      key={gateway.id}
-      onClick={() => onSelect(gateway)}
-    >
-      <span className="text-cornflower font-mono">
-        {gateway.id.slice(0, 6)}
-      </span>
-      <span>{` ${gateway.name.slice(0, 30)}`}</span>
-      <span className="text-cornflower font-mono">
-        {vpnMode === 'Mixnet' ? ` ${gateway.mxScore}` : ` ${gateway.wgScore}`}
-      </span>
-    </div>
-  );
+function NodeList({
+  nodes,
+  gateways,
+  onSelect,
+  node,
+  vpnMode,
+  onNodeDetails,
+}: NodeListProps) {
+  const handleCountrySelect = (
+    country: UiCountry,
+    isSelected: SelectedKind,
+    gwCount: number,
+  ) => {
+    if (isSelected && isSelected !== node && gwCount <= 1) {
+      // don't allow selecting a country if it has only one gateway,
+      // and it's already selected by the other hop
+      return;
+    }
+    if (isSelected !== node && isSelected !== 'entry-and-exit') {
+      onSelect(country);
+    }
+  };
 
   return (
     <>
-      <Accordion.Root
-        className="w-full overflow-x-hidden"
-        type="single"
-        collapsible
-      >
-        {nodes.map(({ i18n, isSelected, gateways, country: { code } }) => (
-          <Accordion.Item key={code} className={clsx('')} value={code}>
-            <AccordionTrigger>
-              <div className="text-2xl font-bold text-malachite">{`[${code}] ${i18n} selected: ${isSelected}`}</div>
-            </AccordionTrigger>
-            <Accordion.Content>
-              {gateways.map((gateway) => (
-                <GatewayItem
-                  key={gateway.id}
-                  gateway={gateway}
-                  onSelect={onSelect}
-                  vpnMode={vpnMode}
+      <Accordion.Root className="w-full flex flex-col gap-3" type="multiple">
+        {nodes.map(({ i18n, isSelected, gateways, country }) => (
+          <Accordion.Item key={country.code} value={country.code}>
+            <div
+              className={clsx(
+                'flex flex-row justify-between',
+                ' bg-white dark:bg-octave-arsenic',
+                'hover:bg-white/60 dark:hover:bg-octave-arsenic/80',
+              )}
+            >
+              <div
+                className={clsx(
+                  'w-1.5 rounded-r-sm',
+                  (isSelected === node || isSelected === 'entry-and-exit') &&
+                    'bg-malachite',
+                  isSelected && isSelected !== node && 'bg-dim-gray',
+                )}
+              />
+              <div
+                className={clsx('grow overflow-hidden truncate py-2')}
+                onClick={() =>
+                  handleCountrySelect(country, isSelected, gateways.length)
+                }
+              >
+                <CountryInfo
+                  country={country}
+                  name={i18n}
+                  gwCount={gateways.length}
                 />
-              ))}
+              </div>
+              <Accordion.Header className="flex py-2">
+                <Accordion.Trigger asChild>
+                  <FoldButton />
+                </Accordion.Trigger>
+              </Accordion.Header>
+            </div>
+            <Accordion.Content>
+              <motion.div
+                initial={{ opacity: 0, translateY: -4 }}
+                animate={{ opacity: 1, translateY: 0 }}
+                transition={{ duration: 0.1, ease: 'easeIn' }}
+                className="flex flex-col gap-2"
+              >
+                {gateways.map((gateway) => (
+                  <GatewayItem
+                    key={gateway.id}
+                    node={node}
+                    gateway={gateway}
+                    onSelect={onSelect}
+                    onNodeDetails={onNodeDetails}
+                    vpnMode={vpnMode}
+                  />
+                ))}
+              </motion.div>
             </Accordion.Content>
           </Accordion.Item>
         ))}
@@ -73,12 +107,21 @@ function NodeList({ nodes, gateways, onSelect, vpnMode }: NodeListProps) {
       <div className={clsx('mt-6')}>
         {gateways.length > 0 &&
           gateways.map((gateway) => (
-            <GatewayItem
+            <motion.div
               key={gateway.id}
-              gateway={gateway}
-              onSelect={onSelect}
-              vpnMode={vpnMode}
-            />
+              initial={{ opacity: 0, translateX: -4 }}
+              animate={{ opacity: 1, translateX: 0 }}
+              transition={{ duration: 0.1, ease: 'easeOut' }}
+              className="flex flex-col gap-2"
+            >
+              <GatewayItem
+                node={node}
+                gateway={gateway}
+                onSelect={onSelect}
+                vpnMode={vpnMode}
+                onNodeDetails={onNodeDetails}
+              />
+            </motion.div>
           ))}
       </div>
     </>

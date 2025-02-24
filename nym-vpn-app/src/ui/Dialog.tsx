@@ -11,9 +11,10 @@ export type DialogProps = {
   open: boolean;
   onClose: () => void;
   children?: ReactNode;
+  className?: string;
 };
 
-function Dialog({ open, onClose, children }: DialogProps) {
+function Dialog({ open, onClose, children, className }: DialogProps) {
   // manually injecting the theme is required as dialogs are rendered
   // outside the main app container (using a portal)
   const { uiTheme } = useMainState();
@@ -38,12 +39,14 @@ function Dialog({ open, onClose, children }: DialogProps) {
         <div className="flex min-h-full items-center justify-center p-4 mx-4">
           <DialogPanel
             transition
-            className={clsx([
-              'text-base min-w-80 overflow-x-hidden',
-              'max-w-md rounded-xl bg-white dark:bg-octave p-6',
-              'flex flex-col items-center gap-6',
-              'duration-200 ease-out data-closed:opacity-0',
-            ])}
+            className={clsx(
+              [
+                'text-base min-w-80 overflow-x-hidden',
+                'max-w-md rounded-xl bg-white dark:bg-octave p-6',
+                'duration-200 ease-out data-closed:opacity-0',
+              ],
+              className,
+            )}
           >
             {children}
           </DialogPanel>

@@ -18,6 +18,7 @@
   --color-liquid-lava: #f97316;
   --color-vert-prasin: #47c45d;
   --color-mercury-pinkish: #e6e1e5;
+  --color-mercury: #e2e4ea;
   --color-mercury-mist: #938f99;
   --color-coal-mine-dark: #56545a;
   --color-coal-mine-light: #a4a4a4;
@@ -39,8 +40,10 @@
   --color-malachite: #14e76f;
   --color-malachite-moss: #0b8a42;
   --color-rouge-basque: #672d32;
-  --color-rose-bruni: #f3cac8;
   --color-rouge-ecarlate: #e02c4d;
+  --color-aphrodisiac: #ed5060;
+  --color-rose-bruni: #f3cac8;
+  --color-king-nacho: #ffb400;
 
   --font-sans:
     Lato, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',

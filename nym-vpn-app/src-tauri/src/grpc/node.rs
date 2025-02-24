@@ -79,7 +79,7 @@ impl fmt::Display for NodeConnect {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             NodeConnect::Country(country) => write!(f, "country {}", country),
-            NodeConnect::Gateway(gateway) => write!(f, "gateway {}", gateway.id),
+            NodeConnect::Gateway(gateway) => write!(f, "gateway {}", gateway),
         }
     }
 }

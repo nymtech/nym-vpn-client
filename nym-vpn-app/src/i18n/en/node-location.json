@@ -13,5 +13,8 @@
   "location-not-available": {
     "entry": "Selected entry location not available, switched to {{location}}",
     "exit": "Selected exit location not available, switched to {{location}}"
+  },
+  "node-details": {
+    "id-label": "Identity key:"
   }
 }

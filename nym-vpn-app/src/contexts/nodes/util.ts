@@ -16,6 +16,12 @@ export function isSelectedNodeType(
   selectedEntry: Node,
   selectedExit: Node,
 ): SelectedKind {
+  if (
+    isCountry(node) &&
+    isSelected(node, selectedEntry) &&
+    isSelected(node, selectedExit)
+  )
+    return 'entry-and-exit';
   if (isSelected(node, selectedEntry)) return 'entry';
   if (isSelected(node, selectedExit)) return 'exit';
   return false;

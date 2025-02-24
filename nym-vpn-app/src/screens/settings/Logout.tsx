@@ -71,7 +71,11 @@ function Logout() {
         onClick={() => setIsOpen(true)}
         disabled={daemonStatus === 'NotOk' || state !== 'Disconnected'}
       />
-      <Dialog open={isOpen} onClose={onClose}>
+      <Dialog
+        open={isOpen}
+        onClose={onClose}
+        className="flex flex-col items-center gap-6"
+      >
         <div className="flex flex-col items-center gap-4 w-11/12">
           <MsIcon
             icon="info"

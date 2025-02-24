@@ -7,5 +7,7 @@
   "ok": "ok",
   "selected": "selected",
   "via": "via",
-  "stop": "stop"
+  "stop": "stop",
+  "server_one": "server",
+  "server_other": "servers"
 }

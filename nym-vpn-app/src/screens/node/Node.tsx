@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 // import { useNavigate } from 'react-router';
 import {
@@ -10,12 +10,13 @@ import {
   useMainState,
   useNodesState,
 } from '../../contexts';
-import { NodeHop, StateDispatch, isCountry } from '../../types';
+import { NodeHop, StateDispatch, isGateway } from '../../types';
 import { PageAnim, TextInput } from '../../ui';
 import { kvSet } from '../../kvStore';
 import { uiNodeToRaw } from '../../contexts/nodes/util';
 import LocationDetailsDialog from './LocationDetailsDialog';
 import { NodeList } from './list';
+import NodeDetailsDialog from './NodeDetailsDialog';
 
 function Node({ node }: { node: NodeHop }) {
   const { vpnMode } = useMainState();
@@ -23,6 +24,8 @@ function Node({ node }: { node: NodeHop }) {
 
   const { isOpen, close } = useDialog();
   const { nodes, loading, gateways } = useNodesState();
+  const [nodeDetailsOpen, setNodeDetailsOpen] = useState(false);
+  const nodeDetailsRef = useRef<UiGateway | UiCountry>(null);
 
   const [uiNodes, setUiNodes] = useState<UiGatewaysByCountry[]>(nodes);
   const [uiGateways, setUiGateways] = useState<UiGateway[]>(gateways);
@@ -30,8 +33,6 @@ function Node({ node }: { node: NodeHop }) {
 
   // const navigate = useNavigate();
   const { t } = useTranslation('nodeLocation');
-
-  // console.log(nodes);
 
   // refresh the UI list whenever the backend country data changes
   useEffect(() => {
@@ -49,7 +50,6 @@ function Node({ node }: { node: NodeHop }) {
       const filteredGw = gateways.filter((gw) => {
         return gw.name.toLowerCase().includes(value.toLowerCase());
       });
-      console.log(`filteredGw ${filteredGw.length}`);
       setUiNodes(filteredNodes);
       setUiGateways(filteredGw);
     } else {
@@ -60,11 +60,12 @@ function Node({ node }: { node: NodeHop }) {
   };
 
   const handleSelect = async (selected: UiCountry | UiGateway) => {
-    if (selected.isSelected === 'exit' || selected.isSelected === 'entry') {
+    if (
+      isGateway(selected) &&
+      (selected.isSelected === 'exit' || selected.isSelected === 'entry')
+    ) {
       // TODO remove this log
-      console.log(
-        `${isCountry(selected) ? 'country' : 'gateway'} already selected by ${selected.isSelected} node`,
-      );
+      console.log(`gateway already selected by ${selected.isSelected} node`);
       return;
     }
 
@@ -83,14 +84,24 @@ function Node({ node }: { node: NodeHop }) {
     // navigate(routes.root);
   };
 
+  const handleNodeDetails = (node: UiGateway | UiCountry) => {
+    nodeDetailsRef.current = node;
+    setNodeDetailsOpen(true);
+  };
+
   return (
     <>
+      <NodeDetailsDialog
+        isOpen={nodeDetailsOpen}
+        onClose={() => setNodeDetailsOpen(false)}
+        ref={nodeDetailsRef}
+      />
       <LocationDetailsDialog
         isOpen={isOpen('location-info')}
         onClose={() => close('location-info')}
       />
       <PageAnim className="h-full flex flex-col">
-        <div className="w-full max-w-md px-4 mt-4 mb-6">
+        <div className="w-full max-w-md px-6 mt-6 mb-6">
           <TextInput
             value={search}
             onChange={filter}
@@ -105,6 +116,8 @@ function Node({ node }: { node: NodeHop }) {
             nodes={uiNodes}
             gateways={uiGateways}
             onSelect={handleSelect}
+            onNodeDetails={handleNodeDetails}
+            node={node}
             vpnMode={vpnMode}
           />
         )}
