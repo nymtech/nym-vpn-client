@@ -17,6 +17,9 @@ import kotlin.reflect.KClass
 import net.nymtech.nymvpn.R
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
+import nym_vpn_lib.EntryPoint
+import nym_vpn_lib.ExitPoint
+import java.util.*
 
 fun Dp.scaledHeight(): Dp {
 	return NymVpn.instance.resizeHeight(this)
@@ -85,4 +88,12 @@ fun List<NymGateway>.scoreSorted(mode: Tunnel.Mode): List<NymGateway> {
 			Tunnel.Mode.TWO_HOP_MIXNET -> it.wgScore
 		}
 	}
+}
+
+fun EntryPoint.Location.toDisplayCountry(): String {
+	return Locale(this.location, this.location).country
+}
+
+fun ExitPoint.Location.toDisplayCountry(): String {
+	return Locale(this.location, this.location).country
 }

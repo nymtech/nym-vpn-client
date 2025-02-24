@@ -259,8 +259,8 @@ class NymBackendManager @Inject constructor(
 
 	private fun onStateChange(state: Tunnel.State) {
 		Timber.d("Requesting tile update with new state: $state")
-		context.requestTileServiceStateUpdate()
 		emitState(state)
+		context.requestTileServiceStateUpdate()
 	}
 
 	private fun emitState(state: Tunnel.State) {

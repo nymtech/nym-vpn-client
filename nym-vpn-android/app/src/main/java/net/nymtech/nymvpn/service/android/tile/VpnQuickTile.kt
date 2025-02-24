@@ -8,12 +8,18 @@ import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LifecycleRegistry
 import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
+import net.nymtech.nymvpn.util.extensions.toDisplayCountry
+import net.nymtech.nymvpn.util.extensions.truncateWithEllipsis
 import net.nymtech.vpn.backend.Tunnel
+import nym_vpn_lib.EntryPoint
+import nym_vpn_lib.ExitPoint
 import timber.log.Timber
+import java.util.*
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -26,6 +32,7 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 	lateinit var backendManager: BackendManager
 
 	private val lifecycleRegistry: LifecycleRegistry = LifecycleRegistry(this)
+	private var isCollecting = false
 
 	override fun onCreate() {
 		super.onCreate()
@@ -36,35 +43,47 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 		super.onStartListening()
 		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_START)
 
+		if (isCollecting) return
+		isCollecting = true
+
 		lifecycleScope.launch {
 			if (!backendManager.isMnemonicStored()) return@launch setUnavailable()
-			val state = backendManager.getState()
-			kotlin.runCatching {
-				when (state) {
-					Tunnel.State.Up -> {
-						setTileText()
-						setActive()
-					}
-					// TODO once we get offline designs, change this
-					Tunnel.State.Down, Tunnel.State.Offline -> {
-						setTileText()
-						setInactive()
-					}
-					Tunnel.State.Disconnecting -> {
-						setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
-						setActive()
-					}
-					Tunnel.State.InitializingClient -> {
-						setTileDescription(this@VpnQuickTile.getString(R.string.initializing))
-						setInactive()
-					}
-					Tunnel.State.EstablishingConnection -> {
-						setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
-						setInactive()
-					}
-				}
-			}.onFailure {
-				Timber.e(it)
+
+			backendManager.stateFlow.catch { error ->
+				Timber.e(error, "Error collecting VPN state flow in tile")
+				setUnavailable()
+			}.collect {
+				updateTileForState(it.tunnelState)
+			}
+		}
+	}
+
+	private suspend fun updateTileForState(state: Tunnel.State) {
+		when (state) {
+			Tunnel.State.Up -> {
+				setTileText()
+				setActive()
+			}
+			Tunnel.State.Down -> {
+				setTileText()
+				setInactive()
+			}
+			Tunnel.State.Disconnecting -> {
+				setTileDescription(this@VpnQuickTile.getString(R.string.disconnecting))
+				setActive()
+			}
+			Tunnel.State.InitializingClient -> {
+				setTileDescription(this@VpnQuickTile.getString(R.string.initializing))
+				setActive()
+			}
+			Tunnel.State.EstablishingConnection -> {
+				setTileDescription(this@VpnQuickTile.getString(R.string.connecting))
+				setActive()
+			}
+
+			Tunnel.State.Offline -> {
+				setTileDescription(this@VpnQuickTile.getString(R.string.offline))
+				setActive()
 			}
 		}
 	}
@@ -76,6 +95,7 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 
 	override fun onStopListening() {
 		lifecycleRegistry.handleLifecycleEvent(Lifecycle.Event.ON_STOP)
+		isCollecting = false
 	}
 
 	override fun onDestroy() {
@@ -88,9 +108,8 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 		unlockAndRun {
 			lifecycleScope.launch {
 				when (backendManager.getState()) {
-					Tunnel.State.Up -> backendManager.stopTunnel()
 					Tunnel.State.Down -> backendManager.startTunnel()
-					else -> Unit
+					else -> backendManager.stopTunnel()
 				}
 			}
 		}
@@ -98,9 +117,8 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 
 	private suspend fun setTileText() {
 		kotlin.runCatching {
-			// TODO fix
-			val firstHopCountry = settingsRepository.getEntryPoint()
-			val lastHopCountry = settingsRepository.getExitPoint()
+			val entryPoint = settingsRepository.getEntryPoint()
+			val exitPoint = settingsRepository.getExitPoint()
 			val mode = settingsRepository.getVpnMode()
 			val isTwoHop = mode == Tunnel.Mode.TWO_HOP_MIXNET
 			setTitle(
@@ -114,9 +132,22 @@ class VpnQuickTile : TileService(), LifecycleOwner {
 					}
 				}",
 			)
-// 			setTileDescription(
-// 				"${firstHopCountry.isoCode} -> ${lastHopCountry.isoCode}",
-// 			)
+			// TODO improve to use country code of individual nodes
+			val entryText = when (entryPoint) {
+				is EntryPoint.Gateway -> entryPoint.identity.truncateWithEllipsis(3)
+				is EntryPoint.Location -> entryPoint.toDisplayCountry()
+				else -> this@VpnQuickTile.getString(R.string.unknown)
+			}
+
+			val exitText = when (exitPoint) {
+				is ExitPoint.Gateway -> exitPoint.identity.truncateWithEllipsis(3)
+				is ExitPoint.Location -> exitPoint.toDisplayCountry()
+				is ExitPoint.Address -> exitPoint.address.truncateWithEllipsis(3)
+			}
+
+			setTileDescription(
+				"$entryText -> $exitText",
+			)
 			qsTile.updateTile()
 		}
 	}

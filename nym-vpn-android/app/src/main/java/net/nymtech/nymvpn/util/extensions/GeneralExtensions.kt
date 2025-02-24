@@ -20,3 +20,7 @@ fun Long.toMB(): String {
 	val mb = this / 1024.0 * 1024.0
 	return "%.2f".format(round(mb * 100) / 100)
 }
+
+fun String.truncateWithEllipsis(length: Int): String {
+	return if (this.length <= length) this else "${take(length)}..."
+}
