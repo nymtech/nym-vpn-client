@@ -187,8 +187,8 @@ pub async fn connect_mixnet(
         TunnelType::Wireguard => {
             // Always disable poisson process for outbound traffic in wireguard.
             mixnet_client_config.disable_poisson_rate = true;
-            // Always disable background cover traffic in wireguard, except for android
-            mixnet_client_config.disable_background_cover_traffic = !cfg!(target_os = "android");
+            // Always disable background cover traffic in wireguard.
+            mixnet_client_config.disable_background_cover_traffic = false;
         }
     };
 
