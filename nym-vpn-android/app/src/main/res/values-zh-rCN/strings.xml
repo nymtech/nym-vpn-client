@@ -210,4 +210,5 @@
     <string name="two_hop_title">快速 (WireGuard<small>*</small>)</string>
     <string name="two_hop_explanation">通过双服务器连接体验最高速度。 该模式采用 AmneziaWG，这是一种抗审查版本的 WireGuard，是快速浏览、流媒体和文件共享的理想选择。</string>
     <string name="loading">加载中</string>
+    <string name="logging_out">退出登录...</string>
 </resources>
