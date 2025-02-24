@@ -2,11 +2,13 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use windows::Win32::System::{
-    Variant::VARIANT,
-    Wmi::{IWbemClassObject, WBEM_E_NOT_FOUND, WBEM_FLAG_RETURN_WBEM_COMPLETE},
+use windows::{
+    core::{BSTR, PCWSTR},
+    Win32::System::{
+        Variant::VARIANT,
+        Wmi::{IWbemClassObject, WBEM_E_NOT_FOUND, WBEM_FLAG_RETURN_WBEM_COMPLETE},
+    },
 };
-use windows_core::{BSTR, PCWSTR};
 use wmi::result_enumerator::IWbemClassWrapper;
 
 /// Name of the blocking Hyper-V rule.
@@ -33,13 +35,13 @@ pub enum Error {
     #[error("Failed to obtain Hyper-V rule class")]
     ObtainHyperVClass(#[source] wmi::WMIError),
     #[error("Failed to create new instance of Hyper-V rule class")]
-    NewRuleInstance(#[source] windows_core::Error),
+    NewRuleInstance(#[source] windows::core::Error),
     #[error("Failed to set rule setting: {0}")]
-    SetRuleKey(&'static str, #[source] windows_core::Error),
+    SetRuleKey(&'static str, #[source] windows::core::Error),
     #[error(r#"Failed to put the rule "{0}""#)]
-    PutInstance(&'static str, #[source] windows_core::Error),
+    PutInstance(&'static str, #[source] windows::core::Error),
     #[error(r#"Failed to delete rule "{0}""#)]
-    DeleteInstance(&'static str, #[source] windows_core::Error),
+    DeleteInstance(&'static str, #[source] windows::core::Error),
 }
 
 /// Initialize WMI connection to the ROOT\StandardCIMV2 namespace, which may be used for
@@ -186,7 +188,7 @@ fn remove_blocking_rule(
     }
 }
 
-fn map_deletion_err(element_name: &'static str, err: windows_core::Error) -> Result<(), Error> {
+fn map_deletion_err(element_name: &'static str, err: windows::core::Error) -> Result<(), Error> {
     if err.code().0 == WBEM_E_NOT_FOUND.0 {
         // If the rule doesn't exist, do nothing
         Ok(())

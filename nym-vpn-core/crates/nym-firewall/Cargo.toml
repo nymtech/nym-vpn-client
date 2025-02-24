@@ -33,7 +33,6 @@ nym-windows.workspace = true
 
 log.workspace = true
 wmi.workspace = true
-windows-core.workspace = true
 widestring.workspace = true
 
 [target.'cfg(windows)'.dependencies.windows-sys]
