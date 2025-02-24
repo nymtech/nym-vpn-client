@@ -210,4 +210,5 @@
     <string name="no_results_found">Результатів не знайдено.</string>
     <string name="or_learn">або навчитися</string>
     <string name="servers">сервери</string>
+    <string name="logging_out">Виходжу з системи.</string>
 </resources>
