@@ -94,6 +94,7 @@ class NymBackendManager @Inject constructor(
 		return try {
 			backend.getCompleted().getState()
 		} catch (e: IllegalStateException) {
+			Timber.w(e, "Nym backend not initialized, assuming down")
 			Tunnel.State.Down
 		}
 	}
