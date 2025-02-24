@@ -7,17 +7,23 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCancellationBehavior
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
-import net.nymtech.nymvpn.ui.Route
-import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
+import kotlinx.coroutines.delay
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
+import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.theme.ThemeColors
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
@@ -26,6 +32,9 @@ import net.nymtech.nymvpn.util.extensions.navigateAndForget
 fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 	val navController = LocalNavController.current
 
+	val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.intro_logo))
+	var splashFinished by remember { mutableStateOf(false) }
+
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
 			NavBarState(
@@ -33,6 +42,17 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 			),
 		)
 		appViewModel.onAppStartup()
+	}
+
+	LaunchedEffect(composition) {
+		delay(3000)
+		splashFinished = true
+	}
+
+	LaunchedEffect(splashFinished, appUiState.managerState.isInitialized) {
+		if(splashFinished && appUiState.managerState.isInitialized) {
+			navController.navigateAndForget(Route.Main())
+		}
 	}
 
 	Box(
@@ -45,16 +65,19 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 			verticalArrangement = Arrangement.Center,
 			modifier = Modifier.fillMaxSize(),
 		) {
-			val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.intro_logo))
 			val logoAnimationState =
-				animateLottieCompositionAsState(composition = composition.value, speed = 2.0f)
+				animateLottieCompositionAsState(composition = composition.value, speed = 2.5f,
+					iterations = 1,
+					isPlaying = true,
+					restartOnPlay = false,
+					cancellationBehavior = LottieCancellationBehavior.Immediately
+				)
+
 			LottieAnimation(
 				composition = composition.value,
 				progress = { logoAnimationState.progress },
 			)
-			if (logoAnimationState.isAtEnd && logoAnimationState.isPlaying && appUiState.managerState.isInitialized) {
-				navController.navigateAndForget(Route.Main())
-			}
 		}
 	}
 }
+
