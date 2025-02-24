@@ -2,10 +2,11 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use windows::Win32::System::Wmi::{
-    IWbemClassObject, WBEM_E_NOT_FOUND, WBEM_FLAG_RETURN_WBEM_COMPLETE,
+use windows::Win32::System::{
+    Variant::VARIANT,
+    Wmi::{IWbemClassObject, WBEM_E_NOT_FOUND, WBEM_FLAG_RETURN_WBEM_COMPLETE},
 };
-use windows_core::{BSTR, PCWSTR, VARIANT};
+use windows_core::{BSTR, PCWSTR};
 use wmi::result_enumerator::IWbemClassWrapper;
 
 /// Name of the blocking Hyper-V rule.
