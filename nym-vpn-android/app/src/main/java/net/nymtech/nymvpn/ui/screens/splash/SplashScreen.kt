@@ -50,7 +50,7 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 	}
 
 	LaunchedEffect(splashFinished, appUiState.managerState.isInitialized) {
-		if(splashFinished && appUiState.managerState.isInitialized) {
+		if (splashFinished && appUiState.managerState.isInitialized) {
 			navController.navigateAndForget(Route.Main())
 		}
 	}
@@ -66,11 +66,13 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 			modifier = Modifier.fillMaxSize(),
 		) {
 			val logoAnimationState =
-				animateLottieCompositionAsState(composition = composition.value, speed = 2.5f,
+				animateLottieCompositionAsState(
+					composition = composition.value,
+					speed = 2.5f,
 					iterations = 1,
 					isPlaying = true,
 					restartOnPlay = false,
-					cancellationBehavior = LottieCancellationBehavior.Immediately
+					cancellationBehavior = LottieCancellationBehavior.Immediately,
 				)
 
 			LottieAnimation(
@@ -80,4 +82,3 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 		}
 	}
 }
-
