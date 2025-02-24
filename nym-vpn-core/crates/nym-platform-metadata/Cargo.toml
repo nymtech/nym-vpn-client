@@ -16,7 +16,7 @@ network-manager = ["nym-dbus"]
 rs-release.workspace = true
 nym-dbus = { workspace = true, optional = true }
 
-[target.'cfg(windows)'.dependencies.windows-sys]
+[target.'cfg(windows)'.dependencies.windows]
 workspace = true
 features = [
     "Win32_Foundation",

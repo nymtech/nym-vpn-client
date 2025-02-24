@@ -2,16 +2,15 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    ffi::OsString,
-    io, iter,
-    mem::{self, MaybeUninit},
-    os::windows::ffi::OsStrExt,
-};
-use windows_sys::Win32::System::{
-    LibraryLoader::{GetModuleHandleW, GetProcAddress},
-    SystemInformation::OSVERSIONINFOEXW,
-    SystemServices::VER_NT_WORKSTATION,
+use std::mem::{self, MaybeUninit};
+
+use windows::{
+    core::{s, w},
+    Win32::System::{
+        LibraryLoader::{GetModuleHandleW, GetProcAddress},
+        SystemInformation::OSVERSIONINFOEXW,
+        SystemServices::VER_NT_WORKSTATION,
+    },
 };
 
 #[allow(non_camel_case_types)]
@@ -46,20 +45,10 @@ pub struct WindowsVersion {
 }
 
 impl WindowsVersion {
-    pub fn new() -> Result<WindowsVersion, io::Error> {
-        let module_name: Vec<u16> = OsString::from("ntdll")
-            .as_os_str()
-            .encode_wide()
-            .chain(iter::once(0u16))
-            .collect();
-
-        let ntdll = unsafe { GetModuleHandleW(module_name.as_ptr()) };
-        if ntdll.is_null() {
-            return Err(io::Error::last_os_error());
-        }
-
-        let function_address = unsafe { GetProcAddress(ntdll, b"RtlGetVersion\0" as *const u8) }
-            .ok_or_else(io::Error::last_os_error)?;
+    pub fn new() -> Result<WindowsVersion, windows::core::Error> {
+        let ntdll = unsafe { GetModuleHandleW(w!("ntdll"))? };
+        let function_address = unsafe { GetProcAddress(ntdll, s!("RtlGetVersion")) }
+            .ok_or_else(|| windows::core::Error::from_win32())?;
 
         let rtl_get_version: extern "stdcall" fn(*mut RTL_OSVERSIONINFOEXW) =
             unsafe { *(&function_address as *const _ as *const _) };
