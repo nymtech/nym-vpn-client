@@ -137,7 +137,6 @@ impl TryFrom<ProtoTunnelState> for TunnelState {
             ProtoState::Error(ProtoError { error_state_reason }) => {
                 let reason = error_state_reason
                     .ok_or(ConversionError::NoValueSet("TunnelState.error"))
-                    .map(ProtoErrorStateReason::from)
                     .and_then(ErrorStateReason::try_from)?;
 
                 Self::Error(reason)
