@@ -24,6 +24,8 @@ import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
 import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.module.qualifiers.MainDispatcher
 import net.nymtech.nymvpn.service.notification.NotificationService
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
+import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.toMB
 import net.nymtech.nymvpn.util.extensions.toUserAgent
@@ -75,12 +77,16 @@ class NymBackendManager @Inject constructor(
 
 	override fun initialize() {
 		applicationScope.launch {
+			if (_state.value.isInitialized) return@launch
 			val env = settingsRepository.getEnvironment()
 			val credentialMode = settingsRepository.isCredentialMode()
 			val nymBackend = withContext(mainDispatcher) {
 				NymBackend.getInstance(context, env, credentialMode)
 			}
 			backend.complete(nymBackend)
+			_state.update {
+				it.copy(isInitialized = true)
+			}
 		}
 	}
 
@@ -88,7 +94,6 @@ class NymBackendManager @Inject constructor(
 		return try {
 			backend.getCompleted().getState()
 		} catch (e: IllegalStateException) {
-			Timber.e(e)
 			Tunnel.State.Down
 		}
 	}
@@ -117,7 +122,10 @@ class NymBackendManager @Inject constructor(
 			if (it is BackendException) {
 				when (it) {
 					is BackendException.VpnAlreadyRunning -> Timber.w("Vpn already running")
-					is BackendException.VpnPermissionDenied -> launchVpnPermissionNotification()
+					is BackendException.VpnPermissionDenied -> {
+						launchVpnPermissionNotification()
+						stopTunnel()
+					}
 				}
 			} else {
 				Timber.e(it)
@@ -268,6 +276,8 @@ class NymBackendManager @Inject constructor(
 				title = context.getString(R.string.permission_required),
 				description = context.getString(R.string.vpn_permission_missing),
 			)
+		} else {
+			SnackbarController.showMessage(StringValue.StringResource(R.string.vpn_permission_missing))
 		}
 	}
 

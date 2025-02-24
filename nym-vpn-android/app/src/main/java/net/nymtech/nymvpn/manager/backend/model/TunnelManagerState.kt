@@ -12,4 +12,5 @@ data class TunnelManagerState(
 	val isMnemonicStored: Boolean = false,
 	val deviceId: String? = null,
 	val accountLinks: AccountLinks? = null,
+	val isInitialized: Boolean = false,
 )

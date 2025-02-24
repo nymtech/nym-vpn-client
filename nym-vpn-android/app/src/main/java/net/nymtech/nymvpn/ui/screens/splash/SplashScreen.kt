@@ -16,13 +16,14 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.R
+import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.theme.ThemeColors
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 
 @Composable
-fun SplashScreen(appViewModel: AppViewModel) {
+fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 	val navController = LocalNavController.current
 
 	LaunchedEffect(Unit) {
@@ -51,7 +52,7 @@ fun SplashScreen(appViewModel: AppViewModel) {
 				composition = composition.value,
 				progress = { logoAnimationState.progress },
 			)
-			if (logoAnimationState.isAtEnd && logoAnimationState.isPlaying) {
+			if (logoAnimationState.isAtEnd && logoAnimationState.isPlaying && appUiState.managerState.isInitialized) {
 				navController.navigateAndForget(Route.Main())
 			}
 		}

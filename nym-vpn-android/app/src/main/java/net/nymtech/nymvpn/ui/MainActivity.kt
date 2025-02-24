@@ -183,7 +183,7 @@ class MainActivity : AppCompatActivity() {
 								popExitTransition = { fadeOut(tween(200)) },
 							) {
 								composable<Route.Splash> {
-									SplashScreen(appViewModel)
+									SplashScreen(appViewModel, appState)
 								}
 								composable<Route.Main> {
 									val args = it.toRoute<Route.Main>()
