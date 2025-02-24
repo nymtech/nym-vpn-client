@@ -11,7 +11,7 @@ export type SState = {
 export const S_STATE: SState = {
   // Either the vpn mode has been initialized or not
   vpnModeInit: false,
-  vpnModeAtStart: 'TwoHop',
+  vpnModeAtStart: 'wg',
   systemMessageInit: false,
   devMode: false,
 };

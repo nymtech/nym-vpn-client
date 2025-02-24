@@ -3,7 +3,7 @@ import { Country } from './types';
 export const AppName = 'NymVPN';
 // ⚠ keep this default in sync with the one declared in
 // src-tauri/src/states/app.rs
-export const DefaultVpnMode = 'TwoHop';
+export const DefaultVpnMode = 'wg';
 export const TunnelStateEvent = 'tunnel-state';
 export const ProgressEvent = 'connection-progress';
 export const DaemonEvent = 'vpnd-status';
@@ -33,5 +33,5 @@ export const LocationDetailsArticle =
 export const ModesDetailsArticle =
   'https://support.nym.com/hc/articles/24326365096721-What-s-the-difference-between-Fast-and-Anonymous-mode';
 export const SentryHomePage = 'https://sentry.io/';
-export const GatewaysCacheDuration = 600; // seconds
+export const GatewaysCacheDuration = 120; // seconds
 export const HomeThrottleDelay = 6000;

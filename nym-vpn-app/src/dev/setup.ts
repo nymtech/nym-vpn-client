@@ -4,13 +4,19 @@ import { emit } from '@tauri-apps/api/event';
 import {
   AccountLinks,
   Cli,
-  Country,
   DbKey,
+  GatewayType,
+  GatewaysByCountry,
   Tunnel,
   TunnelData,
   VpndStatus,
 } from '../types';
 import { TunnelStateEvent } from '../constants';
+
+// some data
+import wgGwJson from './wg-gw.json';
+import mxEntryGwJson from './mx-entry-gw.json';
+import mxExitGwJson from './mx-exit-gw.json';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MockIpcFn = (cmd: string, payload?: InvokeArgs) => Promise<any>;
@@ -71,31 +77,20 @@ export function mockTauriIPC() {
       return { state: 'disconnected' };
     }
 
-    if (cmd === 'get_countries') {
-      return new Promise<Country[]>((resolve) =>
-        resolve([
-          {
-            name: 'France',
-            code: 'FR',
-          },
-          {
-            name: 'Germany',
-            code: 'DE',
-          },
-          {
-            name: 'Switzerland',
-            code: 'CH',
-          },
-          {
-            name: 'United States',
-            code: 'US',
-          },
-          {
-            name: 'Unknown country with a very long nammmmmmmmeeeeeeeeeeeeeeee',
-            code: 'UN',
-          },
-        ]),
-      );
+    if (cmd === 'get_gateways') {
+      return new Promise<GatewaysByCountry[]>((resolve) => {
+        switch ((args as Record<string, unknown>).nodeType as GatewayType) {
+          case 'mx-entry':
+            resolve(mxEntryGwJson as GatewaysByCountry[]);
+            return;
+          case 'mx-exit':
+            resolve(mxExitGwJson as GatewaysByCountry[]);
+            return;
+          case 'wg':
+            resolve(wgGwJson as GatewaysByCountry[]);
+            return;
+        }
+      });
     }
 
     if (cmd === 'db_get') {
@@ -113,6 +108,27 @@ export function mockTauriIPC() {
         case 'welcome-screen-seen':
           res = true;
           break;
+
+        /* 1740391345259 */
+        case 'cache-mx-entry-gateways':
+          res = {
+            expiry: 2740391345259,
+            value: mxEntryGwJson,
+          };
+          break;
+        case 'cache-mx-exit-gateways':
+          res = {
+            expiry: 2740391345259,
+            value: mxExitGwJson,
+          };
+          break;
+        case 'cache-wg-gateways':
+          res = {
+            expiry: 2740391345259,
+            value: wgGwJson,
+          };
+          break;
+
         default:
           return null;
       }

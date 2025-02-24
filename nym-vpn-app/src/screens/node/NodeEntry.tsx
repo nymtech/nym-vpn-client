@@ -13,7 +13,7 @@ function NodeEntry({ node }: NodeEntryProps) {
   // refresh gateways cache in the background
   // (if needed like cache data is stale)
   useEffect(() => {
-    if (vpnMode === 'Mixnet') {
+    if (vpnMode === 'mixnet') {
       fetchGateways(`mx-${node}`);
     } else {
       fetchGateways('wg');

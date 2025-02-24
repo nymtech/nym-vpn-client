@@ -59,7 +59,7 @@ pub async fn connect(
 
     info!("entry {}", entry);
     info!("exit {}", exit);
-    let two_hop_mod = if let VpnMode::TwoHop = vpn_mode {
+    let two_hop_mod = if let VpnMode::Wg = vpn_mode {
         info!("mode [wg]");
         true
     } else {

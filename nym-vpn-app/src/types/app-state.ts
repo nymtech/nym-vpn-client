@@ -21,7 +21,7 @@ export type TunnelState =
   | 'Offline'
   | 'OfflineAutoReconnect';
 
-export type VpnMode = 'TwoHop' | 'Mixnet';
+export type VpnMode = 'wg' | 'mixnet';
 
 export type CodeDependency = {
   name: string;

@@ -28,7 +28,7 @@ function NetworkModeSelect() {
         await invoke<void>('set_vpn_mode', { mode: value });
         dispatch({ type: 'set-vpn-mode', mode: value });
         console.info('vpn mode set to', value);
-        if (value === 'Mixnet') {
+        if (value === 'mixnet') {
           fetchGateways('mx-entry');
           fetchGateways('mx-exit');
         } else {
@@ -85,14 +85,14 @@ function NetworkModeSelect() {
 
     return [
       {
-        key: 'TwoHop',
+        key: 'wg',
         label: t('fast-mode.title'),
         desc: t('fast-mode.desc'),
         disabled: state !== 'Disconnected' || loading,
         icon: (checked) => <span className={iconStyle(checked)}>speed</span>,
       },
       {
-        key: 'Mixnet',
+        key: 'mixnet',
         label: t('privacy-mode.title'),
         desc: t('privacy-mode.desc'),
         disabled: state !== 'Disconnected' || loading,

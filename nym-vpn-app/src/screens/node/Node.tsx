@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-// import { useNavigate } from 'react-router';
 import {
   UiCountry,
   UiGateway,
@@ -14,6 +13,7 @@ import { NodeHop, StateDispatch, isGateway } from '../../types';
 import { PageAnim, TextInput } from '../../ui';
 import { kvSet } from '../../kvStore';
 import { uiNodeToRaw } from '../../contexts/nodes/util';
+import { useI18nError } from '../../hooks';
 import LocationDetailsDialog from './LocationDetailsDialog';
 import { NodeList } from './list';
 import NodeDetailsDialog from './NodeDetailsDialog';
@@ -23,7 +23,8 @@ function Node({ node }: { node: NodeHop }) {
   const dispatch = useMainDispatch() as StateDispatch;
 
   const { isOpen, close } = useDialog();
-  const { nodes, loading, gateways } = useNodesState();
+  const { nodes, loading, gateways, error } = useNodesState();
+  const { tE } = useI18nError();
   const [nodeDetailsOpen, setNodeDetailsOpen] = useState(false);
   const nodeDetailsRef = useRef<UiGateway | UiCountry>(null);
 
@@ -34,7 +35,7 @@ function Node({ node }: { node: NodeHop }) {
   // const navigate = useNavigate();
   const { t } = useTranslation('nodeLocation');
 
-  // refresh the UI list whenever the backend country data changes
+  // refresh the UI list whenever the backend gateway data changes
   useEffect(() => {
     setUiNodes(nodes);
     setUiGateways([]);
@@ -64,8 +65,6 @@ function Node({ node }: { node: NodeHop }) {
       isGateway(selected) &&
       (selected.isSelected === 'exit' || selected.isSelected === 'entry')
     ) {
-      // TODO remove this log
-      console.log(`gateway already selected by ${selected.isSelected} node`);
       return;
     }
 
@@ -81,13 +80,23 @@ function Node({ node }: { node: NodeHop }) {
     } catch (e) {
       console.warn(e);
     }
-    // navigate(routes.root);
   };
 
   const handleNodeDetails = (node: UiGateway | UiCountry) => {
     nodeDetailsRef.current = node;
     setNodeDetailsOpen(true);
   };
+
+  if (error) {
+    return (
+      <PageAnim className="h-full flex flex-col">
+        <div className="w-4/5 h-2/3 overflow-auto break-words text-center">
+          <p className="text-teaberry font-semibold">An error occurred</p>
+          <p className="text-base font-mono">{`${tE(error.key)}: ${error.message} ${error.data?.details || '-'}`}</p>
+        </div>
+      </PageAnim>
+    );
+  }
 
   return (
     <>
@@ -110,7 +119,7 @@ function Node({ node }: { node: NodeHop }) {
             label={t('input-label')}
           />
         </div>
-        {loading && <div>loading...</div>}
+        {loading && <div>{t('loading')}</div>}
         {!loading && (
           <NodeList
             nodes={uiNodes}

@@ -345,7 +345,7 @@ export async function initSecondBatch(dispatch: StateDispatch) {
   };
 
   let gatewayRequests;
-  if (S_STATE.vpnModeAtStart === 'TwoHop') {
+  if (S_STATE.vpnModeAtStart === 'wg') {
     gatewayRequests = [getWgGatewaysRq];
   } else {
     gatewayRequests = [getMxEntryGatewaysRq, getMxExitGatewaysRq];

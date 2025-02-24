@@ -69,7 +69,7 @@ export default function TopBar() {
         handleRightNav: () => {
           navigate(routes.settings);
         },
-        noBackground: os === 'windows' || os === 'macos',
+        noBackground: true,
       },
       '/login': {
         leftIcon: 'arrow_back',
@@ -199,7 +199,7 @@ export default function TopBar() {
       '/hideout': {},
       '/hideout/welcome': {},
     };
-  }, [os, t, navigate, getMainScreenTitle, show]);
+  }, [t, navigate, getMainScreenTitle, show]);
 
   useEffect(() => {
     setCurrentNavLocation(navBarData[location.pathname as Routes]);

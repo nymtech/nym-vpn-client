@@ -1,7 +1,7 @@
 import { Gateway, VpnMode } from '../../../types';
 
 export function getScoreIcon(gw: Gateway, vpnMode: VpnMode) {
-  const score = vpnMode === 'Mixnet' ? gw.mxScore : gw.wgScore;
+  const score = vpnMode === 'mixnet' ? gw.mxScore : gw.wgScore;
   switch (score) {
     case 'none':
       return ['signal_cellular_null', 'text-cement-feet'];

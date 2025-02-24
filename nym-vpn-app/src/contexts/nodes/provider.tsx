@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Country, Gateway, GatewaysByCountry, NodeHop } from '../../types';
 import { useMainState } from '../main';
 import { useLang } from '../../hooks';
@@ -19,6 +19,9 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
     mxEntryGateways,
     mxExitGateways,
     wgGateways,
+    mxEntryGatewaysError,
+    mxExitGatewaysError,
+    wgGatewaysError,
   } = useMainState();
 
   const [nodes, setNodes] = useState<UiGatewaysByCountry[]>([]);
@@ -84,15 +87,11 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
   useEffect(() => {
     setLoading(true);
     let list = [];
-    // TODO remove those logs
-    if (vpnMode === 'Mixnet' && nodeType === 'entry') {
-      console.log('___rendering list for mx-entry');
+    if (vpnMode === 'mixnet' && nodeType === 'entry') {
       list = uifyGateways(mxEntryGateways, entryNode, exitNode);
-    } else if (vpnMode === 'Mixnet' && nodeType === 'exit') {
-      console.log('___rendering list for mx-exit');
+    } else if (vpnMode === 'mixnet' && nodeType === 'exit') {
       list = uifyGateways(mxExitGateways, entryNode, exitNode);
     } else {
-      console.log('___rendering list for wg');
       list = uifyGateways(wgGateways, entryNode, exitNode);
     }
     setNodes(list);
@@ -110,6 +109,22 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
     toGatewayList,
   ]);
 
+  const error = useMemo(() => {
+    if (vpnMode === 'mixnet' && nodeType === 'entry') {
+      return mxEntryGatewaysError;
+    }
+    if (vpnMode === 'mixnet' && nodeType === 'exit') {
+      return mxExitGatewaysError;
+    }
+    return wgGatewaysError;
+  }, [
+    mxEntryGatewaysError,
+    mxExitGatewaysError,
+    nodeType,
+    vpnMode,
+    wgGatewaysError,
+  ]);
+
   return (
     <NodesContext.Provider
       value={{
@@ -118,6 +133,7 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
         loading,
         node: nodeType,
         vpnMode,
+        error,
       }}
     >
       {children}

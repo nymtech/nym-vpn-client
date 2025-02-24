@@ -167,8 +167,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
         prop = 'mxExitGateways';
       }
       if (!_.isEqual(action.payload.gateways, state[prop])) {
-        // TODO remove this log
-        console.log(`***STATE UPDATE [${action.payload.type}] gateways***`);
         return {
           ...state,
           [prop]: action.payload.gateways,

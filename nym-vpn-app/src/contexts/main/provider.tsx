@@ -31,14 +31,7 @@ type Props = {
 
 function MainStateProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const {
-    mxEntryGateways,
-    mxExitGateways,
-    wgGateways,
-    entryNode,
-    exitNode,
-    networkEnv,
-  } = state;
+  const { networkEnv } = state;
 
   const { push } = useInAppNotify();
   useTauriEvents(dispatch, push);
@@ -178,10 +171,9 @@ function MainStateProvider({ children }: Props) {
   }, []);
 
   useEffect(() => {
-    // TODO implement this
-    // if the selected current gateway (or country) is not available
-    // pick a random one
-  }, [entryNode, exitNode, mxEntryGateways, mxExitGateways, wgGateways]);
+    // TODO if the selected current gateway (or country) is not available
+    // we need to reset it
+  }, []);
 
   return (
     <MainStateContext.Provider

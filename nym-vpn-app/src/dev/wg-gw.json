@@ -1,0 +1,22 @@
+[
+  {
+    "country": {
+      "code": "YY",
+      "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaa"
+    },
+    "gateways": [
+      {
+        "country": {
+          "code": "YY",
+          "name": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaa"
+        },
+        "id": "VERYLONNNNNGGGGG4h283ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA24h283ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA24h283ohKqPRq7dakfXgVgWYidXoSatvy4fXXJdZpfhA2",
+        "mxScore": "low",
+        "name": "__anon__",
+        "type": "wg",
+        "wgScore": "high"
+      }
+    ],
+    "type": "wg"
+  }
+]

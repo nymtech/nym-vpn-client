@@ -13,12 +13,13 @@ use crate::{
 
 #[derive(Default, Debug, Serialize, Deserialize, TS, Clone, PartialEq, Eq)]
 #[ts(export)]
+#[serde(rename_all = "kebab-case")]
 pub enum VpnMode {
     Mixnet,
     // ⚠ keep this default in sync with the one declared in
     // src/constants.ts
     #[default]
-    TwoHop,
+    Wg,
 }
 
 #[derive(Debug, Default)]

@@ -1,7 +1,6 @@
 use crate::country::Country;
 use anyhow::{anyhow, Result};
 use nym_vpn_proto as p;
-use rand::Rng;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use tracing::{error, instrument, warn};
@@ -82,25 +81,13 @@ impl Gateway {
 }
 
 impl Score {
-    fn from(_score: p::Score) -> Self {
-        // TODO nuke this
-        let mut rng = rand::rng();
-        let x = rng.random_range(1..=10);
-        match x {
-            1..=2 => Score::None,
-            3..=4 => Score::Low,
-            5..=7 => Score::Medium,
-            8..=10 => Score::High,
-            _ => Score::None,
+    fn from(score: p::Score) -> Self {
+        match score {
+            p::Score::None => Score::None,
+            p::Score::Low => Score::Low,
+            p::Score::Medium => Score::Medium,
+            p::Score::High => Score::High,
         }
-
-        // TODO restore this
-        // match score {
-        //     p::Score::None => Score::None,
-        //     p::Score::Low => Score::Low,
-        //     p::Score::Medium => Score::Medium,
-        //     p::Score::High => Score::High,
-        // }
     }
 }
 

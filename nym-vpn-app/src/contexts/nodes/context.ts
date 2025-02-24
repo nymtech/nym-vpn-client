@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import { NodeHop, VpnMode } from '../../types';
+import { AppError, NodeHop, VpnMode } from '../../types';
 import { UiGateway, UiGatewaysByCountry } from './types';
 
 type NodesState = {
@@ -8,6 +8,7 @@ type NodesState = {
   loading: boolean;
   node: NodeHop;
   vpnMode: VpnMode;
+  error?: AppError | null;
 };
 
 const initialState: NodesState = {
@@ -15,7 +16,8 @@ const initialState: NodesState = {
   gateways: [],
   loading: false,
   node: 'entry',
-  vpnMode: 'TwoHop',
+  vpnMode: 'wg',
+  error: null,
 };
 
 export const NodesContext = createContext<NodesState>(initialState);
