@@ -328,7 +328,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 	internal class StateMachineService : LifecycleService() {
 
-		val notificationManager = NotificationManager.getInstance(this)
+		private val notificationManager = NotificationManager.getInstance(this)
 
 		private var owner: NymBackend? = null
 		private var wakeLock: PowerManager.WakeLock? = null

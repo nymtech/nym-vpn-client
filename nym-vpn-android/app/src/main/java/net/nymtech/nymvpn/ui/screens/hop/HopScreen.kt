@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -86,15 +87,16 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
+import net.nymtech.nymvpn.util.extensions.getScoreIcon
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.nymvpn.util.extensions.scoreSorted
+import net.nymtech.nymvpn.util.extensions.toLocale
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib.GatewayType
-import nym_vpn_lib.Score
 import java.text.Collator
 import java.util.Locale
 
@@ -107,6 +109,8 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 
 	var refreshing by remember { mutableStateOf(false) }
 	var query by rememberSaveable { mutableStateOf("") }
+	var selectedGateway by remember { mutableStateOf<NymGateway?>(null) }
+	var showGatewayDetailsModal by remember { mutableStateOf(false) }
 	val pullRefreshState = rememberPullToRefreshState()
 
 	val currentLocale = ConfigurationCompat.getLocales(context.resources.configuration)[0]
@@ -169,20 +173,19 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 
 	val countries = remember(uiState.query) {
 		derivedStateOf {
-			val query = uiState.query
-			gateways.distinctBy { it.twoLetterCountryISO }.filter { it.twoLetterCountryISO != null }
+			gateways.asSequence().distinctBy { it.twoLetterCountryISO }.filter { it.twoLetterCountryISO != null }
 				.map {
-					Locale(it.twoLetterCountryISO!!, it.twoLetterCountryISO!!)
+					it.toLocale()!!
 				}.filter {
 					it.displayCountry.lowercase().contains(query) || it.country.lowercase().contains(query) || it.isO3Country.lowercase().contains(query)
 				}
-				.sortedWith(compareBy(collator) { it.displayCountry })
+				.sortedWith(compareBy(collator) { it.displayCountry }).toList()
 		}
 	}.value
 
 	val queriedGateways = remember(uiState.query) {
 		derivedStateOf {
-			if (!uiState.query.isBlank()) {
+			if (uiState.query.isNotBlank()) {
 				gateways.filter { it.identity.lowercase().contains(uiState.query) || it.name.lowercase().contains(query) }.sortedWith(
 					compareBy(collator) { it.identity },
 				)
@@ -206,21 +209,6 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		navController.navigateAndForget(Route.Main())
 	}
 
-	@Composable
-	fun getScoreIcon(gateway: NymGateway): ImageVector {
-		val score = when (gatewayType) {
-			GatewayType.MIXNET_ENTRY, GatewayType.MIXNET_EXIT -> gateway.mixnetScore
-			GatewayType.WG -> gateway.wgScore
-		}
-		return when (score) {
-			Score.HIGH -> ImageVector.vectorResource(R.drawable.bars_3)
-			Score.MEDIUM -> ImageVector.vectorResource(R.drawable.bars_2)
-			Score.LOW -> ImageVector.vectorResource(R.drawable.bar_1)
-			Score.NONE -> ImageVector.vectorResource(R.drawable.faq)
-			null -> ImageVector.vectorResource(R.drawable.faq)
-		}
-	}
-
 	Modal(show = showLocationTooltip, onDismiss = { showLocationTooltip = false }, title = {
 		Text(
 			text = stringResource(R.string.gateway_locations_title),
@@ -228,12 +216,21 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 			style = CustomTypography.labelHuge,
 		)
 	}, text = {
-		GatewayModalBody(
+		ServerDetailsModalBody(
 			onClick = {
 				context.openWebUrl(context.getString(R.string.location_support_link))
 			},
 		)
 	})
+
+	if (showGatewayDetailsModal) {
+		selectedGateway?.let {
+			GatewayDetailsModal(it, gatewayType, {
+				selectedGateway = null
+				showGatewayDetailsModal = false
+			})
+		}
+	}
 
 	PullToRefreshBox(
 		state = pullRefreshState,
@@ -395,30 +392,36 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 									val icon = ImageVector.vectorResource(
 										context.getFlagImageVectorByName(countryCode),
 									)
-									Image(
-										icon,
-										icon.name,
-										modifier =
-										Modifier
-											.size(
-												iconSize,
-											),
-									)
+									Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+										Image(
+											icon,
+											icon.name,
+											modifier =
+											Modifier
+												.size(
+													iconSize,
+												),
+										)
+									}
 								},
 								trailing = {
-									Row(
-										horizontalArrangement = Arrangement.spacedBy(16.dp),
-										verticalAlignment = Alignment.CenterVertically,
+									Box(
+										modifier = Modifier.clickable { expanded = !expanded }.fillMaxHeight(),
+										contentAlignment = Alignment.Center,
 									) {
-										VerticalDivider(modifier = Modifier.height(42.dp))
-										val icon = Icons.Filled.ArrowDropDown
-										Icon(
-											imageVector = icon,
-											contentDescription = if (expanded) "Collapse" else "Expand",
-											modifier = Modifier.graphicsLayer(rotationZ = rotationAngle).clickable {
-												expanded = !expanded
-											},
-										)
+										Row(
+											horizontalArrangement = Arrangement.spacedBy(16.dp),
+											verticalAlignment = Alignment.CenterVertically,
+											modifier = Modifier.padding(end = 16.dp),
+										) {
+											VerticalDivider(modifier = Modifier.height(42.dp))
+											val icon = Icons.Filled.ArrowDropDown
+											Icon(
+												imageVector = icon,
+												contentDescription = if (expanded) "Collapse" else "Expand",
+												modifier = Modifier.graphicsLayer(rotationZ = rotationAngle).size(iconSize),
+											)
+										}
 									}
 								},
 								title = { Text(country.displayCountry, style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
@@ -433,6 +436,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 						),
 						shape = RectangleShape,
 						background = MaterialTheme.colorScheme.surface,
+						anchorsPadding = 0.dp,
 					)
 					AnimatedVisibility(
 						visible = expanded,
@@ -447,24 +451,38 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 											onSelectionChange(gateway.identity)
 										},
 										leading = {
-											val icon = getScoreIcon(gateway)
-											Image(
-												icon,
-												icon.name,
-												modifier = Modifier.height(16.dp).width(15.dp),
-											)
+											val icon = gateway.getScoreIcon(gatewayType)
+											Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+												Image(
+													icon,
+													icon.name,
+													modifier = Modifier.height(16.dp).width(15.dp),
+												)
+											}
 										},
-										// TODO disable info dialog for now
-// 									trailing = {
-// 										Row(
-// 											horizontalArrangement = Arrangement.spacedBy(16.dp),
-// 											verticalAlignment = Alignment.CenterVertically,
-// 										) {
-// 											val icon = Icons.Outlined.Info
-// 											VerticalDivider(modifier = Modifier.height(42.dp))
-// 											Icon(icon, icon.name, Modifier.size(iconSize))
-// 										}
-// 									},
+										trailing = {
+											Box(
+												modifier = Modifier.clickable {
+													selectedGateway = gateway
+													showGatewayDetailsModal = true
+												}.fillMaxHeight(),
+												contentAlignment = Alignment.Center,
+											) {
+												Row(
+													horizontalArrangement = Arrangement.spacedBy(16.dp),
+													verticalAlignment = Alignment.CenterVertically,
+													modifier = Modifier.padding(end = 16.dp),
+												) {
+													VerticalDivider(modifier = Modifier.height(42.dp))
+													val icon = Icons.Outlined.Info
+													Icon(
+														imageVector = icon,
+														contentDescription = icon.name,
+														Modifier.size(iconSize),
+													)
+												}
+											}
+										},
 										title = {
 											Text(
 												gateway.name,
@@ -487,6 +505,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 							shape = RectangleShape,
 							background = MaterialTheme.colorScheme.background,
 							divider = false,
+							anchorsPadding = 0.dp,
 						)
 					}
 					if (expanded && queriedGateways.isNotEmpty() &&
@@ -508,25 +527,40 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 									onSelectionChange(gateway.identity)
 								},
 								leading = {
-									val icon = getScoreIcon(gateway)
-									Image(
-										icon,
-										icon.name,
-										modifier =
-										Modifier.height(16.dp).width(15.dp),
-									)
+									val icon = gateway.getScoreIcon(gatewayType)
+									Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+										Image(
+											icon,
+											icon.name,
+											modifier =
+											Modifier.height(16.dp).width(15.dp),
+										)
+									}
 								},
-								// TODO disable for now
-// 								trailing = {
-// 									Row(
-// 										horizontalArrangement = Arrangement.spacedBy(16.dp),
-// 										verticalAlignment = Alignment.CenterVertically,
-// 									) {
-// 										val icon = Icons.Outlined.Info
-// 										VerticalDivider(modifier = Modifier.height(42.dp))
-// 										Icon(icon, icon.name, Modifier.size(iconSize))
-// 									}
-// 								},
+								trailing = {
+									Box(
+										modifier = Modifier.clickable {
+											selectedGateway = gateway
+											showGatewayDetailsModal = true
+										}.fillMaxHeight(),
+										contentAlignment = Alignment.Center,
+									) {
+										Row(
+											horizontalArrangement = Arrangement.spacedBy(16.dp),
+											verticalAlignment = Alignment.CenterVertically,
+											modifier = Modifier.padding(end = 16.dp),
+
+										) {
+											VerticalDivider(modifier = Modifier.height(42.dp))
+											val icon = Icons.Outlined.Info
+											Icon(
+												imageVector = icon,
+												contentDescription = icon.name,
+												Modifier.size(iconSize),
+											)
+										}
+									}
+								},
 								title = {
 									Text(
 										gateway.name,
@@ -549,6 +583,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 						shape = RectangleShape,
 						background = MaterialTheme.colorScheme.background,
 						divider = false,
+						anchorsPadding = 0.dp,
 					)
 				}
 			}
