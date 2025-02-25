@@ -23,7 +23,7 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
-fun GatewayModalBody(onClick: () -> Unit) {
+fun ServerDetailsModalBody(onClick: () -> Unit) {
 	Column(verticalArrangement = Arrangement.spacedBy(16.dp.scaledHeight())) {
 		Text(
 			text = stringResource(R.string.gateway_modal_description),

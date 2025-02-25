@@ -2,6 +2,9 @@ package net.nymtech.nymvpn.util.extensions
 
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.navigation.NavBackStackEntry
@@ -19,6 +22,8 @@ import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
+import nym_vpn_lib.GatewayType
+import nym_vpn_lib.Score
 import java.util.*
 
 fun Dp.scaledHeight(): Dp {
@@ -96,4 +101,19 @@ fun EntryPoint.Location.toDisplayCountry(): String {
 
 fun ExitPoint.Location.toDisplayCountry(): String {
 	return Locale(this.location, this.location).country
+}
+
+@Composable
+fun NymGateway.getScoreIcon(gatewayType: GatewayType): ImageVector {
+	val score = when (gatewayType) {
+		GatewayType.MIXNET_ENTRY, GatewayType.MIXNET_EXIT -> mixnetScore
+		GatewayType.WG -> wgScore
+	}
+	return when (score) {
+		Score.HIGH -> ImageVector.vectorResource(R.drawable.bars_3)
+		Score.MEDIUM -> ImageVector.vectorResource(R.drawable.bars_2)
+		Score.LOW -> ImageVector.vectorResource(R.drawable.bar_1)
+		Score.NONE -> ImageVector.vectorResource(R.drawable.faq)
+		null -> ImageVector.vectorResource(R.drawable.faq)
+	}
 }

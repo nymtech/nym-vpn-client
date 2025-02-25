@@ -26,12 +26,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun SurfaceSelectionGroupButton(items: List<SelectionItem>, shape: Shape = RoundedCornerShape(8.dp), background: Color, divider: Boolean = true) {
+fun SurfaceSelectionGroupButton(
+	items: List<SelectionItem>,
+	shape: Shape = RoundedCornerShape(8.dp),
+	background: Color,
+	divider: Boolean = true,
+	anchorsPadding: Dp = 16.dp,
+) {
 	val interactionSource = remember { MutableInteractionSource() }
 	Card(
 		modifier = Modifier.fillMaxWidth(),
@@ -73,9 +80,9 @@ fun SurfaceSelectionGroupButton(items: List<SelectionItem>, shape: Shape = Round
 							.weight(4f, false)
 							.padding(vertical = 4.dp.scaledHeight()).fillMaxSize(),
 					) {
-						Box(modifier = Modifier.padding(start = 16.dp.scaledWidth()))
+						Box(modifier = Modifier.padding(start = anchorsPadding.scaledWidth()))
 						it.leading?.let { icon ->
-							Box(modifier = Modifier.padding(end = 16.dp.scaledWidth())) {
+							Box(modifier = Modifier.padding(end = anchorsPadding.scaledWidth())) {
 								icon()
 							}
 						}
@@ -96,7 +103,7 @@ fun SurfaceSelectionGroupButton(items: List<SelectionItem>, shape: Shape = Round
 						Box(
 							contentAlignment = Alignment.CenterEnd,
 							modifier = Modifier
-								.padding(horizontal = 16.dp.scaledWidth())
+								.padding(horizontal = anchorsPadding.scaledWidth())
 								.weight(1f),
 						) {
 							trailing()
