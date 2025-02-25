@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.module.qualifiers
+package net.nymtech.nymvpn.di.qualifiers
 
 import javax.inject.Qualifier
 

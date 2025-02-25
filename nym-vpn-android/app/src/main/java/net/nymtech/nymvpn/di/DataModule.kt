@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.module
+package net.nymtech.nymvpn.di
 
 import android.content.Context
 import dagger.Module
@@ -12,7 +12,7 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreGatewayRepository
 import net.nymtech.nymvpn.data.datastore.DataStoreManager
 import net.nymtech.nymvpn.data.datastore.DataStoreSettingsRepository
-import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import javax.inject.Singleton
 
 @Module

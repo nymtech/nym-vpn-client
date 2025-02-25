@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.module
+package net.nymtech.nymvpn.di
 
 import android.content.Context
 import dagger.Binds
