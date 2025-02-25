@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import {
   UiCountry,
@@ -14,6 +15,7 @@ import { PageAnim, TextInput } from '../../ui';
 import { kvSet } from '../../kvStore';
 import { uiNodeToRaw } from '../../contexts/nodes/util';
 import { useI18nError } from '../../hooks';
+import { routes } from '../../router';
 import LocationDetailsDialog from './LocationDetailsDialog';
 import { NodeList } from './list';
 import NodeDetailsDialog from './NodeDetailsDialog';
@@ -32,7 +34,7 @@ function Node({ node }: { node: NodeHop }) {
   const [uiGateways, setUiGateways] = useState<UiGateway[]>(gateways);
   const [search, setSearch] = useState('');
 
-  // const navigate = useNavigate();
+  const navigate = useNavigate();
   const { t } = useTranslation('nodeLocation');
 
   // refresh the UI list whenever the backend gateway data changes
@@ -80,6 +82,7 @@ function Node({ node }: { node: NodeHop }) {
     } catch (e) {
       console.warn(e);
     }
+    navigate(routes.root);
   };
 
   const handleNodeDetails = (node: UiGateway | UiCountry) => {
