@@ -225,4 +225,5 @@
 	<string name="servers">servers</string>
 	<string name="local_logs">Logs (stored locally)</string>
 	<string name="logging_out">Logging out..</string>
+	<string name="identity_key">Identity key:</string>
 </resources>

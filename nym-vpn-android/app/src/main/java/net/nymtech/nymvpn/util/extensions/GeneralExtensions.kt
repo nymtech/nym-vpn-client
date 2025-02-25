@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.util.extensions
 
+import net.nymtech.vpn.model.NymGateway
 import java.util.Locale
 import kotlin.math.round
 import kotlin.time.Duration
@@ -23,4 +24,8 @@ fun Long.toMB(): String {
 
 fun String.truncateWithEllipsis(length: Int): String {
 	return if (this.length <= length) this else "${take(length)}..."
+}
+
+fun NymGateway.toLocale(): Locale? {
+	return twoLetterCountryISO?.let { Locale(it, it) }
 }
