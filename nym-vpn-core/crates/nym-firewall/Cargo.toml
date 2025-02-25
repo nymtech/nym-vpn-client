@@ -35,10 +35,13 @@ log.workspace = true
 wmi.workspace = true
 widestring.workspace = true
 
-[target.'cfg(windows)'.dependencies.windows-sys]
-workspace = true
-features = ["Win32_Foundation", "Win32_Globalization"]
-
 [target.'cfg(windows)'.dependencies.windows]
 workspace = true
-features = ["Win32", "Win32_System", "Win32_System_Wmi", "Win32_System_Variant"]
+features = [
+    "Win32",
+    "Win32_Foundation",
+    "Win32_Globalization",
+    "Win32_System",
+    "Win32_System_Wmi",
+    "Win32_System_Variant",
+]

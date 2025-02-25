@@ -12,7 +12,7 @@ use std::{ffi::CStr, io, net::IpAddr, ptr, sync::LazyLock};
 
 use nym_common::ErrorExt;
 use widestring::WideCString;
-use windows_sys::Win32::Globalization::{MultiByteToWideChar, CP_ACP};
+use windows::Win32::Globalization::{MultiByteToWideChar, CP_ACP, MULTI_BYTE_TO_WIDE_CHAR_FLAGS};
 
 use self::winfw::*;
 use super::{
@@ -465,7 +465,7 @@ pub extern "system" fn log_sink(
 }
 
 /// Convert `mb_string`, with the given character encoding `codepage`, to a UTF-16 string.
-fn multibyte_to_wide(mb_string: &CStr, codepage: u32) -> Result<Vec<u16>, io::Error> {
+fn multibyte_to_wide(mb_string: &CStr, codepage: u32) -> Result<Vec<u16>, windows::core::Error> {
     if mb_string.is_empty() {
         return Ok(vec![]);
     }
@@ -474,35 +474,32 @@ fn multibyte_to_wide(mb_string: &CStr, codepage: u32) -> Result<Vec<u16>, io::Er
     let wc_size = unsafe {
         MultiByteToWideChar(
             codepage,
-            0,
-            mb_string.as_ptr() as *const u8,
-            -1,
-            ptr::null_mut(),
-            0,
+            MULTI_BYTE_TO_WIDE_CHAR_FLAGS::default(),
+            mb_string.to_bytes_with_nul(),
+            None,
         )
     };
 
     if wc_size == 0 {
-        return Err(io::Error::last_os_error());
+        return Err(windows::core::Error::from_win32());
     }
 
-    let mut wc_buffer = vec![0u16; usize::try_from(wc_size).unwrap()];
+    let wc_buffer_len = usize::try_from(wc_size).unwrap();
+    let mut wc_buffer = vec![0u16; wc_buffer_len];
 
     // SAFETY: `wc_buffer` can contain up to `wc_size` characters, including a null
     // terminator.
     let chars_written = unsafe {
         MultiByteToWideChar(
             codepage,
-            0,
-            mb_string.as_ptr() as *const u8,
-            -1,
-            wc_buffer.as_mut_ptr(),
-            wc_size,
+            MULTI_BYTE_TO_WIDE_CHAR_FLAGS::default(),
+            mb_string.to_bytes_with_nul(),
+            Some(&mut wc_buffer),
         )
     };
 
     if chars_written == 0 {
-        return Err(io::Error::last_os_error());
+        return Err(windows::core::Error::from_win32());
     }
 
     wc_buffer.truncate(usize::try_from(chars_written - 1).unwrap());
@@ -513,7 +510,7 @@ fn multibyte_to_wide(mb_string: &CStr, codepage: u32) -> Result<Vec<u16>, io::Er
 #[cfg(test)]
 mod test {
     use super::multibyte_to_wide;
-    use windows_sys::Win32::Globalization::CP_UTF8;
+    use windows::Win32::Globalization::CP_UTF8;
 
     #[test]
     fn test_multibyte_to_wide() {
