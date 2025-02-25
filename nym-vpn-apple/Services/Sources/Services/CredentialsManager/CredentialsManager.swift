@@ -35,7 +35,7 @@ public final class CredentialsManager {
     }
 
     public func add(credential: String) async throws {
-        try await Task(priority: .background) {
+        try await Task {
             do {
 #if os(iOS)
                 let dataFolderURL = try dataFolderURL()
@@ -64,7 +64,7 @@ public final class CredentialsManager {
     }
 
     public func removeCredential() async throws {
-        try await Task(priority: .background) {
+        try await Task {
             do {
 #if os(iOS)
                 let dataFolderURL = try dataFolderURL()
@@ -127,7 +127,7 @@ private extension CredentialsManager {
 
 private extension CredentialsManager {
     func checkCredentialImport() {
-        Task(priority: .background) {
+        Task {
             do {
                 let isImported: Bool
 #if os(iOS)
@@ -155,7 +155,7 @@ private extension CredentialsManager {
 
 private extension CredentialsManager {
     func updateDeviceIdentifier() {
-        Task(priority: .background) {
+        Task {
 #if os(iOS)
             let dataFolderURL = try dataFolderURL()
             deviceIdentifier = try? getDeviceIdentityRaw(path: dataFolderURL.path())

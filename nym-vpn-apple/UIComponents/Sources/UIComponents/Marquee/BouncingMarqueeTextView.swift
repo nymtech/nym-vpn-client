@@ -61,7 +61,7 @@ private extension BouncingMarqueeTextView {
     }
 
     func startAnimation() {
-        Task(priority: .background) {
+        Task {
             let maxOffset = containerWidth - textWidth
             let targetOffset = isReversing ? 0 : maxOffset
             let distance = abs(offset - targetOffset)

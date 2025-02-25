@@ -52,7 +52,7 @@ private extension HomeView {
             message: viewModel.systemMessageManager.currentMessage
         )
         .onAppear {
-            Task(priority: .background) {
+            Task {
                 try? await Task.sleep(for: .seconds(3))
                 viewModel.systemMessageManager.processMessages()
             }
