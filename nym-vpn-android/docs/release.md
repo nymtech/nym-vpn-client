@@ -52,8 +52,8 @@ the new version available for download almost immediately upon it being publishe
    * _internal_ releases to internal testers (the team)
    * _none_ skips store release
 
-> All Google Play releases must pass the their review process. The current status of the \
-review process can be monitored in the [Google Play Console](https://play.google.com/console/).
+	> All Google Play releases must pass the their review process. The current status of the \
+	review process can be monitored in the [Google Play Console](https://play.google.com/console/).
 
 3. `Skip app bundle` checkbox only applies if a Google Play release \
 track other than _none_ has been selected. This should be checked \

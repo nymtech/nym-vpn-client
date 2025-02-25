@@ -20,9 +20,9 @@ import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
 import net.nymtech.nymvpn.manager.backend.model.MixnetConnectionState
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
-import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
-import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
-import net.nymtech.nymvpn.module.qualifiers.MainDispatcher
+import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
+import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
 import net.nymtech.nymvpn.service.notification.NotificationService
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.StringValue

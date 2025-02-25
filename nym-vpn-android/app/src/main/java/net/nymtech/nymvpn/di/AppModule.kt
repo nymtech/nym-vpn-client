@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.module
+package net.nymtech.nymvpn.di
 
 import android.content.Context
 import dagger.Module
@@ -17,9 +17,9 @@ import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.manager.shortcut.DynamicShortcutManager
 import net.nymtech.nymvpn.manager.shortcut.ShortcutManager
-import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
-import net.nymtech.nymvpn.module.qualifiers.DefaultDispatcher
-import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
+import net.nymtech.nymvpn.di.qualifiers.DefaultDispatcher
+import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.service.gateway.GatewayDataStoreCacheService
 import net.nymtech.nymvpn.service.notification.NotificationService

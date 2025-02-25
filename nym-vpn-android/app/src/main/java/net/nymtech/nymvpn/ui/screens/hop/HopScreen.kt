@@ -182,7 +182,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 
 	val queriedGateways = remember(uiState.query) {
 		derivedStateOf {
-			if (!uiState.query.isBlank()) {
+			if (uiState.query.isNotBlank()) {
 				gateways.filter { it.identity.lowercase().contains(uiState.query) || it.name.lowercase().contains(query) }.sortedWith(
 					compareBy(collator) { it.identity },
 				)
