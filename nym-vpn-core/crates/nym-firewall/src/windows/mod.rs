@@ -8,7 +8,7 @@ mod ffi;
 use crate::net::TunnelMetadata;
 use nym_dns::ResolvedDnsConfig;
 
-use std::{ffi::CStr, io, net::IpAddr, ptr, sync::LazyLock};
+use std::{ffi::CStr, net::IpAddr, ptr, sync::LazyLock};
 
 use nym_common::ErrorExt;
 use widestring::WideCString;
