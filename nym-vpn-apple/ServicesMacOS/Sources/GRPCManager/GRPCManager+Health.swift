@@ -30,7 +30,7 @@ private extension GRPCManager {
     func requiredCallsAfterSeviceIsUp() {
         guard isServing else { return }
 
-        Task(priority: .background) { [weak self] in
+        Task { [weak self] in
             _ = try? await self?.version()
         }
     }

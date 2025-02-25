@@ -88,7 +88,7 @@ public final class SantasViewModel: ObservableObject {
 
 #if os(macOS)
     func updateDaemonInfo() {
-        Task(priority: .background) {
+        Task {
             try? await grpcManager.version()
             Task { @MainActor in
                 objectWillChange.send()

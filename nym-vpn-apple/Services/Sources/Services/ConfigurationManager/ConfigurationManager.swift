@@ -91,7 +91,7 @@ public final class ConfigurationManager {
     }
 
     public func updateEnv(to env: Env) {
-        Task(priority: .background) { [weak self] in
+        Task { [weak self] in
             guard let self else { return }
             guard isTestFlight || Device.isMacOS
             else {
@@ -110,7 +110,7 @@ public final class ConfigurationManager {
     }
 
     public func updateAccountLinks() {
-        Task(priority: .background) {
+        Task {
             do {
 #if os(iOS)
                 let links = try  getAccountLinksRaw(
@@ -156,13 +156,13 @@ private extension ConfigurationManager {
 
 #if os(iOS)
     func setEnvVariables() async throws {
-        try await Task(priority: .background) {
+        try await Task {
             try await initEnvironmentAsync(networkName: currentEnv.rawValue)
         }.value
     }
 
     func setFallbackEnvVariables() async throws {
-        try await Task(priority: .background) {
+        try await Task {
             try initFallbackMainnetEnvironment()
         }.value
     }

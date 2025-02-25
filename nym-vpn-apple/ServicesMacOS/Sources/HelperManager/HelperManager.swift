@@ -66,7 +66,7 @@ public final class HelperManager {
 
     public func update() throws {
         daemonState = .updating
-        Task(priority: .background) {
+        Task {
             do {
                 try await uninstall()
                 try daemon.register()
@@ -134,7 +134,7 @@ private extension HelperManager {
 // MARK: - Polling -
 private extension HelperManager {
     func starPolling() {
-        pollingTask = Task(priority: .background) { [weak self] in
+        pollingTask = Task { [weak self] in
             guard let self else { return }
             while pollingTask != nil {
                 updateDaemonState()

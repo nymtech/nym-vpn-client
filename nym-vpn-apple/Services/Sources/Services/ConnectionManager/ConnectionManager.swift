@@ -265,7 +265,7 @@ private extension ConnectionManager {
 
     func scheduleNotificationIfNeeded() {
         guard currentTunnelStatus == .disconnecting else { return }
-        Task(priority: .background) {
+        Task {
             await NotificationMessages.scheduleDisconnectNotification()
         }
     }
@@ -282,17 +282,14 @@ public extension ConnectionManager {
 // MARK: - Connection -
 #if os(iOS)
 private extension ConnectionManager {
-    func connect(with config: MixnetConfig) async throws {
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            do {
-                try await tunnelsManager.loadTunnels()
-                let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config)
-                activeTunnel = tunnel
-                try await tunnelsManager.connect(tunnel: tunnel)
-            } catch {
-                throw error
-            }
+    @MainActor func connect(with config: MixnetConfig) async throws {
+        do {
+            try await tunnelsManager.loadTunnels()
+            let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config)
+            activeTunnel = tunnel
+            try await tunnelsManager.connect(tunnel: tunnel)
+        } catch {
+            throw error
         }
     }
 
@@ -459,19 +456,19 @@ private extension ConnectionManager {
 
     func setupConnectionErrorObserver() {
 #if os(iOS)
-        tunnelsManager.$lastError.sink { [weak self] newError in
-            Task { @MainActor [weak self] in
+        tunnelsManager.$lastError
+            .receive(on: RunLoop.main)
+            .sink { [weak self] newError in
                 self?.lastError = newError
             }
-        }
         .store(in: &cancellables)
 #elseif os(macOS)
-        grpcManager.$errorReason.sink { [weak self] newError in
-            Task { @MainActor [weak self] in
+        grpcManager.$errorReason
+            .receive(on: RunLoop.main)
+            .sink { [weak self] newError in
                 self?.lastError = newError
             }
-        }
-        .store(in: &cancellables)
+            .store(in: &cancellables)
 #endif
     }
 

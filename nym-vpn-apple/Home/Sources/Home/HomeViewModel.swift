@@ -61,7 +61,7 @@ public class HomeViewModel: HomeFlowState {
     @MainActor @Published var snackBarMessage = ""
     @MainActor @Published var isSnackBarDisplayed = false {
         didSet {
-            Task(priority: .background) {
+            Task {
                 try? await Task.sleep(for: .seconds(1))
                 guard !isSnackBarDisplayed else { return }
                 systemMessageManager.messageDidClose()

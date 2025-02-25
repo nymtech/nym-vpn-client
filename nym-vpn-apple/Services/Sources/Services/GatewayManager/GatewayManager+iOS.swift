@@ -12,7 +12,7 @@ extension GatewayManager {
             platform: AppVersionProvider.platform,
             gitCommit: ""
         )
-        Task(priority: .background) {
+        Task {
             do {
                 let entryNodes = try getGateways(gwType: .mixnetEntry, userAgent: userAgent, minGatewayPerformance: nil)
                 let exitNodes = try getGateways(gwType: .mixnetExit, userAgent: userAgent, minGatewayPerformance: nil)
