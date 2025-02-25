@@ -36,8 +36,6 @@ function MainStateProvider({ children }: Props) {
   const { push } = useInAppNotify();
   useTauriEvents(dispatch, push);
 
-  // const { t } = useTranslation();
-
   // initialize app state
   useEffect(() => {
     if (initialized) {
