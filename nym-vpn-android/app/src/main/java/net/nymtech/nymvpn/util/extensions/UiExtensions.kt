@@ -40,7 +40,8 @@ fun TextUnit.scaled(): TextUnit {
 
 fun NavController.navigateAndForget(route: Route) {
 	navigate(route) {
-		popUpTo(0)
+		popUpTo(graph.startDestinationId) { inclusive = true }
+		launchSingleTop = true
 	}
 }
 
