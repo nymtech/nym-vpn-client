@@ -457,14 +457,14 @@ private extension ConnectionManager {
     func setupConnectionErrorObserver() {
 #if os(iOS)
         tunnelsManager.$lastError
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] newError in
                 self?.lastError = newError
             }
         .store(in: &cancellables)
 #elseif os(macOS)
         grpcManager.$errorReason
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] newError in
                 self?.lastError = newError
             }

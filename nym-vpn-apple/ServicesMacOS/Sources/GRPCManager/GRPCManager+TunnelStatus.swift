@@ -25,13 +25,11 @@ extension GRPCManager {
     func updateTunnelStatus(with state: Nym_Vpn_TunnelState) {
         switch state.state {
         case let .connected(details):
+            connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)
             tunnelStatus = .connected
-            connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)
-            logger.info("Connected: \(String(describing: connectedDate))")
         case let .connecting(details):
-            tunnelStatus = .connecting
             connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)
-            logger.info("Connecting: \(String(describing: connectedDate))")
+            tunnelStatus = .connecting
         case .disconnected:
             tunnelStatus = .disconnected
         case .disconnecting:
