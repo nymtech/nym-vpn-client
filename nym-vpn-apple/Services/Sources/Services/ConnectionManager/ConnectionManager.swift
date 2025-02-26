@@ -128,7 +128,7 @@ public final class ConnectionManager: ObservableObject {
     }
 
     /// connects disconnects VPN, depending on current VPN status
-    /// - Parameter isAutoConnect: Bool. 
+    /// - Parameter isAutoConnect: Bool.
     /// true - when reconnecting automatically, after change of connection settings:  country(UK, DE) or type(5hop, 2hop...).
     /// false - when user manually taps "Connect".
     /// On reconnect, after disconnect, the connectDisconnect is called as a user tapped connect.
@@ -336,13 +336,13 @@ private extension ConnectionManager {
                     isZknymEnabled: appSettings.isZknymEnabled
                 )
             case .wireguard:
-                    config = MixnetConfig(
-                        entryGateway: entryGateway,
-                        exitRouter: exitRouter,
-                        credentialsDataPath: credentialURL.path(),
-                        isTwoHopEnabled: true,
-                        isZknymEnabled: appSettings.isZknymEnabled
-                    )
+                config = MixnetConfig(
+                    entryGateway: entryGateway,
+                    exitRouter: exitRouter,
+                    credentialsDataPath: credentialURL.path(),
+                    isTwoHopEnabled: true,
+                    isZknymEnabled: appSettings.isZknymEnabled
+                )
             }
             isReconnecting = isReconnecting(newConfig: config)
             return config
@@ -369,12 +369,12 @@ extension ConnectionManager {
                 isZknymEnabled: appSettings.isZknymEnabled
             )
         case .wireguard:
-                config = MixnetConfig(
-                    entryGateway: entryGateway,
-                    exitRouter: exitRouter,
-                    isTwoHopEnabled: true,
-                    isZknymEnabled: appSettings.isZknymEnabled
-                )
+            config = MixnetConfig(
+                entryGateway: entryGateway,
+                exitRouter: exitRouter,
+                isTwoHopEnabled: true,
+                isZknymEnabled: appSettings.isZknymEnabled
+            )
         }
         isReconnecting = isReconnecting(newConfig: config)
         return config
@@ -419,7 +419,7 @@ private extension ConnectionManager {
             cancellable = $currentTunnelStatus
                 .sink { status in
                     guard cancellable != nil,
-                        status == targetStatus
+                          status == targetStatus
                     else {
                         return
                     }
@@ -464,16 +464,14 @@ private extension ConnectionManager {
             .sink { [weak self] newError in
                 self?.lastError = newError
             }
-        }
-        .store(in: &cancellables)
+            .store(in: &cancellables)
 #elseif os(macOS)
         grpcManager.$errorReason
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newError in
                 self?.lastError = newError
             }
-        }
-        .store(in: &cancellables)
+            .store(in: &cancellables)
 #endif
     }
 
