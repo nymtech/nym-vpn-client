@@ -114,9 +114,9 @@ sfltool resetbtm
 
     func setupDaemonStateObserver() {
         daemonStateCancellable = helperManager.$daemonState
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .removeDuplicates()
-            .delay(for: .seconds(3), scheduler: RunLoop.main)
+            .delay(for: .seconds(3), scheduler: DispatchQueue.main)
             .sink { [weak self] newState in
                 guard let self, newState != lastDaemonState else { return }
                 lastDaemonState = newState
@@ -168,7 +168,7 @@ sfltool resetbtm
         }
         timerCancellable = Timer.publish(every: 1.0, on: .main, in: .common)
             .autoconnect()
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self = self else { return }
                 if let daemonStateCancellable {
