@@ -27,7 +27,8 @@ class NetworkConnectivityService(context: Context) : NetworkService {
 
 		fun hasInternet(network: Network?): Boolean {
 			val capabilities = connectivityManager.getNetworkCapabilities(network)
-			return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+			return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true &&
+				capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
 		}
 
 		val initialNetwork = connectivityManager.activeNetwork
