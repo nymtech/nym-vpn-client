@@ -26,10 +26,12 @@ public extension HomeViewModel {
             }
 #endif
             // TODO: move to connection manager, do not check is valid imported if .connected
-            guard credentialsManager.isValidCredentialImported || lastTunnelStatus != .connected
-            else {
-                await navigateToAddCredentials()
-                return
+            if lastTunnelStatus != .connected {
+                guard credentialsManager.isValidCredentialImported
+                else {
+                    await navigateToAddCredentials()
+                    return
+                }
             }
 
             do {

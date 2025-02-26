@@ -92,8 +92,8 @@ if [[ -z "$DAEMON_VERSION" ]]; then
     exit 1
 fi
 
-echo "Extracted LIB version: $LIB_VERSION"
-echo "Derived Daemon version: $DAEMON_VERSION"
+echo "🚜 Extracted LIB version: $LIB_VERSION"
+echo "🚜 Derived Daemon version: $DAEMON_VERSION"
 
 ios_download_link="${RELEASE_URL}/${ios_asset}"
 
@@ -119,7 +119,7 @@ PACKAGE_FILE_PATH="../MixnetLibrary/Package.swift"
 if [[ -f "$PACKAGE_FILE_PATH" ]]; then
     sed -i '' "s|url: \".*\"|url: \"$ios_download_link\"|g" "$PACKAGE_FILE_PATH"
     sed -i '' "s|checksum: \".*\"|checksum: \"$ios_checksum\"|g" "$PACKAGE_FILE_PATH"
-    echo "Package.swift has been successfully updated with iOS URL and checksum."
+    echo "✅ Package.swift has been successfully updated with iOS URL and checksum."
 else
     echo "❌ Error: Package.swift file not found at $PACKAGE_FILE_PATH"
     exit 1
@@ -133,7 +133,7 @@ LIB_VERSION_NO_TIMESTAMP=$(echo "$LIB_VERSION" | sed -E 's/\.[^.]+$//')
 app_version_file="../ServicesMutual/Sources/AppVersionProvider/AppVersionProvider.swift"
 if [[ -f "$app_version_file" ]]; then
     sed -i '' "s/public static let libVersion = \".*\"/public static let libVersion = \"$LIB_VERSION_NO_TIMESTAMP\"/g" "$app_version_file"
-    echo "libVersion updated to $LIB_VERSION_NO_TIMESTAMP in $app_version_file."
+    echo "✅ libVersion updated to $LIB_VERSION_NO_TIMESTAMP in $app_version_file."
 else
     echo "❌ Error: AppVersionProvider.swift file not found at $app_version_file"
     exit 1
@@ -160,13 +160,13 @@ echo "✅ macOS file extracted successfully: $tar_file_name"
 extracted_folder_name=$(tar -tf "$tar_file_name" | head -n 1 | cut -f1 -d"/")
 if [[ -f "../Daemon/net.nymtech.vpn.helper" ]]; then
     rm "../Daemon/net.nymtech.vpn.helper"
-    echo "Removed old net.nymtech.vpn.helper file."
+    echo "✅ Removed old net.nymtech.vpn.helper file."
 fi
 
 if [[ -f "${extracted_folder_name}/nym-vpnd" ]]; then
     cp "${extracted_folder_name}/nym-vpnd" "../Daemon/net.nymtech.vpn.helper"
     chmod +x "../Daemon/net.nymtech.vpn.helper"
-    echo "nym-vpnd copied and renamed to net.nymtech.vpn.helper successfully."
+    echo "✅ nym-vpnd copied and renamed to net.nymtech.vpn.helper successfully."
 else
     echo "❌ Error: ${extracted_folder_name}/nym-vpnd not found."
     exit 1
@@ -175,14 +175,14 @@ fi
 if [[ -d "${extracted_folder_name}/proto" ]]; then
     rm -rf "../ServicesMacOS/Sources/GRPCManager/proto"
     cp -a "${extracted_folder_name}/proto" "../ServicesMacOS/Sources/GRPCManager"
-    echo "proto directory has been copied (with all folders and files) to ../ServicesMacOS/Sources/GRPCManager and overwritten."
+    echo "✅ proto directory has been copied (with all folders and files) to ../ServicesMacOS/Sources/GRPCManager and overwritten."
 else
     echo "❌ Error: ${extracted_folder_name}/proto not found."
     exit 1
 fi
 
 if [[ -f "$tar_file_name" ]]; then
-    echo "Removing downloaded tar.gz file: $tar_file_name"
+    echo "✅ Removing downloaded tar.gz file: $tar_file_name"
     rm -f "$tar_file_name"
     echo "Downloaded tar.gz file removed successfully."
 else
@@ -234,6 +234,5 @@ fi
 echo "Cleaning up..."
 rm -f "$ios_zip_file"
 rm -rf "$extracted_folder"
-echo "Cleanup completed."
-
+echo "✅ Cleanup completed."
 echo "✅ Update completed successfully for nightly build (LIB_VERSION: $LIB_VERSION, Daemon: $DAEMON_VERSION)."

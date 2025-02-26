@@ -257,21 +257,21 @@ private extension HomeViewModel {
 
     func setupConnectionErrorObservers() {
 #if os(iOS)
-        connectionManager.$lastError.sink { [weak self] error in
-            self?.lastError = error
-            if let error {
-                self?.updateStatusInfoState(with: .error(message: error.localizedDescription))
+        connectionManager.$lastError
+            .receive(on: DispatchQueue.main)
+            .sink { error in
+                MainActor.assumeIsolated {
+                    self.updateLastError(error)
+                }
             }
-            self?.navigateToAddCredetialsIfNeeded(error: error)
-        }
-        .store(in: &cancellables)
+            .store(in: &cancellables)
 #endif
     }
 #if os(iOS)
     func configureTunnelStatusObservation(with tunnel: Tunnel) {
         tunnelStatusUpdateCancellable = tunnel.$status
             .removeDuplicates()
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] status in
                 self?.updateUI(with: status)
                 self?.updateTimeConnected()
