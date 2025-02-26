@@ -7,7 +7,6 @@ import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
 import net.nymtech.nymvpn.util.extensions.toDisplayCountry
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
-import java.util.Locale
 
 data class AppUiState(
 	val settings: Settings = Settings(),
@@ -40,7 +39,7 @@ data class AppUiState(
 		is ExitPoint.Gateway -> {
 			gateways.exitGateways.firstOrNull { it.identity == exit.identity }?.name ?: exit.identity
 		}
-		is ExitPoint.Location -> Locale(exit.location, exit.location).displayCountry
+		is ExitPoint.Location -> exit.toDisplayCountry()
 	}
 
 	val exitPointId: String = when (val exit = settings.exitPoint) {
