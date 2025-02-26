@@ -1,0 +1,9 @@
+#ifndef VERSION_H
+#define VERSION_H
+
+#define MAJOR_VERSION 2025
+#define MINOR_VERSION 1
+#define PATCH_VERSION 0
+#define PRODUCT_VERSION "1.0"
+
+#endif // VERSION_H

@@ -4,6 +4,7 @@
 **/*.rs.bk
 /*/target
 target
+**/.vs/
 .idea
 build
 /android
