@@ -24,7 +24,7 @@ const CountryInfo = ({ country, name, gwCount }: CountryInfoProps) => {
         alt={country.code}
         className="h-6"
       />
-      <div className="flex flex-col justify-center items-start">
+      <div className="flex flex-col justify-center overflow-hidden pr-4">
         <div
           className={clsx('text-baltic-sea dark:text-white text-base truncate')}
         >
