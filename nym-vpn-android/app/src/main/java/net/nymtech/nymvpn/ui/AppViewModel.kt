@@ -7,11 +7,9 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -19,8 +17,8 @@ import net.nymtech.connectivity.NetworkService
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
@@ -145,9 +143,8 @@ constructor(
 
 	fun onAppStartup() = viewModelScope.launch {
 		val theme = settingsRepository.getTheme()
-		uiState.takeWhile { it.settings.theme != theme }.onCompletion {
-			_isAppReady.emit(true)
-		}.collect()
+		uiState.first { it.settings.theme == theme }
+		_isAppReady.emit(true)
 		launch {
 			gatewayCacheService.updateExitGatewayCache()
 		}

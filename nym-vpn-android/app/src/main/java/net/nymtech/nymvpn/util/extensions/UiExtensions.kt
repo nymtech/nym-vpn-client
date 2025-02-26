@@ -40,7 +40,8 @@ fun TextUnit.scaled(): TextUnit {
 
 fun NavController.navigateAndForget(route: Route) {
 	navigate(route) {
-		popUpTo(0)
+		popUpTo(graph.startDestinationId) { inclusive = true }
+		launchSingleTop = true
 	}
 }
 
@@ -96,11 +97,11 @@ fun List<NymGateway>.scoreSorted(mode: Tunnel.Mode): List<NymGateway> {
 }
 
 fun EntryPoint.Location.toDisplayCountry(): String {
-	return Locale(this.location, this.location).country
+	return Locale(this.location, this.location).displayCountry
 }
 
 fun ExitPoint.Location.toDisplayCountry(): String {
-	return Locale(this.location, this.location).country
+	return Locale(this.location, this.location).displayCountry
 }
 
 @Composable
