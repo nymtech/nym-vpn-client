@@ -60,7 +60,3 @@ TODO
 ## Contributing
 
 TODO
-
-## Security
-
-TODO
