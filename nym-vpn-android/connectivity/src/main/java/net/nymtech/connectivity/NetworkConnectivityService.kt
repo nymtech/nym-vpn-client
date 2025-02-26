@@ -16,77 +16,86 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
+import timber.log.Timber
 
 class NetworkConnectivityService(context: Context) : NetworkService {
-
-	private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+	private val appContext = context.applicationContext
+	private val connectivityManager = appContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
 	@OptIn(FlowPreview::class)
 	override val networkStatus: Flow<NetworkStatus> = callbackFlow {
 
-		var wifiState: Int = 0
-		var ethernetState: Int = 0
-		var cellularState: Int = 0
-
-		val currentNetwork = connectivityManager.activeNetwork
-		if (currentNetwork == null) {
-			// all networks unavailable or airplane mode on
-			trySend(NetworkStatus.Disconnected)
+		fun hasInternet(network: Network?): Boolean {
+			val capabilities = connectivityManager.getNetworkCapabilities(network)
+			return capabilities?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) == true &&
+				capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
 		}
 
-		// Listen for Airplane Mode changes
+		val initialNetwork = connectivityManager.activeNetwork
+		trySend(if (hasInternet(initialNetwork)) NetworkStatus.Connected else NetworkStatus.Disconnected)
+
 		val airplaneModeReceiver = object : BroadcastReceiver() {
 			override fun onReceive(context: Context, intent: Intent) {
 				if (intent.action == Intent.ACTION_AIRPLANE_MODE_CHANGED) {
 					val isAirplaneModeOn = intent.getBooleanExtra("state", false)
-					if (isAirplaneModeOn && wifiState == 0) {
-						trySend(NetworkStatus.Disconnected)
+					if (isAirplaneModeOn) {
+						val currentNetwork = connectivityManager.activeNetwork
+						Timber.d("Airplane Mode: on=true, activeNetwork=$currentNetwork")
+						if (currentNetwork == null || !hasInternet(currentNetwork)) {
+							Timber.d("Emitting Disconnected due to airplane mode")
+							trySend(NetworkStatus.Disconnected)
+						}
 					}
 				}
 			}
 		}
-
-		context.registerReceiver(airplaneModeReceiver, IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED))
+		appContext.registerReceiver(airplaneModeReceiver, IntentFilter(Intent.ACTION_AIRPLANE_MODE_CHANGED))
 
 		val connectivityCallback = object : ConnectivityManager.NetworkCallback() {
+			private val activeNetworksWithInternet = mutableSetOf<Network>()
 
 			override fun onAvailable(network: Network) {
-				updateCapabilityState(1, network)
-				trySend(NetworkStatus.Connected)
+				Timber.d("onAvailable: network=$network")
+				if (hasInternet(network)) {
+					activeNetworksWithInternet.add(network)
+					trySend(NetworkStatus.Connected)
+				}
 			}
 
 			override fun onUnavailable() {
+				Timber.d("onUnavailable")
+				activeNetworksWithInternet.clear()
 				val currentNetwork = connectivityManager.activeNetwork
-				if (currentNetwork == null) {
-					// all networks unavailable or airplane mode on
+				if (currentNetwork == null || !hasInternet(currentNetwork)) {
 					trySend(NetworkStatus.Disconnected)
 				}
 			}
 
 			override fun onLost(network: Network) {
-				updateCapabilityState(0, network)
-				if (wifiState == 0 && ethernetState == 0 && cellularState == 0) {
+				Timber.d("onLost: network=$network")
+				activeNetworksWithInternet.remove(network)
+				val currentNetwork = connectivityManager.activeNetwork
+				if (currentNetwork == null || !hasInternet(currentNetwork)) {
+					Timber.d("Emitting Disconnected due to onLost")
+					trySend(NetworkStatus.Disconnected)
+				} else if (activeNetworksWithInternet.isEmpty()) {
 					trySend(NetworkStatus.Disconnected)
 				}
 			}
 
 			override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
-				updateCapabilityState(1, network)
-				trySend(NetworkStatus.Connected)
-			}
-
-			fun updateCapabilityState(state: Int, network: Network) {
-				with(connectivityManager.getNetworkCapabilities(network)) {
-					when {
-						this == null -> return
-						hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> wifiState = state
-						hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ->
-							cellularState =
-								state
-
-						hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET) ->
-							ethernetState =
-								state
+				Timber.d("onCapabilitiesChanged: network=$network, capabilities=$networkCapabilities")
+				if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+					networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
+				) {
+					activeNetworksWithInternet.add(network)
+					trySend(NetworkStatus.Connected)
+				} else {
+					activeNetworksWithInternet.remove(network)
+					val currentNetwork = connectivityManager.activeNetwork
+					if (currentNetwork == null || !hasInternet(currentNetwork)) {
+						Timber.d("Emitting Disconnected due to capabilities change")
+						trySend(NetworkStatus.Disconnected)
 					}
 				}
 			}
@@ -103,7 +112,7 @@ class NetworkConnectivityService(context: Context) : NetworkService {
 
 		awaitClose {
 			connectivityManager.unregisterNetworkCallback(connectivityCallback)
-			context.unregisterReceiver(airplaneModeReceiver)
+			appContext.unregisterReceiver(airplaneModeReceiver)
 		}
-	}.distinctUntilChanged().flowOn(Dispatchers.IO).debounce(1000L)
+	}.distinctUntilChanged().flowOn(Dispatchers.IO).debounce(500L)
 }
