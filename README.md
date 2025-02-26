@@ -51,12 +51,6 @@ For the latest announcements and articles on privacy and security, visit [Nym's 
 
 [Mullvad open source libraries](https://github.com/mullvad/mullvadvpn-app/) to handle setting up local routing and wrapping wireguard-go.
 
-[Amnezia wg-go open source library](https://github.com/amnezia-vpn/amneziawg-go) help prevent censorship of WireGuard.
+[Amnezia wg-go open source library](https://github.com/amnezia-vpn/amneziawg-go) to help prevent censorship of WireGuard.
 
 ## Community
-
-TODO
-
-## Contributing
-
-TODO
