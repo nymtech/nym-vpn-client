@@ -8,6 +8,9 @@ documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[lints]
+workspace = true
+
 [features]
 nym-type-conversions = [
     "dep:nym-bandwidth-controller",

@@ -8,6 +8,9 @@ documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 nym-validator-client.workspace = true
 serde.workspace = true
