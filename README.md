@@ -40,6 +40,10 @@ This monorepo contains all of our source code for our NymVPN client apps (iOS / 
 
 </div>
 
+## Roadmap
+
+Check out our [public roadmap](https://trello.com/b/qVhBo3e2/nymvpn-public-roadmap) to see what is coming next.
+
 ## Support
 
 For help, visit our [Help Center](https://support.nym.com/hc/en-us) or contact our [Support team](https://support.nym.com/hc/en-us/requests/new) with any questions about NymVPN.
@@ -54,3 +58,19 @@ For the latest announcements and articles on privacy and security, visit [Nym's 
 [Amnezia wg-go open source library](https://github.com/amnezia-vpn/amneziawg-go) to help prevent censorship of WireGuard.
 
 ## Community
+
+Connect with the community on our socials.
+
+<div align="left">
+
+[<img  src="https://img.shields.io/badge/Telegram-26A5E4.svg?style=for-the-badge&logo=Telegram&logoColor=white">](https://nym.com/go/telegram)
+[<img src="https://img.shields.io/badge/Matrix-000000.svg?style=for-the-badge&logo=Matrix&logoColor=white">](https://nym.com/go/matrix)
+[<img  src="https://img.shields.io/badge/YouTube-FF0000.svg?style=for-the-badge&logo=YouTube&logoColor=white">](https://nym.com/go/youtube)
+[<img src="https://img.shields.io/badge/Discord-5865F2.svg?style=for-the-badge&logo=Discord&logoColor=white">](https://nym.com/go/discord)
+[<img  src="https://img.shields.io/badge/X-000000.svg?style=for-the-badge&logo=X&logoColor=white">](https://nym.com/go/x)
+</div>
+
+## Contributing
+
+Find out the various ways [you can
+contribute](CONTRIBUTING.md).
