@@ -508,7 +508,7 @@ dependencies = [
  "bitflags 2.8.0",
  "cexpr",
  "clang-sys",
- "itertools 0.12.1",
+ "itertools 0.13.0",
  "log",
  "prettyplease",
  "proc-macro2",
@@ -543,7 +543,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33415e24172c1b7d6066f6d999545375ab8e1d95421d6784bdfff9496f292387"
 dependencies = [
  "bitcoin_hashes",
- "rand 0.7.3",
+ "rand 0.8.5",
  "rand_core 0.6.4",
  "serde",
  "unicode-normalization",
@@ -3400,7 +3400,7 @@ dependencies = [
 [[package]]
 name = "nym-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "bs58",
  "cosmrs",
@@ -3471,7 +3471,7 @@ dependencies = [
 [[package]]
 name = "nym-authenticator-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -3492,7 +3492,7 @@ dependencies = [
 [[package]]
 name = "nym-bandwidth-controller"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "bip39",
  "log",
@@ -3514,7 +3514,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "const-str",
  "log",
@@ -3528,7 +3528,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core"
 version = "1.1.15"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -3590,7 +3590,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-config-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "humantime-serde",
  "nym-config",
@@ -3606,7 +3606,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-gateways-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "async-trait",
  "cosmrs",
@@ -3625,7 +3625,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-surb-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "async-trait",
  "dashmap",
@@ -3642,7 +3642,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-bandwidth-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3652,7 +3652,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-dkg-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3676,7 +3676,7 @@ dependencies = [
 [[package]]
 name = "nym-compact-ecash"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "bincode",
  "bls12_381",
@@ -3699,7 +3699,7 @@ dependencies = [
 [[package]]
 name = "nym-config"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "dirs",
  "handlebars",
@@ -3731,7 +3731,7 @@ dependencies = [
 [[package]]
 name = "nym-contracts-common"
 version = "0.5.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -3746,7 +3746,7 @@ dependencies = [
 [[package]]
 name = "nym-country-group"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "serde",
  "tracing",
@@ -3755,7 +3755,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-proxy-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "async-trait",
  "nym-credentials",
@@ -3775,7 +3775,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "async-trait",
  "bincode",
@@ -3793,7 +3793,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "log",
  "nym-bandwidth-controller",
@@ -3812,7 +3812,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "bincode",
  "bls12_381",
@@ -3835,7 +3835,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials-interface"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "bls12_381",
  "nym-compact-ecash",
@@ -3852,7 +3852,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "aead",
  "aes",
@@ -3916,7 +3916,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -3930,7 +3930,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-time"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "nym-compact-ecash",
  "time",
@@ -3939,7 +3939,7 @@ dependencies = [
 [[package]]
 name = "nym-exit-policy"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "serde",
  "serde_json",
@@ -3951,7 +3951,7 @@ dependencies = [
 [[package]]
 name = "nym-explorer-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "nym-api-requests",
  "nym-contracts-common",
@@ -3963,7 +3963,7 @@ dependencies = [
 [[package]]
 name = "nym-explorer-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "nym-explorer-api-requests",
  "reqwest 0.12.4",
@@ -4000,7 +4000,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "futures",
  "getrandom 0.2.15",
@@ -4109,7 +4109,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "bs58",
  "futures",
@@ -4135,7 +4135,7 @@ dependencies = [
 [[package]]
 name = "nym-group-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -4159,7 +4159,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "async-trait",
  "hickory-resolver",
@@ -4178,7 +4178,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "axum 0.7.9",
  "axum-client-ip",
@@ -4189,6 +4189,7 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml",
+ "subtle 2.6.1",
  "tower 0.5.2",
  "tracing",
  "zeroize",
@@ -4197,7 +4198,7 @@ dependencies = [
 [[package]]
 name = "nym-id"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "nym-credential-storage",
  "nym-credentials",
@@ -4227,7 +4228,7 @@ dependencies = [
 [[package]]
 name = "nym-ip-packet-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "bincode",
  "bytes",
@@ -4245,7 +4246,7 @@ dependencies = [
 [[package]]
 name = "nym-metrics"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "dashmap",
  "lazy_static",
@@ -4256,7 +4257,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "dashmap",
  "futures",
@@ -4278,7 +4279,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-contract-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -4300,7 +4301,7 @@ dependencies = [
 [[package]]
 name = "nym-multisig-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4316,7 +4317,7 @@ dependencies = [
 [[package]]
 name = "nym-network-defaults"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "cargo_metadata 0.18.1",
  "dotenvy",
@@ -4331,7 +4332,7 @@ dependencies = [
 [[package]]
 name = "nym-node-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "async-trait",
  "celes",
@@ -4354,7 +4355,7 @@ dependencies = [
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -4384,7 +4385,7 @@ dependencies = [
 [[package]]
 name = "nym-ordered-buffer"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "log",
  "thiserror 2.0.11",
@@ -4393,25 +4394,25 @@ dependencies = [
 [[package]]
 name = "nym-outfox"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "blake3",
  "chacha20",
  "chacha20poly1305",
- "curve25519-dalek 4.1.3",
  "getrandom 0.2.15",
  "log",
  "rand 0.8.5",
  "rayon",
  "sphinx-packet",
  "thiserror 2.0.11",
+ "x25519-dalek",
  "zeroize",
 ]
 
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "pem",
 ]
@@ -4451,7 +4452,7 @@ dependencies = [
 [[package]]
 name = "nym-sdk"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4501,7 +4502,7 @@ dependencies = [
 [[package]]
 name = "nym-serde-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -4513,7 +4514,7 @@ dependencies = [
 [[package]]
 name = "nym-service-provider-requests-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "serde",
 ]
@@ -4521,7 +4522,7 @@ dependencies = [
 [[package]]
 name = "nym-service-providers-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "async-trait",
  "log",
@@ -4535,7 +4536,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-client-core"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "anyhow",
  "dirs",
@@ -4568,7 +4569,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-proxy-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "bytes",
  "futures",
@@ -4583,7 +4584,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "bincode",
  "log",
@@ -4599,7 +4600,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "log",
  "nym-crypto",
@@ -4625,7 +4626,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-acknowledgements"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -4642,7 +4643,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-addressing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4653,7 +4654,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-anonymous-replies"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "bs58",
  "nym-crypto",
@@ -4671,7 +4672,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-chunking"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "dashmap",
  "log",
@@ -4689,7 +4690,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-cover"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -4707,7 +4708,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-forwarding"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "nym-outfox",
  "nym-sphinx-addressing",
@@ -4719,7 +4720,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-framing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "bytes",
  "log",
@@ -4736,7 +4737,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-params"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4747,7 +4748,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-routing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -4757,7 +4758,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "nym-outfox",
  "sphinx-packet",
@@ -4767,7 +4768,7 @@ dependencies = [
 [[package]]
 name = "nym-statistics-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "futures",
  "log",
@@ -4790,7 +4791,7 @@ dependencies = [
 [[package]]
 name = "nym-task"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "cfg-if",
  "futures",
@@ -4807,7 +4808,7 @@ dependencies = [
 [[package]]
 name = "nym-ticketbooks-merkle"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "nym-credentials-interface",
  "nym-serde-helpers",
@@ -4822,7 +4823,7 @@ dependencies = [
 [[package]]
 name = "nym-topology"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "async-trait",
  "nym-api-requests",
@@ -4843,7 +4844,7 @@ dependencies = [
 [[package]]
 name = "nym-validator-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -4893,7 +4894,7 @@ dependencies = [
 [[package]]
 name = "nym-vesting-contract-common"
 version = "0.7.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -5277,7 +5278,7 @@ dependencies = [
 [[package]]
 name = "nym-wireguard-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "base64 0.22.1",
  "log",
@@ -5821,7 +5822,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
 dependencies = [
  "anyhow",
- "itertools 0.12.1",
+ "itertools 0.13.0",
  "proc-macro2",
  "quote",
  "syn 2.0.98",
@@ -6841,9 +6842,9 @@ dependencies = [
 
 [[package]]
 name = "sphinx-packet"
-version = "0.1.1"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dabeca95bf5fd0563d6be7ebcb1c6a9fcb135746a0ba9050c47dc68c8607e595"
+checksum = "535f2c430778bf59c22249fcc1ed6d384129eb2f0f694706015d636c688f9ac6"
 dependencies = [
  "aes",
  "arrayref",
@@ -6857,11 +6858,11 @@ dependencies = [
  "hkdf",
  "hmac",
  "lioness",
- "log",
  "rand 0.8.5",
  "rand_distr",
  "sha2 0.10.8",
  "subtle 2.6.1",
+ "x25519-dalek",
 ]
 
 [[package]]
@@ -8446,7 +8447,7 @@ dependencies = [
 [[package]]
 name = "wasm-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#856dbfe1ac0ff34c1ed5e1d395d8e40431ebd28d"
 dependencies = [
  "futures",
  "getrandom 0.2.15",
