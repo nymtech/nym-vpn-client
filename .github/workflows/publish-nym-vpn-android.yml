@@ -27,7 +27,7 @@ on:
       publish-accrescent:
         type: boolean
         default: false
-        description: Build and upload apks file for manual accrescent publishing
+        description: Publish accrescent
       tag_name:
         description: "Tag name for release"
         required: false
