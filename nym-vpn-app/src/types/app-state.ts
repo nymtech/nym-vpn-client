@@ -9,7 +9,7 @@ import {
   GatewayType,
   GatewaysByCountry,
   NetworkEnv,
-} from './tauri-ipc';
+} from './tauri';
 import { Tunnel, TunnelError } from './tunnel';
 
 export type TunnelState =

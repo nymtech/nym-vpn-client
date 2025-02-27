@@ -104,7 +104,10 @@ export async function initFirstBatch(
   const getEntryNodeRq: TauriReq<() => Promise<Gateway | Country | undefined>> =
     {
       name: 'getEntryNode',
-      request: () => kvGet<Gateway | Country>('entry-node'),
+      request: () =>
+        S_STATE.vpnModeAtStart === 'wg'
+          ? kvGet<Gateway | Country>('wg-entry-node')
+          : kvGet<Gateway | Country>('mx-entry-node'),
       onFulfilled: (node) => {
         if (node) {
           dispatch({
@@ -126,7 +129,10 @@ export async function initFirstBatch(
   const getExitNodeRq: TauriReq<() => Promise<Gateway | Country | undefined>> =
     {
       name: 'getExitNode',
-      request: () => kvGet<Gateway | Country>('exit-node'),
+      request: () =>
+        S_STATE.vpnModeAtStart === 'wg'
+          ? kvGet<Gateway | Country>('wg-exit-node')
+          : kvGet<Gateway | Country>('mx-exit-node'),
       onFulfilled: (node) => {
         if (node) {
           dispatch({

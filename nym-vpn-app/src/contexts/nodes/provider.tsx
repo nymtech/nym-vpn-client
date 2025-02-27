@@ -1,10 +1,26 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Country, Gateway, GatewaysByCountry, NodeHop } from '../../types';
-import { useMainState } from '../main';
+import { useNavigate } from 'react-router';
+import {
+  Country,
+  DbKey,
+  Gateway,
+  GatewaysByCountry,
+  NodeHop,
+  StateDispatch,
+  isGateway,
+} from '../../types';
+import { routes } from '../../router';
+import { useMainDispatch, useMainState } from '../main';
 import { useLang } from '../../hooks';
+import { kvSet } from '../../kvStore';
 import { NodesContext } from './context';
-import { GwSelectedKind, UiGateway, UiGatewaysByCountry } from './types';
-import { isSelectedNodeType } from './util';
+import {
+  GwSelectedKind,
+  UiCountry,
+  UiGateway,
+  UiGatewaysByCountry,
+} from './types';
+import { isSelectedNodeType, uiNodeToRaw } from './util';
 
 export type NodesStateProviderProps = {
   children: React.ReactNode;
@@ -23,12 +39,14 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
     mxExitGatewaysError,
     wgGatewaysError,
   } = useMainState();
+  const dispatch = useMainDispatch() as StateDispatch;
 
   const [nodes, setNodes] = useState<UiGatewaysByCountry[]>([]);
   const [gatewayList, setGatewayList] = useState<UiGateway[]>([]);
   const [loading, setLoading] = useState(true);
 
   const { compare, getCountryName } = useLang();
+  const navigate = useNavigate();
 
   const uifyGateways = useCallback(
     (
@@ -125,6 +143,36 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
     wgGatewaysError,
   ]);
 
+  const onNodeSelect = useCallback(
+    async (node: NodeHop, selected: UiCountry | UiGateway) => {
+      if (
+        isGateway(selected) &&
+        (selected.isSelected === 'exit' || selected.isSelected === 'entry')
+      ) {
+        return;
+      }
+
+      let key: DbKey;
+      if (node === 'entry') {
+        key = vpnMode === 'wg' ? 'wg-entry-node' : 'mx-entry-node';
+      } else {
+        key = vpnMode === 'wg' ? 'wg-exit-node' : 'mx-exit-node';
+      }
+
+      try {
+        await kvSet(key, uiNodeToRaw(selected));
+        dispatch({
+          type: 'set-node',
+          payload: { hop: node, node: selected },
+        });
+      } catch (e) {
+        console.warn(e);
+      }
+      navigate(routes.root);
+    },
+    [dispatch, navigate, vpnMode],
+  );
+
   return (
     <NodesContext.Provider
       value={{
@@ -134,6 +182,7 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
         node: nodeType,
         vpnMode,
         error,
+        onNodeSelect,
       }}
     >
       {children}

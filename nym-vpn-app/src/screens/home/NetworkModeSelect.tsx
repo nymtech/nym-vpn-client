@@ -4,12 +4,13 @@ import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@headlessui/react';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
-import { StateDispatch, VpnMode } from '../../types';
+import { Country, Gateway, StateDispatch, VpnMode } from '../../types';
 import { RadioGroup, RadioGroupOption } from '../../ui';
 import { useThrottle } from '../../hooks';
-import { HomeThrottleDelay } from '../../constants';
+import { DefaultCountry, HomeThrottleDelay } from '../../constants';
 import MsIcon from '../../ui/MsIcon';
 import { S_STATE } from '../../static';
+import { kvGet } from '../../kvStore';
 import ModeDetailsDialog from './ModeDetailsDialog';
 
 function NetworkModeSelect() {
@@ -21,6 +22,40 @@ function NetworkModeSelect() {
 
   const { t } = useTranslation('home');
 
+  const restoreNodes = async (value: VpnMode) => {
+    const kv: Promise<Gateway | Country | undefined>[] = [];
+    if (value === 'wg') {
+      kv.push(kvGet<Gateway | Country>('wg-entry-node'));
+      kv.push(kvGet<Gateway | Country>('wg-exit-node'));
+    } else {
+      kv.push(kvGet<Gateway | Country>('mx-entry-node'));
+      kv.push(kvGet<Gateway | Country>('mx-exit-node'));
+    }
+    const nodes = await Promise.all(kv);
+    const entry = nodes[0] || DefaultCountry;
+    const exit = nodes[1] || DefaultCountry;
+    console.info(
+      `restoring nodes for [${value}], entry:`,
+      entry,
+      'exit:',
+      exit,
+    );
+    dispatch({
+      type: 'set-node',
+      payload: {
+        hop: 'entry',
+        node: entry,
+      },
+    });
+    dispatch({
+      type: 'set-node',
+      payload: {
+        hop: 'exit',
+        node: exit,
+      },
+    });
+  };
+
   const handleNetworkModeChange = async (value: VpnMode) => {
     if (state === 'Disconnected' && value !== vpnMode) {
       setLoading(true);
@@ -28,6 +63,7 @@ function NetworkModeSelect() {
         await invoke<void>('set_vpn_mode', { mode: value });
         dispatch({ type: 'set-vpn-mode', mode: value });
         console.info('vpn mode set to', value);
+        await restoreNodes(value);
         if (value === 'mixnet') {
           fetchGateways('mx-entry');
           fetchGateways('mx-exit');
