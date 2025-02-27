@@ -5,9 +5,10 @@
 # https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core/
 #
 # If no tag is provided as an argument, it defaults to using the 'develop' folder.
+# If a tag is provided, it uses the release folder with that tag.
 #
 # It extracts the asset filenames (which include a 14-digit timestamp) and derives:
-#   - The library version (e.g. 1.4.0-dev.20250212031000)
+#   - The library version (e.g. 1.4.0-dev.20250212031000 or 1.4.0-beta.202502251100)
 #   - The daemon version (e.g. 1.4.0)
 #
 # Must be run from nym-vpn-apple/Scripts.
@@ -27,10 +28,18 @@ trap 'error_handler $LINENO' ERR
 # -----------------------------------------------------------------------------
 # 0. Determine the build tag and the latest timestamp folder to use.
 # -----------------------------------------------------------------------------
-# Use the first command-line argument if provided, else default to 'develop'
-TAG="${1:-develop}"
 BASE_URL="https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core"
-TAG_URL="${BASE_URL}/${TAG}"
+if [[ $# -eq 0 ]]; then
+    TAG="develop"
+    TAG_URL="${BASE_URL}/${TAG}"
+    ios_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]{12}_ios_universal\.zip'
+    macos_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]{12}_macos_universal\.tar\.gz'
+else
+    TAG="$1"
+    TAG_URL="${BASE_URL}/release/${TAG}"
+    ios_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+(-(?:dev|beta)\.[0-9]{12})?_ios_universal\.zip'
+    macos_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+(-(?:dev|beta)\.[0-9]{12})?_macos_universal\.tar\.gz'
+fi
 
 echo "Using build tag: ${TAG}"
 echo "Fetching folder listing from $TAG_URL..."
@@ -49,30 +58,35 @@ RELEASE_URL="${TAG_URL}/${latest_folder}"
 
 echo "Fetching release page content from $RELEASE_URL..."
 release_page_content=$(curl -Ls "$RELEASE_URL")
+if [[ -z "$release_page_content" ]]; then
+    echo "❌ Error: Release page content is empty. Please verify that the URL $RELEASE_URL exists and is accessible."
+    exit 1
+fi
 
 # -----------------------------------------------------------------------------
 # 1. Extract asset filenames, timestamp, and versions from the release page content.
 # -----------------------------------------------------------------------------
+echo "$release_page_content" | grep -Eo "$ios_pattern"
 
-ios_asset=$(echo "$release_page_content" | grep -Eo 'nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]{12}_ios_universal\.zip' | head -n 1)
+ios_asset=$(echo "$release_page_content" | grep -Eo "$ios_pattern" | head -n 1)
 if [[ -z "$ios_asset" ]]; then
     echo "❌ Error: Could not find iOS asset filename in the release page."
     exit 1
 fi
 
-TIMESTAMP=$(echo "$ios_asset" | grep -Eo '[0-9]{12}')
+TIMESTAMP=$(echo "$ios_asset" | grep -Eo '[0-9]{12}' || true)
 if [[ -z "$TIMESTAMP" ]]; then
-    echo "❌ Error: Could not extract timestamp from iOS asset filename."
-    exit 1
+    echo "⚠️ Warning: No timestamp found in iOS asset filename. Using default value."
+    TIMESTAMP="000000000000"
 fi
 
-LIB_VERSION=$(echo "$ios_asset" | sed -E 's/nym-vpn-core-v([0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]{12})_ios_universal\.zip/\1/')
+LIB_VERSION=$(echo "$ios_asset" | sed -E 's/^nym-vpn-core-v//; s/_ios_universal\.zip$//')
 if [[ -z "$LIB_VERSION" ]]; then
     echo "❌ Error: Could not extract lib version from iOS asset filename."
     exit 1
 fi
 
-DAEMON_VERSION=$(echo "$LIB_VERSION" | sed -E 's/-dev\.[0-9]{14}//')
+DAEMON_VERSION=$(echo "$LIB_VERSION" | sed -E 's/(-((dev|beta)\.[0-9]{12}))//')
 if [[ -z "$DAEMON_VERSION" ]]; then
     echo "❌ Error: Could not derive daemon version from LIB_VERSION."
     exit 1
@@ -128,7 +142,7 @@ fi
 # -----------------------------------------------------------------------------
 # 5. Process macOS asset: extract the asset filename, download and extract it.
 # -----------------------------------------------------------------------------
-macos_asset=$(echo "$release_page_content" | grep -Eo 'nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]{12}_macos_universal\.tar\.gz' | head -n 1)
+macos_asset=$(echo "$release_page_content" | grep -Eo "$macos_pattern" | head -n 1)
 if [[ -z "$macos_asset" ]]; then
     echo "❌ Error: Could not find macOS asset filename in the release page."
     exit 1
@@ -166,7 +180,6 @@ else
     echo "❌ Error: ${extracted_folder_name}/proto not found."
     exit 1
 fi
-
 
 if [[ -f "$tar_file_name" ]]; then
     echo "✅ Removing downloaded tar.gz file: $tar_file_name"

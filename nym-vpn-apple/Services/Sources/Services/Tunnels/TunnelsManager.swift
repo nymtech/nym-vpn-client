@@ -68,7 +68,7 @@ extension TunnelsManager {
 // MARK: - Connection -
 extension TunnelsManager {
     public func connect(tunnel: Tunnel) async throws {
-        guard tunnels.contains(tunnel), tunnel.status == .disconnected  else { return }
+        guard tunnels.contains(tunnel)  else { return }
 #if targetEnvironment(simulator)
         tunnel.status = .connected
 #else
@@ -162,7 +162,7 @@ private extension TunnelsManager {
 
 #if os(iOS)
     func updateLastTunnelErrorIfNeeded() async {
-        guard activeTunnel?.status == .disconnecting else { return }
+        guard activeTunnel?.status == .disconnecting && activeTunnel?.status != .connected else { return }
 
         do {
             try await activeTunnel?.tunnel.connection.fetchLastDisconnectError()

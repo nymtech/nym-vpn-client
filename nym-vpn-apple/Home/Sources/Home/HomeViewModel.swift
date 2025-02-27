@@ -196,15 +196,17 @@ private extension HomeViewModel {
         }
         .store(in: &cancellables)
 #if os(iOS)
-        connectionManager.$activeTunnel.sink { [weak self] tunnel in
-            guard let tunnel, let self else { return }
-            Task { @MainActor in
-                self.activeTunnel = tunnel
+        connectionManager.$activeTunnel
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] tunnel in
+                guard let tunnel, let self else { return }
+                MainActor.assumeIsolated {
+                    self.activeTunnel = tunnel
+                    self.configureTunnelStatusObservation(with: tunnel)
+                    self.updateTimeConnected()
+                }
             }
-            self.configureTunnelStatusObservation(with: tunnel)
-            self.updateTimeConnected()
-        }
-        .store(in: &cancellables)
+            .store(in: &cancellables)
 #endif
     }
 
@@ -259,9 +261,9 @@ private extension HomeViewModel {
 #if os(iOS)
         connectionManager.$lastError
             .receive(on: DispatchQueue.main)
-            .sink { error in
+            .sink { [weak self] error in
                 MainActor.assumeIsolated {
-                    self.updateLastError(error)
+                    self?.updateLastError(error)
                 }
             }
             .store(in: &cancellables)
@@ -273,8 +275,10 @@ private extension HomeViewModel {
             .removeDuplicates()
             .receive(on: DispatchQueue.main)
             .sink { [weak self] status in
-                self?.updateUI(with: status)
-                self?.updateTimeConnected()
+                MainActor.assumeIsolated {
+                    self?.updateUI(with: status)
+                    self?.updateTimeConnected()
+                }
             }
     }
 #endif
@@ -296,40 +300,38 @@ private extension HomeViewModel {
 }
 
 extension HomeViewModel {
-    func updateUI(with status: TunnelStatus) {
+    @MainActor func updateUI(with status: TunnelStatus) {
         guard status != lastTunnelStatus else { return }
         let newStatus: TunnelStatus
+#if os(iOS)
+        // TODO: remove once tunnel supports reconnect
         // Fake satus, until we get support from the tunnel
         if connectionManager.isReconnecting &&
             (status == .disconnecting || status == .disconnected || status == .connecting) {
             newStatus = .reasserting
-        } else if connectionManager.isDisconnecting &&
-                    (status == .connecting || status == .connected) {
-            newStatus = .disconnecting
+        
         } else {
             newStatus = status
         }
-#if os(iOS)
-        if status == .connected && !connectionManager.isDisconnecting {
+        if newStatus == .connected {
             impactGenerator.success()
         }
+#elseif os(macOS)
+        newStatus = status
 #endif
         lastTunnelStatus = newStatus
-        Task { @MainActor [weak self] in
+        withAnimation { [weak self] in
             guard let self else { return }
-            withAnimation { [weak self] in
-                guard let self else { return }
-                statusButtonConfig = StatusButtonConfig(
-                    tunnelStatus: newStatus,
-                    hasInternet: networkMonitor.isAvailable
-                )
-                connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
+            statusButtonConfig = StatusButtonConfig(
+                tunnelStatus: newStatus,
+                hasInternet: networkMonitor.isAvailable
+            )
+            connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
 
-                if let lastError {
-                    statusInfoState = .error(message: lastError.localizedDescription)
-                } else {
-                    statusInfoState = StatusInfoState(tunnelStatus: newStatus, isOnline: networkMonitor.isAvailable)
-                }
+            if let lastError {
+                statusInfoState = .error(message: lastError.localizedDescription)
+            } else {
+                statusInfoState = StatusInfoState(tunnelStatus: newStatus, isOnline: networkMonitor.isAvailable)
             }
         }
     }

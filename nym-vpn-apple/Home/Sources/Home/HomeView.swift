@@ -70,6 +70,9 @@ private extension HomeView {
     @ViewBuilder
     func statusAreaSection() -> some View {
         VStack {
+            Spacer()
+                .frame(height: 8)
+
             StatusButton(
                 config: viewModel.statusButtonConfig,
                 isSmallScreen: viewModel.appSettings.isSmallScreen

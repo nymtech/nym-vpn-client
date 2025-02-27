@@ -41,7 +41,7 @@ public struct GatewayCountryDropDown: View {
     public var body: some View {
         VStack(spacing: 0) {
             countryCell()
-            if isExpanded, !isSearching {
+            if isExpanded {
                 ForEach(servers, id: \.id) { server in
                     GatewayCell(
                         server: server,

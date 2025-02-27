@@ -30,8 +30,8 @@ let package = Package(
         .target(
             name: "Home",
             dependencies: [
-                "UIComponents",
-                "Settings",
+                .product(name: "UIComponents", package: "UIComponents"),
+                .product(name: "Settings", package: "Settings"),
                 .product(name: "CountriesManager", package: "Services"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 .product(name: "ConnectionManager", package: "Services"),
