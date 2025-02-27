@@ -202,7 +202,7 @@ jobs:
             echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/${{ inputs.build_type }}/.*\.apk$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
           else
             BUILD_TYPE=$(echo "${{ inputs.build_type }}" | sed 's/./\u&/')
-            echo "path=$(find . -regex '^.*/build/outputs/bundle/fdroid$BUILD_TYPE/.*\.aab$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
+            echo "path=$(find . -regex '^.*/build/outputs/bundle/fdroidRelease/.*\.aab$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload artifact
