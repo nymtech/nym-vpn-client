@@ -24,6 +24,10 @@ on:
         type: boolean
         default: true
         description: Skip app metadata
+      publish-accrescent:
+        type: boolean
+        default: false
+        description: Build and upload apks file for manual accrescent publishing
       tag_name:
         description: "Tag name for release"
         required: false
@@ -47,13 +51,21 @@ env:
   RELEASE_NOTES: ''
 
 jobs:
-  build-nym-vpn-android:
+  build-nym-vpn-android-apk:
     if: ${{ inputs.release_type != 'none' }}
     uses: ./.github/workflows/build-nym-vpn-android.yml
     secrets: inherit
     with:
       build_type: ${{ inputs.release_type == '' && 'nightly' || inputs.release_type }}
+      build_format: apk
 
+  build-nym-vpn-android-aab:
+    if: ${{github.event.inputs.publish-accrescent == 'true'}}
+    uses: ./.github/workflows/build-nym-vpn-android.yml
+    secrets: inherit
+    with:
+      build_type: release
+      build_format: aab
 
   publish-github:
     if: ${{ inputs.release_type != 'none' }}
@@ -179,6 +191,50 @@ jobs:
           token: ${{ secrets.ANDROID_PAT }}
           repository: nymtech/fdroid
           event-type: fdroid-update
+
+  publish-accrescent:
+    runs-on: ubuntu-22.04
+    if: ${{github.event.inputs.publish-accrescent == 'true'}}
+    needs:
+      - build-nym-vpn-android-aab
+    steps:
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Download bundletool
+        run: |
+          wget -O bundletool.jar https://github.com/google/bundletool/releases/download/1.15.6/bundletool-all-1.18.0.jar
+
+      - name: Make download dir
+        run: mkdir ${{ github.workspace }}/temp
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.UPLOAD_DIR_ANDROID }}
+          path: ${{ github.workspace }}/temp
+
+      - name: Generate APKS
+        run: |
+          AAB_FILE=$(ls ${{ github.workspace }}/temp/*.aab | head -n 1)
+          if [ -z "$AAB_FILE" ]; then
+            echo "Error: No .aab file found in ${{ github.workspace }}/temp"
+            exit 1
+          fi
+          java -jar bundletool.jar build-apks \
+            --bundle="$AAB_FILE" \
+            --output=app.apks \
+            --mode=universal
+
+      - name: Upload APKS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-apks
+          path: app.apks
+      
 
   publish-play:
     if: ${{ inputs.track != 'none' && inputs.track != '' }}
