@@ -10,4 +10,5 @@ pub use connect::IprClientConnect;
 pub use error::Error;
 pub use listener::{IprListener, MixnetMessageOutcome};
 
-pub(crate) use nym_ip_packet_requests::v7 as nym_ip_packet_requests_current;
+// Re-export the currently used version
+pub use nym_ip_packet_requests::v7 as current;

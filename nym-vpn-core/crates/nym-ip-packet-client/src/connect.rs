@@ -10,15 +10,15 @@ use tokio_util::sync::CancellationToken;
 use tracing::{debug, error};
 
 use crate::{
-    error::{Error, Result},
-    helpers::check_ipr_message_version,
-    nym_ip_packet_requests_current::{
+    current::{
         request::IpPacketRequest,
         response::{
             DynamicConnectResponse, DynamicConnectResponseReply, IpPacketResponse,
             IpPacketResponseData, StaticConnectResponse, StaticConnectResponseReply,
         },
     },
+    error::{Error, Result},
+    helpers::check_ipr_message_version,
 };
 
 const IPR_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);

@@ -8,11 +8,11 @@ use tokio_util::codec::Decoder;
 use tracing::{debug, error, info, warn};
 
 use crate::{
-    helpers::check_ipr_message_version,
-    nym_ip_packet_requests_current::{
+    current::{
         request::{IpPacketRequest, IpPacketRequestData},
         response::{InfoLevel, IpPacketResponse, IpPacketResponseData},
     },
+    helpers::check_ipr_message_version,
 };
 
 pub enum MixnetMessageOutcome {

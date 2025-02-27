@@ -10,7 +10,7 @@ use nym_connection_monitor::{
     ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply,
 };
 use nym_gateway_directory::IpPacketRouterAddress;
-use nym_ip_packet_requests::{codec::MultiIpPacketCodec, IpPair};
+use nym_ip_packet_requests::{codec::MultiIpPacketCodec, v7::request::IpPacketRequest, IpPair};
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{InputMessage, Recipient};
 use nym_task::connections::TransmissionLane;
@@ -73,9 +73,7 @@ pub async fn send_ping_v6(
 }
 
 fn create_input_message(recipient: Recipient, bundled_packets: Bytes) -> Result<InputMessage> {
-    let packet =
-        nym_ip_packet_requests::request::IpPacketRequest::new_data_request(bundled_packets)
-            .to_bytes()?;
+    let packet = IpPacketRequest::new_data_request(bundled_packets).to_bytes()?;
 
     let lane = TransmissionLane::General;
     let packet_type = None;

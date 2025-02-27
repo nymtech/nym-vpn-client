@@ -42,6 +42,7 @@ default-members = [
 # For local development
 # [patch."https://github.com/nymtech/nym"]
 # nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
+# nym-api-requests = { path = "../../nym/nym-api/nym-api-requests" }
 # nym-bandwidth-controller = { path = "../../nym/common/bandwidth-controller" }
 # nym-bin-common = { path = "../../nym/common/bin-common" }
 # nym-client-core = { path = "../../nym/common/client-core" }

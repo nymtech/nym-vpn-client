@@ -31,7 +31,7 @@ use nym_gateway_directory::{
 use nym_ip_packet_client::IprClientConnect;
 use nym_ip_packet_requests::{
     codec::MultiIpPacketCodec,
-    response::{DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData},
+    v7::response::{DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData},
     IpPair,
 };
 use nym_mixnet_client::SharedMixnetClient;

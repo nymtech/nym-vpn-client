@@ -6,7 +6,7 @@ use std::result::Result;
 use bytes::Bytes;
 use futures::{channel::mpsc, StreamExt};
 use nym_connection_monitor::{ConnectionMonitorTask, ConnectionStatusEvent};
-use nym_ip_packet_requests::{codec::MultiIpPacketCodec, request::IpPacketRequest};
+use nym_ip_packet_requests::{codec::MultiIpPacketCodec, v7::request::IpPacketRequest};
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
