@@ -53,7 +53,6 @@ pub async fn connect(
         .dns_server
         .clone()
         .map(|ip| nym_vpn_proto::Dns { ip });
-    let credentials_mode = app_state.credentials_mode;
     // release the lock
     drop(app_state);
 
@@ -66,24 +65,13 @@ pub async fn connect(
         info!("mode [mixnet]");
         false
     };
-    if credentials_mode {
-        info!("credentials mode [on]");
-    } else {
-        info!("credentials mode [off]");
-    }
+    info!("credentials mode [on]");
 
     let use_netstack_wireguard = false;
 
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
     match grpc
-        .vpn_connect(
-            entry,
-            exit,
-            two_hop_mod,
-            credentials_mode,
-            use_netstack_wireguard,
-            dns,
-        )
+        .vpn_connect(entry, exit, two_hop_mod, true, use_netstack_wireguard, dns)
         .await
     {
         Ok(_) => Ok(TunnelState::Connecting(None)),
