@@ -112,7 +112,8 @@ WINFW_API
 WinFw_InitializeBlocked(
 	uint32_t timeout,
 	const WinFwSettings *settings,
-	const WinFwAllowedEndpoint *allowedEndpoint,
+	const WinFwAllowedEndpoint *allowedEndpoints[],
+	size_t numAllowedEndpoints, 
 	MullvadLogSink logSink,
 	void *logSinkContext
 );
@@ -162,13 +163,17 @@ WINFW_LINKAGE
 WINFW_POLICY_STATUS
 WINFW_API
 WinFw_ApplyPolicyConnecting(
-	const WinFwSettings *settings,
-	const WinFwEndpoint *relay,
-	const wchar_t **relayClient,
-	size_t relayClientLen,
-	const wchar_t *tunnelInterfaceAlias,
-	const WinFwAllowedEndpoint *allowedEndpoint,
-	const WinFwAllowedTunnelTraffic *allowedTunnelTraffic
+	const WinFwSettings* settings,
+	const WinFwAllowedEndpoint* relays[],
+	size_t numRelays,
+	const wchar_t* entryTunnelIfaceAlias,
+	const wchar_t* exitTunnelIfaceAlias,
+	const WinFwAllowedEndpoint* allowedEndpoints[],
+	size_t numAllowedEndpoints,
+	const WinFwAllowedTunnelTraffic* allowedEntryTunnelTraffic,
+	const WinFwAllowedTunnelTraffic* allowedExitTunnelTraffic,
+	const wchar_t* nonTunnelDnsServers[],
+	size_t numNonTunnelDnsServers
 );
 
 //
@@ -191,15 +196,17 @@ WINFW_LINKAGE
 WINFW_POLICY_STATUS
 WINFW_API
 WinFw_ApplyPolicyConnected(
-	const WinFwSettings *settings,
-	const WinFwEndpoint *relay,
-	const wchar_t **relayClient,
-	size_t relayClientLen,
-	const wchar_t *tunnelInterfaceAlias,
-	const wchar_t * const *tunnelDnsServers,
+	const WinFwSettings* settings,
+	const WinFwAllowedEndpoint* relays[],
+	size_t numRelays,
+	const wchar_t* entryTunnelIfaceAlias,
+	const wchar_t* exitTunnelIfaceAlias,
+	const wchar_t* tunnelDnsServers[],
 	size_t numTunnelDnsServers,
-	const wchar_t * const *nonTunnelDnsServers,
-	size_t numNonTunnelDnsServers
+	const wchar_t* nonTunnelDnsServers[],
+	size_t numNonTunnelDnsServers,
+	const WinFwAllowedEndpoint* allowedEndpoints[],
+	size_t numAllowedEndpoints
 );
 
 //
@@ -213,8 +220,9 @@ WINFW_LINKAGE
 WINFW_POLICY_STATUS
 WINFW_API
 WinFw_ApplyPolicyBlocked(
-	const WinFwSettings *settings,
-	const WinFwAllowedEndpoint *allowedEndpoint
+	const WinFwSettings* settings,
+	const WinFwAllowedEndpoint* allowedEndpoints[],
+	size_t numAllowedEndpoints
 );
 
 //

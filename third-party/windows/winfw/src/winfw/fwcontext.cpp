@@ -80,24 +80,27 @@ void AppendSettingsRules
 void AppendRelayRules
 (
 	FwContext::Ruleset &ruleset,
-	const WinFwEndpoint &relay,
+	const std::vector<WinFwEndpoint> &relays,
 	const std::vector<std::wstring> &relayClients
 )
 {
-	auto sublayer =
-	(
-		DNS_SERVER_PORT == relay.port
-		? rules::multi::PermitVpnRelay::Sublayer::Dns
-		: rules::multi::PermitVpnRelay::Sublayer::Baseline
-	);
+	for (const auto& relay : relays)
+	{
+		auto sublayer =
+			(
+				DNS_SERVER_PORT == relay.port
+				? rules::multi::PermitVpnRelay::Sublayer::Dns
+				: rules::multi::PermitVpnRelay::Sublayer::Baseline
+				);
 
-	ruleset.emplace_back(std::make_unique<multi::PermitVpnRelay>(
-		wfp::IpAddress(relay.ip),
-		relay.port,
-		relay.protocol,
-		relayClients,
-		sublayer
-	));
+		ruleset.emplace_back(std::make_unique<multi::PermitVpnRelay>(
+			wfp::IpAddress(relay.ip),
+			relay.port,
+			relay.protocol,
+			relayClients,
+			sublayer
+		));
+	}
 }
 
 //
@@ -106,21 +109,24 @@ void AppendRelayRules
 void AppendAllowedEndpointRules
 (
 	FwContext::Ruleset &ruleset,
-	const WinFwAllowedEndpoint &endpoint
+	const std::vector<WinFwAllowedEndpoint> &endpoints
 )
 {
-	std::vector<std::wstring> clients;
-	clients.reserve(endpoint.numClients);
-	for (uint32_t i = 0; i < endpoint.numClients; i++) {
-		clients.push_back(endpoint.clients[i]);
-	}
+	for (const auto& endpoint : endpoints)
+	{
+		std::vector<std::wstring> clients;
+		clients.reserve(endpoint.numClients);
+		for (uint32_t i = 0; i < endpoint.numClients; i++) {
+			clients.push_back(endpoint.clients[i]);
+		}
 
-	ruleset.emplace_back(std::make_unique<baseline::PermitEndpoint>(
-		wfp::IpAddress(endpoint.endpoint.ip),
-		clients,
-		endpoint.endpoint.port,
-		endpoint.endpoint.protocol
-	));
+		ruleset.emplace_back(std::make_unique<baseline::PermitEndpoint>(
+			wfp::IpAddress(endpoint.endpoint.ip),
+			clients,
+			endpoint.endpoint.port,
+			endpoint.endpoint.protocol
+		));
+	}
 }
 
 void AppendNetBlockedRules(FwContext::Ruleset &ruleset)
@@ -158,7 +164,7 @@ FwContext::FwContext
 (
 	uint32_t timeout,
 	const WinFwSettings &settings,
-	const std::optional<WinFwAllowedEndpoint> &allowedEndpoint
+	const std::optional<std::vector<WinFwAllowedEndpoint>>& allowedEndpoints
 )
 	: m_baseline(0)
 	, m_activePolicy(Policy::None)
@@ -172,7 +178,7 @@ FwContext::FwContext
 
 	uint32_t checkpoint = 0;
 
-	if (false == applyBlockedBaseConfiguration(settings, allowedEndpoint, checkpoint))
+	if (false == applyBlockedBaseConfiguration(settings, allowedEndpoints, checkpoint))
 	{
 		THROW_ERROR("Failed to apply base configuration in BFE");
 	}
@@ -183,37 +189,50 @@ FwContext::FwContext
 
 bool FwContext::applyPolicyConnecting
 (
-	const WinFwSettings &settings,
-	const WinFwEndpoint &relay,
-	const std::vector<std::wstring> &relayClients,
-	const std::optional<std::wstring> &tunnelInterfaceAlias,
-	const std::optional<WinFwAllowedEndpoint> &allowedEndpoint,
-	const WinFwAllowedTunnelTraffic &allowedTunnelTraffic
+	const WinFwSettings& settings,
+	const std::vector<WinFwEndpoint>& relays,
+	const std::vector<std::wstring>& relayClients,
+
+	const std::optional<std::wstring>& /* entryTunnelIfaceAlias */,
+	const WinFwAllowedTunnelTraffic& /* allowedEntryTunnelTraffic */,
+
+	const std::optional<std::wstring>& exitTunnelIfaceAlias,
+	const WinFwAllowedTunnelTraffic& allowedExitTunnelTraffic,
+
+	const std::optional<std::vector<WinFwAllowedEndpoint>>& allowedEndpoints,
+	const std::vector<wfp::IpAddress>& nonTunnelDnsServers
 )
 {
 	Ruleset ruleset;
 
 	AppendNetBlockedRules(ruleset);
 	AppendSettingsRules(ruleset, settings);
-	AppendRelayRules(ruleset, relay, relayClients);
+	AppendRelayRules(ruleset, relays, relayClients);
 
-	if (allowedEndpoint.has_value())
+	if (allowedEndpoints.has_value())
 	{
-		AppendAllowedEndpointRules(ruleset, allowedEndpoint.value());
+		AppendAllowedEndpointRules(ruleset, allowedEndpoints.value());
 	}
 
-	if (tunnelInterfaceAlias.has_value())
+	if (!nonTunnelDnsServers.empty())
 	{
-		switch (allowedTunnelTraffic.type)
+		ruleset.emplace_back(std::make_unique<dns::PermitNonTunnel>(
+			exitTunnelIfaceAlias, nonTunnelDnsServers
+		));
+	}
+
+	if (exitTunnelIfaceAlias.has_value())
+	{
+		switch (allowedExitTunnelTraffic.type)
 		{
 			case WinFwAllowedTunnelTrafficType::All:
 			{
 				ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
-					*tunnelInterfaceAlias,
+					*exitTunnelIfaceAlias,
 					std::nullopt
 				));
 				ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnelService>(
-					*tunnelInterfaceAlias,
+					*exitTunnelIfaceAlias,
 					std::nullopt
 				));
 				break;
@@ -222,18 +241,18 @@ bool FwContext::applyPolicyConnecting
 			{
 				auto onlyEndpoint = std::make_optional<baseline::PermitVpnTunnel::Endpoints>({
 						baseline::PermitVpnTunnel::Endpoint{
-						wfp::IpAddress(allowedTunnelTraffic.endpoint1->ip),
-						allowedTunnelTraffic.endpoint1->port,
-						allowedTunnelTraffic.endpoint1->protocol
+						wfp::IpAddress(allowedExitTunnelTraffic.endpoint1->ip),
+						allowedExitTunnelTraffic.endpoint1->port,
+						allowedExitTunnelTraffic.endpoint1->protocol
 						},
 						std::nullopt,
 				});
 				ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
-					*tunnelInterfaceAlias,
+					*exitTunnelIfaceAlias,
 					onlyEndpoint
 				));
 				ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnelService>(
-					*tunnelInterfaceAlias,
+					*exitTunnelIfaceAlias,
 					onlyEndpoint
 				));
 				break;
@@ -242,22 +261,22 @@ bool FwContext::applyPolicyConnecting
 			{
 				auto endpoints = std::make_optional<baseline::PermitVpnTunnel::Endpoints>({
 						baseline::PermitVpnTunnel::Endpoint{
-						wfp::IpAddress(allowedTunnelTraffic.endpoint1->ip),
-						allowedTunnelTraffic.endpoint1->port,
-						allowedTunnelTraffic.endpoint1->protocol
+						wfp::IpAddress(allowedExitTunnelTraffic.endpoint1->ip),
+						allowedExitTunnelTraffic.endpoint1->port,
+						allowedExitTunnelTraffic.endpoint1->protocol
 						},
 						std::make_optional<baseline::PermitVpnTunnel::Endpoint>({
-								wfp::IpAddress(allowedTunnelTraffic.endpoint2->ip),
-								allowedTunnelTraffic.endpoint2->port,
-								allowedTunnelTraffic.endpoint2->protocol
+								wfp::IpAddress(allowedExitTunnelTraffic.endpoint2->ip),
+								allowedExitTunnelTraffic.endpoint2->port,
+								allowedExitTunnelTraffic.endpoint2->protocol
 								})
 				});
 				ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
-							*tunnelInterfaceAlias,
+							*exitTunnelIfaceAlias,
 							endpoints
 							));
 				ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnelService>(
-							*tunnelInterfaceAlias,
+							*exitTunnelIfaceAlias,
 							endpoints
 							));
 				break;
@@ -267,7 +286,6 @@ bool FwContext::applyPolicyConnecting
 	}
 
 	const auto status = applyRuleset(ruleset);
-
 	if (status)
 	{
 		m_activePolicy = Policy::Connecting;
@@ -278,45 +296,57 @@ bool FwContext::applyPolicyConnecting
 
 bool FwContext::applyPolicyConnected
 (
-	const WinFwSettings &settings,
-	const WinFwEndpoint &relay,
-	const std::vector<std::wstring> &relayClient,
-	const std::wstring &tunnelInterfaceAlias,
-	const std::vector<wfp::IpAddress> &tunnelDnsServers,
-	const std::vector<wfp::IpAddress> &nonTunnelDnsServers
+	const WinFwSettings& settings,
+	const std::vector<WinFwEndpoint>& relays,
+	const std::vector<std::wstring>& relayClients,
+	const std::optional<std::wstring>& /* entryTunnelIfaceAlias */,
+	const std::optional<std::wstring>& exitTunnelIfaceAlias,
+	const std::optional<std::vector<WinFwAllowedEndpoint>>& allowedEndpoints,
+	const std::vector<wfp::IpAddress>& tunnelDnsServers,
+	const std::vector<wfp::IpAddress>& nonTunnelDnsServers
 )
 {
 	Ruleset ruleset;
 
 	AppendNetBlockedRules(ruleset);
 	AppendSettingsRules(ruleset, settings);
-	AppendRelayRules(ruleset, relay, relayClient);
+	AppendRelayRules(ruleset, relays, relayClients);
 
-	if (!tunnelDnsServers.empty())
+	if (allowedEndpoints.has_value())
 	{
-		ruleset.emplace_back(std::make_unique<dns::PermitTunnel>(
-			tunnelInterfaceAlias, tunnelDnsServers
-		));
-	}
-	if (!nonTunnelDnsServers.empty())
-	{
-		ruleset.emplace_back(std::make_unique<dns::PermitNonTunnel>(
-			tunnelInterfaceAlias, nonTunnelDnsServers
-		));
+		AppendAllowedEndpointRules(ruleset, allowedEndpoints.value());
 	}
 
-	ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
-		tunnelInterfaceAlias,
-		std::nullopt
-	));
+	if (exitTunnelIfaceAlias.has_value())
+	{
+		std::wstring exitTunnelIfaceAliasStr = exitTunnelIfaceAlias.value();
 
-	ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnelService>(
-		tunnelInterfaceAlias,
-		std::nullopt
-	));
+		if (!tunnelDnsServers.empty())
+		{
+			ruleset.emplace_back(std::make_unique<dns::PermitTunnel>(
+				exitTunnelIfaceAliasStr, tunnelDnsServers
+			));
+		}
+
+		if (!nonTunnelDnsServers.empty())
+		{
+			ruleset.emplace_back(std::make_unique<dns::PermitNonTunnel>(
+				exitTunnelIfaceAliasStr, nonTunnelDnsServers
+			));
+		}
+
+		ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
+			exitTunnelIfaceAliasStr,
+			std::nullopt
+		));
+
+		ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnelService>(
+			exitTunnelIfaceAliasStr,
+			std::nullopt
+		));
+	}
 
 	const auto status = applyRuleset(ruleset);
-
 	if (status)
 	{
 		m_activePolicy = Policy::Connected;
@@ -325,9 +355,12 @@ bool FwContext::applyPolicyConnected
 	return status;
 }
 
-bool FwContext::applyPolicyBlocked(const WinFwSettings &settings, const std::optional<WinFwAllowedEndpoint> &allowedEndpoint)
+bool FwContext::applyPolicyBlocked(
+	const WinFwSettings &settings, 
+	const std::optional<std::vector<WinFwAllowedEndpoint>> &allowedEndpoints
+)
 {
-	const auto status = applyRuleset(composePolicyBlocked(settings, allowedEndpoint));
+	const auto status = applyRuleset(composePolicyBlocked(settings, allowedEndpoints));
 
 	if (status)
 	{
@@ -357,16 +390,20 @@ FwContext::Policy FwContext::activePolicy() const
 	return m_activePolicy;
 }
 
-FwContext::Ruleset FwContext::composePolicyBlocked(const WinFwSettings &settings, const std::optional<WinFwAllowedEndpoint> &allowedEndpoint)
+FwContext::Ruleset FwContext::composePolicyBlocked
+(
+	const WinFwSettings &settings, 
+	const std::optional<std::vector<WinFwAllowedEndpoint>> &allowedEndpoints
+)
 {
 	Ruleset ruleset;
 
 	AppendNetBlockedRules(ruleset);
 	AppendSettingsRules(ruleset, settings);
 
-	if (allowedEndpoint.has_value())
+	if (allowedEndpoints.has_value())
 	{
-		AppendAllowedEndpointRules(ruleset, allowedEndpoint.value());
+		AppendAllowedEndpointRules(ruleset, allowedEndpoints.value());
 	}
 
 	return ruleset;
@@ -380,7 +417,7 @@ bool FwContext::applyBaseConfiguration()
 	});
 }
 
-bool FwContext::applyBlockedBaseConfiguration(const WinFwSettings &settings, const std::optional<WinFwAllowedEndpoint> &allowedEndpoint, uint32_t &checkpoint)
+bool FwContext::applyBlockedBaseConfiguration(const WinFwSettings &settings, const std::optional<std::vector<WinFwAllowedEndpoint>>& allowedEndpoints, uint32_t &checkpoint)
 {
 	return m_sessionController->executeTransaction([&](SessionController &controller, wfp::FilterEngine &engine)
 	{
@@ -396,7 +433,7 @@ bool FwContext::applyBlockedBaseConfiguration(const WinFwSettings &settings, con
 		//
 		checkpoint = controller.peekCheckpoint();
 
-		return applyRulesetDirectly(composePolicyBlocked(settings, allowedEndpoint), controller);
+		return applyRulesetDirectly(composePolicyBlocked(settings, allowedEndpoints), controller);
 	});
 }
 

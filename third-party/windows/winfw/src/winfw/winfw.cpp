@@ -47,6 +47,149 @@ std::optional<T> MakeOptional(T* object)
 	return std::make_optional(*object);
 }
 
+std::optional<std::wstring> MakeOptionalStr(const wchar_t* str)
+{
+	if (str == nullptr || *str == L'\0') 
+	{
+		return std::nullopt;
+	}
+	return std::wstring(str);
+}
+
+template<typename T>
+std::optional<std::vector<T>> MakeOptionalVector(const T* const* items, size_t count)
+{
+	if (items == nullptr || count == 0)
+	{
+		return std::nullopt;
+	}
+
+	std::vector<T> result;
+	result.reserve(count);
+
+	for (size_t i = 0; i < count; ++i)
+	{
+		if (items[i] != nullptr)
+		{
+			result.emplace_back(*items[i]);
+		}
+	}
+
+	return result.empty() ? std::nullopt : std::optional<std::vector<T>>(std::move(result));
+}
+
+template<typename T>
+std::vector<T> MakeVector(const T* const* items, size_t count)
+{
+	if (items == nullptr || count == 0)
+	{
+		return {};
+	}
+
+	std::vector<T> result;
+	result.reserve(count);
+
+	for (size_t i = 0; i < count; ++i)
+	{
+		if (items[i] != nullptr)
+		{
+			result.emplace_back(*items[i]);
+		}
+	}
+
+	return result;
+}
+
+std::vector<wfp::IpAddress> MakeIpAddressVector(const wchar_t* const* data, size_t num)
+{
+	if (data == nullptr || num == 0)
+	{
+		return {};
+	}
+
+	std::vector<wfp::IpAddress> result;
+	result.reserve(num);
+
+	for (size_t i = 0; i < num; ++i)
+	{
+		if (data[i] != nullptr)
+		{
+			result.emplace_back(data[i]);
+		}
+	}
+
+	return result;
+}
+
+std::vector<WinFwEndpoint> MakeRelayVector(const WinFwAllowedEndpoint* const* relays, size_t count)
+{
+	if (relays == nullptr || count == 0)
+	{
+		return {};
+	}
+
+	std::vector<WinFwEndpoint> result;
+	result.reserve(count);
+
+	for (size_t relayIndex = 0; relayIndex < count; ++relayIndex)
+	{
+		const auto& relay = relays[relayIndex];
+		if (relay != nullptr)
+		{
+			result.emplace_back(relay->endpoint);
+		}
+	}
+
+	return result;
+}
+
+std::vector<std::wstring> MakeRelayClientWstrings(const WinFwAllowedEndpoint* const* relays, size_t count)
+{
+	if (relays == nullptr || count == 0)
+	{
+		return {};
+	}
+
+	std::vector<std::wstring> result;
+	for (size_t relayIndex = 0; relayIndex < count; ++relayIndex)
+	{
+		const auto& relay = relays[relayIndex];
+		if (relay != nullptr)
+		{
+			for (size_t relayClientIndex = 0; relayClientIndex < relay->numClients; ++relayClientIndex)
+			{
+				const auto& relayClient = relay->clients[relayClientIndex];
+				if (relayClient != nullptr)
+				{
+					result.push_back(relayClient);
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+void LogDnsServers(const char* label, const std::vector<wfp::IpAddress>& dnsServers)
+{
+	if (nullptr == g_logSink)
+	{
+		return;
+	}
+
+	std::stringstream ss;
+	ss << label << ": ";
+	for (size_t i = 0; i < dnsServers.size(); i++)
+	{
+		if (i > 0)
+		{
+			ss << ", ";
+		}
+		ss << common::string::ToAnsi(dnsServers[i].toString());
+	}
+	g_logSink(MULLVAD_LOG_LEVEL_DEBUG, ss.str().c_str(), g_logSinkContext);
+}
+
 } // anonymous namespace
 
 WINFW_LINKAGE
@@ -101,7 +244,8 @@ WINFW_API
 WinFw_InitializeBlocked(
 	uint32_t timeout,
 	const WinFwSettings *settings,
-	const WinFwAllowedEndpoint *allowedEndpoint,
+	const WinFwAllowedEndpoint *allowedEndpoints[],
+	size_t numAllowedEndpoints,
 	MullvadLogSink logSink,
 	void *logSinkContext
 )
@@ -128,7 +272,9 @@ WinFw_InitializeBlocked(
 		g_logSink = logSink;
 		g_logSinkContext = logSinkContext;
 
-		g_fwContext = new FwContext(timeout_ms, *settings, MakeOptional(allowedEndpoint));
+		auto allowedEndpointVector = MakeOptionalVector(allowedEndpoints, numAllowedEndpoints);
+
+		g_fwContext = new FwContext(timeout_ms, *settings, allowedEndpointVector);
 	}
 	catch (std::exception &err)
 	{
@@ -212,13 +358,17 @@ WINFW_LINKAGE
 WINFW_POLICY_STATUS
 WINFW_API
 WinFw_ApplyPolicyConnecting(
-	const WinFwSettings *settings,
-	const WinFwEndpoint *relay,
-	const wchar_t **relayClients,
-	size_t relayClientsLen,
-	const wchar_t *tunnelInterfaceAlias,
-	const WinFwAllowedEndpoint *allowedEndpoint,
-	const WinFwAllowedTunnelTraffic *allowedTunnelTraffic
+	const WinFwSettings* settings,
+	const WinFwAllowedEndpoint* relays[],
+	size_t numRelays,
+	const wchar_t* entryTunnelIfaceAlias,
+	const wchar_t* exitTunnelIfaceAlias,
+	const WinFwAllowedEndpoint* allowedEndpoints[],
+	size_t numAllowedEndpoints,
+	const WinFwAllowedTunnelTraffic* allowedEntryTunnelTraffic,
+	const WinFwAllowedTunnelTraffic* allowedExitTunnelTraffic,
+	const wchar_t* nonTunnelDnsServers[],
+	size_t numNonTunnelDnsServers
 )
 {
 	if (nullptr == g_fwContext)
@@ -233,29 +383,45 @@ WinFw_ApplyPolicyConnecting(
 			THROW_ERROR("Invalid argument: settings");
 		}
 
-		if (nullptr == relay)
+		if (nullptr == relays)
 		{
-			THROW_ERROR("Invalid argument: relay");
+			THROW_ERROR("Invalid argument: relays");
 		}
 
-		if (nullptr == allowedTunnelTraffic)
+		if (0 == numRelays)
 		{
-			THROW_ERROR("Invalid argument: allowedTunnelTraffic");
+			THROW_ERROR("Invalid argument: numRelays");
 		}
 
-		std::vector<std::wstring> relayClientWstrings;
-		relayClientWstrings.reserve(relayClientsLen);
-		for(int i = 0; i < relayClientsLen; i++) {
-			relayClientWstrings.push_back(relayClients[i]);
+		if (nullptr == allowedEntryTunnelTraffic)
+		{
+			THROW_ERROR("Invalid argument: allowedEntryTunnelTraffic");
 		}
+
+		if (nullptr == allowedExitTunnelTraffic)
+		{
+			THROW_ERROR("Invalid argument: allowedExitTunnelTraffic");
+		}
+
+		auto relayVector = MakeRelayVector(relays, numRelays);
+		auto relayClientWstrings = MakeRelayClientWstrings(relays, numRelays);
+		auto entryTunnelIfaceAliasOptStr = MakeOptionalStr(entryTunnelIfaceAlias);
+		auto exitTunnelIfaceAliasOptStr = MakeOptionalStr(exitTunnelIfaceAlias);
+		auto allowedEndpointOptVector = MakeOptionalVector(allowedEndpoints, numAllowedEndpoints);
+		auto nonTunnelDnsServerVector = MakeIpAddressVector(nonTunnelDnsServers, numNonTunnelDnsServers);
+
+		LogDnsServers("Non-tunnel DNS servers: ", nonTunnelDnsServerVector);
 
 		return g_fwContext->applyPolicyConnecting(
 			*settings,
-			*relay,
+			relayVector,
 			relayClientWstrings,
-			tunnelInterfaceAlias != nullptr ? std::make_optional(tunnelInterfaceAlias) : std::nullopt,
-			MakeOptional(allowedEndpoint),
-			*allowedTunnelTraffic
+			entryTunnelIfaceAliasOptStr,
+			*allowedEntryTunnelTraffic,
+			exitTunnelIfaceAliasOptStr,
+			*allowedExitTunnelTraffic,
+			allowedEndpointOptVector,
+			nonTunnelDnsServerVector
 		) ? WINFW_POLICY_STATUS_SUCCESS : WINFW_POLICY_STATUS_GENERAL_FAILURE;
 	}
 	catch (common::error::WindowsException &err)
@@ -281,15 +447,17 @@ WINFW_LINKAGE
 WINFW_POLICY_STATUS
 WINFW_API
 WinFw_ApplyPolicyConnected(
-	const WinFwSettings *settings,
-	const WinFwEndpoint *relay,
-	const wchar_t **relayClients,
-	size_t relayClientsLen,
-	const wchar_t *tunnelInterfaceAlias,
-	const wchar_t * const *tunnelDnsServers,
+	const WinFwSettings* settings,
+	const WinFwAllowedEndpoint* relays[],
+	size_t numRelays,
+	const wchar_t* entryTunnelIfaceAlias,
+	const wchar_t* exitTunnelIfaceAlias,
+	const wchar_t* tunnelDnsServers[],
 	size_t numTunnelDnsServers,
-	const wchar_t * const *nonTunnelDnsServers,
-	size_t numNonTunnelDnsServers
+	const wchar_t* nonTunnelDnsServers[],
+	size_t numNonTunnelDnsServers,
+	const WinFwAllowedEndpoint* allowedEndpoints[],
+	size_t numAllowedEndpoints
 )
 {
 	if (nullptr == g_fwContext)
@@ -304,14 +472,14 @@ WinFw_ApplyPolicyConnected(
 			THROW_ERROR("Invalid argument: settings");
 		}
 
-		if (nullptr == relay)
+		if (nullptr == relays)
 		{
-			THROW_ERROR("Invalid argument: relay");
+			THROW_ERROR("Invalid argument: relays");
 		}
 
-		if (nullptr == tunnelInterfaceAlias)
+		if (0 == numRelays)
 		{
-			THROW_ERROR("Invalid argument: tunnelInterfaceAlias");
+			THROW_ERROR("Invalid argument: numRelays");
 		}
 
 		if (nullptr == tunnelDnsServers)
@@ -324,58 +492,26 @@ WinFw_ApplyPolicyConnected(
 			THROW_ERROR("Invalid argument: nonTunnelDnsServers");
 		}
 
-		std::vector<wfp::IpAddress> convertedTunnelDnsServers;
-		std::vector<wfp::IpAddress> convertedNonTunnelDnsServers;
+		auto relayVector = MakeRelayVector(relays, numRelays);
+		auto relayClientWstrings = MakeRelayClientWstrings(relays, numRelays);
+		auto entryTunnelIfaceAliasOptStr = MakeOptionalStr(entryTunnelIfaceAlias);
+		auto exitTunnelIfaceAliasOptStr = MakeOptionalStr(exitTunnelIfaceAlias);
+		auto allowedEndpointOptVector = MakeOptionalVector(allowedEndpoints, numAllowedEndpoints);
+		std::vector<wfp::IpAddress> nonTunnelDnsServerVector = MakeIpAddressVector(nonTunnelDnsServers, numNonTunnelDnsServers);
+		std::vector<wfp::IpAddress> tunnelDnsServersVector = MakeIpAddressVector(tunnelDnsServers, numTunnelDnsServers);
 
-		for (size_t i = 0; i < numTunnelDnsServers; i++)
-		{
-			auto ip = wfp::IpAddress(tunnelDnsServers[i]);
-			convertedTunnelDnsServers.push_back(ip);
-		}
-		for (size_t i = 0; i < numNonTunnelDnsServers; i++)
-		{
-			auto ip = wfp::IpAddress(nonTunnelDnsServers[i]);
-			convertedNonTunnelDnsServers.push_back(ip);
-		}
-
-		if (nullptr != g_logSink)
-		{
-			std::stringstream ss;
-			ss << "Non-tunnel DNS servers: ";
-			for (size_t i = 0; i < convertedNonTunnelDnsServers.size(); i++) {
-				if (i > 0)
-				{
-					ss << ", ";
-				}
-				ss << common::string::ToAnsi(convertedNonTunnelDnsServers[i].toString());
-			}
-			g_logSink(MULLVAD_LOG_LEVEL_DEBUG, ss.str().c_str(), g_logSinkContext);
-
-			ss.str(std::string());
-			ss << "Tunnel DNS servers: ";
-			for (size_t i = 0; i < convertedTunnelDnsServers.size(); i++) {
-				if (i > 0)
-				{
-					ss << ", ";
-				}
-				ss << common::string::ToAnsi(convertedTunnelDnsServers[i].toString());
-			}
-			g_logSink(MULLVAD_LOG_LEVEL_DEBUG, ss.str().c_str(), g_logSinkContext);
-		}
-
-		std::vector<std::wstring> relayClientWstrings;
-		relayClientWstrings.reserve(relayClientsLen);
-		for(int i = 0; i < relayClientsLen; i++) {
-			relayClientWstrings.push_back(relayClients[i]);
-		}
+		LogDnsServers("Non-tunnel DNS servers: ", nonTunnelDnsServerVector);
+		LogDnsServers("Tunnel DNS servers: ", tunnelDnsServersVector);
 
 		return g_fwContext->applyPolicyConnected(
 			*settings,
-			*relay,
+			relayVector,
 			relayClientWstrings,
-			tunnelInterfaceAlias,
-			convertedTunnelDnsServers,
-			convertedNonTunnelDnsServers
+			entryTunnelIfaceAliasOptStr,
+			exitTunnelIfaceAliasOptStr,
+			allowedEndpointOptVector,
+			tunnelDnsServersVector,
+			nonTunnelDnsServerVector
 		) ? WINFW_POLICY_STATUS_SUCCESS : WINFW_POLICY_STATUS_GENERAL_FAILURE;
 	}
 	catch (common::error::WindowsException &err)
@@ -401,8 +537,9 @@ WINFW_LINKAGE
 WINFW_POLICY_STATUS
 WINFW_API
 WinFw_ApplyPolicyBlocked(
-	const WinFwSettings *settings,
-	const WinFwAllowedEndpoint *allowedEndpoint
+	const WinFwSettings* settings,
+	const WinFwAllowedEndpoint* allowedEndpoints[],
+	size_t numAllowedEndpoints
 )
 {
 	if (nullptr == g_fwContext)
@@ -417,7 +554,9 @@ WinFw_ApplyPolicyBlocked(
 			THROW_ERROR("Invalid argument: settings");
 		}
 
-		return g_fwContext->applyPolicyBlocked(*settings, MakeOptional(allowedEndpoint))
+		auto allowedEndpointVector = MakeOptionalVector(allowedEndpoints, numAllowedEndpoints);
+
+		return g_fwContext->applyPolicyBlocked(*settings, allowedEndpointVector)
 			? WINFW_POLICY_STATUS_SUCCESS
 			: WINFW_POLICY_STATUS_GENERAL_FAILURE;
 	}
