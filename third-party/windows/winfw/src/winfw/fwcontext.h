@@ -27,8 +27,7 @@ public:
 	bool applyPolicyConnecting
 	(
 		const WinFwSettings &settings,
-		const std::vector<WinFwEndpoint> &relays,
-		const std::vector<std::wstring> &relayClients,
+		const std::vector<WinFwAllowedEndpoint> &relays,
 
 		const std::optional<std::wstring> &entryTunnelIfaceAlias,
 		const WinFwAllowedTunnelTraffic& allowedEntryTunnelTraffic,
@@ -43,8 +42,7 @@ public:
 	bool applyPolicyConnected
 	(
 		const WinFwSettings &settings,
-		const std::vector<WinFwEndpoint> &relays,
-		const std::vector<std::wstring> &relayClients,
+		const std::vector<WinFwAllowedEndpoint> &relays,
 		const std::optional<std::wstring> &entryTunnelIfaceAlias,
 		const std::optional<std::wstring> &exitTunnelIfaceAlias,
 		const std::optional<std::vector<WinFwAllowedEndpoint>>& allowedEndpoints,

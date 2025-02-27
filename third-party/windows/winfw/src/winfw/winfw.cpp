@@ -121,55 +121,6 @@ std::vector<wfp::IpAddress> MakeIpAddressVector(const wchar_t* const* data, size
 	return result;
 }
 
-std::vector<WinFwEndpoint> MakeRelayVector(const WinFwAllowedEndpoint* const* relays, size_t count)
-{
-	if (relays == nullptr || count == 0)
-	{
-		return {};
-	}
-
-	std::vector<WinFwEndpoint> result;
-	result.reserve(count);
-
-	for (size_t relayIndex = 0; relayIndex < count; ++relayIndex)
-	{
-		const auto& relay = relays[relayIndex];
-		if (relay != nullptr)
-		{
-			result.emplace_back(relay->endpoint);
-		}
-	}
-
-	return result;
-}
-
-std::vector<std::wstring> MakeRelayClientWstrings(const WinFwAllowedEndpoint* const* relays, size_t count)
-{
-	if (relays == nullptr || count == 0)
-	{
-		return {};
-	}
-
-	std::vector<std::wstring> result;
-	for (size_t relayIndex = 0; relayIndex < count; ++relayIndex)
-	{
-		const auto& relay = relays[relayIndex];
-		if (relay != nullptr)
-		{
-			for (size_t relayClientIndex = 0; relayClientIndex < relay->numClients; ++relayClientIndex)
-			{
-				const auto& relayClient = relay->clients[relayClientIndex];
-				if (relayClient != nullptr)
-				{
-					result.push_back(relayClient);
-				}
-			}
-		}
-	}
-
-	return result;
-}
-
 void LogDnsServers(const char* label, const std::vector<wfp::IpAddress>& dnsServers)
 {
 	if (nullptr == g_logSink)
@@ -403,8 +354,7 @@ WinFw_ApplyPolicyConnecting(
 			THROW_ERROR("Invalid argument: allowedExitTunnelTraffic");
 		}
 
-		auto relayVector = MakeRelayVector(relays, numRelays);
-		auto relayClientWstrings = MakeRelayClientWstrings(relays, numRelays);
+		auto relayVector = MakeVector(relays, numRelays);
 		auto entryTunnelIfaceAliasOptStr = MakeOptionalStr(entryTunnelIfaceAlias);
 		auto exitTunnelIfaceAliasOptStr = MakeOptionalStr(exitTunnelIfaceAlias);
 		auto allowedEndpointOptVector = MakeOptionalVector(allowedEndpoints, numAllowedEndpoints);
@@ -415,7 +365,6 @@ WinFw_ApplyPolicyConnecting(
 		return g_fwContext->applyPolicyConnecting(
 			*settings,
 			relayVector,
-			relayClientWstrings,
 			entryTunnelIfaceAliasOptStr,
 			*allowedEntryTunnelTraffic,
 			exitTunnelIfaceAliasOptStr,
@@ -492,8 +441,7 @@ WinFw_ApplyPolicyConnected(
 			THROW_ERROR("Invalid argument: nonTunnelDnsServers");
 		}
 
-		auto relayVector = MakeRelayVector(relays, numRelays);
-		auto relayClientWstrings = MakeRelayClientWstrings(relays, numRelays);
+		auto relayVector = MakeVector(relays, numRelays);
 		auto entryTunnelIfaceAliasOptStr = MakeOptionalStr(entryTunnelIfaceAlias);
 		auto exitTunnelIfaceAliasOptStr = MakeOptionalStr(exitTunnelIfaceAlias);
 		auto allowedEndpointOptVector = MakeOptionalVector(allowedEndpoints, numAllowedEndpoints);
@@ -506,7 +454,6 @@ WinFw_ApplyPolicyConnected(
 		return g_fwContext->applyPolicyConnected(
 			*settings,
 			relayVector,
-			relayClientWstrings,
 			entryTunnelIfaceAliasOptStr,
 			exitTunnelIfaceAliasOptStr,
 			allowedEndpointOptVector,
