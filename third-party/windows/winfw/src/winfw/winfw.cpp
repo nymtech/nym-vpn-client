@@ -426,11 +426,6 @@ WinFw_ApplyPolicyConnected(
 			THROW_ERROR("Invalid argument: relays");
 		}
 
-		if (0 == numRelays)
-		{
-			THROW_ERROR("Invalid argument: numRelays");
-		}
-
 		if (nullptr == tunnelDnsServers)
 		{
 			THROW_ERROR("Invalid argument: tunnelDnsServers");
