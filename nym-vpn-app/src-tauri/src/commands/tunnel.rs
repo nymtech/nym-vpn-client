@@ -65,13 +65,13 @@ pub async fn connect(
         info!("mode [mixnet]");
         false
     };
-    info!("credentials mode [on]");
+    info!("zknym mode: using whatever is set in backend");
 
     let use_netstack_wireguard = false;
 
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
     match grpc
-        .vpn_connect(entry, exit, two_hop_mod, true, use_netstack_wireguard, dns)
+        .vpn_connect(entry, exit, two_hop_mod, false, use_netstack_wireguard, dns)
         .await
     {
         Ok(_) => Ok(TunnelState::Connecting(None)),
