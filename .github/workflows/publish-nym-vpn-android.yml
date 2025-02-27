@@ -206,7 +206,7 @@ jobs:
 
       - name: Download bundletool
         run: |
-          wget -O bundletool.jar https://github.com/google/bundletool/releases/download/1.15.6/bundletool-all-1.18.0.jar
+          wget -O bundletool.jar https://github.com/google/bundletool/releases/download/1.18.0/bundletool-all-1.18.0.jar
 
       - name: Make download dir
         run: mkdir ${{ github.workspace }}/temp
