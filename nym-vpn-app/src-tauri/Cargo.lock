@@ -3285,7 +3285,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#63a8f96ea59f355335c1539dc22f31783dc155e9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-oroblanco#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
 dependencies = [
  "const-str",
  "log",
@@ -3297,7 +3297,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#63a8f96ea59f355335c1539dc22f31783dc155e9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-oroblanco#26f97d3c34a74bec0c0218ea91fd2fb466d9ed73"
 dependencies = [
  "async-trait",
  "hickory-resolver",
@@ -3315,7 +3315,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.4.0-dev"
+version = "1.4.0"
 dependencies = [
  "anyhow",
  "build-info",
@@ -3360,7 +3360,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.4.0-beta"
+version = "1.4.0"
 dependencies = [
  "nym-http-api-client",
  "prost",
