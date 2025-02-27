@@ -201,7 +201,8 @@ jobs:
           if [ "${{ inputs.build_format }}" == "apk" ]; then
             echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/${{ inputs.build_type }}/.*\.apk$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
           else
-            echo "path=$(find . -regex '^.*/build/outputs/bundle/fdroid${{ inputs.build_type^ }}/.*\.aab$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
+            BUILD_TYPE=$(echo "${{ inputs.build_type }}" | sed 's/./\u&/')
+            echo "path=$(find . -regex '^.*/build/outputs/bundle/fdroid${BUILD_TYPE}/.*\.aab$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
           fi
 
       - name: Upload artifact
