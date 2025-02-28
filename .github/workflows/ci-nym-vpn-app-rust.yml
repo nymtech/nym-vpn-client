@@ -57,7 +57,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.82.0
+          toolchain: 1.84.1
           components: rustfmt, clippy
 
       - name: Set env
