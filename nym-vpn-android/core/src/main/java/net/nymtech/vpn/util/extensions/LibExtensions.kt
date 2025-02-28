@@ -1,6 +1,7 @@
 package net.nymtech.vpn.util.extensions
 
 import net.nymtech.vpn.backend.Tunnel
+import net.nymtech.vpn.util.Base58
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
 import nym_vpn_lib.TunnelEvent
@@ -39,16 +40,16 @@ fun String.asEntryPoint(): EntryPoint {
 		this == "random" -> EntryPoint.Random
 		this == "randomlowlatency" -> EntryPoint.RandomLowLatency
 		length == 2 -> EntryPoint.Location(this.uppercase())
-		length == 44 || length == 43 -> EntryPoint.Gateway(this)
+		Base58.isValidBase58(this, 32) -> EntryPoint.Gateway(this)
 		else -> EntryPoint.Random
 	}
 }
 
 fun String.asExitPoint(): ExitPoint {
-	return when (this.length) {
-		2 -> ExitPoint.Location(this.uppercase())
-		134 -> ExitPoint.Address(this)
-		44, 43 -> ExitPoint.Gateway(this)
+	return when {
+		length == 2 -> ExitPoint.Location(this.uppercase())
+		length == 134 -> ExitPoint.Address(this)
+		Base58.isValidBase58(this, 32) -> ExitPoint.Gateway(this)
 		else -> throw IllegalArgumentException("Invalid exit id")
 	}
 }
