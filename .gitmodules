@@ -3,4 +3,4 @@
 	url = https://github.com/mullvad/windows-libraries.git
 [submodule "nym-vpn-windows/libwfp"]
 	path = nym-vpn-windows/libwfp
-	url = git@github.com:nymtech/libwfp.git
+	url = https://github.com/mullvad/libwfp
