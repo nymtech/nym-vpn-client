@@ -46,7 +46,7 @@ jobs:
       - name: Set env
         shell: bash
         run: |
-          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/build/lib/winwf/x64-Debug" >> $GITHUB_ENV
+          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/build/winfw/x64-Debug" >> $GITHUB_ENV
           mkdir -p ${GITHUB_WORKSPACE}/build/lib/
 
       - name: Install Go
@@ -107,12 +107,12 @@ jobs:
       - name: Build winfw.dll
         shell: pwsh
         run: |
-          .\build-windows-modules.ps1 Release x64
+          .\build-windows-modules.ps1 Debug x64
 
       - name: Move winfw.dll to build directory
         shell: bash
         run: |
-          mv ${GITHUB_WORKSPACE}/nym-vpn-windows/winfw/bin/x64-Release ${GITHUB_WORKSPACE}/build/winfw/
+          mv ${GITHUB_WORKSPACE}/nym-vpn-windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/build/winfw/
 
       - name: rustfmt check
         working-directory: nym-vpn-core
