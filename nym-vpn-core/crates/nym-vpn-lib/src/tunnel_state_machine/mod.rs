@@ -37,7 +37,6 @@ use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, Recipient};
-use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
     ActionAfterDisconnect, ConnectionData, ErrorStateReason, MixnetEvent, TunnelEvent, TunnelState,
@@ -126,9 +125,6 @@ pub struct GatewayPerformanceOptions {
 
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub struct MixnetTunnelOptions {
-    /// Overrides tunnel interface addresses.
-    pub interface_addrs: Option<IpPair>,
-
     /// Overrides tunnel interface MTU.
     pub mtu: Option<u16>,
 }

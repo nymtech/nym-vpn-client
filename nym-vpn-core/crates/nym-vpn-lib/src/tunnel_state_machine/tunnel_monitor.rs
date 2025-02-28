@@ -525,14 +525,8 @@ impl TunnelMonitor {
         &mut self,
         connected_mixnet: ConnectedMixnet,
     ) -> Result<StartTunnelResult> {
-        let interface_addrs = self
-            .tunnel_parameters
-            .tunnel_settings
-            .mixnet_tunnel_options
-            .interface_addrs;
-
         let connected_tunnel = connected_mixnet
-            .connect_mixnet_tunnel(interface_addrs, self.cancel_token.clone())
+            .connect_mixnet_tunnel(self.cancel_token.clone())
             .await?;
         let assigned_addresses = connected_tunnel.assigned_addresses();
 
