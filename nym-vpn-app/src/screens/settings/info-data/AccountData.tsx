@@ -60,13 +60,20 @@ function AccountData() {
     return null;
   }
 
+  const truncateId = (id: string) => {
+    if (id.length < 16) {
+      return id;
+    }
+    return `${id.slice(0, 8)}…${id.slice(-8)}`;
+  };
+
   return (
     <div className={clsx('mt-3')}>
       {accountId && (
         <div className={clsx('flex flex-row flex-nowrap gap-1')}>
           <p className="text-nowrap">{t('info.account-id')}</p>
           <ButtonText onClick={() => copy(accountId)} truncate>
-            {accountId}
+            {truncateId(accountId)}
           </ButtonText>
         </div>
       )}
@@ -74,7 +81,7 @@ function AccountData() {
         <div className={clsx('flex flex-row flex-nowrap gap-1')}>
           <p className="text-nowrap">{t('info.device-id')}</p>
           <ButtonText onClick={() => copy(deviceId)} truncate>
-            {deviceId}
+            {truncateId(deviceId)}
           </ButtonText>
         </div>
       )}
