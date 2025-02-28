@@ -1,4 +1,4 @@
-name: build-mullvad-windows
+name: build-winfw-windows
 on:
   workflow_dispatch:
   workflow_call:
