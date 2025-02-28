@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, path::PathBuf, sync::Arc};
+use std::{net::IpAddr, path::PathBuf, sync::Arc, time::Instant};
 
 use bip39::Mnemonic;
 use nym_vpn_network_config::{
@@ -41,6 +41,8 @@ use super::{
     error::{AccountError, Error, Result, SetNetworkError},
     VpnServiceConnectError, VpnServiceDisconnectError,
 };
+
+use tracing::{debug, info};
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -492,6 +494,7 @@ where
         Ok(config)
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_connect(
         &mut self,
         connect_args: ConnectArgs,
@@ -608,23 +611,27 @@ where
         }
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_disconnect(&mut self) -> Result<(), VpnServiceDisconnectError> {
         self.command_sender
             .send(TunnelCommand::Disconnect)
             .map_err(|e| {
                 tracing::error!("Failed to send command to disconnect: {}", e);
-                VpnServiceDisconnectError::Internal("failed to send dicsonnect command".to_owned())
+                VpnServiceDisconnectError::Internal("failed to send disconnect command".to_owned())
             })
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     fn handle_get_tunnel_state(&self) -> TunnelState {
         self.tunnel_state.borrow().to_owned()
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     fn handle_subscribe_to_tunnel_state(&self) -> watch::Receiver<TunnelState> {
         self.tunnel_state.subscribe()
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_info(&self) -> VpnServiceInfo {
         let bin_info = nym_bin_common::bin_info_local_vergen!();
 
@@ -639,13 +646,13 @@ where
         }
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
         let mut global_config =
             GlobalConfigFile::read_from_file().map_err(|source| SetNetworkError::ReadConfig {
                 source: source.into(),
             })?;
 
-        // Manually restrict the set of possible network, until we handle this automatically
         let network_selected = NetworkEnvironments::try_from(network.as_str())
             .map_err(|_err| SetNetworkError::NetworkNotFound(network.to_owned()))?;
         global_config.network_name = network_selected.to_string();
@@ -656,27 +663,29 @@ where
                 source: source.into(),
             })?;
 
-        tracing::info!(
+        info!(
             "Network updated to: {} (SERVICE RESTART REQUIRED!)",
             network_selected
         );
-
         Ok(())
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_get_system_messages(&self) -> SystemMessages {
         self.network_env.nym_vpn_network.system_messages.clone()
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_get_feature_flags(&self) -> Option<FeatureFlags> {
         self.network_env.feature_flags.clone()
     }
 
+    #[tracing::instrument(skip(self, account), level = "info", fields(time.unit = "ms"))]
     async fn handle_store_account(
         &mut self,
         account: Zeroizing<String>,
     ) -> Result<(), AccountError> {
-        tracing::info!("Storing account");
+        info!("Storing account");
         let mnemonic = Mnemonic::parse::<&str>(account.as_ref())?;
         self.account_command_tx
             .store_account(mnemonic)
@@ -684,10 +693,12 @@ where
             .map_err(|source| AccountError::AccountCommandError { source })
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_is_account_stored(&self) -> Result<bool, AccountError> {
         Ok(self.shared_account_state.is_account_stored().await)
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_forget_account(&mut self) -> Result<(), AccountError> {
         if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountError::IsConnected);
@@ -705,10 +716,12 @@ where
             .map_err(|source| AccountError::AccountCommandError { source })
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_get_account_identity(&self) -> Result<Option<String>, AccountError> {
         Ok(self.shared_account_state.get_account_id().await)
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_get_account_links(
         &self,
         locale: String,
@@ -727,16 +740,19 @@ where
             })
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_get_account_state(&self) -> Result<AccountStateSummary, AccountError> {
         Ok(self.shared_account_state.lock().await.clone())
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_refresh_account_state(&self) -> Result<(), AccountError> {
         self.account_command_tx
             .send(AccountCommand::SyncAccountState(None))
             .map_err(|err| AccountError::AccountControllerError { source: err })
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountError> {
         self.account_command_tx
             .get_usage()
@@ -744,6 +760,7 @@ where
             .map_err(|source| AccountError::AccountCommandError { source })
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_reset_device_identity(
         &mut self,
         seed: Option<[u8; 32]>,
@@ -773,6 +790,7 @@ where
             .map_err(|source| AccountError::AccountControllerError { source })
     }
 
+    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_get_device_identity(&self) -> Result<String, AccountError> {
         self.account_command_tx
             .get_device_identity()
