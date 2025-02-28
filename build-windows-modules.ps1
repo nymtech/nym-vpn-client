@@ -11,15 +11,9 @@ MSBuild.exe /m .\nym-vpn-windows\winfw\winfw.sln /p:Configuration=$BuildConfigur
 $BuildDir = "$PSScriptRoot\nym-vpn-windows\winfw\bin\$Platform-$BuildConfiguration"
 $OutputDir = "$PSScriptRoot\build\winfw\$Platform-$BuildConfiguration"
 
-switch ($CopyToBuildDir) {
-    $true {
-        Write-Output "Copying winfw.{lib,dll} to $OutputDir"
-        New-Item -ItemType Directory -Force -Path $OutputDir -Verbose
-        Copy-Item -Path $BuildDir\winfw.lib -Destination $OutputDir -Verbose
-        Copy-Item -Path $BuildDir\winfw.dll -Destination $OutputDir -Verbose
-        break
-    }
-    default {
-        break
-    }
+if ($CopyToBuildDir) {
+    Write-Output "Copying winfw.{lib,dll} to $OutputDir"
+    New-Item -ItemType Directory -Force -Path $OutputDir -Verbose
+    Copy-Item -Path $BuildDir\winfw.lib -Destination $OutputDir -Verbose
+    Copy-Item -Path $BuildDir\winfw.dll -Destination $OutputDir -Verbose
 }
