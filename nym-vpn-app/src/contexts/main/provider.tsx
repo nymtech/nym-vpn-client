@@ -1,5 +1,5 @@
 import { invoke } from '@tauri-apps/api/core';
-import React, { useCallback, useEffect, useReducer } from 'react';
+import React, { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { GatewaysCacheDuration } from '../../constants';
 import {
   MainDispatchContext,
@@ -175,13 +175,16 @@ function MainStateProvider({ children }: Props) {
     // we need to reset it
   }, []);
 
+  const ctx = useMemo(
+    () => ({
+      ...state,
+      fetchGateways,
+    }),
+    [fetchGateways, state],
+  );
+
   return (
-    <MainStateContext.Provider
-      value={{
-        ...state,
-        fetchGateways,
-      }}
-    >
+    <MainStateContext.Provider value={ctx}>
       <MainDispatchContext.Provider value={dispatch}>
         {children}
       </MainDispatchContext.Provider>

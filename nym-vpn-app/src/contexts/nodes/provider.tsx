@@ -125,20 +125,19 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
     wgGatewaysError,
   ]);
 
-  return (
-    <NodesContext.Provider
-      value={{
-        nodes,
-        gateways: gatewayList,
-        loading,
-        node: nodeType,
-        vpnMode,
-        error,
-      }}
-    >
-      {children}
-    </NodesContext.Provider>
+  const ctx = useMemo(
+    () => ({
+      nodes,
+      gateways: gatewayList,
+      loading,
+      node: nodeType,
+      vpnMode,
+      error,
+    }),
+    [error, gatewayList, loading, nodeType, nodes, vpnMode],
   );
+
+  return <NodesContext.Provider value={ctx}>{children}</NodesContext.Provider>;
 }
 
 export default NodesProvider;

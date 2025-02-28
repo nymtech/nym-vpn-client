@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { DialogContext, DialogKey, DialogState } from './context';
 
 export type DialogProviderProps = {
@@ -12,29 +12,39 @@ function DialogProvider({ children }: DialogProviderProps) {
     },
   });
 
-  const isOpen = (key: DialogKey) => {
-    return dialogs[key].open;
-  };
+  const isOpen = useCallback(
+    (key: DialogKey) => {
+      return dialogs[key].open;
+    },
+    [dialogs],
+  );
 
-  const show = (key: DialogKey) => {
-    setDialogs({ ...dialogs, [key]: { open: true } });
-  };
+  const show = useCallback(
+    (key: DialogKey) => {
+      setDialogs({ ...dialogs, [key]: { open: true } });
+    },
+    [dialogs],
+  );
 
-  const close = (key: DialogKey) => {
-    setDialogs({ ...dialogs, [key]: { open: false } });
-  };
+  const close = useCallback(
+    (key: DialogKey) => {
+      setDialogs({ ...dialogs, [key]: { open: false } });
+    },
+    [dialogs],
+  );
+
+  const ctx = useMemo(
+    () => ({
+      dialogs,
+      isOpen,
+      show,
+      close,
+    }),
+    [close, dialogs, isOpen, show],
+  );
 
   return (
-    <DialogContext.Provider
-      value={{
-        dialogs,
-        isOpen,
-        show,
-        close,
-      }}
-    >
-      {children}
-    </DialogContext.Provider>
+    <DialogContext.Provider value={ctx}>{children}</DialogContext.Provider>
   );
 }
 
