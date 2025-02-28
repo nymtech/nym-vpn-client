@@ -118,13 +118,8 @@ MullvadGuids::DetailedIdentityRegistry MullvadGuids::DetailedRegistry(IdentityQu
 //static
 const GUID &MullvadGuids::Provider()
 {
-	static const GUID g =
-	{
-		0x21e1dab8,
-		0xb9db,
-		0x43c0,
-		{ 0xb3, 0x43, 0xeb, 0x93, 0x65, 0xc7, 0xbd, 0xd2 }
-	};
+	// {C736D993-9447-4982-8DD1-EEE10461EF3C}
+	static const GUID g = { 0xc736d993,0x9447,0x4982,{0x8d,0xd1,0xee,0xe1,0x04,0x61,0xef,0x3c} };
 
 	return g;
 }
@@ -132,13 +127,8 @@ const GUID &MullvadGuids::Provider()
 //static
 const GUID &MullvadGuids::ProviderPersistent()
 {
-	static const GUID g =
-	{
-		0x2bc5bc63,
-		0x80b0,
-		0x4119,
-		{ 0x86, 0xd3, 0x6a, 0xfe, 0x0d, 0xff, 0x2a, 0x26 }
-	};
+	// {26646A94-C70A-47A3-AC66-114BACFA556A}
+	static const GUID g = { 0x26646a94,0xc70a,0x47a3,{0xac,0x66,0x11,0x4b,0xac,0xfa,0x55,0x6a} };
 
 	return g;
 }
@@ -146,13 +136,8 @@ const GUID &MullvadGuids::ProviderPersistent()
 //static
 const GUID &MullvadGuids::SublayerBaseline()
 {
-	static const GUID g =
-	{
-		0xc78056ff,
-		0x2bc1,
-		0x4211,
-		{ 0xaa, 0xdd, 0x7f, 0x35, 0x8d, 0xef, 0x20, 0x2d }
-	};
+	// {25A0D4A1-5FD3-4D32-9252-34A7B47A7D2E}
+	static const GUID g = { 0x25a0d4a1,0x5fd3,0x4d32,{0x92,0x52,0x34,0xa7,0xb4,0x7a,0x7d,0x2e} };
 
 	return g;
 }
@@ -160,13 +145,8 @@ const GUID &MullvadGuids::SublayerBaseline()
 //static
 const GUID &MullvadGuids::SublayerDns()
 {
-	static const GUID g =
-	{
-		0x60090787,
-		0xcca1,
-		0x4937,
-		{ 0xaa, 0xce, 0x51, 0x25, 0x6e, 0xf4, 0x81, 0xf3 }
-	};
+	// {3FDEC7AA-9CF9-4F8B-980F-8AADE8BA0DC6}
+	static const GUID g = { 0x3fdec7aa,0x9cf9,0x4f8b,{0x98,0x0f,0x8a,0xad,0xe8,0xba,0x0d,0xc6} };
 
 	return g;
 }
@@ -174,13 +154,8 @@ const GUID &MullvadGuids::SublayerDns()
 //static
 const GUID &MullvadGuids::SublayerPersistent()
 {
-	static const GUID g =
-	{
-		0x3c28881e,
-		0x8891,
-		0x4d61,
-		{ 0xb8, 0x7f, 0xf2, 0x72, 0x50, 0x2d, 0x10, 0x05 }
-	};
+	// {7F81AB43-6F94-4772-B3D2-17DB757BBE3B}
+	static const GUID g = { 0x7f81ab43,0x6f94,0x4772,{0xb3,0xd2,0x17,0xdb,0x75,0x7b,0xbe,0x3b} };
 
 	return g;
 }
@@ -188,13 +163,8 @@ const GUID &MullvadGuids::SublayerPersistent()
 //static
 const GUID &MullvadGuids::Filter_Boottime_BlockAll_Outbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0x5996aa42,
-		0x102b,
-		0x419f,
-		{ 0xad, 0x3d, 0x83, 0x5d, 0xb5, 0xb, 0x8b, 0x1 }
-	};
+	// {C862565B-EE75-4065-9A92-5D72A6569B28}
+	static const GUID g = { 0xc862565b,0xee75,0x4065,{0x9a,0x92,0x5d,0x72,0xa6,0x56,0x9b,0x28} };
 
 	return g;
 }
@@ -202,13 +172,8 @@ const GUID &MullvadGuids::Filter_Boottime_BlockAll_Outbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Boottime_BlockAll_Inbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0x6150b73d,
-		0x4dfa,
-		0x4c30,
-		{ 0x80, 0xeb, 0xe0, 0xee, 0x53, 0x51, 0x93, 0xda }
-	};
+	// {71881E3A-D74A-45AD-B983-FB5BFEDECF62}
+	static const GUID g = { 0x71881e3a,0xd74a,0x45ad,{0xb9,0x83,0xfb,0x5b,0xfe,0xde,0xcf,0x62} };
 
 	return g;
 }
@@ -216,13 +181,8 @@ const GUID &MullvadGuids::Filter_Boottime_BlockAll_Inbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Boottime_BlockAll_Outbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0x139b8b26,
-		0x5037,
-		0x4929,
-		{ 0x92, 0x37, 0xe8, 0x73, 0xbd, 0xdd, 0x65, 0x1d }
-	};
+	// {107B140F-0195-473A-B308-611B77D0600B}
+	static const GUID g = { 0x107b140f,0x0195,0x473a,{0xb3,0x08,0x61,0x1b,0x77,0xd0,0x60,0x0b} };
 
 	return g;
 }
@@ -230,13 +190,8 @@ const GUID &MullvadGuids::Filter_Boottime_BlockAll_Outbound_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Boottime_BlockAll_Inbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0x129927e2,
-		0x7a3a,
-		0x49bb,
-		{ 0xb9, 0x87, 0x36, 0x92, 0x56, 0x3a, 0x83, 0xf4 }
-	};
+	// {FA8DB319-85BC-458D-98FF-F9071F0D69BB}
+	static const GUID g = { 0xfa8db319,0x85bc,0x458d,{0x98,0xff,0xf9,0x07,0x1f,0x0d,0x69,0xbb} };
 
 	return g;
 }
@@ -244,13 +199,8 @@ const GUID &MullvadGuids::Filter_Boottime_BlockAll_Inbound_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Persistent_BlockAll_Outbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0x79860c64,
-		0x9a5e,
-		0x48a3,
-		{ 0xb5, 0xf3, 0xd6, 0x4b, 0x41, 0x65, 0x9a, 0xa5 }
-	};
+	// {E94F85E6-0C56-4EE5-BC63-EEE0AB759A37}
+	static const GUID g = { 0xe94f85e6,0x0c56,0x4ee5,{0xbc,0x63,0xee,0xe0,0xab,0x75,0x9a,0x37} };
 
 	return g;
 }
@@ -258,13 +208,8 @@ const GUID &MullvadGuids::Filter_Persistent_BlockAll_Outbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Persistent_BlockAll_Inbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0x9f177f14,
-		0xf090,
-		0x4fde,
-		{ 0x98, 0xf9, 0x84, 0x15, 0x31, 0x25, 0xa7, 0xc5 }
-	};
+	// {F5C393B1-BFB6-4845-9618-968984A6A389}
+	static const GUID g = { 0xf5c393b1,0xbfb6,0x4845,{0x96,0x18,0x96,0x89,0x84,0xa6,0xa3,0x89} };
 
 	return g;
 }
@@ -272,13 +217,8 @@ const GUID &MullvadGuids::Filter_Persistent_BlockAll_Inbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Persistent_BlockAll_Outbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0xa9b72749,
-		0xb1c1,
-		0x4483,
-		{ 0xa3, 0x71, 0x90, 0xe1, 0x86, 0x68, 0x53, 0x2e }
-	};
+	// {3B8F4102-5CDD-41F4-9E7E-FE776BF42260}
+	static const GUID g = { 0x3b8f4102,0x5cdd,0x41f4,{0x9e,0x7e,0xfe,0x77,0x6b,0xf4,0x22,0x60} };
 
 	return g;
 }
@@ -286,13 +226,8 @@ const GUID &MullvadGuids::Filter_Persistent_BlockAll_Outbound_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Persistent_BlockAll_Inbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0x333e7e5c,
-		0x9293,
-		0x4bda,
-		{ 0x8b, 0x19, 0xb6, 0x70, 0x19, 0x1c, 0xc4, 0x7c }
-	};
+	// {F09E4128-B482-4853-9235-FDF43C1ED314}
+	static const GUID g = { 0xf09e4128,0xb482,0x4853,{0x92,0x35,0xfd,0xf4,0x3c,0x1e,0xd3,0x14} };
 
 	return g;
 }
@@ -300,13 +235,8 @@ const GUID &MullvadGuids::Filter_Persistent_BlockAll_Inbound_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Baseline_BlockAll_Outbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0xa81c5411,
-		0xfd0,
-		0x43a9,
-		{ 0xa9, 0xbe, 0x31, 0x3f, 0x29, 0x9d, 0xe6, 0x4f }
-	};
+	// {57AE8F49-2583-4D3E-8AB7-66A9BCBC8866}
+	static const GUID g = { 0x57ae8f49,0x2583,0x4d3e,{0x8a,0xb7,0x66,0xa9,0xbc,0xbc,0x88,0x66} };
 
 	return g;
 }
@@ -314,13 +244,8 @@ const GUID &MullvadGuids::Filter_Baseline_BlockAll_Outbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Baseline_BlockAll_Inbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0x86d07155,
-		0x885f,
-		0x409a,
-		{ 0x8f, 0x22, 0x1, 0x9f, 0x87, 0x7a, 0xe4, 0x9 }
-	};
+	// {B0E82D34-2534-4B58-B6FF-7E7AE7EAD7A4}
+	static const GUID g = { 0xb0e82d34,0x2534,0x4b58,{0xb6,0xff,0x7e,0x7a,0xe7,0xea,0xd7,0xa4} };
 
 	return g;
 }
@@ -328,13 +253,8 @@ const GUID &MullvadGuids::Filter_Baseline_BlockAll_Inbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Baseline_BlockAll_Outbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0x8ae5c389,
-		0xd604,
-		0x43df,
-		{ 0x87, 0x4a, 0x5c, 0x86, 0x76, 0xc9, 0xc2, 0xb8 }
-	};
+	// {02FE62FF-68A1-453B-AE36-97EAF87C15DC}
+	static const GUID g = { 0x02fe62ff,0x68a1,0x453b,{0xae,0x36,0x97,0xea,0xf8,0x7c,0x15,0xdc} };
 
 	return g;
 }
@@ -342,13 +262,8 @@ const GUID &MullvadGuids::Filter_Baseline_BlockAll_Outbound_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Baseline_BlockAll_Inbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0x18b8c1d2,
-		0x5910,
-		0x4b51,
-		{ 0xa5, 0x48, 0x1e, 0xfc, 0xd5, 0x4b, 0x63, 0xe9 }
-	};
+	// {C5275E0A-21B7-4F80-8866-FFEA23AEF600}
+	static const GUID g = { 0xc5275e0a,0x21b7,0x4f80,{0x88,0x66,0xff,0xea,0x23,0xae,0xf6,0x00} };
 
 	return g;
 }
@@ -357,13 +272,8 @@ const GUID &MullvadGuids::Filter_Baseline_BlockAll_Inbound_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitLan_Outbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0xb012b076,
-		0x80d1,
-		0x4628,
-		{ 0x8d, 0x7b, 0xa5, 0x58, 0x8, 0xd8, 0xdc, 0xa4 }
-	};
+	// {743DC4E9-052F-4215-AA4A-F9417F3D31EC}
+	static const GUID g = { 0x743dc4e9,0x052f,0x4215,{0xaa,0x4a,0xf9,0x41,0x7f,0x3d,0x31,0xec} };
 
 	return g;
 }
@@ -371,13 +281,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitLan_Outbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitLan_Outbound_Multicast_Ipv4()
 {
-	static const GUID g =
-	{
-		0xea5e136b,
-		0xd951,
-		0x4263,
-		{ 0x99, 0xd8, 0x85, 0xc3, 0xf6, 0x4b, 0xda, 0xe9 }
-	};
+	// {B0131301-4967-4EE0-ADF3-36F2E13118A7}
+	static const GUID g = { 0xb0131301,0x4967,0x4ee0,{0xad,0xf3,0x36,0xf2,0xe1,0x31,0x18,0xa7} };
 
 	return g;
 }
@@ -385,13 +290,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitLan_Outbound_Multicast_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitLan_Outbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0xacb22069,
-		0xed33,
-		0x4c6d,
-		{ 0x9b, 0xc8, 0xcd, 0xfa, 0x6a, 0x1a, 0x10, 0x35 }
-	};
+	// {031FA5DE-BD10-440E-B387-41F30A52FC5D}
+	static const GUID g = { 0x031fa5de,0xbd10,0x440e,{0xb3,0x87,0x41,0xf3,0x0a,0x52,0xfc,0x5d} };
 
 	return g;
 }
@@ -399,13 +299,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitLan_Outbound_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitLan_Outbound_Multicast_Ipv6()
 {
-	static const GUID g =
-	{
-		0xb63d89ec,
-		0xe145,
-		0x4e29,
-		{ 0x90, 0x87, 0xa7, 0x9b, 0xd6, 0xfc, 0x8b, 0x29 }
-	};
+	// {70D3E5DF-9D56-4242-8A69-75304D58028D}
+	static const GUID g = { 0x70d3e5df,0x9d56,0x4242,{0x8a,0x69,0x75,0x30,0x4d,0x58,0x02,0x8d} };
 
 	return g;
 }
@@ -413,13 +308,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitLan_Outbound_Multicast_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitLanService_Inbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0x5849930,
-		0x40ae,
-		0x41e4,
-		{ 0x81, 0x68, 0x21, 0x94, 0x89, 0x8e, 0x6f, 0x8c }
-	};
+	// {8DC88A9F-A6D7-4C10-8143-F38FF4A463D6}
+	static const GUID g = { 0x8dc88a9f,0xa6d7,0x4c10,{0x81,0x43,0xf3,0x8f,0xf4,0xa4,0x63,0xd6} };
 
 	return g;
 }
@@ -427,13 +317,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitLanService_Inbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitLanService_Inbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0xe8122820,
-		0xe138,
-		0x46b0,
-		{ 0x96, 0x6f, 0x68, 0xa0, 0x6, 0xa2, 0xb5, 0xa2 }
-	};
+	// {B3F7BF6D-0250-4A80-A9B8-2126E3169626}
+	static const GUID g = { 0xb3f7bf6d,0x0250,0x4a80,{0xa9,0xb8,0x21,0x26,0xe3,0x16,0x96,0x26} };
 
 	return g;
 }
@@ -441,13 +326,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitLanService_Inbound_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitLoopback_Outbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0xd9ff592d,
-		0xbe46,
-		0x49fb,
-		{ 0x97, 0xec, 0x71, 0x1, 0x3c, 0x12, 0xb8, 0x30 }
-	};
+	// {4C62148B-D5A7-4981-AB93-ADEA54D7D191}
+	static const GUID g = { 0x4c62148b,0xd5a7,0x4981,{0xab,0x93,0xad,0xea,0x54,0xd7,0xd1,0x91} };
 
 	return g;
 }
@@ -455,13 +335,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitLoopback_Outbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitLoopback_Inbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0xb8efb500,
-		0xc51,
-		0x4550,
-		{ 0xbf, 0x5c, 0x48, 0x54, 0xa6, 0xc8, 0x48, 0xb9 }
-	};
+	// {DF187B6E-CE45-4653-841A-F80401C9DB00}
+	static const GUID g = { 0xdf187b6e,0xce45,0x4653,{0x84,0x1a,0xf8,0x04,0x01,0xc9,0xdb,0x00} };
 
 	return g;
 }
@@ -469,13 +344,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitLoopback_Inbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitLoopback_Outbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0x764d4944,
-		0x8a1e,
-		0x4d96,
-		{ 0xbf, 0xf0, 0x8d, 0xa6, 0x4f, 0x31, 0x44, 0xa2 }
-	};
+	// {D9199D45-BC8D-4935-9A36-7FC52AFB3CF8}
+	static const GUID g = { 0xd9199d45,0xbc8d,0x4935,{0x9a,0x36,0x7f,0xc5,0x2a,0xfb,0x3c,0xf8} };
 
 	return g;
 }
@@ -483,13 +353,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitLoopback_Outbound_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitLoopback_Inbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0xbad325b0,
-		0x736c,
-		0x4e67,
-		{ 0x8b, 0x37, 0x62, 0xb2, 0xdb, 0xe7, 0xd6, 0xeb }
-	};
+	// {BBEC26D8-7F2E-4141-BB51-BBB4C9FA7292}
+	static const GUID g = { 0xbbec26d8,0x7f2e,0x4141,{0xbb,0x51,0xbb,0xb4,0xc9,0xfa,0x72,0x92} };
 
 	return g;
 }
@@ -497,13 +362,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitLoopback_Inbound_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitDhcp_Outbound_Request_Ipv4()
 {
-	static const GUID g =
-	{
-		0x6cf1687b,
-		0x35e9,
-		0x4d18,
-		{ 0xa2, 0x3, 0xb2, 0x6b, 0x71, 0xa9, 0x5f, 0x8d }
-	};
+	// {4FC8EEC2-C8CB-4B6F-A9EC-4B0255E0F676}
+	static const GUID g = { 0x4fc8eec2,0xc8cb,0x4b6f,{0xa9,0xec,0x4b,0x02,0x55,0xe0,0xf6,0x76} };
 
 	return g;
 }
@@ -511,13 +371,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitDhcp_Outbound_Request_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitDhcp_Inbound_Response_Ipv4()
 {
-	static const GUID g =
-	{
-		0x2db298d7,
-		0x4108,
-		0x47ff,
-		{ 0x85, 0x99, 0xaf, 0xa5, 0xcb, 0x95, 0x9c, 0x25 }
-	};
+	// {577C6D56-EF10-4ADA-8AB6-BB22C7BADF42}
+	static const GUID g = { 0x577c6d56,0xef10,0x4ada,{0x8a,0xb6,0xbb,0x22,0xc7,0xba,0xdf,0x42} };
 
 	return g;
 }
@@ -525,13 +380,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitDhcp_Inbound_Response_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitDhcp_Outbound_Request_Ipv6()
 {
-	static const GUID g =
-	{
-		0x67bd69b0,
-		0x522d,
-		0x4631,
-		{ 0x9a, 0x8f, 0x1c, 0xee, 0xdf, 0x64, 0xb7, 0x2b }
-	};
+	// {5D91A7C0-A9A9-43C7-A95F-B8733C14F8D7}
+	static const GUID g = { 0x5d91a7c0,0xa9a9,0x43c7,{0xa9,0x5f,0xb8,0x73,0x3c,0x14,0xf8,0xd7} };
 
 	return g;
 }
@@ -539,13 +389,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitDhcp_Outbound_Request_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitDhcp_Inbound_Response_Ipv6()
 {
-	static const GUID g =
-	{
-		0x40dcfb6d,
-		0x2ee,
-		0x4531,
-		{ 0x86, 0x61, 0xc4, 0xc8, 0xa4, 0x3a, 0xf4, 0x23 }
-	};
+	// {5CFE4773-A8DC-4770-A0AE-B58478511D8C}
+	static const GUID g = { 0x5cfe4773,0xa8dc,0x4770,{0xa0,0xae,0xb5,0x84,0x78,0x51,0x1d,0x8c} };
 
 	return g;
 }
@@ -553,13 +398,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitDhcp_Inbound_Response_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitDhcpServer_Inbound_Request_Ipv4()
 {
-	static const GUID g =
-	{
-		0xa6c98ac3,
-		0xe06,
-		0x4fd2,
-		{ 0xb4, 0x5e, 0xb7, 0xef, 0x67, 0x4, 0x43, 0xbc }
-	};
+	// {C7FAC6E7-E33E-48CC-96CA-7684E1B5F134}
+	static const GUID g = { 0xc7fac6e7,0xe33e,0x48cc,{0x96,0xca,0x76,0x84,0xe1,0xb5,0xf1,0x34} };
 
 	return g;
 }
@@ -567,13 +407,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitDhcpServer_Inbound_Request_Ipv4(
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitDhcpServer_Outbound_Response_Ipv4()
 {
-	static const GUID g =
-	{
-		0x57006c23,
-		0xc21f,
-		0x4d23,
-		{ 0x88, 0xf, 0x5a, 0x9d, 0x94, 0x6b, 0xc2, 0xf3 }
-	};
+	// {84FA25B6-9F4F-416D-BCD5-7CB5932CD088}
+	static const GUID g = { 0x84fa25b6,0x9f4f,0x416d,{0xbc,0xd5,0x7c,0xb5,0x93,0x2c,0xd0,0x88} };
 
 	return g;
 }
@@ -581,13 +416,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitDhcpServer_Outbound_Response_Ipv
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitVpnRelay()
 {
-	static const GUID g =
-	{
-		0x160c205d,
-		0xdb40,
-		0x4f79,
-		{ 0x90, 0x6d, 0xfd, 0xa1, 0xe1, 0xc1, 0x8a, 0x70 }
-	};
+	// {93E92E50-FA3F-45D9-B576-8AB1233269A3}
+	static const GUID g = { 0x93e92e50,0xfa3f,0x45d9,{0xb5,0x76,0x8a,0xb1,0x23,0x32,0x69,0xa3} };
 
 	return g;
 }
@@ -595,13 +425,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitVpnRelay()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint()
 {
-	static const GUID g =
-	{
-		0x99dc8dac,
-		0x8520,
-		0x41be,
-		{ 0xbf, 0xab, 0x0c, 0x9, 0xbf, 0x12, 0xeb, 0 }
-	};
+	// {AF5716AA-D4E4-4E3E-9E85-E53AB4479338}
+	static const GUID g = { 0xaf5716aa,0xd4e4,0x4e3e,{0x9e,0x85,0xe5,0x3a,0xb4,0x47,0x93,0x38} };
 
 	return g;
 }
@@ -609,13 +434,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnel_Outbound_Ipv4_1()
 {
-	static const GUID g =
-	{
-		0xdfdcbb76,
-		0x2284,
-		0x4b03,
-		{ 0x93, 0x4e, 0x93, 0xe5, 0xd3, 0x84, 0x8c, 0xf1 }
-	};
+	// {C593D84F-9F07-429A-9B78-CE6CB4249EFC}
+	static const GUID g = { 0xc593d84f,0x9f07,0x429a,{0x9b,0x78,0xce,0x6c,0xb4,0x24,0x9e,0xfc} };
 
 	return g;
 }
@@ -623,13 +443,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnel_Outbound_Ipv4_1()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnel_Outbound_Ipv6_1()
 {
-	static const GUID g =
-	{
-		0x9b1fa7d,
-		0x843b,
-		0x4946,
-		{ 0xa6, 0x2, 0x90, 0x4, 0x26, 0x2a, 0xb8, 0x6b }
-	};
+	// {04A39B8D-03DC-4C93-AE62-E3D6BA4178F3}
+	static const GUID g = { 0x04a39b8d,0x03dc,0x4c93,{0xae,0x62,0xe3,0xd6,0xba,0x41,0x78,0xf3} };
 
 	return g;
 }
@@ -637,13 +452,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnel_Outbound_Ipv6_1()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnel_Outbound_Ipv4_2()
 {
-	static const GUID g =
-	{
-		0x7e09435c,
-		0xefd7,
-		0x482d,
-		{ 0xa1, 0xec, 0x6c, 0xc3, 0x80, 0xac, 0xf3, 0xf1 }
-	};
+	// {67EE5B14-C670-47B7-B6C5-E9EE234C715E}
+	static const GUID g = { 0x67ee5b14,0xc670,0x47b7,{0xb6,0xc5,0xe9,0xee,0x23,0x4c,0x71,0x5e} };
 
 	return g;
 }
@@ -651,13 +461,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnel_Outbound_Ipv4_2()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnel_Outbound_Ipv6_2()
 {
-	static const GUID g =
-	{
-		0x276bc66f,
-		0xf9ef,
-		0x4428,
-		{ 0xb1, 0x5e, 0xd9, 0xe2, 0x6e, 0xf4, 0xf0, 0x06 }
-	};
+	// {2C632BDB-F1AB-42C7-A7FE-91CE2DF74E9F}
+	static const GUID g = { 0x2c632bdb,0xf1ab,0x42c7,{0xa7,0xfe,0x91,0xce,0x2d,0xf7,0x4e,0x9f} };
 
 	return g;
 }
@@ -665,13 +470,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnel_Outbound_Ipv6_2()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnelService_Ipv4_1()
 {
-	static const GUID g =
-	{
-		0xf11a9ab4,
-		0x3dd6,
-		0x4cd9,
-		{ 0x9d, 0x95, 0xb0, 0x36, 0x22, 0x71, 0x6b, 0x3d }
-	};
+	// {9D857D88-211D-41DC-8A4C-1BC73474173C}
+	static const GUID g = { 0x9d857d88,0x211d,0x41dc,{0x8a,0x4c,0x1b,0xc7,0x34,0x74,0x17,0x3c} };
 
 	return g;
 }
@@ -679,13 +479,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnelService_Ipv4_1()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnelService_Ipv6_1()
 {
-	static const GUID g =
-	{
-		0xe902e448,
-		0x1845,
-		0x42e5,
-		{ 0xad, 0xf3, 0x33, 0xb2, 0x7a, 0xd, 0x5d, 0x38 }
-	};
+	// {32798A35-721E-4313-90EF-BC4CE42B00B3}
+	static const GUID g = { 0x32798a35,0x721e,0x4313,{0x90,0xef,0xbc,0x4c,0xe4,0x2b,0x00,0xb3} };
 
 	return g;
 }
@@ -693,13 +488,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnelService_Ipv6_1()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnelService_Ipv4_2()
 {
-	static const GUID g =
-	{
-		0x98c99ac3,
-		0xaa54,
-		0x45e7,
-		{ 0x91, 0xc4, 0x61, 0x1a, 0x1e, 0xe2, 0x64, 0x83 }
-	};
+	// {BD6B5856-5F51-45E9-A4EB-B18202826191}
+	static const GUID g = { 0xbd6b5856,0x5f51,0x45e9,{0xa4,0xeb,0xb1,0x82,0x02,0x82,0x61,0x91} };
 
 	return g;
 }
@@ -707,14 +497,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnelService_Ipv4_2()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnelService_Ipv6_2()
 {
-
-	static const GUID g =
-	{
-		0x01deb2b8,
-		0xb25d,
-		0x4e60,
-		{ 0x81, 0x52, 0xef, 0x3b, 0x40, 0xc0, 0x8e, 0xdc }
-	};
+	// {131E52D0-502D-436F-B1A2-88A979CCBF9F}
+	static const GUID g = { 0x131e52d0,0x502d,0x436f,{0xb1,0xa2,0x88,0xa9,0x79,0xcc,0xbf,0x9f} };
 
 	return g;
 }
@@ -722,13 +506,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnelService_Ipv6_2()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitNdp_Outbound_Router_Solicitation()
 {
-	static const GUID g =
-	{
-		0xbc5a85e4,
-		0x5319,
-		0x4224,
-		{ 0x8a, 0x27, 0x53, 0xeb, 0x61, 0xef, 0x3b, 0x1 }
-	};
+	// {755A4486-3CF5-4F5D-9308-AD1A3F4A7DE4}
+	static const GUID g = { 0x755a4486,0x3cf5,0x4f5d,{0x93,0x08,0xad,0x1a,0x3f,0x4a,0x7d,0xe4} };
 
 	return g;
 }
@@ -736,13 +515,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitNdp_Outbound_Router_Solicitation
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitNdp_Inbound_Router_Advertisement()
 {
-	static const GUID g =
-	{
-		0x4d996f1d,
-		0x4915,
-		0x4a6a,
-		{ 0xbd, 0xf5, 0xb5, 0x1a, 0x2d, 0xbc, 0xb8, 0xe9 }
-	};
+	// {43C954BA-3739-4762-B3DD-F6FA94B31847}
+	static const GUID g = { 0x43c954ba,0x3739,0x4762,{0xb3,0xdd,0xf6,0xfa,0x94,0xb3,0x18,0x47} };
 
 	return g;
 }
@@ -750,13 +524,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitNdp_Inbound_Router_Advertisement
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitNdp_Outbound_Neighbor_Solicitation()
 {
-	static const GUID g =
-	{
-		0x8cc5348a,
-		0xf736,
-		0x4ec4,
-		{ 0x8e, 0x8f, 0xd7, 0x13, 0x17, 0xd4, 0xc2, 0xb8 }
-	};
+	// {FEA40503-ADC7-450C-9B66-5CB0691FDEB4}
+	static const GUID g = { 0xfea40503,0xadc7,0x450c,{0x9b,0x66,0x5c,0xb0,0x69,0x1f,0xde,0xb4} };
 
 	return g;
 }
@@ -764,13 +533,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitNdp_Outbound_Neighbor_Solicitati
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitNdp_Inbound_Neighbor_Solicitation()
 {
-	static const GUID g =
-	{
-		0x0c95bb19,
-		0x40a2,
-		0x48ee,
-		{ 0xa7, 0xca, 0x5b, 0x61, 0x2c, 0xab, 0x5f, 0x9d }
-	};
+	// {843D33CC-99CB-4E67-A1D3-BD5744EFAB61}
+	static const GUID g = { 0x843d33cc,0x99cb,0x4e67,{0xa1,0xd3,0xbd,0x57,0x44,0xef,0xab,0x61} };
 
 	return g;
 }
@@ -778,13 +542,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitNdp_Inbound_Neighbor_Solicitatio
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitNdp_Outbound_Neighbor_Advertisement()
 {
-	static const GUID g =
-	{
-		0x932042c4,
-		0x2275,
-		0x4c3e,
-		{ 0x85, 0xe8, 0xf9, 0xa2, 0x77, 0x18, 0x19, 0x5c }
-	};
+	// {4C3F711E-D479-4FB2-81D2-1CE3A8D39128}
+	static const GUID g = { 0x4c3f711e,0xd479,0x4fb2,{0x81,0xd2,0x1c,0xe3,0xa8,0xd3,0x91,0x28} };
 
 	return g;
 }
@@ -792,13 +551,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitNdp_Outbound_Neighbor_Advertisem
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitNdp_Inbound_Neighbor_Advertisement()
 {
-	static const GUID g =
-	{
-		0xc0e39478,
-		0x7920,
-		0x4632,
-		{ 0x82, 0x12, 0x2a, 0xe5, 0xd2, 0x6f, 0x39, 0x5c }
-	};
+	// {1BFBA8E5-FBF5-4D81-B7E5-34B211934F7E}
+	static const GUID g = { 0x1bfba8e5,0xfbf5,0x4d81,{0xb7,0xe5,0x34,0xb2,0x11,0x93,0x4f,0x7e} };
 
 	return g;
 }
@@ -806,13 +560,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitNdp_Inbound_Neighbor_Advertiseme
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitNdp_Inbound_Redirect()
 {
-	static const GUID g =
-	{
-		0xcec23a8,
-		0x4fdd,
-		0x4a96,
-		{ 0xae, 0xba, 0x33, 0xd2, 0xa7, 0xf, 0x85, 0x22 }
-	};
+	// {CB455186-0ED9-493C-B023-BB3810A79CF9}
+	static const GUID g = { 0xcb455186,0x0ed9,0x493c,{0xb0,0x23,0xbb,0x38,0x10,0xa7,0x9c,0xf9} };
 
 	return g;
 }
@@ -820,13 +569,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitNdp_Inbound_Redirect()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitDns_Outbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0xeb484664,
-		0xa37c,
-		0x41a4,
-		{ 0x95, 0x83, 0xd5, 0xf7, 0x77, 0x38, 0xdc, 0x4f }
-	};
+	// {A1259109-FC57-47F8-8FDA-799903D90D39}
+	static const GUID g = { 0xa1259109,0xfc57,0x47f8,{0x8f,0xda,0x79,0x99,0x03,0xd9,0x0d,0x39} };
 
 	return g;
 }
@@ -834,13 +578,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitDns_Outbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitDns_Outbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0xab3ca903,
-		0xa637,
-		0x4254,
-		{ 0xb5, 0x45, 0x60, 0xa7, 0xb7, 0xf6, 0x35, 0xb9 }
-	};
+	// {FD90A07D-A244-4FAF-BD6D-26B97E9B2893}
+	static const GUID g = { 0xfd90a07d,0xa244,0x4faf,{0xbd,0x6d,0x26,0xb9,0x7e,0x9b,0x28,0x93} };
 
 	return g;
 }
@@ -848,13 +587,8 @@ const GUID &MullvadGuids::Filter_Baseline_PermitDns_Outbound_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Dns_BlockAll_Outbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0x81b26a4f,
-		0xca9c,
-		0x4547,
-		{ 0x90, 0x50, 0x49, 0x25, 0x88, 0xc0, 0xc9, 0xa8 }
-	};
+	// {6DA3AD59-4217-42F8-A08D-016A76FEB2BD}
+	static const GUID g = { 0x6da3ad59,0x4217,0x42f8,{0xa0,0x8d,0x01,0x6a,0x76,0xfe,0xb2,0xbd} };
 
 	return g;
 }
@@ -862,13 +596,8 @@ const GUID &MullvadGuids::Filter_Dns_BlockAll_Outbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Dns_BlockAll_Outbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0xa053c210,
-		0x7467,
-		0x4a13,
-		{ 0x90, 0x75, 0xaf, 0x5d, 0xd4, 0xb8, 0x60, 0xb5 }
-	};
+	// {067B590E-7845-4B87-A970-C7AE847A386A}
+	static const GUID g = { 0x067b590e,0x7845,0x4b87,{0xa9,0x70,0xc7,0xae,0x84,0x7a,0x38,0x6a} };
 
 	return g;
 }
@@ -876,13 +605,8 @@ const GUID &MullvadGuids::Filter_Dns_BlockAll_Outbound_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Dns_PermitNonTunnel_Outbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0x32207aec,
-		0x2938,
-		0x4cc7,
-		{ 0xa9, 0x4f, 0xd5, 0xdc, 0xe5, 0x2a, 0x9b, 0x56 }
-	};
+	// {69DCB3D4-FA52-43A5-B219-80CA48AF4C5C}
+	static const GUID g = { 0x69dcb3d4,0xfa52,0x43a5,{0xb2,0x19,0x80,0xca,0x48,0xaf,0x4c,0x5c} };
 
 	return g;
 }
@@ -890,13 +614,8 @@ const GUID &MullvadGuids::Filter_Dns_PermitNonTunnel_Outbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Dns_PermitNonTunnel_Outbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0x41f539d4,
-		0xa98e,
-		0x4663,
-		{ 0x90, 0xef, 0x1f, 0x2f, 0x78, 0x4a, 0x41, 0xad }
-	};
+	// {E4CBCF1F-CEBC-44F9-84CA-E05A86C371AD}
+	static const GUID g = { 0xe4cbcf1f,0xcebc,0x44f9,{0x84,0xca,0xe0,0x5a,0x86,0xc3,0x71,0xad} };
 
 	return g;
 }
@@ -904,13 +623,8 @@ const GUID &MullvadGuids::Filter_Dns_PermitNonTunnel_Outbound_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Dns_PermitTunnel_Outbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0x260fcc99,
-		0x2b95,
-		0x41a7,
-		{ 0xa2, 0x7f, 0xd0, 0x95, 0x7, 0x51, 0x51, 0xaa }
-	};
+	// {C0B4407B-0ECE-4C0B-A333-84F68BAE3E37}
+	static const GUID g = { 0xc0b4407b,0x0ece,0x4c0b,{0xa3,0x33,0x84,0xf6,0x8b,0xae,0x3e,0x37} };
 
 	return g;
 }
@@ -918,13 +632,8 @@ const GUID &MullvadGuids::Filter_Dns_PermitTunnel_Outbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Dns_PermitTunnel_Outbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0x4a919d7f,
-		0x6f2c,
-		0x4bf5,
-		{ 0x8f, 0xdc, 0xfd, 0xd, 0x4a, 0x64, 0x42, 0x9d }
-	};
+	// {C59E6976-212E-4233-93C2-C51F941D7D65}
+	static const GUID g = { 0xc59e6976,0x212e,0x4233,{0x93,0xc2,0xc5,0x1f,0x94,0x1d,0x7d,0x65} };
 
 	return g;
 }
@@ -932,13 +641,8 @@ const GUID &MullvadGuids::Filter_Dns_PermitTunnel_Outbound_Ipv6()
 //static
 const GUID &MullvadGuids::Filter_Dns_PermitLoopback_Outbound_Ipv4()
 {
-	static const GUID g =
-	{
-		0x4e2bdc82,
-		0x292c,
-		0x4545,
-		{ 0xa5, 0xc4, 0x50, 0x25, 0x1c, 0x70, 0x2f, 0xcd }
-	};
+	// {A9A29810-61A4-4331-A441-A20F51D2B45A}
+	static const GUID g = { 0xa9a29810,0x61a4,0x4331,{0xa4,0x41,0xa2,0x0f,0x51,0xd2,0xb4,0x5a} };
 
 	return g;
 }
@@ -946,13 +650,8 @@ const GUID &MullvadGuids::Filter_Dns_PermitLoopback_Outbound_Ipv4()
 //static
 const GUID &MullvadGuids::Filter_Dns_PermitLoopback_Outbound_Ipv6()
 {
-	static const GUID g =
-	{
-		0x7811263c,
-		0x3916,
-		0x428d,
-		{ 0xa5, 0x14, 0x2e, 0x43, 0x2, 0x1a, 0x73, 0x8a }
-	};
+	// {3ED5BA1D-C39D-431A-8D51-85E915EBA7FA}
+	static const GUID g = { 0x3ed5ba1d,0xc39d,0x431a,{0x8d,0x51,0x85,0xe9,0x15,0xeb,0xa7,0xfa} };
 
 	return g;
 }
