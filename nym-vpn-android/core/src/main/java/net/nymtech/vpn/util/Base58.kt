@@ -19,7 +19,7 @@ object Base58 {
 			val bytes = decode(input)
 
 			return bytes.size == expectedByteLength
-		} catch (e: Exception) {
+		} catch (e: IllegalArgumentException) {
 			return false
 		}
 	}
