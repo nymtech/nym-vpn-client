@@ -70,11 +70,12 @@ impl MixnetConnectionBeacon {
 }
 
 pub fn create_self_ping(our_address: Recipient) -> (InputMessage, u64) {
-    let (request, request_id) = IpPacketRequest::new_ping(our_address);
+    let (request, request_id) = IpPacketRequest::new_ping();
     (
-        InputMessage::new_regular(
+        InputMessage::new_anonymous(
             our_address,
             request.to_bytes().unwrap(),
+            0,
             TransmissionLane::General,
             None,
         ),

@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::current::response::{DynamicConnectFailureReason, StaticConnectFailureReason};
+use crate::current::response::ConnectFailureReason;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -30,16 +30,18 @@ pub enum Error {
     Cancelled,
 
     #[error("connect request denied: {reason}")]
-    StaticConnectRequestDenied { reason: StaticConnectFailureReason },
-
-    #[error("connect request denied: {reason}")]
-    DynamicConnectRequestDenied { reason: DynamicConnectFailureReason },
+    ConnectRequestDenied { reason: ConnectFailureReason },
 
     #[error("failed to get version from message")]
     NoVersionInMessage,
 
     #[error("already connected to the mixnet")]
     AlreadyConnected,
+
+    #[error("failed to create connect request")]
+    FailedToCreateConnectRequest {
+        source: nym_ip_packet_requests::sign::SignatureError,
+    },
 }
 
 // Result type based on our error type

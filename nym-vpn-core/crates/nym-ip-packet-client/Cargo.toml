@@ -15,6 +15,7 @@ nym-gateway-directory = { workspace = true }
 nym-ip-packet-requests.workspace = true
 nym-mixnet-client = { workspace = true }
 nym-sdk.workspace = true
+rand.workspace = true
 thiserror.workspace = true
 tokio-util.workspace = true
 tokio.workspace = true
