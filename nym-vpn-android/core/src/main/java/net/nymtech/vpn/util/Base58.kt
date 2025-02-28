@@ -1,5 +1,6 @@
 package net.nymtech.vpn.util
 
+import timber.log.Timber
 import java.math.BigInteger
 
 object Base58 {
@@ -20,6 +21,7 @@ object Base58 {
 
 			return bytes.size == expectedByteLength
 		} catch (e: IllegalArgumentException) {
+			Timber.e(e)
 			return false
 		}
 	}
