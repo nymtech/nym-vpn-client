@@ -4,7 +4,6 @@
 **/*.rs.bk
 /*/target
 target
-**/.vs/
 .idea
 build
 /android
@@ -27,3 +26,7 @@ nym-vpn-apple/MixnetLibrary/Sources/MixnetLibrary/RustFramework.xcframework
 wireguard/libwg/exports.def
 wireguard/libwg/libwg.exp
 wireguard/libwg/libwg.h
+
+# Visual Studio
+*.vcxproj.user
+.vs/
