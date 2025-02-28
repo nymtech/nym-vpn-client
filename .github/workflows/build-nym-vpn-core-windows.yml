@@ -69,17 +69,17 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.LIBS_PATH }}/
 
-     - name: Download winfw lib artifact (winfw.lib)
-       uses: actions/download-artifact@v4
-       with:
-         name: ${{ env.WINFW_LIB_NAME }}.lib
-         path: ${{ env.LIBS_PATH }}/
+      - name: Download winfw lib artifact (winfw.lib)
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WINFW_LIB_NAME }}.lib
+          path: ${{ env.LIBS_PATH }}/
 
-     - name: Download winfw lib artifact (winfw.dll)
-       uses: actions/download-artifact@v4
-       with:
-         name: ${{ env.WINFW_LIB_NAME }}.dll
-         path: ${{ env.LIBS_PATH }}/
+      - name: Download winfw lib artifact (winfw.dll)
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WINFW_LIB_NAME }}.dll
+          path: ${{ env.LIBS_PATH }}/
 
       - name: Download/Unzip/Move wintun.zip, winpcap.zip also move libwg and winfw lib
         shell: bash
