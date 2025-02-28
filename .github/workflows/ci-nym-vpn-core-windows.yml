@@ -101,7 +101,7 @@ jobs:
       - name: Build winfw.dll
         shell: pwsh
         run: |
-          .\build-windows-modules.ps1 Debug x64
+          .\build-windows-modules.ps1 -BuildConfiguration Debug -Platform x64
 
       - name: Move winfw.dll to build directory
         shell: bash

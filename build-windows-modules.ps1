@@ -1,8 +1,25 @@
 param (
-    [Parameter(Mandatory = $true)][string]$build_configuration,
-    [Parameter(Mandatory = $true)][string]$platform
+    [Parameter(Mandatory = $true)][string]$BuildConfiguration,
+    [Parameter(Mandatory = $true)][string]$Platform,
+    [bool]$CopyToBuildDir = $False
 )
 
-write-output "Compiling winfw in $build_configuration for $platform"
+Write-Output "Compiling winfw in $BuildConfiguration for $Platform"
 
-MSBuild.exe /m .\nym-vpn-windows\winfw\winfw.sln /p:Configuration=$build_configuration /p:Platform=$platform
+MSBuild.exe /m .\nym-vpn-windows\winfw\winfw.sln /p:Configuration=$BuildConfiguration /p:Platform=$Platform
+
+$BuildDir = "$PSScriptRoot\nym-vpn-windows\winfw\bin\$Platform-$BuildConfiguration"
+$OutputDir = "$PSScriptRoot\build\winfw\$Platform-$BuildConfiguration"
+
+switch ($CopyToBuildDir) {
+    $true {
+        Write-Output "Copying winfw.{lib,dll} to $OutputDir"
+        New-Item -ItemType Directory -Force -Path $OutputDir -Verbose
+        Copy-Item -Path $BuildDir\winfw.lib -Destination $OutputDir -Verbose
+        Copy-Item -Path $BuildDir\winfw.dll -Destination $OutputDir -Verbose
+        break
+    }
+    default {
+        break
+    }
+}

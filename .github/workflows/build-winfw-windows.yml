@@ -44,7 +44,7 @@ jobs:
           max_attempts: 3
           retry_on: error
           command: |
-            .\build-windows-modules.ps1 ${{ env.CPP_BUILD_MODES }} x64
+            .\build-windows-modules.ps1 -BuildConfiguration ${{ env.CPP_BUILD_MODES }} -Platform x64
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
