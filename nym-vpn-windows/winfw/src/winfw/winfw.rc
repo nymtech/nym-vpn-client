@@ -8,13 +8,13 @@ BLOCK "StringFileInfo"
 BEGIN
     BLOCK "040904E4"
     BEGIN
-        VALUE "CompanyName", "Mullvad VPN AB"
-        VALUE "FileDescription", "Mullvad VPN firewall module"
+        VALUE "CompanyName", "Nym Technologies SA"
+        VALUE "FileDescription", "Nym VPN firewall module"
         VALUE "FileVersion", PRODUCT_VERSION
         VALUE "InternalName", "winfw"
-        VALUE "LegalCopyright", "(c) 2025 Mullvad VPN AB"
+        VALUE "LegalCopyright", "(c) 2025 Nym Technologies SA"
         VALUE "OriginalFilename", "winfw.dll"
-        VALUE "ProductName", "Mullvad VPN"
+        VALUE "ProductName", "Nym VPN"
         VALUE "ProductVersion", PRODUCT_VERSION
     END
 END
