@@ -379,7 +379,7 @@ bool FwContext::applyPolicyConnected
 (
 	const WinFwSettings& settings,
 	const std::vector<WinFwAllowedEndpoint>& relays,
-	const std::optional<std::wstring>& /* entryTunnelIfaceAlias */,
+	const std::optional<std::wstring>&  entryTunnelIfaceAlias ,
 	const std::optional<std::wstring>& exitTunnelIfaceAlias,
 	const std::optional<std::vector<WinFwAllowedEndpoint>>& allowedEndpoints,
 	const std::vector<wfp::IpAddress>& tunnelDnsServers,
@@ -425,6 +425,23 @@ bool FwContext::applyPolicyConnected
 			std::nullopt
 		));
 	}
+
+	if (entryTunnelIfaceAlias.has_value())
+	{
+		std::wstring entryTunnelIfaceAliasStr = entryTunnelIfaceAlias.value();
+
+		
+		ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
+			entryTunnelIfaceAliasStr,
+			std::nullopt
+		));
+
+		ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnelService>(
+			entryTunnelIfaceAliasStr,
+			std::nullopt
+		));
+	}
+
 
 	const auto status = applyRuleset(ruleset);
 	if (status)
