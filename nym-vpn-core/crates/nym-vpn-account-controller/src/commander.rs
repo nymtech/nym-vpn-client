@@ -45,7 +45,14 @@ impl AccountControllerCommander {
         self.store_account(mnemonic).await?;
         self.ensure_update_account().await?;
         self.ensure_update_device().await?;
-        self.ensure_register_device().await?;
+        //if register fails, forget the account
+        match self.ensure_register_device().await {
+            Ok(()) => Ok(()),
+            Err(register_error) => {
+                let _ = self.forget_account().await;
+                Err(AccountCommandError::RegisterDevice(register_error))
+            }
+        }?;
         Ok(())
     }
 
