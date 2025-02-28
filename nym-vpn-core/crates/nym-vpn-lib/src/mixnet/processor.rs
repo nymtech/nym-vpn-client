@@ -7,7 +7,7 @@ use bytes::Bytes;
 use futures::{channel::mpsc, StreamExt};
 use nym_connection_monitor::{ConnectionMonitorTask, ConnectionStatusEvent};
 use nym_gateway_directory::IpPacketRouterAddress;
-use nym_ip_packet_requests::{codec::MultiIpPacketCodec, v7::request::IpPacketRequest};
+use nym_ip_packet_requests::{codec::MultiIpPacketCodec, v8::request::IpPacketRequest};
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
@@ -44,7 +44,12 @@ impl MessageCreator {
 
         let lane = TransmissionLane::General;
         let packet_type = None;
-        let input_message = InputMessage::new_regular(self.recipient, packet, lane, packet_type);
+        // Create an anonymous message without any bundled SURBs. We supply SURBs separate from
+        // sphinx packets that carry the actual data, since we try to keep the payload for IP
+        // traffic contained within a single sphinx packet.
+        let surbs = 0;
+        let input_message =
+            InputMessage::new_anonymous(self.recipient, packet, surbs, lane, packet_type);
         Ok(input_message)
     }
 }

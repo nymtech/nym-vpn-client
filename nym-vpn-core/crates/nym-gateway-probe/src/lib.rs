@@ -31,7 +31,9 @@ use nym_gateway_directory::{
 use nym_ip_packet_client::IprClientConnect;
 use nym_ip_packet_requests::{
     codec::MultiIpPacketCodec,
-    v7::response::{DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData},
+    v8::response::{
+        ControlResponse, DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData,
+    },
     IpPair,
 };
 use nym_mixnet_client::SharedMixnetClient;
@@ -594,7 +596,7 @@ async fn do_ping(
     // The IPR supports cancellation, but it's unused in the gateway probe
     let cancel_token = CancellationToken::new();
     let mut ipr_client = IprClientConnect::new(shared_mixnet_client.clone(), cancel_token).await;
-    let Ok(our_ips) = ipr_client.connect(exit_router_address, None).await else {
+    let Ok(our_ips) = ipr_client.connect(exit_router_address).await else {
         return Ok(ProbeOutcome {
             as_entry,
             as_exit: Some(Exit::fail_to_connect()),
@@ -725,19 +727,21 @@ fn unpack_data_response(reconstructed_message: &ReconstructedMessage) -> Option<
     match IpPacketResponse::from_reconstructed_message(reconstructed_message) {
         Ok(response) => match response.data {
             IpPacketResponseData::Data(data_response) => Some(data_response),
-            IpPacketResponseData::Info(info) => {
-                let msg = format!("Received info response from the mixnet: {}", info.reply);
-                match info.level {
-                    InfoLevel::Info => info!("{msg}"),
-                    InfoLevel::Warn => warn!("{msg}"),
-                    InfoLevel::Error => error!("{msg}"),
+            IpPacketResponseData::Control(control) => match *control {
+                ControlResponse::Info(info) => {
+                    let msg = format!("Received info response from the mixnet: {}", info.reply);
+                    match info.level {
+                        InfoLevel::Info => info!("{msg}"),
+                        InfoLevel::Warn => warn!("{msg}"),
+                        InfoLevel::Error => error!("{msg}"),
+                    }
+                    None
                 }
-                None
-            }
-            _ => {
-                info!("Ignoring: {:?}", response);
-                None
-            }
+                _ => {
+                    info!("Ignoring: {:?}", control);
+                    None
+                }
+            },
         },
         Err(err) => {
             warn!("Failed to parse mixnet message: {err}");

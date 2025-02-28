@@ -14,7 +14,6 @@ use std::{os::fd::RawFd, sync::Arc};
 
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayClient, Recipient};
-use nym_ip_packet_requests::IpPair;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
@@ -69,7 +68,6 @@ impl ConnectedMixnet {
     /// Creates a tunnel over Mixnet.
     pub async fn connect_mixnet_tunnel(
         self,
-        interface_addresses: Option<IpPair>, // known as config.nym_ips
         cancel_token: CancellationToken,
     ) -> Result<mixnet::connected_tunnel::ConnectedTunnel> {
         let connector = mixnet::connector::Connector::new(
@@ -79,7 +77,7 @@ impl ConnectedMixnet {
         );
 
         match connector
-            .connect(self.selected_gateways, interface_addresses, cancel_token)
+            .connect(self.selected_gateways, cancel_token)
             .await
         {
             Ok(connected_tunnel) => Ok(connected_tunnel),

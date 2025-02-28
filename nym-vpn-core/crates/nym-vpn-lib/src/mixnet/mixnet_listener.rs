@@ -47,8 +47,7 @@ impl MixnetListener {
         our_ips: IpPair,
         connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
     ) -> Self {
-        let our_address = mixnet_client.nym_address().await;
-        let ipr_client = IprListener::new(our_address);
+        let ipr_client = IprListener::new();
 
         Self {
             mixnet_client,

@@ -48,12 +48,10 @@ impl Connector {
     pub async fn connect(
         self,
         selected_gateways: SelectedGateways,
-        nym_ips: Option<IpPair>,
         cancel_token: CancellationToken,
     ) -> Result<ConnectedTunnel, ConnectorError> {
         let result = Self::connect_inner(
             selected_gateways,
-            nym_ips,
             self.mixnet_client.clone(),
             &self.gateway_directory_client,
             cancel_token,
@@ -79,7 +77,6 @@ impl Connector {
 
     async fn connect_inner(
         selected_gateways: SelectedGateways,
-        nym_ips: Option<IpPair>,
         mixnet_client: SharedMixnetClient,
         gateway_directory_client: &GatewayClient,
         cancel_token: CancellationToken,
@@ -111,7 +108,7 @@ impl Connector {
 
         let mut ipr_client = IprClientConnect::new(mixnet_client.clone(), cancel_token).await;
         let interface_addresses = ipr_client
-            .connect(exit_mix_addresses, nym_ips)
+            .connect(exit_mix_addresses)
             .await
             .map_err(Error::ConnectToIpPacketRouter)?;
 

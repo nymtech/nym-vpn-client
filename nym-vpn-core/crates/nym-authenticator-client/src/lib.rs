@@ -12,8 +12,8 @@ use nym_credentials_interface::CredentialSpendingData;
 use nym_crypto::asymmetric::x25519::PrivateKey;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{
-    ClientStatsEvents, ClientStatsSender, MixnetClient, MixnetClientSender, MixnetMessageSender,
-    Recipient, ReconstructedMessage, TransmissionLane,
+    ClientStatsEvents, ClientStatsSender, MixnetClient, MixnetClientSender,
+    MixnetMessageSender, Recipient, ReconstructedMessage, TransmissionLane,
 };
 use nym_service_provider_requests_common::ServiceProviderType;
 use nym_wireguard_types::PeerPublicKey;
@@ -863,14 +863,10 @@ impl AuthClient {
         authenticator_address: Recipient,
     ) -> Result<u64> {
         let (data, request_id) = message.bytes(self.nym_address)?;
+        let input_message = create_input_message(authenticator_address, data);
 
         self.mixnet_sender
-            .send(nym_sdk::mixnet::InputMessage::new_regular(
-                authenticator_address,
-                data,
-                TransmissionLane::General,
-                None,
-            ))
+            .send(input_message)
             .await
             .map_err(Error::SendMixnetMessage)?;
 
@@ -945,4 +941,8 @@ fn check_auth_message_version(message: &ReconstructedMessage) -> Result<Authenti
     } else {
         Err(Error::NoVersionInMessage)
     }
+}
+
+fn create_input_message(recipient: Recipient, data: Vec<u8>) -> nym_sdk::mixnet::InputMessage {
+    nym_sdk::mixnet::InputMessage::new_regular(recipient, data, TransmissionLane::General, None)
 }

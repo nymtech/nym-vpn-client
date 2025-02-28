@@ -10,7 +10,7 @@ use nym_connection_monitor::{
     ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply,
 };
 use nym_gateway_directory::IpPacketRouterAddress;
-use nym_ip_packet_requests::{codec::MultiIpPacketCodec, v7::request::IpPacketRequest, IpPair};
+use nym_ip_packet_requests::{codec::MultiIpPacketCodec, v8::request::IpPacketRequest, IpPair};
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{InputMessage, Recipient};
 use nym_task::connections::TransmissionLane;
@@ -80,9 +80,11 @@ fn create_input_message(
 
     let lane = TransmissionLane::General;
     let packet_type = None;
-    Ok(InputMessage::new_regular(
+    let surbs = 10;
+    Ok(InputMessage::new_anonymous(
         recipient.into(),
         packet,
+        surbs,
         lane,
         packet_type,
     ))
