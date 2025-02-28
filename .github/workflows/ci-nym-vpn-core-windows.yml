@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - "nym-vpn-core/**"
+      - "nym-vpn-windows/**"
       - ".github/workflows/ci-nym-vpn-core-windows.yml"
   workflow_dispatch:
 
