@@ -59,10 +59,7 @@ function NetworkModeSelect() {
       if (!text) {
         return;
       }
-      push({
-        text,
-        position: 'top',
-      });
+      push({ message: text });
     },
     HomeThrottleDelay,
     [state],

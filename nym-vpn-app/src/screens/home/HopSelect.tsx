@@ -46,10 +46,7 @@ export default function HopSelect({
         text = t('snackbar-disabled-message.daemon-not-connected');
       }
       if (text.length > 0) {
-        push({
-          text,
-          position: 'top',
-        });
+        push({ message: text });
       }
     },
     HomeThrottleDelay,

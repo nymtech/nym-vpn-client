@@ -65,9 +65,9 @@ function Settings() {
   // notify the user at most once per every 10s when he toggles monitoring
   const showMonitoringAlert = useThrottle(() => {
     push({
-      text: t('monitoring-alert'),
-      position: 'top',
-      closeIcon: true,
+      message: t('monitoring-alert'),
+      close: true,
+      type: 'warn',
     });
   }, ThrottleDelay);
 

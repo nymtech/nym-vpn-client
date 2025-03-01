@@ -29,9 +29,7 @@ function Logout() {
     if (state !== 'Disconnected') {
       console.warn(`cannot logout while tunnel state is ${state}`);
       push({
-        text: t('logout.from-state', { ns: 'notifications', state }),
-        position: 'top',
-        autoHideDuration: 5000,
+        message: t('logout.from-state', { ns: 'notifications', state }),
       });
       return;
     }
@@ -40,8 +38,7 @@ function Logout() {
       await invoke('forget_account');
       dispatch({ type: 'set-account', stored: false });
       push({
-        text: t('logout.success', { ns: 'notifications' }),
-        position: 'top',
+        message: t('logout.success', { ns: 'notifications' }),
       });
       await CCache.del('cache-account-id');
       await CCache.del('cache-device-id');
@@ -49,9 +46,7 @@ function Logout() {
     } catch (e) {
       console.warn('failed to logout', e);
       push({
-        text: `${t('logout.error', { ns: 'notifications' })}: ${tE((e as BackendError).key || 'unknown')}`,
-        position: 'top',
-        autoHideDuration: 5000,
+        message: `${t('logout.error', { ns: 'notifications' })}: ${tE((e as BackendError).key || 'unknown')}`,
       });
     }
   };

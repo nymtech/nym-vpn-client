@@ -1,6 +1,9 @@
-import { SnackbarProps } from '../../ui';
+import { ToastProps } from '../../ui';
 
-export type Notification = Omit<SnackbarProps, 'open' | 'onClose'> & {
+export type Notification = Omit<
+  ToastProps,
+  'open' | 'onOpenChange' | 'defaultOpen'
+> & {
   id?: string;
   onClose?: () => void;
   // Number of second to wait before allowing sending the same notification again\
@@ -8,11 +11,11 @@ export type Notification = Omit<SnackbarProps, 'open' | 'onClose'> & {
   throttle?: number;
 };
 
-export type NotificationState = {
+export type NotificationCtxState = {
   // Currently displayed notification
   readonly current: Notification | null;
-  // Moves to the next notification in the stack
-  next: () => void;
+  // To be called when the current notification is closed or finished
+  onClose: () => void;
   // Adds a notification/s to the end of the stack
   push: (notification: Notification) => void;
   // Removes all notifications from the stack

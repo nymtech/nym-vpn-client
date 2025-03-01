@@ -31,8 +31,8 @@ export function mockTauriIPC() {
   };
 
   mockIPC((async (cmd, args) => {
-    console.log(`IPC call mocked "${cmd}"`);
-    console.log(args);
+    console.debug(`IPC call mocked "${cmd}"`);
+    console.debug(args);
 
     if (cmd === 'daemon_status') {
       return new Promise<VpndStatus>((resolve) =>

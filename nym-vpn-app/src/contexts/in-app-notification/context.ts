@@ -1,9 +1,9 @@
 import { createContext, useContext } from 'react';
-import { NotificationState } from './type';
+import { NotificationCtxState } from './type';
 
-const initialState: NotificationState = {
+const initialState: NotificationCtxState = {
   current: null,
-  next: () => {
+  onClose: () => {
     /* SCARECROW */
   },
   push: () => {
@@ -15,7 +15,7 @@ const initialState: NotificationState = {
 };
 
 export const InAppNotificationContext =
-  createContext<NotificationState>(initialState);
+  createContext<NotificationCtxState>(initialState);
 export const useInAppNotify = () => {
   return useContext(InAppNotificationContext);
 };

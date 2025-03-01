@@ -27,8 +27,8 @@ function MainLayout({
         'dark:bg-ash dark:text-white',
       ])}
     >
-      {!noTopBar && <TopBar />}
       {!noNotifications && <Notifications />}
+      {!noTopBar && <TopBar />}
       {!noDaemonDot && <DaemonDot status={daemonStatus} />}
       <div
         className={clsx([

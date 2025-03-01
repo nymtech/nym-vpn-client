@@ -1,6 +1,7 @@
-import { invoke } from '@tauri-apps/api/core';
 import { Suspense, useEffect } from 'react';
 import { RouterProvider } from 'react-router';
+import { invoke } from '@tauri-apps/api/core';
+import * as Toast from '@radix-ui/react-toast';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useTranslation } from 'react-i18next';
@@ -61,15 +62,17 @@ function App() {
 
   return (
     <InAppNotificationProvider>
-      <MainStateProvider>
-        <ThemeSetter>
-          <DialogProvider>
-            <Suspense fallback={<RouteLoading />}>
-              <RouterProvider router={router} />
-            </Suspense>
-          </DialogProvider>
-        </ThemeSetter>
-      </MainStateProvider>
+      <Toast.Provider>
+        <MainStateProvider>
+          <ThemeSetter>
+            <DialogProvider>
+              <Suspense fallback={<RouteLoading />}>
+                <RouterProvider router={router} />
+              </Suspense>
+            </DialogProvider>
+          </ThemeSetter>
+        </MainStateProvider>
+      </Toast.Provider>
     </InAppNotificationProvider>
   );
 }

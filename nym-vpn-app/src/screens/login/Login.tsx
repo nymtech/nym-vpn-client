@@ -53,9 +53,8 @@ function Login() {
       navigate(routes.root);
       dispatch({ type: 'set-account', stored: true });
       push({
-        text: t('added-notification'),
-        position: 'top',
-        closeIcon: true,
+        message: t('added-notification'),
+        close: true,
       });
       await CCache.del('cache-account-id');
       await CCache.del('cache-device-id');

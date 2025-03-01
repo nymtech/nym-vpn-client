@@ -8,18 +8,12 @@ function useClipboard() {
   const { t } = useTranslation('notifications');
 
   // Writes text to the clipboard
-  const copy = async (
-    text: string,
-    notify = true,
-    ntfyPosition: 'top' | 'bottom' = 'top',
-  ) => {
+  const copy = async (text: string, notify = true) => {
     try {
       await writeText(text);
       if (notify) {
         push({
-          text: t('copied-to-clipboard'),
-          position: ntfyPosition,
-          clickAway: true,
+          message: t('copied-to-clipboard'),
         });
       }
     } catch (e) {

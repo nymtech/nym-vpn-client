@@ -53,29 +53,27 @@ export function daemonStatusUpdate(
     info = status.nonCompat.current;
     push({
       id: 'daemon-no-compat',
-      text: i18n.t('daemon-no-compat', {
+      message: i18n.t('daemon-no-compat', {
         ns: 'notifications',
         version: status.nonCompat.current.version,
         required: status.nonCompat.requirement,
       }),
-      position: 'top',
-      closeIcon: true,
-      autoHideDuration: 8000,
+      close: true,
+      duration: 8000,
       type: 'warn',
-      throttle: 20,
+      throttle: 30,
     });
   }
   if (status === 'down') {
     push({
       id: 'daemon-not-connected',
-      text: i18n.t('daemon-not-connected', {
+      message: i18n.t('daemon-not-connected', {
         ns: 'notifications',
       }),
-      position: 'top',
-      closeIcon: true,
-      autoHideDuration: 8000,
+      close: true,
+      duration: 8000,
       type: 'error',
-      throttle: 20,
+      throttle: 30,
     });
   }
   if (info) {

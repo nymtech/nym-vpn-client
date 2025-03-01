@@ -76,12 +76,11 @@ function Home() {
     if (daemonStatus === 'down') {
       push({
         id: 'daemon-not-connected',
-        text: t('daemon-not-connected', {
+        message: t('daemon-not-connected', {
           ns: 'notifications',
         }),
-        position: 'top',
-        closeIcon: true,
-        autoHideDuration: 8000,
+        close: true,
+        duration: 2000,
         type: 'error',
         throttle: 30,
       });

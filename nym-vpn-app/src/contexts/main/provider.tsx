@@ -107,12 +107,12 @@ function MainStateProvider({ children }: Props) {
         if (messages.length > 0) {
           console.info('system messages', messages);
           push({
-            text: messages
+            message: messages
               .map(({ name, message }) => `${name}: ${message}`)
               .join('\n'),
-            position: 'top',
-            closeIcon: true,
-            autoHideDuration: 10000,
+            close: true,
+            duration: 10000,
+            type: 'warn',
           });
         }
       } catch (e) {
