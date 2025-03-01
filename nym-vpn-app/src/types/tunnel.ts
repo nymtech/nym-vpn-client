@@ -1,4 +1,4 @@
-import { BackendError, ErrorKey } from './tauri-ipc';
+import { BackendError, ErrorKey } from './tauri';
 
 export type TunnelConnected = { connected: Tunnel };
 export type TunnelConnecting = {

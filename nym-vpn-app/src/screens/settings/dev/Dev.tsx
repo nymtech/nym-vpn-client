@@ -33,7 +33,7 @@ function Dev() {
           <Switch checked={credentialsMode} onChange={credentialsModeChanged} />
         }
       />
-      {daemonStatus !== 'NotOk' && networkEnv && (
+      {daemonStatus !== 'down' && networkEnv && (
         <NetworkEnvSelect current={networkEnv} />
       )}
     </PageAnim>

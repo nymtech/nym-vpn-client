@@ -2,7 +2,6 @@ import { createContext, useContext } from 'react';
 import { NotificationState } from './type';
 
 const initialState: NotificationState = {
-  stack: [],
   current: null,
   next: () => {
     /* SCARECROW */

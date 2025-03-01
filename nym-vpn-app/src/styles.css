@@ -32,7 +32,6 @@
   --color-dusty-grey: #ceccd1;
   --color-aluminium: #8da3b1;
   --color-poivre-noir: #484649;
-  --color-seashell: #fff2ef;
   --color-ash: #242b2d;
   --color-octave: #32373d;
   --color-octave-arsenic: #374042;
@@ -81,7 +80,7 @@
    *  </div>
    */
   @apply invisible absolute p-2 px-3 rounded-sm shadow-md
-        bg-seashell dark:bg-poivre-noir text-sm
+        bg-white dark:bg-poivre-noir text-sm
         transition-opacity duration-200 opacity-0 ease-out;
 
   .attach-tooltip:hover & {

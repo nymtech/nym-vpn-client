@@ -9,7 +9,7 @@ import {
   GatewayType,
   GatewaysByCountry,
   NetworkEnv,
-} from './tauri-ipc';
+} from './tauri';
 import { Tunnel, TunnelError } from './tunnel';
 
 export type TunnelState =
@@ -32,7 +32,7 @@ export type CodeDependency = {
   copyright?: string;
 };
 
-export type DaemonStatus = 'Ok' | 'NonCompat' | 'NotOk';
+export type DaemonStatus = 'ok' | 'non-compat' | 'down';
 
 export type AppState = {
   // initial loading phase when the app is starting and fetching data from the backend

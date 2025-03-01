@@ -614,7 +614,7 @@ impl GrpcClient {
     #[instrument(skip(self))]
     fn get_vpnd_status(&self, serving: ServingStatus, vpnd_info: Option<&VpndInfo>) -> VpndStatus {
         if serving != ServingStatus::Serving {
-            return VpndStatus::NotOk;
+            return VpndStatus::Down;
         }
 
         let Some(ver_req) = VPND_COMPAT_REQ else {

@@ -11,5 +11,6 @@
     "from-state": "Vous ne pouvez pas vous déconnecter lorsque le tunnel VPN est dans ce status : \"{{state}}\""
   },
   "copied-to-clipboard": "Copié dans le presse-papiers",
-  "daemon-not-compat": "La version du daemon n'est pas compatible avec l'application ! Version du daemon : {{version}}, version compatible : {{required}}. Veuillez mettre à jour le daemon ou l'application."
+  "daemon-no-compat": "La version du daemon n'est pas compatible avec l'application ! Version du daemon : {{version}}, version compatible : {{required}}. Veuillez mettre à jour le daemon ou l'application.",
+  "daemon-not-connected": "Aucune connexion avec le daemon, svp contactez notre équipe de support."
 }

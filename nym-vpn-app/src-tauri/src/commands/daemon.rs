@@ -30,7 +30,7 @@ pub async fn daemon_status(
         .inspect_err(|e| {
             warn!("failed to check daemon status: {:?}", e);
         })
-        .unwrap_or(VpndStatus::NotOk);
+        .unwrap_or(VpndStatus::Down);
     debug!("daemon status: {:?}", status);
     Ok(status)
 }

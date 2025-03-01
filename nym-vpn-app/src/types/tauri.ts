@@ -66,16 +66,14 @@ type VpndNonCompat = {
   };
 };
 
-export type VpndStatus = VpndOk | VpndNonCompat | 'notOk';
+export type VpndStatus = VpndOk | VpndNonCompat | 'down';
 
 export function isVpndOk(status: VpndStatus): status is VpndOk {
-  return status !== 'notOk' && (status as VpndOk).ok !== undefined;
+  return status !== 'down' && (status as VpndOk).ok !== undefined;
 }
 
 export function isVpndNonCompat(status: VpndStatus): status is VpndNonCompat {
-  return (
-    status !== 'notOk' && (status as VpndNonCompat).nonCompat !== undefined
-  );
+  return status !== 'down' && (status as VpndNonCompat).nonCompat !== undefined;
 }
 
 export type DaemonInfo = { version: string; network: NetworkEnv };

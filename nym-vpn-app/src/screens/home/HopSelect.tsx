@@ -42,7 +42,7 @@ export default function HopSelect({
           text = t('snackbar-disabled-message.offline');
           break;
       }
-      if (daemonStatus === 'NotOk') {
+      if (daemonStatus === 'down') {
         text = t('snackbar-disabled-message.daemon-not-connected');
       }
       if (text.length > 0) {

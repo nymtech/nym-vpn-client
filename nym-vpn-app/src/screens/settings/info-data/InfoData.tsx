@@ -58,7 +58,7 @@ function InfoData() {
             {version}
           </ButtonText>
         </div>
-        {daemonStatus !== 'NotOk' && InfoView}
+        {daemonStatus !== 'down' && InfoView}
       </div>
     </>
   );

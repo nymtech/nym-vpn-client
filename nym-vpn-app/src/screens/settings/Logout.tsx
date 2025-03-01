@@ -69,7 +69,7 @@ function Logout() {
       <SettingsMenuCard
         title={logoutCopy}
         onClick={() => setIsOpen(true)}
-        disabled={daemonStatus === 'NotOk' || state !== 'Disconnected'}
+        disabled={daemonStatus === 'down' || state !== 'Disconnected'}
       />
       <Dialog
         open={isOpen}

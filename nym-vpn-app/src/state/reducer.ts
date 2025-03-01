@@ -81,7 +81,7 @@ export const initialState: AppState = {
   state: 'Disconnected',
   tunnel: null,
   tunnelError: null,
-  daemonStatus: 'NotOk',
+  daemonStatus: 'down',
   networkEnv: 'mainnet',
   version: null,
   vpnMode: S_STATE.vpnModeAtStart,

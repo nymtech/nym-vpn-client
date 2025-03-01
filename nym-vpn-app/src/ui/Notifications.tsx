@@ -20,6 +20,7 @@ function Notifications() {
       closeIcon={current?.closeIcon}
       autoHideDuration={current?.autoHideDuration}
       clickAway={current?.clickAway}
+      type={current?.type}
     />
   );
 }

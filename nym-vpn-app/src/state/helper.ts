@@ -52,14 +52,30 @@ export function daemonStatusUpdate(
   if (isVpndNonCompat(status)) {
     info = status.nonCompat.current;
     push({
-      text: i18n.t('daemon-not-compat', {
+      id: 'daemon-no-compat',
+      text: i18n.t('daemon-no-compat', {
         ns: 'notifications',
         version: status.nonCompat.current.version,
         required: status.nonCompat.requirement,
       }),
       position: 'top',
       closeIcon: true,
-      autoHideDuration: 10000,
+      autoHideDuration: 8000,
+      type: 'warn',
+      throttle: 20,
+    });
+  }
+  if (status === 'down') {
+    push({
+      id: 'daemon-not-connected',
+      text: i18n.t('daemon-not-connected', {
+        ns: 'notifications',
+      }),
+      position: 'top',
+      closeIcon: true,
+      autoHideDuration: 8000,
+      type: 'error',
+      throttle: 20,
     });
   }
   if (info) {
@@ -69,10 +85,10 @@ export function daemonStatusUpdate(
 
 function vpndStatusToState(status: VpndStatus): DaemonStatus {
   if (isVpndOk(status)) {
-    return 'Ok';
+    return 'ok';
   }
   if (isVpndNonCompat(status)) {
-    return 'NonCompat';
+    return 'non-compat';
   }
-  return 'NotOk';
+  return 'down';
 }

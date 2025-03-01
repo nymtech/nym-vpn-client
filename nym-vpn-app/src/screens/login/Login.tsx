@@ -113,9 +113,9 @@ function Login() {
         <div className="w-full flex flex-col justify-center items-center gap-6 mb-2">
           <Button
             onClick={handleClick}
-            disabled={daemonStatus === 'NotOk' || state !== 'Disconnected'}
+            disabled={daemonStatus === 'down' || state !== 'Disconnected'}
             className={clsx(
-              daemonStatus === 'NotOk' &&
+              daemonStatus === 'down' &&
                 'opacity-50 disabled:opacity-50 hover:opacity-50',
             )}
           >

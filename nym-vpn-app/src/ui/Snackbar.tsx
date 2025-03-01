@@ -13,6 +13,7 @@ export type SnackbarProps = {
   closeIcon?: boolean;
   clickAway?: boolean;
   position?: 'top' | 'bottom';
+  type?: 'error' | 'warn' | 'info';
 };
 
 function Snackbar({
@@ -23,6 +24,7 @@ function Snackbar({
   closeIcon,
   clickAway,
   position = 'top',
+  type = 'info',
 }: SnackbarProps) {
   const { uiTheme } = useMainState();
 
@@ -38,12 +40,16 @@ function Snackbar({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.1 }}
       exit={{ opacity: 0 }}
-      className={clsx([
+      className={clsx(
         'fixed z-30 inset-x-0 mx-6 px-5 py-4 min-w-56',
         position === 'top' ? 'top-20' : 'bottom-6',
         'flex justify-between items-center rounded-lg select-none cursor-default',
-        'text-baltic-sea dark:text-mercury-pinkish bg-seashell dark:bg-poivre-noir',
-      ])}
+        'text-baltic-sea dark:text-mercury-pinkish bg-white dark:bg-octave-arsenic',
+        type === 'error' &&
+          'border-2 text-aphrodisiac! dark:text-aphrodisiac! border-aphrodisiac',
+        type === 'warn' && 'border-2 border-king-nacho',
+        type === 'info' && 'border-2 border-mercury-mist/20 dark:border-0',
+      )}
       {...getRootProps()}
     >
       <p>{text}</p>

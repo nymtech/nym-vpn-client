@@ -34,7 +34,7 @@ export function useTauriEvents(
       DaemonEvent,
       async ({ event, payload: status }) => {
         console.info(
-          `received event [${event}], status: ${status === 'notOk' ? status : JSON.stringify(status)}`,
+          `received event [${event}], status: ${status === 'down' ? status : JSON.stringify(status)}`,
         );
         daemonStatusUpdate(status, dispatch, push);
         await CCache.del('cache-account-id');

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Notification } from './type';
 import { InAppNotificationContext } from './context';
 
@@ -17,6 +17,7 @@ function InAppNotificationProvider({ children }: NotificationProviderProps) {
   const [current, setCurrent] = useState<Notification | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  const throttled = useRef<Record<string, number>>({});
   const transitionRef = useRef<Timeout | null>(null);
 
   const checkDuplicate = useCallback(
@@ -27,23 +28,21 @@ function InAppNotificationProvider({ children }: NotificationProviderProps) {
   );
 
   const push = useCallback(
-    (notification: Notification | Notification[]) => {
-      if (Array.isArray(notification)) {
-        setStack((prev) => {
-          const isDuplicate = notification.some((n) => checkDuplicate(prev, n));
-          if (isDuplicate) {
+    (notification: Notification) => {
+      setStack((prev) => {
+        if (checkDuplicate(prev, notification)) {
+          return prev;
+        }
+        const { id, throttle } = notification;
+        if (id && throttle && throttle > 0) {
+          const expiry = throttled.current[id];
+          if (expiry && Date.now() < expiry) {
             return prev;
           }
-          return [...prev, ...notification];
-        });
-      } else {
-        setStack((prev) => {
-          if (checkDuplicate(prev, notification)) {
-            return prev;
-          }
-          return [...prev, notification];
-        });
-      }
+          throttled.current[id] = Date.now() + throttle * 1000;
+        }
+        return [...prev, notification];
+      });
     },
     [checkDuplicate],
   );
@@ -57,12 +56,13 @@ function InAppNotificationProvider({ children }: NotificationProviderProps) {
     return first;
   }, [stack]);
 
-  const clear = () => {
+  const clear = useCallback(() => {
     setStack([]);
     setIsTransitioning(false);
     setCurrent(null);
+    throttled.current = {};
     clearTimeout(transitionRef.current as Timeout | undefined);
-  };
+  }, []);
 
   useEffect(() => {
     if (current || isTransitioning) {
@@ -74,24 +74,21 @@ function InAppNotificationProvider({ children }: NotificationProviderProps) {
     }
   }, [shift, current, stack.length, isTransitioning]);
 
-  const next = () => {
+  const next = useCallback(() => {
     setIsTransitioning(true);
     setCurrent(null);
     transitionRef.current = setTimeout(() => {
       setIsTransitioning(false);
     }, transitionDuration);
-  };
+  }, []);
+
+  const ctx = useMemo(
+    () => ({ current, next, push, clear }),
+    [clear, current, next, push],
+  );
 
   return (
-    <InAppNotificationContext.Provider
-      value={{
-        stack,
-        current,
-        next,
-        push,
-        clear,
-      }}
-    >
+    <InAppNotificationContext.Provider value={ctx}>
       {children}
     </InAppNotificationContext.Provider>
   );

@@ -4,7 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
 import clsx from 'clsx';
 import { motion } from 'motion/react';
-import { useMainDispatch, useMainState } from '../../contexts';
+import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { kvGet } from '../../kvStore';
@@ -18,10 +18,10 @@ function Home() {
   const { state, entryNode, exitNode, daemonStatus, account } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
+  const { push } = useInAppNotify();
   const { t } = useTranslation('home');
   const loading = state === 'Disconnecting';
-  const hopSelectDisabled =
-    daemonStatus === 'NotOk' || state !== 'Disconnected';
+  const hopSelectDisabled = daemonStatus === 'down' || state !== 'Disconnected';
 
   const handleClick = () => {
     if (state === 'Disconnected' && !account) {
@@ -71,6 +71,22 @@ function Home() {
     };
     showWelcomeScreen();
   }, [navigate]);
+
+  useEffect(() => {
+    if (daemonStatus === 'down') {
+      push({
+        id: 'daemon-not-connected',
+        text: t('daemon-not-connected', {
+          ns: 'notifications',
+        }),
+        position: 'top',
+        closeIcon: true,
+        autoHideDuration: 8000,
+        type: 'error',
+        throttle: 30,
+      });
+    }
+  }, [push, t, daemonStatus]);
 
   const getButtonText = useCallback(() => {
     const stop = capFirst(t('stop', { ns: 'glossary' }));
@@ -147,7 +163,7 @@ function Home() {
         <Button
           onClick={handleClick}
           color={getButtonColor()}
-          disabled={loading || daemonStatus === 'NotOk' || state === 'Offline'}
+          disabled={loading || daemonStatus === 'down' || state === 'Offline'}
           spinner={loading}
           className={clsx(['h-14', loading && 'data-disabled:opacity-80'])}
         >

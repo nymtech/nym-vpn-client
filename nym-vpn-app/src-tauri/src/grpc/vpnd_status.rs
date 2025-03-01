@@ -24,7 +24,7 @@ pub enum VpndStatus {
     },
     /// The daemon is not serving or running
     #[default]
-    NotOk,
+    Down,
 }
 
 impl From<&InfoResponse> for VpndInfo {
