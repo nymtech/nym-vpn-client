@@ -34,7 +34,7 @@
     "connecting": "Disabled while connecting to VPN",
     "disconnecting": "Disabled while disconnecting from VPN",
     "offline": "Disabled when there is no internet connection",
-    "daemon-not-connected": "The NymVPN app is currently not connected to the NymVPN daemon."
+    "error": "Disabled when there is an error"
   },
   "modes-dialog": {
     "title": "Mode selection",

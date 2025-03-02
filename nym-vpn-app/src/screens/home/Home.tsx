@@ -82,7 +82,7 @@ function Home() {
         close: true,
         duration: 2000,
         type: 'error',
-        throttle: 30,
+        throttle: 5,
       });
     }
   }, [push, t, daemonStatus]);
@@ -149,12 +149,14 @@ function Home() {
                 onClick={() => navigate(routes.entryNodeLocation)}
                 nodeHop="entry"
                 disabled={hopSelectDisabled}
+                locked={daemonStatus === 'down'}
               />
               <HopSelect
                 node={exitNode}
                 onClick={() => navigate(routes.exitNodeLocation)}
                 nodeHop="exit"
                 disabled={hopSelectDisabled}
+                locked={daemonStatus === 'down'}
               />
             </div>
           </div>

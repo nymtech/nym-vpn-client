@@ -1,16 +1,16 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
 import { Country, Gateway, NodeHop, isGateway } from '../../types';
-import { useInAppNotify, useMainState } from '../../contexts';
 import { FlagIcon, MsIcon, countryCode } from '../../ui';
-import { useLang, useThrottle } from '../../hooks';
-import { HomeThrottleDelay } from '../../constants';
+import { useLang } from '../../hooks';
+import { useActionToast } from './util';
 
 type HopSelectProps = {
   node: Country | Gateway;
   onClick: () => void;
   nodeHop: NodeHop;
   disabled?: boolean;
+  locked?: boolean;
 };
 
 export default function HopSelect({
@@ -18,44 +18,15 @@ export default function HopSelect({
   node,
   onClick,
   disabled,
+  locked,
 }: HopSelectProps) {
-  const { state, daemonStatus } = useMainState();
   const { t } = useTranslation('home');
-  const { push } = useInAppNotify();
   const { getCountryName } = useLang();
-
-  const showSnackbar = useThrottle(
-    () => {
-      let text = '';
-      switch (state) {
-        case 'Connected':
-          text = t('snackbar-disabled-message.connected');
-          break;
-        case 'Connecting':
-          text = t('snackbar-disabled-message.connecting');
-          break;
-        case 'Disconnecting':
-          text = t('snackbar-disabled-message.disconnecting');
-          break;
-        case 'Offline':
-        case 'OfflineAutoReconnect':
-          text = t('snackbar-disabled-message.offline');
-          break;
-      }
-      if (daemonStatus === 'down') {
-        text = t('snackbar-disabled-message.daemon-not-connected');
-      }
-      if (text.length > 0) {
-        push({ message: text });
-      }
-    },
-    HomeThrottleDelay,
-    [state, daemonStatus],
-  );
+  const toast = useActionToast('node-select');
 
   const handleClick = () => {
     if (disabled) {
-      showSnackbar();
+      toast();
     } else {
       onClick();
     }
@@ -95,9 +66,12 @@ export default function HopSelect({
         'w-full flex flex-row justify-between items-center py-3 px-4',
         'text-baltic-sea dark:text-mercury-pinkish',
         'border border-cement-feet dark:border-gun-powder rounded-lg',
-        'hover:border-baltic-sea hover:ring-baltic-sea',
-        'dark:hover:border-mercury-pinkish dark:hover:ring-mercury-pinkish',
+        !locked && [
+          'hover:border-baltic-sea hover:ring-baltic-sea',
+          'dark:hover:border-mercury-pinkish dark:hover:ring-mercury-pinkish',
+        ],
         'relative transition select-none cursor-default',
+        locked && 'opacity-50',
       ])}
       onKeyDown={handleClick}
       role="presentation"

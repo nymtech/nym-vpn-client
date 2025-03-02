@@ -3,11 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { openPath, openUrl } from '@tauri-apps/plugin-opener';
-import {
-  useAutostart,
-  useDesktopNotifications,
-  useThrottle,
-} from '../../hooks';
+import { useAutostart, useDesktopNotifications } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
@@ -18,8 +14,6 @@ import { capFirst } from '../../util';
 import { InfoData } from './info-data';
 import SettingsGroup from './SettingsGroup';
 import Logout from './Logout';
-
-const ThrottleDelay = 10000; // ms
 
 function Settings() {
   const {
@@ -63,13 +57,15 @@ function Settings() {
   };
 
   // notify the user at most once per every 10s when he toggles monitoring
-  const showMonitoringAlert = useThrottle(() => {
+  const showMonitoringAlert = () => {
     push({
+      id: 'monitoring-alert',
       message: t('monitoring-alert'),
       close: true,
       type: 'warn',
+      throttle: 10,
     });
-  }, ThrottleDelay);
+  };
 
   const handleMonitoringChanged = () => {
     const isChecked = !monitoring;

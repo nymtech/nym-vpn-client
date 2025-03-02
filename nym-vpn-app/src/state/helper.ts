@@ -59,9 +59,9 @@ export function daemonStatusUpdate(
         required: status.nonCompat.requirement,
       }),
       close: true,
-      duration: 8000,
+      duration: 6000,
       type: 'warn',
-      throttle: 30,
+      throttle: 10,
     });
   }
   if (status === 'down') {
@@ -71,9 +71,9 @@ export function daemonStatusUpdate(
         ns: 'notifications',
       }),
       close: true,
-      duration: 8000,
+      duration: 6000,
       type: 'error',
-      throttle: 30,
+      throttle: 10,
     });
   }
   if (info) {

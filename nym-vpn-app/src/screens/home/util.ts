@@ -24,6 +24,9 @@ export function useActionToast(action: 'node-select' | 'mode-select') {
         case 'OfflineAutoReconnect':
           text = t('snackbar-disabled-message.offline');
           break;
+        case 'Error':
+          text = t('snackbar-disabled-message.error');
+          break;
       }
       if (text) {
         push({

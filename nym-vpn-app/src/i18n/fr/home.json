@@ -25,7 +25,7 @@
     "disconnecting": "Désactivé lors de la déconnexion du VPN",
     "connecting": "Désactivé lors de la connexion au VPN",
     "offline": "Désactivé lorsqu'il n'y a pas de connexion Internet",
-    "daemon-not-connected": "Désactivé lorsque non connecté au daemon VPN."
+    "error": "Désactivé lorsqu'il y a une erreur"
   },
   "privacy-mode": {
     "title": "Anonyme (mixnet)",

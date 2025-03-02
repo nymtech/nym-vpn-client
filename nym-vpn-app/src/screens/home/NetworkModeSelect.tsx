@@ -3,21 +3,20 @@ import { invoke } from '@tauri-apps/api/core';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@headlessui/react';
-import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
+import { useMainDispatch, useMainState } from '../../contexts';
 import { StateDispatch, VpnMode } from '../../types';
 import { RadioGroup, RadioGroupOption } from '../../ui';
-import { useThrottle } from '../../hooks';
-import { HomeThrottleDelay } from '../../constants';
 import MsIcon from '../../ui/MsIcon';
 import { S_STATE } from '../../static';
 import ModeDetailsDialog from './ModeDetailsDialog';
+import { useActionToast } from './util';
 
 function NetworkModeSelect() {
-  const { state, vpnMode, fetchGateways } = useMainState();
+  const { state, vpnMode, fetchGateways, daemonStatus } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const [isDialogModesOpen, setIsDialogModesOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { push } = useInAppNotify();
+  const toast = useActionToast('mode-select');
 
   const { t } = useTranslation('home');
 
@@ -42,32 +41,9 @@ function NetworkModeSelect() {
     }
   };
 
-  const showSnackbar = useThrottle(
-    () => {
-      let text = null;
-      switch (state) {
-        case 'Connected':
-          text = t('snackbar-disabled-message.connected');
-          break;
-        case 'Connecting':
-          text = t('snackbar-disabled-message.connecting');
-          break;
-        case 'Disconnecting':
-          text = t('snackbar-disabled-message.disconnecting');
-          break;
-      }
-      if (!text) {
-        return;
-      }
-      push({ message: text });
-    },
-    HomeThrottleDelay,
-    [state],
-  );
-
   const handleDisabledState = () => {
     if (state !== 'Disconnected') {
-      showSnackbar();
+      toast();
     }
   };
 
@@ -134,6 +110,7 @@ function NetworkModeSelect() {
           options={vpnModes}
           onChange={handleNetworkModeChange}
           radioIcons={false}
+          disabled={daemonStatus === 'down'}
         />
       </div>
     </div>
