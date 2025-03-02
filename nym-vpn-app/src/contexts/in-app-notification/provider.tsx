@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Notification } from './type';
 import { InAppNotificationContext } from './context';
 
@@ -22,24 +22,22 @@ function InAppNotificationProvider({ children }: NotificationProviderProps) {
   const transitionRef = useRef<Timeout | null>(null);
 
   const push = useCallback((notification: Notification) => {
+    // using an updater function to add notifications into the stack
+    // in a serial fashion
+    // without this, it will not work!
     setStack((prev) => {
-      console.log('___PUSHING', notification);
-      console.log(prev);
       // check for duplicates
       if (prev.some((n) => n.message === notification.message)) {
-        console.log('___DUP SKIP');
         return prev;
       }
       const { id, throttle } = notification;
       if (id && throttle && throttle > 0) {
         const expiry = throttled.current[id];
         if (expiry && Date.now() < expiry) {
-          console.log('___THROTTLE SKIP');
           return prev;
         }
         throttled.current[id] = Date.now() + throttle * 1000;
       }
-      console.log('___PUSHED', notification);
       return [...prev, notification];
     });
   }, []);
@@ -53,12 +51,9 @@ function InAppNotificationProvider({ children }: NotificationProviderProps) {
   }, []);
 
   useEffect(() => {
-    console.log('___EFFECT');
     if (current || isTransitioning) {
       return;
     }
-    console.log('___ICI***');
-    console.log(stack);
     const notification = stack[0];
     if (notification) {
       setCurrent(notification);
@@ -67,8 +62,8 @@ function InAppNotificationProvider({ children }: NotificationProviderProps) {
     }
   }, [current, stack, isTransitioning]);
 
+  // ⚠ keep this function un-memoized to prevent transition glitch
   const onClose = () => {
-    console.log('___ON_CLOSE');
     setIsTransitioning(true);
     setCurrent(null);
     transitionRef.current = setTimeout(() => {
@@ -76,10 +71,13 @@ function InAppNotificationProvider({ children }: NotificationProviderProps) {
     }, transitionDuration);
   };
 
+  const ctx = useMemo(
+    () => ({ clear, current, push, onClose }),
+    [clear, current, push],
+  );
+
   return (
-    <InAppNotificationContext.Provider
-      value={{ clear, current, push, onClose }}
-    >
+    <InAppNotificationContext.Provider value={ctx}>
       {children}
     </InAppNotificationContext.Provider>
   );

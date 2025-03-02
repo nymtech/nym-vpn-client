@@ -14,6 +14,7 @@ function useClipboard() {
       if (notify) {
         push({
           message: t('copied-to-clipboard'),
+          clickAway: true,
         });
       }
     } catch (e) {

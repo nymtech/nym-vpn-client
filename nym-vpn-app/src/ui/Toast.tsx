@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import { AnimatePresence, motion } from 'motion/react';
 import { Root } from '@radix-ui/react-toast';
+import { useClickAway } from '../hooks';
 import MsIcon from './MsIcon';
 
 export type ToastProps = {
@@ -18,6 +19,7 @@ export type ToastProps = {
   close?: boolean;
   action?: React.ReactNode;
   type?: 'error' | 'warn' | 'info';
+  clickAway?: boolean;
 };
 
 function Toast({
@@ -29,12 +31,20 @@ function Toast({
   message,
   close,
   type,
+  clickAway = false,
 }: ToastProps) {
   const [open, setOpen] = useState(() => {
     if (openCtrl !== undefined) {
       return openCtrl;
     }
     return defaultOpen;
+  });
+
+  const ref = useClickAway<HTMLDivElement>({
+    on: () => {
+      handleOpenChange(false);
+    },
+    disabled: !clickAway,
   });
 
   useEffect(() => {
@@ -67,34 +77,36 @@ function Toast({
   return (
     <AnimatePresence>
       {open && (
-        <Root
-          onOpenChange={handleOpenChange}
-          duration={duration}
-          asChild
-          forceMount
-        >
-          <motion.ul
-            className={clsx(
-              'mx-6 px-5 py-4 min-w-54 max-w-lg',
-              'flex justify-between items-center rounded-lg select-none cursor-default',
-              'text-baltic-sea dark:text-mercury-pinkish bg-white dark:bg-octave-arsenic',
-              type === 'error' &&
-                'border-2 text-aphrodisiac! dark:text-aphrodisiac! border-aphrodisiac',
-              type === 'warn' && 'border-2 border-king-nacho',
-              type === 'info' &&
-                'border-2 border-mercury-mist/20 dark:border-0',
-            )}
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -4 }}
-            transition={{ duration: 0.1, ease: 'easeOut' }}
-            layout
+        <div ref={ref}>
+          <Root
+            onOpenChange={handleOpenChange}
+            duration={duration}
+            asChild
+            forceMount
           >
-            {title && <div>{title}</div>}
-            <div>{message}</div>
-            {close && <CloseButton />}
-          </motion.ul>
-        </Root>
+            <motion.ul
+              className={clsx(
+                'mx-6 px-5 py-4 min-w-54 max-w-lg',
+                'flex justify-between items-center rounded-lg select-none cursor-default',
+                'text-baltic-sea dark:text-mercury-pinkish bg-white dark:bg-octave-arsenic',
+                type === 'error' &&
+                  'border-2 text-aphrodisiac! dark:text-aphrodisiac! border-aphrodisiac',
+                type === 'warn' && 'border-2 border-king-nacho',
+                type === 'info' &&
+                  'border-2 border-mercury-mist/20 dark:border-0',
+              )}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.1, ease: 'easeOut' }}
+              layout
+            >
+              {title && <div>{title}</div>}
+              <div>{message}</div>
+              {close && <CloseButton />}
+            </motion.ul>
+          </Root>
+        </div>
       )}
     </AnimatePresence>
   );

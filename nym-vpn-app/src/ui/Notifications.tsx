@@ -32,6 +32,7 @@ function Notifications() {
         close={current?.close}
         duration={current?.duration}
         type={current?.type}
+        clickAway={current?.clickAway}
       />
     </>
   );
