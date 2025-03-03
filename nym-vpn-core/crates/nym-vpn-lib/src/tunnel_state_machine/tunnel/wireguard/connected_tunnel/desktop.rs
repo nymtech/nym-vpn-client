@@ -103,6 +103,8 @@ impl ConnectedTunnel {
             self.entry_gateway_client.keypair().private_key(),
             options.dns.clone(),
             self.entry_mtu(),
+            #[cfg(target_os = "linux")]
+            None,
         );
 
         let wg_exit_config = WgNodeConfig::with_gateway_data(
@@ -110,6 +112,8 @@ impl ConnectedTunnel {
             self.exit_gateway_client.keypair().private_key(),
             options.dns,
             self.exit_mtu(),
+            #[cfg(target_os = "linux")]
+            None,
         );
 
         #[allow(unused_mut)]
@@ -214,6 +218,8 @@ impl ConnectedTunnel {
             self.entry_gateway_client.keypair().private_key(),
             options.dns.clone(),
             self.entry_mtu(),
+            #[cfg(target_os = "linux")]
+            None,
         );
 
         let wg_exit_config = WgNodeConfig::with_gateway_data(
@@ -221,6 +227,8 @@ impl ConnectedTunnel {
             self.exit_gateway_client.keypair().private_key(),
             options.dns,
             self.exit_mtu(),
+            #[cfg(target_os = "linux")]
+            None,
         );
 
         let two_hop_config = TwoHopConfig::new(wg_entry_config, wg_exit_config);
