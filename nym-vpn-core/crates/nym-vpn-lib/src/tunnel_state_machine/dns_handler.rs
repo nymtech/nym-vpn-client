@@ -120,6 +120,7 @@ impl DnsHandlerHandle {
         .await
     }
 
+    #[cfg_attr(target_os = "windows", allow(unused))]
     pub async fn reset(&mut self) -> Result<()> {
         let (reply_tx, reply_rx) = oneshot::channel();
 
