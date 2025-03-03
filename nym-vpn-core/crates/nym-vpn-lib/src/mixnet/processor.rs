@@ -151,7 +151,7 @@ impl MixnetProcessor {
                     }
                 }
                 _ = task_client_mix_processor.recv_with_delay() => {
-                    trace!("MixnetProcessor: Received shutdown");
+                    info!("MixnetProcessor: Received shutdown");
                     break;
                 }
                 // To make sure we don't wait too long before filling up the buffer, which destroys
@@ -168,7 +168,7 @@ impl MixnetProcessor {
                                     }
                                 }
                                 _ = task_client_mix_processor.recv_with_delay() => {
-                                    trace!("MixnetProcessor: Received shutdown while sending.");
+                                    info!("MixnetProcessor: Received shutdown while sending.");
                                     break;
                                 }
                             }
@@ -192,7 +192,7 @@ impl MixnetProcessor {
                                         }
                                     }
                                     _ = task_client_mix_processor.recv_with_delay() => {
-                                        trace!("MixnetProcessor: Received shutdown while sending.");
+                                        info!("MixnetProcessor: Received shutdown while sending.");
                                         break;
                                     }
                                 }
