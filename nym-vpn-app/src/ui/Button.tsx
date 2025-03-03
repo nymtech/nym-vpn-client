@@ -19,8 +19,8 @@ function Spinner() {
   return (
     <span
       className={clsx([
-        'loader',
-        os === 'linux' ? 'h-[28px] w-[28px]' : 'h-[22px] w-[22px] border-4',
+        'loader h-[22px] w-[22px]',
+        os !== 'linux' && 'border-4',
         'border:white dark:border-[#252426] border-b-transparent dark:border-b-transparent',
       ])}
     ></span>

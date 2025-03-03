@@ -64,7 +64,7 @@
 }
 
 @utility loader {
-  border: 6px solid;
+  border: 5px solid;
   border-radius: 50%;
   display: inline-block;
   box-sizing: border-box;

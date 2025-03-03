@@ -36,7 +36,8 @@
   "display-theme": "Display mode",
   "logout-confirmation": {
     "title": "Are you sure?",
-    "description": "You will need your access code to reconnect your device."
+    "description": "You will need your access code to reconnect your device.",
+    "logging-out": "Logging out…"
   },
   "quit": "Quit NymVPN",
   "login-button": "Connect device",
