@@ -88,7 +88,9 @@ impl IprClientConnect {
     async fn send_connect_request(&self, ip_packet_router_address: Recipient) -> Result<u64> {
         let (request, request_id) = IpPacketRequest::new_connect_request(None);
 
-        let surbs = default_surbs();
+        // We use 20 surbs for the connect request because typically the IPR is configured to have
+        // a min threshold of 10 surbs that it reserves for itself to request additional surbs.
+        let surbs = 20;
         self.mixnet_sender
             .send(create_input_message(
                 ip_packet_router_address,
@@ -174,13 +176,6 @@ impl IprClientConnect {
                 }
             }
         }
-    }
-}
-
-fn default_surbs() -> u32 {
-    match IncludedSurbs::default() {
-        IncludedSurbs::ExposeSelfAddress => 10,
-        IncludedSurbs::Amount(surbs) => surbs,
     }
 }
 
