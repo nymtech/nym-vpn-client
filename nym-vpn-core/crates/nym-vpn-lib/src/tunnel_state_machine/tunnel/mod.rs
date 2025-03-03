@@ -285,7 +285,7 @@ pub enum Error {
         source: nym_gateway_directory::Error,
     },
 
-    #[error("failed to connect ot ip packet router: {}", _0)]
+    #[error("failed to connect to ip packet router: {}", _0)]
     ConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
 
     #[error("wireguard authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
