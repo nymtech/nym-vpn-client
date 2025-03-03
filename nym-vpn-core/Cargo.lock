@@ -4999,6 +4999,7 @@ dependencies = [
  "nym-bandwidth-controller",
  "nym-bin-common",
  "nym-client-core",
+ "nym-common",
  "nym-config",
  "nym-connection-monitor",
  "nym-credential-storage",

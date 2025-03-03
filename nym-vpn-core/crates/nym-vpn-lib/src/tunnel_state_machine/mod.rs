@@ -346,17 +346,9 @@ impl TunnelStateMachine {
         )
         .await;
 
-        let (current_state_handler, _) = if offline_monitor.connectivity().await.is_offline() {
-            OfflineState::enter(false, 0, None)
-        } else {
-            DisconnectedState::enter()
-        };
-
-        //let firewall_handler = FirewallHandler::new().map_err(Error::CreateFirewallHandler)?;
-
         let (mixnet_event_sender, mixnet_event_receiver) = mpsc::unbounded_channel();
 
-        let shared_state: SharedState = SharedState {
+        let mut shared_state: SharedState = SharedState {
             mixnet_event_sender,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             route_handler,
@@ -370,6 +362,17 @@ impl TunnelStateMachine {
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
             account_command_tx,
+        };
+
+        let (current_state_handler, _) = if shared_state
+            .offline_monitor
+            .connectivity()
+            .await
+            .is_offline()
+        {
+            OfflineState::enter(false, 0, None)
+        } else {
+            DisconnectedState::enter(&mut shared_state).await
         };
 
         let tunnel_state_machine = Self {

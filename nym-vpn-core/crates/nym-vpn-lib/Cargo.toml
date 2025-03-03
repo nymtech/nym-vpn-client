@@ -67,6 +67,7 @@ nym-wireguard-types.workspace = true
 
 nym-authenticator-client.workspace = true
 nym-connection-monitor.workspace = true
+nym-common.workspace = true
 nym-gateway-directory.workspace = true
 nym-ip-packet-client.workspace = true
 nym-mixnet-client.workspace = true

@@ -832,9 +832,14 @@ impl TunnelMonitor {
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn set_dns(&mut self, tun_name: &str) -> Result<()> {
         let dns_servers = self.tunnel_settings.dns.ip_addresses().to_vec();
+        let dns_config = nym_dns::DnsConfig::from_addresses(&dns_servers, &[]).resolve(
+            &crate::DEFAULT_DNS_SERVERS,
+            #[cfg(target_os = "macos")]
+            53,
+        );
 
         self.dns_handler
-            .set(tun_name.to_owned(), dns_servers)
+            .set(tun_name.to_owned(), dns_config)
             .await
             .map_err(Error::SetDns)
     }

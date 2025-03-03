@@ -87,7 +87,7 @@ impl TunnelStateHandler for ErrorState {
                         if shared_state.offline_monitor.connectivity().await.is_offline() {
                             NextTunnelState::NewState(OfflineState::enter(false,  0, None))
                         } else {
-                            NextTunnelState::NewState(DisconnectedState::enter())
+                            NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
                         }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {

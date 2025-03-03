@@ -83,7 +83,7 @@ impl TunnelStateHandler for OfflineState {
                         shared_state
                     ).await)
                 } else {
-                    NextTunnelState::NewState(DisconnectedState::enter())
+                    NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
                 }
             }
             _ = shutdown_token.cancelled() => {

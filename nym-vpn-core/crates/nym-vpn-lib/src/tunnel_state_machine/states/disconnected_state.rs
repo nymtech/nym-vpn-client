@@ -4,6 +4,9 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(target_os = "macos")]
+use nym_common::ErrorExt;
+
 use crate::tunnel_state_machine::{
     states::{ConnectingState, OfflineState},
     NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
@@ -12,7 +15,17 @@ use crate::tunnel_state_machine::{
 pub struct DisconnectedState;
 
 impl DisconnectedState {
-    pub fn enter() -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+    pub async fn enter(
+        _shared_state: &mut SharedState,
+    ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
+        #[cfg(target_os = "macos")]
+        if let Err(error) = _shared_state.dns_handler.reset().await {
+            log::error!(
+                "{}",
+                error.display_chain_with_msg("Unable to disable filtering resolver")
+            );
+        }
+
         (Box::new(Self), PrivateTunnelState::Disconnected)
     }
 }

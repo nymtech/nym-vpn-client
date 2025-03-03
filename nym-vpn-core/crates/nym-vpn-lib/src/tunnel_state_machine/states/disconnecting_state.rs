@@ -85,7 +85,7 @@ impl TunnelStateHandler for DisconnectingState {
                 Self::on_tunnel_exit(result, shared_state).await;
 
                 match self.after_disconnect {
-                    PrivateActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter()),
+                    PrivateActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter(shared_state).await),
                     PrivateActionAfterDisconnect::Error(reason) => {
                         NextTunnelState::NewState(ErrorState::enter(reason, shared_state).await)
                     },
@@ -126,7 +126,7 @@ impl TunnelStateHandler for DisconnectingState {
                 let result = self.wait_handle.await;
                 Self::on_tunnel_exit(result, shared_state).await;
 
-                NextTunnelState::NewState(DisconnectedState::enter())
+                NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
             }
             else => NextTunnelState::Finished
         }
