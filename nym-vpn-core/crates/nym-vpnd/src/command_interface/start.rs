@@ -42,7 +42,7 @@ fn grpc_span(req: &http::Request<()>) -> tracing::Span {
         tracing::debug!(target: "grpc_health", "← {} {:?}", method, req.body());
         return span;
     }
-    let span = tracing::info_span!("grpc_vpnd");
+    let span = tracing::info_span!("grpc_vpnd", req = method);
     tracing::info!(target: "grpc_vpnd", "← {} {:?}", method, req.body());
     span
 }

@@ -311,8 +311,8 @@ where
         loop {
             tokio::select! {
                 Some(command) = self.vpn_command_rx.recv() => {
-                    tracing::debug!("VPN: Received command: {command}");
-                    self.handle_service_command(command).await;
+                    tracing::debug!("Received command: {command}");
+                    self.handle_service_command_timed(command).await;
                 }
                 Some(event) = self.event_receiver.recv() => {
                     if let Err(e) = self.tunnel_event_tx.send(event.clone()) {
@@ -345,6 +345,16 @@ where
         tracing::info!("Exiting vpn service run loop");
 
         Ok(())
+    }
+
+    async fn handle_service_command_timed(&mut self, command: VpnServiceCommand) {
+        let start = Instant::now();
+        let command_str = command.to_string();
+        self.handle_service_command(command).await;
+        let elapsed = start.elapsed();
+        if elapsed.as_millis() > 100 {
+            tracing::warn!("{command_str} took {} ms to execute", elapsed.as_millis());
+        }
     }
 
     async fn handle_service_command(&mut self, command: VpnServiceCommand) {
@@ -492,7 +502,6 @@ where
         Ok(config)
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_connect(
         &mut self,
         connect_args: ConnectArgs,
@@ -609,7 +618,6 @@ where
         }
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_disconnect(&mut self) -> Result<(), VpnServiceDisconnectError> {
         self.command_sender
             .send(TunnelCommand::Disconnect)
@@ -619,17 +627,14 @@ where
             })
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     fn handle_get_tunnel_state(&self) -> TunnelState {
         self.tunnel_state.borrow().to_owned()
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     fn handle_subscribe_to_tunnel_state(&self) -> watch::Receiver<TunnelState> {
         self.tunnel_state.subscribe()
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_info(&self) -> VpnServiceInfo {
         let bin_info = nym_bin_common::bin_info_local_vergen!();
 
@@ -644,7 +649,6 @@ where
         }
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_set_network(&self, network: String) -> Result<(), SetNetworkError> {
         let mut global_config =
             GlobalConfigFile::read_from_file().map_err(|source| SetNetworkError::ReadConfig {
@@ -668,17 +672,14 @@ where
         Ok(())
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_get_system_messages(&self) -> SystemMessages {
         self.network_env.nym_vpn_network.system_messages.clone()
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_get_feature_flags(&self) -> Option<FeatureFlags> {
         self.network_env.feature_flags.clone()
     }
 
-    #[tracing::instrument(skip(self, account), level = "info", fields(time.unit = "ms"))]
     async fn handle_store_account(
         &mut self,
         account: Zeroizing<String>,
@@ -691,12 +692,10 @@ where
             .map_err(|source| AccountError::AccountCommandError { source })
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_is_account_stored(&self) -> Result<bool, AccountError> {
         Ok(self.shared_account_state.is_account_stored().await)
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_forget_account(&mut self) -> Result<(), AccountError> {
         if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountError::IsConnected);
@@ -714,12 +713,10 @@ where
             .map_err(|source| AccountError::AccountCommandError { source })
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_get_account_identity(&self) -> Result<Option<String>, AccountError> {
         Ok(self.shared_account_state.get_account_id().await)
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_get_account_links(
         &self,
         locale: String,
@@ -738,19 +735,16 @@ where
             })
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_get_account_state(&self) -> Result<AccountStateSummary, AccountError> {
         Ok(self.shared_account_state.lock().await.clone())
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_refresh_account_state(&self) -> Result<(), AccountError> {
         self.account_command_tx
             .send(AccountCommand::SyncAccountState(None))
             .map_err(|err| AccountError::AccountControllerError { source: err })
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountError> {
         self.account_command_tx
             .get_usage()
@@ -758,7 +752,6 @@ where
             .map_err(|source| AccountError::AccountCommandError { source })
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_reset_device_identity(
         &mut self,
         seed: Option<[u8; 32]>,
@@ -788,7 +781,6 @@ where
             .map_err(|source| AccountError::AccountControllerError { source })
     }
 
-    #[tracing::instrument(skip(self), level = "info", fields(time.unit = "ms"))]
     async fn handle_get_device_identity(&self) -> Result<String, AccountError> {
         self.account_command_tx
             .get_device_identity()
