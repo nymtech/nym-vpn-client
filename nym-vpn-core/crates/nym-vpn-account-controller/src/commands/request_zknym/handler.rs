@@ -113,12 +113,6 @@ impl RequestZkNymCommandHandler {
         AccountCommandResult::RequestZkNym(self.request_zk_nyms_outer().await)
     }
 
-    #[tracing::instrument(
-        skip(self),
-        fields(id = %self.id_str()),
-        ret,
-        err,
-    )]
     async fn request_zk_nyms_outer(self) -> Result<RequestZkNymSummary, RequestZkNymError> {
         tracing::debug!("Running zk-nym request command handler: {}", self.id);
 
@@ -149,7 +143,12 @@ impl RequestZkNymCommandHandler {
         }
     }
 
-    #[tracing::instrument(skip(self), ret, err)]
+    #[tracing::instrument(
+        skip(self),
+        fields(id = %self.id_str()),
+        ret,
+        err,
+    )]
     async fn request_zk_nyms(&self) -> Result<RequestZkNymSummary, RequestZkNymError> {
         tracing::debug!("Running zk-nym request command handler: {}", self.id);
 
@@ -157,9 +156,13 @@ impl RequestZkNymCommandHandler {
         let resumed_requests = self.resume_request_zk_nyms().await;
 
         let ticket_types = self.check_ticket_types_running_low().await?;
-        tracing::debug!("Ticket types running low: {:?}", ticket_types);
+        tracing::debug!("Ticket types running low: {ticket_types:?}");
 
-        let new_requests = self.request_zk_nyms_for_ticket_types(ticket_types).await;
+        let new_requests = if !ticket_types.is_empty() {
+            self.request_zk_nyms_for_ticket_types(ticket_types).await
+        } else {
+            Vec::new()
+        };
 
         let zk_nym_fails_in_a_row = self.zk_nym_fails_in_a_row.load(Ordering::Relaxed);
         if zk_nym_fails_in_a_row > 0 {
@@ -187,7 +190,7 @@ impl RequestZkNymCommandHandler {
         &self,
         ticket_types: Vec<TicketType>,
     ) -> Vec<Result<RequestZkNymSuccess, RequestZkNymError>> {
-        tracing::info!("Requesting zk-nym ticketbooks for: {:?}", ticket_types);
+        tracing::info!("Requesting zk-nym ticketbooks for: {ticket_types:?}");
 
         let mut join_set = JoinSet::new();
         for ticket_type in ticket_types {

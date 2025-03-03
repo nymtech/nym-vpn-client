@@ -110,7 +110,7 @@ impl AccountCommand {
     }
 
     pub fn return_no_account(self, error: Error) {
-        tracing::warn!("No account found: {error}");
+        tracing::debug!("No account found: {error}");
         match self {
             AccountCommand::SyncAccountState(Some(tx)) => {
                 tx.send(Err(SyncAccountError::NoAccountStored));
@@ -129,7 +129,7 @@ impl AccountCommand {
     }
 
     pub fn return_no_device(self, error: Error) {
-        tracing::warn!("No device found: {error}");
+        tracing::debug!("No device found: {error}");
         match self {
             AccountCommand::SyncDeviceState(Some(tx)) => {
                 tx.send(Err(SyncDeviceError::NoDeviceStored));

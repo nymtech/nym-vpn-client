@@ -152,12 +152,14 @@ impl AvailableTicketbooks {
     }
 
     pub fn ticket_types_running_low(&self) -> Vec<TicketType> {
-        for ticket_type in self.ticket_types_above_threshold(0) {
-            tracing::info!(
-                "Remaining unexpired tickets for {ticket_type}: {}",
-                self.remaining_tickets(ticket_type)
-            );
-        }
+        let remaining_tickets = self
+            .ticket_types_above_threshold(0)
+            .into_iter()
+            .map(|ticket_type| format!("{ticket_type}: {}", self.remaining_tickets(ticket_type)))
+            .collect::<Vec<String>>()
+            .join(", ");
+        tracing::debug!("Remaining unexpired tickets: {remaining_tickets}");
+
         self.ticket_types_below_or_at_threshold(TICKET_NUMBER_THRESHOLD)
     }
 

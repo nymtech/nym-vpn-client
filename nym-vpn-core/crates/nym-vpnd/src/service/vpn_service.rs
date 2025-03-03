@@ -684,7 +684,6 @@ where
         &mut self,
         account: Zeroizing<String>,
     ) -> Result<(), AccountError> {
-        tracing::info!("Storing account");
         let mnemonic = Mnemonic::parse::<&str>(account.as_ref())?;
         self.account_command_tx
             .store_account(mnemonic)

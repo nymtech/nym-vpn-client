@@ -107,7 +107,7 @@ pub(crate) async fn register_device(
                 .unwrap_or_else(RegisterDeviceError::unexpected_response)
         })?;
 
-    tracing::info!("Response: {:#?}", response);
+    tracing::debug!("Response: {:#?}", response);
     tracing::info!("Device registered: {}", response.device_identity_key);
     Ok(response)
 }

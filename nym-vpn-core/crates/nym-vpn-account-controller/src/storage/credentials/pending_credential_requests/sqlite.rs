@@ -35,7 +35,7 @@ impl SqliteZkNymRequestsStorageManager {
         .execute(&self.connection_pool)
         .await?
         .rows_affected();
-        tracing::info!("Removed {} stale pending requests", affected);
+        tracing::debug!("Removed {} stale pending requests", affected);
         Ok(())
     }
 

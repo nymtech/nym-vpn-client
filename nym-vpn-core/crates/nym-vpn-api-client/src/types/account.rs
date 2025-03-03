@@ -12,6 +12,7 @@ use time::{Duration, OffsetDateTime};
 use crate::{error::Result, jwt::Jwt, VpnApiClientError};
 
 const MAX_ACCEPTABLE_SKEW_SECONDS: i64 = 30;
+const SKEW_SECONDS_CONSIDERED_SAME: i64 = 2;
 
 #[derive(Clone, Debug)]
 pub struct VpnApiAccount {
@@ -101,7 +102,11 @@ impl VpnApiTime {
         self.local_time - self.estimated_remote_time
     }
 
-    pub fn is_synced(&self) -> bool {
+    pub fn is_almost_same(&self) -> bool {
+        self.local_time_ahead_skew().abs().whole_seconds() < SKEW_SECONDS_CONSIDERED_SAME
+    }
+
+    pub fn is_acceptable_synced(&self) -> bool {
         self.local_time_ahead_skew().abs().whole_seconds() < MAX_ACCEPTABLE_SKEW_SECONDS
     }
 

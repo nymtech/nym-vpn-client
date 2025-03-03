@@ -216,11 +216,8 @@ where
                 Ok(account)
             }
             Err(err) => {
-                tracing::debug!("No account stored: {}", err);
-                self.account_state.reset().await;
-                self.account_state
-                    .set_mnemonic(MnemonicState::NotStored)
-                    .await;
+                tracing::debug!("No account stored: {err}");
+                self.account_state.reset_to(MnemonicState::NotStored).await;
                 Err(err)
             }
         }
@@ -664,7 +661,7 @@ where
     }
 
     async fn handle_command(&mut self, command: AccountCommand) {
-        tracing::info!("Received command: {}", command);
+        tracing::info!("← {}", command);
         match command {
             AccountCommand::StoreAccount(result_tx, mnemonic) => {
                 let result = self.handle_store_account(mnemonic).await;

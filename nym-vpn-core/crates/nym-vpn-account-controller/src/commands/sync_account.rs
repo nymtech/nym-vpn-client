@@ -97,7 +97,9 @@ impl SyncStateCommandHandler {
 }
 
 fn handle_remote_time(remote_time: VpnApiTime) {
-    if remote_time.is_synced() {
+    if remote_time.is_almost_same() {
+        tracing::debug!("{remote_time}");
+    } else if remote_time.is_acceptable_synced() {
         tracing::info!("{remote_time}");
     } else {
         tracing::warn!(

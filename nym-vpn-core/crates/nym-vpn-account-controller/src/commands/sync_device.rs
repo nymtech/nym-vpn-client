@@ -136,7 +136,7 @@ async fn update_state(
     let new_device_state = if let Some(found_device) = found_device {
         DeviceState::from(found_device.status)
     } else {
-        tracing::info!("Our device is not registered");
+        tracing::debug!("Our device is not registered");
         DeviceState::NotRegistered
     };
 

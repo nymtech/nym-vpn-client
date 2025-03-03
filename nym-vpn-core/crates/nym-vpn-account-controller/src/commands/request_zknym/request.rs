@@ -291,7 +291,7 @@ impl RequestZkNymTask {
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
             .is_none()
         {
-            tracing::info!("Inserting coin index signatures for epoch: {epoch_id}",);
+            tracing::debug!("Inserting coin index signatures for epoch: {epoch_id}",);
             guard
                 .insert_coin_index_signatures(&aggregated_coin_index_signatures.signatures)
                 .await
@@ -349,7 +349,7 @@ impl RequestZkNymTask {
         response: &NymVpnZkNym,
         expiration_date: Date,
     ) -> Result<(), RequestZkNymError> {
-        tracing::info!("Importing attached keys and signatures, if available and needed");
+        tracing::debug!("Importing attached keys and signatures, if available and needed");
 
         let Some(ref shares) = response.blinded_shares else {
             return Err(RequestZkNymError::MissingBlindedShares);
@@ -463,7 +463,7 @@ impl RequestZkNymTask {
             return Err(RequestZkNymError::NoExpirationDateSignaturesInStorage);
         }
 
-        tracing::info!("Inserting issued zk-nym ticketbook");
+        tracing::debug!("Inserting issued zk-nym ticketbook");
         self.credential_storage
             .lock()
             .await
@@ -483,7 +483,7 @@ impl RequestZkNymTask {
         expiration_date: Date,
         request_info: &RequestInfo,
     ) -> Result<IssuedTicketBook, RequestZkNymError> {
-        tracing::info!("Unblinding and aggregating zk-nym shares");
+        tracing::debug!("Unblinding and aggregating zk-nym shares");
 
         let ecash_keypair = self
             .account
@@ -577,7 +577,7 @@ impl RequestZkNymTask {
     }
 
     async fn remove_pending_request(&self, id: &str) -> Result<(), RequestZkNymError> {
-        tracing::info!("Removing pending zk-nym request");
+        tracing::debug!("Removing pending zk-nym request");
         self.credential_storage
             .lock()
             .await
