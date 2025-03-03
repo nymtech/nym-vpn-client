@@ -5,6 +5,7 @@ use std::error::Error as StdError;
 
 use nym_task::TaskManager;
 use tokio::task::{JoinError, JoinHandle};
+use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 
 use nym_connection_monitor::ConnectionMonitorTask;
@@ -18,6 +19,7 @@ pub struct ConnectedTunnel {
     task_manager: TaskManager,
     mixnet_client: SharedMixnetClient,
     assigned_addresses: AssignedAddresses,
+    cancel_token: CancellationToken,
 }
 
 impl ConnectedTunnel {
@@ -25,11 +27,13 @@ impl ConnectedTunnel {
         task_manager: TaskManager,
         mixnet_client: SharedMixnetClient,
         assigned_addresses: AssignedAddresses,
+        cancel_token: CancellationToken,
     ) -> Self {
         Self {
             task_manager,
             mixnet_client,
             assigned_addresses,
+            cancel_token,
         }
     }
 
@@ -49,6 +53,7 @@ impl ConnectedTunnel {
             &self.task_manager,
             self.assigned_addresses.interface_addresses,
             &connection_monitor,
+            self.cancel_token.clone(),
         )
         .await;
 

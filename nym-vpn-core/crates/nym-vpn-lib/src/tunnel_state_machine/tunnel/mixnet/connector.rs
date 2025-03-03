@@ -53,7 +53,7 @@ impl Connector {
             selected_gateways,
             self.mixnet_client.clone(),
             &self.gateway_directory_client,
-            cancel_token,
+            cancel_token.clone(),
         )
         .await;
 
@@ -62,6 +62,7 @@ impl Connector {
                 self.task_manager,
                 self.mixnet_client,
                 assigned_addresses,
+                cancel_token,
             )),
             Err(e) => Err(ConnectorError::new(
                 e,
