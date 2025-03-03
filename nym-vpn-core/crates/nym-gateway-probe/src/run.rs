@@ -6,6 +6,7 @@ use clap::Parser;
 use nym_bin_common::bin_info;
 use nym_config::defaults::setup_env;
 use nym_gateway_directory::{EntryPoint, GatewayMinPerformance};
+use nym_gateway_probe::DerivationMaterialArgs;
 use nym_gateway_probe::{CredentialArgs, NetstackArgs, ProbeResult, TestedNode};
 use nym_sdk::mixnet::NodeIdentity;
 use std::path::PathBuf;
@@ -66,6 +67,9 @@ struct CliArgs {
     /// Arguments to manage credentials
     #[command(flatten)]
     credential_args: CredentialArgs,
+
+    #[command(flatten)]
+    derivation_material: DerivationMaterialArgs,
 }
 
 fn setup_logging() {
@@ -131,11 +135,13 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
     if let Some(awg_args) = args.amnezia_args {
         trial.with_amnezia(&awg_args);
     }
+
     trial
         .probe(
             gateway_config,
             args.only_wireguard,
             args.ignore_egress_epoch_role,
+            args.derivation_material,
         )
         .await
 }

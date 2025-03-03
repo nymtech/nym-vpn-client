@@ -23,6 +23,7 @@ use nym_config::defaults::{
 };
 use nym_connection_monitor::self_ping_and_wait;
 use nym_credentials_interface::TicketType;
+use nym_crypto::hkdf::DerivationMaterial;
 use nym_gateway_directory::{
     AuthAddress, Config as GatewayDirectoryConfig, EntryPoint,
     GatewayClient as GatewayDirectoryClient, GatewayList, GatewayMinPerformance,
@@ -88,6 +89,21 @@ pub struct NetstackArgs {
 
     #[arg(long, default_values_t = vec!["2001:4860:4860::8888".to_string(), "2606:4700:4700::1111".to_string(), "2620:fe::fe".to_string()])]
     netstack_ping_ips_v6: Vec<String>,
+}
+
+#[derive(Args)]
+pub struct DerivationMaterialArgs {
+    #[arg(
+        long,
+        default_value = "0000000000000000000000000000000000000000000000000000000000000000"
+    )]
+    pub master_key: String,
+
+    #[arg(
+        long,
+        default_value = "0000000000000000000000000000000000000000000000000000000000000000"
+    )]
+    pub salt: String,
 }
 
 #[derive(Args)]
@@ -192,12 +208,14 @@ impl Probe {
         gateway_config: GatewayDirectoryConfig,
         ignore_egress_epoch_role: bool,
         only_wireguard: bool,
+        derivation_material: DerivationMaterialArgs,
     ) -> anyhow::Result<ProbeResult> {
         let entry_point = self.entrypoint;
 
         // Setup the entry gateways
         let gateways = lookup_gateways(gateway_config.clone()).await?;
         let entry_gateway = entry_point.lookup_gateway(&gateways).await?;
+
         let tested_entry = self.tested_node.is_same_as_entry();
 
         let node_info: TestedNodeDetails = match self.tested_node {
@@ -213,6 +231,32 @@ impl Probe {
         };
 
         let mixnet_entry_gateway_id = entry_gateway.identity();
+
+        // Collapse gateway identity to a u32 index for the derivation material
+        let derivation_index = {
+            // If no index is provided, derive it from the gateway identity
+
+            // Use a simple hash of the identity string to create a u32 index
+            let identity_str = node_info.identity.to_string();
+            let mut hasher = std::collections::hash_map::DefaultHasher::new();
+            std::hash::Hash::hash(&identity_str, &mut hasher);
+            let hash = std::hash::Hasher::finish(&hasher);
+
+            // Convert the hash to a u32
+            let index = (hash % u32::MAX as u64) as u32;
+
+            info!(
+                "Derived index {} from gateway identity {}",
+                index, identity_str
+            );
+            index
+        };
+
+        let derivation_material = DerivationMaterial::new(
+            derivation_material.master_key,
+            derivation_index,
+            derivation_material.salt.as_bytes(),
+        );
 
         info!("connecting to entry gateway: {entry_gateway:?}");
         debug!(
@@ -230,6 +274,7 @@ impl Probe {
             ))
             .with_forget_me(ForgetMe::new_all())
             .credentials_mode(self.credentials_args.enable_credentials_mode)
+            .with_derivation_material(derivation_material)
             .build()?;
 
         if self.credentials_args.enable_credentials_mode {
