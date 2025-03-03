@@ -30,9 +30,6 @@ cargo build -p nym-vpnd
 cargo build --release
 ```
 
-You may need to adjust your `RUSTFLAGS` or `.cargo/config.toml` to ensure that
-the golang wireguard library links properly.
-
 ## Build for Windows from MacOS
 
 Install toolchain
@@ -51,6 +48,11 @@ Then
 ```sh
 cargo build --target=x86_64-pc-windows-gnu -p nym-vpn-lib
 ```
+
+## Offline monitoring
+
+- Offline monitoring can be disabled by setting the environment variable `NYM_DISABLE_OFFLINE_MONITOR=0`. When set, the status is always online.
+- macOS: set `NYM_USE_PATH_MONITOR=1` to use Apple Network framework for offline monitoring.
 
 ## Build winfw for Windows
 
