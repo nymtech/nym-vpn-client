@@ -6,8 +6,7 @@ use std::time::Duration;
 use nym_ip_packet_requests::IpPair;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{
-    IncludedSurbs, InputMessage, MixnetClientSender, MixnetMessageSender, Recipient,
-    TransmissionLane,
+    InputMessage, MixnetClientSender, MixnetMessageSender, Recipient, TransmissionLane,
 };
 use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
