@@ -40,6 +40,8 @@ impl fmt::Debug for InterfaceConfig {
             .field("mtu", &self.mtu);
         #[cfg(target_os = "linux")]
         d.field("fwmark", &self.fwmark);
+        #[cfg(feature = "amnezia")]
+        d.field("azwg_config", &self.azwg_config);
         d.finish()
     }
 }
