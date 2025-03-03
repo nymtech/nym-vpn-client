@@ -42,8 +42,6 @@ use super::{
     VpnServiceConnectError, VpnServiceDisconnectError,
 };
 
-use tracing::{debug, info};
-
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
 
@@ -663,7 +661,7 @@ where
                 source: source.into(),
             })?;
 
-        info!(
+        tracing::info!(
             "Network updated to: {} (SERVICE RESTART REQUIRED!)",
             network_selected
         );
@@ -685,7 +683,7 @@ where
         &mut self,
         account: Zeroizing<String>,
     ) -> Result<(), AccountError> {
-        info!("Storing account");
+        tracing::info!("Storing account");
         let mnemonic = Mnemonic::parse::<&str>(account.as_ref())?;
         self.account_command_tx
             .store_account(mnemonic)
