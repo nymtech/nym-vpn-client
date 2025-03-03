@@ -45,8 +45,6 @@ impl AccountControllerCommander {
         self.store_account(mnemonic).await?;
         self.ensure_update_account().await?;
         self.ensure_update_device().await?;
-        // ignore registration errors
-        let _ = self.ensure_register_device().await?;
         Ok(())
     }
 
