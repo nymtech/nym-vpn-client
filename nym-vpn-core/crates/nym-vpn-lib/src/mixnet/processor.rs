@@ -40,7 +40,7 @@ impl MessageCreator {
         Self { recipient }
     }
 
-    fn create_input_message(&self, bundled_packets: Bytes) -> Result<InputMessage, MixnetError> {
+    fn create_data_message(&self, bundled_packets: Bytes) -> Result<InputMessage, MixnetError> {
         let packet = IpPacketRequest::new_data_request(bundled_packets).to_bytes()?;
 
         let lane = TransmissionLane::General;
@@ -48,6 +48,18 @@ impl MessageCreator {
         // Create an anonymous message without any bundled SURBs. We supply SURBs separate from
         // sphinx packets that carry the actual data, since we try to keep the payload for IP
         // traffic contained within a single sphinx packet.
+        let surbs = 0;
+        let input_message =
+            InputMessage::new_anonymous(self.recipient, packet, surbs, lane, packet_type);
+        Ok(input_message)
+    }
+
+    fn create_disconnect_message(&self) -> Result<InputMessage, MixnetError> {
+        let (packet, _) = IpPacketRequest::new_disconnect_request();
+
+        let packet = packet.to_bytes()?;
+        let lane = TransmissionLane::General;
+        let packet_type = None;
         let surbs = 0;
         let input_message =
             InputMessage::new_anonymous(self.recipient, packet, surbs, lane, packet_type);
@@ -128,9 +140,13 @@ impl MixnetProcessor {
             tokio::select! {
                 _ = self.cancel_token.cancelled() => {
                     info!("MixnetProcessor: Cancel token triggered, sending disconnect message");
-                    let (disconnect_message, _) = IpPacketRequest::new_disconnect_request();
-                    let disconnect_message = disconnect_message.to_bytes().unwrap();
-                    let input_message = InputMessage::new_anonymous(recipient, disconnect_message, 0, TransmissionLane::General, None);
+                    let input_message = match message_creator.create_disconnect_message() {
+                        Ok(input_message) => input_message,
+                        Err(err) => {
+                            error!("Failed to create disconnect message: {err}");
+                            continue;
+                        }
+                    };
                     if let Err(err) = sender.send(input_message).await {
                         error!("Failed to send disconnect message: {err}");
                     }
@@ -144,7 +160,7 @@ impl MixnetProcessor {
                 Some(bundled_packets) = multi_ip_packet_encoder.buffer_timeout() => {
                     assert!(!bundled_packets.is_empty());
 
-                    match message_creator.create_input_message(bundled_packets) {
+                    match message_creator.create_data_message(bundled_packets) {
                         Ok(input_message) => {
                             tokio::select! {
                                 ret = sender.send(input_message) => {
@@ -168,7 +184,7 @@ impl MixnetProcessor {
                     if let Some(input_message) = multi_ip_packet_encoder
                         .append_packet(packet.into_bytes())
                     {
-                        match message_creator.create_input_message(input_message) {
+                        match message_creator.create_data_message(input_message) {
                             Ok(input_message) => {
                                 tokio::select! {
                                     ret = sender.send(input_message) => {
