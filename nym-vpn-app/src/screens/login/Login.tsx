@@ -114,7 +114,8 @@ function Login() {
           <Button
             onClick={handleClick}
             disabled={daemonStatus === 'down' || state !== 'Disconnected'}
-            className={clsx('h-14',
+            className={clsx(
+              'h-14',
               daemonStatus === 'down' &&
                 'opacity-50 disabled:opacity-50 hover:opacity-50',
             )}
