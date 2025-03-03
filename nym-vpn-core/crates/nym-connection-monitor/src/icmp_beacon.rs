@@ -133,7 +133,7 @@ impl IcmpConnectionBeacon {
     pub async fn run(mut self, mut shutdown: TaskClient) -> Result<()> {
         debug!("Icmp connection beacon is running");
         let mut ping_interval = tokio::time::interval(ICMP_BEACON_PING_INTERVAL);
-        loop {
+        while !shutdown.is_shutdown() {
             tokio::select! {
                 _ = shutdown.recv() => {
                     trace!("IcmpConnectionBeacon: Received shutdown");
