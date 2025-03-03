@@ -99,6 +99,8 @@ impl WgNodeConfig {
                     .collect(),
                 dns_addrs: self.interface.dns,
                 mtu: self.interface.mtu,
+                #[cfg(target_os = "linux")]
+                fwmark: self.interface.fwmark,
                 #[cfg(feature = "amnezia")]
                 azwg_config: self.interface.azwg_config,
             },
@@ -151,6 +153,7 @@ impl WgNodeConfig {
         private_key: &nym_crypto::asymmetric::encryption::PrivateKey,
         dns: Vec<IpAddr>,
         mtu: u16,
+        #[cfg(target_os = "linux")] fwmark: Option<u32>,
     ) -> Self {
         Self {
             interface: WgInterface {
@@ -163,7 +166,7 @@ impl WgNodeConfig {
                 dns,
                 mtu,
                 #[cfg(target_os = "linux")]
-                fwmark: None,
+                fwmark,
                 #[cfg(feature = "amnezia")]
                 azwg_config: Some(AmneziaConfig::BASE),
             },
