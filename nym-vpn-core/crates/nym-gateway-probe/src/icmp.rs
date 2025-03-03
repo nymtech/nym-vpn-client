@@ -77,7 +77,7 @@ fn create_input_message(recipient: Recipient, bundled_packets: Bytes) -> Result<
 
     let lane = TransmissionLane::General;
     let packet_type = None;
-    let surbs = 10;
+    let surbs = 0;
     Ok(InputMessage::new_anonymous(
         recipient,
         packet,
