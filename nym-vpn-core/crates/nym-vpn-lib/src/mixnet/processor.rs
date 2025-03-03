@@ -12,6 +12,7 @@ use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
 use tokio::task::JoinHandle;
+use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info, trace};
 use tun::{AsyncDevice, Device};
 
@@ -61,6 +62,7 @@ struct MixnetProcessor {
     ip_packet_router_address: IpPacketRouterAddress,
     our_ips: nym_ip_packet_requests::IpPair,
     icmp_beacon_identifier: u16,
+    cancel_token: CancellationToken,
 }
 
 impl MixnetProcessor {
@@ -70,6 +72,7 @@ impl MixnetProcessor {
         connection_monitor: &ConnectionMonitorTask,
         ip_packet_router_address: IpPacketRouterAddress,
         our_ips: nym_ip_packet_requests::IpPair,
+        cancel_token: CancellationToken,
     ) -> Self {
         MixnetProcessor {
             device,
@@ -78,6 +81,7 @@ impl MixnetProcessor {
             ip_packet_router_address,
             our_ips,
             icmp_beacon_identifier: connection_monitor.icmp_beacon_identifier(),
+            cancel_token,
         }
     }
 
@@ -122,6 +126,15 @@ impl MixnetProcessor {
         info!("Mixnet processor is running");
         while !task_client_mix_processor.is_shutdown() {
             tokio::select! {
+                _ = self.cancel_token.cancelled() => {
+                    info!("MixnetProcessor: Cancel token triggered, sending disconnect message");
+                    let (disconnect_message, _) = IpPacketRequest::new_disconnect_request();
+                    let disconnect_message = disconnect_message.to_bytes().unwrap();
+                    let input_message = InputMessage::new_anonymous(recipient, disconnect_message, 0, TransmissionLane::General, None);
+                    if let Err(err) = sender.send(input_message).await {
+                        error!("Failed to send disconnect message: {err}");
+                    }
+                }
                 _ = task_client_mix_processor.recv_with_delay() => {
                     trace!("MixnetProcessor: Received shutdown");
                     break;
@@ -200,6 +213,7 @@ pub(crate) async fn start_processor(
     task_manager: &TaskManager,
     our_ips: nym_ip_packet_requests::IpPair,
     connection_monitor: &ConnectionMonitorTask,
+    cancel_token: CancellationToken,
 ) -> JoinHandle<Result<AsyncDevice, MixnetError>> {
     info!("Creating mixnet processor");
     let processor = MixnetProcessor::new(
@@ -208,6 +222,7 @@ pub(crate) async fn start_processor(
         connection_monitor,
         config.ip_packet_router_address,
         our_ips,
+        cancel_token,
     );
 
     // This is an unfortunate limitation of the TaskManager/TaskClient. Would be better if we could
