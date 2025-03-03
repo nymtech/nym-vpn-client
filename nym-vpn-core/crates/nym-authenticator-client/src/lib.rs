@@ -12,8 +12,8 @@ use nym_credentials_interface::CredentialSpendingData;
 use nym_crypto::asymmetric::x25519::PrivateKey;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{
-    ClientStatsEvents, ClientStatsSender, MixnetClient, MixnetClientSender,
-    MixnetMessageSender, Recipient, ReconstructedMessage, TransmissionLane,
+    ClientStatsEvents, ClientStatsSender, MixnetClient, MixnetClientSender, MixnetMessageSender,
+    Recipient, ReconstructedMessage, TransmissionLane,
 };
 use nym_service_provider_requests_common::ServiceProviderType;
 use nym_wireguard_types::PeerPublicKey;
