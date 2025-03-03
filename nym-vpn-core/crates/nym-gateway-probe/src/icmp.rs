@@ -80,7 +80,7 @@ fn create_input_message(
 
     let lane = TransmissionLane::General;
     let packet_type = None;
-    let surbs = 10;
+    let surbs = 0;
     Ok(InputMessage::new_anonymous(
         recipient.into(),
         packet,
