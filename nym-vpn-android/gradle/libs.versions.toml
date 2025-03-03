@@ -1,7 +1,7 @@
 [versions]
 accompanist = "0.37.2"
 agp = "8.8.0-alpha05"
-coreSplashscreen = "1.2.0-alpha02"
+coreSplashscreen = "1.2.0-beta01"
 detektRulesCompose = "1.4.0"
 ipaddress = "5.5.1"
 jna = "5.16.0"
