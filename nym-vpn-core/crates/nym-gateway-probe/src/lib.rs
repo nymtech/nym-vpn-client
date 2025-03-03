@@ -243,6 +243,10 @@ impl Probe {
             let hash = std::hash::Hasher::finish(&hasher);
 
             // Convert the hash to a u32
+            // Note: This modulo operation reduces the 64-bit hash to a 32-bit value,
+            // which increases collision probability. With u32::MAX (4.29 billion) possible values,
+            // by the birthday paradox, we'd expect a 50% chance of collision with ~65,000 gateways.
+            // For a small network of hundreds or thousands of gateways, collision risk is minimal.
             let index = (hash % u32::MAX as u64) as u32;
 
             info!(
