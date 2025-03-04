@@ -15,11 +15,12 @@ use nym_vpn_api_client::{
 use nym_api_requests::NymNetworkDetailsResponse;
 use nym_validator_client::nym_api::{Client as NymApiClient, NymApiClientExt};
 
-use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
 use crate::network_compatibility::NetworkCompatibility;
 use crate::{
     system_configuration::SystemConfiguration, AccountManagement, FeatureFlags, SystemMessages,
 };
+
+use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
 
 // TODO: integrate with nym-vpn-api-client
 
@@ -247,14 +248,15 @@ pub(crate) async fn fetch_nym_vpn_network_details(
 mod tests {
     use std::collections::HashMap;
 
-    use super::*;
+    use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+
     use crate::network_compatibility::NetworkCompatibility;
     use crate::{
         account_management::AccountManagementPaths, feature_flags::FlagValue,
         system_messages::Properties, SystemMessage,
     };
-    use nym_vpn_api_client::response::NetworkCompatibilityResponse;
-    use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+
+    use super::*;
 
     #[test]
     fn test_discovery_fetch() {
