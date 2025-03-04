@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{error::Error as StdError, time::Duration};
+use std::error::Error as StdError;
 
 use nym_task::TaskManager;
 use tokio::task::{JoinError, JoinHandle};
@@ -77,7 +77,7 @@ impl ConnectedTunnel {
             task_manager: self.task_manager,
             processor_handle,
             // ipr_cancel_token: self.ipr_cancel_token,
-            ipr_disconnect_rx: Some(ipr_disconnect_rx),
+            processor_disconnected: Some(ipr_disconnect_rx),
         }
     }
 }
@@ -88,24 +88,16 @@ pub type ProcessorHandle = JoinHandle<Result<AsyncDevice, MixnetError>>;
 pub struct TunnelHandle {
     task_manager: TaskManager,
     processor_handle: ProcessorHandle,
-    // ipr_cancel_token: CancellationToken,
-    ipr_disconnect_rx: Option<tokio::sync::oneshot::Receiver<()>>,
+    processor_disconnected: Option<tokio::sync::oneshot::Receiver<()>>,
 }
 
 impl TunnelHandle {
     /// Cancel tunnel execution.
     pub async fn cancel(&mut self) {
-        //tracing::info!("TunnelHandle::cancel()");
-        //tracing::info!("self.ipr_cancel_token: {:?}", self.ipr_cancel_token);
-        //tracing::info!("Cancelling ipr_cancel_token");
-        //self.ipr_cancel_token.cancel();
-        // Here we need to wait for ipr finish
-
-        // tracing::info!("Sleeping for ipr to finish");
-        // tokio::time::sleep(Duration::from_secs(2)).await;
-        tracing::info!("Waiting for ipr_disconnect_rx");
-        let ipr_disconnect_rx = self.ipr_disconnect_rx.take().unwrap();
-        ipr_disconnect_rx.await.unwrap();
+        tracing::info!("Waiting for the mixnet processor to disconnect");
+        if let Err(err) = self.processor_disconnected.as_mut().unwrap().await {
+            tracing::error!("Failed to wait for processor to disconnect: {err}");
+        }
 
         if let Err(e) = self.task_manager.signal_shutdown() {
             tracing::error!("Failed to signal task manager shutdown: {}", e);
@@ -123,11 +115,10 @@ impl TunnelHandle {
     /// Wait until the tunnel finished execution.
     pub async fn wait(mut self) -> Result<Result<Tombstone, MixnetError>, JoinError> {
         // First we need to wait for all the mixnet tasks to finish
-        tracing::info!("TunnelHandle::wait()");
-        tracing::info!("Waiting for graceful shutdown");
+        tracing::trace!("Waiting for task manager shutdown");
         self.task_manager.wait_for_graceful_shutdown().await;
 
-        tracing::info!("Waiting for processor_handle");
+        tracing::trace!("Waiting for mixnet processor handle");
         self.processor_handle
             .await
             .map(|result| result.map(Tombstone::with_tun_device))

@@ -247,8 +247,6 @@ impl TunnelMonitor {
             }
         };
 
-        tracing::info!("Tunnel monitor run_inner finished");
-
         let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
         self.send_event(TunnelMonitorEvent::Down {
             error_state_reason: reason,
