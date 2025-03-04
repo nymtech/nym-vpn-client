@@ -9,8 +9,7 @@ use nym_ip_packet_requests::IpPair;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_task::TaskClient;
 use tokio::{sync::oneshot, task::JoinHandle};
-use tokio_util::{codec::Framed, sync::CancellationToken};
-use tracing::{debug, error, trace};
+use tokio_util::codec::Framed;
 use tun::{AsyncDevice, TunPacket, TunPacketCodec};
 
 // The mixnet listener is responsible for listening for incoming mixnet messages from the mixnet
@@ -36,8 +35,6 @@ pub(super) struct MixnetListener {
 
     // Connection event sender
     connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
-
-    // cancel_token: CancellationToken,
 }
 
 impl MixnetListener {
@@ -48,26 +45,23 @@ impl MixnetListener {
         icmp_beacon_identifier: u16,
         our_ips: IpPair,
         connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
-        // cancel_token: CancellationToken,
     ) -> Self {
-        let ipr_client = IprListener::new();
-
+        let ipr_listener = IprListener::new();
         Self {
             mixnet_client,
-            ipr_listener: ipr_client,
+            ipr_listener,
             task_client,
             tun_device_sink,
             icmp_beacon_identifier,
             our_ips,
             connection_event_tx,
-            // cancel_token,
         }
     }
 
     fn send_connection_event(&self, event: ConnectionStatusEvent) {
         let res = self.connection_event_tx.unbounded_send(event);
         if res.is_err() && !self.task_client.is_shutdown() {
-            error!("Failed to send connection event to connection monitor");
+            tracing::error!("Failed to send connection event to connection monitor");
         }
     }
 
@@ -87,7 +81,7 @@ impl MixnetListener {
         while !self.task_client.is_shutdown() {
             tokio::select! {
                 _ = self.task_client.recv_with_delay() => {
-                    tracing::info!("Mixnet listener: Received shutdown");
+                    tracing::debug!("Mixnet listener: Received shutdown");
                     break;
                 }
                 Some(reconstructed_message) = mixnet_client.next() => {
@@ -101,7 +95,7 @@ impl MixnetListener {
                                 // in the responses. We are defensive here just in case we incorrectly
                                 // label real packets as ping replies to our beacon.
                                 if let Err(err) = self.tun_device_sink.send(TunPacket::new(packet.to_vec())).await {
-                                    error!("Failed to send packet to tun device: {err}");
+                                    tracing::error!("Failed to send packet to tun device: {err}");
                                 }
                             }
                         }
@@ -109,18 +103,17 @@ impl MixnetListener {
                             self.send_connection_event(ConnectionStatusEvent::MixnetSelfPing);
                         }
                         Ok(Some(MixnetMessageOutcome::Disconnect)) => {
-                            tracing::info!("Mixnet listener: Received disconnect message");
-                            // self.cancel_token.cancel();
+                            tracing::debug!("Mixnet listener: Received disconnect message");
                             break;
                         }
                         Ok(None) => {}
                         Err(err) => {
-                            error!("Mixnet listener: {err}");
+                            tracing::error!("Mixnet listener: {err}");
                         }
                     }
                 }
                 else => {
-                    error!("Mixnet listener: mixnet stream ended");
+                    tracing::error!("Mixnet listener: mixnet stream ended");
                     break;
                 }
             }
@@ -129,7 +122,7 @@ impl MixnetListener {
         // Restore the mixnet client
         mixnet_client_binding.replace(mixnet_client);
 
-        tracing::info!("Mixnet listener: Exiting");
+        tracing::debug!("Mixnet listener: Exiting");
         self.tun_device_sink
     }
 
@@ -137,10 +130,10 @@ impl MixnetListener {
         self,
         is_done: oneshot::Sender<()>,
     ) -> JoinHandle<SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket>> {
-        tokio::spawn(async {
-            let r = self.run().await;
+        tokio::spawn(async move {
+            let tun_device_sink = self.run().await;
             let _ = is_done.send(());
-            r
+            tun_device_sink
         })
     }
 }
@@ -153,11 +146,11 @@ fn check_for_icmp_beacon_reply(
     match nym_connection_monitor::is_icmp_beacon_reply(packet, icmp_beacon_identifier, our_ips.ipv4)
     {
         Some(IcmpBeaconReply::TunDeviceReply) => {
-            debug!("Received ping response from ipr tun device");
+            tracing::debug!("Received ping response from ipr tun device");
             return Some(ConnectionStatusEvent::Icmpv4IprTunDevicePingReply);
         }
         Some(IcmpBeaconReply::ExternalPingReply(_source)) => {
-            debug!("Received ping response from an external ip through the ipr");
+            tracing::debug!("Received ping response from an external ip through the ipr");
             return Some(ConnectionStatusEvent::Icmpv4IprExternalPingReply);
         }
         None => {}
@@ -169,11 +162,11 @@ fn check_for_icmp_beacon_reply(
         our_ips.ipv6,
     ) {
         Some(Icmpv6BeaconReply::TunDeviceReply) => {
-            debug!("Received ping v6 response from ipr tun device");
+            tracing::debug!("Received ping v6 response from ipr tun device");
             return Some(ConnectionStatusEvent::Icmpv6IprTunDevicePingReply);
         }
         Some(Icmpv6BeaconReply::ExternalPingReply(_source)) => {
-            debug!("Received ping v6 response from an external ip through the ipr");
+            tracing::debug!("Received ping v6 response from an external ip through the ipr");
             return Some(ConnectionStatusEvent::Icmpv6IprExternalPingReply);
         }
         None => {}
