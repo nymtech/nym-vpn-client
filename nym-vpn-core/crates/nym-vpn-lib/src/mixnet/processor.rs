@@ -119,6 +119,8 @@ impl MixnetProcessor {
 
         let message_creator = MessageCreator::new(recipient.into());
 
+        let ipr_is_cancelled = CancellationToken::new();
+
         // Starting the mixnet listener.
         // NOTE: we are cloning the shutdown handle here, which is not ideal. What we actually need
         // is another subscription from the TaskManager to be able to listen to the shutdown event
@@ -131,6 +133,7 @@ impl MixnetProcessor {
             self.icmp_beacon_identifier,
             self.our_ips,
             self.connection_event_tx.clone(),
+            ipr_is_cancelled.clone(),
         )
         .await;
         let mixnet_listener_handle = mixnet_listener.start();
@@ -153,6 +156,10 @@ impl MixnetProcessor {
                         error!("Failed to send disconnect message: {err}");
                     }
                     has_sent_disconnect = true;
+                }
+                _ = ipr_is_cancelled.cancelled() => {
+                    info!("MixnetProcessor: IPR cancelled, shutting down");
+                    break;
                 }
                 _ = task_client_mix_processor.recv_with_delay() => {
                     info!("MixnetProcessor: Received shutdown");
