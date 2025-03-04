@@ -1,4 +1,4 @@
-use futures::stream::StreamExt;
+use futures::{stream::StreamExt, FutureExt};
 use nym_statistics_common::clients::packet_statistics::MixnetBandwidthStatisticsEvent;
 use tokio::{sync::mpsc, task::JoinHandle};
 
@@ -33,6 +33,15 @@ impl StatusListener {
     async fn run(mut self) {
         tracing::debug!("Starting status listener loop");
 
+        // The status listener will exit when the status receiver is dropped, but to be on the safe
+        // side we also listen for the cancellation token to be cancelled.
+        let cancel_fut = self.cancel_token.cancelled().then(|_| async {
+            tracing::info!("Status listener cancelled");
+            tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+            tracing::info!("Status listener finisehd sleeping, exiting");
+        });
+        tokio::pin!(cancel_fut);
+
         loop {
             tokio::select! {
                 msg = self.rx.next() => {
@@ -61,6 +70,9 @@ impl StatusListener {
                 //_ = self.cancel_token.cancelled() => {
                 //    break;
                 //}
+                _ = &mut cancel_fut => {
+                    break;
+                }
             }
         }
 
