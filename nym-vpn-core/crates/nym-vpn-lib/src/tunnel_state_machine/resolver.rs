@@ -368,7 +368,6 @@ fn flush_system_cache() {
 const MDNS_RESPONDER_PATH: &str = "/usr/sbin/mDNSResponder";
 
 /// Find and kill mDNSResponder. The OS will restart the service.
-#[cfg(target_os = "macos")]
 fn kill_mdnsresponder() -> io::Result<()> {
     if let Some(mdns_pid) = nym_macos::process::pid_of_path(MDNS_RESPONDER_PATH) {
         nix::sys::signal::kill(

@@ -129,7 +129,6 @@ impl RouteHandler {
                     Node::device(tun_name.to_owned()),
                 ));
             }
-            #[allow(unused)]
             RoutingConfig::Wireguard {
                 entry_tun_name,
                 exit_tun_name,
@@ -158,7 +157,6 @@ impl RouteHandler {
                     Node::device(exit_tun_name.to_owned()),
                 ));
             }
-            #[allow(unused)]
             RoutingConfig::WireguardNetstack {
                 exit_tun_name,
                 #[cfg(not(target_os = "linux"))]
