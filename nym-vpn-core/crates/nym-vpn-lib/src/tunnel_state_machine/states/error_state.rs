@@ -45,22 +45,22 @@ pub struct ErrorState;
 impl ErrorState {
     pub async fn enter(
         reason: ErrorStateReason,
-        shared_state: &mut SharedState,
+        _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
         if !Self::prevents_filtering_resolver(&reason)
-            && Self::set_local_dns_resolver(shared_state).await.is_err()
+            && Self::set_local_dns_resolver(_shared_state).await.is_err()
         {
-            return Box::pin(Self::enter(ErrorStateReason::Dns, shared_state)).await;
+            return Box::pin(Self::enter(ErrorStateReason::Dns, _shared_state)).await;
         }
 
         #[cfg(target_os = "ios")]
         {
-            Self::set_blocking_network_settings(shared_state.tun_provider.clone()).await;
+            Self::set_blocking_network_settings(_shared_state.tun_provider.clone()).await;
         }
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        if let Err(e) = Self::set_firewall_policy(shared_state) {
+        if let Err(e) = Self::set_firewall_policy(_shared_state) {
             log::error!(
                 "{}",
                 e.display_chain_with_msg("Failed to apply firewall policy for blocked state")
