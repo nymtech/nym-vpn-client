@@ -46,6 +46,9 @@ impl ConnectedTunnel {
 
         let processor_config =
             crate::mixnet::Config::new(self.assigned_addresses.exit_mix_addresses.0);
+
+        let (ipr_disconnect_tx, ipr_disconnect_rx) = tokio::sync::oneshot::channel();
+
         let processor_handle = crate::mixnet::start_processor(
             processor_config,
             tun_device,
@@ -54,6 +57,7 @@ impl ConnectedTunnel {
             self.assigned_addresses.interface_addresses,
             &connection_monitor,
             self.ipr_cancel_token.clone(),
+            ipr_disconnect_tx,
         )
         .await;
 
@@ -70,6 +74,7 @@ impl ConnectedTunnel {
             task_manager: self.task_manager,
             processor_handle,
             ipr_cancel_token: self.ipr_cancel_token,
+            ipr_disconnect_rx: Some(ipr_disconnect_rx),
         }
     }
 }
@@ -81,14 +86,23 @@ pub struct TunnelHandle {
     task_manager: TaskManager,
     processor_handle: ProcessorHandle,
     ipr_cancel_token: CancellationToken,
+    ipr_disconnect_rx: Option<tokio::sync::oneshot::Receiver<()>>,
 }
 
 impl TunnelHandle {
     /// Cancel tunnel execution.
-    pub async fn cancel(&self) {
+    pub async fn cancel(&mut self) {
+        tracing::info!("TunnelHandle::cancel()");
+        tracing::info!("self.ipr_cancel_token: {:?}", self.ipr_cancel_token);
         tracing::info!("Cancelling ipr_cancel_token");
         self.ipr_cancel_token.cancel();
-        tokio::time::sleep(Duration::from_secs(1)).await;
+        // Here we need to wait for ipr finish
+
+        // tracing::info!("Sleeping for ipr to finish");
+        // tokio::time::sleep(Duration::from_secs(2)).await;
+        tracing::info!("Waiting for ipr_disconnect_rx");
+        let ipr_disconnect_rx = self.ipr_disconnect_rx.take().unwrap();
+        ipr_disconnect_rx.await.unwrap();
 
         if let Err(e) = self.task_manager.signal_shutdown() {
             tracing::error!("Failed to signal task manager shutdown: {}", e);
@@ -104,7 +118,13 @@ impl TunnelHandle {
     }
 
     /// Wait until the tunnel finished execution.
-    pub async fn wait(self) -> Result<Result<Tombstone, MixnetError>, JoinError> {
+    pub async fn wait(mut self) -> Result<Result<Tombstone, MixnetError>, JoinError> {
+        // First we need to wait for all the mixnet tasks to finish
+        tracing::info!("TunnelHandle::wait()");
+        tracing::info!("Waiting for graceful shutdown");
+        self.task_manager.wait_for_graceful_shutdown().await;
+
+        tracing::info!("Waiting for processor_handle");
         self.processor_handle
             .await
             .map(|result| result.map(Tombstone::with_tun_device))

@@ -74,6 +74,7 @@ struct MixnetProcessor {
     our_ips: nym_ip_packet_requests::IpPair,
     icmp_beacon_identifier: u16,
     ipr_cancel_token: CancellationToken,
+    ipr_disconnect_tx: tokio::sync::oneshot::Sender<()>,
 }
 
 impl MixnetProcessor {
@@ -84,6 +85,7 @@ impl MixnetProcessor {
         ip_packet_router_address: Recipient,
         our_ips: nym_ip_packet_requests::IpPair,
         ipr_cancel_token: CancellationToken,
+        ipr_disconnect_tx: tokio::sync::oneshot::Sender<()>,
     ) -> Self {
         MixnetProcessor {
             device,
@@ -93,6 +95,7 @@ impl MixnetProcessor {
             our_ips,
             icmp_beacon_identifier: connection_monitor.icmp_beacon_identifier(),
             ipr_cancel_token,
+            ipr_disconnect_tx,
         }
     }
 
@@ -126,7 +129,7 @@ impl MixnetProcessor {
         // in both tasks independently.
         debug!("Starting mixnet listener");
         let mixnet_listener = super::mixnet_listener::MixnetListener::new(
-            self.mixnet_client,
+            self.mixnet_client.clone(),
             task_client_mix_listener,
             tun_device_sink,
             self.icmp_beacon_identifier,
@@ -223,7 +226,12 @@ impl MixnetProcessor {
         info!("Waiting for mixnet listener to finish");
         let tun_device_sink = mixnet_listener_handle.await.unwrap();
 
-        debug!("MixnetProcessor: Exiting");
+        tracing::info!("Sending that ipr is disconnected");
+        self.ipr_disconnect_tx.send(()).unwrap();
+
+        task_client_mix_processor.recv_timeout().await;
+
+        tracing::info!("MixnetProcessor: Exiting");
         Ok(tun_device_sink
             .reunite(tun_device_stream)
             .expect("reunite should work because of same device split")
@@ -239,6 +247,7 @@ pub(crate) async fn start_processor(
     our_ips: nym_ip_packet_requests::IpPair,
     connection_monitor: &ConnectionMonitorTask,
     ipr_cancel_token: CancellationToken,
+    ipr_disconnect_tx: tokio::sync::oneshot::Sender<()>,
 ) -> JoinHandle<Result<AsyncDevice, MixnetError>> {
     info!("Creating mixnet processor");
     let processor = MixnetProcessor::new(
@@ -248,6 +257,7 @@ pub(crate) async fn start_processor(
         config.ip_packet_router_address,
         our_ips,
         ipr_cancel_token,
+        ipr_disconnect_tx,
     );
 
     // This is an unfortunate limitation of the TaskManager/TaskClient. Would be better if we could

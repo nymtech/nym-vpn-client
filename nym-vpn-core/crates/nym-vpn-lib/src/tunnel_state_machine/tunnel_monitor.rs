@@ -170,6 +170,7 @@ pub struct TunnelMonitorHandle {
 
 impl TunnelMonitorHandle {
     pub fn cancel(&self) {
+        tracing::info!("Cancelling tunnel monitor handle");
         self.cancel_token.cancel();
     }
 
@@ -245,6 +246,8 @@ impl TunnelMonitor {
                 (Tombstone::default(), e.error_state_reason())
             }
         };
+
+        tracing::info!("Tunnel monitor run_inner finished");
 
         let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
         self.send_event(TunnelMonitorEvent::Down {

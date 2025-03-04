@@ -27,7 +27,8 @@ impl DisconnectingState {
         monitor_handle: TunnelMonitorHandle,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
-        // Send IPR disconnect
+        tracing::info!("entered disconnecting state");
+        // Send IPR disconnect here
 
         // It's safe to abort status listener as it's stateless.
         if let Some(status_listener_handle) = shared_state.status_listener_handle.take() {
