@@ -9,7 +9,7 @@ use nym_ip_packet_requests::IpPair;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_task::TaskClient;
 use tokio::task::JoinHandle;
-use tokio_util::codec::Framed;
+use tokio_util::{codec::Framed, sync::CancellationToken};
 use tracing::{debug, error, trace};
 use tun::{AsyncDevice, TunPacket, TunPacketCodec};
 
@@ -36,6 +36,8 @@ pub(super) struct MixnetListener {
 
     // Connection event sender
     connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
+
+    ipr_is_cancelled: CancellationToken,
 }
 
 impl MixnetListener {
@@ -46,6 +48,7 @@ impl MixnetListener {
         icmp_beacon_identifier: u16,
         our_ips: IpPair,
         connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
+        ipr_is_cancelled: CancellationToken,
     ) -> Self {
         let ipr_client = IprListener::new();
 
@@ -57,6 +60,7 @@ impl MixnetListener {
             icmp_beacon_identifier,
             our_ips,
             connection_event_tx,
+            ipr_is_cancelled,
         }
     }
 
@@ -104,6 +108,10 @@ impl MixnetListener {
                         Ok(Some(MixnetMessageOutcome::MixnetSelfPing)) => {
                             self.send_connection_event(ConnectionStatusEvent::MixnetSelfPing);
                         }
+                        Ok(Some(MixnetMessageOutcome::Disconnect)) => {
+                            tracing::info!("Mixnet listener: Received disconnect message");
+                            break;
+                        }
                         Ok(None) => {}
                         Err(err) => {
                             error!("Mixnet listener: {err}");
@@ -118,6 +126,7 @@ impl MixnetListener {
         }
 
         tracing::info!("Mixnet listener: Exiting");
+        self.ipr_is_cancelled.cancel();
         self.tun_device_sink
     }
 
