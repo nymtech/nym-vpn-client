@@ -633,7 +633,7 @@ pub enum AccountRegistered {
 impl From<nym_vpn_account_controller::shared_state::AccountRegistered> for AccountRegistered {
     fn from(value: nym_vpn_account_controller::shared_state::AccountRegistered) -> Self {
         match value {
-            nym_vpn_account_controller::shared_state::AccountRegistered::Registered { .. } => {
+            nym_vpn_account_controller::shared_state::AccountRegistered::Registered => {
                 AccountRegistered::Registered
             }
             nym_vpn_account_controller::shared_state::AccountRegistered::NotRegistered => {
@@ -653,13 +653,11 @@ pub enum AccountState {
 impl From<nym_vpn_account_controller::shared_state::AccountState> for AccountState {
     fn from(value: nym_vpn_account_controller::shared_state::AccountState) -> Self {
         match value {
-            nym_vpn_account_controller::shared_state::AccountState::Inactive { .. } => {
+            nym_vpn_account_controller::shared_state::AccountState::Inactive => {
                 AccountState::Inactive
             }
-            nym_vpn_account_controller::shared_state::AccountState::Active { .. } => {
-                AccountState::Active
-            }
-            nym_vpn_account_controller::shared_state::AccountState::DeleteMe { .. } => {
+            nym_vpn_account_controller::shared_state::AccountState::Active => AccountState::Active,
+            nym_vpn_account_controller::shared_state::AccountState::DeleteMe => {
                 AccountState::DeleteMe
             }
         }

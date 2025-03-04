@@ -31,7 +31,7 @@ const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(2);
 
 fn grpc_span(req: &http::Request<()>) -> tracing::Span {
     let service = req.uri().path().trim_start_matches('/');
-    let method = service.split('/').last().unwrap_or(service);
+    let method = service.split('/').next_back().unwrap_or(service);
     if service.contains("grpc.reflection.v1") {
         let span = tracing::trace_span!("grpc_reflection");
         tracing::trace!(target: "grpc_reflection", "← {} {:?}", method, req.body());
