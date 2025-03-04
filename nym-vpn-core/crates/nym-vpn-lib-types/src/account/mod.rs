@@ -74,9 +74,7 @@ impl From<RequestZkNymVec> for AccountCommandError {
 }
 
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
-#[error(
-    "nym-vpn-api: message: {message}, message_id: {message_id:?}, code_reference_id: {code_reference_id:?}"
-)]
+#[error("{message}, message_id: {message_id:?}, code_reference_id: {code_reference_id:?}")]
 pub struct VpnApiErrorResponse {
     pub message: String,
     pub message_id: Option<String>,

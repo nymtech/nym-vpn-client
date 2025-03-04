@@ -491,7 +491,7 @@ pub enum Error {
     #[error("tunnel error: {}", _0)]
     Tunnel(#[from] tunnel::Error),
 
-    #[error("account error: {0}")]
+    #[error(transparent)]
     Account(#[from] account::Error),
 }
 

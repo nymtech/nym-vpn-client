@@ -11,7 +11,7 @@ pub enum RequestZkNymError {
     #[error("no device stored")]
     NoDeviceStored,
 
-    #[error("failed to get zk-nyms available for download: {response}")]
+    #[error(transparent)]
     GetZkNymsAvailableForDownloadEndpointFailure { response: VpnApiErrorResponse },
 
     #[error("failed to create ecash keypair: {0}")]
@@ -20,7 +20,7 @@ pub enum RequestZkNymError {
     #[error("failed to construct withdrawal request: {0}")]
     ConstructWithdrawalRequest(String),
 
-    #[error("failed to request zk-nym endpoint for {ticket_type}: {response}")]
+    #[error("{response}, {ticket_type}")]
     RequestZkNymEndpointFailure {
         ticket_type: String,
         response: VpnApiErrorResponse,
@@ -32,7 +32,7 @@ pub enum RequestZkNymError {
     #[error("ticket type mismatch")]
     TicketTypeMismatch,
 
-    #[error("error polling for zknym result: {response}")]
+    #[error(transparent)]
     PollZkNymEndpointFailure { response: VpnApiErrorResponse },
 
     #[error("polling task failed")]
@@ -53,7 +53,7 @@ pub enum RequestZkNymError {
     #[error("expiration date mismatch")]
     ExpirationDateMismatch,
 
-    #[error("failed to request partial verification keys for epoch {epoch_id}: {response}")]
+    #[error("{response}")]
     GetPartialVerificationKeysEndpointFailure {
         epoch_id: u64,
         response: VpnApiErrorResponse,
@@ -83,7 +83,7 @@ pub enum RequestZkNymError {
     #[error("failed to aggregate wallets: {0}")]
     AggregateWallets(String),
 
-    #[error("failed to confirm zknym {id} download: {response}")]
+    #[error("{response}")]
     ConfirmZkNymDownloadEndpointFailure {
         id: ZkNymId,
         response: VpnApiErrorResponse,

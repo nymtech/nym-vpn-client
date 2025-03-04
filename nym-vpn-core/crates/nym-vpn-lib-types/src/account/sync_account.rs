@@ -8,7 +8,7 @@ pub enum SyncAccountError {
     #[error("no account stored")]
     NoAccountStored,
 
-    #[error("vpn api endpoint failure: {0}")]
+    #[error(transparent)]
     SyncAccountEndpointFailure(VpnApiErrorResponse),
 
     #[error("unexpected response: {0}")]

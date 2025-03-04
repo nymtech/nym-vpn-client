@@ -12,16 +12,16 @@ pub enum Error {
     #[error("timeout")]
     Cancelled,
 
-    #[error("account error: {0}")]
+    #[error(transparent)]
     SyncAccount(#[from] SyncAccountError),
 
-    #[error("device error: {0}")]
+    #[error(transparent)]
     SyncDevice(#[from] SyncDeviceError),
 
-    #[error("register device error: {0}")]
+    #[error(transparent)]
     RegisterDevice(#[from] RegisterDeviceError),
 
-    #[error("request zk nym error: {0}")]
+    #[error(transparent)]
     RequestZkNym(#[from] RequestZkNymError),
 }
 
