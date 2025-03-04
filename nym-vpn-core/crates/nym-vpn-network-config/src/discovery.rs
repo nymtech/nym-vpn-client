@@ -308,7 +308,14 @@ mod tests {
                         "modal": "true"
                     }
                 }
-            ]
+            ],
+            "network_compatibility": {
+                "core": "1.1.1"
+                "ios": "1.1.1"
+                "macos": "1.1.1"
+                "tauri": "1.1.1"
+                "android": "1.1.1"
+            }
         }"#;
         let discovery: NymWellknownDiscoveryItemResponse = serde_json::from_str(json).unwrap();
         let network: Discovery = discovery.try_into().unwrap();

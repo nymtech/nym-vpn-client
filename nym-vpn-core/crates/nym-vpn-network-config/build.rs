@@ -72,6 +72,7 @@ fn default_mainnet_discovery() {
                     feature_flags: Default::default(),
                     system_configuration: Default::default(),
                     system_messages: Default::default(),
+                    network_compatibility: Default::default(),
                 }}
             }}
         }}
