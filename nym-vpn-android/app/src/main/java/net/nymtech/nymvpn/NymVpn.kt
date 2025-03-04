@@ -69,7 +69,7 @@ class NymVpn : Application() {
 			Timber.plant(ReleaseTree())
 		}
 
-		logReader.initialize()
+		logReader.start()
 		backendManager.initialize()
 
 		NymBackend.setAlwaysOnCallback {

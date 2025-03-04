@@ -108,7 +108,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	@get:Synchronized @set:Synchronized
 	private var networkStatus: NetworkStatus = NetworkStatus.Unknown
 
-	private fun init(environment: Tunnel.Environment, credentialMode: Boolean?) = ProcessLifecycleOwner.get().lifecycleScope.launch {
+	private fun init(environment: Tunnel.Environment, credentialMode: Boolean?) = ProcessLifecycleOwner.get().lifecycleScope.launch(ioDispatcher) {
 		runCatching {
 			startNetworkMonitorJob()
 			initLogger(null, LOG_LEVEL)

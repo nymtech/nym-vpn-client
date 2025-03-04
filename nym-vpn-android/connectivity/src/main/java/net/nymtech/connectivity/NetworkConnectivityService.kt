@@ -84,7 +84,6 @@ class NetworkConnectivityService(context: Context) : NetworkService {
 			}
 
 			override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
-				Timber.d("onCapabilitiesChanged: network=$network, capabilities=$networkCapabilities")
 				if (networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
 					networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
 				) {
