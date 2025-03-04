@@ -24,6 +24,6 @@ rootProject.name = "NymVPN"
 
 include(":app")
 include(":core")
-include(":logcat-util")
+include(":logcatter")
 include(":ip-calculator")
 include(":connectivity")

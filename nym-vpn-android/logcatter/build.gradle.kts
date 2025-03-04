@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-	namespace = "net.nymtech.logcatutil"
+	namespace = "net.nymtech.logcatter"
 	compileSdk = Constants.COMPILE_SDK
 
 	defaultConfig {
