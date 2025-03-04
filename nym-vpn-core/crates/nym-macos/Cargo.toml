@@ -7,5 +7,5 @@ license.workspace = true
 edition.workspace = true
 
 [target.'cfg(target_os="macos")'.dependencies]
-libc = "0.2"
-tracing = { workspace = true }
+libc.workspace = true
+tracing.workspace = true
