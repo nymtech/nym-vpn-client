@@ -21,6 +21,7 @@ public struct CustomNavBarButton: View {
             }
         }
     }
+    @State private var isHovered = false
 
     public let type: ButtonType
     public let action: (() -> Void)?
@@ -56,5 +57,9 @@ private extension CustomNavBarButton {
         }
         .buttonStyle(PlainButtonStyle())
         .frame(width: 48, height: 48)
+        .onHover { newValue in
+            isHovered = newValue
+        }
+        .opacity(isHovered ? 0.7 : 1)
     }
 }

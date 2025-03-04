@@ -6,6 +6,8 @@ import Theme
 struct ModeSelectionInfoView: View {
     private let viewModel: ModeSelectionInfoViewModel
 
+    @State private var isContinueReadingLinkHovered = false
+
     init(viewModel: ModeSelectionInfoViewModel) {
         self.viewModel = viewModel
     }
@@ -146,6 +148,10 @@ private extension ModeSelectionInfoView {
         .onTapGesture {
             viewModel.openContinueReading()
         }
+        .onHover { newValue in
+            isContinueReadingLinkHovered = newValue
+        }
+        .opacity(isContinueReadingLinkHovered ? 0.7 : 1)
 
         Spacer()
             .frame(height: 24)

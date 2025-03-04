@@ -24,11 +24,21 @@ public struct GenericImage: View {
             Image(imageName, bundle: .module)
                 .resizable()
                 .scaledToFit()
+                .onHover { newValue in
+                    guard allowsHover else { return }
+                    isHovered = newValue
+                }
+                .opacity(isHovered ? 0.7 : 1)
         }
         if let systemImageName {
             Image(systemName: systemImageName)
                 .resizable()
                 .scaledToFit()
+                .onHover { newValue in
+                    guard allowsHover else { return }
+                    isHovered = newValue
+                }
+                .opacity(isHovered ? 0.7 : 1)
         }
     }
 }

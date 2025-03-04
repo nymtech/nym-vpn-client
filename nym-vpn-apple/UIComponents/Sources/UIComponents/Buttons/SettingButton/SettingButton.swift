@@ -4,8 +4,11 @@ import Theme
 public struct SettingButton: View {
     private let viewModel: SettingButtonViewModel
 
-    public init(viewModel: SettingButtonViewModel) {
+    @Binding private var isHovered: Bool
+
+    public init(viewModel: SettingButtonViewModel, isHovered: Binding<Bool>) {
         self.viewModel = viewModel
+        _isHovered = isHovered
     }
 
     public var body: some View {
@@ -30,7 +33,7 @@ public struct SettingButton: View {
             }
         }
         .frame(maxWidth: .infinity, minHeight: 64, maxHeight: 64)
-        .background(NymColor.navigationBarBackground)
+        .background(NymColor.navigationBarBackground.opacity(isHovered ? 0.7 : 1))
         .cornerRadius(8)
         .overlay(
             RoundedRectangle(cornerRadius: 8)

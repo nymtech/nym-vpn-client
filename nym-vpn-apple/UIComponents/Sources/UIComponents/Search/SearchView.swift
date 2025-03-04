@@ -6,6 +6,7 @@ public struct SearchView: View {
     private let searchTitle = "search.title".localizedString
     private let searchImageName = "searchIcon"
 
+    @State private var isHovered = false
     @FocusState.Binding private var isSearchFocused: Bool
 
     @Binding var searchText: String
@@ -16,15 +17,23 @@ public struct SearchView: View {
     }
 
     public var body: some View {
-        StrokeBorderView(strokeTitle: strokeTitle, strokeTitleLeftMargin: 40) {
+        StrokeBorderView(
+            strokeTitle: strokeTitle,
+            strokeTitleLeftMargin: 40,
+            isHovered: $isHovered
+        ) {
             HStack {
                 searchImage()
                 searchTextfield()
                 Spacer()
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .onTapGesture {
             isSearchFocused = true
+        }
+        .onHover { newValue in
+            isHovered = newValue
         }
 #if os(iOS)
         .defersSystemGestures(on: .`vertical`)

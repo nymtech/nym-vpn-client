@@ -141,7 +141,7 @@ private extension GatewayInfoModal {
                 identityKeyValueText()
                 Spacer()
                     .frame(width: 16)
-                GenericImage(imageName: "copy")
+                GenericImage(imageName: "copy", allowsHover: true)
                     .contentShape(Rectangle())
                     .frame(width: 16, height: 16)
                     .onTapGesture {

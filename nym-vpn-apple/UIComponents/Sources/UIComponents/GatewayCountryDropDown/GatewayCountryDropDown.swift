@@ -12,6 +12,7 @@ public struct GatewayCountryDropDown: View {
 
     @EnvironmentObject private var connectionManager: ConnectionManager
     @EnvironmentObject private var countriesManager: CountriesManager
+    @State private var isHovered = false
     @State private var isExpanded = false
     @Binding private var path: NavigationPath
     @Binding private var isServerModalDisplayed: Bool
@@ -96,9 +97,11 @@ private extension GatewayCountryDropDown {
                 isExpanded.toggle()
             }
         }
+        .onHover { newValue in
+            isHovered = newValue
+        }
         .background {
-            NymColor.elevation
-                .ignoresSafeArea()
+            isHovered ? NymColor.elevationHover : NymColor.elevation
         }
     }
 

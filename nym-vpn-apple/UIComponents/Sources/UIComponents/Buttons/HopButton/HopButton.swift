@@ -3,6 +3,7 @@ import CountriesManager
 import Theme
 
 public struct HopButton: View {
+    @State private var isHovered = false
     @ObservedObject var viewModel: HopButtonViewModel
 
     public init(viewModel: HopButtonViewModel) {
@@ -10,11 +11,14 @@ public struct HopButton: View {
     }
 
     public var body: some View {
-        StrokeBorderView(strokeTitle: viewModel.hopType.hopLocalizedTitle, strokeTitleLeftMargin: 30) {
+        StrokeBorderView(
+            strokeTitle: viewModel.hopType.hopLocalizedTitle,
+            strokeTitleLeftMargin: 30,
+            isHovered: $isHovered
+        ) {
             HStack {
                 flagOrBoltImage()
                     .padding(.horizontal, 12)
-
                 titleText(with: viewModel.name)
 
                 Spacer()
@@ -23,6 +27,9 @@ public struct HopButton: View {
                     .frame(width: 24, height: 24)
                     .padding(16)
             }
+        }
+        .onHover { newValue in
+            isHovered = newValue
         }
     }
 }

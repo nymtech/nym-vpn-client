@@ -14,6 +14,7 @@ public struct GatewayCell: View {
     @Binding private var path: NavigationPath
     @Binding private var isServerModalDisplayed: Bool
     @Binding private var serverInfoModalServer: GatewayNode?
+    @State private var isHovered = false
 
     public init(
         server: GatewayNode,
@@ -60,6 +61,10 @@ public struct GatewayCell: View {
                         isServerModalDisplayed.toggle()
                     }
                 }
+        }
+        .background(isHovered ? NymColor.backgroundHover : NymColor.background)
+        .onHover { newValue in
+            isHovered = newValue
         }
     }
 }
@@ -127,9 +132,9 @@ extension GatewayCell {
     }
 
     func infoButton() -> some View {
-        GenericImage(systemImageName: "info.circle")
-            .frame(width: 24, height: 24)
-            .padding(16)
+        GenericImage(systemImageName: "info.circle", allowsHover: true)
+            .frame(width: 18, height: 18)
+            .padding(22)
     }
 }
 

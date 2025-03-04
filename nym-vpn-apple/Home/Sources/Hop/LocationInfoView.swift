@@ -4,6 +4,8 @@ import UIComponents
 import Theme
 
 struct LocationInfoView: View {
+    @State private var isContinueReadingLinkHovered = false
+
     private let viewModel: LocationInfoViewModel
 
     init(viewModel: LocationInfoViewModel) {
@@ -93,6 +95,10 @@ private extension LocationInfoView {
         .onTapGesture {
             viewModel.openContinueReading()
         }
+        .onHover { newValue in
+            isContinueReadingLinkHovered = newValue
+        }
+        .opacity(isContinueReadingLinkHovered ? 0.7 : 1)
 
         Spacer()
             .frame(height: 24)
