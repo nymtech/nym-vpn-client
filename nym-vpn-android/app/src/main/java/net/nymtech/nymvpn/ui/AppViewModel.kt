@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -54,10 +55,6 @@ constructor(
 	private val _isAppReady = MutableStateFlow(false)
 	val isAppReady = _isAppReady.asStateFlow()
 
-	init {
-		onAppStartup()
-	}
-
 	val uiState =
 		combine(
 			settingsRepository.settingsFlow,
@@ -93,10 +90,6 @@ constructor(
 
 	fun onErrorReportingSelected() = viewModelScope.launch {
 		settingsRepository.setErrorReporting(!uiState.value.settings.errorReportingEnabled)
-	}
-
-	fun onAnalyticsReportingSelected() = viewModelScope.launch {
-		settingsRepository.setAnalytics(!uiState.value.settings.analyticsEnabled)
 	}
 
 	fun onNavBarStateChange(navBarState: NavBarState) {
@@ -143,8 +136,9 @@ constructor(
 
 	fun onAppStartup() = viewModelScope.launch {
 		val theme = settingsRepository.getTheme()
-		uiState.first { it.settings.theme == theme }
-		_isAppReady.emit(true)
+		uiState.filter { it.settings.theme != null }
+			.first { it.settings.theme == theme }
+			.let { _isAppReady.emit(true) }
 		launch {
 			gatewayCacheService.updateExitGatewayCache()
 		}

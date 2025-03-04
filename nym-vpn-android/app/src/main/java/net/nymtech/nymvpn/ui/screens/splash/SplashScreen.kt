@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCancellationBehavior
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -34,6 +35,7 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 
 	val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.intro_logo))
 	var splashFinished by remember { mutableStateOf(false) }
+	val isAppReady by appViewModel.isAppReady.collectAsStateWithLifecycle()
 
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
@@ -49,8 +51,8 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 		splashFinished = true
 	}
 
-	LaunchedEffect(splashFinished, appUiState.managerState.isInitialized) {
-		if (splashFinished && appUiState.managerState.isInitialized) {
+	LaunchedEffect(splashFinished, appUiState.managerState.isInitialized, isAppReady) {
+		if (splashFinished && appUiState.managerState.isInitialized && isAppReady) {
 			navController.navigateAndForget(Route.Main())
 		}
 	}
