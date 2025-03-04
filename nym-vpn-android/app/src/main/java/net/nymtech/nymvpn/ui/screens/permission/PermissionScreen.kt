@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.VpnKey
@@ -29,9 +28,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppViewModel
@@ -116,18 +117,32 @@ fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 							trailing = null,
 						),
 					)
-					val alwaysOnDescription = buildAnnotatedString {
-						append(stringResource(R.string.always_on_message))
-						append(" ")
-						pushStringAnnotation(tag = "settings", annotation = stringResource(R.string.always_on_disbled))
-						withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-							append(stringResource(id = R.string.vpn_settings))
-						}
-						pop()
-						append(" ")
-						append(stringResource(R.string.try_again))
-						append(".")
-					}
+					Text(
+						text = buildAnnotatedString {
+							append(stringResource(R.string.always_on_message))
+							append(" ")
+							withLink(
+								LinkAnnotation.Clickable(
+									tag = "settings",
+									styles = TextLinkStyles(
+										SpanStyle(color = MaterialTheme.colorScheme.primary),
+									),
+								) {
+									context.launchVpnSettings()
+								},
+							) {
+								append(stringResource(id = R.string.vpn_settings))
+							}
+							append(" ")
+							append(stringResource(R.string.try_again))
+							append(".")
+						},
+						style = MaterialTheme.typography.bodyMedium.copy(
+							color = MaterialTheme.colorScheme.outline,
+						),
+						modifier = Modifier
+							.padding(24.dp.scaledHeight()),
+					)
 					PermissionLabel(
 						SelectionItem(
 							leading = {
@@ -140,14 +155,6 @@ fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 							},
 							title = { Text(stringResource(id = R.string.always_on_disbled), style = MaterialTheme.typography.bodyLarge) },
 							description = {
-								ClickableText(
-									text = alwaysOnDescription,
-									style = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.outline),
-								) {
-									alwaysOnDescription.getStringAnnotations(tag = "settings", it, it).firstOrNull()?.let {
-										context.launchVpnSettings()
-									}
-								}
 							},
 						),
 					)

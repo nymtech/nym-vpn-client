@@ -48,7 +48,6 @@ import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
-import net.nymtech.nymvpn.ui.screens.analytics.AnalyticsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
@@ -189,7 +188,6 @@ class MainActivity : AppCompatActivity() {
 									val args = it.toRoute<Route.Main>()
 									MainScreen(appViewModel, appState, args.autoStart)
 								}
-								composable<Route.Analytics> { AnalyticsScreen(appViewModel, navController, appState) }
 								composable<Route.Permission> {
 									val args = it.toRoute<Route.Permission>()
 									runCatching {

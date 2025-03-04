@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -37,10 +36,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -262,30 +264,31 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 // 						color = MaterialTheme.colorScheme.primary,
 // 					)
 // 				}
-					val createAccountMessage = buildAnnotatedString {
-						append(stringResource(id = R.string.new_to_nym))
-						append(" ")
-						pushStringAnnotation(
-							tag = "create",
-							annotation = appUiState.managerState.accountLinks?.signUp ?: stringResource(R.string.create_account_url),
-						)
-						withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-							append(stringResource(id = R.string.get_access_code))
-						}
-						pop()
-					}
-					ClickableText(
-						text = createAccountMessage,
+					Text(
+						text = buildAnnotatedString {
+							append(stringResource(id = R.string.new_to_nym))
+							append(" ")
+							withLink(
+								LinkAnnotation.Clickable(
+									tag = "signUpLink",
+									styles = TextLinkStyles(
+										SpanStyle(color = MaterialTheme.colorScheme.primary),
+									),
+								) {
+									val url = appUiState.managerState.accountLinks?.signUp ?: context.getString(R.string.create_account_url)
+									context.openWebUrl(url)
+								},
+							) {
+								append(stringResource(id = R.string.get_access_code))
+							}
+						},
 						style = MaterialTheme.typography.bodyLarge.copy(
 							color = MaterialTheme.colorScheme.onBackground,
 							textAlign = TextAlign.Center,
 						),
-						modifier = Modifier.padding(bottom = 24.dp.scaledHeight()),
-					) {
-						createAccountMessage.getStringAnnotations(tag = "create", it, it).firstOrNull()?.let { annotation ->
-							context.openWebUrl(annotation.item)
-						}
-					}
+						modifier = Modifier
+							.padding(24.dp.scaledHeight()),
+					)
 				}
 			}
 		}
