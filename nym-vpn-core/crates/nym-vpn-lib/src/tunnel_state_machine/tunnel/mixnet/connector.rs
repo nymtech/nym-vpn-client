@@ -57,12 +57,14 @@ impl Connector {
         )
         .await;
 
+        let ipr_cancel_token = cancel_token.child_token();
+
         match result {
             Ok(assigned_addresses) => Ok(ConnectedTunnel::new(
                 self.task_manager,
                 self.mixnet_client,
                 assigned_addresses,
-                cancel_token,
+                ipr_cancel_token,
             )),
             Err(e) => Err(ConnectorError::new(
                 e,

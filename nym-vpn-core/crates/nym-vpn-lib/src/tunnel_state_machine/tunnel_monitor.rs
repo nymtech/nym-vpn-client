@@ -382,7 +382,7 @@ impl TunnelMonitor {
         }
 
         tracing::debug!("Wait for tunnel to exit");
-        tunnel_handle.cancel();
+        tunnel_handle.cancel().await;
 
         let tun_devices = tunnel_handle
             .wait()
