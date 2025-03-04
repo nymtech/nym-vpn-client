@@ -29,7 +29,7 @@ constructor(
 	fun onQueryChange(query: String) {
 		_uiState.update {
 			it.copy(
-				query = query.lowercase(),
+				query = query,
 			)
 		}
 	}

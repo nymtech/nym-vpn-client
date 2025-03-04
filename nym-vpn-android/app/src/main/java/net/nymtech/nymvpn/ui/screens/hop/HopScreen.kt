@@ -45,7 +45,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -108,7 +107,6 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 	val navController = LocalNavController.current
 
 	var refreshing by remember { mutableStateOf(false) }
-	var query by rememberSaveable { mutableStateOf("") }
 	var selectedGateway by remember { mutableStateOf<NymGateway?>(null) }
 	var showGatewayDetailsModal by remember { mutableStateOf(false) }
 	val pullRefreshState = rememberPullToRefreshState()
@@ -173,24 +171,28 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 
 	val countries = remember(uiState.query) {
 		derivedStateOf {
-			gateways.asSequence().distinctBy { it.twoLetterCountryISO }.filter { it.twoLetterCountryISO != null }
-				.map {
-					it.toLocale()!!
-				}.filter {
-					it.displayCountry.lowercase().contains(query) || it.country.lowercase().contains(query) || it.isO3Country.lowercase().contains(query)
-				}
-				.sortedWith(compareBy(collator) { it.displayCountry }).toList()
+			with(uiState.query.lowercase()) {
+				gateways.asSequence().distinctBy { it.twoLetterCountryISO }.filter { it.twoLetterCountryISO != null }
+					.map {
+						it.toLocale()!!
+					}.filter {
+						it.displayCountry.lowercase().contains(this) || it.country.lowercase().contains(this) || it.isO3Country.lowercase().contains(this)
+					}
+					.sortedWith(compareBy(collator) { it.displayCountry }).toList()
+			}
 		}
 	}.value
 
 	val queriedGateways = remember(uiState.query) {
 		derivedStateOf {
-			if (uiState.query.isNotBlank()) {
-				gateways.filter { it.identity.lowercase().contains(uiState.query) || it.name.lowercase().contains(query) }.sortedWith(
-					compareBy(collator) { it.identity },
-				)
-			} else {
-				emptyList()
+			with(uiState.query.lowercase()) {
+				if (uiState.query.isNotBlank()) {
+					gateways.filter { it.identity.lowercase().contains(this) || it.name.lowercase().contains(this) }.sortedWith(
+						compareBy(collator) { it.identity },
+					)
+				} else {
+					emptyList()
+				}
 			}
 		}
 	}.value
@@ -260,9 +262,8 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 							),
 					)
 					CustomTextField(
-						value = query,
+						value = uiState.query,
 						onValueChange = {
-							query = it
 							viewModel.onQueryChange(it)
 						},
 						modifier = Modifier
@@ -314,7 +315,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 					}
 				}
 			}
-			if (query != "" && countries.isEmpty() && queriedGateways.isEmpty() && gateways.isNotEmpty()) {
+			if (uiState.query != "" && countries.isEmpty() && queriedGateways.isEmpty() && gateways.isNotEmpty()) {
 				item {
 					val annotatedString = buildAnnotatedString {
 						append(stringResource(R.string.try_another_server_name))
