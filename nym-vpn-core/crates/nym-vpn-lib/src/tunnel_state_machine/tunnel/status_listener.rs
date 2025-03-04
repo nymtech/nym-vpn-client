@@ -58,9 +58,9 @@ impl StatusListener {
                     }
                 }
 
-                _ = self.cancel_token.cancelled() => {
-                    break;
-                }
+                //_ = self.cancel_token.cancelled() => {
+                //    break;
+                //}
             }
         }
 
