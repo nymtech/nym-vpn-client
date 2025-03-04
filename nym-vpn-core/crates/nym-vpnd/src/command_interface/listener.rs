@@ -8,7 +8,7 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
-use nym_vpn_network_config::{Network, NetworkCompatibility};
+use nym_vpn_network_config::{Network};
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
 use nym_vpn_api_client::types::{GatewayMinPerformance, ScoreThresholds};

@@ -7,11 +7,8 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
-use nym_vpn_api_client::response::{
-    NetworkCompatibilityResponse, SystemConfigurationResponse, SystemMessageResponse,
-};
+use nym_vpn_api_client::response::{SystemConfigurationResponse, SystemMessageResponse};
 
-use crate::network_compatibility::NetworkCompatibility;
 use crate::system_configuration::{ScoreThresholds, SystemConfiguration};
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
