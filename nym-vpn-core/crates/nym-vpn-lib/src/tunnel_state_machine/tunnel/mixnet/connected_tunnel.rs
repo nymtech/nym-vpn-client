@@ -19,7 +19,7 @@ pub struct ConnectedTunnel {
     task_manager: TaskManager,
     mixnet_client: SharedMixnetClient,
     assigned_addresses: AssignedAddresses,
-    ipr_cancel_token: CancellationToken,
+    cancel_token: CancellationToken,
 }
 
 impl ConnectedTunnel {
@@ -27,13 +27,13 @@ impl ConnectedTunnel {
         task_manager: TaskManager,
         mixnet_client: SharedMixnetClient,
         assigned_addresses: AssignedAddresses,
-        ipr_cancel_token: CancellationToken,
+        cancel_token: CancellationToken,
     ) -> Self {
         Self {
             task_manager,
             mixnet_client,
             assigned_addresses,
-            ipr_cancel_token,
+            cancel_token,
         }
     }
 
@@ -56,7 +56,7 @@ impl ConnectedTunnel {
             &self.task_manager,
             self.assigned_addresses.interface_addresses,
             &connection_monitor,
-            self.ipr_cancel_token.clone(),
+            self.cancel_token.clone(),
             ipr_disconnect_tx,
         )
         .await;
@@ -73,7 +73,6 @@ impl ConnectedTunnel {
         TunnelHandle {
             task_manager: self.task_manager,
             processor_handle,
-            // ipr_cancel_token: self.ipr_cancel_token,
             processor_disconnected: Some(ipr_disconnect_rx),
         }
     }
