@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::uniffi_custom_impls::{AccountLinks, NetworkEnvironment, SystemMessage};
+use super::uniffi_custom_impls::{AccountLinks, NetworkCompatibility, NetworkEnvironment, SystemMessage};
 
 use super::{error::VpnError, NETWORK_ENVIRONMENT};
 
@@ -59,6 +59,14 @@ pub(crate) async fn get_system_messages() -> Result<Vec<SystemMessage>, VpnError
             .into_current_iter()
             .map(SystemMessage::from)
             .collect()
+    })
+}
+
+pub(crate) async fn get_network_compatibility() -> Result<Option<NetworkCompatibility>, VpnError> {
+    current_environment_details().await.map(|network| {
+        network
+            .network_compatibility
+            .map(NetworkCompatibility::from)
     })
 }
 

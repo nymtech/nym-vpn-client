@@ -4,11 +4,11 @@
 
 pub mod feature_flags;
 pub mod system_messages;
+pub mod network_compatibility;
 
 mod account_management;
 mod discovery;
 mod envs;
-mod network_compatibility;
 mod nym_network;
 mod nym_vpn_network;
 mod refresh;
@@ -31,7 +31,7 @@ use nym_config::defaults::NymNetworkDetails;
 use tokio::join;
 use url::Url;
 
-use crate::network_compatibility::NetworkCompatibility;
+pub use crate::network_compatibility::NetworkCompatibility;
 use std::{fmt::Debug, path::Path, str::FromStr, time::Duration};
 
 const NETWORKS_SUBDIR: &str = "networks";

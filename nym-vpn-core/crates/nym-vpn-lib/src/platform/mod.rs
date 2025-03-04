@@ -68,6 +68,7 @@ use crate::gateway_directory::GatewayClient;
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
+use crate::platform::uniffi_custom_impls::NetworkCompatibility;
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
     AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayInfo, GatewayMinPerformance,
@@ -149,6 +150,13 @@ pub fn initLogger(path: Option<PathBuf>, debug_level: Option<String>) {
 #[uniffi::export]
 pub fn getSystemMessages() -> Result<Vec<SystemMessage>, VpnError> {
     RUNTIME.block_on(environment::get_system_messages())
+}
+
+/// Returns the system messages for the current network environment
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getNetworkCompatibilityVersions() -> Result<Option<NetworkCompatibility>, VpnError> {
+    RUNTIME.block_on(environment::get_network_compatibility())
 }
 
 /// Returns the account links for the current network environment

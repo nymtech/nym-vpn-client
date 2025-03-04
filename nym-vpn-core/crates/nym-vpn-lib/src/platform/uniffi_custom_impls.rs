@@ -847,6 +847,28 @@ impl From<nym_vpn_network_config::SystemMessage> for SystemMessage {
     }
 }
 
+
+#[derive(uniffi::Record, Clone, PartialEq)]
+pub struct NetworkCompatibility {
+    pub core: String,
+    pub ios: String,
+    pub macos: String,
+    pub tauri: String,
+    pub android: String
+}
+
+impl From<nym_vpn_network_config::NetworkCompatibility> for NetworkCompatibility {
+    fn from(value: nym_vpn_network_config::NetworkCompatibility) -> Self {
+        NetworkCompatibility {
+            core: value.core,
+            ios: value.ios,
+            macos: value.macos,
+            tauri: value.tauri,
+            android: value.android
+        }
+    }
+}
+
 #[derive(uniffi::Record, Clone, PartialEq)]
 pub struct AccountLinks {
     pub sign_up: String,
