@@ -60,5 +60,6 @@ pub fn setup_logging(options: Options) -> Option<WorkerGuard> {
 
     log_panics::init();
 
+    tracing::info!("Running nym-vpnd: {}", env!("CARGO_PKG_VERSION"));
     worker_guard
 }
