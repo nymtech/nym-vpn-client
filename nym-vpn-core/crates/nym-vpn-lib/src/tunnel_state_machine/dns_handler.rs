@@ -52,6 +52,7 @@ enum DnsHandlerCommand {
         config: ResolvedDnsConfig,
         reply_tx: oneshot::Sender<Result<(), nym_dns::Error>>,
     },
+    #[allow(unused)]
     Reset {
         reply_tx: oneshot::Sender<Result<(), nym_dns::Error>>,
     },
@@ -120,6 +121,7 @@ impl DnsHandlerHandle {
         .await
     }
 
+    #[allow(unused)]
     #[cfg_attr(target_os = "windows", allow(unused))]
     pub async fn reset(&mut self) -> Result<()> {
         let (reply_tx, reply_rx) = oneshot::channel();
