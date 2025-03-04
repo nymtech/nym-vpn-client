@@ -81,6 +81,18 @@ impl From<nym_vpn_network_config::SystemMessage> for crate::SystemMessage {
     }
 }
 
+impl From<nym_vpn_network_config::NetworkCompatibility> for crate::NetworkCompatibility {
+    fn from(value: nym_vpn_network_config::NetworkCompatibility) -> Self {
+        Self {
+            core: value.core,
+            ios: value.ios,
+            macos: value.macos,
+            tauri: value.tauri,
+            android: value.android,
+        }
+    }
+}
+
 impl From<nym_vpn_network_config::ParsedAccountLinks> for crate::AccountManagement {
     fn from(account_links: nym_vpn_network_config::ParsedAccountLinks) -> Self {
         crate::AccountManagement {

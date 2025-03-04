@@ -8,7 +8,7 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
-use nym_vpn_network_config::Network;
+use nym_vpn_network_config::{Network, NetworkCompatibility};
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
 use nym_vpn_api_client::types::{GatewayMinPerformance, ScoreThresholds};
@@ -170,13 +170,7 @@ impl NymVpnd for CommandInterface {
             .handle_get_network_compatibility()
             .await?;
 
-        let compatibility = compatibility.map(|c| nym_vpn_proto::NetworkCompatibility {
-            core: c.core,
-            ios: c.ios,
-            macos: c.macos,
-            tauri: c.tauri,
-            android: c.android,
-        });
+        let compatibility = compatibility.map(NetworkCompatibility::into);
         let response = GetNetworkCompatibilityResponse {
             messages: compatibility,
         };
