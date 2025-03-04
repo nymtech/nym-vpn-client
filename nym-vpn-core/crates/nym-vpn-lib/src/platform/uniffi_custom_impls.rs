@@ -563,7 +563,9 @@ pub enum ExitPoint {
 impl From<ExitPoint> for GwExitPoint {
     fn from(value: ExitPoint) -> Self {
         match value {
-            ExitPoint::Address { address } => GwExitPoint::Address { address },
+            ExitPoint::Address { address } => GwExitPoint::Address {
+                address: Box::new(address),
+            },
             ExitPoint::Gateway { identity } => GwExitPoint::Gateway { identity },
             ExitPoint::Location { location } => GwExitPoint::Location { location },
         }

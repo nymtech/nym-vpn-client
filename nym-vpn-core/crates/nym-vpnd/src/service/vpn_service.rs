@@ -183,7 +183,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         network_env: Network,
         user_agent: UserAgent,
     ) -> JoinHandle<()> {
-        tracing::info!("Starting VPN service");
+        tracing::trace!("Starting VPN service");
         tokio::spawn(async {
             match NymVpnService::new(
                 vpn_command_rx,
@@ -522,14 +522,14 @@ where
         options.enable_credentials_mode =
             options.enable_credentials_mode || enable_credentials_mode;
 
-        tracing::info!(
+        tracing::debug!(
             "Using entry point: {}",
             entry
                 .clone()
                 .map(|e| e.to_string())
                 .unwrap_or("None".to_string())
         );
-        tracing::info!(
+        tracing::debug!(
             "Using exit point: {}",
             exit.clone()
                 .map(|e| e.to_string())

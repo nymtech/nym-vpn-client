@@ -6,6 +6,7 @@ use std::result::Result;
 use bytes::Bytes;
 use futures::{channel::mpsc, StreamExt};
 use nym_connection_monitor::{ConnectionMonitorTask, ConnectionStatusEvent};
+use nym_gateway_directory::IpPacketRouterAddress;
 use nym_ip_packet_requests::{codec::MultiIpPacketCodec, v7::request::IpPacketRequest};
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
@@ -17,13 +18,13 @@ use tun::{AsyncDevice, Device};
 use super::MixnetError;
 
 #[derive(Debug)]
-pub(crate) struct Config {
-    pub(crate) ip_packet_router_address: Recipient,
+pub(crate) struct MixnetProcessorConfig {
+    pub(crate) ip_packet_router_address: IpPacketRouterAddress,
 }
 
-impl Config {
-    pub(crate) fn new(ip_packet_router_address: Recipient) -> Self {
-        Config {
+impl MixnetProcessorConfig {
+    pub(crate) fn new(ip_packet_router_address: IpPacketRouterAddress) -> Self {
+        MixnetProcessorConfig {
             ip_packet_router_address,
         }
     }
@@ -52,7 +53,7 @@ struct MixnetProcessor {
     device: AsyncDevice,
     mixnet_client: SharedMixnetClient,
     connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
-    ip_packet_router_address: Recipient,
+    ip_packet_router_address: IpPacketRouterAddress,
     our_ips: nym_ip_packet_requests::IpPair,
     icmp_beacon_identifier: u16,
 }
@@ -62,7 +63,7 @@ impl MixnetProcessor {
         device: AsyncDevice,
         mixnet_client: SharedMixnetClient,
         connection_monitor: &ConnectionMonitorTask,
-        ip_packet_router_address: Recipient,
+        ip_packet_router_address: IpPacketRouterAddress,
         our_ips: nym_ip_packet_requests::IpPair,
     ) -> Self {
         MixnetProcessor {
@@ -95,7 +96,7 @@ impl MixnetProcessor {
         let mut multi_ip_packet_encoder =
             MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
 
-        let message_creator = MessageCreator::new(recipient);
+        let message_creator = MessageCreator::new(recipient.into());
 
         // Starting the mixnet listener.
         // NOTE: we are cloning the shutdown handle here, which is not ideal. What we actually need
@@ -188,7 +189,7 @@ impl MixnetProcessor {
 }
 
 pub(crate) async fn start_processor(
-    config: Config,
+    config: MixnetProcessorConfig,
     dev: AsyncDevice,
     mixnet_client: SharedMixnetClient,
     task_manager: &TaskManager,

@@ -350,8 +350,10 @@ pub fn parse_entry_point(args: &ConnectArgs) -> Result<Option<EntryPoint>> {
 pub fn parse_exit_point(args: &ConnectArgs) -> Result<Option<ExitPoint>> {
     if let Some(ref exit_router_address) = args.exit.exit_router_address {
         Ok(Some(ExitPoint::Address {
-            address: Recipient::try_from_base58_string(exit_router_address.clone())
-                .map_err(|_| anyhow!("Failed to parse exit node address"))?,
+            address: Box::new(
+                Recipient::try_from_base58_string(exit_router_address.clone())
+                    .map_err(|_| anyhow!("Failed to parse exit node address"))?,
+            ),
         }))
     } else if let Some(ref exit_router_id) = args.exit.exit_gateway_id {
         Ok(Some(ExitPoint::Gateway {

@@ -5,25 +5,25 @@ use std::fmt::{Display, Formatter};
 
 use nym_sdk::mixnet::{NodeIdentity, Recipient};
 use serde::{Deserialize, Serialize};
-use tracing::{debug, info};
 
 use super::gateway::{Gateway, GatewayList};
 use crate::{error::Result, Error, IpPacketRouterAddress};
 
 // The exit point is a nym-address, but if the exit ip-packet-router is running embedded on a
 // gateway, we can refer to it by the gateway identity.
-// #[derive(Clone, Debug, Deserialize, Serialize, uniffi::Enum)]
 #[derive(Clone, Debug, PartialEq, Eq, Deserialize, Serialize)]
-#[allow(clippy::large_enum_variant)]
 pub enum ExitPoint {
     // An explicit exit address. This is useful when the exit ip-packet-router is running as a
     // standalone entity (private).
-    Address { address: Recipient },
+    Address { address: Box<Recipient> },
+
     // An explicit exit gateway identity. This is useful when the exit ip-packet-router is running
     // embedded on a gateway.
     Gateway { identity: NodeIdentity },
+
     // NOTE: Consider using a crate with strongly typed country codes instead of strings
     Location { location: String },
+
     // Select an exit gateway at random.
     Random,
 }
@@ -31,9 +31,9 @@ pub enum ExitPoint {
 impl Display for ExitPoint {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            ExitPoint::Address { address } => write!(f, "Address: {}", address),
-            ExitPoint::Gateway { identity } => write!(f, "Gateway: {}", identity),
-            ExitPoint::Location { location } => write!(f, "Location: {}", location),
+            ExitPoint::Address { address } => write!(f, "Address: {address}"),
+            ExitPoint::Gateway { identity } => write!(f, "Gateway: {identity}"),
+            ExitPoint::Location { location } => write!(f, "Location: {location}"),
             ExitPoint::Random => write!(f, "Random"),
         }
     }
@@ -47,10 +47,10 @@ impl ExitPoint {
     pub fn lookup_gateway(&self, gateways: &GatewayList) -> Result<Gateway> {
         match &self {
             ExitPoint::Address { address } => {
-                debug!("Selecting gateway by address: {}", address);
+                tracing::debug!("Selecting gateway by address: {address}");
                 // There is no validation done when a ip packet router is specified by address
                 // since it might be private and not available in any directory.
-                let ipr_address = IpPacketRouterAddress(*address);
+                let ipr_address = IpPacketRouterAddress::from(**address);
                 let gateway_address = ipr_address.gateway();
 
                 // Now fetch the gateway that the IPR is connected to, and override its IPR address
@@ -64,7 +64,7 @@ impl ExitPoint {
                 Ok(gateway)
             }
             ExitPoint::Gateway { identity } => {
-                debug!("Selecting gateway by identity: {}", identity);
+                tracing::debug!("Selecting gateway by identity: {identity}");
                 gateways
                     .gateway_with_identity(identity)
                     .ok_or_else(|| Error::NoMatchingGateway {
@@ -73,7 +73,7 @@ impl ExitPoint {
                     .cloned()
             }
             ExitPoint::Location { location } => {
-                debug!("Selecting gateway by location: {}", location);
+                tracing::debug!("Selecting gateway by location: {location}");
                 gateways
                     .random_gateway_located_at(location.to_string())
                     .ok_or_else(|| Error::NoMatchingExitGatewayForLocation {
@@ -82,7 +82,7 @@ impl ExitPoint {
                     })
             }
             ExitPoint::Random => {
-                info!("Selecting a random exit gateway");
+                tracing::debug!("Selecting a random exit gateway");
                 gateways
                     .random_gateway()
                     .ok_or_else(|| Error::FailedToSelectGatewayRandomly)

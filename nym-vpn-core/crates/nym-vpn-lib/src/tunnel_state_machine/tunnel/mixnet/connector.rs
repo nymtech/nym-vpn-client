@@ -111,7 +111,7 @@ impl Connector {
 
         let mut ipr_client = IprClientConnect::new(mixnet_client.clone(), cancel_token).await;
         let interface_addresses = ipr_client
-            .connect(exit_mix_addresses.0, nym_ips)
+            .connect(exit_mix_addresses, nym_ips)
             .await
             .map_err(Error::ConnectToIpPacketRouter)?;
 

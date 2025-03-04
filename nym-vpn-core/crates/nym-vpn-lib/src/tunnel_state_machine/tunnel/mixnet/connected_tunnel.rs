@@ -11,7 +11,10 @@ use nym_connection_monitor::ConnectionMonitorTask;
 use nym_mixnet_client::SharedMixnetClient;
 
 use super::connector::AssignedAddresses;
-use crate::{mixnet::MixnetError, tunnel_state_machine::tunnel::Tombstone};
+use crate::{
+    mixnet::{MixnetError, MixnetProcessorConfig},
+    tunnel_state_machine::tunnel::Tombstone,
+};
 
 /// Type representing a connected mixnet tunnel.
 pub struct ConnectedTunnel {
@@ -41,7 +44,7 @@ impl ConnectedTunnel {
         let connection_monitor = ConnectionMonitorTask::setup();
 
         let processor_config =
-            crate::mixnet::Config::new(self.assigned_addresses.exit_mix_addresses.0);
+            MixnetProcessorConfig::new(self.assigned_addresses.exit_mix_addresses);
         let processor_handle = crate::mixnet::start_processor(
             processor_config,
             tun_device,
@@ -57,7 +60,7 @@ impl ConnectedTunnel {
             mixnet_client_sender,
             self.assigned_addresses.mixnet_client_address,
             self.assigned_addresses.interface_addresses,
-            self.assigned_addresses.exit_mix_addresses.0,
+            self.assigned_addresses.exit_mix_addresses.into(),
             &self.task_manager,
         );
 

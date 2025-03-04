@@ -594,7 +594,7 @@ async fn do_ping(
     // The IPR supports cancellation, but it's unused in the gateway probe
     let cancel_token = CancellationToken::new();
     let mut ipr_client = IprClientConnect::new(shared_mixnet_client.clone(), cancel_token).await;
-    let Ok(our_ips) = ipr_client.connect(exit_router_address.0, None).await else {
+    let Ok(our_ips) = ipr_client.connect(exit_router_address, None).await else {
         return Ok(ProbeOutcome {
             as_entry,
             as_exit: Some(Exit::fail_to_connect()),

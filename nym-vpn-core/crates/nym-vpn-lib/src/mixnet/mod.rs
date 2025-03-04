@@ -7,6 +7,6 @@ mod mixnet_listener;
 mod processor;
 
 pub(crate) use connect::setup_mixnet_client;
-pub(crate) use processor::{start_processor, Config};
+pub(crate) use processor::{start_processor, MixnetProcessorConfig};
 
 pub use error::MixnetError;

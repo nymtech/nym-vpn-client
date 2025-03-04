@@ -93,6 +93,13 @@ impl From<nym_gateway_directory::Recipient> for NymAddress {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_gateway_directory::IpPacketRouterAddress> for NymAddress {
+    fn from(value: nym_gateway_directory::IpPacketRouterAddress) -> Self {
+        NymAddress::from(nym_gateway_directory::Recipient::from(value))
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct MixnetConnectionData {
     pub nym_address: NymAddress,

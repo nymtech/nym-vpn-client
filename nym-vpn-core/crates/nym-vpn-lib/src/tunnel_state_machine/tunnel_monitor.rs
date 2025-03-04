@@ -597,7 +597,7 @@ impl TunnelMonitor {
 
         let tunnel_conn_data = TunnelConnectionData::Mixnet(MixnetConnectionData {
             nym_address: NymAddress::from(assigned_addresses.mixnet_client_address),
-            exit_ipr: NymAddress::from(assigned_addresses.exit_mix_addresses.0),
+            exit_ipr: NymAddress::from(assigned_addresses.exit_mix_addresses),
             entry_ip: assigned_addresses.entry_mixnet_gateway_ip,
             exit_ip: assigned_addresses.exit_mixnet_gateway_ip,
             ipv4: assigned_addresses.interface_addresses.ipv4,

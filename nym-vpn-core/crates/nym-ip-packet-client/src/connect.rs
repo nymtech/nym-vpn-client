@@ -3,6 +3,7 @@
 
 use std::time::Duration;
 
+use nym_gateway_directory::IpPacketRouterAddress;
 use nym_ip_packet_requests::IpPair;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{MixnetClientSender, MixnetMessageSender, Recipient, TransmissionLane};
@@ -64,7 +65,7 @@ impl IprClientConnect {
 
     pub async fn connect(
         &mut self,
-        ip_packet_router_address: Recipient,
+        ip_packet_router_address: IpPacketRouterAddress,
         ips: Option<IpPair>,
     ) -> Result<IpPair> {
         if self.connected != ConnectionState::Disconnected {
@@ -89,7 +90,7 @@ impl IprClientConnect {
 
     async fn connect_inner(
         &mut self,
-        ip_packet_router_address: Recipient,
+        ip_packet_router_address: IpPacketRouterAddress,
         ips: Option<IpPair>,
     ) -> Result<IpPair> {
         let request_id = self
@@ -102,7 +103,7 @@ impl IprClientConnect {
 
     async fn send_connect_request(
         &self,
-        ip_packet_router_address: Recipient,
+        ip_packet_router_address: IpPacketRouterAddress,
         ips: Option<IpPair>,
     ) -> Result<u64> {
         let (mut request, request_id) = if let Some(ips) = ips {
@@ -124,7 +125,7 @@ impl IprClientConnect {
 
         self.mixnet_sender
             .send(nym_sdk::mixnet::InputMessage::new_regular(
-                ip_packet_router_address,
+                Recipient::from(ip_packet_router_address),
                 request.to_bytes().unwrap(),
                 TransmissionLane::General,
                 None,

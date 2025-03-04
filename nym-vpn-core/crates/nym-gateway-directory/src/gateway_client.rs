@@ -350,7 +350,7 @@ impl GatewayClient {
 
     pub async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList> {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching gateways from nym-vpn-api...");
+            info!("Fetching {gw_type} gateways from nym-vpn-api...");
             let gateways: Vec<_> = nym_vpn_api_client
                 .get_gateways_by_type(gw_type.into(), self.min_gateway_performance)
                 .await?
