@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Country, Gateway, GatewaysByCountry, NodeHop } from '../../types';
 import { useMainState } from '../main';
+import { useGateways } from '../gateways';
 import { useLang } from '../../hooks';
 import { NodesContext } from './context';
 import { GwSelectedKind, UiGateway, UiGatewaysByCountry } from './types';
@@ -12,21 +13,21 @@ export type NodesStateProviderProps = {
 };
 
 function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
+  const { vpnMode, entryNode, exitNode } = useMainState();
   const {
-    vpnMode,
-    entryNode,
-    exitNode,
-    mxEntryGateways,
-    mxExitGateways,
-    wgGateways,
-    mxEntryGatewaysError,
-    mxExitGatewaysError,
-    wgGatewaysError,
-  } = useMainState();
+    mxEntry: mxEntryGateways,
+    mxExit: mxExitGateways,
+    wg: wgGateways,
+    mxEntryLoading,
+    mxExitLoading,
+    wgLoading,
+    mxEntryError,
+    mxExitError,
+    wgError,
+  } = useGateways();
 
   const [nodes, setNodes] = useState<UiGatewaysByCountry[]>([]);
   const [gatewayList, setGatewayList] = useState<UiGateway[]>([]);
-  const [loading, setLoading] = useState(true);
 
   const { compare, getCountryName } = useLang();
 
@@ -85,7 +86,6 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
   );
 
   useEffect(() => {
-    setLoading(true);
     let list = [];
     if (vpnMode === 'mixnet' && nodeType === 'entry') {
       list = uifyGateways(mxEntryGateways, entryNode, exitNode);
@@ -96,7 +96,6 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
     }
     setNodes(list);
     setGatewayList(toGatewayList(list));
-    setLoading(false);
   }, [
     nodeType,
     entryNode,
@@ -109,21 +108,35 @@ function NodesProvider({ children, nodeType }: NodesStateProviderProps) {
     toGatewayList,
   ]);
 
-  const error = useMemo(() => {
+  const loading = useMemo(() => {
+    if (nodes.length > 0) {
+      return false;
+    }
     if (vpnMode === 'mixnet' && nodeType === 'entry') {
-      return mxEntryGatewaysError;
+      return mxEntryLoading;
     }
     if (vpnMode === 'mixnet' && nodeType === 'exit') {
-      return mxExitGatewaysError;
+      return mxExitLoading;
     }
-    return wgGatewaysError;
+    return wgLoading;
   }, [
-    mxEntryGatewaysError,
-    mxExitGatewaysError,
+    nodes.length,
+    mxEntryLoading,
+    mxExitLoading,
+    wgLoading,
     nodeType,
     vpnMode,
-    wgGatewaysError,
   ]);
+
+  const error = useMemo(() => {
+    if (vpnMode === 'mixnet' && nodeType === 'entry') {
+      return mxEntryError;
+    }
+    if (vpnMode === 'mixnet' && nodeType === 'exit') {
+      return mxExitError;
+    }
+    return wgError;
+  }, [mxEntryError, mxExitError, nodeType, vpnMode, wgError]);
 
   const ctx = useMemo(
     () => ({

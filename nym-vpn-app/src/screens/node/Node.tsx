@@ -122,7 +122,11 @@ function Node({ node }: { node: NodeHop }) {
             label={t('input-label')}
           />
         </div>
-        {loading && <div>{t('loading')}</div>}
+        {loading && (
+          <div className="text-base text-dim-gray dark:text-mercury-mist">
+            {t('loading')}
+          </div>
+        )}
         {!loading && (
           <NodeList
             nodes={uiNodes}

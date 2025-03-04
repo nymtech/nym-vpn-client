@@ -8,7 +8,6 @@ import {
   DefaultRootFontSize,
   DefaultThemeMode,
   DefaultVpnMode,
-  GatewaysCacheDuration,
 } from '../constants';
 import { getJsLicenses, getRustLicenses } from '../data';
 import { kvGet } from '../kvStore';
@@ -17,8 +16,6 @@ import {
   CodeDependency,
   Country,
   Gateway,
-  GatewaysByCountry,
-  NodeHop,
   StateDispatch,
   ThemeMode,
   TunnelStateIpc,
@@ -28,7 +25,6 @@ import {
 } from '../types';
 import { S_STATE } from '../static';
 import { Notification } from '../contexts';
-import { CCache } from '../cache';
 import { tunnelUpdate } from './tunnelUpdate';
 import { TauriReq, daemonStatusUpdate, fireRequests } from './helper';
 
@@ -39,39 +35,6 @@ const getInitialTunnelState = async () => {
 
 const getDaemonStatus = async () => {
   return await invoke<VpndStatus>('daemon_status');
-};
-
-// init gateway list
-const getMxGateways = async (node: NodeHop) => {
-  let gateways = await CCache.get<GatewaysByCountry[]>(
-    `cache-mx-${node}-gateways`,
-  );
-  if (!gateways) {
-    gateways = await invoke<GatewaysByCountry[] | null>('get_gateways', {
-      nodeType: node === 'entry' ? 'mx-entry' : 'mx-exit',
-    });
-    await CCache.set(
-      `cache-mx-${node}-gateways`,
-      gateways || [],
-      GatewaysCacheDuration,
-    );
-  }
-  return gateways;
-};
-
-const getWgGateways = async () => {
-  let gateways = await CCache.get<GatewaysByCountry[]>(`cache-wg-gateways`);
-  if (!gateways) {
-    gateways = await invoke<GatewaysByCountry[] | null>('get_gateways', {
-      nodeType: 'wg',
-    });
-    await CCache.set(
-      'cache-wg-gateways',
-      gateways || [],
-      GatewaysCacheDuration,
-    );
-  }
-  return gateways;
 };
 
 const getTheme = async () => {
@@ -266,61 +229,6 @@ export async function initFirstBatch(
 }
 
 export async function initSecondBatch(dispatch: StateDispatch) {
-  const getMxEntryGatewaysRq: TauriReq<typeof getMxGateways> = {
-    name: 'get_mx_entry_gateways',
-    request: () => getMxGateways('entry'),
-    onFulfilled: (gateways) => {
-      if (!gateways) return;
-      dispatch({
-        type: 'set-gateways',
-        payload: {
-          type: 'mx-entry',
-          gateways: gateways || [],
-        },
-      });
-      dispatch({
-        type: 'set-gateways-loading',
-        payload: { type: 'mx-entry', loading: false },
-      });
-    },
-  };
-
-  const getMxExitGatewaysRq: TauriReq<typeof getMxGateways> = {
-    name: 'get_mx_exit_gateways',
-    request: () => getMxGateways('exit'),
-    onFulfilled: (gateways) => {
-      dispatch({
-        type: 'set-gateways',
-        payload: {
-          type: 'mx-exit',
-          gateways: gateways || [],
-        },
-      });
-      dispatch({
-        type: 'set-gateways-loading',
-        payload: { type: 'mx-exit', loading: false },
-      });
-    },
-  };
-
-  const getWgGatewaysRq: TauriReq<typeof getWgGateways> = {
-    name: 'get_wg_gateways',
-    request: () => getWgGateways(),
-    onFulfilled: (gateways) => {
-      dispatch({
-        type: 'set-gateways',
-        payload: {
-          type: 'wg',
-          gateways: gateways || [],
-        },
-      });
-      dispatch({
-        type: 'set-gateways-loading',
-        payload: { type: 'wg', loading: false },
-      });
-    },
-  };
-
   const getAccountLinksRq: TauriReq<() => Promise<AccountLinks | undefined>> = {
     name: 'getAccountLinksRq',
     request: () =>
@@ -344,12 +252,5 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     },
   };
 
-  let gatewayRequests;
-  if (S_STATE.vpnModeAtStart === 'wg') {
-    gatewayRequests = [getWgGatewaysRq];
-  } else {
-    gatewayRequests = [getMxEntryGatewaysRq, getMxExitGatewaysRq];
-  }
-
-  await fireRequests([...gatewayRequests, getAccountLinksRq, getAutostart]);
+  await fireRequests([getAccountLinksRq, getAutostart]);
 }

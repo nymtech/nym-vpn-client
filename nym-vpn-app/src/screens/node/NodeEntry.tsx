@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
-import { NodesProvider, useMainState } from '../../contexts';
-import { NodeHop } from '../../types';
+import * as _ from 'lodash-es';
+import { NodesProvider, useGateways, useMainState } from '../../contexts';
+import { NodeHop, VpnMode } from '../../types';
 import Node from './Node';
 
 export type NodeEntryProps = {
@@ -8,17 +9,33 @@ export type NodeEntryProps = {
 };
 
 function NodeEntry({ node }: NodeEntryProps) {
-  const { vpnMode, fetchGateways } = useMainState();
+  const { vpnMode } = useMainState();
+  const { fetch } = useGateways();
 
-  // refresh gateways cache in the background
-  // (if needed like cache data is stale)
+  const refresh = _.throttle(
+    async (mode: VpnMode) => {
+      if (mode === 'mixnet') {
+        await fetch(`mx-${node}`);
+      } else {
+        await fetch('wg');
+      }
+    },
+    5000,
+    {
+      trailing: false,
+    },
+  );
+
+  // refresh gateways in the background
+  // (only if needed ie. no cache data or cache is stale)
   useEffect(() => {
-    if (vpnMode === 'mixnet') {
-      fetchGateways(`mx-${node}`);
-    } else {
-      fetchGateways('wg');
-    }
-  }, [node, vpnMode, fetchGateways]);
+    // during development useEffect is fired twice
+    // to avoid unnecessary fetch calls, throttle the refresh
+    // see https://react.dev/learn/synchronizing-with-effects#how-to-handle-the-effect-firing-twice-in-development
+    refresh(vpnMode);
+    // ⚠ do not include `refresh` in the dependencies array
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [node, vpnMode]);
 
   return (
     <NodesProvider nodeType={node}>

@@ -1,5 +1,4 @@
 import dayjs from 'dayjs';
-import * as _ from 'lodash-es';
 import {
   DefaultCountry,
   DefaultRootFontSize,
@@ -15,8 +14,6 @@ import {
   DaemonInfo,
   DaemonStatus,
   Gateway,
-  GatewayType,
-  GatewaysByCountry,
   NodeHop,
   ThemeMode,
   Tunnel,
@@ -54,18 +51,6 @@ export type StateAction =
   | { type: 'set-theme-mode'; mode: ThemeMode }
   | { type: 'system-theme-changed'; theme: UiTheme }
   | {
-      type: 'set-gateways';
-      payload: { type: GatewayType; gateways: GatewaysByCountry[] };
-    }
-  | {
-      type: 'set-gateways-loading';
-      payload: { type: GatewayType; loading: boolean };
-    }
-  | {
-      type: 'set-gateways-error';
-      payload: { type: GatewayType; error: AppError | null };
-    }
-  | {
       type: 'set-node';
       payload: { hop: NodeHop; node: Country | Gateway };
     }
@@ -94,19 +79,10 @@ export const initialState: AppState = {
   desktopNotifications: true,
   entryNode: DefaultCountry,
   exitNode: DefaultCountry,
-  mxEntryGateways: [],
-  mxExitGateways: [],
-  wgGateways: [],
-  mxEntryGatewaysLoading: true,
-  mxExitGatewaysLoading: true,
-  wgGatewaysLoading: true,
   rootFontSize: DefaultRootFontSize,
   codeDepsRust: [],
   codeDepsJs: [],
   account: false,
-  fetchGateways: async () => {
-    /*  SCARECROW */
-  },
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -157,39 +133,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         desktopNotifications: action.enabled,
-      };
-    case 'set-gateways': {
-      let prop: keyof AppState = 'wgGateways';
-      if (action.payload.type === 'mx-entry') {
-        prop = 'mxEntryGateways';
-      }
-      if (action.payload.type === 'mx-exit') {
-        prop = 'mxExitGateways';
-      }
-      if (!_.isEqual(action.payload.gateways, state[prop])) {
-        return {
-          ...state,
-          [prop]: action.payload.gateways,
-        };
-      }
-      return state;
-    }
-    case 'set-gateways-loading':
-      if (action.payload.type === 'mx-entry') {
-        return {
-          ...state,
-          mxEntryGatewaysLoading: action.payload.loading,
-        };
-      }
-      if (action.payload.type === 'mx-exit') {
-        return {
-          ...state,
-          mxExitGatewaysLoading: action.payload.loading,
-        };
-      }
-      return {
-        ...state,
-        wgGatewaysLoading: action.payload.loading,
       };
     case 'set-tunnel':
       return {
@@ -301,23 +244,6 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         codeDepsRust: action.dependencies,
-      };
-    case 'set-gateways-error':
-      if (action.payload.type === 'mx-entry') {
-        return {
-          ...state,
-          mxEntryGatewaysError: action.payload.error,
-        };
-      }
-      if (action.payload.type === 'mx-exit') {
-        return {
-          ...state,
-          mxExitGatewaysError: action.payload.error,
-        };
-      }
-      return {
-        ...state,
-        wgGatewaysError: action.payload.error,
       };
     case 'set-account-links':
       return {

@@ -3,7 +3,7 @@ import { invoke } from '@tauri-apps/api/core';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@headlessui/react';
-import { useMainDispatch, useMainState } from '../../contexts';
+import { useGateways, useMainDispatch, useMainState } from '../../contexts';
 import { StateDispatch, VpnMode } from '../../types';
 import { RadioGroup, RadioGroupOption } from '../../ui';
 import MsIcon from '../../ui/MsIcon';
@@ -12,8 +12,10 @@ import ModeDetailsDialog from './ModeDetailsDialog';
 import { useActionToast } from './util';
 
 function NetworkModeSelect() {
-  const { state, vpnMode, fetchGateways, daemonStatus } = useMainState();
+  const { state, vpnMode, daemonStatus } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
+  const { fetch } = useGateways();
+
   const [isDialogModesOpen, setIsDialogModesOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const toast = useActionToast('mode-select');
@@ -28,10 +30,10 @@ function NetworkModeSelect() {
         dispatch({ type: 'set-vpn-mode', mode: value });
         console.info('vpn mode set to', value);
         if (value === 'mixnet') {
-          fetchGateways('mx-entry');
-          fetchGateways('mx-exit');
+          fetch('mx-entry');
+          fetch('mx-exit');
         } else {
-          fetchGateways('wg');
+          fetch('wg');
         }
       } catch (e) {
         console.warn(e);

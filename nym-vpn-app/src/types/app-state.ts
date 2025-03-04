@@ -2,14 +2,7 @@ import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
 import { StateAction } from '../state';
 import { Country, ThemeMode, UiTheme } from './common';
-import {
-  AccountLinks,
-  ErrorKey,
-  Gateway,
-  GatewayType,
-  GatewaysByCountry,
-  NetworkEnv,
-} from './tauri';
+import { AccountLinks, ErrorKey, Gateway, NetworkEnv } from './tauri';
 import { Tunnel, TunnelError } from './tunnel';
 
 export type TunnelState =
@@ -59,24 +52,12 @@ export type AppState = {
   desktopNotifications: boolean;
   entryNode: Country | Gateway;
   exitNode: Country | Gateway;
-  mxEntryGateways: GatewaysByCountry[];
-  mxExitGateways: GatewaysByCountry[];
-  wgGateways: GatewaysByCountry[];
-  mxEntryGatewaysLoading: boolean;
-  mxExitGatewaysLoading: boolean;
-  wgGatewaysLoading: boolean;
-  mxEntryGatewaysError?: AppError | null;
-  mxExitGatewaysError?: AppError | null;
-  wgGatewaysError?: AppError | null;
   rootFontSize: number;
   codeDepsJs: CodeDependency[];
   codeDepsRust: CodeDependency[];
   // TODO just a boolean for now to indicate if the user has added an account
   account: boolean;
   accountLinks?: AccountLinks | null;
-
-  // methods
-  fetchGateways: FetchGatewaysFn;
 };
 
 export type ConnectProgressMsg = 'Initializing' | 'InitDone' | 'Canceling';
@@ -86,10 +67,6 @@ export type ProgressEventPayload = {
 };
 
 export type StateDispatch = Dispatch<StateAction>;
-
-export type FetchGatewaysFn = (
-  nodeType: GatewayType,
-) => Promise<void> | undefined;
 
 export type AppError = {
   message: string;

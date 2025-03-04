@@ -1,27 +1,18 @@
 import { invoke } from '@tauri-apps/api/core';
-import React, { useCallback, useEffect, useMemo, useReducer } from 'react';
-import { GatewaysCacheDuration } from '../../constants';
+import React, { useEffect, useReducer } from 'react';
 import {
   MainDispatchContext,
   MainStateContext,
   useInAppNotify,
 } from '../index';
 import { sleep } from '../../util';
-import {
-  BackendError,
-  Cli,
-  GatewayType,
-  GatewaysByCountry,
-  NetworkEnv,
-  SystemMessage,
-} from '../../types';
+import { Cli, NetworkEnv, SystemMessage } from '../../types';
 import { initFirstBatch, initSecondBatch } from '../../state/init';
 import { initialState, reducer } from '../../state';
 import { useTauriEvents } from '../../state/useTauriEvents';
 import { S_STATE } from '../../static';
 import { CCache } from '../../cache';
 import { kvGet, kvSet } from '../../kvStore';
-import { gwTypeToCacheKey } from './util';
 
 let initialized = false;
 
@@ -122,69 +113,8 @@ function MainStateProvider({ children }: Props) {
     querySystemMessages();
   }, [push]);
 
-  // use cached values if any, otherwise query from daemon
-  const fetchGateways = useCallback(async (nodeType: GatewayType) => {
-    const cacheKey = gwTypeToCacheKey(nodeType);
-    // first try to load from cache
-    let gateways = await CCache.get<GatewaysByCountry[]>(cacheKey);
-
-    // fallback to daemon query
-    if (!gateways) {
-      console.info(`fetching gateways for ${nodeType}`);
-      try {
-        gateways = await invoke<GatewaysByCountry[]>('get_gateways', {
-          nodeType,
-        });
-        await CCache.set(cacheKey, gateways, GatewaysCacheDuration);
-      } catch (e) {
-        console.warn(`Failed to fetch ${nodeType} gateways:`, e);
-        if (nodeType === 'mx-entry') {
-          dispatch({
-            type: 'set-gateways-error',
-            payload: {
-              type: nodeType,
-              error: e as BackendError,
-            },
-          });
-        }
-      }
-    }
-    if (!gateways) {
-      console.warn(`no gateways found for ${nodeType}`);
-      gateways = [];
-    }
-    dispatch({
-      type: 'set-gateways',
-      payload: {
-        type: nodeType,
-        gateways,
-      },
-    });
-    // reset any errors
-    dispatch({
-      type: 'set-gateways-error',
-      payload: {
-        type: nodeType,
-        error: null,
-      },
-    });
-  }, []);
-
-  useEffect(() => {
-    // TODO if the selected current gateway (or country) is not available
-    // we need to reset it
-  }, []);
-
-  const ctx = useMemo(
-    () => ({
-      ...state,
-      fetchGateways,
-    }),
-    [fetchGateways, state],
-  );
-
   return (
-    <MainStateContext.Provider value={ctx}>
+    <MainStateContext.Provider value={state}>
       <MainDispatchContext.Provider value={dispatch}>
         {children}
       </MainDispatchContext.Provider>

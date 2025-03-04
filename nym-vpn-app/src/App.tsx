@@ -17,6 +17,7 @@ import router from './router';
 import './i18n/config';
 import { Cli } from './types';
 import { RouteLoading, ThemeSetter } from './ui';
+import { GatewaysProvider } from './contexts/gateways';
 
 let initialized = false;
 
@@ -64,13 +65,15 @@ function App() {
     <InAppNotificationProvider>
       <Toast.Provider>
         <MainStateProvider>
-          <ThemeSetter>
-            <DialogProvider>
-              <Suspense fallback={<RouteLoading />}>
-                <RouterProvider router={router} />
-              </Suspense>
-            </DialogProvider>
-          </ThemeSetter>
+          <GatewaysProvider>
+            <ThemeSetter>
+              <DialogProvider>
+                <Suspense fallback={<RouteLoading />}>
+                  <RouterProvider router={router} />
+                </Suspense>
+              </DialogProvider>
+            </ThemeSetter>
+          </GatewaysProvider>
         </MainStateProvider>
       </Toast.Provider>
     </InAppNotificationProvider>
