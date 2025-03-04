@@ -3,8 +3,7 @@
 
 use super::tunnel_settings::TunnelNetworkSettings;
 use crate::platform::error::VpnError;
-use std::sync::Arc;
-use std::{fmt::Debug, os::fd::RawFd};
+use std::{fmt::Debug, os::fd::RawFd, sync::Arc};
 
 #[uniffi::export(with_foreign)]
 pub trait ConnectivityObserver: Send + Sync + std::fmt::Debug {

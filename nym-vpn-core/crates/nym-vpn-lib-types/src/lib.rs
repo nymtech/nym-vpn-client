@@ -9,11 +9,13 @@ mod tunnel_event;
 mod tunnel_state;
 
 pub use account::{
-    forget_account::ForgetAccountError, register_device::RegisterDeviceError,
-    request_zknym::RequestZkNymError, request_zknym::RequestZkNymErrorReason,
-    request_zknym::RequestZkNymSuccess, store_account::StoreAccountError,
-    sync_account::SyncAccountError, sync_device::SyncDeviceError, AccountCommandError,
-    VpnApiErrorResponse,
+    forget_account::ForgetAccountError,
+    register_device::RegisterDeviceError,
+    request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
+    store_account::StoreAccountError,
+    sync_account::SyncAccountError,
+    sync_device::SyncDeviceError,
+    AccountCommandError, VpnApiErrorResponse,
 };
 pub use connection_data::{
     ConnectionData, Gateway, MixnetConnectionData, NymAddress, TunnelConnectionData,

@@ -3,8 +3,9 @@
 
 mod pending_credential_requests;
 
-pub use pending_credential_requests::error::PendingCredentialRequestsStorageError;
-pub use pending_credential_requests::models::PendingCredentialRequest;
+pub use pending_credential_requests::{
+    error::PendingCredentialRequestsStorageError, models::PendingCredentialRequest,
+};
 
 use pending_credential_requests::PendingCredentialRequestsStorage;
 
