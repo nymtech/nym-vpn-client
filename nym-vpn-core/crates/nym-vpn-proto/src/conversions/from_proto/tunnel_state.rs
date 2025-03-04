@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
     str::FromStr,
 };
 
@@ -212,6 +212,10 @@ impl TryFrom<ProtoMixnetConnectionData> for MixnetConnectionData {
                 .exit_ipr
                 .map(NymAddress::from)
                 .ok_or(ConversionError::NoValueSet("MixnetConnectionData.exit_ipr"))?,
+            entry_ip: IpAddr::from_str(&value.entry_ip)
+                .map_err(|e| ConversionError::ParseAddr("MixnetConnectionData.entry_ip", e))?,
+            exit_ip: IpAddr::from_str(&value.exit_ip)
+                .map_err(|e| ConversionError::ParseAddr("MixnetConnectionData.exit_ip", e))?,
             ipv4: Ipv4Addr::from_str(&value.ipv4)
                 .map_err(|e| ConversionError::ParseAddr("MixnetConnectionData.ipv4", e))?,
             ipv6: Ipv6Addr::from_str(&value.ipv6)

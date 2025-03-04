@@ -340,6 +340,8 @@ message MixnetConnectionData {
   Address exit_ipr = 2;
   string ipv4 = 3;
   string ipv6 = 4;
+  string entry_ip = 5;
+  string exit_ip = 6;
 }
 
 message WireguardConnectionData {

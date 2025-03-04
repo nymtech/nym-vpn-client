@@ -3,7 +3,7 @@
 
 use std::{
     fmt,
-    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
 };
 
 use time::OffsetDateTime;
@@ -70,6 +70,13 @@ impl NymAddress {
     pub fn new(nym_address: String) -> Self {
         Self { nym_address }
     }
+
+    pub fn gateway_id(&self) -> &str {
+        self.nym_address
+            .rfind("@")
+            .map(|i| self.nym_address.split_at(i + 1).1)
+            .unwrap_or(self.nym_address.as_str())
+    }
 }
 
 impl fmt::Display for NymAddress {
@@ -89,6 +96,8 @@ impl From<nym_gateway_directory::Recipient> for NymAddress {
 pub struct MixnetConnectionData {
     pub nym_address: NymAddress,
     pub exit_ipr: NymAddress,
+    pub entry_ip: IpAddr,
+    pub exit_ip: IpAddr,
     pub ipv4: Ipv4Addr,
     pub ipv6: Ipv6Addr,
 }

@@ -57,14 +57,17 @@ impl fmt::Display for TunnelState {
                     TunnelConnectionData::Mixnet(ref data) => {
                         write!(
                             f,
-                            "Connecting Mixnet tunnel with entry {} and exit {}",
-                            data.nym_address, data.exit_ipr,
+                            "Connecting mixnet tunnel to {} -> {} (entry: {} -> exit: {})",
+                            data.entry_ip,
+                            data.exit_ip,
+                            data.nym_address.gateway_id(),
+                            data.exit_ipr.gateway_id(),
                         )
                     }
                     TunnelConnectionData::Wireguard(ref data) => {
                         write!(
                             f,
-                            "Connecting WireGuard tunnel with entry {} and exit {}",
+                            "Connecting wireguard tunnel to {} -> {} (entry -> exit)",
                             data.entry.endpoint, data.exit.endpoint
                         )
                     }
@@ -75,14 +78,17 @@ impl fmt::Display for TunnelState {
                 TunnelConnectionData::Mixnet(ref data) => {
                     write!(
                         f,
-                        "Connected Mixnet tunnel with entry {} and exit {}",
-                        data.nym_address, data.exit_ipr,
+                        "Connected mixnet tunnel to {} -> {} (entry: {} -> exit: {})",
+                        data.entry_ip,
+                        data.exit_ip,
+                        data.nym_address.gateway_id(),
+                        data.exit_ipr.gateway_id(),
                     )
                 }
                 TunnelConnectionData::Wireguard(ref data) => {
                     write!(
                         f,
-                        "Connected WireGuard tunnel with entry {} and exit {}",
+                        "Connected wireguard tunnel {} -> {} (entry -> exit)",
                         data.entry.endpoint, data.exit.endpoint
                     )
                 }

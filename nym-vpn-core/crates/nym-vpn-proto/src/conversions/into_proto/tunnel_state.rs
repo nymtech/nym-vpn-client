@@ -331,6 +331,8 @@ impl From<MixnetConnectionData> for ProtoMixnetConnectionData {
             exit_ipr: Some(ProtoAddress {
                 nym_address: value.exit_ipr.to_string(),
             }),
+            entry_ip: value.entry_ip.to_string(),
+            exit_ip: value.exit_ip.to_string(),
             ipv4: value.ipv4.to_string(),
             ipv6: value.ipv6.to_string(),
         }
