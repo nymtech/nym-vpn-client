@@ -18,7 +18,7 @@ use super::{
         AllowedEndpoint, AllowedTunnelTraffic, TransportProtocol, TunnelInterface, TunnelMetadata,
         ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS,
     },
-    FirewallArguments, FirewallPolicy,
+    FirewallArguments, FirewallPolicy, DNS_TCP_PORTS, DNS_UDP_PORTS,
 };
 
 pub use pfctl::Error;
@@ -82,9 +82,6 @@ pub static NAT_WORKAROUND: LazyLock<bool> = LazyLock::new(|| {
     };
     apply_workaround
 });
-
-const DNS_TCP_PORTS: [u16; 3] = [53, 443, 853];
-const DNS_UDP_PORTS: [u16; 1] = [53];
 
 pub struct Firewall {
     pf: pfctl::PfCtl,

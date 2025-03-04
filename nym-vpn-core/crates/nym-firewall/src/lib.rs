@@ -81,6 +81,14 @@ const DHCPV6_CLIENT_PORT: u16 = 546;
 #[cfg(all(unix, not(any(target_os = "android", target_os = "ios"))))]
 const ROOT_UID: u32 = 0;
 
+/// Allowed TCP ports to DNS servers when connecting.
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+const DNS_TCP_PORTS: [u16; 3] = [53, 443, 853];
+
+/// Allowed UDP ports to DNS servers when connecting.
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+const DNS_UDP_PORTS: [u16; 1] = [53];
+
 /// Returns whether an address belongs to a private subnet.
 pub fn is_local_address(address: &IpAddr) -> bool {
     let address = *address;
