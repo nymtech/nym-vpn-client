@@ -31,7 +31,6 @@ use nym_config::defaults::NymNetworkDetails;
 use tokio::join;
 use url::Url;
 
-pub use crate::network_compatibility::NetworkCompatibility;
 use std::{fmt::Debug, path::Path, str::FromStr, time::Duration};
 
 const NETWORKS_SUBDIR: &str = "networks";
@@ -49,7 +48,7 @@ pub struct Network {
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
     pub system_configuration: Option<SystemConfiguration>,
-    pub network_compatibility: Option<NetworkCompatibility>,
+    pub network_compatibility: Option<network_compatibility::NetworkCompatibility>,
 }
 
 impl Network {
