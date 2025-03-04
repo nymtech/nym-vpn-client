@@ -104,8 +104,7 @@
     <string name="share_anonymous_analytics">Share anonymous product analytics</string>
     <string name="anonymous_error_reports">Anonymous error reports</string>
     <string name="gateways_error">Failed to retrieve gateways</string>
-    <string name="error_invalid_credential">Imported credential is invalid</string>
-    <string name="missing_credential">Missing credential</string>
+	<string name="missing_credential">Missing credential</string>
     <string name="country_load_failure">Failed to load hop countries</string>
     <string name="app_shortcuts">App shortcuts</string>
     <string name="enable_shortcuts">Enable app shortcuts</string>

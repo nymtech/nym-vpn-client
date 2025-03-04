@@ -61,8 +61,7 @@
     <string name="error_vpn_halted_unexpectedly">VPN неожиданно отключился. Пожалуйста, попробуйте подключиться еще раз.</string>
     <string name="share_anonymous_analytics">Поделиться анонимной аналитикой продукта</string>
     <string name="permission_message">Чтобы приложение корректно работало на вашем устройстве, пожалуйста, предоставьте следующие разрешения. Эти разрешения необходимы для работы приложения.</string>
-    <string name="error_invalid_credential">Введённые учётные данные недействительны</string>
-    <string name="disabled_while_connected">Отключён при подключении к VPN</string>
+	<string name="disabled_while_connected">Отключён при подключении к VPN</string>
     <string name="scan_nym_vpn_credential">Отсканировать QR-код с учётными данными NymVPN</string>
     <string name="credential_message">Введите ваши учётные данные для начала работы</string>
     <string name="credential_disclaimer">Воспользуйтесь своими учетными данными, затем вставьте или отсканируйте QR-код. У вас их нет? Зарегистрируйтесь на сайте nymvpn.com, чтобы получить их мгновенно.</string>

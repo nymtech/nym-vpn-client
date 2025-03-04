@@ -96,8 +96,7 @@
     <string name="share_anonymous_analytics">共享匿名产品分析</string>
     <string name="anonymous_error_reports">匿名错误报告</string>
     <string name="gateways_error">检索网关失败</string>
-    <string name="error_invalid_credential">导入的凭证无效</string>
-    <string name="missing_credential">缺少凭证</string>
+	<string name="missing_credential">缺少凭证</string>
     <string name="country_load_failure">加载跳转国家失败</string>
     <string name="app_shortcuts">应用程序快捷方式</string>
     <string name="disabled_while_connected">连接 VPN 时禁用</string>

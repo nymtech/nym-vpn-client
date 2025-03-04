@@ -87,8 +87,7 @@
     <string name="and_acknowledge">e reconhecer a NymVPN\'s</string>
     <string name="share_anonymous_analytics">Compartilhe análises anônimas de produtos</string>
     <string name="anonymous_error_reports">Relatórios de erros anônimos</string>
-    <string name="error_invalid_credential">A credencial importada é inválida</string>
-    <string name="missing_credential">Credencial ausente</string>
+	<string name="missing_credential">Credencial ausente</string>
     <string name="country_load_failure">Falha ao carregar países de salto</string>
     <string name="app_shortcuts">Atalhos do aplicativo</string>
     <string name="enable_shortcuts">Ativar atalhos do aplicativo</string>

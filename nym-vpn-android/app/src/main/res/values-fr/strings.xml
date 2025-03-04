@@ -92,8 +92,7 @@
     <string name="share_anonymous_analytics">Partager les rapports d\'analyses anonymes</string>
     <string name="anonymous_error_reports">Rapports d\'erreur anonymes</string>
     <string name="gateways_error">Échec de la récupération des passerelles (gateways)</string>
-    <string name="error_invalid_credential">L\'identifiant importé n\'est pas valide</string>
-    <string name="missing_credential">Identifiant manquant</string>
+	<string name="missing_credential">Identifiant manquant</string>
     <string name="country_load_failure">Échec du chargement des pays du saut</string>
     <string name="app_shortcuts">Raccourcis d\'application</string>
     <string name="enable_shortcuts">Activer les raccourcis</string>

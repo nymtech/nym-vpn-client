@@ -39,7 +39,7 @@ constructor(
 				showModal()
 			} else {
 				_success.emit(false)
-				SnackbarController.showMessage(StringValue.StringResource(R.string.error_invalid_credential))
+				SnackbarController.showMessage(StringValue.StringResource(R.string.invalid_recovery_phrase))
 			}
 		}
 	}

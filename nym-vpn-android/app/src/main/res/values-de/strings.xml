@@ -76,8 +76,7 @@
     <string name="feature_in_progress">Diese Funktion ist noch in Arbeit.</string>
     <string name="logs_saved">Logs wurden im Download Verzeichnis gespeichert</string>
     <string name="sentry_url">https://sentry.io</string>
-    <string name="error_invalid_credential">Importierte Zugangsberechtigung ist ungültig</string>
-    <string name="missing_credential">Fehlende Zugangsberechtigung</string>
+	<string name="missing_credential">Fehlende Zugangsberechtigung</string>
     <string name="country_load_failure">Fehler beim Laden der Hops</string>
     <string name="app_shortcuts">App Shortcuts</string>
     <string name="enable_shortcuts">App Shortcuts aktivieren</string>

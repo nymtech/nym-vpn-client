@@ -90,8 +90,7 @@
     <string name="share_anonymous_analytics">Partilhar análises anónimas de produtos</string>
     <string name="anonymous_error_reports">Relatórios de erros anónimos</string>
     <string name="gateways_error">Falha ao recuperar Gateways</string>
-    <string name="error_invalid_credential">A credencial importada é inválida</string>
-    <string name="missing_credential">Falta de credencial</string>
+	<string name="missing_credential">Falta de credencial</string>
     <string name="country_load_failure">Falha ao carregar os países de salto</string>
     <string name="app_shortcuts">Atalhos do app</string>
     <string name="enable_shortcuts">Ativar os atalhos do app</string>

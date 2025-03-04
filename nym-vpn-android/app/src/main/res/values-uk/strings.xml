@@ -101,8 +101,7 @@
     <string name="error_logs_not_saved">Не вдалося зберегти журнали</string>
     <string name="fastest">Найшвидший</string>
     <string name="add_cred_to_connect">Додайте облікові дані для підключення</string>
-    <string name="error_invalid_credential">Імпортовані облікові дані недійсні</string>
-    <string name="experimental_software_disclaimer">Це експериментальне програмне забезпечення. Не покладайтеся на нього для забезпечення повної анонімності (поки що).</string>
+	<string name="experimental_software_disclaimer">Це експериментальне програмне забезпечення. Не покладайтеся на нього для забезпечення повної анонімності (поки що).</string>
     <string name="error_reporting">Поділитись анонімним звітом про помилку</string>
     <string name="add_credential">Додати облікові дані</string>
     <string name="credential_successful">Облікові дані успішно додані</string>
