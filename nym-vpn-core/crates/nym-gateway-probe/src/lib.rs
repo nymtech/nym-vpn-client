@@ -46,8 +46,10 @@ use crate::{
     types::Exit,
 };
 
-use netstack::ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo};
-use netstack::NetstackRequest;
+use netstack::{
+    ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo},
+    NetstackRequest,
+};
 
 mod error;
 mod icmp;

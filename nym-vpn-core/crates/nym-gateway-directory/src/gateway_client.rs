@@ -1,8 +1,10 @@
 // Copyright 2023-2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::SocketAddr;
-use std::{fmt, net::IpAddr};
+use std::{
+    fmt,
+    net::{IpAddr, SocketAddr},
+};
 
 use nym_sdk::UserAgent;
 use nym_validator_client::{models::NymNodeDescription, nym_nodes::SkimmedNode, NymApiClient};
@@ -86,10 +88,11 @@ impl Config {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct ResolvedConfig {
     pub nyxd_socket_addrs: Vec<SocketAddr>,
     pub api_socket_addrs: Vec<SocketAddr>,
-    pub nym_vpn_api_socket_addres: Option<Vec<SocketAddr>>,
+    pub nym_vpn_api_socket_addrs: Option<Vec<SocketAddr>>,
 }
 
 impl ResolvedConfig {
@@ -97,7 +100,7 @@ impl ResolvedConfig {
         let mut socket_addrs = vec![];
         socket_addrs.extend(self.nyxd_socket_addrs.iter());
         socket_addrs.extend(self.api_socket_addrs.iter());
-        if let Some(vpn_api_socket_addrs) = &self.nym_vpn_api_socket_addres {
+        if let Some(vpn_api_socket_addrs) = &self.nym_vpn_api_socket_addrs {
             socket_addrs.extend(vpn_api_socket_addrs.iter());
         }
         socket_addrs
@@ -114,10 +117,24 @@ pub struct GatewayClient {
 
 impl GatewayClient {
     pub fn new(config: Config, user_agent: UserAgent) -> Result<Self> {
+        Self::new_with_resolver_overrides(config, user_agent, None)
+    }
+
+    pub fn new_with_resolver_overrides(
+        config: Config,
+        user_agent: UserAgent,
+        static_nym_api_ip_addresses: Option<&[SocketAddr]>,
+    ) -> Result<Self> {
         let api_client = NymApiClient::new_with_user_agent(config.api_url, user_agent.clone());
         let nym_vpn_api_client = config
             .nym_vpn_api_url
-            .map(|url| nym_vpn_api_client::VpnApiClient::new(url, user_agent.clone()))
+            .map(|url| {
+                nym_vpn_api_client::VpnApiClient::new_with_resolver_overrides(
+                    url,
+                    user_agent.clone(),
+                    static_nym_api_ip_addresses,
+                )
+            })
             .transpose()?;
 
         Ok(GatewayClient {

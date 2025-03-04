@@ -92,6 +92,8 @@ impl From<ProtoBaseErrorStateReason> for ErrorStateReason {
             ProtoBaseErrorStateReason::Dns => Self::Dns,
             ProtoBaseErrorStateReason::TunDevice => Self::TunDevice,
             ProtoBaseErrorStateReason::TunnelProvider => Self::TunnelProvider,
+            ProtoBaseErrorStateReason::ResolveGatewayAddrs => Self::ResolveGatewayAddrs,
+            ProtoBaseErrorStateReason::StartLocalDnsResolver => Self::StartLocalDnsResolver,
             ProtoBaseErrorStateReason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
             ProtoBaseErrorStateReason::InvalidEntryGatewayCountry => {
                 Self::InvalidEntryGatewayCountry
@@ -99,7 +101,7 @@ impl From<ProtoBaseErrorStateReason> for ErrorStateReason {
             ProtoBaseErrorStateReason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
             ProtoBaseErrorStateReason::BadBandwidthIncrease => Self::BadBandwidthIncrease,
             ProtoBaseErrorStateReason::DuplicateTunFd => Self::DuplicateTunFd,
-            ProtoBaseErrorStateReason::Internal => Self::Internal,
+            ProtoBaseErrorStateReason::Internal => Self::Internal("todo: fix me!".to_owned()),
         }
     }
 }

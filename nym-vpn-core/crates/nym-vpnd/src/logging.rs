@@ -16,12 +16,46 @@ pub struct Options {
     pub enable_stdout_log: bool,
 }
 
+static INFO_CRATES: &[&str; 16] = &[
+    "hyper",
+    "netlink_proto",
+    "hickory_proto",
+    "hickory_resolver",
+    "hyper_util",
+    "h2",
+    "rustls",
+    "nym_statistics_common",
+    "nym_client_core",
+    "nym_vpn_account_controller",
+    "nym_vpn_store",
+    "nym_vpn_api_client::jwt",
+    "nym_sphinx_chunking",
+    "nym_sphinx::preparer",
+    "nym_authenticator_client",
+    "nym_task::manager",
+];
+
+static WARN_CRATES: &[&str; 1] = &["hickory_server"];
+
 pub fn setup_logging(options: Options) -> Option<WorkerGuard> {
-    let env_filter = EnvFilter::builder()
+    let mut env_filter = EnvFilter::builder()
         .with_default_directive(LevelFilter::INFO.into())
-        .from_env_lossy()
-        .add_directive("hyper::proto=info".parse().unwrap())
-        .add_directive("netlink_proto=info".parse().unwrap());
+        .from_env_lossy();
+
+    for crate_name in INFO_CRATES {
+        env_filter = env_filter.add_directive(
+            format!("{}=info", crate_name)
+                .parse()
+                .expect("failed to parse directive"),
+        );
+    }
+    for crate_name in WARN_CRATES {
+        env_filter = env_filter.add_directive(
+            format!("{}=warn", crate_name)
+                .parse()
+                .expect("failed to parse directive"),
+        );
+    }
 
     let mut layers = Vec::new();
 

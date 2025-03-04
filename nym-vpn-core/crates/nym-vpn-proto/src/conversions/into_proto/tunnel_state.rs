@@ -59,6 +59,12 @@ impl From<ErrorStateReason> for ProtoErrorStateReason {
             ErrorStateReason::TunnelProvider => {
                 Self::BaseReason(ProtoBaseErrorStateReason::TunnelProvider as i32)
             }
+            ErrorStateReason::StartLocalDnsResolver => {
+                Self::BaseReason(ProtoBaseErrorStateReason::StartLocalDnsResolver as i32)
+            }
+            ErrorStateReason::ResolveGatewayAddrs => {
+                Self::BaseReason(ProtoBaseErrorStateReason::ResolveGatewayAddrs as i32)
+            }
             ErrorStateReason::SameEntryAndExitGateway => {
                 Self::BaseReason(ProtoBaseErrorStateReason::SameEntryAndExitGateway as i32)
             }
@@ -74,7 +80,8 @@ impl From<ErrorStateReason> for ProtoErrorStateReason {
             ErrorStateReason::DuplicateTunFd => {
                 Self::BaseReason(ProtoBaseErrorStateReason::DuplicateTunFd as i32)
             }
-            ErrorStateReason::Internal => {
+            ErrorStateReason::Internal(_message) => {
+                // todo: pass error message!
                 Self::BaseReason(ProtoBaseErrorStateReason::Internal as i32)
             }
             ErrorStateReason::SyncAccount(sync_account_error) => {

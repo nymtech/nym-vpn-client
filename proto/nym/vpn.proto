@@ -384,6 +384,8 @@ message TunnelState {
     BAD_BANDWIDTH_INCREASE = 8;
     DUPLICATE_TUN_FD = 9;
     INTERNAL = 10;
+    RESOLVE_GATEWAY_ADDRS = 11;
+    START_LOCAL_DNS_RESOLVER = 12;
   }
 
   enum ActionAfterDisconnect {

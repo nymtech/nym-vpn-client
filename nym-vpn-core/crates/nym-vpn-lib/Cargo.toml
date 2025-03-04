@@ -22,11 +22,10 @@ ipnetwork.workspace = true
 itertools.workspace = true
 lazy_static.workspace = true
 log.workspace = true
-netdev.workspace = true
 pnet_packet.workspace = true
 rand.workspace = true
-serde.workspace = true
 serde_json.workspace = true
+serde.workspace = true
 si-scale.workspace = true
 signature.workspace = true
 sysinfo.workspace = true
@@ -65,35 +64,40 @@ nym-topology.workspace = true
 nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
 
+nym-apple-dispatch.workspace = true
+nym-apple-network.workspace = true
 nym-authenticator-client.workspace = true
-nym-connection-monitor.workspace = true
 nym-common.workspace = true
+nym-connection-monitor.workspace = true
 nym-gateway-directory.workspace = true
 nym-ip-packet-client.workspace = true
+nym-macos.workspace = true
 nym-mixnet-client.workspace = true
+nym-offline-monitor.workspace = true
 nym-vpn-account-controller.workspace = true
 nym-vpn-api-client.workspace = true
+nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
 nym-wg-gateway-client.workspace = true
 nym-wg-go.workspace = true
-nym-apple-network.workspace = true
-nym-apple-dispatch.workspace = true
-nym-offline-monitor.workspace = true
-nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 
 [target.'cfg(unix)'.dependencies]
-nix = { workspace = true, features = ["socket", "net", "fs"] }
+nix = { workspace = true, features = ["socket", "net", "fs", "signal"] }
 
 [target.'cfg(windows)'.dependencies]
 windows = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
 nym-windows.workspace = true
 nym-routing.workspace = true
 nym-dns.workspace = true
+nym-firewall.workspace = true
 
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
+hickory-proto.workspace = true
+hickory-server = { workspace = true, features = ["resolver"] }
 nym-routing.workspace = true
 nym-dns.workspace = true
+nym-firewall.workspace = true
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger.workspace = true

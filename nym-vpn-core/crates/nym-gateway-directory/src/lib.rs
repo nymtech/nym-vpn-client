@@ -22,6 +22,6 @@ pub use crate::{
         score::Score,
     },
     error::Error,
-    gateway_client::{Config, GatewayClient},
+    gateway_client::{Config, GatewayClient, ResolvedConfig},
     helpers::resolve_config,
 };

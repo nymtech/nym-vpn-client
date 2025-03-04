@@ -125,6 +125,12 @@ pub struct AllowedEndpoint {
     pub clients: AllowedClients,
 }
 
+impl AllowedEndpoint {
+    pub fn new(endpoint: Endpoint, clients: AllowedClients) -> Self {
+        Self { endpoint, clients }
+    }
+}
+
 impl fmt::Display for AllowedEndpoint {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> Result<(), fmt::Error> {
         #[cfg(not(windows))]
@@ -213,6 +219,12 @@ impl AllowedClients {
         vec![].into()
     }
 
+    /// Allow current executable to leak traffic to an allowed [`Endpoint`]
+    pub fn current_exe() -> Self {
+        let current_exe_path = std::env::current_exe().expect("failed to obtain current_exe");
+        Self::from(vec![current_exe_path])
+    }
+
     pub fn allow_all(&self) -> bool {
         self.is_empty()
     }
@@ -264,7 +276,19 @@ pub struct TunnelMetadata {
     /// The local IPs on the tunnel interface.
     pub ips: Vec<IpAddr>,
     /// The IP to the default gateway on the tunnel interface.
-    pub ipv4_gateway: Ipv4Addr,
+    pub ipv4_gateway: Option<Ipv4Addr>,
     /// The IP to the IPv6 default gateway on the tunnel interface.
     pub ipv6_gateway: Option<Ipv6Addr>,
+}
+
+/// Describes the interface(s) that a tunnel is running on.
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum TunnelInterface {
+    // Single tunnel interface
+    One(TunnelMetadata),
+    // Two tunnel interfaces
+    Two {
+        entry: TunnelMetadata,
+        exit: TunnelMetadata,
+    },
 }

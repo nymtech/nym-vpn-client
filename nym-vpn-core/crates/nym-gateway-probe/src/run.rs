@@ -8,8 +8,7 @@ use nym_config::defaults::setup_env;
 use nym_gateway_directory::{EntryPoint, GatewayMinPerformance};
 use nym_gateway_probe::{CredentialArgs, NetstackArgs, ProbeResult, TestedNode};
 use nym_sdk::mixnet::NodeIdentity;
-use std::path::PathBuf;
-use std::sync::OnceLock;
+use std::{path::PathBuf, sync::OnceLock};
 use tracing::*;
 
 fn pretty_build_info_static() -> &'static str {

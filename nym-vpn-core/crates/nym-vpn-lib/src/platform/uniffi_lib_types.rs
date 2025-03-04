@@ -226,6 +226,8 @@ pub enum ErrorStateReason {
     Dns,
     TunDevice,
     TunnelProvider,
+    ResolveGatewayAddrs,
+    StartLocalDnsResolver,
     SameEntryAndExitGateway,
     InvalidEntryGatewayCountry,
     InvalidExitGatewayCountry,
@@ -239,7 +241,7 @@ pub enum ErrorStateReason {
         successes: Vec<RequestZkNymSuccess>,
         failed: Vec<RequestZkNymError>,
     },
-    Internal,
+    Internal(String),
 }
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
@@ -478,6 +480,8 @@ impl From<CoreErrorStateReason> for ErrorStateReason {
             CoreErrorStateReason::Dns => Self::Dns,
             CoreErrorStateReason::TunDevice => Self::TunDevice,
             CoreErrorStateReason::TunnelProvider => Self::TunnelProvider,
+            CoreErrorStateReason::ResolveGatewayAddrs => Self::ResolveGatewayAddrs,
+            CoreErrorStateReason::StartLocalDnsResolver => Self::StartLocalDnsResolver,
             CoreErrorStateReason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
             CoreErrorStateReason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
             CoreErrorStateReason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
@@ -496,7 +500,7 @@ impl From<CoreErrorStateReason> for ErrorStateReason {
                     failed: failed.into_iter().map(RequestZkNymError::from).collect(),
                 }
             }
-            CoreErrorStateReason::Internal => Self::Internal,
+            CoreErrorStateReason::Internal(message) => Self::Internal(message),
         }
     }
 }

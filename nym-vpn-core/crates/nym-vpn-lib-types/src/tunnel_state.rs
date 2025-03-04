@@ -148,6 +148,12 @@ pub enum ErrorStateReason {
     /// Failure to configure packet tunnel provider.
     TunnelProvider,
 
+    /// Failure to resolve API addresses.
+    ResolveGatewayAddrs,
+
+    /// Failure to start local dns resolver.
+    StartLocalDnsResolver,
+
     /// Same entry and exit gateway are unsupported.
     SameEntryAndExitGateway,
 
@@ -183,7 +189,7 @@ pub enum ErrorStateReason {
     },
 
     /// Program errors that must not happen.
-    Internal,
+    Internal(String),
 }
 
 impl From<SyncAccountError> for ErrorStateReason {

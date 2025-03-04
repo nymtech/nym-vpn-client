@@ -54,6 +54,19 @@ cargo build --target=x86_64-pc-windows-gnu -p nym-vpn-lib
 - Offline monitoring can be disabled by setting the environment variable `NYM_DISABLE_OFFLINE_MONITOR=0`. When set, the status is always online.
 - macOS: set `NYM_USE_PATH_MONITOR=1` to use Apple Network framework for offline monitoring.
 
+## Firewall logging
+
+### macOS
+
+In order to inspect firewall logs, use the following commands:
+
+- Create the logging interface: `ifconfig pflog0 create`.
+- Inspect firewall logs with: `tcpdump -netttti pflog0`.
+- Set `NYM_FIREWALL_DEBUG` environment variable to `pass`, `drop` or `all` to control whether firewall rules should log to `pflog0` device.
+- When done with debugging, use `ifconfig pflog0 destroy` to delete the logging interface.
+
+Use the following command to print firewall rules: `sudo pfctl -a nym -sa`
+
 ## Build winfw for Windows
 
 Winfw is a library written in C++ that is a part of `nym-vpn-lib` and provides essential facilities for interacting with firewall on Windows.

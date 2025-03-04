@@ -41,6 +41,7 @@ impl DnsHandler {
         tokio::task::block_in_place(|| self.inner.reset())
     }
 
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
     pub fn reset_before_interface_removal(&mut self) -> Result<(), nym_dns::Error> {
         tokio::task::block_in_place(|| self.inner.reset_before_interface_removal())
     }
@@ -56,6 +57,7 @@ enum DnsHandlerCommand {
     Reset {
         reply_tx: oneshot::Sender<Result<(), nym_dns::Error>>,
     },
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
     ResetBeforeInterfaceRemoval {
         reply_tx: oneshot::Sender<Result<(), nym_dns::Error>>,
     },
@@ -92,6 +94,7 @@ impl DnsHandlerHandle {
                             DnsHandlerCommand::Reset { reply_tx } => {
                                 _ = reply_tx.send(dns_handler.reset());
                             }
+                            #[cfg(any(target_os = "linux", target_os = "windows"))]
                             DnsHandlerCommand::ResetBeforeInterfaceRemoval { reply_tx } => {
                                 _ = reply_tx.send(dns_handler.reset_before_interface_removal());
                             }
@@ -121,8 +124,6 @@ impl DnsHandlerHandle {
         .await
     }
 
-    #[allow(unused)]
-    #[cfg_attr(target_os = "windows", allow(unused))]
     pub async fn reset(&mut self) -> Result<()> {
         let (reply_tx, reply_rx) = oneshot::channel();
 
@@ -130,6 +131,7 @@ impl DnsHandlerHandle {
             .await
     }
 
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
     pub async fn reset_before_interface_removal(&mut self) -> Result<()> {
         let (reply_tx, reply_rx) = oneshot::channel();
 

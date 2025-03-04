@@ -4,12 +4,11 @@
 use std::net::{IpAddr, SocketAddr};
 
 use nym_http_api_client::HickoryDnsResolver;
-use tracing::debug;
 
 use crate::{error::Result, gateway_client::ResolvedConfig, Config, Error};
 
 async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
-    debug!("Trying to resolve hostname: {hostname}");
+    tracing::debug!("Trying to resolve hostname: {hostname}");
     let resolver = HickoryDnsResolver::default();
     let addrs = resolver.resolve_str(hostname).await.map_err(|err| {
         tracing::error!("Failed to resolve gateway hostname: {}", err);
@@ -18,7 +17,7 @@ async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
             source: err,
         }
     })?;
-    debug!("Resolved to: {addrs:?}");
+    tracing::debug!("Resolved to: {addrs:?}");
 
     let ips = addrs.iter().collect::<Vec<_>>();
     if ips.is_empty() {
@@ -50,7 +49,7 @@ async fn url_to_socket_addr(unresolved_url: &url::Url) -> Result<Vec<SocketAddr>
 pub async fn resolve_config(config: &Config) -> Result<ResolvedConfig> {
     let nyxd_socket_addrs = url_to_socket_addr(config.nyxd_url()).await?;
     let api_socket_addrs = url_to_socket_addr(config.api_url()).await?;
-    let nym_vpn_api_socket_addres = if let Some(vpn_api_url) = config.nym_vpn_api_url() {
+    let nym_vpn_api_socket_addrs = if let Some(vpn_api_url) = config.nym_vpn_api_url() {
         Some(url_to_socket_addr(vpn_api_url).await?)
     } else {
         None
@@ -59,6 +58,6 @@ pub async fn resolve_config(config: &Config) -> Result<ResolvedConfig> {
     Ok(ResolvedConfig {
         nyxd_socket_addrs,
         api_socket_addrs,
-        nym_vpn_api_socket_addres,
+        nym_vpn_api_socket_addrs,
     })
 }

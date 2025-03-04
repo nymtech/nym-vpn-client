@@ -4,7 +4,7 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_common::ErrorExt;
 
 use crate::tunnel_state_machine::{
@@ -25,8 +25,20 @@ impl DisconnectedState {
                 error.display_chain_with_msg("Unable to disable filtering resolver")
             );
         }
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        Self::reset_firewall_policy(_shared_state);
 
         (Box::new(Self), PrivateTunnelState::Disconnected)
+    }
+
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    fn reset_firewall_policy(shared_state: &mut SharedState) {
+        if let Err(e) = shared_state.firewall.reset_policy() {
+            tracing::error!(
+                "{}",
+                e.display_chain_with_msg("Failed to reset firewall policy")
+            );
+        }
     }
 }
 
@@ -53,7 +65,7 @@ impl TunnelStateHandler for DisconnectedState {
             }
             Some(connectivity) = shared_state.offline_monitor.next() => {
                 if connectivity.is_offline() {
-                    NextTunnelState::NewState(OfflineState::enter(false, 0, None))
+                    NextTunnelState::NewState(OfflineState::enter(false, 0, None, shared_state).await)
                 } else {
                     NextTunnelState::SameState(self)
                 }
@@ -61,7 +73,6 @@ impl TunnelStateHandler for DisconnectedState {
             _ = shutdown_token.cancelled() => {
                 NextTunnelState::Finished
             }
-            else => NextTunnelState::Finished
         }
     }
 }

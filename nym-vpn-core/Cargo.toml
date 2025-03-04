@@ -13,6 +13,7 @@ members = [
     "crates/nym-gateway-probe",
     "crates/nym-harbour-master-client",
     "crates/nym-ip-packet-client",
+    "crates/nym-macos",
     "crates/nym-mixnet-client",
     "crates/nym-offline-monitor",
     "crates/nym-platform-metadata",
@@ -110,6 +111,9 @@ eventlog = "0.3.0"
 futures = "0.3.31"
 futures-util = "0.3"
 hex = "0.4"
+hickory-proto = "0.24.2"
+hickory-resolver = "0.24.3"
+hickory-server = "0.24.3"
 http = "0.2.12"                                                     # version compatible with tonic
 inotify = "0.11"
 ipnetwork = "0.20"
@@ -121,7 +125,6 @@ log = "0.4.26"
 log-panics = "2"
 maplit = "1.0.2"
 mnl = "0.2.2"
-netdev = "0.31.0"
 netlink-packet-core = "0.7.0"
 netlink-packet-route = "0.19.0"
 netlink-sys = "0.8.7"
@@ -196,8 +199,10 @@ nym-common = { path = "crates/nym-common" }
 nym-connection-monitor = { path = "crates/nym-connection-monitor" }
 nym-dbus = { path = "crates/nym-dbus" }
 nym-dns = { path = "crates/nym-dns" }
+nym-firewall = { path = "crates/nym-firewall" }
 nym-gateway-directory = { path = "crates/nym-gateway-directory" }
 nym-ip-packet-client = { path = "crates/nym-ip-packet-client" }
+nym-macos = { path = "crates/nym-macos" }
 nym-mixnet-client = { path = "crates/nym-mixnet-client" }
 nym-offline-monitor = { path = "crates/nym-offline-monitor" }
 nym-routing = { path = "crates/nym-routing" }
