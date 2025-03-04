@@ -19,6 +19,7 @@ pub use account_management::{AccountManagement, ParsedAccountLinks};
 pub use feature_flags::FeatureFlags;
 use feature_flags::FlagValue;
 use futures_util::FutureExt;
+pub use network_compatibility::NetworkCompatibility;
 pub use nym_network::NymNetwork;
 use nym_sdk::mixnet::Recipient;
 pub use nym_vpn_network::NymVpnNetwork;
