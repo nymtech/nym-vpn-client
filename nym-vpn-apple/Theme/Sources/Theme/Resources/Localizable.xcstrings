@@ -650,6 +650,17 @@
         }
       }
     },
+    "errorReason.resolveGatewayAddrs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to resolve API domains. Please try again."
+          }
+        }
+      }
+    },
     "errorReason.routing" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -668,6 +679,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "For privacy, NymVPN won't use the same gateway for entry and exit. Reconnect or choose different locations."
+          }
+        }
+      }
+    },
+    "errorReason.startLocalDnsResolver" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to start local dns proxy. Please try again."
           }
         }
       }

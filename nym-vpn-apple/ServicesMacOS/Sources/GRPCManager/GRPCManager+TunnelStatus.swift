@@ -46,6 +46,7 @@ extension GRPCManager {
 }
 
 extension GRPCManager {
+    // swiftlint:disable:next function_body_length
     func resolveError(with tunnelStateError: Nym_Vpn_TunnelState.Error) -> Error? {
         switch tunnelStateError.errorStateReason {
         case let .baseReason(reason):
@@ -74,6 +75,10 @@ extension GRPCManager {
                 return ErrorReason.internalUnknown
             case .UNRECOGNIZED:
                 return ErrorReason.unknown
+            case .resolveGatewayAddrs:
+                return ErrorReason.resolveGatewayAddrs
+            case .startLocalDnsResolver:
+                return ErrorReason.startLocalDnsResolver
             }
         case let .syncAccount(reason):
             if reason.noAccountStored {

@@ -125,6 +125,8 @@ struct Nym_Vpn_Address: Sendable {
 
   var nymAddress: String = String()
 
+  var gatewayID: String = String()
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -1502,6 +1504,10 @@ struct Nym_Vpn_MixnetConnectionData: Sendable {
 
   var ipv6: String = String()
 
+  var entryIp: String = String()
+
+  var exitIp: String = String()
+
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
@@ -1715,6 +1721,8 @@ struct Nym_Vpn_TunnelState: Sendable {
     case badBandwidthIncrease // = 8
     case duplicateTunFd // = 9
     case `internal` // = 10
+    case resolveGatewayAddrs // = 11
+    case startLocalDnsResolver // = 12
     case UNRECOGNIZED(Int)
 
     init() {
@@ -1734,6 +1742,8 @@ struct Nym_Vpn_TunnelState: Sendable {
       case 8: self = .badBandwidthIncrease
       case 9: self = .duplicateTunFd
       case 10: self = .internal
+      case 11: self = .resolveGatewayAddrs
+      case 12: self = .startLocalDnsResolver
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1751,6 +1761,8 @@ struct Nym_Vpn_TunnelState: Sendable {
       case .badBandwidthIncrease: return 8
       case .duplicateTunFd: return 9
       case .internal: return 10
+      case .resolveGatewayAddrs: return 11
+      case .startLocalDnsResolver: return 12
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1768,6 +1780,8 @@ struct Nym_Vpn_TunnelState: Sendable {
       .badBandwidthIncrease,
       .duplicateTunFd,
       .internal,
+      .resolveGatewayAddrs,
+      .startLocalDnsResolver,
     ]
 
   }
@@ -2331,6 +2345,7 @@ extension Nym_Vpn_Address: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
   static let protoMessageName: String = _protobuf_package + ".Address"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "nym_address"),
+    2: .standard(proto: "gateway_id"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -2340,6 +2355,7 @@ extension Nym_Vpn_Address: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularStringField(value: &self.nymAddress) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.gatewayID) }()
       default: break
       }
     }
@@ -2349,11 +2365,15 @@ extension Nym_Vpn_Address: SwiftProtobuf.Message, SwiftProtobuf._MessageImplemen
     if !self.nymAddress.isEmpty {
       try visitor.visitSingularStringField(value: self.nymAddress, fieldNumber: 1)
     }
+    if !self.gatewayID.isEmpty {
+      try visitor.visitSingularStringField(value: self.gatewayID, fieldNumber: 2)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Nym_Vpn_Address, rhs: Nym_Vpn_Address) -> Bool {
     if lhs.nymAddress != rhs.nymAddress {return false}
+    if lhs.gatewayID != rhs.gatewayID {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4637,6 +4657,8 @@ extension Nym_Vpn_MixnetConnectionData: SwiftProtobuf.Message, SwiftProtobuf._Me
     2: .standard(proto: "exit_ipr"),
     3: .same(proto: "ipv4"),
     4: .same(proto: "ipv6"),
+    5: .standard(proto: "entry_ip"),
+    6: .standard(proto: "exit_ip"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -4649,6 +4671,8 @@ extension Nym_Vpn_MixnetConnectionData: SwiftProtobuf.Message, SwiftProtobuf._Me
       case 2: try { try decoder.decodeSingularMessageField(value: &self._exitIpr) }()
       case 3: try { try decoder.decodeSingularStringField(value: &self.ipv4) }()
       case 4: try { try decoder.decodeSingularStringField(value: &self.ipv6) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.entryIp) }()
+      case 6: try { try decoder.decodeSingularStringField(value: &self.exitIp) }()
       default: break
       }
     }
@@ -4671,6 +4695,12 @@ extension Nym_Vpn_MixnetConnectionData: SwiftProtobuf.Message, SwiftProtobuf._Me
     if !self.ipv6.isEmpty {
       try visitor.visitSingularStringField(value: self.ipv6, fieldNumber: 4)
     }
+    if !self.entryIp.isEmpty {
+      try visitor.visitSingularStringField(value: self.entryIp, fieldNumber: 5)
+    }
+    if !self.exitIp.isEmpty {
+      try visitor.visitSingularStringField(value: self.exitIp, fieldNumber: 6)
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -4679,6 +4709,8 @@ extension Nym_Vpn_MixnetConnectionData: SwiftProtobuf.Message, SwiftProtobuf._Me
     if lhs._exitIpr != rhs._exitIpr {return false}
     if lhs.ipv4 != rhs.ipv4 {return false}
     if lhs.ipv6 != rhs.ipv6 {return false}
+    if lhs.entryIp != rhs.entryIp {return false}
+    if lhs.exitIp != rhs.exitIp {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -5073,6 +5105,8 @@ extension Nym_Vpn_TunnelState.BaseErrorStateReason: SwiftProtobuf._ProtoNameProv
     8: .same(proto: "BAD_BANDWIDTH_INCREASE"),
     9: .same(proto: "DUPLICATE_TUN_FD"),
     10: .same(proto: "INTERNAL"),
+    11: .same(proto: "RESOLVE_GATEWAY_ADDRS"),
+    12: .same(proto: "START_LOCAL_DNS_RESOLVER"),
   ]
 }
 

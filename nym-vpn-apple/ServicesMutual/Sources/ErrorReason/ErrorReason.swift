@@ -26,11 +26,14 @@ public enum ErrorReason: LocalizedError {
     case registerDevice(details: String)
     case requestZknym(details: String)
     case requestZkNymBundle(successes: [String], failed: [String])
+    case resolveGatewayAddrs
+    case startLocalDnsResolver
     case unknown
 
     public static let domain = "ErrorHandler.ErrorReason"
 
 #if os(iOS)
+    // swiftlint:disable:next function_body_length
     public init(with errorStateReason: ErrorStateReason) {
         switch errorStateReason {
         case .firewall:
@@ -118,9 +121,9 @@ public enum ErrorReason: LocalizedError {
             let newFailed = failed.compactMap {
                 switch $0 {
                 case .noAccountStored:
-                    return "No account stored"
+                    return "errorReason.noAccountStored".localizedString
                 case .noDeviceStored:
-                    return "No device stored"
+                    return "errorReason.noDeviceStored".localizedString
                 case let .vpnApi(vpnApiErrorResponse):
                     return vpnApiErrorResponse.message
                 case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
@@ -131,50 +134,69 @@ public enum ErrorReason: LocalizedError {
                 successes: successes.compactMap { $0.id },
                 failed: newFailed
             )
+        case .resolveGatewayAddrs:
+            self = .resolveGatewayAddrs
+        case .startLocalDnsResolver:
+            self = .startLocalDnsResolver
         }
     }
 #endif
 
+    // swiftlint:disable:next function_body_length
     public init?(nsError: NSError) {
-        guard nsError.domain == ErrorReason.domain else { return nil }
-        switch nsError.code {
-        case 0:
+        guard nsError.domain == ErrorReason.domain,
+            let errorReason = ErrorReason(nsError: nsError)
+        else {
+            self = .unknown
+            return
+        }
+
+        switch ErrorReasonCode(errorReason: errorReason) {
+        case .unknown:
+            self = .unknown
+        case .offline:
+            self = .offline
+        case .noAccountStored:
+            self = .noAccountStored
+        case .noDeviceStored:
+            self = .noDeviceStored
+        case .firewall:
             self = .firewall
-        case 1:
+        case .routing:
             self = .routing
-        case 2:
+        case .dns:
             self = .dns
-        case 3:
+        case .tunDevice:
             self = .tunDevice
-        case 4:
+        case .tunnelProvider:
             self = .tunnelProvider
-        case 5:
+        case .internalUnknown:
             self = .internalUnknown
-        case 6:
+        case .sameEntryAndExitGateway:
             self = .sameEntryAndExitGateway
-        case 7:
+        case .invalidEntryGatewayCountry:
             self = .invalidEntryGatewayCountry
-        case 8:
+        case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
-        case 9:
+        case .badBandwidthIncrease:
             self = .badBandwidthIncrease
-        case 10:
+        case .duplicateTunFd:
             self = .duplicateTunFd
-        case 11:
+        case .syncAccount:
             self = .syncAccount(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
-        case 12:
+        case .syncDevice:
             self = .syncDevice(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
-        case 13:
+        case .registerDevice:
             self = .registerDevice(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
-        case 14:
+        case .requestZknym:
             self = .requestZknym(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
-        case 15:
+        case .requestZkNymBundle:
             let decoder = JSONDecoder()
             var successes = [String]()
             var failures = [String]()
             if let successesString = nsError.userInfo["requestZknymSuccesses"] as? String,
                let jsonData = successesString.data(using: .utf8),
-                let decodedSuccesses = try? decoder.decode([String].self, from: jsonData) {
+               let decodedSuccesses = try? decoder.decode([String].self, from: jsonData) {
                 successes = decodedSuccesses
             }
             if let failuresString = nsError.userInfo["requestZknymFailures"] as? String,
@@ -183,15 +205,11 @@ public enum ErrorReason: LocalizedError {
                 failures = decodedFailures
             }
             self = .requestZkNymBundle(successes: successes, failed: failures)
-        case 16:
-            self = .unknown
-        case 17:
-            self = .offline
-        case 18:
-            self = .noAccountStored
-        case 19:
-            self = .noDeviceStored
-        default:
+        case .resolveGatewayAddrs:
+            self = .resolveGatewayAddrs
+        case .startLocalDnsResolver:
+            self = .startLocalDnsResolver
+        case .none:
             self = .unknown
         }
     }
@@ -227,48 +245,7 @@ public enum ErrorReason: LocalizedError {
 
 extension ErrorReason {
     var errorCode: Int {
-        switch self {
-        case .firewall:
-            0
-        case .routing:
-            1
-        case .dns:
-            2
-        case .tunDevice:
-            3
-        case .tunnelProvider:
-            4
-        case .internalUnknown:
-            5
-        case .sameEntryAndExitGateway:
-            6
-        case .invalidEntryGatewayCountry:
-            7
-        case .invalidExitGatewayCountry:
-            8
-        case .badBandwidthIncrease:
-            9
-        case .duplicateTunFd:
-            10
-        case .syncAccount:
-            11
-        case .syncDevice:
-            12
-        case .registerDevice:
-            13
-        case .requestZknym:
-            14
-        case .requestZkNymBundle:
-            15
-        case .unknown:
-            16
-        case .offline:
-            17
-        case .noAccountStored:
-            18
-        case .noDeviceStored:
-            19
-        }
+        ErrorReasonCode(errorReason: self)?.rawValue ?? 0
     }
 
     var requestZknymDetails: (successes: [String], failures: [String])? {
@@ -324,6 +301,10 @@ private extension ErrorReason {
             "errorReason.noAccountStored".localizedString
         case .noDeviceStored:
             "errorReason.noDeviceStored".localizedString
+        case .resolveGatewayAddrs:
+            "errorReason.resolveGatewayAddrs".localizedString
+        case .startLocalDnsResolver:
+            "errorReason.startLocalDnsResolver".localizedString
         }
     }
 }
@@ -331,5 +312,79 @@ private extension ErrorReason {
 extension ErrorReason: Equatable {
     public static func == (lhs: ErrorReason, rhs: ErrorReason) -> Bool {
         lhs.errorCode == rhs.errorCode
+    }
+}
+
+enum ErrorReasonCode: Int, RawRepresentable {
+    case unknown
+    case offline
+    case noAccountStored
+    case noDeviceStored
+    case firewall
+    case routing
+    case dns
+    case tunDevice
+    case tunnelProvider
+    case internalUnknown
+    case sameEntryAndExitGateway
+    case invalidEntryGatewayCountry
+    case invalidExitGatewayCountry
+    case badBandwidthIncrease
+    case duplicateTunFd
+    case syncAccount
+    case syncDevice
+    case registerDevice
+    case requestZknym
+    case requestZkNymBundle
+    case resolveGatewayAddrs
+    case startLocalDnsResolver
+
+    init?(errorReason: ErrorReason) {
+        switch errorReason {
+        case .unknown:
+            self = .unknown
+        case .offline:
+            self = .offline
+        case .noAccountStored:
+            self = .noAccountStored
+        case .noDeviceStored:
+            self = .noDeviceStored
+        case .firewall:
+            self = .firewall
+        case .routing:
+            self = .routing
+        case .dns:
+            self = .dns
+        case .tunDevice:
+            self = .tunDevice
+        case .tunnelProvider:
+            self = .tunnelProvider
+        case .internalUnknown:
+            self = .internalUnknown
+        case .sameEntryAndExitGateway:
+            self = .sameEntryAndExitGateway
+        case .invalidEntryGatewayCountry:
+            self = .invalidEntryGatewayCountry
+        case .invalidExitGatewayCountry:
+            self = .invalidExitGatewayCountry
+        case .badBandwidthIncrease:
+            self = .badBandwidthIncrease
+        case .duplicateTunFd:
+            self = .duplicateTunFd
+        case .syncAccount:
+            self = .syncAccount
+        case .syncDevice:
+            self = .syncDevice
+        case .registerDevice:
+            self = .registerDevice
+        case .requestZknym:
+            self = .requestZknym
+        case .requestZkNymBundle:
+            self = .requestZkNymBundle
+        case .resolveGatewayAddrs:
+            self = .resolveGatewayAddrs
+        case .startLocalDnsResolver:
+            self = .startLocalDnsResolver
+        }
     }
 }

@@ -2176,11 +2176,13 @@ public func FfiConverterTypeNetworkEnvironment_lower(_ value: NetworkEnvironment
 
 public struct NymAddress {
     public var nymAddress: String
+    public var gatewayId: String
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(nymAddress: String) {
+    public init(nymAddress: String, gatewayId: String) {
         self.nymAddress = nymAddress
+        self.gatewayId = gatewayId
     }
 }
 
@@ -2191,11 +2193,15 @@ extension NymAddress: Equatable, Hashable {
         if lhs.nymAddress != rhs.nymAddress {
             return false
         }
+        if lhs.gatewayId != rhs.gatewayId {
+            return false
+        }
         return true
     }
 
     public func hash(into hasher: inout Hasher) {
         hasher.combine(nymAddress)
+        hasher.combine(gatewayId)
     }
 }
 
@@ -2204,12 +2210,14 @@ public struct FfiConverterTypeNymAddress: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NymAddress {
         return
             try NymAddress(
-                nymAddress: FfiConverterString.read(from: &buf)
+                nymAddress: FfiConverterString.read(from: &buf), 
+                gatewayId: FfiConverterString.read(from: &buf)
         )
     }
 
     public static func write(_ value: NymAddress, into buf: inout [UInt8]) {
         FfiConverterString.write(value.nymAddress, into: &buf)
+        FfiConverterString.write(value.gatewayId, into: &buf)
     }
 }
 
@@ -3734,6 +3742,8 @@ public enum ErrorStateReason {
     case dns
     case tunDevice
     case tunnelProvider
+    case resolveGatewayAddrs
+    case startLocalDnsResolver
     case sameEntryAndExitGateway
     case invalidEntryGatewayCountry
     case invalidExitGatewayCountry
@@ -3749,7 +3759,8 @@ public enum ErrorStateReason {
     )
     case requestZkNymBundle(successes: [RequestZkNymSuccess], failed: [RequestZkNymError]
     )
-    case `internal`
+    case `internal`(String
+    )
 }
 
 
@@ -3770,32 +3781,37 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
         
         case 5: return .tunnelProvider
         
-        case 6: return .sameEntryAndExitGateway
+        case 6: return .resolveGatewayAddrs
         
-        case 7: return .invalidEntryGatewayCountry
+        case 7: return .startLocalDnsResolver
         
-        case 8: return .invalidExitGatewayCountry
+        case 8: return .sameEntryAndExitGateway
         
-        case 9: return .badBandwidthIncrease
+        case 9: return .invalidEntryGatewayCountry
         
-        case 10: return .duplicateTunFd
+        case 10: return .invalidExitGatewayCountry
         
-        case 11: return .syncAccount(try FfiConverterTypeSyncAccountError.read(from: &buf)
+        case 11: return .badBandwidthIncrease
+        
+        case 12: return .duplicateTunFd
+        
+        case 13: return .syncAccount(try FfiConverterTypeSyncAccountError.read(from: &buf)
         )
         
-        case 12: return .syncDevice(try FfiConverterTypeSyncDeviceError.read(from: &buf)
+        case 14: return .syncDevice(try FfiConverterTypeSyncDeviceError.read(from: &buf)
         )
         
-        case 13: return .registerDevice(try FfiConverterTypeRegisterDeviceError.read(from: &buf)
+        case 15: return .registerDevice(try FfiConverterTypeRegisterDeviceError.read(from: &buf)
         )
         
-        case 14: return .requestZkNym(try FfiConverterTypeRequestZkNymError.read(from: &buf)
+        case 16: return .requestZkNym(try FfiConverterTypeRequestZkNymError.read(from: &buf)
         )
         
-        case 15: return .requestZkNymBundle(successes: try FfiConverterSequenceTypeRequestZkNymSuccess.read(from: &buf), failed: try FfiConverterSequenceTypeRequestZkNymError.read(from: &buf)
+        case 17: return .requestZkNymBundle(successes: try FfiConverterSequenceTypeRequestZkNymSuccess.read(from: &buf), failed: try FfiConverterSequenceTypeRequestZkNymError.read(from: &buf)
         )
         
-        case 16: return .`internal`
+        case 18: return .`internal`(try FfiConverterString.read(from: &buf)
+        )
         
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -3825,55 +3841,64 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
             writeInt(&buf, Int32(5))
         
         
-        case .sameEntryAndExitGateway:
+        case .resolveGatewayAddrs:
             writeInt(&buf, Int32(6))
         
         
-        case .invalidEntryGatewayCountry:
+        case .startLocalDnsResolver:
             writeInt(&buf, Int32(7))
         
         
-        case .invalidExitGatewayCountry:
+        case .sameEntryAndExitGateway:
             writeInt(&buf, Int32(8))
         
         
-        case .badBandwidthIncrease:
+        case .invalidEntryGatewayCountry:
             writeInt(&buf, Int32(9))
         
         
-        case .duplicateTunFd:
+        case .invalidExitGatewayCountry:
             writeInt(&buf, Int32(10))
         
         
-        case let .syncAccount(v1):
+        case .badBandwidthIncrease:
             writeInt(&buf, Int32(11))
+        
+        
+        case .duplicateTunFd:
+            writeInt(&buf, Int32(12))
+        
+        
+        case let .syncAccount(v1):
+            writeInt(&buf, Int32(13))
             FfiConverterTypeSyncAccountError.write(v1, into: &buf)
             
         
         case let .syncDevice(v1):
-            writeInt(&buf, Int32(12))
+            writeInt(&buf, Int32(14))
             FfiConverterTypeSyncDeviceError.write(v1, into: &buf)
             
         
         case let .registerDevice(v1):
-            writeInt(&buf, Int32(13))
+            writeInt(&buf, Int32(15))
             FfiConverterTypeRegisterDeviceError.write(v1, into: &buf)
             
         
         case let .requestZkNym(v1):
-            writeInt(&buf, Int32(14))
+            writeInt(&buf, Int32(16))
             FfiConverterTypeRequestZkNymError.write(v1, into: &buf)
             
         
         case let .requestZkNymBundle(successes,failed):
-            writeInt(&buf, Int32(15))
+            writeInt(&buf, Int32(17))
             FfiConverterSequenceTypeRequestZkNymSuccess.write(successes, into: &buf)
             FfiConverterSequenceTypeRequestZkNymError.write(failed, into: &buf)
             
         
-        case .`internal`:
-            writeInt(&buf, Int32(16))
-        
+        case let .`internal`(v1):
+            writeInt(&buf, Int32(18))
+            FfiConverterString.write(v1, into: &buf)
+            
         }
     }
 }
