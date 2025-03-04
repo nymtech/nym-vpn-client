@@ -48,10 +48,10 @@ impl ErrorState {
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
-        if !Self::prevents_filtering_resolver(&reason) {
-            if Self::set_local_dns_resolver(shared_state).await.is_err() {
-                return Box::pin(Self::enter(ErrorStateReason::Dns, shared_state)).await;
-            }
+        if !Self::prevents_filtering_resolver(&reason)
+            && Self::set_local_dns_resolver(shared_state).await.is_err()
+        {
+            return Box::pin(Self::enter(ErrorStateReason::Dns, shared_state)).await;
         }
 
         #[cfg(target_os = "ios")]

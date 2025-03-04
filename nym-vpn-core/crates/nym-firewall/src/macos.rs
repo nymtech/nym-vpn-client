@@ -427,7 +427,7 @@ impl Firewall {
         for tunnel_interface in tunnel_interfaces {
             let no_nat_on_tun = pfctl::NatRuleBuilder::default()
                 .action(pfctl::NatRuleAction::NoNat)
-                .interface(&tunnel_interface)
+                .interface(tunnel_interface)
                 .build()?;
             rules.push(no_nat_on_tun);
         }
