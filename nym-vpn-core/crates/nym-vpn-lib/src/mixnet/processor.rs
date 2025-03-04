@@ -67,14 +67,30 @@ impl MessageCreator {
 }
 
 struct MixnetProcessor {
+    // The tun device we're reading from and writing to
     device: AsyncDevice,
+
+    // The mixnet client for sending and receiving messages from the mixnet
     mixnet_client: SharedMixnetClient,
+
+    // The connection monitor for sending connection events
     connection_event_tx: mpsc::UnboundedSender<ConnectionStatusEvent>,
+
+    // The address of the IP packet router we're sending messages to
     ip_packet_router_address: Recipient,
+
+    // Our IP addresses
     our_ips: nym_ip_packet_requests::IpPair,
+
+    // Identifier for ICMP beacon, so we can check incoming ICMP packets to see if we should
+    // forward them to the connection monitor
     icmp_beacon_identifier: u16,
-    ipr_cancel_token: CancellationToken,
-    ipr_disconnect_tx: tokio::sync::oneshot::Sender<()>,
+
+    // Listen for when we should disconnect from the IPR and being shutting down
+    cancel_token: CancellationToken,
+
+    // Once we've disconnected from the IPR, we need to notify the connection monitor
+    is_disconnected_from_ipr_tx: oneshot::Sender<()>,
 }
 
 impl MixnetProcessor {
@@ -84,8 +100,8 @@ impl MixnetProcessor {
         connection_monitor: &ConnectionMonitorTask,
         ip_packet_router_address: Recipient,
         our_ips: nym_ip_packet_requests::IpPair,
-        ipr_cancel_token: CancellationToken,
-        ipr_disconnect_tx: tokio::sync::oneshot::Sender<()>,
+        cancel_token: CancellationToken,
+        ipr_disconnect_tx: oneshot::Sender<()>,
     ) -> Self {
         MixnetProcessor {
             device,
@@ -94,8 +110,8 @@ impl MixnetProcessor {
             ip_packet_router_address,
             our_ips,
             icmp_beacon_identifier: connection_monitor.icmp_beacon_identifier(),
-            ipr_cancel_token,
-            ipr_disconnect_tx,
+            cancel_token,
+            is_disconnected_from_ipr_tx: ipr_disconnect_tx,
         }
     }
 
@@ -145,7 +161,7 @@ impl MixnetProcessor {
         info!("Mixnet processor is running");
         while !task_client_mix_processor.is_shutdown() {
             tokio::select! {
-                _ = self.ipr_cancel_token.cancelled(), if !has_sent_ipr_disconnect => {
+                _ = self.cancel_token.cancelled(), if !has_sent_ipr_disconnect => {
                     info!("MixnetProcessor: Cancel token triggered, sending disconnect message");
                     let input_message = match message_creator.create_disconnect_message() {
                         Ok(input_message) => input_message,
@@ -227,7 +243,7 @@ impl MixnetProcessor {
         let tun_device_sink = mixnet_listener_handle.await.unwrap();
 
         tracing::info!("Sending that ipr is disconnected");
-        self.ipr_disconnect_tx.send(()).unwrap();
+        self.is_disconnected_from_ipr_tx.send(()).unwrap();
 
         task_client_mix_processor.recv_timeout().await;
 
@@ -247,7 +263,7 @@ pub(crate) async fn start_processor(
     our_ips: nym_ip_packet_requests::IpPair,
     connection_monitor: &ConnectionMonitorTask,
     ipr_cancel_token: CancellationToken,
-    ipr_disconnect_tx: tokio::sync::oneshot::Sender<()>,
+    ipr_disconnect_tx: oneshot::Sender<()>,
 ) -> JoinHandle<Result<AsyncDevice, MixnetError>> {
     info!("Creating mixnet processor");
     let processor = MixnetProcessor::new(

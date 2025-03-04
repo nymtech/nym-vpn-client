@@ -73,7 +73,7 @@ impl ConnectedTunnel {
         TunnelHandle {
             task_manager: self.task_manager,
             processor_handle,
-            ipr_cancel_token: self.ipr_cancel_token,
+            // ipr_cancel_token: self.ipr_cancel_token,
             ipr_disconnect_rx: Some(ipr_disconnect_rx),
         }
     }
@@ -85,17 +85,17 @@ pub type ProcessorHandle = JoinHandle<Result<AsyncDevice, MixnetError>>;
 pub struct TunnelHandle {
     task_manager: TaskManager,
     processor_handle: ProcessorHandle,
-    ipr_cancel_token: CancellationToken,
+    // ipr_cancel_token: CancellationToken,
     ipr_disconnect_rx: Option<tokio::sync::oneshot::Receiver<()>>,
 }
 
 impl TunnelHandle {
     /// Cancel tunnel execution.
     pub async fn cancel(&mut self) {
-        tracing::info!("TunnelHandle::cancel()");
-        tracing::info!("self.ipr_cancel_token: {:?}", self.ipr_cancel_token);
-        tracing::info!("Cancelling ipr_cancel_token");
-        self.ipr_cancel_token.cancel();
+        //tracing::info!("TunnelHandle::cancel()");
+        //tracing::info!("self.ipr_cancel_token: {:?}", self.ipr_cancel_token);
+        //tracing::info!("Cancelling ipr_cancel_token");
+        //self.ipr_cancel_token.cancel();
         // Here we need to wait for ipr finish
 
         // tracing::info!("Sleeping for ipr to finish");
