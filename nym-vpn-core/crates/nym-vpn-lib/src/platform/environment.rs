@@ -1,7 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::uniffi_custom_impls::{AccountLinks, NetworkCompatibility, NetworkEnvironment, SystemMessage};
+use super::uniffi_custom_impls::{
+    AccountLinks, NetworkCompatibility, NetworkEnvironment, SystemMessage,
+};
 
 use super::{error::VpnError, NETWORK_ENVIRONMENT};
 

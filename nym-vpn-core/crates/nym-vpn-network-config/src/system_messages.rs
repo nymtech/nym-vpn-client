@@ -175,18 +175,6 @@ impl From<SystemConfigurationResponse> for SystemConfiguration {
     }
 }
 
-impl From<NetworkCompatibilityResponse> for NetworkCompatibility {
-    fn from(value: NetworkCompatibilityResponse) -> Self {
-        NetworkCompatibility {
-            core: value.core,
-            ios: value.ios,
-            macos: value.macos,
-            tauri: value.tauri,
-            android: value.android,
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;

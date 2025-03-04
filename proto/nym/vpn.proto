@@ -181,8 +181,20 @@ message SystemMessage {
   map<string, string> properties = 3;
 }
 
+message NetworkCompatibility {
+  string core = 1;
+  string ios = 2;
+  string macos = 3;
+  string tauri = 4;
+  string android = 5;
+}
+
 message GetSystemMessagesResponse {
   repeated SystemMessage messages = 1;
+}
+
+message GetNetworkCompatibilityResponse {
+  optional NetworkCompatibility messages = 1;
 }
 
 message GetFeatureFlagsResponse {
@@ -497,6 +509,9 @@ service NymVpnd {
 
   // List messages fetched from nym-vpn-api
   rpc GetSystemMessages (google.protobuf.Empty) returns (GetSystemMessagesResponse) {}
+
+  // List network compatibility client versions from nym-vpn-api
+  rpc GetNetworkCompatibility (google.protobuf.Empty) returns (GetNetworkCompatibilityResponse) {}
 
   // List the feature flags fetched from the nym-vpn-api
   rpc GetFeatureFlags (google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}

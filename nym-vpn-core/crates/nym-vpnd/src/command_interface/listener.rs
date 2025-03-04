@@ -8,7 +8,7 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
-use nym_vpn_network_config::Network;
+use nym_vpn_network_config::{Network, NetworkCompatibility};
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
 use nym_vpn_api_client::types::{GatewayMinPerformance, ScoreThresholds};
@@ -19,12 +19,13 @@ use nym_vpn_proto::{
     DisconnectResponse, ForgetAccountResponse, GetAccountIdentityResponse, GetAccountLinksRequest,
     GetAccountLinksResponse, GetAccountStateResponse, GetAccountUsageResponse,
     GetAvailableTicketsResponse, GetDeviceIdentityResponse, GetDeviceZkNymsResponse,
-    GetDevicesResponse, GetFeatureFlagsResponse, GetSystemMessagesResponse, GetZkNymByIdRequest,
-    GetZkNymByIdResponse, GetZkNymsAvailableForDownloadResponse, InfoResponse,
-    IsAccountStoredResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
-    ListGatewaysResponse, RefreshAccountStateResponse, RegisterDeviceResponse,
-    RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
-    SetNetworkRequest, SetNetworkResponse, StoreAccountRequest, StoreAccountResponse, TunnelState,
+    GetDevicesResponse, GetFeatureFlagsResponse, GetNetworkCompatibilityResponse,
+    GetSystemMessagesResponse, GetZkNymByIdRequest, GetZkNymByIdResponse,
+    GetZkNymsAvailableForDownloadResponse, InfoResponse, IsAccountStoredResponse,
+    ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
+    RefreshAccountStateResponse, RegisterDeviceResponse, RequestZkNymResponse,
+    ResetDeviceIdentityRequest, ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse,
+    StoreAccountRequest, StoreAccountResponse, TunnelState,
 };
 use zeroize::Zeroizing;
 
@@ -155,6 +156,30 @@ impl NymVpnd for CommandInterface {
 
         let messages = messages.into_current_iter().map(|m| m.into()).collect();
         let response = GetSystemMessagesResponse { messages };
+
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn get_network_compatibility(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<GetNetworkCompatibilityResponse>, tonic::Status> {
+        tracing::debug!("Got get system messages request");
+
+        let compatibility = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_network_compatibility()
+            .await?;
+
+        let compatibility = compatibility.map(|c| nym_vpn_proto::NetworkCompatibility {
+            core: c.core,
+            ios: c.ios,
+            macos: c.macos,
+            tauri: c.tauri,
+            android: c.android,
+        });
+        let response = GetNetworkCompatibilityResponse {
+            messages: compatibility,
+        };
 
         Ok(tonic::Response::new(response))
     }

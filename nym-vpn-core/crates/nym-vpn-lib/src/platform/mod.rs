@@ -64,11 +64,11 @@ use tokio::{runtime::Runtime, sync::Mutex};
 
 use self::error::VpnError;
 use crate::gateway_directory::GatewayClient;
+use crate::platform::uniffi_custom_impls::NetworkCompatibility;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
-use crate::platform::uniffi_custom_impls::NetworkCompatibility;
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
     AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayInfo, GatewayMinPerformance,

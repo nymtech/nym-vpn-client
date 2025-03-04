@@ -5,7 +5,8 @@ use std::{net::IpAddr, path::PathBuf, sync::Arc, time::Instant};
 
 use bip39::Mnemonic;
 use nym_vpn_network_config::{
-    FeatureFlags, Network, NymNetwork, NymVpnNetwork, ParsedAccountLinks, SystemMessages,
+    FeatureFlags, Network, NetworkCompatibility, NymNetwork, NymVpnNetwork, ParsedAccountLinks,
+    SystemMessages,
 };
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
@@ -53,6 +54,7 @@ pub enum VpnServiceCommand {
     Info(oneshot::Sender<VpnServiceInfo>, ()),
     SetNetwork(oneshot::Sender<Result<(), SetNetworkError>>, String),
     GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
+    GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
     GetFeatureFlags(oneshot::Sender<Option<FeatureFlags>>, ()),
     Connect(
         oneshot::Sender<Result<(), VpnServiceConnectError>>,
@@ -371,6 +373,10 @@ where
                 let result = self.handle_get_system_messages().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::GetNetworkCompatibility(tx, ()) => {
+                let result = self.handle_get_network_compatibility().await;
+                let _ = tx.send(result);
+            }
             VpnServiceCommand::GetFeatureFlags(tx, ()) => {
                 let result = self.handle_get_feature_flags().await;
                 let _ = tx.send(result);
@@ -674,6 +680,10 @@ where
 
     async fn handle_get_system_messages(&self) -> SystemMessages {
         self.network_env.nym_vpn_network.system_messages.clone()
+    }
+
+    async fn handle_get_network_compatibility(&self) -> Option<NetworkCompatibility> {
+        self.network_env.network_compatibility.clone()
     }
 
     async fn handle_get_feature_flags(&self) -> Option<FeatureFlags> {

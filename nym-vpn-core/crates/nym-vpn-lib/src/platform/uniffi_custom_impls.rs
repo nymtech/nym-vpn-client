@@ -847,14 +847,13 @@ impl From<nym_vpn_network_config::SystemMessage> for SystemMessage {
     }
 }
 
-
 #[derive(uniffi::Record, Clone, PartialEq)]
 pub struct NetworkCompatibility {
     pub core: String,
     pub ios: String,
     pub macos: String,
     pub tauri: String,
-    pub android: String
+    pub android: String,
 }
 
 impl From<nym_vpn_network_config::NetworkCompatibility> for NetworkCompatibility {
@@ -864,7 +863,7 @@ impl From<nym_vpn_network_config::NetworkCompatibility> for NetworkCompatibility
             ios: value.ios,
             macos: value.macos,
             tauri: value.tauri,
-            android: value.android
+            android: value.android,
         }
     }
 }

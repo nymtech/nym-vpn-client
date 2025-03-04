@@ -3,8 +3,8 @@
 #![warn(clippy::panic, clippy::unwrap_used, clippy::expect_used)]
 
 pub mod feature_flags;
-pub mod system_messages;
 pub mod network_compatibility;
+pub mod system_messages;
 
 mod account_management;
 mod discovery;
