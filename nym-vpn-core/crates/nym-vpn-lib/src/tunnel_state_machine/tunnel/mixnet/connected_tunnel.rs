@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::error::Error as StdError;
+use std::{error::Error as StdError, time::Duration};
 
 use nym_task::TaskManager;
 use tokio::task::{JoinError, JoinHandle};
@@ -22,7 +22,7 @@ pub struct ConnectedTunnel {
     task_manager: TaskManager,
     mixnet_client: SharedMixnetClient,
     assigned_addresses: AssignedAddresses,
-    cancel_token: CancellationToken,
+    ipr_cancel_token: CancellationToken,
 }
 
 impl ConnectedTunnel {
@@ -30,13 +30,13 @@ impl ConnectedTunnel {
         task_manager: TaskManager,
         mixnet_client: SharedMixnetClient,
         assigned_addresses: AssignedAddresses,
-        cancel_token: CancellationToken,
+        ipr_cancel_token: CancellationToken,
     ) -> Self {
         Self {
             task_manager,
             mixnet_client,
             assigned_addresses,
-            cancel_token,
+            ipr_cancel_token,
         }
     }
 
@@ -56,7 +56,7 @@ impl ConnectedTunnel {
             &self.task_manager,
             self.assigned_addresses.interface_addresses,
             &connection_monitor,
-            self.cancel_token.clone(),
+            self.ipr_cancel_token.clone(),
         )
         .await;
 
@@ -72,6 +72,7 @@ impl ConnectedTunnel {
         TunnelHandle {
             task_manager: self.task_manager,
             processor_handle,
+            ipr_cancel_token: self.ipr_cancel_token,
         }
     }
 }
@@ -82,11 +83,16 @@ pub type ProcessorHandle = JoinHandle<Result<AsyncDevice, MixnetError>>;
 pub struct TunnelHandle {
     task_manager: TaskManager,
     processor_handle: ProcessorHandle,
+    ipr_cancel_token: CancellationToken,
 }
 
 impl TunnelHandle {
     /// Cancel tunnel execution.
-    pub fn cancel(&self) {
+    pub async fn cancel(&self) {
+        tracing::info!("Cancelling ipr_cancel_token");
+        self.ipr_cancel_token.cancel();
+        tokio::time::sleep(Duration::from_secs(1)).await;
+
         if let Err(e) = self.task_manager.signal_shutdown() {
             tracing::error!("Failed to signal task manager shutdown: {}", e);
         }
