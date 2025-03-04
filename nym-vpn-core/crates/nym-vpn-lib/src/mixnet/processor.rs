@@ -11,7 +11,7 @@ use nym_ip_packet_requests::{codec::MultiIpPacketCodec, v8::request::IpPacketReq
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
-use tokio::task::JoinHandle;
+use tokio::{sync::oneshot, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 use tracing::{debug, error, info, trace};
 use tun::{AsyncDevice, Device};
@@ -122,12 +122,11 @@ impl MixnetProcessor {
 
         let message_creator = MessageCreator::new(recipient.into());
 
-        let ipr_is_cancelled = CancellationToken::new();
+        // Listen for when the mixnet listener is done
+        let (mixnet_listener_done_tx, mixnet_listener_done) = oneshot::channel();
+        tokio::pin!(mixnet_listener_done);
 
         // Starting the mixnet listener.
-        // NOTE: we are cloning the shutdown handle here, which is not ideal. What we actually need
-        // is another subscription from the TaskManager to be able to listen to the shutdown event
-        // in both tasks independently.
         debug!("Starting mixnet listener");
         let mixnet_listener = super::mixnet_listener::MixnetListener::new(
             self.mixnet_client.clone(),
@@ -136,17 +135,18 @@ impl MixnetProcessor {
             self.icmp_beacon_identifier,
             self.our_ips,
             self.connection_event_tx.clone(),
-            ipr_is_cancelled.clone(),
         )
         .await;
-        let mixnet_listener_handle = mixnet_listener.start();
+        let mixnet_listener_handle = mixnet_listener.start(mixnet_listener_done_tx);
 
-        let mut has_sent_disconnect = false;
+        // Keep track of whether we've sent the disconnect message, so we don't send it multiple
+        // times
+        let mut has_sent_ipr_disconnect = false;
 
         info!("Mixnet processor is running");
         while !task_client_mix_processor.is_shutdown() {
             tokio::select! {
-                _ = self.ipr_cancel_token.cancelled(), if !has_sent_disconnect => {
+                _ = self.ipr_cancel_token.cancelled(), if !has_sent_ipr_disconnect => {
                     info!("MixnetProcessor: Cancel token triggered, sending disconnect message");
                     let input_message = match message_creator.create_disconnect_message() {
                         Ok(input_message) => input_message,
@@ -158,10 +158,10 @@ impl MixnetProcessor {
                     if let Err(err) = sender.send(input_message).await {
                         error!("Failed to send disconnect message: {err}");
                     }
-                    has_sent_disconnect = true;
+                    has_sent_ipr_disconnect = true;
                 }
-                _ = ipr_is_cancelled.cancelled() => {
-                    info!("MixnetProcessor: IPR cancelled, shutting down");
+                _ = &mut mixnet_listener_done => {
+                    info!("MixnetProcessor: mixnet_listener has finished");
                     break;
                 }
                 _ = task_client_mix_processor.recv_with_delay() => {
