@@ -70,6 +70,8 @@ exceptions:
     active: true
   ObjectExtendsThrowable:
     active: true
+  SwallowedException:
+    active: false
 
 performance:
   active: true
