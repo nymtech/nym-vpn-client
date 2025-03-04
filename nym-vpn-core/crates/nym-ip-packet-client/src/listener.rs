@@ -18,6 +18,7 @@ use crate::{
 pub enum MixnetMessageOutcome {
     IpPackets(Vec<Bytes>),
     MixnetSelfPing,
+    Disconnect,
 }
 
 pub struct IprListener {
@@ -72,8 +73,8 @@ impl IprListener {
                             info!("Received connect response when already connected - ignoring");
                         }
                         ControlResponse::Disconnect(_) => {
-                            // Disconnect is not yet handled on the IPR side anyway
-                            info!("Received disconnect response, ignoring for now");
+                            info!("Received disconnect response");
+                            return Ok(Some(MixnetMessageOutcome::Disconnect));
                         }
                         ControlResponse::UnrequestedDisconnect(_) => {
                             info!("Received unrequested disconnect response, ignoring for now");
