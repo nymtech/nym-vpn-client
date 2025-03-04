@@ -195,11 +195,9 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
             .map(SystemMessages::from)
             .unwrap_or_default();
 
-        let network_compatibility = discovery.network_compatibility.and_then(|nc| {
-            NetworkCompatibility::try_from(nc)
-                .inspect_err(|err| tracing::warn!("Failed to parse network compatibility: {err}"))
-                .ok()
-        });
+        let network_compatibility = discovery
+            .network_compatibility
+            .map(NetworkCompatibility::from);
 
         Ok(Self {
             network_name: discovery.network_name,
