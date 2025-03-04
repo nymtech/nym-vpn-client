@@ -64,18 +64,19 @@ pub enum TunnelConnectionData {
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct NymAddress {
     pub nym_address: String,
+    pub gateway_id: String,
 }
 
 impl NymAddress {
-    pub fn new(nym_address: String) -> Self {
-        Self { nym_address }
+    pub fn new(nym_address: String, gateway_id: String) -> Self {
+        Self {
+            nym_address,
+            gateway_id,
+        }
     }
 
     pub fn gateway_id(&self) -> &str {
-        self.nym_address
-            .rfind("@")
-            .map(|i| self.nym_address.split_at(i + 1).1)
-            .unwrap_or(self.nym_address.as_str())
+        &self.gateway_id
     }
 }
 
@@ -88,7 +89,7 @@ impl fmt::Display for NymAddress {
 #[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Recipient> for NymAddress {
     fn from(value: nym_gateway_directory::Recipient) -> Self {
-        Self::new(value.to_string())
+        Self::new(value.to_string(), value.gateway().to_base58_string())
     }
 }
 

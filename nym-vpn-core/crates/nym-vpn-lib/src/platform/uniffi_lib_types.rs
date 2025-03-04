@@ -516,12 +516,14 @@ impl From<CoreGateway> for Gateway {
 #[derive(uniffi::Record)]
 pub struct NymAddress {
     pub nym_address: String,
+    pub gateway_id: String,
 }
 
 impl From<CoreNymAddress> for NymAddress {
     fn from(value: CoreNymAddress) -> Self {
         Self {
             nym_address: value.nym_address,
+            gateway_id: value.gateway_id,
         }
     }
 }

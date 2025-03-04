@@ -48,6 +48,7 @@ impl From<&nym_sdk::mixnet::Recipient> for crate::ExitNode {
         Self {
             exit_node_enum: Some(crate::exit_node::ExitNodeEnum::Address(crate::Address {
                 nym_address: address.to_string(),
+                gateway_id: address.gateway().to_base58_string(),
             })),
         }
     }

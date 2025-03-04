@@ -267,6 +267,6 @@ impl From<ProtoGateway> for Gateway {
 
 impl From<ProtoAddress> for NymAddress {
     fn from(value: ProtoAddress) -> Self {
-        Self::new(value.nym_address)
+        Self::new(value.nym_address, value.gateway_id)
     }
 }

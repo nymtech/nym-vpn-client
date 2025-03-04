@@ -327,9 +327,11 @@ impl From<MixnetConnectionData> for ProtoMixnetConnectionData {
         ProtoMixnetConnectionData {
             nym_address: Some(ProtoAddress {
                 nym_address: value.nym_address.to_string(),
+                gateway_id: value.nym_address.gateway_id,
             }),
             exit_ipr: Some(ProtoAddress {
                 nym_address: value.exit_ipr.to_string(),
+                gateway_id: value.exit_ipr.gateway_id,
             }),
             entry_ip: value.entry_ip.to_string(),
             exit_ip: value.exit_ip.to_string(),
