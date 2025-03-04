@@ -82,7 +82,8 @@ impl MixnetListener {
     async fn run(mut self) -> SplitSink<Framed<AsyncDevice, TunPacketCodec>, TunPacket> {
         // We are the only one listening for mixnet messages when this is active
         let mut mixnet_client_binding = self.mixnet_client.lock().await;
-        let mixnet_client = mixnet_client_binding.as_mut().unwrap();
+        let mut mixnet_client = mixnet_client_binding.take().unwrap();
+        // let mixnet_client = mixnet_client_binding.as_mut().unwrap();
 
         while !self.task_client.is_shutdown() {
             tokio::select! {
@@ -110,6 +111,8 @@ impl MixnetListener {
                         }
                         Ok(Some(MixnetMessageOutcome::Disconnect)) => {
                             tracing::info!("Mixnet listener: Received disconnect message");
+                            self.ipr_is_cancelled.cancel();
+                            // self.ipr_disconnect_tx.send(());
                             break;
                         }
                         Ok(None) => {}
@@ -125,8 +128,9 @@ impl MixnetListener {
             }
         }
 
+        mixnet_client_binding.replace(mixnet_client);
+
         tracing::info!("Mixnet listener: Exiting");
-        self.ipr_is_cancelled.cancel();
         self.tun_device_sink
     }
 
