@@ -83,7 +83,13 @@ nym-wg-gateway-client.workspace = true
 nym-wg-go.workspace = true
 
 [target.'cfg(unix)'.dependencies]
-nix = { workspace = true, features = ["socket", "net", "fs", "signal"] }
+nix = { workspace = true, features = [
+    "socket",
+    "net",
+    "fs",
+    "signal",
+    "ioctl",
+] }
 
 [target.'cfg(windows)'.dependencies]
 windows = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }

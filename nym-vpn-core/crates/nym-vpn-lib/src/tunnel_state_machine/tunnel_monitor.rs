@@ -570,10 +570,10 @@ impl TunnelMonitor {
         #[cfg(any(target_os = "ios", target_os = "android"))]
         let tun_name = {
             let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.get_ref().as_raw_fd()) };
-            tun_name::get_tun_name(&tun_fd).unwrap_or_else(|| "unknown-tun".to_owned())
+            tun_name::get_tun_name(&tun_fd).map_err(Error::GetTunDeviceName)?
         };
 
-        tracing::debug!("Created tun device: {}", tun_name);
+        tracing::info!("Created tun device: {}", tun_name);
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         {
@@ -1027,7 +1027,7 @@ impl TunnelMonitor {
 
         let tun_device = self.create_tun_device(packet_tunnel_settings).await?;
         let tun_fd = unsafe { BorrowedFd::borrow_raw(tun_device.get_ref().as_raw_fd()) };
-        let interface = tun_name::get_tun_name(&tun_fd).unwrap_or_else(|| "unknown-tun".to_owned());
+        let interface = tun_name::get_tun_name(&tun_fd).map_err(Error::GetTunDeviceName)?;
         let tunnel_metadata = TunnelMetadata {
             interface,
             ips: vec![
@@ -1038,7 +1038,7 @@ impl TunnelMonitor {
             ipv6_gateway: None,
         };
 
-        tracing::info!("Created tun device");
+        tracing::info!("Created tun device: {}", tunnel_metadata.interface);
 
         let tunnel_conn_data = TunnelConnectionData::Wireguard(WireguardConnectionData {
             entry: WireguardNode::from(conn_data.entry.clone()),

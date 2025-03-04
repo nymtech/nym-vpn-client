@@ -588,6 +588,10 @@ pub enum Error {
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     GetTunDeviceName(#[source] tun::Error),
 
+    #[error("failed to get tunnel device name")]
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    GetTunDeviceName(#[source] tun_name::GetTunNameError),
+
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     #[error("failed to set tunnel device ipv6 address")]
     SetTunDeviceIpv6Addr(#[source] std::io::Error),
@@ -620,6 +624,8 @@ impl Error {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::TunDevice,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
+            #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
             Self::ResolveGatewayAddrs(_) => ErrorStateReason::ResolveGatewayAddrs,
             #[cfg(target_os = "macos")]
