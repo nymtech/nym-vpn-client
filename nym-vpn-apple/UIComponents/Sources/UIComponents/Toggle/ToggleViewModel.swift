@@ -45,7 +45,7 @@ private extension ToggleViewModel {
         offset = isOn ? 8 : -8
         circleDiameter = isOn ? 24 : 16
         circleColor = isOn ? NymColor.sysOnPrimary : NymColor.toggleStroke
-        backgroundColor = isOn ? NymColor.primaryOrange : NymColor.toggleBackground
-        strokeColor = isOn ? NymColor.primaryOrange : NymColor.toggleStroke
+        backgroundColor = isOn ? NymColor.accent : NymColor.toggleBackground
+        strokeColor = isOn ? NymColor.accent : NymColor.toggleStroke
     }
 }

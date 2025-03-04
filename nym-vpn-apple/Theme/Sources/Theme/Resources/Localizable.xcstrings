@@ -634,7 +634,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Device not registered. Please retry."
+            "value" : "Device not registered. Please try again."
           }
         }
       }

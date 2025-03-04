@@ -13,7 +13,7 @@ public struct SettingButtonViewModel {
     }
 
     var selectionStrokeColor: Color {
-        isSelected ? NymColor.primaryOrange : .clear
+        isSelected ? NymColor.accent : .clear
     }
 
     var selectionImageName: String {
@@ -21,6 +21,6 @@ public struct SettingButtonViewModel {
     }
 
     var selectionImageColor: Color {
-        isSelected ? NymColor.primaryOrange : NymColor.networkButtonCircle
+        isSelected ? NymColor.accent : NymColor.networkButtonCircle
     }
 }

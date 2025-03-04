@@ -39,7 +39,7 @@ public enum StatusButtonConfig: String {
     var textColor: Color {
         switch self {
         case .connected:
-            NymColor.confirm
+            NymColor.action
         case .connecting, .disconnecting, .noInternet, .noInternetReconnect:
             NymColor.sysOnSurfaceWhite
         case .disconnected, .error:

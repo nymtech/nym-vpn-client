@@ -26,7 +26,6 @@ public struct AppSetting {
 
             case .automatic:
                 return .unspecified
-
             case .light:
                 return .light
             case .dark:

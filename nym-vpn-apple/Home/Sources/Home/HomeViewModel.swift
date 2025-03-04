@@ -309,7 +309,6 @@ extension HomeViewModel {
         if connectionManager.isReconnecting &&
             (status == .disconnecting || status == .disconnected || status == .connecting) {
             newStatus = .reasserting
-        
         } else {
             newStatus = status
         }

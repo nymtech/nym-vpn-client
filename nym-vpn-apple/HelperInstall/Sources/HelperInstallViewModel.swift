@@ -75,7 +75,7 @@ import Theme
     func buttonColor() -> Color {
         switch helperManager.daemonState {
         case .unknown, .registered, .requiresAuthorization, .running, .requiresUpdate:
-            NymColor.primaryOrange
+            NymColor.accent
         case .authorized, .updating, .requiresManualRemoval:
             NymColor.sysSecondary
         }

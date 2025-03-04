@@ -47,7 +47,7 @@ private extension SantasView {
     func enivironmentDetails() -> some View {
         VStack {
             Text("Environment Details:")
-                .foregroundStyle(NymColor.primaryOrange)
+                .foregroundStyle(NymColor.accent)
                 .bold()
                 .padding(4)
             Text("App environment: \(viewModel.currentAppEnv)")
@@ -68,7 +68,7 @@ private extension SantasView {
     func environmentSection() -> some View {
         VStack {
             Text("Environment:")
-                .foregroundStyle(NymColor.primaryOrange)
+                .foregroundStyle(NymColor.accent)
                 .bold()
                 .padding(4)
 #if os(macOS)
@@ -89,7 +89,7 @@ private extension SantasView {
     func featureFlagsSection() -> some View {
         VStack {
             Text("Feature flags:")
-                .foregroundStyle(NymColor.primaryOrange)
+                .foregroundStyle(NymColor.accent)
                 .bold()
                 .padding(4)
 

@@ -46,7 +46,7 @@ public enum ConnectButtonState {
     var backgroundColor: Color {
         switch self {
         case .connect, .noInternet:
-            NymColor.primaryOrange
+            NymColor.accent
         case .disconnect:
             NymColor.disconnect
         case .installingDaemon, .noInternetReconnect:

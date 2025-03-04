@@ -32,12 +32,8 @@ public struct NymColor {
     public static let surveyText = Color(.surveyText)
 
     // MARK: - Key -
-    public static let confirm = Color(.confirm)
     public static let statusGreen = Color(.statusGreen)
     public static let disconnect = Color(.disconnect)
-
-    // MARK: - Primary -
-    public static let primaryOrange = Color(.primaryOrange)
 
     // MARK: - Settings -
     public static let settingsSeparator = Color(.settingsSeparator)
@@ -55,9 +51,6 @@ public struct NymColor {
     public static let modeInfoViewDescription = Color(.modeInfoViewDescription)
     public static let modeInfoViewTitle = Color(.modeInfoViewTitle)
     public static let modeInfoViewBackground = Color(.modeInfoViewBackground)
-
-    // MARK: - Rebranding -
-    public static let textCTA = Color(.textCTA)
 
     // MARK: - No Internet -
     public static let noInternet = Color(.noInternetRed)

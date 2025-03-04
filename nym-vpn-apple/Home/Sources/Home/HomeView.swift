@@ -70,6 +70,7 @@ private extension HomeView {
     @ViewBuilder
     func statusAreaSection() -> some View {
         VStack {
+            NoiseConnectedAnimationView()
             Spacer()
                 .frame(height: 8)
 
@@ -90,14 +91,21 @@ private extension HomeView {
     }
 
     @ViewBuilder
+    func connectedNoiseAnimation() -> some View {
+        if viewModel.lastTunnelStatus == .connected {
+            LoopAnimationView(animationName: "connected")
+        }
+    }
+
+    @ViewBuilder
     func networkModeSection() -> some View {
         HStack {
             Text(viewModel.networkSelectLocalizedTitle)
                 .textStyle(.TitleLegacy.Medium.primary)
             Spacer()
-            Image(systemName: "info.circle")
+            GenericImage(systemImageName: "info.circle", allowsHover: true)
                 .foregroundColor(NymColor.sysOutline)
-                .frame(width: 24, height: 24)
+                .frame(width: 14, height: 14)
                 .onTapGesture {
                     withAnimation {
                         viewModel.isModeInfoOverlayDisplayed.toggle()

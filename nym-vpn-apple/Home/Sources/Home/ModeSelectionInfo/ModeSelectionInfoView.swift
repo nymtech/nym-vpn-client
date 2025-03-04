@@ -137,11 +137,11 @@ private extension ModeSelectionInfoView {
         HStack {
             Text(viewModel.continueReadingLocalizedString)
                 .textStyle(.BodyLegacy.Medium.regular)
-                .foregroundStyle(NymColor.primaryOrange)
+                .foregroundStyle(NymColor.accent)
 
             GenericImage(imageName: viewModel.continueReadingLinkImageName)
                 .frame(width: 16, height: 16)
-                .foregroundStyle(NymColor.primaryOrange)
+                .foregroundStyle(NymColor.accent)
         }
         .onTapGesture {
             viewModel.openContinueReading()

@@ -6,7 +6,7 @@ public struct GenericButton: View {
     private let borderOnly: Bool
     private let mainColor: Color
 
-    public init(title: String, borderOnly: Bool = false, mainColor: Color = NymColor.primaryOrange) {
+    public init(title: String, borderOnly: Bool = false, mainColor: Color = NymColor.accent) {
         self.title = title
         self.borderOnly = borderOnly
         self.mainColor = mainColor

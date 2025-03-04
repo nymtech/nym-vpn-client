@@ -231,7 +231,7 @@ private extension AddCredentialsView {
     func createAccount() -> some View {
         if let createAccountAttributedString = viewModel.createAnAccountAttributedString() {
             Text(createAccountAttributedString)
-                .tint(NymColor.primaryOrange)
+                .tint(NymColor.accent)
                 .foregroundStyle(NymColor.sysOnSurface)
                 .textStyle(.BodyLegacy.Large.regular)
                 .multilineTextAlignment(.center)

@@ -45,7 +45,7 @@ private extension WelcomeView {
     func subtitleView() -> some View {
         Text("\(Text(viewModel.subtitle1Text)) \(Text("[\(viewModel.sentryText)](https://sentry.io)"))\(Text(viewModel.subtitle2Text)) \n\n\(Text(viewModel.disclaimerText))")
             .textStyle(.BodyLegacy.Large.regular)
-            .tint(NymColor.primaryOrange)
+            .tint(NymColor.accent)
             .foregroundStyle(NymColor.statusInfoText)
             .multilineTextAlignment(.center)
             .padding(.horizontal, viewModel.subtitleViewHorizontalPadding())
