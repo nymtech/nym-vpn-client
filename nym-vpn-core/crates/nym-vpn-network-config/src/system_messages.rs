@@ -7,9 +7,11 @@ use anyhow::Context;
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
-use nym_vpn_api_client::response::{SystemConfigurationResponse, SystemMessageResponse};
-
+use crate::network_compatibility::NetworkCompatibility;
 use crate::system_configuration::{ScoreThresholds, SystemConfiguration};
+use nym_vpn_api_client::response::{
+    NetworkCompatibilityResponse, SystemConfigurationResponse, SystemMessageResponse,
+};
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Default)]
 pub struct SystemMessages {
@@ -168,6 +170,18 @@ impl From<SystemConfigurationResponse> for SystemConfiguration {
                 medium: value.wg_thresholds.medium,
                 low: value.wg_thresholds.low,
             },
+        }
+    }
+}
+
+impl From<NetworkCompatibilityResponse> for NetworkCompatibility {
+    fn from(value: NetworkCompatibilityResponse) -> Self {
+        NetworkCompatibility {
+            core: value.core,
+            ios: value.ios,
+            macos: value.macos,
+            tauri: value.tauri,
+            android: value.android,
         }
     }
 }

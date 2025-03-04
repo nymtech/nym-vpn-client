@@ -8,6 +8,7 @@ pub mod system_messages;
 mod account_management;
 mod discovery;
 mod envs;
+mod network_compatibility;
 mod nym_network;
 mod nym_vpn_network;
 mod refresh;
@@ -30,6 +31,7 @@ use nym_config::defaults::NymNetworkDetails;
 use tokio::join;
 use url::Url;
 
+use crate::network_compatibility::NetworkCompatibility;
 use std::{fmt::Debug, path::Path, str::FromStr, time::Duration};
 
 const NETWORKS_SUBDIR: &str = "networks";
@@ -47,6 +49,7 @@ pub struct Network {
     pub nym_vpn_network: NymVpnNetwork,
     pub feature_flags: Option<FeatureFlags>,
     pub system_configuration: Option<SystemConfiguration>,
+    pub network_compatibility: Option<NetworkCompatibility>,
 }
 
 impl Network {
@@ -71,6 +74,7 @@ impl Network {
             nym_vpn_network: NymVpnNetwork::new(network_details),
             feature_flags: None,
             system_configuration: None,
+            network_compatibility: None,
         })
     }
 
@@ -90,6 +94,7 @@ impl Network {
         let discovery = Discovery::fetch(network_name)?;
         let feature_flags = discovery.feature_flags.clone();
         let system_configuration = discovery.system_configuration;
+        let network_compatibility = discovery.network_compatibility.clone();
         let nym_network = discovery.fetch_nym_network_details()?;
         let nyxd_url = nym_network
             .network
@@ -112,6 +117,7 @@ impl Network {
             nym_vpn_network,
             feature_flags,
             system_configuration,
+            network_compatibility,
         })
     }
 
@@ -242,6 +248,11 @@ pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Ne
         tracing::debug!("System configuration: {}", system_configuration);
     }
 
+    let network_compatibility = discovery.network_compatibility.clone();
+    if let Some(ref network_compatibility) = network_compatibility {
+        tracing::debug!("Network compatibility: {}", network_compatibility);
+    }
+
     // Using discovery, fetch and setup nym network details
     let nym_network = NymNetwork::ensure_exists(config_path, &discovery)?;
     let nyxd_url = nym_network
@@ -267,6 +278,7 @@ pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Ne
         nym_vpn_network,
         feature_flags,
         system_configuration,
+        network_compatibility,
     })
 }
 
@@ -293,5 +305,6 @@ pub fn manual_env(network_details: &NymNetworkDetails) -> anyhow::Result<Network
         nym_vpn_network,
         feature_flags: None,
         system_configuration: None,
+        network_compatibility: None,
     })
 }

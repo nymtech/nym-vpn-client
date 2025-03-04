@@ -15,11 +15,11 @@ use nym_vpn_api_client::{
 use nym_api_requests::NymNetworkDetailsResponse;
 use nym_validator_client::nym_api::{Client as NymApiClient, NymApiClientExt};
 
+use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
+use crate::network_compatibility::NetworkCompatibility;
 use crate::{
     system_configuration::SystemConfiguration, AccountManagement, FeatureFlags, SystemMessages,
 };
-
-use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
 
 // TODO: integrate with nym-vpn-api-client
 
@@ -37,6 +37,7 @@ pub struct Discovery {
     pub(super) feature_flags: Option<FeatureFlags>,
     pub(super) system_configuration: Option<SystemConfiguration>,
     pub(super) system_messages: SystemMessages,
+    pub(super) network_compatibility: Option<NetworkCompatibility>,
 }
 
 // Include the generated Default implementation
@@ -193,6 +194,12 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
             .map(SystemMessages::from)
             .unwrap_or_default();
 
+        let network_compatibility = discovery.network_compatibility.and_then(|nc| {
+            NetworkCompatibility::try_from(nc)
+                .inspect_err(|err| tracing::warn!("Failed to parse network compatibility: {err}"))
+                .ok()
+        });
+
         Ok(Self {
             network_name: discovery.network_name,
             nym_api_url: discovery.nym_api_url.parse()?,
@@ -201,6 +208,7 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
             feature_flags,
             system_configuration,
             system_messages,
+            network_compatibility,
         })
     }
 }
@@ -239,14 +247,14 @@ pub(crate) async fn fetch_nym_vpn_network_details(
 mod tests {
     use std::collections::HashMap;
 
-    use time::{format_description::well_known::Rfc3339, OffsetDateTime};
-
+    use super::*;
+    use crate::network_compatibility::NetworkCompatibility;
     use crate::{
         account_management::AccountManagementPaths, feature_flags::FlagValue,
         system_messages::Properties, SystemMessage,
     };
-
-    use super::*;
+    use nym_vpn_api_client::response::NetworkCompatibilityResponse;
+    use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
     #[test]
     fn test_discovery_fetch() {
@@ -346,6 +354,13 @@ mod tests {
                 )])),
             }]),
             system_configuration: None,
+            network_compatibility: Some(NetworkCompatibility {
+                core: "".to_string(),
+                ios: "".to_string(),
+                macos: "".to_string(),
+                tauri: "".to_string(),
+                android: "".to_string(),
+            }),
         };
         assert_eq!(network, expected_network);
     }

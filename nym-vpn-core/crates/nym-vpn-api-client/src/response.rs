@@ -578,6 +578,7 @@ pub struct NymWellknownDiscoveryItemResponse {
     pub feature_flags: Option<serde_json::Value>,
     pub system_messages: Option<Vec<SystemMessageResponse>>,
     pub system_configuration: Option<SystemConfigurationResponse>,
+    pub network_compatibility: Option<NetworkCompatibilityResponse>,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
@@ -607,6 +608,15 @@ pub struct SystemMessageResponse {
 pub struct SystemConfigurationResponse {
     pub mix_thresholds: ScoreThresholdsResponse,
     pub wg_thresholds: ScoreThresholdsResponse,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+pub struct NetworkCompatibilityResponse {
+    pub core: String,
+    pub macos: String,
+    pub ios: String,
+    pub tauri: String,
+    pub android: String,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
