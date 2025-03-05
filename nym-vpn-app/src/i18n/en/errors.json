@@ -9,31 +9,21 @@
   "grpc": "Internal gRPC error",
   "tunnel": {
     "internal": "Internal error",
+    "internal-reason": "Internal error: {{reason}}",
+    "api": "API error: {{reason}}",
     "firewall": "Firewall error",
     "routing": "Routing error",
     "dns": "DNS error",
-    "tun-device": "Device error",
-    "provider": "Provider error",
     "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
     "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
     "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
-    "bad-bandwidth-increase": "Bandwidth increase error",
-    "duplicate-tun-fd": "Duplicate tunnel fd"
+    "bad-bandwidth-increase": "Bandwidth increase error"
   },
   "account": {
     "invalid-recovery-phrase": "Invalid access code",
     "storage": "Storage backend error",
-    "is-connected": "Unable to proceed while connected",
-    "not-stored": "no account stored",
-    "no-device-stored": "no device stored",
-    "unexpected-response": "unexpected response: {{details}}",
-    "internal": "internal error",
-    "vpn-api": "VPN API error: {{details}}"
+    "is-connected": "Unable to proceed while connected"
   },
-  "sync-account": "Sync account: {{reason}}",
-  "sync-device": "Sync device: {{reason}}",
-  "register-device": "Register device: {{reason}}",
-  "request-zknym": "Zknym request: {{reason}}",
   "countries-request": {
     "entry": "Failed to fetch the available entry node countries",
     "exit": "Failed to fetch the available exit node countries",

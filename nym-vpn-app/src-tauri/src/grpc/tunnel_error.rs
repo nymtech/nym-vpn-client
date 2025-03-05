@@ -20,48 +20,39 @@ use ts_rs::TS;
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "key", content = "data")]
 pub enum TunnelError {
-    Internal,
+    Internal(Option<String>),
     Firewall,
     Routing,
     Dns,
-    TunDevice,
-    TunnelProvider,
     SameEntryAndExitGw,
     InvalidEntryGwCountry,
     InvalidExitGwCountry,
     BadBandwidthIncrease,
-    DuplicateTunFd,
-    // SyncAccountError mapping
-    SyncAccountNoAccountStored(bool),
-    SyncAccountUnexpectedResponse(String),
-    SyncAccountInternal(String),
-    SyncAccountVpnApi(String),
-    // SyncDeviceError mapping
-    SyncDeviceNoAccountStored(bool),
-    SyncDeviceNoDeviceStored(bool),
-    SyncDeviceUnexpectedResponse(String),
-    SyncDeviceInternal(String),
-    SyncDeviceVpnApi(String),
-    // RegisterDeviceError mapping
-    RegisterDeviceNoAccountStored(bool),
-    RegisterDeviceNoDeviceStored(bool),
-    RegisterDeviceUnexpectedResponse(String),
-    RegisterDeviceInternal(String),
-    RegisterDeviceVpnApi(String),
-    // RequestZkNymError mapping
-    ReqZknymNoAccountStored(bool),
-    ReqZknymNoDeviceStored(bool),
-    ReqZknymUnexpectedResponse(String),
-    ReqZknymStorage(String),
-    ReqZknymInternal(String),
-    ReqZknymVpnApi(String),
+    Api(String),
+}
+
+impl TunnelError {
+    pub fn no_reason(from: Option<&str>) -> Self {
+        if let Some(v) = from {
+            return TunnelError::Internal(Some(format!("{}: BadTunnelErrorReason", v)));
+        }
+        TunnelError::Internal(Some("BadTunnelErrorReason".to_string()))
+    }
+
+    pub fn internal(reason: &str) -> Self {
+        TunnelError::Internal(Some(reason.to_string()))
+    }
+
+    fn api(from: &str, error: VpnApiError) -> Self {
+        TunnelError::Api(format!("{from}: {error}"))
+    }
 }
 
 impl From<Option<ErrorStateReason>> for TunnelError {
     fn from(reason: Option<ErrorStateReason>) -> Self {
         let Some(error) = reason else {
             warn!("missing error reason in TunnelError");
-            return TunnelError::Internal;
+            return TunnelError::no_reason(None);
         };
         match error {
             ErrorStateReason::BaseReason(e) => BaseErrorStateReason::try_from(e)
@@ -80,17 +71,29 @@ impl From<Option<ErrorStateReason>> for TunnelError {
 impl From<BaseErrorStateReason> for TunnelError {
     fn from(reason: BaseErrorStateReason) -> Self {
         match reason {
-            BaseErrorStateReason::Internal => TunnelError::Internal,
+            BaseErrorStateReason::Internal => TunnelError::Internal(None),
             BaseErrorStateReason::Firewall => TunnelError::Firewall,
             BaseErrorStateReason::Routing => TunnelError::Routing,
             BaseErrorStateReason::Dns => TunnelError::Dns,
-            BaseErrorStateReason::TunDevice => TunnelError::TunDevice,
-            BaseErrorStateReason::TunnelProvider => TunnelError::TunnelProvider,
+            BaseErrorStateReason::TunDevice => {
+                TunnelError::internal(BaseErrorStateReason::TunDevice.as_str_name())
+            }
+            BaseErrorStateReason::TunnelProvider => {
+                TunnelError::internal(BaseErrorStateReason::TunnelProvider.as_str_name())
+            }
             BaseErrorStateReason::SameEntryAndExitGateway => TunnelError::SameEntryAndExitGw,
             BaseErrorStateReason::InvalidEntryGatewayCountry => TunnelError::InvalidEntryGwCountry,
             BaseErrorStateReason::InvalidExitGatewayCountry => TunnelError::InvalidExitGwCountry,
             BaseErrorStateReason::BadBandwidthIncrease => TunnelError::BadBandwidthIncrease,
-            BaseErrorStateReason::DuplicateTunFd => TunnelError::DuplicateTunFd,
+            BaseErrorStateReason::DuplicateTunFd => {
+                TunnelError::internal(BaseErrorStateReason::DuplicateTunFd.as_str_name())
+            }
+            BaseErrorStateReason::ResolveGatewayAddrs => {
+                TunnelError::internal(BaseErrorStateReason::ResolveGatewayAddrs.as_str_name())
+            }
+            BaseErrorStateReason::StartLocalDnsResolver => {
+                TunnelError::internal(BaseErrorStateReason::StartLocalDnsResolver.as_str_name())
+            }
         }
     }
 }
@@ -99,15 +102,19 @@ impl From<SyncAccountError> for TunnelError {
     fn from(error: SyncAccountError) -> Self {
         let Some(e) = error.error_detail else {
             warn!("missing error detail in SyncAccountError");
-            return TunnelError::Internal;
+            return TunnelError::no_reason(Some("SyncAccount"));
         };
         match e {
-            SyncAccountErr::NoAccountStored(b) => TunnelError::SyncAccountNoAccountStored(b),
-            SyncAccountErr::UnexpectedResponse(s) => TunnelError::SyncAccountUnexpectedResponse(s),
-            SyncAccountErr::Internal(s) => TunnelError::SyncAccountInternal(s),
-            SyncAccountErr::ErrorResponse(res) => {
-                TunnelError::SyncAccountVpnApi(VpnApiError(res).to_string())
+            SyncAccountErr::NoAccountStored(b) => {
+                TunnelError::internal(&format!("SyncAccountNoAccountStored {b}"))
             }
+            SyncAccountErr::UnexpectedResponse(s) => {
+                TunnelError::internal(&format!("SyncAccountUnexpectedResponse {s}"))
+            }
+            SyncAccountErr::Internal(s) => {
+                TunnelError::internal(&format!("SyncAccountInternal {s}"))
+            }
+            SyncAccountErr::ErrorResponse(res) => TunnelError::api("SyncAccount", VpnApiError(res)),
         }
     }
 }
@@ -116,16 +123,20 @@ impl From<SyncDeviceError> for TunnelError {
     fn from(error: SyncDeviceError) -> Self {
         let Some(e) = error.error_detail else {
             warn!("missing error detail in SyncDeviceError");
-            return TunnelError::Internal;
+            return TunnelError::no_reason(Some("SyncDevice"));
         };
         match e {
-            SyncDeviceErr::NoAccountStored(b) => TunnelError::SyncDeviceNoAccountStored(b),
-            SyncDeviceErr::NoDeviceStored(b) => TunnelError::SyncDeviceNoDeviceStored(b),
-            SyncDeviceErr::UnexpectedResponse(s) => TunnelError::SyncDeviceUnexpectedResponse(s),
-            SyncDeviceErr::Internal(s) => TunnelError::SyncDeviceInternal(s),
-            SyncDeviceErr::ErrorResponse(res) => {
-                TunnelError::SyncDeviceVpnApi(VpnApiError(res).to_string())
+            SyncDeviceErr::NoAccountStored(b) => {
+                TunnelError::internal(&format!("SyncDeviceNoAccountStored {b}"))
             }
+            SyncDeviceErr::NoDeviceStored(b) => {
+                TunnelError::internal(&format!("SyncDeviceNoDeviceStored {b}"))
+            }
+            SyncDeviceErr::UnexpectedResponse(s) => {
+                TunnelError::internal(&format!("SyncDeviceUnexpectedResponse {s}"))
+            }
+            SyncDeviceErr::Internal(s) => TunnelError::internal(&format!("SyncDeviceInternal {s}")),
+            SyncDeviceErr::ErrorResponse(res) => TunnelError::api("SyncDevice", VpnApiError(res)),
         }
     }
 }
@@ -134,15 +145,23 @@ impl From<RegisterDeviceError> for TunnelError {
     fn from(error: RegisterDeviceError) -> Self {
         let Some(e) = error.error_detail else {
             warn!("missing error detail in RegisterDeviceError");
-            return TunnelError::Internal;
+            return TunnelError::no_reason(Some("RegisterDevice"));
         };
         match e {
-            RegDeviceErr::NoAccountStored(b) => TunnelError::RegisterDeviceNoAccountStored(b),
-            RegDeviceErr::NoDeviceStored(b) => TunnelError::RegisterDeviceNoDeviceStored(b),
-            RegDeviceErr::UnexpectedResponse(s) => TunnelError::RegisterDeviceUnexpectedResponse(s),
-            RegDeviceErr::Internal(s) => TunnelError::RegisterDeviceInternal(s),
+            RegDeviceErr::NoAccountStored(b) => {
+                TunnelError::internal(&format!("RegisterDeviceNoAccountStored {b}"))
+            }
+            RegDeviceErr::NoDeviceStored(b) => {
+                TunnelError::internal(&format!("RegisterDeviceNoDeviceStored {b}"))
+            }
+            RegDeviceErr::UnexpectedResponse(s) => {
+                TunnelError::internal(&format!("RegisterDeviceUnexpectedResponse {s}"))
+            }
+            RegDeviceErr::Internal(s) => {
+                TunnelError::internal(&format!("RegisterDeviceInternal {s}"))
+            }
             RegDeviceErr::ErrorResponse(res) => {
-                TunnelError::RegisterDeviceVpnApi(VpnApiError(res).to_string())
+                TunnelError::api("RegisterDevice", VpnApiError(res))
             }
         }
     }
@@ -152,15 +171,21 @@ impl From<RequestZkNymError> for TunnelError {
     fn from(error: RequestZkNymError) -> Self {
         let Some(e) = error.outcome else {
             warn!("missing error detail in RequestZkNymError");
-            return TunnelError::Internal;
+            return TunnelError::no_reason(Some("zknym"));
         };
         match e {
-            ZkNymErr::NoAccountStored(b) => TunnelError::ReqZknymNoAccountStored(b),
-            ZkNymErr::NoDeviceStored(b) => TunnelError::ReqZknymNoDeviceStored(b),
-            ZkNymErr::UnexpectedVpnApiResponse(s) => TunnelError::ReqZknymUnexpectedResponse(s),
-            ZkNymErr::Storage(s) => TunnelError::ReqZknymStorage(s),
-            ZkNymErr::Internal(s) => TunnelError::ReqZknymInternal(s),
-            ZkNymErr::VpnApi(res) => TunnelError::ReqZknymVpnApi(VpnApiError(res).to_string()),
+            ZkNymErr::NoAccountStored(b) => {
+                TunnelError::internal(&format!("zknymNoAccountStored {b}"))
+            }
+            ZkNymErr::NoDeviceStored(b) => {
+                TunnelError::internal(&format!("zknymNoDeviceStored {b}"))
+            }
+            ZkNymErr::UnexpectedVpnApiResponse(s) => {
+                TunnelError::internal(&format!("zknymUnexpectedVpnApiResponse {s}"))
+            }
+            ZkNymErr::Storage(s) => TunnelError::internal(&format!("zknymStorage {s}")),
+            ZkNymErr::Internal(s) => TunnelError::internal(&format!("zknymInternal {s}")),
+            ZkNymErr::VpnApi(res) => TunnelError::api("zknym", VpnApiError(res)),
         }
     }
 }
@@ -171,7 +196,7 @@ impl From<RequestZkNymBundle> for TunnelError {
 
         if bundle.failures.is_empty() {
             warn!("no failure found in RequestZkNymBundle");
-            return TunnelError::Internal;
+            return TunnelError::no_reason(Some("RequestZkNymBundle"));
         }
         // let's suppose: get the first one and we good? ><
         bundle.failures[0].clone().into()
