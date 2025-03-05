@@ -15,7 +15,7 @@ use bytes::BytesMut;
 use clap::Args;
 use futures::StreamExt;
 use nym_authenticator_client::{AuthenticatorResponse, AuthenticatorVersion, ClientMessage};
-use nym_authenticator_requests::{v2, v3, v4};
+use nym_authenticator_requests::{v2, v3, v4, v5};
 use nym_client_core::config::ForgetMe;
 use nym_config::defaults::{
     mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6},
@@ -365,6 +365,9 @@ async fn wg_probe(
         AuthenticatorVersion::V4 => ClientMessage::Initial(Box::new(
             v4::registration::InitMessage::new(authenticator_pub_key),
         )),
+        AuthenticatorVersion::V5 => ClientMessage::Initial(Box::new(
+            v5::registration::InitMessage::new(authenticator_pub_key),
+        )),
         AuthenticatorVersion::UNKNOWN => bail!("unknown version number"),
     };
 
@@ -412,7 +415,18 @@ async fn wg_probe(
                             gateway_client: v4::registration::GatewayClient::new(
                                 &private_key,
                                 pending_registration_response.pub_key().inner(),
-                                pending_registration_response.private_ips(),
+                                pending_registration_response.private_ips().into(),
+                                pending_registration_response.nonce(),
+                            ),
+                            credential: None,
+                        }))
+                    }
+                    AuthenticatorVersion::V5 => {
+                        ClientMessage::Final(Box::new(v5::registration::FinalMessage {
+                            gateway_client: v5::registration::GatewayClient::new(
+                                &private_key,
+                                pending_registration_response.pub_key().inner(),
+                                pending_registration_response.private_ips().into(),
                                 pending_registration_response.nonce(),
                             ),
                             credential: None,
