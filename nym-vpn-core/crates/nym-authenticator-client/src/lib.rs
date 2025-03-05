@@ -12,8 +12,8 @@ use nym_credentials_interface::CredentialSpendingData;
 use nym_crypto::asymmetric::x25519::PrivateKey;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{
-    ClientStatsEvents, ClientStatsSender, MixnetClient, MixnetClientSender, MixnetMessageSender,
-    Recipient, ReconstructedMessage, TransmissionLane,
+    ClientStatsEvents, ClientStatsSender, IncludedSurbs, MixnetClient, MixnetClientSender,
+    MixnetMessageSender, Recipient, ReconstructedMessage, TransmissionLane,
 };
 use nym_service_provider_requests_common::ServiceProviderType;
 use nym_wireguard_types::PeerPublicKey;
@@ -1087,7 +1087,11 @@ impl AuthClient {
         // authenticator mixnet client on the nym-node is configured to have a min
         // threshold of 10 surbs that it reserves for itself to request additional
         // surbs.
-        let surbs = if message.use_surbs() { 20 } else { 0 };
+        let surbs = if message.use_surbs() {
+            IncludedSurbs::new(20)
+        } else {
+            IncludedSurbs::ExposeSelfAddress
+        };
         let input_message = create_input_message(authenticator_address, data, surbs);
 
         self.mixnet_sender
@@ -1172,13 +1176,21 @@ fn check_auth_message_version(message: &ReconstructedMessage) -> Result<Authenti
 fn create_input_message(
     recipient: Recipient,
     data: Vec<u8>,
-    surbs: u32,
+    surbs: IncludedSurbs,
 ) -> nym_sdk::mixnet::InputMessage {
-    nym_sdk::mixnet::InputMessage::new_anonymous(
-        recipient,
-        data,
-        surbs,
-        TransmissionLane::General,
-        None,
-    )
+    match surbs {
+        IncludedSurbs::Amount(surbs) => nym_sdk::mixnet::InputMessage::new_anonymous(
+            recipient,
+            data,
+            surbs,
+            TransmissionLane::General,
+            None,
+        ),
+        IncludedSurbs::ExposeSelfAddress => nym_sdk::mixnet::InputMessage::new_regular(
+            recipient,
+            data,
+            TransmissionLane::General,
+            None,
+        ),
+    }
 }
