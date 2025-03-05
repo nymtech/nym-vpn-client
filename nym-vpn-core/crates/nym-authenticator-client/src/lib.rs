@@ -4,8 +4,8 @@ use std::{
 };
 
 use nym_authenticator_requests::{
-    v2, v3,
-    v4::{self, registration::IpPair},
+    v2, v3, v4,
+    v5::{self, registration::IpPair},
 };
 
 use nym_credentials_interface::CredentialSpendingData;
@@ -45,6 +45,12 @@ impl Versionable for v4::registration::InitMessage {
     }
 }
 
+impl Versionable for v5::registration::InitMessage {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V4
+    }
+}
+
 impl Versionable for v2::registration::FinalMessage {
     fn version(&self) -> AuthenticatorVersion {
         AuthenticatorVersion::V2
@@ -58,6 +64,12 @@ impl Versionable for v3::registration::FinalMessage {
 }
 
 impl Versionable for v4::registration::FinalMessage {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V4
+    }
+}
+
+impl Versionable for v5::registration::FinalMessage {
     fn version(&self) -> AuthenticatorVersion {
         AuthenticatorVersion::V4
     }
@@ -81,6 +93,12 @@ impl Versionable for v4::topup::TopUpMessage {
     }
 }
 
+impl Versionable for v5::topup::TopUpMessage {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V4
+    }
+}
+
 pub trait InitMessage: Versionable {
     fn pub_key(&self) -> PeerPublicKey;
 }
@@ -98,6 +116,12 @@ impl InitMessage for v3::registration::InitMessage {
 }
 
 impl InitMessage for v4::registration::InitMessage {
+    fn pub_key(&self) -> PeerPublicKey {
+        self.pub_key
+    }
+}
+
+impl InitMessage for v5::registration::InitMessage {
     fn pub_key(&self) -> PeerPublicKey {
         self.pub_key
     }
@@ -162,6 +186,28 @@ impl FinalMessage for v3::registration::FinalMessage {
 }
 
 impl FinalMessage for v4::registration::FinalMessage {
+    fn gateway_client_pub_key(&self) -> PeerPublicKey {
+        self.gateway_client.pub_key
+    }
+
+    fn gateway_client_ipv4(&self) -> Option<Ipv4Addr> {
+        Some(self.gateway_client.private_ips.ipv4)
+    }
+
+    fn gateway_client_ipv6(&self) -> Option<Ipv6Addr> {
+        Some(self.gateway_client.private_ips.ipv6)
+    }
+
+    fn gateway_client_mac(&self) -> Vec<u8> {
+        self.gateway_client.mac.to_vec()
+    }
+
+    fn credential(&self) -> Option<CredentialSpendingData> {
+        self.credential.clone()
+    }
+}
+
+impl FinalMessage for v5::registration::FinalMessage {
     fn gateway_client_pub_key(&self) -> PeerPublicKey {
         self.gateway_client.pub_key
     }
@@ -398,6 +444,51 @@ impl ClientMessage {
                     }
                 }
             }
+            AuthenticatorVersion::V5 => {
+                use v5::{
+                    registration::{ClientMac, FinalMessage, GatewayClient, InitMessage},
+                    request::AuthenticatorRequest,
+                    topup::TopUpMessage,
+                };
+                match self {
+                    ClientMessage::Initial(init_message) => {
+                        let (req, id) = AuthenticatorRequest::new_initial_request(InitMessage {
+                            pub_key: init_message.pub_key(),
+                        });
+                        Ok((req.to_bytes()?, id))
+                    }
+                    ClientMessage::Final(final_message) => {
+                        let (req, id) = AuthenticatorRequest::new_final_request(FinalMessage {
+                            gateway_client: GatewayClient {
+                                pub_key: final_message.gateway_client_pub_key(),
+                                private_ips: IpPair {
+                                    ipv4: final_message
+                                        .gateway_client_ipv4()
+                                        .ok_or(Error::UnsupportedMessage)?,
+                                    ipv6: final_message
+                                        .gateway_client_ipv6()
+                                        .ok_or(Error::UnsupportedMessage)?,
+                                },
+                                mac: ClientMac::new(final_message.gateway_client_mac()),
+                            },
+                            credential: final_message.credential(),
+                        });
+                        Ok((req.to_bytes()?, id))
+                    }
+                    ClientMessage::Query(query_message) => {
+                        let (req, id) =
+                            AuthenticatorRequest::new_query_request(query_message.pub_key());
+                        Ok((req.to_bytes()?, id))
+                    }
+                    ClientMessage::TopUp(top_up_message) => {
+                        let (req, id) = AuthenticatorRequest::new_topup_request(TopUpMessage {
+                            pub_key: top_up_message.pub_key(),
+                            credential: top_up_message.credential(),
+                        });
+                        Ok((req.to_bytes()?, id))
+                    }
+                }
+            }
             AuthenticatorVersion::UNKNOWN => Err(Error::UnknownVersion),
         }
     }
@@ -425,6 +516,12 @@ impl Id for v4::response::PendingRegistrationResponse {
     }
 }
 
+impl Id for v5::response::PendingRegistrationResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
 impl Id for v2::response::RegisteredResponse {
     fn id(&self) -> u64 {
         self.request_id
@@ -438,6 +535,12 @@ impl Id for v3::response::RegisteredResponse {
 }
 
 impl Id for v4::response::RegisteredResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
+impl Id for v5::response::RegisteredResponse {
     fn id(&self) -> u64 {
         self.request_id
     }
@@ -461,6 +564,12 @@ impl Id for v4::response::RemainingBandwidthResponse {
     }
 }
 
+impl Id for v5::response::RemainingBandwidthResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
 impl Id for v3::response::TopUpBandwidthResponse {
     fn id(&self) -> u64 {
         self.request_id
@@ -468,6 +577,12 @@ impl Id for v3::response::TopUpBandwidthResponse {
 }
 
 impl Id for v4::response::TopUpBandwidthResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
+impl Id for v5::response::TopUpBandwidthResponse {
     fn id(&self) -> u64 {
         self.request_id
     }
@@ -542,6 +657,27 @@ impl PendingRegistrationResponse for v4::response::PendingRegistrationResponse {
     }
 
     fn private_ips(&self) -> IpPair {
+        self.reply.gateway_data.private_ips.into()
+    }
+}
+
+impl PendingRegistrationResponse for v5::response::PendingRegistrationResponse {
+    fn nonce(&self) -> u64 {
+        self.reply.nonce
+    }
+
+    fn verify(
+        &self,
+        gateway_key: &PrivateKey,
+    ) -> std::result::Result<(), nym_authenticator_requests::Error> {
+        self.reply.gateway_data.verify(gateway_key, self.nonce())
+    }
+
+    fn pub_key(&self) -> PeerPublicKey {
+        self.reply.gateway_data.pub_key
+    }
+
+    fn private_ips(&self) -> IpPair {
         self.reply.gateway_data.private_ips
     }
 }
@@ -581,6 +717,20 @@ impl RegisteredResponse for v3::response::RegisteredResponse {
 }
 impl RegisteredResponse for v4::response::RegisteredResponse {
     fn private_ips(&self) -> IpPair {
+        self.reply.private_ips.into()
+    }
+
+    fn pub_key(&self) -> PeerPublicKey {
+        self.reply.pub_key
+    }
+
+    fn wg_port(&self) -> u16 {
+        self.reply.wg_port
+    }
+}
+
+impl RegisteredResponse for v5::response::RegisteredResponse {
+    fn private_ips(&self) -> IpPair {
         self.reply.private_ips
     }
 
@@ -615,6 +765,12 @@ impl RemainingBandwidthResponse for v4::response::RemainingBandwidthResponse {
     }
 }
 
+impl RemainingBandwidthResponse for v5::response::RemainingBandwidthResponse {
+    fn available_bandwidth(&self) -> Option<i64> {
+        self.reply.as_ref().map(|r| r.available_bandwidth)
+    }
+}
+
 pub trait TopUpBandwidthResponse: Id {
     fn available_bandwidth(&self) -> i64;
 }
@@ -626,6 +782,12 @@ impl TopUpBandwidthResponse for v3::response::TopUpBandwidthResponse {
 }
 
 impl TopUpBandwidthResponse for v4::response::TopUpBandwidthResponse {
+    fn available_bandwidth(&self) -> i64 {
+        self.reply.available_bandwidth
+    }
+}
+
+impl TopUpBandwidthResponse for v5::response::TopUpBandwidthResponse {
     fn available_bandwidth(&self) -> i64 {
         self.reply.available_bandwidth
     }
@@ -709,16 +871,36 @@ impl From<v4::response::AuthenticatorResponse> for AuthenticatorResponse {
     }
 }
 
+impl From<v5::response::AuthenticatorResponseData> for AuthenticatorResponse {
+    fn from(value: v5::response::AuthenticatorResponseData) -> Self {
+        match value {
+            v5::response::AuthenticatorResponseData::PendingRegistration(
+                pending_registration_response,
+            ) => Self::PendingRegistration(Box::new(pending_registration_response)),
+            v5::response::AuthenticatorResponseData::Registered(registered_response) => {
+                Self::Registered(Box::new(registered_response))
+            }
+            v5::response::AuthenticatorResponseData::RemainingBandwidth(
+                remaining_bandwidth_response,
+            ) => Self::RemainingBandwidth(Box::new(remaining_bandwidth_response)),
+            v5::response::AuthenticatorResponseData::TopUpBandwidth(top_up_bandwidth_response) => {
+                Self::TopUpBandwidth(Box::new(top_up_bandwidth_response))
+            }
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug)]
 pub enum AuthenticatorVersion {
     V2,
     V3,
     V4,
+    V5,
     UNKNOWN,
 }
 
 impl AuthenticatorVersion {
-    pub const LATEST: AuthenticatorVersion = AuthenticatorVersion::V4;
+    pub const LATEST: AuthenticatorVersion = AuthenticatorVersion::V5;
 }
 
 impl From<u8> for AuthenticatorVersion {
@@ -729,6 +911,8 @@ impl From<u8> for AuthenticatorVersion {
             Self::V3
         } else if value == 4 {
             Self::V4
+        } else if value == 5 {
+            Self::V5
         } else {
             Self::UNKNOWN
         }
@@ -780,7 +964,8 @@ impl From<semver::Version> for AuthenticatorVersion {
         if semver.minor == 1 && semver.patch >= 10 {
             return Self::V3;
         }
-        if semver.minor >= 1 {
+        // WIP(JON): confirm this!
+        if semver.minor < 7 {
             return Self::V4;
         }
         Self::LATEST
@@ -906,6 +1091,7 @@ impl AuthClient {
                                 AuthenticatorVersion::V2 => v2::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into).map_err(Into::into),
                                 AuthenticatorVersion::V3 => v3::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into).map_err(Into::into),
                                 AuthenticatorVersion::V4 => v4::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into).map_err(Into::into),
+                                AuthenticatorVersion::V5 => v5::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into).map_err(Into::into),
                                 AuthenticatorVersion::UNKNOWN => Err(Error::UnknownVersion),
                             };
                             let Ok(response) = ret else {
