@@ -174,6 +174,7 @@ impl MixnetProcessor {
                     };
                     if let Err(err) = sender.send(input_message).await {
                         tracing::error!("Failed to send disconnect message: {err}");
+                        continue;
                     }
                     has_sent_ipr_disconnect = true;
                 }
