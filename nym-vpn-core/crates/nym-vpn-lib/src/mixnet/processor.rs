@@ -7,7 +7,7 @@ use bytes::Bytes;
 use futures::{channel::mpsc, StreamExt};
 use nym_connection_monitor::{ConnectionMonitorTask, ConnectionStatusEvent};
 use nym_gateway_directory::IpPacketRouterAddress;
-use nym_ip_packet_requests::{codec::MultiIpPacketCodec, v8::request::IpPacketRequest};
+use nym_ip_packet_requests::{codec::MultiIpPacketCodec, v8::request::IpPacketRequest, IpPair};
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
@@ -20,12 +20,14 @@ use super::MixnetError;
 #[derive(Debug)]
 pub(crate) struct MixnetProcessorConfig {
     pub(crate) ip_packet_router_address: IpPacketRouterAddress,
+    our_ips: IpPair,
 }
 
 impl MixnetProcessorConfig {
-    pub(crate) fn new(ip_packet_router_address: IpPacketRouterAddress) -> Self {
+    pub(crate) fn new(ip_packet_router_address: IpPacketRouterAddress, our_ips: IpPair) -> Self {
         MixnetProcessorConfig {
             ip_packet_router_address,
+            our_ips,
         }
     }
 }
@@ -80,7 +82,7 @@ struct MixnetProcessor {
     ip_packet_router_address: IpPacketRouterAddress,
 
     // Our IP addresses
-    our_ips: nym_ip_packet_requests::IpPair,
+    our_ips: IpPair,
 
     // Identifier for ICMP beacon, so we can check incoming ICMP packets to see if we should
     // forward them to the connection monitor
@@ -99,7 +101,7 @@ impl MixnetProcessor {
         mixnet_client: SharedMixnetClient,
         connection_monitor: &ConnectionMonitorTask,
         ip_packet_router_address: IpPacketRouterAddress,
-        our_ips: nym_ip_packet_requests::IpPair,
+        our_ips: IpPair,
         cancel_token: CancellationToken,
         notify_disconnected: oneshot::Sender<()>,
     ) -> Self {
@@ -277,7 +279,6 @@ pub(crate) async fn start_processor(
     dev: AsyncDevice,
     mixnet_client: SharedMixnetClient,
     task_manager: &TaskManager,
-    our_ips: nym_ip_packet_requests::IpPair,
     connection_monitor: &ConnectionMonitorTask,
     cancel_token: CancellationToken,
     notify_disconnected: oneshot::Sender<()>,
@@ -288,7 +289,7 @@ pub(crate) async fn start_processor(
         mixnet_client,
         connection_monitor,
         config.ip_packet_router_address,
-        our_ips,
+        config.our_ips,
         cancel_token,
         notify_disconnected,
     );
