@@ -513,6 +513,14 @@ impl ClientMessage {
             AuthenticatorVersion::UNKNOWN => Err(Error::UnknownVersion),
         }
     }
+
+    pub fn use_surbs(&self) -> bool {
+        match self.version() {
+            AuthenticatorVersion::V2 | AuthenticatorVersion::V3 | AuthenticatorVersion::V4 => false,
+            AuthenticatorVersion::V5 => true,
+            AuthenticatorVersion::UNKNOWN => true,
+        }
+    }
 }
 
 pub trait Id {
@@ -911,7 +919,7 @@ impl From<v5::response::AuthenticatorResponse> for AuthenticatorResponse {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum AuthenticatorVersion {
     V2,
     V3,
@@ -1074,7 +1082,13 @@ impl AuthClient {
         authenticator_address: Recipient,
     ) -> Result<u64> {
         let (data, request_id) = message.bytes(self.nym_address)?;
-        let input_message = create_input_message(authenticator_address, data);
+
+        // We use 20 surbs for the connect request because typically the
+        // authenticator mixnet client on the nym-node is configured to have a min
+        // threshold of 10 surbs that it reserves for itself to request additional
+        // surbs.
+        let surbs = if message.use_surbs() { 20 } else { 0 };
+        let input_message = create_input_message(authenticator_address, data, surbs);
 
         self.mixnet_sender
             .send(input_message)
@@ -1155,6 +1169,16 @@ fn check_auth_message_version(message: &ReconstructedMessage) -> Result<Authenti
     }
 }
 
-fn create_input_message(recipient: Recipient, data: Vec<u8>) -> nym_sdk::mixnet::InputMessage {
-    nym_sdk::mixnet::InputMessage::new_regular(recipient, data, TransmissionLane::General, None)
+fn create_input_message(
+    recipient: Recipient,
+    data: Vec<u8>,
+    surbs: u32,
+) -> nym_sdk::mixnet::InputMessage {
+    nym_sdk::mixnet::InputMessage::new_anonymous(
+        recipient,
+        data,
+        surbs,
+        TransmissionLane::General,
+        None,
+    )
 }
