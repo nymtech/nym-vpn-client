@@ -416,7 +416,8 @@ impl ClientMessage {
                                         ipv6: final_message
                                             .gateway_client_ipv6()
                                             .ok_or(Error::UnsupportedMessage)?,
-                                    },
+                                    }
+                                    .into(),
                                     mac: ClientMac::new(final_message.gateway_client_mac()),
                                 },
                                 credential: final_message.credential(),
@@ -871,9 +872,9 @@ impl From<v4::response::AuthenticatorResponse> for AuthenticatorResponse {
     }
 }
 
-impl From<v5::response::AuthenticatorResponseData> for AuthenticatorResponse {
-    fn from(value: v5::response::AuthenticatorResponseData) -> Self {
-        match value {
+impl From<v5::response::AuthenticatorResponse> for AuthenticatorResponse {
+    fn from(value: v5::response::AuthenticatorResponse) -> Self {
+        match value.data {
             v5::response::AuthenticatorResponseData::PendingRegistration(
                 pending_registration_response,
             ) => Self::PendingRegistration(Box::new(pending_registration_response)),
