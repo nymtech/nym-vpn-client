@@ -362,11 +362,11 @@ mod tests {
             }]),
             system_configuration: None,
             network_compatibility: Some(NetworkCompatibility {
-                core: "".to_string(),
-                ios: "".to_string(),
-                macos: "".to_string(),
-                tauri: "".to_string(),
-                android: "".to_string(),
+                core: "1.1.1".to_string(),
+                ios: "1.1.1".to_string(),
+                macos: "1.1.1".to_string(),
+                tauri: "1.1.1".to_string(),
+                android: "1.1.1".to_string(),
             }),
         };
         assert_eq!(network, expected_network);
