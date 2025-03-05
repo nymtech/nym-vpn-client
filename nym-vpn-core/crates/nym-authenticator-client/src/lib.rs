@@ -47,7 +47,7 @@ impl Versionable for v4::registration::InitMessage {
 
 impl Versionable for v5::registration::InitMessage {
     fn version(&self) -> AuthenticatorVersion {
-        AuthenticatorVersion::V4
+        AuthenticatorVersion::V5
     }
 }
 
@@ -71,7 +71,7 @@ impl Versionable for v4::registration::FinalMessage {
 
 impl Versionable for v5::registration::FinalMessage {
     fn version(&self) -> AuthenticatorVersion {
-        AuthenticatorVersion::V4
+        AuthenticatorVersion::V5
     }
 }
 
@@ -95,7 +95,7 @@ impl Versionable for v4::topup::TopUpMessage {
 
 impl Versionable for v5::topup::TopUpMessage {
     fn version(&self) -> AuthenticatorVersion {
-        AuthenticatorVersion::V4
+        AuthenticatorVersion::V5
     }
 }
 
