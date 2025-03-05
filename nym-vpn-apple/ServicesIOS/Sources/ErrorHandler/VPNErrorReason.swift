@@ -1,6 +1,7 @@
 #if os(iOS)
 import Foundation
 import MixnetLibrary
+import Theme
 
 public enum VPNErrorReason: LocalizedError {
     case internalError(details: String)
@@ -24,7 +25,11 @@ public enum VPNErrorReason: LocalizedError {
     case forgetAccount(details: String)
     case unkownTunnelState
 
+    private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
+
     public static let domain = "ErrorHandler.VPNErrorReason"
+
+    // MARK: - Initializer from VpnError
 
     // swiftlint:disable:next function_body_length
     public init(with vpnError: VpnError) {
@@ -125,9 +130,9 @@ public enum VPNErrorReason: LocalizedError {
             let newFailed = failed.compactMap {
                 switch $0 {
                 case .noAccountStored:
-                    return "No account stored"
+                    return "errorReason.noAccountStored".localizedString
                 case .noDeviceStored:
-                    return "No device stored"
+                    return "errorReason.noDeviceStored".localizedString
                 case let .vpnApi(vpnApiErrorResponse):
                     return vpnApiErrorResponse.message
                 case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
@@ -142,42 +147,85 @@ public enum VPNErrorReason: LocalizedError {
             let messageString: String
             switch details {
             case .registrationInProgress:
-                messageString = "Registration in progress."
+                messageString = "errorReason.registrationInProgress".localizedString
             case let .updateDeviceErrorResponse(details):
                 messageString = details.message
-            case let .unexpectedResponse(message), let .removeAccount(message), let .removeDeviceKeys(message),
-                let .resetCredentialStorage(message), let .removeAccountFiles(message), let .initDeviceKeys(message):
+            case let .unexpectedResponse(message),
+                let .removeAccount(message), let .removeDeviceKeys(message),
+                let .resetCredentialStorage(message), let .removeAccountFiles(message),
+                let .initDeviceKeys(message):
                 messageString = message
             }
             self = .forgetAccount(details: messageString)
         }
     }
 
+    // MARK: - Initializer from NSError
+    // swiftlint:disable:next function_body_length
     public init?(nsError: NSError) {
-        guard nsError.domain == VPNErrorReason.domain else { return nil }
-        switch nsError.code {
-        case 0:
-            self = .internalError(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
-        case 1:
-            self = .networkConnectionError(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
-        case 5:
-            self = .invalidStateError(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
-        case 7:
+        guard nsError.domain == VPNErrorReason.domain,
+              let errorCode = VPNErrorReasonCode(rawValue: nsError.code)
+        else {
+            return nil
+        }
+        switch errorCode {
+        case .internalError:
+            self = .internalError(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .storage:
+            self = .storage(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .networkConnectionError:
+            self = .networkConnectionError(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .invalidStateError:
+            self = .invalidStateError(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .noAccountStored:
             self = .noAccountStored
-        case 9:
+        case .accountNotRegistered:
             self = .accountNotRegistered
-        case 14:
+        case .noDeviceIdentity:
             self = .noDeviceIdentity
-        case 15:
+        case .vpnApi:
+            self = .vpnApi(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .vpnApiTimeout:
             self = .vpnApiTimeout
-        case 19:
+        case .invalidMnemonic:
+            self = .invalidMnemonic(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .invalidAccountStoragePath:
             self = .invalidAccountStoragePath(details: nsError.localizedDescription)
-        case 23:
-            self = .invalidMnemonic(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
-        default:
+        case .unregisterDevice:
+            self = .unregisterDevice(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .storeAccount:
+            self = .storeAccount(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .syncAccount:
+            self = .syncAccount(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .syncDevice:
+            self = .syncDevice(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .registerDevice:
+            self = .registerDevice(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .requestZknym:
+            self = .requestZknym(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .requestZkNymBundle:
+            let decoder = JSONDecoder()
+            var successes = [String]()
+            var failures = [String]()
+            if let successesString = nsError.userInfo["requestZknymSuccesses"] as? String,
+               let jsonData = successesString.data(using: .utf8),
+               let decodedSuccesses = try? decoder.decode([String].self, from: jsonData) {
+                successes = decodedSuccesses
+            }
+            if let failuresString = nsError.userInfo["requestZknymFailures"] as? String,
+               let jsonData = failuresString.data(using: .utf8),
+               let decodedFailures = try? decoder.decode([String].self, from: jsonData) {
+                failures = decodedFailures
+            }
+            self = .requestZkNymBundle(successes: successes, failed: failures)
+        case .forgetAccount:
+            self = .forgetAccount(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .unkownTunnelState:
             self = .unkownTunnelState
         }
     }
+
+    // MARK: - Error Description & NSError Conversion
 
     public var errorDescription: String? {
         description
@@ -185,18 +233,16 @@ public enum VPNErrorReason: LocalizedError {
 
     public var nsError: NSError {
         let jsonEncoder = JSONEncoder()
-
         var userInfo: [String: String] = [
             "details": description
         ]
-        let requestZknymDetails = requestZknymDetails
-        if let requestZknymDetails,
+        if let requestZknymDetails = requestZknymDetails,
            !requestZknymDetails.successes.isEmpty,
            let jsonData = try? jsonEncoder.encode(requestZknymDetails.successes),
            let jsonString = String(data: jsonData, encoding: .utf8) {
             userInfo["requestZknymSuccesses"] = jsonString
         }
-        if let requestZknymDetails,
+        if let requestZknymDetails = requestZknymDetails,
            !requestZknymDetails.failures.isEmpty,
            let jsonData = try? jsonEncoder.encode(requestZknymDetails.failures),
            let jsonString = String(data: jsonData, encoding: .utf8) {
@@ -210,83 +256,53 @@ public enum VPNErrorReason: LocalizedError {
     }
 }
 
-extension VPNErrorReason: Equatable {
-    public static func == (lhs: VPNErrorReason, rhs: VPNErrorReason) -> Bool {
-        lhs.errorCode == rhs.errorCode
-    }
-}
-
-private extension VPNErrorReason {
+extension VPNErrorReason {
     var errorCode: Int {
-        switch self {
-        case .internalError:
-            0
-        case .storage:
-            1
-        case .networkConnectionError:
-            2
-        case .invalidStateError:
-            3
-        case .noAccountStored:
-            4
-        case .accountNotRegistered:
-            5
-        case .noDeviceIdentity:
-            6
-        case .vpnApi:
-            7
-        case .vpnApiTimeout:
-            8
-        case .invalidMnemonic:
-            9
-        case .invalidAccountStoragePath:
-            10
-        case .unregisterDevice:
-            11
-        case .storeAccount:
-            12
-        case .syncAccount:
-            13
-        case .syncDevice:
-            14
-        case .registerDevice:
-            15
-        case .requestZknym:
-            16
-        case .requestZkNymBundle:
-            17
-        case .forgetAccount:
-            18
-        case .unkownTunnelState:
-            19
-        }
+        VPNErrorReasonCode(vpnErrorReason: self)?.rawValue ?? 0
     }
 
-    // TODO: localize
     var description: String {
         switch self {
-        case let.internalError(details: details), let .storage(details: details),
-            let .networkConnectionError(details: details), let .invalidStateError(details: details),
-            let .vpnApi(details: details), let .invalidMnemonic(details: details),
-            let .invalidAccountStoragePath(details: details), let .unregisterDevice(details: details),
-            let .storeAccount(details: details), let .syncAccount(details: details),
-            let .syncDevice(details: details), let .registerDevice(details: details),
-            let .requestZknym(details: details), let .forgetAccount(details: details):
-            return details
-        case let .requestZkNymBundle(successes: successes, failed: failed):
-            let successText = successes.first ?? ""
-            let failuresText = failed.first ?? ""
-            return "\(successText) \(failuresText)"
+        case let .internalError(details):
+            details
+        case let .storage(details):
+            details
+        case let .networkConnectionError(details):
+            details
+        case let .invalidStateError(details):
+            details
         case .noAccountStored:
-            return "No account stored. Please add a mnemonic."
+            "errorReason.noAccountStored".localizedString
         case .accountNotRegistered:
-            return "Account not registered. Please retry."
+            "errorReason.accountNotRegistered".localizedString
         case .noDeviceIdentity:
-            return "No device identity. Please reatry."
+            "errorReason.noDeviceStored".localizedString
+        case let .vpnApi(details):
+            details
         case .vpnApiTimeout:
-            return "API timeout. Please retry."
+            "error.timeout".localizedString
+        case let .invalidMnemonic(details):
+            details
+        case let .invalidAccountStoragePath(details):
+            details
+        case let .unregisterDevice(details):
+            details
+        case let .storeAccount(details):
+            details
+        case let .syncAccount(details):
+            details
+        case let .syncDevice(details):
+            details
+        case let .registerDevice(details):
+            details
+        case let .requestZknym(details):
+            details
+        case let .requestZkNymBundle(successes, failed):
+            "\(successes.first ?? "") \(failed.first ?? "")"
+        case let .forgetAccount(details):
+            details
         case .unkownTunnelState:
-            return "Unknown tunnel state. Please retry."
+            "".localizedString
         }
     }
 
@@ -296,6 +312,81 @@ private extension VPNErrorReason {
             return (successes, failed)
         default:
             return nil
+        }
+    }
+}
+
+extension VPNErrorReason: Equatable {
+    public static func == (lhs: VPNErrorReason, rhs: VPNErrorReason) -> Bool {
+        lhs.errorCode == rhs.errorCode
+    }
+}
+
+/// The VPNErrorReasonCode mirrors the error codes as raw integers and can be constructed from a VPNErrorReason.
+enum VPNErrorReasonCode: Int, RawRepresentable {
+    case internalError
+    case storage
+    case networkConnectionError
+    case invalidStateError
+    case noAccountStored
+    case accountNotRegistered
+    case noDeviceIdentity
+    case vpnApi
+    case vpnApiTimeout
+    case invalidMnemonic
+    case invalidAccountStoragePath
+    case unregisterDevice
+    case storeAccount
+    case syncAccount
+    case syncDevice
+    case registerDevice
+    case requestZknym
+    case requestZkNymBundle
+    case forgetAccount
+    case unkownTunnelState
+
+    init?(vpnErrorReason: VPNErrorReason) {
+        switch vpnErrorReason {
+        case .internalError:
+            self = .internalError
+        case .storage:
+            self = .storage
+        case .networkConnectionError:
+            self = .networkConnectionError
+        case .invalidStateError:
+            self = .invalidStateError
+        case .noAccountStored:
+            self = .noAccountStored
+        case .accountNotRegistered:
+            self = .accountNotRegistered
+        case .noDeviceIdentity:
+            self = .noDeviceIdentity
+        case .vpnApi:
+            self = .vpnApi
+        case .vpnApiTimeout:
+            self = .vpnApiTimeout
+        case .invalidMnemonic:
+            self = .invalidMnemonic
+        case .invalidAccountStoragePath:
+            self = .invalidAccountStoragePath
+        case .unregisterDevice:
+            self = .unregisterDevice
+        case .storeAccount:
+            self = .storeAccount
+        case .syncAccount:
+            self = .syncAccount
+        case .syncDevice:
+            self = .syncDevice
+        case .registerDevice:
+            self = .registerDevice
+        case .requestZknym:
+            self = .requestZknym
+        case .requestZkNymBundle:
+            self = .requestZkNymBundle
+        case .forgetAccount:
+            self = .forgetAccount
+        case .unkownTunnelState:
+            self = .unkownTunnelState
         }
     }
 }

@@ -6,6 +6,8 @@ import UIComponents
 
 public struct LogsView: View {
     @ObservedObject private var viewModel: LogsViewModel
+    @State var isExportButtonHovered = false
+    @State var isDeleteButtonHovered = false
 
     public init(viewModel: LogsViewModel) {
         self.viewModel = viewModel
@@ -32,7 +34,7 @@ public struct LogsView: View {
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
-            NymColor.navigationBarBackground
+            NymColor.elevation
                 .ignoresSafeArea()
         }
         .overlay {
@@ -77,7 +79,8 @@ private extension LogsView {
                 .foregroundStyle(NymColor.sysOnSurface)
                 .textStyle(.LabelLegacy.Medium.primary)
         }
-        .contentShape(Rectangle())
+        .contentShape(RoundedRectangle(cornerRadius: 8))
+        .padding(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 16))
     }
 
     @ViewBuilder
@@ -86,14 +89,21 @@ private extension LogsView {
 #if os(iOS)
                 ShareLink(item: url) {
                     button(systemImageName: "square.and.arrow.up", title: viewModel.exportLocalizedString)
+                        .background(
+                            isExportButtonHovered ? NymColor.elevationHover : NymColor.elevation,
+                            in: RoundedRectangle(cornerRadius: 8)
+                        )
                 }
                 .disabled(viewModel.logLines.isEmpty)
                 .simultaneousGesture(
                     TapGesture().onEnded { viewModel.impactGenerator.impact() }
                 )
-#endif
-#if os(macOS)
+#elseif os(macOS)
             button(systemImageName: "square.and.arrow.up", title: viewModel.exportLocalizedString)
+                .background(
+                    isExportButtonHovered ? NymColor.elevationHover : NymColor.elevation,
+                    in: RoundedRectangle(cornerRadius: 8)
+                )
                 .onTapGesture {
                     guard !viewModel.logLines.isEmpty else { return }
                     viewModel.isFileExporterPresented.toggle()
@@ -113,6 +123,10 @@ private extension LogsView {
                     viewModel.isDeleteDialogDisplayed.toggle()
                 }
             }
+            .background(
+                isDeleteButtonHovered ? NymColor.elevationHover : NymColor.elevation,
+                in: RoundedRectangle(cornerRadius: 8)
+            )
     }
 
     func buttonsSection() -> some View {
@@ -120,8 +134,14 @@ private extension LogsView {
             Spacer()
             if #available(iOS 17.0, *), #available(macOS 14.0, *) {
                 exportButton()
+                    .onHover { newValue in
+                        isExportButtonHovered = newValue
+                    }
                 Spacer()
                 deleteButton()
+                    .onHover { newValue in
+                        isDeleteButtonHovered = newValue
+                    }
             } else {
                 exportButton()
                 Spacer()
@@ -130,7 +150,7 @@ private extension LogsView {
             Spacer()
         }
         .background {
-            NymColor.navigationBarBackground
+            NymColor.elevation
         }
         .frame(minHeight: 80)
     }
@@ -158,28 +178,22 @@ private extension LogsView {
 
     @ViewBuilder
     func logsView() -> some View {
-        ScrollViewReader { proxy in
-            ScrollView(.vertical) {
-                LazyVStack(alignment: .leading) {
-                    ForEach(viewModel.logLines.indices, id: \.self) { index in
-                        Text(viewModel.logLines[index])
-                            .id(index)
-                            .onTapGesture(count: 2) {
-                                viewModel.copyToPasteboard(index: index)
-                            }
-                    }
-                }
-                .padding()
-            }
-            .onAppear {
-                withAnimation {
-                    proxy.scrollTo(viewModel.lastLogIndex, anchor: .bottom)
+        ScrollView(.vertical) {
+            LazyVStack(alignment: .leading) {
+                ForEach(viewModel.logLines.indices.reversed(), id: \.self) { index in
+                    Text(viewModel.logLines[index])
+                        .onTapGesture(count: 2) {
+                            viewModel.copyToPasteboard(index: index)
+                        }
                 }
             }
-            .onChange(of: viewModel.logLines) { _ in
-                withAnimation {
-                    proxy.scrollTo(viewModel.lastLogIndex, anchor: .bottom)
-                }
+            .padding()
+
+            if viewModel.logLines.count >= viewModel.lineLimit {
+                Text("logs.limitReached".localizedString)
+                    .textStyle(NymTextStyle.Body.Medium.regular)
+                    .foregroundStyle(NymColor.info)
+                    .padding(8)
             }
         }
     }

@@ -33,7 +33,6 @@ public struct NymColor {
 
     // MARK: - Key -
     public static let statusGreen = Color(.statusGreen)
-    public static let disconnect = Color(.disconnect)
 
     // MARK: - Settings -
     public static let settingsSeparator = Color(.settingsSeparator)

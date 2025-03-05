@@ -175,11 +175,11 @@ sfltool resetbtm
                     daemonStateCancellable.cancel()
                     self.daemonStateCancellable = nil
                 }
-                self.secondsRemaining -= 1
+                secondsRemaining -= 1
 
-                if self.secondsRemaining <= 0 {
-                    self.timerCancellable?.cancel()
-                    self.completeAction()
+                if secondsRemaining <= 0 {
+                    timerCancellable?.cancel()
+                    completeAction()
                 }
             }
     }

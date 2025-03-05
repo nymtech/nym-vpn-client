@@ -529,6 +529,17 @@
         }
       }
     },
+    "errorReason.accountNotRegistered" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account not registered. Please try again."
+          }
+        }
+      }
+    },
     "errorReason.badBandwidthIncrease" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -650,6 +661,17 @@
         }
       }
     },
+    "errorReason.registrationInProgress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registration in progress. Please try again."
+          }
+        }
+      }
+    },
     "errorReason.resolveGatewayAddrs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -723,6 +745,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unknown reason. Please try again."
+          }
+        }
+      }
+    },
+    "errorReason.unknownTunnelState" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown tunnel state. Please try again."
           }
         }
       }
@@ -1449,6 +1482,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Export"
+          }
+        }
+      }
+    },
+    "logs.limitReached" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Displaying the last 1000 lines. Please export to see the full log."
           }
         }
       }

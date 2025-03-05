@@ -30,6 +30,8 @@ public enum ErrorReason: LocalizedError {
     case startLocalDnsResolver
     case unknown
 
+    private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
+
     public static let domain = "ErrorHandler.ErrorReason"
 
 #if os(iOS)
@@ -183,13 +185,13 @@ public enum ErrorReason: LocalizedError {
         case .duplicateTunFd:
             self = .duplicateTunFd
         case .syncAccount:
-            self = .syncAccount(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
+            self = .syncAccount(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .syncDevice:
-            self = .syncDevice(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
+            self = .syncDevice(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .registerDevice:
-            self = .registerDevice(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
+            self = .registerDevice(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .requestZknym:
-            self = .requestZknym(details: nsError.userInfo["details"] as? String ?? "Something went wrong.")
+            self = .requestZknym(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .requestZkNymBundle:
             let decoder = JSONDecoder()
             var successes = [String]()

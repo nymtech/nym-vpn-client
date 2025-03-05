@@ -47,11 +47,9 @@ public enum ConnectButtonState {
         switch self {
         case .connect, .noInternet:
             NymColor.accent
-        case .disconnect:
-            NymColor.disconnect
         case .installingDaemon, .noInternetReconnect:
             NymColor.sysSecondary
-        case .stop, .disconnecting:
+        case .stop, .disconnecting, .disconnect:
             NymColor.error
         }
     }

@@ -91,7 +91,6 @@ public final class HelperManager {
 // MARK: - Private -
 private extension HelperManager {
     func setup() {
-        updateDaemonState()
         starPolling()
     }
 

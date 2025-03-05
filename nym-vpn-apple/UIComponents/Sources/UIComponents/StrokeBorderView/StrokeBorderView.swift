@@ -36,8 +36,12 @@ public struct StrokeBorderView<Content: View>: View {
             Text(strokeTitle)
                 .foregroundStyle(NymColor.sysOnSurface)
                 .textStyle(.BodyLegacy.Small.primary)
-                .padding(4)
-                .background(NymColor.background, in: RoundedRectangle(cornerRadius: 8))
+                .padding(.horizontal, 4)
+                .background(
+                    Rectangle()
+                        .fill(NymColor.background)
+                        .frame(height: 3)
+                )
                 .position(x: strokeTitleLeftMargin, y: 0)
         }
     }
