@@ -426,7 +426,7 @@ async fn wg_probe(
                             gateway_client: v5::registration::GatewayClient::new(
                                 &private_key,
                                 pending_registration_response.pub_key().inner(),
-                                pending_registration_response.private_ips().into(),
+                                pending_registration_response.private_ips(),
                                 pending_registration_response.nonce(),
                             ),
                             credential: None,
