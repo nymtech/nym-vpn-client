@@ -266,6 +266,26 @@ impl TopUpMessage for v3::topup::TopUpMessage {
     }
 }
 
+impl TopUpMessage for v4::topup::TopUpMessage {
+    fn pub_key(&self) -> PeerPublicKey {
+        self.pub_key
+    }
+
+    fn credential(&self) -> CredentialSpendingData {
+        self.credential.clone()
+    }
+}
+
+impl TopUpMessage for v5::topup::TopUpMessage {
+    fn pub_key(&self) -> PeerPublicKey {
+        self.pub_key
+    }
+
+    fn credential(&self) -> CredentialSpendingData {
+        self.credential.clone()
+    }
+}
+
 pub enum ClientMessage {
     Initial(Box<dyn InitMessage + Send + Sync + 'static>),
     Final(Box<dyn FinalMessage + Send + Sync + 'static>),
@@ -965,9 +985,14 @@ impl From<semver::Version> for AuthenticatorVersion {
         if semver.minor == 1 && semver.patch >= 10 {
             return Self::V3;
         }
-        // WIP(JON): confirm this!
-        if semver.minor < 7 {
+        if semver.minor < 6 {
             return Self::V4;
+        }
+        if semver.minor == 6 && semver.patch == 0 {
+            return Self::V4;
+        }
+        if semver.minor == 6 && semver.patch >= 1 {
+            return Self::V5;
         }
         Self::LATEST
     }
