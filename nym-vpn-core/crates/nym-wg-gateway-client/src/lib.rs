@@ -358,6 +358,11 @@ impl WgGatewayClient {
                     pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
                 }))
             }
+            AuthenticatorVersion::V5 => {
+                ClientMessage::Initial(Box::new(v5::registration::InitMessage {
+                    pub_key: PeerPublicKey::new(self.keypair.public_key().to_bytes().into()),
+                }))
+            }
             AuthenticatorVersion::UNKNOWN => return Err(Error::UnsupportedAuthenticatorVersion),
         };
         let response = self
@@ -410,6 +415,17 @@ impl WgGatewayClient {
                     AuthenticatorVersion::V4 => {
                         ClientMessage::Final(Box::new(v4::registration::FinalMessage {
                             gateway_client: v4::registration::GatewayClient::new(
+                                self.keypair.private_key(),
+                                pending_registration_response.pub_key().inner(),
+                                pending_registration_response.private_ips().into(),
+                                pending_registration_response.nonce(),
+                            ),
+                            credential,
+                        }))
+                    }
+                    AuthenticatorVersion::V5 => {
+                        ClientMessage::Final(Box::new(v5::registration::FinalMessage {
+                            gateway_client: v5::registration::GatewayClient::new(
                                 self.keypair.private_key(),
                                 pending_registration_response.pub_key().inner(),
                                 pending_registration_response.private_ips(),
