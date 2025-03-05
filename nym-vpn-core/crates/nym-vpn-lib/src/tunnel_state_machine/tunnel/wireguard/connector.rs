@@ -104,7 +104,9 @@ impl Connector {
             return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
         };
         let entry_version = selected_gateways.entry.version.clone().into();
+        tracing::info!("Entry gateway version: {entry_version}");
         let exit_version = selected_gateways.exit.version.clone().into();
+        tracing::info!("Exit gateway version: {exit_version}");
         let auth_client = AuthClient::new(mixnet_client).await;
 
         let mut wg_entry_gateway_client = if enable_credentials_mode {

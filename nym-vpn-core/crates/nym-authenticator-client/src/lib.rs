@@ -1,4 +1,5 @@
 use std::{
+    fmt,
     net::{Ipv4Addr, Ipv6Addr},
     time::Duration,
 };
@@ -930,6 +931,18 @@ pub enum AuthenticatorVersion {
 
 impl AuthenticatorVersion {
     pub const LATEST: AuthenticatorVersion = AuthenticatorVersion::V5;
+}
+
+impl fmt::Display for AuthenticatorVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::V2 => write!(f, "v2"),
+            Self::V3 => write!(f, "v3"),
+            Self::V4 => write!(f, "v4"),
+            Self::V5 => write!(f, "v5"),
+            Self::UNKNOWN => write!(f, "unknown"),
+        }
+    }
 }
 
 impl From<u8> for AuthenticatorVersion {
