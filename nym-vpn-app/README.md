@@ -89,11 +89,10 @@ run tauri commands you can use
 npm run tauri help
 ```
 
-If you want to run tauri through cargo you can install it on your
-system, then you can run tauri commands via `cargo`
+Alternatively, to run tauri through `cargo`, install `tauri-cli` globally:
 
 ```
-cargo install tauri-cli@^2.0.0-rc
+cargo install tauri-cli@^2.3.0
 cargo tauri help
 ```
 
@@ -126,9 +125,9 @@ RUST_LOG=info,nym_vpn_app=trace cargo tauri dev
 In a PowerShell terminal run
 
 ```powershell
-$env:RUST_LOG='debug,nym_vpn_app=trace'; cargo tauri dev; $env:RUST_LOG=$null
+$env:RUST_LOG='debug,nym_vpn_app=trace'; npm run dev:app; $env:RUST_LOG=$null
 # or using cli flag -L
-cargo tauri dev -- -- -Ltrace
+npm run dev:app -- -- -- -Ltrace
 ```
 
 ## Dev in the browser
