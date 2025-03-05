@@ -308,10 +308,10 @@ mod tests {
                 }
             ],
             "network_compatibility": {
-                "core": "1.1.1"
-                "ios": "1.1.1"
-                "macos": "1.1.1"
-                "tauri": "1.1.1"
+                "core": "1.1.1",
+                "ios": "1.1.1",
+                "macos": "1.1.1",
+                "tauri": "1.1.1",
                 "android": "1.1.1"
             }
         }"#;
