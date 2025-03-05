@@ -207,6 +207,7 @@ pub(crate) fn start(args: CliArgs) -> Result<(), windows_service::Error> {
 
         println!("Configuring logging to file...");
         let _guard = logging::setup_logging(logging::Options {
+            verbosity_level: args.verbosity_level(),
             enable_file_log: true,
             enable_stdout_log: false,
         });

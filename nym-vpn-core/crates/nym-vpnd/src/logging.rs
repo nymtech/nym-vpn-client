@@ -1,17 +1,18 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use tracing::Level;
 use tracing_appender::non_blocking::WorkerGuard;
 #[cfg(target_os = "macos")]
 use tracing_oslog::OsLogger;
 use tracing_subscriber::{
-    filter::LevelFilter, fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt,
-    EnvFilter, Layer,
+    fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer,
 };
 
 use crate::service;
 
 pub struct Options {
+    pub verbosity_level: Level,
     pub enable_file_log: bool,
     pub enable_stdout_log: bool,
 }
@@ -39,7 +40,7 @@ static WARN_CRATES: &[&str; 1] = &["hickory_server"];
 
 pub fn setup_logging(options: Options) -> Option<WorkerGuard> {
     let mut env_filter = EnvFilter::builder()
-        .with_default_directive(LevelFilter::INFO.into())
+        .with_default_directive(options.verbosity_level.into())
         .from_env_lossy();
 
     for crate_name in INFO_CRATES {

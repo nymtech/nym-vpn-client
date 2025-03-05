@@ -14,6 +14,10 @@ fn pretty_build_info_static() -> &'static str {
 #[derive(Parser, Clone, Debug)]
 #[clap(author = "Nymtech", version, about, long_version = pretty_build_info_static())]
 pub(crate) struct CliArgs {
+    /// Logging verbosity.
+    #[arg(long, short = 'v', action = clap::ArgAction::Count)]
+    pub verbose: u8,
+
     /// Path pointing to an env file describing the network.
     #[arg(short, long, value_parser = check_path)]
     pub(crate) config_env_file: Option<PathBuf>,
@@ -37,6 +41,16 @@ pub(crate) struct CliArgs {
 
     #[command(flatten)]
     pub(crate) command: Command,
+}
+
+impl CliArgs {
+    pub fn verbosity_level(&self) -> tracing::Level {
+        match self.verbose {
+            0 => tracing::Level::INFO,
+            1 => tracing::Level::DEBUG,
+            _ => tracing::Level::TRACE,
+        }
+    }
 }
 
 #[derive(Args, Debug, Clone)]

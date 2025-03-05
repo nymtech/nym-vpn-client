@@ -36,6 +36,7 @@ fn run() -> anyhow::Result<()> {
     }
 
     let options = logging::Options {
+        verbosity_level: args.verbosity_level(),
         enable_file_log: args.command.run_as_service,
         enable_stdout_log: true,
     };
@@ -62,6 +63,7 @@ fn run() -> anyhow::Result<()> {
         Ok(windows_service::start(args)?)
     } else {
         let options = logging::Options {
+            verbosity_level: args.verbosity_level(),
             enable_file_log: false,
             enable_stdout_log: true,
         };
