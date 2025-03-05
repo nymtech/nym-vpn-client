@@ -152,7 +152,8 @@ pub fn getSystemMessages() -> Result<Vec<SystemMessage>, VpnError> {
     RUNTIME.block_on(environment::get_system_messages())
 }
 
-/// Returns the system messages for the current network environment
+/// Returns the oldest client versions that are compatible with the
+/// network environment. (environment must be initialized first)
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getNetworkCompatibilityVersions() -> Result<Option<NetworkCompatibility>, VpnError> {
