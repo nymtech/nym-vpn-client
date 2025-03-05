@@ -13,11 +13,11 @@ pub struct NetworkCompatibility {
 
 impl fmt::Display for NetworkCompatibility {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "core: {}", self.core)?;
-        write!(f, "ios: {}", self.ios)?;
-        write!(f, "macos: {}", self.macos)?;
-        write!(f, "tauri: {}", self.tauri)?;
-        write!(f, "android: {}", self.android)?;
+        write!(
+            f,
+            "core: {}, ios: {}, macos: {}, tauri: {}, android: {}",
+            self.core, self.ios, self.macos, self.tauri, self.android
+        )?;
         Ok(())
     }
 }
