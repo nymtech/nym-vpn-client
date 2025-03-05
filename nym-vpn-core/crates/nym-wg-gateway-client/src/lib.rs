@@ -159,7 +159,8 @@ impl WgGatewayLightClient {
                 pub_key: PeerPublicKey::new(self.public_key.to_bytes().into()),
                 credential,
             })),
-            // WIP(JON): Bug here using v3?
+            // NOTE: looks like a bug here using v3. But we're leaving it as is since it's working
+            // and V4 is deprecated in favour of V5
             AuthenticatorVersion::V4 => ClientMessage::TopUp(Box::new(v3::topup::TopUpMessage {
                 pub_key: PeerPublicKey::new(self.public_key.to_bytes().into()),
                 credential,
