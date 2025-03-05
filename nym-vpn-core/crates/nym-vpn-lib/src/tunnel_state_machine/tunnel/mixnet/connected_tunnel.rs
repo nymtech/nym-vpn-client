@@ -1,10 +1,13 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::error::Error as StdError;
+use std::{error::Error as StdError, time::Duration};
 
 use nym_task::TaskManager;
-use tokio::task::{JoinError, JoinHandle};
+use tokio::{
+    sync::oneshot,
+    task::{JoinError, JoinHandle},
+};
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 
@@ -50,7 +53,7 @@ impl ConnectedTunnel {
         let processor_config =
             MixnetProcessorConfig::new(self.assigned_addresses.exit_mix_addresses);
 
-        let (ipr_disconnect_tx, ipr_disconnect_rx) = tokio::sync::oneshot::channel();
+        let (ipr_disconnect_tx, ipr_disconnect_rx) = oneshot::channel();
 
         let processor_handle = crate::mixnet::start_processor(
             processor_config,
@@ -87,19 +90,35 @@ pub type ProcessorHandle = JoinHandle<Result<AsyncDevice, MixnetError>>;
 pub struct TunnelHandle {
     task_manager: TaskManager,
     processor_handle: ProcessorHandle,
-    processor_disconnected: Option<tokio::sync::oneshot::Receiver<()>>,
+    processor_disconnected: Option<oneshot::Receiver<()>>,
 }
 
 impl TunnelHandle {
     /// Cancel tunnel execution.
     pub async fn cancel(&mut self) {
-        tracing::info!("Waiting for the mixnet processor to disconnect");
-        if let Err(err) = self.processor_disconnected.as_mut().unwrap().await {
-            tracing::error!("Failed to wait for processor to disconnect: {err}");
-        }
+        self.wait_for_processor_disconnect().await;
 
         if let Err(e) = self.task_manager.signal_shutdown() {
             tracing::error!("Failed to signal task manager shutdown: {}", e);
+        }
+    }
+
+    async fn wait_for_processor_disconnect(&mut self) {
+        tracing::info!("Waiting for the mixnet processor to disconnect");
+        if let Some(processor_disconnected) = self.processor_disconnected.take() {
+            tokio::time::timeout(Duration::from_secs(10), processor_disconnected)
+                .await
+                .unwrap_or_else(|_| {
+                    tracing::error!(
+                        "Timed out waiting for processor to disconnect. Forcing shutdown."
+                    );
+                    Ok(())
+                })
+                .unwrap_or_else(|e| {
+                    tracing::error!("Failed to wait for processor to disconnect: {e}");
+                });
+        } else {
+            tracing::error!("Processor has already disconnected");
         }
     }
 
