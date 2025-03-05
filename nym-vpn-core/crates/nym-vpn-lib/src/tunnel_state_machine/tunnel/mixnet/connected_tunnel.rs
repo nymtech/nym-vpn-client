@@ -50,8 +50,10 @@ impl ConnectedTunnel {
     pub async fn run(self, tun_device: AsyncDevice) -> TunnelHandle {
         let connection_monitor = ConnectionMonitorTask::setup();
 
-        let processor_config =
-            MixnetProcessorConfig::new(self.assigned_addresses.exit_mix_addresses);
+        let processor_config = MixnetProcessorConfig::new(
+            self.assigned_addresses.exit_mix_addresses,
+            self.assigned_addresses.interface_addresses,
+        );
 
         let (ipr_disconnect_tx, ipr_disconnect_rx) = oneshot::channel();
 
@@ -60,7 +62,6 @@ impl ConnectedTunnel {
             tun_device,
             self.mixnet_client.clone(),
             &self.task_manager,
-            self.assigned_addresses.interface_addresses,
             &connection_monitor,
             self.cancel_token.clone(),
             ipr_disconnect_tx,
