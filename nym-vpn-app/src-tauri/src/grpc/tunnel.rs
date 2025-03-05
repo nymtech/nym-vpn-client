@@ -10,6 +10,14 @@ use super::tunnel_error::TunnelError;
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
+pub struct Address {
+    pub nym_address: String,
+    pub gateway_id: String,
+}
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
 pub struct WgNode {
     pub endpoint: String,
     pub public_key: String,
@@ -21,10 +29,12 @@ pub struct WgNode {
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct MixnetData {
-    pub nym_address: Option<String>,
-    pub exit_ipr: Option<String>,
+    pub nym_address: Option<Address>,
+    pub exit_ipr: Option<Address>,
     pub ipv4: String,
     pub ipv6: String,
+    pub entry_ip: String,
+    pub exit_ip: String,
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
@@ -99,6 +109,15 @@ impl TunnelState {
     }
 }
 
+impl From<p::Address> for Address {
+    fn from(a: p::Address) -> Self {
+        Address {
+            nym_address: a.nym_address,
+            gateway_id: a.gateway_id,
+        }
+    }
+}
+
 impl From<p::WireguardNode> for WgNode {
     fn from(p_data: p::WireguardNode) -> Self {
         WgNode {
@@ -113,10 +132,12 @@ impl From<p::WireguardNode> for WgNode {
 impl From<p::MixnetConnectionData> for MixnetData {
     fn from(p_data: p::MixnetConnectionData) -> Self {
         MixnetData {
-            nym_address: p_data.nym_address.map(|a| a.nym_address),
-            exit_ipr: p_data.exit_ipr.map(|a| a.nym_address),
+            nym_address: p_data.nym_address.map(Address::from),
+            exit_ipr: p_data.exit_ipr.map(Address::from),
             ipv4: p_data.ipv4,
             ipv6: p_data.ipv6,
+            entry_ip: p_data.entry_ip,
+            exit_ip: p_data.exit_ip,
         }
     }
 }

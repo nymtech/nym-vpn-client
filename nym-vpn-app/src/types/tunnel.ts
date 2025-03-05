@@ -86,11 +86,15 @@ export type TunnelStateEvent = {
 
 export type TunnelAction = 'error' | 'reconnect' | 'offline';
 
+export type MxAddress = { nymAddress: string; gatewayId: string };
+
 export type MixnetData = {
-  nymAddress: string | null;
-  exitIpr: string | null;
+  nymAddress: MxAddress | null;
+  exitIpr: MxAddress | null;
   ipv4: string;
   ipv6: string;
+  entryIp: string;
+  exitIp: string;
 };
 
 export type WireguardData = { entry: WgNode; exit: WgNode };
