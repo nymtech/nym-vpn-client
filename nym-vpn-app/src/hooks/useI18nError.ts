@@ -37,8 +37,6 @@ function useI18nError() {
             return t('tunnel.invalid-entry-gw-country');
           case 'invalid-exit-gw-country':
             return t('tunnel.invalid-exit-gw-country');
-          case 'bad-bandwidth-increase':
-            return t('tunnel.bad-bandwidth-increase');
         }
 
         console.warn('unhandled tunnel error', error);

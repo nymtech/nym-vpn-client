@@ -27,7 +27,6 @@ pub enum TunnelError {
     SameEntryAndExitGw,
     InvalidEntryGwCountry,
     InvalidExitGwCountry,
-    BadBandwidthIncrease,
     Api(String),
 }
 
@@ -84,7 +83,9 @@ impl From<BaseErrorStateReason> for TunnelError {
             BaseErrorStateReason::SameEntryAndExitGateway => TunnelError::SameEntryAndExitGw,
             BaseErrorStateReason::InvalidEntryGatewayCountry => TunnelError::InvalidEntryGwCountry,
             BaseErrorStateReason::InvalidExitGatewayCountry => TunnelError::InvalidExitGwCountry,
-            BaseErrorStateReason::BadBandwidthIncrease => TunnelError::BadBandwidthIncrease,
+            BaseErrorStateReason::BadBandwidthIncrease => {
+                TunnelError::internal(BaseErrorStateReason::BadBandwidthIncrease.as_str_name())
+            }
             BaseErrorStateReason::DuplicateTunFd => {
                 TunnelError::internal(BaseErrorStateReason::DuplicateTunFd.as_str_name())
             }

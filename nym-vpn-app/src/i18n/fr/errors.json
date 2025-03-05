@@ -16,8 +16,7 @@
     "dns": "Erreur de DNS",
     "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
     "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
-    "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
-    "bad-bandwidth-increase": "Bandwidth increase error"
+    "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location"
   },
   "countries-request": {
     "entry": "Échec de la recherche des pays de nœuds d'entrée disponibles",

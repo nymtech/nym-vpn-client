@@ -76,7 +76,6 @@ export type TunnelError =
     }
   | { key: 'invalid-entry-gw-country' }
   | { key: 'invalid-exit-gw-country' }
-  | { key: 'bad-bandwidth-increase' }
   | { key: 'api'; data: string };
 
 export type TunnelStateEvent = {
