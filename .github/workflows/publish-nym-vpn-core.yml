@@ -20,7 +20,7 @@ env:
   UPLOAD_DIR_DEB: deb_artifacts
   UPLOAD_DIR_ANDROID: android_artifacts
   UPLOAD_DIR_IOS: ios_artifacts
-  UPLOAD_DIR_WINDOWS: windows_artifacts
+  # UPLOAD_DIR_WINDOWS: windows_artifacts
   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
@@ -34,8 +34,8 @@ jobs:
     uses: ./.github/workflows/build-nym-vpn-core-android.yml
   build-nym-vpn-core-ios:
     uses: ./.github/workflows/build-nym-vpn-core-ios.yml
-  build-nym-vpn-core-windows:
-    uses: ./.github/workflows/build-nym-vpn-core-windows.yml
+  # build-nym-vpn-core-windows:
+  #   uses: ./.github/workflows/build-nym-vpn-core-windows.yml
 
   generate-build-info-core:
     uses: ./.github/workflows/generate-build-info-core.yml
@@ -51,7 +51,7 @@ jobs:
       - build-nym-vpn-core-deb
       - build-nym-vpn-core-android
       - build-nym-vpn-core-ios
-      - build-nym-vpn-core-windows
+      # - build-nym-vpn-core-windows
       - generate-build-info-core
     runs-on: ubuntu-22.04
     permissions:
@@ -131,30 +131,30 @@ jobs:
           ARCHIVE_MAC=${BASENAME}_macos_universal
           ARCHIVE_ANDROID=${BASENAME}_android_aarch64
           ARCHIVE_IOS=${BASENAME}_ios_universal
-          ARCHIVE_WINDOWS=${BASENAME}_windows_x86_64
+          # ARCHIVE_WINDOWS=${BASENAME}_windows_x86_64
           echo "ARCHIVE_LINUX=${ARCHIVE_LINUX}" >> $GITHUB_ENV
           echo "ARCHIVE_MAC=${ARCHIVE_MAC}" >> $GITHUB_ENV
           echo "ARCHIVE_ANDROID=${ARCHIVE_ANDROID}" >> $GITHUB_ENV
           echo "ARCHIVE_IOS=${ARCHIVE_IOS}" >> $GITHUB_ENV
-          echo "ARCHIVE_WINDOWS=${ARCHIVE_WINDOWS}" >> $GITHUB_ENV
+          # echo "ARCHIVE_WINDOWS=${ARCHIVE_WINDOWS}" >> $GITHUB_ENV
 
           mv -v ${{ env.UPLOAD_DIR_LINUX }}   ${ARCHIVE_LINUX} || true
           mv -v ${{ env.UPLOAD_DIR_MAC }}     ${ARCHIVE_MAC} || true
           mv -v ${{ env.UPLOAD_DIR_ANDROID }} ${ARCHIVE_ANDROID} || true
           mv -v ${{ env.UPLOAD_DIR_IOS }}     ${ARCHIVE_IOS} || true
-          mv -v ${{ env.UPLOAD_DIR_WINDOWS }} ${ARCHIVE_WINDOWS} || true
+          # mv -v ${{ env.UPLOAD_DIR_WINDOWS }} ${ARCHIVE_WINDOWS} || true
 
           test -d ${ARCHIVE_LINUX} &&   tar cvzf ${ARCHIVE_LINUX}.tar.gz ${ARCHIVE_LINUX}
           test -d ${ARCHIVE_MAC} &&     tar cvzf ${ARCHIVE_MAC}.tar.gz ${ARCHIVE_MAC}
           test -d ${ARCHIVE_ANDROID} && tar cvzf ${ARCHIVE_ANDROID}.tar.gz ${ARCHIVE_ANDROID}
           test -d ${ARCHIVE_IOS} &&     zip -r ${ARCHIVE_IOS}.zip ${ARCHIVE_IOS}
-          test -d ${ARCHIVE_WINDOWS} && zip -r ${ARCHIVE_WINDOWS}.zip ${ARCHIVE_WINDOWS}
+          # test -d ${ARCHIVE_WINDOWS} && zip -r ${ARCHIVE_WINDOWS}.zip ${ARCHIVE_WINDOWS}
 
           test -f ${ARCHIVE_LINUX}.tar.gz &&    sha256sum ${ARCHIVE_LINUX}.tar.gz > "${ARCHIVE_LINUX}.tar.gz.sha256sum"
           test -f ${ARCHIVE_MAC}.tar.gz &&      sha256sum ${ARCHIVE_MAC}.tar.gz > "${ARCHIVE_MAC}.tar.gz.sha256sum"
           test -f ${ARCHIVE_ANDROID}.tar.gz &&  sha256sum ${ARCHIVE_ANDROID}.tar.gz > "${ARCHIVE_ANDROID}.tar.gz.sha256sum"
           test -f ${ARCHIVE_IOS}.zip &&         sha256sum ${ARCHIVE_IOS}.zip > "${ARCHIVE_IOS}.zip.sha256sum"
-          test -f ${ARCHIVE_WINDOWS}.zip &&     sha256sum ${ARCHIVE_WINDOWS}.zip > "${ARCHIVE_WINDOWS}.zip.sha256sum"
+          # test -f ${ARCHIVE_WINDOWS}.zip &&     sha256sum ${ARCHIVE_WINDOWS}.zip > "${ARCHIVE_WINDOWS}.zip.sha256sum"
 
           if [[ -d ${{ env.UPLOAD_DIR_DEB }} ]]; then
             pushd ${{ env.UPLOAD_DIR_DEB }}
@@ -169,7 +169,7 @@ jobs:
           cat ${ARCHIVE_MAC}.tar.gz.sha256sum >> $GITHUB_ENV || true
           cat ${ARCHIVE_ANDROID}.tar.gz.sha256sum >> $GITHUB_ENV || true
           cat ${ARCHIVE_IOS}.zip.sha256sum >> $GITHUB_ENV || true
-          cat ${ARCHIVE_WINDOWS}.zip.sha256sum >> $GITHUB_ENV || true
+          # cat ${ARCHIVE_WINDOWS}.zip.sha256sum >> $GITHUB_ENV || true
           if [[ -d ${{ env.UPLOAD_DIR_DEB }} ]]; then
             pushd ${{ env.UPLOAD_DIR_DEB }}
             for deb_sha256 in nym-vpn*_amd64.deb.sha256sum; do
@@ -204,7 +204,7 @@ jobs:
           test -f ${{ env.ARCHIVE_MAC }}.tar.gz &&      gh release upload $TAG_NAME ${{ env.ARCHIVE_MAC }}.tar.gz ${{ env.ARCHIVE_MAC }}.tar.gz.sha256sum
           test -f ${{ env.ARCHIVE_IOS }}.zip &&         gh release upload $TAG_NAME ${{ env.ARCHIVE_IOS }}.zip ${{ env.ARCHIVE_IOS }}.zip.sha256sum
           test -f ${{ env.ARCHIVE_ANDROID }}.tar.gz &&  gh release upload $TAG_NAME ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum
-          test -f ${{ env.ARCHIVE_WINDOWS }}.zip &&     gh release upload $TAG_NAME ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum
+          # test -f ${{ env.ARCHIVE_WINDOWS }}.zip &&     gh release upload $TAG_NAME ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum
           test -d ${{ env.UPLOAD_DIR_DEB }} &&          gh release upload $TAG_NAME ${{ env.UPLOAD_DIR_DEB}}/nym-vpn*_amd64.deb ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum
 
       # Upload to CI server
@@ -232,8 +232,8 @@ jobs:
           cp -v ${{ env.ARCHIVE_IOS }}.zip.sha256sum ${{ env.OUTPUT_DIR }} || true
           cp -v ${{ env.ARCHIVE_ANDROID }}.tar.gz ${{ env.OUTPUT_DIR }} || true
           cp -v ${{ env.ARCHIVE_ANDROID }}.tar.gz.sha256sum ${{ env.OUTPUT_DIR }} || true
-          cp -v ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.OUTPUT_DIR }} || true
-          cp -v ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum ${{ env.OUTPUT_DIR }} || true
+          # cp -v ${{ env.ARCHIVE_WINDOWS }}.zip ${{ env.OUTPUT_DIR }} || true
+          # cp -v ${{ env.ARCHIVE_WINDOWS }}.zip.sha256sum ${{ env.OUTPUT_DIR }} || true
           cp -v ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb ${{ env.OUTPUT_DIR }} || true
           cp -v ${{ env.UPLOAD_DIR_DEB }}/nym-vpn*_amd64.deb.sha256sum ${{ env.OUTPUT_DIR }} || true
 
