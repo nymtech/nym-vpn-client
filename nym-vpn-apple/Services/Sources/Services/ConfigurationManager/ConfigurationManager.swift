@@ -11,7 +11,7 @@ import Constants
 import CredentialsManager
 import Logging
 
-public final class ConfigurationManager {
+public final class ConfigurationManager: ObservableObject {
     private let appSettings: AppSettings
     private let credentialsManager: CredentialsManager
     private let logger = Logger(label: "Configuration Manager")
@@ -22,6 +22,16 @@ public final class ConfigurationManager {
 #endif
 
     private var cancellables = Set<AnyCancellable>()
+    private var lastCompatibleAppVersion: String? {
+        didSet {
+            guard let lastCompatibleAppVersion else { return }
+            isCurrentAppVersionCompatible = appVersion.compare(
+                lastCompatibleAppVersion,
+                options: .numeric
+            ) != .orderedAscending 
+        }
+    }
+    private var lastCompatibleCoreVersion: String?
 
     // Source of truth in AppSettings.
     // We need to set same settings in tunnel extension as well.
@@ -58,6 +68,8 @@ public final class ConfigurationManager {
 
     public var accountLinks: AccountLinks?
     public var environmentDidChange: (() -> Void)?
+
+    @Published public var isCurrentAppVersionCompatible = true
 
     public var isSantaClaus: Bool {
         guard isTestFlight || isRunningOnCI else { return false }
@@ -152,6 +164,25 @@ private extension ConfigurationManager {
         try setDaemonEnvironmentVariables()
 #endif
         updateAccountLinks()
+        updateCompatibilityVersions()
+    }
+
+    func updateCompatibilityVersions() {
+        Task {
+            do {
+#if os(iOS)
+                let versions = try getNetworkCompatibilityVersions()
+                lastCompatibleAppVersion = versions?.ios
+                lastCompatibleCoreVersion = versions?.core
+#elseif os(macOS)
+                let versions = try await grpcManager.fetchCompatibleVersions()
+                lastCompatibleAppVersion = versions.macOS
+                lastCompatibleCoreVersion = versions.core
+#endif
+            } catch {
+                logger.error("Failed to update compatibility versions: \(error.localizedDescription)")
+            }
+        }
     }
 
 #if os(iOS)

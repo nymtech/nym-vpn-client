@@ -6,7 +6,7 @@ import TunnelStatus
 import UIComponents
 
 public struct HomeView: View {
-    @StateObject private var viewModel: HomeViewModel
+    @StateObject var viewModel: HomeViewModel
 
     public init(viewModel: HomeViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -45,6 +45,9 @@ private extension HomeView {
         }
         .overlay {
             offlineOverlay()
+        }
+        .overlay {
+            updateAvailableOverlay()
         }
         .snackbar(
             isDisplayed: $viewModel.isSnackBarDisplayed,
@@ -202,37 +205,5 @@ private extension HomeView {
             }
             Spacer()
             .frame(height: viewModel.appSettings.isSmallScreen || Device.isMacOS ? 24 : 8)
-    }
-}
-
-// MARK: - Overlays -
-private extension HomeView {
-    @ViewBuilder
-    func modeInfoOverlay() -> some View {
-        if viewModel.isModeInfoOverlayDisplayed {
-            ModeSelectionInfoView(
-                viewModel:
-                    ModeSelectionInfoViewModel(
-                        externalLinkManager: viewModel.externalLinkManager,
-                        isDisplayed: $viewModel.isModeInfoOverlayDisplayed
-                    )
-            )
-            .transition(.opacity)
-            .animation(.easeInOut, value: viewModel.isModeInfoOverlayDisplayed)
-        }
-    }
-
-    @ViewBuilder
-    func offlineOverlay() -> some View {
-        if viewModel.isOfflineOverlayDisplayed {
-            ActionDialogView(
-                viewModel: ActionDialogViewModel(
-                    isDisplayed: $viewModel.isOfflineOverlayDisplayed,
-                    configuration: viewModel.offlineOverlayConfiguration
-                )
-            )
-            .transition(.opacity)
-            .animation(.easeInOut, value: viewModel.isOfflineOverlayDisplayed)
-        }
     }
 }
