@@ -1404,6 +1404,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34aa73646ffb006b8f5147f3dc182bd4bcb190227ce861fc4a4844bf8e3cb2c0"
 
 [[package]]
+name = "encoding_rs"
+version = "0.8.35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "75030f3c4f45dafd7586dd6780965a8c7e8e285a5ecb86713e63a79c5b2766f3"
+dependencies = [
+ "cfg-if",
+]
+
+[[package]]
 name = "endi"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2163,9 +2172,9 @@ dependencies = [
 
 [[package]]
 name = "hickory-resolver"
-version = "0.24.3"
+version = "0.24.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dcf287bde7b776e85d7188e6e5db7cf410a2f9531fe82817eb87feed034c8d14"
+checksum = "cbb117a1ca520e111743ab2f6688eddee69db4e0ea242545a604dce8a66fd22e"
 dependencies = [
  "cfg-if",
  "futures-util",
@@ -3244,7 +3253,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#63a8f96ea59f355335c1539dc22f31783dc155e9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#247ebb7c4339de0a298a7fcb2574122a8306c3b8"
 dependencies = [
  "const-str",
  "log",
@@ -3256,11 +3265,14 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina#63a8f96ea59f355335c1539dc22f31783dc155e9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#247ebb7c4339de0a298a7fcb2574122a8306c3b8"
 dependencies = [
  "async-trait",
+ "bytes",
+ "encoding_rs",
  "hickory-resolver",
  "http 1.2.0",
+ "mime",
  "nym-bin-common",
  "once_cell",
  "reqwest",

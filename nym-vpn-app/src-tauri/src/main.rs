@@ -25,7 +25,7 @@ use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
 use commands::window as cmd_window;
 use commands::*;
-use states::app::AppState;
+use state::app::AppState;
 use tauri::Manager;
 use tauri_plugin_window_state::StateFlags;
 use tokio::sync::Mutex;
@@ -44,7 +44,7 @@ mod grpc;
 mod log;
 mod misc;
 mod startup_error;
-mod states;
+mod state;
 mod tray;
 mod window;
 
@@ -235,6 +235,7 @@ async fn main() -> Result<()> {
             cmd_daemon::set_network,
             cmd_daemon::system_messages,
             cmd_daemon::feature_flags,
+            cmd_daemon::network_compat,
             cmd_fs::log_dir,
             startup::startup_error,
             cmd_env::env,

@@ -120,3 +120,5 @@ export function isCountry(node: Gateway | Country): node is Country {
     (node as Country).code !== undefined && (node as Country).name !== undefined
   );
 }
+
+export type NetworkCompat = { core: boolean | null; tauri: boolean | null };

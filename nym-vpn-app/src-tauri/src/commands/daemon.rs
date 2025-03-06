@@ -1,7 +1,8 @@
 use crate::env::DEV_MODE;
 use crate::error::BackendError;
 use crate::grpc::client::{FeatureFlags, GrpcClient, SystemMessage, VpndStatus};
-use crate::states::SharedAppState;
+use crate::state::app::NetworkCompat;
+use crate::state::SharedAppState;
 use serde::{Deserialize, Serialize};
 use tauri::State;
 use tracing::{debug, info, instrument, warn};
@@ -83,4 +84,12 @@ pub async fn feature_flags(
             warn!("failed to get feature flags: {:?}", e);
         })
         .map_err(|e| e.into())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn network_compat(
+    app_state: State<'_, SharedAppState>,
+) -> Result<Option<NetworkCompat>, BackendError> {
+    Ok(app_state.lock().await.network_compat.clone())
 }
