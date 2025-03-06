@@ -15,11 +15,13 @@ import Theme
 
     let navTitle = "helper.installView.pageTitle".localizedString
     let infoText = "helper.installView.daemonText".localizedString
+    let copiedSuccesfullyMessage = "helper.installView.copyToClipboardSuccess".localizedString
 
     @Binding var path: NavigationPath
     @Published var steps: [HelperInstallStep] = []
     @Published var secondsRemaining: Int = 5
     @Published var error: Error?
+    @Published var isSnackBarDisplayed = false
 
     public init(
         path: Binding<NavigationPath>,
@@ -90,6 +92,8 @@ sfltool resetbtm
 """
         NSPasteboard.general.prepareForNewContents()
         NSPasteboard.general.setString(text, forType: .string)
+
+        isSnackBarDisplayed = true
     }
 }
 

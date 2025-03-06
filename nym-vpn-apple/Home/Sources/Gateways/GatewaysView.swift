@@ -116,7 +116,7 @@ private extension GatewaysView {
                     .foregroundStyle(NymColor.primary)
                     .textStyle(.Body.Large.regular)
                 Spacer()
-                    .frame(height: 4)
+                    .frame(height: 16)
                 Text("search.noResultsSubtitle".localizedString)
                     .foregroundStyle(NymColor.gray1)
                     .textStyle(.Body.Large.regular)

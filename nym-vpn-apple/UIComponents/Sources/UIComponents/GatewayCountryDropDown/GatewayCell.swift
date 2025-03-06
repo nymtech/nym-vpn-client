@@ -38,6 +38,7 @@ public struct GatewayCell: View {
                 selectionMarkerView()
                 scoreImage()
                 serverDetails()
+                Spacer()
             }
             .contentShape(Rectangle())
             .onTapGesture {
@@ -134,7 +135,7 @@ extension GatewayCell {
     func infoButton() -> some View {
         GenericImage(systemImageName: "info.circle", allowsHover: true)
             .frame(width: 18, height: 18)
-            .padding(22)
+            .padding(19)
     }
 }
 
