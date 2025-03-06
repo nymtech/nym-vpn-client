@@ -17,8 +17,7 @@ impl fmt::Display for NetworkCompatibility {
             f,
             "core: {}, ios: {}, macos: {}, tauri: {}, android: {}",
             self.core, self.ios, self.macos, self.tauri, self.android
-        )?;
-        Ok(())
+        )
     }
 }
 
