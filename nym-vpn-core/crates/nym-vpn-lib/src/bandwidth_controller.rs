@@ -22,6 +22,9 @@ use nym_wg_gateway_client::{
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
+const LOWER_BOUND_CHECK_DURATION: Duration = DEFAULT_PEER_TIMEOUT_CHECK;
+const UPPER_BOUND_CHECK_DURATION: Duration =
+    Duration::from_secs(6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs());
 const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 1024 * 1024; // 1 MB/s
 
 #[derive(thiserror::Error, Debug)]
@@ -111,9 +114,12 @@ impl DepletionRate {
             current_period.as_secs()
         );
         self.available_bandwidth = remaining_bandwidth;
-        // if nothing was consumed since last time, we prefer to stick to the old deplation rate
+        // if nothing was consumed since last time, it's possible we had a recent topup already,
+        // so take the safer approach of waiting minimal interval
         if new_depletion_rate != 0 {
             self.current_depletion_rate = new_depletion_rate;
+        } else {
+            return Ok(Some(DEFAULT_PEER_TIMEOUT_CHECK));
         }
         let Some(estimated_depletion_secs) =
             remaining_bandwidth.checked_div(self.current_depletion_rate)
@@ -128,18 +134,17 @@ impl DepletionRate {
         );
 
         let number_of_checks_before_depletion = estimated_depletion_secs / current_period.as_secs();
+        println!("number_of_checks_before_depletion {number_of_checks_before_depletion}");
         // try and have at least 10 checks before depletion, to be on the safe side...
         if number_of_checks_before_depletion < 10 {
             return Ok(None);
         }
-        if estimated_depletion_secs > 6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
+        if estimated_depletion_secs > UPPER_BOUND_CHECK_DURATION.as_secs() {
             // ... but not too slow, in case bursts come in
-            Ok(Some(Duration::from_secs(
-                6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs(),
-            )))
-        } else if estimated_depletion_secs < DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
+            Ok(Some(UPPER_BOUND_CHECK_DURATION))
+        } else if estimated_depletion_secs < LOWER_BOUND_CHECK_DURATION.as_secs() {
             // ... and not faster then the gateway bandwidth refresh, as that won't produce any change
-            Ok(Some(DEFAULT_PEER_TIMEOUT_CHECK))
+            Ok(Some(LOWER_BOUND_CHECK_DURATION))
         } else {
             Ok(Some(Duration::from_secs(number_of_checks_before_depletion)))
         }
@@ -349,5 +354,83 @@ impl<St: Storage> BandwidthController<St> {
         }
 
         tracing::debug!("BandwidthController: Exiting");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const BW_1KB: u64 = 1024;
+    const BW_1MB: u64 = 1024 * BW_1KB;
+    const BW_128MB: u64 = 128 * BW_1MB;
+    const BW_512MB: u64 = 512 * BW_1MB;
+    const BW_1GB: u64 = 2 * BW_512MB;
+
+    #[test]
+    fn depletion_rate_slow() {
+        let mut depletaion_rate = DepletionRate::default();
+        let mut current_period = DEFAULT_BANDWIDTH_CHECK;
+        // the first check would force the big placeholder values to be replaced by the actual values
+        assert!(depletaion_rate
+            .update_dynamic_check_interval(current_period, BW_512MB)
+            .unwrap()
+            .is_none());
+
+        // simulate 1 byte/second depletion rate
+        let consumed = current_period.as_secs() * 1;
+        current_period = depletaion_rate
+            .update_dynamic_check_interval(current_period, BW_512MB - consumed)
+            .unwrap()
+            .unwrap();
+        assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
+    }
+
+    #[test]
+    fn depletion_rate_fast() {
+        let mut depletaion_rate = DepletionRate::default();
+        let current_period = DEFAULT_BANDWIDTH_CHECK;
+        // the first check would force the big placeholder values to be replaced by the actual values
+        assert!(depletaion_rate
+            .update_dynamic_check_interval(current_period, BW_1GB)
+            .unwrap()
+            .is_none());
+
+        // simulate 128 MB/s depletion rate, so we would be depleted in the next 5 seconds after the function call (too fast)
+        let consumed = current_period.as_secs() * BW_128MB;
+        assert!(depletaion_rate
+            .update_dynamic_check_interval(current_period, BW_1GB - consumed)
+            .unwrap()
+            .is_none());
+    }
+
+    #[test]
+    fn depletion_rate_spike() {
+        let mut depletaion_rate = DepletionRate::default();
+        let mut current_period = DEFAULT_BANDWIDTH_CHECK;
+        let mut current_bandwidth = BW_1GB;
+        // the first check would force the big placeholder values to be replaced by the actual values
+        assert!(depletaion_rate
+            .update_dynamic_check_interval(current_period, current_bandwidth)
+            .unwrap()
+            .is_none());
+
+        // simulate 1 KB/s depletion rate, constant
+        for _ in 0..5 {
+            current_bandwidth -= current_period.as_secs() * BW_1KB;
+            current_period = depletaion_rate
+                .update_dynamic_check_interval(current_period, current_bandwidth)
+                .unwrap()
+                .unwrap();
+            assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
+        }
+
+        // spike a 4 MB/s depletion rate
+        current_bandwidth -= current_period.as_secs() * 3 * (BW_1MB + 0 * BW_1KB);
+        current_period = depletaion_rate
+            .update_dynamic_check_interval(current_period, current_bandwidth)
+            .unwrap()
+            .unwrap();
+        assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
     }
 }
