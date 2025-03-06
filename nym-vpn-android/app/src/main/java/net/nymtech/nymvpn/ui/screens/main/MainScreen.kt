@@ -209,13 +209,35 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		showCompatibilityDialog = false
 	}, title = {
 		Text(
-			text = stringResource(R.string.mode_selection),
+			text = stringResource(R.string.update_required),
 			color = MaterialTheme.colorScheme.onSurface,
 			style = CustomTypography.labelHuge,
 		)
 	}, text = {
+		Column(verticalArrangement = Arrangement.spacedBy(16.dp.scaledHeight())) {
+			Row(
+				horizontalArrangement = Arrangement.spacedBy(10.dp.scaledWidth(), Alignment.CenterHorizontally),
+				verticalAlignment = Alignment.CenterVertically,
+			) {
+				Text(
+					text = stringResource(R.string.app_update_required),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onSurface,
+				)
+			}
+		}
+	}, confirmButton = {
+		MainStyledButton(
+			onClick = {
+				showCompatibilityDialog = false
+				context.openWebUrl(context.getString(R.string.download_url))
+			},
+			content = {
+				Text(text = stringResource(id = R.string.update))
+			},
+		)
+	},)
 
-	})
 
 	Column(
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),

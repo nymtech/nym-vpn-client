@@ -217,6 +217,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	override suspend fun isClientNetworkCompatible(appVersion: String): Boolean {
 		return withContext(ioDispatcher) {
 			// assume compatible
+			initialized.await()
 			val versions = getNetworkCompatibilityVersions() ?: return@withContext true
 			val compatibleVersion = Semver(versions.android)
 			val currentVersion = Semver(appVersion)
