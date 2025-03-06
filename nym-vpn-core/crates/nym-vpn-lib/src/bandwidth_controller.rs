@@ -96,14 +96,20 @@ impl DepletionRate {
         current_period: Duration,
         remaining_bandwidth: u64,
     ) -> Result<Option<Duration>> {
-        let Some(new_depletion_rate) = remaining_bandwidth
-            .saturating_sub(self.available_bandwidth)
+        let Some(new_depletion_rate) = self
+            .available_bandwidth
+            .saturating_sub(remaining_bandwidth)
             .checked_div(current_period.as_secs())
         else {
             return Err(Error::Internal {
                 reason: "check interval shouldn't be 0".to_string(),
             });
         };
+        tracing::debug!(
+            "current depletion rate of {} bytes per current check period of {} seconds",
+            new_depletion_rate,
+            current_period.as_secs()
+        );
         self.available_bandwidth = remaining_bandwidth;
         // if nothing was consumed since last time, we prefer to stick to the old deplation rate
         if new_depletion_rate != 0 {
@@ -116,21 +122,26 @@ impl DepletionRate {
                 reason: "depletion rate shouldn't be 0".to_string(),
             });
         };
-        // try and have at least 10 logs before depletion..
-        let next_timeout_secs = estimated_depletion_secs / 10;
-        if next_timeout_secs == 0 {
+        tracing::debug!(
+            "estimated to deplete current bandwidth in {} seconds = ",
+            estimated_depletion_secs
+        );
+
+        let number_of_checks_before_depletion = estimated_depletion_secs / current_period.as_secs();
+        // try and have at least 10 checks before depletion, to be on the safe side...
+        if number_of_checks_before_depletion < 10 {
             return Ok(None);
         }
-        if next_timeout_secs > 6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
+        if estimated_depletion_secs > 6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
             // ... but not too slow, in case bursts come in
             Ok(Some(Duration::from_secs(
                 6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs(),
             )))
-        } else if next_timeout_secs < DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
+        } else if estimated_depletion_secs < DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
             // ... and not faster then the gateway bandwidth refresh, as that won't produce any change
             Ok(Some(DEFAULT_PEER_TIMEOUT_CHECK))
         } else {
-            Ok(Some(Duration::from_secs(next_timeout_secs)))
+            Ok(Some(Duration::from_secs(number_of_checks_before_depletion)))
         }
     }
 }
@@ -266,6 +277,7 @@ impl<St: Storage> BandwidthController<St> {
                         {
                             Err(e) => tracing::warn!("Error while updating query coefficients: {:?}", e),
                             Ok(Some(new_duration)) => {
+                                tracing::debug!("Adjusting check interval to {} seconds", new_duration.as_secs());
                                 return Some(new_duration);
                             }
                             Ok(None) => {
@@ -274,6 +286,7 @@ impl<St: Storage> BandwidthController<St> {
                                 } else {
                                     TicketType::V1WireguardExit
                                 };
+                                tracing::debug!("Topping up our bandwidth allowance for {ticketbook_type}");
                                 if let Err(e) = self
                                     .top_up_bandwidth(ticketbook_type, &mut wg_gateway_client)
                                     .await
