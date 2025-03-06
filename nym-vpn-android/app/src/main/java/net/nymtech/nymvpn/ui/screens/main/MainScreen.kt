@@ -147,7 +147,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			connectionTime = null
 		}
 		LaunchedEffect(isNetworkCompatible) {
-			if(isNetworkCompatible) return@LaunchedEffect
+			if (isNetworkCompatible) return@LaunchedEffect
 			showCompatibilityDialog = true
 		}
 	}
@@ -236,8 +236,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				Text(text = stringResource(id = R.string.update))
 			},
 		)
-	},)
-
+	})
 
 	Column(
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
