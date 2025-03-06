@@ -36,6 +36,8 @@ pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(60);
 #[derive(Clone, Debug)]
 pub struct VpnApiClient {
     inner: nym_http_api_client::Client,
+    // compensation, in case the skew is too big
+    vpn_api_time: Option<VpnApiTime>,
 }
 
 impl VpnApiClient {
@@ -82,7 +84,7 @@ impl VpnApiClient {
                 builder
             })
             .and_then(|builder| builder.build())
-            .map(|c| Self { inner: c })
+            .map(|c| Self { inner: c, vpn_api_time: None })
             .map_err(VpnApiClientError::FailedToCreateVpnApiClient)
     }
 
@@ -90,16 +92,34 @@ impl VpnApiClient {
         self.inner.current_url()
     }
 
-    pub async fn get_remote_time(&self) -> Result<VpnApiTime> {
+    fn use_remote_time(remote_time: VpnApiTime) -> bool {
+        if remote_time.is_almost_same() {
+            tracing::debug!("{remote_time}");
+            false
+        } else if remote_time.is_acceptable_synced() {
+            tracing::info!("{remote_time}");
+            false
+        } else {
+            tracing::warn!(
+                "The time skew between the local and remote time is too large, we'll use remote instead for JWT ({remote_time})."
+            );
+            true
+        }
+    }
+
+    pub async fn sync_with_remote_time(&mut self) -> Result<()> {
         let time_before = OffsetDateTime::now_utc();
         let remote_timestamp = self.get_health().await?.timestamp_utc;
         let time_after = OffsetDateTime::now_utc();
 
-        Ok(VpnApiTime::from_remote_timestamp(
-            time_before,
-            remote_timestamp,
-            time_after,
-        ))
+        let remote_time =
+            VpnApiTime::from_remote_timestamp(time_before, remote_timestamp, time_after);
+
+        if Self::use_remote_time(remote_time) {
+            self.vpn_api_time = Some(remote_time);
+        }
+
+        Ok(())
     }
 
     async fn get_authorized<T, E>(
@@ -115,12 +135,12 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_get_request(path, NO_PARAMS)
-            .bearer_auth(account.jwt(None).to_string());
+            .bearer_auth(account.jwt(self.vpn_api_time).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(None)),
+                format!("Bearer {}", device.jwt(self.vpn_api_time)),
             ),
             None => request,
         };
@@ -144,12 +164,12 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_get_request(path, NO_PARAMS)
-            .bearer_auth(account.jwt(None).to_string());
+            .bearer_auth(account.jwt(self.vpn_api_time).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(None)),
+                format!("Bearer {}", device.jwt(self.vpn_api_time)),
             ),
             None => request,
         };
@@ -222,12 +242,12 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_post_request(path, NO_PARAMS, json_body)
-            .bearer_auth(account.jwt(None).to_string());
+            .bearer_auth(account.jwt(self.vpn_api_time).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(None)),
+                format!("Bearer {}", device.jwt(self.vpn_api_time)),
             ),
             None => request,
         };
@@ -250,12 +270,12 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_delete_request(path, NO_PARAMS)
-            .bearer_auth(account.jwt(None).to_string());
+            .bearer_auth(account.jwt(self.vpn_api_time).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(None)),
+                format!("Bearer {}", device.jwt(self.vpn_api_time)),
             ),
             None => request,
         };
@@ -280,12 +300,12 @@ impl VpnApiClient {
         let request = self
             .inner
             .create_patch_request(path, NO_PARAMS, json_body)
-            .bearer_auth(account.jwt(None).to_string());
+            .bearer_auth(account.jwt(self.vpn_api_time).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(None)),
+                format!("Bearer {}", device.jwt(self.vpn_api_time)),
             ),
             None => request,
         };

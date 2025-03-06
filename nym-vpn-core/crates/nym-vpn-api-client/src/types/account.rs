@@ -63,7 +63,7 @@ fn cosmos_derivation_path() -> DerivationPath {
         .unwrap()
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct VpnApiTime {
     // The local time on the client.
     pub local_time: OffsetDateTime,

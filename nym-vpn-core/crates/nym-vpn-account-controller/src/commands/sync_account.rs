@@ -3,10 +3,7 @@
 
 use std::sync::Arc;
 
-use nym_vpn_api_client::{
-    response::NymVpnAccountSummaryResponse,
-    types::{VpnApiAccount, VpnApiTime},
-};
+use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
 use nym_vpn_lib_types::{SyncAccountError, VpnApiErrorResponse};
 use tracing::Level;
 
@@ -81,12 +78,14 @@ impl SyncStateCommandHandler {
         err,
         level = Level::DEBUG,
     )]
-    pub(crate) async fn run_inner(self) -> Result<NymVpnAccountSummaryResponse, SyncAccountError> {
+    pub(crate) async fn run_inner(
+        mut self,
+    ) -> Result<NymVpnAccountSummaryResponse, SyncAccountError> {
         tracing::debug!("Running sync account state command handler: {}", self.id);
         let update_result = update_state(
             &self.account,
             &self.account_state,
-            &self.vpn_api_client,
+            &mut self.vpn_api_client,
             &self.previous_account_summary_response,
         )
         .await;
@@ -96,36 +95,18 @@ impl SyncStateCommandHandler {
     }
 }
 
-fn handle_remote_time(remote_time: VpnApiTime) {
-    if remote_time.is_almost_same() {
-        tracing::debug!("{remote_time}");
-    } else if remote_time.is_acceptable_synced() {
-        tracing::info!("{remote_time}");
-    } else {
-        tracing::warn!(
-            "The time skew between the local and remote time is too large ({remote_time})."
-        );
-    }
-}
-
 async fn update_state(
     account: &VpnApiAccount,
     account_state: &SharedAccountState,
-    vpn_api_client: &nym_vpn_api_client::VpnApiClient,
+    vpn_api_client: &mut nym_vpn_api_client::VpnApiClient,
     previous_account_summary_response: &PreviousAccountSummaryResponse,
 ) -> Result<NymVpnAccountSummaryResponse, SyncAccountError> {
     tracing::debug!("Updating account state");
-    let (remote_time, response) = tokio::join!(
-        vpn_api_client.get_remote_time(),
-        vpn_api_client.get_account_summary(account)
-    );
-
-    match remote_time {
-        Ok(remote_time) => handle_remote_time(remote_time),
-        Err(err) => tracing::error!("Failed to get remote time: {err}"),
+    if let Err(err) = vpn_api_client.sync_with_remote_time().await {
+        tracing::error!("Failed to get remote time: {err}")
     }
 
-    let account_summary = match response {
+    let account_summary = match vpn_api_client.get_account_summary(account).await {
         Ok(account_summary) => account_summary,
         Err(err) => {
             account_state
