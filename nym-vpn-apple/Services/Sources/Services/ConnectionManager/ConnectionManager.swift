@@ -193,7 +193,7 @@ private extension ConnectionManager {
 
     func scheduleNotificationIfNeeded() {
         guard currentTunnelStatus == .disconnecting else { return }
-        Task(priority: .background) {
+        Task {
             await NotificationMessages.scheduleDisconnectNotification()
         }
     }

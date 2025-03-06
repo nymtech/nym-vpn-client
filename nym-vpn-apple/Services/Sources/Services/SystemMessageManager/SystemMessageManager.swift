@@ -67,7 +67,7 @@ public final class SystemMessageManager: ObservableObject {
 
 private extension SystemMessageManager {
     func fetchMessages() {
-        Task(priority: .background) {
+        Task {
             do {
                 let newMessages: [NymNetworkMessage]
 #if os(iOS)

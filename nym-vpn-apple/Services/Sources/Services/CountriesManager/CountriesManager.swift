@@ -104,7 +104,7 @@ public final class CountriesManager: ObservableObject {
         }
         isLoading = true
 
-        Task(priority: .background) { [weak self] in
+        Task { [weak self] in
             self?.fetchEntryExitCountries()
         }
     }
@@ -144,7 +144,7 @@ private extension CountriesManager {
     func setupDaemonStateObserver() {
         helperManager.$daemonState.sink { [weak self] daemonState in
             guard daemonState == .running else { return }
-            Task(priority: .background) {
+            Task {
                 try? await Task.sleep(for: .seconds(5))
                 self?.fetchCountries()
             }

@@ -87,7 +87,7 @@ private extension GatewayManager {
         }
         isLoading = true
 
-        Task(priority: .background) { [weak self] in
+        Task { [weak self] in
             await self?.fetchGateways()
         }
     }
