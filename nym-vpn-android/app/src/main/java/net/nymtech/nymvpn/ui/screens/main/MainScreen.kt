@@ -119,7 +119,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val navController = LocalNavController.current
 
 	var didAutoStart by remember { mutableStateOf(false) }
-	var showDialog by remember { mutableStateOf(false) }
+	var showInfoDialog by remember { mutableStateOf(false) }
+	var showCompatibilityDialog by remember { mutableStateOf(false) }
 	var connectionTime: String? by remember { mutableStateOf(null) }
 
 	LaunchedEffect(Unit) {
@@ -144,6 +145,10 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				}
 			}
 			connectionTime = null
+		}
+		LaunchedEffect(isNetworkCompatible) {
+			if(isNetworkCompatible) return@LaunchedEffect
+			showCompatibilityDialog = true
 		}
 	}
 
@@ -186,7 +191,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
-	Modal(show = showDialog, onDismiss = { showDialog = false }, title = {
+	Modal(show = showInfoDialog, onDismiss = { showInfoDialog = false }, title = {
 		Text(
 			text = stringResource(R.string.mode_selection),
 			color = MaterialTheme.colorScheme.onSurface,
@@ -198,6 +203,18 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				context.openWebUrl(context.getString(R.string.mode_support_link))
 			},
 		)
+	})
+
+	Modal(show = showCompatibilityDialog, onDismiss = {
+		showCompatibilityDialog = false
+	}, title = {
+		Text(
+			text = stringResource(R.string.mode_selection),
+			color = MaterialTheme.colorScheme.onSurface,
+			style = CustomTypography.labelHuge,
+		)
+	}, text = {
+
 	})
 
 	Column(
@@ -264,7 +281,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				) {
 					GroupLabel(title = stringResource(R.string.select_mode))
 					IconButton(onClick = {
-						showDialog = true
+						showInfoDialog = true
 					}, modifier = Modifier.size(iconSize)) {
 						val icon = Icons.Outlined.Info
 						Icon(icon, icon.name, tint = MaterialTheme.colorScheme.outline)

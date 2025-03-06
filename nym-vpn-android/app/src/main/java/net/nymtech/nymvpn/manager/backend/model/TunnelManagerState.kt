@@ -13,4 +13,5 @@ data class TunnelManagerState(
 	val deviceId: String? = null,
 	val accountLinks: AccountLinks? = null,
 	val isInitialized: Boolean = false,
+	val isNetworkCompatible: Boolean = true,
 )

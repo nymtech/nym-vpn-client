@@ -21,6 +21,8 @@ interface Backend {
 
 	suspend fun isMnemonicStored(): Boolean
 
+	suspend fun isClientNetworkCompatible(appVersion: String): Boolean
+
 	suspend fun getDeviceIdentity(): String
 
 	suspend fun removeMnemonic()
