@@ -147,13 +147,13 @@ public enum ErrorReason: LocalizedError {
     // swiftlint:disable:next function_body_length
     public init?(nsError: NSError) {
         guard nsError.domain == ErrorReason.domain,
-            let errorReason = ErrorReason(nsError: nsError)
+              let errorReason = ErrorReasonCode(rawValue: nsError.code)
         else {
             self = .unknown
             return
         }
 
-        switch ErrorReasonCode(errorReason: errorReason) {
+        switch errorReason {
         case .unknown:
             self = .unknown
         case .offline:
@@ -211,8 +211,6 @@ public enum ErrorReason: LocalizedError {
             self = .resolveGatewayAddrs
         case .startLocalDnsResolver:
             self = .startLocalDnsResolver
-        case .none:
-            self = .unknown
         }
     }
 
