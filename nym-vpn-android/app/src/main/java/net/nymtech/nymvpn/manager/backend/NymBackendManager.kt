@@ -94,7 +94,7 @@ class NymBackendManager @Inject constructor(
 
 	private suspend fun isClientNetworkCompatible(environment: Tunnel.Environment): Boolean {
 		return if (
-// 			!BuildConfig.DEBUG && !BuildConfig.IS_PRERELEASE &&
+ 			!BuildConfig.DEBUG && !BuildConfig.IS_PRERELEASE &&
 			environment == Tunnel.Environment.MAINNET
 		) {
 			val version = BuildConfig.VERSION_NAME.substringBefore("-").drop(1)
