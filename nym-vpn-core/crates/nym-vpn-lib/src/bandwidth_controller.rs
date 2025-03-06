@@ -134,7 +134,6 @@ impl DepletionRate {
         );
 
         let number_of_checks_before_depletion = estimated_depletion_secs / current_period.as_secs();
-        println!("number_of_checks_before_depletion {number_of_checks_before_depletion}");
         // try and have at least 10 checks before depletion, to be on the safe side...
         if number_of_checks_before_depletion < 10 {
             return Ok(None);
@@ -425,12 +424,23 @@ mod tests {
             assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
         }
 
-        // spike a 4 MB/s depletion rate
-        current_bandwidth -= current_period.as_secs() * 3 * (BW_1MB + 0 * BW_1KB);
-        current_period = depletaion_rate
+        // spike a 1 MB/s depletion rate
+        for _ in 0..24 {
+            current_bandwidth -= current_period.as_secs() * BW_1MB;
+            current_period = depletaion_rate
+                .update_dynamic_check_interval(current_period, current_bandwidth)
+                .unwrap()
+                .unwrap();
+            assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
+            assert!(current_bandwidth > 300 * BW_1MB);
+        }
+
+        current_bandwidth -= current_period.as_secs() * BW_1MB;
+        let ret = depletaion_rate
             .update_dynamic_check_interval(current_period, current_bandwidth)
-            .unwrap()
             .unwrap();
-        assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
+        // when we get bellow a convinient dynamic threshold, we start reqwesting more bandwidth (returning None)
+        assert!(current_bandwidth < 300 * BW_1MB);
+        assert!(ret.is_none());
     }
 }
