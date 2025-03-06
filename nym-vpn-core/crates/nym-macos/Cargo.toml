@@ -1,6 +1,7 @@
 [package]
 name = "nym-macos"
 description = "Abstractions for macOS"
+version.workspace = true
 authors.workspace = true
 repository.workspace = true
 license.workspace = true
