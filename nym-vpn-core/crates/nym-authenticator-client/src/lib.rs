@@ -931,6 +931,18 @@ pub enum AuthenticatorVersion {
 
 impl AuthenticatorVersion {
     pub const LATEST: AuthenticatorVersion = AuthenticatorVersion::V5;
+
+    pub fn clamp_to(self, max_version: AuthenticatorVersion) -> Self {
+        if self.as_u8() > max_version.as_u8() {
+            max_version
+        } else {
+            self
+        }
+    }
+
+    pub fn as_u8(self) -> u8 {
+        self.into()
+    }
 }
 
 impl fmt::Display for AuthenticatorVersion {
@@ -941,6 +953,18 @@ impl fmt::Display for AuthenticatorVersion {
             Self::V4 => write!(f, "v4"),
             Self::V5 => write!(f, "v5"),
             Self::UNKNOWN => write!(f, "unknown"),
+        }
+    }
+}
+
+impl From<AuthenticatorVersion> for u8 {
+    fn from(value: AuthenticatorVersion) -> Self {
+        match value {
+            AuthenticatorVersion::V2 => 2,
+            AuthenticatorVersion::V3 => 3,
+            AuthenticatorVersion::V4 => 4,
+            AuthenticatorVersion::V5 => 5,
+            AuthenticatorVersion::UNKNOWN => 0,
         }
     }
 }

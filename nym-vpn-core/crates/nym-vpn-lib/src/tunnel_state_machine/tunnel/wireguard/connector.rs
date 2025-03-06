@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use nym_vpn_network_config::Network;
 use tokio::task::JoinHandle;
 
-use nym_authenticator_client::AuthClient;
+use nym_authenticator_client::{AuthClient, AuthenticatorVersion};
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient};
 use nym_mixnet_client::SharedMixnetClient;
@@ -103,9 +103,11 @@ impl Connector {
         else {
             return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
         };
-        let entry_version = selected_gateways.entry.version.clone().into();
+        let entry_version = AuthenticatorVersion::from(selected_gateways.entry.version.clone())
+            .clamp_to(AuthenticatorVersion::V4);
         tracing::info!("Entry gateway version: {entry_version}");
-        let exit_version = selected_gateways.exit.version.clone().into();
+        let exit_version = AuthenticatorVersion::from(selected_gateways.exit.version.clone())
+            .clamp_to(AuthenticatorVersion::V4);
         tracing::info!("Exit gateway version: {exit_version}");
         let auth_client = AuthClient::new(mixnet_client).await;
 
