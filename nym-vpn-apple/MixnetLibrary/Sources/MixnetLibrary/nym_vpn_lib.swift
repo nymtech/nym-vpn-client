@@ -2080,6 +2080,87 @@ public func FfiConverterTypeMixnetConnectionData_lower(_ value: MixnetConnection
 }
 
 
+public struct NetworkCompatibility {
+    public var core: String
+    public var ios: String
+    public var macos: String
+    public var tauri: String
+    public var android: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(core: String, ios: String, macos: String, tauri: String, android: String) {
+        self.core = core
+        self.ios = ios
+        self.macos = macos
+        self.tauri = tauri
+        self.android = android
+    }
+}
+
+
+
+extension NetworkCompatibility: Equatable, Hashable {
+    public static func ==(lhs: NetworkCompatibility, rhs: NetworkCompatibility) -> Bool {
+        if lhs.core != rhs.core {
+            return false
+        }
+        if lhs.ios != rhs.ios {
+            return false
+        }
+        if lhs.macos != rhs.macos {
+            return false
+        }
+        if lhs.tauri != rhs.tauri {
+            return false
+        }
+        if lhs.android != rhs.android {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(core)
+        hasher.combine(ios)
+        hasher.combine(macos)
+        hasher.combine(tauri)
+        hasher.combine(android)
+    }
+}
+
+
+public struct FfiConverterTypeNetworkCompatibility: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NetworkCompatibility {
+        return
+            try NetworkCompatibility(
+                core: FfiConverterString.read(from: &buf), 
+                ios: FfiConverterString.read(from: &buf), 
+                macos: FfiConverterString.read(from: &buf), 
+                tauri: FfiConverterString.read(from: &buf), 
+                android: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: NetworkCompatibility, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.core, into: &buf)
+        FfiConverterString.write(value.ios, into: &buf)
+        FfiConverterString.write(value.macos, into: &buf)
+        FfiConverterString.write(value.tauri, into: &buf)
+        FfiConverterString.write(value.android, into: &buf)
+    }
+}
+
+
+public func FfiConverterTypeNetworkCompatibility_lift(_ buf: RustBuffer) throws -> NetworkCompatibility {
+    return try FfiConverterTypeNetworkCompatibility.lift(buf)
+}
+
+public func FfiConverterTypeNetworkCompatibility_lower(_ value: NetworkCompatibility) -> RustBuffer {
+    return FfiConverterTypeNetworkCompatibility.lower(value)
+}
+
+
 /**
  * Represents the nym network environment together with the environment specific to nym-vpn. These
  * need to be exported to the environment (for now, until it's refactored internally in the nym
@@ -5882,6 +5963,27 @@ fileprivate struct FfiConverterOptionTypeLocation: FfiConverterRustBuffer {
     }
 }
 
+fileprivate struct FfiConverterOptionTypeNetworkCompatibility: FfiConverterRustBuffer {
+    typealias SwiftType = NetworkCompatibility?
+
+    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
+        guard let value = value else {
+            writeInt(&buf, Int8(0))
+            return
+        }
+        writeInt(&buf, Int8(1))
+        FfiConverterTypeNetworkCompatibility.write(value, into: &buf)
+    }
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
+        switch try readInt(&buf) as Int8 {
+        case 0: return nil
+        case 1: return try FfiConverterTypeNetworkCompatibility.read(from: &buf)
+        default: throw UniffiInternalError.unexpectedOptionalTag
+        }
+    }
+}
+
 fileprivate struct FfiConverterOptionTypeAccountRegistered: FfiConverterRustBuffer {
     typealias SwiftType = AccountRegistered?
 
@@ -7029,6 +7131,16 @@ public func getGateways(gwType: GatewayType, userAgent: UserAgent, minGatewayPer
 })
 }
 /**
+ * Returns the oldest client versions that are compatible with the
+ * network environment. (environment must be initialized first)
+ */
+public func getNetworkCompatibilityVersions()throws  -> NetworkCompatibility? {
+    return try  FfiConverterOptionTypeNetworkCompatibility.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_getnetworkcompatibilityversions($0
+    )
+})
+}
+/**
  * Returns the system messages for the current network environment
  */
 public func getSystemMessages()throws  -> [SystemMessage] {
@@ -7389,6 +7501,9 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getgateways() != 39408) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_getnetworkcompatibilityversions() != 4608) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getsystemmessages() != 3453) {

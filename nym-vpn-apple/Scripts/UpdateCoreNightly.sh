@@ -32,8 +32,8 @@ BASE_URL="https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core"
 if [[ $# -eq 0 ]]; then
     TAG="develop"
     TAG_URL="${BASE_URL}/${TAG}"
-    ios_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]{12}_ios_universal\.zip'
-    macos_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-dev\.[0-9]{12}_macos_universal\.tar\.gz'
+    ios_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-(?:dev|beta)\.[0-9]{12}_ios_universal\.zip'
+    macos_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-(?:dev|beta)\.[0-9]{12}_macos_universal\.tar\.gz'
 else
     TAG="$1"
     TAG_URL="${BASE_URL}/release/${TAG}"

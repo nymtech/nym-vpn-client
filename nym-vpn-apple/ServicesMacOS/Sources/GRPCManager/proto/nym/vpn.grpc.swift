@@ -31,6 +31,11 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetSystemMessagesResponse>
 
+  func getNetworkCompatibility(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetNetworkCompatibilityResponse>
+
   func getFeatureFlags(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
@@ -225,6 +230,24 @@ extension Nym_Vpn_NymVpndClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetSystemMessagesInterceptors() ?? []
+    )
+  }
+
+  /// List network compatibility client versions from nym-vpn-api
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetNetworkCompatibility.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getNetworkCompatibility(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetNetworkCompatibilityResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getNetworkCompatibility.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetNetworkCompatibilityInterceptors() ?? []
     )
   }
 
@@ -801,6 +824,11 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetSystemMessagesResponse>
 
+  func makeGetNetworkCompatibilityCall(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetNetworkCompatibilityResponse>
+
   func makeGetFeatureFlagsCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
@@ -980,6 +1008,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetSystemMessagesInterceptors() ?? []
+    )
+  }
+
+  internal func makeGetNetworkCompatibilityCall(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetNetworkCompatibilityResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getNetworkCompatibility.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetNetworkCompatibilityInterceptors() ?? []
     )
   }
 
@@ -1346,6 +1386,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func getNetworkCompatibility(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetNetworkCompatibilityResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getNetworkCompatibility.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetNetworkCompatibilityInterceptors() ?? []
+    )
+  }
+
   internal func getFeatureFlags(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
@@ -1699,6 +1751,9 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'getSystemMessages'.
   func makeGetSystemMessagesInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetSystemMessagesResponse>]
 
+  /// - Returns: Interceptors to use when invoking 'getNetworkCompatibility'.
+  func makeGetNetworkCompatibilityInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetNetworkCompatibilityResponse>]
+
   /// - Returns: Interceptors to use when invoking 'getFeatureFlags'.
   func makeGetFeatureFlagsInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetFeatureFlagsResponse>]
 
@@ -1789,6 +1844,7 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       Nym_Vpn_NymVpndClientMetadata.Methods.info,
       Nym_Vpn_NymVpndClientMetadata.Methods.setNetwork,
       Nym_Vpn_NymVpndClientMetadata.Methods.getSystemMessages,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getNetworkCompatibility,
       Nym_Vpn_NymVpndClientMetadata.Methods.getFeatureFlags,
       Nym_Vpn_NymVpndClientMetadata.Methods.vpnConnect,
       Nym_Vpn_NymVpndClientMetadata.Methods.vpnDisconnect,
@@ -1835,6 +1891,12 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
     internal static let getSystemMessages = GRPCMethodDescriptor(
       name: "GetSystemMessages",
       path: "/nym.vpn.NymVpnd/GetSystemMessages",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getNetworkCompatibility = GRPCMethodDescriptor(
+      name: "GetNetworkCompatibility",
+      path: "/nym.vpn.NymVpnd/GetNetworkCompatibility",
       type: GRPCCallType.unary
     )
 
@@ -2015,6 +2077,9 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   /// List messages fetched from nym-vpn-api
   func getSystemMessages(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetSystemMessagesResponse>
 
+  /// List network compatibility client versions from nym-vpn-api
+  func getNetworkCompatibility(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetNetworkCompatibilityResponse>
+
   /// List the feature flags fetched from the nym-vpn-api
   func getFeatureFlags(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetFeatureFlagsResponse>
 
@@ -2137,6 +2202,15 @@ extension Nym_Vpn_NymVpndProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_GetSystemMessagesResponse>(),
         interceptors: self.interceptors?.makeGetSystemMessagesInterceptors() ?? [],
         userFunction: self.getSystemMessages(request:context:)
+      )
+
+    case "GetNetworkCompatibility":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetNetworkCompatibilityResponse>(),
+        interceptors: self.interceptors?.makeGetNetworkCompatibilityInterceptors() ?? [],
+        userFunction: self.getNetworkCompatibility(request:context:)
       )
 
     case "GetFeatureFlags":
@@ -2412,6 +2486,12 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_GetSystemMessagesResponse
 
+  /// List network compatibility client versions from nym-vpn-api
+  func getNetworkCompatibility(
+    request: SwiftProtobuf.Google_Protobuf_Empty,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetNetworkCompatibilityResponse
+
   /// List the feature flags fetched from the nym-vpn-api
   func getFeatureFlags(
     request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -2624,6 +2704,15 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         responseSerializer: ProtobufSerializer<Nym_Vpn_GetSystemMessagesResponse>(),
         interceptors: self.interceptors?.makeGetSystemMessagesInterceptors() ?? [],
         wrapping: { try await self.getSystemMessages(request: $0, context: $1) }
+      )
+
+    case "GetNetworkCompatibility":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetNetworkCompatibilityResponse>(),
+        interceptors: self.interceptors?.makeGetNetworkCompatibilityInterceptors() ?? [],
+        wrapping: { try await self.getNetworkCompatibility(request: $0, context: $1) }
       )
 
     case "GetFeatureFlags":
@@ -2889,6 +2978,10 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeGetSystemMessagesInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetSystemMessagesResponse>]
 
+  /// - Returns: Interceptors to use when handling 'getNetworkCompatibility'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetNetworkCompatibilityInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetNetworkCompatibilityResponse>]
+
   /// - Returns: Interceptors to use when handling 'getFeatureFlags'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeGetFeatureFlagsInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetFeatureFlagsResponse>]
@@ -3006,6 +3099,7 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       Nym_Vpn_NymVpndServerMetadata.Methods.info,
       Nym_Vpn_NymVpndServerMetadata.Methods.setNetwork,
       Nym_Vpn_NymVpndServerMetadata.Methods.getSystemMessages,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getNetworkCompatibility,
       Nym_Vpn_NymVpndServerMetadata.Methods.getFeatureFlags,
       Nym_Vpn_NymVpndServerMetadata.Methods.vpnConnect,
       Nym_Vpn_NymVpndServerMetadata.Methods.vpnDisconnect,
@@ -3052,6 +3146,12 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
     internal static let getSystemMessages = GRPCMethodDescriptor(
       name: "GetSystemMessages",
       path: "/nym.vpn.NymVpnd/GetSystemMessages",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getNetworkCompatibility = GRPCMethodDescriptor(
+      name: "GetNetworkCompatibility",
+      path: "/nym.vpn.NymVpnd/GetNetworkCompatibility",
       type: GRPCCallType.unary
     )
 

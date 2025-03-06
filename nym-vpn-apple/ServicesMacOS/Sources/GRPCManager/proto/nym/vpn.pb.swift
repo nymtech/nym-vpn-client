@@ -838,6 +838,26 @@ struct Nym_Vpn_SystemMessage: Sendable {
   init() {}
 }
 
+struct Nym_Vpn_NetworkCompatibility: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var core: String = String()
+
+  var ios: String = String()
+
+  var macos: String = String()
+
+  var tauri: String = String()
+
+  var android: String = String()
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
 struct Nym_Vpn_GetSystemMessagesResponse: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
@@ -848,6 +868,27 @@ struct Nym_Vpn_GetSystemMessagesResponse: Sendable {
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
+}
+
+struct Nym_Vpn_GetNetworkCompatibilityResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var messages: Nym_Vpn_NetworkCompatibility {
+    get {return _messages ?? Nym_Vpn_NetworkCompatibility()}
+    set {_messages = newValue}
+  }
+  /// Returns true if `messages` has been explicitly set.
+  var hasMessages: Bool {return self._messages != nil}
+  /// Clears the value of `messages`. Subsequent reads from it will return its default value.
+  mutating func clearMessages() {self._messages = nil}
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+
+  fileprivate var _messages: Nym_Vpn_NetworkCompatibility? = nil
 }
 
 struct Nym_Vpn_GetFeatureFlagsResponse: Sendable {
@@ -3541,6 +3582,62 @@ extension Nym_Vpn_SystemMessage: SwiftProtobuf.Message, SwiftProtobuf._MessageIm
   }
 }
 
+extension Nym_Vpn_NetworkCompatibility: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".NetworkCompatibility"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "core"),
+    2: .same(proto: "ios"),
+    3: .same(proto: "macos"),
+    4: .same(proto: "tauri"),
+    5: .same(proto: "android"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.core) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.ios) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self.macos) }()
+      case 4: try { try decoder.decodeSingularStringField(value: &self.tauri) }()
+      case 5: try { try decoder.decodeSingularStringField(value: &self.android) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.core.isEmpty {
+      try visitor.visitSingularStringField(value: self.core, fieldNumber: 1)
+    }
+    if !self.ios.isEmpty {
+      try visitor.visitSingularStringField(value: self.ios, fieldNumber: 2)
+    }
+    if !self.macos.isEmpty {
+      try visitor.visitSingularStringField(value: self.macos, fieldNumber: 3)
+    }
+    if !self.tauri.isEmpty {
+      try visitor.visitSingularStringField(value: self.tauri, fieldNumber: 4)
+    }
+    if !self.android.isEmpty {
+      try visitor.visitSingularStringField(value: self.android, fieldNumber: 5)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_NetworkCompatibility, rhs: Nym_Vpn_NetworkCompatibility) -> Bool {
+    if lhs.core != rhs.core {return false}
+    if lhs.ios != rhs.ios {return false}
+    if lhs.macos != rhs.macos {return false}
+    if lhs.tauri != rhs.tauri {return false}
+    if lhs.android != rhs.android {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
 extension Nym_Vpn_GetSystemMessagesResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = _protobuf_package + ".GetSystemMessagesResponse"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
@@ -3568,6 +3665,42 @@ extension Nym_Vpn_GetSystemMessagesResponse: SwiftProtobuf.Message, SwiftProtobu
 
   static func ==(lhs: Nym_Vpn_GetSystemMessagesResponse, rhs: Nym_Vpn_GetSystemMessagesResponse) -> Bool {
     if lhs.messages != rhs.messages {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_GetNetworkCompatibilityResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".GetNetworkCompatibilityResponse"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "messages"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._messages) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._messages {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_GetNetworkCompatibilityResponse, rhs: Nym_Vpn_GetNetworkCompatibilityResponse) -> Bool {
+    if lhs._messages != rhs._messages {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
