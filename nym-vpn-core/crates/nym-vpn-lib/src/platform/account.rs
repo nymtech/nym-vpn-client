@@ -333,9 +333,11 @@ pub(crate) mod raw {
         let user_agent = crate::util::construct_user_agent();
         let mut vpn_api_client =
             VpnApiClient::new(network_env.vpn_api_url(), user_agent).map_err(VpnError::internal)?;
-        if let Err(err) = vpn_api_client.sync_with_remote_time().await {
-            tracing::error!("Failed to get remote time: {err}")
-        }
+        vpn_api_client
+            .sync_with_remote_time()
+            .await
+            .inspect_err(|err| tracing::error!("Failed to get remote time: {err}"))
+            .ok();
         Ok(vpn_api_client)
     }
 

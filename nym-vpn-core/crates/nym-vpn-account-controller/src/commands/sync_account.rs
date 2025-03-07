@@ -102,9 +102,11 @@ async fn update_state(
     previous_account_summary_response: &PreviousAccountSummaryResponse,
 ) -> Result<NymVpnAccountSummaryResponse, SyncAccountError> {
     tracing::debug!("Updating account state");
-    if let Err(err) = vpn_api_client.sync_with_remote_time().await {
-        tracing::error!("Failed to get remote time: {err}")
-    }
+    vpn_api_client
+        .sync_with_remote_time()
+        .await
+        .inspect_err(|err| tracing::error!("Failed to get remote time: {err}"))
+        .ok();
 
     let account_summary = match vpn_api_client.get_account_summary(account).await {
         Ok(account_summary) => account_summary,
