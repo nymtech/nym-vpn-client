@@ -1,4 +1,4 @@
-name: Crowdin Windows Linux
+name: crowdin-windows-linux
 
 on:
   push:

@@ -1,4 +1,4 @@
-name: Crowdin MacOS iOS
+name: crowdin-macos-ios
 
 on:
   push:
