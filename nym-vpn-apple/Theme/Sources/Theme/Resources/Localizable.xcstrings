@@ -1310,6 +1310,39 @@
         }
       }
     },
+    "home.modal.update" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update"
+          }
+        }
+      }
+    },
+    "home.modal.updateAvailable.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your app is no longer supported. Please download the latest version to continue using NymVPN."
+          }
+        }
+      }
+    },
+    "home.modal.updateAvailable.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update required"
+          }
+        }
+      }
+    },
     "initializingClient" : {
       "extractionState" : "manual",
       "localizations" : {

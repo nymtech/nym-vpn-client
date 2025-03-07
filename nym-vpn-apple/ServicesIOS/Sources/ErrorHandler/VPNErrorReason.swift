@@ -164,11 +164,13 @@ public enum VPNErrorReason: LocalizedError {
     // swiftlint:disable:next function_body_length
     public init?(nsError: NSError) {
         guard nsError.domain == VPNErrorReason.domain,
-              let errorCode = VPNErrorReasonCode(rawValue: nsError.code)
+              let errorReason = VPNErrorReasonCode(rawValue: nsError.code)
         else {
-            return nil
+            self = .unkownTunnelState
+            return
         }
-        switch errorCode {
+
+        switch errorReason {
         case .internalError:
             self = .internalError(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .storage:
