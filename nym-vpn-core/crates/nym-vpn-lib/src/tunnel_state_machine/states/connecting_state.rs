@@ -577,6 +577,9 @@ impl TunnelStateHandler for ConnectingState {
                         if shared_state.tunnel_settings == tunnel_settings {
                             NextTunnelState::SameState(self)
                         } else {
+                            let gateways_changed = shared_state.tunnel_settings.entry_point != tunnel_settings.entry_point ||
+                                shared_state.tunnel_settings.exit_point != tunnel_settings.exit_point;
+
                             shared_state.tunnel_settings = tunnel_settings;
 
                             if let Some(monitor_handle) = self.monitor_handle {
@@ -586,7 +589,12 @@ impl TunnelStateHandler for ConnectingState {
                                     shared_state,
                                 ))
                             } else {
-                                NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, self.selected_gateways, shared_state).await)
+                                let next_gateways = if gateways_changed {
+                                    None
+                                } else {
+                                    self.selected_gateways
+                                };
+                                NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, next_gateways, shared_state).await)
                             }
                         }
                     }
