@@ -194,6 +194,13 @@ jobs:
 
   publish-accrescent:
     runs-on: ubuntu-22.04
+    env:
+      SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+      SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+      SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+      SENTRY_DSN: ${{ secrets.ANDROID_SENTRY_DSN }}
+      KEY_STORE_FILE: 'android_keystore.jks'
+      KEY_STORE_LOCATION: ${{ github.workspace }}/nym-vpn-android/app/keystore/
     if: ${{github.event.inputs.publish-accrescent == 'true'}}
     needs:
       - build-nym-vpn-android-aab
@@ -217,6 +224,22 @@ jobs:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ github.workspace }}/temp
 
+      # Here we need to decode keystore.jks from base64 string and place it
+      # in the folder specified in the release signing configuration
+      - name: Decode Keystore
+        id: decode_keystore
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: ${{ env.KEY_STORE_FILE }}
+          fileDir: ${{ env.KEY_STORE_LOCATION }}
+          encodedString: ${{ secrets.ANDROID_KEYSTORE }}
+
+      # create keystore path for gradle to read
+      - name: Create keystore path env var
+        run: |
+          store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
+          echo "KEY_STORE_PATH=$store_path" >> $GITHUB_ENV
+
       - name: Generate APKS
         run: |
           AAB_FILE=$(ls ${{ github.workspace }}/temp/*.aab | head -n 1)
@@ -228,6 +251,11 @@ jobs:
             --bundle="$AAB_FILE" \
             --output=app.apks \
             --mode=universal
+            --ks="${{ env.KEY_STORE_PATH }}" \
+            --ks-pass=pass:${{ env.SIGNING_STORE_PASSWORD }} \
+            --ks-key-alias=${{ env.SIGNING_KEY_ALIAS }} \
+            --key-pass=pass:${{ env.SIGNING_KEY_PASSWORD }} \
+            --verbose
 
       - name: Upload APKS artifact
         uses: actions/upload-artifact@v4
