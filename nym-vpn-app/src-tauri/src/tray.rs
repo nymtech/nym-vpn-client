@@ -13,7 +13,7 @@ use crate::grpc::tunnel::TunnelState;
 #[cfg(not(target_os = "linux"))]
 use crate::APP_NAME;
 use crate::{
-    grpc::client::GrpcClient, states::SharedAppState, window::AppWindow, MAIN_WINDOW_LABEL,
+    grpc::client::GrpcClient, state::SharedAppState, window::AppWindow, MAIN_WINDOW_LABEL,
 };
 
 pub const TRAY_ICON_ID: &str = "main";

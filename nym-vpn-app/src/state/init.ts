@@ -16,6 +16,7 @@ import {
   CodeDependency,
   Country,
   Gateway,
+  NetworkCompat,
   StateDispatch,
   ThemeMode,
   TunnelStateIpc,
@@ -236,7 +237,7 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     onFulfilled: (links) => {
       dispatch({
         type: 'set-account-links',
-        links: links as AccountLinks | null,
+        links: links || null,
       });
     },
   };
@@ -252,5 +253,17 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     },
   };
 
-  await fireRequests([getAccountLinksRq, getAutostart]);
+  const getNetworkCompatRq: TauriReq<() => Promise<NetworkCompat | undefined>> =
+    {
+      name: 'getNetworkCompatRq',
+      request: () => invoke<NetworkCompat>('network_compat'),
+      onFulfilled: (compat) => {
+        dispatch({
+          type: 'set-network-compat',
+          compat: compat || null,
+        });
+      },
+    };
+
+  await fireRequests([getAccountLinksRq, getAutostart, getNetworkCompatRq]);
 }

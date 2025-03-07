@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
@@ -13,15 +13,21 @@ import { capFirst } from '../../util';
 import NetworkModeSelect from './NetworkModeSelect';
 import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
+import UpdateDialog from './UpdateDialog';
+
+let compatChecked = false;
 
 function Home() {
-  const { state, entryNode, exitNode, daemonStatus, account } = useMainState();
+  const { state, entryNode, exitNode, daemonStatus, account, networkCompat } =
+    useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
   const { push } = useInAppNotify();
   const { t } = useTranslation('home');
   const loading = state === 'Disconnecting';
   const hopSelectDisabled = daemonStatus === 'down' || state !== 'Disconnected';
+
+  const [isDialogUpdateOpen, setIsDialogUpdateOpen] = useState(false);
 
   const handleClick = () => {
     if (state === 'Disconnected' && !account) {
@@ -61,6 +67,20 @@ function Home() {
         });
     }
   };
+
+  useEffect(() => {
+    if (compatChecked) {
+      return;
+    }
+    if (
+      networkCompat &&
+      (networkCompat.core === false || networkCompat.tauri === false)
+    ) {
+      // if either core or tauri is not compatible, show the update dialog
+      compatChecked = true;
+      setIsDialogUpdateOpen(true);
+    }
+  }, [networkCompat]);
 
   useEffect(() => {
     const showWelcomeScreen = async () => {
@@ -127,51 +147,59 @@ function Home() {
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, x: '-1rem' }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ duration: 0.2, ease: 'easeOut' }}
-      className="h-full flex flex-col"
-    >
-      <div className="grow">
-        <TunnelState />
-      </div>
-      <div className="flex flex-col justify-between gap-y-8 select-none">
-        <div className="flex flex-col justify-between gap-y-4">
-          <NetworkModeSelect />
-          <div className="flex flex-col gap-6">
-            <div className="mt-3 text-base font-semibold cursor-default">
-              {t('select-node-title')}
-            </div>
-            <div className="flex flex-col gap-5">
-              <HopSelect
-                node={entryNode}
-                onClick={() => navigate(routes.entryNodeLocation)}
-                nodeHop="entry"
-                disabled={hopSelectDisabled}
-                locked={daemonStatus === 'down'}
-              />
-              <HopSelect
-                node={exitNode}
-                onClick={() => navigate(routes.exitNodeLocation)}
-                nodeHop="exit"
-                disabled={hopSelectDisabled}
-                locked={daemonStatus === 'down'}
-              />
+    <>
+      <UpdateDialog
+        isOpen={isDialogUpdateOpen}
+        onClose={() => setIsDialogUpdateOpen(false)}
+        appUpdate={!networkCompat?.tauri}
+        daemonUpdate={!networkCompat?.core}
+      />
+      <motion.div
+        initial={{ opacity: 0, x: '-1rem' }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        className="h-full flex flex-col"
+      >
+        <div className="grow">
+          <TunnelState />
+        </div>
+        <div className="flex flex-col justify-between gap-y-8 select-none">
+          <div className="flex flex-col justify-between gap-y-4">
+            <NetworkModeSelect />
+            <div className="flex flex-col gap-6">
+              <div className="mt-3 text-base font-semibold cursor-default">
+                {t('select-node-title')}
+              </div>
+              <div className="flex flex-col gap-5">
+                <HopSelect
+                  node={entryNode}
+                  onClick={() => navigate(routes.entryNodeLocation)}
+                  nodeHop="entry"
+                  disabled={hopSelectDisabled}
+                  locked={daemonStatus === 'down'}
+                />
+                <HopSelect
+                  node={exitNode}
+                  onClick={() => navigate(routes.exitNodeLocation)}
+                  nodeHop="exit"
+                  disabled={hopSelectDisabled}
+                  locked={daemonStatus === 'down'}
+                />
+              </div>
             </div>
           </div>
+          <Button
+            onClick={handleClick}
+            color={getButtonColor()}
+            disabled={loading || daemonStatus === 'down' || state === 'Offline'}
+            spinner={loading}
+            className={clsx(['h-14', loading && 'data-disabled:opacity-80'])}
+          >
+            {getButtonText()}
+          </Button>
         </div>
-        <Button
-          onClick={handleClick}
-          color={getButtonColor()}
-          disabled={loading || daemonStatus === 'down' || state === 'Offline'}
-          spinner={loading}
-          className={clsx(['h-14', loading && 'data-disabled:opacity-80'])}
-        >
-          {getButtonText()}
-        </Button>
-      </div>
-    </motion.div>
+      </motion.div>
+    </>
   );
 }
 

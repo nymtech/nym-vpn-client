@@ -3,7 +3,7 @@ use tracing::{error, info, instrument, warn};
 
 use crate::grpc::account_links::AccountLinks;
 use crate::grpc::tunnel::TunnelState;
-use crate::states::SharedAppState;
+use crate::state::SharedAppState;
 use crate::{error::BackendError, grpc::client::GrpcClient};
 
 #[instrument(skip_all)]

@@ -1,3 +1,3 @@
 export { default as GatewaysProvider } from './provider';
-export * from './context';
+export { useGateways } from './context';
 export * from './types';

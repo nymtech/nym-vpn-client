@@ -3,7 +3,7 @@ import {
   DefaultCountry,
   DefaultRootFontSize,
   DefaultThemeMode,
-} from '../constants';
+} from '../../constants';
 import {
   AccountLinks,
   AppError,
@@ -14,6 +14,7 @@ import {
   DaemonInfo,
   DaemonStatus,
   Gateway,
+  NetworkCompat,
   NodeHop,
   ThemeMode,
   Tunnel,
@@ -21,8 +22,8 @@ import {
   TunnelError,
   UiTheme,
   VpnMode,
-} from '../types';
-import { S_STATE } from '../static';
+} from '../../types';
+import { S_STATE } from '../../static';
 
 export type StateAction =
   | { type: 'init-done' }
@@ -59,7 +60,8 @@ export type StateAction =
   | { type: 'set-code-deps-rust'; dependencies: CodeDependency[] }
   | { type: 'set-autostart'; enabled: boolean }
   | { type: 'set-account'; stored: boolean }
-  | { type: 'set-account-links'; links: AccountLinks | null };
+  | { type: 'set-account-links'; links: AccountLinks | null }
+  | { type: 'set-network-compat'; compat: NetworkCompat | null };
 
 export const initialState: AppState = {
   initialized: false,
@@ -254,6 +256,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         autostart: action.enabled,
+      };
+    case 'set-network-compat':
+      return {
+        ...state,
+        networkCompat: action.compat,
       };
 
     case 'reset':

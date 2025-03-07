@@ -1,18 +1,15 @@
 import { invoke } from '@tauri-apps/api/core';
 import React, { useEffect, useReducer } from 'react';
-import {
-  MainDispatchContext,
-  MainStateContext,
-  useInAppNotify,
-} from '../index';
 import { sleep } from '../../util';
 import { Cli, NetworkEnv, SystemMessage } from '../../types';
 import { initFirstBatch, initSecondBatch } from '../../state/init';
-import { initialState, reducer } from '../../state';
 import { useTauriEvents } from '../../state/useTauriEvents';
 import { S_STATE } from '../../static';
 import { CCache } from '../../cache';
 import { kvGet, kvSet } from '../../kvStore';
+import { useInAppNotify } from '../in-app-notification';
+import { MainDispatchContext, MainStateContext } from './context';
+import { initialState, reducer } from './reducer';
 
 let initialized = false;
 

@@ -1,5 +1,4 @@
 use nym_vpn_proto as p;
-use nym_vpn_proto::VpnApiErrorResponse;
 use p::register_device_error::ErrorDetail as RegDeviceErr;
 use p::request_zk_nym_error::Outcome as ZkNymErr;
 use p::sync_account_error::ErrorDetail as SyncAccountErr;
@@ -8,6 +7,7 @@ use p::tunnel_state::error::ErrorStateReason;
 use p::tunnel_state::BaseErrorStateReason;
 use p::{
     RegisterDeviceError, RequestZkNymBundle, RequestZkNymError, SyncAccountError, SyncDeviceError,
+    VpnApiErrorResponse,
 };
 use serde::Serialize;
 use std::fmt;

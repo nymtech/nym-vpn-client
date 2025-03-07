@@ -7,6 +7,7 @@ import {
   DbKey,
   GatewayType,
   GatewaysByCountry,
+  NetworkCompat,
   Tunnel,
   TunnelData,
   VpndStatus,
@@ -23,11 +24,11 @@ type MockIpcFn = (cmd: string, payload?: InvokeArgs) => Promise<any>;
 
 export function mockTauriIPC() {
   mockWindows('main');
+  // @ts-expect-error mocking os plugin
   window.__TAURI_OS_PLUGIN_INTERNALS__ = {
-    // @ts-expect-error mocking os plugin
-    os: {
-      type: () => 'linux',
-    },
+    os_type: 'linux',
+    platform: 'linux',
+    family: 'unix',
   };
 
   mockIPC((async (cmd, args) => {
@@ -177,6 +178,15 @@ export function mockTauriIPC() {
         resolve({
           signUp: 'https://xyz.xyz/signup',
           signIn: 'https://xyz.xyz/signin',
+        }),
+      );
+    }
+
+    if (cmd === 'network_compat') {
+      return new Promise<NetworkCompat>((resolve) =>
+        resolve({
+          tauri: true,
+          core: true,
         }),
       );
     }
