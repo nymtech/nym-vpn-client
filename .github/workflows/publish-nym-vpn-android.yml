@@ -200,10 +200,11 @@ jobs:
       SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
       KEY_STORE_FILE: 'android_keystore.jks'
       SIGNING_KEY_STORE: ${{ secrets.ANDROID_KEYSTORE }}
-    if: ${{github.event.inputs.publish-accrescent == 'true'}}
+    if: ${{ github.event.inputs.publish-accrescent == 'true' }}
     needs:
       - build-nym-vpn-android-aab
-
+    steps:
+    
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
