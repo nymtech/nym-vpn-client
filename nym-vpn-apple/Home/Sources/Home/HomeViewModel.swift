@@ -2,6 +2,8 @@ import Combine
 import SwiftUI
 import AppSettings
 import ConnectionManager
+import Constants
+import ConfigurationManager
 import CountriesManager
 import CredentialsManager
 import ExternalLinkManager
@@ -29,6 +31,7 @@ public class HomeViewModel: HomeFlowState {
     let networkSelectLocalizedTitle = "selectNetwork".localizedString
 
     let appSettings: AppSettings
+    let configurationManager: ConfigurationManager
     let countriesManager: CountriesManager
     let credentialsManager: CredentialsManager
     let externalLinkManager: ExternalLinkManager
@@ -58,6 +61,7 @@ public class HomeViewModel: HomeFlowState {
     @MainActor @Published var connectButtonState = ConnectButtonState.connect
     @MainActor @Published var isModeInfoOverlayDisplayed = false
     @MainActor @Published var isOfflineOverlayDisplayed = false
+    @MainActor @Published var isUpdateAvailableOverlayDisplayed = false
     @MainActor @Published var snackBarMessage = ""
     @MainActor @Published var isSnackBarDisplayed = false {
         didSet {
@@ -78,6 +82,18 @@ public class HomeViewModel: HomeFlowState {
         )
     }
 
+    var updateAvailableOverlayConfiguration: ActionDialogConfiguration {
+        ActionDialogConfiguration(
+            iconImageName: "exclamationmark.circle",
+            titleLocalizedString: "home.modal.updateAvailable.title".localizedString,
+            subtitleLocalizedString: "home.modal.updateAvailable.subtitle".localizedString,
+            yesLocalizedString: "home.modal.update".localizedString,
+            yesAction: {
+                try? ExternalLinkManager.shared.openExternalURL(urlString: Constants.downloadLink.rawValue)
+            }
+        )
+    }
+
     @MainActor @Published public var splashScreenDidDisplay = false
 
 #if os(iOS)
@@ -85,6 +101,7 @@ public class HomeViewModel: HomeFlowState {
         appSettings: AppSettings = .shared,
         connectionManager: ConnectionManager = .shared,
         countriesManager: CountriesManager = .shared,
+        configurationManager: ConfigurationManager = .shared,
         credentialsManager: CredentialsManager = .shared,
         networkMonitor: NetworkMonitor = .shared,
         externalLinkManager: ExternalLinkManager = .shared,
@@ -95,6 +112,7 @@ public class HomeViewModel: HomeFlowState {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
+        self.configurationManager = configurationManager
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
         self.gatewayManager = gatewayManager
@@ -110,6 +128,7 @@ public class HomeViewModel: HomeFlowState {
         appSettings: AppSettings = .shared,
         connectionManager: ConnectionManager = .shared,
         countriesManager: CountriesManager = .shared,
+        configurationManager: ConfigurationManager = .shared,
         credentialsManager: CredentialsManager = .shared,
         networkMonitor: NetworkMonitor = .shared,
         grpcManager: GRPCManager = .shared,
@@ -121,6 +140,7 @@ public class HomeViewModel: HomeFlowState {
         self.appSettings = appSettings
         self.connectionManager = connectionManager
         self.countriesManager = countriesManager
+        self.configurationManager = configurationManager
         self.credentialsManager = credentialsManager
         self.networkMonitor = networkMonitor
         self.grpcManager = grpcManager
@@ -174,7 +194,7 @@ private extension HomeViewModel {
     func setup() {
         setupTunnelManagerObservers()
         setupConnectionErrorObservers()
-
+        setupUpdateRequiredObserver()
 #if os(macOS)
         setupGRPCManagerObservers()
 #endif
@@ -222,6 +242,18 @@ private extension HomeViewModel {
             self?.lastError = error
         }
         .store(in: &cancellables)
+    }
+
+    func setupUpdateRequiredObserver() {
+        configurationManager.$isCurrentAppVersionCompatible
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] value in
+                guard !value else { return }
+                MainActor.assumeIsolated {
+                    self?.isUpdateAvailableOverlayDisplayed = !value
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func setupSystemMessageObservers() {
