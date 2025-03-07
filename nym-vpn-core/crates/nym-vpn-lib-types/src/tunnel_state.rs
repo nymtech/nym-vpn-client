@@ -57,7 +57,7 @@ impl fmt::Display for TunnelState {
                     TunnelConnectionData::Mixnet(ref data) => {
                         write!(
                             f,
-                            "Connecting mixnet tunnel to {} -> {} (entry: {} -> exit: {})",
+                            "Connecting mixnet tunnel to {} → {} (entry: {} → exit: {})",
                             data.entry_ip,
                             data.exit_ip,
                             data.nym_address.gateway_id(),
@@ -67,7 +67,7 @@ impl fmt::Display for TunnelState {
                     TunnelConnectionData::Wireguard(ref data) => {
                         write!(
                             f,
-                            "Connecting wireguard tunnel to {} -> {} (entry -> exit)",
+                            "Connecting wireguard tunnel to {} → {} (entry → exit)",
                             data.entry.endpoint, data.exit.endpoint
                         )
                     }
@@ -78,7 +78,7 @@ impl fmt::Display for TunnelState {
                 TunnelConnectionData::Mixnet(ref data) => {
                     write!(
                         f,
-                        "Connected mixnet tunnel to {} -> {} (entry: {} -> exit: {})",
+                        "Connected mixnet tunnel to {} → {} (entry: {} → exit: {})",
                         data.entry_ip,
                         data.exit_ip,
                         data.nym_address.gateway_id(),
@@ -88,7 +88,7 @@ impl fmt::Display for TunnelState {
                 TunnelConnectionData::Wireguard(ref data) => {
                     write!(
                         f,
-                        "Connected wireguard tunnel {} -> {} (entry -> exit)",
+                        "Connected wireguard tunnel {} → {} (entry → exit)",
                         data.entry.endpoint, data.exit.endpoint
                     )
                 }
