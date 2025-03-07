@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
+import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
@@ -84,9 +85,22 @@ class NymBackendManager @Inject constructor(
 				NymBackend.getInstance(context, env, credentialMode)
 			}
 			backend.complete(nymBackend)
+			val isCompatible = isClientNetworkCompatible(env)
 			_state.update {
-				it.copy(isInitialized = true)
+				it.copy(isInitialized = true, isNetworkCompatible = isCompatible)
 			}
+		}
+	}
+
+	private suspend fun isClientNetworkCompatible(environment: Tunnel.Environment): Boolean {
+		return if (
+			!BuildConfig.DEBUG && !BuildConfig.IS_PRERELEASE &&
+			environment == Tunnel.Environment.MAINNET
+		) {
+			val version = BuildConfig.VERSION_NAME.substringBefore("-").drop(1)
+			backend.await().isClientNetworkCompatible(version)
+		} else {
+			true
 		}
 	}
 

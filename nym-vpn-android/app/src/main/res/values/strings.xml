@@ -56,6 +56,7 @@
     <string name="contact_url" translatable="false">https://support.nym.com/hc/requests/new</string>
     <string name="support_email" translatable="false">support@nymvpn.com</string>
     <string name="github_issues_url" translatable="false">https://nym.com/go/github/nym-vpn-client/issues</string>
+	<string name="download_url" translatable="false">https://nym.com/download/android</string>
     <string name="email_subject">NymVPN Support</string>
     <string name="email_chooser">Send an email…</string>
     <string name="login">Login</string>
@@ -225,4 +226,9 @@
 	<string name="local_logs">Logs (stored locally)</string>
 	<string name="logging_out">Logging out..</string>
 	<string name="identity_key">Identity key:</string>
+    <string name="app_update_required">Your app is no longer supported. Please update to the latest version to continue
+        using NymVPN.
+    </string>
+	<string name="update_required">Update required!</string>
+	<string name="update">Update</string>
 </resources>

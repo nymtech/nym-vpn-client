@@ -97,6 +97,7 @@ dependencies {
 	implementation(libs.kotlinx.serialization)
 	implementation(libs.timber)
 	implementation(libs.relinker)
+	implementation(libs.semver4j)
 
 	implementation(libs.jna) {
 		artifact {
