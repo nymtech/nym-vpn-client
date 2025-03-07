@@ -41,5 +41,13 @@
     "privacy-description": "Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages.",
     "fast-description": "Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing.",
     "link": "Continue reading"
+  },
+  "update-dialog": {
+    "title": "Update required!",
+    "description-1-app": "Your app is no longer supported.",
+    "description-1-daemon": "Your daemon is no longer supported.",
+    "description-1-other": "Your app and daemon are no longer supported.",
+    "description-2": "Please update to the latest version to continue using NymVPN.",
+    "button-update": "Update"
   }
 }
