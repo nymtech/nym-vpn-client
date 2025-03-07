@@ -194,22 +194,15 @@ jobs:
 
   publish-accrescent:
     runs-on: ubuntu-22.04
-    defaults:
-      run:
-        working-directory: nym-vpn-android
     env:
       SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
       SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
       SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
-      SENTRY_DSN: ${{ secrets.ANDROID_SENTRY_DSN }}
       KEY_STORE_FILE: 'android_keystore.jks'
-      KEY_STORE_LOCATION: ${{ github.workspace }}/nym-vpn-android/app/keystore/
+      SIGNING_KEY_STORE: ${{ secrets.ANDROID_KEYSTORE }}
     if: ${{github.event.inputs.publish-accrescent == 'true'}}
     needs:
       - build-nym-vpn-android-aab
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -237,13 +230,13 @@ jobs:
         uses: timheuer/base64-to-file@v1.2
         with:
           fileName: ${{ env.KEY_STORE_FILE }}
-          fileDir: ${{ env.KEY_STORE_LOCATION }}
-          encodedString: ${{ secrets.ANDROID_KEYSTORE }}
+          fileDir: ${{ github.workspace }}
+          encodedString: ${{ env.SIGNING_KEY_STORE }}
 
       # create keystore path for gradle to read
       - name: Create keystore path env var
         run: |
-          store_path=${{ env.KEY_STORE_LOCATION }}${{ env.KEY_STORE_FILE }}
+          store_path=${{ github.workspace }}/${{ env.KEY_STORE_FILE }}
           echo "KEY_STORE_PATH=$store_path" >> $GITHUB_ENV
 
       - name: Generate APKS
