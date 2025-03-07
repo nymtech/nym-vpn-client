@@ -334,16 +334,6 @@ WinFw_ApplyPolicyConnecting(
 			THROW_ERROR("Invalid argument: settings");
 		}
 
-		if (nullptr == relays)
-		{
-			THROW_ERROR("Invalid argument: relays");
-		}
-
-		if (0 == numRelays)
-		{
-			THROW_ERROR("Invalid argument: numRelays");
-		}
-
 		if (nullptr == allowedEntryTunnelTraffic)
 		{
 			THROW_ERROR("Invalid argument: allowedEntryTunnelTraffic");
