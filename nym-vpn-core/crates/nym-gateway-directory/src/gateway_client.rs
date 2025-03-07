@@ -10,7 +10,7 @@ use nym_sdk::UserAgent;
 use nym_validator_client::{models::NymNodeDescription, nym_nodes::SkimmedNode, NymApiClient};
 use nym_vpn_api_client::types::{GatewayMinPerformance, Percent, ScoreThresholds};
 use rand::{prelude::SliceRandom, thread_rng};
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, warn};
 use url::Url;
 
 use crate::{
@@ -159,7 +159,7 @@ impl GatewayClient {
     }
 
     async fn lookup_described_nodes(&self) -> Result<Vec<NymNodeDescription>> {
-        info!("Fetching all described nodes from nym-api...");
+        debug!("Fetching all described nodes from nym-api...");
         self.api_client
             .get_all_described_nodes()
             .await
@@ -167,7 +167,7 @@ impl GatewayClient {
     }
 
     async fn lookup_skimmed_gateways(&self) -> Result<Vec<SkimmedNode>> {
-        info!("Fetching skimmed entry assigned nodes from nym-api...");
+        debug!("Fetching skimmed entry assigned nodes from nym-api...");
         self.api_client
             .get_all_basic_entry_assigned_nodes()
             .await
@@ -175,7 +175,7 @@ impl GatewayClient {
     }
 
     async fn lookup_skimmed_nodes(&self) -> Result<Vec<SkimmedNode>> {
-        info!("Fetching skimmed entry assigned nodes from nym-api...");
+        debug!("Fetching skimmed entry assigned nodes from nym-api...");
         self.api_client
             .get_all_basic_nodes()
             .await
@@ -189,7 +189,7 @@ impl GatewayClient {
     }
 
     pub async fn lookup_gateway_ip_from_nym_api(&self, gateway_identity: &str) -> Result<IpAddr> {
-        info!("Fetching gateway ip from nym-api...");
+        debug!("Fetching gateway ip from nym-api...");
         let mut ips = self
             .api_client
             .get_all_described_nodes()
@@ -222,7 +222,7 @@ impl GatewayClient {
             ));
         }
 
-        info!("found the following ips for {gateway_identity}: {ips:?}");
+        debug!("found the following ips for {gateway_identity}: {ips:?}");
         if ips.len() == 1 {
             // SAFETY: the vector is not empty, so unwrap is fine
             Ok(ips.pop().unwrap())
@@ -297,7 +297,7 @@ impl GatewayClient {
 
     pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching gateway ip from nym-vpn-api...");
+            debug!("Fetching gateway ip from nym-vpn-api...");
             let gateway = nym_vpn_api_client
                 .get_gateways(None)
                 .await?
@@ -323,7 +323,7 @@ impl GatewayClient {
 
     pub async fn lookup_all_gateways(&self) -> Result<GatewayList> {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching all gateways from nym-vpn-api...");
+            debug!("Fetching all gateways from nym-vpn-api...");
             let gateways: Vec<_> = nym_vpn_api_client
                 .get_gateways(self.min_gateway_performance)
                 .await?
@@ -350,7 +350,7 @@ impl GatewayClient {
 
     pub async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList> {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching {gw_type} gateways from nym-vpn-api...");
+            debug!("Fetching {gw_type} gateways from nym-vpn-api...");
             let gateways: Vec<_> = nym_vpn_api_client
                 .get_gateways_by_type(gw_type.into(), self.min_gateway_performance)
                 .await?
@@ -377,7 +377,7 @@ impl GatewayClient {
 
     pub async fn lookup_countries(&self, gw_type: GatewayType) -> Result<Vec<Country>> {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-            info!("Fetching entry countries from nym-vpn-api...");
+            debug!("Fetching entry countries from nym-vpn-api...");
             Ok(nym_vpn_api_client
                 .get_gateway_countries_by_type(gw_type.into(), self.min_gateway_performance)
                 .await?
@@ -399,7 +399,7 @@ fn append_performance(
     gateways: &mut [Gateway],
     basic_gw: Vec<nym_validator_client::nym_nodes::SkimmedNode>,
 ) {
-    info!("Appending mixnet_performance to gateways");
+    debug!("Appending mixnet_performance to gateways");
     for gateway in gateways.iter_mut() {
         if let Some(basic_gw) = basic_gw
             .iter()
@@ -421,7 +421,7 @@ fn filter_on_mixnet_min_performance(
 ) {
     if let Some(min_performance) = min_gateway_performance {
         if let Some(mixnet_min_performance) = min_performance.mixnet_min_performance {
-            tracing::info!(
+            tracing::debug!(
                 "Filtering gateways based on mixnet_min_performance: {:?}",
                 min_performance
             );

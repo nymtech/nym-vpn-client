@@ -84,7 +84,7 @@ impl fmt::Display for ReadyToRequestZkNym {
 impl SharedAccountState {
     pub(crate) fn new(state: MnemonicState) -> Self {
         let mut summary = AccountStateSummary::default();
-        tracing::info!("Setting initial mnemonic state to {:?}", state);
+        tracing::debug!("Initial mnemonic state: {state}");
         summary.mnemonic = Some(state);
         SharedAccountState {
             inner: Arc::new(tokio::sync::Mutex::new(summary)),
@@ -245,6 +245,15 @@ impl MnemonicState {
         match self {
             MnemonicState::Stored { id } => Some(id.clone()),
             MnemonicState::NotStored => None,
+        }
+    }
+}
+
+impl fmt::Display for MnemonicState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            MnemonicState::NotStored => write!(f, "not stored"),
+            MnemonicState::Stored { id } => write!(f, "stored with id {id}"),
         }
     }
 }

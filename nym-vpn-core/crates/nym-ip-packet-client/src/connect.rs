@@ -65,7 +65,7 @@ impl IprClientConnect {
             return Err(Error::AlreadyConnected);
         }
 
-        debug!("Sending connect request");
+        tracing::info!("Connecting to exit gateway");
         self.connected = ConnectionState::Connecting;
         match self.connect_inner(ip_packet_router_address).await {
             Ok(ips) => {

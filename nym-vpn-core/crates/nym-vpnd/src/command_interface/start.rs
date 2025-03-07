@@ -138,7 +138,7 @@ pub(crate) fn start_command_interface(
     network_env: Network,
     shutdown_token: CancellationToken,
 ) -> (JoinHandle<()>, UnboundedReceiver<VpnServiceCommand>) {
-    tracing::info!("Starting command interface");
+    tracing::debug!("Starting command interface");
 
     let (vpn_command_tx, vpn_command_rx) = mpsc::unbounded_channel();
     let command_interface_options = command_interface_options.unwrap_or_default();

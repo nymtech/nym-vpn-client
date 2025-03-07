@@ -41,7 +41,7 @@ pub enum RequestZkNymError {
     #[error("timeout polling for zknym {id}")]
     PollingTimeout { id: ZkNymId },
 
-    #[error("response is missing blinded shares")]
+    #[error("nym-vpn-api response is missing blinded shares")]
     MissingBlindedShares,
 
     #[error("response contains invalid master verification key: {0}")]

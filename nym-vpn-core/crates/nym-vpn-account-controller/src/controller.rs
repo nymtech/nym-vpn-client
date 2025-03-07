@@ -889,7 +889,7 @@ where
     }
 
     pub async fn run(mut self) {
-        tracing::info!("Account controller initialized successfully");
+        tracing::debug!("Account controller initialized successfully");
         self.print_info().await;
 
         // Timer to check if any command tasks have finished. This just needs to be something small
