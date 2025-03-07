@@ -373,3 +373,5 @@ message GetAvailableTicketsResponse {
   }
 }
 
+message DeleteLogFileResponse {}
+

@@ -91,6 +91,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<AvailableTicketbooks, AccountError>>,
         (),
     ),
+    DeleteLogFile(oneshot::Sender<Result<(), AccountError>>, ()),
 }
 
 #[derive(Debug)]
@@ -475,6 +476,10 @@ where
                 let result = self.handle_get_available_tickets().await;
                 let _ = tx.send(result);
             }
+            VpnServiceCommand::DeleteLogFile(tx, ()) => {
+                let result = self.handle_delete_log_file().await;
+                let _ = tx.send(result);
+            }
         }
     }
 
@@ -850,6 +855,13 @@ where
     }
 
     async fn handle_get_available_tickets(&self) -> Result<AvailableTicketbooks, AccountError> {
+        self.account_command_tx
+            .get_available_tickets()
+            .await
+            .map_err(|source| AccountError::AccountCommandError { source })
+    }
+
+    async fn handle_delete_log_file(&self) -> Result<(), AccountError> {
         self.account_command_tx
             .get_available_tickets()
             .await

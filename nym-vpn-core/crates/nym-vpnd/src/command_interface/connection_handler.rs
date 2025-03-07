@@ -282,6 +282,13 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
+    pub(crate) async fn handle_delete_log_file(
+        &self,
+    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::DeleteLogFile, ())
+            .await
+    }
+
     async fn send_and_wait<R, F, O>(&self, command: F, opts: O) -> Result<R, VpnCommandSendError>
     where
         F: FnOnce(oneshot::Sender<R>, O) -> VpnServiceCommand,

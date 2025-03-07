@@ -605,5 +605,8 @@ service NymVpnd {
 
   // Get the available tickets in the local credential store
   rpc GetAvailableTickets (google.protobuf.Empty) returns (GetAvailableTicketsResponse) {}
+
+  // Delete the log file
+  rpc DeleteLogFile (google.protobuf.Empty) returns (DeleteLogFileResponse) {}
 }
 
