@@ -1,8 +1,14 @@
 import { Dispatch } from 'react';
 import { Dayjs } from 'dayjs';
-import { StateAction } from '../state';
+import { StateAction } from '../contexts';
 import { Country, ThemeMode, UiTheme } from './common';
-import { AccountLinks, ErrorKey, Gateway, NetworkEnv } from './tauri';
+import {
+  AccountLinks,
+  ErrorKey,
+  Gateway,
+  NetworkCompat,
+  NetworkEnv,
+} from './tauri';
 import { Tunnel, TunnelError } from './tunnel';
 
 export type TunnelState =
@@ -58,6 +64,7 @@ export type AppState = {
   // TODO just a boolean for now to indicate if the user has added an account
   account: boolean;
   accountLinks?: AccountLinks | null;
+  networkCompat?: NetworkCompat | null;
 };
 
 export type ConnectProgressMsg = 'Initializing' | 'InitDone' | 'Canceling';

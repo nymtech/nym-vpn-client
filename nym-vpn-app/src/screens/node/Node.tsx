@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
 import {
   UiCountry,
   UiGateway,
@@ -123,9 +124,14 @@ function Node({ node }: { node: NodeHop }) {
           />
         </div>
         {loading && (
-          <div className="text-base text-dim-gray dark:text-mercury-mist">
+          <motion.div
+            className="flex justify-center text-base text-dim-gray dark:text-mercury-mist mt-4"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+          >
             {t('loading')}
-          </div>
+          </motion.div>
         )}
         {!loading && (
           <NodeList
