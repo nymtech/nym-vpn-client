@@ -258,7 +258,7 @@ where
         if self
             .is_all_ticket_types_above_soft_threshold()
             .await
-            .unwrap_or(true)
+            .unwrap_or(false)
         {
             tracing::debug!("All ticket types are above soft threshold, not requesting zk-nym");
             return;
