@@ -204,7 +204,7 @@ jobs:
     needs:
       - build-nym-vpn-android-aab
     steps:
-    
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -251,7 +251,7 @@ jobs:
             --bundle="$AAB_FILE" \
             --output=app.apks \
             --mode=universal
-            --ks="${{ env.KEY_STORE_PATH }}" \
+            --ks=${{ env.KEY_STORE_PATH }} \
             --ks-pass=pass:${{ env.SIGNING_STORE_PASSWORD }} \
             --ks-key-alias=${{ env.SIGNING_KEY_ALIAS }} \
             --key-pass=pass:${{ env.SIGNING_KEY_PASSWORD }} \
