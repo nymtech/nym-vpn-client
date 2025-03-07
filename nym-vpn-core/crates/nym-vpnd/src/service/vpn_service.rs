@@ -197,7 +197,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             .await
             {
                 Ok(service) => {
-                    tracing::info!("VPN service initialized successfully");
+                    tracing::debug!("VPN service initialized successfully");
 
                     match service.run().await {
                         Ok(_) => {
@@ -541,7 +541,7 @@ where
                 .map(|e| e.to_string())
                 .unwrap_or("None".to_string())
         );
-        tracing::info!("Using options: {:?}", options);
+        tracing::debug!("Using options: {:?}", options);
 
         let config = self
             .try_setup_config(entry, exit)

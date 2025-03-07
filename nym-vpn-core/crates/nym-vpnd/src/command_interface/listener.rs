@@ -196,9 +196,8 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<ConnectRequest>,
     ) -> Result<tonic::Response<ConnectResponse>, tonic::Status> {
-        tracing::info!("Got connect request: {:?}", request);
-
         let connect_request = request.into_inner();
+        tracing::debug!("Got connect request: {connect_request:?}");
 
         let entry = connect_request
             .entry
