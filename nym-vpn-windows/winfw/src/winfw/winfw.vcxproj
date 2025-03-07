@@ -213,7 +213,7 @@
       <PreprocessorDefinitions>WIN32;_DEBUG;WINFW_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libshared\src\;$(ProjectDir)..\;$(ProjectDir)..\..\..\windows-libraries\src\;$(ProjectDir)..\..\..\libwfp\src\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libshared\src\;$(ProjectDir);$(ProjectDir)..\;$(ProjectDir)..\..\..\windows-libraries\src\;$(ProjectDir)..\..\..\libwfp\src\</AdditionalIncludeDirectories>
       <ObjectFileName>$(IntDir)%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <Link>
@@ -236,7 +236,7 @@
       <PreprocessorDefinitions>_DEBUG;WINFW_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libshared\src\;$(ProjectDir)..\;$(ProjectDir)..\..\..\windows-libraries\src\;$(ProjectDir)..\..\..\libwfp\src\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libshared\src\;$(ProjectDir);$(ProjectDir)..\;$(ProjectDir)..\..\..\windows-libraries\src\;$(ProjectDir)..\..\..\libwfp\src\</AdditionalIncludeDirectories>
       <ObjectFileName>$(IntDir)%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <Link>
@@ -259,7 +259,7 @@
       <PreprocessorDefinitions>_DEBUG;WINFW_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libshared\src\;$(ProjectDir)..\;$(ProjectDir)..\..\..\windows-libraries\src\;$(ProjectDir)..\..\..\libwfp\src\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libshared\src\;$(ProjectDir);$(ProjectDir)..\;$(ProjectDir)..\..\..\windows-libraries\src\;$(ProjectDir)..\..\..\libwfp\src\</AdditionalIncludeDirectories>
       <ObjectFileName>$(IntDir)%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <Link>
@@ -311,7 +311,7 @@
       <PreprocessorDefinitions>NDEBUG;WINFW_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <LanguageStandard>stdcpp20</LanguageStandard>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libshared\src\;$(ProjectDir)..\;$(ProjectDir)..\..\..\windows-libraries\src\;$(ProjectDir)..\..\..\libwfp\src\</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..\libshared\src\;$(ProjectDir);$(ProjectDir)..\;$(ProjectDir)..\..\..\windows-libraries\src\;$(ProjectDir)..\..\..\libwfp\src\</AdditionalIncludeDirectories>
       <ObjectFileName>$(IntDir)%(RelativeDir)/</ObjectFileName>
     </ClCompile>
     <Link>
