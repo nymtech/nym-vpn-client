@@ -14,6 +14,15 @@ enum Ports : uint16_t
 	DHCPV6_SERVER_PORT = 547,
 
 	DNS_SERVER_PORT = 53,
+	DNS_OVER_HTTPS_PORT = 443,
+	DNS_OVER_TLS_PORT = 853,
+};
+
+
+static const uint16_t DNS_PORTS[] = {
+	DNS_SERVER_PORT,
+	DNS_OVER_HTTPS_PORT,
+	DNS_OVER_TLS_PORT
 };
 
 }

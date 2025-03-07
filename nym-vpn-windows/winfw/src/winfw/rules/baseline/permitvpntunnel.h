@@ -13,6 +13,11 @@ class PermitVpnTunnel : public IFirewallRule
 {
 public:
 
+	enum InterfaceType {
+		Entry,
+		Exit,
+	};
+
 	struct Endpoint {
 		wfp::IpAddress ip;
 		uint16_t port;
@@ -25,6 +30,7 @@ public:
 	};
 
 	PermitVpnTunnel(
+		const InterfaceType interfaceType,
 		const std::wstring &tunnelInterfaceAlias,
 		const std::optional<Endpoints> &potentialEndpoints
 	);
@@ -32,8 +38,11 @@ public:
 	bool apply(IObjectInstaller &objectInstaller) override;
 
 private:
+	bool ApplyForEntryInterface(IObjectInstaller& objectInstaller);
+	bool ApplyForExitInterface(IObjectInstaller& objectInstaller);
 	bool AddEndpointFilter(const std::optional<Endpoint> &endpoint, const GUID &ipv4Guid, const GUID &ipv6Guid, IObjectInstaller &objectInstaller);
 
+	const InterfaceType m_interfaceType;
 	const std::wstring m_tunnelInterfaceAlias;
 	const std::optional<Endpoints> m_potentialEndpoints;
 };

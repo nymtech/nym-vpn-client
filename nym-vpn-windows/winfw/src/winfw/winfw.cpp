@@ -141,6 +141,58 @@ void LogDnsServers(const char* label, const std::vector<wfp::IpAddress>& dnsServ
 	g_logSink(MULLVAD_LOG_LEVEL_DEBUG, ss.str().c_str(), g_logSinkContext);
 }
 
+void LogAllowedEndpoints(const char *label, std::vector<WinFwAllowedEndpoint>& allowed_endpoints)
+{
+	if (nullptr == g_logSink)
+	{
+		return;
+	}
+
+	std::stringstream ss;
+	ss << label << ": ";
+	for (size_t i = 0; i < allowed_endpoints.size(); i++)
+	{
+		if (i > 0)
+		{
+			ss << ", ";
+		}
+		ss << common::string::ToAnsi(allowed_endpoints[i].endpoint.ip) << ":" << allowed_endpoints[i].endpoint.port << " ";
+
+		switch (allowed_endpoints[i].endpoint.protocol) {
+		case WinFwProtocol::Tcp:
+			ss << "tcp";
+			break;
+		case WinFwProtocol::Udp:
+			ss << "udp";
+			break;
+		default:
+			ss << "unknown";
+			break;
+		}
+	}
+	g_logSink(MULLVAD_LOG_LEVEL_DEBUG, ss.str().c_str(), g_logSinkContext);
+}
+
+void LogInterface(const char* label, std::optional<std::wstring>& iface) 
+{
+	if (nullptr == g_logSink)
+	{
+		return;
+	}
+
+	std::stringstream ss;
+	ss << label << ": ";
+
+	if (iface.has_value()) {
+		ss << common::string::ToAnsi(iface.value());
+	}
+	else {
+		ss << "unset";
+	}
+
+	g_logSink(MULLVAD_LOG_LEVEL_DEBUG, ss.str().c_str(), g_logSinkContext);
+}
+
 } // anonymous namespace
 
 WINFW_LINKAGE
@@ -334,16 +386,6 @@ WinFw_ApplyPolicyConnecting(
 			THROW_ERROR("Invalid argument: settings");
 		}
 
-		if (nullptr == relays)
-		{
-			THROW_ERROR("Invalid argument: relays");
-		}
-
-		if (0 == numRelays)
-		{
-			THROW_ERROR("Invalid argument: numRelays");
-		}
-
 		if (nullptr == allowedEntryTunnelTraffic)
 		{
 			THROW_ERROR("Invalid argument: allowedEntryTunnelTraffic");
@@ -360,7 +402,13 @@ WinFw_ApplyPolicyConnecting(
 		auto allowedEndpointOptVector = MakeOptionalVector(allowedEndpoints, numAllowedEndpoints);
 		auto nonTunnelDnsServerVector = MakeIpAddressVector(nonTunnelDnsServers, numNonTunnelDnsServers);
 
-		LogDnsServers("Non-tunnel DNS servers: ", nonTunnelDnsServerVector);
+		LogAllowedEndpoints("Relays", relayVector);
+		if (allowedEndpointOptVector.has_value()) {
+			LogAllowedEndpoints("AllowedEndpoints", allowedEndpointOptVector.value());
+		}
+		LogInterface("entryTunnelIface", entryTunnelIfaceAliasOptStr);
+		LogInterface("exitTunnelIface", exitTunnelIfaceAliasOptStr);
+		LogDnsServers("Non-tunnel DNS servers", nonTunnelDnsServerVector);
 
 		return g_fwContext->applyPolicyConnecting(
 			*settings,
@@ -440,11 +488,17 @@ WinFw_ApplyPolicyConnected(
 		auto entryTunnelIfaceAliasOptStr = MakeOptionalStr(entryTunnelIfaceAlias);
 		auto exitTunnelIfaceAliasOptStr = MakeOptionalStr(exitTunnelIfaceAlias);
 		auto allowedEndpointOptVector = MakeOptionalVector(allowedEndpoints, numAllowedEndpoints);
-		std::vector<wfp::IpAddress> nonTunnelDnsServerVector = MakeIpAddressVector(nonTunnelDnsServers, numNonTunnelDnsServers);
-		std::vector<wfp::IpAddress> tunnelDnsServersVector = MakeIpAddressVector(tunnelDnsServers, numTunnelDnsServers);
+		auto nonTunnelDnsServerVector = MakeIpAddressVector(nonTunnelDnsServers, numNonTunnelDnsServers);
+		auto tunnelDnsServersVector = MakeIpAddressVector(tunnelDnsServers, numTunnelDnsServers);
 
-		LogDnsServers("Non-tunnel DNS servers: ", nonTunnelDnsServerVector);
-		LogDnsServers("Tunnel DNS servers: ", tunnelDnsServersVector);
+		LogAllowedEndpoints("Relays", relayVector);
+		if (allowedEndpointOptVector.has_value()) {
+			LogAllowedEndpoints("Allowed endpoints", allowedEndpointOptVector.value());
+		}
+		LogInterface("Entry tunnel interface", entryTunnelIfaceAliasOptStr);
+		LogInterface("Exit tunnel interface", exitTunnelIfaceAliasOptStr);
+		LogDnsServers("Non-tunnel DNS servers", nonTunnelDnsServerVector);
+		LogDnsServers("Tunnel DNS servers", tunnelDnsServersVector);
 
 		return g_fwContext->applyPolicyConnected(
 			*settings,

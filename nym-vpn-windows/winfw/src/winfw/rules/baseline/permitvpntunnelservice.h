@@ -15,6 +15,7 @@ class PermitVpnTunnelService : public IFirewallRule
 public:
 
 	PermitVpnTunnelService(
+		const PermitVpnTunnel::InterfaceType interfaceType,
 		const std::wstring &tunnelInterfaceAlias,
 		const std::optional<PermitVpnTunnel::Endpoints> &potentialEndpoints
 	);
@@ -22,8 +23,11 @@ public:
 	bool apply(IObjectInstaller &objectInstaller) override;
 
 private:
+	bool ApplyForEntryInterface(IObjectInstaller& objectInstaller);
+	bool ApplyForExitInterface(IObjectInstaller& objectInstaller);
 	bool AddEndpointFilter(const std::optional<PermitVpnTunnel::Endpoint> &endpoint, const GUID &ipv4Guid, const GUID &ipv6Guid, IObjectInstaller &objectInstaller);
 
+	const PermitVpnTunnel::InterfaceType m_interfaceType;
 	const std::wstring m_tunnelInterfaceAlias;
 	const std::optional<PermitVpnTunnel::Endpoints> m_potentialEndpoints;
 };

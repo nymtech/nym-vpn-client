@@ -19,18 +19,18 @@ namespace rules::multi
 namespace
 {
 
-const GUID &LayerFromIp(const wfp::IpAddress &ip)
-{
-	switch (ip.type())
-	{
-		case wfp::IpAddress::Type::Ipv4: return FWPM_LAYER_ALE_AUTH_CONNECT_V4;
-		case wfp::IpAddress::Type::Ipv6: return FWPM_LAYER_ALE_AUTH_CONNECT_V6;
-		default:
-		{
-			THROW_ERROR("Missing case handler in switch clause");
-		}
-	};
-}
+// Maximum number of allowed relays per IP protocol.
+static const uint32_t MAX_ALLOWED_ENDPOINTS = 2;
+
+static const GUID ENDPOINT_IPV4_GUIDS[MAX_ALLOWED_ENDPOINTS] = {
+	MullvadGuids::Filter_Baseline_PermitVpnRelay_Ipv4_1(),
+	MullvadGuids::Filter_Baseline_PermitVpnRelay_Ipv4_2()
+};
+
+static const GUID ENDPOINT_IPV6_GUIDS[MAX_ALLOWED_ENDPOINTS] = {
+	MullvadGuids::Filter_Baseline_PermitVpnRelay_Ipv6_1(),
+	MullvadGuids::Filter_Baseline_PermitVpnRelay_Ipv6_2()
+};
 
 const GUID &TranslateSublayer(PermitVpnRelay::Sublayer sublayer)
 {
@@ -47,47 +47,100 @@ const GUID &TranslateSublayer(PermitVpnRelay::Sublayer sublayer)
 
 } // anonymous namespace
 
-PermitVpnRelay::PermitVpnRelay
-(
-	const wfp::IpAddress &relay,
-	uint16_t relayPort,
-	WinFwProtocol protocol,
-	const std::vector<std::wstring> &relayClients,
-	Sublayer sublayer
-)
-	: m_relay(relay)
-	, m_relayPort(relayPort)
-	, m_protocol(protocol)
-	, m_relayClients(relayClients)
-	, m_sublayer(sublayer)
+PermitVpnRelay::PermitVpnRelay(std::vector<Endpoint> endpoints)
+	: m_endpoints(endpoints)
 {
 }
 
 bool PermitVpnRelay::apply(IObjectInstaller &objectInstaller)
 {
+	//
+	// Permit outbound connections to relay.
+	//
+
+	uint32_t ipv4Count = 0;
+	uint32_t ipv6Count = 0;
+
+	for (auto endpoint : m_endpoints) {
+		switch (endpoint.ip.type()) {
+		case wfp::IpAddress::Type::Ipv4:
+			if (!AddIpv4RelayFilter(endpoint, ENDPOINT_IPV4_GUIDS[ipv4Count], objectInstaller)) {
+				return false;
+			}
+
+			if (ipv4Count++ == MAX_ALLOWED_ENDPOINTS) {
+				THROW_ERROR("Exceeded max allowed endpoints (IPv4)");
+			}
+
+			break;
+
+		case wfp::IpAddress::Type::Ipv6:
+			if (!AddIpv6RelayFilter(endpoint, ENDPOINT_IPV6_GUIDS[ipv6Count], objectInstaller)) {
+				return false;
+			}
+
+			if (ipv6Count++ == MAX_ALLOWED_ENDPOINTS) {
+				THROW_ERROR("Exceeded max allowed endpoints (IPv6)");
+			}
+
+			break;
+
+		default:
+		{
+			THROW_ERROR("Missing case handler in switch clause");
+		}
+		}
+	}
+
+	return true;
+}
+
+bool PermitVpnRelay::AddIpv4RelayFilter(const Endpoint& endpoint, const GUID& ipv4Guid, IObjectInstaller& objectInstaller) {
 	wfp::FilterBuilder filterBuilder;
 
-	//
-	// #1 Permit outbound connections to relay.
-	//
-
 	filterBuilder
-		.key(MullvadGuids::Filter_Baseline_PermitVpnRelay())
+		.key(ipv4Guid)
 		.name(L"Permit outbound connections to VPN relay")
 		.description(L"This filter is part of a rule that permits communication with a VPN relay")
 		.provider(MullvadGuids::Provider())
-		.layer(LayerFromIp(m_relay))
-		.sublayer(TranslateSublayer(m_sublayer))
+		.layer(FWPM_LAYER_ALE_AUTH_CONNECT_V4)
+		.sublayer(TranslateSublayer(endpoint.sublayer))
 		.weight(wfp::FilterBuilder::WeightClass::Medium)
 		.permit();
 
-	wfp::ConditionBuilder conditionBuilder(LayerFromIp(m_relay));
+	wfp::ConditionBuilder conditionBuilder(FWPM_LAYER_ALE_AUTH_CONNECT_V4);
 
-	conditionBuilder.add_condition(ConditionIp::Remote(m_relay));
-	conditionBuilder.add_condition(ConditionPort::Remote(m_relayPort));
-	conditionBuilder.add_condition(CreateProtocolCondition(m_protocol));
+	conditionBuilder.add_condition(ConditionIp::Remote(endpoint.ip));
+	conditionBuilder.add_condition(ConditionPort::Remote(endpoint.port));
+	conditionBuilder.add_condition(CreateProtocolCondition(endpoint.protocol));
 
-	for(auto relayClient : m_relayClients) {
+	for (auto relayClient : endpoint.clients) {
+		conditionBuilder.add_condition(std::make_unique<ConditionApplication>(relayClient));
+	}
+
+	return objectInstaller.addFilter(filterBuilder, conditionBuilder);
+}
+
+bool PermitVpnRelay::AddIpv6RelayFilter(const Endpoint& endpoint, const GUID& ipv6Guid, IObjectInstaller& objectInstaller) {
+	wfp::FilterBuilder filterBuilder;
+
+	filterBuilder
+		.key(ipv6Guid)
+		.name(L"Permit outbound connections to VPN relay")
+		.description(L"This filter is part of a rule that permits communication with a VPN relay")
+		.provider(MullvadGuids::Provider())
+		.layer(FWPM_LAYER_ALE_AUTH_CONNECT_V6)
+		.sublayer(TranslateSublayer(endpoint.sublayer))
+		.weight(wfp::FilterBuilder::WeightClass::Medium)
+		.permit();
+
+	wfp::ConditionBuilder conditionBuilder(FWPM_LAYER_ALE_AUTH_CONNECT_V6);
+
+	conditionBuilder.add_condition(ConditionIp::Remote(endpoint.ip));
+	conditionBuilder.add_condition(ConditionPort::Remote(endpoint.port));
+	conditionBuilder.add_condition(CreateProtocolCondition(endpoint.protocol));
+
+	for (auto relayClient : endpoint.clients) {
 		conditionBuilder.add_condition(std::make_unique<ConditionApplication>(relayClient));
 	}
 

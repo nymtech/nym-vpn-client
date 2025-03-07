@@ -16,10 +16,12 @@ namespace rules::baseline
 {
 
 PermitVpnTunnel::PermitVpnTunnel(
+	const InterfaceType interfaceType,
 	const std::wstring &tunnelInterfaceAlias,
 	const std::optional<Endpoints> &potentialEndpoints
 )
-	: m_tunnelInterfaceAlias(tunnelInterfaceAlias)
+	: m_interfaceType(interfaceType)
+	, m_tunnelInterfaceAlias(tunnelInterfaceAlias)
 	, m_potentialEndpoints(potentialEndpoints)
 {
 }
@@ -88,30 +90,83 @@ bool PermitVpnTunnel::AddEndpointFilter(const std::optional<Endpoint> &endpoint,
 
 bool PermitVpnTunnel::apply(IObjectInstaller &objectInstaller)
 {
+	switch (m_interfaceType) {
+		case InterfaceType::Entry:
+			return ApplyForEntryInterface(objectInstaller);
+
+		case InterfaceType::Exit:
+			return ApplyForExitInterface(objectInstaller);
+
+		default:
+		{
+			THROW_ERROR("Missing case handler in switch clause");
+		}
+	}
+}
+
+bool PermitVpnTunnel::ApplyForEntryInterface(IObjectInstaller& objectInstaller) {
 	if (!m_potentialEndpoints.has_value())
 	{
 		return AddEndpointFilter(
 			std::nullopt,
-			MullvadGuids::Filter_Baseline_PermitVpnTunnel_Outbound_Ipv4_1(),
-			MullvadGuids::Filter_Baseline_PermitVpnTunnel_Outbound_Ipv6_1(),
+			MullvadGuids::Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv4_1(),
+			MullvadGuids::Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv6_1(),
 			objectInstaller
 		);
 	}
-	AddEndpointFilter(
-			std::make_optional<Endpoint>(m_potentialEndpoints.value().entryEndpoint),
-			MullvadGuids::Filter_Baseline_PermitVpnTunnel_Outbound_Ipv4_1(),
-			MullvadGuids::Filter_Baseline_PermitVpnTunnel_Outbound_Ipv6_1(),
-			objectInstaller
-		);
+
+	if (!AddEndpointFilter(
+		std::make_optional<Endpoint>(m_potentialEndpoints.value().entryEndpoint),
+		MullvadGuids::Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv4_1(),
+		MullvadGuids::Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv6_1(),
+		objectInstaller
+	)) {
+		return false;
+	}
+
 	if (m_potentialEndpoints.value().exitEndpoint.has_value())
 	{
-		AddEndpointFilter(
-				m_potentialEndpoints.value().exitEndpoint.value(),
-				MullvadGuids::Filter_Baseline_PermitVpnTunnel_Outbound_Ipv4_2(),
-				MullvadGuids::Filter_Baseline_PermitVpnTunnel_Outbound_Ipv6_2(),
-				objectInstaller
-			);
+		return AddEndpointFilter(
+			m_potentialEndpoints.value().exitEndpoint.value(),
+			MullvadGuids::Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv4_2(),
+			MullvadGuids::Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv6_2(),
+			objectInstaller
+		);
 	}
+
+	return true;
+}
+
+bool PermitVpnTunnel::ApplyForExitInterface(IObjectInstaller& objectInstaller) {
+	if (!m_potentialEndpoints.has_value())
+	{
+		return AddEndpointFilter(
+			std::nullopt,
+			MullvadGuids::Filter_Baseline_PermitVpnTunnel_Exit_Outbound_Ipv4_1(),
+			MullvadGuids::Filter_Baseline_PermitVpnTunnel_Exit_Outbound_Ipv6_1(),
+			objectInstaller
+		);
+	}
+
+	if (!AddEndpointFilter(
+		std::make_optional<Endpoint>(m_potentialEndpoints.value().entryEndpoint),
+		MullvadGuids::Filter_Baseline_PermitVpnTunnel_Exit_Outbound_Ipv4_1(),
+		MullvadGuids::Filter_Baseline_PermitVpnTunnel_Exit_Outbound_Ipv6_1(),
+		objectInstaller
+	)) {
+		return false;
+	}
+
+	if (m_potentialEndpoints.value().exitEndpoint.has_value())
+	{
+		return AddEndpointFilter(
+			m_potentialEndpoints.value().exitEndpoint.value(),
+			MullvadGuids::Filter_Baseline_PermitVpnTunnel_Exit_Outbound_Ipv4_2(),
+			MullvadGuids::Filter_Baseline_PermitVpnTunnel_Exit_Outbound_Ipv6_2(),
+			objectInstaller
+		);
+	}
+
 	return true;
 }
 

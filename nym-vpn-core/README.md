@@ -85,6 +85,6 @@ powershell -ExecutionPolicy Bypass -Command .\build-windows-modules.ps1 -BuildCo
 Options:
 - `<CONFIGURATION>` - build configuration, either `Debug` or `Release`.
 - `<ARCH>` - CPU architecture, either `x64` or `ARM64`.
-- `COPY_TO_BUILD_DIR` - Optional flag, that when set to `1` makes sure that compiled files are copied to `build/winfw/<ARCH>-<CONFIGURATION>`.
+- `COPY_TO_BUILD_DIR` - Optional flag, that when set to `1` makes sure that compiled files are copied to `build/winfw/<ARCH>-<CONFIGURATION>`. In debug builds, it also makes sure to copy `winfw.dll` to `target\debug`
 
 Note: the policy bypass for powershell scripts is only needed when running in the environment with restricted security policy.
