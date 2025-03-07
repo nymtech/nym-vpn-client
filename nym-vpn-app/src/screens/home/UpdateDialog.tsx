@@ -30,14 +30,14 @@ function UpdateDialog({ isOpen, onClose, appUpdate, daemonUpdate }: Props) {
 
   const description = () => {
     if (os === 'linux') {
+      if (appUpdate && daemonUpdate) {
+        return t('update-dialog.description-1-other');
+      }
       if (appUpdate) {
         return t('update-dialog.description-1-app');
       }
       if (daemonUpdate) {
         return t('update-dialog.description-1-daemon');
-      }
-      if (appUpdate && daemonUpdate) {
-        return t('update-dialog.description-1-other');
       }
     }
 

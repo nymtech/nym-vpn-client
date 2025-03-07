@@ -8,6 +8,7 @@ import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { kvGet } from '../../kvStore';
+import { S_STATE } from '../../static';
 import { Button } from '../../ui';
 import { capFirst } from '../../util';
 import NetworkModeSelect from './NetworkModeSelect';
@@ -69,7 +70,7 @@ function Home() {
   };
 
   useEffect(() => {
-    if (compatChecked) {
+    if (S_STATE.devMode || compatChecked) {
       return;
     }
     if (

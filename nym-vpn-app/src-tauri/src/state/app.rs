@@ -1,8 +1,9 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
-use tracing::{error, instrument, warn};
+use tracing::{debug, error, info, instrument, warn};
 use ts_rs::TS;
 
+use crate::env::DEV_MODE;
 use crate::events::AppHandleEventEmitter;
 use crate::grpc::client::{NetworkCompatVersions, VersionCheck};
 use crate::grpc::tunnel::TunnelState;
@@ -82,23 +83,32 @@ impl AppState {
         pkg_version: &semver::Version,
         vpnd_info: &Option<VpndInfo>,
     ) {
+        if *DEV_MODE {
+            debug!("dev mode ON, skipping compatibility check");
+            return;
+        }
+
         let Some(compat) = network_compat else {
             warn!("no network compatibility data");
             return;
         };
         let core_compat = if let Some(info) = vpnd_info {
-            check_version(&compat.core, &info.version)
+            let res = check_version(&compat.core, &info.version)
                 .inspect_err(|e| warn!("failed to check core version: {e}"))
-                .ok()
+                .ok();
+            log_compat(&info.version, &compat.core, res, "core");
+            res
         } else {
             warn!("no vpnd info, skipping compatibility check for daemon");
             None
         };
 
-        let tauri_compat = check_version(&compat.tauri, &pkg_version.to_string())
+        let tauri_ver = pkg_version.to_string();
+        let tauri_compat = check_version(&compat.tauri, &tauri_ver)
             .inspect_err(|e| warn!("failed to check tauri version: {e}"))
             .ok();
 
+        log_compat(&tauri_ver, &compat.tauri, tauri_compat, "tauri");
         self.network_compat = Some(NetworkCompat::new(core_compat, tauri_compat));
     }
 }
@@ -113,4 +123,12 @@ impl NetworkCompat {
 fn check_version(req: &str, version: &str) -> Result<bool> {
     let ver_check = VersionCheck::new(&format!("{NETWORK_VERSION_REQ_OP}{req}"))?;
     ver_check.check(version)
+}
+
+fn log_compat(local: &str, network: &str, is_compat: Option<bool>, comp_name: &str) {
+    match is_compat {
+        None => warn!("failed to check {comp_name} version compatibility, skipping"),
+        Some(true) => info!("{comp_name} version is compatible with the network, local version: [{local}], network version: [{network}]"),
+        Some(false) => warn!("{comp_name} version is not compatible with the network, local version: [{local}], network version: [{network}]")
+    }
 }
