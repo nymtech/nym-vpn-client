@@ -155,7 +155,7 @@ impl RequestZkNymCommandHandler {
         // If we have pending zk-nym ticketbooks, try those first
         let resumed_requests = self.resume_request_zk_nyms().await;
 
-        let ticket_types = self.check_ticket_types_running_low().await?;
+        let ticket_types = self.get_ticket_types_running_low().await?;
         tracing::debug!("Ticket types running low: {ticket_types:?}");
 
         let new_requests = if !ticket_types.is_empty() {
@@ -177,11 +177,11 @@ impl RequestZkNymCommandHandler {
         Ok(result)
     }
 
-    async fn check_ticket_types_running_low(&self) -> Result<Vec<TicketType>, RequestZkNymError> {
+    async fn get_ticket_types_running_low(&self) -> Result<Vec<TicketType>, RequestZkNymError> {
         self.credential_storage
             .lock()
             .await
-            .check_ticket_types_running_low()
+            .get_ticket_types_running_low()
             .await
             .map_err(RequestZkNymError::internal)
     }
