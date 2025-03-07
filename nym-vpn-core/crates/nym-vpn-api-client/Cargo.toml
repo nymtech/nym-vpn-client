@@ -30,7 +30,11 @@ sha2.workspace = true
 strum.workspace = true
 strum_macros.workspace = true
 thiserror.workspace = true
-time = { workspace = true, features = ["serde-human-readable", "serde-well-known"] }
+time = { workspace = true, features = [
+    "serde-human-readable",
+    "serde-well-known",
+] }
+tokio = { workspace = true, features = [] }
 tracing.workspace = true
 url.workspace = true
 zeroize.workspace = true

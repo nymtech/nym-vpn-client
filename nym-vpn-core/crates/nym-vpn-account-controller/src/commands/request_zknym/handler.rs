@@ -86,8 +86,8 @@ impl WaitingRequestZkNymCommandHandler {
         self.zk_nym_fails_in_a_row.load(Ordering::Relaxed) >= ZK_NYM_MAX_FAILS
     }
 
-    pub(crate) fn update_vpn_api_client(&mut self, vpn_api_client: VpnApiClient) {
-        self.vpn_api_client = vpn_api_client.clone();
+    pub(crate) fn update_vpn_api_client(&mut self, vpn_api_client: &VpnApiClient) {
+        self.vpn_api_client.swap_inner_client(vpn_api_client);
         self.cached_data.update_vpn_api_client(vpn_api_client);
     }
 }

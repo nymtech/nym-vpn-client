@@ -743,13 +743,13 @@ where
                         static_api_addresses.as_deref(),
                     )
                     .map(|new_vpn_api_client| {
-                        self.vpn_api_client = new_vpn_api_client.clone();
+                        self.vpn_api_client.swap_inner_client(&new_vpn_api_client);
                         self.waiting_sync_account_command_handler
-                            .update_vpn_api_client(new_vpn_api_client.clone());
+                            .update_vpn_api_client(&new_vpn_api_client);
                         self.waiting_sync_device_command_handler
-                            .update_vpn_api_client(new_vpn_api_client.clone());
+                            .update_vpn_api_client(&new_vpn_api_client);
                         self.waiting_request_zknym_command_handler
-                            .update_vpn_api_client(new_vpn_api_client);
+                            .update_vpn_api_client(&new_vpn_api_client);
                     })
                     .map_err(|e| {
                         AccountCommandError::internal(format!(
