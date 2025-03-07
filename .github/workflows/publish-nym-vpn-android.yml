@@ -231,14 +231,7 @@ jobs:
         uses: timheuer/base64-to-file@v1.2
         with:
           fileName: ${{ env.KEY_STORE_FILE }}
-          fileDir: ${{ github.workspace }}
           encodedString: ${{ env.SIGNING_KEY_STORE }}
-
-      # create keystore path for gradle to read
-      - name: Create keystore path env var
-        run: |
-          store_path=${{ github.workspace }}/${{ env.KEY_STORE_FILE }}
-          echo "KEY_STORE_PATH=$store_path" >> $GITHUB_ENV
 
       - name: Generate APKS
         run: |
@@ -251,7 +244,7 @@ jobs:
             --bundle="$AAB_FILE" \
             --output=app.apks \
             --mode=universal
-            --ks=${{ env.KEY_STORE_PATH }} \
+            --ks=${{ steps.decode_keystore.outputs.filePath }}\
             --ks-pass=pass:${{ env.SIGNING_STORE_PASSWORD }} \
             --ks-key-alias=${{ env.SIGNING_KEY_ALIAS }} \
             --key-pass=pass:${{ env.SIGNING_KEY_PASSWORD }} \
