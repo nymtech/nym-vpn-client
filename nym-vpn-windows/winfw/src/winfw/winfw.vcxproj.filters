@@ -138,6 +138,7 @@
     <ClInclude Include="rules\dns\permitloopback.h">
       <Filter>rules\dns</Filter>
     </ClInclude>
+    <ClInclude Include="version.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="rules">
