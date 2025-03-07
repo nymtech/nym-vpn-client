@@ -234,8 +234,9 @@ bool FwContext::applyPolicyConnecting
 		));
 	}
 
-	////////////////////////////////////////////
-	// ENTRY TUNNEL RULES
+	//
+	// Entry tunnel rules
+	//
 	if (entryTunnelIfaceAlias.has_value())
 	{
 		switch (allowedEntryTunnelTraffic.type)
@@ -243,10 +244,12 @@ bool FwContext::applyPolicyConnecting
 			case WinFwAllowedTunnelTrafficType::All:
 			{
 				ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
+					baseline::PermitVpnTunnel::InterfaceType::Entry,
 					*entryTunnelIfaceAlias,
 					std::nullopt
 				));
 				ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnelService>(
+					baseline::PermitVpnTunnel::InterfaceType::Entry,
 					*entryTunnelIfaceAlias,
 					std::nullopt
 				));
@@ -263,10 +266,12 @@ bool FwContext::applyPolicyConnecting
 						std::nullopt,
 				});
 				ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
+					baseline::PermitVpnTunnel::InterfaceType::Entry,
 					*entryTunnelIfaceAlias,
 					onlyEndpoint
 				));
 				ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnelService>(
+					baseline::PermitVpnTunnel::InterfaceType::Entry,
 					*entryTunnelIfaceAlias,
 					onlyEndpoint
 				));
@@ -287,10 +292,12 @@ bool FwContext::applyPolicyConnecting
 								})
 				});
 				ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
+							baseline::PermitVpnTunnel::InterfaceType::Entry,
 							*entryTunnelIfaceAlias,
 							endpoints
 							));
 				ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnelService>(
+							baseline::PermitVpnTunnel::InterfaceType::Entry,
 							*entryTunnelIfaceAlias,
 							endpoints
 							));
@@ -300,8 +307,9 @@ bool FwContext::applyPolicyConnecting
 		}
 	}
 
-	////////////////////////////////////////////
-	// EXIT TUNNEL RULES
+	//
+	// Exit tunnel rules
+	//
 	if (exitTunnelIfaceAlias.has_value())
 	{
 		switch (allowedExitTunnelTraffic.type)
@@ -309,10 +317,12 @@ bool FwContext::applyPolicyConnecting
 		case WinFwAllowedTunnelTrafficType::All:
 		{
 			ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
+				baseline::PermitVpnTunnel::InterfaceType::Exit,
 				*exitTunnelIfaceAlias,
 				std::nullopt
 			));
 			ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnelService>(
+				baseline::PermitVpnTunnel::InterfaceType::Exit,
 				*exitTunnelIfaceAlias,
 				std::nullopt
 			));
@@ -329,10 +339,12 @@ bool FwContext::applyPolicyConnecting
 					std::nullopt,
 				});
 			ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
+				baseline::PermitVpnTunnel::InterfaceType::Exit,
 				*exitTunnelIfaceAlias,
 				onlyEndpoint
 			));
 			ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnelService>(
+				baseline::PermitVpnTunnel::InterfaceType::Exit,
 				*exitTunnelIfaceAlias,
 				onlyEndpoint
 			));
@@ -353,10 +365,12 @@ bool FwContext::applyPolicyConnecting
 							})
 				});
 			ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
+				baseline::PermitVpnTunnel::InterfaceType::Exit,
 				*exitTunnelIfaceAlias,
 				endpoints
 			));
 			ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnelService>(
+				baseline::PermitVpnTunnel::InterfaceType::Exit,
 				*exitTunnelIfaceAlias,
 				endpoints
 			));
@@ -416,11 +430,13 @@ bool FwContext::applyPolicyConnected
 		}
 
 		ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
+			baseline::PermitVpnTunnel::InterfaceType::Exit,
 			exitTunnelIfaceAliasStr,
 			std::nullopt
 		));
 
 		ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnelService>(
+			baseline::PermitVpnTunnel::InterfaceType::Exit,
 			exitTunnelIfaceAliasStr,
 			std::nullopt
 		));
@@ -432,11 +448,13 @@ bool FwContext::applyPolicyConnected
 
 		
 		ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
+			baseline::PermitVpnTunnel::InterfaceType::Entry,
 			entryTunnelIfaceAliasStr,
 			std::nullopt
 		));
 
 		ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnelService>(
+			baseline::PermitVpnTunnel::InterfaceType::Entry,
 			entryTunnelIfaceAliasStr,
 			std::nullopt
 		));
