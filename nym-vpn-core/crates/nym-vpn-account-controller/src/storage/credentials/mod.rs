@@ -180,9 +180,16 @@ impl VpnCredentialStorage {
 
     pub(crate) async fn print_info(&self) -> Result<(), Error> {
         let ticketbooks_info = self.get_available_ticketbooks().await?;
-        tracing::info!("Ticketbooks stored: {}", ticketbooks_info.len());
+        let num_ticketbooks = ticketbooks_info.len_not_expired();
+        let num_total_ticketbooks = ticketbooks_info.len();
+        tracing::info!("Ticketbooks stored: {num_ticketbooks}");
+        tracing::debug!("Total ticketbooks stored: {num_total_ticketbooks}");
         for ticketbook in ticketbooks_info {
-            tracing::info!("Ticketbook: {ticketbook}");
+            if ticketbook.has_expired() {
+                tracing::debug!("Ticketbook: {ticketbook}");
+            } else {
+                tracing::info!("Ticketbook: {ticketbook}");
+            }
         }
 
         let pending_ticketbooks = self.credential_storage.get_pending_ticketbooks().await?;

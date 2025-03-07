@@ -179,6 +179,13 @@ impl AvailableTicketbooks {
         self.ticketbooks.len()
     }
 
+    pub fn len_not_expired(&self) -> usize {
+        self.ticketbooks
+            .iter()
+            .filter(|ticketbook| !ticketbook.has_expired())
+            .count()
+    }
+
     pub fn is_empty(&self) -> bool {
         self.ticketbooks.is_empty()
     }

@@ -194,8 +194,9 @@ impl<St: Storage> BandwidthController<St> {
     where
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
-        // First we need to register with the gateway to setup keys and IP assignment
-        tracing::info!("Registering with wireguard gateway");
+        // First we need to regster with the gateway to setup keys and IP assignment
+        let wg_version = wg_gateway_client.auth_version();
+        tracing::info!("Registering with wireguard gateway ({wg_version})");
         let authenticator_address = wg_gateway_client.auth_recipient();
         let gateway_id = wg_gateway_client.auth_recipient().gateway();
         let gateway_host = gateway_client

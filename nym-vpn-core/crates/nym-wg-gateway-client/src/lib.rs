@@ -310,6 +310,10 @@ impl WgGatewayClient {
         self.auth_recipient
     }
 
+    pub fn auth_version(&self) -> AuthenticatorVersion {
+        self.auth_version
+    }
+
     pub async fn request_bandwidth<St: CredentialStorage>(
         wg_gateway_client: &mut WgGatewayLightClient,
         controller: &nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
