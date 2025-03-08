@@ -18,7 +18,7 @@ fun MainStyledButton(
 	onClick: () -> Unit,
 	content: @Composable () -> Unit,
 	color: Color = MaterialTheme.colorScheme.primary,
-	modifier: Modifier,
+	modifier: Modifier = Modifier,
 ) {
 	Button(
 		onClick = { onClick() },
