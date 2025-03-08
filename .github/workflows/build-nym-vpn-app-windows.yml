@@ -171,23 +171,16 @@ jobs:
           echo "core_release_tag: $release_tag"
           "core_release_tag=$release_tag" >> $env:GITHUB_ENV
 
-      # TODO ⚠⚠ TO BE FIXED!
-      # this currently fails with the following grep error:
-      # `grep: -P supports only unibyte and UTF-8 locales`
       - name: Get nym-vpn-core artifact url (latest dev)
         if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && inputs.dev_mode }}
-        shell: bash
+        shell: pwsh
         run: |
-          latest=$(curl -s ${{ env.VPN_CORE_BUILDS_URL }}/develop \
-              | grep -oP '(?<=<a href=")\d+/' \
-              | sort -r \
-              | head -n 1)
-          latest_url="${{ env.VPN_CORE_BUILDS_URL }}/develop/$latest"
-          artifact=$(curl -s "$latest_url" \
-              | grep -oP '(?<=^<a href=")nym-vpn-core-v.+_windows_x86_64\.zip(?=">)')
-          artifact_url="$latest_url$artifact"
-          echo "$artifact_url"
-          echo "core_asset_url=$artifact_url" >> $GITHUB_ENV
+          $latest = Invoke-WebRequest -Uri "${{ env.VPN_CORE_BUILDS_URL }}/develop" | Select-String -Pattern '<a href="(\d+)/"' -AllMatches | ForEach-Object {$_.Matches} | ForEach-Object {$_.Groups[1].Value} | Sort-Object -Descending | Select-Object -First 1
+          $latest_url = "${{ env.VPN_CORE_BUILDS_URL }}/develop/$latest"
+          $artifact = Invoke-WebRequest -Uri "$latest_url" | Select-String -Pattern '<a href="(nym-vpn-core-v.+_windows_x86_64\.zip)"' -AllMatches | ForEach-Object {$_.Matches.Groups[1].Value}
+          $artifact_url = "$latest_url/$artifact"
+          Write-Output "$artifact_url"
+          "core_asset_url=$artifact_url" >> $env:GITHUB_ENV
 
       - name: Get nym-vpn-core artifact url (${{ env.core_release_tag }})
         if: ${{ env.core_release_tag }}
