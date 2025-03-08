@@ -231,4 +231,9 @@
     </string>
 	<string name="update_required">Update required!</string>
 	<string name="update">Update</string>
+	<string name="log_out_title">Are you sure you want to log out?</string>
+	<string name="log_out_body">You will need your recovery phrase to log in again.</string>
+	<string name="cancel">Cancel</string>
+	<string name="subscription_expired">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
+	<string name="remove_device">Remove a device from your account and try again.</string>
 </resources>
