@@ -52,7 +52,7 @@ fun GatewayDetailsModal(gateway: NymGateway, gatewayType: GatewayType, onDismiss
 					onDismiss()
 				},
 				content = {
-					Text(text = stringResource(id = R.string.close))
+					Text(text = stringResource(id = R.string.close), style = MaterialTheme.typography.labelLarge)
 				},
 			)
 		},

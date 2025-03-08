@@ -21,4 +21,8 @@ object Constants {
 
 	const val KOTLIN_LICENSES_ASSET_FILE_NAME = "artifacts.json"
 	const val RUST_LICENSES_ASSET_FILE_NAME = "licenses_rust.json"
+
+	const val MAX_DEVICES_REACHED_ID = "nym-vpn-website.public-api.register-device.max-devices-exceeded"
+	const val MAX_BANDWIDTH_REACHED_ID = "nym-vpn-website.public-api.device.zk-nym.request_failed.fair_usage_used_for_month"
+	const val SUBSCRIPTION_EXPIRED_ID = "nym-vpn-website.public-api.device.zk-nym.request_failed.no_active_subscription"
 }
