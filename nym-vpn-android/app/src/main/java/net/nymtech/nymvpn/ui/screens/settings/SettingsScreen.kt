@@ -81,6 +81,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 	val padding = WindowInsets.systemBars.asPaddingValues()
 
 	var loggingOut by remember { mutableStateOf(false) }
+	var showLogoutDialog by remember { mutableStateOf(false) }
 
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
@@ -95,9 +96,13 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 		)
 	}
 
+	LaunchedEffect(appUiState.managerState.isMnemonicStored) {
+		loggingOut = false
+	}
+
 	Modal(
-		show = loggingOut,
-		onDismiss = { loggingOut = false },
+		show = showLogoutDialog,
+		onDismiss = { showLogoutDialog = false },
 		title = {
 			Text(
 				text = stringResource(R.string.log_out_title),
@@ -118,12 +123,14 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					verticalAlignment = Alignment.CenterVertically,
 					modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
 				) {
-					MainStyledButton(onClick = { loggingOut = false }, content = {
+					MainStyledButton(onClick = { showLogoutDialog = false }, content = {
 						Text(text = stringResource(id = R.string.cancel), style = MaterialTheme.typography.labelLarge)
 					}, modifier = Modifier.weight(1f).height(46.dp))
 					OutlineStyledButton(
 						onClick = {
 							appViewModel.logout()
+							showLogoutDialog = false
+							loggingOut = true
 						},
 						content = {
 							Text(text = stringResource(id = R.string.log_out), style = MaterialTheme.typography.labelLarge)
@@ -411,7 +418,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 									context.getString(R.string.action_requires_tunnel_down),
 								)
 							}
-							loggingOut = true
+							showLogoutDialog = true
 						},
 					),
 				),

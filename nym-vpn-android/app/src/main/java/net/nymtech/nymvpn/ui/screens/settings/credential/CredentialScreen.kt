@@ -139,6 +139,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 	}
 
 	val onSubmit = {
+		keyboardController?.hide()
 		loading = true
 		viewModel.onMnemonicImport(mnemonic)
 	}
