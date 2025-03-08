@@ -30,8 +30,10 @@ bool PermitDns::apply(IObjectInstaller &objectInstaller)
 		.permit();
 
 	wfp::ConditionBuilder conditionBuilder(FWPM_LAYER_ALE_AUTH_CONNECT_V4);
-
-	conditionBuilder.add_condition(ConditionPort::Remote(DNS_SERVER_PORT));
+	for (const auto& dnsPort : DNS_PORTS)
+	{
+		conditionBuilder.add_condition(ConditionPort::Remote(dnsPort));
+	}
 
 	if (false == objectInstaller.addFilter(filterBuilder, conditionBuilder))
 	{
@@ -48,7 +50,10 @@ bool PermitDns::apply(IObjectInstaller &objectInstaller)
 		.layer(FWPM_LAYER_ALE_AUTH_CONNECT_V6);
 
 	conditionBuilder.reset(FWPM_LAYER_ALE_AUTH_CONNECT_V6);
-	conditionBuilder.add_condition(ConditionPort::Remote(DNS_SERVER_PORT));
+	for (const auto& dnsPort : DNS_PORTS)
+	{
+		conditionBuilder.add_condition(ConditionPort::Remote(dnsPort));
+	}
 
 	return objectInstaller.addFilter(filterBuilder, conditionBuilder);
 }

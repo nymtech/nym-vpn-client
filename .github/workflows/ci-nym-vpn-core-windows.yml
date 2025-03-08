@@ -107,7 +107,8 @@ jobs:
       - name: Move winfw.dll to build directory
         shell: bash
         run: |
-          mv ${GITHUB_WORKSPACE}/nym-vpn-windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/build/winfw/
+          mkdir -p ${GITHUB_WORKSPACE}/build/winfw/x64-Debug || true
+          mv ${GITHUB_WORKSPACE}/nym-vpn-windows/winfw/bin/x64-Debug/winfw.{dll,lib} ${GITHUB_WORKSPACE}/build/winfw/x64-Debug
 
       - name: rustfmt check
         working-directory: nym-vpn-core

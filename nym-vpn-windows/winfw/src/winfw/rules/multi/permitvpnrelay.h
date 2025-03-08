@@ -18,24 +18,24 @@ public:
 		Dns
 	};
 
-	PermitVpnRelay
-	(
-		const wfp::IpAddress &relay,
-		uint16_t relayPort,
-		WinFwProtocol protocol,
-		const std::vector<std::wstring> &relayClients,
-		Sublayer sublayer
-	);
+	struct Endpoint {
+		wfp::IpAddress ip;
+		uint16_t port;
+		WinFwProtocol protocol;
+		std::vector<std::wstring> clients;
+		Sublayer sublayer;
+	};
+
+	PermitVpnRelay(std::vector<Endpoint> endpoints);
 	
 	bool apply(IObjectInstaller &objectInstaller) override;
 
 private:
 
-	const wfp::IpAddress m_relay;
-	const uint16_t m_relayPort;
-	const WinFwProtocol m_protocol;
-	const std::vector<std::wstring> m_relayClients;
-	const Sublayer m_sublayer;
+	bool AddIpv4RelayFilter(const Endpoint& endpoint, const GUID& ipv4Guid, IObjectInstaller& objectInstaller);
+	bool AddIpv6RelayFilter(const Endpoint& endpoint, const GUID& ipv6Guid, IObjectInstaller& objectInstaller);
+
+	const std::vector<Endpoint> m_endpoints;
 };
 
 }

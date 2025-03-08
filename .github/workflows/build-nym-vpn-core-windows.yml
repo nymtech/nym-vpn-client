@@ -15,6 +15,7 @@ env:
   CARGO_TERM_COLOR: always
   CARGO_TARGET: release
   LIBS_PATH: '${{ github.workspace }}/build/lib/x86_64-pc-windows-msvc'
+  WINFW_PATH: '${{ github.workspace }}/build/winfw/x64-Release'
   WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
   WINFW_LIB_NAME: winfw
   UPLOAD_DIR_WINDOWS: windows_artifacts
@@ -73,13 +74,13 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.WINFW_LIB_NAME }}.lib
-          path: ${{ env.LIBS_PATH }}/
+          path: ${{ env.WINFW_PATH }}/
 
       - name: Download winfw lib artifact (winfw.dll)
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.WINFW_LIB_NAME }}.dll
-          path: ${{ env.LIBS_PATH }}/
+          path: ${{ env.WINFW_PATH }}/
 
       - name: Download/Unzip/Move wintun.zip, winpcap.zip also move libwg and winfw lib
         shell: bash
@@ -88,9 +89,7 @@ jobs:
           unzip ${GITHUB_WORKSPACE}/wintun.zip
           mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll nym-vpn-core/
           mv '${{ env.LIBS_PATH }}/libwg.dll' nym-vpn-core/
-          mv '${{ env.LIBS_PATH }}/libwg.lib' nym-vpn-core/
-          mv '${{ env.LIBS_PATH }}/winfw.dll' nym-vpn-core/
-          mv '${{ env.LIBS_PATH }}/winfw.lib' nym-vpn-core/
+          mv '${{ env.WINFW_PATH }}/winfw.dll' nym-vpn-core/
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
