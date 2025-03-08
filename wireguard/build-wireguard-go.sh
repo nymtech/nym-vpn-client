@@ -109,6 +109,10 @@ function build_windows {
     echo "Building wireguard-go for Windows ($arch)"
 
     pushd $LIB_DIR
+        if [ $# -eq 0 ] ; then
+            win_create_versioninfo
+        fi
+
         build_go -v -o libwg.dll -buildmode c-shared
 
         if [ $# -eq 0 ] ; then
@@ -123,6 +127,11 @@ function build_windows {
         echo "Copying files to $(realpath "$target_dir")"
         mv libwg.dll libwg.lib $target_dir
     popd
+}
+
+function win_create_versioninfo {
+    echo "Compiling DLL version info (libwg.rc)"
+    windres -i libwg.rc -O coff -o versioninfo_windows.syso
 }
 
 function unix_target_triple {

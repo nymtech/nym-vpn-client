@@ -88,3 +88,67 @@ Options:
 - `COPY_TO_BUILD_DIR` - Optional flag, that when set to `1` makes sure that compiled files are copied to `build/winfw/<ARCH>-<CONFIGURATION>`. In debug builds, it also makes sure to copy `winfw.dll` to `target\debug`
 
 Note: the policy bypass for powershell scripts is only needed when running in the environment with restricted security policy.
+
+
+### Windows
+
+#### Internal winfw cli
+
+Compile winfw cli first by following next steps:
+
+1. Open `nym-vpn-windows/winfw/extras.sln` in Visual Studio (tested with 2022 community edition)
+2. Some things related to running against `winfw.dll` are not yet fixed, so feel free to comment out the problematic parts.
+3. Compile.
+
+Once compiled:
+
+1. Open Powershell under Administrator and navigate to `nym-vpn-windows\winfw\bin\x64-Debug` (or `ARM64-Debug` depending on selected build architecture)
+2. Execute `.\cli.exe`
+3. Type in `monitor events` and hit return key to monitor all blocked connections.
+
+Type in `help` to see more capabilities of the cli.
+
+#### Audit with Event Viewer
+
+##### Enable WFP audit
+
+First you need to enabel the audit. Open Windows Console or Powershell under administrator and run the following commands:
+
+```bat
+auditpol /set /subcategory:"Filtering Platform Packet Drop" /success:enable /failure:enable
+auditpol /set /subcategory:"Filtering Platform Connection"  /success:enable /failure:enable
+```
+
+Run the following commands when you *no longer need it anymore*:
+
+```bat
+auditpol /set /subcategory:"Filtering Platform Packet Drop" /success:disable /failure:disable
+auditpol /set /subcategory:"Filtering Platform Connection"  /success:disable /failure:disable
+```
+
+##### WFP state snapshot
+
+You can take a snapshot of WFP using the following command:
+
+```bat
+netsh wfp show state
+```
+
+It's fairly verbose but contains all filters registered with wfp and whatnot.
+
+##### View events
+
+1. Open Event viewer
+2. Navigate to Windows Logs > Security to see the audit
+
+If you want to filter by specific destination IP etc, add custom view and enter filter using XML, for example:
+
+```xml
+<QueryList>
+  <Query Id="0" Path="Security">
+    <Select Path="Security">*[EventData[Data[@Name="DestAddress"] and (Data="1.2.3.4")]]</Select>
+  </Query>
+</QueryList>
+```
+
+You can create more complex filters but you'd need to know the exact attributes to fitler by. You can discover them by selecting individual event and switching to the details tab, then to XML view. This should show you all of the available XML attributes.
