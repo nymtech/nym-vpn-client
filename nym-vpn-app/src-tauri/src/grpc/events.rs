@@ -7,9 +7,10 @@ use p::mixnet_event::{
 };
 use tracing::{error, instrument};
 
-#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[derive(Serialize, Clone, Debug, PartialEq, TS, strum::AsRefStr)]
 #[ts(export)]
 #[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "snake_case")]
 pub enum MixnetEvent {
     EntryGwDown,
     ExitGwDownIpv4,

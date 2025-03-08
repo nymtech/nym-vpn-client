@@ -17,7 +17,7 @@ use tauri::{AppHandle, Manager, PackageInfo};
 use tokio::sync::mpsc;
 use tonic::transport::Endpoint as TonicEndpoint;
 use tonic::{transport::Channel, Request};
-use tracing::{debug, error, info, instrument, warn};
+use tracing::{debug, error, info, instrument, trace, warn};
 
 pub use super::account_links::AccountLinks;
 pub use super::error::VpndError;
@@ -263,17 +263,18 @@ impl GrpcClient {
         });
 
         while let Some(state) = rx.recv().await {
-            debug!("event {:?}", state.event);
             let Some(event) = state.event else {
                 warn!("no event data, ignoring…");
                 continue;
             };
             match event {
                 Event::TunnelState(state) => {
+                    debug!("tunnel state event {:?}", state);
                     GrpcClient::handle_tunnel_update(app, state).await.ok();
                 }
                 Event::MixnetEvent(event) => {
                     if let Some(e) = MixnetEvent::from_proto(event) {
+                        trace!("mixnet event [{}]", e.as_ref());
                         app.emit_mixnet_event(e);
                     } else {
                         warn!("failed to parse mixnet event");
