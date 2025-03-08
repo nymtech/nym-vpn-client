@@ -3,8 +3,6 @@ package net.nymtech.nymvpn.ui.common.buttons
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -14,14 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import net.nymtech.nymvpn.util.extensions.scaledHeight
 
 @Composable
 fun OutlineStyledButton(
 	testTag: String? = null,
 	onClick: () -> Unit,
 	content: @Composable () -> Unit,
-	modifier: Modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
+	modifier: Modifier,
 	borderColor: Color = MaterialTheme.colorScheme.primary,
 	backgroundColor: Color = MaterialTheme.colorScheme.background,
 ) {

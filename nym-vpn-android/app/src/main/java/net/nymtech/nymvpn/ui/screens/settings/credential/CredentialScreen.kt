@@ -248,6 +248,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 							}
 						},
 						color = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 					)
 
 // Disable scanner for now

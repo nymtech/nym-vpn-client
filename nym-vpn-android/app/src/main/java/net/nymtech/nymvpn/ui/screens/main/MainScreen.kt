@@ -259,6 +259,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			content = {
 				Text(text = stringResource(id = R.string.update))
 			},
+			modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 		)
 	})
 
@@ -491,6 +492,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 									style = CustomTypography.labelHuge,
 								)
 							},
+							modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 						)
 
 					is ConnectionState.Disconnecting,
@@ -509,6 +511,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 								)
 							},
 							color = CustomColors.disconnect,
+							modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 						)
 					}
 
@@ -523,6 +526,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 								)
 							},
 							color = CustomColors.disconnect,
+							modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 						)
 				}
 			}

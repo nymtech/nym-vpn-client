@@ -68,6 +68,7 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 import timber.log.Timber
@@ -164,6 +165,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					)
 				},
 				color = MaterialTheme.colorScheme.primary,
+				modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 			)
 		} else {
 			SurfaceSelectionGroupButton(

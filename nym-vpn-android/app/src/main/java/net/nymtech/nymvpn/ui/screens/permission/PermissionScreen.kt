@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
@@ -173,6 +174,7 @@ fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 							}
 						},
 						content = { Text(stringResource(R.string.try_reconnecting), style = CustomTypography.labelHuge) },
+						modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 					)
 				}
 			}

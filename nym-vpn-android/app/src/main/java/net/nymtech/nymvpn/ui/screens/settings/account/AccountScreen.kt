@@ -144,6 +144,7 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 									style = CustomTypography.labelHuge,
 								)
 							},
+							modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 						)
 					}
 				}
