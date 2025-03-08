@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -32,6 +33,7 @@ import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
+import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.toLocale
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib.GatewayType
@@ -52,8 +54,9 @@ fun GatewayDetailsModal(gateway: NymGateway, gatewayType: GatewayType, onDismiss
 					onDismiss()
 				},
 				content = {
-					Text(text = stringResource(id = R.string.close))
+					Text(text = stringResource(id = R.string.close), style = MaterialTheme.typography.labelLarge)
 				},
+				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
 			)
 		},
 		title = {

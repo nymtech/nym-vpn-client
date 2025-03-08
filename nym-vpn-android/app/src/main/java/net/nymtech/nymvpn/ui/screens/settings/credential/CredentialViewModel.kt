@@ -34,13 +34,8 @@ constructor(
 			_success.emit(true)
 		}.onFailure {
 			Timber.e(it)
-			// TODO this should be mapped to an exception type
-			if (it.message?.contains("maximum number of device") == true) {
-				showModal()
-			} else {
-				_success.emit(false)
-				SnackbarController.showMessage(StringValue.StringResource(R.string.invalid_recovery_phrase))
-			}
+			_success.emit(false)
+			SnackbarController.showMessage(StringValue.StringResource(R.string.invalid_recovery_phrase))
 		}
 	}
 
