@@ -204,17 +204,6 @@ impl Network {
     pub fn get_feature_flag_stats_recipient(&self) -> Option<Recipient> {
         self.get_feature_flag("statistics", "recipient")
     }
-    //pub fn get_feature_flag_score_thresholds(&self) -> Option<ScoreThresholds> {
-    //    if let (Some(high), Some(medium), Some(low)) = (
-    //        self.get_feature_flag("score_threshold", "high"),
-    //        self.get_feature_flag("score_threshold", "medium"),
-    //        self.get_feature_flag("score_threshold", "low"),
-    //    ) {
-    //        Some(ScoreThresholds { high, medium, low })
-    //    } else {
-    //        None
-    //    }
-    //}
 }
 
 pub fn discover_networks(config_path: &Path) -> anyhow::Result<RegisteredNetworks> {
