@@ -1120,7 +1120,7 @@ impl AuthClient {
         request_id: u64,
         mixnet_client: &mut MixnetClient,
     ) -> Result<AuthenticatorResponse> {
-        let timeout = tokio::time::sleep(Duration::from_secs(10));
+        let timeout = tokio::time::sleep(Duration::from_secs(15));
         tokio::pin!(timeout);
 
         loop {
