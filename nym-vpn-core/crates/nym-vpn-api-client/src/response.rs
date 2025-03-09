@@ -608,6 +608,7 @@ pub struct SystemMessageResponse {
 pub struct SystemConfigurationResponse {
     pub mix_thresholds: ScoreThresholdsResponse,
     pub wg_thresholds: ScoreThresholdsResponse,
+    pub statistics_recipient: Option<String>,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]

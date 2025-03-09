@@ -204,12 +204,12 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
                             tracing::info!("VPN service has successfully exited");
                         }
                         Err(e) => {
-                            tracing::error!("VPN service has exited with error: {:?}", e);
+                            tracing::error!("VPN service has exited with error: {e:?}");
                         }
                     }
                 }
                 Err(err) => {
-                    tracing::error!("Failed to initialize VPN service: {:?}", err);
+                    tracing::error!("Failed to initialize VPN service: {err:?}");
                 }
             }
         })
@@ -235,7 +235,9 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // Make sure the data dir exists
         super::config::create_data_dir(&data_dir).map_err(Error::ConfigSetup)?;
 
-        let statistics_recipient = network_env.get_feature_flag_stats_recipient();
+        let statistics_recipient = network_env
+            .system_configuration
+            .and_then(|config| config.statistics_recipient);
 
         let account_controller = AccountController::new(
             Arc::clone(&storage),

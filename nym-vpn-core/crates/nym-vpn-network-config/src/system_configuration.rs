@@ -3,12 +3,14 @@
 
 use std::fmt;
 
+use nym_sdk::mixnet::Recipient;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct SystemConfiguration {
     pub mix_thresholds: ScoreThresholds,
     pub wg_thresholds: ScoreThresholds,
+    pub statistics_recipient: Option<Recipient>,
 }
 
 impl fmt::Display for SystemConfiguration {
