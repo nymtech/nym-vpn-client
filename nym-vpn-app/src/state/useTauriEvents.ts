@@ -79,8 +79,8 @@ export function useTauriEvents(
   const registerMixnetEventListener = useCallback(() => {
     return listen<MixnetEventPayload>(MixnetEvent, (event) => {
       const { payload } = event;
-      console.log(`received mixnet event [${event.event}]`, payload);
       if (isMixnetEventError(payload)) {
+        console.info(`received mixnet event [${event.event}]`, payload);
         dispatch({
           type: 'set-error',
           error: { key: payload.error, message: payload.error },

@@ -1,3 +1,3 @@
 export { default as NodesProvider } from './provider';
-export * from './context';
+export { useNodesState } from './context';
 export * from './types';

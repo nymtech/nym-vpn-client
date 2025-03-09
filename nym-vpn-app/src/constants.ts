@@ -2,7 +2,7 @@ import { Country } from './types';
 
 export const AppName = 'NymVPN';
 // ⚠ keep this default in sync with the one declared in
-// src-tauri/src/states/app.rs
+// src-tauri/src/state/app.rs
 export const DefaultVpnMode = 'wg';
 export const TunnelStateEvent = 'tunnel-state';
 export const ProgressEvent = 'connection-progress';
@@ -20,6 +20,7 @@ export const DefaultCountry: Country = {
 export const DefaultThemeMode = 'System';
 
 // Various external links
+export const DownloadAppUrl = 'https://nym.com/download';
 export const GitHubIssuesUrl =
   'https://nym.com/go/github/nym-vpn-client/issues';
 export const MatrixRoomUrl = 'https://nym.com/go/matrix';

@@ -17,7 +17,7 @@ use tauri::{AppHandle, Manager, PackageInfo};
 use tokio::sync::mpsc;
 use tonic::transport::Endpoint as TonicEndpoint;
 use tonic::{transport::Channel, Request};
-use tracing::{debug, error, info, instrument, warn};
+use tracing::{debug, error, info, instrument, trace, warn};
 
 pub use super::account_links::AccountLinks;
 pub use super::error::VpndError;
@@ -27,15 +27,15 @@ use super::gateway::{Gateway, GatewayType};
 pub use super::node::NodeConnect;
 pub use super::system_message::SystemMessage;
 use super::tunnel::TunnelState;
-use super::version_check::VersionCheck;
-pub use super::vpnd_status::{VpndInfo, VpndStatus};
+pub use super::vpnd_status::{VersionCheck, VpndInfo, VpndStatus};
+pub use crate::grpc::network::NetworkCompatVersions;
 
 use crate::cli::Cli;
 use crate::country::Country;
 use crate::env::VPND_COMPAT_REQ;
 use crate::error::BackendError;
 use crate::fs::config::AppConfig;
-use crate::{events::AppHandleEventEmitter, states::SharedAppState};
+use crate::{events::AppHandleEventEmitter, state::SharedAppState};
 
 const VPND_SERVICE: &str = "nym.vpn.NymVpnd";
 #[cfg(target_os = "linux")]
@@ -263,17 +263,18 @@ impl GrpcClient {
         });
 
         while let Some(state) = rx.recv().await {
-            debug!("event {:?}", state.event);
             let Some(event) = state.event else {
                 warn!("no event data, ignoring…");
                 continue;
             };
             match event {
                 Event::TunnelState(state) => {
+                    debug!("tunnel state event {:?}", state);
                     GrpcClient::handle_tunnel_update(app, state).await.ok();
                 }
                 Event::MixnetEvent(event) => {
                     if let Some(e) = MixnetEvent::from_proto(event) {
+                        trace!("mixnet event [{}]", e.as_ref());
                         app.emit_mixnet_event(e);
                     } else {
                         warn!("failed to parse mixnet event");
@@ -604,6 +605,11 @@ impl GrpcClient {
             }
             let status = self.get_vpnd_status(serving, vpnd_info.as_ref());
             app.emit_vpnd_status(status.clone());
+            if serving == ServingStatus::Serving {
+                let net_compat = self.network_compat().await.ok();
+                let mut state = app_state.lock().await;
+                state.set_network_compat(net_compat, &self.pkg_info.version, &vpnd_info);
+            }
             let mut state = app_state.lock().await;
             state.vpnd_status = status;
         }
@@ -704,9 +710,30 @@ impl GrpcClient {
         let response = response.into_inner();
         Ok(FeatureFlags::from(&response))
     }
+
+    /// Get the network compatibility versions of supported vpn-core and tauri client
+    #[instrument(skip_all)]
+    pub async fn network_compat(&self) -> Result<NetworkCompatVersions, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(());
+        let response = vpnd.get_network_compatibility(request).await.map_err(|e| {
+            error!("grpc: {}", e);
+            VpndError::GrpcError(e)
+        })?;
+        debug!("grpc response: {:?}", response);
+        response
+            .into_inner()
+            .messages
+            .map(NetworkCompatVersions::from)
+            .ok_or_else(|| {
+                error!("no network compatibility data");
+                VpndError::internal("no network compatibility data")
+            })
+    }
 }
 
-async fn get_channel(socket_path: PathBuf) -> anyhow::Result<Channel> {
+async fn get_channel(socket_path: PathBuf) -> Result<Channel> {
     // NOTE the uri here is ignored
     Ok(TonicEndpoint::from_static(DEFAULT_HTTP_ENDPOINT)
         .connect_with_connector(tower::service_fn(move |_| {
