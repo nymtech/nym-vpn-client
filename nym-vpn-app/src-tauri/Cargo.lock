@@ -3253,7 +3253,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#247ebb7c4339de0a298a7fcb2574122a8306c3b8"
+source = "git+https://github.com/nymtech/nym?branch=jon%2Fpurge-sender-tags#987ef5114c98bdf5d1f2d326fce183f15ce26c3c"
 dependencies = [
  "const-str",
  "log",
@@ -3265,7 +3265,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#247ebb7c4339de0a298a7fcb2574122a8306c3b8"
+source = "git+https://github.com/nymtech/nym?branch=jon%2Fpurge-sender-tags#987ef5114c98bdf5d1f2d326fce183f15ce26c3c"
 dependencies = [
  "async-trait",
  "bytes",
@@ -3286,7 +3286,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.5.0-dev"
+version = "1.5.0-beta.2"
 dependencies = [
  "anyhow",
  "build-info",
@@ -3331,7 +3331,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.6.0-beta"
+version = "1.5.1"
 dependencies = [
  "nym-http-api-client",
  "prost",
