@@ -28,7 +28,7 @@ function NetworkModeSelect() {
       try {
         await invoke<void>('set_vpn_mode', { mode: value });
         dispatch({ type: 'set-vpn-mode', mode: value });
-        console.info('vpn mode set to', value);
+        console.info(`vpn mode set to [${value}]`);
         if (value === 'mixnet') {
           fetch('mx-entry');
           fetch('mx-exit');

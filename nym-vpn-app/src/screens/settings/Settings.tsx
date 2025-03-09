@@ -43,8 +43,10 @@ function Settings() {
       }
     };
 
-    checkAccount();
-  }, [dispatch]);
+    if (daemonStatus !== 'down') {
+      checkAccount();
+    }
+  }, [daemonStatus, dispatch]);
 
   const handleAutostartChanged = async () => {
     await toggleAutostart();
