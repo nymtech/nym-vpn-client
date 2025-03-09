@@ -25,7 +25,7 @@ type GatewaysStateProviderProps = {
 function GatewaysProvider({ children }: GatewaysStateProviderProps) {
   const [state, dispatch] = useReducer(reducer, initialState);
 
-  const { entryNode, exitNode } = useMainState();
+  const { entryNode, exitNode, daemonStatus } = useMainState();
   const mainDispatch = useMainDispatch() as StateDispatch;
 
   const checkSelectedNode = useCallback(
@@ -66,7 +66,7 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
       let gateways = await CCache.get<GatewaysByCountry[]>(cacheKey);
 
       // fallback to daemon query
-      if (!gateways) {
+      if (!gateways || daemonStatus === 'down') {
         console.info(`fetching gateways for ${nodeType}`);
         try {
           gateways = await invoke<GatewaysByCountry[]>('get_gateways', {
@@ -104,19 +104,22 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
           type: nodeType,
         },
       });
-      if (nodeType === 'mx-entry') {
-        await checkSelectedNode(gateways, 'entry');
-      } else if (nodeType === 'mx-exit') {
-        await checkSelectedNode(gateways, 'exit');
-      } else {
-        // for wg check both entry and exit as they share the same gateways
-        await checkSelectedNode(gateways, 'entry');
-        await checkSelectedNode(gateways, 'exit');
+      if (gateways.length > 0) {
+        if (nodeType === 'mx-entry') {
+          await checkSelectedNode(gateways, 'entry');
+        } else if (nodeType === 'mx-exit') {
+          await checkSelectedNode(gateways, 'exit');
+        } else {
+          // for wg check both entry and exit as they share the same gateways
+          await checkSelectedNode(gateways, 'entry');
+          await checkSelectedNode(gateways, 'exit');
+        }
       }
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [
       checkSelectedNode,
+      daemonStatus,
       state.mxEntryLoading,
       state.mxExitLoading,
       state.wgLoading,
@@ -125,7 +128,7 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
 
   // init gateways on app start
   useEffect(() => {
-    if (initialized) {
+    if (initialized || daemonStatus === 'down') {
       return;
     }
     initialized = true;
@@ -141,7 +144,7 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
         console.info('[mx-exit] gateways initialized');
       });
     }
-  }, [fetchGateways]);
+  }, [fetchGateways, daemonStatus]);
 
   const ctx = useMemo<GatewaysState>(
     () => ({
