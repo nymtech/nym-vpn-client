@@ -7,6 +7,9 @@ pub(crate) fn init_logs(level: String) {
     use android_logger::{Config, FilterBuilder};
     let levels = level + ",tungstenite=warn,mio=warn,tokio_tungstenite=warn";
 
+    // Also ignore some of the more low level crates from the platform repo
+    let levels = levels + ",nym_client_core=info,nym_sphinx=info,nym_statistics_common=info";
+
     android_logger::init_once(
         Config::default()
             .with_max_level(LevelFilter::Trace)
