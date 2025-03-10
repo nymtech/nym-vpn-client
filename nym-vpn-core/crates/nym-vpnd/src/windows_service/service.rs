@@ -175,7 +175,7 @@ pub(super) fn get_service_info() -> ServiceInfo {
     }
 }
 
-pub(crate) fn start(args: CliArgs) -> Result<(), windows_service::Error> {
+pub(crate) fn start(args: CliArgs) -> anyhow::Result<()> {
     if args.command.install {
         println!(
             "Processing request to install {} as a service...",
