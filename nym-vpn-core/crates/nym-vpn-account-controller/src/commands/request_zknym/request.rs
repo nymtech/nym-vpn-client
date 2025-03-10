@@ -214,7 +214,7 @@ impl RequestZkNymTask {
             {
                 Ok(poll_response) if poll_response.status != NymVpnZkNymStatus::Pending => {
                     tracing::info!("Polling zk-nym finished");
-                    tracing::debug!("Polling zk-nym finished: {:#?}", poll_response);
+                    tracing::trace!("Polling zk-nym finished: {:#?}", poll_response);
                     return Ok(poll_response);
                 }
                 Ok(poll_response) => {
@@ -483,14 +483,14 @@ impl RequestZkNymTask {
         expiration_date: Date,
         request_info: &RequestInfo,
     ) -> Result<IssuedTicketBook, RequestZkNymError> {
-        tracing::debug!("Unblinding and aggregating zk-nym shares");
+        tracing::trace!("Unblinding and aggregating zk-nym shares");
 
         let ecash_keypair = self
             .account
             .create_ecash_keypair()
             .map_err(|err| RequestZkNymError::CreateEcashKeyPair(err.to_string()))?;
 
-        tracing::debug!("Setting up decoded keys");
+        tracing::trace!("Setting up decoded keys");
         let mut decoded_keys = HashMap::new();
         for key in issuers.keys {
             let vk = VerificationKeyAuth::try_from_bs58(&key.bs58_encoded_key)
@@ -501,10 +501,10 @@ impl RequestZkNymTask {
             decoded_keys.insert(key.node_index, vk);
         }
 
-        tracing::debug!("Verifying zk-nym shares");
+        tracing::trace!("Verifying zk-nym shares");
         let mut partial_wallets = Vec::new();
         for share in shares.shares {
-            tracing::debug!("Creating blinded signature");
+            tracing::trace!("Creating blinded signature");
             let blinded_sig =
                 BlindedSignature::try_from_bs58(&share.bs58_encoded_share).map_err(|err| {
                     tracing::error!("Failed to create BlindedSignature: {err:#?}");
@@ -515,7 +515,7 @@ impl RequestZkNymTask {
                 return Err(RequestZkNymError::DecodedKeysMissingIndex);
             };
 
-            tracing::debug!("Calling issue_verify");
+            tracing::trace!("Calling issue_verify");
             match nym_compact_ecash::issue_verify(
                 vk,
                 ecash_keypair.secret_key(),
@@ -524,7 +524,7 @@ impl RequestZkNymTask {
                 share.node_index,
             ) {
                 Ok(partial_wallet) => {
-                    tracing::debug!("Partial wallet created and appended");
+                    tracing::trace!("Partial wallet created and appended");
                     partial_wallets.push(partial_wallet)
                 }
                 Err(err) => {
@@ -537,7 +537,7 @@ impl RequestZkNymTask {
             }
         }
 
-        tracing::debug!("Aggregating wallets");
+        tracing::trace!("Aggregating wallets");
         let aggregated_wallets = nym_compact_ecash::aggregate_wallets(
             &master_vk,
             ecash_keypair.secret_key(),
@@ -546,7 +546,7 @@ impl RequestZkNymTask {
         )
         .map_err(|err| RequestZkNymError::AggregateWallets(err.to_string()))?;
 
-        tracing::debug!("Creating ticketbook");
+        tracing::trace!("Creating ticketbook");
         let ticketbook = IssuedTicketBook::new(
             aggregated_wallets.into_wallet_signatures(),
             shares.epoch_id,

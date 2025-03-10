@@ -9,7 +9,6 @@ use std::{
 use futures::{channel::mpsc, StreamExt};
 use nym_sdk::TaskClient;
 use tokio::task::JoinHandle;
-use tracing::{debug, error, trace};
 
 use crate::error::Result;
 
@@ -62,31 +61,31 @@ impl ConnectionStats {
     }
 
     fn log_status(&self) {
-        debug!(
+        tracing::trace!(
             "Time since latest received self ping: {}ms",
             self.latest_self_ping
                 .map(|t| t.elapsed().as_millis())
                 .unwrap_or(0)
         );
-        debug!(
+        tracing::trace!(
             "Time since latest received ipr tun device ping v4 reply: {}ms",
             self.latest_ipr_tun_device_ping_v4_reply
                 .map(|t| t.elapsed().as_millis())
                 .unwrap_or(0)
         );
-        debug!(
+        tracing::trace!(
             "Time since latest received ipr tun device ping v6 reply: {}ms",
             self.latest_ipr_tun_device_ping_v6_reply
                 .map(|t| t.elapsed().as_millis())
                 .unwrap_or(0)
         );
-        debug!(
+        tracing::trace!(
             "Time since latest received ipr external ping v4 reply: {}ms",
             self.latest_ipr_external_ping_v4_reply
                 .map(|t| t.elapsed().as_millis())
                 .unwrap_or(0)
         );
-        debug!(
+        tracing::trace!(
             "Time since latest received ipr external ping v6 reply: {}ms",
             self.latest_ipr_external_ping_v6_reply
                 .map(|t| t.elapsed().as_millis())
@@ -138,30 +137,30 @@ impl ConnectionMonitor {
     fn record_event(&mut self, event: &ConnectionStatusEvent) {
         match event {
             ConnectionStatusEvent::MixnetSelfPing => {
-                trace!("Received self ping event");
+                tracing::trace!("Received self ping event");
                 self.stats.latest_self_ping = Some(Instant::now());
             }
             ConnectionStatusEvent::Icmpv4IprTunDevicePingReply => {
-                trace!("Received IPR tun device ping reply event");
+                tracing::trace!("Received IPR tun device ping reply event");
                 self.stats.latest_ipr_tun_device_ping_v4_reply = Some(Instant::now());
             }
             ConnectionStatusEvent::Icmpv6IprTunDevicePingReply => {
-                trace!("Received IPR tun device ping v6 reply event");
+                tracing::trace!("Received IPR tun device ping v6 reply event");
                 self.stats.latest_ipr_tun_device_ping_v6_reply = Some(Instant::now());
             }
             ConnectionStatusEvent::Icmpv4IprExternalPingReply => {
-                trace!("Received IPR external ping reply event");
+                tracing::trace!("Received IPR external ping reply event");
                 self.stats.latest_ipr_external_ping_v4_reply = Some(Instant::now());
             }
             ConnectionStatusEvent::Icmpv6IprExternalPingReply => {
-                trace!("Received IPR external ping v6 reply event");
+                tracing::trace!("Received IPR external ping v6 reply event");
                 self.stats.latest_ipr_external_ping_v6_reply = Some(Instant::now());
             }
         }
     }
 
     async fn run(mut self, mut task_client: TaskClient) -> Result<()> {
-        debug!("Connection monitor is running");
+        tracing::debug!("Connection monitor is running");
         let mut report_interval = tokio::time::interval(CONNECTION_MONITOR_REPORT_INTERVAL);
         // Reset so that we don't send a report immediately before we even have a change for any
         // self pings to be sent and received
@@ -170,7 +169,7 @@ impl ConnectionMonitor {
         loop {
             tokio::select! {
                 _ = task_client.recv() => {
-                    trace!("ConnectionMonitor: Received shutdown");
+                    tracing::trace!("ConnectionMonitor: Received shutdown");
                     break;
                 }
                 Some(event) = self.connection_event_rx.next() => {
@@ -183,47 +182,47 @@ impl ConnectionMonitor {
                 }
             }
         }
-        debug!("ConnectionMonitor: Exiting");
+        tracing::debug!("ConnectionMonitor: Exiting");
         Ok(())
     }
 }
 
 fn report_connectivity(connectivity: &ConnectivityState, task_client: &mut TaskClient) {
     if connectivity.entry == ConnectivityStatus::Fail {
-        error!("Entry gateway not routing our mixnet traffic");
+        tracing::error!("Entry gateway not routing our mixnet traffic");
         task_client.send_status_msg(Box::new(ConnectionMonitorStatus::EntryGatewayDown));
         return;
     }
 
     // If we can route external traffic, then it's ok even if we can't ping the exit IPR.
     if connectivity.exit_routing.ipv4 == ConnectivityStatus::Ok {
-        debug!("ConnectionMonitor: connection success over ipv4");
+        tracing::debug!("ConnectionMonitor: connection success over ipv4");
         task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ConnectedIpv4));
     } else if connectivity.exit.ipv4 == ConnectivityStatus::Fail {
-        error!("Exit gateway (IPR) not responding to IPv4 traffic");
+        tracing::error!("Exit gateway (IPR) not responding to IPv4 traffic");
         task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDownIpv4));
     } else if connectivity.exit_routing.ipv4 == ConnectivityStatus::Fail {
-        error!("Exit gateway (IPR) not routing IPv4 traffic to external destinations");
+        tracing::error!("Exit gateway (IPR) not routing IPv4 traffic to external destinations");
         task_client.send_status_msg(Box::new(
             ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv4,
         ));
     } else {
-        error!("Unexpected connectivity state - exit gateway ipv4 connectivity is ok, but routing is not?");
+        tracing::error!("Unexpected connectivity state - exit gateway ipv4 connectivity is ok, but routing is not?");
     }
 
     if connectivity.exit_routing.ipv6 == ConnectivityStatus::Ok {
-        debug!("ConnectionMonitor: connection success over ipv6");
+        tracing::debug!("ConnectionMonitor: connection success over ipv6");
         task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ConnectedIpv6));
     } else if connectivity.exit.ipv6 == ConnectivityStatus::Fail {
-        error!("Exit gateway (IPR) not responding to IPv6 traffic");
+        tracing::error!("Exit gateway (IPR) not responding to IPv6 traffic");
         task_client.send_status_msg(Box::new(ConnectionMonitorStatus::ExitGatewayDownIpv6));
     } else if connectivity.exit_routing.ipv6 == ConnectivityStatus::Fail {
-        error!("Exit gateway (IPR) not routing IPv6 traffic to external destinations");
+        tracing::error!("Exit gateway (IPR) not routing IPv6 traffic to external destinations");
         task_client.send_status_msg(Box::new(
             ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv6,
         ));
     } else {
-        error!("Unexpected connectivity state - exit gateway ipv6 connectivity is ok, but routing is not?");
+        tracing::error!("Unexpected connectivity state - exit gateway ipv6 connectivity is ok, but routing is not?");
     }
 }
 
@@ -285,11 +284,11 @@ pub fn start_connection_monitor(
     connection_event_rx: futures::channel::mpsc::UnboundedReceiver<ConnectionStatusEvent>,
     shutdown_listener: TaskClient,
 ) -> JoinHandle<Result<()>> {
-    debug!("Creating connection monitor");
+    tracing::debug!("Creating connection monitor");
     let monitor = ConnectionMonitor::new(connection_event_rx);
     tokio::spawn(async move {
         monitor.run(shutdown_listener).await.inspect_err(|err| {
-            error!("Connection monitor error: {err}");
+            tracing::error!("Connection monitor error: {err}");
         })
     })
 }

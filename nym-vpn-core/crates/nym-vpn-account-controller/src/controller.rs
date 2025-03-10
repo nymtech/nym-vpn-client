@@ -782,13 +782,13 @@ where
         // WIP: this can be a problem. We need to remove the commands from the running_commands for
         // this error case
         let Ok(result) = result else {
-            tracing::error!("Joining task failed: {:#?}", result);
+            tracing::error!("Joining task failed: {result:?}");
             return;
         };
 
         match result {
             AccountCommandResult::SyncAccountState(r) => {
-                tracing::debug!("Account sync task: {:?}", r);
+                tracing::debug!("Account sync task: {r:?}");
                 let commands = self
                     .running_commands
                     .remove(&AccountCommand::SyncAccountState(None))
@@ -804,7 +804,7 @@ where
                 }
             }
             AccountCommandResult::SyncDeviceState(r) => {
-                tracing::debug!("Device sync task: {:?}", r);
+                tracing::debug!("Device sync task: {r:?}");
                 let commands = self
                     .running_commands
                     .remove(&AccountCommand::SyncDeviceState(None))
@@ -820,7 +820,7 @@ where
                 }
             }
             AccountCommandResult::RegisterDevice(r) => {
-                tracing::debug!("Device register task: {:#?}", r);
+                tracing::debug!("Device register task: {r:?}");
                 let commands = self
                     .running_commands
                     .remove(&AccountCommand::RegisterDevice(None))
@@ -836,7 +836,7 @@ where
                 }
             }
             AccountCommandResult::RequestZkNym(r) => {
-                tracing::debug!("Request zk-nym task: {:#?}", r);
+                tracing::debug!("Request zk-nym task: {r:?}");
                 let commands = self
                     .running_commands
                     .remove(&AccountCommand::RequestZkNym(None))

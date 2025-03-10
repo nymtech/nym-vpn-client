@@ -146,11 +146,11 @@ fn check_for_icmp_beacon_reply(
     match nym_connection_monitor::is_icmp_beacon_reply(packet, icmp_beacon_identifier, our_ips.ipv4)
     {
         Some(IcmpBeaconReply::TunDeviceReply) => {
-            tracing::debug!("Received ping response from ipr tun device");
+            tracing::trace!("Received ping response from ipr tun device");
             return Some(ConnectionStatusEvent::Icmpv4IprTunDevicePingReply);
         }
         Some(IcmpBeaconReply::ExternalPingReply(_source)) => {
-            tracing::debug!("Received ping response from an external ip through the ipr");
+            tracing::trace!("Received ping response from an external ip through the ipr");
             return Some(ConnectionStatusEvent::Icmpv4IprExternalPingReply);
         }
         None => {}
@@ -162,11 +162,11 @@ fn check_for_icmp_beacon_reply(
         our_ips.ipv6,
     ) {
         Some(Icmpv6BeaconReply::TunDeviceReply) => {
-            tracing::debug!("Received ping v6 response from ipr tun device");
+            tracing::trace!("Received ping v6 response from ipr tun device");
             return Some(ConnectionStatusEvent::Icmpv6IprTunDevicePingReply);
         }
         Some(Icmpv6BeaconReply::ExternalPingReply(_source)) => {
-            tracing::debug!("Received ping v6 response from an external ip through the ipr");
+            tracing::trace!("Received ping v6 response from an external ip through the ipr");
             return Some(ConnectionStatusEvent::Icmpv6IprExternalPingReply);
         }
         None => {}
