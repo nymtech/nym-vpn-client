@@ -937,17 +937,13 @@ impl NymVpnd for CommandInterface {
             })?;
 
         let response = match result {
-            Ok(ticketbooks) => GetAvailableTicketsResponse {
-                resp: Some(
-                    nym_vpn_proto::get_available_tickets_response::Resp::AvailableTickets(
-                        into_proto_available_tickets(ticketbooks),
-                    ),
-                ),
+            Ok(_) => DeleteLogFileResponse {
+                success: true,
+                error: None,
             },
-            Err(err) => GetAvailableTicketsResponse {
-                resp: Some(nym_vpn_proto::get_available_tickets_response::Resp::Error(
-                    nym_vpn_proto::AccountError::from(err),
-                )),
+            Err(err) => DeleteLogFileResponse {
+                success: false,
+                error: Some(nym_vpn_proto::DeleteLogFileError::from(err)),
             },
         };
 

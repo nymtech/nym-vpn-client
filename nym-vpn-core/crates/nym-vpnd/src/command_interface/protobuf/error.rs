@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::service::{SetNetworkError, VpnServiceConnectError};
+use crate::service::{SetNetworkError, VpnServiceConnectError, VpnServiceDeleteLogFileError};
 
 impl From<VpnServiceConnectError> for nym_vpn_proto::ConnectRequestError {
     fn from(err: VpnServiceConnectError) -> Self {
@@ -58,6 +58,16 @@ impl From<SetNetworkError> for nym_vpn_proto::SetNetworkRequestError {
                     as i32,
                 message: err.to_string(),
             },
+        }
+    }
+}
+
+impl From<VpnServiceDeleteLogFileError> for nym_vpn_proto::DeleteLogFileError {
+    fn from(err: VpnServiceDeleteLogFileError) -> Self {
+        match err {
+            VpnServiceDeleteLogFileError::Internal(message) => {
+                nym_vpn_proto::DeleteLogFileError { message }
+            }
         }
     }
 }

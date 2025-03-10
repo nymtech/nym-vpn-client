@@ -14,9 +14,10 @@ mod util;
 mod windows_service;
 
 use clap::Parser;
+use logging::{LogFileRemover, LoggingSetup};
 use nym_vpn_network_config::Network;
 use service::NymVpnService;
-use tokio::sync::broadcast;
+use tokio::sync::{broadcast, mpsc};
 use tokio_util::sync::CancellationToken;
 
 use crate::{cli::CliArgs, command_interface::CommandInterfaceOptions, config::GlobalConfigFile};
@@ -40,11 +41,11 @@ fn run() -> anyhow::Result<()> {
         enable_file_log: args.command.run_as_service,
         enable_stdout_log: true,
     };
-    let _guard = logging::setup_logging(options);
+    let logging_setup = logging::setup_logging(options);
 
     let network_env = environment::setup_environment(&global_config_file, &args)?;
 
-    run_inner(args, network_env)
+    run_inner(args, network_env, logging_setup)
 }
 
 #[cfg(windows)]
@@ -67,20 +68,40 @@ fn run() -> anyhow::Result<()> {
             enable_file_log: false,
             enable_stdout_log: true,
         };
-        let _guard = logging::setup_logging(options);
-        run_inner(args, network_env)
+        let logging_setup = logging::setup_logging(options);
+        run_inner(args, network_env, logging_setup)
     }
 }
 
-fn run_inner(args: CliArgs, network_env: Network) -> anyhow::Result<()> {
-    runtime::new_runtime().block_on(run_inner_async(args, network_env))
+fn run_inner(
+    args: CliArgs,
+    network_env: Network,
+    logging_setup: Option<LoggingSetup>,
+) -> anyhow::Result<()> {
+    runtime::new_runtime().block_on(run_inner_async(args, network_env, logging_setup))
 }
 
-async fn run_inner_async(args: CliArgs, network_env: Network) -> anyhow::Result<()> {
+async fn run_inner_async(
+    args: CliArgs,
+    network_env: Network,
+    logging_setup: Option<LoggingSetup>,
+) -> anyhow::Result<()> {
     network_env.check_consistency().await?;
 
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
+    let (file_logging_event_tx, file_logging_event_rx) = mpsc::channel(1);
     let shutdown_token = CancellationToken::new();
+
+    let file_logging_handle = logging_setup.map(|logging_setup| {
+        tokio::spawn(
+            LogFileRemover::new(
+                file_logging_event_rx,
+                logging_setup,
+                shutdown_token.child_token(),
+            )
+            .run(),
+        )
+    });
 
     let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
         tunnel_event_rx,
@@ -100,6 +121,7 @@ async fn run_inner_async(args: CliArgs, network_env: Network) -> anyhow::Result<
     let vpn_service_handle = NymVpnService::spawn(
         vpn_command_rx,
         tunnel_event_tx,
+        file_logging_event_tx,
         shutdown_token.child_token(),
         network_env,
         user_agent,
@@ -113,6 +135,12 @@ async fn run_inner_async(args: CliArgs, network_env: Network) -> anyhow::Result<
 
     if let Err(e) = command_handle.await {
         tracing::error!("Failed to join on command interface: {}", e);
+    }
+
+    if let Some(file_logging_handle) = file_logging_handle {
+        if let Err(e) = file_logging_handle.await {
+            tracing::error!("Failed to join on file logging: {}", e);
+        }
     }
 
     shutdown_join_set.shutdown().await;

@@ -15,7 +15,8 @@ use nym_vpnd_types::gateway;
 
 use crate::service::{
     AccountError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
-    VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo,
+    VpnServiceConnectError, VpnServiceDeleteLogFileError, VpnServiceDisconnectError,
+    VpnServiceInfo,
 };
 
 use super::protobuf::error::VpnCommandSendError;
@@ -284,7 +285,7 @@ impl CommandInterfaceConnectionHandler {
 
     pub(crate) async fn handle_delete_log_file(
         &self,
-    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<(), VpnServiceDeleteLogFileError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::DeleteLogFile, ())
             .await
     }

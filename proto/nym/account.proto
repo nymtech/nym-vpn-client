@@ -77,6 +77,10 @@ message ForgetAccountError {
   }
 }
 
+message DeleteLogFileError {
+  string message = 1;
+}
+
 message VpnApiErrorResponse {
   string message = 1;
   optional string message_id = 2;
@@ -373,5 +377,8 @@ message GetAvailableTicketsResponse {
   }
 }
 
-message DeleteLogFileResponse {}
+message DeleteLogFileResponse {
+  bool success = 1;
+  DeleteLogFileError error = 2;
+}
 
