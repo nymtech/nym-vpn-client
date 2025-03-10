@@ -61,7 +61,7 @@ impl VpnCredentialStorage {
     }
 
     async fn reset_credential_storage(&mut self) -> Result<(), Error> {
-        tracing::info!("Resetting credential storage");
+        tracing::info!("Resetting credential storage by deleting and re-creating the storage");
 
         // First we close the storage to ensure that all files are closed
         tracing::debug!("Closing credential storage");
@@ -78,7 +78,7 @@ impl VpnCredentialStorage {
         tracing::debug!("Removing credential storage file");
         for path in storage_paths.credential_database_paths() {
             match std::fs::remove_file(&path) {
-                Ok(_) => tracing::trace!("Removed file: {}", path.display()),
+                Ok(_) => tracing::info!("Removed file: {}", path.display()),
                 Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
                     tracing::trace!("File not found, skipping: {}", path.display())
                 }
@@ -102,7 +102,7 @@ impl VpnCredentialStorage {
     }
 
     async fn reset_pending_request_storage(&mut self) -> Result<(), Error> {
-        tracing::info!("Resetting pending request storage");
+        tracing::info!("Resetting pending request storage by deleting and re-creating the storage");
         self.pending_requests_storage.reset().await?;
         tracing::info!("Pending request storage reset completed");
         Ok(())

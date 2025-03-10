@@ -63,7 +63,7 @@ pub fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
     for file_path in files_to_remove {
         tracing::info!("Removing file: {}", file_path.display());
         match fs::remove_file(&file_path) {
-            Ok(_) => tracing::trace!("Removed file: {}", file_path.display()),
+            Ok(_) => tracing::info!("Removed file: {}", file_path.display()),
             Err(err) if err.kind() == io::ErrorKind::NotFound => {
                 tracing::trace!("File not found, skipping: {}", file_path.display());
             }
