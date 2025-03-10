@@ -122,11 +122,18 @@ pub(crate) async fn setup_mixnet_client(
             }
         }
 
+        // We want fresh SURB sender tags on each session
+        debug_config.reply_surbs.fresh_sender_tags = true;
+
         let key_storage_path = StoragePaths::new_from_dir(path)
             .map_err(MixnetError::FailedToSetupMixnetStoragePaths)?;
-        let builder = MixnetClientBuilder::new_with_default_storage(key_storage_path)
+
+        let storage = key_storage_path
+            .initialise_persistent_storage(&debug_config)
             .await
-            .map_err(MixnetError::FailedToCreateMixnetClientWithDefaultStorage)?
+            .map_err(MixnetError::FailedToCreateMixnetClientWithDefaultStorage)?;
+
+        let builder = MixnetClientBuilder::new_with_storage(storage)
             .with_user_agent(user_agent)
             .request_gateway(mixnet_entry_gateway.to_string())
             .network_details(network_env.nym_network.network.clone())
