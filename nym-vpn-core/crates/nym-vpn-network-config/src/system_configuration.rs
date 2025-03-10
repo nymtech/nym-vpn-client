@@ -17,8 +17,8 @@ impl fmt::Display for SystemConfiguration {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "mixnet score thresholds: {:?}\nwireguard score thresholds: {:?}",
-            self.mix_thresholds, self.wg_thresholds
+            "mixnet score thresholds: {:?}\nwireguard score thresholds: {:?}\nstatistics recipient: {:?}",
+            self.mix_thresholds, self.wg_thresholds, self.statistics_recipient
         )
     }
 }
