@@ -37,6 +37,8 @@ function useI18nError() {
             return t('tunnel.invalid-entry-gw-country');
           case 'invalid-exit-gw-country':
             return t('tunnel.invalid-exit-gw-country');
+          case 'max-devices-reached':
+            return t('tunnel.max-devices-reached');
         }
 
         console.warn('unhandled tunnel error', error);
