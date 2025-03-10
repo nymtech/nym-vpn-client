@@ -108,9 +108,9 @@ where
 }
 
 #[derive(Default)]
-pub(crate) struct CommandInterfaceOptions {
-    pub(crate) disable_socket_listener: bool,
-    pub(crate) enable_http_listener: bool,
+pub struct CommandInterfaceOptions {
+    pub disable_socket_listener: bool,
+    pub enable_http_listener: bool,
 }
 
 async fn setup_health_service(
@@ -132,7 +132,7 @@ async fn setup_health_service(
     (health_service, handle)
 }
 
-pub(crate) fn start_command_interface(
+pub fn start_command_interface(
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
     command_interface_options: Option<CommandInterfaceOptions>,
     network_env: Network,

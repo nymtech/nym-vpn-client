@@ -101,18 +101,18 @@ pub struct ConnectArgs {
 }
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize)]
-pub(crate) struct ConnectOptions {
-    pub(crate) dns: Option<IpAddr>,
-    pub(crate) disable_routing: bool,
-    pub(crate) enable_two_hop: bool,
-    pub(crate) netstack: bool,
-    pub(crate) disable_poisson_rate: bool,
-    pub(crate) disable_background_cover_traffic: bool,
-    pub(crate) enable_credentials_mode: bool,
-    pub(crate) min_mixnode_performance: Option<Percent>,
-    pub(crate) min_gateway_mixnet_performance: Option<Percent>,
-    pub(crate) min_gateway_vpn_performance: Option<Percent>,
-    pub(crate) user_agent: Option<UserAgent>,
+pub struct ConnectOptions {
+    pub dns: Option<IpAddr>,
+    pub disable_routing: bool,
+    pub enable_two_hop: bool,
+    pub netstack: bool,
+    pub disable_poisson_rate: bool,
+    pub disable_background_cover_traffic: bool,
+    pub enable_credentials_mode: bool,
+    pub min_mixnode_performance: Option<Percent>,
+    pub min_gateway_mixnet_performance: Option<Percent>,
+    pub min_gateway_vpn_performance: Option<Percent>,
+    pub user_agent: Option<UserAgent>,
 }
 
 #[derive(Clone, Debug)]
@@ -126,7 +126,7 @@ pub struct VpnServiceInfo {
     pub nym_vpn_network: NymVpnNetwork,
 }
 
-pub(crate) struct NymVpnService<S>
+pub struct NymVpnService<S>
 where
     S: nym_vpn_store::VpnStorage,
 {
@@ -178,7 +178,7 @@ where
 }
 
 impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
-    pub(crate) fn spawn(
+    pub fn spawn(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
         shutdown_token: CancellationToken,
@@ -215,7 +215,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         })
     }
 
-    pub(crate) async fn new(
+    pub async fn new(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
         shutdown_token: CancellationToken,
@@ -311,7 +311,7 @@ impl<S> NymVpnService<S>
 where
     S: nym_vpn_store::VpnStorage,
 {
-    pub(crate) async fn run(mut self) -> anyhow::Result<()> {
+    pub async fn run(mut self) -> anyhow::Result<()> {
         loop {
             tokio::select! {
                 Some(command) = self.vpn_command_rx.recv() => {

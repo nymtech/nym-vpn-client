@@ -6,7 +6,7 @@ use nym_vpn_network_config::Network;
 
 use crate::{cli::CliArgs, config::GlobalConfigFile};
 
-pub(crate) fn setup_environment(
+pub fn setup_environment(
     global_config_file: &GlobalConfigFile,
     args: &CliArgs,
 ) -> anyhow::Result<Network> {
