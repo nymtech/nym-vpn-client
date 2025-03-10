@@ -196,9 +196,9 @@ impl<St: Storage> BandwidthController<St> {
     {
         // First we need to regster with the gateway to setup keys and IP assignment
         let wg_version = wg_gateway_client.auth_version();
-        tracing::info!("Registering with wireguard gateway ({wg_version})");
         let authenticator_address = wg_gateway_client.auth_recipient();
         let gateway_id = wg_gateway_client.auth_recipient().gateway();
+        tracing::info!("Registering with wireguard gateway {gateway_id} ({wg_version})");
         let gateway_host = gateway_client
             .lookup_gateway_ip(&gateway_id.to_base58_string())
             .await
