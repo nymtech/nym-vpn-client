@@ -121,12 +121,29 @@ impl SharedAccountState {
         guard.mnemonic = Some(state);
     }
 
-    pub(crate) async fn set_account_registered(&self, active: AccountRegistered) {
+    // Set the account status. We can only promote the status to a more active state, not downgrade
+    pub(crate) async fn promote_account_registered(&self, active: AccountRegistered) {
         let mut guard = self.inner.lock().await;
-        if guard.account_registered.as_ref() != Some(&active) {
-            tracing::info!("Setting account to {:?}", active);
+
+        match guard.account_registered {
+            // If the account is already registered, we don't want to change it
+            Some(AccountRegistered::Registered) => (),
+
+            // Log only if we are making a change
+            Some(ref current) if current != &active => {
+                tracing::info!("Setting account to {:?}", active);
+                guard.account_registered = Some(active);
+            }
+
+            // If there is no change, we don't want to log anything
+            Some(_) => (),
+
+            // If there is no existing status set, we can set it
+            None => {
+                tracing::info!("Setting account to {:?}", active);
+                guard.account_registered = Some(active);
+            }
         }
-        guard.account_registered = Some(active);
     }
 
     pub(crate) async fn set_account_summary(&self, summary: AccountSummary) {
