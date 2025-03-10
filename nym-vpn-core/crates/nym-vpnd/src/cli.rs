@@ -35,10 +35,6 @@ pub struct CliArgs {
     #[arg(long, value_parser = parse_user_agent)]
     pub user_agent: Option<nym_vpn_lib::UserAgent>,
 
-    #[cfg(windows)]
-    #[arg(long)]
-    pub disable_service: bool,
-
     #[command(flatten)]
     pub command: Command,
 }

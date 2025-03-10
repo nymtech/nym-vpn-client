@@ -26,12 +26,6 @@ fn main() -> anyhow::Result<()> {
 #[cfg(unix)]
 fn run() -> anyhow::Result<()> {
     let args = CliArgs::parse();
-    let mut global_config_file = GlobalConfigFile::read_from_file()?;
-
-    if let Some(ref network) = args.network {
-        global_config_file.network_name = network.to_owned();
-        global_config_file.write_to_file()?;
-    }
 
     let options = logging::Options {
         verbosity_level: args.verbosity_level(),
@@ -40,6 +34,7 @@ fn run() -> anyhow::Result<()> {
     };
     let _guard = logging::setup_logging(options);
 
+    let global_config_file = setup_global_config(args.network.as_deref())?;
     let network_env = environment::setup_environment(&global_config_file, &args)?;
 
     run_inner(args, network_env)
@@ -78,6 +73,8 @@ fn run() -> anyhow::Result<()> {
             enable_file_log: true,
             enable_stdout_log: false,
         });
+
+        let _global_config_file = setup_global_config(args.network.as_deref())?;
         service::windows_service::start()?;
         Ok(())
     } else {
@@ -88,16 +85,19 @@ fn run() -> anyhow::Result<()> {
         };
         let _guard = logging::setup_logging(options);
 
-        let mut global_config_file = GlobalConfigFile::read_from_file()?;
-
-        if let Some(ref network) = args.network {
-            global_config_file.network_name = network.to_owned();
-            global_config_file.write_to_file()?;
-        }
-
+        let global_config_file = setup_global_config(args.network.as_deref())?;
         let network_env = environment::setup_environment(&global_config_file, &args)?;
         runtime::new_runtime().block_on(run_inner_async(args, network_env))
     }
+}
+
+fn setup_global_config(network: Option<&str>) -> anyhow::Result<GlobalConfigFile> {
+    let mut global_config_file = GlobalConfigFile::read_from_file()?;
+    if let Some(network) = network {
+        global_config_file.network_name = network.to_owned();
+        global_config_file.write_to_file()?;
+    }
+    Ok(global_config_file)
 }
 
 async fn run_inner_async(args: CliArgs, network_env: Network) -> anyhow::Result<()> {
