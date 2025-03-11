@@ -3331,7 +3331,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.5.2"
+version = "1.5.3"
 dependencies = [
  "nym-http-api-client",
  "prost",
