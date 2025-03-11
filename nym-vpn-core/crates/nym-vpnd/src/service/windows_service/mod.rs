@@ -7,12 +7,12 @@ use std::{
     env,
     ffi::OsString,
     path::PathBuf,
-    sync::{LazyLock, Mutex},
+    sync::LazyLock,
     time::{Duration, Instant},
 };
 
 use anyhow::Context;
-use tokio::sync::{broadcast, mpsc, oneshot};
+use tokio::sync::{broadcast, mpsc, oneshot, Mutex};
 use tokio_util::sync::CancellationToken;
 use windows::Win32::Foundation::ERROR_SERVICE_DOES_NOT_EXIST;
 use windows_service::{
@@ -142,20 +142,23 @@ async fn run_service_inner() -> anyhow::Result<()> {
     tracing::info!("Service is starting...");
     persistent_status.set_pending_start(Duration::from_secs(20))?;
 
-    let network_config = (*SERVICE_NETWORK_CONFIG.lock().expect("mutex is poisoned")).clone();
-    let network_env_result = crate::setup_global_config(network_config.network.as_deref())
-        .and_then(|global_config_file| {
-            crate::environment::setup_environment(
-                &global_config_file,
-                network_config.config_env_file.as_deref(),
-            )
-        });
+    let network_config = (*SERVICE_NETWORK_CONFIG.lock().await).clone();
+    let cloned_network_config = network_config.clone();
+    let network_env_result = tokio::task::spawn_blocking(move || {
+        let global_config_file =
+            crate::setup_global_config(cloned_network_config.network.as_deref())?;
+        crate::environment::setup_environment(
+            &global_config_file,
+            cloned_network_config.config_env_file.as_deref(),
+        )
+    })
+    .await;
     let network_env = match network_env_result {
-        Ok(network_env) => {
+        Ok(Ok(network_env)) => {
             network_env.export_to_env();
             network_env
         }
-        Err(err) => {
+        Ok(Err(err)) => {
             persistent_status
                 .set_stopped(ServiceExitCode::ServiceSpecific(FETCH_NETWORK_EXIT_CODE))?;
 
@@ -165,6 +168,10 @@ async fn run_service_inner() -> anyhow::Result<()> {
                 err
             );
             return Err(err).with_context(|| "Failed to fetch network environment");
+        }
+        Err(err) => {
+            tracing::error!("Failed to join on network fetch task: {}", err);
+            return Err(err).with_context(|| "Failed to join on network fetch task");
         }
     };
 
@@ -231,7 +238,7 @@ pub(super) fn get_service_info() -> ServiceInfo {
 
 pub fn start(service_network_config: ServiceNetworkConfig) -> Result<(), windows_service::Error> {
     // Important: release mutex lock before starting service dispatcher to avoid deadlock.
-    *SERVICE_NETWORK_CONFIG.lock().expect("mutex is poisoned") = service_network_config;
+    *SERVICE_NETWORK_CONFIG.blocking_lock() = service_network_config;
 
     // Register generated `ffi_service_main` with the system and start the service, blocking
     // this thread until the service is stopped.
