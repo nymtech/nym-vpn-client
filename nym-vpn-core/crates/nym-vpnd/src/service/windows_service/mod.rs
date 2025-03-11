@@ -170,10 +170,6 @@ async fn run_service_inner() -> anyhow::Result<()> {
 
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
 
-    // The idea here for explicly starting two separate runtimes is to make sure they are properly
-    // separated. Looking ahead a little ideally it would be nice to be able for the command
-    // interface to be able to forcefully terminate the vpn if needed.
-
     // Start the command interface that listens for commands from the outside
     let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
         tunnel_event_rx,
