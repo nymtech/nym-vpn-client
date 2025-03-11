@@ -3,6 +3,6 @@
 
 // This module primarily handles conversions to protobuf types
 
-pub(crate) mod account;
-pub(crate) mod error;
-pub(crate) mod info_response;
+pub mod account;
+pub mod error;
+pub mod info_response;

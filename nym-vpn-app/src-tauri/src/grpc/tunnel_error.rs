@@ -15,6 +15,9 @@ use strum::Display;
 use tracing::{error, warn};
 use ts_rs::TS;
 
+const MAX_DEVICES_EXCEEDED_ID: &str =
+    "nym-vpn-website.public-api.register-device.max-devices-exceeded";
+
 #[derive(Serialize, Clone, Debug, Display, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "kebab-case")]
@@ -27,6 +30,7 @@ pub enum TunnelError {
     SameEntryAndExitGw,
     InvalidEntryGwCountry,
     InvalidExitGwCountry,
+    MaxDevicesReached,
     Api(String),
 }
 
@@ -162,6 +166,9 @@ impl From<RegisterDeviceError> for TunnelError {
                 TunnelError::internal(&format!("RegisterDeviceInternal {s}"))
             }
             RegDeviceErr::ErrorResponse(res) => {
+                if res.message_id() == MAX_DEVICES_EXCEEDED_ID {
+                    return TunnelError::MaxDevicesReached;
+                }
                 TunnelError::api("RegisterDevice", VpnApiError(res))
             }
         }
@@ -172,21 +179,21 @@ impl From<RequestZkNymError> for TunnelError {
     fn from(error: RequestZkNymError) -> Self {
         let Some(e) = error.outcome else {
             warn!("missing error detail in RequestZkNymError");
-            return TunnelError::no_reason(Some("zknym"));
+            return TunnelError::no_reason(Some("Zknym"));
         };
         match e {
             ZkNymErr::NoAccountStored(b) => {
-                TunnelError::internal(&format!("zknymNoAccountStored {b}"))
+                TunnelError::internal(&format!("ZknymNoAccountStored {b}"))
             }
             ZkNymErr::NoDeviceStored(b) => {
-                TunnelError::internal(&format!("zknymNoDeviceStored {b}"))
+                TunnelError::internal(&format!("ZknymNoDeviceStored {b}"))
             }
             ZkNymErr::UnexpectedVpnApiResponse(s) => {
-                TunnelError::internal(&format!("zknymUnexpectedVpnApiResponse {s}"))
+                TunnelError::internal(&format!("ZknymUnexpectedVpnApiResponse {s}"))
             }
-            ZkNymErr::Storage(s) => TunnelError::internal(&format!("zknymStorage {s}")),
-            ZkNymErr::Internal(s) => TunnelError::internal(&format!("zknymInternal {s}")),
-            ZkNymErr::VpnApi(res) => TunnelError::api("zknym", VpnApiError(res)),
+            ZkNymErr::Storage(s) => TunnelError::internal(&format!("ZknymStorage {s}")),
+            ZkNymErr::Internal(s) => TunnelError::internal(&format!("ZknymInternal {s}")),
+            ZkNymErr::VpnApi(res) => TunnelError::api("Zknym", VpnApiError(res)),
         }
     }
 }
@@ -196,8 +203,8 @@ impl From<RequestZkNymBundle> for TunnelError {
         // TODO how the heck client is expected to deal with that kind of API??
 
         if bundle.failures.is_empty() {
-            warn!("no failure found in RequestZkNymBundle");
-            return TunnelError::no_reason(Some("RequestZkNymBundle"));
+            warn!("no failure found in RequestZknymBundle");
+            return TunnelError::no_reason(Some("RequestZknymBundle"));
         }
         // let's suppose: get the first one and we good? ><
         bundle.failures[0].clone().into()
