@@ -222,7 +222,7 @@ jobs:
         id: decode_keystore
         uses: timheuer/base64-to-file@v1.2
         with:
-          fileName: ${{ env.KEY_STORE_FILE }}
+          fileName: 'android_keystore.jks'
           encodedString: ${{ secrets.ANDROID_KEYSTORE }}
 
       - name: Download bundletool
