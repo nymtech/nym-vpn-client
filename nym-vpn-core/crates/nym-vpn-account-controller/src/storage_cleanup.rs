@@ -114,7 +114,7 @@ fn get_list_of_corrupted_files(data_dir: &Path) -> Result<Vec<PathBuf>, Error> {
         .map_err(Error::StoragePaths)?
         .reply_surb_database_path;
 
-    if let Some(starts_with) = base_name.file_name().map(|bn| bn.to_string_lossy()) {
+    if let Some(starts_with) = base_name.file_name().and_then(|bn| bn.to_str()) {
         // Delete files of the form `base_name._[0-9]*.corrupted`
         let corrupted_files = fs::read_dir(data_dir)
             .map_err(Error::internal)?
@@ -122,7 +122,7 @@ fn get_list_of_corrupted_files(data_dir: &Path) -> Result<Vec<PathBuf>, Error> {
             .filter(|file| {
                 file.file_name()
                     .to_str()
-                    .map(|name| name.starts_with(&*starts_with))
+                    .map(|name| name.starts_with(starts_with))
                     .unwrap_or(false)
             })
             .filter(|file| {
