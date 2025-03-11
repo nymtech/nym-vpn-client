@@ -218,22 +218,32 @@ jobs:
         run: |
           echo "AAB_FILE=$(ls ${{ github.workspace }}/temp/*.aab | head -n 1)" >> $GITHUB_ENV
 
-      - name: Convert AAB to APK
-        id: bundle_apks
-        uses: mukeshsolanki/bundletool-action@v1.0.2
+      - name: Decode Keystore
+        id: decode_keystore
+        uses: timheuer/base64-to-file@v1.2
         with:
-          aabFile: ${{ env.AAB_FILE }}
-          base64Keystore: ${{ secrets.ANDROID_KEYSTORE }}
-          keystorePassword: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
-          keystoreAlias: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
-          keyPassword: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
-          bundletoolVersion: '1.18.0'
+          fileName: ${{ env.KEY_STORE_FILE }}
+          encodedString: ${{ secrets.ANDROID_KEYSTORE }}
+
+      - name: Download bundletool
+        run: |
+          curl -L -o bundletool.jar https://github.com/google/bundletool/releases/download/1.18.1/bundletool-all-1.18.1.jar
+
+      - name: Build APKs (no universal mode)
+        run: |
+          java -jar bundletool.jar build-apks \
+            --bundle=${{ env.AAB_FILE }} \
+            --output=app-fdroid-release.apks \
+            --ks=${{ steps.decode_keystore.outputs.filePath }} \
+            --ks-pass=pass:${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }} \
+            --ks-key-alias=${{ secrets.ANDROID_SIGNING_KEY_ALIAS }} \
+            --key-pass=pass:${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
 
       - name: Upload APKS artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-apks
-          path: ${{ steps.bundle_apks.outputs.apkPath }}
+          path: app-fdroid-release.apks
       
 
   publish-play:
