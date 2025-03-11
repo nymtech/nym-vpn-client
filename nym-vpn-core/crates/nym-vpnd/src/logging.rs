@@ -86,10 +86,8 @@ impl LogFileRemover {
         let mut file_path = service::log_dir();
         file_path.push(service::DEFAULT_LOG_FILE);
         let mut file_lock = self.logging_setup.file_appender.lock().await;
-        if let Some(file_ref) = file_lock.take() {
-            // explicitly drop the file appeneder, so that we can remove the file in the next step
-            drop(file_ref);
-        }
+        // drop the file appeneder, so that we can remove the file in the next step
+        let _ = file_lock.take();
         if let Err(err) = tokio::fs::remove_file(file_path).await {
             tracing::warn!("Could not remove log file: {err}");
             return;
