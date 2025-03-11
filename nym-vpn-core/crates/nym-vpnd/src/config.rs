@@ -4,8 +4,8 @@
 use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
-pub(crate) struct GlobalConfigFile {
-    pub(crate) network_name: String,
+pub struct GlobalConfigFile {
+    pub network_name: String,
 }
 
 impl Default for GlobalConfigFile {
@@ -17,7 +17,7 @@ impl Default for GlobalConfigFile {
 }
 
 impl GlobalConfigFile {
-    pub(crate) fn read_from_file() -> anyhow::Result<Self> {
+    pub fn read_from_file() -> anyhow::Result<Self> {
         let global_config_file_path =
             crate::service::config_dir().join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE);
 
@@ -25,7 +25,7 @@ impl GlobalConfigFile {
         crate::service::read_config_file(&global_config_file_path).map_err(Into::into)
     }
 
-    pub(crate) fn write_to_file(&self) -> anyhow::Result<Self> {
+    pub fn write_to_file(&self) -> anyhow::Result<Self> {
         let global_config = self.clone();
         let global_config_file_path =
             crate::service::config_dir().join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE);

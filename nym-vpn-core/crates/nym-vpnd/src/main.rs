@@ -10,8 +10,6 @@ mod runtime;
 mod service;
 mod shutdown_handler;
 mod util;
-#[cfg(windows)]
-mod windows_service;
 
 use clap::Parser;
 use nym_vpn_network_config::Network;
@@ -28,12 +26,6 @@ fn main() -> anyhow::Result<()> {
 #[cfg(unix)]
 fn run() -> anyhow::Result<()> {
     let args = CliArgs::parse();
-    let mut global_config_file = GlobalConfigFile::read_from_file()?;
-
-    if let Some(ref network) = args.network {
-        global_config_file.network_name = network.to_owned();
-        global_config_file.write_to_file()?;
-    }
 
     let options = logging::Options {
         verbosity_level: args.verbosity_level(),
@@ -42,7 +34,9 @@ fn run() -> anyhow::Result<()> {
     };
     let _guard = logging::setup_logging(options);
 
-    let network_env = environment::setup_environment(&global_config_file, &args)?;
+    let global_config_file = setup_global_config(args.network.as_deref())?;
+    let network_env =
+        environment::setup_environment(&global_config_file, args.config_env_file.as_deref())?;
 
     run_inner(args, network_env)
 }
@@ -50,17 +44,41 @@ fn run() -> anyhow::Result<()> {
 #[cfg(windows)]
 fn run() -> anyhow::Result<()> {
     let args = CliArgs::parse();
-    let mut global_config_file = GlobalConfigFile::read_from_file()?;
-
-    if let Some(ref network) = args.network {
-        global_config_file.network_name = network.to_owned();
-        global_config_file.write_to_file()?;
-    }
-
-    let network_env = environment::setup_environment(&global_config_file, &args)?;
-
-    if args.command.is_any() {
-        Ok(windows_service::start(args)?)
+    if args.command.install {
+        println!(
+            "Processing request to install {} as a service...",
+            service::windows_service::SERVICE_NAME
+        );
+        service::windows_service::install_service()?;
+        Ok(())
+    } else if args.command.uninstall {
+        println!(
+            "Processing request to uninstall {} as a service...",
+            service::windows_service::SERVICE_NAME
+        );
+        service::windows_service::uninstall_service()?;
+        Ok(())
+    } else if args.command.start {
+        println!(
+            "Processing request to start service {}...",
+            service::windows_service::SERVICE_NAME
+        );
+        service::windows_service::start_service()?;
+        Ok(())
+    } else if args.command.run_as_service {
+        // TODO: enable this through setting or flag
+        // println!("Configuring logging source...");
+        // eventlog::init(SERVICE_DISPLAY_NAME, log::Level::Info).unwrap();
+        let _guard = logging::setup_logging(logging::Options {
+            verbosity_level: args.verbosity_level(),
+            enable_file_log: true,
+            enable_stdout_log: false,
+        });
+        service::windows_service::start(service::windows_service::ServiceNetworkConfig {
+            network: args.network.to_owned(),
+            config_env_file: args.config_env_file.to_owned(),
+        })?;
+        Ok(())
     } else {
         let options = logging::Options {
             verbosity_level: args.verbosity_level(),
@@ -68,8 +86,21 @@ fn run() -> anyhow::Result<()> {
             enable_stdout_log: true,
         };
         let _guard = logging::setup_logging(options);
+
+        let global_config_file = setup_global_config(args.network.as_deref())?;
+        let network_env =
+            environment::setup_environment(&global_config_file, args.config_env_file.as_deref())?;
         run_inner(args, network_env)
     }
+}
+
+fn setup_global_config(network: Option<&str>) -> anyhow::Result<GlobalConfigFile> {
+    let mut global_config_file = GlobalConfigFile::read_from_file()?;
+    if let Some(network) = network {
+        global_config_file.network_name = network.to_owned();
+        global_config_file.write_to_file()?;
+    }
+    Ok(global_config_file)
 }
 
 fn run_inner(args: CliArgs, network_env: Network) -> anyhow::Result<()> {

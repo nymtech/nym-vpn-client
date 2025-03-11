@@ -30,7 +30,7 @@ impl From<VpnServiceInfo> for nym_vpn_proto::InfoResponse {
     }
 }
 
-pub(crate) fn into_proto_available_tickets(
+pub fn into_proto_available_tickets(
     ticketbooks: nym_vpn_account_controller::AvailableTicketbooks,
 ) -> nym_vpn_proto::get_available_tickets_response::AvailableTickets {
     nym_vpn_proto::get_available_tickets_response::AvailableTickets {
