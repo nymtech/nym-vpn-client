@@ -23,7 +23,7 @@ impl From<VpnServiceConnectError> for nym_vpn_proto::ConnectRequestError {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub(crate) enum VpnCommandSendError {
+pub enum VpnCommandSendError {
     #[error("failed to send command to VPN service task")]
     Send,
 

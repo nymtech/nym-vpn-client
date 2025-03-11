@@ -14,13 +14,13 @@ const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
 const DEFAULT_LOG_DIR: &str = "/var/log/nym-vpnd";
 #[cfg(not(windows))]
 const DEFAULT_CONFIG_DIR: &str = "/etc/nym";
-pub(crate) const DEFAULT_CONFIG_FILE: &str = "nym-vpnd.toml";
-pub(crate) const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
+pub const DEFAULT_CONFIG_FILE: &str = "nym-vpnd.toml";
+pub const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
 
-pub(crate) const DEFAULT_GLOBAL_CONFIG_FILE: &str = "config.toml";
+pub const DEFAULT_GLOBAL_CONFIG_FILE: &str = "config.toml";
 
 #[derive(Debug, Clone)]
-pub(crate) enum NetworkEnvironments {
+pub enum NetworkEnvironments {
     Mainnet,
     Sandbox,
     Canary,
@@ -53,7 +53,7 @@ impl TryFrom<&str> for NetworkEnvironments {
 }
 
 #[cfg(windows)]
-pub(crate) fn program_data_path() -> PathBuf {
+pub fn program_data_path() -> PathBuf {
     PathBuf::from(std::env::var("ProgramData").unwrap_or(std::env::var("PROGRAMDATA").unwrap()))
 }
 
@@ -65,7 +65,7 @@ fn default_data_dir() -> PathBuf {
     return DEFAULT_DATA_DIR.into();
 }
 
-pub(crate) fn data_dir() -> PathBuf {
+pub fn data_dir() -> PathBuf {
     std::env::var("NYM_VPND_DATA_DIR")
         .map(PathBuf::from)
         .unwrap_or_else(|_| default_data_dir())
@@ -79,13 +79,13 @@ fn default_log_dir() -> PathBuf {
     return DEFAULT_LOG_DIR.into();
 }
 
-pub(crate) fn log_dir() -> PathBuf {
+pub fn log_dir() -> PathBuf {
     std::env::var("NYM_VPND_LOG_DIR")
         .map(PathBuf::from)
         .unwrap_or_else(|_| default_log_dir())
 }
 
-pub(crate) fn default_config_dir() -> PathBuf {
+pub fn default_config_dir() -> PathBuf {
     #[cfg(windows)]
     return program_data_path().join("nym-vpnd").join("config");
 
@@ -93,7 +93,7 @@ pub(crate) fn default_config_dir() -> PathBuf {
     return DEFAULT_CONFIG_DIR.into();
 }
 
-pub(crate) fn config_dir() -> PathBuf {
+pub fn config_dir() -> PathBuf {
     std::env::var("NYM_VPND_CONFIG_DIR")
         .map(PathBuf::from)
         .unwrap_or_else(|_| default_config_dir())
@@ -131,7 +131,7 @@ pub enum ConfigSetupError {
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
-pub(crate) struct NymVpnServiceConfig {
+pub struct NymVpnServiceConfig {
     pub(super) entry_point: gateway_directory::EntryPoint,
     pub(super) exit_point: gateway_directory::ExitPoint,
 }
@@ -156,7 +156,7 @@ impl Default for NymVpnServiceConfig {
 }
 
 // Create the TOML representation of the provided config, only if it doesn't already exists
-pub(crate) fn create_config_file<C>(file_path: &PathBuf, config: C) -> Result<C, ConfigSetupError>
+pub fn create_config_file<C>(file_path: &PathBuf, config: C) -> Result<C, ConfigSetupError>
 where
     C: Serialize,
 {
@@ -184,7 +184,7 @@ where
     Ok(config)
 }
 
-pub(crate) fn read_config_file<C>(file_path: &PathBuf) -> Result<C, ConfigSetupError>
+pub fn read_config_file<C>(file_path: &PathBuf) -> Result<C, ConfigSetupError>
 where
     C: DeserializeOwned,
 {
@@ -199,7 +199,7 @@ where
     })
 }
 
-pub(crate) fn write_config_file<C>(file_path: &PathBuf, config: C) -> Result<C, ConfigSetupError>
+pub fn write_config_file<C>(file_path: &PathBuf, config: C) -> Result<C, ConfigSetupError>
 where
     C: Serialize,
 {
