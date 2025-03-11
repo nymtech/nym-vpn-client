@@ -1,10 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::AddrParseError;
-
-use prost::DecodeError;
-
 #[derive(Debug, thiserror::Error)]
 pub enum ConversionError {
     #[error("Generic error: {0}")]
@@ -14,13 +10,13 @@ pub enum ConversionError {
     NoValueSet(&'static str),
 
     #[error("Failed to decode {0}: {1}")]
-    Decode(&'static str, #[source] DecodeError),
+    Decode(&'static str, #[source] prost::UnknownEnumValue),
 
     #[error("Failed to convert time {0}: {1}")]
     ConvertTime(&'static str, #[source] time::Error),
 
     #[error("Failed to parse address {0}: {1}")]
-    ParseAddr(&'static str, #[source] AddrParseError),
+    ParseAddr(&'static str, #[source] std::net::AddrParseError),
 }
 
 impl ConversionError {
