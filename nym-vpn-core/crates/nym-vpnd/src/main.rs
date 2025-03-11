@@ -90,7 +90,7 @@ fn run() -> anyhow::Result<()> {
         let global_config_file = setup_global_config(args.network.as_deref())?;
         let network_env =
             environment::setup_environment(&global_config_file, args.config_env_file.as_deref())?;
-        runtime::new_runtime().block_on(run_inner_async(args, network_env))
+        run_inner(args, network_env)
     }
 }
 
@@ -101,6 +101,10 @@ fn setup_global_config(network: Option<&str>) -> anyhow::Result<GlobalConfigFile
         global_config_file.write_to_file()?;
     }
     Ok(global_config_file)
+}
+
+fn run_inner(args: CliArgs, network_env: Network) -> anyhow::Result<()> {
+    runtime::new_runtime().block_on(run_inner_async(args, network_env))
 }
 
 async fn run_inner_async(args: CliArgs, network_env: Network) -> anyhow::Result<()> {
