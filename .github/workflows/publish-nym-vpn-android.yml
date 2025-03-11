@@ -194,6 +194,10 @@ jobs:
 
   publish-accrescent:
     runs-on: ubuntu-22.04
+    env:
+      SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+      SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+      SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
     if: ${{ github.event.inputs.publish-accrescent == 'true' }}
     needs:
       - build-nym-vpn-android-aab
@@ -235,9 +239,9 @@ jobs:
             --bundle=${{ env.AAB_FILE }} \
             --output=app-fdroid-release.apks \
             --ks=${{ steps.decode_keystore.outputs.filePath }} \
-            --ks-pass=pass:${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }} \
-            --ks-key-alias=${{ secrets.ANDROID_SIGNING_KEY_ALIAS }} \
-            --key-pass=pass:${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+            --ks-pass=pass:${{ env.SIGNING_STORE_PASSWORD }} \
+            --ks-key-alias=${{ env.SIGNING_KEY_ALIAS }} \
+            --key-pass=pass:${{ env.SIGNING_KEY_PASSWORD }}
 
       - name: Upload APKS artifact
         uses: actions/upload-artifact@v4
