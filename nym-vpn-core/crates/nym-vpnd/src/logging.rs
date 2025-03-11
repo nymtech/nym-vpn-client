@@ -1,9 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
-use tokio::sync::mpsc;
+use tokio::sync::{mpsc, Mutex};
 use tokio_util::sync::CancellationToken;
 use tracing::Level;
 use tracing_appender::{non_blocking::WorkerGuard, rolling::RollingFileAppender};
@@ -68,7 +68,7 @@ impl LogFileRemover {
             tokio::select! {
                 Some(_) = self.tunnel_event_rx.recv() => {
                     tracing::debug!("Received command to delete log file");
-                    self.handle_delete_log_file();
+                    self.handle_delete_log_file().await;
                 }
                 _ = self.shutdown_token.cancelled() => {
                     tracing::debug!("Received shutdown signal");
@@ -82,13 +82,10 @@ impl LogFileRemover {
         }
     }
 
-    pub(crate) fn handle_delete_log_file(&mut self) {
+    pub(crate) async fn handle_delete_log_file(&mut self) {
         let mut file_path = service::log_dir();
         file_path.push(service::DEFAULT_LOG_FILE);
-        let Ok(mut file_lock) = self.logging_setup.file_appender.lock() else {
-            tracing::error!("Log file mutex is poisoned");
-            return;
-        };
+        let mut file_lock = self.logging_setup.file_appender.lock().await;
         if let Some(file_ref) = file_lock.take() {
             // explicitly drop the file appeneder, so that we can remove the file in the next step
             drop(file_ref);
@@ -136,8 +133,7 @@ impl std::io::Write for FileManager {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         Ok(self
             .file_appender
-            .lock()
-            .map_err(|_| std::io::ErrorKind::Other)?
+            .blocking_lock()
             .as_mut()
             .and_then(|writer| Some(writer.write(buf)))
             .transpose()?
@@ -146,8 +142,7 @@ impl std::io::Write for FileManager {
 
     fn flush(&mut self) -> std::io::Result<()> {
         self.file_appender
-            .lock()
-            .map_err(|_| std::io::ErrorKind::Other)?
+            .blocking_lock()
             .as_mut()
             .and_then(|writer| Some(writer.flush()))
             .transpose()?;
