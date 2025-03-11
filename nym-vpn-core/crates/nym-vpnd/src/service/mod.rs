@@ -4,6 +4,7 @@
 mod config;
 mod error;
 mod vpn_service;
+#[cfg(windows)]
 pub mod windows_service;
 
 pub use config::{
