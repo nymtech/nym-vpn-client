@@ -219,7 +219,7 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Legal> { LegalScreen(appViewModel) }
 								composable<Route.Credential>(enterTransition = {
 									fadeIn(animationSpec = tween(500))
-								}){
+								}) {
 									CredentialScreen(appState, appViewModel)
 								}
 								composable<Route.Account> { AccountScreen(appViewModel, appState) }
