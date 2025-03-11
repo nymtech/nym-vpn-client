@@ -134,16 +134,12 @@ function Home() {
       case 'Disconnected':
       case 'Offline':
         return 'malachite';
+      case 'Connected':
       case 'Connecting':
       case 'OfflineAutoReconnect':
-        return 'gray';
-      case 'Connected':
       case 'Disconnecting':
-        return 'cornflower';
       case 'Error':
         return 'red';
-      default:
-        return 'gray';
     }
   };
 
