@@ -90,7 +90,7 @@ impl LogFileRemover {
             // explicitly drop the file appeneder, so that we can remove the file in the next step
             drop(file_ref);
         }
-        if let Err(err) = std::fs::remove_file(file_path) {
+        if let Err(err) = tokio::fs::remove_file(file_path).await {
             tracing::warn!("Could not remove log file: {err}");
             return;
         }
