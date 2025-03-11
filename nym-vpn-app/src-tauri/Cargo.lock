@@ -3253,7 +3253,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#247ebb7c4339de0a298a7fcb2574122a8306c3b8"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
 dependencies = [
  "const-str",
  "log",
@@ -3265,7 +3265,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#247ebb7c4339de0a298a7fcb2574122a8306c3b8"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
 dependencies = [
  "async-trait",
  "bytes",
@@ -3286,7 +3286,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.5.0-dev"
+version = "1.6.0-dev"
 dependencies = [
  "anyhow",
  "build-info",
