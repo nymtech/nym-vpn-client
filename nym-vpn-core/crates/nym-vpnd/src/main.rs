@@ -70,15 +70,18 @@ fn run() -> anyhow::Result<()> {
         // TODO: enable this through setting or flag
         // println!("Configuring logging source...");
         // eventlog::init(SERVICE_DISPLAY_NAME, log::Level::Info).unwrap();
-        let _guard = logging::setup_logging(logging::Options {
+        let logging_setup = logging::setup_logging(logging::Options {
             verbosity_level: args.verbosity_level(),
             enable_file_log: true,
             enable_stdout_log: false,
         });
-        service::windows_service::start(service::windows_service::ServiceNetworkConfig {
-            network: args.network.to_owned(),
-            config_env_file: args.config_env_file.to_owned(),
-        })?;
+        service::windows_service::start(
+            service::windows_service::ServiceNetworkConfig {
+                network: args.network.to_owned(),
+                config_env_file: args.config_env_file.to_owned(),
+            },
+            logging_setup,
+        )?;
         Ok(())
     } else {
         let options = logging::Options {

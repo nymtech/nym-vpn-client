@@ -12,6 +12,7 @@ use std::{
 };
 
 use anyhow::Context;
+use logging::{LogFileRemover, LoggingSetup};
 use tokio::sync::{broadcast, mpsc, oneshot, Mutex};
 use tokio_util::sync::CancellationToken;
 use windows::Win32::Foundation::ERROR_SERVICE_DOES_NOT_EXIST;
@@ -54,6 +55,9 @@ pub struct ServiceNetworkConfig {
 /// Network configuration passed from `main()` and used later to fetch network environment.
 static SERVICE_NETWORK_CONFIG: LazyLock<Mutex<ServiceNetworkConfig>> =
     LazyLock::new(|| Mutex::new(ServiceNetworkConfig::default()));
+
+/// Logging setup passed from `main()` and used later to interact with logging.
+static LOGGING_SETUP: LazyLock<Mutex<Option<LoggingSetup>>> = LazyLock::new(|| Mutex::new(None));
 
 fn service_main(arguments: Vec<OsString>) {
     if let Err(err) = run_service(arguments) {
@@ -143,6 +147,7 @@ async fn run_service_inner() -> anyhow::Result<()> {
     persistent_status.set_pending_start(Duration::from_secs(20))?;
 
     let network_config = (*SERVICE_NETWORK_CONFIG.lock().await).clone();
+    let logging_setup = (*LOGGING_SETUP.lock().await).clone();
     let cloned_network_config = network_config.clone();
     let network_env_result = tokio::task::spawn_blocking(move || {
         let global_config_file =
@@ -176,6 +181,18 @@ async fn run_service_inner() -> anyhow::Result<()> {
     };
 
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
+    let (file_logging_event_tx, file_logging_event_rx) = mpsc::channel(1);
+
+    let file_logging_handle = logging_setup.map(|logging_setup| {
+        tokio::spawn(
+            LogFileRemover::new(
+                file_logging_event_rx,
+                logging_setup,
+                shutdown_token.child_token(),
+            )
+            .run(),
+        )
+    });
 
     // Start the command interface that listens for commands from the outside
     let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
@@ -191,6 +208,7 @@ async fn run_service_inner() -> anyhow::Result<()> {
     let vpn_handle = NymVpnService::spawn(
         vpn_command_rx,
         tunnel_event_tx,
+        file_logging_event_tx,
         shutdown_token.child_token(),
         network_env,
         user_agent,
@@ -205,6 +223,12 @@ async fn run_service_inner() -> anyhow::Result<()> {
 
     if let Err(e) = command_handle.await {
         tracing::error!("Failed to join on command interface: {}", e);
+    }
+
+    if let Some(file_logging_handle) = file_logging_handle {
+        if let Err(e) = file_logging_handle.await {
+            tracing::error!("Failed to join on file logging: {}", e);
+        }
     }
 
     tracing::info!("Service is stopping!");
@@ -236,13 +260,17 @@ pub(super) fn get_service_info() -> ServiceInfo {
     }
 }
 
-pub fn start(service_network_config: ServiceNetworkConfig) -> Result<(), windows_service::Error> {
+pub fn start(
+    service_network_config: ServiceNetworkConfig,
+    logging_setup: Option<LoggingSetup>,
+) -> Result<(), windows_service::Error> {
     // Important: release mutex lock before starting service dispatcher to avoid deadlock.
     *SERVICE_NETWORK_CONFIG.blocking_lock() = service_network_config;
+    *LOGGING_SETUP.blocking_lock() = logging_setup;
 
     // Register generated `ffi_service_main` with the system and start the service, blocking
     // this thread until the service is stopped.
-    service_dispatcher::start(SERVICE_NAME, ffi_service_main)
+    service_dispatcher::start(SERVICE_NAME, ffi_service_main, logging_setup)
 }
 
 pub fn install_service() -> anyhow::Result<()> {
