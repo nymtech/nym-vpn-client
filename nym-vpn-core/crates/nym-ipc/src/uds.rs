@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    fs, io,
+    fs,
+    io::Result,
     os::unix::fs::PermissionsExt,
     path::{Path, PathBuf},
     pin::Pin,
@@ -27,21 +28,21 @@ impl Drop for Uds {
 }
 
 impl Stream for Uds {
-    type Item = io::Result<UnixStream>;
+    type Item = Result<UnixStream>;
 
     fn poll_next(
         mut self: Pin<&mut Self>,
         cx: &mut Context<'_>,
-    ) -> Poll<Option<io::Result<UnixStream>>> {
+    ) -> Poll<Option<Result<UnixStream>>> {
         Pin::new(&mut self.inner).poll_next(cx)
     }
 }
 
-pub async fn connect(socket_path: impl AsRef<Path>) -> io::Result<TokioIo<UnixStream>> {
+pub async fn connect(socket_path: impl AsRef<Path>) -> Result<TokioIo<UnixStream>> {
     Ok(TokioIo::new(UnixStream::connect(socket_path).await?))
 }
 
-pub fn incoming(socket_path: PathBuf) -> io::Result<Uds> {
+pub fn incoming(socket_path: PathBuf) -> Result<Uds> {
     let uds = UnixListener::bind(&socket_path)?;
 
     fs::set_permissions(&socket_path, PermissionsExt::from_mode(0o766))?;
