@@ -7,7 +7,6 @@ mod error;
 mod helpers;
 mod listener;
 mod protobuf;
-mod socket_stream;
 mod start;
 
 pub use start::{start_command_interface, CommandInterfaceOptions};

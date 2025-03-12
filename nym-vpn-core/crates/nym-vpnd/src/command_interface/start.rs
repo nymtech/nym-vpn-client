@@ -22,7 +22,6 @@ use tonic_health::pb::health_server::{Health, HealthServer};
 use super::{
     config::{default_socket_path, default_uri_addr},
     listener::CommandInterface,
-    socket_stream::setup_socket_stream,
 };
 use crate::service::VpnServiceCommand;
 
@@ -61,7 +60,7 @@ where
     tracing::info!("Starting HTTP listener on: {addr}");
     let reflection_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(VPN_FD_SET)
-        .build()
+        .build_v1()
         .unwrap();
     let command_interface =
         CommandInterface::new_with_uri(vpn_command_tx, tunnel_event_rx, addr, network_env);
@@ -89,14 +88,14 @@ where
     tracing::info!("Starting socket listener on: {}", socket_path.display());
     let reflection_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(VPN_FD_SET)
-        .build()
+        .build_v1()
         .unwrap();
     let command_interface =
         CommandInterface::new_with_path(vpn_command_tx, tunnel_event_rx, &socket_path, network_env);
     command_interface.remove_previous_socket_file();
 
     // Wrap the unix socket into a stream that can be used by tonic
-    let incoming = setup_socket_stream(&socket_path);
+    let incoming = nym_ipc::server::create_incoming(socket_path).unwrap();
 
     Server::builder()
         .trace_fn(grpc_span)
