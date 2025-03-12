@@ -34,7 +34,7 @@ use crate::{
 };
 
 // The interval at which we automatically request zk-nyms
-const ZK_NYM_AUTOMATIC_REQUEST_INTERVAL: Duration = Duration::from_secs(6 * 60);
+const ZK_NYM_AUTOMATIC_REQUEST_INTERVAL: Duration = Duration::from_secs(60);
 
 // The interval at which we update the account state
 const ACCOUNT_UPDATE_INTERVAL: Duration = Duration::from_secs(5 * 60);

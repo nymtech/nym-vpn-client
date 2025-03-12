@@ -190,10 +190,10 @@ impl AccountControllerCommander {
             .get_available_tickets()
             .await
             .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
-            .is_all_ticket_types_above_threshold(0)
+            .is_all_ticket_types_above_soft_threshold()
         {
-            // If all ticket types are above zero, we're good to go. Additional ticketbooks will
-            // be requested in the background, but we should have enough to connect.
+            // If we have enough zk-nym ticketbooks, we can just return. Additional ticketbooks
+            // will be requested in the background later, if needed.
             return Ok(());
         }
 
