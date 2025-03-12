@@ -2894,7 +2894,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fc2f4eb4bc735547cfed7c0a4922cbd04a4655978c09b54f1f7b228750664c34"
 dependencies = [
  "cfg-if",
- "windows-targets 0.52.6",
+ "windows-targets 0.48.5",
 ]
 
 [[package]]
@@ -3253,7 +3253,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#247ebb7c4339de0a298a7fcb2574122a8306c3b8"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
 dependencies = [
  "const-str",
  "log",
@@ -3265,7 +3265,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#247ebb7c4339de0a298a7fcb2574122a8306c3b8"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
 dependencies = [
  "async-trait",
  "bytes",
@@ -4603,9 +4603,9 @@ dependencies = [
 
 [[package]]
 name = "ring"
-version = "0.17.9"
+version = "0.17.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e75ec5e92c4d8aede845126adc388046234541629e76029599ed35a003c7ed24"
+checksum = "a4689e6c2294d81e88dc6261c768b63bc4fcdb852be6d1352498b114f61383b7"
 dependencies = [
  "cc",
  "cfg-if",
