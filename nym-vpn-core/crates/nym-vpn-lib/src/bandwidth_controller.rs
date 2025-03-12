@@ -311,7 +311,9 @@ impl<St: Storage> BandwidthController<St> {
                             }
                         }
                     }
-                    Ok(None) => {}
+                    Ok(None) => {
+                        tracing::info!("Empty query for {} gadeway bandwidth check. This is normal, as long as it is not repeating for the same gateway", if entry {"entry".to_string()} else {"exit".to_string()});
+                    }
                 }
             }
         }
