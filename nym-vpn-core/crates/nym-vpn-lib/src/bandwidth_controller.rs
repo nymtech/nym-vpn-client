@@ -88,7 +88,7 @@ impl Default for DepletionRate {
     fn default() -> Self {
         Self {
             current_depletion_rate: DEFAULT_BANDWIDTH_DEPLETION_RATE,
-            available_bandwidth: u64::MAX,
+            available_bandwidth: 0,
         }
     }
 }
