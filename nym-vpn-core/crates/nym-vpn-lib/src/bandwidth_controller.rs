@@ -133,7 +133,9 @@ impl DepletionRate {
             estimated_depletion_secs
         );
 
-        let number_of_checks_before_depletion = estimated_depletion_secs / current_period.as_secs();
+        let number_of_checks_before_depletion = estimated_depletion_secs
+            .checked_div(current_period.as_secs())
+            .unwrap_or_default();
         // try and have at least 10 checks before depletion, to be on the safe side...
         if number_of_checks_before_depletion < 10 {
             return Ok(None);
