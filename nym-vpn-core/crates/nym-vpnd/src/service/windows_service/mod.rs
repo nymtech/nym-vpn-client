@@ -12,7 +12,6 @@ use std::{
 };
 
 use anyhow::Context;
-use logging::{LogFileRemover, LoggingSetup};
 use tokio::sync::{broadcast, mpsc, oneshot, Mutex};
 use tokio_util::sync::CancellationToken;
 use windows::Win32::Foundation::ERROR_SERVICE_DOES_NOT_EXIST;
@@ -28,7 +27,12 @@ use windows_service::{
     Error as ServiceError,
 };
 
-use crate::{command_interface, runtime, service::NymVpnService};
+use crate::{
+    command_interface,
+    logging::{LogFileRemover, LoggingSetup},
+    runtime,
+    service::NymVpnService,
+};
 use persistent_service_status::PersistentServiceStatus;
 
 windows_service::define_windows_service!(ffi_service_main, service_main);
@@ -270,7 +274,7 @@ pub fn start(
 
     // Register generated `ffi_service_main` with the system and start the service, blocking
     // this thread until the service is stopped.
-    service_dispatcher::start(SERVICE_NAME, ffi_service_main, logging_setup)
+    service_dispatcher::start(SERVICE_NAME, ffi_service_main)
 }
 
 pub fn install_service() -> anyhow::Result<()> {
