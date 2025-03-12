@@ -373,11 +373,13 @@ mod tests {
     fn depletion_rate_slow() {
         let mut depletaion_rate = DepletionRate::default();
         let mut current_period = DEFAULT_BANDWIDTH_CHECK;
-        // the first check would force the big placeholder values to be replaced by the actual values
-        assert!(depletaion_rate
-            .update_dynamic_check_interval(current_period, BW_512MB)
-            .unwrap()
-            .is_none());
+        // the first check would force the placeholder values to be replaced by the actual values
+        assert_eq!(
+            depletaion_rate
+                .update_dynamic_check_interval(current_period, BW_512MB)
+                .unwrap(),
+            Some(DEFAULT_BANDWIDTH_CHECK)
+        );
 
         // simulate 1 byte/second depletion rate
         let consumed = current_period.as_secs() * 1;
@@ -392,11 +394,13 @@ mod tests {
     fn depletion_rate_fast() {
         let mut depletaion_rate = DepletionRate::default();
         let current_period = DEFAULT_BANDWIDTH_CHECK;
-        // the first check would force the big placeholder values to be replaced by the actual values
-        assert!(depletaion_rate
-            .update_dynamic_check_interval(current_period, BW_1GB)
-            .unwrap()
-            .is_none());
+        // the first check would force the placeholder values to be replaced by the actual values
+        assert_eq!(
+            depletaion_rate
+                .update_dynamic_check_interval(current_period, BW_1GB)
+                .unwrap(),
+            Some(DEFAULT_BANDWIDTH_CHECK)
+        );
 
         // simulate 128 MB/s depletion rate, so we would be depleted in the next 5 seconds after the function call (too fast)
         let consumed = current_period.as_secs() * BW_128MB;
@@ -411,11 +415,13 @@ mod tests {
         let mut depletaion_rate = DepletionRate::default();
         let mut current_period = DEFAULT_BANDWIDTH_CHECK;
         let mut current_bandwidth = BW_1GB;
-        // the first check would force the big placeholder values to be replaced by the actual values
-        assert!(depletaion_rate
-            .update_dynamic_check_interval(current_period, current_bandwidth)
-            .unwrap()
-            .is_none());
+        // the first check would force the placeholder values to be replaced by the actual values
+        assert_eq!(
+            depletaion_rate
+                .update_dynamic_check_interval(current_period, BW_1GB)
+                .unwrap(),
+            Some(DEFAULT_BANDWIDTH_CHECK)
+        );
 
         // simulate 1 KB/s depletion rate, constant
         for _ in 0..5 {
