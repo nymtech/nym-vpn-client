@@ -54,6 +54,7 @@ impl ExplicitAccess {
 
     /// Returns the inner `EXPLICIT_ACCESS_W`.
     ///
+    /// # Safety
     /// The returned value stores raw pointers inside, which are only guaranteed to remain valid during the lifetime of this struct.
     pub unsafe fn inner(&self) -> EXPLICIT_ACCESS_W {
         self.inner

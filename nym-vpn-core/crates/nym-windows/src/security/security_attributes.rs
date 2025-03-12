@@ -53,6 +53,7 @@ impl SecurityAttributes {
 
     /// Returns a mutable pointer to the underlying `SECURITY_ATTRIBUTES` struct.
     ///
+    /// # Safety
     /// The returned pointer is guaranteed to remain valid during the lifetime of this struct.
     pub unsafe fn as_mut_ptr(&mut self) -> *mut SECURITY_ATTRIBUTES {
         &mut self.inner
