@@ -2,6 +2,9 @@ import { useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ErrorKey, TunnelError } from '../types';
 
+// enforce that all errors are handled
+type Terror = (error: ErrorKey | TunnelError) => string;
+
 /**
  * Hook to get the translation function for backend errors
  *
@@ -10,89 +13,79 @@ import { ErrorKey, TunnelError } from '../types';
 function useI18nError() {
   const { t } = useTranslation('errors');
 
-  const translateError = useCallback(
-    (key: ErrorKey | TunnelError) => {
-      switch (key) {
+  const translateError: Terror = useCallback(
+    (error: ErrorKey | TunnelError) => {
+      if (typeof error === 'object') {
         // tunnel state errors
-        case 'internal':
-          return t('tunnel.internal');
-        case 'firewall':
-          return t('tunnel.firewall');
-        case 'routing':
-          return t('tunnel.routing');
-        case 'dns':
-          return t('tunnel.dns');
-        case 'tun-device':
-          return t('tunnel.tun-device');
-        case 'tunnel-provider':
-          return t('tunnel.provider');
-        case 'same-entry-and-exit-gw':
-          return t('tunnel.same-entry-exit-gw');
-        case 'invalid-entry-gw-country':
-          return t('tunnel.invalid-entry-gw-country');
-        case 'invalid-exit-gw-country':
-          return t('tunnel.invalid-exit-gw-country');
-        case 'bad-bandwidth-increase':
-          return t('tunnel.bad-bandwidth-increase');
-        case 'duplicate-tun-fd':
-          return t('tunnel.duplicate-tun-fd');
+        switch (error.key) {
+          case 'api':
+            return t('tunnel.api', { reason: error.data });
+          case 'internal':
+            if (error.data) {
+              return t('tunnel.internal-reason', { reason: error.data });
+            }
+            return t('tunnel.internal');
+          case 'firewall':
+            return t('tunnel.firewall');
+          case 'routing':
+            return t('tunnel.routing');
+          case 'dns':
+            return t('tunnel.dns');
+          case 'same-entry-and-exit-gw':
+            return t('tunnel.same-entry-exit-gw');
+          case 'invalid-entry-gw-country':
+            return t('tunnel.invalid-entry-gw-country');
+          case 'invalid-exit-gw-country':
+            return t('tunnel.invalid-exit-gw-country');
+          case 'max-devices-reached':
+            return t('tunnel.max-devices-reached');
+        }
+
+        console.warn('unhandled tunnel error', error);
+        return t('unknown');
+      }
+      // no tunnel errors
+      switch (error) {
         // mixnet event errors
-        case 'EntryGwDown':
+        case 'entry-gw-down':
           return t('entry-gateway-down');
-        case 'ExitGwDownIpv4':
+        case 'exit-gw-down-ipv4':
           return t('exit-gateway-down.ipv4');
-        case 'ExitGwDownIpv6':
+        case 'exit-gw-down-ipv6':
           return t('exit-gateway-down.ipv6');
-        case 'ExitGwRoutingErrorIpv4':
+        case 'exit-gw-routing-error-ipv4':
           return t('exit-gateway-routing.ipv4');
-        case 'ExitGwRoutingErrorIpv6':
+        case 'exit-gw-routing-error-ipv6':
           return t('exit-gateway-routing.ipv6');
-        case 'NoBandwidth':
+        case 'no-bandwidth':
           return t('no-bandwidth');
         // general errors
-        case 'InternalError':
+        case 'internal-error':
           return t('internal');
-        case 'NotConnectedToDaemon':
+        case 'not-connected-to-daemon':
           return t('daemon.not-connected');
-        case 'GrpcError':
+        case 'grpc-error':
           return t('grpc');
-        case 'AccountInvalidMnemonic':
+        case 'account-invalid-mnemonic':
           return t('account.invalid-recovery-phrase');
-        case 'AccountStorage':
+        case 'account-storage':
           return t('account.storage');
-        case 'AccountIsConnected':
+        case 'account-is-connected':
           return t('account.is-connected');
-        case 'ConnectGeneral':
-          return t('connection-general');
-        case 'ConnectNoAccountStored':
-          return t('account.not-stored');
-        case 'ConnectNoDeviceStored':
-          return t('account.no-device-stored');
-        case 'ConnectUpdateAccount':
-          return t('account.update');
-        case 'ConnectUpdateDevice':
-          return t('account.update-device');
-        case 'ConnectRegisterDevice':
-          return t('account.register-device');
-        case 'ConnectRequestZkNym':
-          return t('zknym.request-failed');
-        case 'GetMixnetEntryCountriesQuery':
+        case 'get-mixnet-entry-countries-query':
           return t('countries-request.entry');
-        case 'GetMixnetExitCountriesQuery':
+        case 'get-mixnet-exit-countries-query':
           return t('countries-request.exit');
-        case 'GetWgCountriesQuery':
+        case 'get-wg-countries-query':
           return t('countries-request.fast-mode');
-        case 'InvalidNetworkName':
+        case 'invalid-network-name':
           return t('daemon.invalid-network');
-        case 'UnknownError':
-          return t('unknown');
-        case 'MaxRegisteredDevices':
-          return t('account.maximum-registered-devices');
-
-        default:
-          console.warn(`Unknown error key: ${key}`);
+        case 'unknown-error':
           return t('unknown');
       }
+
+      console.warn('unhandled backend error', error);
+      return t('unknown');
     },
     [t],
   );

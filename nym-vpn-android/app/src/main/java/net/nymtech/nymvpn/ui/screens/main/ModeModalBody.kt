@@ -31,23 +31,6 @@ fun ModeModalBody(onClick: () -> Unit) {
 			horizontalArrangement = Arrangement.spacedBy(10.dp.scaledWidth(), Alignment.CenterHorizontally),
 			verticalAlignment = Alignment.CenterVertically,
 		) {
-			val icon = Icons.Outlined.VisibilityOff
-			Icon(icon, icon.name, tint = MaterialTheme.colorScheme.onSurface)
-			Text(
-				text = stringResource(id = R.string.five_hop_mixnet),
-				style = MaterialTheme.typography.labelLarge,
-				color = MaterialTheme.colorScheme.onSurface,
-			)
-		}
-		Text(
-			text = stringResource(R.string.five_hop_explanation),
-			style = MaterialTheme.typography.bodyMedium,
-			color = MaterialTheme.colorScheme.onSurfaceVariant,
-		)
-		Row(
-			horizontalArrangement = Arrangement.spacedBy(10.dp.scaledWidth(), Alignment.CenterHorizontally),
-			verticalAlignment = Alignment.CenterVertically,
-		) {
 			val icon = Icons.Outlined.Speed
 			Icon(icon, icon.name, tint = MaterialTheme.colorScheme.onSurface)
 			Text(
@@ -58,6 +41,23 @@ fun ModeModalBody(onClick: () -> Unit) {
 		}
 		Text(
 			text = stringResource(R.string.two_hop_explanation),
+			style = MaterialTheme.typography.bodyMedium,
+			color = MaterialTheme.colorScheme.onSurfaceVariant,
+		)
+		Row(
+			horizontalArrangement = Arrangement.spacedBy(10.dp.scaledWidth(), Alignment.CenterHorizontally),
+			verticalAlignment = Alignment.CenterVertically,
+		) {
+			val icon = Icons.Outlined.VisibilityOff
+			Icon(icon, icon.name, tint = MaterialTheme.colorScheme.onSurface)
+			Text(
+				text = stringResource(id = R.string.five_hop_mixnet),
+				style = MaterialTheme.typography.labelLarge,
+				color = MaterialTheme.colorScheme.onSurface,
+			)
+		}
+		Text(
+			text = stringResource(R.string.five_hop_explanation),
 			style = MaterialTheme.typography.bodyMedium,
 			color = MaterialTheme.colorScheme.onSurfaceVariant,
 		)

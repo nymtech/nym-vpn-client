@@ -29,16 +29,8 @@ extension GRPCManager {
             call.response.whenComplete { [weak self] result in
                 switch result {
                 case .success(let response):
-                    self?.logger.log(level: .info, "\(response)")
-
                     if response.hasError {
-
-                        if response.error.kind == .noAccountStored {
-                            self?.generalError = GeneralNymError.noMnemonicStored
-                            continuation.resume(throwing: GeneralNymError.noMnemonicStored)
-                        } else {
-                            continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
-                        }
+                        continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
                     } else {
                         continuation.resume()
                     }
@@ -64,9 +56,9 @@ private extension GRPCManager {
             var location = Nym_Vpn_Location()
             location.twoLetterIsoCountryCode = country.code
             entryNode.location = location
-        case let .gateway(identifier):
+        case let .gateway(node):
             var gateway = Nym_Vpn_Gateway()
-            gateway.id = identifier
+            gateway.id = node.id
             entryNode.gateway = gateway
         case .randomLowLatency:
             entryNode.randomLowLatency = Google_Protobuf_Empty()
@@ -83,9 +75,9 @@ private extension GRPCManager {
             var location = Nym_Vpn_Location()
             location.twoLetterIsoCountryCode = country.code
             exitNode.location = location
-        case let .gateway(identifier):
+        case let .gateway(node):
             var gateway = Nym_Vpn_Gateway()
-            gateway.id = identifier
+            gateway.id = node.id
             exitNode.gateway = gateway
         }
         return exitNode

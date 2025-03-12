@@ -119,8 +119,7 @@
     <string name="notification_permission_message">برای فعال نگه داشتن خدمات VPN در زمان بسته بودن برنامه، لازم است.</string>
     <string name="error_no_hostname_address">گیت‌وی آدرس نام میزبان ندارد. لطفا دوباره تلاش کنید و به یک گیت‌وی دیگر متصل شوید.</string>
     <string name="anonymous_error_reports">گزارش ناشناس خطا</string>
-    <string name="error_invalid_credential">اعتبارنامه دریافتی نامعتبر است</string>
-    <string name="disabled_while_connected">در حالت وصل به VPN فعال نیست</string>
+	<string name="disabled_while_connected">در حالت وصل به VPN فعال نیست</string>
     <string name="experimental_software_disclaimer">این نرم‌افزار در مرحله آزمایشی است. برای ناشناسی کامل (فعلا!) به آن تکیه نکنید.</string>
     <string name="exception_cred_missing">اعتبارنامه ورودی یافت نشد.</string>
     <string name="permission_message">برای اطمینان از کارکرد درست برنامه در دستگاه، لطفاً مجوزهای زیر را فعال کنید. این مجوزها برای اجرای برنامه لازم هستند.</string>

@@ -7,5 +7,4 @@ mod credentials;
 pub use credentials::PendingCredentialRequestsStorageError;
 
 pub(crate) use account::AccountStorage;
-pub(crate) use credentials::PendingCredentialRequest;
-pub(crate) use credentials::VpnCredentialStorage;
+pub(crate) use credentials::{PendingCredentialRequest, VpnCredentialStorage};

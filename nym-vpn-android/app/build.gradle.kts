@@ -174,7 +174,7 @@ dependencies {
 
 	implementation(project(":core"))
 	implementation(project(":connectivity"))
-	implementation(project(":logcat-util"))
+	implementation(project(":logcatter"))
 	implementation(libs.androidx.lifecycle.process)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
 

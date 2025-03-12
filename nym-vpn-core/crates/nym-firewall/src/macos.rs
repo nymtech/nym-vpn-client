@@ -4,7 +4,7 @@
 
 use std::{
     env, io,
-    net::{IpAddr, Ipv4Addr},
+    net::{IpAddr, Ipv4Addr, SocketAddr},
     ptr,
     sync::LazyLock,
 };
@@ -15,10 +15,10 @@ use pfctl::{DropAction, FilterRuleAction, Ip, RedirectRule, Uid};
 
 use super::{
     net::{
-        AllowedEndpoint, AllowedTunnelTraffic, TransportProtocol, TunnelMetadata,
+        AllowedEndpoint, AllowedTunnelTraffic, TransportProtocol, TunnelInterface, TunnelMetadata,
         ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS,
     },
-    FirewallArguments, FirewallPolicy,
+    FirewallArguments, FirewallPolicy, DNS_TCP_PORTS, DNS_UDP_PORTS,
 };
 
 pub use pfctl::Error;
@@ -33,9 +33,9 @@ const ANCHOR_NAME: &str = "nym";
 /// the local DNS resoler to work around Apple's captive portals check. Exactly how this is done is
 /// documented elsewhere.
 pub static LOCAL_DNS_RESOLVER: LazyLock<bool> = LazyLock::new(|| {
-    // use nym_platform_metadata::MacosVersion;
-    // let version = MacosVersion::new().expect("Could not detect macOS version");
-    // let v = |s| MacosVersion::from_raw_version(s).unwrap();
+    use nym_platform_metadata::MacosVersion;
+    let version = MacosVersion::new().expect("Could not detect macOS version");
+    let v = |s| MacosVersion::from_raw_version(s).unwrap();
 
     // Apple services tried to perform DNS lookups on the physical interface on some macOS
     // versions, so we added redirect rules to always redirect DNS to our local DNS resolver.
@@ -55,15 +55,11 @@ pub static LOCAL_DNS_RESOLVER: LazyLock<bool> = LazyLock::new(|| {
     // Also, most programs don't set the `skip filtering` pf flag on loopback, but some notable
     // ones do for some reason. Orbstack is one such example, which meant that people running
     // containers would run into the aforementioned issue.
-    //
-    // let use_local_dns_resolver = v("14.6") <= version && version < v("15.1");
-    // if use_local_dns_resolver {
-    //     tracing::debug!("Using local DNS resolver");
-    // }
-    // use_local_dns_resolver
-
-    // todo: re-enable the code above when local resolver is introduced
-    false
+    let use_local_dns_resolver = v("14.6") <= version && version < v("15.1");
+    if use_local_dns_resolver {
+        tracing::info!("Using local DNS resolver");
+    }
+    use_local_dns_resolver
 });
 
 /// If NAT firewall rules should be applied to force Apple services through the tunnel.
@@ -155,12 +151,6 @@ impl Firewall {
     /// machines, so we kill any state except that one as well as within-tunnel connections that
     /// should still be allowed.
     fn should_delete_state(policy: &FirewallPolicy, state: &pfctl::State) -> Result<bool> {
-        let allowed_tunnel_traffic = policy.allowed_tunnel_traffic();
-        let tunnel_ips = policy
-            .tunnel()
-            .map(|tunnel| tunnel.ips.as_slice())
-            .unwrap_or_default();
-
         let local_address = state.local_address()?;
         let remote_address = state.remote_address()?;
         let proto = state.proto()?;
@@ -188,8 +178,8 @@ impl Firewall {
             }
         }
 
-        if let Some(endpoint) = policy.allowed_endpoint() {
-            // Keep states to the allowed endpoint.
+        for endpoint in policy.allowed_endpoints() {
+            // Keep states to the allowed endpoints.
             // Note that we're not taking into account allowed clients here, because it's highly
             // impractical.
             if endpoint.endpoint.address == remote_address {
@@ -197,26 +187,37 @@ impl Firewall {
             }
         }
 
-        let Some(peer) = policy.peer_endpoint().map(|endpoint| endpoint.endpoint) else {
+        if policy.peer_endpoints().is_empty() {
             // If there's no peer, there's also no tunnel. We have no states to preserve
             return Ok(true);
         };
 
-        let should_delete = if tunnel_ips.contains(&local_address.ip()) {
-            // Tunnel traffic: Clear states except those allowed in the tunnel
-            // Ephemeral peer exchange becomes unreliable otherwise, when multihop is enabled
-            match allowed_tunnel_traffic {
-                AllowedTunnelTraffic::None => true,
-                AllowedTunnelTraffic::All => false,
-                AllowedTunnelTraffic::One(endpoint) => endpoint.address != remote_address,
-                AllowedTunnelTraffic::Two(endpoint1, endpoint2) => {
-                    endpoint1.address != remote_address && endpoint2.address != remote_address
-                }
+        let should_delete: bool = match policy.tunnel() {
+            Some(TunnelInterface::One(tunnel)) if tunnel.ips.contains(&local_address.ip()) => {
+                // Use allowed traffic rule for exit tunnel, if only one interface is available.
+                let allowed_tunnel_traffic = policy.allowed_exit_tunnel_traffic();
+                Self::should_delete_state_for_remote(remote_address, allowed_tunnel_traffic)
             }
-        } else {
-            // Non-tunnel traffic: Clear all states except traffic destined for the VPN endpoint
-            // Ephemeral peer exchange becomes unreliable otherwise
-            peer.address != remote_address || as_pfctl_proto(peer.protocol) != proto
+            Some(TunnelInterface::Two { entry, .. }) if entry.ips.contains(&local_address.ip()) => {
+                let allowed_tunnel_traffic = policy.allowed_entry_tunnel_traffic();
+                Self::should_delete_state_for_remote(remote_address, allowed_tunnel_traffic)
+            }
+            Some(TunnelInterface::Two { exit, .. }) if exit.ips.contains(&local_address.ip()) => {
+                let allowed_tunnel_traffic = policy.allowed_exit_tunnel_traffic();
+                Self::should_delete_state_for_remote(remote_address, allowed_tunnel_traffic)
+            }
+            Some(_) => {
+                // Non-tunnel traffic: Clear all states except traffic destined for the VPN endpoint
+                // Ephemeral peer exchange becomes unreliable otherwise
+                policy.peer_endpoints().iter().any(|peer| {
+                    peer.endpoint.address != remote_address
+                        || as_pfctl_proto(peer.endpoint.protocol) != proto
+                })
+            }
+            None => {
+                // Clear all state when no tunnel interfaces exist.
+                true
+            }
         };
 
         Ok(should_delete)
@@ -229,6 +230,23 @@ impl Firewall {
         self.remove_rules()
             .and(self.remove_anchor())
             .and(self.restore_state())
+    }
+
+    /// Returns `true` if the pf state should be cleared for the given remote address and allowed tunnel traffic policy.
+    fn should_delete_state_for_remote(
+        remote_address: SocketAddr,
+        allowed_tunnel_traffic: &AllowedTunnelTraffic,
+    ) -> bool {
+        // Tunnel traffic: Clear states except those allowed in the tunnel
+        // Ephemeral peer exchange becomes unreliable otherwise, when multihop is enabled
+        match allowed_tunnel_traffic {
+            AllowedTunnelTraffic::None => true,
+            AllowedTunnelTraffic::All => false,
+            AllowedTunnelTraffic::One(endpoint) => endpoint.address != remote_address,
+            AllowedTunnelTraffic::Two(endpoint1, endpoint2) => {
+                endpoint1.address != remote_address && endpoint2.address != remote_address
+            }
+        }
     }
 
     fn set_rules(&mut self, policy: &FirewallPolicy) -> Result<()> {
@@ -317,6 +335,7 @@ impl Firewall {
                 FirewallPolicy::Connecting { .. } | FirewallPolicy::Connected { .. } => vec![],
             }
         };
+
         Ok(redirect_rules)
     }
 
@@ -336,12 +355,14 @@ impl Firewall {
     /// bit too clever.
     fn get_nat_rules(&mut self, policy: &FirewallPolicy) -> Result<Vec<pfctl::NatRule>> {
         let (FirewallPolicy::Connected {
-            peer_endpoint,
+            peer_endpoints,
+            allowed_endpoints,
             tunnel,
             ..
         }
         | FirewallPolicy::Connecting {
-            peer_endpoint,
+            peer_endpoints,
+            allowed_endpoints,
             tunnel: Some(tunnel),
             ..
         }) = policy
@@ -371,21 +392,49 @@ impl Firewall {
         }
 
         // no nat to [vpn ip]
-        let no_nat_to_vpn_server = pfctl::NatRuleBuilder::default()
-            .action(pfctl::NatRuleAction::NoNat)
-            .to(peer_endpoint.endpoint.address.ip())
-            .build()?;
-        rules.push(no_nat_to_vpn_server);
+        let mut peer_ips = peer_endpoints
+            .iter()
+            .map(|ep| ep.endpoint.address.ip())
+            .collect::<Vec<_>>();
+        peer_ips.dedup();
+        for peer_ip in peer_ips {
+            let no_nat_to_vpn_server = pfctl::NatRuleBuilder::default()
+                .action(pfctl::NatRuleAction::NoNat)
+                .to(peer_ip)
+                .build()?;
+            rules.push(no_nat_to_vpn_server);
+        }
+
+        // no nat to [allowed endpoint]
+        for allow_endpoint in allowed_endpoints {
+            let no_nat_to_allowed_endpoint = pfctl::NatRuleBuilder::default()
+                .action(pfctl::NatRuleAction::NoNat)
+                .to(allow_endpoint.endpoint.address.ip())
+                .build()?;
+            rules.push(no_nat_to_allowed_endpoint);
+        }
 
         // no nat on [tun interface]
-        let no_nat_on_tun = pfctl::NatRuleBuilder::default()
-            .action(pfctl::NatRuleAction::NoNat)
-            .interface(&tunnel.interface)
-            .build()?;
-        rules.push(no_nat_on_tun);
+        let tunnel_interfaces = match tunnel {
+            TunnelInterface::One(tunnel) => vec![tunnel.interface.as_str()],
+            TunnelInterface::Two { entry, exit } => {
+                vec![entry.interface.as_str(), exit.interface.as_str()]
+            }
+        };
+        for tunnel_interface in tunnel_interfaces {
+            let no_nat_on_tun = pfctl::NatRuleBuilder::default()
+                .action(pfctl::NatRuleAction::NoNat)
+                .interface(tunnel_interface)
+                .build()?;
+            rules.push(no_nat_on_tun);
+        }
 
         // Masquerade other traffic via VPN utun
-        for ip in &tunnel.ips {
+        let exit_tunnel = match tunnel {
+            TunnelInterface::One(tunnel) => tunnel,
+            TunnelInterface::Two { exit, .. } => exit,
+        };
+        for ip in &exit_tunnel.ips {
             // nat from {inet,inet6} any to any -> [tun ip]
             let nat_primary_to_tun = pfctl::NatRuleBuilder::default()
                 .action(pfctl::NatRuleAction::Nat {
@@ -408,40 +457,63 @@ impl Firewall {
     ) -> Result<Vec<pfctl::FilterRule>> {
         match policy {
             FirewallPolicy::Connecting {
-                peer_endpoint,
+                peer_endpoints,
                 tunnel,
                 allow_lan,
-                allowed_endpoint,
-                allowed_tunnel_traffic,
+                dns_config,
+                allowed_endpoints,
+                allowed_entry_tunnel_traffic,
+                allowed_exit_tunnel_traffic,
                 redirect_interface,
                 dns_redirect_port: _,
             } => {
-                let mut rules = vec![self.get_allow_relay_rule(peer_endpoint)?];
-                rules.push(self.get_allowed_endpoint_rule(allowed_endpoint)?);
+                let mut rules = Vec::new();
+
+                for server in dns_config.non_tunnel_config() {
+                    rules.append(&mut self.get_allow_dns_rules_when_connecting(*server)?);
+                }
+
+                for peer_endpoint in peer_endpoints {
+                    rules.push(self.get_allowed_endpoint_rule(peer_endpoint)?);
+                }
+
+                for allowed_endpoint in allowed_endpoints {
+                    rules.push(self.get_allowed_endpoint_rule(allowed_endpoint)?);
+                }
 
                 // Important to block DNS after allow relay rule (so the relay can operate
                 // over port 53) but before allow LAN (so DNS does not leak to the LAN)
                 rules.append(&mut self.get_block_dns_rules()?);
 
                 if let Some(tunnel) = tunnel {
+                    let (entry_tunnel, exit_tunnel) = match tunnel {
+                        TunnelInterface::One(tunnel) => (None, tunnel),
+                        TunnelInterface::Two { entry, exit } => (Some(entry), exit),
+                    };
+
                     match redirect_interface {
                         Some(redirect_interface) => {
                             enable_forwarding();
 
-                            if !allowed_tunnel_traffic.all() {
+                            if !allowed_entry_tunnel_traffic.all() {
                                 tracing::warn!("Split tunneling does not respect the 'allowed tunnel traffic' setting");
                             }
-                            rules.append(
-                                &mut self.get_split_tunnel_rules(
-                                    &tunnel.interface,
-                                    redirect_interface,
-                                )?,
-                            );
+                            rules.extend(self.get_split_tunnel_rules(
+                                exit_tunnel.interface.as_str(),
+                                redirect_interface,
+                            )?);
                         }
                         None => {
+                            if let Some(entry_tunnel) = entry_tunnel {
+                                rules.extend(self.get_allow_tunnel_rules(
+                                    entry_tunnel.interface.as_str(),
+                                    allowed_entry_tunnel_traffic,
+                                )?);
+                            }
+
                             rules.extend(self.get_allow_tunnel_rules(
-                                &tunnel.interface,
-                                allowed_tunnel_traffic,
+                                exit_tunnel.interface.as_str(),
+                                allowed_exit_tunnel_traffic,
                             )?);
                         }
                     }
@@ -454,27 +526,39 @@ impl Firewall {
                 Ok(rules)
             }
             FirewallPolicy::Connected {
-                peer_endpoint,
+                peer_endpoints,
                 tunnel,
                 allow_lan,
                 dns_config,
+                allowed_endpoints,
                 redirect_interface,
                 dns_redirect_port: _,
             } => {
                 let mut rules = vec![];
+                let (entry_tunnel, exit_tunnel) = match tunnel {
+                    TunnelInterface::One(tunnel) => (None, tunnel),
+                    TunnelInterface::Two { entry, exit, .. } => (Some(entry), exit),
+                };
 
                 for server in dns_config.tunnel_config() {
                     rules.append(
-                        &mut self.get_allow_tunnel_dns_rules_when_connected(tunnel, *server)?,
+                        &mut self
+                            .get_allow_tunnel_dns_rules_when_connected(exit_tunnel, *server)?,
                     );
                 }
                 for server in dns_config.non_tunnel_config() {
                     rules.append(
-                        &mut self.get_allow_local_dns_rules_when_connected(tunnel, *server)?,
+                        &mut self.get_allow_local_dns_rules_when_connected(exit_tunnel, *server)?,
                     );
                 }
 
-                rules.push(self.get_allow_relay_rule(peer_endpoint)?);
+                for peer_endpoint in peer_endpoints {
+                    rules.push(self.get_allow_relay_rule(peer_endpoint)?);
+                }
+
+                for allowed_endpoint in allowed_endpoints {
+                    rules.push(self.get_allowed_endpoint_rule(allowed_endpoint)?);
+                }
 
                 // Important to block DNS *before* we allow the tunnel and allow LAN. So DNS
                 // can't leak to the wrong IPs in the tunnel or on the LAN.
@@ -488,27 +572,36 @@ impl Firewall {
                     enable_forwarding();
 
                     rules.append(
-                        &mut self.get_split_tunnel_rules(&tunnel.interface, redirect_interface)?,
+                        &mut self
+                            .get_split_tunnel_rules(&exit_tunnel.interface, redirect_interface)?,
                     );
                 } else {
-                    if *NAT_WORKAROUND {
-                        rules.push(self.route_everything_to(&tunnel.interface)?);
+                    if let Some(entry_tunnel) = entry_tunnel {
+                        rules.extend(self.get_allow_tunnel_rules(
+                            entry_tunnel.interface.as_str(),
+                            &AllowedTunnelTraffic::All,
+                        )?);
                     }
+
                     rules.extend(self.get_allow_tunnel_rules(
-                        tunnel.interface.as_str(),
+                        exit_tunnel.interface.as_str(),
                         &AllowedTunnelTraffic::All,
                     )?);
+
+                    if *NAT_WORKAROUND {
+                        rules.push(self.route_everything_to(&exit_tunnel.interface)?);
+                    }
                 }
 
                 Ok(rules)
             }
             FirewallPolicy::Blocked {
                 allow_lan,
-                allowed_endpoint,
-                ..
+                allowed_endpoints,
+                dns_redirect_port: _,
             } => {
                 let mut rules = Vec::new();
-                if let Some(allowed_endpoint) = allowed_endpoint {
+                for allowed_endpoint in allowed_endpoints {
                     rules.push(self.get_allowed_endpoint_rule(allowed_endpoint)?);
                 }
 
@@ -534,6 +627,43 @@ impl Firewall {
             .keep_state(pfctl::StatePolicy::Keep)
             .tcp_flags(Self::get_tcp_flags())
             .build()
+    }
+
+    fn get_allow_dns_rules_when_connecting(
+        &self,
+        server: IpAddr,
+    ) -> Result<Vec<pfctl::FilterRule>> {
+        let mut rules = Vec::with_capacity(DNS_TCP_PORTS.len() + DNS_UDP_PORTS.len());
+
+        // Allow requests on other interfaces
+        for tcp_port in DNS_TCP_PORTS {
+            let allow_nontunnel_tcp = self
+                .create_rule_builder(FilterRuleAction::Pass)
+                .direction(pfctl::Direction::Out)
+                .quick(true)
+                .proto(pfctl::Proto::Tcp)
+                .keep_state(pfctl::StatePolicy::Keep)
+                .tcp_flags(Self::get_tcp_flags())
+                .to(pfctl::Endpoint::new(server, tcp_port))
+                .user(Uid::from(super::ROOT_UID))
+                .build()?;
+            rules.push(allow_nontunnel_tcp);
+        }
+
+        for udp_port in DNS_UDP_PORTS {
+            let allow_nontunnel_udp = self
+                .create_rule_builder(FilterRuleAction::Pass)
+                .direction(pfctl::Direction::Out)
+                .quick(true)
+                .proto(pfctl::Proto::Udp)
+                .keep_state(pfctl::StatePolicy::Keep)
+                .to(pfctl::Endpoint::new(server, udp_port))
+                .user(Uid::from(super::ROOT_UID))
+                .build()?;
+            rules.push(allow_nontunnel_udp);
+        }
+
+        Ok(rules)
     }
 
     fn get_allow_local_dns_rules_when_connected(
@@ -594,7 +724,7 @@ impl Firewall {
         tunnel: &TunnelMetadata,
         server: IpAddr,
     ) -> Result<Vec<pfctl::FilterRule>> {
-        let mut rules = Vec::with_capacity(4);
+        let mut rules = Vec::with_capacity(2);
 
         // Allow outgoing requests on the tunnel interface only
         let allow_tunnel_tcp = self
@@ -608,6 +738,7 @@ impl Firewall {
             .to(pfctl::Endpoint::new(server, 53))
             .build()?;
         rules.push(allow_tunnel_tcp);
+
         let allow_tunnel_udp = self
             .create_rule_builder(FilterRuleAction::Pass)
             .direction(pfctl::Direction::Out)
@@ -969,6 +1100,11 @@ impl Firewall {
         // remove_anchor() does not deactivate active rules
         self.pf
             .flush_rules(ANCHOR_NAME, pfctl::RulesetKind::Filter)?;
+        if *NAT_WORKAROUND {
+            self.pf.flush_rules(ANCHOR_NAME, pfctl::RulesetKind::Nat)?;
+        }
+        self.pf
+            .flush_rules(ANCHOR_NAME, pfctl::RulesetKind::Scrub)?;
         Ok(())
     }
 

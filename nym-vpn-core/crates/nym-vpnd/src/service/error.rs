@@ -1,8 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_account_controller::AccountCommandError;
 use nym_vpn_lib::tunnel_state_machine::Error as TunnelStateMachineError;
+use nym_vpn_lib_types::AccountCommandError;
 use tokio::sync::{mpsc::error::SendError, oneshot::error::RecvError};
 use tracing::error;
 
@@ -14,102 +14,8 @@ pub enum VpnServiceConnectError {
     #[error("internal error: {0}")]
     Internal(String),
 
-    #[error("failed to connect: {0}")]
-    Account(#[from] AccountNotReady),
-
     #[error("connection attempt cancelled")]
     Cancel,
-}
-
-#[derive(Clone, Debug, thiserror::Error)]
-pub enum AccountNotReady {
-    #[error("update account failed: {message}")]
-    UpdateAccount {
-        message: String,
-        message_id: Option<String>,
-        code_reference_id: Option<String>,
-    },
-
-    #[error("update device failed: {message}")]
-    UpdateDevice {
-        message: String,
-        message_id: Option<String>,
-        code_reference_id: Option<String>,
-    },
-
-    #[error("register device failed: {message}")]
-    RegisterDevice {
-        message: String,
-        message_id: Option<String>,
-        code_reference_id: Option<String>,
-    },
-
-    #[error("no account stored")]
-    NoAccountStored,
-
-    #[error("no device identity stored")]
-    NoDeviceStored,
-
-    // There are usually multiple independent zknym requests at a time
-    #[error("failed to request zk-nym(s)")]
-    RequestZkNym {
-        failed: Vec<nym_vpn_account_controller::RequestZkNymError>,
-    },
-
-    #[error("general error: {0}")]
-    General(String),
-
-    #[error("internal error: {0}")]
-    Internal(String),
-}
-
-impl From<AccountCommandError> for AccountNotReady {
-    fn from(err: AccountCommandError) -> Self {
-        match err {
-            AccountCommandError::SyncAccountEndpointFailure(e) => AccountNotReady::UpdateAccount {
-                message: e.message,
-                message_id: e.message_id,
-                code_reference_id: e.code_reference_id,
-            },
-            AccountCommandError::SyncDeviceEndpointFailure(e) => AccountNotReady::UpdateDevice {
-                message: e.message,
-                message_id: e.message_id,
-                code_reference_id: e.code_reference_id,
-            },
-            AccountCommandError::RegisterDeviceEndpointFailure(e) => {
-                AccountNotReady::RegisterDevice {
-                    message: e.message,
-                    message_id: e.message_id,
-                    code_reference_id: e.code_reference_id,
-                }
-            }
-            AccountCommandError::RequestZkNym {
-                successes: _,
-                failed,
-            } => AccountNotReady::RequestZkNym { failed },
-            AccountCommandError::RequestZkNymGeneral(e) => {
-                AccountNotReady::RequestZkNym { failed: vec![e] }
-            }
-            AccountCommandError::NoAccountStored => AccountNotReady::NoAccountStored,
-            AccountCommandError::NoDeviceStored => AccountNotReady::NoDeviceStored,
-            AccountCommandError::RemoveAccount(e) => AccountNotReady::General(e),
-            AccountCommandError::RemoveDeviceIdentity(e) => AccountNotReady::General(e),
-            AccountCommandError::ResetCredentialStorage(e) => AccountNotReady::General(e),
-            AccountCommandError::RemoveAccountFiles(e) => AccountNotReady::General(e),
-            AccountCommandError::InitDeviceKeys(e) => AccountNotReady::General(e),
-            AccountCommandError::General(err) => AccountNotReady::General(err),
-            AccountCommandError::Internal(err) => AccountNotReady::Internal(err),
-            AccountCommandError::UnregisterDeviceApiClientFailure(err) => {
-                AccountNotReady::Internal(err)
-            }
-            AccountCommandError::RegistrationInProgress => {
-                AccountNotReady::Internal(err.to_string())
-            }
-            AccountCommandError::GetAccountEndpointFailure(err) => {
-                AccountNotReady::Internal(err.to_string())
-            }
-        }
-    }
 }
 
 // Failure to initiate the disconnect
@@ -196,9 +102,7 @@ pub enum AccountError {
     },
 
     #[error(transparent)]
-    AccountCommandError {
-        source: nym_vpn_account_controller::AccountCommandError,
-    },
+    AccountCommandError { source: AccountCommandError },
 
     #[error("account not configured")]
     AccountManagementNotConfigured,

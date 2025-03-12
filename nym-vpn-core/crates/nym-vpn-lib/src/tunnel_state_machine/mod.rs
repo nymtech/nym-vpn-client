@@ -1,18 +1,20 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(target_os = "linux")]
-mod default_interface;
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-mod dns_handler;
-//mod firewall_handler;
+mod account;
 #[cfg(target_os = "android")]
 mod android_connectivity_adapter;
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+mod dns_handler;
+#[cfg(target_os = "macos")]
+mod resolver;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 mod route_handler;
 mod states;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 mod tun_ipv6;
+#[cfg(any(target_os = "ios", target_os = "android"))]
+mod tun_name;
 pub mod tunnel;
 mod tunnel_monitor;
 #[cfg(windows)]
@@ -20,13 +22,21 @@ mod wintun;
 
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use std::sync::Arc;
-use std::{net::IpAddr, path::PathBuf};
+use std::{
+    net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    path::PathBuf,
+};
 
+use nym_vpn_account_controller::AccountControllerCommander;
+use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use nym_dns::DnsConfig;
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, Recipient};
-use nym_ip_packet_requests::IpPair;
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
     ActionAfterDisconnect, ConnectionData, ErrorStateReason, MixnetEvent, TunnelEvent, TunnelState,
@@ -38,9 +48,6 @@ use tunnel::SelectedGateways;
 #[cfg(windows)]
 use wintun::SetupWintunAdapterError;
 
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use dns_handler::DnsHandlerHandle;
-//use firewall_handler::FirewallHandler;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
@@ -49,6 +56,8 @@ use crate::{
     bandwidth_controller::Error as BandwidthControllerError, GatewayDirectoryError,
     MixnetClientConfig,
 };
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use dns_handler::DnsHandlerHandle;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use route_handler::RouteHandler;
 use states::{DisconnectedState, OfflineState};
@@ -116,9 +125,6 @@ pub struct GatewayPerformanceOptions {
 
 #[derive(Debug, Default, Clone, Eq, PartialEq)]
 pub struct MixnetTunnelOptions {
-    /// Overrides tunnel interface addresses.
-    pub interface_addrs: Option<IpPair>,
-
     /// Overrides tunnel interface MTU.
     pub mtu: Option<u16>,
 }
@@ -160,10 +166,30 @@ pub enum DnsOptions {
 }
 
 impl DnsOptions {
-    fn ip_addresses(&self) -> &[IpAddr] {
+    /// Convert dns options into [DnsConfig].
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    fn to_dns_config(&self) -> DnsConfig {
         match self {
-            Self::Default => &crate::DEFAULT_DNS_SERVERS,
-            Self::Custom(addrs) => addrs,
+            Self::Default => DnsConfig::default(),
+            Self::Custom(addrs) => {
+                if addrs.is_empty() {
+                    DnsConfig::default()
+                } else {
+                    let (non_tunnel_config, tunnel_config): (Vec<_>, Vec<_>) = addrs
+                        .iter()
+                        // Private IP ranges should not be tunneled
+                        .partition(|&addr| nym_firewall::is_local_address(addr));
+                    DnsConfig::from_addresses(&tunnel_config, &non_tunnel_config)
+                }
+            }
+        }
+    }
+
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    pub fn ip_addresses<'a>(&'a self, default_addresses: &'a [IpAddr]) -> &'a [IpAddr] {
+        match self {
+            Self::Default => default_addresses,
+            Self::Custom(addrs) => addrs.as_slice(),
         }
     }
 }
@@ -273,14 +299,65 @@ enum PrivateActionAfterDisconnect {
     Error(ErrorStateReason),
 }
 
+/// Describes tunnel interfaces used to maintain the tunnel.
+#[derive(Debug, Clone)]
+pub enum TunnelInterface {
+    One(TunnelMetadata),
+    Two {
+        entry: TunnelMetadata,
+        exit: TunnelMetadata,
+    },
+}
+
+/// Describes tunnel interface configuration.
+#[derive(Debug, Clone)]
+#[cfg_attr(any(target_os = "ios", target_os = "android"), allow(unused))]
+pub struct TunnelMetadata {
+    interface: String,
+    ips: Vec<IpAddr>,
+    ipv4_gateway: Option<Ipv4Addr>,
+    ipv6_gateway: Option<Ipv6Addr>,
+}
+
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+impl From<TunnelMetadata> for nym_firewall::TunnelMetadata {
+    fn from(value: TunnelMetadata) -> Self {
+        Self {
+            interface: value.interface,
+            ips: value.ips,
+            ipv4_gateway: value.ipv4_gateway,
+            ipv6_gateway: value.ipv6_gateway,
+        }
+    }
+}
+
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+impl From<TunnelInterface> for nym_firewall::TunnelInterface {
+    fn from(value: TunnelInterface) -> Self {
+        match value {
+            TunnelInterface::One(metadata) => {
+                nym_firewall::TunnelInterface::One(nym_firewall::TunnelMetadata::from(metadata))
+            }
+            TunnelInterface::Two { entry, exit } => nym_firewall::TunnelInterface::Two {
+                entry: nym_firewall::TunnelMetadata::from(entry),
+                exit: nym_firewall::TunnelMetadata::from(exit),
+            },
+        }
+    }
+}
+
 pub struct SharedState {
     mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     route_handler: RouteHandler,
-    //firewall_handler: FirewallHandler,
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    firewall: Firewall,
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     dns_handler: DnsHandlerHandle,
     offline_monitor: nym_offline_monitor::MonitorHandle,
+    /// Filtering resolver handle
+    #[cfg(target_os = "macos")]
+    filtering_resolver: resolver::ResolverHandle,
     nym_config: NymConfig,
     tunnel_settings: TunnelSettings,
     status_listener_handle: Option<JoinHandle<()>>,
@@ -288,12 +365,14 @@ pub struct SharedState {
     tun_provider: Arc<dyn OSTunProvider>,
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
+    account_command_tx: AccountControllerCommander,
 }
 
 #[derive(Debug, Clone)]
 pub struct NymConfig {
     pub data_path: Option<PathBuf>,
     pub gateway_config: GatewayDirectoryConfig,
+    pub network_env: Network,
 }
 
 pub struct TunnelStateMachine {
@@ -304,6 +383,8 @@ pub struct TunnelStateMachine {
     mixnet_event_receiver: mpsc::UnboundedReceiver<MixnetEvent>,
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     dns_handler_task: JoinHandle<()>,
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    dns_handler_shutdown_token: CancellationToken,
     shutdown_token: CancellationToken,
 }
 
@@ -313,20 +394,28 @@ impl TunnelStateMachine {
         event_sender: mpsc::UnboundedSender<TunnelEvent>,
         nym_config: NymConfig,
         tunnel_settings: TunnelSettings,
+        account_command_tx: AccountControllerCommander,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         shutdown_token: CancellationToken,
     ) -> Result<JoinHandle<()>> {
+        #[cfg(target_os = "macos")]
+        let filtering_resolver = resolver::start_resolver()
+            .await
+            .map_err(Error::StartLocalDnsResolver)?;
+
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let route_handler = RouteHandler::new()
             .await
             .map_err(Error::CreateRouteHandler)?;
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        let dns_handler_shutdown_token = CancellationToken::new();
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let (dns_handler, dns_handler_task) = DnsHandlerHandle::spawn(
             #[cfg(target_os = "linux")]
             &route_handler,
-            shutdown_token.child_token(),
+            dns_handler_shutdown_token.child_token(),
         )
         .map_err(Error::CreateDnsHandler)?;
 
@@ -340,29 +429,45 @@ impl TunnelStateMachine {
         )
         .await;
 
-        let (current_state_handler, _) = if offline_monitor.connectivity().await.is_offline() {
-            OfflineState::enter(false, 0, None)
-        } else {
-            DisconnectedState::enter()
-        };
-
-        //let firewall_handler = FirewallHandler::new().map_err(Error::CreateFirewallHandler)?;
-
         let (mixnet_event_sender, mixnet_event_receiver) = mpsc::unbounded_channel();
 
-        let shared_state: SharedState = SharedState {
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        let firewall = Firewall::from_args(FirewallArguments {
+            allow_lan: true,
+            initial_state: InitialFirewallState::None,
+            #[cfg(target_os = "linux")]
+            fwmark: route_handler::TUNNEL_FWMARK,
+        })
+        .map_err(Error::CreateFirewall)?;
+
+        let mut shared_state = SharedState {
             mixnet_event_sender,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             route_handler,
-            //firewall_handler,
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            firewall,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             dns_handler,
             offline_monitor,
+            #[cfg(target_os = "macos")]
+            filtering_resolver,
             nym_config,
             tunnel_settings,
             status_listener_handle: None,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
+            account_command_tx,
+        };
+
+        let (current_state_handler, _) = if shared_state
+            .offline_monitor
+            .connectivity()
+            .await
+            .is_offline()
+        {
+            OfflineState::enter(false, 0, None, &mut shared_state).await
+        } else {
+            DisconnectedState::enter(&mut shared_state).await
         };
 
         let tunnel_state_machine = Self {
@@ -373,6 +478,8 @@ impl TunnelStateMachine {
             mixnet_event_receiver,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             dns_handler_task,
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            dns_handler_shutdown_token,
             shutdown_token,
         };
 
@@ -418,12 +525,14 @@ impl TunnelStateMachine {
         tracing::debug!("Tunnel state machine is exiting...");
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        if let Err(e) = self.dns_handler_task.await {
-            tracing::error!("Failed to join on dns handler task: {}", e)
-        }
+        {
+            self.dns_handler_shutdown_token.cancel();
+            if let Err(e) = self.dns_handler_task.await {
+                tracing::error!("Failed to join on dns handler task: {}", e)
+            }
 
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        self.shared_state.route_handler.stop().await;
+            self.shared_state.route_handler.stop().await;
+        }
     }
 }
 
@@ -437,8 +546,21 @@ pub enum Error {
     #[error("failed to create a dns handler: {}", _0)]
     CreateDnsHandler(#[source] dns_handler::Error),
 
-    //#[error("failed to create firewall handler: {}", _0)]
-    //CreateFirewallHandler(#[source] firewall_handler::Error),
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[error("failed to create firewall: {}", _0)]
+    CreateFirewall(#[source] nym_firewall::Error),
+
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    #[error("failed to apply firewall policy: {}", _0)]
+    ApplyFirewallPolicy(#[source] nym_firewall::Error),
+
+    #[error("failed to resolve gateway addresses: {}", _0)]
+    ResolveGatewayAddrs(#[source] nym_gateway_directory::Error),
+
+    #[cfg(target_os = "macos")]
+    #[error("failed to start local dns resolver: {}", _0)]
+    StartLocalDnsResolver(#[source] resolver::Error),
+
     #[error("failed to create tunnel device: {}", _0)]
     CreateTunDevice(#[source] tun::Error),
 
@@ -458,13 +580,13 @@ pub enum Error {
     #[error("failed to obtain route handle: {}", _0)]
     GetRouteHandle(#[source] route_handler::Error),
 
-    #[cfg(target_os = "linux")]
-    #[error("failed to obtain default interface: {}", _0)]
-    GetDefaultInterface(String),
-
-    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     #[error("failed to get tunnel device name")]
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     GetTunDeviceName(#[source] tun::Error),
+
+    #[error("failed to get tunnel device name")]
+    #[cfg(any(target_os = "ios", target_os = "android"))]
+    GetTunDeviceName(#[source] tun_name::GetTunNameError),
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     #[error("failed to set tunnel device ipv6 address")]
@@ -480,59 +602,57 @@ pub enum Error {
 
     #[error("tunnel error: {}", _0)]
     Tunnel(#[from] tunnel::Error),
+
+    #[error(transparent)]
+    Account(#[from] account::Error),
 }
 
 impl Error {
-    fn error_state_reason(&self) -> Option<ErrorStateReason> {
+    fn error_state_reason(self) -> Option<ErrorStateReason> {
         Some(match self {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateRouteHandler(_) | Self::AddRoutes(_) => ErrorStateReason::Routing,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::Dns,
-            //Self::CreateFirewallHandler(_) => ErrorStateReason::Firewall,
-            Self::CreateTunDevice(_) => ErrorStateReason::TunDevice,
-
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::GetTunDeviceName(_) | Self::SetTunDeviceIpv6Addr(_) => {
-                ErrorStateReason::TunDevice
-            }
-
+            Self::CreateFirewall(_) | Self::ApplyFirewallPolicy(_) => ErrorStateReason::Firewall,
+            Self::CreateTunDevice(_) => ErrorStateReason::TunDevice,
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            Self::SetTunDeviceIpv6Addr(_) => ErrorStateReason::TunDevice,
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
+            #[cfg(any(target_os = "ios", target_os = "android"))]
+            Self::GetTunDeviceName(_) => ErrorStateReason::TunDevice,
+            Self::ResolveGatewayAddrs(_) => ErrorStateReason::ResolveGatewayAddrs,
+            #[cfg(target_os = "macos")]
+            Self::StartLocalDnsResolver(_) => ErrorStateReason::StartLocalDnsResolver,
             #[cfg(windows)]
             Self::SetupWintunAdapter(_) => ErrorStateReason::TunDevice,
-
             Self::Tunnel(e) => e.error_state_reason()?,
-
             #[cfg(any(target_os = "ios", target_os = "android"))]
             Self::ConfigureTunnelProvider(_) => ErrorStateReason::TunnelProvider,
-
             #[cfg(target_os = "ios")]
             Self::LocateTunDevice(_) => ErrorStateReason::TunDevice,
-
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::GetRouteHandle(_) => ErrorStateReason::Internal,
-
-            #[cfg(target_os = "linux")]
-            Self::GetDefaultInterface(_) => ErrorStateReason::Internal,
+            Self::GetRouteHandle(e) => ErrorStateReason::Internal(e.to_string()),
+            Self::Account(err) => err.error_state_reason()?,
         })
     }
 }
 
 impl tunnel::Error {
-    fn error_state_reason(&self) -> Option<ErrorStateReason> {
+    fn error_state_reason(self) -> Option<ErrorStateReason> {
         match self {
             Self::SelectGateways(e) => match e {
                 GatewayDirectoryError::SameEntryAndExitGateway { .. } => {
                     Some(ErrorStateReason::SameEntryAndExitGateway)
                 }
-
                 GatewayDirectoryError::FailedToSelectEntryGateway {
                     source: nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation { .. },
                 } => Some(ErrorStateReason::InvalidEntryGatewayCountry),
-
                 GatewayDirectoryError::FailedToSelectExitGateway {
                     source: nym_gateway_directory::Error::NoMatchingExitGatewayForLocation { .. },
                 } => Some(ErrorStateReason::InvalidExitGatewayCountry),
-
                 _ => None,
             },
             Self::BandwidthController(BandwidthControllerError::RegisterWireguard {
@@ -544,7 +664,33 @@ impl tunnel::Error {
                 ..
             }) => Some(ErrorStateReason::BadBandwidthIncrease),
             Self::DupFd(_) => Some(ErrorStateReason::DuplicateTunFd),
-            _ => None,
+            Self::AuthenticationNotPossible(_)
+            | Self::AuthenticatorAddressNotFound
+            | Self::ConnectToIpPacketRouter(_)
+            | Self::LookupGatewayIp { .. }
+            | Self::MixnetClient(_)
+            | Self::SetupStoragePaths(_)
+            | Self::StartMixnetClientTimeout
+            | Self::CreateGatewayClient(_)
+            | Self::BandwidthController(_)
+            | Self::Wireguard(_)
+            | Self::Cancelled => None,
+            #[cfg(target_os = "ios")]
+            Self::ResolveDns64(_) => None,
+            #[cfg(windows)]
+            Self::AddDefaultRouteListener(_) => None,
+        }
+    }
+}
+
+impl account::Error {
+    fn error_state_reason(self) -> Option<ErrorStateReason> {
+        match self {
+            Self::SyncAccount(e) => Some(e.into()),
+            Self::SyncDevice(e) => Some(e.into()),
+            Self::RegisterDevice(e) => Some(e.into()),
+            Self::RequestZkNym(e) => Some(e.into()),
+            Self::Cancelled => None,
         }
     }
 }

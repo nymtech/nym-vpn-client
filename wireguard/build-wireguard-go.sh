@@ -109,6 +109,10 @@ function build_windows {
     echo "Building wireguard-go for Windows ($arch)"
 
     pushd $LIB_DIR
+        if [ $# -eq 0 ] ; then
+            win_create_versioninfo
+        fi
+
         build_go -v -o libwg.dll -buildmode c-shared
 
         if [ $# -eq 0 ] ; then
@@ -123,6 +127,11 @@ function build_windows {
         echo "Copying files to $(realpath "$target_dir")"
         mv libwg.dll libwg.lib $target_dir
     popd
+}
+
+function win_create_versioninfo {
+    echo "Compiling DLL version info (libwg.rc)"
+    windres -i libwg.rc -O coff -o versioninfo_windows.syso
 }
 
 function unix_target_triple {
@@ -162,14 +171,14 @@ function build_unix {
 
 function build_android {
     echo "Building for android"
-    local docker_image_hash="992c4d5c7dcd00eacf6f3e3667ce86b8e185f011352bdd9f79e467fef3e27abd"
+    local docker_image_hash="fe6c1ded2e1f8a7e6ff0da2800c98b9d564d4723cc63ae46b1a8a3af33f78d1f"
 
     if $IS_DOCKER_BUILD; then
         docker run --rm \
             -v "$(pwd)/../":/workspace \
             --entrypoint "/workspace/wireguard/$LIB_DIR/build-android.sh" \
-            --env ANDROID_NDK_HOME="/opt/android/android-ndk-r20b" \
-            docker.io/pronebird1337/nymtech-android-app@sha256:$docker_image_hash
+            --env ANDROID_NDK_HOME="/opt/android/android-ndk-r25c" \
+            docker.io/nymtech/android-wg-patched:latest@sha256:$docker_image_hash
     else
         patch_go_runtime
         ./$LIB_DIR/build-android.sh

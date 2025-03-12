@@ -61,7 +61,7 @@ public final class NetworkButtonViewModel: ObservableObject {
     }
 
     func updateUI(isSelected: Bool) {
-        self.selectionImageColor = isSelected ? NymColor.textCTA : NymColor.networkButtonCircle
-        self.selectionStrokeColor = isSelected ? NymColor.textCTA : .clear
+        self.selectionImageColor = isSelected ? NymColor.action : NymColor.networkButtonCircle
+        self.selectionStrokeColor = isSelected ? NymColor.action : .clear
     }
 }

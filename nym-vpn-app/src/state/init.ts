@@ -2,8 +2,8 @@ import i18n from 'i18next';
 import { invoke } from '@tauri-apps/api/core';
 import { getVersion } from '@tauri-apps/api/app';
 import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
+import { isEnabled as isAutostartEnabled } from '@tauri-apps/plugin-autostart';
 import {
-  CountryCacheDuration,
   DefaultCountry,
   DefaultRootFontSize,
   DefaultThemeMode,
@@ -15,6 +15,8 @@ import {
   AccountLinks,
   CodeDependency,
   Country,
+  Gateway,
+  NetworkCompat,
   StateDispatch,
   ThemeMode,
   TunnelStateIpc,
@@ -23,7 +25,6 @@ import {
   VpndStatus,
 } from '../types';
 import { S_STATE } from '../static';
-import { MCache } from '../cache';
 import { Notification } from '../contexts';
 import { tunnelUpdate } from './tunnelUpdate';
 import { TauriReq, daemonStatusUpdate, fireRequests } from './helper';
@@ -37,28 +38,10 @@ const getDaemonStatus = async () => {
   return await invoke<VpndStatus>('daemon_status');
 };
 
-// init country list
-const getEntryCountries = async () => {
-  const mode = (await kvGet<VpnMode>('VpnMode')) || DefaultVpnMode;
-  const countries = await invoke<Country[]>('get_countries', {
-    vpnMode: mode,
-    nodeType: 'Entry',
-  });
-  return { countries, mode };
-};
-const getExitCountries = async () => {
-  const mode = (await kvGet<VpnMode>('VpnMode')) || DefaultVpnMode;
-  const countries = await invoke<Country[]>('get_countries', {
-    vpnMode: mode,
-    nodeType: 'Exit',
-  });
-  return { countries, mode };
-};
-
 const getTheme = async () => {
   const winTheme: UiTheme =
     (await getCurrentWebviewWindow().theme()) === 'dark' ? 'Dark' : 'Light';
-  const themeMode = await kvGet<ThemeMode>('UiTheme');
+  const themeMode = await kvGet<ThemeMode>('ui-theme');
   return { winTheme, themeMode };
 };
 
@@ -82,41 +65,49 @@ export async function initFirstBatch(
     },
   };
 
-  const getEntryLocationRq: TauriReq<() => Promise<Country | undefined>> = {
-    name: 'getEntryLocation',
-    request: () => kvGet<Country>('EntryNodeLocation'),
-    onFulfilled: (location) => {
-      if (location) {
-        dispatch({
-          type: 'set-node-location',
-          payload: {
-            hop: 'entry',
-            location,
-          },
-        });
-      } else {
-        console.info('no entry country saved, using default', DefaultCountry);
-      }
-    },
-  };
+  const getEntryNodeRq: TauriReq<() => Promise<Gateway | Country | undefined>> =
+    {
+      name: 'getEntryNode',
+      request: () => kvGet<Gateway | Country>('entry-node'),
+      onFulfilled: (node) => {
+        if (node) {
+          dispatch({
+            type: 'set-node',
+            payload: {
+              hop: 'entry',
+              node,
+            },
+          });
+        } else {
+          console.info(
+            'no entry node saved, using default country',
+            DefaultCountry,
+          );
+        }
+      },
+    };
 
-  const getExitLocationRq: TauriReq<() => Promise<Country | undefined>> = {
-    name: 'getExitLocation',
-    request: () => kvGet<Country>('ExitNodeLocation'),
-    onFulfilled: (location) => {
-      if (location) {
-        dispatch({
-          type: 'set-node-location',
-          payload: {
-            hop: 'exit',
-            location,
-          },
-        });
-      } else {
-        console.info('no exit country saved, using default', DefaultCountry);
-      }
-    },
-  };
+  const getExitNodeRq: TauriReq<() => Promise<Gateway | Country | undefined>> =
+    {
+      name: 'getExitNode',
+      request: () => kvGet<Gateway | Country>('exit-node'),
+      onFulfilled: (node) => {
+        if (node) {
+          dispatch({
+            type: 'set-node',
+            payload: {
+              hop: 'exit',
+              node,
+            },
+          });
+        } else {
+          console.info(
+            'no exit node saved, using default country',
+            DefaultCountry,
+          );
+        }
+      },
+    };
 
   const getStoredAccountRq: TauriReq<() => Promise<boolean | undefined>> = {
     name: 'getStoredAccountRq',
@@ -155,7 +146,7 @@ export async function initFirstBatch(
 
   const getVpnModeRq: TauriReq<() => Promise<VpnMode | undefined>> = {
     name: 'getVpnMode',
-    request: () => kvGet<VpnMode>('VpnMode'),
+    request: () => kvGet<VpnMode>('vpn-mode'),
     onFulfilled: (vpnMode) => {
       S_STATE.vpnModeInit = true;
       dispatch({ type: 'set-vpn-mode', mode: vpnMode || DefaultVpnMode });
@@ -166,7 +157,7 @@ export async function initFirstBatch(
     () => Promise<boolean | undefined>
   > = {
     name: 'getDesktopNotificationsRq',
-    request: () => kvGet<boolean>('DesktopNotifications'),
+    request: () => kvGet<boolean>('desktop-notifications'),
     onFulfilled: (enabled) => {
       dispatch({
         type: 'set-desktop-notifications',
@@ -177,7 +168,7 @@ export async function initFirstBatch(
 
   const getRootFontSizeRq: TauriReq<() => Promise<number | undefined>> = {
     name: 'getRootFontSize',
-    request: () => kvGet<number>('UiRootFontSize'),
+    request: () => kvGet<number>('ui-root-font-size'),
     onFulfilled: (size) => {
       // if a font size was saved, set the UI font size accordingly
       if (size) {
@@ -192,7 +183,7 @@ export async function initFirstBatch(
 
   const getMonitoringRq: TauriReq<() => Promise<boolean | undefined>> = {
     name: 'getMonitoring',
-    request: () => kvGet<boolean>('Monitoring'),
+    request: () => kvGet<boolean>('monitoring'),
     onFulfilled: (monitoring) => {
       dispatch({ type: 'set-monitoring', monitoring: monitoring || false });
     },
@@ -225,8 +216,8 @@ export async function initFirstBatch(
     initStateRq,
     initDaemonStatusRq,
     getVpnModeRq,
-    getEntryLocationRq,
-    getExitLocationRq,
+    getEntryNodeRq,
+    getExitNodeRq,
     getVersionRq,
     getThemeRq,
     getStoredAccountRq,
@@ -239,52 +230,6 @@ export async function initFirstBatch(
 }
 
 export async function initSecondBatch(dispatch: StateDispatch) {
-  const getEntryCountriesRq: TauriReq<typeof getEntryCountries> = {
-    name: 'get_countries',
-    request: () => getEntryCountries(),
-    onFulfilled: ({ countries, mode }) => {
-      dispatch({
-        type: 'set-country-list',
-        payload: {
-          hop: 'entry',
-          countries,
-        },
-      });
-      MCache.set(
-        mode === 'Mixnet' ? `mn-entry-countries` : 'wg-countries',
-        countries,
-        CountryCacheDuration,
-      );
-      dispatch({
-        type: 'set-countries-loading',
-        payload: { hop: 'entry', loading: false },
-      });
-    },
-  };
-
-  const getExitCountriesRq: TauriReq<typeof getExitCountries> = {
-    name: 'get_countries',
-    request: () => getExitCountries(),
-    onFulfilled: ({ countries, mode }) => {
-      dispatch({
-        type: 'set-country-list',
-        payload: {
-          hop: 'exit',
-          countries,
-        },
-      });
-      MCache.set(
-        mode === 'Mixnet' ? `mn-exit-countries` : 'wg-countries',
-        countries,
-        CountryCacheDuration,
-      );
-      dispatch({
-        type: 'set-countries-loading',
-        payload: { hop: 'exit', loading: false },
-      });
-    },
-  };
-
   const getAccountLinksRq: TauriReq<() => Promise<AccountLinks | undefined>> = {
     name: 'getAccountLinksRq',
     request: () =>
@@ -292,14 +237,33 @@ export async function initSecondBatch(dispatch: StateDispatch) {
     onFulfilled: (links) => {
       dispatch({
         type: 'set-account-links',
-        links: links as AccountLinks | null,
+        links: links || null,
       });
     },
   };
 
-  await fireRequests([
-    getEntryCountriesRq,
-    getExitCountriesRq,
-    getAccountLinksRq,
-  ]);
+  const getAutostart: TauriReq<() => Promise<boolean>> = {
+    name: 'getAutostart',
+    request: () => isAutostartEnabled(),
+    onFulfilled: (enabled) => {
+      dispatch({
+        type: 'set-autostart',
+        enabled,
+      });
+    },
+  };
+
+  const getNetworkCompatRq: TauriReq<() => Promise<NetworkCompat | undefined>> =
+    {
+      name: 'getNetworkCompatRq',
+      request: () => invoke<NetworkCompat>('network_compat'),
+      onFulfilled: (compat) => {
+        dispatch({
+          type: 'set-network-compat',
+          compat: compat || null,
+        });
+      },
+    };
+
+  await fireRequests([getAccountLinksRq, getAutostart, getNetworkCompatRq]);
 }

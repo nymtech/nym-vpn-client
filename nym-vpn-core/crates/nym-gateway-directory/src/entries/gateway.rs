@@ -4,14 +4,14 @@
 use itertools::Itertools;
 use nym_sdk::mixnet::NodeIdentity;
 use nym_topology::{NodeId, RoutingNode};
-use nym_vpn_api_client::types::{NaiveFloat, Percent};
+use nym_vpn_api_client::types::{NaiveFloat, Percent, ScoreThresholds};
 use rand::seq::IteratorRandom;
 use std::{fmt, net::IpAddr};
 use tracing::error;
 
 use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
 
-use super::score::Score;
+use super::score::{Score, HIGH_SCORE_THRESHOLD, LOW_SCORE_THRESHOLD, MEDIUM_SCORE_THRESHOLD};
 
 pub type NymNode = Gateway;
 
@@ -94,6 +94,19 @@ impl Gateway {
             _ => None,
         }
     }
+
+    pub fn update_to_new_thresholds(
+        &mut self,
+        mix_thresholds: Option<ScoreThresholds>,
+        wg_thresholds: Option<ScoreThresholds>,
+    ) {
+        if let (Some(mix_thresholds), Some(score)) = (mix_thresholds, self.mixnet_score.as_mut()) {
+            score.update_to_new_thresholds(mix_thresholds);
+        }
+        if let (Some(wg_thresholds), Some(score)) = (wg_thresholds, self.wg_score.as_mut()) {
+            score.update_to_new_thresholds(wg_thresholds);
+        }
+    }
 }
 
 #[derive(Debug, Default, Clone, PartialEq)]
@@ -162,12 +175,12 @@ impl From<nym_vpn_api_client::response::Probe> for Probe {
 impl From<Percent> for Score {
     fn from(percent: Percent) -> Self {
         let rounded_percent = percent.round_to_integer();
-        if rounded_percent >= 80 {
-            Score::High
-        } else if rounded_percent >= 60 {
-            Score::Medium
-        } else if rounded_percent > 0 {
-            Score::Low
+        if rounded_percent >= HIGH_SCORE_THRESHOLD {
+            Score::High(rounded_percent)
+        } else if rounded_percent >= MEDIUM_SCORE_THRESHOLD {
+            Score::Medium(rounded_percent)
+        } else if rounded_percent > LOW_SCORE_THRESHOLD {
+            Score::Low(rounded_percent)
         } else {
             Score::None
         }

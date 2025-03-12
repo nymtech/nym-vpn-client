@@ -14,19 +14,20 @@ import GRPCManager
 #endif
 
 public final class ConnectionManager: ObservableObject {
-    private let appSettings: AppSettings
     private let connectionStorage: ConnectionStorage
     private let countriesManager: CountriesManager
-    private let tunnelsManager: TunnelsManager
-    private let credentialsManager: CredentialsManager
-
-#if os(macOS)
-    private let grpcManager: GRPCManager
-#endif
 
     private var cancellables = Set<AnyCancellable>()
     private var tunnelStatusUpdateCancellable: AnyCancellable?
 
+    let appSettings: AppSettings
+    let credentialsManager: CredentialsManager
+    let tunnelsManager: TunnelsManager
+#if os(macOS)
+    let grpcManager: GRPCManager
+#endif
+
+    // TODO: remove this once iOS tunnel supports tunnel reconnection
     public var isReconnecting = false
     public var isDisconnecting = false
 
@@ -50,13 +51,17 @@ public final class ConnectionManager: ObservableObject {
             configureTunnelStatusObserver(tunnel: activeTunnel)
         }
     }
-#endif
+
+    // TODO: remove this once iOS tunnel supports tunnel reconnection
     @Published public var currentTunnelStatus: TunnelStatus = .disconnected {
         didSet {
             updateTunnelStatusIfReconnecting()
-            updateTunnelStatusIfDisconnecting()
+//            updateTunnelStatusIfDisconnecting() 
         }
     }
+#elseif os(macOS)
+    @Published public var currentTunnelStatus: TunnelStatus = .disconnected
+#endif
     @Published public var entryGateway: EntryGateway {
         didSet {
             Task { @MainActor in
@@ -116,83 +121,6 @@ public final class ConnectionManager: ObservableObject {
     }
 #endif
 
-#if os(iOS)
-    public func isReconnecting(newConfig: MixnetConfig) -> Bool {
-        guard let tunnelProviderProtocol = activeTunnel?.tunnel.protocolConfiguration as? NETunnelProviderProtocol,
-              let mixnetConfig = tunnelProviderProtocol.asMixnetConfig(),
-              currentTunnelStatus == .connected, newConfig != mixnetConfig
-        else {
-            return false
-        }
-        return true
-    }
-
-    /// connects disconnects VPN, depending on current VPN status
-    /// - Parameter isAutoConnect: Bool. 
-    /// true - when reconnecting automatically, after change of connection settings:  country(UK, DE) or type(5hop, 2hop...).
-    /// false - when user manually taps "Connect".
-    /// On reconnect, after disconnect, the connectDisconnect is called as a user tapped connect.
-    public func connectDisconnect(isAutoConnect: Bool = false) async throws {
-        do {
-            let config = try generateConfig()
-            if isReconnecting {
-                // Reconnecting after change of country, 5hop...
-                disconnectActiveTunnel()
-            } else {
-                // User "Connect" button actions
-                guard !isAutoConnect else { return }
-                if shouldDisconnectActiveTunnel() {
-                    isDisconnecting = true
-                    disconnectActiveTunnel()
-                } else {
-                    try await connect(with: config)
-                }
-            }
-        } catch let error {
-            throw error
-        }
-    }
-#endif
-
-#if os(macOS)
-    public func isReconnecting(newConfig: MixnetConfig) -> Bool {
-        if currentTunnelStatus == .connected,
-           let lastConfig = MixnetConfig.from(jsonString: appSettings.lastConnectionIntent ?? ""),
-           lastConfig != newConfig {
-            return true
-        } else {
-            return false
-        }
-    }
-
-    public func connectDisconnect(isAutoConnect: Bool = false) async throws {
-        let config = generateConfig()
-        if isReconnecting {
-            // Reconnecting after change of country, 5hop...
-            grpcManager.disconnect()
-        } else {
-            // User "Connect" button actions
-            guard !isAutoConnect else { return }
-            if grpcManager.tunnelStatus == .connected
-                || grpcManager.tunnelStatus == .connecting
-                || grpcManager.tunnelStatus == .offlineReconnect {
-                isDisconnecting = true
-                grpcManager.disconnect()
-            } else {
-                Task { @MainActor in
-                    appSettings.lastConnectionIntent = config.toJson()
-                }
-                try await grpcManager.connect(
-                    entryGateway: config.entryGateway,
-                    exitRouter: config.exitRouter,
-                    isTwoHopEnabled: config.isTwoHopEnabled,
-                    isZknymEnabled: appSettings.isZknymEnabled
-                )
-            }
-        }
-    }
-#endif
-
     /// Disconnects tunnel if connected.
     /// iOS removes tunnel profile.
     public func disconnectBeforeLogout() async {
@@ -213,9 +141,7 @@ private extension ConnectionManager {
     func setup() {
 #if os(iOS)
         setupTunnelManagerObservers()
-#endif
-
-#if os(macOS)
+#elseif os(macOS)
         setupGRPCManagerObservers()
 #endif
         setupCountriesManagerObserver()
@@ -228,19 +154,25 @@ private extension ConnectionManager {
 private extension ConnectionManager {
     func setupTunnelManagerObservers() {
         tunnelsManager.$isLoaded.sink { [weak self] isLoaded in
-            self?.isTunnelManagerLoaded = isLoaded
+            Task { @MainActor [weak self] in
+                self?.isTunnelManagerLoaded = isLoaded
+            }
         }
         .store(in: &cancellables)
 
         tunnelsManager.$activeTunnel.sink { [weak self] tunnel in
-            self?.activeTunnel = tunnel
+            Task { @MainActor [weak self] in
+                self?.activeTunnel = tunnel
+            }
         }
         .store(in: &cancellables)
     }
 
     func configureTunnelStatusObserver(tunnel: Tunnel) {
         tunnelStatusUpdateCancellable = tunnel.$status.sink { [weak self] status in
-            self?.currentTunnelStatus = status
+            Task { @MainActor [weak self] in
+                self?.currentTunnelStatus = status
+            }
         }
     }
 }
@@ -250,16 +182,18 @@ private extension ConnectionManager {
 private extension ConnectionManager {
     func setupGRPCManagerObservers() {
         grpcManager.$tunnelStatus.sink { [weak self] status in
-            guard self?.currentTunnelStatus != status else { return }
-            self?.currentTunnelStatus = status
-            self?.scheduleNotificationIfNeeded()
+            Task { @MainActor [weak self] in
+                guard self?.currentTunnelStatus != status else { return }
+                self?.currentTunnelStatus = status
+                self?.scheduleNotificationIfNeeded()
+            }
         }
         .store(in: &cancellables)
     }
 
     func scheduleNotificationIfNeeded() {
         guard currentTunnelStatus == .disconnecting else { return }
-        Task(priority: .background) {
+        Task {
             await NotificationMessages.scheduleDisconnectNotification()
         }
     }
@@ -274,135 +208,8 @@ public extension ConnectionManager {
 }
 
 // MARK: - Connection -
-#if os(iOS)
-private extension ConnectionManager {
-    func connect(with config: MixnetConfig) async throws {
-        do {
-            try await tunnelsManager.loadTunnels()
-            let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config)
-            activeTunnel = tunnel
-            try await tunnelsManager.connect(tunnel: tunnel)
-        } catch {
-            throw error
-        }
-    }
-
-    func disconnectActiveTunnel() {
-        guard let activeTunnel,
-              shouldDisconnectActiveTunnel()
-        else {
-            return
-        }
-        tunnelsManager.disconnect(tunnel: activeTunnel)
-    }
-
-    func shouldDisconnectActiveTunnel() -> Bool {
-        guard let activeTunnel else { return false }
-
-        switch activeTunnel.status {
-        case .connected, .connecting, .reasserting, .restarting, .offlineReconnect:
-            return true
-        case .disconnecting, .disconnected, .offline, .unknown:
-            return false
-        }
-    }
-
-    func generateConfig() throws -> MixnetConfig {
-        do {
-            let credentialURL = try credentialsManager.dataFolderURL()
-            var config = MixnetConfig(
-                entryGateway: entryGateway,
-                exitRouter: exitRouter,
-                credentialsDataPath: credentialURL.path(),
-                isZknymEnabled: appSettings.isZknymEnabled
-            )
-
-            switch connectionType {
-            case .mixnet5hop:
-                config = MixnetConfig(
-                    entryGateway: entryGateway,
-                    exitRouter: exitRouter,
-                    credentialsDataPath: credentialURL.path(),
-                    isTwoHopEnabled: false,
-                    isZknymEnabled: appSettings.isZknymEnabled
-                )
-            case .wireguard:
-                    config = MixnetConfig(
-                        entryGateway: entryGateway,
-                        exitRouter: exitRouter,
-                        credentialsDataPath: credentialURL.path(),
-                        isTwoHopEnabled: true,
-                        isZknymEnabled: appSettings.isZknymEnabled
-                    )
-            }
-            isReconnecting = isReconnecting(newConfig: config)
-            return config
-        } catch let error {
-            throw error
-        }
-    }
-}
-#elseif os(macOS)
-extension ConnectionManager {
-    func generateConfig() -> MixnetConfig {
-        var config = MixnetConfig(
-            entryGateway: entryGateway,
-            exitRouter: exitRouter,
-            isZknymEnabled: appSettings.isZknymEnabled
-        )
-
-        switch connectionType {
-        case .mixnet5hop:
-            config = MixnetConfig(
-                entryGateway: entryGateway,
-                exitRouter: exitRouter,
-                isTwoHopEnabled: false,
-                isZknymEnabled: appSettings.isZknymEnabled
-            )
-        case .wireguard:
-                config = MixnetConfig(
-                    entryGateway: entryGateway,
-                    exitRouter: exitRouter,
-                    isTwoHopEnabled: true,
-                    isZknymEnabled: appSettings.isZknymEnabled
-                )
-        }
-        isReconnecting = isReconnecting(newConfig: config)
-        return config
-    }
-}
-#endif
 
 private extension ConnectionManager {
-    // Reconnect after connection type, hop change
-    func reconnectIfNeeded() async {
-        guard currentTunnelStatus == .connected else { return }
-        try? await connectDisconnect(isAutoConnect: true)
-    }
-
-    func updateTunnelStatusIfReconnecting() {
-        guard isReconnecting,
-              currentTunnelStatus == .disconnected
-        else {
-            return
-        }
-        isReconnecting = false
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            Task {
-                try? await self?.connectDisconnect()
-            }
-        }
-    }
-
-    func updateTunnelStatusIfDisconnecting() {
-        guard isDisconnecting,
-              currentTunnelStatus == .disconnected
-        else {
-            return
-        }
-        isDisconnecting = false
-    }
-
     func waitForTunnelStatus(with targetStatus: TunnelStatus) async {
         await withCheckedContinuation { continuation in
             var cancellable: AnyCancellable?
@@ -410,7 +217,7 @@ private extension ConnectionManager {
             cancellable = $currentTunnelStatus
                 .sink { status in
                     guard cancellable != nil,
-                        status == targetStatus
+                          status == targetStatus
                     else {
                         return
                     }
@@ -450,17 +257,19 @@ private extension ConnectionManager {
 
     func setupConnectionErrorObserver() {
 #if os(iOS)
-        tunnelsManager.$lastError.sink { [weak self] newError in
-            self?.lastError = newError
-        }
-        .store(in: &cancellables)
-#endif
-
-#if os(macOS)
-        grpcManager.$errorReason.sink { [weak self] newError in
-            self?.lastError = newError
-        }
-        .store(in: &cancellables)
+        tunnelsManager.$lastError
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newError in
+                self?.lastError = newError
+            }
+            .store(in: &cancellables)
+#elseif os(macOS)
+        grpcManager.$errorReason
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newError in
+                self?.lastError = newError
+            }
+            .store(in: &cancellables)
 #endif
     }
 

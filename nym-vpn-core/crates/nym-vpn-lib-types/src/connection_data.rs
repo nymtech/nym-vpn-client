@@ -3,7 +3,7 @@
 
 use std::{
     fmt,
-    net::{Ipv4Addr, Ipv6Addr, SocketAddr},
+    net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr},
 };
 
 use time::OffsetDateTime;
@@ -64,11 +64,19 @@ pub enum TunnelConnectionData {
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct NymAddress {
     pub nym_address: String,
+    pub gateway_id: String,
 }
 
 impl NymAddress {
-    pub fn new(nym_address: String) -> Self {
-        Self { nym_address }
+    pub fn new(nym_address: String, gateway_id: String) -> Self {
+        Self {
+            nym_address,
+            gateway_id,
+        }
+    }
+
+    pub fn gateway_id(&self) -> &str {
+        &self.gateway_id
     }
 }
 
@@ -81,7 +89,14 @@ impl fmt::Display for NymAddress {
 #[cfg(feature = "nym-type-conversions")]
 impl From<nym_gateway_directory::Recipient> for NymAddress {
     fn from(value: nym_gateway_directory::Recipient) -> Self {
-        Self::new(value.to_string())
+        Self::new(value.to_string(), value.gateway().to_base58_string())
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_gateway_directory::IpPacketRouterAddress> for NymAddress {
+    fn from(value: nym_gateway_directory::IpPacketRouterAddress) -> Self {
+        NymAddress::from(nym_gateway_directory::Recipient::from(value))
     }
 }
 
@@ -89,6 +104,8 @@ impl From<nym_gateway_directory::Recipient> for NymAddress {
 pub struct MixnetConnectionData {
     pub nym_address: NymAddress,
     pub exit_ipr: NymAddress,
+    pub entry_ip: IpAddr,
+    pub exit_ip: IpAddr,
     pub ipv4: Ipv4Addr,
     pub ipv6: Ipv6Addr,
 }

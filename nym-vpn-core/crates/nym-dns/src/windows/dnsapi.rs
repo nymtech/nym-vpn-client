@@ -9,7 +9,7 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use windows_sys::Win32::Foundation::BOOL;
+use windows::Win32::Foundation::BOOL;
 
 static FLUSH_TIMEOUT: Duration = Duration::from_secs(5);
 static DNSAPI_HANDLE: OnceLock<DnsApi> = OnceLock::new();
@@ -66,7 +66,7 @@ impl DnsApi {
         std::thread::spawn(move || {
             let begin = Instant::now();
 
-            let result = if unsafe { (DnsFlushResolverCache)() } != 0 {
+            let result = if unsafe { (DnsFlushResolverCache)() }.0 != 0 {
                 let elapsed = begin.elapsed();
                 if elapsed >= FLUSH_TIMEOUT {
                     tracing::warn!(

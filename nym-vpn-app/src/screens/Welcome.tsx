@@ -16,7 +16,7 @@ function Welcome() {
   const { t } = useTranslation('welcome');
 
   const handleContinue = () => {
-    kvSet('WelcomeScreenSeen', true).then(() => {
+    kvSet('welcome-screen-seen', true).then(() => {
       navigate(routes.root);
     });
   };
@@ -25,7 +25,7 @@ function Welcome() {
     const isChecked = !monitoring;
     setMonitoring(isChecked);
     dispatch({ type: 'set-monitoring', monitoring: isChecked });
-    kvSet('Monitoring', isChecked);
+    kvSet('monitoring', isChecked);
   };
 
   return (

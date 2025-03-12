@@ -3,9 +3,10 @@ import Theme
 
 public struct SearchView: View {
     private let strokeTitle = "search".localizedString
-    private let searchCountryTitle = "searchCountry".localizedString
+    private let searchTitle = "search.title".localizedString
     private let searchImageName = "searchIcon"
 
+    @State private var isHovered = false
     @FocusState.Binding private var isSearchFocused: Bool
 
     @Binding var searchText: String
@@ -16,15 +17,23 @@ public struct SearchView: View {
     }
 
     public var body: some View {
-        StrokeBorderView(strokeTitle: strokeTitle) {
+        StrokeBorderView(
+            strokeTitle: strokeTitle,
+            strokeTitleLeftMargin: 40,
+            isHovered: $isHovered
+        ) {
             HStack {
                 searchImage()
                 searchTextfield()
                 Spacer()
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .onTapGesture {
             isSearchFocused = true
+        }
+        .onHover { newValue in
+            isHovered = newValue
         }
 #if os(iOS)
         .defersSystemGestures(on: .`vertical`)
@@ -46,14 +55,14 @@ extension SearchView {
     func searchTextfield() -> some View {
         ZStack(alignment: .leading) {
             if searchText.isEmpty {
-                Text(searchCountryTitle)
+                Text(searchTitle)
                     .foregroundStyle(NymColor.sysOutline)
-                    .textStyle(.Body.Large.regular)
+                    .textStyle(.BodyLegacy.Large.regular)
             }
             TextField("", text: $searchText)
                 .foregroundStyle(NymColor.sysOnSurface)
                 .textFieldStyle(PlainTextFieldStyle())
-                .textStyle(.Body.Large.semibold)
+                .textStyle(.BodyLegacy.Large.semibold)
                 .focused($isSearchFocused)
         }
     }

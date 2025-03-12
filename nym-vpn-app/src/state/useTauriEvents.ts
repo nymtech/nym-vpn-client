@@ -21,7 +21,7 @@ import {
   TunnelStateEvent,
 } from '../constants';
 import { Notification } from '../contexts';
-import { MCache } from '../cache';
+import { CCache } from '../cache';
 import { daemonStatusUpdate } from './helper';
 import { tunnelUpdate } from './tunnelUpdate';
 
@@ -34,11 +34,11 @@ export function useTauriEvents(
       DaemonEvent,
       async ({ event, payload: status }) => {
         console.info(
-          `received event [${event}], status: ${status === 'notOk' ? status : JSON.stringify(status)}`,
+          `received event [${event}], status: ${status === 'down' ? status : JSON.stringify(status)}`,
         );
         daemonStatusUpdate(status, dispatch, push);
-        MCache.del('account-id');
-        MCache.del('device-id');
+        await CCache.del('cache-account-id');
+        await CCache.del('cache-device-id');
 
         // refresh account status
         if (isVpndOk(status) || isVpndNonCompat(status)) {
@@ -79,8 +79,8 @@ export function useTauriEvents(
   const registerMixnetEventListener = useCallback(() => {
     return listen<MixnetEventPayload>(MixnetEvent, (event) => {
       const { payload } = event;
-      console.log(`received mixnet event [${event.event}]`, payload);
       if (isMixnetEventError(payload)) {
+        console.info(`received mixnet event [${event.event}]`, payload);
         dispatch({
           type: 'set-error',
           error: { key: payload.error, message: payload.error },

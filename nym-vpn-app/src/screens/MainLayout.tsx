@@ -27,14 +27,16 @@ function MainLayout({
         'dark:bg-ash dark:text-white',
       ])}
     >
-      {!noTopBar && <TopBar />}
       {!noNotifications && <Notifications />}
+      {!noTopBar && <TopBar />}
       {!noDaemonDot && <DaemonDot status={daemonStatus} />}
       <div
         className={clsx([
           'h-full flex flex-col overflow-auto overscroll-auto p-4',
           (location.pathname === routes.licensesRust ||
-            location.pathname === routes.licensesJs) &&
+            location.pathname === routes.licensesJs ||
+            location.pathname === routes.entryNodeLocation ||
+            location.pathname === routes.exitNodeLocation) &&
             'p-0!',
         ])}
       >

@@ -1,7 +1,7 @@
 # To build the image:
-# docker build . -t docker.io/pronebird1337/nymtech-android-app -f Dockerfile_AndroidPatchedGoruntime
+# docker build . -t docker.io/nymtech/android-wg-patched -f Dockerfile_AndroidPatchedGoruntime
 # To push the image to docker.io:
-# docker push docker.io/pronebird1337/nymtech-android-app
+# docker push docker.io/nymtech/android-wg-patched
 
 FROM debian@sha256:77f46c1cf862290e750e913defffb2828c889d291a93bdd10a7a0597720948fc
 
@@ -16,19 +16,19 @@ RUN apt-get update -y && apt-get install -y \
 
 # Install Android NDK
 RUN cd /tmp && \
-    curl -sf -L -o ndk.zip https://dl.google.com/android/repository/android-ndk-r20b-linux-x86_64.zip && \
-    echo "8381c440fe61fcbb01e209211ac01b519cd6adf51ab1c2281d5daad6ca4c8c8c ndk.zip" | sha256sum -c - && \
+    curl -sf -L -o ndk.zip https://dl.google.com/android/repository/android-ndk-r25c-linux.zip && \
+    echo "769ee342ea75f80619d985c2da990c48b3d8eaf45f48783a2d48870d04b46108 ndk.zip" | sha256sum -c - && \
     mkdir /opt/android && \
     cd /opt/android && \
     unzip -q /tmp/ndk.zip && \
     rm /tmp/ndk.zip
 
 
-ENV ANDROID_NDK_HOME="/opt/android/android-ndk-r20b"
+ENV ANDROID_NDK_HOME="/opt/android/android-ndk-r25c"
 ENV NDK_TOOLCHAIN_DIR="${ANDROID_NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin"
 
-ENV GOLANG_VERSION=1.22.6
-ENV GOLANG_HASH=999805bed7d9039ec3da1a53bfbcafc13e367da52aa823cb60b68ba22d44c616
+ENV GOLANG_VERSION=1.23.6
+ENV GOLANG_HASH=9379441ea310de000f33a4dc767bd966e72ab2826270e038e78b2c53c2e7802d
 
 # Install Go-lang and patch it to use the appropriate monotonic clock
 COPY goruntime-boottime-over-monotonic.diff /opt/goruntime-boottime-over-monotonic.diff

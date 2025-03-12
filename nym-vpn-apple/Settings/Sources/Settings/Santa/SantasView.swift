@@ -19,8 +19,6 @@ public struct SantasView: View {
                 VStack {
                     enivironmentDetails()
                     santasSpacer()
-                    gatewaySection()
-                    santasSpacer()
                     environmentSection()
                     featureFlagsSection()
                 }
@@ -49,7 +47,7 @@ private extension SantasView {
     func enivironmentDetails() -> some View {
         VStack {
             Text("Environment Details:")
-                .foregroundStyle(NymColor.primaryOrange)
+                .foregroundStyle(NymColor.accent)
                 .bold()
                 .padding(4)
             Text("App environment: \(viewModel.currentAppEnv)")
@@ -67,83 +65,10 @@ private extension SantasView {
         .padding(16)
     }
 
-    func gatewaySection() -> some View {
-        VStack {
-            Text("Connection:")
-                .foregroundStyle(NymColor.primaryOrange)
-                .bold()
-                .padding(4)
-
-            entryGatewaySection()
-            exitGatewaySection()
-        }
-    }
-
-    func entryGatewaySection() -> some View {
-        VStack {
-            HStack {
-                Text("Entry nodes:")
-                Spacer()
-                Button("Clear all") {
-                    viewModel.clearEntryGateway()
-                }
-                Button("Paste") {
-                    viewModel.pasteEntryGateway()
-                }
-            }
-            .padding(.horizontal, 16)
-            HStack {
-                VStack {
-                    if viewModel.entryGateways.isEmpty {
-                        Text("No gateways")
-                    } else {
-                        ForEach(viewModel.entryGateways, id: \.self) { entryGateway in
-                            Text("\(entryGateway)")
-                                .padding(4)
-                        }
-                    }
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
-        }
-    }
-
-    func exitGatewaySection() -> some View {
-        VStack {
-            HStack {
-                Text("Exit nodes:")
-                Spacer()
-                Button("Clear all") {
-                    viewModel.clearExitGateway()
-                }
-                Button("Paste") {
-                    viewModel.pasteExitGateway()
-                }
-            }
-            .padding(.horizontal, 16)
-            HStack {
-                VStack {
-                    if viewModel.exitGateways.isEmpty {
-                        Text("No gateways")
-                    } else {
-                        ForEach(viewModel.exitGateways, id: \.self) { exitGateway in
-                            Text("\(exitGateway)")
-                                .padding(4)
-                        }
-                    }
-                }
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-        }
-    }
-
     func environmentSection() -> some View {
         VStack {
             Text("Environment:")
-                .foregroundStyle(NymColor.primaryOrange)
+                .foregroundStyle(NymColor.accent)
                 .bold()
                 .padding(4)
 #if os(macOS)
@@ -164,7 +89,7 @@ private extension SantasView {
     func featureFlagsSection() -> some View {
         VStack {
             Text("Feature flags:")
-                .foregroundStyle(NymColor.primaryOrange)
+                .foregroundStyle(NymColor.accent)
                 .bold()
                 .padding(4)
 

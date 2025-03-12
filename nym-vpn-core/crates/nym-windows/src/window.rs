@@ -4,20 +4,24 @@
 
 //! Utilities for working with windows on Windows.
 
-use std::{os::windows::io::AsRawHandle, ptr, sync::Arc, thread};
+use std::{os::windows::io::AsRawHandle, sync::Arc, thread};
 use tokio::sync::broadcast;
-use windows_sys::Win32::{
-    Foundation::{HANDLE, HWND, LPARAM, LRESULT, WPARAM},
-    System::{LibraryLoader::GetModuleHandleW, Threading::GetThreadId},
-    UI::WindowsAndMessaging::{
-        CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW, GetMessageW,
-        GetWindowLongPtrW, PostQuitMessage, PostThreadMessageW, SetWindowLongPtrW,
-        TranslateMessage, GWLP_USERDATA, GWLP_WNDPROC, PBT_APMRESUMEAUTOMATIC,
-        PBT_APMRESUMESUSPEND, PBT_APMSUSPEND, WM_DESTROY, WM_POWERBROADCAST, WM_USER,
+use windows::{
+    core::{w, PCWSTR},
+    Win32::{
+        Foundation::{HANDLE, HINSTANCE, HWND, LPARAM, LRESULT, WPARAM},
+        System::{LibraryLoader::GetModuleHandleW, Threading::GetThreadId},
+        UI::WindowsAndMessaging::{
+            CreateWindowExW, DefWindowProcW, DestroyWindow, DispatchMessageW, GetMessageW,
+            GetWindowLongPtrW, PostQuitMessage, PostThreadMessageW, SetWindowLongPtrW,
+            TranslateMessage, GWLP_USERDATA, GWLP_WNDPROC, PBT_APMRESUMEAUTOMATIC,
+            PBT_APMRESUMESUSPEND, PBT_APMSUSPEND, WINDOW_EX_STYLE, WINDOW_STYLE, WM_DESTROY,
+            WM_POWERBROADCAST, WM_USER,
+        },
     },
 };
 
-const CLASS_NAME: *const u16 = windows_sys::w!("STATIC");
+const CLASS_NAME: PCWSTR = w!("STATIC");
 const REQUEST_THREAD_SHUTDOWN: u32 = WM_USER + 1;
 
 /// Handle for closing an associated window.
@@ -30,8 +34,17 @@ impl WindowCloseHandle {
     /// Close the window and wait for the thread.
     pub fn close(&mut self) {
         if let Some(thread) = self.thread.take() {
-            let thread_id = unsafe { GetThreadId(thread.as_raw_handle() as HANDLE) };
-            unsafe { PostThreadMessageW(thread_id, REQUEST_THREAD_SHUTDOWN, 0, 0) };
+            let thread_id = unsafe { GetThreadId(HANDLE(thread.as_raw_handle())) };
+            if let Err(e) = unsafe {
+                PostThreadMessageW(
+                    thread_id,
+                    REQUEST_THREAD_SHUTDOWN,
+                    WPARAM::default(),
+                    LPARAM::default(),
+                )
+            } {
+                tracing::error!("Failed to post thread shutdown message: {}", e);
+            }
             let _ = thread.join();
         }
     }
@@ -42,21 +55,31 @@ pub fn create_hidden_window<F: (Fn(HWND, u32, WPARAM, LPARAM) -> LRESULT) + Send
     wnd_proc: F,
 ) -> WindowCloseHandle {
     let join_handle = thread::spawn(move || {
-        let dummy_window = unsafe {
+        let Ok(module_instance) = unsafe { GetModuleHandleW(None) }
+            .inspect_err(|e| tracing::error!("Failed to obtain GetModuleHandleW(0): {}", e))
+        else {
+            return;
+        };
+        let Ok(dummy_window) = unsafe {
             CreateWindowExW(
-                0,
+                WINDOW_EX_STYLE::default(),
                 CLASS_NAME,
-                ptr::null_mut(),
+                None,
+                WINDOW_STYLE::default(),
                 0,
                 0,
                 0,
                 0,
-                0,
-                0,
-                0,
-                GetModuleHandleW(ptr::null_mut()),
-                ptr::null_mut(),
+                None,
+                None,
+                Some(HINSTANCE::from(module_instance)),
+                None,
             )
+        }
+        .inspect_err(|e| {
+            tracing::error!("Failed to create hidden window: {}", e);
+        }) else {
+            return;
         };
 
         // Move callback information to the heap.
@@ -77,22 +100,24 @@ pub fn create_hidden_window<F: (Fn(HWND, u32, WPARAM, LPARAM) -> LRESULT) + Send
         let mut msg = unsafe { std::mem::zeroed() };
 
         loop {
-            let status = unsafe { GetMessageW(&mut msg, 0, 0, 0) };
+            let status = unsafe { GetMessageW(&mut msg, None, 0, 0) };
 
-            if status < 0 {
+            if status.0 < 0 {
                 continue;
             }
-            if status == 0 {
+            if status.0 == 0 {
                 break;
             }
 
-            if msg.hwnd == 0 {
+            if msg.hwnd.is_invalid() {
                 if msg.message == REQUEST_THREAD_SHUTDOWN {
-                    unsafe { DestroyWindow(dummy_window) };
+                    if let Err(e) = unsafe { DestroyWindow(dummy_window) } {
+                        tracing::error!("Failed to destroy window: {}", e);
+                    }
                 }
             } else {
                 unsafe {
-                    TranslateMessage(&msg);
+                    _ = TranslateMessage(&msg);
                     DispatchMessageW(&msg);
                 }
             }
@@ -118,7 +143,7 @@ where
 {
     if message == WM_DESTROY {
         PostQuitMessage(0);
-        return 0;
+        return LRESULT::default();
     }
     let raw_callback = GetWindowLongPtrW(window, GWLP_USERDATA);
     if raw_callback != 0 {
@@ -143,9 +168,9 @@ pub enum PowerManagementEvent {
 }
 
 impl PowerManagementEvent {
-    fn try_from_winevent(wparam: usize) -> Option<Self> {
+    fn try_from_winevent(wparam: WPARAM) -> Option<Self> {
         use PowerManagementEvent::*;
-        match wparam as u32 {
+        match wparam.0 as u32 {
             PBT_APMRESUMEAUTOMATIC => Some(ResumeAutomatic),
             PBT_APMRESUMESUSPEND => Some(ResumeSuspend),
             PBT_APMSUSPEND => Some(Suspend),
@@ -165,13 +190,13 @@ impl PowerManagementListener {
     pub fn new() -> Self {
         let (tx, rx) = tokio::sync::broadcast::channel(16);
 
-        let power_broadcast_callback = move |window, message, wparam, lparam| {
+        let power_broadcast_callback = move |window, message, wparam, lparam: LPARAM| {
             if message == WM_POWERBROADCAST {
                 if let Some(event) = PowerManagementEvent::try_from_winevent(wparam) {
                     if tx.send(event).is_err() {
                         tracing::error!("Stopping power management event monitor");
                         unsafe { PostQuitMessage(0) };
-                        return 0;
+                        return LRESULT::default();
                     }
                 }
             }

@@ -1,13 +1,11 @@
-use std::{fs, path::PathBuf};
-
 use crate::fs::path::APP_LOG_DIR;
 use crate::{env, Cli};
+use std::{fs, path::PathBuf};
 
 use anyhow::{anyhow, Result};
 use tracing::{debug, info};
 use tracing_appender::{non_blocking::WorkerGuard, rolling};
 use tracing_subscriber::filter::LevelFilter;
-use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::EnvFilter;
 
 const ENV_LOG_FILE: &str = "LOG_FILE";
@@ -30,11 +28,16 @@ fn rotate_log_file(log_dir: PathBuf) -> Result<Option<PathBuf>> {
 }
 
 pub async fn setup_tracing(cli: &Cli) -> Result<Option<WorkerGuard>> {
-    let filter = EnvFilter::builder()
+    let mut filter = EnvFilter::builder()
         .with_default_directive(LevelFilter::INFO.into())
         .from_env()?
         .add_directive("hyper::proto=info".parse()?)
         .add_directive("netlink_proto=info".parse()?);
+
+    if let Some(log_level) = cli.log_level.as_ref() {
+        filter =
+            filter.add_directive(format!("{}={}", env!("CARGO_CRATE_NAME"), log_level).parse()?);
+    }
 
     if cli.log_file || env::is_truthy(ENV_LOG_FILE) {
         let log_dir = APP_LOG_DIR
@@ -49,7 +52,7 @@ pub async fn setup_tracing(cli: &Cli) -> Result<Option<WorkerGuard>> {
             .with_env_filter(filter)
             .compact()
             .with_ansi(false)
-            .with_writer(std::io::stdout.and(writer))
+            .with_writer(writer)
             .init();
 
         if let Some(old) = old {

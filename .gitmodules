@@ -1,6 +1,6 @@
-[submodule "third-party/windows/windows-libraries"]
-	path = third-party/windows/windows-libraries
+[submodule "nym-vpn-windows/windows-libraries"]
+	path = nym-vpn-windows/windows-libraries
 	url = https://github.com/mullvad/windows-libraries.git
-[submodule "third-party/windows/libwfp"]
-	path = third-party/windows/libwfp
-	url = git@github.com:nymtech/libwfp.git
+[submodule "nym-vpn-windows/libwfp"]
+	path = nym-vpn-windows/libwfp
+	url = https://github.com/mullvad/libwfp

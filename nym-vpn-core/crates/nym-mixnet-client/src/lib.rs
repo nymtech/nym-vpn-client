@@ -71,4 +71,9 @@ impl SharedMixnetClient {
     pub fn connection_fd_callback(&self) -> Arc<dyn Fn(RawFd) + Send + Sync> {
         self.connection_fd_callback.clone()
     }
+
+    pub async fn dispose(self) {
+        // A mixnet client that has an external task manager is dropped to disconnect.
+        self.lock().await.take();
+    }
 }

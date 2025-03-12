@@ -7,7 +7,7 @@ use nym_validator_client::models::NymNodeData;
 use crate::{error::Result, Error};
 
 #[derive(Debug, Copy, Clone)]
-pub struct IpPacketRouterAddress(pub Recipient);
+pub struct IpPacketRouterAddress(Recipient);
 
 impl IpPacketRouterAddress {
     pub fn try_from_base58_string(ip_packet_router_nym_address: &str) -> Result<Self> {
@@ -40,5 +40,17 @@ impl IpPacketRouterAddress {
 impl std::fmt::Display for IpPacketRouterAddress {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
+    }
+}
+
+impl From<Recipient> for IpPacketRouterAddress {
+    fn from(recipient: Recipient) -> Self {
+        Self(recipient)
+    }
+}
+
+impl From<IpPacketRouterAddress> for Recipient {
+    fn from(ipr_address: IpPacketRouterAddress) -> Self {
+        ipr_address.0
     }
 }

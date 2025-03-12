@@ -9,13 +9,15 @@ use std::{
 
 use anyhow::Context;
 use itertools::Itertools;
+use nym_vpn_api_client::BootstrapVpnApiClient;
+
+use crate::discovery::Discovery;
 
 use super::{MAX_FILE_AGE, NETWORKS_SUBDIR};
 
 // TODO: integrate with nym-vpn-api-client
 
 const ENVS_FILE: &str = "envs.json";
-const ENVS_WELLKNOWN: &str = "https://nymvpn.com/api/public/v1/.wellknown/envs.json";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RegisteredNetworks {
@@ -63,28 +65,24 @@ impl RegisteredNetworks {
         }
     }
 
-    fn endpoint() -> anyhow::Result<String> {
-        ENVS_WELLKNOWN.parse().map_err(Into::into)
-    }
-
     fn fetch() -> anyhow::Result<Self> {
-        let url = Self::endpoint()?;
-        tracing::debug!("Fetching registered networks from: {}", url);
+        tracing::debug!("Fetching registered networks");
+        // Create the runtime
+        let rt = tokio::runtime::Runtime::new()?;
 
-        let response = reqwest::blocking::get(url.clone())
-            .inspect_err(|err| tracing::warn!("{}", err))
-            .with_context(|| format!("Failed to fetch envs from {}", url))?
-            .error_for_status()
-            .inspect_err(|err| tracing::warn!("{}", err))
-            .with_context(|| "Envs endpoint returned error response".to_owned())?;
+        // allow panic because a broken bootstrap url means everything will fail anyways.
+        #[allow(clippy::expect_used)]
+        let default_url = Discovery::DEFAULT_VPN_API_URL
+            .parse()
+            .expect("Failed to parse NYM VPN API URL");
 
-        let text_response = response
-            .text()
-            .inspect_err(|err| tracing::warn!("{}", err))
-            .with_context(|| "Failed to read response text")?;
-        tracing::debug!("Envs response: {:#?}", text_response);
+        // Spawn the root task
+        let inner = rt
+            .block_on(BootstrapVpnApiClient::new(default_url)?.get_wellknown_envs())
+            .with_context(|| "Failed to fetch envs")?;
+        tracing::debug!("Envs response: {:#?}", inner);
 
-        serde_json::from_str(&text_response).with_context(|| "Failed to parse envs response")
+        Ok(Self { inner })
     }
 
     fn read_from_file(config_dir: &Path) -> anyhow::Result<Self> {
@@ -155,12 +153,6 @@ impl RegisteredNetworks {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn test_registered_networks_endpoint() {
-        let endpoint = RegisteredNetworks::endpoint().unwrap();
-        assert_eq!(endpoint, ENVS_WELLKNOWN);
-    }
 
     #[test]
     fn test_registered_networks_serialization() {

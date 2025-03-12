@@ -3,6 +3,7 @@ import CountriesManager
 import Theme
 
 public struct HopButton: View {
+    @State private var isHovered = false
     @ObservedObject var viewModel: HopButtonViewModel
 
     public init(viewModel: HopButtonViewModel) {
@@ -10,11 +11,14 @@ public struct HopButton: View {
     }
 
     public var body: some View {
-        StrokeBorderView(strokeTitle: viewModel.hopType.hopLocalizedTitle) {
+        StrokeBorderView(
+            strokeTitle: viewModel.hopType.hopLocalizedTitle,
+            strokeTitleLeftMargin: 30,
+            isHovered: $isHovered
+        ) {
             HStack {
                 flagOrBoltImage()
                     .padding(.horizontal, 12)
-
                 titleText(with: viewModel.name)
 
                 Spacer()
@@ -23,6 +27,9 @@ public struct HopButton: View {
                     .frame(width: 24, height: 24)
                     .padding(16)
             }
+        }
+        .onHover { newValue in
+            isHovered = newValue
         }
     }
 }
@@ -34,18 +41,13 @@ private extension HopButton {
             BoltImage()
         } else if let countryCode = viewModel.countryCode {
             FlagImage(countryCode: countryCode)
-        } else if viewModel.isGateway {
-            Image(systemName: "network")
-                .resizable()
-                .frame(width: 24, height: 24)
-                .cornerRadius(50)
-                .foregroundStyle(NymColor.sysOnSurface)
         }
     }
 
     func titleText(with text: String) -> some View {
         Text(text)
+            .lineLimit(1)
             .foregroundStyle(NymColor.sysOnSurface)
-            .textStyle(.Body.Large.semibold)
+            .textStyle(.BodyLegacy.Large.semibold)
     }
 }

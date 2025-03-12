@@ -5,6 +5,7 @@ on:
   pull_request:
     paths:
       - "nym-vpn-core/**"
+      - "nym-vpn-windows/**"
       - ".github/workflows/ci-nym-vpn-core-windows.yml"
   workflow_dispatch:
 
@@ -30,23 +31,18 @@ jobs:
 
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          # TODO let's pin to 1.82.0 as in 1.83.0 the step `Build winfw.dll from mullvad` fails
-          toolchain: 1.82.0
+          toolchain: 1.84.1
           components: rustfmt, clippy
 
       - name: Install target i686-pc-windows-msvc
         run: |
           rustup target add i686-pc-windows-msvc
-
-      - name: Set env
-        shell: bash
-        run: |
-          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib -Clink-args=/LIBPATH:${GITHUB_WORKSPACE}/build/lib/x64-Debug" >> $GITHUB_ENV
-          mkdir -p ${GITHUB_WORKSPACE}/build/lib/
 
       - name: Install Go
         uses: actions/setup-go@v5
@@ -103,24 +99,16 @@ jobs:
           unzip ${GITHUB_WORKSPACE}/wintun.zip
           mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/build/lib/
 
-      - name: Checkout mullvad libs for Windows
-        uses: actions/checkout@v4
-        with:
-          repository: nymtech/nym-vpn-mullvad-libs
-          ref: main
-          path: "nym-vpn-mullvad-libs"
-          submodules: true
-
-      - name: Build winfw.dll from mullvad
-        shell: bash
+      - name: Build winfw.dll
+        shell: pwsh
         run: |
-          cd ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs
-          ./build-windows-modules.sh
+          .\build-windows-modules.ps1 -BuildConfiguration Debug -Platform x64
 
       - name: Move winfw.dll to build directory
         shell: bash
         run: |
-          mv ${GITHUB_WORKSPACE}/nym-vpn-mullvad-libs/windows/winfw/bin/x64-Debug ${GITHUB_WORKSPACE}/build/lib/
+          mkdir -p ${GITHUB_WORKSPACE}/build/winfw/x64-Debug || true
+          mv ${GITHUB_WORKSPACE}/nym-vpn-windows/winfw/bin/x64-Debug/winfw.{dll,lib} ${GITHUB_WORKSPACE}/build/winfw/x64-Debug
 
       - name: rustfmt check
         working-directory: nym-vpn-core
@@ -130,14 +118,14 @@ jobs:
       - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --workspace --exclude nym-gateway-probe
+          cargo build --verbose --workspace --exclude nym-gateway-probe --locked
 
       - name: Run tests
         working-directory: nym-vpn-core
         run: |
-          cargo test --verbose --workspace --exclude nym-gateway-probe
+          cargo test --verbose --workspace --exclude nym-gateway-probe --locked
 
       - name: Clippy
         working-directory: nym-vpn-core
         run: |
-          cargo clippy --workspace --exclude nym-gateway-probe -- -Dwarnings
+          cargo clippy --workspace --exclude nym-gateway-probe --locked -- -Dwarnings

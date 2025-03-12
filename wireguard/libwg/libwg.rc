@@ -1,0 +1,25 @@
+#include "version.h"
+
+1 VERSIONINFO
+FILEVERSION     MAJOR_VERSION,MINOR_VERSION,PATCH_VERSION,0
+PRODUCTVERSION  MAJOR_VERSION,MINOR_VERSION,PATCH_VERSION,0
+BEGIN
+BLOCK "StringFileInfo"
+BEGIN
+    BLOCK "040904E4"
+    BEGIN
+        VALUE "CompanyName", "Nym Technologies SA"
+        VALUE "FileDescription", "Nym VPN WireGuard module"
+        VALUE "FileVersion", PRODUCT_VERSION
+        VALUE "InternalName", "libwg"
+        VALUE "LegalCopyright", "(c) 2025 Nym Technologies SA"
+        VALUE "OriginalFilename", "libwg.dll"
+        VALUE "ProductName", "Nym VPN"
+        VALUE "ProductVersion", PRODUCT_VERSION
+    END
+END
+BLOCK "VarFileInfo"
+BEGIN
+    VALUE "Translation", 0x409, 1252
+END
+END

@@ -3,8 +3,9 @@
 
 mod pending_credential_requests;
 
-pub use pending_credential_requests::error::PendingCredentialRequestsStorageError;
-pub use pending_credential_requests::models::PendingCredentialRequest;
+pub use pending_credential_requests::{
+    error::PendingCredentialRequestsStorageError, models::PendingCredentialRequest,
+};
 
 use pending_credential_requests::PendingCredentialRequestsStorage;
 
@@ -60,7 +61,7 @@ impl VpnCredentialStorage {
     }
 
     async fn reset_credential_storage(&mut self) -> Result<(), Error> {
-        tracing::info!("Resetting credential storage");
+        tracing::info!("Resetting credential storage by deleting and re-creating the storage");
 
         // First we close the storage to ensure that all files are closed
         tracing::debug!("Closing credential storage");
@@ -75,8 +76,19 @@ impl VpnCredentialStorage {
             StoragePaths::new_from_dir(&self.data_dir).map_err(Error::StoragePaths)?;
 
         tracing::debug!("Removing credential storage file");
-        std::fs::remove_file(&storage_paths.credential_database_path)
-            .map_err(Error::RemoveCredentialStorage)?;
+        for path in storage_paths.credential_database_paths() {
+            tracing::debug!("Attempting to remove file: {}", path.display());
+            match std::fs::remove_file(&path) {
+                Ok(_) => tracing::info!("Removed file: {}", path.display()),
+                Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
+                    tracing::debug!("File not found, skipping: {}", path.display())
+                }
+                Err(err) => {
+                    tracing::error!("Failed to remove file {}: {err}", path.display());
+                    return Err(Error::RemoveCredentialStorage(err));
+                }
+            }
+        }
 
         // Finally we recreate the storage
         tracing::debug!("Recreating credential storage");
@@ -91,7 +103,7 @@ impl VpnCredentialStorage {
     }
 
     async fn reset_pending_request_storage(&mut self) -> Result<(), Error> {
-        tracing::info!("Resetting pending request storage");
+        tracing::info!("Resetting pending request storage by deleting and re-creating the storage");
         self.pending_requests_storage.reset().await?;
         tracing::info!("Pending request storage reset completed");
         Ok(())
@@ -169,9 +181,16 @@ impl VpnCredentialStorage {
 
     pub(crate) async fn print_info(&self) -> Result<(), Error> {
         let ticketbooks_info = self.get_available_ticketbooks().await?;
-        tracing::info!("Ticketbooks stored: {}", ticketbooks_info.len());
+        let num_ticketbooks = ticketbooks_info.len_not_expired();
+        let num_total_ticketbooks = ticketbooks_info.len();
+        tracing::info!("Ticketbooks stored: {num_ticketbooks}");
+        tracing::debug!("Total ticketbooks stored: {num_total_ticketbooks}");
         for ticketbook in ticketbooks_info {
-            tracing::info!("Ticketbook: {ticketbook}");
+            if ticketbook.has_expired() {
+                tracing::debug!("Ticketbook: {ticketbook}");
+            } else {
+                tracing::info!("Ticketbook: {ticketbook}");
+            }
         }
 
         let pending_ticketbooks = self.credential_storage.get_pending_ticketbooks().await?;
@@ -186,10 +205,16 @@ impl VpnCredentialStorage {
         AvailableTicketbooks::try_from(ticketbooks_info)
     }
 
-    pub(crate) async fn check_ticket_types_running_low(&self) -> Result<Vec<TicketType>, Error> {
+    pub(crate) async fn get_ticket_types_running_low(&self) -> Result<Vec<TicketType>, Error> {
         self.get_available_ticketbooks()
             .await
             .map(|ticketbooks| ticketbooks.ticket_types_running_low())
+    }
+
+    pub(crate) async fn is_all_ticket_types_above_soft_threshold(&self) -> Result<bool, Error> {
+        self.get_available_ticketbooks()
+            .await
+            .map(|ticketbooks| ticketbooks.is_all_ticket_types_above_soft_threshold())
     }
 
     #[allow(unused)]

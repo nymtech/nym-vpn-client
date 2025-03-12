@@ -64,7 +64,7 @@ private extension LogsDeleteConfirmationDialog {
     @ViewBuilder
     func title() -> some View {
         Text(viewModel.deleteAllLogsLocalizedString)
-            .textStyle(NymTextStyle.Label.Huge.bold)
+            .textStyle(NymTextStyle.LabelLegacy.Huge.bold)
             .foregroundStyle(NymColor.sysOnSurface)
             .multilineTextAlignment(.center)
 
@@ -76,7 +76,7 @@ private extension LogsDeleteConfirmationDialog {
     func subtitle() -> some View {
         Text(viewModel.cannotRetrieveLogsLocalizedString)
             .foregroundStyle(NymColor.modeInfoViewDescription)
-            .textStyle(.Body.Medium.regular)
+            .textStyle(.BodyLegacy.Medium.regular)
             .multilineTextAlignment(.center)
             .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
     }

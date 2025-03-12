@@ -4,9 +4,12 @@ import android.os.Build
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
@@ -26,8 +29,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -35,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -43,7 +52,9 @@ import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
+import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
+import net.nymtech.nymvpn.ui.common.buttons.OutlineStyledButton
 import net.nymtech.nymvpn.ui.common.buttons.ScaledSwitch
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
@@ -57,6 +68,7 @@ import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
 import net.nymtech.nymvpn.util.extensions.launchVpnSettings
 import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.vpn.backend.Tunnel
 import timber.log.Timber
@@ -68,6 +80,9 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 	val navController = LocalNavController.current
 	val clipboardManager: ClipboardManager = LocalClipboardManager.current
 	val padding = WindowInsets.systemBars.asPaddingValues()
+
+	var loggingOut by remember { mutableStateOf(false) }
+	var showLogoutDialog by remember { mutableStateOf(false) }
 
 	LaunchedEffect(Unit) {
 		appViewModel.onNavBarStateChange(
@@ -81,6 +96,54 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 			),
 		)
 	}
+
+	LaunchedEffect(appUiState.managerState.isMnemonicStored) {
+		loggingOut = false
+	}
+
+	Modal(
+		show = showLogoutDialog,
+		onDismiss = { showLogoutDialog = false },
+		title = {
+			Text(
+				text = stringResource(R.string.log_out_title),
+				color = MaterialTheme.colorScheme.onSurface,
+				style = CustomTypography.labelHuge,
+			)
+		},
+		text = {
+			Column(modifier = Modifier.fillMaxWidth()) {
+				Text(
+					stringResource(R.string.log_out_body),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.outline,
+					textAlign = TextAlign.Center,
+				)
+				Row(
+					horizontalArrangement = Arrangement.spacedBy(16.dp.scaledWidth(), Alignment.Start),
+					verticalAlignment = Alignment.CenterVertically,
+					modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+				) {
+					MainStyledButton(onClick = { showLogoutDialog = false }, content = {
+						Text(text = stringResource(id = R.string.cancel), style = MaterialTheme.typography.labelLarge)
+					}, modifier = Modifier.weight(1f).height(46.dp))
+					OutlineStyledButton(
+						onClick = {
+							appViewModel.logout()
+							showLogoutDialog = false
+							loggingOut = true
+						},
+						content = {
+							Text(text = stringResource(id = R.string.log_out), style = MaterialTheme.typography.labelLarge)
+						},
+						backgroundColor = Color.Transparent,
+						modifier = Modifier.weight(1f).height(46.dp),
+					)
+				}
+			}
+		},
+		confirmButton = {},
+	)
 
 	Column(
 		horizontalAlignment = Alignment.Start,
@@ -102,6 +165,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 					)
 				},
 				color = MaterialTheme.colorScheme.primary,
+				modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 			)
 		} else {
 			SurfaceSelectionGroupButton(
@@ -344,15 +408,20 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 			SurfaceSelectionGroupButton(
 				listOf(
 					SelectionItem(
-						title = { Text(stringResource(R.string.log_out), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-						onClick = {
-							if (appUiState.managerState.tunnelState == Tunnel.State.Down) {
-								appViewModel.logout()
-							} else {
-								snackbar.showMessage(context.getString(R.string.action_requires_tunnel_down))
-							}
+						title = {
+							Text(
+								if (loggingOut) stringResource(R.string.logging_out) else stringResource(R.string.log_out),
+								style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+							)
 						},
-						trailing = {},
+						onClick = {
+							if (appUiState.managerState.tunnelState != Tunnel.State.Down) {
+								return@SelectionItem snackbar.showMessage(
+									context.getString(R.string.action_requires_tunnel_down),
+								)
+							}
+							showLogoutDialog = true
+						},
 					),
 				),
 				background = MaterialTheme.colorScheme.surface,

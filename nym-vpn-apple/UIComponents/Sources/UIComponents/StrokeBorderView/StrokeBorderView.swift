@@ -4,35 +4,45 @@ import Theme
 public struct StrokeBorderView<Content: View>: View {
     @ViewBuilder private let content: Content
     private let strokeTitle: String
+    private let strokeTitleLeftMargin: CGFloat
 
-    public init(strokeTitle: String, @ViewBuilder content: () -> Content) {
+    @Binding private var isHovered: Bool
+
+    public init(
+        strokeTitle: String,
+        strokeTitleLeftMargin: CGFloat,
+        isHovered: Binding<Bool>,
+        @ViewBuilder content: () -> Content
+    ) {
         self.strokeTitle = strokeTitle
+        self.strokeTitleLeftMargin = strokeTitleLeftMargin
         self.content = content()
+        _isHovered = isHovered
     }
 
     public var body: some View {
         VStack(alignment: .leading) {
             content
         }
-        .contentShape(
-            RoundedRectangle(cornerRadius: 8)
-                .inset(by: 0.5)
-        )
-        .padding(0)
+        .background(isHovered ? NymColor.backgroundHover : NymColor.background)
         .frame(height: 56)
         .cornerRadius(8)
         .overlay {
             RoundedRectangle(cornerRadius: 8)
                 .inset(by: 0.5)
-                .stroke(Color(red: 0.29, green: 0.27, blue: 0.31), lineWidth: 1)
+                .stroke(NymColor.gray2.opacity(isHovered ? 0.7 : 1), lineWidth: 1)
         }
         .overlay(alignment: .topLeading) {
             Text(strokeTitle)
                 .foregroundStyle(NymColor.sysOnSurface)
-                .textStyle(.Body.Small.primary)
-                .padding(4)
-                .background(NymColor.background)
-                .position(x: 40, y: 0)
+                .textStyle(.BodyLegacy.Small.primary)
+                .padding(.horizontal, 4)
+                .background(
+                    Rectangle()
+                        .fill(NymColor.background)
+                        .frame(height: 3)
+                )
+                .position(x: strokeTitleLeftMargin, y: 0)
         }
     }
 }

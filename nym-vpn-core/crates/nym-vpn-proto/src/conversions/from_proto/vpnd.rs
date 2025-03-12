@@ -1,8 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::conversions::ConversionError;
-use crate::Score;
+use crate::{conversions::ConversionError, Score};
 
 impl From<crate::Location> for nym_vpnd_types::gateway::Location {
     fn from(location: crate::Location) -> Self {

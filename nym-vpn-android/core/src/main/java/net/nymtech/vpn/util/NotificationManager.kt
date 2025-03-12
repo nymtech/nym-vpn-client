@@ -20,7 +20,7 @@ internal class NotificationManager private constructor(val context: Context) {
 		private const val VPN_CHANNEL_ID = "VpnForegroundChannel"
 	}
 
-	fun createNotificationChannel() {
+	private fun createNotificationChannel() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			// Create the NotificationChannel.
 			val name = context.getString(R.string.channel_name)

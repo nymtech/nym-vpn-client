@@ -17,8 +17,11 @@ object Constants {
 
 	const val VPN_SETTINGS_PACKAGE = "android.net.vpn.SETTINGS"
 
-	const val FREE_PASS_CRED_DURATION = 30f
-
 	const val KOTLIN_LICENSES_ASSET_FILE_NAME = "artifacts.json"
 	const val RUST_LICENSES_ASSET_FILE_NAME = "licenses_rust.json"
+
+	// error message ids for vpn api errors
+	const val MAX_DEVICES_REACHED_ID = "nym-vpn-website.public-api.register-device.max-devices-exceeded"
+	const val MAX_BANDWIDTH_REACHED_ID = "nym-vpn-website.public-api.device.zk-nym.request_failed.fair_usage_used_for_month"
+	const val SUBSCRIPTION_EXPIRED_ID = "nym-vpn-website.public-api.device.zk-nym.request_failed.no_active_subscription"
 }

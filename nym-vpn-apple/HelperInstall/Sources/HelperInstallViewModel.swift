@@ -9,15 +9,19 @@ import Theme
     private let helperManager: HelperManager
     private let afterInstallAction: HelperAfterInstallAction
 
-    private var cancellables = Set<AnyCancellable>()
+    private var daemonStateCancellable: AnyCancellable?
     private var timerCancellable: AnyCancellable?
+    private var lastDaemonState = DaemonState.unknown
 
     let navTitle = "helper.installView.pageTitle".localizedString
     let infoText = "helper.installView.daemonText".localizedString
+    let copiedSuccesfullyMessage = "helper.installView.copyToClipboardSuccess".localizedString
 
     @Binding var path: NavigationPath
     @Published var steps: [HelperInstallStep] = []
     @Published var secondsRemaining: Int = 5
+    @Published var error: Error?
+    @Published var isSnackBarDisplayed = false
 
     public init(
         path: Binding<NavigationPath>,
@@ -36,13 +40,18 @@ import Theme
 
 @MainActor extension HelperInstallViewModel {
     func buttonAction() {
+        error = nil
         switch helperManager.daemonState {
+        case .requiresManualRemoval:
+            break
         case .unknown, .registered, .requiresAuthorization:
             install()
-        case .authorized:
+        case .authorized, .updating:
             break
         case .running:
             navigateBack()
+        case .requiresUpdate:
+            update()
         }
     }
 
@@ -56,16 +65,35 @@ import Theme
             "helper.installView.waitingToStart".localizedString
         case .running:
             "\("helper.installView.continue".localizedString) \(secondsRemaining)..."
+        case .requiresUpdate:
+            "helper.installView.update".localizedString
+        case .updating:
+            "helper.installView.updating".localizedString
+        case .requiresManualRemoval:
+            "helper.installView.verifying".localizedString
         }
     }
 
     func buttonColor() -> Color {
         switch helperManager.daemonState {
-        case .unknown, .registered, .requiresAuthorization, .running:
-            NymColor.primaryOrange
-        case .authorized:
+        case .unknown, .registered, .requiresAuthorization, .running, .requiresUpdate:
+            NymColor.accent
+        case .authorized, .updating, .requiresManualRemoval:
             NymColor.sysSecondary
         }
+    }
+
+    func copyCommands() {
+        let text = """
+sudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist
+sudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist
+sudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper
+sfltool resetbtm
+"""
+        NSPasteboard.general.prepareForNewContents()
+        NSPasteboard.general.setString(text, forType: .string)
+
+        isSnackBarDisplayed = true
     }
 }
 
@@ -89,48 +117,86 @@ import Theme
     }
 
     func setupDaemonStateObserver() {
-        helperManager.$daemonState
-            .receive(on: RunLoop.main)
-            .sink { [weak self] _ in
-                self?.updateSteps()
-                self?.startCountdownIfNeeded()
+        daemonStateCancellable = helperManager.$daemonState
+            .receive(on: DispatchQueue.main)
+            .removeDuplicates()
+            .delay(for: .seconds(3), scheduler: DispatchQueue.main)
+            .sink { [weak self] newState in
+                guard let self, newState != lastDaemonState else { return }
+                lastDaemonState = newState
+                updateSteps()
+                startCountdownIfNeeded()
             }
-            .store(in: &cancellables)
     }
 
     func updateSteps() {
-        steps = [
-            .register(isRegistered: isDaemonRegistered()),
-            .authorize(isAuthorized: isDaemonAuthorized()),
-            .running(isRunning: isDaemonRunning())
-        ]
+        var newSteps = [HelperInstallStep]()
+        if requiresDaemonMigration() {
+            newSteps.append(.uninstallOldDeamon)
+        } else {
+            newSteps.append(contentsOf: [
+                .register(isRegistered: isDaemonRegistered()),
+                .authorize(isAuthorized: isDaemonAuthorized()),
+                .running(isRunning: isDaemonRunning()),
+                .versionCheck(requiresUpdate: requiresUpdate())
+            ])
+        }
+        steps = newSteps
     }
 
     func install() {
-        try? helperManager.install()
+        do {
+            try helperManager.install()
+        } catch {
+            self.error = error
+        }
+    }
+
+    func update() {
+        do {
+            try helperManager.update()
+        } catch {
+            self.error = error
+        }
     }
 
     func startCountdownIfNeeded() {
-        guard isDaemonRegistered(), isDaemonAuthorized(), isDaemonRunning() else { return }
+        guard isDaemonRegistered(),
+              isDaemonAuthorized(),
+              isDaemonRunning(),
+              !requiresUpdate(),
+              !requiresDaemonMigration(),
+              timerCancellable == nil
+        else {
+            return
+        }
         timerCancellable = Timer.publish(every: 1.0, on: .main, in: .common)
             .autoconnect()
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
                 guard let self = self else { return }
+                if let daemonStateCancellable {
+                    daemonStateCancellable.cancel()
+                    self.daemonStateCancellable = nil
+                }
+                secondsRemaining -= 1
 
-                self.secondsRemaining -= 1
-
-                if self.secondsRemaining <= 0 {
-                    self.timerCancellable?.cancel()
-                    self.completeAction()
+                if secondsRemaining <= 0 {
+                    timerCancellable?.cancel()
+                    completeAction()
                 }
             }
     }
 }
 
 @MainActor private extension HelperInstallViewModel {
+    func requiresDaemonMigration() -> Bool {
+        helperManager.daemonState == .requiresManualRemoval
+    }
+
     func isDaemonRegistered() -> Bool {
         switch helperManager.daemonState {
-        case .registered, .requiresAuthorization, .authorized, .running:
+        case .registered, .requiresAuthorization, .authorized, .running, .requiresUpdate, .updating:
             true
         default:
             false
@@ -139,7 +205,7 @@ import Theme
 
     func isDaemonAuthorized() -> Bool {
         switch helperManager.daemonState {
-        case .authorized, .running:
+        case .authorized, .running, .requiresUpdate, .updating:
             true
         default:
             false
@@ -148,10 +214,20 @@ import Theme
 
     func isDaemonRunning() -> Bool {
         switch helperManager.daemonState {
-        case .running:
+        case .running, .requiresUpdate:
             true
         default:
             false
+        }
+    }
+
+    func requiresUpdate() -> Bool {
+        guard isDaemonRunning() else { return true }
+        switch helperManager.daemonState {
+        case .requiresUpdate:
+            return true
+        default:
+            return false
         }
     }
 }

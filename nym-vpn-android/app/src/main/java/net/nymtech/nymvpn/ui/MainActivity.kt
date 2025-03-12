@@ -12,7 +12,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -49,7 +48,6 @@ import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.common.navigation.NavBar
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarControllerProvider
-import net.nymtech.nymvpn.ui.screens.analytics.AnalyticsScreen
 import net.nymtech.nymvpn.ui.screens.hop.GatewayLocation
 import net.nymtech.nymvpn.ui.screens.hop.HopScreen
 import net.nymtech.nymvpn.ui.screens.main.MainScreen
@@ -85,14 +83,9 @@ class MainActivity : AppCompatActivity() {
 	@Inject
 	lateinit var settingsRepository: SettingsRepository
 
-	@OptIn(ExperimentalLayoutApi::class)
 	override fun onCreate(savedInstanceState: Bundle?) {
 		val appViewModel by viewModels<AppViewModel>()
-		installSplashScreen().apply {
-			setKeepOnScreenCondition {
-				!appViewModel.isAppReady.value
-			}
-		}
+		installSplashScreen().setKeepOnScreenCondition { false }
 
 		enableEdgeToEdge(
 			statusBarStyle = SystemBarStyle.auto(TRANSPARENT, TRANSPARENT),
@@ -178,8 +171,7 @@ class MainActivity : AppCompatActivity() {
 						) { padding ->
 							NavHost(
 								navController,
-								// startDestination = Route.Splash,
-								startDestination = Route.Main(),
+								startDestination = Route.Splash,
 								modifier =
 								Modifier
 									.fillMaxSize()
@@ -196,7 +188,6 @@ class MainActivity : AppCompatActivity() {
 									val args = it.toRoute<Route.Main>()
 									MainScreen(appViewModel, appState, args.autoStart)
 								}
-								composable<Route.Analytics> { AnalyticsScreen(appViewModel, navController, appState) }
 								composable<Route.Permission> {
 									val args = it.toRoute<Route.Permission>()
 									runCatching {
@@ -226,7 +217,9 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Logs> { LogsScreen(appViewModel) }
 								composable<Route.Support> { SupportScreen(appViewModel) }
 								composable<Route.Legal> { LegalScreen(appViewModel) }
-								composable<Route.Credential> {
+								composable<Route.Credential>(enterTransition = {
+									fadeIn(animationSpec = tween(500))
+								}) {
 									CredentialScreen(appState, appViewModel)
 								}
 								composable<Route.Account> { AccountScreen(appViewModel, appState) }

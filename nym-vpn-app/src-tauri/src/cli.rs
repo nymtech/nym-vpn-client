@@ -1,10 +1,9 @@
 use crate::db::{Db, Key};
 use anyhow::{anyhow, Result};
-use clap::{Parser, Subcommand};
+use clap::{Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::path::PathBuf;
-use std::str::FromStr;
 use strum::IntoEnumIterator;
 use tauri::PackageInfo;
 use tracing::{error, info};
@@ -37,6 +36,19 @@ pub fn attach_console() {
     }
 }
 
+#[derive(
+    Parser, Serialize, Deserialize, Debug, Clone, PartialEq, Eq, ValueEnum, strum::Display,
+)]
+#[serde(rename_all = "lowercase")]
+#[strum(serialize_all = "lowercase")]
+pub enum LogLevel {
+    Trace,
+    Debug,
+    Info,
+    Warn,
+    Error,
+}
+
 #[derive(Parser, Serialize, Deserialize, Debug, Clone)]
 #[command(author, version, about, long_about = None)]
 pub struct Cli {
@@ -63,6 +75,10 @@ pub struct Cli {
     /// Enable writing app logs to a file
     #[arg(short, long)]
     pub log_file: bool,
+
+    /// Set the log level
+    #[arg(short = 'L', long)]
+    pub log_level: Option<LogLevel>,
 
     /// Open a console to see the logs
     #[arg(short, long)]
@@ -129,8 +145,7 @@ pub fn db_command(command: &DbCommands) -> Result<()> {
         }
         DbCommands::Get { key: k } => {
             info!("cli db get {k}");
-            let key = Key::from_str(k).map_err(|_| anyhow!("invalid key"))?;
-            if let Some(value) = db.get(key)? {
+            if let Some(value) = db.get(k)? {
                 println!("{value}");
             } else {
                 println!("key is not set");
@@ -139,19 +154,17 @@ pub fn db_command(command: &DbCommands) -> Result<()> {
         }
         DbCommands::Set { key: k, value: v } => {
             info!("cli db set {k} {v}");
-            let key = Key::from_str(k).map_err(|_| anyhow!("invalid key"))?;
             let value: Value = serde_json::from_str(v).map_err(|e| {
                 error!("failed to deserialize json value: {e}");
                 anyhow!("invalid value")
             })?;
-            db.insert(key, value)?;
+            db.insert(k, value)?;
             println!("key set to {v}");
             Ok(())
         }
         DbCommands::Del { key: k } => {
             info!("cli db del {k}");
-            let key = Key::from_str(k).map_err(|_| anyhow!("invalid key"))?;
-            if let Some(value) = db.remove(key)? {
+            if let Some(value) = db.remove(k)? {
                 println!("key removed, previous value {value}");
             } else {
                 println!("key is not set");
@@ -190,10 +203,6 @@ commit date:   {}
 ",
             git.commit_id, git.commit_timestamp,
         );
-
-        if let Some(branch) = git.branch.as_ref() {
-            print!("git branch:    {}", branch);
-        }
     }
     println!();
 }

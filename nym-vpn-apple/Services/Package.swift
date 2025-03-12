@@ -20,6 +20,7 @@ let package = Package(
         .library(name: "DarwinNotificationCenter", targets: ["DarwinNotificationCenter"]),
         .library(name: "Device", targets: ["Device"]),
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
+        .library(name: "GatewayManager", targets: ["GatewayManager"]),
         .library(name: "Keychain", targets: ["Keychain"]),
         .library(name: "Migrations", targets: ["Migrations"]),
         .library(name: "NetworkMonitor", targets: ["NetworkMonitor"]),
@@ -67,6 +68,7 @@ let package = Package(
             dependencies: [
                 "CredentialsManager",
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
+                "GatewayManager",
                 "NotificationMessages",
                 "Tunnels",
                 "TunnelMixnet"
@@ -99,6 +101,7 @@ let package = Package(
             dependencies: [
                 "AppSettings",
                 "Constants",
+                .product(name: "ErrorReason", package: "ServicesMutual"),
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
@@ -125,6 +128,20 @@ let package = Package(
                 "Constants"
             ],
             path: "Sources/Services/ExternalLinkManager"
+        ),
+        .target(
+            name: "GatewayManager",
+            dependencies: [
+                "AppSettings",
+                "Constants",
+                "ConfigurationManager",
+                .product(name: "AppVersionProvider", package: "ServicesMutual"),
+                .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
+                .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS]))
+            ],
+            path: "Sources/Services/GatewayManager"
         ),
         .target(
             name: "Keychain",

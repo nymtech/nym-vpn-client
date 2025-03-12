@@ -22,4 +22,5 @@ mod imp;
 pub use self::imp::MacosVersion;
 #[cfg(windows)]
 pub use self::imp::WindowsVersion;
+#[cfg(not(target_os = "ios"))]
 pub use self::imp::{extra_metadata, short_version, version};

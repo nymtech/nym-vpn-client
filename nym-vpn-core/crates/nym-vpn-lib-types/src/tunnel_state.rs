@@ -3,7 +3,15 @@
 
 use std::fmt;
 
-use super::connection_data::{ConnectionData, TunnelConnectionData};
+use crate::{RequestZkNymError, RequestZkNymErrorReason};
+
+use super::{
+    account::{
+        register_device::RegisterDeviceError, request_zknym::RequestZkNymSuccess,
+        sync_account::SyncAccountError, sync_device::SyncDeviceError,
+    },
+    connection_data::{ConnectionData, TunnelConnectionData},
+};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum TunnelType {
@@ -49,14 +57,17 @@ impl fmt::Display for TunnelState {
                     TunnelConnectionData::Mixnet(ref data) => {
                         write!(
                             f,
-                            "Connecting Mixnet tunnel with entry {} and exit {}",
-                            data.nym_address, data.exit_ipr,
+                            "Connecting mixnet tunnel to {} → {} (entry: {} → exit: {})",
+                            data.entry_ip,
+                            data.exit_ip,
+                            data.nym_address.gateway_id(),
+                            data.exit_ipr.gateway_id(),
                         )
                     }
                     TunnelConnectionData::Wireguard(ref data) => {
                         write!(
                             f,
-                            "Connecting WireGuard tunnel with entry {} and exit {}",
+                            "Connecting wireguard tunnel to {} → {} (entry → exit)",
                             data.entry.endpoint, data.exit.endpoint
                         )
                     }
@@ -67,14 +78,17 @@ impl fmt::Display for TunnelState {
                 TunnelConnectionData::Mixnet(ref data) => {
                     write!(
                         f,
-                        "Connected Mixnet tunnel with entry {} and exit {}",
-                        data.nym_address, data.exit_ipr,
+                        "Connected mixnet tunnel to {} → {} (entry: {} → exit: {})",
+                        data.entry_ip,
+                        data.exit_ip,
+                        data.nym_address.gateway_id(),
+                        data.exit_ipr.gateway_id(),
                     )
                 }
                 TunnelConnectionData::Wireguard(ref data) => {
                     write!(
                         f,
-                        "Connected WireGuard tunnel with entry {} and exit {}",
+                        "Connected wireguard tunnel {} → {} (entry → exit)",
                         data.entry.endpoint, data.exit.endpoint
                     )
                 }
@@ -117,7 +131,7 @@ pub enum ActionAfterDisconnect {
     Error,
 }
 
-#[derive(Debug, Clone, Copy, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum ErrorStateReason {
     /// Issues related to firewall configuration.
     Firewall,
@@ -133,6 +147,12 @@ pub enum ErrorStateReason {
 
     /// Failure to configure packet tunnel provider.
     TunnelProvider,
+
+    /// Failure to resolve API addresses.
+    ResolveGatewayAddrs,
+
+    /// Failure to start local dns resolver.
+    StartLocalDnsResolver,
 
     /// Same entry and exit gateway are unsupported.
     SameEntryAndExitGateway,
@@ -150,6 +170,48 @@ pub enum ErrorStateReason {
     /// Failure to duplicate tunnel file descriptor.
     DuplicateTunFd,
 
+    /// Failure to sync account with the VPN API.
+    SyncAccount(SyncAccountError),
+
+    /// Failure to sync device with the VPN API.
+    SyncDevice(SyncDeviceError),
+
+    /// Failure to register device with the VPN API.
+    RegisterDevice(RegisterDeviceError),
+
+    /// Failure to request a zknym from the VPN API.
+    RequestZkNym(RequestZkNymErrorReason),
+
+    /// Zknym ticketbooks were requested, some succeeded and some failed.
+    RequestZkNymBundle {
+        successes: Vec<RequestZkNymSuccess>,
+        failed: Vec<RequestZkNymErrorReason>,
+    },
+
     /// Program errors that must not happen.
-    Internal,
+    Internal(String),
+}
+
+impl From<SyncAccountError> for ErrorStateReason {
+    fn from(value: SyncAccountError) -> Self {
+        ErrorStateReason::SyncAccount(value)
+    }
+}
+
+impl From<SyncDeviceError> for ErrorStateReason {
+    fn from(value: SyncDeviceError) -> Self {
+        ErrorStateReason::SyncDevice(value)
+    }
+}
+
+impl From<RegisterDeviceError> for ErrorStateReason {
+    fn from(value: RegisterDeviceError) -> Self {
+        ErrorStateReason::RegisterDevice(value)
+    }
+}
+
+impl From<RequestZkNymError> for ErrorStateReason {
+    fn from(value: RequestZkNymError) -> Self {
+        ErrorStateReason::RequestZkNym(value.into())
+    }
 }

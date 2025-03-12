@@ -2,9 +2,9 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{io, ptr};
-use windows_sys::Win32::{
-    Foundation::{CloseHandle, DuplicateHandle, BOOL, DUPLICATE_SAME_ACCESS, HANDLE},
+use std::io;
+use windows::Win32::{
+    Foundation::{CloseHandle, DuplicateHandle, DUPLICATE_SAME_ACCESS, HANDLE},
     System::Threading::{CreateEventW, GetCurrentProcess, SetEvent},
 };
 
@@ -16,27 +16,15 @@ unsafe impl Sync for Event {}
 
 impl Event {
     /// Create a new event object using `CreateEventW`
-    pub fn new(manual_reset: bool, initial_state: bool) -> io::Result<Self> {
-        let event = unsafe {
-            CreateEventW(
-                ptr::null_mut(),
-                bool_to_winbool(manual_reset),
-                bool_to_winbool(initial_state),
-                ptr::null(),
-            )
-        };
-        if event == 0 {
-            return Err(io::Error::last_os_error());
-        }
-        Ok(Self(event))
+    pub fn new(manual_reset: bool, initial_state: bool) -> windows::core::Result<Self> {
+        Ok(Self(unsafe {
+            CreateEventW(None, manual_reset, initial_state, None)
+        }?))
     }
 
     /// Signal the event object
-    pub fn set(&self) -> io::Result<()> {
-        if unsafe { SetEvent(self.0) } == 0 {
-            return Err(io::Error::last_os_error());
-        }
-        Ok(())
+    pub fn set(&self) -> windows::core::Result<()> {
+        unsafe { SetEvent(self.0) }
     }
 
     /// Return raw event object
@@ -46,34 +34,26 @@ impl Event {
 
     /// Duplicate the event object with `DuplicateHandle()`
     pub fn duplicate(&self) -> io::Result<Event> {
-        let mut new_event = 0;
-        let status = unsafe {
+        let mut new_event = HANDLE::default();
+        unsafe {
             DuplicateHandle(
                 GetCurrentProcess(),
                 self.0,
                 GetCurrentProcess(),
                 &mut new_event,
                 0,
-                0,
+                false,
                 DUPLICATE_SAME_ACCESS,
             )
-        };
-        if status == 0 {
-            return Err(io::Error::last_os_error());
-        }
+        }?;
         Ok(Event(new_event))
     }
 }
 
 impl Drop for Event {
     fn drop(&mut self) {
-        unsafe { CloseHandle(self.0) };
-    }
-}
-
-const fn bool_to_winbool(val: bool) -> BOOL {
-    match val {
-        true => 1,
-        false => 0,
+        if let Err(e) = unsafe { CloseHandle(self.0) } {
+            tracing::error!("Failed to close event handle: {}", e);
+        }
     }
 }

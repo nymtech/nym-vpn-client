@@ -1,8 +1,19 @@
 use nym_vpn_proto as p;
-use p::tunnel_state::{ActionAfterDisconnect, ErrorStateReason, State};
+use p::tunnel_state::{ActionAfterDisconnect, State};
 use serde::Serialize;
+use std::fmt::{Display, Formatter};
 use tracing::warn;
 use ts_rs::TS;
+
+use super::tunnel_error::TunnelError;
+
+#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct Address {
+    pub nym_address: String,
+    pub gateway_id: String,
+}
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
 #[ts(export)]
@@ -18,10 +29,12 @@ pub struct WgNode {
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct MixnetData {
-    pub nym_address: Option<String>,
-    pub exit_ipr: Option<String>,
+    pub nym_address: Option<Address>,
+    pub exit_ipr: Option<Address>,
     pub ipv4: String,
     pub ipv6: String,
+    pub entry_ip: String,
+    pub exit_ip: String,
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
@@ -50,7 +63,7 @@ pub struct Tunnel {
     pub data: TunnelData,
 }
 
-#[derive(Default, Debug, Clone, Serialize, PartialEq, TS, strum::Display)]
+#[derive(Default, Debug, Clone, Serialize, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub enum TunnelState {
@@ -88,11 +101,20 @@ impl TunnelState {
             State::Disconnecting(action) => {
                 TunnelState::Disconnecting(TunnelAction::from_proto(action.after_disconnect()))
             }
-            State::Error(e) => TunnelState::Error(e.reason().into()),
+            State::Error(e) => TunnelState::Error(e.error_state_reason.into()),
             State::Offline(o) => TunnelState::Offline {
                 reconnect: o.reconnect,
             },
         })
+    }
+}
+
+impl From<p::Address> for Address {
+    fn from(a: p::Address) -> Self {
+        Address {
+            nym_address: a.nym_address,
+            gateway_id: a.gateway_id,
+        }
     }
 }
 
@@ -110,10 +132,12 @@ impl From<p::WireguardNode> for WgNode {
 impl From<p::MixnetConnectionData> for MixnetData {
     fn from(p_data: p::MixnetConnectionData) -> Self {
         MixnetData {
-            nym_address: p_data.nym_address.map(|a| a.nym_address),
-            exit_ipr: p_data.exit_ipr.map(|a| a.nym_address),
+            nym_address: p_data.nym_address.map(Address::from),
+            exit_ipr: p_data.exit_ipr.map(Address::from),
             ipv4: p_data.ipv4,
             ipv6: p_data.ipv6,
+            entry_ip: p_data.entry_ip,
+            exit_ip: p_data.exit_ip,
         }
     }
 }
@@ -169,26 +193,10 @@ impl TryFrom<p::ConnectionData> for Tunnel {
     }
 }
 
-#[derive(Serialize, Clone, Debug, PartialEq, TS)]
+#[derive(Serialize, Clone, Debug, PartialEq, TS, strum::Display)]
 #[ts(export)]
 #[serde(rename_all = "kebab-case")]
-pub enum TunnelError {
-    Internal,
-    Firewall,
-    Routing,
-    Dns,
-    TunDevice,
-    TunnelProvider,
-    SameEntryAndExitGw,
-    InvalidEntryGwCountry,
-    InvalidExitGwCountry,
-    BadBandwidthIncrease,
-    DuplicateTunFd,
-}
-
-#[derive(Serialize, Clone, Debug, PartialEq, TS)]
-#[ts(export)]
-#[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "kebab-case")]
 pub enum TunnelAction {
     Error,
     Reconnect,
@@ -219,20 +227,25 @@ impl From<ActionAfterDisconnect> for OptionalTunnelAction {
     }
 }
 
-impl From<ErrorStateReason> for TunnelError {
-    fn from(reason: ErrorStateReason) -> Self {
-        match reason {
-            ErrorStateReason::Internal => TunnelError::Internal,
-            ErrorStateReason::Firewall => TunnelError::Firewall,
-            ErrorStateReason::Routing => TunnelError::Routing,
-            ErrorStateReason::Dns => TunnelError::Dns,
-            ErrorStateReason::TunDevice => TunnelError::TunDevice,
-            ErrorStateReason::TunnelProvider => TunnelError::TunnelProvider,
-            ErrorStateReason::SameEntryAndExitGateway => TunnelError::SameEntryAndExitGw,
-            ErrorStateReason::InvalidEntryGatewayCountry => TunnelError::InvalidEntryGwCountry,
-            ErrorStateReason::InvalidExitGatewayCountry => TunnelError::InvalidExitGwCountry,
-            ErrorStateReason::BadBandwidthIncrease => TunnelError::BadBandwidthIncrease,
-            ErrorStateReason::DuplicateTunFd => TunnelError::DuplicateTunFd,
+impl Display for TunnelState {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TunnelState::Disconnected => write!(f, "disconnected"),
+            TunnelState::Connected(_) => write!(f, "connected"),
+            TunnelState::Connecting(_) => write!(f, "connecting"),
+            TunnelState::Disconnecting(a) => {
+                if let Some(action) = a {
+                    write!(f, "disconnecting - next action ({})", action)
+                } else {
+                    write!(f, "disconnecting")
+                }
+            }
+            TunnelState::Error(e) => {
+                write!(f, "error - {}", e)
+            }
+            TunnelState::Offline { reconnect } => {
+                write!(f, "offline - reconnect ({})", reconnect)
+            }
         }
     }
 }

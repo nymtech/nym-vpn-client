@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
-import { StateAction, initialState } from '../../state';
 import { AppState } from '../../types';
+import { StateAction, initialState } from './reducer';
 
 export const MainStateContext = createContext<AppState>(initialState);
 export const MainDispatchContext =

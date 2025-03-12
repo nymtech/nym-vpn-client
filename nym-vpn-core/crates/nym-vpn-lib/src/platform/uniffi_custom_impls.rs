@@ -15,10 +15,7 @@ use nym_sdk::UserAgent as NymUserAgent;
 use time::OffsetDateTime;
 use url::Url;
 
-use crate::{
-    platform::error::{RequestZkNymError, RequestZkNymSuccess, VpnError},
-    NodeIdentity, Recipient, UniffiCustomTypeConverter,
-};
+use crate::{platform::error::VpnError, NodeIdentity, Recipient, UniffiCustomTypeConverter};
 
 uniffi::custom_type!(Ipv4Addr, String);
 uniffi::custom_type!(Ipv6Addr, String);
@@ -404,9 +401,9 @@ pub enum Score {
 impl From<nym_gateway_directory::Score> for Score {
     fn from(value: nym_gateway_directory::Score) -> Self {
         match value {
-            nym_gateway_directory::Score::High => Score::High,
-            nym_gateway_directory::Score::Medium => Score::Medium,
-            nym_gateway_directory::Score::Low => Score::Low,
+            nym_gateway_directory::Score::High(_) => Score::High,
+            nym_gateway_directory::Score::Medium(_) => Score::Medium,
+            nym_gateway_directory::Score::Low(_) => Score::Low,
             nym_gateway_directory::Score::None => Score::None,
         }
     }
@@ -566,7 +563,9 @@ pub enum ExitPoint {
 impl From<ExitPoint> for GwExitPoint {
     fn from(value: ExitPoint) -> Self {
         match value {
-            ExitPoint::Address { address } => GwExitPoint::Address { address },
+            ExitPoint::Address { address } => GwExitPoint::Address {
+                address: Box::new(address),
+            },
             ExitPoint::Gateway { identity } => GwExitPoint::Gateway { identity },
             ExitPoint::Location { location } => GwExitPoint::Location { location },
         }
@@ -636,7 +635,7 @@ pub enum AccountRegistered {
 impl From<nym_vpn_account_controller::shared_state::AccountRegistered> for AccountRegistered {
     fn from(value: nym_vpn_account_controller::shared_state::AccountRegistered) -> Self {
         match value {
-            nym_vpn_account_controller::shared_state::AccountRegistered::Registered { .. } => {
+            nym_vpn_account_controller::shared_state::AccountRegistered::Registered => {
                 AccountRegistered::Registered
             }
             nym_vpn_account_controller::shared_state::AccountRegistered::NotRegistered => {
@@ -656,13 +655,11 @@ pub enum AccountState {
 impl From<nym_vpn_account_controller::shared_state::AccountState> for AccountState {
     fn from(value: nym_vpn_account_controller::shared_state::AccountState) -> Self {
         match value {
-            nym_vpn_account_controller::shared_state::AccountState::Inactive { .. } => {
+            nym_vpn_account_controller::shared_state::AccountState::Inactive => {
                 AccountState::Inactive
             }
-            nym_vpn_account_controller::shared_state::AccountState::Active { .. } => {
-                AccountState::Active
-            }
-            nym_vpn_account_controller::shared_state::AccountState::DeleteMe { .. } => {
+            nym_vpn_account_controller::shared_state::AccountState::Active => AccountState::Active,
+            nym_vpn_account_controller::shared_state::AccountState::DeleteMe => {
                 AccountState::DeleteMe
             }
         }
@@ -807,10 +804,10 @@ impl From<nym_vpn_account_controller::shared_state::RegisterDeviceResult> for Re
 pub enum RequestZkNymResult {
     InProgress,
     Done {
-        successes: Vec<RequestZkNymSuccess>,
-        failures: Vec<RequestZkNymError>,
+        successes: Vec<super::uniffi_lib_types::RequestZkNymSuccess>,
+        failures: Vec<super::uniffi_lib_types::RequestZkNymError>,
     },
-    Error(RequestZkNymError),
+    Error(super::uniffi_lib_types::RequestZkNymError),
 }
 
 impl From<nym_vpn_account_controller::shared_state::RequestZkNymResult> for RequestZkNymResult {
@@ -846,6 +843,27 @@ impl From<nym_vpn_network_config::SystemMessage> for SystemMessage {
             name: value.name,
             message: value.message,
             properties: value.properties.into_inner(),
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone, PartialEq)]
+pub struct NetworkCompatibility {
+    pub core: String,
+    pub ios: String,
+    pub macos: String,
+    pub tauri: String,
+    pub android: String,
+}
+
+impl From<nym_vpn_network_config::NetworkCompatibility> for NetworkCompatibility {
+    fn from(value: nym_vpn_network_config::NetworkCompatibility) -> Self {
+        NetworkCompatibility {
+            core: value.core,
+            ios: value.ios,
+            macos: value.macos,
+            tauri: value.tauri,
+            android: value.android,
         }
     }
 }

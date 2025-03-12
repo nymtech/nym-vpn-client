@@ -3,31 +3,38 @@ import { invoke } from '@tauri-apps/api/core';
 import clsx from 'clsx';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@headlessui/react';
-import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
+import { useGateways, useMainDispatch, useMainState } from '../../contexts';
 import { StateDispatch, VpnMode } from '../../types';
 import { RadioGroup, RadioGroupOption } from '../../ui';
-import { useThrottle } from '../../hooks';
-import { HomeThrottleDelay } from '../../constants';
 import MsIcon from '../../ui/MsIcon';
 import { S_STATE } from '../../static';
 import ModeDetailsDialog from './ModeDetailsDialog';
+import { useActionToast } from './util';
 
 function NetworkModeSelect() {
-  const state = useMainState();
+  const { state, vpnMode, daemonStatus } = useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
+  const { fetch } = useGateways();
+
   const [isDialogModesOpen, setIsDialogModesOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { push } = useInAppNotify();
+  const toast = useActionToast('mode-select');
 
   const { t } = useTranslation('home');
 
   const handleNetworkModeChange = async (value: VpnMode) => {
-    if (state.state === 'Disconnected' && value !== state.vpnMode) {
+    if (state === 'Disconnected' && value !== vpnMode) {
       setLoading(true);
       try {
         await invoke<void>('set_vpn_mode', { mode: value });
         dispatch({ type: 'set-vpn-mode', mode: value });
-        console.info('vpn mode set to', value);
+        console.info(`vpn mode set to [${value}]`);
+        if (value === 'mixnet') {
+          fetch('mx-entry');
+          fetch('mx-exit');
+        } else {
+          fetch('wg');
+        }
       } catch (e) {
         console.warn(e);
       } finally {
@@ -36,35 +43,9 @@ function NetworkModeSelect() {
     }
   };
 
-  const showSnackbar = useThrottle(
-    () => {
-      let text = null;
-      switch (state.state) {
-        case 'Connected':
-          text = t('snackbar-disabled-message.connected');
-          break;
-        case 'Connecting':
-          text = t('snackbar-disabled-message.connecting');
-          break;
-        case 'Disconnecting':
-          text = t('snackbar-disabled-message.disconnecting');
-          break;
-      }
-      if (!text) {
-        return;
-      }
-      push({
-        text,
-        position: 'top',
-      });
-    },
-    HomeThrottleDelay,
-    [state.state],
-  );
-
   const handleDisabledState = () => {
-    if (state.state !== 'Disconnected') {
-      showSnackbar();
+    if (state !== 'Disconnected') {
+      toast();
     }
   };
 
@@ -79,23 +60,23 @@ function NetworkModeSelect() {
 
     return [
       {
-        key: 'TwoHop',
+        key: 'wg',
         label: t('fast-mode.title'),
         desc: t('fast-mode.desc'),
-        disabled: state.state !== 'Disconnected' || loading,
+        disabled: state !== 'Disconnected' || loading,
         icon: (checked) => <span className={iconStyle(checked)}>speed</span>,
       },
       {
-        key: 'Mixnet',
+        key: 'mixnet',
         label: t('privacy-mode.title'),
         desc: t('privacy-mode.desc'),
-        disabled: state.state !== 'Disconnected' || loading,
+        disabled: state !== 'Disconnected' || loading,
         icon: (checked) => (
           <span className={iconStyle(checked)}>visibility_off</span>
         ),
       },
     ];
-  }, [loading, state.state, t]);
+  }, [loading, state, t]);
 
   return (
     <div>
@@ -127,10 +108,11 @@ function NetworkModeSelect() {
       <div className="select-none" onClick={handleDisabledState}>
         <RadioGroup
           key={`_${S_STATE.vpnModeInit}`}
-          defaultValue={state.vpnMode}
+          defaultValue={vpnMode}
           options={vpnModes}
           onChange={handleNetworkModeChange}
           radioIcons={false}
+          disabled={daemonStatus === 'down'}
         />
       </div>
     </div>

@@ -25,18 +25,25 @@ pub struct InterfaceConfig {
     pub local_addrs: Vec<IpAddr>,
     pub dns_addrs: Vec<IpAddr>,
     pub mtu: u16,
+    /// Mark used for mark-based routing.
+    #[cfg(target_os = "linux")]
+    pub fwmark: Option<u32>,
     #[cfg(feature = "amnezia")]
     pub azwg_config: Option<AmneziaConfig>,
 }
 
 impl fmt::Debug for InterfaceConfig {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        f.debug_struct("InterfaceConfig")
-            .field("private_key", &"(hidden)")
+        let mut d = f.debug_struct("InterfaceConfig");
+        d.field("private_key", &"(hidden)")
             .field("local_addrs", &self.local_addrs)
             .field("dns_addrs", &self.dns_addrs)
-            .field("mtu", &self.mtu)
-            .finish()
+            .field("mtu", &self.mtu);
+        #[cfg(target_os = "linux")]
+        d.field("fwmark", &self.fwmark);
+        #[cfg(feature = "amnezia")]
+        d.field("azwg_config", &self.azwg_config);
+        d.finish()
     }
 }
 
@@ -54,6 +61,11 @@ impl Config {
             "private_key",
             self.interface.private_key.to_bytes().as_ref(),
         );
+
+        #[cfg(target_os = "linux")]
+        if let Some(fwmark) = self.interface.fwmark {
+            config_builder.add("fwmark", fwmark.to_string().as_str());
+        }
 
         #[cfg(feature = "amnezia")]
         if let Some(azwg_config) = &self.interface.azwg_config {

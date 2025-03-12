@@ -18,6 +18,7 @@
   --color-liquid-lava: #f97316;
   --color-vert-prasin: #47c45d;
   --color-mercury-pinkish: #e6e1e5;
+  --color-mercury: #e2e4ea;
   --color-mercury-mist: #938f99;
   --color-coal-mine-dark: #56545a;
   --color-coal-mine-light: #a4a4a4;
@@ -31,7 +32,6 @@
   --color-dusty-grey: #ceccd1;
   --color-aluminium: #8da3b1;
   --color-poivre-noir: #484649;
-  --color-seashell: #fff2ef;
   --color-ash: #242b2d;
   --color-octave: #32373d;
   --color-octave-arsenic: #374042;
@@ -39,18 +39,22 @@
   --color-malachite: #14e76f;
   --color-malachite-moss: #0b8a42;
   --color-rouge-basque: #672d32;
-  --color-rose-bruni: #f3cac8;
   --color-rouge-ecarlate: #e02c4d;
+  --color-aphrodisiac: #ed5060;
+  --color-rose-bruni: #f3cac8;
+  --color-king-nacho: #ffb400;
 
-  --font-sans: Lato, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+  --font-sans:
+    Lato, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
     'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-icon: Material Symbols Outlined;
   --font-icon--font-variation-settings: 'opsz' 24;
 }
 
 @utility transition-noborder {
-  transition-property: color, background-color, text-decoration-color, fill,
-    stroke, opacity, box-shadow, transform, filter, backdrop-filter;
+  transition-property:
+    color, background-color, text-decoration-color, fill, stroke, opacity,
+    box-shadow, transform, filter, backdrop-filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -60,7 +64,7 @@
 }
 
 @utility loader {
-  border: 6px solid;
+  border: 5px solid;
   border-radius: 50%;
   display: inline-block;
   box-sizing: border-box;
@@ -76,7 +80,7 @@
    *  </div>
    */
   @apply invisible absolute p-2 px-3 rounded-sm shadow-md
-        bg-seashell dark:bg-poivre-noir text-sm
+        bg-white dark:bg-poivre-noir text-sm
         transition-opacity duration-200 opacity-0 ease-out;
 
   .attach-tooltip:hover & {

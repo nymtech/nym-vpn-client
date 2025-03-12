@@ -1,0 +1,12 @@
+[package]
+name = "nym-macos"
+description = "Abstractions for macOS"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[target.'cfg(target_os="macos")'.dependencies]
+libc.workspace = true
+tracing.workspace = true

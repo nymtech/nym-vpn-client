@@ -4,11 +4,20 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::Context;
+use nym_sdk::UserAgent;
 use url::Url;
 
+use nym_vpn_api_client::{
+    response::{NymWellknownDiscoveryItem, NymWellknownDiscoveryItemResponse},
+    BootstrapVpnApiClient, VpnApiClient,
+};
+
+use nym_api_requests::NymNetworkDetailsResponse;
+use nym_validator_client::nym_api::{Client as NymApiClient, NymApiClientExt};
+
+use crate::network_compatibility::NetworkCompatibility;
 use crate::{
-    response::{DiscoveryResponse, NymNetworkDetailsResponse, NymWellknownDiscoveryItem},
-    AccountManagement, FeatureFlags, SystemMessages,
+    system_configuration::SystemConfiguration, AccountManagement, FeatureFlags, SystemMessages,
 };
 
 use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
@@ -16,18 +25,6 @@ use super::{nym_network::NymNetwork, MAX_FILE_AGE, NETWORKS_SUBDIR};
 // TODO: integrate with nym-vpn-api-client
 
 const DISCOVERY_FILE: &str = "discovery.json";
-const DISCOVERY_WELLKNOWN: &str = "https://nymvpn.com/api/public/v1/.wellknown";
-
-const NYM_NETWORK_DETAILS_PATH: &str = "/v1/network/details";
-const NYM_VP_NETWORK_CURRENT_ENV_PATH: &str = "/public/v1/.wellknown/current-env.json";
-
-fn nym_network_details_endpoint(nym_api_url: &Url) -> String {
-    format!("{}/{}", nym_api_url, NYM_NETWORK_DETAILS_PATH)
-}
-
-fn nym_vpn_network_details_endpoint(nym_vpn_api_url: &Url) -> String {
-    format!("{}/{}", nym_vpn_api_url, NYM_VP_NETWORK_CURRENT_ENV_PATH)
-}
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct Discovery {
@@ -39,7 +36,9 @@ pub struct Discovery {
     // Additional context
     pub(super) account_management: Option<AccountManagement>,
     pub(super) feature_flags: Option<FeatureFlags>,
+    pub(super) system_configuration: Option<SystemConfiguration>,
     pub(super) system_messages: SystemMessages,
+    pub(super) network_compatibility: Option<NetworkCompatibility>,
 }
 
 // Include the generated Default implementation
@@ -60,36 +59,24 @@ impl Discovery {
         }
     }
 
-    fn endpoint(network_name: &str) -> anyhow::Result<Url> {
-        format!(
-            "{}/{}/{}",
-            DISCOVERY_WELLKNOWN, network_name, DISCOVERY_FILE
-        )
-        .parse()
-        .map_err(Into::into)
-    }
-
     pub fn fetch(network_name: &str) -> anyhow::Result<Self> {
-        let discovery: DiscoveryResponse = {
-            let url = Self::endpoint(network_name)?;
+        // allow panic because a broken bootstrap url means everything will fail anyways.
+        #[allow(clippy::expect_used)]
+        let default_url = Self::DEFAULT_VPN_API_URL
+            .parse()
+            .expect("Failed to parse NYM VPN API URL");
+        let client = BootstrapVpnApiClient::new(default_url)?;
 
-            tracing::debug!("Fetching nym network discovery from: {}", url);
-            let response = reqwest::blocking::get(url.clone())
-                .inspect_err(|err| tracing::warn!("{}", err))
-                .with_context(|| format!("Failed to fetch discovery from {}", url))?
-                .error_for_status()
-                .inspect_err(|err| tracing::warn!("{}", err))
-                .with_context(|| "Discovery endpoint returned error response".to_owned())?;
+        tracing::debug!("Fetching nym network discovery");
+        let rt = tokio::runtime::Runtime::new()?;
 
-            let text_response = response
-                .text()
-                .inspect_err(|err| tracing::warn!("{}", err))
-                .with_context(|| "Failed to read response text")?;
-            tracing::debug!("Discovery response: {:#?}", text_response);
+        // Spawn the root task
+        let discovery: NymWellknownDiscoveryItemResponse = rt
+            .block_on(client.get_wellknown_discovery(network_name))
+            .with_context(|| "Failed to read response text")?;
 
-            serde_json::from_str(&text_response)
-                .with_context(|| "Failed to parse discovery response")
-        }?;
+        tracing::debug!("Discovery response: {:#?}", discovery);
+
         if discovery.network_name != network_name {
             anyhow::bail!("Network name mismatch between requested and fetched discovery")
         }
@@ -161,26 +148,32 @@ impl Discovery {
     }
 
     pub fn fetch_nym_network_details(&self) -> anyhow::Result<NymNetwork> {
-        // TODO: integrate with validator-client and/or nym-vpn-api-client
-        let url = nym_network_details_endpoint(&self.nym_api_url);
-        tracing::debug!("Fetching nym network details from: {}", url);
-        let network_details: NymNetworkDetailsResponse = reqwest::blocking::get(url.clone())
-            .with_context(|| format!("Failed to fetch network details from {}", url))?
-            .json()
-            .with_context(|| "Failed to parse network details")?;
+        tracing::debug!("Fetching nym network details");
+        let rt = tokio::runtime::Runtime::new()?;
+
+        // Spawn the root task
+        let network_details = rt
+            .block_on(
+                NymApiClient::builder::<Url, anyhow::Error>(self.nym_api_url.clone())?
+                    .build::<anyhow::Error>()?
+                    .get_network_details(),
+            )
+            .with_context(|| "Discovery endpoint returned error response".to_owned())?;
+
         if network_details.network.network_name != self.network_name {
             anyhow::bail!("Network name mismatch between requested and fetched network details")
         }
+        // resolve_nym_network_details(&mut network_details.network);
         Ok(NymNetwork {
             network: network_details.network,
         })
     }
 }
 
-impl TryFrom<DiscoveryResponse> for Discovery {
+impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
     type Error = anyhow::Error;
 
-    fn try_from(discovery: DiscoveryResponse) -> anyhow::Result<Self> {
+    fn try_from(discovery: NymWellknownDiscoveryItemResponse) -> anyhow::Result<Self> {
         let account_management = discovery.account_management.and_then(|am| {
             AccountManagement::try_from(am)
                 .inspect_err(|err| tracing::warn!("Failed to parse account management: {err}"))
@@ -193,10 +186,18 @@ impl TryFrom<DiscoveryResponse> for Discovery {
                 .ok()
         });
 
+        let system_configuration = discovery
+            .system_configuration
+            .map(SystemConfiguration::from);
+
         let system_messages = discovery
             .system_messages
             .map(SystemMessages::from)
             .unwrap_or_default();
+
+        let network_compatibility = discovery
+            .network_compatibility
+            .map(NetworkCompatibility::from);
 
         Ok(Self {
             network_name: discovery.network_name,
@@ -204,37 +205,41 @@ impl TryFrom<DiscoveryResponse> for Discovery {
             nym_vpn_api_url: discovery.nym_vpn_api_url.parse()?,
             account_management,
             feature_flags,
+            system_configuration,
             system_messages,
+            network_compatibility,
         })
+    }
+}
+
+fn empty_user_agent() -> UserAgent {
+    UserAgent {
+        application: String::new(),
+        version: String::new(),
+        platform: String::new(),
+        git_commit: String::new(),
     }
 }
 
 pub(crate) async fn fetch_nym_network_details(
     nym_api_url: &Url,
 ) -> anyhow::Result<NymNetworkDetailsResponse> {
-    // TODO: integrate with validator-client and/or nym-vpn-api-client
-    let url = nym_network_details_endpoint(nym_api_url);
-    tracing::debug!("Fetching nym network details from: {}", url);
-    reqwest::get(&url)
+    tracing::debug!("Fetching nym network details");
+    NymApiClient::builder::<Url, anyhow::Error>(nym_api_url.clone())?
+        .build::<anyhow::Error>()?
+        .get_network_details()
         .await
-        .with_context(|| format!("Failed to fetch network details from {}", url))?
-        .json()
-        .await
-        .with_context(|| "Failed to parse network details")
+        .with_context(|| "Discovery endpoint returned error response".to_owned())
 }
 
 pub(crate) async fn fetch_nym_vpn_network_details(
     nym_vpn_api_url: &Url,
 ) -> anyhow::Result<NymWellknownDiscoveryItem> {
-    // TODO: integrate with nym-vpn-api-client
-    let url = nym_vpn_network_details_endpoint(nym_vpn_api_url);
-    tracing::debug!("Fetching nym vpn network details from: {}", url);
-    reqwest::get(&url)
+    tracing::debug!("Fetching nym vpn network details");
+    VpnApiClient::new(nym_vpn_api_url.clone(), empty_user_agent())?
+        .get_wellknown_current_env()
         .await
-        .with_context(|| format!("Failed to fetch vpn network details from {url}"))?
-        .json()
-        .await
-        .with_context(|| "Failed to parse vpn network details")
+        .with_context(|| "Discovery endpoint returned error response".to_owned())
 }
 
 #[cfg(test)]
@@ -243,24 +248,13 @@ mod tests {
 
     use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
+    use crate::network_compatibility::NetworkCompatibility;
     use crate::{
         account_management::AccountManagementPaths, feature_flags::FlagValue,
         system_messages::Properties, SystemMessage,
     };
 
     use super::*;
-
-    #[test]
-    fn test_discovery_endpoint() {
-        let network_name = "mainnet";
-        let url = Discovery::endpoint(network_name).unwrap();
-        assert_eq!(
-            url,
-            "https://nymvpn.com/api/public/v1/.wellknown/mainnet/discovery.json"
-                .parse()
-                .unwrap()
-        );
-    }
 
     #[test]
     fn test_discovery_fetch() {
@@ -312,9 +306,16 @@ mod tests {
                         "modal": "true"
                     }
                 }
-            ]
+            ],
+            "network_compatibility": {
+                "core": "1.1.1",
+                "ios": "1.1.1",
+                "macos": "1.1.1",
+                "tauri": "1.1.1",
+                "android": "1.1.1"
+            }
         }"#;
-        let discovery: DiscoveryResponse = serde_json::from_str(json).unwrap();
+        let discovery: NymWellknownDiscoveryItemResponse = serde_json::from_str(json).unwrap();
         let network: Discovery = discovery.try_into().unwrap();
 
         let expected_network = Discovery {
@@ -359,6 +360,14 @@ mod tests {
                     "true".to_owned(),
                 )])),
             }]),
+            system_configuration: None,
+            network_compatibility: Some(NetworkCompatibility {
+                core: "1.1.1".to_string(),
+                ios: "1.1.1".to_string(),
+                macos: "1.1.1".to_string(),
+                tauri: "1.1.1".to_string(),
+                android: "1.1.1".to_string(),
+            }),
         };
         assert_eq!(network, expected_network);
     }

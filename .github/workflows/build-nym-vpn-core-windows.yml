@@ -15,21 +15,20 @@ env:
   CARGO_TERM_COLOR: always
   CARGO_TARGET: release
   LIBS_PATH: '${{ github.workspace }}/build/lib/x86_64-pc-windows-msvc'
+  WINFW_PATH: '${{ github.workspace }}/build/winfw/x64-Release'
   WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
-  MULLVAD_LIB_NAME: winfw
+  WINFW_LIB_NAME: winfw
   UPLOAD_DIR_WINDOWS: windows_artifacts
 
 jobs:
   build-wireguard-go-windows:
     uses: ./.github/workflows/build-wireguard-go-windows.yml
 
-# TODO restore it when winfw build is fixed
-#  build-mullvad-windows:
-#    uses: ./.github/workflows/build-mullvad-windows.yml
+  build-winfw-windows:
+    uses: ./.github/workflows/build-winfw-windows.yml
 
   build-windows:
-#    needs: [build-wireguard-go-windows, build-mullvad-windows]
-    needs: [build-wireguard-go-windows]
+    needs: [build-wireguard-go-windows, build-winfw-windows]
     runs-on: custom-windows-11
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
@@ -44,8 +43,7 @@ jobs:
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          # TODO let's pin to 1.82.0 as in 1.83.0 the "build winfw.dll from mullvad" step fails
-          toolchain: 1.82.0
+          toolchain: 1.84.1
           components: rustfmt, clippy
 
       - name: Install Go toolchain
@@ -60,11 +58,11 @@ jobs:
           subcommand: workspace.package.version --entry nym-vpn-core
 
       - name: Install cargo-edit
-        run: cargo install --locked cargo-edit
+        run: cargo install --locked cargo-edit || true
 
       - name: Append timestamp if it's a dev version
         shell: bash
-        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.output }}
+        run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
 
       - name: Download wireguard-go-windows artifacts
         uses: actions/download-artifact@v4
@@ -72,18 +70,17 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.LIBS_PATH }}/
 
-#        TODO restore it when winfw build is fixed
-#      - name: Download mullvad lib artifact (winfw.lib)
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: ${{ env.MULLVAD_LIB_NAME }}.lib
-#          path: ${{ env.LIBS_PATH }}/
-#
-#      - name: Download mullvad lib artifact (winfw.dll)
-#        uses: actions/download-artifact@v4
-#        with:
-#          name: ${{ env.MULLVAD_LIB_NAME }}.dll
-#          path: ${{ env.LIBS_PATH }}/
+      - name: Download winfw lib artifact (winfw.lib)
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WINFW_LIB_NAME }}.lib
+          path: ${{ env.WINFW_PATH }}/
+
+      - name: Download winfw lib artifact (winfw.dll)
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.WINFW_LIB_NAME }}.dll
+          path: ${{ env.WINFW_PATH }}/
 
       - name: Download/Unzip/Move wintun.zip, winpcap.zip also move libwg and winfw lib
         shell: bash
@@ -92,10 +89,7 @@ jobs:
           unzip ${GITHUB_WORKSPACE}/wintun.zip
           mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll nym-vpn-core/
           mv '${{ env.LIBS_PATH }}/libwg.dll' nym-vpn-core/
-          mv '${{ env.LIBS_PATH }}/libwg.lib' nym-vpn-core/
-#          # TODO restore it when winfw build is fixed
-#          mv '${{ env.LIBS_PATH }}/winfw.dll' nym-vpn-core/
-#          mv '${{ env.LIBS_PATH }}/winfw.lib' nym-vpn-core/
+          mv '${{ env.WINFW_PATH }}/winfw.dll' nym-vpn-core/
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -125,8 +119,7 @@ jobs:
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr nym-vpn-core/libwg.dll ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr nym-vpn-core/wintun.dll ${{ env.UPLOAD_DIR_WINDOWS }}
-#          # TODO restore it when winfw build is fixed
-#          cp -vpr nym-vpn-core/winfw.dll ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr nym-vpn-core/winfw.dll ${{ env.UPLOAD_DIR_WINDOWS }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

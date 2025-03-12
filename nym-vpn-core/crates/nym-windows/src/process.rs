@@ -4,13 +4,13 @@
 
 use std::{
     ffi::{c_char, CStr},
-    io, mem,
+    mem,
 };
-use windows_sys::Win32::{
-    Foundation::{CloseHandle, ERROR_NO_MORE_FILES, HANDLE, INVALID_HANDLE_VALUE},
+use windows::Win32::{
+    Foundation::{CloseHandle, ERROR_NO_MORE_FILES, HANDLE},
     System::Diagnostics::ToolHelp::{
         CreateToolhelp32Snapshot, Module32First, Module32Next, Process32FirstW, Process32NextW,
-        MODULEENTRY32, PROCESSENTRY32W,
+        CREATE_TOOLHELP_SNAPSHOT_FLAGS, MODULEENTRY32, PROCESSENTRY32W,
     },
 };
 
@@ -21,14 +21,13 @@ pub struct ProcessSnapshot {
 
 impl ProcessSnapshot {
     /// Create a new process snapshot using `CreateToolhelp32Snapshot`
-    pub fn new(flags: u32, process_id: u32) -> io::Result<ProcessSnapshot> {
-        let snap = unsafe { CreateToolhelp32Snapshot(flags, process_id) };
-
-        if snap == INVALID_HANDLE_VALUE {
-            Err(io::Error::last_os_error())
-        } else {
-            Ok(ProcessSnapshot { handle: snap })
-        }
+    pub fn new(
+        flags: CREATE_TOOLHELP_SNAPSHOT_FLAGS,
+        process_id: u32,
+    ) -> windows::core::Result<ProcessSnapshot> {
+        Ok(ProcessSnapshot {
+            handle: unsafe { CreateToolhelp32Snapshot(flags, process_id) }?,
+        })
     }
 
     /// Return the raw handle
@@ -63,8 +62,8 @@ impl ProcessSnapshot {
 
 impl Drop for ProcessSnapshot {
     fn drop(&mut self) {
-        unsafe {
-            CloseHandle(self.handle);
+        if let Err(e) = unsafe { CloseHandle(self.handle) } {
+            tracing::error!("Failed to close process snapshot handle: {}", e);
         }
     }
 }
@@ -87,28 +86,28 @@ pub struct ProcessSnapshotModules<'a> {
 }
 
 impl Iterator for ProcessSnapshotModules<'_> {
-    type Item = io::Result<ModuleEntry>;
+    type Item = windows::core::Result<ModuleEntry>;
 
-    fn next(&mut self) -> Option<io::Result<ModuleEntry>> {
+    fn next(&mut self) -> Option<windows::core::Result<ModuleEntry>> {
         if self.iter_started {
-            if unsafe { Module32Next(self.snapshot.as_raw(), &mut self.temp_entry) } == 0 {
-                let last_error = io::Error::last_os_error();
-
-                return if last_error.raw_os_error().unwrap() as u32 == ERROR_NO_MORE_FILES {
+            if let Err(last_error) =
+                unsafe { Module32Next(self.snapshot.as_raw(), &mut self.temp_entry) }
+            {
+                return if last_error.code() == ERROR_NO_MORE_FILES.to_hresult() {
                     None
                 } else {
                     Some(Err(last_error))
                 };
             }
         } else {
-            if unsafe { Module32First(self.snapshot.as_raw(), &mut self.temp_entry) } == 0 {
-                return Some(Err(io::Error::last_os_error()));
+            if let Err(e) = unsafe { Module32First(self.snapshot.as_raw(), &mut self.temp_entry) } {
+                return Some(Err(e));
             }
             self.iter_started = true;
         }
 
         let cstr_ref = &self.temp_entry.szModule[0];
-        let cstr = unsafe { CStr::from_ptr(cstr_ref as *const u8 as *const c_char) };
+        let cstr = unsafe { CStr::from_ptr(cstr_ref as *const c_char) };
         Some(Ok(ModuleEntry {
             name: cstr.to_string_lossy().into_owned(),
             base_address: self.temp_entry.modBaseAddr,
@@ -133,22 +132,23 @@ pub struct ProcessSnapshotEntries<'a> {
 }
 
 impl Iterator for ProcessSnapshotEntries<'_> {
-    type Item = io::Result<ProcessEntry>;
+    type Item = windows::core::Result<ProcessEntry>;
 
-    fn next(&mut self) -> Option<io::Result<ProcessEntry>> {
+    fn next(&mut self) -> Option<windows::core::Result<ProcessEntry>> {
         if self.iter_started {
-            if unsafe { Process32NextW(self.snapshot.as_raw(), &mut self.temp_entry) } == 0 {
-                let last_error = io::Error::last_os_error();
-
-                return if last_error.raw_os_error().unwrap() as u32 == ERROR_NO_MORE_FILES {
+            if let Err(last_error) =
+                unsafe { Process32NextW(self.snapshot.as_raw(), &mut self.temp_entry) }
+            {
+                return if last_error.code() == ERROR_NO_MORE_FILES.to_hresult() {
                     None
                 } else {
                     Some(Err(last_error))
                 };
             }
         } else {
-            if unsafe { Process32FirstW(self.snapshot.as_raw(), &mut self.temp_entry) } == 0 {
-                return Some(Err(io::Error::last_os_error()));
+            if let Err(e) = unsafe { Process32FirstW(self.snapshot.as_raw(), &mut self.temp_entry) }
+            {
+                return Some(Err(e));
             }
             self.iter_started = true;
         }

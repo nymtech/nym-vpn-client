@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -37,10 +36,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -74,15 +75,15 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 	val navController = LocalNavController.current
 	val keyboardController = LocalSoftwareKeyboardController.current
 
-	val success = viewModel.success.collectAsStateWithLifecycle(null)
-	val showMaxDevicesModal = viewModel.showMaxDevicesModal.collectAsStateWithLifecycle(null)
+	val success by viewModel.success.collectAsStateWithLifecycle(null)
+	val showMaxDevicesModal by viewModel.showMaxDevicesModal.collectAsStateWithLifecycle(null)
 	var showModal by remember { mutableStateOf(false) }
 	var loading by remember { mutableStateOf(false) }
 
-	LaunchedEffect(success.value) {
+	LaunchedEffect(success) {
 		loading = false
-		if (success.value == true) navController.navigateAndForget(Route.Main())
-		if (success.value == false && showMaxDevicesModal.value == true) showModal = true
+		if (success == true) navController.navigateAndForget(Route.Main())
+		if (success == false && showMaxDevicesModal == true) showModal = true
 	}
 
 	val onDismiss = {
@@ -138,6 +139,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 	}
 
 	val onSubmit = {
+		keyboardController?.hide()
 		loading = true
 		viewModel.onMnemonicImport(mnemonic)
 	}
@@ -194,7 +196,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 				},
 				value = mnemonic,
 				onValueChange = {
-					if (success.value == false) viewModel.resetSuccess()
+					if (success == false) viewModel.resetSuccess()
 					mnemonic = it
 				},
 				keyboardActions = KeyboardActions(onDone = {
@@ -205,7 +207,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 					.width(358.dp.scaledWidth())
 					.height(212.dp.scaledHeight()),
 				supportingText = {
-					if (success.value == false) {
+					if (success == false) {
 						Text(
 							modifier = Modifier.fillMaxWidth(),
 							text = stringResource(R.string.invalid_recovery_phrase),
@@ -213,7 +215,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 						)
 					}
 				},
-				isError = success.value == false,
+				isError = success == false,
 				label = { Text(text = stringResource(id = R.string.recovery_phrase), color = MaterialTheme.colorScheme.onSurface) },
 				textStyle = MaterialTheme.typography.bodyMedium.copy(
 					color = MaterialTheme.colorScheme.onSurface,
@@ -236,7 +238,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 							onSubmit()
 						},
 						content = {
-							if (loading) {
+							if (loading && success == null) {
 								SpinningIcon(Icons.Outlined.Refresh)
 							} else {
 								Text(
@@ -246,6 +248,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 							}
 						},
 						color = MaterialTheme.colorScheme.primary,
+						modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 					)
 
 // Disable scanner for now
@@ -262,30 +265,31 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 // 						color = MaterialTheme.colorScheme.primary,
 // 					)
 // 				}
-					val createAccountMessage = buildAnnotatedString {
-						append(stringResource(id = R.string.new_to_nym))
-						append(" ")
-						pushStringAnnotation(
-							tag = "create",
-							annotation = appUiState.managerState.accountLinks?.signUp ?: stringResource(R.string.create_account_url),
-						)
-						withStyle(style = SpanStyle(color = MaterialTheme.colorScheme.primary)) {
-							append(stringResource(id = R.string.get_access_code))
-						}
-						pop()
-					}
-					ClickableText(
-						text = createAccountMessage,
+					Text(
+						text = buildAnnotatedString {
+							append(stringResource(id = R.string.new_to_nym))
+							append(" ")
+							withLink(
+								LinkAnnotation.Clickable(
+									tag = "signUpLink",
+									styles = TextLinkStyles(
+										SpanStyle(color = MaterialTheme.colorScheme.primary),
+									),
+								) {
+									val url = appUiState.managerState.accountLinks?.signUp ?: context.getString(R.string.create_account_url)
+									context.openWebUrl(url)
+								},
+							) {
+								append(stringResource(id = R.string.get_access_code))
+							}
+						},
 						style = MaterialTheme.typography.bodyLarge.copy(
 							color = MaterialTheme.colorScheme.onBackground,
 							textAlign = TextAlign.Center,
 						),
-						modifier = Modifier.padding(bottom = 24.dp.scaledHeight()),
-					) {
-						createAccountMessage.getStringAnnotations(tag = "create", it, it).firstOrNull()?.let { annotation ->
-							context.openWebUrl(annotation.item)
-						}
-					}
+						modifier = Modifier
+							.padding(24.dp.scaledHeight()),
+					)
 				}
 			}
 		}

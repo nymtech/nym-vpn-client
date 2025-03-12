@@ -7,5 +7,7 @@
   "cancel": "annuler",
   "login": "se connecter",
   "logout": "se déconnecter",
-  "stop": "stop"
+  "stop": "stop",
+  "server_one": "serveur",
+  "server_other": "serveurs"
 }

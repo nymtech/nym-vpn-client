@@ -57,7 +57,7 @@ jobs:
         if: contains(matrix.os, 'windows')
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.82.0
+          toolchain: 1.84.1
           components: rustfmt, clippy
 
       - name: Set env
@@ -86,7 +86,6 @@ jobs:
           echo " ✓ TRIPLET: $triplet"
           echo "PLATFORM_ARCH=$platform_arch" >> $GITHUB_ENV
           echo "TRIPLET=$triplet" >> $GITHUB_ENV
-          echo "RUSTFLAGS=-L ${GITHUB_WORKSPACE}/build/lib/${triplet}" >> $GITHUB_ENV
 
       - name: Install protoc
         uses: arduino/setup-protoc@v3

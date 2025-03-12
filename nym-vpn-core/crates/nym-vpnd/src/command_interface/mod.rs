@@ -10,4 +10,4 @@ mod protobuf;
 mod socket_stream;
 mod start;
 
-pub(crate) use start::{start_command_interface, CommandInterfaceOptions};
+pub use start::{start_command_interface, CommandInterfaceOptions};

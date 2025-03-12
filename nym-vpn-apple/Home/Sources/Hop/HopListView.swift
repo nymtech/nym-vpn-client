@@ -28,7 +28,6 @@ public struct HopListView: View {
                 noSearchResultsView()
                 quickestConnection()
                 availableCountryList()
-                santaGatewaysList()
             }
             .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
             .ignoresSafeArea(.all)
@@ -76,7 +75,7 @@ private extension HopListView {
         if !viewModel.searchText.isEmpty && viewModel.countries?.isEmpty ?? true {
             VStack {
                 Text(viewModel.noResultsText)
-                    .textStyle(.Body.Medium.regular)
+                    .textStyle(.BodyLegacy.Medium.regular)
                     .padding(.top, 96)
                 Spacer()
             }
@@ -116,30 +115,6 @@ private extension HopListView {
         .ignoresSafeArea(.all)
         .onTapGesture {
             viewModel.connectionSelect(with: country)
-        }
-    }
-
-    @ViewBuilder
-    func santaGatewaysList() -> some View {
-        if !viewModel.santasGateways().isEmpty {
-            ForEach(viewModel.santasGateways(), id: \.self) { identifier in
-                gatewayButton(with: identifier)
-            }
-        }
-    }
-
-    @ViewBuilder
-    func gatewayButton(with identifier: String) -> some View {
-        GatewayCellButton(
-            viewModel: GatewayCellButtonViewModel(
-                type: .gateway(identifier: identifier),
-                isSelected: false
-            )
-        )
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea(.all)
-        .onTapGesture {
-            viewModel.connectionSelect(with: identifier)
         }
     }
 }

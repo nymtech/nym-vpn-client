@@ -8,7 +8,11 @@ on:
         type: boolean
         default: false
       core_release_tag:
-        description: "nym-vpn-core release tag to use for Windows build (as it bundles the daemon)"
+        description: "nym-vpn-core release tag from GH to use for Windows, to get the daemon"
+        required: false
+        type: string
+      core_artifact_url:
+        description: "direct nym-vpn-core artifact URL for Windows, to get the daemon"
         required: false
         type: string
       sign:
@@ -24,6 +28,9 @@ on:
         type: boolean
         default: false
       core_release_tag:
+        required: false
+        type: string
+      core_artifact_url:
         required: false
         type: string
       sign:
@@ -72,6 +79,7 @@ jobs:
     runs-on: custom-windows-11
     env:
       CPP_BUILD_MODES: ${{ needs.build-mullvad-windows.outputs.CPP_BUILD_MODES }}
+      VPN_CORE_BUILDS_URL: https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
 
@@ -154,8 +162,8 @@ jobs:
           echo "core_release_tag: ${{ inputs.core_release_tag }}"
           "core_release_tag=${{ inputs.core_release_tag }}" >> $env:GITHUB_ENV
 
-      - name: Get nym-vpn-core release tag
-        if: ${{ !inputs.core_release_tag && !inputs.dev_mode }}
+      - name: Get nym-vpn-core release tag (latest stable)
+        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && !inputs.dev_mode }}
         run: |
           $release_tag = curl -sSL -H "Accept: application/vnd.github+json" `
             https://api.github.com/repos/nymtech/nym-vpn-client/releases |
@@ -163,19 +171,31 @@ jobs:
           echo "core_release_tag: $release_tag"
           "core_release_tag=$release_tag" >> $env:GITHUB_ENV
 
-      - name: Get nym-vpn-core release tag (dev)
-        if: ${{ !inputs.core_release_tag && inputs.dev_mode }}
+      - name: Get nym-vpn-core artifact url (latest dev)
+        if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && inputs.dev_mode }}
+        shell: pwsh
         run: |
-          echo "core_release_tag: nym-vpn-core-nightly"
-          "core_release_tag=nym-vpn-core-nightly" >> $env:GITHUB_ENV
+          $latest = Invoke-WebRequest -Uri "${{ env.VPN_CORE_BUILDS_URL }}/develop" | Select-String -Pattern '<a href="(\d+)/"' -AllMatches | ForEach-Object {$_.Matches} | ForEach-Object {$_.Groups[1].Value} | Sort-Object -Descending | Select-Object -First 1
+          $latest_url = "${{ env.VPN_CORE_BUILDS_URL }}/develop/$latest"
+          $artifact = Invoke-WebRequest -Uri "$latest_url" | Select-String -Pattern '<a href="(nym-vpn-core-v.+_windows_x86_64\.zip)"' -AllMatches | ForEach-Object {$_.Matches.Groups[1].Value}
+          $artifact_url = "$latest_url/$artifact"
+          Write-Output "$artifact_url"
+          "core_asset_url=$artifact_url" >> $env:GITHUB_ENV
 
-      - name: Get nym-vpn-core asset url
+      - name: Get nym-vpn-core artifact url (${{ env.core_release_tag }})
+        if: ${{ env.core_release_tag }}
         run: |
           $asset_url = curl -sSL -H "Accept: application/vnd.github+json" `
             https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/${{ env.core_release_tag }} |
             yq '.assets.[] | select(.name | test("^nym-vpn-core-v.+_windows_x86_64\.zip$")) | .browser_download_url'
           echo "core_asset_url: $asset_url"
           "core_asset_url=$asset_url" >> $env:GITHUB_ENV
+
+      - name: Use nym-vpn-core artifact url from inputs
+        if: ${{ inputs.core_artifact_url }}
+        run: |
+          echo "core_asset_url: ${{ inputs.core_artifact_url }}"
+          "core_asset_url=${{ inputs.core_artifact_url }}" >> $env:GITHUB_ENV
 
       - name: Download nym-vpn-core artifact
         run: |

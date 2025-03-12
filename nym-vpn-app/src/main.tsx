@@ -12,9 +12,10 @@ import App from './App';
 import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
 import initSentry from './sentry';
-import { StartupError as TStartupError, ThemeMode } from './types';
+import { StartupError as TStartupError, ThemeMode, VpnMode } from './types';
 import { StartupError } from './screens';
 import { init } from './log';
+import { DefaultVpnMode } from './constants';
 import { S_STATE } from './static';
 
 // needed locales to load for dayjs
@@ -48,7 +49,7 @@ dayjs.extend(duration);
 async function setSplashTheme(window: WebviewWindow) {
   let isDarkMode = false;
 
-  const mode = await kvGet<ThemeMode>('UiTheme');
+  const mode = await kvGet<ThemeMode>('ui-theme');
   if (mode === 'Dark') {
     isDarkMode = true;
   }
@@ -81,6 +82,8 @@ async function setSplashTheme(window: WebviewWindow) {
     S_STATE.devMode = true;
   }
 
+  S_STATE.vpnModeAtStart = (await kvGet<VpnMode>('vpn-mode')) || DefaultVpnMode;
+
   // check for unrecoverable errors
   const error = await invoke<TStartupError | undefined>('startup_error');
   if (error) {
@@ -101,7 +104,7 @@ async function setSplashTheme(window: WebviewWindow) {
     return;
   }
 
-  const monitoring = await kvGet<boolean>('Monitoring');
+  const monitoring = await kvGet<boolean>('monitoring');
 
   if (monitoring) {
     await initSentry();

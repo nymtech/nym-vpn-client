@@ -14,7 +14,7 @@ pub fn into_entry_point(entry: EntryPoint) -> nym_vpn_proto::EntryNode {
 
 pub fn into_exit_point(exit: ExitPoint) -> nym_vpn_proto::ExitNode {
     match exit {
-        ExitPoint::Address { address } => nym_vpn_proto::ExitNode::from(&address),
+        ExitPoint::Address { address } => nym_vpn_proto::ExitNode::from(&*address),
         ExitPoint::Gateway { identity } => nym_vpn_proto::ExitNode::from(&identity),
         ExitPoint::Location { location } => nym_vpn_proto::ExitNode::new_from_location(&location),
         ExitPoint::Random => nym_vpn_proto::ExitNode::new_random(),

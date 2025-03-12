@@ -1,3 +1,3 @@
 export { default as DialogProvider } from './provider';
-export * from './context';
+export { useDialog } from './context';
 export * from './provider';

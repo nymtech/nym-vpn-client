@@ -41,13 +41,16 @@ import nym_vpn_lib.UserAgent
 import nym_vpn_lib.VpnConfig
 import nym_vpn_lib.VpnException
 import nym_vpn_lib.forgetAccount
+import nym_vpn_lib.getNetworkCompatibilityVersions
 import nym_vpn_lib.initEnvironment
+import nym_vpn_lib.initEnvironmentAsync
 import nym_vpn_lib.initFallbackMainnetEnvironment
 import nym_vpn_lib.initLogger
 import nym_vpn_lib.isAccountMnemonicStored
 import nym_vpn_lib.login
 import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
+import org.semver4j.Semver
 import timber.log.Timber
 
 class NymBackend private constructor(private val context: Context) : Backend, TunnelStatusListener, LifecycleObserver {
@@ -107,7 +110,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	@get:Synchronized @set:Synchronized
 	private var networkStatus: NetworkStatus = NetworkStatus.Unknown
 
-	private fun init(environment: Tunnel.Environment, credentialMode: Boolean?) = ProcessLifecycleOwner.get().lifecycleScope.launch {
+	private fun init(environment: Tunnel.Environment, credentialMode: Boolean?) = ProcessLifecycleOwner.get().lifecycleScope.launch(ioDispatcher) {
 		runCatching {
 			startNetworkMonitorJob()
 			initLogger(null, LOG_LEVEL)
@@ -155,7 +158,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	private suspend fun initEnvironment(environment: Tunnel.Environment) {
 		withContext(ioDispatcher) {
 			runCatching {
-				initEnvironment(environment.networkName())
+				initEnvironmentAsync(environment.networkName())
 			}.onFailure {
 				Timber.w("Failed to setup environment, defaulting to bundle mainnet")
 				initFallbackMainnetEnvironment()
@@ -208,6 +211,25 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		return withContext(ioDispatcher) {
 			initialized.await()
 			isAccountMnemonicStored()
+		}
+	}
+
+	override suspend fun isClientNetworkCompatible(appVersion: String): Boolean {
+		return withContext(ioDispatcher) {
+			// assume compatible
+			initialized.await()
+			val versions = getNetworkCompatibilityVersions() ?: return@withContext true
+			val compatibleVersion = Semver(versions.android)
+			val currentVersion = Semver(appVersion)
+			if (currentVersion.isGreaterThanOrEqualTo(compatibleVersion)) {
+				Timber.d("Client is compatible with current network version")
+				return@withContext true
+			}
+			Timber.d(
+				"Client is incompatible with current network version. " +
+					"Client: $currentVersion, Network: $compatibleVersion",
+			)
+			return@withContext false
 		}
 	}
 
@@ -328,7 +350,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 	internal class StateMachineService : LifecycleService() {
 
-		val notificationManager = NotificationManager.getInstance(this)
+		private val notificationManager = NotificationManager.getInstance(this)
 
 		private var owner: NymBackend? = null
 		private var wakeLock: PowerManager.WakeLock? = null

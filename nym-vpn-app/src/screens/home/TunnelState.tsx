@@ -58,7 +58,7 @@ function TunnelState() {
   );
 
   return (
-    <div className="h-full min-h-52 flex flex-col justify-center items-center gap-y-2">
+    <div className="h-full min-h-52 flex flex-col justify-center items-center gap-y-2 cursor-default">
       <div className="flex flex-1 items-end cursor-default select-none">
         {showBadge && <ConnectionBadge state={state.state} />}
       </div>

@@ -14,16 +14,19 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
 import kotlinx.coroutines.withContext
+import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
 import net.nymtech.nymvpn.manager.backend.model.MixnetConnectionState
 import net.nymtech.nymvpn.manager.backend.model.TunnelManagerState
-import net.nymtech.nymvpn.module.qualifiers.ApplicationScope
-import net.nymtech.nymvpn.module.qualifiers.IoDispatcher
-import net.nymtech.nymvpn.module.qualifiers.MainDispatcher
+import net.nymtech.nymvpn.di.qualifiers.ApplicationScope
+import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
+import net.nymtech.nymvpn.di.qualifiers.MainDispatcher
 import net.nymtech.nymvpn.service.notification.NotificationService
+import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
+import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.nymvpn.util.extensions.requestTileServiceStateUpdate
 import net.nymtech.nymvpn.util.extensions.toMB
 import net.nymtech.nymvpn.util.extensions.toUserAgent
@@ -75,12 +78,29 @@ class NymBackendManager @Inject constructor(
 
 	override fun initialize() {
 		applicationScope.launch {
+			if (_state.value.isInitialized) return@launch
 			val env = settingsRepository.getEnvironment()
 			val credentialMode = settingsRepository.isCredentialMode()
 			val nymBackend = withContext(mainDispatcher) {
 				NymBackend.getInstance(context, env, credentialMode)
 			}
 			backend.complete(nymBackend)
+			val isCompatible = isClientNetworkCompatible(env)
+			_state.update {
+				it.copy(isInitialized = true, isNetworkCompatible = isCompatible)
+			}
+		}
+	}
+
+	private suspend fun isClientNetworkCompatible(environment: Tunnel.Environment): Boolean {
+		return if (
+			!BuildConfig.DEBUG && !BuildConfig.IS_PRERELEASE &&
+			environment == Tunnel.Environment.MAINNET
+		) {
+			val version = BuildConfig.VERSION_NAME.substringBefore("-").drop(1)
+			backend.await().isClientNetworkCompatible(version)
+		} else {
+			true
 		}
 	}
 
@@ -88,7 +108,7 @@ class NymBackendManager @Inject constructor(
 		return try {
 			backend.getCompleted().getState()
 		} catch (e: IllegalStateException) {
-			Timber.e(e)
+			Timber.w(e, "Nym backend not initialized, assuming down")
 			Tunnel.State.Down
 		}
 	}
@@ -117,7 +137,10 @@ class NymBackendManager @Inject constructor(
 			if (it is BackendException) {
 				when (it) {
 					is BackendException.VpnAlreadyRunning -> Timber.w("Vpn already running")
-					is BackendException.VpnPermissionDenied -> launchVpnPermissionNotification()
+					is BackendException.VpnPermissionDenied -> {
+						launchVpnPermissionNotification()
+						stopTunnel()
+					}
 				}
 			} else {
 				Timber.e(it)
@@ -220,8 +243,10 @@ class NymBackendManager @Inject constructor(
 		when (backendEvent) {
 			is BackendEvent.Mixnet -> when (val event = backendEvent.event) {
 				is MixnetEvent.Bandwidth -> {
-					emitBackendUiEvent(BackendUiEvent.BandwidthAlert(event.v1))
-					launchBandwidthNotification(event.v1)
+					// TODO disable for now
+// 					emitBackendUiEvent(BackendUiEvent.BandwidthAlert(event.v1))
+// 					launchBandwidthNotification(event.v1)
+					Timber.d("Bandwidth: ${event.v1}")
 				}
 				is MixnetEvent.Connection -> emitMixnetConnectionEvent(event.v1)
 				is MixnetEvent.ConnectionStatistics -> Timber.d("Stats: ${event.v1}")
@@ -250,8 +275,8 @@ class NymBackendManager @Inject constructor(
 
 	private fun onStateChange(state: Tunnel.State) {
 		Timber.d("Requesting tile update with new state: $state")
-		context.requestTileServiceStateUpdate()
 		emitState(state)
+		context.requestTileServiceStateUpdate()
 	}
 
 	private fun emitState(state: Tunnel.State) {
@@ -268,6 +293,8 @@ class NymBackendManager @Inject constructor(
 				title = context.getString(R.string.permission_required),
 				description = context.getString(R.string.vpn_permission_missing),
 			)
+		} else {
+			SnackbarController.showMessage(StringValue.StringResource(R.string.vpn_permission_missing))
 		}
 	}
 

@@ -5,6 +5,7 @@ use std::{net::SocketAddr, path::PathBuf, time::Duration};
 
 use futures::FutureExt;
 use nym_vpn_lib_types::TunnelEvent;
+use nym_vpn_network_config::Network;
 use nym_vpn_proto::{nym_vpnd_server::NymVpndServer, VPN_FD_SET};
 use tokio::{
     sync::{
@@ -30,7 +31,7 @@ const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(2);
 
 fn grpc_span(req: &http::Request<()>) -> tracing::Span {
     let service = req.uri().path().trim_start_matches('/');
-    let method = service.split('/').last().unwrap_or(service);
+    let method = service.split('/').next_back().unwrap_or(service);
     if service.contains("grpc.reflection.v1") {
         let span = tracing::trace_span!("grpc_reflection");
         tracing::trace!(target: "grpc_reflection", "← {} {:?}", method, req.body());
@@ -41,7 +42,7 @@ fn grpc_span(req: &http::Request<()>) -> tracing::Span {
         tracing::debug!(target: "grpc_health", "← {} {:?}", method, req.body());
         return span;
     }
-    let span = tracing::info_span!("grpc_vpnd");
+    let span = tracing::info_span!("grpc_vpnd", req = method);
     tracing::info!(target: "grpc_vpnd", "← {} {:?}", method, req.body());
     span
 }
@@ -52,6 +53,7 @@ async fn run_uri_listener<T>(
     addr: SocketAddr,
     shutdown_token: CancellationToken,
     health_service: HealthServer<T>,
+    network_env: Network,
 ) -> Result<(), tonic::transport::Error>
 where
     T: Health,
@@ -61,7 +63,8 @@ where
         .register_encoded_file_descriptor_set(VPN_FD_SET)
         .build()
         .unwrap();
-    let command_interface = CommandInterface::new_with_uri(vpn_command_tx, tunnel_event_rx, addr);
+    let command_interface =
+        CommandInterface::new_with_uri(vpn_command_tx, tunnel_event_rx, addr, network_env);
 
     Server::builder()
         .trace_fn(grpc_span)
@@ -78,6 +81,7 @@ async fn run_socket_listener<T>(
     socket_path: PathBuf,
     shutdown_token: CancellationToken,
     health_service: HealthServer<T>,
+    network_env: Network,
 ) -> Result<(), tonic::transport::Error>
 where
     T: Health,
@@ -88,7 +92,7 @@ where
         .build()
         .unwrap();
     let command_interface =
-        CommandInterface::new_with_path(vpn_command_tx, tunnel_event_rx, &socket_path);
+        CommandInterface::new_with_path(vpn_command_tx, tunnel_event_rx, &socket_path, network_env);
     command_interface.remove_previous_socket_file();
 
     // Wrap the unix socket into a stream that can be used by tonic
@@ -104,9 +108,9 @@ where
 }
 
 #[derive(Default)]
-pub(crate) struct CommandInterfaceOptions {
-    pub(crate) disable_socket_listener: bool,
-    pub(crate) enable_http_listener: bool,
+pub struct CommandInterfaceOptions {
+    pub disable_socket_listener: bool,
+    pub enable_http_listener: bool,
 }
 
 async fn setup_health_service(
@@ -128,12 +132,13 @@ async fn setup_health_service(
     (health_service, handle)
 }
 
-pub(crate) fn start_command_interface(
+pub fn start_command_interface(
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
     command_interface_options: Option<CommandInterfaceOptions>,
+    network_env: Network,
     shutdown_token: CancellationToken,
 ) -> (JoinHandle<()>, UnboundedReceiver<VpnServiceCommand>) {
-    tracing::info!("Starting command interface");
+    tracing::debug!("Starting command interface");
 
     let (vpn_command_tx, vpn_command_rx) = mpsc::unbounded_channel();
     let command_interface_options = command_interface_options.unwrap_or_default();
@@ -153,6 +158,7 @@ pub(crate) fn start_command_interface(
                 socket_path.to_path_buf(),
                 shutdown_token.child_token(),
                 health_service.clone(),
+                network_env.clone(),
             ));
         }
 
@@ -163,6 +169,7 @@ pub(crate) fn start_command_interface(
                 uri_addr,
                 shutdown_token.child_token(),
                 health_service,
+                network_env,
             ));
         }
 

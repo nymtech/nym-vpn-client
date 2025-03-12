@@ -1,13 +1,15 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::uniffi_custom_impls::{AccountLinks, NetworkEnvironment, SystemMessage};
+use super::uniffi_custom_impls::{
+    AccountLinks, NetworkCompatibility, NetworkEnvironment, SystemMessage,
+};
 
 use super::{error::VpnError, NETWORK_ENVIRONMENT};
 
 pub(crate) async fn init_environment(network_name: &str) -> Result<(), VpnError> {
     let network = nym_vpn_network_config::Network::fetch(network_name).map_err(|err| {
-        VpnError::InternalError {
+        VpnError::NetworkConnectionError {
             details: err.to_string(),
         }
     })?;
@@ -22,7 +24,10 @@ pub(crate) async fn init_environment(network_name: &str) -> Result<(), VpnError>
 }
 
 pub(crate) async fn init_fallback_mainnet_environment() -> Result<(), VpnError> {
-    let network = nym_vpn_network_config::Network::mainnet_default();
+    let network =
+        nym_vpn_network_config::Network::mainnet_default().ok_or(VpnError::InternalError {
+            details: "mainnet is not consistent".to_string(),
+        })?;
     network.export_to_env();
 
     let mut guard = NETWORK_ENVIRONMENT.lock().await;
@@ -59,6 +64,14 @@ pub(crate) async fn get_system_messages() -> Result<Vec<SystemMessage>, VpnError
     })
 }
 
+pub(crate) async fn get_network_compatibility() -> Result<Option<NetworkCompatibility>, VpnError> {
+    current_environment_details().await.map(|network| {
+        network
+            .network_compatibility
+            .map(NetworkCompatibility::from)
+    })
+}
+
 pub(crate) async fn get_account_links(locale: &str) -> Result<AccountLinks, VpnError> {
     let account_id = super::account::get_account_id().await?;
     current_environment_details()
@@ -67,9 +80,7 @@ pub(crate) async fn get_account_links(locale: &str) -> Result<AccountLinks, VpnE
             network
                 .nym_vpn_network
                 .try_into_parsed_links(locale, account_id.as_deref())
-                .map_err(|err| VpnError::InternalError {
-                    details: err.to_string(),
-                })
+                .map_err(VpnError::internal)
         })
         .map(AccountLinks::from)
 }
@@ -78,16 +89,17 @@ pub(crate) async fn get_account_links_raw(
     path: &str,
     locale: &str,
 ) -> Result<AccountLinks, VpnError> {
+    // If the account ID is not found, we are not logged in, so we don't need to pass it to the
+    // API. But we can still get the links that don't require an account ID.
     let account_id = super::account::raw::get_account_id_raw(path).await.ok();
+
     current_environment_details()
         .await
         .and_then(|network| {
             network
                 .nym_vpn_network
                 .try_into_parsed_links(locale, account_id.as_deref())
-                .map_err(|err| VpnError::InternalError {
-                    details: err.to_string(),
-                })
+                .map_err(VpnError::internal)
         })
         .map(AccountLinks::from)
 }

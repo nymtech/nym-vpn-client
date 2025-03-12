@@ -17,7 +17,7 @@ public struct StatusButton: View {
         HStack(alignment: .center, spacing: 10) {
             Text(config.title)
                 .foregroundStyle(config.textColor)
-                .textStyle(isSmallScreen ? .Label.Large.bold : .Label.Huge.bold)
+                .textStyle(isSmallScreen ? .LabelLegacy.Large.bold : .LabelLegacy.Huge.bold)
         }
         .padding(.horizontal, appSettings.isSmallScreen ? 20 : 24)
         .padding(.vertical, isSmallScreen ? 12 : 16)

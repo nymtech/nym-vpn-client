@@ -5,7 +5,7 @@ Categories={{categories}}
 {{#if comment}}
 Comment={{comment}}
 {{/if}}
-Exec=env LOG_FILE=1 RUST_LOG=info,nym_vpn_app=trace {{exec}}
+Exec=env LOG_FILE=1 RUST_LOG=info,nym_vpn_app=debug {{exec}}
 Icon={{icon}}
 Name={{name}}
 Terminal=false

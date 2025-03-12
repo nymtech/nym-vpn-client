@@ -84,7 +84,6 @@ async fn main() -> Result<()> {
             Internal::GetFeatureFlags => get_feature_flags(opts.client_type).await?,
             Internal::SyncAccountState => refresh_account_state(opts.client_type).await?,
             Internal::GetAccountUsage => get_account_usage(opts.client_type).await?,
-            Internal::IsReadyToConnect => is_ready_to_connect(opts.client_type).await?,
             Internal::ResetDeviceIdentity(ref args) => {
                 reset_device_identity(opts.client_type, args).await?
             }
@@ -192,13 +191,6 @@ fn handle_connect_failure(error: nym_vpn_proto::ConnectRequestError) -> Result<(
     let kind = nym_vpn_proto::connect_request_error::ConnectRequestErrorType::try_from(error.kind)
         .context("failed to parse connect request error kind")?;
     println!("Connect command failed: {} (id={kind:?})", error.message);
-    for zk_nym_error in error.zk_nym_error {
-        println!(
-            "  zk nym error ({}): {}",
-            zk_nym_error.ticketbook_type(),
-            zk_nym_error.message(),
-        );
-    }
     Ok(())
 }
 
@@ -411,13 +403,6 @@ async fn get_account_links(opts: CliOptions, args: &cli::GetAccountLinksArgs) ->
 async fn get_account_state(client_type: ClientType) -> Result<()> {
     let mut client = vpnd_client::get_client(&client_type).await?;
     let response = client.get_account_state(()).await?.into_inner();
-    println!("{:#?}", response);
-    Ok(())
-}
-
-async fn is_ready_to_connect(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
-    let response = client.is_ready_to_connect(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }

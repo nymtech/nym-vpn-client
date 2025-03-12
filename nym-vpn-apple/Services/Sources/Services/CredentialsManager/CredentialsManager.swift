@@ -3,6 +3,7 @@ import Logging
 import Foundation
 import AppSettings
 import Constants
+import ErrorReason
 #if os(iOS)
 import ErrorHandler
 import MixnetLibrary
@@ -34,7 +35,7 @@ public final class CredentialsManager {
     }
 
     public func add(credential: String) async throws {
-        try await Task(priority: .background) {
+        try await Task {
             do {
 #if os(iOS)
                 let dataFolderURL = try dataFolderURL()
@@ -63,20 +64,22 @@ public final class CredentialsManager {
     }
 
     public func removeCredential() async throws {
-        do {
+        try await Task {
+            do {
 #if os(iOS)
-            let dataFolderURL = try dataFolderURL()
-            try forgetAccountRaw(path: dataFolderURL.path())
+                let dataFolderURL = try dataFolderURL()
+                try forgetAccountRaw(path: dataFolderURL.path())
 #endif
 
 #if os(macOS)
-            try await grpcManager.forgetAccount()
+                try await grpcManager.forgetAccount()
 #endif
-            checkCredentialImport()
-        } catch {
-            // TODO: need modal for alerts
-            throw error
-        }
+                checkCredentialImport()
+            } catch {
+                // TODO: need modal for alerts
+                throw error
+            }
+        }.value
     }
 
     public func dataFolderURL() throws -> URL {
@@ -100,9 +103,10 @@ private extension CredentialsManager {
 
     func setupGRPCManagerObservers() {
 #if os(macOS)
-        grpcManager.$generalError.sink { [weak self] error in
+        grpcManager.$errorReason.sink { [weak self] error in
             guard let self,
-                  error == GeneralNymError.noMnemonicStored
+                  let errorReason = error as? ErrorReason,
+                  errorReason == .noAccountStored
             else {
                 return
             }
@@ -123,7 +127,7 @@ private extension CredentialsManager {
 
 private extension CredentialsManager {
     func checkCredentialImport() {
-        Task(priority: .background) {
+        Task {
             do {
                 let isImported: Bool
 #if os(iOS)
@@ -151,7 +155,7 @@ private extension CredentialsManager {
 
 private extension CredentialsManager {
     func updateDeviceIdentifier() {
-        Task(priority: .background) {
+        Task {
 #if os(iOS)
             let dataFolderURL = try dataFolderURL()
             deviceIdentifier = try? getDeviceIdentityRaw(path: dataFolderURL.path())

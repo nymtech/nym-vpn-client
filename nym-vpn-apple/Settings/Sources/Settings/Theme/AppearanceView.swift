@@ -6,6 +6,8 @@ import UIComponents
 
 public struct AppearanceView: View {
     @ObservedObject private var viewModel: AppearanceViewModel
+    @State private var isHovered = false
+    @State private var hoveredId: Int?
 
     public init(viewModel: AppearanceViewModel) {
         self.viewModel = viewModel
@@ -46,8 +48,13 @@ private extension AppearanceView {
                         title: viewModel.appearanceTitle(for: appearance),
                         subtitle: viewModel.appearanceSubtitle(for: appearance),
                         isSelected: viewModel.currentAppearance == appearance
-                    )
+                    ),
+                isHovered: appearance.rawValue == hoveredId ? $isHovered : Binding.constant(false)
             )
+            .onHover { newValue in
+                isHovered = newValue
+                hoveredId = appearance.rawValue
+            }
             .onTapGesture {
                 viewModel.updateAppearance(with: appearance)
             }

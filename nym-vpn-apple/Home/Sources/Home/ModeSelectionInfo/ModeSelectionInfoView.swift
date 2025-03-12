@@ -6,6 +6,8 @@ import Theme
 struct ModeSelectionInfoView: View {
     private let viewModel: ModeSelectionInfoViewModel
 
+    @State private var isContinueReadingLinkHovered = false
+
     init(viewModel: ModeSelectionInfoViewModel) {
         self.viewModel = viewModel
     }
@@ -59,7 +61,7 @@ private extension ModeSelectionInfoView {
     @ViewBuilder
     func title() -> some View {
         Text(viewModel.titleLocalizedString)
-            .textStyle(NymTextStyle.Label.Huge.bold)
+            .textStyle(NymTextStyle.LabelLegacy.Huge.bold)
             .foregroundStyle(NymColor.sysOnSurface)
 
         Spacer()
@@ -75,7 +77,7 @@ private extension ModeSelectionInfoView {
                 .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 8))
 
             Text(viewModel.anonymousTitleLocalizedString)
-                .textStyle(.Label.Large.bold)
+                .textStyle(.LabelLegacy.Large.bold)
                 .foregroundStyle(NymColor.modeInfoViewTitle)
 
             Spacer()
@@ -89,7 +91,7 @@ private extension ModeSelectionInfoView {
         HStack {
             Text(viewModel.anonymousDescriptionLocalizedString)
                 .foregroundStyle(NymColor.modeInfoViewDescription)
-                .textStyle(.Body.Medium.regular)
+                .textStyle(.BodyLegacy.Medium.regular)
 
             Spacer()
         }
@@ -108,7 +110,7 @@ private extension ModeSelectionInfoView {
                 .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 8))
 
             Text(viewModel.fastTitleLocalizedString)
-                .textStyle(.Label.Large.bold)
+                .textStyle(.LabelLegacy.Large.bold)
                 .foregroundStyle(NymColor.modeInfoViewTitle)
 
             Spacer()
@@ -122,7 +124,7 @@ private extension ModeSelectionInfoView {
         HStack {
             Text(viewModel.fastDescriptionLocalizedString)
                 .foregroundStyle(NymColor.modeInfoViewDescription)
-                .textStyle(.Body.Medium.regular)
+                .textStyle(.BodyLegacy.Medium.regular)
 
             Spacer()
         }
@@ -136,16 +138,20 @@ private extension ModeSelectionInfoView {
     func continueReadingLink() -> some View {
         HStack {
             Text(viewModel.continueReadingLocalizedString)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.primaryOrange)
+                .textStyle(.BodyLegacy.Medium.regular)
+                .foregroundStyle(NymColor.accent)
 
             GenericImage(imageName: viewModel.continueReadingLinkImageName)
                 .frame(width: 16, height: 16)
-                .foregroundStyle(NymColor.primaryOrange)
+                .foregroundStyle(NymColor.accent)
         }
         .onTapGesture {
             viewModel.openContinueReading()
         }
+        .onHover { newValue in
+            isContinueReadingLinkHovered = newValue
+        }
+        .opacity(isContinueReadingLinkHovered ? 0.7 : 1)
 
         Spacer()
             .frame(height: 24)

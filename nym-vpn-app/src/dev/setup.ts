@@ -4,29 +4,36 @@ import { emit } from '@tauri-apps/api/event';
 import {
   AccountLinks,
   Cli,
-  Country,
   DbKey,
+  GatewayType,
+  GatewaysByCountry,
+  NetworkCompat,
   Tunnel,
   TunnelData,
   VpndStatus,
 } from '../types';
 import { TunnelStateEvent } from '../constants';
 
+// some data
+import wgGwJson from './wg-gw.json';
+import mxEntryGwJson from './mx-entry-gw.json';
+import mxExitGwJson from './mx-exit-gw.json';
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MockIpcFn = (cmd: string, payload?: InvokeArgs) => Promise<any>;
 
 export function mockTauriIPC() {
   mockWindows('main');
+  // @ts-expect-error mocking os plugin
   window.__TAURI_OS_PLUGIN_INTERNALS__ = {
-    // @ts-expect-error mocking os plugin
-    os: {
-      type: () => 'linux',
-    },
+    os_type: 'linux',
+    platform: 'linux',
+    family: 'unix',
   };
 
   mockIPC((async (cmd, args) => {
-    console.log(`IPC call mocked "${cmd}"`);
-    console.log(args);
+    console.debug(`IPC call mocked "${cmd}"`);
+    console.debug(args);
 
     if (cmd === 'daemon_status') {
       return new Promise<VpndStatus>((resolve) =>
@@ -71,31 +78,20 @@ export function mockTauriIPC() {
       return { state: 'disconnected' };
     }
 
-    if (cmd === 'get_countries') {
-      return new Promise<Country[]>((resolve) =>
-        resolve([
-          {
-            name: 'France',
-            code: 'FR',
-          },
-          {
-            name: 'Germany',
-            code: 'DE',
-          },
-          {
-            name: 'Switzerland',
-            code: 'CH',
-          },
-          {
-            name: 'United States',
-            code: 'US',
-          },
-          {
-            name: 'Unknown country with a very long nammmmmmmmeeeeeeeeeeeeeeee',
-            code: 'UN',
-          },
-        ]),
-      );
+    if (cmd === 'get_gateways') {
+      return new Promise<GatewaysByCountry[]>((resolve) => {
+        switch ((args as Record<string, unknown>).nodeType as GatewayType) {
+          case 'mx-entry':
+            resolve(mxEntryGwJson as GatewaysByCountry[]);
+            return;
+          case 'mx-exit':
+            resolve(mxExitGwJson as GatewaysByCountry[]);
+            return;
+          case 'wg':
+            resolve(wgGwJson as GatewaysByCountry[]);
+            return;
+        }
+      });
     }
 
     if (cmd === 'db_get') {
@@ -104,15 +100,36 @@ export function mockTauriIPC() {
         return;
       }
       switch ((args as Record<string, unknown>).key as DbKey) {
-        case 'UiRootFontSize':
+        case 'ui-root-font-size':
           res = 12;
           break;
-        case 'UiTheme':
+        case 'ui-theme':
           res = 'Dark';
           break;
-        case 'WelcomeScreenSeen':
+        case 'welcome-screen-seen':
           res = true;
           break;
+
+        /* 1740391345259 */
+        case 'cache-mx-entry-gateways':
+          res = {
+            expiry: 2740391345259,
+            value: mxEntryGwJson,
+          };
+          break;
+        case 'cache-mx-exit-gateways':
+          res = {
+            expiry: 2740391345259,
+            value: mxExitGwJson,
+          };
+          break;
+        case 'cache-wg-gateways':
+          res = {
+            expiry: 2740391345259,
+            value: wgGwJson,
+          };
+          break;
+
         default:
           return null;
       }
@@ -161,6 +178,15 @@ export function mockTauriIPC() {
         resolve({
           signUp: 'https://xyz.xyz/signup',
           signIn: 'https://xyz.xyz/signin',
+        }),
+      );
+    }
+
+    if (cmd === 'network_compat') {
+      return new Promise<NetworkCompat>((resolve) =>
+        resolve({
+          tauri: true,
+          core: true,
         }),
       );
     }

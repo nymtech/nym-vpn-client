@@ -60,7 +60,7 @@ jobs:
       - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib
+          cargo build --verbose --target aarch64-apple-ios -p nym-vpn-lib --locked
 
       - name: Generate uniffi
         working-directory: nym-vpn-core
@@ -80,4 +80,4 @@ jobs:
       - name: Clippy
         working-directory: nym-vpn-core
         run: |
-          cargo clippy --target aarch64-apple-ios -p nym-vpn-lib -- -Dwarnings
+          cargo clippy --target aarch64-apple-ios -p nym-vpn-lib --locked -- -Dwarnings

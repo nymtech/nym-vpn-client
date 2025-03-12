@@ -8,8 +8,11 @@ documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 nym-validator-client.workspace = true
 serde.workspace = true
 
-nym-vpn-lib = { path = "../nym-vpn-lib" }
+nym-vpn-lib = { workspace = true }

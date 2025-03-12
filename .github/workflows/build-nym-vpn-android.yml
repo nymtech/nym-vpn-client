@@ -12,6 +12,14 @@ on:
           - prerelease
           - nightly
           - release
+      build_format:
+        type: choice
+        description: "Build format"
+        required: true
+        default: apk
+        options:
+          - bundle
+          - apk
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
         required: false
@@ -32,6 +40,11 @@ on:
         description: "Build type"
         required: true
         default: debug
+      build_format:
+        type: string
+        description: "Build format"
+        required: true
+        default: apk
     secrets:
       ANDROID_SIGNING_KEY_ALIAS:
         required: false
@@ -93,15 +106,15 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Add rust stable toolchain
-        uses: dtolnay/rust-toolchain@stable
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23.6'  # If this changes, we need a PR to Fdroid to update pipeline for reproducibility
 
-      - name: Add all targets
-        run: |
-          rustup target add \
-            aarch64-linux-android \
-            x86_64-linux-android \
-            i686-linux-android
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.84.1 # If this changes, we need a PR to Fdroid to update pipeline for reproducibility
+          targets: aarch64-linux-android
 
       - name: Install cargo deps
         run: |
@@ -134,37 +147,67 @@ jobs:
         id: createServiceAccount
         run: echo '${{ secrets.ANDROID_SERVICE_ACCOUNT_JSON }}' > service_account.json
 
-      - name: Build Fdroid Release APK
-        if: ${{ inputs.build_type == 'release' }}
+      - name: Build Fdroid Release Apk
+        if: ${{ inputs.build_type == 'release' && inputs.build_format == 'apk' }}
         run: ./gradlew :app:assembleFdroidRelease --info
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
-      - name: Build Fdroid Prerelease APK
-        if: ${{ inputs.build_type == 'prerelease' }}
+      - name: Build Fdroid Release Bundle
+        if: ${{ inputs.build_type == 'release' && inputs.build_format == 'aab' }}
+        run: ./gradlew :app:bundleFdroidRelease --info
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+      - name: Build Fdroid Prerelease Apk
+        if: ${{ inputs.build_type == 'prerelease' && inputs.build_format == 'apk' }}
         run: ./gradlew :app:assembleFdroidPrerelease --info
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
-      - name: Build Fdroid Nightly APK
-        if: ${{ inputs.build_type == 'nightly' }}
+      - name: Build Fdroid Prerelease Bundle
+        if: ${{ inputs.build_type == 'prerelease' && inputs.build_format == 'aab' }}
+        run: ./gradlew :app:bundleFdroidPrerelease --info
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+      - name: Build Fdroid Nightly Apk
+        if: ${{ inputs.build_type == 'nightly' && inputs.build_format == 'apk' }}
         run: ./gradlew :app:assembleFdroidNightly --info
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
-      - name: Build Debug APK
-        if: ${{ inputs.build_type == 'debug' }}
+      - name: Build Fdroid Nightly Bundle
+        if: ${{ inputs.build_type == 'nightly' && inputs.build_format == 'aab' }}
+        run: ./gradlew :app:bundleFdroidNightly --info
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+
+      - name: Build Debug Apk
+        if: ${{ inputs.build_type == 'debug' && inputs.build_format == 'apk' }}
         run: ./gradlew :app:assembleFdroidDebug --stacktrace
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
-      - name: Get release apk path
-        id: apk-path
-        run: echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/${{ inputs.build_type }}/.*\.apk$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
+      - name: Build Debug Bundle
+        if: ${{ inputs.build_type == 'debug' && inputs.build_format == 'aab' }}
+        run: ./gradlew :app:bundleFdroidDebug --stacktrace
+        env:
+          ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
 
-      - name: Upload release apk
+      - name: Get output path
+        id: output-path
+        run: |
+          if [ "${{ inputs.build_format }}" == "apk" ]; then
+            echo "path=$(find . -regex '^.*/build/outputs/apk/fdroid/${{ inputs.build_type }}/.*\.apk$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
+          else
+            BUILD_TYPE=$(echo "${{ inputs.build_type }}" | sed 's/./\u&/')
+            echo "path=$(find . -regex '^.*/build/outputs/bundle/fdroidRelease/.*\.aab$' -type f | head -1 | tail -c+2)" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
-          path: ${{github.workspace}}/nym-vpn-android${{ steps.apk-path.outputs.path }}
+          path: ${{ github.workspace }}/nym-vpn-android${{ steps.output-path.outputs.path }}
           retention-days: 1

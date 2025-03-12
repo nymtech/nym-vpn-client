@@ -1,9 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::net::IpAddr;
-
-use nym_dns::{DnsConfig, DnsMonitor};
+use nym_dns::{DnsMonitor, ResolvedDnsConfig};
 use tokio::{
     sync::{mpsc, oneshot},
     task::JoinHandle,
@@ -31,18 +29,19 @@ impl DnsHandler {
         })
     }
 
-    pub fn set(&mut self, interface: &str, servers: &[IpAddr]) -> Result<(), nym_dns::Error> {
-        tokio::task::block_in_place(|| {
-            let dns_config = DnsConfig::default().resolve(servers);
-
-            self.inner.set(interface, dns_config)
-        })
+    pub fn set(
+        &mut self,
+        interface: &str,
+        config: ResolvedDnsConfig,
+    ) -> Result<(), nym_dns::Error> {
+        tokio::task::block_in_place(|| self.inner.set(interface, config))
     }
 
     pub fn reset(&mut self) -> Result<(), nym_dns::Error> {
         tokio::task::block_in_place(|| self.inner.reset())
     }
 
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
     pub fn reset_before_interface_removal(&mut self) -> Result<(), nym_dns::Error> {
         tokio::task::block_in_place(|| self.inner.reset_before_interface_removal())
     }
@@ -51,12 +50,14 @@ impl DnsHandler {
 enum DnsHandlerCommand {
     Set {
         interface: String,
-        servers: Vec<IpAddr>,
+        config: ResolvedDnsConfig,
         reply_tx: oneshot::Sender<Result<(), nym_dns::Error>>,
     },
+    #[allow(unused)]
     Reset {
         reply_tx: oneshot::Sender<Result<(), nym_dns::Error>>,
     },
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
     ResetBeforeInterfaceRemoval {
         reply_tx: oneshot::Sender<Result<(), nym_dns::Error>>,
     },
@@ -85,20 +86,21 @@ impl DnsHandlerHandle {
                         match command {
                             DnsHandlerCommand::Set {
                                 interface,
-                                servers,
+                                config,
                                 reply_tx,
                             } => {
-                                _ = reply_tx.send(dns_handler.set(&interface, &servers));
+                                _ = reply_tx.send(dns_handler.set(&interface, config));
                             }
                             DnsHandlerCommand::Reset { reply_tx } => {
                                 _ = reply_tx.send(dns_handler.reset());
                             }
+                            #[cfg(any(target_os = "linux", target_os = "windows"))]
                             DnsHandlerCommand::ResetBeforeInterfaceRemoval { reply_tx } => {
                                 _ = reply_tx.send(dns_handler.reset_before_interface_removal());
                             }
                         }
                     }
-                    _ = shutdown_token.cancelled() =>  break,
+                    _ = shutdown_token.cancelled() => break,
                     else => break
                 }
             }
@@ -108,13 +110,13 @@ impl DnsHandlerHandle {
         Ok((Self { tx }, join_handle))
     }
 
-    pub async fn set(&mut self, interface: String, servers: Vec<IpAddr>) -> Result<()> {
+    pub async fn set(&mut self, interface: String, config: ResolvedDnsConfig) -> Result<()> {
         let (reply_tx, reply_rx) = oneshot::channel();
 
         self.send_and_wait(
             DnsHandlerCommand::Set {
                 interface,
-                servers,
+                config,
                 reply_tx,
             },
             reply_rx,
@@ -122,7 +124,6 @@ impl DnsHandlerHandle {
         .await
     }
 
-    #[allow(unused)]
     pub async fn reset(&mut self) -> Result<()> {
         let (reply_tx, reply_rx) = oneshot::channel();
 
@@ -130,6 +131,7 @@ impl DnsHandlerHandle {
             .await
     }
 
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
     pub async fn reset_before_interface_removal(&mut self) -> Result<()> {
         let (reply_tx, reply_rx) = oneshot::channel();
 

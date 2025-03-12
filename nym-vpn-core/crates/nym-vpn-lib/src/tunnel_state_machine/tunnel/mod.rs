@@ -14,20 +14,17 @@ use std::{os::fd::RawFd, sync::Arc};
 
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayClient, Recipient};
-use nym_ip_packet_requests::IpPair;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
+use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 #[cfg(windows)]
 use super::route_handler;
 use super::{MixnetEvent, TunnelType};
-use crate::{
-    bandwidth_controller::ReconnectMixnetClientData, GatewayDirectoryError, MixnetClientConfig,
-    MixnetError,
-};
+use crate::{GatewayDirectoryError, MixnetClientConfig, MixnetError};
 pub use any_tunnel_handle::AnyTunnelHandle;
 use status_listener::StatusListener;
 pub use tombstone::Tombstone;
@@ -41,7 +38,6 @@ pub struct ConnectedMixnet {
     selected_gateways: SelectedGateways,
     data_path: Option<PathBuf>,
     mixnet_client: SharedMixnetClient,
-    reconnect_mixnet_client_data: ReconnectMixnetClientData,
 }
 
 impl ConnectedMixnet {
@@ -72,7 +68,7 @@ impl ConnectedMixnet {
     /// Creates a tunnel over Mixnet.
     pub async fn connect_mixnet_tunnel(
         self,
-        interface_addresses: Option<IpPair>, // known as config.nym_ips
+        cancel_token: CancellationToken,
     ) -> Result<mixnet::connected_tunnel::ConnectedTunnel> {
         let connector = mixnet::connector::Connector::new(
             self.task_manager,
@@ -81,7 +77,7 @@ impl ConnectedMixnet {
         );
 
         match connector
-            .connect(self.selected_gateways, interface_addresses)
+            .connect(self.selected_gateways, cancel_token)
             .await
         {
             Ok(connected_tunnel) => Ok(connected_tunnel),
@@ -95,6 +91,7 @@ impl ConnectedMixnet {
     /// Creates a tunnel over WireGuard.
     pub async fn connect_wireguard_tunnel(
         self,
+        network: &Network,
         enable_credentials_mode: bool,
         cancel_token: CancellationToken,
     ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
@@ -106,10 +103,10 @@ impl ConnectedMixnet {
 
         match connector
             .connect(
+                network,
                 enable_credentials_mode,
                 self.selected_gateways,
                 self.data_path,
-                self.reconnect_mixnet_client_data,
                 cancel_token,
             )
             .await
@@ -124,7 +121,8 @@ impl ConnectedMixnet {
 
     /// Gracefully shutdown the mixnet client and consume the struct.
     pub async fn dispose(self) {
-        shutdown_task_manager(self.task_manager).await;
+        tracing::debug!("Shutting down connected mixnet");
+        shutdown_mixnet_client(self.task_manager, self.mixnet_client).await;
     }
 }
 
@@ -132,6 +130,7 @@ impl ConnectedMixnet {
 pub struct MixnetConnectOptions {
     pub data_path: Option<PathBuf>,
     pub gateway_config: nym_gateway_directory::Config,
+    pub resolved_gateway_config: nym_gateway_directory::ResolvedConfig,
     pub mixnet_client_config: Option<MixnetClientConfig>,
     pub tunnel_type: TunnelType,
     pub enable_credentials_mode: bool,
@@ -142,6 +141,7 @@ pub struct MixnetConnectOptions {
 
 pub async fn select_gateways(
     gateway_config: nym_gateway_directory::Config,
+    resolved_gateway_config: nym_gateway_directory::ResolvedConfig,
     tunnel_type: TunnelType,
     entry_point: Box<EntryPoint>,
     exit_point: Box<ExitPoint>,
@@ -150,8 +150,12 @@ pub async fn select_gateways(
 ) -> Result<SelectedGateways> {
     let user_agent =
         user_agent.unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
-    let gateway_directory_client =
-        GatewayClient::new(gateway_config, user_agent).map_err(Error::CreateGatewayClient)?;
+    let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
+        gateway_config,
+        user_agent,
+        resolved_gateway_config.nym_vpn_api_socket_addrs.as_deref(),
+    )
+    .map_err(Error::CreateGatewayClient)?;
 
     let select_gateways_fut = gateway_selector::select_gateways(
         &gateway_directory_client,
@@ -168,42 +172,41 @@ pub async fn select_gateways(
 
 pub async fn connect_mixnet(
     options: MixnetConnectOptions,
+    network_env: &Network,
     cancel_token: CancellationToken,
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<ConnectedMixnet> {
     let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
-    let bw_controller_task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
-
-    let task_client = match options.tunnel_type {
-        TunnelType::Mixnet => task_manager.subscribe_named("mixnet_client_main"),
-        TunnelType::Wireguard => bw_controller_task_manager.subscribe_named("mixnet_client_main"),
-    };
+    let task_client = task_manager.subscribe_named("mixnet_client_main");
 
     let mut mixnet_client_config = options.mixnet_client_config.clone().unwrap_or_default();
-    let reconnect_mixnet_client_data = ReconnectMixnetClientData::new(
-        options.clone(),
-        bw_controller_task_manager,
-        mixnet_client_config.clone(),
-    );
     let user_agent = options
         .user_agent
         .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
-    let gateway_directory_client = GatewayClient::new(options.gateway_config, user_agent)
-        .map_err(Error::CreateGatewayClient)?;
+    let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
+        options.gateway_config,
+        user_agent,
+        options
+            .resolved_gateway_config
+            .nym_vpn_api_socket_addrs
+            .as_deref(),
+    )
+    .map_err(Error::CreateGatewayClient)?;
 
     match options.tunnel_type {
         TunnelType::Mixnet => {}
         TunnelType::Wireguard => {
             // Always disable poisson process for outbound traffic in wireguard.
             mixnet_client_config.disable_poisson_rate = true;
-            // Always disable background cover traffic in wireguard, except for android
-            mixnet_client_config.disable_background_cover_traffic = !cfg!(target_os = "android");
+            // Always disable background cover traffic in wireguard.
+            mixnet_client_config.disable_background_cover_traffic = false;
         }
     };
 
     let connect_fut = tokio::time::timeout(
         MIXNET_CLIENT_STARTUP_TIMEOUT,
         crate::mixnet::setup_mixnet_client(
+            network_env,
             options.selected_gateways.entry.identity(),
             &options.data_path,
             task_client,
@@ -232,7 +235,6 @@ pub async fn connect_mixnet(
             data_path: options.data_path,
             gateway_directory_client,
             mixnet_client,
-            reconnect_mixnet_client_data,
         }),
         Err(e) => {
             shutdown_task_manager(task_manager).await;
@@ -242,13 +244,24 @@ pub async fn connect_mixnet(
 }
 
 async fn shutdown_task_manager(mut task_manager: TaskManager) {
-    tracing::debug!("Shutting down task manager");
     if task_manager.signal_shutdown().is_err() {
         tracing::error!("Failed to signal task manager shutdown");
     }
 
+    tracing::debug!("Waiting for task manager to shutdown");
     task_manager.wait_for_graceful_shutdown().await;
-    tracing::debug!("Task manager finished");
+}
+
+async fn shutdown_mixnet_client(mut task_manager: TaskManager, mixnet_client: SharedMixnetClient) {
+    if let Err(e) = task_manager.signal_shutdown() {
+        tracing::error!("Failed to signal task manager shutdown: {}", e);
+    }
+
+    tracing::debug!("Disposing mixnet client");
+    mixnet_client.dispose().await;
+
+    tracing::debug!("Waiting for task manager to shutdown");
+    task_manager.wait_for_graceful_shutdown().await;
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -272,7 +285,7 @@ pub enum Error {
         source: nym_gateway_directory::Error,
     },
 
-    #[error("failed to connect ot ip packet router: {}", _0)]
+    #[error("failed to connect to ip packet router: {}", _0)]
     ConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
 
     #[error("wireguard authentication is not possible due to one of the gateways not running the authenticator process: {0}")]

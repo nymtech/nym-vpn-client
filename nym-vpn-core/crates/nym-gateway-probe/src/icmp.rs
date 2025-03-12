@@ -10,7 +10,7 @@ use nym_connection_monitor::{
     ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply,
 };
 use nym_gateway_directory::IpPacketRouterAddress;
-use nym_ip_packet_requests::{codec::MultiIpPacketCodec, IpPair};
+use nym_ip_packet_requests::{codec::MultiIpPacketCodec, v8::request::IpPacketRequest, IpPair};
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{InputMessage, Recipient};
 use nym_task::connections::TransmissionLane;
@@ -38,7 +38,7 @@ pub async fn send_ping_v4(
         MultiIpPacketCodec::bundle_one_packet(ipv4_packet.packet().to_vec().into());
 
     // Wrap into a mixnet input message addressed to the IPR
-    let mixnet_message = create_input_message(exit_router_address.0, bundled_packet)?;
+    let mixnet_message = create_input_message(exit_router_address, bundled_packet)?;
 
     shared_mixnet_client.send(mixnet_message).await?;
     Ok(())
@@ -65,23 +65,26 @@ pub async fn send_ping_v6(
         MultiIpPacketCodec::bundle_one_packet(ipv6_packet.packet().to_vec().into());
 
     // Wrap into a mixnet input message addressed to the IPR
-    let mixnet_message = create_input_message(exit_router_address.0, bundled_packet)?;
+    let mixnet_message = create_input_message(exit_router_address, bundled_packet)?;
 
     // Send across the mixnet
     shared_mixnet_client.send(mixnet_message).await?;
     Ok(())
 }
 
-fn create_input_message(recipient: Recipient, bundled_packets: Bytes) -> Result<InputMessage> {
-    let packet =
-        nym_ip_packet_requests::request::IpPacketRequest::new_data_request(bundled_packets)
-            .to_bytes()?;
+fn create_input_message(
+    recipient: impl Into<Recipient>,
+    bundled_packets: Bytes,
+) -> Result<InputMessage> {
+    let packet = IpPacketRequest::new_data_request(bundled_packets).to_bytes()?;
 
     let lane = TransmissionLane::General;
     let packet_type = None;
-    Ok(InputMessage::new_regular(
-        recipient,
+    let surbs = 0;
+    Ok(InputMessage::new_anonymous(
+        recipient.into(),
         packet,
+        surbs,
         lane,
         packet_type,
     ))

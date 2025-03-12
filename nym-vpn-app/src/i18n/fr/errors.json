@@ -9,16 +9,15 @@
   "grpc": "Erreur interne gRPC",
   "tunnel": {
     "internal": "Erreur interne",
+    "internal-reason": "Erreur interne : {{reason}}",
+    "api": "Erreur d'API : {{reason}}",
     "firewall": "Erreur de pare-feu",
     "routing": "Erreur de routage",
     "dns": "Erreur de DNS",
-    "tun-device": "Erreur \"tun-device\"",
-    "provider": "Erreur \"tunnel provider\"",
     "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
     "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
     "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
-    "bad-bandwidth-increase": "Bandwidth increase error",
-    "duplicate-tun-fd": "Duplicate tunnel fd"
+    "max-devices-reached": "Le nombre maximum d'appareil ajouté a été atteint. Supprimez un appareil de votre compte et réessayez."
   },
   "countries-request": {
     "entry": "Échec de la recherche des pays de nœuds d'entrée disponibles",
@@ -28,15 +27,6 @@
   "account": {
     "invalid-recovery-phrase": "Code d'accès invalide",
     "storage": "Erreur de stockage backend",
-    "is-connected": "Impossible d'effectuer cette action lorsque connecté au VPN",
-    "not-stored": "Aucun code d'accès stocké",
-    "no-device-stored": "Aucune clé d'appareil stockée",
-    "update": "La mise à jour du compte utilisateur a échouée",
-    "update-device": "La mise à jour de l'appareil a échouée",
-    "register-device": "L'enregistrement de l'appareil a échoué",
-    "maximum-registered-devices": "L'enregistrement de l'appareil a échoué : le nombre maximum d'appareils enregistrés a été atteint"
-  },
-  "zknym": {
-    "request-failed": "La requête de zk-nym a échoué"
+    "is-connected": "Impossible d'effectuer cette action lorsque connecté au VPN"
   }
 }

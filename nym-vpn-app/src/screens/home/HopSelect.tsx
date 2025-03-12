@@ -1,68 +1,64 @@
 import { useTranslation } from 'react-i18next';
 import clsx from 'clsx';
-import { Country, NodeHop } from '../../types';
-import { useInAppNotify, useMainState } from '../../contexts';
+import { Country, Gateway, NodeHop, isGateway } from '../../types';
 import { FlagIcon, MsIcon, countryCode } from '../../ui';
-import { useLang, useThrottle } from '../../hooks';
-import { HomeThrottleDelay } from '../../constants';
+import { useLang } from '../../hooks';
+import { useActionToast } from './util';
 
 type HopSelectProps = {
-  country: Country;
+  node: Country | Gateway;
   onClick: () => void;
   nodeHop: NodeHop;
   disabled?: boolean;
+  locked?: boolean;
 };
 
 export default function HopSelect({
   nodeHop,
-  country,
+  node,
   onClick,
   disabled,
+  locked,
 }: HopSelectProps) {
-  const { state, daemonStatus } = useMainState();
   const { t } = useTranslation('home');
-  const { push } = useInAppNotify();
   const { getCountryName } = useLang();
-
-  const showSnackbar = useThrottle(
-    () => {
-      let text = '';
-      switch (state) {
-        case 'Connected':
-          text = t('snackbar-disabled-message.connected');
-          break;
-        case 'Connecting':
-          text = t('snackbar-disabled-message.connecting');
-          break;
-        case 'Disconnecting':
-          text = t('snackbar-disabled-message.disconnecting');
-          break;
-        case 'Offline':
-        case 'OfflineAutoReconnect':
-          text = t('snackbar-disabled-message.offline');
-          break;
-      }
-      if (daemonStatus === 'NotOk') {
-        text = t('snackbar-disabled-message.daemon-not-connected');
-      }
-      if (text.length > 0) {
-        push({
-          text,
-          position: 'top',
-        });
-      }
-    },
-    HomeThrottleDelay,
-    [state, daemonStatus],
-  );
+  const toast = useActionToast('node-select');
 
   const handleClick = () => {
     if (disabled) {
-      showSnackbar();
+      toast();
     } else {
       onClick();
     }
   };
+
+  const SelectedCountry = (country: Country) => (
+    <div className="flex flex-row items-center gap-3 overflow-hidden">
+      <FlagIcon
+        code={country.code.toLowerCase() as countryCode}
+        alt={country.code}
+      />
+      <div
+        className={clsx(['text-base truncate', disabled && 'cursor-default'])}
+      >
+        {getCountryName(country.code) || country.name}
+      </div>
+    </div>
+  );
+
+  const SelectedGateway = (gateway: Gateway) => (
+    <div className="flex flex-row items-center gap-3 overflow-hidden">
+      <FlagIcon
+        code={gateway.country.code.toLowerCase() as countryCode}
+        alt={gateway.country.code}
+      />
+      <div
+        className={clsx(['text-base truncate', disabled && 'cursor-default'])}
+      >
+        {gateway.name}
+      </div>
+    </div>
+  );
 
   return (
     <div
@@ -70,9 +66,12 @@ export default function HopSelect({
         'w-full flex flex-row justify-between items-center py-3 px-4',
         'text-baltic-sea dark:text-mercury-pinkish',
         'border border-cement-feet dark:border-gun-powder rounded-lg',
-        'hover:border-baltic-sea hover:ring-baltic-sea',
-        'dark:hover:border-mercury-pinkish dark:hover:ring-mercury-pinkish',
+        !locked && [
+          'hover:border-baltic-sea hover:ring-baltic-sea',
+          'dark:hover:border-mercury-pinkish dark:hover:ring-mercury-pinkish',
+        ],
         'relative transition select-none cursor-default',
+        locked && 'opacity-50',
       ])}
       onKeyDown={handleClick}
       role="presentation"
@@ -87,18 +86,7 @@ export default function HopSelect({
       >
         {nodeHop === 'entry' ? t('first-hop') : t('last-hop')}
       </div>
-      <div className="flex flex-row items-center gap-3 overflow-hidden">
-        <FlagIcon
-          code={country.code.toLowerCase() as countryCode}
-          alt={country.code}
-        />
-        <div
-          className={clsx(['text-base truncate', disabled && 'cursor-default'])}
-        >
-          {getCountryName(country.code) || country.name}
-        </div>
-      </div>
-
+      {isGateway(node) ? SelectedGateway(node) : SelectedCountry(node)}
       <MsIcon icon="arrow_right" className="pointer-events-none" />
     </div>
   );

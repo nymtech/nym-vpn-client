@@ -329,7 +329,7 @@ Var AppStartMenuFolder
 !insertmacro MUI_PAGE_FINISH
 
 Function RunMainBinary
-  nsis_tauri_utils::RunAsUser "$INSTDIR\${MAINBINARYNAME}.exe" "-l"
+  nsis_tauri_utils::RunAsUser "$INSTDIR\${MAINBINARYNAME}.exe" "-l -Ldebug"
 FunctionEnd
 
 ; Uninstaller Pages
@@ -556,8 +556,7 @@ Section Install
   ; Copy libraries
   File "..\..\..\..\libwg.dll"
   File "..\..\..\..\wintun.dll"
-  ; TODO restore when winfw build is fixed
-  ; File "..\..\..\..\winfw.dll"
+  File "..\..\..\..\winfw.dll"
 
   ; Copy resources
   {{#each resources_dirs}}
@@ -689,8 +688,7 @@ Section Uninstall
 
   Delete "$INSTDIR\libwg.dll"
   Delete "$INSTDIR\wintun.dll"
-  ; TODO restore when winfw build is fixed
-  ; Delete "$INSTDIR\winfw.dll"
+  Delete "$INSTDIR\winfw.dll"
 
   ; Delete resources
   {{#each resources}}
@@ -782,12 +780,12 @@ FunctionEnd
 !macroend
 
 Function CreateDesktopShortcut
-  CreateShortcut "$DESKTOP\${MAINBINARYNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe" "-l"
+  CreateShortcut "$DESKTOP\${MAINBINARYNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe" "-l -Ldebug"
   !insertmacro SetLnkAppUserModelId "$DESKTOP\${MAINBINARYNAME}.lnk"
 FunctionEnd
 
 Function CreateStartMenuShortcut
   CreateDirectory "$SMPROGRAMS\$AppStartMenuFolder"
-  CreateShortcut "$SMPROGRAMS\$AppStartMenuFolder\${MAINBINARYNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe" "-l"
+  CreateShortcut "$SMPROGRAMS\$AppStartMenuFolder\${MAINBINARYNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe" "-l -Ldebug"
   !insertmacro SetLnkAppUserModelId "$SMPROGRAMS\$AppStartMenuFolder\${MAINBINARYNAME}.lnk"
 FunctionEnd

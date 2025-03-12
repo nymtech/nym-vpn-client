@@ -15,7 +15,7 @@ use bytes::BytesMut;
 use clap::Args;
 use futures::StreamExt;
 use nym_authenticator_client::{AuthenticatorResponse, AuthenticatorVersion, ClientMessage};
-use nym_authenticator_requests::{v2, v3, v4};
+use nym_authenticator_requests::{v2, v3, v4, v5};
 use nym_client_core::config::ForgetMe;
 use nym_config::defaults::{
     mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6},
@@ -31,13 +31,15 @@ use nym_gateway_directory::{
 use nym_ip_packet_client::IprClientConnect;
 use nym_ip_packet_requests::{
     codec::MultiIpPacketCodec,
-    response::{DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData},
+    v8::response::{
+        ControlResponse, DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData,
+    },
     IpPair,
 };
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, ReconstructedMessage};
 use nym_wireguard_types::PeerPublicKey;
-use tokio_util::codec::Decoder;
+use tokio_util::{codec::Decoder, sync::CancellationToken};
 use tracing::*;
 use types::WgProbeResults;
 
@@ -46,8 +48,10 @@ use crate::{
     types::Exit,
 };
 
-use netstack::ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo};
-use netstack::NetstackRequest;
+use netstack::{
+    ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo},
+    NetstackRequest,
+};
 
 mod error;
 mod icmp;
@@ -136,10 +140,12 @@ impl From<&NymNode> for TestedNodeDetails {
 }
 
 /// Obtain nym-node for testing
-pub async fn get_nym_node(identity: NodeIdentity) -> anyhow::Result<NymNode> {
-    let config = GatewayDirectoryConfig::new_from_env();
+pub async fn get_nym_node(
+    config: GatewayDirectoryConfig,
+    identity: NodeIdentity,
+) -> anyhow::Result<NymNode> {
     let user_agent = nym_bin_common::bin_info_local_vergen!().into();
-    let nodes_client = GatewayDirectoryClient::new(config.clone(), user_agent)?;
+    let nodes_client = GatewayDirectoryClient::new(config, user_agent)?;
     let nodes = nodes_client.lookup_all_nymnodes().await?;
     let node = nodes
         .node_with_identity(&identity)
@@ -147,18 +153,14 @@ pub async fn get_nym_node(identity: NodeIdentity) -> anyhow::Result<NymNode> {
     Ok(node.clone())
 }
 
-pub async fn fetch_gateways(
-    min_gateway_performance: GatewayMinPerformance,
-) -> anyhow::Result<GatewayList> {
-    lookup_gateways(min_gateway_performance).await
+pub async fn fetch_gateways(gateway_config: GatewayDirectoryConfig) -> anyhow::Result<GatewayList> {
+    lookup_gateways(gateway_config).await
 }
 
 pub async fn fetch_gateways_with_ipr(
-    min_gateway_performance: GatewayMinPerformance,
+    gateway_config: GatewayDirectoryConfig,
 ) -> anyhow::Result<GatewayList> {
-    Ok(lookup_gateways(min_gateway_performance)
-        .await?
-        .into_exit_gateways())
+    Ok(lookup_gateways(gateway_config).await?.into_exit_gateways())
 }
 
 pub struct Probe {
@@ -191,20 +193,20 @@ impl Probe {
 
     pub async fn probe(
         self,
-        min_gateway_performance: GatewayMinPerformance,
+        gateway_config: GatewayDirectoryConfig,
         ignore_egress_epoch_role: bool,
         only_wireguard: bool,
     ) -> anyhow::Result<ProbeResult> {
         let entry_point = self.entrypoint;
 
         // Setup the entry gateways
-        let gateways = lookup_gateways(min_gateway_performance).await?;
+        let gateways = lookup_gateways(gateway_config.clone()).await?;
         let entry_gateway = entry_point.lookup_gateway(&gateways).await?;
         let tested_entry = self.tested_node.is_same_as_entry();
 
         let node_info: TestedNodeDetails = match self.tested_node {
             TestedNode::Custom { identity } => {
-                let node = get_nym_node(identity).await?;
+                let node = get_nym_node(gateway_config.clone(), identity).await?;
                 info!(
                     "testing node {} (via entry {})",
                     node.identity, entry_gateway.identity
@@ -227,7 +229,7 @@ impl Probe {
             .request_gateway(mixnet_entry_gateway_id.to_string())
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(mixnet_debug_config(
-                min_gateway_performance,
+                gateway_config.min_gateway_performance,
                 ignore_egress_epoch_role,
             ))
             .with_forget_me(ForgetMe::new_all())
@@ -363,6 +365,9 @@ async fn wg_probe(
         AuthenticatorVersion::V4 => ClientMessage::Initial(Box::new(
             v4::registration::InitMessage::new(authenticator_pub_key),
         )),
+        AuthenticatorVersion::V5 => ClientMessage::Initial(Box::new(
+            v5::registration::InitMessage::new(authenticator_pub_key),
+        )),
         AuthenticatorVersion::UNKNOWN => bail!("unknown version number"),
     };
 
@@ -408,6 +413,17 @@ async fn wg_probe(
                     AuthenticatorVersion::V4 => {
                         ClientMessage::Final(Box::new(v4::registration::FinalMessage {
                             gateway_client: v4::registration::GatewayClient::new(
+                                &private_key,
+                                pending_registration_response.pub_key().inner(),
+                                pending_registration_response.private_ips().into(),
+                                pending_registration_response.nonce(),
+                            ),
+                            credential: None,
+                        }))
+                    }
+                    AuthenticatorVersion::V5 => {
+                        ClientMessage::Final(Box::new(v5::registration::FinalMessage {
+                            gateway_client: v5::registration::GatewayClient::new(
                                 &private_key,
                                 pending_registration_response.pub_key().inner(),
                                 pending_registration_response.private_ips(),
@@ -508,11 +524,7 @@ async fn wg_probe(
     Ok(wg_outcome)
 }
 
-async fn lookup_gateways(
-    min_gateway_performance: GatewayMinPerformance,
-) -> anyhow::Result<GatewayList> {
-    let gateway_config = GatewayDirectoryConfig::new_from_env()
-        .with_min_gateway_performance(min_gateway_performance);
+async fn lookup_gateways(gateway_config: GatewayDirectoryConfig) -> anyhow::Result<GatewayList> {
     info!("nym-api: {}", gateway_config.api_url());
     info!(
         "nym-vpn-api: {}",
@@ -523,13 +535,13 @@ async fn lookup_gateways(
     );
 
     let user_agent = nym_bin_common::bin_info_local_vergen!().into();
-    let gateway_client = GatewayDirectoryClient::new(gateway_config.clone(), user_agent)?;
+    let gateway_client = GatewayDirectoryClient::new(gateway_config, user_agent)?;
     let gateways = gateway_client.lookup_all_gateways_from_nym_api().await?;
     Ok(gateways)
 }
 
 fn mixnet_debug_config(
-    min_gateway_performance: GatewayMinPerformance,
+    min_gateway_performance: Option<GatewayMinPerformance>,
     ignore_egress_epoch_role: bool,
 ) -> nym_client_core::config::DebugConfig {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
@@ -537,7 +549,9 @@ fn mixnet_debug_config(
         .traffic
         .disable_main_poisson_packet_distribution = true;
     debug_config.cover_traffic.disable_loop_cover_traffic_stream = true;
-    if let Some(minimum_gateway_performance) = min_gateway_performance.mixnet_min_performance {
+    if let Some(minimum_gateway_performance) =
+        min_gateway_performance.and_then(|p| p.mixnet_min_performance)
+    {
         debug_config.topology.minimum_gateway_performance =
             minimum_gateway_performance.round_to_integer();
     }
@@ -593,8 +607,10 @@ async fn do_ping(
         "Connecting to exit gateway: {}",
         exit_router_address.gateway().to_base58_string()
     );
-    let mut ipr_client = IprClientConnect::new(shared_mixnet_client.clone()).await;
-    let Ok(our_ips) = ipr_client.connect(exit_router_address.0, None).await else {
+    // The IPR supports cancellation, but it's unused in the gateway probe
+    let cancel_token = CancellationToken::new();
+    let mut ipr_client = IprClientConnect::new(shared_mixnet_client.clone(), cancel_token).await;
+    let Ok(our_ips) = ipr_client.connect(exit_router_address).await else {
         return Ok(ProbeOutcome {
             as_entry,
             as_exit: Some(Exit::fail_to_connect()),
@@ -725,19 +741,21 @@ fn unpack_data_response(reconstructed_message: &ReconstructedMessage) -> Option<
     match IpPacketResponse::from_reconstructed_message(reconstructed_message) {
         Ok(response) => match response.data {
             IpPacketResponseData::Data(data_response) => Some(data_response),
-            IpPacketResponseData::Info(info) => {
-                let msg = format!("Received info response from the mixnet: {}", info.reply);
-                match info.level {
-                    InfoLevel::Info => info!("{msg}"),
-                    InfoLevel::Warn => warn!("{msg}"),
-                    InfoLevel::Error => error!("{msg}"),
+            IpPacketResponseData::Control(control) => match *control {
+                ControlResponse::Info(info) => {
+                    let msg = format!("Received info response from the mixnet: {}", info.reply);
+                    match info.level {
+                        InfoLevel::Info => info!("{msg}"),
+                        InfoLevel::Warn => warn!("{msg}"),
+                        InfoLevel::Error => error!("{msg}"),
+                    }
+                    None
                 }
-                None
-            }
-            _ => {
-                info!("Ignoring: {:?}", response);
-                None
-            }
+                _ => {
+                    info!("Ignoring: {:?}", control);
+                    None
+                }
+            },
         },
         Err(err) => {
             warn!("Failed to parse mixnet message: {err}");

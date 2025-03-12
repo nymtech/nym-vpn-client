@@ -19,6 +19,8 @@ public struct HelperInstallView: View {
             Spacer()
             allStepsView()
             Spacer()
+            errorMessage()
+            Spacer()
             actionButton()
         }
         .navigationBarBackButtonHidden(true)
@@ -27,6 +29,12 @@ public struct HelperInstallView: View {
             NymColor.background
                 .ignoresSafeArea()
         }
+        // Copy to clipboard success message
+        .snackbar(
+            isDisplayed: $viewModel.isSnackBarDisplayed,
+            style: .info,
+            message: viewModel.copiedSuccesfullyMessage
+        )
     }
 }
 
@@ -40,7 +48,7 @@ extension HelperInstallView {
 
     func explanationText() -> some View {
         Text(viewModel.infoText)
-            .textStyle(.Body.Medium.regular)
+            .textStyle(.BodyLegacy.Medium.regular)
             .foregroundStyle(NymColor.modeInfoViewTitle)
             .multilineTextAlignment(.center)
             .padding(16)
@@ -68,12 +76,38 @@ extension HelperInstallView {
 
     @ViewBuilder
     func stepView(step: HelperInstallStep) -> some View {
-        HStack {
-            PulsingImageView(systemImageName: step.systemImageName, imageColor: step.imageColor)
+        switch step {
+        case .uninstallOldDeamon:
             Text(step.title)
-                .textStyle(.Body.Large.semibold)
+                .textStyle(.BodyLegacy.Medium.regular)
                 .foregroundStyle(NymColor.modeInfoViewTitle)
+                .padding(.horizontal, 16)
+            Spacer()
+                .frame(height: 16)
+
+            GenericButton(title: "helper.installView.copy".localizedString, borderOnly: true)
+                .padding(.horizontal, 16)
+                .onTapGesture {
+                    viewModel.copyCommands()
+                }
+        default:
+            HStack {
+                PulsingImageView(systemImageName: step.systemImageName, imageColor: step.imageColor)
+                Text(step.title)
+                    .textStyle(.BodyLegacy.Large.semibold)
+                    .lineLimit(3)
+                    .foregroundStyle(NymColor.modeInfoViewTitle)
+            }
+            .padding(.horizontal, 16)
         }
-        .padding(.horizontal, 16)
+    }
+
+    @ViewBuilder
+    func errorMessage() -> some View {
+        if let message = viewModel.error?.localizedDescription {
+            Text(message)
+                .textStyle(.BodyLegacy.Large.semibold)
+                .foregroundStyle(NymColor.sysError)
+        }
     }
 }

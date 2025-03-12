@@ -1,19 +1,20 @@
 use std::{
+    fmt,
     net::{Ipv4Addr, Ipv6Addr},
     time::Duration,
 };
 
 use nym_authenticator_requests::{
-    v2, v3,
-    v4::{self, registration::IpPair},
+    v2, v3, v4,
+    v5::{self, registration::IpPair},
 };
 
 use nym_credentials_interface::CredentialSpendingData;
 use nym_crypto::asymmetric::x25519::PrivateKey;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{
-    ClientStatsEvents, ClientStatsSender, MixnetClient, MixnetClientSender, MixnetMessageSender,
-    Recipient, ReconstructedMessage, TransmissionLane,
+    ClientStatsEvents, ClientStatsSender, IncludedSurbs, MixnetClient, MixnetClientSender,
+    MixnetMessageSender, Recipient, ReconstructedMessage, TransmissionLane,
 };
 use nym_service_provider_requests_common::ServiceProviderType;
 use nym_wireguard_types::PeerPublicKey;
@@ -45,6 +46,12 @@ impl Versionable for v4::registration::InitMessage {
     }
 }
 
+impl Versionable for v5::registration::InitMessage {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V5
+    }
+}
+
 impl Versionable for v2::registration::FinalMessage {
     fn version(&self) -> AuthenticatorVersion {
         AuthenticatorVersion::V2
@@ -60,6 +67,12 @@ impl Versionable for v3::registration::FinalMessage {
 impl Versionable for v4::registration::FinalMessage {
     fn version(&self) -> AuthenticatorVersion {
         AuthenticatorVersion::V4
+    }
+}
+
+impl Versionable for v5::registration::FinalMessage {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V5
     }
 }
 
@@ -81,6 +94,12 @@ impl Versionable for v4::topup::TopUpMessage {
     }
 }
 
+impl Versionable for v5::topup::TopUpMessage {
+    fn version(&self) -> AuthenticatorVersion {
+        AuthenticatorVersion::V5
+    }
+}
+
 pub trait InitMessage: Versionable {
     fn pub_key(&self) -> PeerPublicKey;
 }
@@ -98,6 +117,12 @@ impl InitMessage for v3::registration::InitMessage {
 }
 
 impl InitMessage for v4::registration::InitMessage {
+    fn pub_key(&self) -> PeerPublicKey {
+        self.pub_key
+    }
+}
+
+impl InitMessage for v5::registration::InitMessage {
     fn pub_key(&self) -> PeerPublicKey {
         self.pub_key
     }
@@ -183,6 +208,28 @@ impl FinalMessage for v4::registration::FinalMessage {
     }
 }
 
+impl FinalMessage for v5::registration::FinalMessage {
+    fn gateway_client_pub_key(&self) -> PeerPublicKey {
+        self.gateway_client.pub_key
+    }
+
+    fn gateway_client_ipv4(&self) -> Option<Ipv4Addr> {
+        Some(self.gateway_client.private_ips.ipv4)
+    }
+
+    fn gateway_client_ipv6(&self) -> Option<Ipv6Addr> {
+        Some(self.gateway_client.private_ips.ipv6)
+    }
+
+    fn gateway_client_mac(&self) -> Vec<u8> {
+        self.gateway_client.mac.to_vec()
+    }
+
+    fn credential(&self) -> Option<CredentialSpendingData> {
+        self.credential.clone()
+    }
+}
+
 // Temporary solution for lacking a query message wrapper in monorepo
 pub struct QueryMessageImpl {
     pub pub_key: PeerPublicKey,
@@ -211,6 +258,26 @@ pub trait TopUpMessage: Versionable {
 }
 
 impl TopUpMessage for v3::topup::TopUpMessage {
+    fn pub_key(&self) -> PeerPublicKey {
+        self.pub_key
+    }
+
+    fn credential(&self) -> CredentialSpendingData {
+        self.credential.clone()
+    }
+}
+
+impl TopUpMessage for v4::topup::TopUpMessage {
+    fn pub_key(&self) -> PeerPublicKey {
+        self.pub_key
+    }
+
+    fn credential(&self) -> CredentialSpendingData {
+        self.credential.clone()
+    }
+}
+
+impl TopUpMessage for v5::topup::TopUpMessage {
     fn pub_key(&self) -> PeerPublicKey {
         self.pub_key
     }
@@ -370,7 +437,8 @@ impl ClientMessage {
                                         ipv6: final_message
                                             .gateway_client_ipv6()
                                             .ok_or(Error::UnsupportedMessage)?,
-                                    },
+                                    }
+                                    .into(),
                                     mac: ClientMac::new(final_message.gateway_client_mac()),
                                 },
                                 credential: final_message.credential(),
@@ -398,7 +466,60 @@ impl ClientMessage {
                     }
                 }
             }
+            AuthenticatorVersion::V5 => {
+                use v5::{
+                    registration::{ClientMac, FinalMessage, GatewayClient, InitMessage},
+                    request::AuthenticatorRequest,
+                    topup::TopUpMessage,
+                };
+                match self {
+                    ClientMessage::Initial(init_message) => {
+                        let (req, id) = AuthenticatorRequest::new_initial_request(InitMessage {
+                            pub_key: init_message.pub_key(),
+                        });
+                        Ok((req.to_bytes()?, id))
+                    }
+                    ClientMessage::Final(final_message) => {
+                        let (req, id) = AuthenticatorRequest::new_final_request(FinalMessage {
+                            gateway_client: GatewayClient {
+                                pub_key: final_message.gateway_client_pub_key(),
+                                private_ips: IpPair {
+                                    ipv4: final_message
+                                        .gateway_client_ipv4()
+                                        .ok_or(Error::UnsupportedMessage)?,
+                                    ipv6: final_message
+                                        .gateway_client_ipv6()
+                                        .ok_or(Error::UnsupportedMessage)?,
+                                },
+                                mac: ClientMac::new(final_message.gateway_client_mac()),
+                            },
+                            credential: final_message.credential(),
+                        });
+                        Ok((req.to_bytes()?, id))
+                    }
+                    ClientMessage::Query(query_message) => {
+                        let (req, id) =
+                            AuthenticatorRequest::new_query_request(query_message.pub_key());
+                        Ok((req.to_bytes()?, id))
+                    }
+                    ClientMessage::TopUp(top_up_message) => {
+                        let (req, id) = AuthenticatorRequest::new_topup_request(TopUpMessage {
+                            pub_key: top_up_message.pub_key(),
+                            credential: top_up_message.credential(),
+                        });
+                        Ok((req.to_bytes()?, id))
+                    }
+                }
+            }
             AuthenticatorVersion::UNKNOWN => Err(Error::UnknownVersion),
+        }
+    }
+
+    pub fn use_surbs(&self) -> bool {
+        match self.version() {
+            AuthenticatorVersion::V2 | AuthenticatorVersion::V3 | AuthenticatorVersion::V4 => false,
+            AuthenticatorVersion::V5 => true,
+            AuthenticatorVersion::UNKNOWN => true,
         }
     }
 }
@@ -425,6 +546,12 @@ impl Id for v4::response::PendingRegistrationResponse {
     }
 }
 
+impl Id for v5::response::PendingRegistrationResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
 impl Id for v2::response::RegisteredResponse {
     fn id(&self) -> u64 {
         self.request_id
@@ -438,6 +565,12 @@ impl Id for v3::response::RegisteredResponse {
 }
 
 impl Id for v4::response::RegisteredResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
+impl Id for v5::response::RegisteredResponse {
     fn id(&self) -> u64 {
         self.request_id
     }
@@ -461,6 +594,12 @@ impl Id for v4::response::RemainingBandwidthResponse {
     }
 }
 
+impl Id for v5::response::RemainingBandwidthResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
 impl Id for v3::response::TopUpBandwidthResponse {
     fn id(&self) -> u64 {
         self.request_id
@@ -468,6 +607,12 @@ impl Id for v3::response::TopUpBandwidthResponse {
 }
 
 impl Id for v4::response::TopUpBandwidthResponse {
+    fn id(&self) -> u64 {
+        self.request_id
+    }
+}
+
+impl Id for v5::response::TopUpBandwidthResponse {
     fn id(&self) -> u64 {
         self.request_id
     }
@@ -542,6 +687,27 @@ impl PendingRegistrationResponse for v4::response::PendingRegistrationResponse {
     }
 
     fn private_ips(&self) -> IpPair {
+        self.reply.gateway_data.private_ips.into()
+    }
+}
+
+impl PendingRegistrationResponse for v5::response::PendingRegistrationResponse {
+    fn nonce(&self) -> u64 {
+        self.reply.nonce
+    }
+
+    fn verify(
+        &self,
+        gateway_key: &PrivateKey,
+    ) -> std::result::Result<(), nym_authenticator_requests::Error> {
+        self.reply.gateway_data.verify(gateway_key, self.nonce())
+    }
+
+    fn pub_key(&self) -> PeerPublicKey {
+        self.reply.gateway_data.pub_key
+    }
+
+    fn private_ips(&self) -> IpPair {
         self.reply.gateway_data.private_ips
     }
 }
@@ -581,6 +747,20 @@ impl RegisteredResponse for v3::response::RegisteredResponse {
 }
 impl RegisteredResponse for v4::response::RegisteredResponse {
     fn private_ips(&self) -> IpPair {
+        self.reply.private_ips.into()
+    }
+
+    fn pub_key(&self) -> PeerPublicKey {
+        self.reply.pub_key
+    }
+
+    fn wg_port(&self) -> u16 {
+        self.reply.wg_port
+    }
+}
+
+impl RegisteredResponse for v5::response::RegisteredResponse {
+    fn private_ips(&self) -> IpPair {
         self.reply.private_ips
     }
 
@@ -615,6 +795,12 @@ impl RemainingBandwidthResponse for v4::response::RemainingBandwidthResponse {
     }
 }
 
+impl RemainingBandwidthResponse for v5::response::RemainingBandwidthResponse {
+    fn available_bandwidth(&self) -> Option<i64> {
+        self.reply.as_ref().map(|r| r.available_bandwidth)
+    }
+}
+
 pub trait TopUpBandwidthResponse: Id {
     fn available_bandwidth(&self) -> i64;
 }
@@ -626,6 +812,12 @@ impl TopUpBandwidthResponse for v3::response::TopUpBandwidthResponse {
 }
 
 impl TopUpBandwidthResponse for v4::response::TopUpBandwidthResponse {
+    fn available_bandwidth(&self) -> i64 {
+        self.reply.available_bandwidth
+    }
+}
+
+impl TopUpBandwidthResponse for v5::response::TopUpBandwidthResponse {
     fn available_bandwidth(&self) -> i64 {
         self.reply.available_bandwidth
     }
@@ -709,16 +901,48 @@ impl From<v4::response::AuthenticatorResponse> for AuthenticatorResponse {
     }
 }
 
-#[derive(Copy, Clone, Debug)]
+impl From<v5::response::AuthenticatorResponse> for AuthenticatorResponse {
+    fn from(value: v5::response::AuthenticatorResponse) -> Self {
+        match value.data {
+            v5::response::AuthenticatorResponseData::PendingRegistration(
+                pending_registration_response,
+            ) => Self::PendingRegistration(Box::new(pending_registration_response)),
+            v5::response::AuthenticatorResponseData::Registered(registered_response) => {
+                Self::Registered(Box::new(registered_response))
+            }
+            v5::response::AuthenticatorResponseData::RemainingBandwidth(
+                remaining_bandwidth_response,
+            ) => Self::RemainingBandwidth(Box::new(remaining_bandwidth_response)),
+            v5::response::AuthenticatorResponseData::TopUpBandwidth(top_up_bandwidth_response) => {
+                Self::TopUpBandwidth(Box::new(top_up_bandwidth_response))
+            }
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub enum AuthenticatorVersion {
     V2,
     V3,
     V4,
+    V5,
     UNKNOWN,
 }
 
 impl AuthenticatorVersion {
-    pub const LATEST: AuthenticatorVersion = AuthenticatorVersion::V4;
+    pub const LATEST: AuthenticatorVersion = AuthenticatorVersion::V5;
+}
+
+impl fmt::Display for AuthenticatorVersion {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::V2 => write!(f, "v2"),
+            Self::V3 => write!(f, "v3"),
+            Self::V4 => write!(f, "v4"),
+            Self::V5 => write!(f, "v5"),
+            Self::UNKNOWN => write!(f, "unknown"),
+        }
+    }
 }
 
 impl From<u8> for AuthenticatorVersion {
@@ -729,6 +953,8 @@ impl From<u8> for AuthenticatorVersion {
             Self::V3
         } else if value == 4 {
             Self::V4
+        } else if value == 5 {
+            Self::V5
         } else {
             Self::UNKNOWN
         }
@@ -780,8 +1006,14 @@ impl From<semver::Version> for AuthenticatorVersion {
         if semver.minor == 1 && semver.patch >= 10 {
             return Self::V3;
         }
-        if semver.minor >= 1 {
+        if semver.minor < 6 {
             return Self::V4;
+        }
+        if semver.minor == 6 && semver.patch == 0 {
+            return Self::V4;
+        }
+        if semver.minor == 6 && semver.patch >= 1 {
+            return Self::V5;
         }
         Self::LATEST
     }
@@ -864,13 +1096,19 @@ impl AuthClient {
     ) -> Result<u64> {
         let (data, request_id) = message.bytes(self.nym_address)?;
 
+        // We use 20 surbs for the connect request because typically the
+        // authenticator mixnet client on the nym-node is configured to have a min
+        // threshold of 10 surbs that it reserves for itself to request additional
+        // surbs.
+        let surbs = if message.use_surbs() {
+            IncludedSurbs::new(20)
+        } else {
+            IncludedSurbs::ExposeSelfAddress
+        };
+        let input_message = create_input_message(authenticator_address, data, surbs);
+
         self.mixnet_sender
-            .send(nym_sdk::mixnet::InputMessage::new_regular(
-                authenticator_address,
-                data,
-                TransmissionLane::General,
-                None,
-            ))
+            .send(input_message)
             .await
             .map_err(Error::SendMixnetMessage)?;
 
@@ -910,6 +1148,7 @@ impl AuthClient {
                                 AuthenticatorVersion::V2 => v2::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into).map_err(Into::into),
                                 AuthenticatorVersion::V3 => v3::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into).map_err(Into::into),
                                 AuthenticatorVersion::V4 => v4::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into).map_err(Into::into),
+                                AuthenticatorVersion::V5 => v5::response::AuthenticatorResponse::from_reconstructed_message(&msg).map(Into::into).map_err(Into::into),
                                 AuthenticatorVersion::UNKNOWN => Err(Error::UnknownVersion),
                             };
                             let Ok(response) = ret else {
@@ -944,5 +1183,27 @@ fn check_auth_message_version(message: &ReconstructedMessage) -> Result<Authenti
         Ok(version.into())
     } else {
         Err(Error::NoVersionInMessage)
+    }
+}
+
+fn create_input_message(
+    recipient: Recipient,
+    data: Vec<u8>,
+    surbs: IncludedSurbs,
+) -> nym_sdk::mixnet::InputMessage {
+    match surbs {
+        IncludedSurbs::Amount(surbs) => nym_sdk::mixnet::InputMessage::new_anonymous(
+            recipient,
+            data,
+            surbs,
+            TransmissionLane::General,
+            None,
+        ),
+        IncludedSurbs::ExposeSelfAddress => nym_sdk::mixnet::InputMessage::new_regular(
+            recipient,
+            data,
+            TransmissionLane::General,
+            None,
+        ),
     }
 }

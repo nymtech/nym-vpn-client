@@ -59,7 +59,7 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
       animate={{ opacity: 1, scaleX: 1, translateY: 0 }}
       transition={{ duration: 0.1, ease: 'easeOut' }}
       className={clsx([
-        'flex justify-center items-center tracking-normal gap-4',
+        'flex justify-center items-center tracking-normal gap-4 min-w-36',
         ...statusBadgeDynStyles[state],
         'text-lg font-bold py-3 px-6 rounded-full tracking-normal',
       ])}

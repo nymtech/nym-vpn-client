@@ -1,5 +1,6 @@
 import SecurityFoundation
 import ServiceManagement
+import AppVersionProvider
 import GRPCManager
 import Shell
 
@@ -15,6 +16,13 @@ public final class HelperManager {
     }
 
     public static let shared = HelperManager()
+
+    public var requiredVersion: String {
+        grpcManager.requiredVersion
+    }
+    public var currentVersion: String {
+        grpcManager.daemonVersion
+    }
 
     @Published public var daemonState = DaemonState.unknown
 
@@ -33,7 +41,7 @@ public final class HelperManager {
         do {
             switch daemon.status {
             case .notRegistered, .notFound:
-                try? daemon.register()
+                try daemon.register()
                 try install()
             case .enabled:
                 return
@@ -55,26 +63,62 @@ public final class HelperManager {
             updateDaemonState()
         }
     }
+
+    public func update() throws {
+        daemonState = .updating
+        Task {
+            do {
+                try await uninstall()
+                try daemon.register()
+                try await Task.sleep(for: .seconds(1))
+                Task { @MainActor [weak self] in
+                    self?.daemonState = .running
+                }
+            } catch {
+                Task { @MainActor [weak self] in
+                    self?.daemonState = .running
+                }
+                throw error
+            }
+        }
+    }
+
+    public func requiresDaemonMigration() -> Bool {
+        currentVersion.compare("1.2.0", options: .numeric) != .orderedDescending
+    }
 }
 
 // MARK: - Private -
 private extension HelperManager {
     func setup() {
-        updateDaemonState()
         starPolling()
     }
 
     func updateDaemonState() {
+        guard daemonState != .updating else { return }
+        var newState: DaemonState
+
         switch daemon.status {
         case .notRegistered, .notFound:
-            daemonState = .unknown
+            newState = .unknown
         case .enabled:
-            daemonState = isInstalledAndUpToDate ? .running : .authorized
+            if currentVersion != "unknown" {
+                newState = isInstalledAndUpToDate ? .running : .requiresUpdate
+            } else {
+                newState = .authorized
+            }
         case .requiresApproval:
-            daemonState = .requiresAuthorization
+            newState = .requiresAuthorization
         @unknown default:
-            break
+            newState = .unknown
         }
+
+        if requiresDaemonMigration() {
+            newState = .requiresManualRemoval
+        }
+
+        guard newState != daemonState else { return }
+        daemonState = newState
     }
 
     func isHelperRunning() -> Bool {
@@ -89,11 +133,11 @@ private extension HelperManager {
 // MARK: - Polling -
 private extension HelperManager {
     func starPolling() {
-        pollingTask = Task(priority: .background) { [weak self] in
+        pollingTask = Task { [weak self] in
             guard let self else { return }
             while pollingTask != nil {
                 updateDaemonState()
-                try? await Task.sleep(for: .seconds(2))
+                try? await Task.sleep(for: .seconds(4))
             }
         }
     }

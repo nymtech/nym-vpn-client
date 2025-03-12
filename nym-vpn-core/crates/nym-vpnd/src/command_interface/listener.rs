@@ -8,23 +8,24 @@ use std::{
 };
 
 use futures::{stream::BoxStream, StreamExt};
+use nym_vpn_network_config::{Network, NetworkCompatibility};
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
-use nym_vpn_api_client::types::GatewayMinPerformance;
+use nym_vpn_api_client::types::{GatewayMinPerformance, ScoreThresholds};
 use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
     conversions::ConversionError, nym_vpnd_server::NymVpnd, AccountError,
     ConfirmZkNymDownloadedRequest, ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse,
     DisconnectResponse, ForgetAccountResponse, GetAccountIdentityResponse, GetAccountLinksRequest,
     GetAccountLinksResponse, GetAccountStateResponse, GetAccountUsageResponse,
-    GetActiveDevicesResponse, GetAvailableTicketsResponse, GetDeviceIdentityResponse,
-    GetDeviceZkNymsResponse, GetDevicesResponse, GetFeatureFlagsResponse,
+    GetAvailableTicketsResponse, GetDeviceIdentityResponse, GetDeviceZkNymsResponse,
+    GetDevicesResponse, GetFeatureFlagsResponse, GetNetworkCompatibilityResponse,
     GetSystemMessagesResponse, GetZkNymByIdRequest, GetZkNymByIdResponse,
     GetZkNymsAvailableForDownloadResponse, InfoResponse, IsAccountStoredResponse,
-    IsReadyToConnectResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
-    ListGatewaysResponse, RefreshAccountStateResponse, RegisterDeviceResponse,
-    RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
-    SetNetworkRequest, SetNetworkResponse, StoreAccountRequest, StoreAccountResponse, TunnelState,
+    ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
+    RefreshAccountStateResponse, RegisterDeviceResponse, RequestZkNymResponse,
+    ResetDeviceIdentityRequest, ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse,
+    StoreAccountRequest, StoreAccountResponse, TunnelState,
 };
 use zeroize::Zeroizing;
 
@@ -51,6 +52,8 @@ pub(super) struct CommandInterface {
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
 
     listener: ListenerType,
+
+    network_env: Network,
 }
 
 impl CommandInterface {
@@ -58,11 +61,13 @@ impl CommandInterface {
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
         tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
         socket_path: &Path,
+        network_env: Network,
     ) -> Self {
         Self {
             vpn_command_tx,
             tunnel_event_rx,
             listener: ListenerType::Path(socket_path.to_path_buf()),
+            network_env,
         }
     }
 
@@ -70,11 +75,13 @@ impl CommandInterface {
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
         tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
         uri: SocketAddr,
+        network_env: Network,
     ) -> Self {
         Self {
             vpn_command_tx,
             tunnel_event_rx,
             listener: ListenerType::Uri(uri),
+            network_env,
         }
     }
 
@@ -153,6 +160,24 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
+    async fn get_network_compatibility(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<GetNetworkCompatibilityResponse>, tonic::Status> {
+        tracing::debug!("Got get system messages request");
+
+        let compatibility = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_get_network_compatibility()
+            .await?;
+
+        let compatibility = compatibility.map(NetworkCompatibility::into);
+        let response = GetNetworkCompatibilityResponse {
+            messages: compatibility,
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
     async fn get_feature_flags(
         &self,
         _request: tonic::Request<()>,
@@ -171,9 +196,8 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<ConnectRequest>,
     ) -> Result<tonic::Response<ConnectResponse>, tonic::Status> {
-        tracing::info!("Got connect request: {:?}", request);
-
         let connect_request = request.into_inner();
+        tracing::debug!("Got connect request: {connect_request:?}");
 
         let entry = connect_request
             .entry
@@ -308,13 +332,37 @@ impl NymVpnd for CommandInterface {
         let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
         let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
-        let min_gateway_performance = GatewayMinPerformance {
+        let min_gateway_performance = Some(GatewayMinPerformance {
             mixnet_min_performance: min_mixnet_performance,
             vpn_min_performance: min_vpn_performance,
+        });
+        let mix_score_thresholds =
+            self.network_env
+                .system_configuration
+                .map(|sc| ScoreThresholds {
+                    high: sc.mix_thresholds.high,
+                    medium: sc.mix_thresholds.medium,
+                    low: sc.mix_thresholds.low,
+                });
+        let wg_score_thresholds = self
+            .network_env
+            .system_configuration
+            .map(|sc| ScoreThresholds {
+                high: sc.wg_thresholds.high,
+                medium: sc.wg_thresholds.medium,
+                low: sc.wg_thresholds.low,
+            });
+        let directory_config = nym_vpn_lib::gateway_directory::Config {
+            nyxd_url: self.network_env.nyxd_url(),
+            api_url: self.network_env.api_url(),
+            nym_vpn_api_url: Some(self.network_env.vpn_api_url()),
+            min_gateway_performance,
+            mix_score_thresholds,
+            wg_score_thresholds,
         };
 
         let gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_gateways(gw_type, user_agent, min_gateway_performance)
+            .handle_list_gateways(gw_type, user_agent, directory_config)
             .await
             .map_err(|err| {
                 let msg = format!("Failed to list gateways: {:?}", err);
@@ -361,13 +409,37 @@ impl NymVpnd for CommandInterface {
         let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
         let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
 
-        let min_gateway_performance = GatewayMinPerformance {
+        let min_gateway_performance = Some(GatewayMinPerformance {
             mixnet_min_performance: min_mixnet_performance,
             vpn_min_performance: min_vpn_performance,
+        });
+        let mix_score_thresholds =
+            self.network_env
+                .system_configuration
+                .map(|sc| ScoreThresholds {
+                    high: sc.mix_thresholds.high,
+                    medium: sc.mix_thresholds.medium,
+                    low: sc.mix_thresholds.low,
+                });
+        let wg_score_thresholds = self
+            .network_env
+            .system_configuration
+            .map(|sc| ScoreThresholds {
+                high: sc.wg_thresholds.high,
+                medium: sc.wg_thresholds.medium,
+                low: sc.wg_thresholds.low,
+            });
+        let directory_config = nym_vpn_lib::gateway_directory::Config {
+            nyxd_url: self.network_env.nyxd_url(),
+            api_url: self.network_env.api_url(),
+            nym_vpn_api_url: Some(self.network_env.vpn_api_url()),
+            min_gateway_performance,
+            mix_score_thresholds,
+            wg_score_thresholds,
         };
 
         let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_countries(gw_type, user_agent, min_gateway_performance)
+            .handle_list_countries(gw_type, user_agent, directory_config)
             .await
             .map_err(|err| {
                 let msg = format!("Failed to list entry countries: {:?}", err);
@@ -532,7 +604,7 @@ impl NymVpnd for CommandInterface {
         let response = match result {
             Ok(state) => GetAccountStateResponse {
                 result: Some(nym_vpn_proto::get_account_state_response::Result::Account(
-                    nym_vpn_proto::AccountStateSummary::from(state),
+                    nym_vpn_proto::get_account_state_response::AccountStateSummary::from(state),
                 )),
             },
             Err(err) => {
@@ -574,7 +646,7 @@ impl NymVpnd for CommandInterface {
             Ok(usage) => GetAccountUsageResponse {
                 result: Some(
                     nym_vpn_proto::get_account_usage_response::Result::AccountUsages(
-                        nym_vpn_proto::AccountUsages::from(usage),
+                        nym_vpn_proto::get_account_usage_response::AccountUsages::from(usage),
                     ),
                 ),
             },
@@ -588,28 +660,6 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
-    async fn is_ready_to_connect(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<IsReadyToConnectResponse>, tonic::Status> {
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_is_ready_to_connect()
-            .await?;
-
-        let response = match result {
-            Ok(ready) => IsReadyToConnectResponse::from(ready),
-            Err(err) => {
-                // TODO: consider proper error handling for AccountError in this context
-                tracing::error!("Failed to check if ready to connect: {:?}", err);
-                return Err(tonic::Status::internal(
-                    "Failed to check if ready to connect",
-                ));
-            }
-        };
-
-        tracing::debug!("Returning is ready to connect response");
-        Ok(tonic::Response::new(response))
-    }
     async fn reset_device_identity(
         &self,
         request: tonic::Request<ResetDeviceIdentityRequest>,
@@ -691,7 +741,7 @@ impl NymVpnd for CommandInterface {
             .await?
             .map(|devices| GetDevicesResponse {
                 result: Some(nym_vpn_proto::get_devices_response::Result::Devices(
-                    nym_vpn_proto::Devices::from(devices),
+                    nym_vpn_proto::get_devices_response::Devices::from(devices),
                 )),
             })
             .unwrap_or_else(|err| GetDevicesResponse {
@@ -705,17 +755,17 @@ impl NymVpnd for CommandInterface {
     async fn get_active_devices(
         &self,
         _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<GetActiveDevicesResponse>, tonic::Status> {
+    ) -> Result<tonic::Response<GetDevicesResponse>, tonic::Status> {
         let response = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_active_devices()
             .await?
-            .map(|devices| GetActiveDevicesResponse {
-                result: Some(nym_vpn_proto::get_active_devices_response::Result::Devices(
-                    nym_vpn_proto::Devices::from(devices),
+            .map(|devices| GetDevicesResponse {
+                result: Some(nym_vpn_proto::get_devices_response::Result::Devices(
+                    nym_vpn_proto::get_devices_response::Devices::from(devices),
                 )),
             })
-            .unwrap_or_else(|err| GetActiveDevicesResponse {
-                result: Some(nym_vpn_proto::get_active_devices_response::Result::Error(
+            .unwrap_or_else(|err| GetDevicesResponse {
+                result: Some(nym_vpn_proto::get_devices_response::Result::Error(
                     nym_vpn_proto::AccountError::from(err),
                 )),
             });

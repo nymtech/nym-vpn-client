@@ -54,17 +54,14 @@ public final class AppSettings: ObservableObject {
     public var lastConnectionIntent: String?
     @AppStorage(AppSettingKey.countryStore.rawValue)
     public var countryStore: String?
+    @AppStorage(AppSettingKey.gatewayStore.rawValue)
+    public var gatewayStore: String?
 
     @AppStorage(
         AppSettingKey.currentEnv.rawValue,
         store: UserDefaults(suiteName: Constants.groupID.rawValue)
     )
     public var currentEnv: String = "mainnet"
-
-    @AppStorage(AppSettingKey.santaEntryGateways.rawValue)
-    public var santaEntryGatewaysData = Data()
-    @AppStorage(AppSettingKey.santaExitGateways.rawValue)
-    public var santaExitGatewaysData = Data()
 
     @AppStorage(AppSettingKey.isZknymEnabled.rawValue)
     public var isZknymEnabled: Bool?
@@ -105,6 +102,7 @@ public enum AppSettingKey: String {
     case lastConnectionIntent
     case currentEnv
     case countryStore
+    case gatewayStore
     case santaEntryGateways
     case santaExitGateways
     case isZknymEnabled

@@ -2,7 +2,7 @@
   "selected": "Sélectionné",
   "search-country": "Rechercher un pays",
   "input-label": "Recherche",
-  "loading": "Chargement...",
+  "loading": "Chargement…",
   "none-found": "Pas de résultats, essayez une autre recherche",
   "list-loading": "Chargement de la liste des pays…",
   "location-not-available": {
@@ -13,5 +13,8 @@
     "title": "Détails sur l'emplacement des serveurs",
     "description": "Nous déduisons l'emplacement des serveurs sur la base de leurs adresses IP, mais l'emplacement réel peut varier légèrement.",
     "link": "En savoir plus"
+  },
+  "node-details": {
+    "id-label": "Identity key:"
   }
 }

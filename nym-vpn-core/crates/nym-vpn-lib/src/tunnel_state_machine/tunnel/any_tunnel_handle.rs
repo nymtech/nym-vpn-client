@@ -26,10 +26,11 @@ impl From<WireguardTunnelHandle> for AnyTunnelHandle {
 }
 
 impl AnyTunnelHandle {
-    pub fn cancel(&mut self) {
+    pub async fn cancel(&mut self) {
+        tracing::trace!("Cancelling tunnel handle");
         match self {
             Self::Mixnet(handle) => {
-                handle.cancel();
+                handle.cancel().await;
             }
             Self::Wireguard(handle) => {
                 handle.cancel();

@@ -6,7 +6,7 @@
     "disconnected": "Déconnecté",
     "connecting": "Connexion",
     "disconnecting": "Déconnexion",
-    "error": "Error",
+    "error": "Erreur",
     "offline": "Pas de connexion Internet"
   },
   "offline-message": "L'appareil n'est pas connecté à Internet",
@@ -25,7 +25,7 @@
     "disconnecting": "Désactivé lors de la déconnexion du VPN",
     "connecting": "Désactivé lors de la connexion au VPN",
     "offline": "Désactivé lorsqu'il n'y a pas de connexion Internet",
-    "daemon-not-connected": "Désactivé lorsque non connecté au daemon VPN."
+    "error": "Désactivé lorsqu'il y a une erreur"
   },
   "privacy-mode": {
     "title": "Anonyme (mixnet)",
@@ -41,5 +41,13 @@
     "link": "Poursuivre la lecture",
     "privacy-description": "Bénéficiez d'une confidentialité maximale en acheminant votre connexion vers 5 serveurs via le mixnet. Parfait pour traiter en toute sécurité les paiements, les courriels et les messages.",
     "fast-description": "Profitez d'une vitesse maximale avec 2 serveurs. Ce mode est basé sur AmneziaWG, une version dérivée de WireGuard incluant une protection renforcée contre la censure. Parfait pour la navigation rapide, la diffusion en continu et le partage de fichiers."
+  },
+  "update-dialog": {
+    "title": "Mise-à-jour requise !",
+    "description-1-app": "L'application est ancienne et n'est plus prise en charge.",
+    "description-1-daemon": "Le daemon est ancien et n'est plus pris en charge.",
+    "description-1-other": "L'application et le daemon sont anciens et ne sont plus pris en charge.",
+    "description-2": "Svp mettez à jour vers la dernière version pour continuer à utiliser NymVPN.",
+    "button-update": "Mettre à jour"
   }
 }

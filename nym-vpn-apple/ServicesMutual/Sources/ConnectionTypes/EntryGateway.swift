@@ -5,7 +5,7 @@ import Theme
 public enum EntryGateway: Codable, Equatable {
     case country(Country)
     case lowLatencyCountry(Country)
-    case gateway(String)
+    case gateway(GatewayNode)
     case randomLowLatency
     case random
 
@@ -37,8 +37,8 @@ extension EntryGateway: GatewayInfoProtocol {
             "gateway.randomLowLatency".localizedString
         case .random:
             "gateway.random".localizedString
-        case let .gateway(identifier):
-            identifier
+        case let .gateway(gateway):
+            gateway.moniker ?? gateway.id
         }
     }
 
@@ -46,7 +46,9 @@ extension EntryGateway: GatewayInfoProtocol {
         switch self {
         case let .country(country), let .lowLatencyCountry(country):
             country.code
-        case .randomLowLatency, .random, .gateway:
+        case let .gateway(gateway):
+            gateway.countryCode
+        case .randomLowLatency, .random:
             nil
         }
     }
@@ -57,6 +59,15 @@ extension EntryGateway: GatewayInfoProtocol {
             false
         case .gateway:
             true
+        }
+    }
+
+    public var gatewayId: String? {
+        switch self {
+        case let .gateway(gateway):
+            gateway.id
+        case .country, .lowLatencyCountry, .randomLowLatency, .random:
+            nil
         }
     }
 }

@@ -1,4 +1,4 @@
-import { BackendError, ErrorKey } from './tauri-ipc';
+import { BackendError, ErrorKey } from './tauri';
 
 export type TunnelConnected = { connected: Tunnel };
 export type TunnelConnecting = {
@@ -65,17 +65,15 @@ export function isWireguardData(data: TunnelData): data is WireguardData {
 }
 
 export type TunnelError =
-  | 'internal'
-  | 'firewall'
-  | 'routing'
-  | 'dns'
-  | 'tun-device'
-  | 'tunnel-provider'
-  | 'same-entry-and-exit-gw'
-  | 'invalid-entry-gw-country'
-  | 'invalid-exit-gw-country'
-  | 'bad-bandwidth-increase'
-  | 'duplicate-tun-fd';
+  | { key: 'internal'; data: string | null }
+  | { key: 'firewall' }
+  | { key: 'routing' }
+  | { key: 'dns' }
+  | { key: 'same-entry-and-exit-gw' }
+  | { key: 'invalid-entry-gw-country' }
+  | { key: 'invalid-exit-gw-country' }
+  | { key: 'max-devices-reached' }
+  | { key: 'api'; data: string };
 
 export type TunnelStateEvent = {
   state: TunnelState;
@@ -84,11 +82,15 @@ export type TunnelStateEvent = {
 
 export type TunnelAction = 'error' | 'reconnect' | 'offline';
 
+export type MxAddress = { nymAddress: string; gatewayId: string };
+
 export type MixnetData = {
-  nymAddress: string | null;
-  exitIpr: string | null;
+  nymAddress: MxAddress | null;
+  exitIpr: MxAddress | null;
   ipv4: string;
   ipv6: string;
+  entryIp: string;
+  exitIp: string;
 };
 
 export type WireguardData = { entry: WgNode; exit: WgNode };

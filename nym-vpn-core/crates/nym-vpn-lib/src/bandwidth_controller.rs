@@ -2,21 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::time::Duration;
-#[cfg(unix)]
-use std::{os::fd::RawFd, sync::Arc};
 
-use tokio::{sync::mpsc, time::timeout};
+use nym_vpn_network_config::Network;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
-use tokio_util::sync::CancellationToken;
 
-use nym_authenticator_client::AuthClient;
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::GatewayClient;
 use nym_sdk::{
     mixnet::{ConnectionStatsEvent, CredentialStorage as Storage},
-    NymNetworkDetails, TaskClient,
+    TaskClient,
 };
-use nym_task::TaskManager;
 use nym_validator_client::{
     nyxd::{Config as NyxdClientConfig, NyxdClient},
     QueryHttpRpcNyxdClient,
@@ -26,15 +21,10 @@ use nym_wg_gateway_client::{
 };
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 
-use crate::{
-    tunnel_state_machine::tunnel::{
-        MixnetConnectOptions, MIXNET_CLIENT_STARTUP_TIMEOUT, TASK_MANAGER_SHUTDOWN_TIMER_SECS,
-    },
-    MixnetClientConfig,
-};
-use nym_vpn_lib_types::TunnelType;
-
 const DEFAULT_BANDWIDTH_CHECK: Duration = Duration::from_secs(5); // 5 seconds
+const LOWER_BOUND_CHECK_DURATION: Duration = DEFAULT_PEER_TIMEOUT_CHECK;
+const UPPER_BOUND_CHECK_DURATION: Duration =
+    Duration::from_secs(6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs());
 const DEFAULT_BANDWIDTH_DEPLETION_RATE: u64 = 1024 * 1024; // 1 MB/s
 
 #[derive(thiserror::Error, Debug)]
@@ -77,26 +67,15 @@ pub enum CredentialNyxdClientError {
     #[error("failed to create nyxd client config: {0}")]
     FailedToCreateNyxdClientConfig(nym_validator_client::nyxd::error::NyxdError),
 
-    #[error("no nyxd endpoints found")]
-    NoNyxdEndpointsFound,
-
     #[error("failed to connect using nyxd client: {0}")]
     FailedToConnectUsingNyxdClient(nym_validator_client::nyxd::error::NyxdError),
 }
 
-fn get_nyxd_client() -> Result<QueryHttpRpcNyxdClient> {
-    let network = NymNetworkDetails::new_from_env();
-    let config = NyxdClientConfig::try_from_nym_network_details(&network)
+fn get_nyxd_client(network: &Network) -> Result<QueryHttpRpcNyxdClient> {
+    let config = NyxdClientConfig::try_from_nym_network_details(&network.nym_network.network)
         .map_err(CredentialNyxdClientError::FailedToCreateNyxdClientConfig)?;
 
-    // Safe to use pick the first one?
-    let nyxd_url = network
-        .endpoints
-        .first()
-        .ok_or(CredentialNyxdClientError::NoNyxdEndpointsFound)?
-        .nyxd_url();
-
-    Ok(NyxdClient::connect(config, nyxd_url.as_str())
+    Ok(NyxdClient::connect(config, network.nyxd_url().as_str())
         .map_err(CredentialNyxdClientError::FailedToConnectUsingNyxdClient)?)
 }
 
@@ -120,18 +99,27 @@ impl DepletionRate {
         current_period: Duration,
         remaining_bandwidth: u64,
     ) -> Result<Option<Duration>> {
-        let Some(new_depletion_rate) = remaining_bandwidth
-            .saturating_sub(self.available_bandwidth)
+        let Some(new_depletion_rate) = self
+            .available_bandwidth
+            .saturating_sub(remaining_bandwidth)
             .checked_div(current_period.as_secs())
         else {
             return Err(Error::Internal {
                 reason: "check interval shouldn't be 0".to_string(),
             });
         };
+        tracing::debug!(
+            "current depletion rate of {} bytes per current check period of {} seconds",
+            new_depletion_rate,
+            current_period.as_secs()
+        );
         self.available_bandwidth = remaining_bandwidth;
-        // if nothing was consumed since last time, we prefer to stick to the old deplation rate
+        // if nothing was consumed since last time, it's possible we had a recent topup already,
+        // so take the safer approach of waiting minimal interval
         if new_depletion_rate != 0 {
             self.current_depletion_rate = new_depletion_rate;
+        } else {
+            return Ok(Some(DEFAULT_PEER_TIMEOUT_CHECK));
         }
         let Some(estimated_depletion_secs) =
             remaining_bandwidth.checked_div(self.current_depletion_rate)
@@ -140,118 +128,59 @@ impl DepletionRate {
                 reason: "depletion rate shouldn't be 0".to_string(),
             });
         };
-        // try and have at least 10 logs before depletion..
-        let next_timeout_secs = estimated_depletion_secs / 10;
-        if next_timeout_secs == 0 {
+        tracing::debug!(
+            "estimated to deplete current bandwidth in {} seconds = ",
+            estimated_depletion_secs
+        );
+
+        let number_of_checks_before_depletion = estimated_depletion_secs / current_period.as_secs();
+        // try and have at least 10 checks before depletion, to be on the safe side...
+        if number_of_checks_before_depletion < 10 {
             return Ok(None);
         }
-        if next_timeout_secs > 6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
+        if estimated_depletion_secs > UPPER_BOUND_CHECK_DURATION.as_secs() {
             // ... but not too slow, in case bursts come in
-            Ok(Some(Duration::from_secs(
-                6 * DEFAULT_PEER_TIMEOUT_CHECK.as_secs(),
-            )))
-        } else if next_timeout_secs < DEFAULT_PEER_TIMEOUT_CHECK.as_secs() {
+            Ok(Some(UPPER_BOUND_CHECK_DURATION))
+        } else if estimated_depletion_secs < LOWER_BOUND_CHECK_DURATION.as_secs() {
             // ... and not faster then the gateway bandwidth refresh, as that won't produce any change
-            Ok(Some(DEFAULT_PEER_TIMEOUT_CHECK))
+            Ok(Some(LOWER_BOUND_CHECK_DURATION))
         } else {
-            Ok(Some(Duration::from_secs(next_timeout_secs)))
+            Ok(Some(Duration::from_secs(number_of_checks_before_depletion)))
         }
-    }
-}
-
-pub struct ReconnectMixnetClientData {
-    options: MixnetConnectOptions,
-    bw_controller_task_manager: TaskManager,
-    mixnet_client_config: MixnetClientConfig,
-}
-
-impl ReconnectMixnetClientData {
-    pub fn new(
-        options: MixnetConnectOptions,
-        bw_controller_task_manager: TaskManager,
-        mixnet_client_config: MixnetClientConfig,
-    ) -> Self {
-        Self {
-            options,
-            bw_controller_task_manager,
-            mixnet_client_config,
-        }
-    }
-
-    pub async fn recreate_mixnet_connection(
-        &self,
-        #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
-    ) -> Option<AuthClient> {
-        let entry_gateway = self.options.selected_gateways.entry.identity();
-        let mixnet_client = match tokio::time::timeout(
-            MIXNET_CLIENT_STARTUP_TIMEOUT,
-            crate::mixnet::setup_mixnet_client(
-                entry_gateway,
-                &self.options.data_path,
-                self.bw_controller_task_manager
-                    .subscribe_named("mixnet_client_main"),
-                self.mixnet_client_config.clone(),
-                self.options.enable_credentials_mode,
-                self.options.stats_recipient_address,
-                self.options.tunnel_type == TunnelType::Wireguard,
-                #[cfg(unix)]
-                connection_fd_callback.clone(),
-            ),
-        )
-        .await
-        {
-            Ok(Ok(client)) => client,
-            Err(_) => {
-                tracing::warn!("timed out while trying to recreate mixnet client");
-                return None;
-            }
-            Ok(Err(err)) => {
-                tracing::warn!("could not re-create mixnet client {:?}", err);
-                return None;
-            }
-        };
-        Some(AuthClient::new(mixnet_client).await)
     }
 }
 
 pub(crate) struct BandwidthController<St> {
     inner: nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
-    connected_mixnet: bool,
     wg_entry_gateway_client: WgGatewayLightClient,
     wg_exit_gateway_client: WgGatewayLightClient,
     timeout_check_interval: IntervalStream,
     entry_depletion_rate: DepletionRate,
     exit_depletion_rate: DepletionRate,
     shutdown: TaskClient,
-    reconnect_mixnet_client_data: ReconnectMixnetClientData,
-    cancel_token: CancellationToken,
 }
 
 impl<St: Storage> BandwidthController<St> {
     pub(crate) fn new(
         storage: St,
+        network: &Network,
         wg_entry_gateway_client: WgGatewayLightClient,
         wg_exit_gateway_client: WgGatewayLightClient,
         shutdown: TaskClient,
-        reconnect_mixnet_client_data: ReconnectMixnetClientData,
     ) -> Result<Self> {
-        let client = get_nyxd_client()?;
+        let client = get_nyxd_client(network)?;
         let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
         let timeout_check_interval =
             IntervalStream::new(tokio::time::interval(DEFAULT_BANDWIDTH_CHECK));
-        let cancel_token = CancellationToken::new();
 
         Ok(BandwidthController {
             inner,
-            connected_mixnet: true,
             wg_entry_gateway_client,
             wg_exit_gateway_client,
             timeout_check_interval,
             entry_depletion_rate: Default::default(),
             exit_depletion_rate: Default::default(),
             shutdown,
-            reconnect_mixnet_client_data,
-            cancel_token,
         })
     }
 
@@ -265,10 +194,11 @@ impl<St: Storage> BandwidthController<St> {
     where
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
-        // First we need to register with the gateway to setup keys and IP assignment
-        tracing::info!("Registering with wireguard gateway");
+        // First we need to regster with the gateway to setup keys and IP assignment
+        let wg_version = wg_gateway_client.auth_version();
         let authenticator_address = wg_gateway_client.auth_recipient();
         let gateway_id = wg_gateway_client.auth_recipient().gateway();
+        tracing::info!("Registering with wireguard gateway {gateway_id} ({wg_version})");
         let gateway_host = gateway_client
             .lookup_gateway_ip(&gateway_id.to_base58_string())
             .await
@@ -341,7 +271,6 @@ impl<St: Storage> BandwidthController<St> {
 
         tokio::select! {
             _ = self.shutdown.recv() => {
-                self.cancel_token.cancel();
                 tracing::trace!("BandwidthController: Received shutdown");
             }
             ret = wg_gateway_client.query_bandwidth() => {
@@ -353,6 +282,7 @@ impl<St: Storage> BandwidthController<St> {
                         {
                             Err(e) => tracing::warn!("Error while updating query coefficients: {:?}", e),
                             Ok(Some(new_duration)) => {
+                                tracing::debug!("Adjusting check interval to {} seconds", new_duration.as_secs());
                                 return Some(new_duration);
                             }
                             Ok(None) => {
@@ -361,6 +291,7 @@ impl<St: Storage> BandwidthController<St> {
                                 } else {
                                     TicketType::V1WireguardExit
                                 };
+                                tracing::debug!("Topping up our bandwidth allowance for {ticketbook_type}");
                                 if let Err(e) = self
                                     .top_up_bandwidth(ticketbook_type, &mut wg_gateway_client)
                                     .await
@@ -387,93 +318,18 @@ impl<St: Storage> BandwidthController<St> {
         None
     }
 
-    pub(crate) async fn try_reconnect(&mut self, mixnet_error_tx: mpsc::Sender<()>) -> bool {
-        #[cfg(unix)]
-        let connection_fd_callback = self
-            .wg_entry_gateway_client
-            .auth_client()
-            .mixnet_client()
-            .connection_fd_callback();
-        let Some(auth_client) = self
-            .reconnect_mixnet_client_data
-            .recreate_mixnet_connection(
-                #[cfg(unix)]
-                connection_fd_callback.clone(),
-            )
-            .await
-        else {
-            self.connected_mixnet = false;
-            return false;
-        };
-
-        self.wg_entry_gateway_client
-            .set_auth_client(auth_client.clone());
-        self.wg_exit_gateway_client.set_auth_client(auth_client);
-        self.connected_mixnet = true;
-        self.spawn_wait_for_mixnet_error(mixnet_error_tx);
-        true
-    }
-
-    fn spawn_wait_for_mixnet_error(&mut self, mixnet_error_tx: mpsc::Sender<()>) {
-        let cancel_token = self.cancel_token.clone();
-        let mut task_manager = std::mem::replace(
-            &mut self.reconnect_mixnet_client_data.bw_controller_task_manager,
-            TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS),
-        );
-        tokio::task::spawn(async move {
-            cancel_token
-                .run_until_cancelled(task_manager.wait_for_error())
-                .await;
-            task_manager.signal_shutdown().ok();
-            mixnet_error_tx.send(()).await.ok();
-        });
-    }
-
-    async fn cleanup(mut self) {
-        self.reconnect_mixnet_client_data
-            .bw_controller_task_manager
-            .signal_shutdown()
-            .ok();
-        if timeout(
-            Duration::from_secs(10),
-            self.reconnect_mixnet_client_data
-                .bw_controller_task_manager
-                .wait_for_graceful_shutdown(),
-        )
-        .await
-        .is_err()
-        {
-            tracing::error!(
-                "Timeout waiting for task manager controlled by bandwidth controller to finish waiting for its tasks to all exit"
-            );
-        }
-    }
-
     pub(crate) async fn run(mut self)
     where
         <St as Storage>::StorageError: Send + Sync + 'static,
     {
-        let (mixnet_error_tx, mut mixnet_error_rx) = mpsc::channel(1);
-        self.spawn_wait_for_mixnet_error(mixnet_error_tx.clone());
-
         // Skip the first, immediate tick
         self.timeout_check_interval.next().await;
         while !self.shutdown.is_shutdown() {
             tokio::select! {
                 _ = self.shutdown.recv() => {
-                    self.cancel_token.cancel();
                     tracing::trace!("BandwidthController: Received shutdown");
                 }
-                _ = mixnet_error_rx.recv() => {
-                    break;
-                    // Don't attempt to reconnect and just drop the BandwidthController and shut down
-                    // the tunnel
-                    // self.try_reconnect(mixnet_error_tx.clone()).await;
-                }
                 _ = self.timeout_check_interval.next() => {
-                    if !self.connected_mixnet && !self.try_reconnect(mixnet_error_tx.clone()).await {
-                        continue;
-                    }
                     let current_period = self.timeout_check_interval.as_ref().period();
                     let entry_duration = self.check_bandwidth(true, current_period).await;
                     let exit_duration = self.check_bandwidth(false, current_period).await;
@@ -497,7 +353,95 @@ impl<St: Storage> BandwidthController<St> {
             }
         }
 
-        self.cleanup().await;
         tracing::debug!("BandwidthController: Exiting");
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const BW_1KB: u64 = 1024;
+    const BW_1MB: u64 = 1024 * BW_1KB;
+    const BW_128MB: u64 = 128 * BW_1MB;
+    const BW_512MB: u64 = 512 * BW_1MB;
+    const BW_1GB: u64 = 2 * BW_512MB;
+
+    #[test]
+    fn depletion_rate_slow() {
+        let mut depletaion_rate = DepletionRate::default();
+        let mut current_period = DEFAULT_BANDWIDTH_CHECK;
+        // the first check would force the big placeholder values to be replaced by the actual values
+        assert!(depletaion_rate
+            .update_dynamic_check_interval(current_period, BW_512MB)
+            .unwrap()
+            .is_none());
+
+        // simulate 1 byte/second depletion rate
+        let consumed = current_period.as_secs() * 1;
+        current_period = depletaion_rate
+            .update_dynamic_check_interval(current_period, BW_512MB - consumed)
+            .unwrap()
+            .unwrap();
+        assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
+    }
+
+    #[test]
+    fn depletion_rate_fast() {
+        let mut depletaion_rate = DepletionRate::default();
+        let current_period = DEFAULT_BANDWIDTH_CHECK;
+        // the first check would force the big placeholder values to be replaced by the actual values
+        assert!(depletaion_rate
+            .update_dynamic_check_interval(current_period, BW_1GB)
+            .unwrap()
+            .is_none());
+
+        // simulate 128 MB/s depletion rate, so we would be depleted in the next 5 seconds after the function call (too fast)
+        let consumed = current_period.as_secs() * BW_128MB;
+        assert!(depletaion_rate
+            .update_dynamic_check_interval(current_period, BW_1GB - consumed)
+            .unwrap()
+            .is_none());
+    }
+
+    #[test]
+    fn depletion_rate_spike() {
+        let mut depletaion_rate = DepletionRate::default();
+        let mut current_period = DEFAULT_BANDWIDTH_CHECK;
+        let mut current_bandwidth = BW_1GB;
+        // the first check would force the big placeholder values to be replaced by the actual values
+        assert!(depletaion_rate
+            .update_dynamic_check_interval(current_period, current_bandwidth)
+            .unwrap()
+            .is_none());
+
+        // simulate 1 KB/s depletion rate, constant
+        for _ in 0..5 {
+            current_bandwidth -= current_period.as_secs() * BW_1KB;
+            current_period = depletaion_rate
+                .update_dynamic_check_interval(current_period, current_bandwidth)
+                .unwrap()
+                .unwrap();
+            assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
+        }
+
+        // spike a 1 MB/s depletion rate
+        for _ in 0..24 {
+            current_bandwidth -= current_period.as_secs() * BW_1MB;
+            current_period = depletaion_rate
+                .update_dynamic_check_interval(current_period, current_bandwidth)
+                .unwrap()
+                .unwrap();
+            assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
+            assert!(current_bandwidth > 300 * BW_1MB);
+        }
+
+        current_bandwidth -= current_period.as_secs() * BW_1MB;
+        let ret = depletaion_rate
+            .update_dynamic_check_interval(current_period, current_bandwidth)
+            .unwrap();
+        // when we get bellow a convinient dynamic threshold, we start reqwesting more bandwidth (returning None)
+        assert!(current_bandwidth < 300 * BW_1MB);
+        assert!(ret.is_none());
     }
 }

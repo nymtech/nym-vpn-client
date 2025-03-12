@@ -15,7 +15,7 @@ public struct NymTextStyle {
 // MARK: - Styles -
 extension NymTextStyle {
     // MARK: - Title -
-    public struct Title {
+    public struct TitleLegacy {
         public struct Large {
             public static var primary: NymTextStyle {
                 NymTextStyle(nymFont: .lato(size: 22, weight: .regular))
@@ -29,7 +29,7 @@ extension NymTextStyle {
         }
     }
 
-    public struct Headline {
+    public struct HeadlineLegacy {
         public struct Small {
             public static var primary: NymTextStyle {
                 NymTextStyle(nymFont: .lato(size: 24, weight: .regular))
@@ -38,7 +38,7 @@ extension NymTextStyle {
     }
 
     // MARK: - Label -
-    public struct Label {
+    public struct LabelLegacy {
         public struct Huge {
             public static var bold: NymTextStyle {
                 NymTextStyle(nymFont: .lato(size: 18, weight: .bold))
@@ -65,7 +65,7 @@ extension NymTextStyle {
     }
 
     // MARK: - Body -
-    public struct Body {
+    public struct BodyLegacy {
         public struct Large {
             public static var semibold: NymTextStyle {
                 NymTextStyle(nymFont: .lato(size: 16, weight: .semibold), kerning: 0.5)
@@ -85,6 +85,46 @@ extension NymTextStyle {
         public struct Small {
             public static var primary: NymTextStyle {
                 NymTextStyle(nymFont: .lato(size: 12, weight: .regular), kerning: 0.4)
+            }
+        }
+    }
+
+    public struct Headline {
+        public struct Large {
+            public static var regular: NymTextStyle {
+                NymTextStyle(nymFont: .labGrotesqueMono(size: 24, weight: .regular), kerning: 1.2)
+            }
+        }
+
+        public struct Medium {
+            public static var regular: NymTextStyle {
+                NymTextStyle(nymFont: .labGrotesqueMono(size: 20, weight: .regular), kerning: 1)
+            }
+        }
+
+        public struct Small {
+            public static var regular: NymTextStyle {
+                NymTextStyle(nymFont: .labGrotesqueMono(size: 16, weight: .regular), kerning: 0.8)
+            }
+        }
+    }
+
+    public struct Body {
+        public struct Large {
+            public static var regular: NymTextStyle {
+                NymTextStyle(nymFont: .labGrotesque(size: 16, weight: .regular), kerning: 0.32)
+            }
+        }
+
+        public struct Medium {
+            public static var regular: NymTextStyle {
+                NymTextStyle(nymFont: .labGrotesque(size: 14, weight: .regular), kerning: 0.28)
+            }
+        }
+
+        public struct Small {
+            public static var regular: NymTextStyle {
+                NymTextStyle(nymFont: .labGrotesque(size: 12, weight: .regular), kerning: 0.24)
             }
         }
     }

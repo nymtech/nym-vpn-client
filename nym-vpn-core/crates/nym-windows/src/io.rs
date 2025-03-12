@@ -3,7 +3,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{io, mem};
-use windows_sys::Win32::System::IO::OVERLAPPED;
+use windows::Win32::{Foundation::HANDLE, System::IO::OVERLAPPED};
 
 use crate::sync::Event;
 
@@ -45,7 +45,7 @@ impl Overlapped {
                 self.event = Some(event);
             }
             None => {
-                self.overlapped.hEvent = 0;
+                self.overlapped.hEvent = HANDLE::default();
                 self.event = None;
             }
         }

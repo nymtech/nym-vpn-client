@@ -9,7 +9,7 @@ import { useI18nError } from '../../hooks';
 import { routes } from '../../router';
 import { BackendError, StateDispatch } from '../../types';
 import { Button, Link, PageAnim, TextArea } from '../../ui';
-import { MCache } from '../../cache';
+import { CCache } from '../../cache';
 
 type AddError = {
   error: string;
@@ -17,9 +17,11 @@ type AddError = {
 };
 
 function Login() {
-  const { daemonStatus, accountLinks } = useMainState();
   const [phrase, setPhrase] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<AddError | null>(null);
+
+  const { daemonStatus, accountLinks, state } = useMainState();
 
   const { push } = useInAppNotify();
   const navigate = useNavigate();
@@ -35,30 +37,39 @@ function Login() {
     }
   };
 
-  const handleClick = () => {
-    if (phrase.length === 0) {
+  const handleClick = async () => {
+    if (phrase.length === 0 || loading) {
       return;
     }
-    invoke<number | null>('add_account', { mnemonic: phrase.trim() })
-      .then(() => {
-        navigate(routes.root);
-        dispatch({ type: 'set-account', stored: true });
-        push({
-          text: t('added-notification'),
-          position: 'top',
-          closeIcon: true,
-        });
-        MCache.del('account-id');
-        MCache.del('device-id');
-      })
-      .catch((e: unknown) => {
-        const eT = e as BackendError;
-        console.info('backend error:', e);
-        setError({
-          error: tE(eT.key),
-          details: eT.data?.reason,
-        });
+    // kinda overkill but who knows?
+    if (state !== 'Disconnected') {
+      console.warn(`cannot login while tunnel state is ${state}`);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.info('logging in');
+      await invoke<number | null>('add_account', { mnemonic: phrase.trim() });
+      navigate(routes.root);
+      dispatch({ type: 'set-account', stored: true });
+      push({
+        message: t('added-notification'),
+        close: true,
       });
+      await CCache.del('cache-account-id');
+      await CCache.del('cache-device-id');
+      dispatch({ type: 'reset-error' });
+    } catch (e: unknown) {
+      const eT = e as BackendError;
+      console.info('backend error:', e);
+      setError({
+        error: tE(eT.key),
+        details: eT.data?.reason,
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -102,11 +113,13 @@ function Login() {
         <div className="w-full flex flex-col justify-center items-center gap-6 mb-2">
           <Button
             onClick={handleClick}
-            disabled={daemonStatus === 'NotOk'}
+            disabled={daemonStatus === 'down' || state !== 'Disconnected'}
             className={clsx(
-              daemonStatus === 'NotOk' &&
+              'h-14',
+              daemonStatus === 'down' &&
                 'opacity-50 disabled:opacity-50 hover:opacity-50',
             )}
+            spinner={loading}
           >
             {t('login-button')}
           </Button>
@@ -115,7 +128,7 @@ function Login() {
               <span className="dark:text-mercury-pinkish truncate">
                 {t('create-account.text')}
               </span>
-              <Link text={t('create-account.link')} url={signUpUrl} />
+              <Link text={t('create-account.link')} url={signUpUrl} icon />
             </div>
           )}
         </div>

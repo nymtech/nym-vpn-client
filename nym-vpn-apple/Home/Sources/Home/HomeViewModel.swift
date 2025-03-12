@@ -5,6 +5,7 @@ import ConnectionManager
 import CountriesManager
 import CredentialsManager
 import ExternalLinkManager
+import GatewayManager
 import NetworkMonitor
 import Settings
 import SystemMessageManager
@@ -31,6 +32,7 @@ public class HomeViewModel: HomeFlowState {
     let countriesManager: CountriesManager
     let credentialsManager: CredentialsManager
     let externalLinkManager: ExternalLinkManager
+    let gatewayManager: GatewayManager
     let networkMonitor: NetworkMonitor
 #if os(iOS)
     let impactGenerator: ImpactGenerator
@@ -59,7 +61,7 @@ public class HomeViewModel: HomeFlowState {
     @MainActor @Published var snackBarMessage = ""
     @MainActor @Published var isSnackBarDisplayed = false {
         didSet {
-            Task(priority: .background) {
+            Task {
                 try? await Task.sleep(for: .seconds(1))
                 guard !isSnackBarDisplayed else { return }
                 systemMessageManager.messageDidClose()
@@ -86,6 +88,7 @@ public class HomeViewModel: HomeFlowState {
         credentialsManager: CredentialsManager = .shared,
         networkMonitor: NetworkMonitor = .shared,
         externalLinkManager: ExternalLinkManager = .shared,
+        gatewayManager: GatewayManager = .shared,
         impactGenerator: ImpactGenerator = .shared,
         systemMessageManager: SystemMessageManager = .shared
     ) {
@@ -94,6 +97,7 @@ public class HomeViewModel: HomeFlowState {
         self.countriesManager = countriesManager
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
+        self.gatewayManager = gatewayManager
         self.impactGenerator = impactGenerator
         self.networkMonitor = networkMonitor
         self.systemMessageManager = systemMessageManager
@@ -111,6 +115,7 @@ public class HomeViewModel: HomeFlowState {
         grpcManager: GRPCManager = .shared,
         helperManager: HelperManager = .shared,
         externalLinkManager: ExternalLinkManager = .shared,
+        gatewayManager: GatewayManager = .shared,
         systemMessageManager: SystemMessageManager = .shared
     ) {
         self.appSettings = appSettings
@@ -121,6 +126,7 @@ public class HomeViewModel: HomeFlowState {
         self.grpcManager = grpcManager
         self.helperManager = helperManager
         self.externalLinkManager = externalLinkManager
+        self.gatewayManager = gatewayManager
         self.systemMessageManager = systemMessageManager
         super.init()
 
@@ -140,12 +146,12 @@ public extension HomeViewModel {
         path.append(HomeLink.settings)
     }
 
-    @MainActor func navigateToFirstHopSelection() {
-        path.append(HomeLink.entryHop)
+    @MainActor func navigateToEntryGateways() {
+        path.append(HomeLink.entryGateways)
     }
 
-    @MainActor func navigateToLastHopSelection() {
-        path.append(HomeLink.exitHop)
+    @MainActor func navigateToExitGateways() {
+        path.append(HomeLink.exitGateways)
     }
 
     @MainActor func navigateToAddCredentials() {
@@ -173,6 +179,7 @@ private extension HomeViewModel {
         setupGRPCManagerObservers()
 #endif
         setupCountriesManagerObservers()
+        setupGatewayManagerObserver()
         setupSystemMessageObservers()
         setupNetworkMonitorObservers()
         updateTimeConnected()
@@ -189,20 +196,29 @@ private extension HomeViewModel {
         }
         .store(in: &cancellables)
 #if os(iOS)
-        connectionManager.$activeTunnel.sink { [weak self] tunnel in
-            guard let tunnel, let self else { return }
-            Task { @MainActor in
-                self.activeTunnel = tunnel
+        connectionManager.$activeTunnel
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] tunnel in
+                guard let tunnel, let self else { return }
+                MainActor.assumeIsolated {
+                    self.activeTunnel = tunnel
+                    self.configureTunnelStatusObservation(with: tunnel)
+                    self.updateTimeConnected()
+                }
             }
-            self.configureTunnelStatusObservation(with: tunnel)
-            self.updateTimeConnected()
-        }
-        .store(in: &cancellables)
+            .store(in: &cancellables)
 #endif
     }
 
     func setupCountriesManagerObservers() {
         countriesManager.$lastError.sink { [weak self] error in
+            self?.lastError = error
+        }
+        .store(in: &cancellables)
+    }
+
+    func setupGatewayManagerObserver() {
+        gatewayManager.$lastError.sink { [weak self] error in
             self?.lastError = error
         }
         .store(in: &cancellables)
@@ -243,34 +259,26 @@ private extension HomeViewModel {
 
     func setupConnectionErrorObservers() {
 #if os(iOS)
-        connectionManager.$lastError.sink { [weak self] error in
-            self?.lastError = error
-            if let error {
-                self?.updateStatusInfoState(with: .error(message: error.localizedDescription))
+        connectionManager.$lastError
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] error in
+                MainActor.assumeIsolated {
+                    self?.updateLastError(error)
+                }
             }
-        }
-        .store(in: &cancellables)
-#elseif os(macOS)
-        grpcManager.$errorReason.sink { [weak self] error in
-            self?.lastError = error
-        }
-        .store(in: &cancellables)
-
-        grpcManager.$generalError.sink { [weak self] error in
-            self?.lastError = error
-        }
-        .store(in: &cancellables)
+            .store(in: &cancellables)
 #endif
     }
 #if os(iOS)
     func configureTunnelStatusObservation(with tunnel: Tunnel) {
         tunnelStatusUpdateCancellable = tunnel.$status
-            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.global(qos: .background))
             .removeDuplicates()
-            .receive(on: RunLoop.main)
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] status in
-                self?.updateUI(with: status)
-                self?.updateTimeConnected()
+                MainActor.assumeIsolated {
+                    self?.updateUI(with: status)
+                    self?.updateTimeConnected()
+                }
             }
     }
 #endif
@@ -292,40 +300,37 @@ private extension HomeViewModel {
 }
 
 extension HomeViewModel {
-    func updateUI(with status: TunnelStatus) {
+    @MainActor func updateUI(with status: TunnelStatus) {
         guard status != lastTunnelStatus else { return }
         let newStatus: TunnelStatus
+#if os(iOS)
+        // TODO: remove once tunnel supports reconnect
         // Fake satus, until we get support from the tunnel
         if connectionManager.isReconnecting &&
             (status == .disconnecting || status == .disconnected || status == .connecting) {
             newStatus = .reasserting
-        } else if connectionManager.isDisconnecting &&
-                    (status == .connecting || status == .connected) {
-            newStatus = .disconnecting
         } else {
             newStatus = status
         }
-#if os(iOS)
-        if status == .connected && !connectionManager.isDisconnecting {
+        if newStatus == .connected {
             impactGenerator.success()
         }
+#elseif os(macOS)
+        newStatus = status
 #endif
         lastTunnelStatus = newStatus
-        Task { @MainActor [weak self] in
+        withAnimation { [weak self] in
             guard let self else { return }
-            withAnimation { [weak self] in
-                guard let self else { return }
-                statusButtonConfig = StatusButtonConfig(
-                    tunnelStatus: newStatus,
-                    hasInternet: networkMonitor.isAvailable
-                )
-                connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
+            statusButtonConfig = StatusButtonConfig(
+                tunnelStatus: newStatus,
+                hasInternet: networkMonitor.isAvailable
+            )
+            connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
 
-                if let lastError {
-                    statusInfoState = .error(message: lastError.localizedDescription)
-                } else {
-                    statusInfoState = StatusInfoState(tunnelStatus: newStatus, isOnline: networkMonitor.isAvailable)
-                }
+            if let lastError {
+                statusInfoState = .error(message: lastError.localizedDescription)
+            } else {
+                statusInfoState = StatusInfoState(tunnelStatus: newStatus, isOnline: networkMonitor.isAvailable)
             }
         }
     }

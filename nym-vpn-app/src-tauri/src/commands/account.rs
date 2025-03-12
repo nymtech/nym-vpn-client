@@ -2,7 +2,8 @@ use tauri::State;
 use tracing::{error, info, instrument, warn};
 
 use crate::grpc::account_links::AccountLinks;
-use crate::grpc::client::ReadyToConnect;
+use crate::grpc::tunnel::TunnelState;
+use crate::state::SharedAppState;
 use crate::{error::BackendError, grpc::client::GrpcClient};
 
 #[instrument(skip_all)]
@@ -10,7 +11,17 @@ use crate::{error::BackendError, grpc::client::GrpcClient};
 pub async fn add_account(
     mnemonic: String,
     grpc: State<'_, GrpcClient>,
+    app_state: State<'_, SharedAppState>,
 ) -> Result<(), BackendError> {
+    let state = app_state.lock().await;
+    if !matches!(state.tunnel, TunnelState::Disconnected) {
+        return Err(BackendError::internal(
+            &format!("cannot add account from state {}", state.tunnel),
+            None,
+        ));
+    };
+    drop(state);
+
     grpc.store_account(mnemonic)
         .await
         .map_err(|e| {
@@ -24,7 +35,19 @@ pub async fn add_account(
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn forget_account(grpc: State<'_, GrpcClient>) -> Result<(), BackendError> {
+pub async fn forget_account(
+    grpc: State<'_, GrpcClient>,
+    app_state: State<'_, SharedAppState>,
+) -> Result<(), BackendError> {
+    let state = app_state.lock().await;
+    if !matches!(state.tunnel, TunnelState::Disconnected) {
+        return Err(BackendError::internal(
+            &format!("cannot forget account from state {}", state.tunnel),
+            None,
+        ));
+    };
+    drop(state);
+
     grpc.forget_account()
         .await
         .map_err(|e| {
@@ -47,17 +70,6 @@ pub async fn is_account_stored(grpc: State<'_, GrpcClient>) -> Result<bool, Back
         })
         .inspect(|stored| {
             info!("account stored: {stored}");
-        })
-}
-
-#[instrument(skip_all)]
-#[tauri::command]
-pub async fn ready_to_connect(grpc: State<'_, GrpcClient>) -> Result<ReadyToConnect, BackendError> {
-    grpc.is_ready_to_connect()
-        .await
-        .map_err(|e| e.into())
-        .inspect(|state| {
-            info!("ready to connect: {state}");
         })
 }
 

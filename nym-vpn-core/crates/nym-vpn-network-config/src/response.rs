@@ -11,6 +11,7 @@ pub(super) struct DiscoveryResponse {
     pub(super) nym_vpn_api_url: String,
     pub(super) account_management: Option<AccountManagementResponse>,
     pub(super) feature_flags: Option<serde_json::Value>,
+    pub(super) system_configuration: Option<SystemConfigurationResponse>,
     pub(super) system_messages: Option<Vec<SystemMessageResponse>>,
 }
 
@@ -35,6 +36,19 @@ pub(super) struct SystemMessageResponse {
     pub(super) display_until: String,
     pub(super) message: String,
     pub(super) properties: serde_json::Value,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+pub(super) struct SystemConfigurationResponse {
+    pub(super) mix_thresholds: ScoreThresholdsResponse,
+    pub(super) wg_thresholds: ScoreThresholdsResponse,
+}
+
+#[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
+pub(super) struct ScoreThresholdsResponse {
+    pub(super) high: u8,
+    pub(super) medium: u8,
+    pub(super) low: u8,
 }
 
 // The response type we fetch from the network details endpoint. This will be added to and exported

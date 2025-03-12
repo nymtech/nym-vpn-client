@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Notification } from './type';
 import { InAppNotificationContext } from './context';
 
@@ -9,72 +9,61 @@ export type NotificationProviderProps = {
 };
 
 // ⚠ This duration must be greater than the duration of the
-// snackbar animation (defined in Snackbar.tsx)
+// toast animation (defined in Toast.tsx)
 const transitionDuration = 300; // ms
 
 function InAppNotificationProvider({ children }: NotificationProviderProps) {
   const [stack, setStack] = useState<Notification[]>([]);
+  // the current notification being displayed
   const [current, setCurrent] = useState<Notification | null>(null);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
+  const throttled = useRef<Record<string, number>>({});
   const transitionRef = useRef<Timeout | null>(null);
 
-  const checkDuplicate = useCallback(
-    (stack: Notification[], toBeChecked: Notification) => {
-      return stack.some((n) => n.text === toBeChecked.text);
-    },
-    [],
-  );
-
-  const push = useCallback(
-    (notification: Notification | Notification[]) => {
-      if (Array.isArray(notification)) {
-        setStack((prev) => {
-          const isDuplicate = notification.some((n) => checkDuplicate(prev, n));
-          if (isDuplicate) {
-            return prev;
-          }
-          return [...prev, ...notification];
-        });
-      } else {
-        setStack((prev) => {
-          if (checkDuplicate(prev, notification)) {
-            return prev;
-          }
-          return [...prev, notification];
-        });
+  const push = useCallback((notification: Notification) => {
+    // using an updater function to add notifications into the stack
+    // in a serial fashion
+    // without this, it will not work!
+    setStack((prev) => {
+      // check for duplicates
+      if (prev.some((n) => n.message === notification.message)) {
+        return prev;
       }
-    },
-    [checkDuplicate],
-  );
+      const { id, throttle } = notification;
+      if (id && throttle && throttle > 0) {
+        const expiry = throttled.current[id];
+        if (expiry && Date.now() < expiry) {
+          return prev;
+        }
+        throttled.current[id] = Date.now() + throttle * 1000;
+      }
+      return [...prev, notification];
+    });
+  }, []);
 
-  const shift = useCallback(() => {
-    if (stack.length === 0) {
-      return null;
-    }
-    const first = stack[0];
-    setStack([...stack.slice(1)]);
-    return first;
-  }, [stack]);
-
-  const clear = () => {
+  const clear = useCallback(() => {
     setStack([]);
+    throttled.current = {};
     setIsTransitioning(false);
     setCurrent(null);
     clearTimeout(transitionRef.current as Timeout | undefined);
-  };
+  }, []);
 
   useEffect(() => {
     if (current || isTransitioning) {
       return;
     }
-    const notification = shift();
+    const notification = stack[0];
     if (notification) {
       setCurrent(notification);
+      // set the stack state with the previous stack but first element removed
+      setStack([...stack.slice(1)]);
     }
-  }, [shift, current, stack.length, isTransitioning]);
+  }, [current, stack, isTransitioning]);
 
-  const next = () => {
+  // ⚠ keep this function un-memoized to prevent transition glitch
+  const onClose = () => {
     setIsTransitioning(true);
     setCurrent(null);
     transitionRef.current = setTimeout(() => {
@@ -82,16 +71,13 @@ function InAppNotificationProvider({ children }: NotificationProviderProps) {
     }, transitionDuration);
   };
 
+  const ctx = useMemo(
+    () => ({ clear, current, push, onClose }),
+    [clear, current, push],
+  );
+
   return (
-    <InAppNotificationContext.Provider
-      value={{
-        stack,
-        current,
-        next,
-        push,
-        clear,
-      }}
-    >
+    <InAppNotificationContext.Provider value={ctx}>
       {children}
     </InAppNotificationContext.Provider>
   );

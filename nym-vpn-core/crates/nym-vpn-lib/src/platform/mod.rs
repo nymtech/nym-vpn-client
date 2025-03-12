@@ -55,14 +55,16 @@ mod state_machine;
 mod uniffi_custom_impls;
 mod uniffi_lib_types;
 
-use std::{env, path::PathBuf, sync::Arc, time::Duration};
+use std::{env, path::PathBuf, sync::Arc};
 
 use account::AccountControllerHandle;
 use lazy_static::lazy_static;
+use nym_vpn_api_client::types::ScoreThresholds;
 use tokio::{runtime::Runtime, sync::Mutex};
 
 use self::error::VpnError;
 use crate::gateway_directory::GatewayClient;
+use crate::platform::uniffi_custom_impls::NetworkCompatibility;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
@@ -148,6 +150,14 @@ pub fn initLogger(path: Option<PathBuf>, debug_level: Option<String>) {
 #[uniffi::export]
 pub fn getSystemMessages() -> Result<Vec<SystemMessage>, VpnError> {
     RUNTIME.block_on(environment::get_system_messages())
+}
+
+/// Returns the oldest client versions that are compatible with the
+/// network environment. (environment must be initialized first)
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getNetworkCompatibilityVersions() -> Result<Option<NetworkCompatibility>, VpnError> {
+    RUNTIME.block_on(environment::get_network_compatibility())
 }
 
 /// Returns the account links for the current network environment
@@ -267,25 +277,36 @@ async fn get_gateway_countries(
     min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<Location>, VpnError> {
     let network_env = environment::current_environment_details().await?;
-    let nyxd_url = network_env.nyxd_url().ok_or(VpnError::InternalError {
-        details: "Nyxd URL not found".to_string(),
-    })?;
-    let api_url = network_env.api_url().ok_or(VpnError::InternalError {
-        details: "API URL not found".to_string(),
-    })?;
+    let nyxd_url = network_env.nyxd_url();
+    let api_url = network_env.api_url();
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
     let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
+    let mix_score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
+        high: sc.mix_thresholds.high,
+        medium: sc.mix_thresholds.medium,
+        low: sc.mix_thresholds.low,
+    });
+    let wg_score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
+        high: sc.wg_thresholds.high,
+        medium: sc.wg_thresholds.medium,
+        low: sc.wg_thresholds.low,
+    });
     let directory_config = nym_gateway_directory::Config {
         nyxd_url,
         api_url,
         nym_vpn_api_url,
         min_gateway_performance,
+        mix_score_thresholds,
+        wg_score_thresholds,
     };
-    GatewayClient::new(directory_config, user_agent.into())?
+    GatewayClient::new(directory_config, user_agent.into())
+        .map_err(VpnError::internal)?
         .lookup_countries(gw_type.into())
         .await
         .map(|countries| countries.into_iter().map(Location::from).collect())
-        .map_err(VpnError::from)
+        .map_err(|err| VpnError::NetworkConnectionError {
+            details: err.to_string(),
+        })
 }
 
 /// Get the list of gateways available of the given type.
@@ -305,21 +326,30 @@ async fn get_gateways(
     min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<GatewayInfo>, VpnError> {
     let network_env = environment::current_environment_details().await?;
-    let nyxd_url = network_env.nyxd_url().ok_or(VpnError::InternalError {
-        details: "Nyxd URL not found".to_string(),
-    })?;
-    let api_url = network_env.api_url().ok_or(VpnError::InternalError {
-        details: "API URL not found".to_string(),
-    })?;
+    let nyxd_url = network_env.nyxd_url();
+    let api_url = network_env.api_url();
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
     let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
+    let mix_score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
+        high: sc.mix_thresholds.high,
+        medium: sc.mix_thresholds.medium,
+        low: sc.mix_thresholds.low,
+    });
+    let wg_score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
+        high: sc.wg_thresholds.high,
+        medium: sc.wg_thresholds.medium,
+        low: sc.wg_thresholds.low,
+    });
     let directory_config = nym_gateway_directory::Config {
         nyxd_url,
         api_url,
         nym_vpn_api_url,
         min_gateway_performance,
+        mix_score_thresholds,
+        wg_score_thresholds,
     };
-    GatewayClient::new(directory_config, user_agent.into())?
+    GatewayClient::new(directory_config, user_agent.into())
+        .map_err(VpnError::internal)?
         .lookup_gateways(gw_type.into())
         .await
         .map(|gateways| {
@@ -329,7 +359,9 @@ async fn get_gateways(
                 .map(GatewayInfo::from)
                 .collect()
         })
-        .map_err(VpnError::from)
+        .map_err(|err| VpnError::NetworkConnectionError {
+            details: err.to_string(),
+        })
 }
 
 /// Start the VPN by first establishing that the account is ready to connect, including requesting
@@ -341,6 +373,8 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
 }
 
 async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
+    log_build_info();
+
     // Get the network environment details. This relies on the network environment being set in
     // advance by calling initEnvironment or initFallbackMainnetEnvironment.
     let network_env = environment::current_environment_details().await?;
@@ -349,17 +383,26 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     // in the config.
     let enable_credentials_mode = is_credential_mode_enabled(config.credential_mode).await?;
 
-    // TODO: we do a pre-connect check here. This mirrors the logic in the daemon.
-    // We want to move this check into the state machine so that it happens during the connecting
-    // state instead. This would allow us more flexibility in waiting for the account to be ready
-    // and handle errors in a unified manner.
-    // This can take a surprisingly long time, if we need to go through all steps of registering
-    // the device and requesting zknym ticketbooks.
-    let timeout = Duration::from_secs(120);
-    account::wait_for_account_ready_to_connect(enable_credentials_mode, timeout).await?;
+    let account_controller_tx = account::get_command_sender().await?;
 
     // Once we have established that the account is ready, we can start the state machine.
-    state_machine::init_state_machine(config, network_env, enable_credentials_mode).await
+    state_machine::init_state_machine(
+        config,
+        network_env,
+        enable_credentials_mode,
+        account_controller_tx,
+    )
+    .await
+}
+
+fn log_build_info() {
+    let build_info = nym_bin_common::bin_info_local_vergen!();
+    tracing::info!(
+        "{} {} ({})",
+        build_info.binary_name,
+        build_info.build_version,
+        build_info.commit_sha
+    );
 }
 
 async fn is_credential_mode_enabled(credential_mode: Option<bool>) -> Result<bool, VpnError> {

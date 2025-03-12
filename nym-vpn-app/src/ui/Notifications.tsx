@@ -1,26 +1,40 @@
+import { Viewport } from '@radix-ui/react-toast';
+import clsx from 'clsx';
 import { useInAppNotify } from '../contexts';
-import Snackbar from './Snackbar';
+import { Toast } from './index';
 
 function Notifications() {
-  const { current, next } = useInAppNotify();
+  const { current, onClose } = useInAppNotify();
 
-  const onClose = () => {
-    next();
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      return;
+    }
+    onClose();
     if (current?.onClose) {
       current.onClose();
     }
   };
 
   return (
-    <Snackbar
-      open={current !== null}
-      onClose={onClose}
-      text={current?.text || ''}
-      position={current?.position}
-      closeIcon={current?.closeIcon}
-      autoHideDuration={current?.autoHideDuration}
-      clickAway={current?.clickAway}
-    />
+    <>
+      <Viewport
+        className={clsx(
+          'fixed top-20 right-0 z-99 m-0 flex w-full',
+          'list-none flex-col gap-2.5 outline-none',
+          'cursor-default select-none',
+        )}
+      />
+      <Toast
+        open={!!current}
+        message={current?.message || ''}
+        onOpenChange={handleOpenChange}
+        close={current?.close}
+        duration={current?.duration}
+        type={current?.type}
+        clickAway={current?.clickAway}
+      />
+    </>
   );
 }
 

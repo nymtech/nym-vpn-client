@@ -2,39 +2,40 @@ use std::env::consts::{ARCH, OS};
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use itertools::Itertools;
 use nym_vpn_proto::tunnel_event::Event;
 use nym_vpn_proto::{
     get_account_identity_response::Id as AccountIdRes,
     get_account_links_response::Res as AccountLinkRes,
     get_device_identity_response::Id as DeviceIdRes, health_check_response::ServingStatus,
     health_client::HealthClient, is_account_stored_response::Resp as IsAccountStoredResp,
-    nym_vpnd_client::NymVpndClient, ConnectRequest, Dns, EntryNode, ExitNode, GatewayType,
-    GetAccountLinksRequest, HealthCheckRequest, InfoResponse, ListCountriesRequest, Location,
-    SetNetworkRequest, StoreAccountRequest, UserAgent,
+    nym_vpnd_client::NymVpndClient, ConnectRequest, Dns, GetAccountLinksRequest,
+    HealthCheckRequest, InfoResponse, ListGatewaysRequest, Location, SetNetworkRequest,
+    StoreAccountRequest, UserAgent,
 };
 use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use tauri::{AppHandle, Manager, PackageInfo};
 use tokio::sync::mpsc;
 use tonic::transport::Endpoint as TonicEndpoint;
 use tonic::{transport::Channel, Request};
-use tracing::{debug, error, info, instrument, warn};
+use tracing::{debug, error, info, instrument, trace, warn};
 
 pub use super::account_links::AccountLinks;
 pub use super::error::VpndError;
+use super::events::MixnetEvent;
 pub use super::feature_flags::FeatureFlags;
-pub use super::ready_to_connect::ReadyToConnect;
+use super::gateway::{Gateway, GatewayType};
+pub use super::node::NodeConnect;
 pub use super::system_message::SystemMessage;
 use super::tunnel::TunnelState;
-use super::version_check::VersionCheck;
-pub use super::vpnd_status::{VpndInfo, VpndStatus};
+pub use super::vpnd_status::{VersionCheck, VpndInfo, VpndStatus};
+pub use crate::grpc::network::NetworkCompatVersions;
+
 use crate::cli::Cli;
 use crate::country::Country;
 use crate::env::VPND_COMPAT_REQ;
 use crate::error::BackendError;
 use crate::fs::config::AppConfig;
-use crate::grpc::events::MixnetEvent;
-use crate::{events::AppHandleEventEmitter, states::SharedAppState};
+use crate::{events::AppHandleEventEmitter, state::SharedAppState};
 
 const VPND_SERVICE: &str = "nym.vpn.NymVpnd";
 #[cfg(target_os = "linux")]
@@ -218,7 +219,10 @@ impl GrpcClient {
             error!("failed to parse tunnel state: {}", e);
             VpndError::internal("failed to parse tunnel state")
         })?;
-        info!("tunnel state {}", tunnel);
+        info!("tunnel state [{}]", tunnel);
+        if let TunnelState::Error(e) = &tunnel {
+            warn!("tunnel error: {:?}", e);
+        }
         let s_state = app.state::<SharedAppState>();
         let mut app_state = s_state.lock().await;
         app_state.update_tunnel(app, tunnel.clone()).await?;
@@ -259,17 +263,18 @@ impl GrpcClient {
         });
 
         while let Some(state) = rx.recv().await {
-            debug!("event {:?}", state.event);
             let Some(event) = state.event else {
                 warn!("no event data, ignoring…");
                 continue;
             };
             match event {
                 Event::TunnelState(state) => {
+                    debug!("tunnel state event {:?}", state);
                     GrpcClient::handle_tunnel_update(app, state).await.ok();
                 }
                 Event::MixnetEvent(event) => {
                     if let Some(e) = MixnetEvent::from_proto(event) {
+                        trace!("mixnet event [{}]", e.as_ref());
                         app.emit_mixnet_event(e);
                     } else {
                         warn!("failed to parse mixnet event");
@@ -291,7 +296,10 @@ impl GrpcClient {
                 error!("failed to parse tunnel state: {}", e);
                 VpndError::internal("failed to parse tunnel state")
             })?;
-            info!("tunnel state {}", tunnel);
+            info!("tunnel state [{}]", tunnel);
+            if let TunnelState::Error(e) = &tunnel {
+                warn!("tunnel error: {:?}", e);
+            }
             let s_state = app.state::<SharedAppState>();
             let mut app_state = s_state.lock().await;
             app_state.update_tunnel(app, tunnel).await?;
@@ -306,8 +314,8 @@ impl GrpcClient {
     #[instrument(skip_all)]
     pub async fn vpn_connect(
         &self,
-        entry_node: Country,
-        exit_node: Country,
+        entry_node: NodeConnect,
+        exit_node: NodeConnect,
         two_hop_mod: bool,
         credentials_mode: bool,
         netstack: bool,
@@ -316,8 +324,8 @@ impl GrpcClient {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(ConnectRequest {
-            entry: Some(EntryNode::from(entry_node)),
-            exit: Some(ExitNode::from(exit_node)),
+            entry: Some(entry_node.into()),
+            exit: Some(exit_node.into()),
             disable_routing: false,
             enable_two_hop: two_hop_mod,
             netstack,
@@ -445,24 +453,6 @@ impl GrpcClient {
         }
     }
 
-    /// Check the local account state and device info, if it is ready to connect
-    #[instrument(skip_all)]
-    pub async fn is_ready_to_connect(&self) -> Result<ReadyToConnect, VpndError> {
-        let mut vpnd = self.vpnd().await?;
-
-        let request = Request::new(());
-        let response = vpnd.is_ready_to_connect(request).await.map_err(|e| {
-            error!("grpc: {}", e);
-            VpndError::GrpcError(e)
-        })?;
-        let response = response.into_inner();
-        debug!("grpc response: {:?}", response);
-        response.kind().try_into().map_err(|e: String| {
-            error!("{e}");
-            VpndError::internal(&e)
-        })
-    }
-
     /// Get the account identity \
     /// public key derived from the mnemonic
     #[instrument(skip_all)]
@@ -536,34 +526,39 @@ impl GrpcClient {
         }
     }
 
-    /// Get the list of available countries for entry gateways
+    /// Get the list of available gateways
     #[instrument(skip(self))]
-    pub async fn countries(&self, gw_type: GatewayType) -> Result<Vec<Country>, VpndError> {
+    pub async fn gateways(&self, gw_type: GatewayType) -> Result<Vec<Gateway>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(ListCountriesRequest {
-            kind: gw_type as i32,
+        let request = Request::new(ListGatewaysRequest {
+            kind: nym_vpn_proto::GatewayType::from(gw_type) as i32,
             user_agent: Some(self.user_agent.clone()),
             min_mixnet_performance: None,
             min_vpn_performance: None,
         });
-        let response = vpnd.list_countries(request).await.map_err(|e| {
+        let response = vpnd.list_gateways(request).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;
-        debug!("countries count: {}", response.get_ref().countries.len());
+        debug!(
+            "proto gateways count: {}",
+            response.get_ref().gateways.len()
+        );
 
-        let countries: Vec<Country> = response
-            .get_ref()
-            .countries
-            .iter()
-            .filter_map(|location| Country::try_from(location).ok())
-            .unique()
-            .sorted_by(|a, b| a.name.cmp(&b.name))
+        let gateways: Vec<Gateway> = response
+            .into_inner()
+            .gateways
+            .into_iter()
+            .filter_map(|gateway| {
+                Gateway::from_proto(gateway, gw_type)
+                    .inspect_err(|e| warn!("failed to parse gateway from proto: {e}"))
+                    .ok()
+            })
             .collect();
-        debug!("filtered countries count: {}", countries.len());
+        debug!("parsed gateway count: {}", gateways.len());
 
-        Ok(countries)
+        Ok(gateways)
     }
 
     /// Watch the connection with the grpc server
@@ -610,6 +605,11 @@ impl GrpcClient {
             }
             let status = self.get_vpnd_status(serving, vpnd_info.as_ref());
             app.emit_vpnd_status(status.clone());
+            if serving == ServingStatus::Serving {
+                let net_compat = self.network_compat().await.ok();
+                let mut state = app_state.lock().await;
+                state.set_network_compat(net_compat, &self.pkg_info.version, &vpnd_info);
+            }
             let mut state = app_state.lock().await;
             state.vpnd_status = status;
         }
@@ -620,7 +620,7 @@ impl GrpcClient {
     #[instrument(skip(self))]
     fn get_vpnd_status(&self, serving: ServingStatus, vpnd_info: Option<&VpndInfo>) -> VpndStatus {
         if serving != ServingStatus::Serving {
-            return VpndStatus::NotOk;
+            return VpndStatus::Down;
         }
 
         let Some(ver_req) = VPND_COMPAT_REQ else {
@@ -710,9 +710,30 @@ impl GrpcClient {
         let response = response.into_inner();
         Ok(FeatureFlags::from(&response))
     }
+
+    /// Get the network compatibility versions of supported vpn-core and tauri client
+    #[instrument(skip_all)]
+    pub async fn network_compat(&self) -> Result<NetworkCompatVersions, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(());
+        let response = vpnd.get_network_compatibility(request).await.map_err(|e| {
+            error!("grpc: {}", e);
+            VpndError::GrpcError(e)
+        })?;
+        debug!("grpc response: {:?}", response);
+        response
+            .into_inner()
+            .messages
+            .map(NetworkCompatVersions::from)
+            .ok_or_else(|| {
+                error!("no network compatibility data");
+                VpndError::internal("no network compatibility data")
+            })
+    }
 }
 
-async fn get_channel(socket_path: PathBuf) -> anyhow::Result<Channel> {
+async fn get_channel(socket_path: PathBuf) -> Result<Channel> {
     // NOTE the uri here is ignored
     Ok(TonicEndpoint::from_static(DEFAULT_HTTP_ENDPOINT)
         .connect_with_connector(tower::service_fn(move |_| {

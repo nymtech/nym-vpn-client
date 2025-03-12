@@ -1,4 +1,5 @@
 use std::{
+    borrow::Cow,
     fmt,
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     sync::LazyLock,
@@ -11,6 +12,8 @@ use nym_dns::ResolvedDnsConfig;
 #[cfg(target_os = "macos")]
 #[path = "macos.rs"]
 mod imp;
+#[cfg(target_os = "macos")]
+pub use imp::LOCAL_DNS_RESOLVER;
 
 #[cfg(target_os = "linux")]
 #[path = "linux.rs"]
@@ -31,7 +34,10 @@ mod imp;
 mod net;
 mod split_tunnel;
 use net::ALLOWED_LAN_NETS;
-pub use net::{AllowedClients, AllowedEndpoint, AllowedTunnelTraffic, TunnelMetadata};
+pub use net::{
+    AllowedClients, AllowedEndpoint, AllowedTunnelTraffic, Endpoint, TransportProtocol,
+    TunnelInterface, TunnelMetadata,
+};
 
 pub use self::imp::Error;
 
@@ -60,16 +66,28 @@ static LOOPBACK_NETS: LazyLock<[IpNetwork; 2]> = LazyLock::new(|| {
     ]
 });
 
-#[cfg(all(unix, not(target_os = "android")))]
+#[cfg(all(unix, not(any(target_os = "android", target_os = "ios"))))]
 const DHCPV4_SERVER_PORT: u16 = 67;
-#[cfg(all(unix, not(target_os = "android")))]
+
+#[cfg(all(unix, not(any(target_os = "android", target_os = "ios"))))]
 const DHCPV4_CLIENT_PORT: u16 = 68;
-#[cfg(all(unix, not(target_os = "android")))]
+
+#[cfg(all(unix, not(any(target_os = "android", target_os = "ios"))))]
 const DHCPV6_SERVER_PORT: u16 = 547;
-#[cfg(all(unix, not(target_os = "android")))]
+
+#[cfg(all(unix, not(any(target_os = "android", target_os = "ios"))))]
 const DHCPV6_CLIENT_PORT: u16 = 546;
-#[cfg(all(unix, not(target_os = "android")))]
+
+#[cfg(all(unix, not(any(target_os = "android", target_os = "ios"))))]
 const ROOT_UID: u32 = 0;
+
+/// Allowed TCP ports to DNS servers when connecting.
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+const DNS_TCP_PORTS: [u16; 3] = [53, 443, 853];
+
+/// Allowed UDP ports to DNS servers when connecting.
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+const DNS_UDP_PORTS: [u16; 1] = [53];
 
 /// Returns whether an address belongs to a private subnet.
 pub fn is_local_address(address: &IpAddr) -> bool {
@@ -90,16 +108,22 @@ pub fn is_local_address(address: &IpAddr) -> bool {
 pub enum FirewallPolicy {
     /// Allow traffic only to server
     Connecting {
-        /// The peer endpoint that should be allowed.
-        peer_endpoint: AllowedEndpoint,
-        /// Metadata about the tunnel and tunnel interface.
-        tunnel: Option<TunnelMetadata>,
+        /// The tunnel peer endpoints that should be allowed.
+        peer_endpoints: Vec<AllowedEndpoint>,
+        /// Metadata about the tunnels and tunnel interfaces.
+        tunnel: Option<TunnelInterface>,
         /// Flag setting if communication with LAN networks should be possible.
         allow_lan: bool,
-        /// Host that should be reachable while connecting.
-        allowed_endpoint: AllowedEndpoint,
-        /// Networks for which to permit in-tunnel traffic.
-        allowed_tunnel_traffic: AllowedTunnelTraffic,
+        /// Servers that are allowed to respond to DNS requests.
+        #[cfg(not(target_os = "android"))]
+        dns_config: ResolvedDnsConfig,
+        /// Hosts that should be reachable while connecting.
+        allowed_endpoints: Vec<AllowedEndpoint>,
+        /// Networks for which to permit entry in-tunnel traffic.
+        allowed_entry_tunnel_traffic: AllowedTunnelTraffic,
+        /// Networks for which to permit exit in-tunnel traffic.
+        /// Used when only one tunnel interface is utilized.
+        allowed_exit_tunnel_traffic: AllowedTunnelTraffic,
         /// Interface to redirect (VPN tunnel) traffic to
         #[cfg(target_os = "macos")]
         redirect_interface: Option<String>,
@@ -111,15 +135,17 @@ pub enum FirewallPolicy {
 
     /// Allow traffic only to server and over tunnel interface
     Connected {
-        /// The peer endpoint that should be allowed.
-        peer_endpoint: AllowedEndpoint,
-        /// Metadata about the tunnel and tunnel interface.
-        tunnel: TunnelMetadata,
+        /// The tunnel peer endpoints that should be allowed.
+        peer_endpoints: Vec<AllowedEndpoint>,
+        /// Metadata about the tunnels and tunnel interfaces.
+        tunnel: TunnelInterface,
         /// Flag setting if communication with LAN networks should be possible.
         allow_lan: bool,
         /// Servers that are allowed to respond to DNS requests.
         #[cfg(not(target_os = "android"))]
         dns_config: ResolvedDnsConfig,
+        /// Hosts that should be reachable outside of tunnel when connected.
+        allowed_endpoints: Vec<AllowedEndpoint>,
         /// Interface to redirect (VPN tunnel) traffic to
         #[cfg(target_os = "macos")]
         redirect_interface: Option<String>,
@@ -133,8 +159,8 @@ pub enum FirewallPolicy {
     Blocked {
         /// Flag setting if communication with LAN networks should be possible.
         allow_lan: bool,
-        /// Host that should be reachable while in the blocked state.
-        allowed_endpoint: Option<AllowedEndpoint>,
+        /// Hosts that should be reachable while in the blocked state.
+        allowed_endpoints: Vec<AllowedEndpoint>,
         /// Destination port for DNS traffic redirection. Traffic destined to `127.0.0.1:53` will
         /// be redirected to `127.0.0.1:$dns_redirect_port`.
         #[cfg(target_os = "macos")]
@@ -143,31 +169,30 @@ pub enum FirewallPolicy {
 }
 
 impl FirewallPolicy {
-    /// Return the tunnel peer endpoint, if available
-    pub fn peer_endpoint(&self) -> Option<&AllowedEndpoint> {
+    /// Return the tunnel peer endpoints
+    pub fn peer_endpoints(&self) -> &[AllowedEndpoint] {
         match self {
-            FirewallPolicy::Connecting { peer_endpoint, .. }
-            | FirewallPolicy::Connected { peer_endpoint, .. } => Some(peer_endpoint),
-            _ => None,
+            FirewallPolicy::Connecting { peer_endpoints, .. }
+            | FirewallPolicy::Connected { peer_endpoints, .. } => peer_endpoints.as_ref(),
+            _ => &[],
         }
     }
 
     /// Return the allowed endpoint, if available
-    pub fn allowed_endpoint(&self) -> Option<&AllowedEndpoint> {
+    pub fn allowed_endpoints(&self) -> &[AllowedEndpoint] {
         match self {
             FirewallPolicy::Connecting {
-                allowed_endpoint, ..
+                allowed_endpoints, ..
             }
             | FirewallPolicy::Blocked {
-                allowed_endpoint: Some(allowed_endpoint),
-                ..
-            } => Some(allowed_endpoint),
-            _ => None,
+                allowed_endpoints, ..
+            } => allowed_endpoints,
+            _ => &[],
         }
     }
 
     /// Return tunnel metadata, if available
-    pub fn tunnel(&self) -> Option<&TunnelMetadata> {
+    pub fn tunnel(&self) -> Option<&TunnelInterface> {
         match self {
             FirewallPolicy::Connecting {
                 tunnel: Some(tunnel),
@@ -178,13 +203,25 @@ impl FirewallPolicy {
         }
     }
 
-    /// Return allowed in-tunnel traffic
-    pub fn allowed_tunnel_traffic(&self) -> &AllowedTunnelTraffic {
+    /// Return allowed in-tunnel traffic for entry tunnel
+    pub fn allowed_entry_tunnel_traffic(&self) -> &AllowedTunnelTraffic {
         match self {
             FirewallPolicy::Connecting {
-                allowed_tunnel_traffic,
+                allowed_entry_tunnel_traffic,
                 ..
-            } => allowed_tunnel_traffic,
+            } => allowed_entry_tunnel_traffic,
+            FirewallPolicy::Connected { .. } => &AllowedTunnelTraffic::All,
+            _ => &AllowedTunnelTraffic::None,
+        }
+    }
+
+    /// Return allowed in-tunnel traffic for exit tunnel
+    pub fn allowed_exit_tunnel_traffic(&self) -> &AllowedTunnelTraffic {
+        match self {
+            FirewallPolicy::Connecting {
+                allowed_exit_tunnel_traffic,
+                ..
+            } => allowed_exit_tunnel_traffic,
             FirewallPolicy::Connected { .. } => &AllowedTunnelTraffic::All,
             _ => &AllowedTunnelTraffic::None,
         }
@@ -204,76 +241,153 @@ impl fmt::Display for FirewallPolicy {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             FirewallPolicy::Connecting {
-                peer_endpoint,
+                peer_endpoints,
                 tunnel,
                 allow_lan,
-                allowed_endpoint,
-                allowed_tunnel_traffic,
+                #[cfg(not(target_os = "android"))]
+                dns_config,
+                allowed_endpoints,
+                allowed_entry_tunnel_traffic,
+                allowed_exit_tunnel_traffic,
                 ..
             } => {
+                #[cfg(not(target_os = "android"))]
+                let dns_str = display_allowed_non_tunnel_dns(dns_config);
+                #[cfg(target_os = "android")]
+                let dns_str = "none".to_owned();
+
                 if let Some(tunnel) = tunnel {
                     write!(
                         f,
-                        "Connecting to {} over \"{}\" (ip: {}, v4 gw: {}, v6 gw: {:?}, allowed in-tunnel traffic: {}), {} LAN. Allowing endpoint {}",
-                        peer_endpoint,
-                        tunnel.interface,
-                        tunnel
-                            .ips
-                            .iter()
-                            .map(|ip| ip.to_string())
-                            .collect::<Vec<_>>()
-                            .join(","),
-                        tunnel.ipv4_gateway,
-                        tunnel.ipv6_gateway,
-                        allowed_tunnel_traffic,
+                        "Connecting to {} over {}, allowed entry in-tunnel traffic: {}, allowed exit in-tunnel traffic: {}), {} LAN. Allowing endpoints: {}. Allowing non-tunnel DNS: {}",
+                        display_peer_endpoints(peer_endpoints),
+                        display_tunnel_interface(tunnel),
+                        allowed_entry_tunnel_traffic,
+                        allowed_exit_tunnel_traffic,
                         if *allow_lan { "Allowing" } else { "Blocking" },
-                        allowed_endpoint,
+                        display_allowed_endpoints(allowed_endpoints),
+                        dns_str
                     )
                 } else {
                     write!(
                         f,
-                        "Connecting to {}, {} LAN, interface: none. Allowing endpoint {}",
-                        peer_endpoint,
+                        "Connecting to {}, {} LAN, interface: none. Allowing endpoints: {}. Allowing non-tunnel DNS: {}",
+                        display_peer_endpoints(peer_endpoints),
                         if *allow_lan { "Allowing" } else { "Blocking" },
-                        allowed_endpoint,
+                        display_allowed_endpoints(allowed_endpoints),
+                        dns_str
                     )
                 }
             }
             FirewallPolicy::Connected {
-                peer_endpoint,
+                peer_endpoints,
                 tunnel,
                 allow_lan,
+                #[cfg(not(target_os = "android"))]
+                dns_config,
+                allowed_endpoints,
                 ..
-            } => write!(
+            } => {
+                #[cfg(not(target_os = "android"))]
+                let dns_str = display_allowed_non_tunnel_dns(dns_config);
+                #[cfg(target_os = "android")]
+                let dns_str = "none".to_owned();
+
+                write!(
                 f,
-                "Connected to {} over \"{}\" (ip: {}, v4 gw: {}, v6 gw: {:?}), {} LAN",
-                peer_endpoint,
-                tunnel.interface,
-                tunnel
-                    .ips
-                    .iter()
-                    .map(|ip| ip.to_string())
-                    .collect::<Vec<_>>()
-                    .join(","),
-                tunnel.ipv4_gateway,
-                tunnel.ipv6_gateway,
-                if *allow_lan { "Allowing" } else { "Blocking" }
-            ),
+                "Connected to {} over {}, {} LAN. Allowing endpoints: {}. Allowing non-tunnel DNS: {}",
+                display_peer_endpoints(peer_endpoints),
+                display_tunnel_interface(tunnel),
+                if *allow_lan { "Allowing" } else { "Blocking" },
+                display_allowed_endpoints(allowed_endpoints),
+                dns_str
+            )
+            }
             FirewallPolicy::Blocked {
                 allow_lan,
-                allowed_endpoint,
+                allowed_endpoints,
                 ..
             } => write!(
                 f,
-                "Blocked. {} LAN. Allowing endpoint: {}",
+                "Blocked. {} LAN. Allowing endpoints: {}",
                 if *allow_lan { "Allowing" } else { "Blocking" },
-                allowed_endpoint
-                    .as_ref()
-                    .map(|endpoint| -> &dyn std::fmt::Display { endpoint })
-                    .unwrap_or(&"none"),
+                display_allowed_endpoints(allowed_endpoints),
             ),
         }
     }
+}
+
+#[cfg(not(target_os = "android"))]
+fn display_allowed_non_tunnel_dns(dns_config: &ResolvedDnsConfig) -> String {
+    if dns_config.non_tunnel_config().is_empty() {
+        "none".to_owned()
+    } else {
+        dns_config
+            .non_tunnel_config()
+            .iter()
+            .map(|ip| ip.to_string())
+            .collect::<Vec<_>>()
+            .join(",")
+    }
+}
+
+fn display_tunnel_interface(tunnel: &TunnelInterface) -> String {
+    match tunnel {
+        TunnelInterface::One(metadata) => display_tunnel_metadata(metadata),
+        TunnelInterface::Two { entry, exit } => {
+            format!(
+                "entry {}, exit {}",
+                display_tunnel_metadata(entry),
+                display_tunnel_metadata(exit)
+            )
+        }
+    }
+}
+
+fn display_tunnel_metadata(metadata: &TunnelMetadata) -> String {
+    format!(
+        "interface: {}, ips: {}, v4 gw: {:?}, v6 gw: {:?}",
+        metadata.interface,
+        display_ips(&metadata.ips),
+        metadata.ipv4_gateway,
+        metadata.ipv6_gateway
+    )
+}
+
+fn display_peer_endpoints(peer_endpoints: &[AllowedEndpoint]) -> String {
+    if peer_endpoints.is_empty() {
+        "peers: none".to_owned()
+    } else {
+        format!(
+            "peers: {}",
+            peer_endpoints
+                .iter()
+                .map(|ep| ep.to_string())
+                .collect::<Vec<_>>()
+                .join(",")
+        )
+    }
+}
+
+fn display_allowed_endpoints(allowed_endpoints: &[AllowedEndpoint]) -> Cow<'_, str> {
+    if allowed_endpoints.is_empty() {
+        Cow::from("none")
+    } else {
+        Cow::from(
+            allowed_endpoints
+                .iter()
+                .map(|ep| ep.to_string())
+                .collect::<Vec<_>>()
+                .join(","),
+        )
+    }
+}
+
+fn display_ips(ips: &[IpAddr]) -> String {
+    ips.iter()
+        .map(|ip| ip.to_string())
+        .collect::<Vec<_>>()
+        .join(",")
 }
 
 /// Manages network security of the computer/device. Can apply and enforce firewall policies
@@ -299,7 +413,7 @@ pub enum InitialFirewallState {
     /// Do not set any policy.
     None,
     /// Atomically enter the blocked state.
-    Blocked(AllowedEndpoint),
+    Blocked(Vec<AllowedEndpoint>),
 }
 
 impl Firewall {
@@ -310,7 +424,7 @@ impl Firewall {
         })
     }
 
-    /// Createsa new firewall instance.
+    /// Creates a new firewall instance.
     pub fn new(#[cfg(target_os = "linux")] fwmark: u32) -> Result<Self, Error> {
         Ok(Firewall {
             inner: imp::Firewall::new(

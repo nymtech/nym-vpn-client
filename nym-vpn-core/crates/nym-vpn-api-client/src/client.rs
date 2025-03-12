@@ -1,31 +1,32 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, time::Duration};
+use std::{fmt, net::SocketAddr, sync::Arc, time::Duration};
 
 use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
-use nym_http_api_client::{HttpClientError, Params, PathSegments, UserAgent, NO_PARAMS};
-use reqwest::Url;
+use nym_http_api_client::{ApiClient, HttpClientError, Params, PathSegments, UserAgent, NO_PARAMS};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use time::OffsetDateTime;
+use tokio::sync::RwLock;
+use url::Url;
 
-use crate::request::{UpdateDeviceRequestBody, UpdateDeviceRequestStatus};
-use crate::response::{NymVpnHealthResponse, NymVpnUsagesResponse};
-use crate::types::DeviceStatus;
 use crate::{
     error::{Result, VpnApiClientError},
     request::{
         ApplyFreepassRequestBody, CreateSubscriptionKind, CreateSubscriptionRequestBody,
-        RegisterDeviceRequestBody, RequestZkNymRequestBody,
+        RegisterDeviceRequestBody, RequestZkNymRequestBody, UpdateDeviceRequestBody,
+        UpdateDeviceRequestStatus,
     },
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
-        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnSubscription,
-        NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse, NymVpnZkNym, NymVpnZkNymPost,
-        NymVpnZkNymResponse, StatusOk,
+        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnHealthResponse,
+        NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse,
+        NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymResponse,
+        NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
-    types::{Device, GatewayMinPerformance, GatewayType, VpnApiAccount},
+    types::{Device, DeviceStatus, GatewayMinPerformance, GatewayType, VpnApiAccount, VpnApiTime},
 };
 
 pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
@@ -36,30 +37,94 @@ pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(60);
 #[derive(Clone, Debug)]
 pub struct VpnApiClient {
     inner: nym_http_api_client::Client,
+    // compensation, in case the skew is too big
+    vpn_api_time: Arc<RwLock<Option<VpnApiTime>>>,
 }
 
 impl VpnApiClient {
     pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self> {
-        nym_http_api_client::Client::builder(base_url)
+        Self::new_with_resolver_overrides(base_url, user_agent, None)
+    }
+
+    pub fn new_with_resolver_overrides(
+        base_url: Url,
+        user_agent: UserAgent,
+        static_addresses: Option<&[SocketAddr]>,
+    ) -> Result<Self> {
+        nym_http_api_client::Client::builder(base_url.clone())
             .map(|builder| {
-                builder
+                let mut builder = builder
                     .with_user_agent(user_agent)
-                    .with_timeout(NYM_VPN_API_TIMEOUT)
+                    .with_timeout(NYM_VPN_API_TIMEOUT);
+
+                if let Some(domain) = base_url.domain() {
+                    match static_addresses {
+                        Some(static_addresses) if !static_addresses.is_empty() => {
+                            tracing::info!(
+                                "Enabling DNS resolver overrides: {:?}", static_addresses
+                            );
+                            builder = builder.resolve_to_addrs(domain, static_addresses);
+                        }
+                        Some(_) => {
+                            tracing::warn!(
+                                "Not enabling DNS resolver overrides because static addresses are empty"
+                            );
+                        }
+                        None => {
+                            tracing::info!(
+                                "Not enabling DNS resolver overrides because static addresses are not set"
+                            );
+                        }
+                    }
+                } else {
+                    tracing::info!(
+                        "Not enabling DNS resolver overrides because domain is not present in base URL"
+                    );
+                }
+
+                builder
             })
             .and_then(|builder| builder.build())
-            .map(|c| Self { inner: c })
+            .map(|c| Self { inner: c, vpn_api_time: Arc::new(RwLock::new(None)) })
             .map_err(VpnApiClientError::FailedToCreateVpnApiClient)
+    }
+
+    pub fn swap_inner_client(&mut self, client: &VpnApiClient) {
+        self.inner = client.inner.clone();
     }
 
     pub fn current_url(&self) -> &Url {
         self.inner.current_url()
     }
 
-    async fn get_vpn_api_unix_timestamp(&self) -> Option<i64> {
-        match self.get_health().await {
-            Ok(response) => Some(response.timestamp_utc.timestamp()),
-            Err(_) => None,
+    fn use_remote_time(remote_time: VpnApiTime) -> bool {
+        if remote_time.is_almost_same() {
+            tracing::debug!("{remote_time}");
+            false
+        } else if remote_time.is_acceptable_synced() {
+            tracing::info!("{remote_time}");
+            false
+        } else {
+            tracing::warn!(
+                "The time skew between the local and remote time is too large, we'll use remote instead for JWT ({remote_time})."
+            );
+            true
         }
+    }
+
+    pub async fn sync_with_remote_time(&mut self) -> Result<()> {
+        let time_before = OffsetDateTime::now_utc();
+        let remote_timestamp = self.get_health().await?.timestamp_utc;
+        let time_after = OffsetDateTime::now_utc();
+
+        let remote_time =
+            VpnApiTime::from_remote_timestamp(time_before, remote_timestamp, time_after);
+
+        if Self::use_remote_time(remote_time) {
+            *self.vpn_api_time.write().await = Some(remote_time);
+        }
+
+        Ok(())
     }
 
     async fn get_authorized<T, E>(
@@ -72,19 +137,16 @@ impl VpnApiClient {
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
-        let request = self.inner.create_get_request(path, NO_PARAMS).bearer_auth(
-            account
-                .jwt(self.get_vpn_api_unix_timestamp().await)
-                .to_string(),
-        );
+        let jwt = *self.vpn_api_time.read().await;
+        let request = self
+            .inner
+            .create_get_request(path, NO_PARAMS)
+            .bearer_auth(account.jwt(jwt).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(jwt)),
             ),
             None => request,
         };
@@ -105,19 +167,16 @@ impl VpnApiClient {
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
-        let request = self.inner.create_get_request(path, NO_PARAMS).bearer_auth(
-            account
-                .jwt(self.get_vpn_api_unix_timestamp().await)
-                .to_string(),
-        );
+        let jwt = *self.vpn_api_time.read().await;
+        let request = self
+            .inner
+            .create_get_request(path, NO_PARAMS)
+            .bearer_auth(account.jwt(jwt).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(jwt)),
             ),
             None => request,
         };
@@ -161,8 +220,8 @@ impl VpnApiClient {
     ) -> std::result::Result<T, HttpClientError<E>>
     where
         for<'a> T: Deserialize<'a>,
-        K: AsRef<str>,
-        V: AsRef<str>,
+        K: AsRef<str> + Sync,
+        V: AsRef<str> + Sync,
         E: fmt::Display + fmt::Debug + DeserializeOwned,
     {
         let response = (|| async { self.inner.get_json(path, params).await })
@@ -187,22 +246,16 @@ impl VpnApiClient {
         B: Serialize,
         E: fmt::Display + DeserializeOwned,
     {
+        let jwt = *self.vpn_api_time.read().await;
         let request = self
             .inner
             .create_post_request(path, NO_PARAMS, json_body)
-            .bearer_auth(
-                account
-                    .jwt(self.get_vpn_api_unix_timestamp().await)
-                    .to_string(),
-            );
+            .bearer_auth(account.jwt(jwt).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(jwt)),
             ),
             None => request,
         };
@@ -222,22 +275,16 @@ impl VpnApiClient {
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
+        let jwt = *self.vpn_api_time.read().await;
         let request = self
             .inner
             .create_delete_request(path, NO_PARAMS)
-            .bearer_auth(
-                account
-                    .jwt(self.get_vpn_api_unix_timestamp().await)
-                    .to_string(),
-            );
+            .bearer_auth(account.jwt(jwt).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(jwt)),
             ),
             None => request,
         };
@@ -259,22 +306,16 @@ impl VpnApiClient {
         B: Serialize,
         E: fmt::Display + DeserializeOwned,
     {
+        let jwt = *self.vpn_api_time.read().await;
         let request = self
             .inner
             .create_patch_request(path, NO_PARAMS, json_body)
-            .bearer_auth(
-                account
-                    .jwt(self.get_vpn_api_unix_timestamp().await)
-                    .to_string(),
-            );
+            .bearer_auth(account.jwt(jwt).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!(
-                    "Bearer {}",
-                    device.jwt(self.get_vpn_api_unix_timestamp().await)
-                ),
+                format!("Bearer {}", device.jwt(jwt)),
             ),
             None => request,
         };
@@ -879,6 +920,22 @@ impl VpnApiClient {
         )
         .await
         .map_err(VpnApiClientError::FailedToGetDirectoryZkNymsTicketbookPartialVerificationKeys)
+    }
+
+    pub async fn get_wellknown_current_env(&self) -> Result<NymWellknownDiscoveryItem> {
+        tracing::debug!("Fetching nym vpn network details");
+        self.inner
+            .get_json(
+                &[
+                    routes::PUBLIC,
+                    routes::V1,
+                    routes::WELLKNOWN,
+                    routes::CURRENT_ENV,
+                ],
+                NO_PARAMS,
+            )
+            .await
+            .map_err(VpnApiClientError::FailedToGetVpnNetworkDetails)
     }
 }
 

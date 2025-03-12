@@ -1,6 +1,6 @@
 use crate::env::DEV_MODE;
 use crate::error::BackendError;
-use crate::states::SharedAppState;
+use crate::state::SharedAppState;
 use tauri::State;
 use tracing::{instrument, warn};
 

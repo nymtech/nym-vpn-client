@@ -18,16 +18,14 @@ bincode.workspace = true
 bs58.workspace = true
 bytes.workspace = true
 futures.workspace = true
-hickory-resolver.workspace = true
 ipnetwork.workspace = true
 itertools.workspace = true
 lazy_static.workspace = true
 log.workspace = true
-netdev.workspace = true
 pnet_packet.workspace = true
 rand.workspace = true
-serde.workspace = true
 serde_json.workspace = true
+serde.workspace = true
 si-scale.workspace = true
 signature.workspace = true
 sysinfo.workspace = true
@@ -66,36 +64,46 @@ nym-topology.workspace = true
 nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
 
-nym-authenticator-client = { path = "../nym-authenticator-client" }
-nym-connection-monitor = { path = "../nym-connection-monitor" }
-nym-gateway-directory = { path = "../nym-gateway-directory" }
-nym-ip-packet-client = { path = "../nym-ip-packet-client" }
-nym-mixnet-client = { path = "../nym-mixnet-client" }
-nym-vpn-account-controller = { path = "../nym-vpn-account-controller" }
-nym-vpn-api-client = { path = "../nym-vpn-api-client" }
-nym-vpn-network-config = { path = "../nym-vpn-network-config" }
-nym-vpn-store = { path = "../nym-vpn-store" }
-nym-wg-gateway-client = { path = "../nym-wg-gateway-client" }
-nym-wg-go = { path = "../nym-wg-go" }
-nym-apple-network = { path = "../nym-apple-network" }
-nym-apple-dispatch = { path = "../nym-apple-dispatch" }
-nym-offline-monitor = { path = "../nym-offline-monitor" }
-nym-vpn-lib-types = { path = "../nym-vpn-lib-types", features = [
-    "nym-type-conversions",
-] }
+nym-apple-dispatch.workspace = true
+nym-apple-network.workspace = true
+nym-authenticator-client.workspace = true
+nym-common.workspace = true
+nym-connection-monitor.workspace = true
+nym-gateway-directory.workspace = true
+nym-ip-packet-client.workspace = true
+nym-macos.workspace = true
+nym-mixnet-client.workspace = true
+nym-offline-monitor.workspace = true
+nym-vpn-account-controller.workspace = true
+nym-vpn-api-client.workspace = true
+nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
+nym-vpn-network-config.workspace = true
+nym-vpn-store.workspace = true
+nym-wg-gateway-client.workspace = true
+nym-wg-go.workspace = true
 
 [target.'cfg(unix)'.dependencies]
-nix = { workspace = true, features = ["socket", "net", "fs"] }
+nix = { workspace = true, features = [
+    "socket",
+    "net",
+    "fs",
+    "signal",
+    "ioctl",
+] }
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
-nym-windows = { path = "../nym-windows" }
-nym-routing = { path = "../nym-routing" }
-nym-dns = { path = "../nym-dns" }
+windows = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
+nym-windows.workspace = true
+nym-routing.workspace = true
+nym-dns.workspace = true
+nym-firewall.workspace = true
 
 [target.'cfg(any(target_os = "linux", target_os = "macos"))'.dependencies]
-nym-routing = { path = "../nym-routing" }
-nym-dns = { path = "../nym-dns" }
+hickory-proto.workspace = true
+hickory-server = { workspace = true, features = ["resolver"] }
+nym-routing.workspace = true
+nym-dns.workspace = true
+nym-firewall.workspace = true
 
 [target.'cfg(target_os = "android")'.dependencies]
 android_logger.workspace = true

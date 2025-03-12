@@ -77,7 +77,7 @@ impl IcmpConnectionBeacon {
             MultiIpPacketCodec::bundle_one_packet(ipv4_packet.packet().to_vec().into());
 
         // Wrap into a mixnet input message addressed to the IPR
-        let mixnet_message = create_input_message(self.ipr_address, bundled_packet)?;
+        let mixnet_message = wrap_in_mixnet_message(self.ipr_address, bundled_packet)?;
 
         // Send across the mixnet
         self.mixnet_client_sender
@@ -103,7 +103,7 @@ impl IcmpConnectionBeacon {
             MultiIpPacketCodec::bundle_one_packet(ipv6_packet.packet().to_vec().into());
 
         // Wrap into a mixnet input message addressed to the IPR
-        let mixnet_message = create_input_message(self.ipr_address, bundled_packet)?;
+        let mixnet_message = wrap_in_mixnet_message(self.ipr_address, bundled_packet)?;
 
         // Send across the mixnet
         self.mixnet_client_sender
@@ -133,7 +133,7 @@ impl IcmpConnectionBeacon {
     pub async fn run(mut self, mut shutdown: TaskClient) -> Result<()> {
         debug!("Icmp connection beacon is running");
         let mut ping_interval = tokio::time::interval(ICMP_BEACON_PING_INTERVAL);
-        loop {
+        while !shutdown.is_shutdown() {
             tokio::select! {
                 _ = shutdown.recv() => {
                     trace!("IcmpConnectionBeacon: Received shutdown");
@@ -172,17 +172,20 @@ impl IcmpConnectionBeacon {
     }
 }
 
-fn create_input_message(recipient: Recipient, bundled_packets: Bytes) -> Result<InputMessage> {
+fn wrap_in_mixnet_message(recipient: Recipient, bundled_packets: Bytes) -> Result<InputMessage> {
     let packet = IpPacketRequest::new_data_request(bundled_packets).to_bytes()?;
+    let surbs = 0;
+    Ok(create_input_message(recipient, packet, surbs))
+}
 
-    let lane = TransmissionLane::General;
-    let packet_type = None;
-    Ok(InputMessage::new_regular(
+fn create_input_message(recipient: Recipient, data: Vec<u8>, surbs: u32) -> InputMessage {
+    nym_sdk::mixnet::InputMessage::new_anonymous(
         recipient,
-        packet,
-        lane,
-        packet_type,
-    ))
+        data,
+        surbs,
+        TransmissionLane::General,
+        None,
+    )
 }
 
 pub enum IcmpBeaconReply {

@@ -529,6 +529,17 @@
         }
       }
     },
+    "errorReason.accountNotRegistered" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account not registered. Please try again."
+          }
+        }
+      }
+    },
     "errorReason.badBandwidthIncrease" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -617,6 +628,28 @@
         }
       }
     },
+    "errorReason.noAccountStored" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No account stored. Please add a mnemonic."
+          }
+        }
+      }
+    },
+    "errorReason.noDeviceStored" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Device not registered. Please try again."
+          }
+        }
+      }
+    },
     "errorReason.offline" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -624,6 +657,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Offline"
+          }
+        }
+      }
+    },
+    "errorReason.registrationInProgress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registration in progress. Please try again."
+          }
+        }
+      }
+    },
+    "errorReason.resolveGatewayAddrs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to resolve API domains. Please try again."
           }
         }
       }
@@ -646,6 +701,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "For privacy, NymVPN won't use the same gateway for entry and exit. Reconnect or choose different locations."
+          }
+        }
+      }
+    },
+    "errorReason.startLocalDnsResolver" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Failed to start local dns proxy. Please try again."
           }
         }
       }
@@ -679,6 +745,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Unknown reason. Please try again."
+          }
+        }
+      }
+    },
+    "errorReason.unknownTunnelState" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown tunnel state. Please try again."
           }
         }
       }
@@ -755,7 +832,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "First hop selection"
+            "value" : "Entry"
           }
         }
       }
@@ -778,6 +855,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Random low latency"
+          }
+        }
+      }
+    },
+    "gatewaySelector.servers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "servers"
           }
         }
       }
@@ -848,6 +936,28 @@
         }
       }
     },
+    "getewaySelector.close" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close"
+          }
+        }
+      }
+    },
+    "getewaySelector.identityKey" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Identity key:"
+          }
+        }
+      }
+    },
     "helper.installView.authorize" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -866,6 +976,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Continue"
+          }
+        }
+      }
+    },
+    "helper.installView.copy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy commands"
+          }
+        }
+      }
+    },
+    "helper.installView.copyToClipboardSuccess" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Successfully copied to clipboard!"
           }
         }
       }
@@ -914,6 +1046,17 @@
         }
       }
     },
+    "helper.installView.step.currentVersion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "current"
+          }
+        }
+      }
+    },
     "helper.installView.step.install" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -936,6 +1079,61 @@
         }
       }
     },
+    "helper.installView.step.requiredVersion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "required"
+          }
+        }
+      }
+    },
+    "helper.installView.step.uninstallOldDaemon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Due to migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required. Please execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
+          }
+        }
+      }
+    },
+    "helper.installView.step.verifyingVersion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifying version"
+          }
+        }
+      }
+    },
+    "helper.installView.step.versionMatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version OK"
+          }
+        }
+      }
+    },
+    "helper.installView.step.versionMismatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daemon version mismatch:"
+          }
+        }
+      }
+    },
     "helper.installView.step.waitingToStart" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -943,6 +1141,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Waiting for daemon start"
+          }
+        }
+      }
+    },
+    "helper.installView.update" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Update"
+          }
+        }
+      }
+    },
+    "helper.installView.updating" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Updating…"
+          }
+        }
+      }
+    },
+    "helper.installView.verifying" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Verifying…"
           }
         }
       }
@@ -1008,7 +1239,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "First hop"
+            "value" : "Entry"
           }
         }
       }
@@ -1019,7 +1250,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Last hop"
+            "value" : "Exit"
           }
         }
       }
@@ -1118,7 +1349,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Last hop selection"
+            "value" : "Exit"
           }
         }
       }
@@ -1262,6 +1493,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Export"
+          }
+        }
+      }
+    },
+    "logs.limitReached" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Displaying the last 1000 lines. Please export to see the full log."
           }
         }
       }
@@ -1420,24 +1662,68 @@
         }
       }
     },
+    "search.contactUsForHelp" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Contact us for help"
+          }
+        }
+      }
+    },
+    "search.howToRunGateway" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "how to run a gateway"
+          }
+        }
+      }
+    },
     "search.noResults" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No results found. Please try another search."
+            "value" : "No results found."
           }
         }
       }
     },
-    "searchCountry" : {
+    "search.noResultsSubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Search country"
+            "value" : "Try another location or check the server name."
+          }
+        }
+      }
+    },
+    "search.or" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "or learn"
+          }
+        }
+      }
+    },
+    "search.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Search location or server"
           }
         }
       }

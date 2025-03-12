@@ -13,7 +13,7 @@ import Constants
 import TunnelStatus
 
 public final class GRPCManager: ObservableObject {
-    private let group = MultiThreadedEventLoopGroup(numberOfThreads: 4)
+    private let group = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
     private let channel: GRPCChannel
     private let unixDomainSocket = "/var/run/nym-vpn.sock"
 
@@ -32,16 +32,17 @@ public final class GRPCManager: ObservableObject {
     }
 
     @Published public var tunnelStatus: TunnelStatus = .disconnected
-    @Published public var errorReason: ErrorReason?
-    @Published public var generalError: GeneralNymError?
+    @Published public var errorReason: Error?
     @Published public var connectedDate: Date?
     @Published public var isServing = false
     @Published public var networkName: String?
     public var daemonVersion = "unknown"
+    public var requiredVersion: String {
+        AppVersionProvider.libVersion
+    }
 
     public var requiresUpdate: Bool {
-        print("daemonVersion: \(daemonVersion), requiredVersion: \(AppVersionProvider.libVersion)")
-        return daemonVersion != AppVersionProvider.libVersion
+        daemonVersion.compare(AppVersionProvider.libVersion, options: .numeric) == .orderedAscending
     }
 
     private init() {
@@ -91,19 +92,6 @@ public final class GRPCManager: ObservableObject {
     }
 
     // MARK: - Connection -
-    public func isReadyToConnect() {
-        logger.log(level: .info, "isReadyToConnect")
-
-        let call = client.isReadyToConnect(Google_Protobuf_Empty())
-        call.response.whenComplete { [weak self] result in
-            switch result {
-            case .success(let response):
-                self?.logger.log(level: .info, "\(response)")
-            case .failure(let error):
-                self?.logger.log(level: .info, "Failed to connect to VPN: \(error)")
-            }
-        }
-    }
 
     public func disconnect() {
         logger.log(level: .info, "Disconnecting")
@@ -123,91 +111,6 @@ public final class GRPCManager: ObservableObject {
             _ = try call.status.wait()
         } catch {
             print("Error waiting for call status: \(error)")
-        }
-    }
-
-    // MARK: - Countries -
-    public func entryCountryCodes() async throws -> [String] {
-        logger.log(level: .info, "Fetching entry countries")
-        return try await withCheckedThrowingContinuation { continuation in
-            var request = Nym_Vpn_ListCountriesRequest()
-            request.kind = .mixnetEntry
-            request.userAgent = userAgent
-
-            let call = client.listCountries(request, callOptions: nil)
-            call.response.whenComplete { result in
-                switch result {
-                case let .success(countries):
-                    continuation.resume(returning: countries.countries.map { $0.twoLetterIsoCountryCode })
-                case let .failure(error):
-                    continuation.resume(throwing: error)
-                }
-            }
-
-            call.status.whenComplete { [weak self] result in
-                switch result {
-                case .success:
-                    break
-                case let .failure(error):
-                    self?.logger.log(level: .error, "\(error.localizedDescription)")
-                }
-            }
-        }
-    }
-
-    public func exitCountryCodes() async throws -> [String] {
-        logger.log(level: .info, "Fetching exit countries")
-        return try await withCheckedThrowingContinuation { continuation in
-            var request = Nym_Vpn_ListCountriesRequest()
-            request.kind = .mixnetExit
-            request.userAgent = userAgent
-
-            let call = client.listCountries(request, callOptions: nil)
-            call.response.whenComplete { result in
-                switch result {
-                case let .success(countries):
-                    continuation.resume(returning: countries.countries.map { $0.twoLetterIsoCountryCode })
-                case let .failure(error):
-                    continuation.resume(throwing: error)
-                }
-            }
-
-            call.status.whenComplete { [weak self] result in
-                switch result {
-                case .success:
-                    break
-                case let .failure(error):
-                    self?.logger.log(level: .error, "\(error.localizedDescription)")
-                }
-            }
-        }
-    }
-
-    public func vpnCountryCodes() async throws -> [String] {
-        logger.log(level: .info, "Fetching VPN countries")
-        return try await withCheckedThrowingContinuation { continuation in
-            var request = Nym_Vpn_ListCountriesRequest()
-            request.kind = .wg
-            request.userAgent = userAgent
-
-            let call = client.listCountries(request, callOptions: nil)
-            call.response.whenComplete { result in
-                switch result {
-                case let .success(countries):
-                    continuation.resume(returning: countries.countries.map { $0.twoLetterIsoCountryCode })
-                case let .failure(error):
-                    continuation.resume(throwing: error)
-                }
-            }
-
-            call.status.whenComplete { [weak self] result in
-                switch result {
-                case .success:
-                    break
-                case let .failure(error):
-                    self?.logger.log(level: .error, "\(error.localizedDescription)")
-                }
-            }
         }
     }
 }

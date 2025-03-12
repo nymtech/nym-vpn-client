@@ -147,22 +147,43 @@ impl AvailableTicketbooks {
             .collect()
     }
 
+    pub fn ticket_types_above_soft_threshold(&self) -> Vec<TicketType> {
+        self.ticket_types_above_threshold(TICKET_NUMBER_THRESHOLD)
+    }
+
+    pub fn ticket_types_below_or_at_soft_threshold(&self) -> Vec<TicketType> {
+        self.ticket_types_below_or_at_threshold(TICKET_NUMBER_THRESHOLD)
+    }
+
     pub fn is_all_ticket_types_above_threshold(&self, threshold: u64) -> bool {
-        Self::ticketbook_types().all(|ticket_type| self.remaining_tickets(ticket_type) > threshold)
+        self.ticket_types_above_threshold(threshold).len() == Self::ticketbook_types().count()
+    }
+
+    pub fn is_all_ticket_types_above_soft_threshold(&self) -> bool {
+        self.is_all_ticket_types_above_threshold(TICKET_NUMBER_THRESHOLD)
     }
 
     pub fn ticket_types_running_low(&self) -> Vec<TicketType> {
-        for ticket_type in self.ticket_types_above_threshold(0) {
-            tracing::info!(
-                "Remaining unexpired tickets for {ticket_type}: {}",
-                self.remaining_tickets(ticket_type)
-            );
-        }
-        self.ticket_types_below_or_at_threshold(TICKET_NUMBER_THRESHOLD)
+        let remaining_tickets = self
+            .ticket_types_above_threshold(0)
+            .into_iter()
+            .map(|ticket_type| format!("{ticket_type}: {}", self.remaining_tickets(ticket_type)))
+            .collect::<Vec<String>>()
+            .join(", ");
+        tracing::debug!("Remaining unexpired tickets: {remaining_tickets}");
+
+        self.ticket_types_below_or_at_soft_threshold()
     }
 
     pub fn len(&self) -> usize {
         self.ticketbooks.len()
+    }
+
+    pub fn len_not_expired(&self) -> usize {
+        self.ticketbooks
+            .iter()
+            .filter(|ticketbook| !ticketbook.has_expired())
+            .count()
     }
 
     pub fn is_empty(&self) -> bool {

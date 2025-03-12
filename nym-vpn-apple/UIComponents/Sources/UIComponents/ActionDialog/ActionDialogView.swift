@@ -57,7 +57,7 @@ private extension ActionDialogView {
     func title() -> some View {
         if let title = viewModel.configuration.titleLocalizedString {
             Text(title)
-                .textStyle(NymTextStyle.Label.Huge.bold)
+                .textStyle(NymTextStyle.LabelLegacy.Huge.bold)
                 .foregroundStyle(NymColor.sysOnSurface)
                 .multilineTextAlignment(.center)
 
@@ -71,7 +71,7 @@ private extension ActionDialogView {
         if let subtitle = viewModel.configuration.subtitleLocalizedString {
             Text(subtitle)
                 .foregroundStyle(NymColor.modeInfoViewDescription)
-                .textStyle(.Body.Medium.regular)
+                .textStyle(.BodyLegacy.Medium.regular)
                 .multilineTextAlignment(.center)
                 .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
         }

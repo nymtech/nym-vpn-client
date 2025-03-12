@@ -35,7 +35,7 @@ private extension WelcomeView {
     @ViewBuilder
     func titleView() -> some View {
         Text(viewModel.titleText)
-            .textStyle(.Headline.Small.primary)
+            .textStyle(.HeadlineLegacy.Small.primary)
             .multilineTextAlignment(.center)
         Spacer()
             .frame(height: 16)
@@ -44,8 +44,8 @@ private extension WelcomeView {
     @ViewBuilder
     func subtitleView() -> some View {
         Text("\(Text(viewModel.subtitle1Text)) \(Text("[\(viewModel.sentryText)](https://sentry.io)"))\(Text(viewModel.subtitle2Text)) \n\n\(Text(viewModel.disclaimerText))")
-            .textStyle(.Body.Large.regular)
-            .tint(NymColor.primaryOrange)
+            .textStyle(.BodyLegacy.Large.regular)
+            .tint(NymColor.accent)
             .foregroundStyle(NymColor.statusInfoText)
             .multilineTextAlignment(.center)
             .padding(.horizontal, viewModel.subtitleViewHorizontalPadding())
@@ -75,7 +75,7 @@ private extension WelcomeView {
         Text("By continuing, you agree to NymVPN's [Terms of use](https://nym.com/vpn-terms) and acknowledge NymVPN's [Privacy policy](https://nym.com/vpn-privacy-statement).")
             .tint(NymColor.sysOnSurfaceWhite)
             .foregroundStyle(NymColor.sysOutline)
-            .textStyle(.Label.Medium.primary)
+            .textStyle(.LabelLegacy.Medium.primary)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 16)
     }

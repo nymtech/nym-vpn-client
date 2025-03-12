@@ -160,9 +160,9 @@ impl From<nym_vpn_lib::gateway_directory::Location> for Location {
 impl From<GwScore> for Score {
     fn from(score: GwScore) -> Self {
         match score {
-            GwScore::High => Score::High,
-            GwScore::Medium => Score::Medium,
-            GwScore::Low => Score::Low,
+            GwScore::High(_) => Score::High,
+            GwScore::Medium(_) => Score::Medium,
+            GwScore::Low(_) => Score::Low,
             GwScore::None => Score::None,
         }
     }

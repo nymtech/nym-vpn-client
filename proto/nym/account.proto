@@ -1,0 +1,375 @@
+syntax = "proto3";
+
+package nym.vpn;
+
+// --- Error types
+
+message AccountError {
+  enum AccountErrorType {
+    STORE_ACCOUNT_ERROR_UNSPECIFIED = 0;
+
+    // The provided mnemonic was not able to be parsed
+    INVALID_MNEMONIC = 1;
+
+    // General error from the storage backend
+    STORAGE = 2;
+
+    // Unable to proceed while connected
+    IS_CONNECTED = 3;
+  }
+
+  AccountErrorType kind = 1;
+
+  // Detailed error message for logging and debugging
+  string message = 2;
+
+  // Optional additional details
+  map<string, string> details = 3;
+}
+
+message StoreAccountError {
+  oneof error_detail {
+    string storage_error = 1;
+    VpnApiErrorResponse error_response = 2;
+    string unexpected_response = 3;
+  }
+}
+
+message SyncAccountError {
+  oneof error_detail {
+    bool no_account_stored = 1;
+    VpnApiErrorResponse error_response = 2;
+    string unexpected_response = 3;
+    string internal = 4;
+  }
+}
+
+message SyncDeviceError {
+  oneof error_detail {
+    bool no_account_stored = 1;
+    bool no_device_stored = 2;
+    VpnApiErrorResponse error_response = 3;
+    string unexpected_response = 4;
+    string internal = 5;
+  }
+}
+
+message RegisterDeviceError {
+  oneof error_detail {
+    bool no_account_stored = 1;
+    bool no_device_stored = 2;
+    VpnApiErrorResponse error_response = 3;
+    string unexpected_response = 4;
+    string internal = 5;
+  }
+}
+
+message ForgetAccountError {
+  oneof error_detail {
+    bool registration_in_progress = 1;
+    VpnApiErrorResponse error_response = 2;
+    string unexpected_response = 3;
+    string remove_account = 4;
+    string remove_device_keys = 5;
+    string reset_credential_store = 6;
+    string remove_account_files = 7;
+    string init_device_keys = 8;
+  }
+}
+
+message VpnApiErrorResponse {
+  string message = 1;
+  optional string message_id = 2;
+  optional string code_reference_id = 3;
+}
+
+message RequestZkNymSuccess {
+  string id = 1;
+}
+
+message RequestZkNymError {
+  oneof outcome {
+    bool no_account_stored = 1;
+    bool no_device_stored = 2;
+    VpnApiErrorResponse vpn_api = 3;
+    string unexpected_vpn_api_response = 4;
+    string storage = 5;
+    string internal = 6;
+  }
+}
+
+message RequestZkNymBundle {
+  repeated RequestZkNymSuccess successes = 1;
+  repeated RequestZkNymError failures = 2;
+}
+
+// --- Common types ---
+
+message AccountIdentity {
+  optional string account_identity = 1;
+}
+
+// --- Requests and responses ---
+
+message StoreAccountRequest {
+  string mnemonic = 1;
+  uint32 nonce = 2;
+}
+
+message StoreAccountResponse {
+  bool success = 1;
+  AccountError error = 2;
+}
+
+message IsAccountStoredResponse {
+  oneof resp {
+    bool is_stored = 1;
+    AccountError error = 2;
+  }
+}
+
+message ForgetAccountResponse {
+  bool success = 1;
+  AccountError error = 2;
+}
+
+message GetAccountIdentityResponse {
+  oneof id {
+    AccountIdentity account_identity = 1;
+    AccountError error = 2;
+  }
+}
+
+message GetAccountStateResponse {
+  message AccountStateSummary {
+    enum MnemonicState {
+      MNEMONIC_STATE_UNSPECIFIED = 0;
+      MNEMONIC_STATE_NOT_STORED = 1;
+      MNEMONIC_STATE_STORED = 2;
+    }
+
+    enum AccountRegistered {
+      ACCOUNT_REGISTERED_UNSPECIFIED = 0;
+      ACCOUNT_REGISTERED = 1;
+      ACCOUNT_NOT_REGISTERED = 2;
+    }
+
+    message AccountSummary {
+      enum AccountState {
+        ACCOUNT_STATE_UNSPECIFIED = 0;
+        ACCOUNT_STATE_NOT_REGISTERED = 1;
+        ACCOUNT_STATE_INACTIVE = 2;
+        ACCOUNT_STATE_ACTIVE = 3;
+        ACCOUNT_STATE_DELETE_ME = 4;
+      }
+
+      enum SubscriptionState {
+        SUBSCRIPTION_STATE_UNSPECIFIED = 0;
+        SUBSCRIPTION_STATE_NOT_REGISTERED = 1;
+        SUBSCRIPTION_STATE_PENDING = 2;
+        SUBSCRIPTION_STATE_ACTIVE = 3;
+        SUBSCRIPTION_STATE_COMPLETE = 4;
+      }
+
+      message DeviceSummary {
+        uint64 active = 1;
+        uint64 max = 2;
+        uint64 remaining = 3;
+      }
+
+      AccountState account = 1;
+      SubscriptionState subscription = 2;
+      DeviceSummary device_summary = 3;
+    }
+
+    enum DeviceState {
+      DEVICE_STATE_UNSPECIFIED = 0;
+      DEVICE_STATE_NOT_REGISTERED = 1;
+      DEVICE_STATE_INACTIVE = 2;
+      DEVICE_STATE_ACTIVE = 3;
+      DEVICE_STATE_DELETE_ME = 4;
+    }
+
+    optional MnemonicState mnemonic = 1;
+    optional AccountRegistered account_registered = 2;
+    optional AccountSummary account_summary = 3;
+    optional DeviceState device = 4;
+    optional RegisterDeviceResult register_device_result = 5;
+    // NOTE: don't reuse tag 6
+    // bool pending_zk_nym = 6;
+    optional RequestZkNymResult request_zk_nym_result = 7;
+  }
+
+  oneof result {
+    AccountStateSummary account = 1;
+    AccountError error = 2;
+  }
+}
+
+message RegisterDeviceResult {
+  enum RegisterDeviceResultType {
+    REGISTER_DEVICE_RESULT_UNSPECIFIED = 0;
+    IN_PROGRESS = 1;
+    SUCCESS = 2;
+    FAILED = 3;
+  }
+
+  RegisterDeviceResultType kind = 1;
+  optional RegisterDeviceError error = 2;
+}
+
+// The status of a zk-nym request. A request can have multiple successes
+// and failures, depending on how many ticket types were requested.
+message RequestZkNymResult {
+  enum RequestZkNymResultType {
+    REQUEST_ZK_NYM_RESULT_UNSPECIFIED = 0;
+    IN_PROGRESS = 1;
+    DONE = 4;
+    ERROR = 5;
+  }
+
+  RequestZkNymResultType kind = 1;
+  repeated RequestZkNymSuccess successes = 2;
+  repeated RequestZkNymError failures = 3;
+}
+
+message RefreshAccountStateResponse {}
+
+message GetAccountUsageResponse {
+  message AccountUsages {
+    repeated AccountUsage account_usages = 1;
+  }
+
+  message AccountUsage {
+    string created_on_utc = 1;
+    string last_updated_utc = 2;
+    string id = 3;
+    string subscription_id = 4;
+    string valid_until_utc = 5;
+    string valid_from_utc = 6;
+    double bandwidth_allowance_gb = 7;
+    double bandwidth_used_gb = 8;
+  }
+
+  oneof result {
+    AccountUsages account_usages = 1;
+    AccountError error = 2;
+  }
+}
+
+message ResetDeviceIdentityRequest {
+  // 32 byte seed, [u8; 32]
+  optional bytes seed = 1;
+}
+
+message ResetDeviceIdentityResponse {
+  bool success = 1;
+  AccountError error = 2;
+}
+
+message GetDeviceIdentityResponse {
+  oneof id {
+    string device_identity = 1;
+    AccountError error = 2;
+  }
+}
+
+message RegisterDeviceResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message GetDevicesResponse {
+  message Device {
+    enum DeviceStatus {
+      DEVICE_STATUS_UNSPECIFIED = 0;
+      ACTIVE = 1;
+      INACTIVE = 2;
+      DELETE_ME = 3;
+    }
+
+    string created_on_utc = 1;
+    string last_updated_utc = 2;
+    string device_identity_key = 3;
+    DeviceStatus status = 4;
+  }
+
+  message Devices {
+    repeated Device devices = 1;
+  }
+
+  oneof result {
+    Devices devices = 1;
+    AccountError error = 2;
+  }
+}
+
+message RequestZkNymResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message GetDeviceZkNymsResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message GetZkNymsAvailableForDownloadResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message GetZkNymByIdRequest {
+  string id = 1;
+}
+
+message GetZkNymByIdResponse {
+  string json = 1;
+  AccountError error = 2;
+}
+
+message ConfirmZkNymDownloadedRequest {
+  string id = 1;
+}
+
+message ConfirmZkNymDownloadedResponse {
+  AccountError error = 2;
+}
+
+message GetAvailableTicketsResponse {
+  message AvailableTickets {
+    // Remaining number of mixnet entry tickets
+    uint64 mixnet_entry_tickets = 1;
+    // Remaining mixnet entry data in bytes
+    uint64 mixnet_entry_data = 2;
+    // Remaining mixnet entry data formatted to a string using SI units
+    string mixnet_entry_data_si = 3;
+
+    // Remaining number of mixnet exit tickets
+    uint64 mixnet_exit_tickets = 4;
+    // Remaining mixnet exit data in bytes
+    uint64 mixnet_exit_data = 5;
+    // Remaining mixnet exit data formatted to a string using SI units
+    string mixnet_exit_data_si = 6;
+
+    // Remaining number of vpn entry tickets
+    uint64 vpn_entry_tickets = 7;
+    // Remaining vpn entry data in bytes
+    uint64 vpn_entry_data = 8;
+    // Remaining vpn entry data formatted to a string using SI units
+    string vpn_entry_data_si = 9;
+
+    // Remaining number of vpn exit tickets
+    uint64 vpn_exit_tickets = 10;
+    // Remaining vpn exit data in bytes
+    uint64 vpn_exit_data = 11;
+    // Remaining vpn exit data formatted to a string using SI units
+    string vpn_exit_data_si = 12;
+  }
+
+  oneof resp {
+    AvailableTickets available_tickets = 1;
+    AccountError error = 2;
+  }
+}
+

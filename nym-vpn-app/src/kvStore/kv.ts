@@ -31,6 +31,20 @@ export async function kvSet<V>(k: DbKey, v: V): Promise<V | undefined> {
 }
 
 /**
+ * Remove a key
+ *
+ * @param k - Key
+ * @returns The previous value if any
+ */
+export async function kvDel<V>(k: DbKey): Promise<V | undefined> {
+  try {
+    return await invoke<V>('db_del', { key: k });
+  } catch (e) {
+    console.warn(e);
+  }
+}
+
+/**
  * Flushes all dirty IO buffers and calls fsync.
  * If this succeeds, it is guaranteed that all previous
  * writes will be recovered if the system crashes

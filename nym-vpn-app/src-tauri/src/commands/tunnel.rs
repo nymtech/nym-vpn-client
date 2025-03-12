@@ -1,12 +1,11 @@
 use crate::db::{Db, Key};
 use crate::error::ErrorKey;
-use crate::grpc::client::{GrpcClient, VpndError};
+use crate::grpc::client::{GrpcClient, NodeConnect, VpndError};
 use crate::grpc::tunnel::TunnelState;
 use crate::{
-    country::Country,
     error::BackendError,
     events::{AppHandleEventEmitter, ConnectProgressMsg},
-    states::{app::VpnMode, SharedAppState},
+    state::{app::VpnMode, SharedAppState},
 };
 use tauri::State;
 use tracing::{debug, error, info, instrument, warn};
@@ -27,8 +26,8 @@ pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
     grpc: State<'_, GrpcClient>,
-    entry: Country,
-    exit: Country,
+    entry: NodeConnect,
+    exit: NodeConnect,
 ) -> Result<TunnelState, BackendError> {
     {
         let mut app_state = state.lock().await;
@@ -58,9 +57,9 @@ pub async fn connect(
     // release the lock
     drop(app_state);
 
-    info!("entry [{}]", entry.code);
-    info!("exit [{}]", exit.code);
-    let two_hop_mod = if let VpnMode::TwoHop = vpn_mode {
+    info!("entry {}", entry);
+    info!("exit {}", exit);
+    let two_hop_mod = if let VpnMode::Wg = vpn_mode {
         info!("mode [wg]");
         true
     } else {
@@ -156,7 +155,7 @@ pub async fn set_vpn_mode(
     state.vpn_mode = mode.clone();
     drop(state);
 
-    db.insert(Key::VpnMode, &mode)
+    db.insert(Key::VpnMode.as_ref(), &mode)
         .map_err(|_| BackendError::internal("Failed to save vpn mode in db", None))?;
     Ok(())
 }

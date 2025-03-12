@@ -123,7 +123,7 @@ pub(crate) fn compute_ipv4_checksum(header: &Ipv4Packet) -> u16 {
     let mut sum = 0u32;
 
     for i in 0..len {
-        let word = (header.packet()[2 * i] as u32) << 8 | header.packet()[2 * i + 1] as u32;
+        let word = ((header.packet()[2 * i] as u32) << 8) | header.packet()[2 * i + 1] as u32;
         sum += word;
     }
 

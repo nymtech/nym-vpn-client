@@ -56,23 +56,6 @@ impl BoxedError {
     }
 }
 
-/// Helper macro allowing simpler handling of Windows FFI returning `WIN32_ERROR`
-/// status codes. Converts a `WIN32_ERROR` into an `io::Result<()>`.
-///
-/// The caller of this macro must have `windows_sys` as a dependency.
-#[cfg(windows)]
-#[macro_export]
-macro_rules! win32_err {
-    ($expr:expr) => {{
-        let status = $expr;
-        if status == ::windows_sys::Win32::Foundation::NO_ERROR {
-            Ok(())
-        } else {
-            Err(::std::io::Error::from_raw_os_error(status as i32))
-        }
-    }};
-}
-
 pub mod flood {
     use std::time::{Duration, Instant};
 

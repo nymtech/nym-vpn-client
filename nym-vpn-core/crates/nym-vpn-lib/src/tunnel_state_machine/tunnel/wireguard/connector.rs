@@ -3,6 +3,7 @@
 
 use std::path::PathBuf;
 
+use nym_vpn_network_config::Network;
 use tokio::task::JoinHandle;
 
 use nym_authenticator_client::AuthClient;
@@ -16,7 +17,7 @@ use tokio_util::sync::CancellationToken;
 
 use super::connected_tunnel::ConnectedTunnel;
 use crate::{
-    bandwidth_controller::{BandwidthController, ReconnectMixnetClientData},
+    bandwidth_controller::BandwidthController,
     tunnel_state_machine::tunnel::{
         self, gateway_selector::SelectedGateways, AnyConnector, ConnectorError, Error, Result,
     },
@@ -47,20 +48,20 @@ impl Connector {
     }
     pub async fn connect(
         self,
+        network: &Network,
         enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
-        reconnect_mixnet_client_data: ReconnectMixnetClientData,
         cancel_token: CancellationToken,
     ) -> Result<ConnectedTunnel, ConnectorError> {
         let result = Self::connect_inner(
             &self.task_manager,
+            network,
             self.mixnet_client.clone(),
             &self.gateway_directory_client,
             enable_credentials_mode,
             selected_gateways,
             data_path,
-            reconnect_mixnet_client_data,
             cancel_token,
         )
         .await;
@@ -87,12 +88,12 @@ impl Connector {
     #[allow(clippy::too_many_arguments)]
     async fn connect_inner(
         task_manager: &TaskManager,
+        network: &Network,
         mixnet_client: SharedMixnetClient,
         gateway_directory_client: &GatewayClient,
         enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
-        reconnect_mixnet_client_data: ReconnectMixnetClientData,
         cancel_token: CancellationToken,
     ) -> Result<ConnectResult> {
         let auth_addresses =
@@ -103,7 +104,9 @@ impl Connector {
             return Err(Error::AuthenticationNotPossible(auth_addresses.to_string()));
         };
         let entry_version = selected_gateways.entry.version.clone().into();
+        tracing::debug!("Entry gateway version: {entry_version}");
         let exit_version = selected_gateways.exit.version.clone().into();
+        tracing::debug!("Exit gateway version: {exit_version}");
         let auth_client = AuthClient::new(mixnet_client).await;
 
         let mut wg_entry_gateway_client = if enable_credentials_mode {
@@ -137,7 +140,7 @@ impl Connector {
             )
         };
 
-        let shutdown = task_manager.subscribe_named("bandwidth controller");
+        let shutdown = task_manager.subscribe_named("bandwidth_controller");
         let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =
             data_path.as_ref()
         {
@@ -148,10 +151,10 @@ impl Connector {
                 .map_err(Error::SetupStoragePaths)?;
             let bw = BandwidthController::new(
                 storage,
+                network,
                 wg_entry_gateway_client.light_client(),
                 wg_exit_gateway_client.light_client(),
                 shutdown,
-                reconnect_mixnet_client_data,
             )?;
             let entry_fut = bw.get_initial_bandwidth(
                 enable_credentials_mode,
@@ -181,10 +184,10 @@ impl Connector {
             let storage = EphemeralCredentialStorage::default();
             let bw = BandwidthController::new(
                 storage,
+                network,
                 wg_entry_gateway_client.light_client(),
                 wg_exit_gateway_client.light_client(),
                 shutdown,
-                reconnect_mixnet_client_data,
             )?;
             let entry = bw
                 .get_initial_bandwidth(
@@ -235,9 +238,10 @@ impl Connector {
         ))
     }
 
-    /// Gracefully shutdown task manager and consume the struct.
+    /// Gracefully shutdown task manager and mixnet client, and consume the struct.
     pub async fn dispose(self) {
-        tunnel::shutdown_task_manager(self.task_manager).await;
+        tracing::debug!("Shutting down mixnet client");
+        tunnel::shutdown_mixnet_client(self.task_manager, self.mixnet_client).await;
     }
 }
 

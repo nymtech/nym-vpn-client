@@ -5,6 +5,8 @@ import Theme
 public struct SettingsListItem: View {
     private let viewModel: SettingsListItemViewModel
 
+    @State private var isHovered = false
+
     public init(viewModel: SettingsListItemViewModel) {
         self.viewModel = viewModel
     }
@@ -26,7 +28,9 @@ public struct SettingsListItem: View {
             optionalDivider()
         }
         .frame(maxWidth: .infinity, minHeight: 64, maxHeight: 64)
-        .background(NymColor.navigationBarBackground)
+        .background {
+            NymColor.navigationBarBackground.opacity(isHovered ? 0.7 : 1)
+        }
         .clipShape(
             .rect(
                 topLeadingRadius: viewModel.topRadius,
@@ -38,6 +42,9 @@ public struct SettingsListItem: View {
         .padding(.horizontal, 16)
         .onTapGesture {
             viewModel.action()
+        }
+        .onHover { newValue in
+            isHovered = newValue
         }
     }
 }
@@ -66,11 +73,11 @@ private extension SettingsListItem {
         VStack(alignment: .leading) {
             Text(viewModel.title)
                 .foregroundStyle(NymColor.sysOnSurface)
-                .textStyle(.Body.Large.semibold)
+                .textStyle(.BodyLegacy.Large.semibold)
             if let subtitle = viewModel.subtitle {
                 BouncingMarqueeTextView(
                     text: subtitle,
-                    textStyle: .Body.Medium.regular,
+                    textStyle: .BodyLegacy.Medium.regular,
                     fontColor: NymColor.sysOutline,
                     speed: 70,
                     pauseDuration: 1.0

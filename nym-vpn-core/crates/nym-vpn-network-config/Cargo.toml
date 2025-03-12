@@ -12,13 +12,11 @@ license.workspace = true
 anyhow.workspace = true
 futures-util.workspace = true
 itertools.workspace = true
+nym-api-requests.workspace = true
 nym-config.workspace = true
 nym-sdk.workspace = true
-reqwest = { workspace = true, default-features = false, features = [
-    "blocking",
-    "rustls-tls",
-    "json",
-] }
+nym-validator-client.workspace = true
+nym-vpn-api-client.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tempfile.workspace = true

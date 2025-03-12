@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.util.extensions
 
+import net.nymtech.vpn.model.NymGateway
 import java.util.Locale
 import kotlin.math.round
 import kotlin.time.Duration
@@ -19,4 +20,12 @@ fun String.capitalize(locale: Locale): String {
 fun Long.toMB(): String {
 	val mb = this / 1024.0 * 1024.0
 	return "%.2f".format(round(mb * 100) / 100)
+}
+
+fun String.truncateWithEllipsis(length: Int): String {
+	return if (this.length <= length) this else "${take(length)}..."
+}
+
+fun NymGateway.toLocale(): Locale? {
+	return twoLetterCountryISO?.let { Locale(it, it) }
 }

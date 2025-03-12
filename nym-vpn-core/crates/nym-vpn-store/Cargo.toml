@@ -8,6 +8,9 @@ documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 bip39.workspace = true
 nym-crypto = { workspace = true, features = ["rand", "asymmetric"] }

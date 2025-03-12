@@ -14,18 +14,15 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
     VpnApiClient,
 };
+use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiErrorResponse};
 use tokio::task::JoinSet;
 
 use crate::{
-    commands::{AccountCommandResult, VpnApiEndpointFailure},
-    shared_state::RequestZkNymResult,
-    storage::VpnCredentialStorage,
-    AccountCommandError, SharedAccountState,
+    commands::AccountCommandResult, shared_state::RequestZkNymResult,
+    storage::VpnCredentialStorage, SharedAccountState,
 };
 
-use super::{
-    cached_data::CachedData, request::RequestZkNymTask, RequestZkNymError, RequestZkNymSuccess,
-};
+use super::{cached_data::CachedData, request::RequestZkNymTask};
 
 // The maximum number of zk-nym requests that can fail in a row before we disable background
 // refresh
@@ -88,6 +85,11 @@ impl WaitingRequestZkNymCommandHandler {
     pub(crate) async fn max_fails_reached(&self) -> bool {
         self.zk_nym_fails_in_a_row.load(Ordering::Relaxed) >= ZK_NYM_MAX_FAILS
     }
+
+    pub(crate) fn update_vpn_api_client(&mut self, vpn_api_client: &VpnApiClient) {
+        self.vpn_api_client.swap_inner_client(vpn_api_client);
+        self.cached_data.update_vpn_api_client(vpn_api_client);
+    }
 }
 
 pub(crate) struct RequestZkNymCommandHandler {
@@ -111,18 +113,12 @@ impl RequestZkNymCommandHandler {
         AccountCommandResult::RequestZkNym(self.request_zk_nyms_outer().await)
     }
 
-    #[tracing::instrument(
-        skip(self),
-        fields(id = %self.id_str()),
-        ret,
-        err,
-    )]
-    async fn request_zk_nyms_outer(self) -> Result<RequestZkNymSummary, AccountCommandError> {
+    async fn request_zk_nyms_outer(self) -> Result<RequestZkNymSummary, RequestZkNymError> {
         tracing::debug!("Running zk-nym request command handler: {}", self.id);
 
         // Defensive check for something that should not be possible
         if self.account_state.is_zk_nym_request_in_progress().await {
-            return Err(AccountCommandError::internal(
+            return Err(RequestZkNymError::internal(
                 "duplicate zk-nym request command",
             ));
         }
@@ -142,22 +138,31 @@ impl RequestZkNymCommandHandler {
                 self.account_state
                     .set_zk_nym_request(RequestZkNymResult::from(err.clone()))
                     .await;
-                Err(AccountCommandError::from(err))
+                Err(err)
             }
         }
     }
 
-    #[tracing::instrument(skip(self), ret, err)]
+    #[tracing::instrument(
+        skip(self),
+        fields(id = %self.id_str()),
+        ret,
+        err,
+    )]
     async fn request_zk_nyms(&self) -> Result<RequestZkNymSummary, RequestZkNymError> {
         tracing::debug!("Running zk-nym request command handler: {}", self.id);
 
         // If we have pending zk-nym ticketbooks, try those first
         let resumed_requests = self.resume_request_zk_nyms().await;
 
-        let ticket_types = self.check_ticket_types_running_low().await?;
-        tracing::debug!("Ticket types running low: {:?}", ticket_types);
+        let ticket_types = self.get_ticket_types_running_low().await?;
+        tracing::debug!("Ticket types running low: {ticket_types:?}");
 
-        let new_requests = self.request_zk_nyms_for_ticket_types(ticket_types).await;
+        let new_requests = if !ticket_types.is_empty() {
+            self.request_zk_nyms_for_ticket_types(ticket_types).await
+        } else {
+            Vec::new()
+        };
 
         let zk_nym_fails_in_a_row = self.zk_nym_fails_in_a_row.load(Ordering::Relaxed);
         if zk_nym_fails_in_a_row > 0 {
@@ -172,11 +177,11 @@ impl RequestZkNymCommandHandler {
         Ok(result)
     }
 
-    async fn check_ticket_types_running_low(&self) -> Result<Vec<TicketType>, RequestZkNymError> {
+    async fn get_ticket_types_running_low(&self) -> Result<Vec<TicketType>, RequestZkNymError> {
         self.credential_storage
             .lock()
             .await
-            .check_ticket_types_running_low()
+            .get_ticket_types_running_low()
             .await
             .map_err(RequestZkNymError::internal)
     }
@@ -185,7 +190,7 @@ impl RequestZkNymCommandHandler {
         &self,
         ticket_types: Vec<TicketType>,
     ) -> Vec<Result<RequestZkNymSuccess, RequestZkNymError>> {
-        tracing::info!("Requesting zk-nym ticketbooks for: {:?}", ticket_types);
+        tracing::info!("Requesting zk-nym ticketbooks for: {ticket_types:?}");
 
         let mut join_set = JoinSet::new();
         for ticket_type in ticket_types {
@@ -249,12 +254,10 @@ impl RequestZkNymCommandHandler {
             .await
             .map(|response| response.items.into_iter().map(|item| item.id).collect())
             .map_err(|err| {
-                VpnApiEndpointFailure::try_from(err)
-                    .map(
-                        |source| RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure {
-                            source,
-                        },
-                    )
+                VpnApiErrorResponse::try_from(err)
+                    .map(|response| {
+                        RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure { response }
+                    })
                     .unwrap_or_else(RequestZkNymError::unexpected_response)
             })
     }

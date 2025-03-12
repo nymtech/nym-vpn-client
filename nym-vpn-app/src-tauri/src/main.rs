@@ -16,16 +16,16 @@ use crate::{
 use crate::fs::path::APP_CONFIG_DIR;
 use anyhow::{anyhow, Result};
 use clap::Parser;
-use commands::country as cmd_country;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
 use commands::dev as cmd_dev;
 use commands::env as cmd_env;
 use commands::fs as cmd_fs;
+use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
 use commands::window as cmd_window;
 use commands::*;
-use states::app::AppState;
+use state::app::AppState;
 use tauri::Manager;
 use tauri_plugin_window_state::StateFlags;
 use tokio::sync::Mutex;
@@ -44,7 +44,7 @@ mod grpc;
 mod log;
 mod misc;
 mod startup_error;
-mod states;
+mod state;
 mod tray;
 mod window;
 
@@ -95,6 +95,11 @@ async fn main() -> Result<()> {
     info!("app version: {}", pkg_info.version);
     info!("Starting tauri app");
     tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_autostart::init(
+            tauri_plugin_autostart::MacosLauncher::LaunchAgent,
+            None,
+        ))
         .plugin(
             tauri_plugin_window_state::Builder::new()
                 .with_state_flags(StateFlags::SIZE | StateFlags::POSITION)
@@ -111,7 +116,6 @@ async fn main() -> Result<()> {
         .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_os::init())
-        .plugin(tauri_plugin_shell::init())
         .setup(move |app| {
             info!("app setup");
 
@@ -186,7 +190,7 @@ async fn main() -> Result<()> {
                 loop {
                     c_grpc.watch(&handle).await.ok();
                     sleep(VPND_RETRY_INTERVAL).await;
-                    debug!("vpnd health spy retry");
+                    trace!("vpnd health spy retry");
                 }
             });
 
@@ -199,7 +203,7 @@ async fn main() -> Result<()> {
                         c_grpc.watch_tunnel_events(&handle).await.ok();
                     }
                     sleep(VPND_RETRY_INTERVAL).await;
-                    debug!("vpn tunnel spy retry");
+                    trace!("vpn tunnel spy retry");
                 }
             });
 
@@ -214,8 +218,9 @@ async fn main() -> Result<()> {
             cmd_dev::set_credentials_mode,
             cmd_db::db_set,
             cmd_db::db_get,
+            cmd_db::db_del,
             cmd_db::db_flush,
-            cmd_country::get_countries,
+            cmd_gw::get_gateways,
             cmd_window::show_main_window,
             cmd_window::set_background_color,
             commands::cli::cli_args,
@@ -226,11 +231,11 @@ async fn main() -> Result<()> {
             account::get_account_id,
             account::get_device_id,
             account::account_links,
-            account::ready_to_connect,
             cmd_daemon::daemon_status,
             cmd_daemon::set_network,
             cmd_daemon::system_messages,
             cmd_daemon::feature_flags,
+            cmd_daemon::network_compat,
             cmd_fs::log_dir,
             startup::startup_error,
             cmd_env::env,

@@ -8,6 +8,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,7 +26,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.QuestionMark
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Speed
@@ -52,6 +52,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCancellationBehavior
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.nymtech.connectivity.NetworkStatus
@@ -112,6 +118,23 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
+	val isDarkMode = isSystemInDarkTheme()
+
+	val animation by remember(appUiState.settings.vpnMode, appUiState.settings.theme) {
+		with(appUiState.settings) {
+			val asset = when (theme) {
+				Theme.AUTOMATIC, Theme.DYNAMIC, null -> if (isDarkMode) {
+					if (vpnMode.isTwoHop()) R.raw.noise_2hop_dark else R.raw.noise_5hop_dark
+				} else if (vpnMode.isTwoHop()) R.raw.noise_2hop_light else R.raw.noise_5hop_light
+				Theme.DARK_MODE -> if (vpnMode.isTwoHop()) R.raw.noise_2hop_dark else R.raw.noise_5hop_dark
+				Theme.LIGHT_MODE -> if (vpnMode.isTwoHop()) R.raw.noise_2hop_light else R.raw.noise_5hop_light
+			}
+			mutableStateOf(asset)
+		}
+	}
+
+	val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(animation))
+
 	val context = LocalContext.current
 	val snackbar = SnackbarController.current
 	val screenSnackbar = remember { SnackbarHostState() }
@@ -120,7 +143,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 	val navController = LocalNavController.current
 
 	var didAutoStart by remember { mutableStateOf(false) }
-	var showDialog by remember { mutableStateOf(false) }
+	var showInfoDialog by remember { mutableStateOf(false) }
+	var showCompatibilityDialog by remember { mutableStateOf(false) }
 	var connectionTime: String? by remember { mutableStateOf(null) }
 
 	LaunchedEffect(Unit) {
@@ -145,6 +169,10 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				}
 			}
 			connectionTime = null
+		}
+		LaunchedEffect(isNetworkCompatible) {
+			if (isNetworkCompatible) return@LaunchedEffect
+			showCompatibilityDialog = true
 		}
 	}
 
@@ -187,7 +215,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		}
 	}
 
-	Modal(show = showDialog, onDismiss = { showDialog = false }, title = {
+	Modal(show = showInfoDialog, onDismiss = { showInfoDialog = false }, title = {
 		Text(
 			text = stringResource(R.string.mode_selection),
 			color = MaterialTheme.colorScheme.onSurface,
@@ -201,6 +229,40 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		)
 	})
 
+	Modal(show = showCompatibilityDialog, onDismiss = {
+		showCompatibilityDialog = false
+	}, title = {
+		Text(
+			text = stringResource(R.string.update_required),
+			color = MaterialTheme.colorScheme.onSurface,
+			style = CustomTypography.labelHuge,
+		)
+	}, text = {
+		Column(verticalArrangement = Arrangement.spacedBy(16.dp.scaledHeight())) {
+			Row(
+				horizontalArrangement = Arrangement.spacedBy(10.dp.scaledWidth(), Alignment.CenterHorizontally),
+				verticalAlignment = Alignment.CenterVertically,
+			) {
+				Text(
+					text = stringResource(R.string.app_update_required),
+					style = MaterialTheme.typography.bodyMedium,
+					color = MaterialTheme.colorScheme.onSurface,
+				)
+			}
+		}
+	}, confirmButton = {
+		MainStyledButton(
+			onClick = {
+				showCompatibilityDialog = false
+				context.openWebUrl(context.getString(R.string.download_url))
+			},
+			content = {
+				Text(text = stringResource(id = R.string.update))
+			},
+			modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
+		)
+	})
+
 	Column(
 		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
 		horizontalAlignment = Alignment.CenterHorizontally,
@@ -209,9 +271,28 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		Column(
 			verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight()),
 			horizontalAlignment = Alignment.CenterHorizontally,
-			modifier = Modifier.padding(top = 68.dp.scaledHeight()),
+			modifier = Modifier.padding(top = 56.dp.scaledHeight()),
 		) {
 			SnackbarHost(hostState = screenSnackbar, Modifier)
+			Column(modifier = Modifier.height(12.dp)) {
+				with(appUiState.managerState) {
+					AnimatedVisibility(visible = tunnelState == Tunnel.State.Up) {
+						val logoAnimationState =
+							animateLottieCompositionAsState(
+								composition = composition.value,
+								speed = 1f,
+								isPlaying = tunnelState == Tunnel.State.Up,
+								iterations = LottieConstants.IterateForever,
+								cancellationBehavior = LottieCancellationBehavior.Immediately,
+							)
+
+						LottieAnimation(
+							composition = composition.value,
+							progress = { logoAnimationState.progress },
+						)
+					}
+				}
+			}
 			ConnectionStateDisplay(connectionState = uiState.connectionState, appUiState.settings.theme ?: Theme.AUTOMATIC)
 			uiState.stateMessage.let {
 				when (it) {
@@ -265,7 +346,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 				) {
 					GroupLabel(title = stringResource(R.string.select_mode))
 					IconButton(onClick = {
-						showDialog = true
+						showInfoDialog = true
 					}, modifier = Modifier.size(iconSize)) {
 						val icon = Icons.Outlined.Info
 						Icon(icon, icon.name, tint = MaterialTheme.colorScheme.outline)
@@ -319,7 +400,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 					leading = {
 						val image = appUiState.entryPointCountry?.let {
 							ImageVector.vectorResource(context.getFlagImageVectorByName(it))
-						} ?: Icons.Default.QuestionMark
+						} ?: ImageVector.vectorResource(R.drawable.faq)
 						Image(
 							image,
 							image.name,
@@ -411,6 +492,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 									style = CustomTypography.labelHuge,
 								)
 							},
+							modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 						)
 
 					is ConnectionState.Disconnecting,
@@ -428,7 +510,8 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 									color = MaterialTheme.colorScheme.background,
 								)
 							},
-							color = MaterialTheme.colorScheme.secondary,
+							color = CustomColors.disconnect,
+							modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 						)
 					}
 
@@ -443,6 +526,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 								)
 							},
 							color = CustomColors.disconnect,
+							modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 						)
 				}
 			}

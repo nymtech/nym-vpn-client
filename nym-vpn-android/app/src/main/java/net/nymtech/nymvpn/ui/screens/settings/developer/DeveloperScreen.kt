@@ -32,12 +32,14 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
@@ -206,6 +208,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
 						)
 					},
 					title = {
+						val scope = rememberCoroutineScope()
 						ExposedDropdownMenuBox(
 							expanded = environmentExpanded,
 							onExpandedChange = { environmentExpanded = it },
@@ -226,10 +229,12 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
 									DropdownMenuItem(
 										text = { Text(text = item.name) },
 										onClick = {
-											if (appUiState.settings.environment == item) return@DropdownMenuItem
-											appViewModel.logout()
-											appViewModel.onEnvironmentChange(item)
-											environmentExpanded = false
+											scope.launch {
+												if (appUiState.settings.environment == item) return@launch
+												appViewModel.logout()
+												appViewModel.onEnvironmentChange(item)
+												environmentExpanded = false
+											}
 										},
 									)
 								}

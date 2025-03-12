@@ -60,11 +60,10 @@ public final class CountriesManager: ObservableObject {
         self.exitCountries = []
         self.vpnCountries = []
 
-        setup()
+        loadCountryStore()
+        loadPrebundledCountriesIfNecessary()
     }
-#endif
-
-#if os(macOS)
+#elseif os(macOS)
     public init(
         appSettings: AppSettings,
         grpcManager: GRPCManager,
@@ -79,9 +78,19 @@ public final class CountriesManager: ObservableObject {
         self.exitCountries = []
         self.vpnCountries = []
 
-        setup()
+        loadCountryStore()
+        loadPrebundledCountriesIfNecessary()
     }
 #endif
+
+    public func setup() {
+        setupAutoUpdates()
+        configureEnvironmentChange()
+        fetchCountries()
+#if os(macOS)
+        setupDaemonStateObserver()
+#endif
+    }
 
     @objc public func fetchCountries() {
         guard !isLoading, needsReload()
@@ -95,13 +104,13 @@ public final class CountriesManager: ObservableObject {
         }
         isLoading = true
 
-        Task(priority: .background) { [weak self] in
+        Task { [weak self] in
             self?.fetchEntryExitCountries()
         }
     }
 
-    public func country(with code: String, countryType: CountryType) -> Country? {
-        switch countryType {
+    public func country(with code: String, gatewayType: NodeType) -> Country? {
+        switch gatewayType {
         case .entry:
             return entryCountries.first(where: { $0.code == code })
         case .exit:
@@ -114,20 +123,9 @@ public final class CountriesManager: ObservableObject {
 
 // MARK: - Setup -
 private extension CountriesManager {
-    func setup() {
-        loadCountryStore()
-        loadPrebundledCountriesIfNecessary()
-        setupAutoUpdates()
-        configureEnvironmentChange()
-        fetchCountries()
-#if os(macOS)
-        setupDaemonStateObserver()
-#endif
-    }
-
     func setupAutoUpdates() {
         timer = Timer.scheduledTimer(
-            timeInterval: 600,
+            timeInterval: 1800,
             target: self,
             selector: #selector(fetchCountries),
             userInfo: nil,
@@ -146,7 +144,7 @@ private extension CountriesManager {
     func setupDaemonStateObserver() {
         helperManager.$daemonState.sink { [weak self] daemonState in
             guard daemonState == .running else { return }
-            Task(priority: .background) {
+            Task {
                 try? await Task.sleep(for: .seconds(5))
                 self?.fetchCountries()
             }
@@ -174,7 +172,7 @@ private extension CountriesManager {
         guard entryCountries.isEmpty || exitCountries.isEmpty || vpnCountries.isEmpty else { return }
         guard let entryCountriesURL = Bundle.main.url(forResource: "gatewaysEntryCountries", withExtension: "json"),
               let exitCountriesURL = Bundle.main.url(forResource: "gatewaysExitCountries", withExtension: "json"),
-              let vpnCountriesURL = Bundle.main.url(forResource: "vpnCountries", withExtension: "json")
+              let vpnCountriesURL = Bundle.main.url(forResource: "gatewaysVpnCountries", withExtension: "json")
         else {
             updateError(with: GeneralNymError.noPrebundledCountries)
             return
@@ -236,7 +234,7 @@ private extension CountriesManager {
     }
 
     func fetchEntryCountries() async throws {
-            let countryCodes = try await grpcManager.entryCountryCodes()
+            let countryCodes = try await grpcManager.countryCodes(for: .entry)
             let countries = countryCodes.compactMap { countryCode in
                 country(with: countryCode)
             }
@@ -251,7 +249,7 @@ private extension CountriesManager {
     }
 
     func fetchExitCountries() async throws {
-        let countryCodes = try await grpcManager.exitCountryCodes()
+        let countryCodes = try await grpcManager.countryCodes(for: .exit)
         let countries = countryCodes.compactMap { countryCode in
             country(with: countryCode)
         }
@@ -266,7 +264,7 @@ private extension CountriesManager {
     }
 
     func fetchVPNCountries() async throws {
-        let countryCodes = try await grpcManager.vpnCountryCodes()
+        let countryCodes = try await grpcManager.countryCodes(for: .vpn)
         let countries = countryCodes.compactMap { countryCode in
             country(with: countryCode)
         }
@@ -331,9 +329,11 @@ private extension CountriesManager {
             countryStore.vpnCountries = newVpnCountries
             countryStore.lastFetchDate = Date()
 
-            entryCountries = newEntryCountries
-            exitCountries = newExitCountries
-            vpnCountries = newVpnCountries
+            Task { @MainActor [weak self] in
+                self?.entryCountries = newEntryCountries
+                self?.exitCountries = newExitCountries
+                self?.vpnCountries = newVpnCountries
+            }
 
             storeCountryStore()
 
@@ -349,7 +349,7 @@ private extension CountriesManager {
 
 extension CountriesManager {
     public func country(with countryCode: String) -> Country? {
-        guard let countryName = Locale.current.localizedString(forRegionCode: countryCode)
+        guard !countryCode.isEmpty, let countryName = Locale.current.localizedString(forRegionCode: countryCode)
         else {
             logger.log(level: .error, "Failed resolving country code for: \(countryCode)")
             return nil
@@ -362,12 +362,12 @@ extension CountriesManager {
 private extension CountriesManager {
     func needsReload() -> Bool {
         guard let lastFetchDate = countryStore.lastFetchDate else { return true }
-        return isLongerThan10Minutes(date: lastFetchDate)
+        return isLongerThan30Minutes(date: lastFetchDate)
     }
 
-    func isLongerThan10Minutes(date: Date) -> Bool {
+    func isLongerThan30Minutes(date: Date) -> Bool {
         let difference = Date().timeIntervalSince(date)
-        return difference > 600 ? true : false
+        return difference > 1800 ? true : false
     }
 
     func loadCountriesFromCountryStore() {

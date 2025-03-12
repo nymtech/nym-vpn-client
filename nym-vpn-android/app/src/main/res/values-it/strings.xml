@@ -113,8 +113,7 @@
     <string name="gateway_locations_title">Dettagli sulla posizione dei server</string>
     <string name="try_reconnecting">Tentativo di riconnesione</string>
     <string name="gateways_error">Impossibile trovare i gateways</string>
-    <string name="error_invalid_credential">Le credenziali importate sono invalide</string>
-    <string name="country_load_failure">Impossibile caricare i paesi degli hop</string>
+	<string name="country_load_failure">Impossibile caricare i paesi degli hop</string>
     <string name="gateway_modal_description">L\'ubicazione dei server viene dedotta in base ai loro indirizzi IP, ma l\'ubicazione effettiva può variare leggermente.</string>
     <string name="permission_message">Per garantire il corretto funzionamento dell\'applicazione sul tuo dispositivo, consenti le seguenti autorizzazioni. Queste autorizzazioni sono necessarie per il funzionamento dell\'app.</string>
     <string name="entry_location_selector">Selettore della località d\'entrata</string>

@@ -33,25 +33,25 @@ pub enum Error {
     RouteManagerDown,
     /// Low level error caused by a failure to add to route table
     #[error("Could not add route to route table")]
-    AddToRouteTable(io::Error),
+    AddToRouteTable(#[source] windows::core::Error),
     /// Low level error caused by failure to delete route from route table
     #[error("Failed to delete applied routes")]
-    DeleteFromRouteTable(io::Error),
+    DeleteFromRouteTable(#[source] windows::core::Error),
     /// GetIpForwardTable2 windows API call failed
     #[error("Failed to retrieve the routing table")]
-    GetIpForwardTableFailed(io::Error),
+    GetIpForwardTableFailed(#[source] windows::core::Error),
     /// GetIfEntry2 windows API call failed
     #[error("Failed to retrieve network interface entry")]
-    GetIfEntryFailed(io::Error),
+    GetIfEntryFailed(#[source] windows::core::Error),
     /// Low level error caused by failing to register the route callback
     #[error("Attempt to register notify route change callback failed")]
-    RegisterNotifyRouteCallback(io::Error),
+    RegisterNotifyRouteCallback(#[source] windows::core::Error),
     /// Low level error caused by failing to register the ip interface callback
     #[error("Attempt to register notify ip interface change callback failed")]
-    RegisterNotifyIpInterfaceCallback(io::Error),
+    RegisterNotifyIpInterfaceCallback(#[source] windows::core::Error),
     /// Low level error caused by failing to register the unicast ip address callback
     #[error("Attempt to register notify unicast ip address change callback failed")]
-    RegisterNotifyUnicastIpAddressCallback(io::Error),
+    RegisterNotifyUnicastIpAddressCallback(#[source] windows::core::Error),
     /// Low level error caused by windows Adapters API
     #[error("Windows adapter error")]
     Adapter(io::Error),

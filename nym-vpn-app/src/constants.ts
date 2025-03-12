@@ -2,8 +2,8 @@ import { Country } from './types';
 
 export const AppName = 'NymVPN';
 // ⚠ keep this default in sync with the one declared in
-// src-tauri/src/states/app.rs
-export const DefaultVpnMode = 'TwoHop';
+// src-tauri/src/state/app.rs
+export const DefaultVpnMode = 'wg';
 export const TunnelStateEvent = 'tunnel-state';
 export const ProgressEvent = 'connection-progress';
 export const DaemonEvent = 'vpnd-status';
@@ -20,6 +20,7 @@ export const DefaultCountry: Country = {
 export const DefaultThemeMode = 'System';
 
 // Various external links
+export const DownloadAppUrl = 'https://nym.com/download';
 export const GitHubIssuesUrl =
   'https://nym.com/go/github/nym-vpn-client/issues';
 export const MatrixRoomUrl = 'https://nym.com/go/matrix';
@@ -33,5 +34,4 @@ export const LocationDetailsArticle =
 export const ModesDetailsArticle =
   'https://support.nym.com/hc/articles/24326365096721-What-s-the-difference-between-Fast-and-Anonymous-mode';
 export const SentryHomePage = 'https://sentry.io/';
-export const CountryCacheDuration = 120; // seconds
-export const HomeThrottleDelay = 6000;
+export const GatewaysCacheDuration = 120; // seconds

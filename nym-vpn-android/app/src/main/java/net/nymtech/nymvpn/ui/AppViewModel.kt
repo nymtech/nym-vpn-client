@@ -3,20 +3,21 @@ package net.nymtech.nymvpn.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.onCompletion
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.takeWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import net.nymtech.connectivity.NetworkService
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
+import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
@@ -38,6 +39,7 @@ constructor(
 	private val gatewayCacheService: GatewayCacheService,
 	private val backendManager: BackendManager,
 	networkService: NetworkService,
+	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
 	private val _navBarState = MutableStateFlow(NavBarState())
@@ -51,10 +53,6 @@ constructor(
 
 	private val _isAppReady = MutableStateFlow(false)
 	val isAppReady = _isAppReady.asStateFlow()
-
-	init {
-		onAppStartup()
-	}
 
 	val uiState =
 		combine(
@@ -91,10 +89,6 @@ constructor(
 
 	fun onErrorReportingSelected() = viewModelScope.launch {
 		settingsRepository.setErrorReporting(!uiState.value.settings.errorReportingEnabled)
-	}
-
-	fun onAnalyticsReportingSelected() = viewModelScope.launch {
-		settingsRepository.setAnalytics(!uiState.value.settings.analyticsEnabled)
 	}
 
 	fun onNavBarStateChange(navBarState: NavBarState) {
@@ -141,9 +135,9 @@ constructor(
 
 	fun onAppStartup() = viewModelScope.launch {
 		val theme = settingsRepository.getTheme()
-		uiState.takeWhile { it.settings.theme != theme }.onCompletion {
-			_isAppReady.emit(true)
-		}.collect()
+		uiState.filter { it.settings.theme != null }
+			.first { it.settings.theme == theme }
+			.let { _isAppReady.emit(true) }
 		launch {
 			gatewayCacheService.updateExitGatewayCache()
 		}

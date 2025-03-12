@@ -19,9 +19,6 @@ public struct NymColor {
     // MARK: - Connect -
     public static let connectTitle = Color(.connectTitle)
 
-    // MARK: - Background
-    public static let background = Color(.background)
-
     // MARK: - Sys -
     public static let sysOnPrimary = Color(.sysOnPrimary)
     public static let sysOnSecondary = Color(.sysOnSecondary)
@@ -35,12 +32,7 @@ public struct NymColor {
     public static let surveyText = Color(.surveyText)
 
     // MARK: - Key -
-    public static let confirm = Color(.confirm)
     public static let statusGreen = Color(.statusGreen)
-    public static let disconnect = Color(.disconnect)
-
-    // MARK: - Primary -
-    public static let primaryOrange = Color(.primaryOrange)
 
     // MARK: - Settings -
     public static let settingsSeparator = Color(.settingsSeparator)
@@ -59,9 +51,23 @@ public struct NymColor {
     public static let modeInfoViewTitle = Color(.modeInfoViewTitle)
     public static let modeInfoViewBackground = Color(.modeInfoViewBackground)
 
-    // MARK: - Rebranding -
-    public static let textCTA = Color(.textCTA)
-
     // MARK: - No Internet -
     public static let noInternet = Color(.noInternetRed)
+
+    // MARK: - New colors 2025 -
+
+    public static let black = Color(.blackNym)
+    public static let white = Color(.whiteNym)
+    public static let primary = Color(.primary)
+    public static let background = Color(.background)
+    public static let backgroundHover = Color(.backgroundHover)
+    public static let elevation = Color(.elevation)
+    public static let elevationHover = Color(.elevationHover)
+    public static let accent = Color(.accent)
+    public static let action = Color(.action)
+    public static let info = Color(.info)
+    public static let warning = Color(.warning)
+    public static let error = Color(.error)
+    public static let gray1 = Color(.gray1)
+    public static let gray2 = Color(.gray2)
 }

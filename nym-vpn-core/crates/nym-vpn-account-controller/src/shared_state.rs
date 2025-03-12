@@ -8,13 +8,9 @@ use nym_vpn_api_client::response::{
     NymVpnAccountSummaryFairUsage, NymVpnAccountSummaryResponse, NymVpnAccountSummarySubscription,
     NymVpnDeviceStatus, NymVpnSubscriptionStatus,
 };
+use nym_vpn_lib_types::{RegisterDeviceError, RequestZkNymError, RequestZkNymSuccess};
 use serde::Serialize;
 use tokio::sync::MutexGuard;
-
-use crate::commands::{
-    register_device::RegisterDeviceError,
-    request_zknym::{RequestZkNymError, RequestZkNymSuccess},
-};
 
 #[derive(Clone)]
 pub struct SharedAccountState {
@@ -85,37 +81,10 @@ impl fmt::Display for ReadyToRequestZkNym {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub enum ReadyToConnect {
-    Ready,
-    NoMnemonicStored,
-    AccountNotSynced,
-    AccountNotRegistered,
-    AccountNotActive,
-    NoActiveSubscription,
-    DeviceNotRegistered,
-    DeviceNotActive,
-}
-
-impl fmt::Display for ReadyToConnect {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            ReadyToConnect::Ready => write!(f, "ready to connect"),
-            ReadyToConnect::NoMnemonicStored => write!(f, "no mnemonic stored"),
-            ReadyToConnect::AccountNotSynced => write!(f, "account not synced"),
-            ReadyToConnect::AccountNotRegistered => write!(f, "account not registered"),
-            ReadyToConnect::AccountNotActive => write!(f, "account not active"),
-            ReadyToConnect::NoActiveSubscription => write!(f, "no active subscription"),
-            ReadyToConnect::DeviceNotRegistered => write!(f, "device not registered"),
-            ReadyToConnect::DeviceNotActive => write!(f, "device not active"),
-        }
-    }
-}
-
 impl SharedAccountState {
     pub(crate) fn new(state: MnemonicState) -> Self {
         let mut summary = AccountStateSummary::default();
-        tracing::info!("Setting mnemonic state to {:?}", state);
+        tracing::debug!("Initial mnemonic state: {state}");
         summary.mnemonic = Some(state);
         SharedAccountState {
             inner: Arc::new(tokio::sync::Mutex::new(summary)),
@@ -127,8 +96,21 @@ impl SharedAccountState {
     }
 
     pub async fn reset(&self) {
+        tracing::trace!("Resetting account state");
         let mut guard = self.inner.lock().await;
         *guard = AccountStateSummary::default();
+    }
+
+    pub async fn reset_to(&self, state: MnemonicState) {
+        tracing::trace!("Resetting account state to {state:?}");
+        let mut guard = self.inner.lock().await;
+        if guard.mnemonic.as_ref() != Some(&state) {
+            tracing::info!("Setting mnemonic state to {state:?}");
+        }
+        *guard = AccountStateSummary {
+            mnemonic: Some(state),
+            ..Default::default()
+        };
     }
 
     pub(crate) async fn set_mnemonic(&self, state: MnemonicState) {
@@ -166,7 +148,7 @@ impl SharedAccountState {
     pub(crate) async fn set_device_registration(&self, registration: RegisterDeviceResult) {
         let mut guard = self.inner.lock().await;
         if guard.register_device_result.as_ref() != Some(&registration) {
-            tracing::info!("Setting device registration result to {:?}", registration);
+            tracing::debug!("Setting device registration result to {:?}", registration);
         }
         guard.register_device_result = Some(registration);
     }
@@ -174,7 +156,7 @@ impl SharedAccountState {
     pub(crate) async fn set_zk_nym_request(&self, request: RequestZkNymResult) {
         let mut guard = self.inner.lock().await;
         if guard.request_zk_nym_result.as_ref() != Some(&request) {
-            tracing::info!("Setting zk-nym request result to {:?}", request);
+            tracing::debug!("Setting zk-nym request result to {request:?}");
         }
         guard.request_zk_nym_result = Some(request);
     }
@@ -208,13 +190,9 @@ impl SharedAccountState {
     pub(crate) async fn ready_to_request_zk_nym(&self) -> ReadyToRequestZkNym {
         self.lock().await.ready_to_request_zk_nym()
     }
-
-    pub async fn is_ready_to_connect(&self) -> ReadyToConnect {
-        self.lock().await.is_ready_to_connect()
-    }
 }
 
-#[derive(Debug, Clone, Default, PartialEq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct AccountStateSummary {
     // The locally stored recovery phrase that is deeply tied to the account
     pub mnemonic: Option<MnemonicState>,
@@ -241,7 +219,7 @@ pub enum AccountRegistered {
     Registered,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct AccountSummary {
     pub account: AccountState,
     pub subscription: SubscriptionState,
@@ -271,7 +249,16 @@ impl MnemonicState {
     }
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+impl fmt::Display for MnemonicState {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            MnemonicState::NotStored => write!(f, "not stored"),
+            MnemonicState::Stored { id } => write!(f, "stored with id {id}"),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum AccountState {
     // The account is registered but not active
     Inactive,
@@ -283,21 +270,21 @@ pub enum AccountState {
     DeleteMe,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct DeviceSummary {
     pub active: u64,
     pub max: u64,
     pub remaining: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct FairUsage {
     pub used_gb: Option<f64>,
     pub limit_gb: Option<f64>,
     pub resets_on_utc: Option<String>,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum SubscriptionState {
     // There is no active subscription
     NotActive,
@@ -312,7 +299,7 @@ pub enum SubscriptionState {
     Active,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum DeviceState {
     // The device is not registered on the remote server
     NotRegistered,
@@ -327,7 +314,7 @@ pub enum DeviceState {
     DeleteMe,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum RegisterDeviceResult {
     // The device registration is in progress
     InProgress,
@@ -339,7 +326,7 @@ pub enum RegisterDeviceResult {
     Failed(RegisterDeviceError),
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum RequestZkNymResult {
     // The zk-nym request is in progress
     InProgress,
@@ -412,18 +399,13 @@ impl AccountStateSummary {
                 AccountState::Active => {}
             }
 
-            match account_summary.subscription {
-                SubscriptionState::NotActive => return ReadyToRegisterDevice::NoActiveSubscription,
-                SubscriptionState::Pending => return ReadyToRegisterDevice::NoActiveSubscription,
-                SubscriptionState::Complete => return ReadyToRegisterDevice::NoActiveSubscription,
-                SubscriptionState::Active => {}
-            }
-
             if account_summary.device_summary.remaining == 0 {
                 return ReadyToRegisterDevice::MaxDevicesReached(
                     account_summary.device_summary.max,
                 );
             }
+
+            // We ignore the subscription state, as the device registration is not dependent on it
         }
 
         ReadyToRegisterDevice::Ready
@@ -476,46 +458,6 @@ impl AccountStateSummary {
 
         ReadyToRequestZkNym::Ready
     }
-
-    // If we are ready right right now.
-    pub(crate) fn is_ready_to_connect(&self) -> ReadyToConnect {
-        match self.mnemonic {
-            Some(MnemonicState::NotStored) => return ReadyToConnect::NoMnemonicStored,
-            Some(MnemonicState::Stored { .. }) => {}
-            None => return ReadyToConnect::NoMnemonicStored,
-        }
-
-        match self.account_registered {
-            Some(AccountRegistered::Registered) => {}
-            Some(AccountRegistered::NotRegistered) => return ReadyToConnect::AccountNotRegistered,
-            None => return ReadyToConnect::AccountNotSynced,
-        }
-
-        if let Some(ref account_summary) = self.account_summary {
-            match account_summary.account {
-                AccountState::Inactive => return ReadyToConnect::AccountNotActive,
-                AccountState::DeleteMe => return ReadyToConnect::AccountNotActive,
-                AccountState::Active => {}
-            }
-
-            match account_summary.subscription {
-                SubscriptionState::NotActive => return ReadyToConnect::NoActiveSubscription,
-                SubscriptionState::Pending => return ReadyToConnect::NoActiveSubscription,
-                SubscriptionState::Complete => return ReadyToConnect::NoActiveSubscription,
-                SubscriptionState::Active => {}
-            }
-        }
-
-        match self.device {
-            Some(DeviceState::Active) => {}
-            Some(DeviceState::NotRegistered) => return ReadyToConnect::DeviceNotRegistered,
-            Some(DeviceState::Inactive) => return ReadyToConnect::DeviceNotActive,
-            Some(DeviceState::DeleteMe) => return ReadyToConnect::DeviceNotActive,
-            None => return ReadyToConnect::DeviceNotRegistered,
-        }
-
-        ReadyToConnect::Ready
-    }
 }
 
 impl fmt::Display for AccountStateSummary {
@@ -558,7 +500,6 @@ impl From<NymVpnAccountSummarySubscription> for SubscriptionState {
                 NymVpnSubscriptionStatus::Active => SubscriptionState::Active,
             }
         } else {
-            tracing::warn!("Subscription state is not active, but no active field is present");
             SubscriptionState::NotActive
         }
     }

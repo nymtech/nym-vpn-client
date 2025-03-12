@@ -7,7 +7,7 @@ import UIComponents
 final class SupportViewModel: ObservableObject {
     private let externalLinkManager: ExternalLinkManager
     private let faqLink = Constants.supportURL.rawValue
-    private let emailLink = Constants.emailLink.rawValue
+    private let newSupportRequest = Constants.newSupportRequest.rawValue
     private let githubIssueLink = Constants.ghIssuesLink.rawValue
     private let matrixLink = "https://nym.com/go/matrix"
     private let discordLink = Constants.discordLink.rawValue
@@ -87,7 +87,7 @@ private extension SupportViewModel {
             imageName: "email",
             position: SettingsListItemPosition(isFirst: true, isLast: true),
             action: { [weak self] in
-                self?.openExternalURL(urlString: self?.emailLink)
+                self?.openExternalURL(urlString: self?.newSupportRequest)
             }
         )
     }

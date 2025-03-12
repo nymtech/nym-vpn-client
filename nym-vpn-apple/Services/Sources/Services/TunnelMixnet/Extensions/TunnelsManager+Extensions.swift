@@ -4,7 +4,7 @@ import Tunnels
 extension TunnelsManager {
     public func addUpdate(
         tunnelConfiguration: MixnetConfig,
-        onDemandOption: OnDemandRule = .off
+        isOndemandEnabled: Bool
     ) async throws -> Tunnel {
         let tunnelProviderManager: NETunnelProviderManager
         let tunnel: Tunnel
@@ -22,7 +22,7 @@ extension TunnelsManager {
         let alwaysOnRule = NEOnDemandRuleConnect()
         alwaysOnRule.interfaceTypeMatch = .any
         tunnelProviderManager.onDemandRules = [alwaysOnRule]
-        tunnelProviderManager.isOnDemandEnabled = false
+        tunnelProviderManager.isOnDemandEnabled = isOndemandEnabled
 
         let activeTunnel = tunnels.first { $0.status == .connected || $0.status == .connecting }
 
@@ -46,7 +46,7 @@ extension TunnelsManager {
             return tunnel
         } catch {
             logger.log(level: .error, "Saving configuration failed: \(error)")
-            let protocolConfiguration = (tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol)
+            let protocolConfiguration = tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol
             protocolConfiguration?.destroyConfigurationReference()
             throw TunnelsManagerError.addTunnel(error: error)
         }

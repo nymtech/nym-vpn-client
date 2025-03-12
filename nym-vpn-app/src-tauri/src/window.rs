@@ -167,7 +167,9 @@ impl AppWindow {
     /// defaults to `Light`
     #[instrument(skip_all)]
     fn get_current_theme(&self, db: &Db) -> Result<UiMode> {
-        let ui_theme = db.get_typed::<UiTheme>(Key::UiTheme)?.unwrap_or_default();
+        let ui_theme = db
+            .get_typed::<UiTheme>(Key::UiTheme.as_ref())?
+            .unwrap_or_default();
         Ok(match ui_theme {
             UiTheme::Light => UiMode::Light,
             UiTheme::Dark => UiMode::Dark,

@@ -6,7 +6,6 @@ import {
   isVpndNonCompat,
   isVpndOk,
 } from '../types';
-import { S_STATE } from '../static';
 import { Notification } from '../contexts';
 
 export type TauriReq<
@@ -53,30 +52,41 @@ export function daemonStatusUpdate(
   if (isVpndNonCompat(status)) {
     info = status.nonCompat.current;
     push({
-      text: i18n.t('daemon-not-compat', {
+      id: 'daemon-no-compat',
+      message: i18n.t('daemon-no-compat', {
         ns: 'notifications',
         version: status.nonCompat.current.version,
         required: status.nonCompat.requirement,
       }),
-      position: 'top',
-      closeIcon: true,
-      autoHideDuration: 10000,
+      close: true,
+      duration: 6000,
+      type: 'warn',
+      throttle: 10,
+    });
+  }
+  if (status === 'down') {
+    push({
+      id: 'daemon-not-connected',
+      message: i18n.t('daemon-not-connected', {
+        ns: 'notifications',
+      }),
+      close: true,
+      duration: 6000,
+      type: 'error',
+      throttle: 10,
     });
   }
   if (info) {
     dispatch({ type: 'set-daemon-info', info });
-    if (info.network) {
-      S_STATE.networkEnvInit = true;
-    }
   }
 }
 
 function vpndStatusToState(status: VpndStatus): DaemonStatus {
   if (isVpndOk(status)) {
-    return 'Ok';
+    return 'ok';
   }
   if (isVpndNonCompat(status)) {
-    return 'NonCompat';
+    return 'non-compat';
   }
-  return 'NotOk';
+  return 'down';
 }

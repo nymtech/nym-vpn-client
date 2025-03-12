@@ -95,8 +95,7 @@
     <string name="app_shortcuts">Uygulama kısayolları</string>
     <string name="country_load_failure">Hop ülkeleri yüklenemedi</string>
     <string name="missing_credential">Anahtar eksik</string>
-    <string name="error_invalid_credential">İçe aktarılan anahtar geçersiz</string>
-    <string name="gateways_error">Gateway\'ler bulunamadı</string>
+	<string name="gateways_error">Gateway\'ler bulunamadı</string>
     <string name="anonymous_error_reports">Anonim hata raporları</string>
     <string name="disabled_while_connected">VPN bağlıyken devre dışı</string>
     <string name="exception_permission_not_granted">Gerekli izin verilmemiş.</string>

@@ -19,7 +19,11 @@ on:
         type: boolean
         default: false
       core_release_tag:
-        description: "nym-vpn-core release tag to use for Windows build (as it bundles the daemon)"
+        description: "nym-vpn-core release tag from GH to use for Windows, to get the daemon"
+        required: false
+        type: string
+      core_artifact_url:
+        description: "direct nym-vpn-core artifact URL for Windows, to get the daemon"
         required: false
         type: string
       windows_sign:
@@ -42,6 +46,7 @@ jobs:
     with:
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
       core_release_tag: ${{ inputs.core_release_tag }}
+      core_artifact_url: ${{ inputs.core_artifact_url }}
       sign: ${{ inputs.windows_sign == true }}
     secrets: inherit
 

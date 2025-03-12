@@ -11,7 +11,7 @@ use std::{
 #[cfg(windows)]
 use nym_windows::net::AddressFamily;
 #[cfg(windows)]
-use windows_sys::Win32::NetworkManagement::Ndis::NET_LUID_LH;
+use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 use super::{
     uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
@@ -40,6 +40,8 @@ impl fmt::Debug for InterfaceConfig {
             .field("mtu", &self.mtu);
         #[cfg(target_os = "linux")]
         d.field("fwmark", &self.fwmark);
+        #[cfg(feature = "amnezia")]
+        d.field("azwg_config", &self.azwg_config);
         d.finish()
     }
 }
