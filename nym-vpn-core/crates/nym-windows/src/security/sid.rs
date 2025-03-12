@@ -52,6 +52,7 @@ impl Sid {
 
     /// Returns the inner `PSID`.
     ///
+    /// # Safety
     /// The returned value stores raw pointers inside, which are only guaranteed to remain valid during the lifetime of this struct.
     pub unsafe fn inner(&self) -> PSID {
         self.inner

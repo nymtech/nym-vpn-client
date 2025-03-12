@@ -41,6 +41,8 @@ impl Trustee {
     }
 
     /// Returns a copy of inner `TRUSTEE_W`.
+    ///
+    /// # Safety
     /// The returned value stores raw pointers inside, which are only guaranteed to remain valid during the lifetime of this struct.
     pub unsafe fn inner(&self) -> TRUSTEE_W {
         self.inner

@@ -38,7 +38,8 @@ impl Acl {
     }
 
     /// Returns the inner pointer to `ACL`.
-    ///
+    /// 
+    /// # Safety
     /// The returned pointer is only guaranteed to remain valid during the lifetime of this struct.
     pub unsafe fn as_ptr(&self) -> *const Security::ACL {
         self.inner
