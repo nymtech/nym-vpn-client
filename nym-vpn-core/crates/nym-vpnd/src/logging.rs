@@ -133,7 +133,7 @@ impl std::io::Write for FileManager {
             .file_appender
             .blocking_lock()
             .as_mut()
-            .and_then(|writer| Some(writer.write(buf)))
+            .map(|writer| writer.write(buf))
             .transpose()?
             .unwrap_or(0))
     }
@@ -142,7 +142,7 @@ impl std::io::Write for FileManager {
         self.file_appender
             .blocking_lock()
             .as_mut()
-            .and_then(|writer| Some(writer.flush()))
+            .map(|writer| writer.flush())
             .transpose()?;
         Ok(())
     }
