@@ -61,8 +61,7 @@ static SERVICE_NETWORK_CONFIG: LazyLock<Mutex<ServiceNetworkConfig>> =
     LazyLock::new(|| Mutex::new(ServiceNetworkConfig::default()));
 
 /// Logging setup passed from `main()` and used later to interact with logging.
-static LOGGING_SETUP: LazyLock<Mutex<Option<Option<LoggingSetup>>>> =
-    LazyLock::new(|| Mutex::new(None));
+static LOGGING_SETUP: LazyLock<Mutex<Option<LoggingSetup>>> = LazyLock::new(|| Mutex::new(None));
 
 fn service_main(arguments: Vec<OsString>) {
     if let Err(err) = run_service(arguments) {
@@ -271,7 +270,7 @@ pub fn start(
 ) -> Result<(), windows_service::Error> {
     // Important: release mutex lock before starting service dispatcher to avoid deadlock.
     *SERVICE_NETWORK_CONFIG.blocking_lock() = service_network_config;
-    *LOGGING_SETUP.blocking_lock() = Some(logging_setup);
+    *LOGGING_SETUP.blocking_lock() = logging_setup;
 
     // Register generated `ffi_service_main` with the system and start the service, blocking
     // this thread until the service is stopped.
