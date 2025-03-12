@@ -647,9 +647,9 @@ dependencies = [
 [[package]]
 name = "bls12_381"
 version = "0.8.0"
-source = "git+https://github.com/jstuczyn/bls12_381?branch=temp%2Fexperimental-serdect#22cd0a16b674af1629110a2dc8b6cf6c73ea4cd9"
+source = "git+https://github.com/jstuczyn/bls12_381?branch=temp%2Fexperimental-serdect-updated#9bf520059cb28323fc51469cae86868ef4fa6fbd"
 dependencies = [
- "digest 0.9.0",
+ "digest 0.10.7",
  "ff",
  "group",
  "pairing",
@@ -3381,7 +3381,7 @@ dependencies = [
 [[package]]
 name = "nym-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bs58",
  "cosmrs",
@@ -3453,7 +3453,7 @@ dependencies = [
 [[package]]
 name = "nym-authenticator-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -3474,7 +3474,7 @@ dependencies = [
 [[package]]
 name = "nym-bandwidth-controller"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bip39",
  "log",
@@ -3496,7 +3496,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "const-str",
  "log",
@@ -3510,7 +3510,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core"
 version = "1.1.15"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -3572,7 +3572,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-config-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "humantime-serde",
  "nym-config",
@@ -3588,7 +3588,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-gateways-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "cosmrs",
@@ -3607,7 +3607,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-surb-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "dashmap",
@@ -3624,7 +3624,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-bandwidth-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3634,7 +3634,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-dkg-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3658,13 +3658,13 @@ dependencies = [
 [[package]]
 name = "nym-compact-ecash"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bincode",
  "bls12_381",
  "bs58",
  "cfg-if",
- "digest 0.9.0",
+ "digest 0.10.7",
  "ff",
  "group",
  "itertools 0.13.0",
@@ -3672,7 +3672,7 @@ dependencies = [
  "nym-pemstore",
  "rand 0.8.5",
  "serde",
- "sha2 0.9.9",
+ "sha2 0.10.8",
  "subtle 2.6.1",
  "thiserror 2.0.12",
  "zeroize",
@@ -3681,7 +3681,7 @@ dependencies = [
 [[package]]
 name = "nym-config"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "dirs",
  "handlebars",
@@ -3713,7 +3713,7 @@ dependencies = [
 [[package]]
 name = "nym-contracts-common"
 version = "0.5.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -3728,7 +3728,7 @@ dependencies = [
 [[package]]
 name = "nym-country-group"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "serde",
  "tracing",
@@ -3737,7 +3737,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-proxy-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "nym-credentials",
@@ -3757,7 +3757,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "bincode",
@@ -3775,7 +3775,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "log",
  "nym-bandwidth-controller",
@@ -3794,7 +3794,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bincode",
  "bls12_381",
@@ -3817,7 +3817,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials-interface"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bls12_381",
  "nym-compact-ecash",
@@ -3834,7 +3834,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "aead",
  "aes",
@@ -3897,7 +3897,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -3911,7 +3911,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-time"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-compact-ecash",
  "time",
@@ -3920,7 +3920,7 @@ dependencies = [
 [[package]]
 name = "nym-exit-policy"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "serde",
  "serde_json",
@@ -3932,7 +3932,7 @@ dependencies = [
 [[package]]
 name = "nym-explorer-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-api-requests",
  "nym-contracts-common",
@@ -3944,7 +3944,7 @@ dependencies = [
 [[package]]
 name = "nym-explorer-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-explorer-api-requests",
  "reqwest 0.12.4",
@@ -3981,7 +3981,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "futures",
  "getrandom 0.2.15",
@@ -4090,7 +4090,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bs58",
  "futures",
@@ -4119,7 +4119,7 @@ dependencies = [
 [[package]]
 name = "nym-group-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -4143,7 +4143,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "bytes",
@@ -4165,7 +4165,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "axum 0.7.9",
  "axum-client-ip",
@@ -4185,7 +4185,7 @@ dependencies = [
 [[package]]
 name = "nym-id"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-credential-storage",
  "nym-credentials",
@@ -4215,7 +4215,7 @@ dependencies = [
 [[package]]
 name = "nym-ip-packet-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bincode",
  "bytes",
@@ -4242,7 +4242,7 @@ dependencies = [
 [[package]]
 name = "nym-metrics"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "dashmap",
  "lazy_static",
@@ -4253,7 +4253,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "dashmap",
  "futures",
@@ -4275,7 +4275,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-contract-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -4297,7 +4297,7 @@ dependencies = [
 [[package]]
 name = "nym-multisig-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4313,7 +4313,7 @@ dependencies = [
 [[package]]
 name = "nym-network-defaults"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "cargo_metadata 0.18.1",
  "dotenvy",
@@ -4328,7 +4328,7 @@ dependencies = [
 [[package]]
 name = "nym-node-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "celes",
@@ -4351,7 +4351,7 @@ dependencies = [
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -4381,7 +4381,7 @@ dependencies = [
 [[package]]
 name = "nym-ordered-buffer"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "log",
  "thiserror 2.0.12",
@@ -4390,7 +4390,7 @@ dependencies = [
 [[package]]
 name = "nym-outfox"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "blake3",
  "chacha20",
@@ -4408,7 +4408,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "pem",
  "tracing",
@@ -4450,7 +4450,7 @@ dependencies = [
 [[package]]
 name = "nym-sdk"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4500,7 +4500,7 @@ dependencies = [
 [[package]]
 name = "nym-serde-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -4512,7 +4512,7 @@ dependencies = [
 [[package]]
 name = "nym-service-provider-requests-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "serde",
  "thiserror 2.0.12",
@@ -4521,7 +4521,7 @@ dependencies = [
 [[package]]
 name = "nym-service-providers-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "log",
@@ -4535,7 +4535,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-client-core"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "anyhow",
  "dirs",
@@ -4568,7 +4568,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-proxy-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bytes",
  "futures",
@@ -4583,7 +4583,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bincode",
  "log",
@@ -4599,7 +4599,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "log",
  "nym-crypto",
@@ -4625,7 +4625,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-acknowledgements"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -4642,7 +4642,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-addressing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4653,7 +4653,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-anonymous-replies"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bs58",
  "nym-crypto",
@@ -4671,7 +4671,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-chunking"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "dashmap",
  "log",
@@ -4689,7 +4689,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-cover"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -4707,7 +4707,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-forwarding"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-outfox",
  "nym-sphinx-addressing",
@@ -4719,7 +4719,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-framing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bytes",
  "log",
@@ -4736,7 +4736,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-params"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4747,7 +4747,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-routing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -4757,7 +4757,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-outfox",
  "sphinx-packet",
@@ -4767,7 +4767,7 @@ dependencies = [
 [[package]]
 name = "nym-statistics-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "futures",
  "log",
@@ -4790,7 +4790,7 @@ dependencies = [
 [[package]]
 name = "nym-task"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "cfg-if",
  "futures",
@@ -4807,7 +4807,7 @@ dependencies = [
 [[package]]
 name = "nym-ticketbooks-merkle"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-credentials-interface",
  "nym-serde-helpers",
@@ -4822,7 +4822,7 @@ dependencies = [
 [[package]]
 name = "nym-topology"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "nym-api-requests",
@@ -4843,7 +4843,7 @@ dependencies = [
 [[package]]
 name = "nym-validator-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -4893,7 +4893,7 @@ dependencies = [
 [[package]]
 name = "nym-vesting-contract-common"
 version = "0.7.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -5281,7 +5281,7 @@ dependencies = [
 [[package]]
 name = "nym-wireguard-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "base64 0.22.1",
  "log",
@@ -8450,7 +8450,7 @@ dependencies = [
 [[package]]
 name = "wasm-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork#6fd40e104f41356c483c77fa09a5dbccb20348b4"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "futures",
  "getrandom 0.2.15",
