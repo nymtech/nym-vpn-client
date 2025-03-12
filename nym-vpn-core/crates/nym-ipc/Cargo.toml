@@ -1,0 +1,26 @@
+[package]
+name = "nym-ipc"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+tokio.workspace = true
+tokio-stream = { workspace = true, features = ["net"] }
+tracing.workspace = true
+tonic.workspace = true
+thiserror.workspace = true
+tower.workspace = true
+hyper-util.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+async-stream = { workspace = true }
+windows = { workspace = true, features = ["Win32_Foundation"] }
+nym-windows.workspace = true
