@@ -32,7 +32,7 @@ impl DnsHandler {
         interface: &str,
         config: ResolvedDnsConfig,
     ) -> Result<(), nym_dns::Error> {
-        self.inner.set(interface, dns_config).await
+        self.inner.set(interface, config).await
     }
 
     pub async fn reset(&mut self) -> Result<(), nym_dns::Error> {
