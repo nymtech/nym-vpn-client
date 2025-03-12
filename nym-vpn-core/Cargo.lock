@@ -5136,7 +5136,6 @@ dependencies = [
  "tonic",
  "tower 0.5.2",
  "vergen",
- "winapi",
 ]
 
 [[package]]
@@ -5190,7 +5189,6 @@ dependencies = [
  "tracing-subscriber",
  "url",
  "vergen",
- "winapi",
  "windows 0.59.0",
  "windows-service",
  "zeroize",
