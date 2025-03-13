@@ -47,14 +47,11 @@ public class HomeViewModel: HomeFlowState {
     let anonymousButtonViewModel = NetworkButtonViewModel(type: .mixnet5hop)
     let fastButtonViewModel = NetworkButtonViewModel(type: .wireguard)
 
+    @ObservedObject var connectionManager: ConnectionManager
     var cancellables = Set<AnyCancellable>()
-    var connectionManager: ConnectionManager
     var lastTunnelStatus = TunnelStatus.disconnected
     var lastError: Error?
 
-    // If no time connected is shown, should be set to empty string,
-    // so the time connected label would not disappear and re-center other UI elements.
-    @Published var timeConnected: Date?
     @MainActor @Published var activeTunnel: Tunnel?
     @MainActor @Published var statusButtonConfig = StatusButtonConfig.disconnected
     @MainActor @Published var statusInfoState = StatusInfoState.initialising
@@ -202,7 +199,6 @@ private extension HomeViewModel {
         setupGatewayManagerObserver()
         setupSystemMessageObservers()
         setupNetworkMonitorObservers()
-        updateTimeConnected()
     }
 
     func setupTunnelManagerObservers() {
@@ -223,7 +219,6 @@ private extension HomeViewModel {
                 MainActor.assumeIsolated {
                     self.activeTunnel = tunnel
                     self.configureTunnelStatusObservation(with: tunnel)
-                    self.updateTimeConnected()
                 }
             }
             .store(in: &cancellables)
@@ -309,7 +304,6 @@ private extension HomeViewModel {
             .sink { [weak self] status in
                 MainActor.assumeIsolated {
                     self?.updateUI(with: status)
-                    self?.updateTimeConnected()
                 }
             }
     }

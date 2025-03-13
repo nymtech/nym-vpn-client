@@ -109,6 +109,7 @@
 		D9F236232C64E64E00CCC433 /* LibLicences.json in Resources */ = {isa = PBXBuildFile; fileRef = D9F236222C64E64E00CCC433 /* LibLicences.json */; };
 		D9F236252C650A9200CCC433 /* LibLicences.json in Resources */ = {isa = PBXBuildFile; fileRef = D9F236242C650A9200CCC433 /* LibLicences.json */; };
 		D9F699E02B4C1862005576A9 /* Settings in Frameworks */ = {isa = PBXBuildFile; productRef = D9F699DF2B4C1862005576A9 /* Settings */; };
+		D9F744752D79BF5C00DD9277 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9F744742D79BF5900DD9277 /* AppDelegate.swift */; };
 		D9FA77C82CEBB32C003362D7 /* NotificationsManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9FA77C72CEBB32C003362D7 /* NotificationsManager */; };
 		D9FB33DA2BECC163009C3419 /* Extensions in Frameworks */ = {isa = PBXBuildFile; productRef = D9FB33D92BECC163009C3419 /* Extensions */; };
 		D9FB33DC2BECD473009C3419 /* SentryManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9FB33DB2BECD473009C3419 /* SentryManager */; };
@@ -236,6 +237,7 @@
 		D9EACBD52BC016D60094CDDF /* NymVPNUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NymVPNUITests.swift; sourceTree = "<group>"; };
 		D9F236222C64E64E00CCC433 /* LibLicences.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = LibLicences.json; sourceTree = "<group>"; };
 		D9F236242C650A9200CCC433 /* LibLicences.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = LibLicences.json; sourceTree = "<group>"; };
+		D9F744742D79BF5900DD9277 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		D9FB33DF2BECF09D009C3419 /* net.nymtech.vpn.helper.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = net.nymtech.vpn.helper.plist; sourceTree = "<group>"; };
 		D9FB33E72BECFD1F009C3419 /* ServiceManagement.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ServiceManagement.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX14.4.sdk/System/Library/Frameworks/ServiceManagement.framework; sourceTree = DEVELOPER_DIR; };
 		D9FB33F22BEE320B009C3419 /* Launchd.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Launchd.plist; sourceTree = "<group>"; };
@@ -446,6 +448,7 @@
 		D9BEF2D12BEB63310036C566 /* NymVPNDaemon */ = {
 			isa = PBXGroup;
 			children = (
+				D9F744742D79BF5900DD9277 /* AppDelegate.swift */,
 				D9BEF2D22BEB63310036C566 /* NymVPNDaemonApp.swift */,
 				D9BEF2D82BEB63320036C566 /* Preview Content */,
 				D90F19062BEED6A2008D2232 /* Resources */,
@@ -835,6 +838,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				D9F744752D79BF5C00DD9277 /* AppDelegate.swift in Sources */,
 				D9BEF2D32BEB63310036C566 /* NymVPNDaemonApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

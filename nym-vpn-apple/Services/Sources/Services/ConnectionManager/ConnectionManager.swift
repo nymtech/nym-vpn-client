@@ -5,7 +5,6 @@ import AppSettings
 import CountriesManager
 import ConnectionTypes
 import CredentialsManager
-import NotificationMessages
 import TunnelMixnet
 import Tunnels
 import TunnelStatus
@@ -17,8 +16,7 @@ public final class ConnectionManager: ObservableObject {
     private let connectionStorage: ConnectionStorage
     private let countriesManager: CountriesManager
 
-    private var cancellables = Set<AnyCancellable>()
-    private var tunnelStatusUpdateCancellable: AnyCancellable?
+    private var timerCancellable: AnyCancellable?
 
     let appSettings: AppSettings
     let credentialsManager: CredentialsManager
@@ -27,12 +25,17 @@ public final class ConnectionManager: ObservableObject {
     let grpcManager: GRPCManager
 #endif
 
+    var cancellables = Set<AnyCancellable>()
+    var tunnelStatusUpdateCancellable: AnyCancellable?
+
     // TODO: remove this once iOS tunnel supports tunnel reconnection
     public var isReconnecting = false
     public var isDisconnecting = false
 
     public static let shared = ConnectionManager()
 
+    @Published public var connectedDate: Date?
+    @Published public var connectedDateString: String?
     @Published public var lastError: Error?
 
     @Published public var connectionType: ConnectionType {
@@ -147,58 +150,10 @@ private extension ConnectionManager {
         setupCountriesManagerObserver()
         setupConnectionChangeObserver()
         setupConnectionErrorObserver()
+
+        configureConnectedTimeTimer()
     }
 }
-
-#if os(iOS)
-private extension ConnectionManager {
-    func setupTunnelManagerObservers() {
-        tunnelsManager.$isLoaded.sink { [weak self] isLoaded in
-            Task { @MainActor [weak self] in
-                self?.isTunnelManagerLoaded = isLoaded
-            }
-        }
-        .store(in: &cancellables)
-
-        tunnelsManager.$activeTunnel.sink { [weak self] tunnel in
-            Task { @MainActor [weak self] in
-                self?.activeTunnel = tunnel
-            }
-        }
-        .store(in: &cancellables)
-    }
-
-    func configureTunnelStatusObserver(tunnel: Tunnel) {
-        tunnelStatusUpdateCancellable = tunnel.$status.sink { [weak self] status in
-            Task { @MainActor [weak self] in
-                self?.currentTunnelStatus = status
-            }
-        }
-    }
-}
-#endif
-
-#if os(macOS)
-private extension ConnectionManager {
-    func setupGRPCManagerObservers() {
-        grpcManager.$tunnelStatus.sink { [weak self] status in
-            Task { @MainActor [weak self] in
-                guard self?.currentTunnelStatus != status else { return }
-                self?.currentTunnelStatus = status
-                self?.scheduleNotificationIfNeeded()
-            }
-        }
-        .store(in: &cancellables)
-    }
-
-    func scheduleNotificationIfNeeded() {
-        guard currentTunnelStatus == .disconnecting else { return }
-        Task {
-            await NotificationMessages.scheduleDisconnectNotification()
-        }
-    }
-}
-#endif
 
 // MARK: - Reset VPN profile -
 public extension ConnectionManager {
@@ -282,5 +237,34 @@ private extension ConnectionManager {
     func updateConnectionHops() {
         entryGateway = connectionStorage.entryGateway
         exitRouter = connectionStorage.exitRouter
+    }
+}
+
+// MARK: - Connection time -
+private extension ConnectionManager {
+    func configureConnectedTimeTimer() {
+        timerCancellable = Timer.publish(every: 1.0, on: .main, in: .common)
+            .autoconnect()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                guard let self = self else { return }
+                updateConnectedDateString()
+            }
+    }
+
+    func updateConnectedDateString() {
+        guard let connectedDate
+        else {
+            guard connectedDateString != nil else { return }
+            connectedDateString = nil
+            return
+        }
+        let timeElapsed = Date().timeIntervalSince(connectedDate)
+        let hours = Int(timeElapsed) / 3600
+        let minutes = (Int(timeElapsed) % 3600) / 60
+        let seconds = Int(timeElapsed) % 60
+        let newConnectedDateString = "\(String(format: "%02d:%02d:%02d", hours, minutes, seconds))"
+        guard connectedDateString != newConnectedDateString else { return }
+        connectedDateString = newConnectedDateString
     }
 }

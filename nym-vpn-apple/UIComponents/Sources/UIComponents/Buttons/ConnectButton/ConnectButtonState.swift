@@ -53,4 +53,19 @@ public enum ConnectButtonState {
             NymColor.error
         }
     }
+
+
 }
+
+#if os(macOS)
+extension ConnectButtonState {
+    public var menuBarItemIsAction: Bool {
+        switch self {
+        case .connect, .disconnect, .stop, .noInternetReconnect, .noInternet:
+            true
+        case .disconnecting, .installingDaemon:
+            false
+        }
+    }
+}
+#endif

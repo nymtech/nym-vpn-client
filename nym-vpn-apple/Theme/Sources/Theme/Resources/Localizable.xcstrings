@@ -1585,6 +1585,28 @@
         }
       }
     },
+    "menuBar.openApp" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open NymVPN..."
+          }
+        }
+      }
+    },
+    "menuBar.quit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit NymVPN"
+          }
+        }
+      }
+    },
     "modeSelectionInfo.anonymousDescription" : {
       "extractionState" : "manual",
       "localizations" : {

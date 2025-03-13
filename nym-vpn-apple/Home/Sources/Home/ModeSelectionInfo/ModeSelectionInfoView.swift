@@ -27,10 +27,10 @@ struct ModeSelectionInfoView: View {
                 VStack {
                     icon()
                     title()
-                    anonymousTitle()
-                    anonymousDescription()
                     fastTitle()
                     fastDescription()
+                    anonymousTitle()
+                    anonymousDescription()
                     continueReadingLink()
                     okButton()
                 }

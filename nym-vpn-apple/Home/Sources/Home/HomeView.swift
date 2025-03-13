@@ -72,25 +72,8 @@ private extension HomeView {
 
     @ViewBuilder
     func statusAreaSection() -> some View {
-        VStack {
-            NoiseConnectedAnimationView()
-            Spacer()
-                .frame(height: 8)
-
-            StatusButton(
-                config: viewModel.statusButtonConfig,
-                isSmallScreen: viewModel.appSettings.isSmallScreen
-            )
-            Spacer()
-                .frame(height: 8)
-
-            StatusInfoView(
-                timeConnected: $viewModel.timeConnected,
-                infoState: $viewModel.statusInfoState,
-                isSmallScreen: viewModel.appSettings.isSmallScreen
-            )
-        }
-        .padding(.horizontal, 16)
+        StatusAreaView(statusButtonConfig: $viewModel.statusButtonConfig, statusInfoState: $viewModel.statusInfoState)
+            .padding(.horizontal, 16)
     }
 
     @ViewBuilder
