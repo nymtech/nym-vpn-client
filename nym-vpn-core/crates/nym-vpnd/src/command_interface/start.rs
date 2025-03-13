@@ -167,7 +167,7 @@ async fn remove_previous_socket_file(socket_path: &std::path::Path) {
     match tokio::fs::remove_file(socket_path).await {
         Ok(_) => tracing::info!(
             "Removed previous command interface socket: {}",
-            self.socket_path.display()
+            socket_path.display()
         ),
         Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
         Err(err) => {
