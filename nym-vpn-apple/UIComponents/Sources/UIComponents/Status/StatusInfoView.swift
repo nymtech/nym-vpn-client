@@ -1,20 +1,18 @@
 import SwiftUI
+import AppSettings
 import Theme
 
 public struct StatusInfoView: View {
-    private let isSmallScreen: Bool
-
-    @Binding private var timeConnected: Date?
+    @EnvironmentObject private var appSettings: AppSettings
+    @Binding private var timeConnectedString: String?
     @Binding private var infoState: StatusInfoState
 
     public init(
-        timeConnected: Binding<Date?>,
-        infoState: Binding<StatusInfoState>,
-        isSmallScreen: Bool
+        timeConnectedString: Binding<String?>,
+        infoState: Binding<StatusInfoState>
     ) {
-        _timeConnected = timeConnected
+        _timeConnectedString = timeConnectedString
         _infoState = infoState
-        self.isSmallScreen = isSmallScreen
     }
 
     public var body: some View {
@@ -36,7 +34,7 @@ private extension StatusInfoView {
     func infoLabel() -> some View {
         Text(infoState.localizedTitle)
             .foregroundStyle(infoState.textColor)
-            .textStyle(isSmallScreen ? .LabelLegacy.Medium.primary : .LabelLegacy.Large.bold)
+            .textStyle(appSettings.isSmallScreen ? .LabelLegacy.Medium.primary : .LabelLegacy.Large.bold)
             .lineLimit(3, reservesSpace: infoState.localizedTitle.count > 30 ? true : false)
             .multilineTextAlignment(.center)
             .transition(.opacity)
@@ -47,19 +45,13 @@ private extension StatusInfoView {
 
     @ViewBuilder
     func timeConnectedLabel() -> some View {
-        if infoState != .noInternet || infoState != .noInternetReconnect, let timeConnected {
-            TimelineView(.periodic(from: timeConnected, by: 1.0)) { context in
-                let timeElapsed = context.date.timeIntervalSince(timeConnected)
-
-                let hours = Int(timeElapsed) / 3600
-                let minutes = (Int(timeElapsed) % 3600) / 60
-                let seconds = Int(timeElapsed) % 60
-
-                Text("\(String(format: "%02d:%02d:%02d", hours, minutes, seconds))")
+        if infoState != .noInternet || infoState != .noInternetReconnect, let timeConnectedString {
+            TimelineView(.animation(minimumInterval: 1.0, paused: false)) { _ in
+                Text(timeConnectedString)
                     .foregroundStyle(NymColor.statusTimer)
-                    .textStyle(isSmallScreen ? .LabelLegacy.Medium.primary : .LabelLegacy.Large.bold)
+                    .textStyle(appSettings.isSmallScreen ? .LabelLegacy.Medium.primary : .LabelLegacy.Large.bold)
                     .transition(.opacity)
-                    .animation(.easeInOut, value: timeConnected)
+                    .animation(.easeInOut, value: timeConnectedString)
             }
         } else {
             Text(" ")

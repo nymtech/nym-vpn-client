@@ -12,7 +12,6 @@ extension HomeViewModel {
             .sink { status in
                 MainActor.assumeIsolated {
                     self.updateUI(with: status)
-                    self.updateTimeConnected()
                 }
             }
             .store(in: &cancellables)
@@ -26,16 +25,6 @@ extension HomeViewModel {
                 }
             }
             .store(in: &cancellables)
-    }
-
-    func updateTimeConnected() {
-        guard grpcManager.tunnelStatus == .connected,
-              let connectedDate = grpcManager.connectedDate
-        else {
-            timeConnected = nil
-            return
-        }
-        self.timeConnected = connectedDate
     }
 }
 #endif

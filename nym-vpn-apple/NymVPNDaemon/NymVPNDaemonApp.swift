@@ -8,6 +8,7 @@ import ConfigurationManager
 import Constants
 import CountriesManager
 import GatewayManager
+import GRPCManager
 import Home
 import HelperManager
 import NotificationsManager
@@ -16,14 +17,24 @@ import Migrations
 import SentryManager
 import SystemMessageManager
 import Theme
+import TunnelStatus
+import UIComponents
 
 @main
 struct NymVPNDaemonApp: App {
     private let autoUpdater = AutoUpdater.shared
     private let logFileManager = LogFileManager(logFileType: .app)
+    private let windowId = "NymVPN"
+    private let grpcManager = GRPCManager.shared
+
+    @Environment(\.openWindow)
+    private var openWindow
 
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
     private var appearance: AppSetting.Appearance = .light
+
+    @NSApplicationDelegateAdaptor(AppDelegate.self)
+    private var appDelegate
 
     @ObservedObject private var appSettings = AppSettings.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
@@ -34,13 +45,15 @@ struct NymVPNDaemonApp: App {
     @State private var isDisplayingAlert = false
     @State private var alertTitle = ""
     @State private var splashScreenDidDisplay = false
+    @State private var menuBarImageName = "NymLogoDisabled"
+    @State private var menuBarConnectButtonState = ConnectButtonState.connect
 
     init() {
         setup()
     }
 
     var body: some Scene {
-        WindowGroup {
+        Window(windowId, id: windowId) {
             NavigationStack {
                 if !splashScreenDidDisplay {
                     LaunchView(splashScreenDidDisplay: $splashScreenDidDisplay)
@@ -51,6 +64,13 @@ struct NymVPNDaemonApp: App {
                     HomeView(viewModel: homeViewModel)
                         .transition(.slide)
                 }
+            }
+            .onAppear {
+                NSApp.setActivationPolicy(.regular)
+            }
+            .onDisappear {
+                NSApp.setActivationPolicy(.accessory)
+                NSApp.deactivate()
             }
             .alert(alertTitle, isPresented: $isDisplayingAlert) {
                 Button("ok".localizedString, role: .cancel) { }
@@ -84,6 +104,17 @@ struct NymVPNDaemonApp: App {
                 }
             }
         }
+        MenuBarExtra {
+            menuBarItemContent()
+        } label: {
+            Image(menuBarImageName)
+                .frame(width: 32)
+        }
+        .menuBarExtraStyle(.menu)
+        .onChange(of: connectionManager.currentTunnelStatus) { status in
+            updateImageName(with: status)
+            menuBarConnectButtonState = ConnectButtonState(tunnelStatus: status)
+        }
     }
 }
 
@@ -102,6 +133,58 @@ private extension NymVPNDaemonApp {
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()
+        }
+    }
+}
+
+private extension NymVPNDaemonApp {
+    func bringWindowToFront() {
+        NSApp.setActivationPolicy(.regular)
+        NSApp.windows.first?.makeKeyAndOrderFront(self)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func updateImageName(with status: TunnelStatus) {
+        menuBarImageName = status == .connected ? "NymLogo" : "NymLogoDisabled"
+    }
+
+    @ViewBuilder
+    func menuBarItemContent() -> some View {
+        connectDisconnectButton()
+        connectionDetails()
+        Button("menuBar.openApp".localizedString) {
+            bringWindowToFront()
+        }
+        .keyboardShortcut("o")
+        Divider()
+        Button("menuBar.quit".localizedString) {
+            appDelegate.shouldTerminate = true
+            NSApplication.shared.terminate(self)
+        }
+    }
+
+    @ViewBuilder
+    func connectDisconnectButton() -> some View {
+        if menuBarConnectButtonState.menuBarItemIsAction {
+            Button(menuBarConnectButtonState.localizedTitle) {
+                Task { @MainActor in
+                    try? await connectionManager.connectDisconnect()
+                }
+            }
+        } else {
+            Text(menuBarConnectButtonState.localizedTitle)
+        }
+        Divider()
+    }
+
+    @ViewBuilder
+    func connectionDetails() -> some View {
+        if connectionManager.currentTunnelStatus == .connected,
+           let connectedDateString = connectionManager.connectedDateString {
+            Text("\("connectionTime".localizedString): \(connectedDateString)")
+            Text("\("home.entryHop".localizedString): \(connectionManager.entryGateway.name)")
+            Text("\("home.exitHop".localizedString): \(connectionManager.exitRouter.name)")
+            Divider()
         }
     }
 }

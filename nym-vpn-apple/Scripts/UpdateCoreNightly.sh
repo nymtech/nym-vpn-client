@@ -36,7 +36,7 @@ if [[ $# -eq 0 ]]; then
     macos_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+-(?:dev|beta)\.[0-9]{12}_macos_universal\.tar\.gz'
 else
     TAG="$1"
-    TAG_URL="${BASE_URL}/release/${TAG}"
+    TAG_URL="${BASE_URL}/${TAG}"
     ios_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+(-(?:dev|beta)\.[0-9]{12})?_ios_universal\.zip'
     macos_pattern='nym-vpn-core-v[0-9]+\.[0-9]+\.[0-9]+(-(?:dev|beta)\.[0-9]{12})?_macos_universal\.tar\.gz'
 fi

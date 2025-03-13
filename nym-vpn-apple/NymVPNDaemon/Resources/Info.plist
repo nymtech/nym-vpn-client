@@ -27,10 +27,12 @@
 	<key>SMPrivilegedExecutables</key>
 	<dict>
 		<key>net.nymtech.vpn.helper</key>
-		<string>identifier "net.nymtech.vpn.helper" and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = VW5DZLFHM5</string>
+		<string>identifier &quot;net.nymtech.vpn.helper&quot; and anchor apple generic and certificate 1[field.1.2.840.113635.100.6.2.6] /* exists */ and certificate leaf[field.1.2.840.113635.100.6.1.13] /* exists */ and certificate leaf[subject.OU] = VW5DZLFHM5</string>
 	</dict>
 	<key>SUFeedURL</key>
 	<string>https://nymtech.net/.wellknown/macos-vpn/appcast.xml</string>
+	<key>LSUIElement</key>
+	<true/>
 	<key>SUPublicEDKey</key>
 	<string>9OobPkT0p5WGp0wf2aSbADivVllEKZaz0gKhElMocU0=</string>
 </dict>

@@ -3,7 +3,43 @@ import NetworkExtension
 import AppSettings
 import MixnetLibrary
 import TunnelMixnet
+import Tunnels
 
+// MARK: - Setup -
+extension ConnectionManager {
+    func setupTunnelManagerObservers() {
+        tunnelsManager.$isLoaded
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] isLoaded in
+                MainActor.assumeIsolated {
+                    self?.isTunnelManagerLoaded = isLoaded
+                }
+            }
+            .store(in: &cancellables)
+
+        tunnelsManager.$activeTunnel
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] tunnel in
+                MainActor.assumeIsolated {
+                    self?.activeTunnel = tunnel
+                }
+            }
+            .store(in: &cancellables)
+    }
+
+    func configureTunnelStatusObserver(tunnel: Tunnel) {
+        tunnelStatusUpdateCancellable = tunnel.$status
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] status in
+                MainActor.assumeIsolated {
+                    self?.currentTunnelStatus = status
+                    self?.updateTimeConnected()
+                }
+            }
+    }
+}
+
+// MARK: - Connection -
 extension ConnectionManager {
     func generateConfig() throws -> MixnetConfig {
         do {
@@ -162,6 +198,20 @@ extension ConnectionManager {
             return false
         }
         return true
+    }
+}
+
+// MARK: - Connection Time -
+extension ConnectionManager {
+    func updateTimeConnected() {
+        guard let activeTunnel = self.activeTunnel,
+              activeTunnel.status == .connected,
+              let newConnectedDate = activeTunnel.tunnel.connection.connectedDate
+        else {
+            connectedDate = nil
+            return
+        }
+        connectedDate = newConnectedDate
     }
 }
 #endif
