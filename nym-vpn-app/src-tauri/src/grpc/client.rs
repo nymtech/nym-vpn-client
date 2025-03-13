@@ -12,7 +12,6 @@ use nym_vpn_proto::{
     HealthCheckRequest, InfoResponse, ListGatewaysRequest, Location, SetNetworkRequest,
     StoreAccountRequest, UserAgent,
 };
-use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use tauri::{AppHandle, Manager, PackageInfo};
 use tokio::sync::mpsc;
 use tonic::transport::Endpoint as TonicEndpoint;
@@ -737,7 +736,7 @@ async fn get_channel(socket_path: PathBuf) -> Result<Channel> {
     // NOTE the uri here is ignored
     Ok(TonicEndpoint::from_static(DEFAULT_HTTP_ENDPOINT)
         .connect_with_connector(tower::service_fn(move |_| {
-            IpcEndpoint::connect(socket_path.clone())
+            nym_ipc::client::connect(socket_path.clone())
         }))
         .await?)
 }
