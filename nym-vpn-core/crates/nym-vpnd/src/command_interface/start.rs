@@ -80,22 +80,14 @@ where
         .await
 }
 
-#[derive(Default)]
-pub struct CommandInterfaceOptions {
-    pub disable_socket_listener: bool,
-}
-
 pub fn start_command_interface(
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
-    command_interface_options: Option<CommandInterfaceOptions>,
     network_env: Network,
     shutdown_token: CancellationToken,
 ) -> (JoinHandle<()>, UnboundedReceiver<VpnServiceCommand>) {
     tracing::debug!("Starting command interface");
 
     let (vpn_command_tx, vpn_command_rx) = mpsc::unbounded_channel();
-    let command_interface_options = command_interface_options.unwrap_or_default();
-    let socket_path = default_socket_path();
 
     let handle = tokio::spawn(async move {
         let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
@@ -116,28 +108,26 @@ pub fn start_command_interface(
             tracing::info!("Health reporter has finished");
         });
 
-        if !command_interface_options.disable_socket_listener {
-            let child_token = shutdown_token.child_token();
-            join_set.spawn(async move {
-                match run_socket_listener(
-                    vpn_command_tx.clone(),
-                    tunnel_event_rx.resubscribe(),
-                    socket_path,
-                    child_token,
-                    health_service.clone(),
-                    network_env.clone(),
-                )
-                .await
-                {
-                    Ok(()) => {
-                        tracing::info!("Socket listener has finished");
-                    }
-                    Err(e) => {
-                        tracing::error!("Socket listener exited with error: {}", e);
-                    }
+        let child_token = shutdown_token.child_token();
+        join_set.spawn(async move {
+            match run_socket_listener(
+                vpn_command_tx.clone(),
+                tunnel_event_rx.resubscribe(),
+                default_socket_path(),
+                child_token,
+                health_service.clone(),
+                network_env.clone(),
+            )
+            .await
+            {
+                Ok(()) => {
+                    tracing::info!("Socket listener has finished");
                 }
-            });
-        }
+                Err(e) => {
+                    tracing::error!("Socket listener exited with error: {}", e);
+                }
+            }
+        });
 
         let delayed_cancel = shutdown_token
             .cancelled()

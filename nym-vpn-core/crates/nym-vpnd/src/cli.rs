@@ -25,9 +25,6 @@ pub struct CliArgs {
     #[arg(short, long, hide = true)]
     pub network: Option<String>,
 
-    #[arg(long)]
-    pub disable_socket_listener: bool,
-
     /// Override the default user agent string.
     #[arg(long, value_parser = parse_user_agent)]
     pub user_agent: Option<nym_vpn_lib::UserAgent>,

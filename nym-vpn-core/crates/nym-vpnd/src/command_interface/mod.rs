@@ -9,4 +9,4 @@ mod listener;
 mod protobuf;
 mod start;
 
-pub use start::{start_command_interface, CommandInterfaceOptions};
+pub use start::start_command_interface;

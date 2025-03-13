@@ -17,7 +17,7 @@ use service::NymVpnService;
 use tokio::sync::broadcast;
 use tokio_util::sync::CancellationToken;
 
-use crate::{cli::CliArgs, command_interface::CommandInterfaceOptions, config::GlobalConfigFile};
+use crate::{cli::CliArgs, config::GlobalConfigFile};
 
 fn main() -> anyhow::Result<()> {
     run()
@@ -115,9 +115,6 @@ async fn run_inner_async(args: CliArgs, network_env: Network) -> anyhow::Result<
 
     let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
         tunnel_event_rx,
-        Some(CommandInterfaceOptions {
-            disable_socket_listener: args.disable_socket_listener,
-        }),
         network_env.clone(),
         shutdown_token.child_token(),
     );
