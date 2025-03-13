@@ -65,7 +65,7 @@ where
         socket_path.clone(),
         network_env,
     );
-    command_interface.remove_previous_socket_file();
+    command_interface.remove_previous_socket_file().await;
 
     // Wrap the unix socket into a stream that can be used by tonic
     let incoming = nym_ipc::server::create_incoming(socket_path).unwrap();

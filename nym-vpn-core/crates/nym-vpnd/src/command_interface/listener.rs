@@ -1,11 +1,14 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fs, path::PathBuf};
+use std::path::PathBuf;
 
 use futures::{stream::BoxStream, StreamExt};
 use nym_vpn_network_config::{Network, NetworkCompatibility};
-use tokio::sync::{broadcast, mpsc::UnboundedSender};
+use tokio::{
+    fs,
+    sync::{broadcast, mpsc::UnboundedSender},
+};
 
 use nym_vpn_api_client::types::{GatewayMinPerformance, ScoreThresholds};
 use nym_vpn_lib_types::TunnelEvent;
@@ -61,8 +64,8 @@ impl CommandInterface {
         }
     }
 
-    pub(super) fn remove_previous_socket_file(&self) {
-        match fs::remove_file(&self.socket_path) {
+    pub(super) async fn remove_previous_socket_file(&self) {
+        match fs::remove_file(&self.socket_path).await {
             Ok(_) => tracing::info!(
                 "Removed previous command interface socket: {}",
                 self.socket_path.display()
