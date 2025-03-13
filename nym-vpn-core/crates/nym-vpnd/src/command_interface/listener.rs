@@ -64,6 +64,7 @@ impl CommandInterface {
         }
     }
 
+    #[cfg(unix)]
     pub(super) async fn remove_previous_socket_file(&self) {
         match fs::remove_file(&self.socket_path).await {
             Ok(_) => tracing::info!(
