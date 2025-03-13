@@ -78,12 +78,6 @@ impl CommandInterface {
     }
 }
 
-impl Drop for CommandInterface {
-    fn drop(&mut self) {
-        self.remove_previous_socket_file();
-    }
-}
-
 #[tonic::async_trait]
 impl NymVpnd for CommandInterface {
     async fn info(
