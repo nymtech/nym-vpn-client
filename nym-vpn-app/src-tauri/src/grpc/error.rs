@@ -6,9 +6,7 @@ use crate::error::BackendError;
 pub enum VpndError {
     #[error("gRPC call error")]
     GrpcError(#[from] tonic::Status),
-    #[error("failed to connect to daemon using HTTP transport")]
-    FailedToConnectHttp(#[from] tonic::transport::Error),
-    #[error("failed to connect to daemon using IPC transport")]
+    #[error("failed to connect to daemon")]
     FailedToConnectIpc(#[from] anyhow::Error),
     #[error("call response error {0}")]
     Response(#[from] BackendError),

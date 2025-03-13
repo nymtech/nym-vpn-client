@@ -43,17 +43,11 @@ const DEFAULT_SOCKET_PATH: &str = "/run/nym-vpn.sock";
 const DEFAULT_SOCKET_PATH: &str = "/var/run/nym-vpn.sock";
 #[cfg(windows)]
 const DEFAULT_SOCKET_PATH: &str = r"\\.\pipe\nym-vpn";
-const DEFAULT_HTTP_ENDPOINT: &str = "http://[::1]:53181";
-
-#[derive(Clone, Debug)]
-enum Transport {
-    Http(String),
-    Ipc(PathBuf),
-}
+const DUMMY_HTTP_ENDPOINT: &str = "http://[::1]:53181";
 
 #[derive(Debug, Clone)]
 pub struct GrpcClient {
-    transport: Transport,
+    socket: PathBuf,
     pkg_info: PackageInfo,
     user_agent: UserAgent,
 }
@@ -61,20 +55,16 @@ pub struct GrpcClient {
 impl GrpcClient {
     #[instrument(skip_all)]
     pub fn new(config: &AppConfig, cli: &Cli, pkg: &PackageInfo) -> Self {
-        let client = GrpcClient {
-            transport: Transport::from((config, cli)),
+        GrpcClient {
+            socket: cli.grpc_socket_endpoint.clone().unwrap_or(
+                config
+                    .grpc_socket_endpoint
+                    .clone()
+                    .unwrap_or(DEFAULT_SOCKET_PATH.into()),
+            ),
             pkg_info: pkg.clone(),
             user_agent: GrpcClient::user_agent(pkg, None),
-        };
-        match &client.transport {
-            Transport::Http(endpoint) => {
-                info!("using grpc HTTP transport: {}", endpoint);
-            }
-            Transport::Ipc(socket) => {
-                info!("using grpc IPC transport: {}", socket.display());
-            }
         }
-        client
     }
 
     /// Create a user agent
@@ -103,41 +93,21 @@ impl GrpcClient {
     /// Get the Vpnd service client
     #[instrument(skip_all)]
     pub async fn vpnd(&self) -> Result<NymVpndClient<Channel>, VpndError> {
-        match &self.transport {
-            Transport::Http(endpoint) => {
-                NymVpndClient::connect(endpoint.clone()).await.map_err(|e| {
-                    warn!("failed to connect to the daemon: {}", e);
-                    VpndError::FailedToConnectHttp(e)
-                })
-            }
-            Transport::Ipc(socket) => {
-                let channel = get_channel(socket.clone()).await.map_err(|e| {
-                    warn!("failed to connect to the daemon: {}", e);
-                    VpndError::FailedToConnectIpc(e)
-                })?;
-                Ok(NymVpndClient::new(channel))
-            }
-        }
+        let channel = get_channel(self.socket.clone()).await.map_err(|e| {
+            warn!("failed to connect to the daemon: {}", e);
+            VpndError::FailedToConnectIpc(e)
+        })?;
+        Ok(NymVpndClient::new(channel))
     }
 
     /// Get the Health service client
     #[instrument(skip_all)]
     pub async fn health(&self) -> Result<HealthClient<Channel>, VpndError> {
-        match &self.transport {
-            Transport::Http(endpoint) => {
-                HealthClient::connect(endpoint.clone()).await.map_err(|e| {
-                    warn!("failed to connect to the daemon: {}", e);
-                    VpndError::FailedToConnectHttp(e)
-                })
-            }
-            Transport::Ipc(socket) => {
-                let channel = get_channel(socket.clone()).await.map_err(|e| {
-                    warn!("failed to connect to the daemon: {}", e);
-                    VpndError::FailedToConnectIpc(e)
-                })?;
-                Ok(HealthClient::new(channel))
-            }
-        }
+        let channel = get_channel(self.socket.clone()).await.map_err(|e| {
+            warn!("failed to connect to the daemon: {}", e);
+            VpndError::FailedToConnectIpc(e)
+        })?;
+        Ok(HealthClient::new(channel))
     }
 
     /// Check the connection with the grpc server
@@ -734,46 +704,11 @@ impl GrpcClient {
 
 async fn get_channel(socket_path: PathBuf) -> Result<Channel> {
     // NOTE the uri here is ignored
-    Ok(TonicEndpoint::from_static(DEFAULT_HTTP_ENDPOINT)
+    Ok(TonicEndpoint::from_static(DUMMY_HTTP_ENDPOINT)
         .connect_with_connector(tower::service_fn(move |_| {
             nym_ipc::client::connect(socket_path.clone())
         }))
         .await?)
-}
-
-impl Default for Transport {
-    fn default() -> Self {
-        Transport::Ipc(DEFAULT_SOCKET_PATH.into())
-    }
-}
-
-impl From<(&AppConfig, &Cli)> for Transport {
-    fn from((config, cli): (&AppConfig, &Cli)) -> Self {
-        let http_mode = if cli.grpc_http_mode {
-            true
-        } else {
-            config.grpc_http_mode.unwrap_or(false)
-        };
-        if http_mode {
-            Transport::Http(
-                cli.grpc_http_endpoint.clone().unwrap_or(
-                    config
-                        .grpc_http_endpoint
-                        .clone()
-                        .unwrap_or(DEFAULT_HTTP_ENDPOINT.into()),
-                ),
-            )
-        } else {
-            Transport::Ipc(
-                cli.grpc_socket_endpoint.clone().unwrap_or(
-                    config
-                        .grpc_socket_endpoint
-                        .clone()
-                        .unwrap_or(DEFAULT_SOCKET_PATH.into()),
-                ),
-            )
-        }
-    }
 }
 
 impl TryFrom<&Location> for Country {

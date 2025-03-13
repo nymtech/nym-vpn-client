@@ -91,12 +91,10 @@ impl From<VpndError> for BackendError {
             VpndError::GrpcError(s) => {
                 BackendError::new(&format!("grpc error: {}", s), ErrorKey::GrpcError)
             }
-            VpndError::FailedToConnectIpc(_) | VpndError::FailedToConnectHttp(_) => {
-                BackendError::new(
-                    "not connected to the daemon",
-                    ErrorKey::NotConnectedToDaemon,
-                )
-            }
+            VpndError::FailedToConnectIpc(_) => BackendError::new(
+                "not connected to the daemon",
+                ErrorKey::NotConnectedToDaemon,
+            ),
             VpndError::Response(e) => e,
         }
     }
