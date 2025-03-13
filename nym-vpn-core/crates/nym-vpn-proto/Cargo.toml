@@ -43,3 +43,6 @@ conversions = [
     "dep:time",
     "dep:url",
 ]
+
+[package.metadata.cargo-machete]
+ignored = ["tonic-build"]

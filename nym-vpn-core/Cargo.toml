@@ -107,7 +107,6 @@ clap = "4.5"
 dbus = "0.9"
 debounced = "0.2"
 dirs = "5.0.1"
-dns-lookup = "2"
 duct = "0.13"
 eventlog = "0.3.0"
 futures = "0.3.31"
@@ -163,7 +162,6 @@ thiserror = "2.0"
 time = "0.3.39"
 tokio = "1.42"
 tokio-stream = "0.1.17"
-tokio-tungstenite = "0.26.2"
 tokio-util = { version = "0.7.13", features = ["codec"] }
 toml = "0.8"
 tonic = "0.12.3"
@@ -171,14 +169,12 @@ tonic-build = "0.12.3"
 tonic-health = "0.12.3"
 tonic-reflection = { version = "0.12.3", features = ["server"] }
 tower = "0.5.2"
-tower-http = { version = "0.6.2", features = ["cors"] }
 tracing = "0.1"
 tracing-appender = "0.2.3"
 tracing-oslog = "0.2.0"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 triggered = "0.1.1"
 tun = { version = "0.6.1", features = ["async"] }
-tungstenite = "0.26.1"
 uniffi = { version = "0.27.3", features = ["cli"] }
 url = "2.5"
 uuid = "1.15"

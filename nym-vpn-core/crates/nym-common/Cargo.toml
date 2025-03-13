@@ -12,7 +12,3 @@ tracing.workspace = true
 [target.'cfg(target_os = "linux")'.dependencies]
 libc.workspace = true
 thiserror.workspace = true
-
-[target.'cfg(windows)'.dependencies.windows]
-workspace = true
-features = ["Win32_Foundation"]

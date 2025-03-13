@@ -46,3 +46,6 @@ recommends = "nym-vpnd"
 revision = ""
 maintainer-scripts = "debian"
 systemd-units = { enable = false }
+
+[package.metadata.cargo-machete]
+ignored = ["vergen"]

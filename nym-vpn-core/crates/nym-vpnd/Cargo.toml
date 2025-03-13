@@ -96,3 +96,6 @@ start = true
 restart-after-upgrade = false
 stop-on-upgrade = true
 unit-scripts = "linux/unit-scripts"
+
+[package.metadata.cargo-machete]
+ignored = ["vergen"]

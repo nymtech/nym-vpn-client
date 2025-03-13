@@ -3600,7 +3600,6 @@ dependencies = [
  "libc",
  "thiserror 2.0.12",
  "tracing",
- "windows 0.59.0",
 ]
 
 [[package]]
@@ -3906,19 +3905,15 @@ dependencies = [
 name = "nym-firewall"
 version = "1.6.0-beta"
 dependencies = [
- "inotify",
  "ipnetwork",
  "libc",
  "log",
  "mnl",
  "nftnl",
- "nix 0.29.0",
  "nym-common",
  "nym-dns",
  "nym-platform-metadata",
- "nym-windows",
  "pfctl",
- "resolv-conf",
  "thiserror 2.0.12",
  "tracing",
  "widestring",
@@ -4968,7 +4963,6 @@ dependencies = [
  "tokio-stream",
  "tokio-util",
  "tracing",
- "tracing-appender",
  "tracing-oslog",
  "tracing-subscriber",
  "tun",
@@ -5175,7 +5169,6 @@ name = "nym-windows"
 version = "1.6.0-beta"
 dependencies = [
  "futures",
- "nym-common",
  "thiserror 2.0.12",
  "tokio",
  "tracing",
