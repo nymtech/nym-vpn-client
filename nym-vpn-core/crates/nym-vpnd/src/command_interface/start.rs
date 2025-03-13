@@ -59,14 +59,11 @@ where
         .register_encoded_file_descriptor_set(VPN_FD_SET)
         .build_v1()
         .unwrap();
-    let command_interface = CommandInterface::new_with_path(
-        vpn_command_tx,
-        tunnel_event_rx,
-        socket_path.clone(),
-        network_env,
-    );
+    let command_interface = CommandInterface::new(vpn_command_tx, tunnel_event_rx, network_env);
+
+    // Remove previous socket file in case if the daemon crashed in the prior run and could not clean up the socket file.
     #[cfg(unix)]
-    command_interface.remove_previous_socket_file().await;
+    remove_previous_socket_file(&socket_path).await;
 
     // Wrap the unix socket into a stream that can be used by tonic
     let incoming = nym_ipc::server::create_incoming(socket_path).unwrap();
@@ -163,4 +160,21 @@ pub fn start_command_interface(
     });
 
     (handle, vpn_command_rx)
+}
+
+#[cfg(unix)]
+async fn remove_previous_socket_file(socket_path: &std::path::Path) {
+    match tokio::fs::remove_file(socket_path).await {
+        Ok(_) => tracing::info!(
+            "Removed previous command interface socket: {}",
+            self.socket_path.display()
+        ),
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
+        Err(err) => {
+            tracing::error!(
+                "Failed to remove previous command interface socket: {:?}",
+                err
+            );
+        }
+    }
 }

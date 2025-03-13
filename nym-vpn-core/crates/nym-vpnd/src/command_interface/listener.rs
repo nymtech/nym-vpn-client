@@ -1,14 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
-
 use futures::{stream::BoxStream, StreamExt};
 use nym_vpn_network_config::{Network, NetworkCompatibility};
-use tokio::{
-    fs,
-    sync::{broadcast, mpsc::UnboundedSender},
-};
+use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
 use nym_vpn_api_client::types::{GatewayMinPerformance, ScoreThresholds};
 use nym_vpn_lib_types::TunnelEvent;
@@ -44,40 +39,19 @@ pub(super) struct CommandInterface {
 
     // Broadcast tunnel events to our API endpoint listeners
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
-
-    socket_path: PathBuf,
     network_env: Network,
 }
 
 impl CommandInterface {
-    pub(super) fn new_with_path(
+    pub(super) fn new(
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
         tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
-        socket_path: PathBuf,
         network_env: Network,
     ) -> Self {
         Self {
             vpn_command_tx,
             tunnel_event_rx,
-            socket_path,
             network_env,
-        }
-    }
-
-    #[cfg(unix)]
-    pub(super) async fn remove_previous_socket_file(&self) {
-        match fs::remove_file(&self.socket_path).await {
-            Ok(_) => tracing::info!(
-                "Removed previous command interface socket: {}",
-                self.socket_path.display()
-            ),
-            Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
-            Err(err) => {
-                tracing::error!(
-                    "Failed to remove previous command interface socket: {:?}",
-                    err
-                );
-            }
         }
     }
 }
