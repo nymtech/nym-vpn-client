@@ -10,10 +10,7 @@ license.workspace = true
 
 [dependencies]
 bincode.workspace = true
-futures.workspace = true
-nym-client-core.workspace = true
 nym-compact-ecash.workspace = true
-nym-config.workspace = true
 nym-credential-proxy-requests.workspace = true
 nym-credential-storage.workspace = true
 nym-credentials-interface.workspace = true
@@ -21,24 +18,20 @@ nym-credentials.workspace = true
 nym-ecash-time.workspace = true
 nym-http-api-client.workspace = true
 nym-sdk.workspace = true
-nym-validator-client.workspace = true
 nym-vpn-api-client = { workspace = true }
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }
 nym-vpn-network-config = { workspace = true }
 nym-vpn-store = { workspace = true }
 nym-wg-gateway-client = { workspace = true }
 serde.workspace = true
-serde_json.workspace = true
 si-scale.workspace = true
 sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite", "time"] }
 strum = { workspace = true, features = ["derive"] }
-strum_macros.workspace = true
 thiserror.workspace = true
 time.workspace = true
 tokio-util.workspace = true
 tokio.workspace = true
 tracing.workspace = true
-url.workspace = true
 uuid.workspace = true
 zeroize.workspace = true
 

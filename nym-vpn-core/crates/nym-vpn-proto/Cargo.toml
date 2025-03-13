@@ -11,7 +11,6 @@ license.workspace = true
 [dependencies]
 prost-types.workspace = true
 prost.workspace = true
-tonic-reflection.workspace = true
 tonic.workspace = true
 
 nym-config = { workspace = true, optional = true }

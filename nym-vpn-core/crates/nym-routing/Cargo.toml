@@ -7,7 +7,6 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-async-stream.workspace = true
 thiserror.workspace = true
 futures.workspace = true
 ipnetwork.workspace = true

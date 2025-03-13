@@ -16,8 +16,6 @@ tokio.workspace = true
 tokio-stream = { workspace = true, features = ["net"] }
 tracing.workspace = true
 tonic.workspace = true
-thiserror.workspace = true
-tower.workspace = true
 hyper-util.workspace = true
 
 [target.'cfg(windows)'.dependencies]
