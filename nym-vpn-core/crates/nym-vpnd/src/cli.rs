@@ -26,9 +26,6 @@ pub struct CliArgs {
     pub network: Option<String>,
 
     #[arg(long)]
-    pub enable_http_listener: bool,
-
-    #[arg(long)]
     pub disable_socket_listener: bool,
 
     /// Override the default user agent string.

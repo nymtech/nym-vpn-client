@@ -1,11 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    fs,
-    net::SocketAddr,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::PathBuf};
 
 use futures::{stream::BoxStream, StreamExt};
 use nym_vpn_network_config::{Network, NetworkCompatibility};
@@ -39,11 +35,6 @@ use crate::{
     service::{ConnectOptions, VpnServiceCommand},
 };
 
-enum ListenerType {
-    Path(PathBuf),
-    Uri(#[allow(unused)] SocketAddr),
-}
-
 pub(super) struct CommandInterface {
     // Send commands to the VPN service
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
@@ -51,8 +42,7 @@ pub(super) struct CommandInterface {
     // Broadcast tunnel events to our API endpoint listeners
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
 
-    listener: ListenerType,
-
+    socket_path: PathBuf,
     network_env: Network,
 }
 
@@ -60,45 +50,29 @@ impl CommandInterface {
     pub(super) fn new_with_path(
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
         tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
-        socket_path: &Path,
+        socket_path: PathBuf,
         network_env: Network,
     ) -> Self {
         Self {
             vpn_command_tx,
             tunnel_event_rx,
-            listener: ListenerType::Path(socket_path.to_path_buf()),
-            network_env,
-        }
-    }
-
-    pub(super) fn new_with_uri(
-        vpn_command_tx: UnboundedSender<VpnServiceCommand>,
-        tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
-        uri: SocketAddr,
-        network_env: Network,
-    ) -> Self {
-        Self {
-            vpn_command_tx,
-            tunnel_event_rx,
-            listener: ListenerType::Uri(uri),
+            socket_path,
             network_env,
         }
     }
 
     pub(super) fn remove_previous_socket_file(&self) {
-        if let ListenerType::Path(ref socket_path) = self.listener {
-            match fs::remove_file(socket_path) {
-                Ok(_) => tracing::info!(
-                    "Removed previous command interface socket: {:?}",
-                    socket_path
-                ),
-                Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
-                Err(err) => {
-                    tracing::error!(
-                        "Failed to remove previous command interface socket: {:?}",
-                        err
-                    );
-                }
+        match fs::remove_file(&self.socket_path) {
+            Ok(_) => tracing::info!(
+                "Removed previous command interface socket: {}",
+                self.socket_path.display()
+            ),
+            Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
+            Err(err) => {
+                tracing::error!(
+                    "Failed to remove previous command interface socket: {:?}",
+                    err
+                );
             }
         }
     }

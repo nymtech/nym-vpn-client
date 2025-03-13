@@ -117,7 +117,6 @@ async fn run_inner_async(args: CliArgs, network_env: Network) -> anyhow::Result<
         tunnel_event_rx,
         Some(CommandInterfaceOptions {
             disable_socket_listener: args.disable_socket_listener,
-            enable_http_listener: args.enable_http_listener,
         }),
         network_env.clone(),
         shutdown_token.child_token(),
