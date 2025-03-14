@@ -697,8 +697,7 @@ async fn listen_for_icmp_ping_replies(
 ) -> anyhow::Result<ProbeOutcome> {
     // HACK: take it out of the shared mixnet client
     let mut mixnet_client = shared_mixnet_client.inner().lock().await.take().unwrap();
-    let mut multi_ip_packet_decoder =
-        MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
+    let mut multi_ip_packet_decoder = MultiIpPacketCodec::new();
     let mut registered_replies = IpPingReplies::new();
 
     loop {
@@ -715,9 +714,9 @@ async fn listen_for_icmp_ping_replies(
                 // IP packets are bundled together in a mixnet message
                 let mut bytes = BytesMut::from(&*data_response.ip_packet);
                 while let Ok(Some(packet)) = multi_ip_packet_decoder.decode(&mut bytes) {
-                    if let Some(event) = check_for_icmp_beacon_reply(&packet, icmp_identifier(), our_ips) {
+                    if let Some(event) = check_for_icmp_beacon_reply(&packet.into_bytes(), icmp_identifier(), our_ips) {
                         info!("Received ICMP echo reply from exit gateway");
-                        info!("Connection event: {:?}", event);
+                        info!("Connection event: {event:?}");
                         registered_replies.register_event(&event);
                     }
                 }

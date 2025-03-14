@@ -10,6 +10,7 @@ license.workspace = true
 
 [dependencies]
 bytes.workspace = true
+futures.workspace = true
 nym-gateway-directory = { workspace = true }
 nym-ip-packet-requests.workspace = true
 nym-mixnet-client = { workspace = true }

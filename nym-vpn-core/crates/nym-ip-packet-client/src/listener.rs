@@ -1,10 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use bytes::{Bytes, BytesMut};
+use bytes::Bytes;
+use futures::StreamExt;
 use nym_ip_packet_requests::{codec::MultiIpPacketCodec, v8::response::ControlResponse};
 use nym_sdk::mixnet::ReconstructedMessage;
-use tokio_util::codec::Decoder;
+use tokio_util::codec::FramedRead;
 use tracing::{debug, error, info, warn};
 
 use crate::{
@@ -21,9 +22,7 @@ pub enum MixnetMessageOutcome {
     Disconnect,
 }
 
-pub struct IprListener {
-    decoder: MultiIpPacketCodec,
-}
+pub struct IprListener {}
 
 #[derive(Debug, thiserror::Error)]
 pub enum IprListenerError {
@@ -33,8 +32,7 @@ pub enum IprListenerError {
 
 impl IprListener {
     pub fn new() -> Self {
-        let decoder = MultiIpPacketCodec::new(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
-        Self { decoder }
+        Self {}
     }
 
     fn is_mix_ping(&self, request: &IpPacketRequest) -> bool {
@@ -61,11 +59,14 @@ impl IprListener {
                     IpPacketResponseData::Data(data_response) => {
                         // Un-bundle the mixnet message and send the individual IP packets
                         // to the tun device
-                        let mut bytes = BytesMut::from(&*data_response.ip_packet);
-                        let mut responses = vec![];
-                        while let Ok(Some(packet)) = self.decoder.decode(&mut bytes) {
-                            responses.push(packet);
-                        }
+                        let framed_reader = FramedRead::new(
+                            data_response.ip_packet.as_ref(),
+                            MultiIpPacketCodec::new(),
+                        );
+                        let responses: Vec<Bytes> = framed_reader
+                            .filter_map(|res| async { res.ok().map(|packet| packet.into_bytes()) })
+                            .collect()
+                            .await;
                         return Ok(Some(MixnetMessageOutcome::IpPackets(responses)));
                     }
                     IpPacketResponseData::Control(control_response) => match *control_response {

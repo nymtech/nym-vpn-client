@@ -32,4 +32,15 @@ pub enum MixnetError {
 
     #[error("{0}")]
     ConnectionMonitorError(#[from] nym_connection_monitor::Error),
+
+    #[error("failed to bundle packet: {source}")]
+    FailedToBundlePacket {
+        source: nym_ip_packet_requests::codec::Error,
+    },
+
+    #[error("failed to create input message: {source}")]
+    FailedToCreateInputMessage { source: nym_sdk::Error },
+
+    #[error("failed to send input message: {source}")]
+    FailedToSendInputMessage { source: nym_sdk::Error },
 }
