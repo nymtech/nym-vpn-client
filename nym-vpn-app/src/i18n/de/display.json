@@ -1,10 +1,10 @@
 {
+  "theme-section-title": "Theme",
+  "zoom-section-title": "Zoom-Stufe",
   "options": {
     "system": "Automatisch",
     "light": "Heller Modus",
     "dark": "Dunkler Modus"
   },
-  "system-desc": "Nutze Geräte Modus",
-  "theme-section-title": "Theme",
-  "zoom-section-title": "Zoom-Stufe"
+  "system-desc": "Nutze Geräte Modus"
 }

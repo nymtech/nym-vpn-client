@@ -1,11 +1,13 @@
 {
-  "via": "経由",
-  "left": "残り時間",
-  "ok": "ok",
-  "selected": "選択済み",
   "account": "アカウント",
   "cancel": "キャンセル",
+  "left": "残り時間",
   "login": "ログイン",
   "logout": "ログアウト",
-  "stop": "止める"
+  "ok": "ok",
+  "selected": "選択済み",
+  "via": "経由",
+  "stop": "止める",
+  "server_one": "server",
+  "server_other": "servers"
 }

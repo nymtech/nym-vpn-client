@@ -1,9 +1,4 @@
 {
-  "countries-request": {
-    "entry": "Fallo al obtener los países disponibles del gateway de entrada",
-    "exit": "Fallo al obtener los países disponibles del gateway de salida",
-    "fast-mode": "Fallo al buscar los países disponibles"
-  },
   "unknown": "Error desconocido",
   "internal": "Error interno",
   "daemon": {
@@ -12,18 +7,36 @@
     "invalid-network": "Red inválida"
   },
   "grpc": "Error interno gRPC",
+  "tunnel": {
+    "internal": "Internal error",
+    "internal-reason": "Internal error: {{reason}}",
+    "api": "API error: {{reason}}",
+    "firewall": "Firewall error",
+    "routing": "Routing error",
+    "dns": "DNS error",
+    "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
+    "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
+    "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
+    "max-devices-reached": "Max number of added devices reached, remove a device from your account and try again"
+  },
   "account": {
     "invalid-recovery-phrase": "Código de acceso inválido",
     "storage": "Error de backend de almacenamiento",
-    "is-connected": "No se puede continuar mientras está conectado",
-    "no-device-stored": "No hay claves de dispositivo almacenadas",
-    "update": "Error al actualizar la cuenta",
-    "update-device": "Error al actualizar el dispositivo",
-    "register-device": "Fallo en el registro del dispositivo",
-    "maximum-registered-devices": "Fallo en el registro de dispositivos: se ha alcanzado el número máximo de dispositivos registrados",
-    "not-stored": "No se ha guardado el código de acceso de la cuenta"
+    "is-connected": "No se puede continuar mientras está conectado"
   },
-  "zknym": {
-    "request-failed": "Fallo en la solicitud del zk-nym"
+  "countries-request": {
+    "entry": "Fallo al obtener los países disponibles del gateway de entrada",
+    "exit": "Fallo al obtener los países disponibles del gateway de salida",
+    "fast-mode": "Fallo al buscar los países disponibles"
+  },
+  "no-bandwidth": "Out of bandwidth",
+  "entry-gateway-down": "Entry gateway is down",
+  "exit-gateway-down": {
+    "ipv4": "Exit gateway is down (IPv4)",
+    "ipv6": "Exit gateway is down (IPv6)"
+  },
+  "exit-gateway-routing": {
+    "ipv4": "Exit gateway routing error (IPv4)",
+    "ipv6": "Exit gateway routing error (IPv6)"
   }
 }

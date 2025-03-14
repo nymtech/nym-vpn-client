@@ -8,6 +8,7 @@
   "first-hop-selection": "Eingangsregion",
   "last-hop-selection": "Austrittsregion",
   "settings": "Einstellungen",
+  "display-theme": "Anzeige",
   "notifications": "Benachrichtigungen",
   "logs": "Logs",
   "feedback": "Feedback",
@@ -17,11 +18,10 @@
   "sentry": "Sentry",
   "tos": "Allgemeine Nutzungsbedingungen",
   "privacy-statement": "Datenschutzerklärung",
-  "appearance": "Erscheinungsbild",
-  "language": "Sprache",
-  "display-theme": "Anzeige",
   "ui-mode": {
     "dark": "Dark mode",
     "light": "Light mode"
-  }
+  },
+  "appearance": "Erscheinungsbild",
+  "language": "Sprache"
 }

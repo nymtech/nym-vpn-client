@@ -1,11 +1,13 @@
 {
-  "via": "के माध्यम से",
-  "selected": "चुना गया",
-  "ok": "ok",
-  "left": "बचा हुआ",
   "account": "खाता",
-  "stop": "रोकें",
-  "login": "लॉगिन",
   "cancel": "कैंसल",
-  "logout": "लॉगआउट"
+  "left": "बचा हुआ",
+  "login": "लॉगिन",
+  "logout": "लॉगआउट",
+  "ok": "ok",
+  "selected": "चुना गया",
+  "via": "के माध्यम से",
+  "stop": "रोकें",
+  "server_one": "server",
+  "server_other": "servers"
 }

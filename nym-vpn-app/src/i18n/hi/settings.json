@@ -1,13 +1,4 @@
 {
-  "legal": {
-    "tos": "उपयोग की शर्तें",
-    "title": "कानूनी सूचनायें",
-    "policy": "गोपनीयता कथन",
-    "licenses-rust": "लाइसेंस (Rust)",
-    "licenses-js": "लाइसेंस (JS)",
-    "license": "लाइसेंस",
-    "emptyData": "कोई लाइसेंस डेटा उपलब्ध नहीं है"
-  },
   "auto-connect": {
     "title": "ऑटो-कनेक्ट",
     "desc": "ऐप शुरू होने पर स्वयं कनेक्ट करें"
@@ -16,35 +7,49 @@
     "title": "अनाम त्रुटि रिपोर्ट",
     "desc": "ऐप अगली बार शुरू होने पर लागू होगा"
   },
+  "notifications": {
+    "title": "डेस्कटॉप सूचनाएँ"
+  },
+  "monitoring-alert": "परिवर्तन लागू होने के लिए ऐप को फिरसे शुरू करें।",
   "support": {
     "title": "सहायता",
     "faq": "अक्सर पूछे जाने वाले प्रश्न (FAQ) देखें",
+    "get-in-touch": "संपर्क करें",
     "github": "GitHub मुद्दा खोलें",
     "matrix": "Matrix पर हमसे जुड़ें",
-    "discord": "Discord पर हमसे जुड़ें",
-    "get-in-touch": "संपर्क करें"
+    "discord": "Discord पर हमसे जुड़ें"
   },
-  "login-button": "कनेक्ट करने के लिए क्रेडेंशियल जोड़ें",
+  "legal": {
+    "title": "कानूनी सूचनायें",
+    "policy": "गोपनीयता कथन",
+    "tos": "उपयोग की शर्तें",
+    "license": "लाइसेंस",
+    "licenses-rust": "लाइसेंस (Rust)",
+    "licenses-js": "लाइसेंस (JS)",
+    "emptyData": "कोई लाइसेंस डेटा उपलब्ध नहीं है"
+  },
   "logs": {
     "title": "लॉग्स",
     "desc": "लॉग्स कॉपी करें या मिटाएं"
   },
+  "faq": "FAQ",
+  "display-theme": "डिस्प्ले मोड",
+  "logout-confirmation": {
+    "title": "क्या आप सुनिश्चित हैं?",
+    "description": "आपको फिर से लॉग इन करने के लिए अपनी रिकवरी वाक्यांश की आवश्यकता होगी।",
+    "logging-out": "Logging out…"
+  },
+  "quit": "NymVPN बंद करें",
+  "login-button": "कनेक्ट करने के लिए क्रेडेंशियल जोड़ें",
   "info": {
     "client-version": "क्लाइंट वर्शन",
     "daemon-version": "Daemon वर्शन",
     "network-name": "नेटवर्क",
-    "device-id": "डिवाइस आईडी",
-    "account-id": "खाता पहचान"
+    "account-id": "खाता पहचान",
+    "device-id": "डिवाइस आईडी"
   },
-  "display-theme": "डिस्प्ले मोड",
-  "notifications": {
-    "title": "डेस्कटॉप सूचनाएँ"
-  },
-  "quit": "NymVPN बंद करें",
-  "faq": "FAQ",
-  "monitoring-alert": "परिवर्तन लागू होने के लिए ऐप को फिरसे शुरू करें।",
-  "logout-confirmation": {
-    "description": "आपको फिर से लॉग इन करने के लिए अपनी रिकवरी वाक्यांश की आवश्यकता होगी।",
-    "title": "क्या आप सुनिश्चित हैं?"
+  "autostart": {
+    "title": "Autostart",
+    "desc": "Launch NymVPN when system starts"
   }
 }

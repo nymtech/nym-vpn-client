@@ -1,19 +1,42 @@
 {
   "unknown": "خطای ناشناخته",
   "internal": "خطای داخلی",
-  "countries-request": {
-    "entry": "بازیابی کشورهای در دسترس برای نقطه ورود ناموفق بود",
-    "exit": "بازیابی کشورهای در دسترس برای نقطه خروج ناموفق بود",
-    "fast-mode": "دریافت کشورهای موجود ناموفق بود"
-  },
   "daemon": {
     "not-connected": "به daemon متصل نیست",
     "internal": "خطای داخلی Daemon",
     "invalid-network": "شبکه نامعتبر است"
   },
   "grpc": "خطای gRPC داخلی",
+  "tunnel": {
+    "internal": "Internal error",
+    "internal-reason": "Internal error: {{reason}}",
+    "api": "API error: {{reason}}",
+    "firewall": "Firewall error",
+    "routing": "Routing error",
+    "dns": "DNS error",
+    "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
+    "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
+    "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
+    "max-devices-reached": "Max number of added devices reached, remove a device from your account and try again"
+  },
   "account": {
     "invalid-recovery-phrase": "عبارت بازیابی نامعتبر است",
-    "storage": "خطای بخش پشتیبان ذخیره‌سازی"
+    "storage": "خطای بخش پشتیبان ذخیره‌سازی",
+    "is-connected": "Unable to proceed while connected"
+  },
+  "countries-request": {
+    "entry": "بازیابی کشورهای در دسترس برای نقطه ورود ناموفق بود",
+    "exit": "بازیابی کشورهای در دسترس برای نقطه خروج ناموفق بود",
+    "fast-mode": "دریافت کشورهای موجود ناموفق بود"
+  },
+  "no-bandwidth": "Out of bandwidth",
+  "entry-gateway-down": "Entry gateway is down",
+  "exit-gateway-down": {
+    "ipv4": "Exit gateway is down (IPv4)",
+    "ipv6": "Exit gateway is down (IPv6)"
+  },
+  "exit-gateway-routing": {
+    "ipv4": "Exit gateway routing error (IPv4)",
+    "ipv6": "Exit gateway routing error (IPv6)"
   }
 }

@@ -3,13 +3,21 @@
     "title": "Авто-подключение",
     "desc": "Автоподключение при запуске"
   },
+  "error-monitoring": {
+    "title": "Анонимные отчёты об ошибке",
+    "desc": "активируется при перезапуске приложения"
+  },
+  "notifications": {
+    "title": "Уведомления рабочего стола"
+  },
+  "monitoring-alert": "Для применения изменений требуется перезапуск приложения.",
   "support": {
     "title": "Поддержка и отзывы",
     "faq": "Изучите FAQ",
+    "get-in-touch": "Связаться с нами",
     "github": "Откройте запрос на GitHub",
     "matrix": "Присоединяйтесь к нам в Matrix",
-    "discord": "Присоединяйтесь к нам в Discord",
-    "get-in-touch": "Связаться с нами"
+    "discord": "Присоединяйтесь к нам в Discord"
   },
   "legal": {
     "title": "Юридические аспекты",
@@ -20,22 +28,19 @@
     "licenses-js": "Лицензии (JS)",
     "emptyData": "Лицензионные данные отсутствуют"
   },
-  "display-theme": "Режим отображения",
-  "login-button": "Подключите устройство",
-  "error-monitoring": {
-    "title": "Анонимные отчёты об ошибке",
-    "desc": "активируется при перезапуске приложения"
-  },
-  "monitoring-alert": "Для применения изменений требуется перезапуск приложения.",
-  "faq": "FAQ",
-  "quit": "Выйти из NymVPN",
-  "notifications": {
-    "title": "Уведомления рабочего стола"
-  },
   "logs": {
     "title": "Логи",
     "desc": "Скопировать или удалить логи"
   },
+  "faq": "FAQ",
+  "display-theme": "Режим отображения",
+  "logout-confirmation": {
+    "title": "Вы уверены?",
+    "description": "Чтобы войти снова, вам понадобится ваш код доступа.",
+    "logging-out": "Logging out…"
+  },
+  "quit": "Выйти из NymVPN",
+  "login-button": "Подключите устройство",
   "info": {
     "client-version": "Версия приложения",
     "daemon-version": "Версия демона",
@@ -43,8 +48,8 @@
     "account-id": "ID аккаунта",
     "device-id": "ID устройства"
   },
-  "logout-confirmation": {
-    "title": "Вы уверены?",
-    "description": "Чтобы войти снова, вам понадобится ваш код доступа."
+  "autostart": {
+    "title": "Autostart",
+    "desc": "Launch NymVPN when system starts"
   }
 }

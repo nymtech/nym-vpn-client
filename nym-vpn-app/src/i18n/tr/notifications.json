@@ -7,8 +7,10 @@
   },
   "logout": {
     "success": "Oturum kapatma başarılı",
-    "error": "Çıkış yaparken bir hata oluştu"
+    "error": "Çıkış yaparken bir hata oluştu",
+    "from-state": "Cannot logout from VPN tunnel state: {{state}}"
   },
-  "daemon-not-compat": "Daemon sürümü, uygulama sürümüyle uyumlu değil! Daemon sürümü: {{version}}, beklenen: {{required}}. Lütfen uygulamayı veya daemon'u güncelleyin.",
-  "copied-to-clipboard": "Panoya kopyalandı"
+  "copied-to-clipboard": "Panoya kopyalandı",
+  "daemon-no-compat": "Daemon version is not compatible with the app version! Daemon version: {{version}}, expected: {{required}}. Please update either the app or the daemon.",
+  "daemon-not-connected": "No daemon connection, please contact our support team"
 }

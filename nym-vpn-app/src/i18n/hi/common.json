@@ -4,12 +4,11 @@
     "fast": "तेज़"
   },
   "connect": "कनेक्ट",
-  "settings": "सेटिंग्स",
-  "tos": "उपयोग की शर्तें",
+  "disconnect": "डिस्कनेक्ट करें",
   "first-hop-selection": "उद्भव स्थान",
   "last-hop-selection": "आखरी स्थान",
-  "disconnect": "डिस्कनेक्ट करें",
-  "privacy-statement": "गोपनीयता कथन",
+  "settings": "सेटिंग्स",
+  "display-theme": "डिस्प्ले",
   "notifications": "सूचनाएँ",
   "logs": "लॉग्स",
   "feedback": "प्रतिक्रिया",
@@ -17,11 +16,12 @@
   "support": "समर्थन",
   "fastest": "सबसे तेज़",
   "sentry": "सेंट्री",
-  "language": "भाषा",
-  "appearance": "रूपरंग",
-  "display-theme": "डिस्प्ले",
+  "tos": "उपयोग की शर्तें",
+  "privacy-statement": "गोपनीयता कथन",
   "ui-mode": {
     "dark": "डार्क मोड",
     "light": "लाइट मोड"
-  }
+  },
+  "appearance": "रूपरंग",
+  "language": "भाषा"
 }

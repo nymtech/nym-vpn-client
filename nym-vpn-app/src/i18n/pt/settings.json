@@ -1,0 +1,55 @@
+{
+  "auto-connect": {
+    "title": "Auto-connect",
+    "desc": "Auto connect at app startup"
+  },
+  "error-monitoring": {
+    "title": "Anonymous error reports",
+    "desc": "applies on app restart"
+  },
+  "notifications": {
+    "title": "Desktop notifications"
+  },
+  "monitoring-alert": "You must restart the app for the change to take effect.",
+  "support": {
+    "title": "Support & feedback",
+    "faq": "Check the FAQ",
+    "get-in-touch": "Get in touch",
+    "github": "Open a GitHub issue",
+    "matrix": "Join us on Matrix",
+    "discord": "Join us on Discord"
+  },
+  "legal": {
+    "title": "Legal",
+    "policy": "Privacy statement",
+    "tos": "Terms of use",
+    "license": "License",
+    "licenses-rust": "Licenses (Rust)",
+    "licenses-js": "Licenses (JS)",
+    "emptyData": "No license data available"
+  },
+  "logs": {
+    "title": "Logs (stored locally)",
+    "desc": "Copy or delete logs"
+  },
+  "faq": "FAQ",
+  "display-theme": "Display mode",
+  "logout-confirmation": {
+    "title": "Are you sure?",
+    "description": "You will need your access code to reconnect your device.",
+    "logging-out": "Logging out…"
+  },
+  "quit": "Quit NymVPN",
+  "login-button": "Connect device",
+  "info": {
+    "client-version": "App version",
+    "daemon-version": "Daemon version",
+    "network-name": "Network",
+    "account-id": "Account ID",
+    "device-id": "Device ID"
+  },
+  "autostart": {
+    "title": "Autostart",
+    "desc": "Launch NymVPN when system starts"
+  }
+}

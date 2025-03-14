@@ -1,7 +1,7 @@
 {
   "connection-progress": {
-    "InitDone": "Nym VPN istemcisi başlatıldı",
     "Initializing": "Nym VPN istemcisi başlatılıyor…",
+    "InitDone": "Nym VPN istemcisi başlatıldı",
     "Canceling": "İptal ediliyor…"
   }
 }

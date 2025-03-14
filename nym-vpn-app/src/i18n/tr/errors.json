@@ -1,41 +1,42 @@
 {
+  "unknown": "Tanımlanamayan hata",
+  "internal": "Dahili hata",
   "daemon": {
     "not-connected": "Daemon'a bağlı değil",
     "internal": "Daemon dahili hata",
     "invalid-network": "Geçersiz ağ"
+  },
+  "grpc": "Dahili gRPC hatası",
+  "tunnel": {
+    "internal": "Dahili hata",
+    "internal-reason": "Internal error: {{reason}}",
+    "api": "API error: {{reason}}",
+    "firewall": "Güvenlik duvarı hatası",
+    "routing": "Yönlendirme hatası",
+    "dns": "DNS hatası",
+    "same-entry-exit-gw": "Aynı giriş ve çıkış node'u ile bağlanılamaz. Lütfen giriş veya çıkış node'unun konumunu değiştirin.",
+    "invalid-entry-gw-country": "Geçersiz giriş node'u ülkesi, lütfen giriş node'u konumunu değiştirin",
+    "invalid-exit-gw-country": "Geçersiz çıkış node'u ülkesi, lütfen çıkış node'u konumunu değiştirin",
+    "max-devices-reached": "Max number of added devices reached, remove a device from your account and try again"
+  },
+  "account": {
+    "invalid-recovery-phrase": "Geçersiz erişim kodu",
+    "storage": "Depolama arka ucu hatası",
+    "is-connected": "Bağlantı varken işlem yapılamıyor"
   },
   "countries-request": {
     "entry": "Kullanılabilir entry node ülke bilgileri alınamadı",
     "exit": "Kullanılabilir exit node ülke bilgileri alınamadı",
     "fast-mode": "Mevcut ülkelerin bilgisine ulaşılamadı"
   },
-  "unknown": "Tanımlanamayan hata",
-  "internal": "Dahili hata",
-  "grpc": "Dahili gRPC hatası",
-  "account": {
-    "invalid-recovery-phrase": "Geçersiz erişim kodu",
-    "storage": "Depolama arka ucu hatası",
-    "maximum-registered-devices": "Cihaz kaydı başarısız oldu: Kayıtlı cihaz sayısı maksimum sınırına ulaştı",
-    "is-connected": "Bağlantı varken işlem yapılamıyor",
-    "update-device": "Cihaz güncellemesi başarısız oldu",
-    "register-device": "Cihaz kaydı başarısız oldu",
-    "not-stored": "Hesap erişim kodu kaydedilmedi",
-    "no-device-stored": "Cihaz anahtarları saklanmamış",
-    "update": "Hesap güncellemesi başarısız oldu"
+  "no-bandwidth": "Out of bandwidth",
+  "entry-gateway-down": "Entry gateway is down",
+  "exit-gateway-down": {
+    "ipv4": "Exit gateway is down (IPv4)",
+    "ipv6": "Exit gateway is down (IPv6)"
   },
-  "zknym": {
-    "request-failed": "zk-nym talebi başarısız oldu"
-  },
-  "tunnel": {
-    "internal": "Dahili hata",
-    "firewall": "Güvenlik duvarı hatası",
-    "routing": "Yönlendirme hatası",
-    "dns": "DNS hatası",
-    "tun-device": "Cihaz hatası",
-    "provider": "Sağlayıcı hatası",
-    "invalid-entry-gw-country": "Geçersiz giriş node'u ülkesi, lütfen giriş node'u konumunu değiştirin",
-    "invalid-exit-gw-country": "Geçersiz çıkış node'u ülkesi, lütfen çıkış node'u konumunu değiştirin",
-    "bad-bandwidth-increase": "Bant genişliği artışı hatası",
-    "same-entry-exit-gw": "Aynı giriş ve çıkış node'u ile bağlanılamaz. Lütfen giriş veya çıkış node'unun konumunu değiştirin."
+  "exit-gateway-routing": {
+    "ipv4": "Exit gateway routing error (IPv4)",
+    "ipv6": "Exit gateway routing error (IPv6)"
   }
 }

@@ -7,8 +7,10 @@
   },
   "logout": {
     "success": "Успішний вихід з системи",
-    "error": "Виникла помилка при виході з системи"
+    "error": "Виникла помилка при виході з системи",
+    "from-state": "Cannot logout from VPN tunnel state: {{state}}"
   },
-  "daemon-not-compat": "Версія демона не сумісна з версією програми! Версія демона: {{version}}, очікувана: {{required}}. Будь ласка, оновіть або програму, або демон.",
-  "copied-to-clipboard": "Скопійовано в буфер обміну"
+  "copied-to-clipboard": "Скопійовано в буфер обміну",
+  "daemon-no-compat": "Daemon version is not compatible with the app version! Daemon version: {{version}}, expected: {{required}}. Please update either the app or the daemon.",
+  "daemon-not-connected": "No daemon connection, please contact our support team"
 }

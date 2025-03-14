@@ -3,8 +3,8 @@
   "license-texts": "lisans metinleri",
   "name": "isim",
   "version": "sürüm",
+  "authors": "geliştiriciler",
   "repository": "repository",
   "language": "programlama dili",
-  "no-data": "lisans bilgisi yok",
-  "authors": "geliştiriciler"
+  "no-data": "lisans bilgisi yok"
 }

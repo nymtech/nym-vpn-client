@@ -1,27 +1,27 @@
 {
-  "disconnect": "قطع",
-  "feedback": "بازخورد",
-  "support": "پشتیبانی",
-  "sentry": "ابزار Sentry",
-  "legal": "حقوقی",
-  "connect": "اتصال",
-  "logs": "گزارش‌ها",
-  "settings": "تنظیمات",
-  "first-hop-selection": "موقعیت ورودی",
-  "tos": "قوانین استفاده",
-  "privacy-statement": "اعلامیه حریم خصوصی",
-  "last-hop-selection": "موقعیت خروجی",
-  "fastest": "سریع‌ترین",
-  "notifications": "اعلان‌ها",
-  "appearance": "نمای ظاهری",
-  "language": "زبان",
   "vpn-modes": {
     "privacy": "ناشناس",
     "fast": "سریع"
   },
+  "connect": "اتصال",
+  "disconnect": "قطع",
+  "first-hop-selection": "موقعیت ورودی",
+  "last-hop-selection": "موقعیت خروجی",
+  "settings": "تنظیمات",
   "display-theme": "نمایش",
+  "notifications": "اعلان‌ها",
+  "logs": "گزارش‌ها",
+  "feedback": "بازخورد",
+  "legal": "حقوقی",
+  "support": "پشتیبانی",
+  "fastest": "سریع‌ترین",
+  "sentry": "ابزار Sentry",
+  "tos": "قوانین استفاده",
+  "privacy-statement": "اعلامیه حریم خصوصی",
   "ui-mode": {
     "dark": "طرح تاریک",
     "light": "طرح روشن"
-  }
+  },
+  "appearance": "نمای ظاهری",
+  "language": "زبان"
 }

@@ -19,14 +19,24 @@
     "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
     "max-devices-reached": "Le nombre maximum d'appareil ajouté a été atteint. Supprimez un appareil de votre compte et réessayez."
   },
+  "account": {
+    "invalid-recovery-phrase": "Code d'accès invalide",
+    "storage": "Erreur de stockage backend",
+    "is-connected": "Impossible d'effectuer cette action lorsque connecté au VPN"
+  },
   "countries-request": {
     "entry": "Échec de la recherche des pays de nœuds d'entrée disponibles",
     "exit": "Échec de la recherche des pays de nœuds de sortie disponibles",
     "fast-mode": "Échec de la recherche des pays disponibles"
   },
-  "account": {
-    "invalid-recovery-phrase": "Code d'accès invalide",
-    "storage": "Erreur de stockage backend",
-    "is-connected": "Impossible d'effectuer cette action lorsque connecté au VPN"
+  "no-bandwidth": "Out of bandwidth",
+  "entry-gateway-down": "Entry gateway is down",
+  "exit-gateway-down": {
+    "ipv4": "Exit gateway is down (IPv4)",
+    "ipv6": "Exit gateway is down (IPv6)"
+  },
+  "exit-gateway-routing": {
+    "ipv4": "Exit gateway routing error (IPv4)",
+    "ipv6": "Exit gateway routing error (IPv6)"
   }
 }

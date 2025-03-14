@@ -1,10 +1,13 @@
 {
-  "via": "توسط",
-  "left": "مانده",
-  "ok": "قبول",
-  "selected": "انتخاب‌شده",
   "account": "اکانت",
   "cancel": "لغو",
+  "left": "مانده",
   "login": "ورود",
-  "logout": "خروج"
+  "logout": "خروج",
+  "ok": "قبول",
+  "selected": "انتخاب‌شده",
+  "via": "توسط",
+  "stop": "stop",
+  "server_one": "server",
+  "server_other": "servers"
 }

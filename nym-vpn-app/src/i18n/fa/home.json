@@ -5,12 +5,12 @@
     "connected": "متصل",
     "disconnected": "قطع",
     "connecting": "در حال اتصال",
-    "disconnecting": "در حال قطع"
+    "disconnecting": "در حال قطع",
+    "error": "Error",
+    "offline": "No internet"
   },
-  "fast-mode": {
-    "title": "سریع (WireGuard)",
-    "desc": "ایده‌آل برای وب‌گردی، پخش زنده و اشتراک‌گذاری"
-  },
+  "offline-message": "Your device has no internet connection",
+  "offline-reconnect-message": "Will connect once the device goes online",
   "last-hop": "موقعیت خروجی",
   "first-hop": "موقعیت ورودی",
   "connecting-message": "راه‌اندازی اتصال",
@@ -21,21 +21,33 @@
     "title": "ناشناس (Mixnet)",
     "desc": "ایده‌آل برای پرداخت‌ها، ایمیل‌ها و پیام‌ها"
   },
+  "fast-mode": {
+    "title": "سریع (WireGuard)",
+    "desc": "ایده‌آل برای وب‌گردی، پخش زنده و اشتراک‌گذاری"
+  },
+  "last-node-select": {
+    "label": "پرش (hop) آخر",
+    "text": "اتصال سریع {{country}}"
+  },
   "snackbar-disabled-message": {
     "connected": "در حال اتصال به VPN فعال نیست",
     "connecting": "در زمان اتصال به VPN غیرفعال است",
     "disconnecting": "در زمان قطع اتصال VPN غیرفعال است",
-    "daemon-not-connected": "برنامه NymVPN در حال حاضر به دیمون (daemon) NymVPN متصل نیست."
+    "offline": "Disabled when there is no internet connection",
+    "error": "Disabled when there is an error"
   },
   "modes-dialog": {
     "title": "انتخاب حالت",
     "privacy-description": "با مسیریابی اتصال خود از طریق ۵ سرور با Mixnet، از حریم خصوصی در بالاترین سطح لذت ببرید. ایده‌آل برای مدیریت امن پرداخت‌ها، ایمیل‌ها و پیام‌ها.",
-    "link": "ادامه مطلب",
-    "fast-description": "بالاترین سرعت را با ۲ سرور (پرش)‌ تجربه کنید. ایده‌آل برای وب‌گردی سریع، پخش آنلاین و اشتراک‌گذاری فایل."
+    "fast-description": "بالاترین سرعت را با ۲ سرور (پرش)‌ تجربه کنید. ایده‌آل برای وب‌گردی سریع، پخش آنلاین و اشتراک‌گذاری فایل.",
+    "link": "ادامه مطلب"
   },
-  "windows-no-fast-mode": "در مدتی که ما از حالت سریع به WireGuard منتقل می‌شویم، این گزینه به‌طور موقت در دسترس نیست.",
-  "last-node-select": {
-    "label": "پرش (hop) آخر",
-    "text": "اتصال سریع {{country}}"
+  "update-dialog": {
+    "title": "Update required!",
+    "description-1-app": "Your app is no longer supported.",
+    "description-1-daemon": "Your daemon is no longer supported.",
+    "description-1-other": "Your app and daemon are no longer supported.",
+    "description-2": "Please update to the latest version to continue using NymVPN.",
+    "button-update": "Update"
   }
 }

@@ -1,0 +1,10 @@
+{
+  "theme-section-title": "Theme",
+  "zoom-section-title": "Zoom level",
+  "options": {
+    "system": "Automatic",
+    "light": "Light theme",
+    "dark": "Dark theme"
+  },
+  "system-desc": "Use device theme"
+}

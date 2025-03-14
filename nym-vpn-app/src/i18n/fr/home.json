@@ -15,18 +15,8 @@
   "first-hop": "Nœud d'entrée",
   "connecting-message": "Connexion en cours",
   "connection-time": "Temps de connexion",
+  "select-mode-label": "Sélectionner le mode",
   "select-node-title": "Se connecter à",
-  "last-node-select": {
-    "label": "Nœud de sortie",
-    "text": "Connexion rapide vers ({{country}})"
-  },
-  "snackbar-disabled-message": {
-    "connected": "Désactivé lors de la connexion au VPN",
-    "disconnecting": "Désactivé lors de la déconnexion du VPN",
-    "connecting": "Désactivé lors de la connexion au VPN",
-    "offline": "Désactivé lorsqu'il n'y a pas de connexion Internet",
-    "error": "Désactivé lorsqu'il y a une erreur"
-  },
   "privacy-mode": {
     "title": "Anonyme (mixnet)",
     "desc": "Pour les paiements, emails et messages"
@@ -35,12 +25,22 @@
     "title": "Rapide (WireGuard*)",
     "desc": "Pour la navigation, le streaming et les téléchargements"
   },
-  "select-mode-label": "Sélectionner le mode",
+  "last-node-select": {
+    "label": "Nœud de sortie",
+    "text": "Connexion rapide vers ({{country}})"
+  },
+  "snackbar-disabled-message": {
+    "connected": "Désactivé lors de la connexion au VPN",
+    "connecting": "Désactivé lors de la connexion au VPN",
+    "disconnecting": "Désactivé lors de la déconnexion du VPN",
+    "offline": "Désactivé lorsqu'il n'y a pas de connexion Internet",
+    "error": "Désactivé lorsqu'il y a une erreur"
+  },
   "modes-dialog": {
     "title": "Sélection de mode",
-    "link": "Poursuivre la lecture",
     "privacy-description": "Bénéficiez d'une confidentialité maximale en acheminant votre connexion vers 5 serveurs via le mixnet. Parfait pour traiter en toute sécurité les paiements, les courriels et les messages.",
-    "fast-description": "Profitez d'une vitesse maximale avec 2 serveurs. Ce mode est basé sur AmneziaWG, une version dérivée de WireGuard incluant une protection renforcée contre la censure. Parfait pour la navigation rapide, la diffusion en continu et le partage de fichiers."
+    "fast-description": "Profitez d'une vitesse maximale avec 2 serveurs. Ce mode est basé sur AmneziaWG, une version dérivée de WireGuard incluant une protection renforcée contre la censure. Parfait pour la navigation rapide, la diffusion en continu et le partage de fichiers.",
+    "link": "Poursuivre la lecture"
   },
   "update-dialog": {
     "title": "Mise-à-jour requise !",

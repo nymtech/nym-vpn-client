@@ -1,9 +1,4 @@
 {
-  "countries-request": {
-    "entry": "उपलब्ध प्रवेश नोड देशों को खोजने में विफल",
-    "exit": "उपलब्ध निकासी नोड देशों को खोजने में विफल",
-    "fast-mode": "उपलब्ध देश खोजने में विफल"
-  },
   "unknown": "अज्ञात त्रुटि",
   "internal": "अंदरूनी त्रुटि",
   "daemon": {
@@ -12,18 +7,36 @@
     "invalid-network": "अमान्य नेटवर्क"
   },
   "grpc": "अंदरूनी gRPC त्रुटि",
+  "tunnel": {
+    "internal": "Internal error",
+    "internal-reason": "Internal error: {{reason}}",
+    "api": "API error: {{reason}}",
+    "firewall": "Firewall error",
+    "routing": "Routing error",
+    "dns": "DNS error",
+    "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
+    "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
+    "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
+    "max-devices-reached": "Max number of added devices reached, remove a device from your account and try again"
+  },
   "account": {
     "invalid-recovery-phrase": "अमान्य रिकवरी फ्रेज़",
     "storage": "स्टोरेज बैकएंड एरर",
-    "no-device-stored": "कोई डिवाइस कुंजी संग्रहीत नहीं है",
-    "is-connected": "कनेक्ट रहते हुए आगे बढ़ने में असमर्थ",
-    "maximum-registered-devices": "डिवाइस पंजीकरण विफल रहा: पंजीकृत डिवाइस की अधिकतम संख्या पहुँच गई है",
-    "update-device": "डिवाइस अपडेट नहीं हो सका",
-    "register-device": "डिवाइस पंजीकरण नहीं हो सका",
-    "not-stored": "कोई पुनर्प्राप्ति वाक्यांश संग्रहीत नहीं है",
-    "update": "खाता अपडेट नहीं हो सका"
+    "is-connected": "कनेक्ट रहते हुए आगे बढ़ने में असमर्थ"
   },
-  "zknym": {
-    "request-failed": "zk-nym का अनुरोध असफल रहा"
+  "countries-request": {
+    "entry": "उपलब्ध प्रवेश नोड देशों को खोजने में विफल",
+    "exit": "उपलब्ध निकासी नोड देशों को खोजने में विफल",
+    "fast-mode": "उपलब्ध देश खोजने में विफल"
+  },
+  "no-bandwidth": "Out of bandwidth",
+  "entry-gateway-down": "Entry gateway is down",
+  "exit-gateway-down": {
+    "ipv4": "Exit gateway is down (IPv4)",
+    "ipv6": "Exit gateway is down (IPv6)"
+  },
+  "exit-gateway-routing": {
+    "ipv4": "Exit gateway routing error (IPv4)",
+    "ipv6": "Exit gateway routing error (IPv6)"
   }
 }

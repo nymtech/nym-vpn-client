@@ -1,7 +1,20 @@
 {
+  "auto-connect": {
+    "title": "اتصال خودکار",
+    "desc": "اتصال خودکار در زمان راه‌اندازی برنامه"
+  },
+  "error-monitoring": {
+    "title": "گزارش ناشناس خطا",
+    "desc": "با راه‌اندازی مجدد برنامه اعمال می‌شود"
+  },
+  "notifications": {
+    "title": "اعلانات دسکتاپ"
+  },
+  "monitoring-alert": "برای اعمال تغییرات باید برنامه را دوباره اجرا کنید.",
   "support": {
     "title": "پشتیبانی",
     "faq": "بررسی سوالات متداول",
+    "get-in-touch": "Get in touch",
     "github": "باز کردن مساله در GitHub",
     "matrix": "در Matrix به ما بپیوندید",
     "discord": "در Discord به ما پیوندید"
@@ -19,29 +32,24 @@
     "title": "گزارش‌ها",
     "desc": "گزارش‌ها را کپی یا پاک کنید"
   },
-  "login-button": "افزودن اعتبارنامه برای اتصال",
-  "error-monitoring": {
-    "title": "گزارش ناشناس خطا",
-    "desc": "با راه‌اندازی مجدد برنامه اعمال می‌شود"
-  },
-  "auto-connect": {
-    "title": "اتصال خودکار",
-    "desc": "اتصال خودکار در زمان راه‌اندازی برنامه"
-  },
-  "notifications": {
-    "title": "اعلانات دسکتاپ"
-  },
-  "monitoring-alert": "برای اعمال تغییرات باید برنامه را دوباره اجرا کنید.",
   "faq": "سوال‌های متداول",
   "display-theme": "حالت نمایش",
+  "logout-confirmation": {
+    "title": "مطمئن هستید؟",
+    "description": "برای ورود مجدد به عبارت بازیابی خود نیاز خواهید داشت.",
+    "logging-out": "Logging out…"
+  },
   "quit": "خروج از NymVPN",
+  "login-button": "افزودن اعتبارنامه برای اتصال",
   "info": {
     "client-version": "نسخه مشترک",
     "daemon-version": "نسخه Daemon",
-    "network-name": "شبکه"
+    "network-name": "شبکه",
+    "account-id": "Account ID",
+    "device-id": "Device ID"
   },
-  "logout-confirmation": {
-    "title": "مطمئن هستید؟",
-    "description": "برای ورود مجدد به عبارت بازیابی خود نیاز خواهید داشت."
+  "autostart": {
+    "title": "Autostart",
+    "desc": "Launch NymVPN when system starts"
   }
 }

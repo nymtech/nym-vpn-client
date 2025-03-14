@@ -1,29 +1,42 @@
 {
   "unknown": "不明なエラー",
   "internal": "内部エラー",
-  "grpc": "内部gRPCエラー",
-  "countries-request": {
-    "entry": "利用可能なエントリーノードの国を取得できませんでした",
-    "exit": "利用可能な出口ノードの国を取得できませんでした",
-    "fast-mode": "利用可能な国を取得できませんでした"
-  },
   "daemon": {
     "not-connected": "デーモンに接続されていません",
     "internal": "デーモン内部エラー",
     "invalid-network": "無効なネットワーク"
   },
+  "grpc": "内部gRPCエラー",
+  "tunnel": {
+    "internal": "Internal error",
+    "internal-reason": "Internal error: {{reason}}",
+    "api": "API error: {{reason}}",
+    "firewall": "Firewall error",
+    "routing": "Routing error",
+    "dns": "DNS error",
+    "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
+    "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
+    "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
+    "max-devices-reached": "Max number of added devices reached, remove a device from your account and try again"
+  },
   "account": {
     "invalid-recovery-phrase": "無効なアクセスコード",
     "storage": "ストレージバックエンドエラー",
-    "is-connected": "接続中は操作を進めることができません",
-    "maximum-registered-devices": "デバイスの登録に失敗しました：登録可能なデバイス数の上限に達しました",
-    "register-device": "デバイスの登録に失敗しました",
-    "update-device": "デバイスのアップデートに失敗しました",
-    "not-stored": "アカウントのアクセスコードが保存されていません",
-    "no-device-stored": "デバイスキーが保存されていません",
-    "update": "アカウントアップデートに失敗"
+    "is-connected": "接続中は操作を進めることができません"
   },
-  "zknym": {
-    "request-failed": "zk-nymのリクエストに失敗しました"
+  "countries-request": {
+    "entry": "利用可能なエントリーノードの国を取得できませんでした",
+    "exit": "利用可能な出口ノードの国を取得できませんでした",
+    "fast-mode": "利用可能な国を取得できませんでした"
+  },
+  "no-bandwidth": "Out of bandwidth",
+  "entry-gateway-down": "Entry gateway is down",
+  "exit-gateway-down": {
+    "ipv4": "Exit gateway is down (IPv4)",
+    "ipv6": "Exit gateway is down (IPv6)"
+  },
+  "exit-gateway-routing": {
+    "ipv4": "Exit gateway routing error (IPv4)",
+    "ipv6": "Exit gateway routing error (IPv6)"
   }
 }

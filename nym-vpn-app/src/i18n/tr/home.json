@@ -1,6 +1,6 @@
 {
-  "disconnect": "Bağlantı kesildi",
   "connect": "Bağlan",
+  "disconnect": "Bağlantı kesildi",
   "status": {
     "connected": "Bağlantı sağlandı",
     "disconnected": "Bağlantı kesildi",
@@ -9,21 +9,14 @@
     "error": "Hata",
     "offline": "Çevrimdışı"
   },
+  "offline-message": "Your device has no internet connection",
+  "offline-reconnect-message": "Will connect once the device goes online",
   "last-hop": "Çıkış lokasyonu",
   "first-hop": "Giriş lokasyonu",
   "connecting-message": "Bağlantı kuruluyor",
   "connection-time": "Bağlantı süresi",
+  "select-mode-label": "Mod seçin",
   "select-node-title": "-e bağlan",
-  "last-node-select": {
-    "label": "Son hop",
-    "text": "Hızlı bağlantı ({{country}}"
-  },
-  "snackbar-disabled-message": {
-    "connected": "VPN bağlıyken devre dışı",
-    "connecting": "VPN bağlantısı sırasında devre dışı bırakıldı",
-    "disconnecting": "VPN'den bağlantı kesilirken devre dışı bırakıldı",
-    "daemon-not-connected": "NymVPN uygulaması şu anda NymVPN daemon'una bağlı değil."
-  },
   "privacy-mode": {
     "title": "Anonim (mixnet)",
     "desc": "Ödemeler, e-postalar, mesajlar için en iyisi"
@@ -32,12 +25,29 @@
     "title": "Hızlı (WireGuard*)",
     "desc": "İnternet tarama, yayın, paylaşım için en iyisi"
   },
-  "select-mode-label": "Mod seçin",
+  "last-node-select": {
+    "label": "Son hop",
+    "text": "Hızlı bağlantı ({{country}}"
+  },
+  "snackbar-disabled-message": {
+    "connected": "VPN bağlıyken devre dışı",
+    "connecting": "VPN bağlantısı sırasında devre dışı bırakıldı",
+    "disconnecting": "VPN'den bağlantı kesilirken devre dışı bırakıldı",
+    "offline": "Disabled when there is no internet connection",
+    "error": "Disabled when there is an error"
+  },
   "modes-dialog": {
     "title": "Mod seçimi",
     "privacy-description": "Bağlantınızı mixnet üzerinden 5 sunucuya yönlendirerek maksimum düzeyde gizliliğin tadını çıkarın. Ödemeleri, e-postaları ve mesajları güvenli bir şekilde yönetmek için mükemmeldir.",
     "fast-description": "Maksimum hızı 2 sunucu bağlantısıyla deneyimleyin. Bu mod, hızlı tarama, akış ve dosya paylaşımı için ideal olan, sansüre dirençli bir WireGuard versiyonu olan AmneziaWG'yi kullanır.",
     "link": "Okumaya devam edin"
   },
-  "windows-no-fast-mode": "Hızlı mod WireGuard'a geçirken, bu seçenek geçici olarak kullanılamamaktadır."
+  "update-dialog": {
+    "title": "Update required!",
+    "description-1-app": "Your app is no longer supported.",
+    "description-1-daemon": "Your daemon is no longer supported.",
+    "description-1-other": "Your app and daemon are no longer supported.",
+    "description-2": "Please update to the latest version to continue using NymVPN.",
+    "button-update": "Update"
+  }
 }

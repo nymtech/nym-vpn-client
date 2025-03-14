@@ -1,12 +1,12 @@
 {
   "account": "compte",
-  "via": "via",
-  "left": "restant",
-  "ok": "ok",
-  "selected": "choisi",
   "cancel": "annuler",
+  "left": "restant",
   "login": "se connecter",
   "logout": "se déconnecter",
+  "ok": "ok",
+  "selected": "choisi",
+  "via": "via",
   "stop": "stop",
   "server_one": "serveur",
   "server_other": "serveurs"

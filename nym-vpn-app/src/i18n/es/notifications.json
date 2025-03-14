@@ -1,12 +1,16 @@
 {
   "vpn-tunnel-state": {
     "connected": "Túnel VPN conectado",
-    "disconnected": "NymVPN se ha desconectado. Para salvaguardar su privacidad, vuelva a conectarse."
+    "disconnected": "NymVPN se ha desconectado. Para salvaguardar su privacidad, vuelva a conectarse.",
+    "error": "VPN tunnel failed: an error occurred",
+    "offline": "PC is offline"
   },
   "logout": {
     "success": "A cerrado sesión satisfactoriamente",
-    "error": "A ocurrido un error mientras iniciaba sesión"
+    "error": "A ocurrido un error mientras iniciaba sesión",
+    "from-state": "Cannot logout from VPN tunnel state: {{state}}"
   },
-  "daemon-not-compat": "La versión del Daemon no es compatible con la versión de la aplicación. Versión daemon: {{version}}, esperada: {{required}}. Actualiza la aplicación o el Daemon.",
-  "copied-to-clipboard": "Copiado al portapapeles"
+  "copied-to-clipboard": "Copiado al portapapeles",
+  "daemon-no-compat": "Daemon version is not compatible with the app version! Daemon version: {{version}}, expected: {{required}}. Please update either the app or the daemon.",
+  "daemon-not-connected": "No daemon connection, please contact our support team"
 }

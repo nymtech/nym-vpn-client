@@ -1,27 +1,27 @@
 {
-  "settings": "Налаштування",
-  "connect": "Підключитись",
-  "disconnect": "Від'єднати",
-  "fastest": "Найшвидший",
-  "logs": "Журнали",
-  "legal": "Правові документи",
-  "feedback": "Залишити відгук",
-  "support": "Служба підтримки",
-  "sentry": "Захист",
-  "first-hop-selection": "Вибір першого підключення",
-  "last-hop-selection": "Вибір останнього підключення",
   "vpn-modes": {
     "privacy": "Анонімний",
     "fast": "Швидкий"
   },
+  "connect": "Підключитись",
+  "disconnect": "Від'єднати",
+  "first-hop-selection": "Вибір першого підключення",
+  "last-hop-selection": "Вибір останнього підключення",
+  "settings": "Налаштування",
+  "display-theme": "Тема",
+  "notifications": "Сповіщення",
+  "logs": "Журнали",
+  "feedback": "Залишити відгук",
+  "legal": "Правові документи",
+  "support": "Служба підтримки",
+  "fastest": "Найшвидший",
+  "sentry": "Захист",
   "tos": "Умови використання",
   "privacy-statement": "Положення про конфіденційність",
-  "display-theme": "Тема",
   "ui-mode": {
     "dark": "Темна тема",
     "light": "Світла тема"
   },
-  "notifications": "Сповіщення",
-  "language": "Мова",
-  "appearance": "Зовнішній вигляд"
+  "appearance": "Зовнішній вигляд",
+  "language": "Мова"
 }

@@ -2,19 +2,21 @@
   "connect": "Підключитись",
   "disconnect": "Від'єднати",
   "status": {
-    "connecting": "Підключення",
-    "disconnecting": "Відключення",
     "connected": "Підключенно",
     "disconnected": "Відключенно",
+    "connecting": "Підключення",
+    "disconnecting": "Відключення",
     "error": "Помилка",
     "offline": "Офлайн"
   },
+  "offline-message": "Your device has no internet connection",
+  "offline-reconnect-message": "Will connect once the device goes online",
   "last-hop": "Останнє підключення",
   "first-hop": "Перше підключення",
-  "last-node-select": {
-    "label": "Останнє підключення",
-    "text": "Швидке підключення ({{country}})"
-  },
+  "connecting-message": "Встановлення з'єднання",
+  "connection-time": "Час підключення",
+  "select-mode-label": "Вибрати режим",
+  "select-node-title": "Підключитись до",
   "privacy-mode": {
     "title": "Анонімний",
     "desc": "Найкраще для платежів, електронних листів, повідомлень"
@@ -23,21 +25,29 @@
     "title": "Швидкий (WireGuard*)",
     "desc": "Найкраще для серфінгу, відео, спільного використання"
   },
-  "connecting-message": "Встановлення з'єднання",
-  "connection-time": "Час підключення",
-  "select-node-title": "Підключитись до",
+  "last-node-select": {
+    "label": "Останнє підключення",
+    "text": "Швидке підключення ({{country}})"
+  },
   "snackbar-disabled-message": {
     "connected": "Вимкнено при підключенні до VPN",
     "connecting": "Вимкнено під час підключення до VPN",
     "disconnecting": "Вимкнено під час відключення від VPN",
-    "daemon-not-connected": "Вимкнено, якщо не підключено до daemon VPN."
+    "offline": "Disabled when there is no internet connection",
+    "error": "Disabled when there is an error"
   },
   "modes-dialog": {
-    "privacy-description": "Насолоджуйтесь максимальним рівнем конфіденційності, маршрутизуючи свій трафік через 5-hop mixnet. Ідеально підходить для безпечної обробки платежів, електронних листів та повідомлень.",
     "title": "Вибір режиму",
-    "link": "Продовжувати читання",
-    "fast-description": "Відчуйте максимальну швидкість завдяки підключенню до 2 серверів. У цьому режимі використовується AmneziaWG, захищена від цензури версія WireGuard, що ідеально підходить для швидкого перегляду веб-сторінок, потокового передавання даних і обміну файлами."
+    "privacy-description": "Насолоджуйтесь максимальним рівнем конфіденційності, маршрутизуючи свій трафік через 5-hop mixnet. Ідеально підходить для безпечної обробки платежів, електронних листів та повідомлень.",
+    "fast-description": "Відчуйте максимальну швидкість завдяки підключенню до 2 серверів. У цьому режимі використовується AmneziaWG, захищена від цензури версія WireGuard, що ідеально підходить для швидкого перегляду веб-сторінок, потокового передавання даних і обміну файлами.",
+    "link": "Продовжувати читання"
   },
-  "select-mode-label": "Вибрати режим",
-  "windows-no-fast-mode": "У зв'язку з переходом від швидкого режиму до WireGuard ця опція тимчасово недоступна."
+  "update-dialog": {
+    "title": "Update required!",
+    "description-1-app": "Your app is no longer supported.",
+    "description-1-daemon": "Your daemon is no longer supported.",
+    "description-1-other": "Your app and daemon are no longer supported.",
+    "description-2": "Please update to the latest version to continue using NymVPN.",
+    "button-update": "Update"
+  }
 }

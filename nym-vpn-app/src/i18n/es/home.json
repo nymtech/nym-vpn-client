@@ -6,23 +6,17 @@
     "disconnected": "Desconectado",
     "connecting": "Conectando",
     "disconnecting": "Desconectando",
-    "error": "Error"
+    "error": "Error",
+    "offline": "No internet"
   },
+  "offline-message": "Your device has no internet connection",
+  "offline-reconnect-message": "Will connect once the device goes online",
   "last-hop": "Ubicación de salida",
   "first-hop": "Gateway de entrada",
   "connecting-message": "Estableciendo conexión",
   "connection-time": "Tiempo de conexión",
+  "select-mode-label": "Selecciona el modo",
   "select-node-title": "Conectar a",
-  "last-node-select": {
-    "label": "Último salto",
-    "text": "Conexión rápida a ({{country}})"
-  },
-  "snackbar-disabled-message": {
-    "connected": "Desactivado mientras está conectado a VPN",
-    "connecting": "Desactivado al conectar a VPN",
-    "disconnecting": "Desactivado al desconectar de VPN",
-    "daemon-not-connected": "Desactivado mientras no esté conectado al demonio NymVPN."
-  },
   "privacy-mode": {
     "title": "Anónimo (mixnet)",
     "desc": "Mejor para pagos, correos electrónicos, mensajes"
@@ -31,12 +25,29 @@
     "title": "Rápido (WireGuard*)",
     "desc": "Mejor para navegar, streaming, compartir"
   },
-  "select-mode-label": "Selecciona el modo",
-  "modes-dialog": {
-    "fast-description": "Experimenta la máxima velocidad con la conectividad de 2 servidores. Este modo aprovecha AmneziaWG, una versión de WireGuard resistente a la censura, ideal para navegar, transmitir y compartir archivos con rapidez.",
-    "link": "Continúe leyendo",
-    "privacy-description": "Disfrute de la máxima privacidad enrutando su conexión a través de 5 servidores mediante mixnet. Perfecto para gestionar pagos, correos electrónicos y mensajes de forma segura.",
-    "title": "Seleccione el modo"
+  "last-node-select": {
+    "label": "Último salto",
+    "text": "Conexión rápida a ({{country}})"
   },
-  "windows-no-fast-mode": "Mientras realizamos la transición del modo rápido a WireGuard, esta opción no está disponible temporalmente."
+  "snackbar-disabled-message": {
+    "connected": "Desactivado mientras está conectado a VPN",
+    "connecting": "Desactivado al conectar a VPN",
+    "disconnecting": "Desactivado al desconectar de VPN",
+    "offline": "Disabled when there is no internet connection",
+    "error": "Disabled when there is an error"
+  },
+  "modes-dialog": {
+    "title": "Seleccione el modo",
+    "privacy-description": "Disfrute de la máxima privacidad enrutando su conexión a través de 5 servidores mediante mixnet. Perfecto para gestionar pagos, correos electrónicos y mensajes de forma segura.",
+    "fast-description": "Experimenta la máxima velocidad con la conectividad de 2 servidores. Este modo aprovecha AmneziaWG, una versión de WireGuard resistente a la censura, ideal para navegar, transmitir y compartir archivos con rapidez.",
+    "link": "Continúe leyendo"
+  },
+  "update-dialog": {
+    "title": "Update required!",
+    "description-1-app": "Your app is no longer supported.",
+    "description-1-daemon": "Your daemon is no longer supported.",
+    "description-1-other": "Your app and daemon are no longer supported.",
+    "description-2": "Please update to the latest version to continue using NymVPN.",
+    "button-update": "Update"
+  }
 }

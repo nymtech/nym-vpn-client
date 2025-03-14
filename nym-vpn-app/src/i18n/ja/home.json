@@ -1,13 +1,19 @@
 {
+  "connect": "接続",
   "disconnect": "接続解除",
   "status": {
     "connected": "接続済",
     "disconnected": "接続解除",
     "connecting": "接続中",
-    "disconnecting": "接続解除中"
+    "disconnecting": "接続解除中",
+    "error": "Error",
+    "offline": "No internet"
   },
+  "offline-message": "Your device has no internet connection",
+  "offline-reconnect-message": "Will connect once the device goes online",
   "last-hop": "出口ロケーション",
   "first-hop": "エントリーロケーション",
+  "connecting-message": "接続中",
   "connection-time": "接続時間",
   "select-mode-label": "モードの選択",
   "select-node-title": "接続",
@@ -27,15 +33,21 @@
     "connected": "VPN接続中は無効です",
     "connecting": "VPN接続中は無効です",
     "disconnecting": "VPNの切断中は無効です",
-    "daemon-not-connected": "NymVPNアプリが現在、NymVPNデーモンに接続されていません。"
+    "offline": "Disabled when there is no internet connection",
+    "error": "Disabled when there is an error"
   },
   "modes-dialog": {
     "title": "モード選択",
+    "privacy-description": "5つのサーバーを通じてMixnet経由で接続をルーティングすることで、最高レベルのプライバシーを実現します。支払い、メール、メッセージの安全な取り扱いに最適です。",
     "fast-description": "サーバーの経由を２つにすることで、最高の速度を体験できます。高速なブラウジング、ストリーミング、ファイル共有に最適です。",
-    "link": "続きを読む",
-    "privacy-description": "5つのサーバーを通じてMixnet経由で接続をルーティングすることで、最高レベルのプライバシーを実現します。支払い、メール、メッセージの安全な取り扱いに最適です。"
+    "link": "続きを読む"
   },
-  "connect": "接続",
-  "connecting-message": "接続中",
-  "windows-no-fast-mode": "高速モードをWireGuardに移行中のため、このオプションは一時的に利用できません。"
+  "update-dialog": {
+    "title": "Update required!",
+    "description-1-app": "Your app is no longer supported.",
+    "description-1-daemon": "Your daemon is no longer supported.",
+    "description-1-other": "Your app and daemon are no longer supported.",
+    "description-2": "Please update to the latest version to continue using NymVPN.",
+    "button-update": "Update"
+  }
 }

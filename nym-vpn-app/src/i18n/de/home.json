@@ -5,37 +5,49 @@
     "connected": "Verbunden",
     "disconnected": "Getrennt",
     "connecting": "Verbinden",
-    "disconnecting": "Trennen"
+    "disconnecting": "Trennen",
+    "error": "Error",
+    "offline": "No internet"
   },
+  "offline-message": "Your device has no internet connection",
+  "offline-reconnect-message": "Will connect once the device goes online",
   "last-hop": "Austrittsregion",
   "first-hop": "Eintrittsregion",
   "connecting-message": "Verbindung wird hergestellt",
   "connection-time": "Verbindungsdauer",
   "select-mode-label": "Modus wählen",
-  "fast-mode": {
-    "title": "Schnell (WireGuard)",
-    "desc": "Ideal zum surfen, streamen, file sharing"
-  },
   "select-node-title": "Verbinden mit",
   "privacy-mode": {
     "title": "Anonym",
     "desc": "Ideal für Zahlungen, E-Mails, Nachrichten"
   },
-  "snackbar-disabled-message": {
-    "connected": "Deaktiviert während Verbindung zu VPN besteht",
-    "connecting": "Deaktiviert während Verbindung mit dem VPN besteht",
-    "disconnecting": "Deaktiviert während Verbindung vom VPN getrennt wird",
-    "daemon-not-connected": "Deaktiviert während keine Verbindung zum VPN Dienst besteht"
-  },
-  "modes-dialog": {
-    "title": "Modus auswählen",
-    "privacy-description": "Geniess die höchste Sicherheit indem du deine Verbindung durch 5 Server leitest. Ideal für die sichere Abwicklung von Zahlungen, E-Mails und Nachrichten.",
-    "link": "Weiter lesen",
-    "fast-description": "Erlebe die maximale Geschwindigkeit mit dem 2-Server-Modus. Perfekt für schnelles surfen, streamen und File-Sharing."
+  "fast-mode": {
+    "title": "Schnell (WireGuard)",
+    "desc": "Ideal zum surfen, streamen, file sharing"
   },
   "last-node-select": {
     "label": "Letzter Knoten",
     "text": "Schnellzugriff ({{country}})"
   },
-  "windows-no-fast-mode": "Temporär nicht verfügbar während wir zu WireGuard migrieren."
+  "snackbar-disabled-message": {
+    "connected": "Deaktiviert während Verbindung zu VPN besteht",
+    "connecting": "Deaktiviert während Verbindung mit dem VPN besteht",
+    "disconnecting": "Deaktiviert während Verbindung vom VPN getrennt wird",
+    "offline": "Disabled when there is no internet connection",
+    "error": "Disabled when there is an error"
+  },
+  "modes-dialog": {
+    "title": "Modus auswählen",
+    "privacy-description": "Geniess die höchste Sicherheit indem du deine Verbindung durch 5 Server leitest. Ideal für die sichere Abwicklung von Zahlungen, E-Mails und Nachrichten.",
+    "fast-description": "Erlebe die maximale Geschwindigkeit mit dem 2-Server-Modus. Perfekt für schnelles surfen, streamen und File-Sharing.",
+    "link": "Weiter lesen"
+  },
+  "update-dialog": {
+    "title": "Update required!",
+    "description-1-app": "Your app is no longer supported.",
+    "description-1-daemon": "Your daemon is no longer supported.",
+    "description-1-other": "Your app and daemon are no longer supported.",
+    "description-2": "Please update to the latest version to continue using NymVPN.",
+    "button-update": "Update"
+  }
 }
