@@ -13,6 +13,13 @@ use super::{
     connection_data::{ConnectionData, TunnelConnectionData},
 };
 
+const MAX_DEVICES_REACHED_MESSAGE_ID: &str =
+    "nym-vpn-website.public-api.register-device.max-devices-exceeded";
+const SUBSCRIPTION_EXPIRED_MESSAGE_ID: &str =
+    "nym-vpn-website.public-api.device.zk-nym.request_failed.no_active_subscription";
+const BANDWIDTH_LIMIT_REACHED_MESSAGE_ID: &str =
+    "nym-vpn-website.public-api.device.zk-nym.request_failed.fair_usage_used_for_month";
+
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum TunnelType {
     Mixnet,
@@ -196,6 +203,92 @@ pub enum ErrorStateReason {
 
     /// Program errors that must not happen.
     Internal(String),
+}
+
+#[derive(Debug, Clone, Eq, PartialEq)]
+pub enum ClientErrorReason {
+    Firewall,
+    Routing,
+    SameEntryAndExitGateway,
+    InvalidEntryGatewayCountry,
+    InvalidExitGatewayCountry,
+    MaxDevicesReached,
+    BandwidthExceeded,
+    SubscriptionExpired,
+    Dns(String),
+    Api(String),
+    Internal(String),
+}
+
+impl From<ErrorStateReason> for ClientErrorReason {
+    fn from(value: ErrorStateReason) -> Self {
+        match value {
+            ErrorStateReason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
+            ErrorStateReason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
+            ErrorStateReason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
+            ErrorStateReason::BadBandwidthIncrease => Self::Api(value.to_string()),
+            ErrorStateReason::SyncAccount(err) => Self::Api(err.to_string()),
+            ErrorStateReason::SyncDevice(err) => Self::Api(err.to_string()),
+            ErrorStateReason::RegisterDevice(err) => {
+                if err
+                    .message_id()
+                    .is_some_and(|id| id.contains(MAX_DEVICES_REACHED_MESSAGE_ID))
+                {
+                    Self::MaxDevicesReached
+                } else {
+                    Self::Api(err.to_string())
+                }
+            }
+            ErrorStateReason::RequestZkNym(err) => match err {
+                RequestZkNymErrorReason::VpnApi(e) => match e.message_id.as_ref() {
+                    Some(id) if id.contains(BANDWIDTH_LIMIT_REACHED_MESSAGE_ID) => {
+                        Self::BandwidthExceeded
+                    }
+                    Some(id) if id.contains(SUBSCRIPTION_EXPIRED_MESSAGE_ID) => {
+                        Self::SubscriptionExpired
+                    }
+                    _ => Self::Api(e.message),
+                },
+                RequestZkNymErrorReason::UnexpectedVpnApiResponse(message) => Self::Api(message),
+                reason => Self::Internal(reason.to_string()),
+            },
+            ErrorStateReason::RequestZkNymBundle {
+                successes: _,
+                failed,
+            } => {
+                if let Some(RequestZkNymErrorReason::VpnApi(e)) = failed
+                    .iter()
+                    .find(|e| matches!(e, RequestZkNymErrorReason::VpnApi { .. }))
+                {
+                    return match e.message_id.as_ref() {
+                        Some(id) if id.contains(BANDWIDTH_LIMIT_REACHED_MESSAGE_ID) => {
+                            Self::BandwidthExceeded
+                        }
+                        Some(id) if id.contains(SUBSCRIPTION_EXPIRED_MESSAGE_ID) => {
+                            Self::SubscriptionExpired
+                        }
+                        _ => Self::Api(e.clone().message),
+                    };
+                }
+                if let Some(err) = failed
+                    .iter()
+                    .find(|e| matches!(e, RequestZkNymErrorReason::UnexpectedVpnApiResponse { .. }))
+                {
+                    return Self::Api(err.to_string());
+                }
+                Self::Internal(failed.into_iter().map(|e| e.to_string()).collect())
+            }
+            ErrorStateReason::Firewall => Self::Firewall,
+            ErrorStateReason::TunDevice
+            | ErrorStateReason::TunnelProvider
+            | ErrorStateReason::DuplicateTunFd
+            | ErrorStateReason::Dns => Self::Internal(value.to_string()),
+            ErrorStateReason::Internal(message) => Self::Internal(message),
+            ErrorStateReason::Routing => Self::Routing,
+            ErrorStateReason::ResolveGatewayAddrs => Self::Dns(value.to_string()),
+            ErrorStateReason::StartLocalDnsResolver => Self::Dns(value.to_string()),
+        }
+    }
 }
 
 impl fmt::Display for ErrorStateReason {

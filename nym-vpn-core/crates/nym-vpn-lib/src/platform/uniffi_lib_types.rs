@@ -8,12 +8,13 @@ use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 use nym_vpn_api_client::response::NymErrorResponse;
 use nym_vpn_lib_types::{
     ActionAfterDisconnect as CoreActionAfterDisconnect, BandwidthEvent as CoreBandwidthEvent,
-    ConnectionData as CoreConnectionData, ConnectionEvent as CoreConnectionEvent,
+    ClientErrorReason, ConnectionData as CoreConnectionData,
+    ConnectionEvent as CoreConnectionEvent,
     ConnectionStatisticsEvent as CoreConnectionStatisticsEvent,
-    ErrorStateReason as CoreErrorStateReason, ForgetAccountError as CoreForgetAccountError,
-    Gateway as CoreGateway, MixnetConnectionData as CoreMixnetConnectionData,
-    MixnetEvent as CoreMixnetEvent, NymAddress as CoreNymAddress,
-    RegisterDeviceError as CoreRegisterDeviceError, RequestZkNymError as CoreRequestZkNymError,
+    ForgetAccountError as CoreForgetAccountError, Gateway as CoreGateway,
+    MixnetConnectionData as CoreMixnetConnectionData, MixnetEvent as CoreMixnetEvent,
+    NymAddress as CoreNymAddress, RegisterDeviceError as CoreRegisterDeviceError,
+    RequestZkNymError as CoreRequestZkNymError,
     RequestZkNymErrorReason as CoreRequestZkNymErrorReason,
     RequestZkNymSuccess as CoreRequestZkNymSuccess, SphinxPacketRates as CoreSphinxPacketRates,
     StoreAccountError as CoreStoreAccountError, SyncAccountError as CoreSyncAccountError,
@@ -23,13 +24,6 @@ use nym_vpn_lib_types::{
     WireguardConnectionData as CoreWireguardConnectionData, WireguardNode as CoreWireguardNode,
 };
 use time::OffsetDateTime;
-
-const MAX_DEVICES_REACHED_MESSAGE_ID: &str =
-    "nym-vpn-website.public-api.register-device.max-devices-exceeded";
-const SUBSCRIPTION_EXPIRED_MESSAGE_ID: &str =
-    "nym-vpn-website.public-api.device.zk-nym.request_failed.no_active_subscription";
-const BANDWIDTH_LIMIT_REACHED_MESSAGE_ID: &str =
-    "nym-vpn-website.public-api.device.zk-nym.request_failed.fair_usage_used_for_month";
 
 #[derive(uniffi::Enum)]
 pub enum TunnelEvent {
@@ -77,7 +71,9 @@ impl From<CoreTunnelState> for TunnelState {
                 after_disconnect: ActionAfterDisconnect::from(after_disconnect),
             },
             CoreTunnelState::Disconnected => TunnelState::Disconnected,
-            CoreTunnelState::Error(reason) => TunnelState::Error(ErrorStateReason::from(reason)),
+            CoreTunnelState::Error(reason) => {
+                TunnelState::Error(ErrorStateReason::from(ClientErrorReason::from(reason)))
+            }
             CoreTunnelState::Offline { reconnect } => TunnelState::Offline { reconnect },
         }
     }
@@ -469,77 +465,20 @@ impl From<NymErrorResponse> for VpnApiErrorResponse {
     }
 }
 
-impl From<CoreErrorStateReason> for ErrorStateReason {
-    fn from(value: CoreErrorStateReason) -> Self {
+impl From<ClientErrorReason> for ErrorStateReason {
+    fn from(value: ClientErrorReason) -> Self {
         match value {
-            CoreErrorStateReason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
-            CoreErrorStateReason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
-            CoreErrorStateReason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
-            CoreErrorStateReason::BadBandwidthIncrease => Self::Api(value.to_string()),
-            CoreErrorStateReason::SyncAccount(err) => Self::Api(err.to_string()),
-            CoreErrorStateReason::SyncDevice(err) => Self::Api(err.to_string()),
-            CoreErrorStateReason::RegisterDevice(err) => {
-                if err
-                    .message_id()
-                    .is_some_and(|id| id.contains(MAX_DEVICES_REACHED_MESSAGE_ID))
-                {
-                    Self::MaxDevicesReached
-                } else {
-                    Self::Api(err.to_string())
-                }
-            }
-            CoreErrorStateReason::RequestZkNym(err) => match err {
-                CoreRequestZkNymErrorReason::VpnApi(e) => match e.message_id.as_ref() {
-                    Some(id) if id.contains(BANDWIDTH_LIMIT_REACHED_MESSAGE_ID) => {
-                        Self::BandwidthExceeded
-                    }
-                    Some(id) if id.contains(SUBSCRIPTION_EXPIRED_MESSAGE_ID) => {
-                        Self::SubscriptionExpired
-                    }
-                    _ => Self::Api(e.message),
-                },
-                CoreRequestZkNymErrorReason::UnexpectedVpnApiResponse(message) => {
-                    Self::Api(message)
-                }
-                reason => Self::Internal(reason.to_string()),
-            },
-            CoreErrorStateReason::RequestZkNymBundle {
-                successes: _,
-                failed,
-            } => {
-                if let Some(CoreRequestZkNymErrorReason::VpnApi(e)) = failed
-                    .iter()
-                    .find(|e| matches!(e, CoreRequestZkNymErrorReason::VpnApi { .. }))
-                {
-                    return match e.message_id.as_ref() {
-                        Some(id) if id.contains(BANDWIDTH_LIMIT_REACHED_MESSAGE_ID) => {
-                            Self::BandwidthExceeded
-                        }
-                        Some(id) if id.contains(SUBSCRIPTION_EXPIRED_MESSAGE_ID) => {
-                            Self::SubscriptionExpired
-                        }
-                        _ => Self::Api(e.clone().message),
-                    };
-                }
-                if let Some(err) = failed.iter().find(|e| {
-                    matches!(
-                        e,
-                        CoreRequestZkNymErrorReason::UnexpectedVpnApiResponse { .. }
-                    )
-                }) {
-                    return Self::Api(err.to_string());
-                }
-                Self::Internal(failed.into_iter().map(|e| e.to_string()).collect())
-            }
-            CoreErrorStateReason::Firewall => Self::Firewall,
-            CoreErrorStateReason::Routing
-            | CoreErrorStateReason::TunDevice
-            | CoreErrorStateReason::TunnelProvider
-            | CoreErrorStateReason::DuplicateTunFd
-            | CoreErrorStateReason::Dns => Self::Internal(value.to_string()),
-            CoreErrorStateReason::Internal(message) => Self::Internal(message),
-            CoreErrorStateReason::ResolveGatewayAddrs => Self::Dns(value.to_string()),
-            CoreErrorStateReason::StartLocalDnsResolver => Self::Dns(value.to_string()),
+            ClientErrorReason::Firewall => Self::Firewall,
+            ClientErrorReason::Routing => Self::Routing,
+            ClientErrorReason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
+            ClientErrorReason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
+            ClientErrorReason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
+            ClientErrorReason::MaxDevicesReached => Self::MaxDevicesReached,
+            ClientErrorReason::BandwidthExceeded => Self::BandwidthExceeded,
+            ClientErrorReason::SubscriptionExpired => Self::SubscriptionExpired,
+            ClientErrorReason::Dns(message) => Self::Dns(message),
+            ClientErrorReason::Api(message) => Self::Api(message),
+            ClientErrorReason::Internal(message) => Self::Internal(message),
         }
     }
 }
