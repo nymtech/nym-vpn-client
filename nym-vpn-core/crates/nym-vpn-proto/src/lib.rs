@@ -3,9 +3,6 @@
 
 tonic::include_proto!("nym.vpn");
 
-// needed for reflection
-pub const VPN_FD_SET: &[u8] = tonic::include_file_descriptor_set!("vpn_descriptor");
-
 #[cfg(feature = "conversions")]
 pub mod conversions;
 

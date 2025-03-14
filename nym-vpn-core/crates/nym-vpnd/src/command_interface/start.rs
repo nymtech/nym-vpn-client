@@ -5,7 +5,7 @@ use std::{path::PathBuf, time::Duration};
 
 use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_network_config::Network;
-use nym_vpn_proto::{nym_vpnd_server::NymVpndServer, VPN_FD_SET};
+use nym_vpn_proto::nym_vpnd_server::NymVpndServer;
 use tokio::{
     sync::{
         broadcast,
@@ -25,11 +25,6 @@ const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(2);
 fn grpc_span(req: &http::Request<()>) -> tracing::Span {
     let service = req.uri().path().trim_start_matches('/');
     let method = service.split('/').next_back().unwrap_or(service);
-    if service.contains("grpc.reflection.v1") {
-        let span = tracing::trace_span!("grpc_reflection");
-        tracing::trace!(target: "grpc_reflection", "← {} {:?}", method, req.body());
-        return span;
-    }
     let span = tracing::info_span!("grpc_vpnd", req = method);
     tracing::info!(target: "grpc_vpnd", "← {} {:?}", method, req.body());
     span
@@ -42,23 +37,18 @@ async fn run_socket_listener(
     shutdown_token: CancellationToken,
     network_env: Network,
 ) -> Result<(), tonic::transport::Error> {
-    tracing::info!("Starting socket listener on: {}", socket_path.display());
-    let reflection_service = tonic_reflection::server::Builder::configure()
-        .register_encoded_file_descriptor_set(VPN_FD_SET)
-        .build_v1()
-        .unwrap();
     let command_interface = CommandInterface::new(vpn_command_tx, tunnel_event_rx, network_env);
 
     // Remove previous socket file in case if the daemon crashed in the prior run and could not clean up the socket file.
     #[cfg(unix)]
     remove_previous_socket_file(&socket_path).await;
+    tracing::info!("Starting socket listener on: {}", socket_path.display());
 
     // Wrap the unix socket into a stream that can be used by tonic
     let incoming = nym_ipc::server::create_incoming(socket_path).unwrap();
 
     Server::builder()
         .trace_fn(grpc_span)
-        .add_service(reflection_service)
         .add_service(NymVpndServer::new(command_interface))
         .serve_with_incoming_shutdown(incoming, shutdown_token.cancelled_owned())
         .await
