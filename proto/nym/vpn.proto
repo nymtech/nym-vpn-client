@@ -417,7 +417,7 @@ message TunnelState {
   }
   message Error {
     ErrorStateReason reason = 1;
-    // for  errors with details like Dns, Api, Internal
+    // for errors with details like Dns, Api, Internal
     optional string detail = 2;
   }
   message Offline {
