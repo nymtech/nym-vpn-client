@@ -479,6 +479,7 @@ impl GrpcClient {
         Ok(gateways)
     }
 
+    #[instrument(skip(self, app))]
     pub async fn update_vpnd_state(
         &mut self,
         info: VpndInfo,

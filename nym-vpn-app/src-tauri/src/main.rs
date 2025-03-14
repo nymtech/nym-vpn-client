@@ -71,8 +71,8 @@ async fn main() -> Result<()> {
     let _guard = log::setup_tracing(&cli).await?;
     trace!("cli args: {:#?}", cli);
 
-    #[cfg(unix)]
-    misc::nvidia_check();
+    #[cfg(any(target_os = "linux", target_os = "openbsd"))]
+    misc::linux_check();
 
     #[cfg(windows)]
     if cli.console {
