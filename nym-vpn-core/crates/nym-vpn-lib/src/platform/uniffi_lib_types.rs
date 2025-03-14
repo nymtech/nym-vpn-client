@@ -71,9 +71,7 @@ impl From<CoreTunnelState> for TunnelState {
                 after_disconnect: ActionAfterDisconnect::from(after_disconnect),
             },
             CoreTunnelState::Disconnected => TunnelState::Disconnected,
-            CoreTunnelState::Error(reason) => {
-                TunnelState::Error(ErrorStateReason::from(ClientErrorReason::from(reason)))
-            }
+            CoreTunnelState::Error(reason) => TunnelState::Error(ErrorStateReason::from(reason)),
             CoreTunnelState::Offline { reconnect } => TunnelState::Offline { reconnect },
         }
     }

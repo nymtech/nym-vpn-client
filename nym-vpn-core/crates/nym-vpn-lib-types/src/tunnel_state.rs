@@ -46,7 +46,7 @@ pub enum TunnelState {
     },
 
     /// Tunnel is disconnected due to failure.
-    Error(ErrorStateReason),
+    Error(ClientErrorReason),
 
     /// Tunnel is disconnected, network connectivity is unavailable.
     Offline {

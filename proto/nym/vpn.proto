@@ -384,20 +384,18 @@ message TunnelConnectionData {
 }
 
 message TunnelState {
-  enum BaseErrorStateReason {
+  enum ErrorStateReason {
     FIREWALL = 0;
     ROUTING = 1;
-    DNS = 2;
-    TUN_DEVICE = 3;
-    TUNNEL_PROVIDER = 4;
-    SAME_ENTRY_AND_EXIT_GATEWAY = 5;
-    INVALID_ENTRY_GATEWAY_COUNTRY = 6;
-    INVALID_EXIT_GATEWAY_COUNTRY = 7;
-    BAD_BANDWIDTH_INCREASE = 8;
-    DUPLICATE_TUN_FD = 9;
+    SAME_ENTRY_AND_EXIT_GATEWAY = 2;
+    INVALID_ENTRY_GATEWAY_COUNTRY = 3;
+    INVALID_EXIT_GATEWAY_COUNTRY = 4;
+    MAX_DEVICES_REACHED = 5;
+    BANDWIDTH_EXCEEDED = 6;
+    SUBSCRIPTION_EXPIRED = 7;
+    DNS = 8;
+    API = 9;
     INTERNAL = 10;
-    RESOLVE_GATEWAY_ADDRS = 11;
-    START_LOCAL_DNS_RESOLVER = 12;
   }
 
   enum ActionAfterDisconnect {
@@ -418,14 +416,9 @@ message TunnelState {
     ActionAfterDisconnect after_disconnect = 1;
   }
   message Error {
-    oneof error_state_reason {
-      BaseErrorStateReason base_reason = 1;
-      SyncAccountError sync_account = 2;
-      SyncDeviceError sync_device = 3;
-      RegisterDeviceError register_device = 4;
-      RequestZkNymError request_zk_nym = 5;
-      RequestZkNymBundle request_zk_nym_bundle = 6;
-    }
+    ErrorStateReason reason = 1;
+    // for  errors with details like Dns, Api, Internal
+    optional string detail = 2;
   }
   message Offline {
     bool reconnect = 1;

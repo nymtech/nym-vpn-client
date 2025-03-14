@@ -39,8 +39,8 @@ use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::{Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, Recipient};
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
-    ActionAfterDisconnect, ConnectionData, ErrorStateReason, MixnetEvent, TunnelEvent, TunnelState,
-    TunnelType,
+    ActionAfterDisconnect, ClientErrorReason, ConnectionData, ErrorStateReason, MixnetEvent,
+    TunnelEvent, TunnelState, TunnelType,
 };
 use nym_wg_gateway_client::Error as WgGatewayClientError;
 
@@ -237,7 +237,7 @@ impl From<PrivateTunnelState> for TunnelState {
             PrivateTunnelState::Disconnecting { after_disconnect } => Self::Disconnecting {
                 after_disconnect: ActionAfterDisconnect::from(after_disconnect),
             },
-            PrivateTunnelState::Error(reason) => Self::Error(reason),
+            PrivateTunnelState::Error(reason) => Self::Error(ClientErrorReason::from(reason)),
             PrivateTunnelState::Offline { reconnect } => Self::Offline { reconnect },
         }
     }
