@@ -18,14 +18,11 @@ import nym_vpn_lib.ErrorStateReason
 import nym_vpn_lib.VpnException
 import kotlin.reflect.KClass
 import net.nymtech.nymvpn.R
-import net.nymtech.nymvpn.util.Constants
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
 import nym_vpn_lib.GatewayType
-import nym_vpn_lib.RegisterDeviceError
-import nym_vpn_lib.RequestZkNymError
 import nym_vpn_lib.Score
 import java.util.*
 
@@ -76,52 +73,13 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.SameEntryAndExitGateway -> context.getString(R.string.same_entry_exit_message)
 		ErrorStateReason.InvalidEntryGatewayCountry -> context.getString(R.string.selected_entry_unavailable)
 		ErrorStateReason.InvalidExitGatewayCountry -> context.getString(R.string.selected_exit_unavailable)
-		is ErrorStateReason.RegisterDevice -> {
-			when (val registerDeviceError = error.v1) {
-				is RegisterDeviceError.ErrorResponse -> {
-					if (registerDeviceError.v1.messageId == Constants.MAX_DEVICES_REACHED_ID) {
-						context.getString(R.string.max_devices_reached) + " ${context.getString(R.string.remove_device)}"
-					} else {
-						context.getString(R.string.unexpected_error) + " ${this.javaClass.simpleName}:${registerDeviceError.javaClass.simpleName}"
-					}
-				}
-				else -> context.getString(R.string.unexpected_error) + " ${this.javaClass.simpleName}:${registerDeviceError.javaClass.simpleName}"
-			}
-		}
-		is ErrorStateReason.RequestZkNym -> {
-			when (val zknymError = error.v1) {
-				is RequestZkNymError.VpnApi -> {
-					zknymError.toUserMessage(context, error)
-				}
-				else -> context.getString(R.string.unexpected_error) + " ${this.javaClass.simpleName}:${zknymError.javaClass.simpleName}"
-			}
-		}
-		is ErrorStateReason.RequestZkNymBundle -> {
-			run {
-				error.failed.forEach { zkNymError ->
-					return@run when (zkNymError) {
-						is RequestZkNymError.VpnApi -> {
-							zkNymError.toUserMessage(context, error)
-						}
-						else -> context.getString(R.string.unexpected_error) + " ${error.javaClass.simpleName}:${zkNymError.javaClass.simpleName}"
-					}
-				}
-				context.getString(R.string.unexpected_error) + " ${this.javaClass.simpleName}"
-			}
-		}
-		else -> context.getString(R.string.unexpected_error) + " ${error.javaClass.simpleName}"
-	}
-}
-
-fun RequestZkNymError.VpnApi.toUserMessage(context: Context, parent: ErrorStateReason): String {
-	return when (this.v1.messageId) {
-		Constants.MAX_BANDWIDTH_REACHED_ID -> {
-			context.getString(R.string.out_of_bandwidth_error)
-		}
-		Constants.SUBSCRIPTION_EXPIRED_ID -> {
-			context.getString(R.string.subscription_expired)
-		}
-		else -> context.getString(R.string.unexpected_error) + " ${parent.javaClass.simpleName}:${this.javaClass.simpleName}"
+		is ErrorStateReason.Api -> context.getString(R.string.network_error)
+		ErrorStateReason.BandwidthExceeded -> context.getString(R.string.out_of_bandwidth_error)
+		is ErrorStateReason.Dns -> context.getString(R.string.network_error)
+		is ErrorStateReason.Internal -> context.getString(R.string.unexpected_error) + " ${error.v1}"
+		ErrorStateReason.MaxDevicesReached -> context.getString(R.string.max_devices_reached) + " ${context.getString(R.string.remove_device)}"
+		ErrorStateReason.Firewall, ErrorStateReason.Routing -> context.getString(R.string.unexpected_error) + " ${error.javaClass.simpleName}"
+		ErrorStateReason.SubscriptionExpired -> context.getString(R.string.subscription_expired)
 	}
 }
 

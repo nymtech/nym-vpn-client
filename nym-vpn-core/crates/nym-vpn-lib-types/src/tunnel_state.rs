@@ -198,6 +198,31 @@ pub enum ErrorStateReason {
     Internal(String),
 }
 
+impl fmt::Display for ErrorStateReason {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            ErrorStateReason::Firewall => write!(f, "Firewall"),
+            ErrorStateReason::Routing => write!(f, "Routing"),
+            ErrorStateReason::Dns => write!(f, "Dns"),
+            ErrorStateReason::TunDevice => write!(f, "TunnelDevice"),
+            ErrorStateReason::TunnelProvider => write!(f, "TunnelProvider"),
+            ErrorStateReason::SameEntryAndExitGateway => write!(f, "SameEntryAndExitGateway"),
+            ErrorStateReason::InvalidEntryGatewayCountry => write!(f, "InvalidEntryGatewayCountry"),
+            ErrorStateReason::InvalidExitGatewayCountry => write!(f, "InvalidExitGatewayCountry"),
+            ErrorStateReason::BadBandwidthIncrease => write!(f, "BadBandwidthIncrease"),
+            ErrorStateReason::DuplicateTunFd => write!(f, "DuplicateTunFd"),
+            ErrorStateReason::SyncAccount(_) => write!(f, "SyncAccount"),
+            ErrorStateReason::SyncDevice(_) => write!(f, "SyncDevice"),
+            ErrorStateReason::RegisterDevice(_) => write!(f, "RequestZkNym"),
+            ErrorStateReason::RequestZkNym(_) => write!(f, "InvalidExitGatewayCountry"),
+            ErrorStateReason::RequestZkNymBundle { .. } => write!(f, "RequestZkNymBundle "),
+            ErrorStateReason::Internal(_) => write!(f, "Internal"),
+            ErrorStateReason::ResolveGatewayAddrs => write!(f, "ResolveGatewayAddrs"),
+            ErrorStateReason::StartLocalDnsResolver => write!(f, "StartLocalDnsResolver"),
+        }
+    }
+}
+
 impl From<SyncAccountError> for ErrorStateReason {
     fn from(value: SyncAccountError) -> Self {
         ErrorStateReason::SyncAccount(value)
