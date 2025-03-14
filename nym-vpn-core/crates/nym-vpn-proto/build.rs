@@ -15,12 +15,5 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .file_descriptor_set_path(vpn_fd)
         .compile_protos(&[vpn_proto], &[vpn_proto_out])?;
 
-    let health_proto = proto_dir.join("grpc/health.proto");
-    let health_proto_out = proto_dir.join("grpc");
-
-    tonic_build::configure()
-        // server implementation is handled by tonic-health crate
-        .build_server(false)
-        .compile_protos(&[health_proto], &[health_proto_out])?;
     Ok(())
 }
