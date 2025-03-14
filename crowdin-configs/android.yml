@@ -1,0 +1,37 @@
+project_id_env: "CROWDIN_PROJECT_ID"
+api_token_env: "CROWDIN_PERSONAL_TOKEN"
+base_path: "../"
+
+preserve_hierarchy: true
+
+languages_mapping: &android-code
+  android_code: 
+    ar: ar
+    de: de
+    es-ES: es
+    fa: fa
+    fr: fr
+    hi: hi
+    it: it
+    ja: ja
+    pt-BR: pt-rBR
+    pt-PT: pt-rPT
+    ru: ru
+    tr: tr
+    uk: uk
+    zh-CN: zh-rCN
+
+files:
+  - source: "/nym-vpn-android/app/src/main/res/values/strings.xml"
+    translation: "/nym-vpn-android/app/src/main/res/values-%android_code%/strings.xml"
+    languages_mapping: *android-code
+
+  - source: "/nym-vpn-android/core/src/main/res/values/strings.xml"
+    translation: "/nym-vpn-android/core/src/main/res/values-%android_code%/strings.xml"
+    languages_mapping: *android-code
+
+  - source: "/fastlane/metadata/android/en-US/*.txt"
+    translation: "/fastlane/metadata/android/%locale%/%original_file_name%"
+
+  - source: "/fastlane/metadata/android/en-US/changelogs/*.txt"
+    translation: "/fastlane/metadata/android/%locale%/changelog/%original_file_name%"

@@ -1,4 +1,4 @@
-name: crowdin-macos-ios
+name: crowdin-macos-ios-upload
 
 on:
   push:
@@ -19,8 +19,9 @@ jobs:
         uses: crowdin/github-action@v2
         with:
           upload_sources: true
-          upload_translations: false
+          upload_translations: true
           download_translations: false
+          config: "crowdin-configs/macos-ios.yml"
         env:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

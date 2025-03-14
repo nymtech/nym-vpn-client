@@ -1,0 +1,30 @@
+name: crowdin-android-upload
+
+on:
+  push:
+    branches:
+      - develop
+    paths:
+      - "nym-vpn-android/app/src/main/res/values/strings.xml"
+      - "nym-vpn-android/core/src/main/res/values/strings.xml"
+      - "fastlane/metadata/android/en-US/**"
+  workflow_dispatch:
+
+jobs:
+  crowdin-upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: crowdin action
+        uses: crowdin/github-action@v2
+        with:
+          upload_sources: true
+          upload_translations: true
+          download_translations: false
+          config: "crowdin-configs/android.yml"
+        env:
+          CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
+          CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
