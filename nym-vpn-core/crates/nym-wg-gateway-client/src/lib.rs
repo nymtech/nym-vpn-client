@@ -101,9 +101,15 @@ impl WgGatewayLightClient {
         let available_bandwidth = match response {
             nym_authenticator_client::AuthenticatorResponse::RemainingBandwidth(
                 remaining_bandwidth_response,
-            ) => remaining_bandwidth_response
-                .available_bandwidth()
-                .unwrap_or_default(),
+            ) => {
+                if let Some(available_bandwidth) =
+                    remaining_bandwidth_response.available_bandwidth()
+                {
+                    available_bandwidth
+                } else {
+                    return Ok(None);
+                }
+            }
             _ => return Err(Error::InvalidGatewayAuthResponse),
         };
 
@@ -121,10 +127,6 @@ impl WgGatewayLightClient {
             warn!("Remaining bandwidth is under 1 MB. The wireguard mode will get suspended after that until tomorrow, UTC time. The client might shutdown with timeout soon");
         }
         Ok(Some(available_bandwidth))
-    }
-
-    pub async fn suspended(&mut self) -> Result<bool> {
-        Ok(self.query_bandwidth().await?.is_none())
     }
 
     async fn send(&mut self, msg: ClientMessage) -> Result<AuthenticatorResponse> {

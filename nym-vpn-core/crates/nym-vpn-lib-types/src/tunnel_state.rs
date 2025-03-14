@@ -53,7 +53,7 @@ impl fmt::Display for TunnelState {
         match self {
             Self::Disconnected => f.write_str("Disconnected"),
             Self::Connecting { connection_data } => match connection_data {
-                Some(data) => match data.tunnel {
+                Some(connection_data) => match connection_data.tunnel {
                     TunnelConnectionData::Mixnet(ref data) => {
                         write!(
                             f,
@@ -67,8 +67,11 @@ impl fmt::Display for TunnelState {
                     TunnelConnectionData::Wireguard(ref data) => {
                         write!(
                             f,
-                            "Connecting wireguard tunnel to {} → {} (entry → exit)",
-                            data.entry.endpoint, data.exit.endpoint
+                            "Connecting wireguard tunnel to {} → {} (entry: {} → exit: {})",
+                            data.entry.endpoint,
+                            data.exit.endpoint,
+                            connection_data.entry_gateway.id,
+                            connection_data.exit_gateway.id,
                         )
                     }
                 },
@@ -88,8 +91,11 @@ impl fmt::Display for TunnelState {
                 TunnelConnectionData::Wireguard(ref data) => {
                     write!(
                         f,
-                        "Connected wireguard tunnel {} → {} (entry → exit)",
-                        data.entry.endpoint, data.exit.endpoint
+                        "Connected wireguard tunnel {} → {} (entry: {} → exit: {})",
+                        data.entry.endpoint,
+                        data.exit.endpoint,
+                        connection_data.entry_gateway.id,
+                        connection_data.exit_gateway.id,
                     )
                 }
             },

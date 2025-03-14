@@ -4,6 +4,7 @@
 use std::{collections::HashMap, fmt};
 
 use anyhow::Context;
+use nym_sdk::mixnet::Recipient;
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
@@ -157,6 +158,12 @@ impl TryFrom<SystemMessageResponse> for SystemMessage {
 
 impl From<SystemConfigurationResponse> for SystemConfiguration {
     fn from(value: SystemConfigurationResponse) -> Self {
+        let statistics_recipient = value.statistics_recipient.and_then(|recipient| {
+            Recipient::try_from_base58_string(recipient)
+                .inspect_err(|err| tracing::warn!("Failed to parse statistics recipient: {err}"))
+                .ok()
+        });
+
         SystemConfiguration {
             mix_thresholds: ScoreThresholds {
                 high: value.mix_thresholds.high,
@@ -168,6 +175,7 @@ impl From<SystemConfigurationResponse> for SystemConfiguration {
                 medium: value.wg_thresholds.medium,
                 low: value.wg_thresholds.low,
             },
+            statistics_recipient,
         }
     }
 }

@@ -13,34 +13,30 @@ fn pretty_build_info_static() -> &'static str {
 
 #[derive(Parser, Clone, Debug)]
 #[clap(author = "Nymtech", version, about, long_version = pretty_build_info_static())]
-pub(crate) struct CliArgs {
+pub struct CliArgs {
     /// Logging verbosity.
     #[arg(long, short = 'v', action = clap::ArgAction::Count)]
     pub verbose: u8,
 
     /// Path pointing to an env file describing the network.
     #[arg(short, long, value_parser = check_path)]
-    pub(crate) config_env_file: Option<PathBuf>,
+    pub config_env_file: Option<PathBuf>,
 
     #[arg(short, long, hide = true)]
-    pub(crate) network: Option<String>,
+    pub network: Option<String>,
 
     #[arg(long)]
-    pub(crate) enable_http_listener: bool,
+    pub enable_http_listener: bool,
 
     #[arg(long)]
-    pub(crate) disable_socket_listener: bool,
+    pub disable_socket_listener: bool,
 
     /// Override the default user agent string.
     #[arg(long, value_parser = parse_user_agent)]
-    pub(crate) user_agent: Option<nym_vpn_lib::UserAgent>,
-
-    #[cfg(windows)]
-    #[arg(long)]
-    pub(crate) disable_service: bool,
+    pub user_agent: Option<nym_vpn_lib::UserAgent>,
 
     #[command(flatten)]
-    pub(crate) command: Command,
+    pub command: Command,
 }
 
 impl CliArgs {
@@ -55,28 +51,21 @@ impl CliArgs {
 
 #[derive(Args, Debug, Clone)]
 #[group(multiple = false)]
-pub(crate) struct Command {
+pub struct Command {
     #[cfg(windows)]
     #[arg(long)]
-    pub(crate) install: bool,
+    pub install: bool,
 
     #[cfg(windows)]
     #[arg(long)]
-    pub(crate) uninstall: bool,
+    pub uninstall: bool,
 
     #[cfg(windows)]
     #[arg(long)]
-    pub(crate) start: bool,
+    pub start: bool,
 
     #[arg(long)]
-    pub(crate) run_as_service: bool,
-}
-
-impl Command {
-    #[cfg(windows)]
-    pub(crate) fn is_any(&self) -> bool {
-        self.install || self.uninstall || self.start || self.run_as_service
-    }
+    pub run_as_service: bool,
 }
 
 fn check_path(path: &str) -> Result<PathBuf, String> {

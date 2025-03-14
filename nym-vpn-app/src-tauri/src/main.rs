@@ -190,7 +190,7 @@ async fn main() -> Result<()> {
                 loop {
                     c_grpc.watch(&handle).await.ok();
                     sleep(VPND_RETRY_INTERVAL).await;
-                    debug!("vpnd health spy retry");
+                    trace!("vpnd health spy retry");
                 }
             });
 
@@ -203,7 +203,7 @@ async fn main() -> Result<()> {
                         c_grpc.watch_tunnel_events(&handle).await.ok();
                     }
                     sleep(VPND_RETRY_INTERVAL).await;
-                    debug!("vpn tunnel spy retry");
+                    trace!("vpn tunnel spy retry");
                 }
             });
 

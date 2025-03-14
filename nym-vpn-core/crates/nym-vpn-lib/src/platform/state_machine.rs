@@ -44,6 +44,33 @@ pub(super) async fn init_state_machine(
     }
 }
 
+fn setup_statistics_recipient(
+    config: &VPNConfig,
+    network_env: &Network,
+) -> Option<Box<nym_gateway_directory::Recipient>> {
+    // The statistics recipient can be set in the system configuration
+    let statistics_recipient_from_system = network_env
+        .system_configuration
+        .and_then(|sc| sc.statistics_recipient)
+        .map(Box::new);
+
+    // The statistics recipient can also be set in the app configuration
+    let statistics_recipient_from_app = config
+        .statistics_recipient
+        .clone()
+        .map(nym_gateway_directory::Recipient::try_from_base58_string)
+        .transpose()
+        .inspect_err(|err| {
+            tracing::error!("Failed to parse statistics recipient: {}", err);
+        })
+        .unwrap_or_default()
+        .map(Box::new);
+
+    // We use the statistics recipient from the app configuration if it is set, otherwise we use
+    // the one from the system configuration
+    statistics_recipient_from_app.or(statistics_recipient_from_system)
+}
+
 pub(super) async fn start_state_machine(
     config: VPNConfig,
     network_env: Network,
@@ -56,15 +83,7 @@ pub(super) async fn start_state_machine(
         TunnelType::Mixnet
     };
 
-    let statistics_recipient = config
-        .statistics_recipient
-        .map(nym_gateway_directory::Recipient::try_from_base58_string)
-        .transpose()
-        .inspect_err(|err| {
-            tracing::error!("Failed to parse statistics recipient: {}", err);
-        })
-        .unwrap_or_default()
-        .map(Box::new);
+    let statistics_recipient = setup_statistics_recipient(&config, &network_env);
 
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);

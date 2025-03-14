@@ -56,17 +56,9 @@ pub struct Cli {
     #[arg(short, long)]
     pub build_info: bool,
 
-    /// Unix socket path of gRPC endpoint in IPC mode
+    /// Unix socket path of gRPC endpoint
     #[arg(short, long)]
     pub grpc_socket_endpoint: Option<PathBuf>,
-
-    /// Enable HTTP transport for gRPC connection
-    #[arg(short = 'H', long)]
-    pub grpc_http_mode: bool,
-
-    /// Address of gRPC endpoint in HTTP mode
-    #[arg(short = 'e', long)]
-    pub grpc_http_endpoint: Option<String>,
 
     /// IP address of the DNS server to use when connected to the VPN
     #[arg(short = 'D', long)]

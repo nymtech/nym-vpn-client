@@ -2,25 +2,26 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{DnsMonitorT, ResolvedDnsConfig};
-use nym_common::ErrorExt;
-use nym_windows::net::{index_from_luid, luid_from_alias};
 use std::{
     ffi::OsString,
-    io::{self, Write},
+    io,
     net::IpAddr,
-    os::windows::prelude::{AsRawHandle, OsStringExt},
+    os::windows::prelude::OsStringExt,
     path::PathBuf,
-    process::{Child, Command, ExitStatus, Stdio},
+    process::{ExitStatus, Stdio},
     time::Duration,
 };
-use windows::Win32::{
-    Foundation::{HANDLE, MAX_PATH, WAIT_OBJECT_0, WAIT_TIMEOUT},
-    System::{
-        SystemInformation::GetSystemDirectoryW,
-        Threading::{WaitForSingleObject, INFINITE},
-    },
+
+use tokio::{
+    io::AsyncWriteExt,
+    process::{Child, Command},
 };
+use windows::Win32::{Foundation::MAX_PATH, System::SystemInformation::GetSystemDirectoryW};
+
+use nym_common::ErrorExt;
+use nym_windows::net::{index_from_luid, luid_from_alias};
+
+use crate::{DnsMonitorT, ResolvedDnsConfig};
 
 const NETSH_TIMEOUT: Duration = Duration::from_secs(10);
 
@@ -73,7 +74,7 @@ impl DnsMonitorT for DnsMonitor {
         })
     }
 
-    fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
+    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
         let servers = config.tunnel_config();
         let interface_luid = luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?;
         let interface_index =
@@ -111,32 +112,32 @@ impl DnsMonitorT for DnsMonitor {
             netsh_input.push_str(&create_netsh_flush_command(interface_index, IpVersion::V6));
         }
 
-        run_netsh_with_timeout(netsh_input, NETSH_TIMEOUT)?;
+        run_netsh_with_timeout(netsh_input, NETSH_TIMEOUT).await?;
 
         Ok(())
     }
 
-    fn reset(&mut self) -> Result<(), Error> {
+    async fn reset(&mut self) -> Result<(), Error> {
         if let Some(index) = self.current_index.take() {
             let mut netsh_input = String::new();
             netsh_input.push_str(&create_netsh_flush_command(index, IpVersion::V4));
             netsh_input.push_str(&create_netsh_flush_command(index, IpVersion::V6));
 
-            if let Err(error) = run_netsh_with_timeout(netsh_input, NETSH_TIMEOUT) {
+            if let Err(error) = run_netsh_with_timeout(netsh_input, NETSH_TIMEOUT).await {
                 tracing::error!("{}", error.display_chain_with_msg("Failed to reset DNS"));
             }
         }
         Ok(())
     }
 
-    fn reset_before_interface_removal(&mut self) -> Result<(), Self::Error> {
+    async fn reset_before_interface_removal(&mut self) -> Result<(), Self::Error> {
         // do nothing since the tunnel interface goes away
         let _ = self.current_index.take();
         Ok(())
     }
 }
 
-fn run_netsh_with_timeout(netsh_input: String, timeout: Duration) -> Result<(), Error> {
+async fn run_netsh_with_timeout(netsh_input: String, timeout: Duration) -> Result<(), Error> {
     tracing::debug!("running netsh:\n{}", netsh_input);
 
     let sysdir = get_system_dir().map_err(Error::GetSystemDir)?;
@@ -152,10 +153,11 @@ fn run_netsh_with_timeout(netsh_input: String, timeout: Duration) -> Result<(), 
     let mut stdin = subproc.stdin.take().unwrap();
     stdin
         .write_all(netsh_input.as_bytes())
+        .await
         .map_err(Error::NetshInput)?;
     drop(stdin);
 
-    match wait_for_child(&mut subproc, timeout) {
+    match wait_for_child(&mut subproc, timeout).await {
         Ok(Some(status)) => {
             if !status.success() {
                 return Err(Error::Netsh(status.code()));
@@ -163,21 +165,17 @@ fn run_netsh_with_timeout(netsh_input: String, timeout: Duration) -> Result<(), 
             Ok(())
         }
         Ok(None) => {
-            let _ = subproc.kill();
+            let _ = subproc.kill().await;
             Err(Error::NetshTimeout)
         }
         Err(error) => Err(Error::WaitNetsh(error)),
     }
 }
 
-fn wait_for_child(subproc: &mut Child, timeout: Duration) -> io::Result<Option<ExitStatus>> {
-    let dur_millis = u32::try_from(timeout.as_millis()).unwrap_or(INFINITE);
-
-    let subproc_handle = HANDLE(subproc.as_raw_handle());
-    match unsafe { WaitForSingleObject(subproc_handle, dur_millis) } {
-        WAIT_OBJECT_0 => subproc.try_wait(),
-        WAIT_TIMEOUT => Ok(None),
-        _error => Err(io::Error::last_os_error()),
+async fn wait_for_child(subproc: &mut Child, timeout: Duration) -> io::Result<Option<ExitStatus>> {
+    match tokio::time::timeout(timeout, subproc.wait()).await {
+        Ok(result) => result.map(Some),
+        Err(_elapsed) => Ok(None),
     }
 }
 

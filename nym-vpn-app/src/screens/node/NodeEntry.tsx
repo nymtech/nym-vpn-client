@@ -9,7 +9,7 @@ export type NodeEntryProps = {
 };
 
 function NodeEntry({ node }: NodeEntryProps) {
-  const { vpnMode } = useMainState();
+  const { daemonStatus, vpnMode } = useMainState();
   const { fetch } = useGateways();
 
   const refresh = _.throttle(
@@ -29,13 +29,16 @@ function NodeEntry({ node }: NodeEntryProps) {
   // refresh gateways in the background
   // (only if needed ie. no cache data or cache is stale)
   useEffect(() => {
+    if (daemonStatus === 'down') {
+      return;
+    }
     // during development useEffect is fired twice
     // to avoid unnecessary fetch calls, throttle the refresh
     // see https://react.dev/learn/synchronizing-with-effects#how-to-handle-the-effect-firing-twice-in-development
     refresh(vpnMode);
     // ⚠ do not include `refresh` in the dependencies array
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [node, vpnMode]);
+  }, [node, vpnMode, daemonStatus]);
 
   return (
     <NodesProvider nodeType={node}>

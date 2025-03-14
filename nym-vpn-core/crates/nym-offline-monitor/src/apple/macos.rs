@@ -18,10 +18,7 @@ use std::{
     time::Duration,
 };
 
-use futures::{
-    future::{Fuse, FutureExt},
-    StreamExt,
-};
+use futures::future::{Fuse, FutureExt};
 use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
 use tokio::sync::{watch, Mutex};
 use tokio_util::sync::CancellationToken;
@@ -115,7 +112,7 @@ async fn spawn_route_monitor(
     shutdown_token: CancellationToken,
 ) -> Result<MonitorHandle, Error> {
     // note: begin observing before initializing the state
-    let route_listener = route_manager.default_route_listener().await?;
+    let mut route_listener = route_manager.default_route_listener().await?;
 
     let (ipv4, ipv6) = match route_manager.get_default_routes().await {
         Ok((v4_route, v6_route)) => (v4_route.is_some(), v6_route.is_some()),
@@ -135,7 +132,6 @@ async fn spawn_route_monitor(
     // Detect changes to the default route
     tokio::spawn(async move {
         let mut timeout = Fuse::terminated();
-        let mut route_listener = route_listener.fuse();
 
         loop {
             nym_common::detect_flood!();
@@ -151,7 +147,7 @@ async fn spawn_route_monitor(
 
                     *state = real_state;
                 }
-                route_event = route_listener.next() => {
+                route_event = route_listener.recv() => {
                     let Some(event) = route_event else {
                         break;
                     };

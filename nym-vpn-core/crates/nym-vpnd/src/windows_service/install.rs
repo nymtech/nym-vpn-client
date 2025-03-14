@@ -6,16 +6,21 @@ use std::{
     time::{Duration, Instant},
 };
 
+use anyhow::Context;
 use windows::Win32::Foundation::ERROR_SERVICE_DOES_NOT_EXIST;
 use windows_service::{
-    service::{ServiceAccess, ServiceState},
+    service::{
+        ServiceAccess, ServiceAction, ServiceActionType, ServiceFailureActions,
+        ServiceFailureResetPeriod, ServiceState,
+    },
     service_manager::{ServiceManager, ServiceManagerAccess},
+    Error as ServiceError,
 };
 
 use super::{service::get_service_info, SERVICE_DESCRIPTION, SERVICE_DISPLAY_NAME, SERVICE_NAME};
 
 // see https://github.com/mullvad/windows-service-rs/blob/main/examples/install_service.rs
-pub(super) fn install_service() -> windows_service::Result<()> {
+pub(super) fn install_service() -> anyhow::Result<()> {
     let manager_access = ServiceManagerAccess::CONNECT | ServiceManagerAccess::CREATE_SERVICE;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 
@@ -23,15 +28,61 @@ pub(super) fn install_service() -> windows_service::Result<()> {
     eventlog::register(SERVICE_DISPLAY_NAME).unwrap();
 
     println!("Registering {} service...", SERVICE_NAME);
-    if service_manager
-        .open_service(SERVICE_NAME, ServiceAccess::QUERY_STATUS)
-        .is_err()
-    {
-        let service_info = get_service_info();
-        let service =
-            service_manager.create_service(&service_info, ServiceAccess::CHANGE_CONFIG)?;
-        service.set_description(SERVICE_DESCRIPTION)?;
-    }
+
+    let service_access = ServiceAccess::QUERY_CONFIG
+        | ServiceAccess::QUERY_STATUS
+        | ServiceAccess::CHANGE_CONFIG
+        | ServiceAccess::START;
+    let service_info = get_service_info();
+    let service = match service_manager.open_service(SERVICE_NAME, service_access) {
+        Ok(service) => {
+            service
+                .change_config(&service_info)
+                .with_context(|| "Failed to change service config")?;
+            service
+        }
+        Err(ServiceError::Winapi(io_error))
+            // Safety: i32 cast cannot fail because `ERROR_SERVICE_DOES_NOT_EXIST` is within i32 boundaries
+            if io_error.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32) =>
+        {
+            service_manager
+                .create_service(&service_info, service_access)
+                .with_context(|| "Failed to open service")?
+        }
+        Err(e) => Err(e).with_context(|| "Failed to open service")?,
+    };
+
+    let recovery_actions = vec![
+        ServiceAction {
+            action_type: ServiceActionType::Restart,
+            delay: Duration::from_secs(3),
+        },
+        ServiceAction {
+            action_type: ServiceActionType::Restart,
+            delay: Duration::from_secs(30),
+        },
+        ServiceAction {
+            action_type: ServiceActionType::Restart,
+            delay: Duration::from_secs(60 * 10),
+        },
+    ];
+
+    let failure_actions = ServiceFailureActions {
+        reset_period: ServiceFailureResetPeriod::After(Duration::from_secs(60 * 15)),
+        reboot_msg: None,
+        command: None,
+        actions: Some(recovery_actions),
+    };
+
+    service
+        .update_failure_actions(failure_actions)
+        .with_context(|| "Failed to update failure actions")?;
+    service
+        .set_failure_actions_on_non_crash_failures(true)
+        .with_context(|| "Failed to set failure actions on non-crash failures")?;
+    service
+        .set_description(SERVICE_DESCRIPTION)
+        .with_context(|| "Failed to set service description")?;
 
     println!("{} service has been registered.", SERVICE_NAME);
 

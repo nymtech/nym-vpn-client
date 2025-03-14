@@ -331,7 +331,14 @@ pub(crate) mod raw {
     async fn create_vpn_api_client() -> Result<VpnApiClient, VpnError> {
         let network_env = environment::current_environment_details().await?;
         let user_agent = crate::util::construct_user_agent();
-        VpnApiClient::new(network_env.vpn_api_url(), user_agent).map_err(VpnError::internal)
+        let mut vpn_api_client =
+            VpnApiClient::new(network_env.vpn_api_url(), user_agent).map_err(VpnError::internal)?;
+        vpn_api_client
+            .sync_with_remote_time()
+            .await
+            .inspect_err(|err| tracing::error!("Failed to get remote time: {err}"))
+            .ok();
+        Ok(vpn_api_client)
     }
 
     async fn load_device(path: &str) -> Result<Device, VpnError> {

@@ -29,6 +29,12 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
         .add_directive("handlebars::proto=warn".parse().unwrap())
         .add_directive("sled::proto=warn".parse().unwrap());
 
+    // Also ignore some of the more low level crates from the platform repo
+    let filter = filter
+        .add_directive("nym_client_core=info".parse().unwrap())
+        .add_directive("nym_sphinx=info".parse().unwrap())
+        .add_directive("nym_statistics_common=info".parse().unwrap());
+
     let registry = Registry::default().with(oslogger_layer);
 
     let file_layer = path.as_ref().and_then(|path| {

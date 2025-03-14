@@ -14,7 +14,6 @@ anyhow.workspace = true
 bs58.workspace = true
 clap = { workspace = true, features = ["derive", "wrap_help"] }
 itertools.workspace = true
-parity-tokio-ipc.workspace = true
 prost-types.workspace = true
 prost.workspace = true
 sysinfo.workspace = true
@@ -26,6 +25,7 @@ tower.workspace = true
 nym-bin-common.workspace = true
 nym-gateway-directory = { workspace = true }
 nym-http-api-client.workspace = true
+nym-ipc.workspace = true
 nym-vpn-network-config = { workspace = true }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
 nym-vpnd-types = { workspace = true }
@@ -39,9 +39,6 @@ vergen = { workspace = true, default-features = false, features = [
     "rustc",
     "cargo",
 ] }
-
-[target.'cfg(windows)'.dependencies]
-winapi = { workspace = true, features = ["winnt", "excpt", "winerror"] }
 
 # Debian
 [package.metadata.deb]

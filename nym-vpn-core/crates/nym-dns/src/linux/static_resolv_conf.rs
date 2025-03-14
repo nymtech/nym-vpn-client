@@ -2,13 +2,15 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::{fs, io, net::IpAddr, sync::Arc};
+
 use futures::StreamExt;
 use inotify::{Inotify, WatchMask};
-use nym_common::ErrorExt;
-use parking_lot::Mutex;
 use resolv_conf::{Config, ScopedIp};
-use std::{fs, io, net::IpAddr, sync::Arc};
+use tokio::sync::Mutex;
 use triggered::{trigger, Listener, Trigger};
+
+use nym_common::ErrorExt;
 
 const RESOLV_CONF_BACKUP_PATH: &str = "/etc/resolv.conf.nymbackup";
 const RESOLV_CONF_PATH: &str = "/etc/resolv.conf";
@@ -51,8 +53,8 @@ impl StaticResolvConf {
         })
     }
 
-    pub fn set_dns(&mut self, servers: Vec<IpAddr>) -> Result<()> {
-        let mut state = self.state.lock();
+    pub async fn set_dns(&mut self, servers: Vec<IpAddr>) -> Result<()> {
+        let mut state = self.state.lock().await;
         let new_state = match state.take() {
             None => {
                 let backup = read_config()?;
@@ -76,8 +78,8 @@ impl StaticResolvConf {
         write_config(&new_config)
     }
 
-    pub fn reset(&mut self) -> Result<()> {
-        if let Some(state) = self.state.lock().take() {
+    pub async fn reset(&mut self) -> Result<()> {
+        if let Some(state) = self.state.lock().await.take() {
             write_config(&state.backup)?;
             let _ = fs::remove_file(RESOLV_CONF_BACKUP_PATH);
         }
@@ -157,7 +159,7 @@ impl DnsWatcher {
                     break;
                 },
                 Some(_) = events.next() => {
-                    let mut locked_state = state.lock();
+                    let mut locked_state = state.lock().await;
                     if let Err(error) = Self::update(locked_state.as_mut()) {
                         tracing::error!(
                             "{}",

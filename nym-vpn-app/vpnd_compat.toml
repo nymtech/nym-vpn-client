@@ -1,2 +1,2 @@
 # semver requirement of supported daemon version(s)
-version = ">=1.5.0-beta"
+version = ">=1.6.0-beta"

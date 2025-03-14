@@ -14,8 +14,12 @@ crate-type = ["cdylib", "lib", "staticlib"]
 [dependencies]
 thiserror.workspace = true
 tracing.workspace = true
-parking_lot.workspace = true
-tokio = { workspace = true, features = ["macros"] }
+tokio = { workspace = true, features = [
+    "macros",
+    "process",
+    "sync",
+    "io-util",
+] }
 futures.workspace = true
 triggered.workspace = true
 

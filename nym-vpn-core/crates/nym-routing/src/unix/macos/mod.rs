@@ -5,7 +5,6 @@
 use crate::{debounce::BurstGuard, Gateway, MacAddress, NetNode, RequiredRoute, Route};
 
 use futures::{
-    channel::mpsc::{self, UnboundedReceiver},
     future::FutureExt,
     stream::{FusedStream, StreamExt},
 };
@@ -18,6 +17,7 @@ use std::{
     sync::Weak,
     time::Duration,
 };
+use tokio::sync::mpsc;
 use watch::RoutingTable;
 
 use super::{DefaultRouteEvent, RouteManagerCommand};
@@ -98,14 +98,14 @@ pub struct RouteManagerImpl {
     check_default_routes_restored: Pin<Box<dyn FusedStream<Item = ()> + Send>>,
     unhandled_default_route_changes: bool,
     primary_interface_monitor: interface::PrimaryInterfaceMonitor,
-    interface_change_rx: UnboundedReceiver<interface::InterfaceEvent>,
+    interface_change_rx: mpsc::UnboundedReceiver<interface::InterfaceEvent>,
 }
 
 impl RouteManagerImpl {
     /// Create new route manager
     #[allow(clippy::unused_async)]
     pub(crate) async fn new(
-        manage_tx: Weak<mpsc::UnboundedSender<RouteManagerCommand>>,
+        manage_tx: Weak<tokio::sync::mpsc::UnboundedSender<RouteManagerCommand>>,
     ) -> Result<Self> {
         let (primary_interface_monitor, interface_change_rx) =
             interface::PrimaryInterfaceMonitor::new();
@@ -118,7 +118,7 @@ impl RouteManagerImpl {
                 let Some(manage_tx) = manage_tx.upgrade() else {
                     return;
                 };
-                let _ = manage_tx.unbounded_send(RouteManagerCommand::RefreshRoutes);
+                let _ = manage_tx.send(RouteManagerCommand::RefreshRoutes);
             },
         );
 
@@ -140,9 +140,7 @@ impl RouteManagerImpl {
         })
     }
 
-    pub(crate) async fn run(mut self, manage_rx: mpsc::UnboundedReceiver<RouteManagerCommand>) {
-        let mut manage_rx = manage_rx.fuse();
-
+    pub(crate) async fn run(mut self, mut manage_rx: mpsc::UnboundedReceiver<RouteManagerCommand>) {
         // Initialize default routes
         // NOTE: This isn't race-free, as we're not listening for route changes before initializing
         self.update_best_default_route(interface::Family::V4)
@@ -169,7 +167,8 @@ impl RouteManagerImpl {
         loop {
             nym_common::detect_flood!();
 
-            futures::select_biased! {
+            tokio::select! {
+                biased;
                 route_message = self.routing_table.next_message().fuse() => {
                     self.handle_route_message(route_message);
                 }
@@ -186,11 +185,11 @@ impl RouteManagerImpl {
                     }
                 }
 
-                _event = self.interface_change_rx.next() => {
+                _event = self.interface_change_rx.recv() => {
                     self.update_trigger.trigger();
                 }
 
-                command = manage_rx.next() => {
+                command = manage_rx.recv() => {
                     match command {
                         Some(RouteManagerCommand::Shutdown(tx)) => {
                             completion_tx = Some(tx);
@@ -198,7 +197,7 @@ impl RouteManagerImpl {
                         },
 
                         Some(RouteManagerCommand::NewDefaultRouteListener(tx)) => {
-                            let (events_tx, events_rx) = mpsc::unbounded();
+                            let (events_tx, events_rx) = mpsc::unbounded_channel();
                             self.default_route_listeners.push(events_tx);
                             let _ = tx.send(events_rx);
                         }
@@ -235,7 +234,7 @@ impl RouteManagerImpl {
                         },
 
                         Some(RouteManagerCommand::NewInterfaceChangeListener(tx)) => {
-                            let (events_tx, events_rx) = mpsc::unbounded();
+                            let (events_tx, events_rx) = mpsc::unbounded_channel();
                             self.interface_change_listeners.push(events_tx);
                             let _ = tx.send(events_rx);
                         }
@@ -397,7 +396,7 @@ impl RouteManagerImpl {
                 };
 
                 self.interface_change_listeners.retain(|tx| {
-                    tx.unbounded_send(super::InterfaceEvent {
+                    tx.send(super::InterfaceEvent {
                         interface_index: iface.index(),
                         mtu,
                     })
@@ -501,7 +500,7 @@ impl RouteManagerImpl {
             (interface::Family::V6, false) => DefaultRouteEvent::RemovedV6,
         };
         self.default_route_listeners
-            .retain(|tx| tx.unbounded_send(event).is_ok());
+            .retain(|tx| tx.send(event).is_ok());
     }
 
     /// Replace the default routes with an ifscope route, and
