@@ -15,4 +15,3 @@ tokio = { workspace = true, features = [
     "fs",
     "sync",
 ] }
-thiserror.workspace = true

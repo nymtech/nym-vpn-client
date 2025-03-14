@@ -112,7 +112,7 @@ async fn update_state(
         Ok(account_summary) => account_summary,
         Err(err) => {
             account_state
-                .set_account_registered(AccountRegistered::NotRegistered)
+                .promote_account_registered(AccountRegistered::NotRegistered)
                 .await;
             return Err(VpnApiErrorResponse::try_from(err)
                 .map(SyncAccountError::SyncAccountEndpointFailure)
@@ -131,7 +131,7 @@ async fn update_state(
     }
 
     account_state
-        .set_account_registered(AccountRegistered::Registered)
+        .promote_account_registered(AccountRegistered::Registered)
         .await;
 
     account_state

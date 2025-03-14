@@ -12,14 +12,16 @@ futures.workspace = true
 tokio = { workspace = true, features = ["sync"] }
 tracing.workspace = true
 
-nym-common.workspace = true
-
 [target.'cfg(windows)'.dependencies.windows]
 workspace = true
 features = [
     "Win32_Foundation",
     "Win32_Globalization",
     "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_System",
+    "Win32_System_Memory",
+    "Win32_System_SystemServices",
     "Win32_System_LibraryLoader",
     "Win32_System_Threading",
     "Win32_System_Diagnostics_ToolHelp",

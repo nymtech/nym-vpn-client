@@ -22,20 +22,14 @@ import {
   TunnelStateIpc,
   UiTheme,
   VpnMode,
-  VpndStatus,
 } from '../types';
 import { S_STATE } from '../static';
-import { Notification } from '../contexts';
 import { tunnelUpdate } from './tunnelUpdate';
-import { TauriReq, daemonStatusUpdate, fireRequests } from './helper';
+import { TauriReq, fireRequests } from './helper';
 
 // initialize connection state
 const getInitialTunnelState = async () => {
   return await invoke<TunnelStateIpc>('get_tunnel_state');
-};
-
-const getDaemonStatus = async () => {
-  return await invoke<VpndStatus>('daemon_status');
 };
 
 const getTheme = async () => {
@@ -45,23 +39,12 @@ const getTheme = async () => {
   return { winTheme, themeMode };
 };
 
-export async function initFirstBatch(
-  dispatch: StateDispatch,
-  push: (notification: Notification) => void,
-) {
+export async function initFirstBatch(dispatch: StateDispatch) {
   const initStateRq: TauriReq<typeof getInitialTunnelState> = {
     name: 'get_tunnel_state',
     request: () => getInitialTunnelState(),
     onFulfilled: (state) => {
       tunnelUpdate(state, dispatch);
-    },
-  };
-
-  const initDaemonStatusRq: TauriReq<() => Promise<VpndStatus>> = {
-    name: 'daemon_status',
-    request: () => getDaemonStatus(),
-    onFulfilled: (status) => {
-      daemonStatusUpdate(status, dispatch, push);
     },
   };
 
@@ -211,22 +194,25 @@ export async function initFirstBatch(
     },
   };
 
-  // fire all requests concurrently
-  await fireRequests([
-    initStateRq,
-    initDaemonStatusRq,
+  let requests: TauriReq<never>[] = [
     getVpnModeRq,
     getEntryNodeRq,
     getExitNodeRq,
     getVersionRq,
     getThemeRq,
-    getStoredAccountRq,
     getRootFontSizeRq,
     getMonitoringRq,
     getDepsRustRq,
     getDepsJsRq,
     getDesktopNotificationsRq,
-  ]);
+  ];
+
+  if (S_STATE.vpnd !== 'down') {
+    requests = [initStateRq, getStoredAccountRq, ...requests];
+  }
+
+  // fire all requests concurrently
+  await fireRequests(requests);
 }
 
 export async function initSecondBatch(dispatch: StateDispatch) {
@@ -265,5 +251,10 @@ export async function initSecondBatch(dispatch: StateDispatch) {
       },
     };
 
-  await fireRequests([getAccountLinksRq, getAutostart, getNetworkCompatRq]);
+  let requests: TauriReq<never>[] = [getAutostart];
+  if (S_STATE.vpnd !== 'down') {
+    requests = [getAccountLinksRq, getNetworkCompatRq, ...requests];
+  }
+
+  await fireRequests(requests);
 }

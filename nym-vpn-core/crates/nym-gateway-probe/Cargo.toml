@@ -13,11 +13,8 @@ build = "build.rs"
 anyhow.workspace = true
 base64.workspace = true
 bincode.workspace = true
-bs58.workspace = true
 bytes.workspace = true
 clap = { workspace = true, features = ["cargo", "derive"] }
-dirs.workspace = true
-dns-lookup.workspace = true
 futures.workspace = true
 hex.workspace = true
 tracing.workspace = true
@@ -56,7 +53,6 @@ nym-wireguard-types.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true
 nym-task.workspace = true
-nym-topology.workspace = true
 
 [build-dependencies]
 vergen = { workspace = true, default-features = false, features = [
@@ -68,3 +64,6 @@ vergen = { workspace = true, default-features = false, features = [
 ] }
 
 rust2go = { workspace = true, features = ["build"] }
+
+[package.metadata.cargo-machete]
+ignored = ["vergen"]

@@ -243,8 +243,10 @@ class NymBackendManager @Inject constructor(
 		when (backendEvent) {
 			is BackendEvent.Mixnet -> when (val event = backendEvent.event) {
 				is MixnetEvent.Bandwidth -> {
-					emitBackendUiEvent(BackendUiEvent.BandwidthAlert(event.v1))
-					launchBandwidthNotification(event.v1)
+					// TODO disable for now
+// 					emitBackendUiEvent(BackendUiEvent.BandwidthAlert(event.v1))
+// 					launchBandwidthNotification(event.v1)
+					Timber.d("Bandwidth: ${event.v1}")
 				}
 				is MixnetEvent.Connection -> emitMixnetConnectionEvent(event.v1)
 				is MixnetEvent.ConnectionStatistics -> Timber.d("Stats: ${event.v1}")

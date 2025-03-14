@@ -4,7 +4,6 @@
 
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-use futures::StreamExt;
 use tokio::sync::watch;
 use tokio_util::sync::CancellationToken;
 
@@ -59,7 +58,7 @@ pub async fn spawn_monitor(
     tokio::spawn(async move {
         loop {
             tokio::select! {
-                event = listener.next() => {
+                event = listener.recv() => {
                     if event.is_none() {
                         break;
                     }

@@ -74,7 +74,7 @@ dependencies = [
  "getrandom 0.2.15",
  "once_cell",
  "version_check",
- "zerocopy 0.7.35",
+ "zerocopy",
 ]
 
 [[package]]
@@ -289,6 +289,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "atomic-waker"
+version = "1.1.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
+
+[[package]]
 name = "atty"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -307,43 +313,15 @@ checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
 name = "axum"
-version = "0.6.20"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b829e4e32b91e643de6eafe82b1d90675f5874230191a4ffbc1b336dec4d6bf"
-dependencies = [
- "async-trait",
- "axum-core 0.3.4",
- "bitflags 1.3.2",
- "bytes",
- "futures-util",
- "http 0.2.12",
- "http-body 0.4.6",
- "hyper 0.14.32",
- "itoa",
- "matchit",
- "memchr",
- "mime",
- "percent-encoding",
- "pin-project-lite",
- "rustversion",
- "serde",
- "sync_wrapper 0.1.2",
- "tower 0.4.13",
- "tower-layer",
- "tower-service",
-]
-
-[[package]]
-name = "axum"
 version = "0.7.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "edca88bc138befd0323b20752846e6587272d3b03b0343c8ea28a6f819e6e71f"
 dependencies = [
  "async-trait",
- "axum-core 0.4.5",
+ "axum-core",
  "bytes",
  "futures-util",
- "http 1.2.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "http-body-util",
  "hyper 1.6.0",
@@ -373,26 +351,9 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9eefda7e2b27e1bda4d6fa8a06b50803b8793769045918bc37ad062d48a6efac"
 dependencies = [
- "axum 0.7.9",
+ "axum",
  "forwarded-header-value",
  "serde",
-]
-
-[[package]]
-name = "axum-core"
-version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "759fa577a247914fd3f7f76d62972792636412fbfd634cd452f6a385a74d2d2c"
-dependencies = [
- "async-trait",
- "bytes",
- "futures-util",
- "http 0.2.12",
- "http-body 0.4.6",
- "mime",
- "rustversion",
- "tower-layer",
- "tower-service",
 ]
 
 [[package]]
@@ -404,7 +365,7 @@ dependencies = [
  "async-trait",
  "bytes",
  "futures-util",
- "http 1.2.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "http-body-util",
  "mime",
@@ -505,16 +466,16 @@ version = "0.70.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f49d8fed880d473ea71efb9bf597651e77201bdd4893efe54c9e5d65ae04ce6f"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
  "cexpr",
  "clang-sys",
- "itertools 0.13.0",
+ "itertools",
  "log",
  "prettyplease",
  "proc-macro2",
  "quote",
  "regex",
- "rustc-hash",
+ "rustc-hash 1.1.0",
  "shlex",
  "syn 2.0.98",
 ]
@@ -543,7 +504,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33415e24172c1b7d6066f6d999545375ab8e1d95421d6784bdfff9496f292387"
 dependencies = [
  "bitcoin_hashes",
- "rand 0.8.5",
+ "rand",
  "rand_core 0.6.4",
  "serde",
  "unicode-normalization",
@@ -574,9 +535,9 @@ checksum = "bef38d45163c2f1dde094a7dfd33ccf595c92905c8f8f4fdc18d06fb1037718a"
 
 [[package]]
 name = "bitflags"
-version = "2.8.0"
+version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8f68f53c83ab957f72c32642f3868eec03eb974d1fb82e453128456482613d36"
+checksum = "5c8214115b7bf84099f1309324e63141d4c5d7cc26862f97a0a857dbefe165bd"
 dependencies = [
  "serde",
 ]
@@ -647,9 +608,9 @@ dependencies = [
 [[package]]
 name = "bls12_381"
 version = "0.8.0"
-source = "git+https://github.com/jstuczyn/bls12_381?branch=temp%2Fexperimental-serdect#22cd0a16b674af1629110a2dc8b6cf6c73ea4cd9"
+source = "git+https://github.com/jstuczyn/bls12_381?branch=temp%2Fexperimental-serdect-updated#9bf520059cb28323fc51469cae86868ef4fa6fbd"
 dependencies = [
- "digest 0.9.0",
+ "digest 0.10.7",
  "ff",
  "group",
  "pairing",
@@ -1004,7 +965,7 @@ version = "0.26.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "462e1f6a8e005acc8835d32d60cbd7973ed65ea2a8d8473830e675f050956427"
 dependencies = [
- "prost 0.13.5",
+ "prost",
  "tendermint-proto",
 ]
 
@@ -1567,18 +1528,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dns-lookup"
-version = "2.0.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e5766087c2235fec47fafa4cfecc81e494ee679d0fd4a59887ea0919bfb0e4fc"
-dependencies = [
- "cfg-if",
- "libc",
- "socket2",
- "windows-sys 0.48.0",
-]
-
-[[package]]
 name = "dotenvy"
 version = "0.15.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2035,17 +1984,6 @@ dependencies = [
 
 [[package]]
 name = "getrandom"
-version = "0.1.16"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8fc3cb4d91f53b50155bdcfd23f6a4c39ae1969c2ae85982b135750cccaf5fce"
-dependencies = [
- "cfg-if",
- "libc",
- "wasi 0.9.0+wasi-snapshot-preview1",
-]
-
-[[package]]
-name = "getrandom"
 version = "0.2.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c4567c8db10ae91089c99af84c68c38da3ec2f087c3f82960bcdbf3656b6f4d7"
@@ -2103,7 +2041,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "gloo-utils",
- "http 1.2.0",
+ "http 1.3.1",
  "js-sys",
  "pin-project",
  "serde",
@@ -2173,6 +2111,25 @@ dependencies = [
  "futures-sink",
  "futures-util",
  "http 0.2.12",
+ "indexmap 2.7.1",
+ "slab",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "h2"
+version = "0.4.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5017294ff4bb30944501348f6f8e42e6ad28f42c8bbef7a74029aff064a4e3c2"
+dependencies = [
+ "atomic-waker",
+ "bytes",
+ "fnv",
+ "futures-core",
+ "futures-sink",
+ "http 1.3.1",
  "indexmap 2.7.1",
  "slab",
  "tokio",
@@ -2278,12 +2235,12 @@ dependencies = [
  "futures-channel",
  "futures-io",
  "futures-util",
- "h2",
+ "h2 0.3.26",
  "http 0.2.12",
  "idna",
  "ipnet",
  "once_cell",
- "rand 0.8.5",
+ "rand",
  "rustls 0.21.12",
  "rustls-pemfile 1.0.4",
  "serde",
@@ -2309,7 +2266,7 @@ dependencies = [
  "lru-cache",
  "once_cell",
  "parking_lot",
- "rand 0.8.5",
+ "rand",
  "resolv-conf",
  "rustls 0.21.12",
  "serde",
@@ -2393,9 +2350,9 @@ dependencies = [
 
 [[package]]
 name = "http"
-version = "1.2.0"
+version = "1.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f16ca2af56261c99fba8bac40a10251ce8188205a4c448fbb745a2e4daa76fea"
+checksum = "f4a85d31aea989eead29a3aaf9e1115a180df8282431156e533de47660892565"
 dependencies = [
  "bytes",
  "fnv",
@@ -2420,7 +2377,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1efedce1fb8e6913f23e0c92de8e62cd5b772a67e7b3946df930a62566c93184"
 dependencies = [
  "bytes",
- "http 1.2.0",
+ "http 1.3.1",
 ]
 
 [[package]]
@@ -2431,7 +2388,7 @@ checksum = "793429d76616a256bcb62c2a2ec2bed781c8307e797e2598c50010f2bee2544f"
 dependencies = [
  "bytes",
  "futures-util",
- "http 1.2.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "pin-project-lite",
 ]
@@ -2493,7 +2450,7 @@ dependencies = [
  "futures-channel",
  "futures-core",
  "futures-util",
- "h2",
+ "h2 0.3.26",
  "http 0.2.12",
  "http-body 0.4.6",
  "httparse",
@@ -2516,7 +2473,8 @@ dependencies = [
  "bytes",
  "futures-channel",
  "futures-util",
- "http 1.2.0",
+ "h2 0.4.8",
+ "http 1.3.1",
  "http-body 1.0.1",
  "httparse",
  "httpdate",
@@ -2543,31 +2501,33 @@ dependencies = [
 
 [[package]]
 name = "hyper-rustls"
-version = "0.26.0"
+version = "0.27.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0bea761b46ae2b24eb4aef630d8d1c398157b6fc29e6350ecf090a0b70c952c"
+checksum = "2d191583f3da1305256f22463b9bb0471acad48a4e534a5218b9963e9c1f59b2"
 dependencies = [
  "futures-util",
- "http 1.2.0",
+ "http 1.3.1",
  "hyper 1.6.0",
  "hyper-util",
- "rustls 0.22.4",
+ "rustls 0.23.23",
  "rustls-pki-types",
  "tokio",
- "tokio-rustls 0.25.0",
+ "tokio-rustls 0.26.2",
  "tower-service",
+ "webpki-roots 0.26.8",
 ]
 
 [[package]]
 name = "hyper-timeout"
-version = "0.4.1"
+version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbb958482e8c7be4bc3cf272a766a2b0bf1a6755e7a6ae777f017a31d11b13b1"
+checksum = "2b90d566bffbce6a75bd8b09a05aa8c2cb1fabb6cb348f8840c9e4c90a0d83b0"
 dependencies = [
- "hyper 0.14.32",
+ "hyper 1.6.0",
+ "hyper-util",
  "pin-project-lite",
  "tokio",
- "tokio-io-timeout",
+ "tower-service",
 ]
 
 [[package]]
@@ -2579,7 +2539,7 @@ dependencies = [
  "bytes",
  "futures-channel",
  "futures-util",
- "http 1.2.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "hyper 1.6.0",
  "pin-project-lite",
@@ -2791,7 +2751,7 @@ version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f37dccff2791ab604f9babef0ba14fbe0be30bd368dc541e2b08d07c8aa908f3"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
  "futures-core",
  "inotify-sys",
  "libc",
@@ -2855,15 +2815,6 @@ name = "is_terminal_polyfill"
 version = "1.70.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
-
-[[package]]
-name = "itertools"
-version = "0.12.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba291022dbbd398a455acf126c1e341954079855bc60dfdda641363bd6922569"
-dependencies = [
- "either",
-]
 
 [[package]]
 name = "itertools"
@@ -2956,7 +2907,7 @@ version = "0.1.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c0ff37bd590ca25063e35af745c343cb7a0271906fb7b37e4813e8f79f00268d"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
  "libc",
 ]
 
@@ -3235,7 +3186,7 @@ version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "06a7491dd91b71643f65546389f25506da70723d1f1ec8c8d6d20444d1c23f27"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
  "log",
  "nftnl-sys",
 ]
@@ -3257,7 +3208,7 @@ version = "0.27.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2eb04e9c688eff1c89d72b407f168cf79bb9e867a9d3323ed6c01519eb9cc053"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
  "cfg-if",
  "libc",
 ]
@@ -3268,7 +3219,7 @@ version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71e2746dc3a24dd78b3cfcb7be93368c6de9963d30f43a6a73998a9cf4b17b46"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
  "cfg-if",
  "cfg_aliases",
  "libc",
@@ -3328,7 +3279,7 @@ dependencies = [
  "num-integer",
  "num-iter",
  "num-traits",
- "rand 0.8.5",
+ "rand",
  "smallvec",
  "zeroize",
 ]
@@ -3381,7 +3332,7 @@ dependencies = [
 [[package]]
 name = "nym-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bs58",
  "cosmrs",
@@ -3434,7 +3385,6 @@ name = "nym-authenticator-client"
 version = "1.6.0-beta"
 dependencies = [
  "bincode",
- "futures",
  "nym-authenticator-requests",
  "nym-credentials-interface",
  "nym-crypto",
@@ -3443,17 +3393,15 @@ dependencies = [
  "nym-service-provider-requests-common",
  "nym-wireguard-types",
  "semver",
- "serde",
  "thiserror 2.0.12",
  "tokio",
  "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
 name = "nym-authenticator-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -3464,7 +3412,7 @@ dependencies = [
  "nym-service-provider-requests-common",
  "nym-sphinx",
  "nym-wireguard-types",
- "rand 0.8.5",
+ "rand",
  "serde",
  "sha2 0.10.8",
  "thiserror 2.0.12",
@@ -3474,7 +3422,7 @@ dependencies = [
 [[package]]
 name = "nym-bandwidth-controller"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bip39",
  "log",
@@ -3487,7 +3435,7 @@ dependencies = [
  "nym-network-defaults",
  "nym-task",
  "nym-validator-client",
- "rand 0.8.5",
+ "rand",
  "thiserror 2.0.12",
  "url",
  "zeroize",
@@ -3496,7 +3444,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "const-str",
  "log",
@@ -3510,7 +3458,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core"
 version = "1.1.15"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -3548,8 +3496,8 @@ dependencies = [
  "nym-task",
  "nym-topology",
  "nym-validator-client",
- "rand 0.8.5",
- "rand_chacha 0.3.1",
+ "rand",
+ "rand_chacha",
  "serde",
  "serde_json",
  "sha2 0.10.8",
@@ -3559,8 +3507,8 @@ dependencies = [
  "time",
  "tokio",
  "tokio-stream",
- "tokio-tungstenite 0.20.1",
- "tungstenite 0.20.1",
+ "tokio-tungstenite",
+ "tungstenite",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -3572,7 +3520,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-config-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "humantime-serde",
  "nym-config",
@@ -3588,7 +3536,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-gateways-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "cosmrs",
@@ -3607,7 +3555,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-surb-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "dashmap",
@@ -3624,7 +3572,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-bandwidth-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3634,7 +3582,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-dkg-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3652,27 +3600,26 @@ dependencies = [
  "libc",
  "thiserror 2.0.12",
  "tracing",
- "windows 0.59.0",
 ]
 
 [[package]]
 name = "nym-compact-ecash"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bincode",
  "bls12_381",
  "bs58",
  "cfg-if",
- "digest 0.9.0",
+ "digest 0.10.7",
  "ff",
  "group",
- "itertools 0.13.0",
+ "itertools",
  "nym-network-defaults",
  "nym-pemstore",
- "rand 0.8.5",
+ "rand",
  "serde",
- "sha2 0.9.9",
+ "sha2 0.10.8",
  "subtle 2.6.1",
  "thiserror 2.0.12",
  "zeroize",
@@ -3681,7 +3628,7 @@ dependencies = [
 [[package]]
 name = "nym-config"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "dirs",
  "handlebars",
@@ -3713,7 +3660,7 @@ dependencies = [
 [[package]]
 name = "nym-contracts-common"
 version = "0.5.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -3728,7 +3675,7 @@ dependencies = [
 [[package]]
 name = "nym-country-group"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "serde",
  "tracing",
@@ -3737,7 +3684,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-proxy-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "nym-credentials",
@@ -3745,7 +3692,7 @@ dependencies = [
  "nym-http-api-client",
  "nym-http-api-common",
  "nym-serde-helpers",
- "reqwest 0.12.4",
+ "reqwest 0.12.14",
  "schemars",
  "serde",
  "serde_json",
@@ -3757,7 +3704,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "bincode",
@@ -3775,7 +3722,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "log",
  "nym-bandwidth-controller",
@@ -3794,7 +3741,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bincode",
  "bls12_381",
@@ -3817,13 +3764,13 @@ dependencies = [
 [[package]]
 name = "nym-credentials-interface"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bls12_381",
  "nym-compact-ecash",
  "nym-ecash-time",
  "nym-network-defaults",
- "rand 0.8.5",
+ "rand",
  "serde",
  "strum",
  "thiserror 2.0.12",
@@ -3834,7 +3781,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "aead",
  "aes",
@@ -3850,7 +3797,7 @@ dependencies = [
  "hmac",
  "nym-pemstore",
  "nym-sphinx-types",
- "rand 0.8.5",
+ "rand",
  "serde",
  "serde_bytes",
  "sha2 0.10.8",
@@ -3883,7 +3830,6 @@ dependencies = [
  "nym-routing",
  "nym-windows",
  "once_cell",
- "parking_lot",
  "resolv-conf",
  "system-configuration 0.6.1",
  "thiserror 2.0.12",
@@ -3898,7 +3844,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -3912,7 +3858,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-time"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-compact-ecash",
  "time",
@@ -3921,7 +3867,7 @@ dependencies = [
 [[package]]
 name = "nym-exit-policy"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "serde",
  "serde_json",
@@ -3933,7 +3879,7 @@ dependencies = [
 [[package]]
 name = "nym-explorer-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-api-requests",
  "nym-contracts-common",
@@ -3945,10 +3891,10 @@ dependencies = [
 [[package]]
 name = "nym-explorer-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-explorer-api-requests",
- "reqwest 0.12.4",
+ "reqwest 0.12.14",
  "serde",
  "thiserror 2.0.12",
  "tracing",
@@ -3959,19 +3905,15 @@ dependencies = [
 name = "nym-firewall"
 version = "1.6.0-beta"
 dependencies = [
- "inotify",
  "ipnetwork",
  "libc",
  "log",
  "mnl",
  "nftnl",
- "nix 0.29.0",
  "nym-common",
  "nym-dns",
  "nym-platform-metadata",
- "nym-windows",
  "pfctl",
- "resolv-conf",
  "thiserror 2.0.12",
  "tracing",
  "widestring",
@@ -3982,7 +3924,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "futures",
  "getrandom 0.2.15",
@@ -4000,16 +3942,16 @@ dependencies = [
  "nym-statistics-common",
  "nym-task",
  "nym-validator-client",
- "rand 0.8.5",
+ "rand",
  "serde",
  "si-scale",
  "thiserror 2.0.12",
  "time",
  "tokio",
  "tokio-stream",
- "tokio-tungstenite 0.20.1",
+ "tokio-tungstenite",
  "tracing",
- "tungstenite 0.20.1",
+ "tungstenite",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
@@ -4022,25 +3964,18 @@ dependencies = [
 name = "nym-gateway-directory"
 version = "1.6.0-beta"
 dependencies = [
- "async-trait",
- "chrono",
- "futures",
- "itertools 0.13.0",
+ "itertools",
  "nym-client-core",
- "nym-config",
  "nym-http-api-client",
  "nym-sdk",
  "nym-topology",
  "nym-validator-client",
  "nym-vpn-api-client",
- "nym-vpn-network-config",
- "rand 0.8.5",
+ "rand",
  "serde",
  "thiserror 2.0.12",
  "tokio",
- "tokio-tungstenite 0.26.2",
  "tracing",
- "tungstenite 0.26.2",
  "url",
 ]
 
@@ -4051,11 +3986,8 @@ dependencies = [
  "anyhow",
  "base64 0.22.1",
  "bincode",
- "bs58",
  "bytes",
  "clap",
- "dirs",
- "dns-lookup",
  "futures",
  "hex",
  "nym-authenticator-client",
@@ -4072,10 +4004,9 @@ dependencies = [
  "nym-mixnet-client 1.6.0-beta",
  "nym-sdk",
  "nym-task",
- "nym-topology",
  "nym-wireguard-types",
  "pnet_packet",
- "rand 0.8.5",
+ "rand",
  "rust2go",
  "serde",
  "serde_json",
@@ -4091,7 +4022,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bs58",
  "futures",
@@ -4103,7 +4034,7 @@ dependencies = [
  "nym-serde-helpers",
  "nym-sphinx",
  "nym-task",
- "rand 0.8.5",
+ "rand",
  "serde",
  "serde_json",
  "strum",
@@ -4112,7 +4043,7 @@ dependencies = [
  "time",
  "tokio",
  "tracing",
- "tungstenite 0.20.1",
+ "tungstenite",
  "wasmtimer",
  "zeroize",
 ]
@@ -4120,7 +4051,7 @@ dependencies = [
 [[package]]
 name = "nym-group-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -4144,17 +4075,17 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "bytes",
  "encoding_rs",
  "hickory-resolver",
- "http 1.2.0",
+ "http 1.3.1",
  "mime",
  "nym-bin-common",
  "once_cell",
- "reqwest 0.12.4",
+ "reqwest 0.12.14",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
@@ -4166,9 +4097,9 @@ dependencies = [
 [[package]]
 name = "nym-http-api-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
- "axum 0.7.9",
+ "axum",
  "axum-client-ip",
  "bytes",
  "colored",
@@ -4186,7 +4117,7 @@ dependencies = [
 [[package]]
 name = "nym-id"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-credential-storage",
  "nym-credentials",
@@ -4201,7 +4132,6 @@ name = "nym-ip-packet-client"
 version = "1.6.0-beta"
 dependencies = [
  "bytes",
- "futures",
  "nym-gateway-directory",
  "nym-ip-packet-requests",
  "nym-mixnet-client 1.6.0-beta",
@@ -4210,13 +4140,12 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
 name = "nym-ip-packet-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bincode",
  "bytes",
@@ -4224,12 +4153,26 @@ dependencies = [
  "nym-crypto",
  "nym-service-provider-requests-common",
  "nym-sphinx",
- "rand 0.8.5",
+ "rand",
  "serde",
  "thiserror 2.0.12",
  "time",
  "tokio",
  "tokio-util",
+]
+
+[[package]]
+name = "nym-ipc"
+version = "1.6.0-beta"
+dependencies = [
+ "async-stream",
+ "hyper-util",
+ "nym-windows",
+ "tokio",
+ "tokio-stream",
+ "tonic",
+ "tracing",
+ "windows 0.59.0",
 ]
 
 [[package]]
@@ -4243,7 +4186,7 @@ dependencies = [
 [[package]]
 name = "nym-metrics"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "dashmap",
  "lazy_static",
@@ -4254,7 +4197,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "dashmap",
  "futures",
@@ -4269,14 +4212,13 @@ name = "nym-mixnet-client"
 version = "1.6.0-beta"
 dependencies = [
  "nym-sdk",
- "thiserror 2.0.12",
  "tokio",
 ]
 
 [[package]]
 name = "nym-mixnet-contract-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -4298,7 +4240,7 @@ dependencies = [
 [[package]]
 name = "nym-multisig-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4314,7 +4256,7 @@ dependencies = [
 [[package]]
 name = "nym-network-defaults"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "cargo_metadata 0.18.1",
  "dotenvy",
@@ -4329,7 +4271,7 @@ dependencies = [
 [[package]]
 name = "nym-node-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "celes",
@@ -4352,7 +4294,7 @@ dependencies = [
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -4382,7 +4324,7 @@ dependencies = [
 [[package]]
 name = "nym-ordered-buffer"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "log",
  "thiserror 2.0.12",
@@ -4391,14 +4333,14 @@ dependencies = [
 [[package]]
 name = "nym-outfox"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "blake3",
  "chacha20",
  "chacha20poly1305",
  "getrandom 0.2.15",
  "log",
- "rand 0.8.5",
+ "rand",
  "rayon",
  "sphinx-packet",
  "thiserror 2.0.12",
@@ -4409,7 +4351,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "pem",
  "tracing",
@@ -4428,7 +4370,7 @@ dependencies = [
 name = "nym-routing"
 version = "1.6.0-beta"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
  "futures",
  "ipnetwork",
  "libc",
@@ -4450,7 +4392,7 @@ dependencies = [
 [[package]]
 name = "nym-sdk"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4461,7 +4403,7 @@ dependencies = [
  "dashmap",
  "dirs",
  "futures",
- "http 1.2.0",
+ "http 1.3.1",
  "httpcodec",
  "log",
  "nym-bandwidth-controller",
@@ -4482,7 +4424,7 @@ dependencies = [
  "nym-task",
  "nym-topology",
  "nym-validator-client",
- "rand 0.8.5",
+ "rand",
  "serde",
  "tap",
  "thiserror 2.0.12",
@@ -4500,7 +4442,7 @@ dependencies = [
 [[package]]
 name = "nym-serde-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -4512,7 +4454,7 @@ dependencies = [
 [[package]]
 name = "nym-service-provider-requests-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "serde",
  "thiserror 2.0.12",
@@ -4521,7 +4463,7 @@ dependencies = [
 [[package]]
 name = "nym-service-providers-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "log",
@@ -4535,7 +4477,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-client-core"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "anyhow",
  "dirs",
@@ -4555,8 +4497,8 @@ dependencies = [
  "nym-task",
  "nym-validator-client",
  "pin-project",
- "rand 0.8.5",
- "reqwest 0.12.4",
+ "rand",
+ "reqwest 0.12.14",
  "schemars",
  "serde",
  "tap",
@@ -4568,7 +4510,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-proxy-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bytes",
  "futures",
@@ -4583,7 +4525,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bincode",
  "log",
@@ -4599,7 +4541,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "log",
  "nym-crypto",
@@ -4615,8 +4557,8 @@ dependencies = [
  "nym-sphinx-routing",
  "nym-sphinx-types",
  "nym-topology",
- "rand 0.8.5",
- "rand_chacha 0.3.1",
+ "rand",
+ "rand_chacha",
  "rand_distr",
  "thiserror 2.0.12",
  "tokio",
@@ -4625,7 +4567,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-acknowledgements"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -4634,7 +4576,7 @@ dependencies = [
  "nym-sphinx-routing",
  "nym-sphinx-types",
  "nym-topology",
- "rand 0.8.5",
+ "rand",
  "thiserror 2.0.12",
  "zeroize",
 ]
@@ -4642,7 +4584,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-addressing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4653,7 +4595,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-anonymous-replies"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bs58",
  "nym-crypto",
@@ -4662,7 +4604,7 @@ dependencies = [
  "nym-sphinx-routing",
  "nym-sphinx-types",
  "nym-topology",
- "rand 0.8.5",
+ "rand",
  "serde",
  "thiserror 2.0.12",
  "wasm-bindgen",
@@ -4671,7 +4613,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-chunking"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "dashmap",
  "log",
@@ -4680,7 +4622,7 @@ dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-params",
  "nym-sphinx-types",
- "rand 0.8.5",
+ "rand",
  "serde",
  "thiserror 2.0.12",
  "utoipa",
@@ -4689,7 +4631,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-cover"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -4700,14 +4642,14 @@ dependencies = [
  "nym-sphinx-routing",
  "nym-sphinx-types",
  "nym-topology",
- "rand 0.8.5",
+ "rand",
  "thiserror 2.0.12",
 ]
 
 [[package]]
 name = "nym-sphinx-forwarding"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-outfox",
  "nym-sphinx-addressing",
@@ -4719,7 +4661,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-framing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "bytes",
  "log",
@@ -4736,7 +4678,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-params"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4747,7 +4689,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-routing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -4757,7 +4699,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-outfox",
  "sphinx-packet",
@@ -4767,7 +4709,7 @@ dependencies = [
 [[package]]
 name = "nym-statistics-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "futures",
  "log",
@@ -4790,7 +4732,7 @@ dependencies = [
 [[package]]
 name = "nym-task"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "cfg-if",
  "futures",
@@ -4807,7 +4749,7 @@ dependencies = [
 [[package]]
 name = "nym-ticketbooks-merkle"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "nym-credentials-interface",
  "nym-serde-helpers",
@@ -4822,7 +4764,7 @@ dependencies = [
 [[package]]
 name = "nym-topology"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "nym-api-requests",
@@ -4832,8 +4774,8 @@ dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-routing",
  "nym-sphinx-types",
- "rand 0.8.5",
- "reqwest 0.12.4",
+ "rand",
+ "reqwest 0.12.14",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
@@ -4843,7 +4785,7 @@ dependencies = [
 [[package]]
 name = "nym-validator-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -4860,7 +4802,7 @@ dependencies = [
  "eyre",
  "flate2",
  "futures",
- "itertools 0.13.0",
+ "itertools",
  "nym-api-requests",
  "nym-coconut-bandwidth-contract-common",
  "nym-coconut-dkg-common",
@@ -4875,8 +4817,8 @@ dependencies = [
  "nym-network-defaults",
  "nym-serde-helpers",
  "nym-vesting-contract-common",
- "prost 0.13.5",
- "reqwest 0.12.4",
+ "prost",
+ "reqwest 0.12.14",
  "serde",
  "serde_json",
  "sha2 0.9.9",
@@ -4893,7 +4835,7 @@ dependencies = [
 [[package]]
 name = "nym-vesting-contract-common"
 version = "0.7.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4908,10 +4850,7 @@ name = "nym-vpn-account-controller"
 version = "1.6.0-beta"
 dependencies = [
  "bincode",
- "futures",
- "nym-client-core",
  "nym-compact-ecash",
- "nym-config",
  "nym-credential-proxy-requests",
  "nym-credential-storage",
  "nym-credentials",
@@ -4919,24 +4858,20 @@ dependencies = [
  "nym-ecash-time",
  "nym-http-api-client",
  "nym-sdk",
- "nym-validator-client",
  "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-store",
  "nym-wg-gateway-client",
  "serde",
- "serde_json",
  "si-scale",
  "sqlx",
  "strum",
- "strum_macros",
  "thiserror 2.0.12",
  "time",
  "tokio",
  "tokio-util",
  "tracing",
- "url",
  "uuid",
  "zeroize",
 ]
@@ -4950,27 +4885,23 @@ dependencies = [
  "bip39",
  "bs58",
  "chrono",
- "itertools 0.13.0",
+ "itertools",
  "nym-compact-ecash",
  "nym-config",
  "nym-contracts-common",
  "nym-credential-proxy-requests",
- "nym-credentials-interface",
  "nym-crypto",
- "nym-ecash-time",
  "nym-http-api-client",
  "nym-validator-client",
  "serde",
  "serde_json",
  "sha2 0.10.8",
  "strum",
- "strum_macros",
  "thiserror 2.0.12",
  "time",
  "tokio",
  "tracing",
  "url",
- "zeroize",
 ]
 
 [[package]]
@@ -4978,31 +4909,27 @@ name = "nym-vpn-lib"
 version = "1.6.0-beta"
 dependencies = [
  "android_logger",
- "anyhow",
  "async-trait",
  "bincode",
- "bs58",
  "bytes",
  "debounced",
  "futures",
  "hickory-proto",
  "hickory-server",
  "ipnetwork",
- "itertools 0.13.0",
+ "itertools",
  "lazy_static",
  "log",
  "nix 0.29.0",
  "nym-apple-dispatch",
  "nym-apple-network",
  "nym-authenticator-client",
- "nym-authenticator-requests",
  "nym-bandwidth-controller",
  "nym-bin-common",
  "nym-client-core",
  "nym-common",
  "nym-config",
  "nym-connection-monitor",
- "nym-credential-storage",
  "nym-credentials-interface",
  "nym-crypto",
  "nym-dns",
@@ -5012,14 +4939,11 @@ dependencies = [
  "nym-ip-packet-requests",
  "nym-macos",
  "nym-mixnet-client 1.6.0-beta",
- "nym-node-requests",
  "nym-offline-monitor",
- "nym-pemstore",
  "nym-routing",
  "nym-sdk",
  "nym-statistics-common",
  "nym-task",
- "nym-topology",
  "nym-validator-client",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
@@ -5030,21 +4954,15 @@ dependencies = [
  "nym-wg-go",
  "nym-windows",
  "nym-wireguard-types",
- "pnet_packet",
- "rand 0.8.5",
- "serde",
+ "rand",
  "serde_json",
- "si-scale",
- "signature",
  "sysinfo",
- "tap",
  "thiserror 2.0.12",
  "time",
  "tokio",
  "tokio-stream",
  "tokio-util",
  "tracing",
- "tracing-appender",
  "tracing-oslog",
  "tracing-subscriber",
  "tun",
@@ -5075,7 +4993,7 @@ version = "1.6.0-beta"
 dependencies = [
  "anyhow",
  "futures-util",
- "itertools 0.13.0",
+ "itertools",
  "nym-api-requests",
  "nym-config",
  "nym-sdk",
@@ -5104,13 +5022,12 @@ dependencies = [
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpnd-types",
- "prost 0.12.6",
+ "prost",
  "prost-types",
  "thiserror 2.0.12",
  "time",
  "tonic",
  "tonic-build",
- "tonic-reflection",
  "url",
 ]
 
@@ -5121,9 +5038,8 @@ dependencies = [
  "bip39",
  "nym-crypto",
  "nym-pemstore",
- "nym-validator-client",
- "rand 0.8.5",
- "rand_chacha 0.3.1",
+ "rand",
+ "rand_chacha",
  "serde",
  "serde_json",
  "tempfile",
@@ -5138,26 +5054,21 @@ name = "nym-vpnc"
 version = "1.6.0-beta"
 dependencies = [
  "anyhow",
- "bs58",
  "clap",
- "itertools 0.13.0",
+ "itertools",
  "nym-bin-common",
  "nym-gateway-directory",
  "nym-http-api-client",
+ "nym-ipc",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-proto",
  "nym-vpnd-types",
- "parity-tokio-ipc",
- "prost 0.12.6",
- "prost-types",
  "sysinfo",
- "time",
  "tokio",
  "tonic",
  "tower 0.5.2",
  "vergen",
- "winapi",
 ]
 
 [[package]]
@@ -5167,15 +5078,14 @@ dependencies = [
  "anyhow",
  "bip39",
  "clap",
- "dirs",
  "eventlog",
  "futures",
- "http 0.2.12",
+ "http 1.3.1",
  "log-panics",
  "maplit",
- "nym-bandwidth-controller",
  "nym-bin-common",
  "nym-credentials-interface",
+ "nym-ipc",
  "nym-task",
  "nym-validator-client",
  "nym-vpn-account-controller",
@@ -5186,14 +5096,9 @@ dependencies = [
  "nym-vpn-proto",
  "nym-vpn-store",
  "nym-vpnd-types",
- "parity-tokio-ipc",
- "prost 0.12.6",
- "prost-types",
- "reqwest 0.11.27",
  "serde",
  "serde_json",
  "strum",
- "strum_macros",
  "sysinfo",
  "thiserror 2.0.12",
  "time",
@@ -5204,14 +5109,11 @@ dependencies = [
  "tonic",
  "tonic-health",
  "tonic-reflection",
- "tower-http",
  "tracing",
  "tracing-appender",
  "tracing-oslog",
  "tracing-subscriber",
- "url",
  "vergen",
- "winapi",
  "windows 0.59.0",
  "windows-service",
  "zeroize",
@@ -5241,12 +5143,8 @@ dependencies = [
  "nym-sdk",
  "nym-validator-client",
  "nym-wg-go",
- "nym-wireguard-types",
- "rand 0.8.5",
- "si-scale",
+ "rand",
  "thiserror 2.0.12",
- "tokio",
- "tokio-stream",
  "tracing",
 ]
 
@@ -5258,7 +5156,7 @@ dependencies = [
  "hex",
  "ipnetwork",
  "nym-windows",
- "rand 0.8.5",
+ "rand",
  "thiserror 2.0.12",
  "tracing",
  "windows 0.59.0",
@@ -5271,7 +5169,6 @@ name = "nym-windows"
 version = "1.6.0-beta"
 dependencies = [
  "futures",
- "nym-common",
  "thiserror 2.0.12",
  "tokio",
  "tracing",
@@ -5281,7 +5178,7 @@ dependencies = [
 [[package]]
 name = "nym-wireguard-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "base64 0.22.1",
  "log",
@@ -5320,7 +5217,7 @@ version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ee638a5da3799329310ad4cfa62fbf045d5f56e3ef5ba4149e7452dcf89d5a8"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
  "block2",
  "libc",
  "objc2",
@@ -5388,20 +5285,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "81fec4625e73cf41ef4bb6846cafa6d44736525f442ba45e407c4a000a13996f"
 dependencies = [
  "group",
-]
-
-[[package]]
-name = "parity-tokio-ipc"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9981e32fb75e004cc148f5fb70342f393830e0a4aa62e3cc93b50976218d42b6"
-dependencies = [
- "futures",
- "libc",
- "log",
- "rand 0.7.3",
- "tokio",
- "winapi",
 ]
 
 [[package]]
@@ -5695,7 +5578,7 @@ version = "0.2.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "77957b295656769bb8ad2b6a6b09d897d94f05c41b069aede1fcdaa675eaea04"
 dependencies = [
- "zerocopy 0.7.35",
+ "zerocopy",
 ]
 
 [[package]]
@@ -5766,56 +5649,32 @@ dependencies = [
 
 [[package]]
 name = "prost"
-version = "0.12.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "deb1435c188b76130da55f17a466d252ff7b1418b2ad3e037d127b94e3411f29"
-dependencies = [
- "bytes",
- "prost-derive 0.12.6",
-]
-
-[[package]]
-name = "prost"
 version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2796faa41db3ec313a31f7624d9286acf277b52de526150b7e69f3debf891ee5"
 dependencies = [
  "bytes",
- "prost-derive 0.13.5",
+ "prost-derive",
 ]
 
 [[package]]
 name = "prost-build"
-version = "0.12.6"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22505a5c94da8e3b7c2996394d1c933236c4d743e81a410bcca4e6989fc066a4"
+checksum = "be769465445e8c1474e9c5dac2018218498557af32d9ed057325ec9a41ae81bf"
 dependencies = [
- "bytes",
  "heck 0.5.0",
- "itertools 0.12.1",
+ "itertools",
  "log",
  "multimap",
  "once_cell",
  "petgraph",
  "prettyplease",
- "prost 0.12.6",
+ "prost",
  "prost-types",
  "regex",
  "syn 2.0.98",
  "tempfile",
-]
-
-[[package]]
-name = "prost-derive"
-version = "0.12.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81bddcdb20abf9501610992b6759a4c888aef7d1a7247ef75e2404275ac24af1"
-dependencies = [
- "anyhow",
- "itertools 0.12.1",
- "proc-macro2",
- "quote",
- "syn 2.0.98",
 ]
 
 [[package]]
@@ -5825,7 +5684,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
 dependencies = [
  "anyhow",
- "itertools 0.13.0",
+ "itertools",
  "proc-macro2",
  "quote",
  "syn 2.0.98",
@@ -5833,11 +5692,11 @@ dependencies = [
 
 [[package]]
 name = "prost-types"
-version = "0.12.6"
+version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9091c90b0a32608e984ff2fa4091273cbdd755d54935c51d520887f4a1dbd5b0"
+checksum = "52c2c1bf36ddb1a1c396b3601a3cec27c2462e45f07c386894ec3ccf5332bd16"
 dependencies = [
- "prost 0.12.6",
+ "prost",
 ]
 
 [[package]]
@@ -5859,6 +5718,58 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a993555f31e5a609f617c12db6250dedcac1b0a85076912c436e6fc9b2c8e6a3"
 
 [[package]]
+name = "quinn"
+version = "0.11.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "62e96808277ec6f97351a2380e6c25114bc9e67037775464979f3037c92d05ef"
+dependencies = [
+ "bytes",
+ "pin-project-lite",
+ "quinn-proto",
+ "quinn-udp",
+ "rustc-hash 2.1.1",
+ "rustls 0.23.23",
+ "socket2",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "quinn-proto"
+version = "0.11.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a2fe5ef3495d7d2e377ff17b1a8ce2ee2ec2a18cde8b6ad6619d65d0701c135d"
+dependencies = [
+ "bytes",
+ "getrandom 0.2.15",
+ "rand",
+ "ring",
+ "rustc-hash 2.1.1",
+ "rustls 0.23.23",
+ "rustls-pki-types",
+ "slab",
+ "thiserror 2.0.12",
+ "tinyvec",
+ "tracing",
+ "web-time",
+]
+
+[[package]]
+name = "quinn-udp"
+version = "0.5.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e46f3055866785f6b92bc6164b76be02ca8f2eb4b002c0354b28cf4c119e5944"
+dependencies = [
+ "cfg_aliases",
+ "libc",
+ "once_cell",
+ "socket2",
+ "tracing",
+ "windows-sys 0.59.0",
+]
+
+[[package]]
 name = "quote"
 version = "1.0.38"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5869,47 +5780,13 @@ dependencies = [
 
 [[package]]
 name = "rand"
-version = "0.7.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a6b1679d49b24bbfe0c803429aa1874472f50d9b363131f0e89fc356b544d03"
-dependencies = [
- "getrandom 0.1.16",
- "libc",
- "rand_chacha 0.2.2",
- "rand_core 0.5.1",
- "rand_hc",
-]
-
-[[package]]
-name = "rand"
 version = "0.8.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "34af8d1a0e25924bc5b7c43c079c942339d8f0a8b57c39049bef581b46327404"
 dependencies = [
  "libc",
- "rand_chacha 0.3.1",
+ "rand_chacha",
  "rand_core 0.6.4",
-]
-
-[[package]]
-name = "rand"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3779b94aeb87e8bd4e834cee3650289ee9e0d5677f976ecdb6d219e5f4f6cd94"
-dependencies = [
- "rand_chacha 0.9.0",
- "rand_core 0.9.1",
- "zerocopy 0.8.18",
-]
-
-[[package]]
-name = "rand_chacha"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4c8ed856279c9737206bf725bf36935d8666ead7aa69b52be55af369d193402"
-dependencies = [
- "ppv-lite86",
- "rand_core 0.5.1",
 ]
 
 [[package]]
@@ -5923,23 +5800,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "rand_chacha"
-version = "0.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3022b5f1df60f26e1ffddd6c66e8aa15de382ae63b3a0c1bfc0e4d3e3f325cb"
-dependencies = [
- "ppv-lite86",
- "rand_core 0.9.1",
-]
-
-[[package]]
 name = "rand_core"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "90bde5296fc891b0cef12a6d03ddccc162ce7b2aff54160af9338f8d40df6d19"
-dependencies = [
- "getrandom 0.1.16",
-]
 
 [[package]]
 name = "rand_core"
@@ -5951,32 +5815,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "rand_core"
-version = "0.9.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a88e0da7a2c97baa202165137c158d0a2e824ac465d13d81046727b34cb247d3"
-dependencies = [
- "getrandom 0.3.1",
- "zerocopy 0.8.18",
-]
-
-[[package]]
 name = "rand_distr"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "32cb0b9bc82b0a0876c2dd994a7e7a2683d3e7390ca40e6886785ef0c7e3ee31"
 dependencies = [
  "num-traits",
- "rand 0.8.5",
-]
-
-[[package]]
-name = "rand_hc"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca3129af7b92a17112d59ad498c6f81eaf463253766b90396d39ea7a39d6613c"
-dependencies = [
- "rand_core 0.5.1",
+ "rand",
 ]
 
 [[package]]
@@ -6005,7 +5850,7 @@ version = "0.5.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "03a862b389f93e68874fbf580b9de08dd02facb9a788ebadaf4a3fd33cf58834"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
 ]
 
 [[package]]
@@ -6087,7 +5932,7 @@ dependencies = [
  "encoding_rs",
  "futures-core",
  "futures-util",
- "h2",
+ "h2 0.3.26",
  "http 0.2.12",
  "http-body 0.4.6",
  "hyper 0.14.32",
@@ -6114,26 +5959,25 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
- "webpki-roots 0.25.4",
  "winreg 0.50.0",
 ]
 
 [[package]]
 name = "reqwest"
-version = "0.12.4"
+version = "0.12.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "566cafdd92868e0939d3fb961bd0dc25fcfaaed179291093b3d43e6b3150ea10"
+checksum = "989e327e510263980e231de548a33e63d34962d29ae61b467389a1a09627a254"
 dependencies = [
  "async-compression",
  "base64 0.22.1",
  "bytes",
  "futures-core",
  "futures-util",
- "http 1.2.0",
+ "http 1.3.1",
  "http-body 1.0.1",
  "http-body-util",
  "hyper 1.6.0",
- "hyper-rustls 0.26.0",
+ "hyper-rustls 0.27.5",
  "hyper-util",
  "ipnet",
  "js-sys",
@@ -6142,23 +5986,25 @@ dependencies = [
  "once_cell",
  "percent-encoding",
  "pin-project-lite",
- "rustls 0.22.4",
+ "quinn",
+ "rustls 0.23.23",
  "rustls-pemfile 2.2.0",
  "rustls-pki-types",
  "serde",
  "serde_json",
  "serde_urlencoded",
- "sync_wrapper 0.1.2",
+ "sync_wrapper 1.0.2",
  "tokio",
- "tokio-rustls 0.25.0",
+ "tokio-rustls 0.26.2",
  "tokio-util",
+ "tower 0.5.2",
  "tower-service",
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
  "webpki-roots 0.26.8",
- "winreg 0.52.0",
+ "windows-registry",
 ]
 
 [[package]]
@@ -6183,9 +6029,9 @@ dependencies = [
 
 [[package]]
 name = "ring"
-version = "0.17.9"
+version = "0.17.13"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e75ec5e92c4d8aede845126adc388046234541629e76029599ed35a003c7ed24"
+checksum = "70ac5d832aa16abd7d1def883a8545280c20a60f523a370aa3a9617c2b8550ee"
 dependencies = [
  "cc",
  "cfg-if",
@@ -6278,7 +6124,7 @@ checksum = "d64d615f7bbfe41a95bfb28d3e7d37881c98e2bc9239abe1ffa280ab2ebbdb6f"
 dependencies = [
  "cbindgen",
  "clap",
- "itertools 0.13.0",
+ "itertools",
  "rust2go-common",
 ]
 
@@ -6324,6 +6170,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08d43f7aa6b08d49f382cde6a7982047c3426db949b1424bc4b7ec9ae12c6ce2"
 
 [[package]]
+name = "rustc-hash"
+version = "2.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "357703d41365b4b27c590e3ed91eabb1b663f07c4c084095e60cbed4362dff0d"
+
+[[package]]
 name = "rustc_version"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6338,7 +6190,7 @@ version = "0.38.44"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fdb5bc1ae2baa591800df16c9ca78619bf65c0488b41b96ccec5d11220d8c154"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
  "errno",
  "libc",
  "linux-raw-sys",
@@ -6359,11 +6211,11 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.22.4"
+version = "0.23.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf4ef73721ac7bcd79b2b315da7779d8fc09718c6b3d2d1b2d94850eb8c18432"
+checksum = "47796c98c480fce5406ef69d1c76378375492c3b0a0de587be0c1d9feb12f395"
 dependencies = [
- "log",
+ "once_cell",
  "ring",
  "rustls-pki-types",
  "rustls-webpki 0.102.8",
@@ -6406,6 +6258,9 @@ name = "rustls-pki-types"
 version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "917ce264624a4b4db1c364dcc35bfca9ded014d0a958cd47ad3e960e988ea51c"
+dependencies = [
+ "web-time",
+]
 
 [[package]]
 name = "rustls-webpki"
@@ -6559,7 +6414,7 @@ version = "2.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "897b2245f0b511c87893af39b033e5ca9cce68824c4d7e7630b5a1d339658d02"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
  "core-foundation",
  "core-foundation-sys",
  "libc",
@@ -6861,7 +6716,7 @@ dependencies = [
  "hkdf",
  "hmac",
  "lioness",
- "rand 0.8.5",
+ "rand",
  "rand_distr",
  "sha2 0.10.8",
  "subtle 2.6.1",
@@ -7000,7 +6855,7 @@ checksum = "1ed31390216d20e538e447a7a9b959e06ed9fc51c37b514b46eb758016ecd418"
 dependencies = [
  "atoi",
  "base64 0.21.7",
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
  "byteorder",
  "bytes",
  "crc",
@@ -7021,7 +6876,7 @@ dependencies = [
  "memchr",
  "once_cell",
  "percent-encoding",
- "rand 0.8.5",
+ "rand",
  "rsa",
  "serde",
  "sha1",
@@ -7043,7 +6898,7 @@ checksum = "7c824eb80b894f926f89a0b9da0c7f435d27cdd35b8c655b114e58223918577e"
 dependencies = [
  "atoi",
  "base64 0.21.7",
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
  "byteorder",
  "crc",
  "dotenvy",
@@ -7061,7 +6916,7 @@ dependencies = [
  "md-5",
  "memchr",
  "once_cell",
- "rand 0.8.5",
+ "rand",
  "serde",
  "serde_json",
  "sha2 0.10.8",
@@ -7209,6 +7064,9 @@ name = "sync_wrapper"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0bf256ce5efdfa370213c1dabab5935a12e49f2c58d15e9eac2870d3b4f27263"
+dependencies = [
+ "futures-core",
+]
 
 [[package]]
 name = "synstructure"
@@ -7252,7 +7110,7 @@ version = "0.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3c879d448e9d986b661742763247d3693ed13609438cf3d006f51f5368a5ba6b"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
  "core-foundation",
  "system-configuration-sys 0.6.0",
 ]
@@ -7312,7 +7170,7 @@ dependencies = [
  "k256",
  "num-traits",
  "once_cell",
- "prost 0.13.5",
+ "prost",
  "ripemd",
  "serde",
  "serde_bytes",
@@ -7349,7 +7207,7 @@ checksum = "9ae9e1705aa0fa5ecb2c6aa7fb78c2313c4a31158ea5f02048bf318f849352eb"
 dependencies = [
  "bytes",
  "flex-error",
- "prost 0.13.5",
+ "prost",
  "serde",
  "serde_bytes",
  "subtle-encoding",
@@ -7369,7 +7227,7 @@ dependencies = [
  "getrandom 0.2.15",
  "peg",
  "pin-project",
- "rand 0.8.5",
+ "rand",
  "reqwest 0.11.27",
  "semver",
  "serde",
@@ -7545,16 +7403,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tokio-io-timeout"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30b74022ada614a1b4834de765f9bb43877f910cc8ce4be40e89042c9223a8bf"
-dependencies = [
- "pin-project-lite",
- "tokio",
-]
-
-[[package]]
 name = "tokio-macros"
 version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7577,12 +7425,11 @@ dependencies = [
 
 [[package]]
 name = "tokio-rustls"
-version = "0.25.0"
+version = "0.26.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "775e0c0f0adb3a2f22a00c4745d728b479985fc15ee7ca6a2608388c5569860f"
+checksum = "8e727b36a1a0e8b74c376ac2211e40c2c8af09fb4013c60d910495810f008e9b"
 dependencies = [
- "rustls 0.22.4",
- "rustls-pki-types",
+ "rustls 0.23.23",
  "tokio",
 ]
 
@@ -7609,20 +7456,8 @@ dependencies = [
  "rustls 0.21.12",
  "tokio",
  "tokio-rustls 0.24.1",
- "tungstenite 0.20.1",
+ "tungstenite",
  "webpki-roots 0.25.4",
-]
-
-[[package]]
-name = "tokio-tungstenite"
-version = "0.26.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a9daff607c6d2bf6c16fd681ccb7eecc83e4e2cdc1ca067ffaadfca5de7f084"
-dependencies = [
- "futures-util",
- "log",
- "tokio",
- "tungstenite 0.26.2",
 ]
 
 [[package]]
@@ -7686,23 +7521,26 @@ dependencies = [
 
 [[package]]
 name = "tonic"
-version = "0.11.0"
+version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76c4eb7a4e9ef9d4763600161f12f5070b92a578e1b634db88a6887844c91a13"
+checksum = "877c5b330756d856ffcc4553ab34a5684481ade925ecc54bcd1bf02b1d0d4d52"
 dependencies = [
  "async-stream",
  "async-trait",
- "axum 0.6.20",
- "base64 0.21.7",
+ "axum",
+ "base64 0.22.1",
  "bytes",
- "h2",
- "http 0.2.12",
- "http-body 0.4.6",
- "hyper 0.14.32",
+ "h2 0.4.8",
+ "http 1.3.1",
+ "http-body 1.0.1",
+ "http-body-util",
+ "hyper 1.6.0",
  "hyper-timeout",
+ "hyper-util",
  "percent-encoding",
  "pin-project",
- "prost 0.12.6",
+ "prost",
+ "socket2",
  "tokio",
  "tokio-stream",
  "tower 0.4.13",
@@ -7713,25 +7551,26 @@ dependencies = [
 
 [[package]]
 name = "tonic-build"
-version = "0.11.0"
+version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be4ef6dd70a610078cb4e338a0f79d06bc759ff1b22d2120c2ff02ae264ba9c2"
+checksum = "9557ce109ea773b399c9b9e5dca39294110b74f1f342cb347a80d1fce8c26a11"
 dependencies = [
  "prettyplease",
  "proc-macro2",
  "prost-build",
+ "prost-types",
  "quote",
  "syn 2.0.98",
 ]
 
 [[package]]
 name = "tonic-health"
-version = "0.11.0"
+version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2cef6e24bc96871001a7e48e820ab240b3de2201e59b517cf52835df2f1d2350"
+checksum = "1eaf34ddb812120f5c601162d5429933c9b527d901ab0e7f930d3147e33a09b2"
 dependencies = [
  "async-stream",
- "prost 0.12.6",
+ "prost",
  "tokio",
  "tokio-stream",
  "tonic",
@@ -7739,11 +7578,11 @@ dependencies = [
 
 [[package]]
 name = "tonic-reflection"
-version = "0.11.0"
+version = "0.12.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "548c227bd5c0fae5925812c4ec6c66ffcfced23ea370cb823f4d18f0fc1cb6a7"
+checksum = "878d81f52e7fcfd80026b7fdb6a9b578b3c3653ba987f87f0dce4b64043cba27"
 dependencies = [
- "prost 0.12.6",
+ "prost",
  "prost-types",
  "tokio",
  "tokio-stream",
@@ -7761,7 +7600,7 @@ dependencies = [
  "indexmap 1.9.3",
  "pin-project",
  "pin-project-lite",
- "rand 0.8.5",
+ "rand",
  "slab",
  "tokio",
  "tokio-util",
@@ -7784,20 +7623,6 @@ dependencies = [
  "tower-layer",
  "tower-service",
  "tracing",
-]
-
-[[package]]
-name = "tower-http"
-version = "0.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "403fa3b783d4b626a8ad51d766ab03cb6d2dbfc46b1c5d4448395e6628dc9697"
-dependencies = [
- "bitflags 2.8.0",
- "bytes",
- "http 1.2.0",
- "pin-project-lite",
- "tower-layer",
- "tower-service",
 ]
 
 [[package]]
@@ -7972,30 +7797,13 @@ dependencies = [
  "http 0.2.12",
  "httparse",
  "log",
- "rand 0.8.5",
+ "rand",
  "rustls 0.21.12",
  "sha1",
  "thiserror 1.0.69",
  "url",
  "utf-8",
  "webpki-roots 0.24.0",
-]
-
-[[package]]
-name = "tungstenite"
-version = "0.26.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4793cb5e56680ecbb1d843515b23b6de9a75eb04b66643e256a396d43be33c13"
-dependencies = [
- "bytes",
- "data-encoding",
- "http 1.2.0",
- "httparse",
- "log",
- "rand 0.9.0",
- "sha1",
- "thiserror 2.0.12",
- "utf-8",
 ]
 
 [[package]]
@@ -8351,12 +8159,6 @@ dependencies = [
 
 [[package]]
 name = "wasi"
-version = "0.9.0+wasi-snapshot-preview1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cccddf32554fecc6acb585f82a32a72e28b48f8c4c1883ddfeeeaa96f7d8e519"
-
-[[package]]
-name = "wasi"
 version = "0.11.0+wasi-snapshot-preview1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9c8d87e72b64a3b4db28d11ce29237c246188f4f51057d65a7eab63b7987e423"
@@ -8450,14 +8252,14 @@ dependencies = [
 [[package]]
 name = "wasm-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.4-dorina-patched#01c052e9a455d1396104b158ef869242d160fc5b"
+source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
 dependencies = [
  "futures",
  "getrandom 0.2.15",
  "gloo-net",
  "gloo-utils",
  "js-sys",
- "tungstenite 0.20.1",
+ "tungstenite",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -8482,6 +8284,16 @@ name = "web-sys"
 version = "0.3.77"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33b6dd2ef9186f1f2072e409e99cd22a975331a6b3591b12c764e0e55c60d5d2"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
+]
+
+[[package]]
+name = "web-time"
+version = "1.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5a6580f308b1fad9207618087a65c04e7a10bc77e02c8e84e9b00dd4b12fa0bb"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
@@ -8748,6 +8560,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6dccfd733ce2b1753b03b6d3c65edf020262ea35e20ccdf3e288043e6dd620e3"
 
 [[package]]
+name = "windows-registry"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4286ad90ddb45071efd1a66dfa43eb02dd0dfbae1545ad6cc3c51cf34d7e8ba3"
+dependencies = [
+ "windows-result 0.3.0",
+ "windows-strings 0.3.0",
+ "windows-targets 0.53.0",
+]
+
+[[package]]
 name = "windows-result"
 version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8780,7 +8603,7 @@ version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "193cae8e647981c35bc947fdd57ba7928b1fa0d4a79305f6dd2dc55221ac35ac"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
  "widestring",
  "windows-sys 0.59.0",
 ]
@@ -9070,7 +8893,7 @@ version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3268f3d866458b787f390cf61f4bbb563b922d091359f9608842999eaee3943c"
 dependencies = [
- "bitflags 2.8.0",
+ "bitflags 2.9.0",
 ]
 
 [[package]]
@@ -9143,16 +8966,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b9b4fd18abc82b8136838da5d50bae7bdea537c574d8dc1a34ed098d6c166f0"
 dependencies = [
  "byteorder",
- "zerocopy-derive 0.7.35",
-]
-
-[[package]]
-name = "zerocopy"
-version = "0.8.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79386d31a42a4996e3336b0919ddb90f81112af416270cff95b5f5af22b839c2"
-dependencies = [
- "zerocopy-derive 0.8.18",
+ "zerocopy-derive",
 ]
 
 [[package]]
@@ -9160,17 +8974,6 @@ name = "zerocopy-derive"
 version = "0.7.35"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "fa4f8080344d4671fb4e831a13ad1e68092748387dfc4f55e356242fae12ce3e"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.98",
-]
-
-[[package]]
-name = "zerocopy-derive"
-version = "0.8.18"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "76331675d372f91bf8d17e13afbd5fe639200b73d01f0fc748bb059f9cca2db7"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -9200,9 +9003,9 @@ dependencies = [
 
 [[package]]
 name = "zeroize"
-version = "1.6.0"
+version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2a0956f1ba7c7909bfb66c2e9e4124ab6f6482560f6628b5aaeba39207c9aad9"
+checksum = "ced3678a2879b30306d323f4542626697a464a97c0a07c9aebf7ebca65cd4dde"
 dependencies = [
  "zeroize_derive",
 ]

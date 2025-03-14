@@ -2,17 +2,14 @@ use std::env::consts::{ARCH, OS};
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
-use nym_vpn_proto::tunnel_event::Event;
 use nym_vpn_proto::{
     get_account_identity_response::Id as AccountIdRes,
     get_account_links_response::Res as AccountLinkRes,
-    get_device_identity_response::Id as DeviceIdRes, health_check_response::ServingStatus,
-    health_client::HealthClient, is_account_stored_response::Resp as IsAccountStoredResp,
-    nym_vpnd_client::NymVpndClient, ConnectRequest, Dns, GetAccountLinksRequest,
-    HealthCheckRequest, InfoResponse, ListGatewaysRequest, Location, SetNetworkRequest,
-    StoreAccountRequest, UserAgent,
+    get_device_identity_response::Id as DeviceIdRes,
+    is_account_stored_response::Resp as IsAccountStoredResp, nym_vpnd_client::NymVpndClient,
+    tunnel_event::Event, ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest,
+    Location, SetNetworkRequest, StoreAccountRequest, UserAgent,
 };
-use parity_tokio_ipc::Endpoint as IpcEndpoint;
 use tauri::{AppHandle, Manager, PackageInfo};
 use tokio::sync::mpsc;
 use tonic::transport::Endpoint as TonicEndpoint;
@@ -32,29 +29,21 @@ pub use crate::grpc::network::NetworkCompatVersions;
 
 use crate::cli::Cli;
 use crate::country::Country;
-use crate::env::VPND_COMPAT_REQ;
 use crate::error::BackendError;
 use crate::fs::config::AppConfig;
 use crate::{events::AppHandleEventEmitter, state::SharedAppState};
 
-const VPND_SERVICE: &str = "nym.vpn.NymVpnd";
 #[cfg(target_os = "linux")]
 const DEFAULT_SOCKET_PATH: &str = "/run/nym-vpn.sock";
 #[cfg(target_os = "macos")]
 const DEFAULT_SOCKET_PATH: &str = "/var/run/nym-vpn.sock";
 #[cfg(windows)]
 const DEFAULT_SOCKET_PATH: &str = r"\\.\pipe\nym-vpn";
-const DEFAULT_HTTP_ENDPOINT: &str = "http://[::1]:53181";
-
-#[derive(Clone, Debug)]
-enum Transport {
-    Http(String),
-    Ipc(PathBuf),
-}
+const DUMMY_HTTP_ENDPOINT: &str = "http://[::1]:53181";
 
 #[derive(Debug, Clone)]
 pub struct GrpcClient {
-    transport: Transport,
+    socket: PathBuf,
     pkg_info: PackageInfo,
     user_agent: UserAgent,
 }
@@ -62,24 +51,20 @@ pub struct GrpcClient {
 impl GrpcClient {
     #[instrument(skip_all)]
     pub fn new(config: &AppConfig, cli: &Cli, pkg: &PackageInfo) -> Self {
-        let client = GrpcClient {
-            transport: Transport::from((config, cli)),
+        GrpcClient {
+            socket: cli.grpc_socket_endpoint.clone().unwrap_or(
+                config
+                    .grpc_socket_endpoint
+                    .clone()
+                    .unwrap_or(DEFAULT_SOCKET_PATH.into()),
+            ),
             pkg_info: pkg.clone(),
             user_agent: GrpcClient::user_agent(pkg, None),
-        };
-        match &client.transport {
-            Transport::Http(endpoint) => {
-                info!("using grpc HTTP transport: {}", endpoint);
-            }
-            Transport::Ipc(socket) => {
-                info!("using grpc IPC transport: {}", socket.display());
-            }
         }
-        client
     }
 
     /// Create a user agent
-    pub fn user_agent(pkg: &PackageInfo, daemon_info: Option<&InfoResponse>) -> UserAgent {
+    pub fn user_agent(pkg: &PackageInfo, daemon_info: Option<&VpndInfo>) -> UserAgent {
         let app_git_commit = crate::build_info()
             .version_control
             .as_ref()
@@ -104,70 +89,16 @@ impl GrpcClient {
     /// Get the Vpnd service client
     #[instrument(skip_all)]
     pub async fn vpnd(&self) -> Result<NymVpndClient<Channel>, VpndError> {
-        match &self.transport {
-            Transport::Http(endpoint) => {
-                NymVpndClient::connect(endpoint.clone()).await.map_err(|e| {
-                    warn!("failed to connect to the daemon: {}", e);
-                    VpndError::FailedToConnectHttp(e)
-                })
-            }
-            Transport::Ipc(socket) => {
-                let channel = get_channel(socket.clone()).await.map_err(|e| {
-                    warn!("failed to connect to the daemon: {}", e);
-                    VpndError::FailedToConnectIpc(e)
-                })?;
-                Ok(NymVpndClient::new(channel))
-            }
-        }
-    }
-
-    /// Get the Health service client
-    #[instrument(skip_all)]
-    pub async fn health(&self) -> Result<HealthClient<Channel>, VpndError> {
-        match &self.transport {
-            Transport::Http(endpoint) => {
-                HealthClient::connect(endpoint.clone()).await.map_err(|e| {
-                    warn!("failed to connect to the daemon: {}", e);
-                    VpndError::FailedToConnectHttp(e)
-                })
-            }
-            Transport::Ipc(socket) => {
-                let channel = get_channel(socket.clone()).await.map_err(|e| {
-                    warn!("failed to connect to the daemon: {}", e);
-                    VpndError::FailedToConnectIpc(e)
-                })?;
-                Ok(HealthClient::new(channel))
-            }
-        }
-    }
-
-    /// Check the connection with the grpc server
-    #[instrument(skip_all)]
-    pub async fn check(&self, app_state: &SharedAppState) -> Result<VpndStatus> {
-        let mut health = self.health().await?;
-
-        let request = Request::new(HealthCheckRequest {
-            service: VPND_SERVICE.into(),
-        });
-        let response = health
-            .check(request)
-            .await
-            .inspect_err(|e| {
-                error!("health check failed: {}", e);
-            })?
-            .into_inner();
-        let serving = response.status();
-
-        let mut state = app_state.lock().await;
-        let status = self.get_vpnd_status(serving, state.vpnd_info.as_ref());
-        state.vpnd_status = status.clone();
-
-        Ok(status)
+        let channel = get_channel(self.socket.clone()).await.map_err(|e| {
+            warn!("failed to connect to the daemon: {}", e);
+            VpndError::FailedToConnectIpc(e)
+        })?;
+        Ok(NymVpndClient::new(channel))
     }
 
     /// Get daemon info
     #[instrument(skip_all)]
-    pub async fn vpnd_info(&self, app: &AppHandle) -> Result<InfoResponse, VpndError> {
+    pub async fn vpnd_info(&mut self) -> Result<VpndInfo, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(());
@@ -180,28 +111,15 @@ impl GrpcClient {
             })?
             .into_inner();
 
-        let app_state = app.state::<SharedAppState>();
-        let mut state = app_state.lock().await;
-        state.vpnd_info = Some(VpndInfo::from(&response));
-        Ok(response)
-    }
-
-    /// Update daemon info and user agent
-    #[instrument(skip_all)]
-    pub async fn update_vpnd_info(&mut self, app: &AppHandle) -> Result<VpndInfo, VpndError> {
-        let res = self.vpnd_info(app).await?;
-        let vpnd_info = VpndInfo::from(&res);
-        self.user_agent = GrpcClient::user_agent(&self.pkg_info, Some(&res));
-        info!("vpnd version: {}", res.version);
+        let info = VpndInfo::from(&response);
+        info!("vpnd UP");
         info!(
-            "network env: {}",
-            res.nym_network
-                .map(|n| n.network_name)
-                .unwrap_or_else(|| "unknown".to_string())
+            "vpnd version: {}, network env: {}",
+            info.version, info.network
         );
-        info!("updated user agent: {:?}", self.user_agent);
-
-        Ok(vpnd_info)
+        self.user_agent = GrpcClient::user_agent(&self.pkg_info, Some(&info));
+        info!("user agent: {:?}", self.user_agent);
+        Ok(info)
     }
 
     /// Get the current tunnel state and update the app state
@@ -561,99 +479,21 @@ impl GrpcClient {
         Ok(gateways)
     }
 
-    /// Watch the connection with the grpc server
-    #[instrument(skip_all)]
-    pub async fn watch(&mut self, app: &AppHandle) -> Result<()> {
-        let mut health = self.health().await?;
+    #[instrument(skip(self, app))]
+    pub async fn update_vpnd_state(
+        &mut self,
+        info: VpndInfo,
+        app: &AppHandle,
+    ) -> Result<(), VpndError> {
+        let net_compat = self.network_compat().await.ok();
+
         let app_state = app.state::<SharedAppState>();
-
-        let request = Request::new(HealthCheckRequest {
-            service: VPND_SERVICE.into(),
-        });
-        let mut stream = health
-            .watch(request)
-            .await
-            .inspect_err(|e| {
-                error!("health check failed: {}", e);
-            })?
-            .into_inner();
-
-        let (tx, mut rx) = mpsc::channel(32);
-        tokio::spawn(async move {
-            loop {
-                match stream.message().await {
-                    Ok(Some(res)) => {
-                        tx.send(res.status()).await.unwrap();
-                    }
-                    Ok(None) => {
-                        warn!("watch health stream closed by the server");
-                        tx.send(ServingStatus::NotServing).await.unwrap();
-                        return;
-                    }
-                    Err(e) => {
-                        warn!("watch health stream get a grpc error: {}", e);
-                    }
-                }
-            }
-        });
-
-        while let Some(serving) = rx.recv().await {
-            debug!("health check status: {:?}", serving);
-            let mut vpnd_info = None;
-            if serving == ServingStatus::Serving {
-                vpnd_info = self.update_vpnd_info(app).await.ok();
-            }
-            let status = self.get_vpnd_status(serving, vpnd_info.as_ref());
-            app.emit_vpnd_status(status.clone());
-            if serving == ServingStatus::Serving {
-                let net_compat = self.network_compat().await.ok();
-                let mut state = app_state.lock().await;
-                state.set_network_compat(net_compat, &self.pkg_info.version, &vpnd_info);
-            }
-            let mut state = app_state.lock().await;
-            state.vpnd_status = status;
-        }
-
+        let mut state = app_state.lock().await;
+        state.vpnd_info = Some(info.clone());
+        state.set_vpnd_status(&info);
+        state.set_network_compat(net_compat, &self.pkg_info.version, &info);
+        app.emit_vpnd_status(state.vpnd_status.clone());
         Ok(())
-    }
-
-    #[instrument(skip(self))]
-    fn get_vpnd_status(&self, serving: ServingStatus, vpnd_info: Option<&VpndInfo>) -> VpndStatus {
-        if serving != ServingStatus::Serving {
-            return VpndStatus::Down;
-        }
-
-        let Some(ver_req) = VPND_COMPAT_REQ else {
-            warn!("env variable `VPND_COMPAT_REQ` is not set, skipping vpnd version compatibility check");
-            return VpndStatus::Ok(None);
-        };
-        let Some(info) = vpnd_info else {
-            // very unlikely to happen
-            error!("no vpnd info available, skipping vpnd version compatibility check");
-            return VpndStatus::Ok(None);
-        };
-        let Ok(ver) = VersionCheck::new(ver_req) else {
-            warn!("skipping vpnd version compatibility check");
-            return VpndStatus::Ok(Some(info.to_owned()));
-        };
-        let Ok(is_ok) = ver.check(&info.version) else {
-            warn!("skipping vpnd version compatibility check");
-            return VpndStatus::Ok(Some(info.to_owned()));
-        };
-
-        if !is_ok {
-            warn!(
-                "daemon version is not compatible with the client, required [{}], version [{}]",
-                ver_req, info.version
-            );
-            return VpndStatus::NonCompat {
-                current: info.clone(),
-                requirement: ver_req.to_string(),
-            };
-        }
-
-        info!("daemon version compatibility check OK");
-        VpndStatus::Ok(Some(info.to_owned()))
     }
 
     /// Set the network environment of the daemon.
@@ -735,46 +575,11 @@ impl GrpcClient {
 
 async fn get_channel(socket_path: PathBuf) -> Result<Channel> {
     // NOTE the uri here is ignored
-    Ok(TonicEndpoint::from_static(DEFAULT_HTTP_ENDPOINT)
+    Ok(TonicEndpoint::from_static(DUMMY_HTTP_ENDPOINT)
         .connect_with_connector(tower::service_fn(move |_| {
-            IpcEndpoint::connect(socket_path.clone())
+            nym_ipc::client::connect(socket_path.clone())
         }))
         .await?)
-}
-
-impl Default for Transport {
-    fn default() -> Self {
-        Transport::Ipc(DEFAULT_SOCKET_PATH.into())
-    }
-}
-
-impl From<(&AppConfig, &Cli)> for Transport {
-    fn from((config, cli): (&AppConfig, &Cli)) -> Self {
-        let http_mode = if cli.grpc_http_mode {
-            true
-        } else {
-            config.grpc_http_mode.unwrap_or(false)
-        };
-        if http_mode {
-            Transport::Http(
-                cli.grpc_http_endpoint.clone().unwrap_or(
-                    config
-                        .grpc_http_endpoint
-                        .clone()
-                        .unwrap_or(DEFAULT_HTTP_ENDPOINT.into()),
-                ),
-            )
-        } else {
-            Transport::Ipc(
-                cli.grpc_socket_endpoint.clone().unwrap_or(
-                    config
-                        .grpc_socket_endpoint
-                        .clone()
-                        .unwrap_or(DEFAULT_SOCKET_PATH.into()),
-                ),
-            )
-        }
-    }
 }
 
 impl TryFrom<&Location> for Country {

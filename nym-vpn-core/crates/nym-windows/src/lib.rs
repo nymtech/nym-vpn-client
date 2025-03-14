@@ -21,3 +21,6 @@ pub mod process;
 
 /// Window event handling
 pub mod window;
+
+/// Security and identity
+pub mod security;

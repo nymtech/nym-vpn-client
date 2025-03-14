@@ -22,28 +22,26 @@ impl DnsHandler {
         Ok(Self {
             inner: DnsMonitor::new(
                 #[cfg(target_os = "linux")]
-                tokio::runtime::Handle::current(),
-                #[cfg(target_os = "linux")]
                 route_handler.inner_handle(),
             )?,
         })
     }
 
-    pub fn set(
+    pub async fn set(
         &mut self,
         interface: &str,
         config: ResolvedDnsConfig,
     ) -> Result<(), nym_dns::Error> {
-        tokio::task::block_in_place(|| self.inner.set(interface, config))
+        self.inner.set(interface, config).await
     }
 
-    pub fn reset(&mut self) -> Result<(), nym_dns::Error> {
-        tokio::task::block_in_place(|| self.inner.reset())
+    pub async fn reset(&mut self) -> Result<(), nym_dns::Error> {
+        self.inner.reset().await
     }
 
     #[cfg(any(target_os = "linux", target_os = "windows"))]
-    pub fn reset_before_interface_removal(&mut self) -> Result<(), nym_dns::Error> {
-        tokio::task::block_in_place(|| self.inner.reset_before_interface_removal())
+    pub async fn reset_before_interface_removal(&mut self) -> Result<(), nym_dns::Error> {
+        self.inner.reset_before_interface_removal().await
     }
 }
 
@@ -89,14 +87,14 @@ impl DnsHandlerHandle {
                                 config,
                                 reply_tx,
                             } => {
-                                _ = reply_tx.send(dns_handler.set(&interface, config));
+                                _ = reply_tx.send(dns_handler.set(&interface, config).await);
                             }
                             DnsHandlerCommand::Reset { reply_tx } => {
-                                _ = reply_tx.send(dns_handler.reset());
+                                _ = reply_tx.send(dns_handler.reset().await);
                             }
                             #[cfg(any(target_os = "linux", target_os = "windows"))]
                             DnsHandlerCommand::ResetBeforeInterfaceRemoval { reply_tx } => {
-                                _ = reply_tx.send(dns_handler.reset_before_interface_removal());
+                                _ = reply_tx.send(dns_handler.reset_before_interface_removal().await);
                             }
                         }
                     }

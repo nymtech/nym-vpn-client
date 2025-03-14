@@ -34,6 +34,8 @@ let package = Package(
                 .product(name: "Settings", package: "Settings"),
                 .product(name: "CountriesManager", package: "Services"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
+                .product(name: "Constants", package: "Services"),
+                .product(name: "ConfigurationManager", package: "Services"),
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "Device", package: "Services"),
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),

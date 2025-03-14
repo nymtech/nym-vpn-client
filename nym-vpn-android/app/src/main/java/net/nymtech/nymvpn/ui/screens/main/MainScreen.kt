@@ -8,6 +8,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,6 +52,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCancellationBehavior
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import net.nymtech.connectivity.NetworkStatus
@@ -110,6 +117,23 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			)
 		}
 	}
+
+	val isDarkMode = isSystemInDarkTheme()
+
+	val animation by remember(appUiState.settings.vpnMode, appUiState.settings.theme) {
+		with(appUiState.settings) {
+			val asset = when (theme) {
+				Theme.AUTOMATIC, Theme.DYNAMIC, null -> if (isDarkMode) {
+					if (vpnMode.isTwoHop()) R.raw.noise_2hop_dark else R.raw.noise_5hop_dark
+				} else if (vpnMode.isTwoHop()) R.raw.noise_2hop_light else R.raw.noise_5hop_light
+				Theme.DARK_MODE -> if (vpnMode.isTwoHop()) R.raw.noise_2hop_dark else R.raw.noise_5hop_dark
+				Theme.LIGHT_MODE -> if (vpnMode.isTwoHop()) R.raw.noise_2hop_light else R.raw.noise_5hop_light
+			}
+			mutableStateOf(asset)
+		}
+	}
+
+	val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(animation))
 
 	val context = LocalContext.current
 	val snackbar = SnackbarController.current
@@ -235,6 +259,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			content = {
 				Text(text = stringResource(id = R.string.update))
 			},
+			modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 		)
 	})
 
@@ -246,9 +271,28 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		Column(
 			verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight()),
 			horizontalAlignment = Alignment.CenterHorizontally,
-			modifier = Modifier.padding(top = 68.dp.scaledHeight()),
+			modifier = Modifier.padding(top = 56.dp.scaledHeight()),
 		) {
 			SnackbarHost(hostState = screenSnackbar, Modifier)
+			Column(modifier = Modifier.height(12.dp)) {
+				with(appUiState.managerState) {
+					AnimatedVisibility(visible = tunnelState == Tunnel.State.Up) {
+						val logoAnimationState =
+							animateLottieCompositionAsState(
+								composition = composition.value,
+								speed = 1f,
+								isPlaying = tunnelState == Tunnel.State.Up,
+								iterations = LottieConstants.IterateForever,
+								cancellationBehavior = LottieCancellationBehavior.Immediately,
+							)
+
+						LottieAnimation(
+							composition = composition.value,
+							progress = { logoAnimationState.progress },
+						)
+					}
+				}
+			}
 			ConnectionStateDisplay(connectionState = uiState.connectionState, appUiState.settings.theme ?: Theme.AUTOMATIC)
 			uiState.stateMessage.let {
 				when (it) {
@@ -448,6 +492,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 									style = CustomTypography.labelHuge,
 								)
 							},
+							modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 						)
 
 					is ConnectionState.Disconnecting,
@@ -466,6 +511,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 								)
 							},
 							color = CustomColors.disconnect,
+							modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 						)
 					}
 
@@ -480,6 +526,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 								)
 							},
 							color = CustomColors.disconnect,
+							modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 						)
 				}
 			}

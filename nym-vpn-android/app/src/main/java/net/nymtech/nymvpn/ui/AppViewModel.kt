@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import net.nymtech.connectivity.NetworkService
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
@@ -78,7 +77,7 @@ constructor(
 		settingsRepository.setAnalyticsShown(true)
 	}
 
-	suspend fun logout() = withContext(ioDispatcher) {
+	fun logout() = viewModelScope.launch {
 		runCatching {
 			if (backendManager.getState() == Tunnel.State.Down) {
 				backendManager.removeMnemonic()

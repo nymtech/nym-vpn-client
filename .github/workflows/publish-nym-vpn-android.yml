@@ -194,19 +194,20 @@ jobs:
 
   publish-accrescent:
     runs-on: ubuntu-22.04
-    if: ${{github.event.inputs.publish-accrescent == 'true'}}
+    env:
+      SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
+      SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
+      SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
+    if: ${{ github.event.inputs.publish-accrescent == 'true' }}
     needs:
       - build-nym-vpn-android-aab
     steps:
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
-
-      - name: Download bundletool
-        run: |
-          wget -O bundletool.jar https://github.com/google/bundletool/releases/download/1.18.0/bundletool-all-1.18.0.jar
 
       - name: Make download dir
         run: mkdir ${{ github.workspace }}/temp
@@ -217,23 +218,36 @@ jobs:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ github.workspace }}/temp
 
-      - name: Generate APKS
+      - name: Get aab path
         run: |
-          AAB_FILE=$(ls ${{ github.workspace }}/temp/*.aab | head -n 1)
-          if [ -z "$AAB_FILE" ]; then
-            echo "Error: No .aab file found in ${{ github.workspace }}/temp"
-            exit 1
-          fi
+          echo "AAB_FILE=$(ls ${{ github.workspace }}/temp/*.aab | head -n 1)" >> $GITHUB_ENV
+
+      - name: Decode Keystore
+        id: decode_keystore
+        uses: timheuer/base64-to-file@v1.2
+        with:
+          fileName: 'android_keystore.jks'
+          encodedString: ${{ secrets.ANDROID_KEYSTORE }}
+
+      - name: Download bundletool
+        run: |
+          curl -L -o bundletool.jar https://github.com/google/bundletool/releases/download/1.18.1/bundletool-all-1.18.1.jar
+
+      - name: Build APKs (no universal mode)
+        run: |
           java -jar bundletool.jar build-apks \
-            --bundle="$AAB_FILE" \
-            --output=app.apks \
-            --mode=universal
+            --bundle ${{ env.AAB_FILE }} \
+            --output app-fdroid-release.apks \
+            --ks ${{ steps.decode_keystore.outputs.filePath }} \
+            --ks-pass 'pass:${{ env.SIGNING_STORE_PASSWORD }}' \
+            --ks-key-alias '${{ env.SIGNING_KEY_ALIAS }}' \
+            --key-pass 'pass:${{ env.SIGNING_KEY_PASSWORD }}'
 
       - name: Upload APKS artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-apks
-          path: app.apks
+          path: app-fdroid-release.apks
       
 
   publish-play:

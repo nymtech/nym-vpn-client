@@ -95,8 +95,6 @@ impl RouteHandler {
 
     pub async fn stop(self) {
         self.route_manager.stop().await;
-
-        _ = tokio::task::spawn_blocking(|| drop(self.route_manager)).await;
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]

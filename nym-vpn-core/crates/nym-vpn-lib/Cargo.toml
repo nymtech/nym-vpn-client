@@ -12,24 +12,17 @@ license.workspace = true
 crate-type = ["cdylib", "lib", "staticlib"]
 
 [dependencies]
-anyhow.workspace = true
 async-trait.workspace = true
 bincode.workspace = true
-bs58.workspace = true
 bytes.workspace = true
 futures.workspace = true
 ipnetwork.workspace = true
 itertools.workspace = true
 lazy_static.workspace = true
 log.workspace = true
-pnet_packet.workspace = true
 rand.workspace = true
 serde_json.workspace = true
-serde.workspace = true
-si-scale.workspace = true
-signature.workspace = true
 sysinfo.workspace = true
-tap.workspace = true
 thiserror.workspace = true
 time.workspace = true
 tokio = { workspace = true, features = [
@@ -45,22 +38,16 @@ tracing.workspace = true
 tun = { workspace = true, features = ["async"] }
 uniffi.workspace = true
 url.workspace = true
-
-nym-authenticator-requests.workspace = true
 nym-bandwidth-controller.workspace = true
 nym-bin-common.workspace = true
 nym-client-core.workspace = true
 nym-config.workspace = true
-nym-credential-storage.workspace = true
 nym-credentials-interface.workspace = true
 nym-crypto.workspace = true
 nym-ip-packet-requests.workspace = true
-nym-node-requests.workspace = true
-nym-pemstore.workspace = true
 nym-sdk.workspace = true
 nym-statistics-common.workspace = true
 nym-task.workspace = true
-nym-topology.workspace = true
 nym-validator-client.workspace = true
 nym-wireguard-types.workspace = true
 
@@ -111,7 +98,6 @@ rand.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
 tracing-oslog.workspace = true
-tracing-appender.workspace = true
 
 [target.'cfg(target_os = "ios")'.dependencies]
 debounced.workspace = true
@@ -130,3 +116,6 @@ vergen = { workspace = true, default-features = false, features = [
 default = ["amnezia"]
 metrics-server = ["nym-client-core/metrics-server"]
 amnezia = ["nym-wg-go/amnezia"]
+
+[package.metadata.cargo-machete]
+ignored = ["vergen"]

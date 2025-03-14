@@ -22,26 +22,18 @@ pfctl.workspace = true
 nym-platform-metadata = { path = "../nym-platform-metadata" }
 
 [target.'cfg(target_os = "linux")'.dependencies]
-nix.workspace = true
-inotify.workspace = true
-resolv-conf.workspace = true
 nftnl = { workspace = true, features = ["nftnl-1-1-0"] }
 mnl = { workspace = true, features = ["mnl-1-0-4"] }
 
 [target.'cfg(windows)'.dependencies]
-nym-windows.workspace = true
-
 log.workspace = true
 wmi.workspace = true
 widestring.workspace = true
-
-[target.'cfg(windows)'.dependencies.windows]
-workspace = true
-features = [
+windows = { workspace = true, features = [
     "Win32",
     "Win32_Foundation",
     "Win32_Globalization",
     "Win32_System",
     "Win32_System_Wmi",
     "Win32_System_Variant",
-]
+] }

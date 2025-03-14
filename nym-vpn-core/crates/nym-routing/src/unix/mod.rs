@@ -9,14 +9,9 @@ pub use crate::{imp::imp::DefaultRoute, Gateway};
 
 use super::RequiredRoute;
 
-use futures::channel::{
-    mpsc::{self, UnboundedSender},
-    oneshot,
-};
 use std::{collections::HashSet, sync::Arc};
-
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-use futures::stream::Stream;
+use tokio::sync::mpsc;
+use tokio::sync::oneshot;
 
 #[cfg(target_os = "linux")]
 use std::net::IpAddr;
@@ -161,7 +156,7 @@ pub enum CallbackMessage {
 /// the route will be adjusted dynamically when the default route changes.
 #[derive(Debug, Clone)]
 pub struct RouteManagerHandle {
-    tx: Arc<UnboundedSender<RouteManagerCommand>>,
+    tx: Arc<mpsc::UnboundedSender<RouteManagerCommand>>,
 }
 
 impl RouteManagerHandle {
@@ -170,7 +165,7 @@ impl RouteManagerHandle {
         #[cfg(target_os = "linux")] fwmark: u32,
         #[cfg(target_os = "linux")] table_id: u32,
     ) -> Result<Self, Error> {
-        let (manage_tx, manage_rx) = mpsc::unbounded();
+        let (manage_tx, manage_rx) = tokio::sync::mpsc::unbounded_channel();
         let manage_tx = Arc::new(manage_tx);
         let manager = imp::RouteManagerImpl::new(
             #[cfg(target_os = "linux")]
@@ -189,9 +184,7 @@ impl RouteManagerHandle {
     /// Stop route manager and revert all changes to routing
     pub async fn stop(&self) {
         let (wait_tx, wait_rx) = oneshot::channel();
-        let _ = self
-            .tx
-            .unbounded_send(RouteManagerCommand::Shutdown(wait_tx));
+        let _ = self.tx.send(RouteManagerCommand::Shutdown(wait_tx));
         let _ = wait_rx.await;
     }
 
@@ -199,7 +192,7 @@ impl RouteManagerHandle {
     pub async fn add_routes(&self, routes: HashSet<RequiredRoute>) -> Result<(), Error> {
         let (result_tx, result_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::AddRoutes(routes, result_tx))
+            .send(RouteManagerCommand::AddRoutes(routes, result_tx))
             .map_err(|_| Error::RouteManagerDown)?;
 
         result_rx
@@ -211,7 +204,7 @@ impl RouteManagerHandle {
     /// Removes all routes previously applied in [`RouteManagerHandle::add_routes`].
     pub fn clear_routes(&self) -> Result<(), Error> {
         self.tx
-            .unbounded_send(RouteManagerCommand::ClearRoutes)
+            .send(RouteManagerCommand::ClearRoutes)
             .map_err(|_| Error::RouteManagerDown)
     }
 
@@ -219,10 +212,10 @@ impl RouteManagerHandle {
     #[cfg(target_os = "macos")]
     pub async fn default_route_listener(
         &self,
-    ) -> Result<impl Stream<Item = DefaultRouteEvent>, Error> {
+    ) -> Result<mpsc::UnboundedReceiver<DefaultRouteEvent>, Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::NewDefaultRouteListener(response_tx))
+            .send(RouteManagerCommand::NewDefaultRouteListener(response_tx))
             .map_err(|_| Error::RouteManagerDown)?;
         response_rx.await.map_err(|_| Error::ManagerChannelDown)
     }
@@ -234,7 +227,7 @@ impl RouteManagerHandle {
     ) -> Result<(Option<DefaultRoute>, Option<DefaultRoute>), Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::GetDefaultRoutes(response_tx))
+            .send(RouteManagerCommand::GetDefaultRoutes(response_tx))
             .map_err(|_| Error::RouteManagerDown)?;
         response_rx.await.map_err(|_| Error::ManagerChannelDown)
     }
@@ -243,10 +236,10 @@ impl RouteManagerHandle {
     #[cfg(target_os = "macos")]
     pub async fn interface_change_listener(
         &self,
-    ) -> Result<impl Stream<Item = InterfaceEvent>, Error> {
+    ) -> Result<mpsc::UnboundedReceiver<InterfaceEvent>, Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::NewInterfaceChangeListener(response_tx))
+            .send(RouteManagerCommand::NewInterfaceChangeListener(response_tx))
             .map_err(|_| Error::RouteManagerDown)?;
         response_rx.await.map_err(|_| Error::ManagerChannelDown)
     }
@@ -256,7 +249,7 @@ impl RouteManagerHandle {
     pub async fn get_default_gateway(&self) -> Result<(Option<Gateway>, Option<Gateway>), Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::GetDefaultGateway(response_tx))
+            .send(RouteManagerCommand::GetDefaultGateway(response_tx))
             .map_err(|_| Error::RouteManagerDown)?;
         response_rx.await.map_err(|_| Error::ManagerChannelDown)
     }
@@ -265,7 +258,7 @@ impl RouteManagerHandle {
     #[cfg(target_os = "macos")]
     pub fn refresh_routes(&self) -> Result<(), Error> {
         self.tx
-            .unbounded_send(RouteManagerCommand::RefreshRoutes)
+            .send(RouteManagerCommand::RefreshRoutes)
             .map_err(|_| Error::RouteManagerDown)
     }
 
@@ -274,7 +267,7 @@ impl RouteManagerHandle {
     pub async fn create_routing_rules(&self) -> Result<(), Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::CreateRoutingRules(true, response_tx))
+            .send(RouteManagerCommand::CreateRoutingRules(true, response_tx))
             .map_err(|_| Error::RouteManagerDown)?;
         response_rx
             .await
@@ -287,7 +280,7 @@ impl RouteManagerHandle {
     pub async fn clear_routing_rules(&self) -> Result<(), Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::ClearRoutingRules(response_tx))
+            .send(RouteManagerCommand::ClearRoutingRules(response_tx))
             .map_err(|_| Error::RouteManagerDown)?;
         response_rx
             .await
@@ -297,10 +290,10 @@ impl RouteManagerHandle {
 
     /// Listen for route changes.
     #[cfg(target_os = "linux")]
-    pub async fn change_listener(&self) -> Result<impl Stream<Item = CallbackMessage>, Error> {
+    pub async fn change_listener(&self) -> Result<mpsc::UnboundedReceiver<CallbackMessage>, Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::NewChangeListener(response_tx))
+            .send(RouteManagerCommand::NewChangeListener(response_tx))
             .map_err(|_| Error::RouteManagerDown)?;
         response_rx.await.map_err(|_| Error::ManagerChannelDown)
     }
@@ -314,7 +307,7 @@ impl RouteManagerHandle {
     ) -> Result<Option<Route>, Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::GetDestinationRoute(
+            .send(RouteManagerCommand::GetDestinationRoute(
                 destination,
                 mark,
                 response_tx,
@@ -331,7 +324,7 @@ impl RouteManagerHandle {
     pub async fn get_mtu_for_route(&self, ip: IpAddr) -> Result<u16, Error> {
         let (response_tx, response_rx) = oneshot::channel();
         self.tx
-            .unbounded_send(RouteManagerCommand::GetMtuForRoute(ip, response_tx))
+            .send(RouteManagerCommand::GetMtuForRoute(ip, response_tx))
             .map_err(|_| Error::RouteManagerDown)?;
         response_rx
             .await

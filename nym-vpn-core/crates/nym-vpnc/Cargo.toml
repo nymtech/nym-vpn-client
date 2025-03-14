@@ -11,14 +11,9 @@ license.workspace = true
 
 [dependencies]
 anyhow.workspace = true
-bs58.workspace = true
 clap = { workspace = true, features = ["derive", "wrap_help"] }
 itertools.workspace = true
-parity-tokio-ipc.workspace = true
-prost-types.workspace = true
-prost.workspace = true
 sysinfo.workspace = true
-time = { workspace = true, features = ["formatting"] }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tonic.workspace = true
 tower.workspace = true
@@ -26,6 +21,7 @@ tower.workspace = true
 nym-bin-common.workspace = true
 nym-gateway-directory = { workspace = true }
 nym-http-api-client.workspace = true
+nym-ipc.workspace = true
 nym-vpn-network-config = { workspace = true }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
 nym-vpnd-types = { workspace = true }
@@ -40,9 +36,6 @@ vergen = { workspace = true, default-features = false, features = [
     "cargo",
 ] }
 
-[target.'cfg(windows)'.dependencies]
-winapi = { workspace = true, features = ["winnt", "excpt", "winerror"] }
-
 # Debian
 [package.metadata.deb]
 name = "nym-vpnc"
@@ -53,3 +46,6 @@ recommends = "nym-vpnd"
 revision = ""
 maintainer-scripts = "debian"
 systemd-units = { enable = false }
+
+[package.metadata.cargo-machete]
+ignored = ["vergen"]

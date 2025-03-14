@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::SocketAddr, path::PathBuf, time::Duration};
+use std::{path::PathBuf, time::Duration};
 
 use futures::FutureExt;
 use nym_vpn_lib_types::TunnelEvent;
@@ -19,11 +19,7 @@ use tokio_util::sync::CancellationToken;
 use tonic::transport::Server;
 use tonic_health::pb::health_server::{Health, HealthServer};
 
-use super::{
-    config::{default_socket_path, default_uri_addr},
-    listener::CommandInterface,
-    socket_stream::setup_socket_stream,
-};
+use super::{config::default_socket_path, listener::CommandInterface};
 use crate::service::VpnServiceCommand;
 
 // If the shutdown signal is received, we give the listeners a little extra time to finish
@@ -47,34 +43,6 @@ fn grpc_span(req: &http::Request<()>) -> tracing::Span {
     span
 }
 
-async fn run_uri_listener<T>(
-    vpn_command_tx: UnboundedSender<VpnServiceCommand>,
-    tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
-    addr: SocketAddr,
-    shutdown_token: CancellationToken,
-    health_service: HealthServer<T>,
-    network_env: Network,
-) -> Result<(), tonic::transport::Error>
-where
-    T: Health,
-{
-    tracing::info!("Starting HTTP listener on: {addr}");
-    let reflection_service = tonic_reflection::server::Builder::configure()
-        .register_encoded_file_descriptor_set(VPN_FD_SET)
-        .build()
-        .unwrap();
-    let command_interface =
-        CommandInterface::new_with_uri(vpn_command_tx, tunnel_event_rx, addr, network_env);
-
-    Server::builder()
-        .trace_fn(grpc_span)
-        .add_service(health_service)
-        .add_service(reflection_service)
-        .add_service(NymVpndServer::new(command_interface))
-        .serve_with_shutdown(addr, shutdown_token.cancelled_owned())
-        .await
-}
-
 async fn run_socket_listener<T>(
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
@@ -89,14 +57,16 @@ where
     tracing::info!("Starting socket listener on: {}", socket_path.display());
     let reflection_service = tonic_reflection::server::Builder::configure()
         .register_encoded_file_descriptor_set(VPN_FD_SET)
-        .build()
+        .build_v1()
         .unwrap();
-    let command_interface =
-        CommandInterface::new_with_path(vpn_command_tx, tunnel_event_rx, &socket_path, network_env);
-    command_interface.remove_previous_socket_file();
+    let command_interface = CommandInterface::new(vpn_command_tx, tunnel_event_rx, network_env);
+
+    // Remove previous socket file in case if the daemon crashed in the prior run and could not clean up the socket file.
+    #[cfg(unix)]
+    remove_previous_socket_file(&socket_path).await;
 
     // Wrap the unix socket into a stream that can be used by tonic
-    let incoming = setup_socket_stream(&socket_path);
+    let incoming = nym_ipc::server::create_incoming(socket_path).unwrap();
 
     Server::builder()
         .trace_fn(grpc_span)
@@ -107,123 +77,104 @@ where
         .await
 }
 
-#[derive(Default)]
-pub(crate) struct CommandInterfaceOptions {
-    pub(crate) disable_socket_listener: bool,
-    pub(crate) enable_http_listener: bool,
-}
-
-async fn setup_health_service(
-    shutdown_token: CancellationToken,
-) -> (HealthServer<impl Health>, JoinHandle<()>) {
-    let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
-    health_reporter
-        .set_serving::<NymVpndServer<CommandInterface>>()
-        .await;
-
-    let handle = tokio::spawn(async move {
-        shutdown_token.cancelled().await;
-        tracing::debug!("Reporting not serving on health service");
-        health_reporter
-            .set_not_serving::<NymVpndServer<CommandInterface>>()
-            .await;
-    });
-
-    (health_service, handle)
-}
-
-pub(crate) fn start_command_interface(
+pub fn start_command_interface(
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
-    command_interface_options: Option<CommandInterfaceOptions>,
     network_env: Network,
     shutdown_token: CancellationToken,
 ) -> (JoinHandle<()>, UnboundedReceiver<VpnServiceCommand>) {
     tracing::debug!("Starting command interface");
 
     let (vpn_command_tx, vpn_command_rx) = mpsc::unbounded_channel();
-    let command_interface_options = command_interface_options.unwrap_or_default();
-    let socket_path = default_socket_path();
-    let uri_addr = default_uri_addr();
 
     let handle = tokio::spawn(async move {
+        let (mut health_reporter, health_service) = tonic_health::server::health_reporter();
         let mut join_set = JoinSet::new();
 
-        let (health_service, health_service_handle) =
-            setup_health_service(shutdown_token.child_token()).await;
+        let child_token = shutdown_token.child_token();
+        join_set.spawn(async move {
+            health_reporter
+                .set_serving::<NymVpndServer<CommandInterface>>()
+                .await;
 
-        if !command_interface_options.disable_socket_listener {
-            join_set.spawn(run_socket_listener(
+            child_token.cancelled().await;
+
+            health_reporter
+                .set_not_serving::<NymVpndServer<CommandInterface>>()
+                .await;
+
+            tracing::info!("Health reporter has finished");
+        });
+
+        let child_token = shutdown_token.child_token();
+        join_set.spawn(async move {
+            match run_socket_listener(
                 vpn_command_tx.clone(),
                 tunnel_event_rx.resubscribe(),
-                socket_path.to_path_buf(),
-                shutdown_token.child_token(),
+                default_socket_path(),
+                child_token,
                 health_service.clone(),
                 network_env.clone(),
-            ));
+            )
+            .await
+            {
+                Ok(()) => {
+                    tracing::info!("Socket listener has finished");
+                }
+                Err(e) => {
+                    tracing::error!("Socket listener exited with error: {}", e);
+                }
+            }
+        });
+
+        let delayed_cancel = shutdown_token
+            .cancelled()
+            .then(|_| sleep(SHUTDOWN_TIMEOUT))
+            .fuse();
+        tokio::pin!(delayed_cancel);
+
+        loop {
+            tokio::select! {
+                _ = &mut delayed_cancel => {
+                    tracing::info!("Timed out while waiting for listeners to finish, shutting down");
+                    join_set.abort_all();
+                    break;
+                }
+                next_result = join_set.join_next() => {
+                    match next_result {
+                        Some(Ok(_)) => {
+                            continue;
+                        }
+                        Some(Err(e)) => {
+                            tracing::error!("Failed to join task: {}", e);
+                        }
+                        None => {
+                            tracing::info!("All listeners have finished, shutting down");
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
-        if command_interface_options.enable_http_listener {
-            join_set.spawn(run_uri_listener(
-                vpn_command_tx.clone(),
-                tunnel_event_rx.resubscribe(),
-                uri_addr,
-                shutdown_token.child_token(),
-                health_service,
-                network_env,
-            ));
-        }
-
-        wait_for_shutdown(shutdown_token, join_set, health_service_handle).await;
         tracing::info!("Command interface exiting");
     });
 
     (handle, vpn_command_rx)
 }
 
-async fn wait_for_shutdown(
-    shutdown_token: CancellationToken,
-    mut join_set: JoinSet<Result<(), tonic::transport::Error>>,
-    health_service_handle: JoinHandle<()>,
-) {
-    let delayed_cancel = shutdown_token
-        .cancelled()
-        .then(|_| sleep(SHUTDOWN_TIMEOUT))
-        .fuse();
-    tokio::pin!(delayed_cancel);
-
-    let mut i = 0;
-    loop {
-        tokio::select! {
-            _ = &mut delayed_cancel => {
-                tracing::info!("Shutdown timeout reached, cancelling all listeners");
-                join_set.abort_all();
-            }
-            result = join_set.join_next() => match result {
-                Some(result) => {
-                    i += 1;
-
-                    match result {
-                        Ok(Ok(_)) => {
-                            tracing::trace!("Listener ({i}) has finished.")
-                        }
-                        Ok(Err(e)) => {
-                            tracing::error!("Listener ({i}) exited with error: {e}");
-                        }
-                        Err(e) => {
-                            tracing::error!("Failed to join on listener ({i}): {e}");
-                        }
-                    }
-                },
-                None => {
-                    tracing::trace!("All listeners have finished");
-                    break;
-                }
-            }
+#[cfg(unix)]
+async fn remove_previous_socket_file(socket_path: &std::path::Path) {
+    match tokio::fs::remove_file(socket_path).await {
+        Ok(_) => tracing::info!(
+            "Removed previous command interface socket: {}",
+            socket_path.display()
+        ),
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
+        Err(err) => {
+            tracing::error!(
+                "Failed to remove previous command interface socket: {:?}",
+                err
+            );
         }
     }
-
-    health_service_handle
-        .await
-        .inspect_err(|e| tracing::error!("Failed to join on health reporter: {e}"))
-        .ok();
 }

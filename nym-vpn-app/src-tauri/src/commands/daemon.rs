@@ -23,15 +23,8 @@ pub enum NetworkEnv {
 #[tauri::command]
 pub async fn daemon_status(
     app_state: State<'_, SharedAppState>,
-    grpc_client: State<'_, GrpcClient>,
 ) -> Result<VpndStatus, BackendError> {
-    let status = grpc_client
-        .check(app_state.inner())
-        .await
-        .inspect_err(|e| {
-            warn!("failed to check daemon status: {:?}", e);
-        })
-        .unwrap_or(VpndStatus::Down);
+    let status = app_state.lock().await.vpnd_status.clone();
     debug!("daemon status: {:?}", status);
     Ok(status)
 }

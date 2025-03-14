@@ -1,12 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    fs,
-    net::SocketAddr,
-    path::{Path, PathBuf},
-};
-
 use futures::{stream::BoxStream, StreamExt};
 use nym_vpn_network_config::{Network, NetworkCompatibility};
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
@@ -16,16 +10,16 @@ use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
     conversions::ConversionError, nym_vpnd_server::NymVpnd, AccountError,
     ConfirmZkNymDownloadedRequest, ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse,
-    DisconnectResponse, ForgetAccountResponse, GetAccountIdentityResponse, GetAccountLinksRequest,
-    GetAccountLinksResponse, GetAccountStateResponse, GetAccountUsageResponse,
-    GetAvailableTicketsResponse, GetDeviceIdentityResponse, GetDeviceZkNymsResponse,
-    GetDevicesResponse, GetFeatureFlagsResponse, GetNetworkCompatibilityResponse,
-    GetSystemMessagesResponse, GetZkNymByIdRequest, GetZkNymByIdResponse,
-    GetZkNymsAvailableForDownloadResponse, InfoResponse, IsAccountStoredResponse,
-    ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
-    RefreshAccountStateResponse, RegisterDeviceResponse, RequestZkNymResponse,
-    ResetDeviceIdentityRequest, ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse,
-    StoreAccountRequest, StoreAccountResponse, TunnelState,
+    DeleteLogFileResponse, DisconnectResponse, ForgetAccountResponse, GetAccountIdentityResponse,
+    GetAccountLinksRequest, GetAccountLinksResponse, GetAccountStateResponse,
+    GetAccountUsageResponse, GetAvailableTicketsResponse, GetDeviceIdentityResponse,
+    GetDeviceZkNymsResponse, GetDevicesResponse, GetFeatureFlagsResponse,
+    GetNetworkCompatibilityResponse, GetSystemMessagesResponse, GetZkNymByIdRequest,
+    GetZkNymByIdResponse, GetZkNymsAvailableForDownloadResponse, InfoResponse,
+    IsAccountStoredResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
+    ListGatewaysResponse, RefreshAccountStateResponse, RegisterDeviceResponse,
+    RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
+    SetNetworkRequest, SetNetworkResponse, StoreAccountRequest, StoreAccountResponse, TunnelState,
 };
 use zeroize::Zeroizing;
 
@@ -39,74 +33,26 @@ use crate::{
     service::{ConnectOptions, VpnServiceCommand},
 };
 
-enum ListenerType {
-    Path(PathBuf),
-    Uri(#[allow(unused)] SocketAddr),
-}
-
 pub(super) struct CommandInterface {
     // Send commands to the VPN service
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
 
     // Broadcast tunnel events to our API endpoint listeners
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
-
-    listener: ListenerType,
-
     network_env: Network,
 }
 
 impl CommandInterface {
-    pub(super) fn new_with_path(
+    pub(super) fn new(
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
         tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
-        socket_path: &Path,
         network_env: Network,
     ) -> Self {
         Self {
             vpn_command_tx,
             tunnel_event_rx,
-            listener: ListenerType::Path(socket_path.to_path_buf()),
             network_env,
         }
-    }
-
-    pub(super) fn new_with_uri(
-        vpn_command_tx: UnboundedSender<VpnServiceCommand>,
-        tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
-        uri: SocketAddr,
-        network_env: Network,
-    ) -> Self {
-        Self {
-            vpn_command_tx,
-            tunnel_event_rx,
-            listener: ListenerType::Uri(uri),
-            network_env,
-        }
-    }
-
-    pub(super) fn remove_previous_socket_file(&self) {
-        if let ListenerType::Path(ref socket_path) = self.listener {
-            match fs::remove_file(socket_path) {
-                Ok(_) => tracing::info!(
-                    "Removed previous command interface socket: {:?}",
-                    socket_path
-                ),
-                Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
-                Err(err) => {
-                    tracing::error!(
-                        "Failed to remove previous command interface socket: {:?}",
-                        err
-                    );
-                }
-            }
-        }
-    }
-}
-
-impl Drop for CommandInterface {
-    fn drop(&mut self) {
-        self.remove_previous_socket_file();
     }
 }
 
@@ -916,6 +862,34 @@ impl NymVpnd for CommandInterface {
                 resp: Some(nym_vpn_proto::get_available_tickets_response::Resp::Error(
                     nym_vpn_proto::AccountError::from(err),
                 )),
+            },
+        };
+
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn delete_log_file(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<DeleteLogFileResponse>, tonic::Status> {
+        tracing::debug!("Got delete log file request");
+
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_delete_log_file()
+            .await
+            .map_err(|err| {
+                tracing::error!("Failed to get available tickets: {:?}", err);
+                tonic::Status::internal("Failed to get available tickets")
+            })?;
+
+        let response = match result {
+            Ok(_) => DeleteLogFileResponse {
+                success: true,
+                error: None,
+            },
+            Err(err) => DeleteLogFileResponse {
+                success: false,
+                error: Some(nym_vpn_proto::DeleteLogFileError::from(err)),
             },
         };
 

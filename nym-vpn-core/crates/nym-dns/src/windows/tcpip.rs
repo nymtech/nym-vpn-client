@@ -48,7 +48,7 @@ impl DnsMonitorT for DnsMonitor {
         })
     }
 
-    fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
+    async fn set(&mut self, interface: &str, config: ResolvedDnsConfig) -> Result<(), Error> {
         let servers = config.tunnel_config();
 
         let guid = guid_from_luid(&luid_from_alias(interface).map_err(Error::ObtainInterfaceLuid)?)
@@ -61,7 +61,7 @@ impl DnsMonitorT for DnsMonitor {
         Ok(())
     }
 
-    fn reset(&mut self) -> Result<(), Error> {
+    async fn reset(&mut self) -> Result<(), Error> {
         if let Some(guid) = self.current_guid.take() {
             let mut result = set_dns(&guid, &[]);
             if self.should_flush {

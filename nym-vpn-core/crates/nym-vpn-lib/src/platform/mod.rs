@@ -373,6 +373,8 @@ pub fn startVPN(config: VPNConfig) -> Result<(), VpnError> {
 }
 
 async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
+    log_build_info();
+
     // Get the network environment details. This relies on the network environment being set in
     // advance by calling initEnvironment or initFallbackMainnetEnvironment.
     let network_env = environment::current_environment_details().await?;
@@ -391,6 +393,16 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
         account_controller_tx,
     )
     .await
+}
+
+fn log_build_info() {
+    let build_info = nym_bin_common::bin_info_local_vergen!();
+    tracing::info!(
+        "{} {} ({})",
+        build_info.binary_name,
+        build_info.build_version,
+        build_info.commit_sha
+    );
 }
 
 async fn is_credential_mode_enabled(credential_mode: Option<bool>) -> Result<bool, VpnError> {

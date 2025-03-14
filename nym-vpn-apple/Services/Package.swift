@@ -39,7 +39,7 @@ let package = Package(
         .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
         .package(name: "Theme", path: "../Theme"),
         .package(url: "https://github.com/apple/swift-log", from: "1.5.4"),
-        .package(url: "https://github.com/getsentry/sentry-cocoa", from: "8.26.0")
+        .package(url: "https://github.com/getsentry/sentry-cocoa", from: "8.46.0")
     ],
     targets: [
         .target(

@@ -17,18 +17,9 @@ nym-node-requests.workspace = true
 nym-pemstore.workspace = true
 nym-sdk.workspace = true
 nym-validator-client.workspace = true
-nym-wireguard-types.workspace = true
 rand.workspace = true
 thiserror.workspace = true
-tokio = { workspace = true, features = [
-    "process",
-    "rt-multi-thread",
-    "fs",
-    "sync",
-] }
-tokio-stream.workspace = true
 tracing.workspace = true
-si-scale.workspace = true
 
 nym-authenticator-client = { workspace = true }
 nym-gateway-directory = { workspace = true }

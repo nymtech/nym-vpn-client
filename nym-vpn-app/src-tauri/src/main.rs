@@ -71,8 +71,8 @@ async fn main() -> Result<()> {
     let _guard = log::setup_tracing(&cli).await?;
     trace!("cli args: {:#?}", cli);
 
-    #[cfg(unix)]
-    misc::nvidia_check();
+    #[cfg(any(target_os = "linux", target_os = "openbsd"))]
+    misc::linux_check();
 
     #[cfg(windows)]
     if cli.console {
@@ -165,11 +165,6 @@ async fn main() -> Result<()> {
 
             let pkg_info = app.package_info().clone();
             let grpc = GrpcClient::new(&app_config, &cli, &pkg_info);
-            let mut c_grpc = grpc.clone();
-            let handle = app.handle().clone();
-            tokio::spawn(async move {
-                c_grpc.update_vpnd_info(&handle).await.ok();
-            });
 
             app.manage(app_config);
             app.manage(grpc.clone());
@@ -180,30 +175,26 @@ async fn main() -> Result<()> {
                 debug!("splash screen disabled, showing main window");
                 app_window.no_splash();
             }
-
             tray::setup(app.handle())?;
 
             let handle = app.handle().clone();
             let mut c_grpc = grpc.clone();
             tokio::spawn(async move {
-                info!("starting vpnd health spy");
+                info!("starting vpnd spy");
                 loop {
-                    c_grpc.watch(&handle).await.ok();
-                    sleep(VPND_RETRY_INTERVAL).await;
-                    trace!("vpnd health spy retry");
-                }
-            });
-
-            let handle = app.handle().clone();
-            let c_grpc = grpc.clone();
-            tokio::spawn(async move {
-                info!("starting vpn tunnel spy");
-                loop {
-                    if c_grpc.tunnel_state(&handle).await.is_ok() {
+                    if let Ok(info) = c_grpc.vpnd_info().await {
+                        c_grpc.update_vpnd_state(info, &handle).await.ok();
+                        // initialize tunnel state
+                        c_grpc.tunnel_state(&handle).await.ok();
+                        info!("watching vpn tunnel events");
                         c_grpc.watch_tunnel_events(&handle).await.ok();
+                        // if the tunnel stream cuts off, that means vpnd is down
+                        AppState::vpnd_down(&handle).await;
+                    } else {
+                        AppState::vpnd_down(&handle).await;
                     }
                     sleep(VPND_RETRY_INTERVAL).await;
-                    trace!("vpn tunnel spy retry");
+                    trace!("vpnd spy retry");
                 }
             });
 

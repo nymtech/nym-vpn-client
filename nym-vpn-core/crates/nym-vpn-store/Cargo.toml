@@ -15,7 +15,6 @@ workspace = true
 bip39.workspace = true
 nym-crypto = { workspace = true, features = ["rand", "asymmetric"] }
 nym-pemstore.workspace = true
-nym-validator-client.workspace = true
 rand.workspace = true
 rand_chacha.workspace = true
 serde = { workspace = true, features = ["derive"] }
