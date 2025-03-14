@@ -1,0 +1,5 @@
+What's new:
+- Two hop speed improvements with WireGuard
+- App performance improvements
+- UI improvements
+- Various bug fixes

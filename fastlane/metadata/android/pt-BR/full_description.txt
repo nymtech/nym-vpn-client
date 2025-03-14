@@ -1,44 +1,49 @@
-Baixe a NymVPN e torne sua atividade online segura.
 Com nosso aplicativo VPN, você pode esconder seu endereço IP, criptografar seu tráfego, esconder sua identidade online e muito mais.
 
-Muitas entidades, como governos, empresas de tecnologia, ISPs e anunciantes, podem espionar sua atividade online. Escândalos recentes mostram que não podemos confiar nem mesmo em VPNs tradicionais. A NymVPN é diferente: projetada para tornar impossível o monitoramento ou registro de suas atividades, até mesmo por nós. Operando em uma rede descentralizada, a NymVPN elimina pontos únicos de falha e não permite registro centralizado.
+Many entities on the internet can spy on your activity and take your data.
+Muitas entidades, como governos, empresas de tecnologia, ISPs e anunciantes, podem espionar sua atividade online. Escândalos recentes mostram que não podemos confiar nem mesmo em VPNs tradicionais.
 
-O que é uma Mixnet?
-Uma Mixnet é uma rede de nós que:
+Nossa dVPN foi criada para garantir privacidade, sem armazenamento de logs nem rastreamento de atividades.
 
-1- Recebem tráfego criptografado
-2- Misturam o tráfego
-3- Redirecionam o tráfego
+A NymVPN é diferente: projetada para tornar impossível o monitoramento ou registro de suas atividades, até mesmo por nós. Operando em uma rede descentralizada, a NymVPN elimina pontos únicos de falha e não permite registro centralizado. Por que escolher a NymVPN?
 
+Our VPN encrypts data and shields metadata from traffic analysis through a decentralized Mixnet. Simply put: there is no way for Nym to log your activity, therefore no one can access it.
+
+O que é uma Mixnet? Uma Mixnet é uma rede de nós que:
+1. 1- Recebem tráfego criptografado
+2. 2- Misturam o tráfego
+3. 3- Redirecionam o tráfego
 Este processo ocorre até 5 vezes, impossibilitando o rastreamento de sua atividade online.
-Por que escolher a NymVPN?
+
+This is why you should choose our decentralized, secure, and private VPN
 
 Privacidade
-Nossa dVPN foi criada para garantir privacidade, sem armazenamento de logs nem rastreamento de atividades. Mesmo que alguém tentasse roubar seus dados, não haveria nada para pegar.
+Nossa prioridade é sua privacidade. We don't store logs (no-logs policy) nor track your activity. Mesmo que alguém tentasse roubar seus dados, não haveria nada para pegar.
 
 Resistência à Censura
-Criptografamos seu tráfego, endereço IP e localização, garantindo anonimato total. Recursos como o killswitch garantem segurança adicional.
+Our VPN app makes your online activity completely anonymous. Criptografamos seu tráfego, endereço IP e localização, garantindo anonimato total. You are completely safe also thanks to features like the killswitch.
 
 Velocidade
 Nossa rede VPN cresce continuamente com novos nós se juntando à Mixnet. Usamos algoritmos modernos como Sphinx e Loopix para garantir conexões rápidas.
 
 Escolha de Localização
 Conecte-se a partir de centenas de locais ao redor do mundo com a NymVPN.
+Download the app --> Choose the location --> Connect
 
-Pagamentos com Criptomoedas
-Aceitamos pagamentos em criptomoedas, adicionando uma camada extra de anonimato.
+Crypto payments
+You are looking for a VPN that accepts crypto payments? Here we are. We are happy to accept payments with cryptocurrencies.
 
-Sem Anúncios
-Desfrute de uma VPN sem anúncios. Nossa prioridade é sua privacidade.
+No-ads
+Desfrute de uma VPN sem anúncios. Our main goal is to protect your privacy, also because of this you won't see any ads in our VPN app.
 
 Uso Ilimitado
 Use a internet o quanto quiser; a NymVPN nunca limitará seu tráfego.
-Recursos Destacados:
 
+Our VPN most beloved features:
 - Mixnet de 5 Saltos: Criptografa e mistura seu tráfego 5 vezes, tornando o rastreamento impossível.
-- dVPN de 2 Saltos: Maior velocidade com dois saltos de criptografia.
+- 2-hop dVPN: in this case your traffic is encrypted and sent to 2 mixnodes that will mix it. The reduced number of hops results in higher speed.
 - Sem Logs Centralizados: Nenhum registro de atividades.
-- Garantia de Devolução do Dinheiro: Não satisfeito? Oferecemos garantia de devolução do dinheiro.
+- Garantia de Devolução do Dinheiro: Não satisfeito? If you are not happy with something email us at support@nymvpn.com, we are always looking to improve.
 - Túnel Dividido: Escolha quais aplicativos usarão a VPN.
 - Esconder IP: Esconde todas as informações ligadas a você.
-- Killswitch: Protege seus dados caso a conexão caia.
+Baixe a NymVPN e torne sua atividade online segura. Recursos como o killswitch garantem segurança adicional. Pagamentos com Criptomoedas Aceitamos pagamentos em criptomoedas, adicionando uma camada extra de anonimato. Sem Anúncios Recursos Destacados: - dVPN de 2 Saltos: Maior velocidade com dois saltos de criptografia. Oferecemos garantia de devolução do dinheiro. - Killswitch: Protege seus dados caso a conexão caia.

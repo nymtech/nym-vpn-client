@@ -1,44 +1,49 @@
-NymVPN: तेज़ और सुरक्षित VPN
-NymVPN डाउनलोड करें और अपनी ऑनलाइन गतिविधियों को सुरक्षित बनाएं।
+Download the most secure VPN from Nym and make your online activity safe.With our VPN app you can hide your IP address, encrypt your traffic, hide your identity online and much more.
 
-हमारे VPN ऐप के साथ, आप अपना IP पता छुपा सकते हैं, अपने ट्रैफ़िक को एन्क्रिप्ट कर सकते हैं, ऑनलाइन अपनी पहचान छुपा सकते हैं और भी बहुत कुछ।
-इंटरनेट पर कई संस्थाएं आपकी गतिविधियों पर नज़र रख सकती हैं और आपका डेटा ले सकती हैं।
-सरकारें, बड़ी टेक कंपनियां, डेटा ब्रोकर, इंटरनेट सेवा प्रदाता और विज्ञापनदाता आपकी ऑनलाइन गतिविधियों की निगरानी करने की कोशिश कर सकते हैं। हाल के डेटा लीक घोटालों ने यह स्पष्ट कर दिया है कि हम पारंपरिक VPN कंपनियों पर भी भरोसा नहीं कर सकते।
+Many entities on the internet can spy on your activity and take your data.
+Governments, big tech, data brokers, internet service providers and advertisers can all try to monitor your online activity. Recent data leakage scandals made it clear that we can't even trust traditional VPN companies.
 
-हमारा VPN आपकी इंटरनेट गतिविधियों को प्राइवेट बनाने के लिए डिज़ाइन किया गया है और इसका एक महत्वपूर्ण हिस्सा यह है कि गतिविधि लॉगिंग और ट्रैकिंग को संभव नहीं बनाया गया है।
-NymVPN एक नई तरह का VPN है जिसे इस प्रकार डिज़ाइन किया गया है कि कोई भी आपकी ऑनलाइन गतिविधियों की निगरानी या लॉगिंग नहीं कर सकता, यहां तक कि हम भी नहीं। हमारा VPN एक विकेंद्रीकृत नेटवर्क पर चलता है, जिसमें कोई विश्वसनीय पार्टियां, केंद्रीकृत घटक, या एकल विफलता बिंदु नहीं होते। NymVPN की सभी कार्यक्षमताएं विकेंद्रीकृत और वितरित तरीके से की जाती हैं, और केंद्रीकृत लॉगिंग सक्षम करने की कोई संभावना नहीं है।
-हमारा VPN डेटा को एन्क्रिप्ट करता है और मेटाडाटा को ट्रैफ़िक विश्लेषण से बचाता है एक विकेंद्रीकृत Mixnet के माध्यम से। सीधे शब्दों में कहें: हमारे लिए आपकी गतिविधि को लॉग करने का कोई तरीका नहीं है, इसलिए कोई भी इसे एक्सेस नहीं कर सकता।
+Our VPN was born to make your internet activities private and a crucial part of this is not making activity logging and tracking possible.
 
-Mixnet क्या है?
-Mixnet एक नेटवर्क है जो:
-1.एन्क्रिप्टेड ट्रैफ़िक प्राप्त करता है
-2.ट्रैफ़िक को मिलाता है
-3.ट्रैफ़िक को रीडायरेक्ट करता है
-यह प्रक्रिया 5 बार (5-हॉप्स) की जाती है और इसे किसी के लिए आपकी ऑनलाइन गतिविधियों की निगरानी या ट्रैकिंग करना असंभव बना देती है।
+NymVPN is a new type of VPN designed in a way that makes it impossible for anyone to monitor or log your online activity, even for us. Our VPN operates on a decentralized network, with no trusted parties, centralized components, or single points of failure. All functionalities of NymVPN are performed in a decentralized and distributed way, and there is no possibility of enabling centralized logging.
 
-हमारा विकेंद्रीकृत, सुरक्षित और प्राइवेट VPN क्यों चुनें
-गोपनीयता
-हमारा dVPN गोपनीयता को ध्यान में रखते हुए बनाया गया है। हम लॉग्स (नो-लॉग्स पॉलिसी) को स्टोर नहीं करते हैं और आपकी गतिविधियों को ट्रैक नहीं करते हैं। यहां तक कि अगर कोई आपकी डेटा चोरी करना चाहता है, तो हमारे पास चोरी करने के लिए कुछ भी नहीं होगा।
+Our VPN encrypts data and shields metadata from traffic analysis through a decentralized Mixnet. Simply put: there is no way for Nym to log your activity, therefore no one can access it.
 
-सेंसरशिप प्रतिरोध
-हमारा VPN ऐप आपकी ऑनलाइन गतिविधियों को पूरी तरह से गुमनाम बनाता है। हम आपके ट्रैफ़िक, IP पता, स्थान और हर चीज़ को एन्क्रिप्ट करते हैं जिसे कोई बुरा इरादा रखने वाला व्यक्ति मॉनिटर कर सकता है। आपको पूरी सुरक्षा मिलती है किल स्विच जैसे फीचर्स के साथ।
+But what exactly is a Mixnet? A Mixnet is a network of nodes that:
+1. Receive encrypted traffic
+2. Mix the traffic
+3. Redirect the traffic
+This process is done up to 5 times (5-hops) and makes it impossible for anyone to monitor or track your online activity.
 
-स्पीड
-हमारे VPN नेटवर्क की स्पीड हर पल बढ़ रही है क्योंकि बहुत सारे अतिरिक्त नोड्स Mixnet नेटवर्क में शामिल हो रहे हैं। इसके अलावा, हम आधुनिक क्रिप्टोग्राफिक एल्गोरिदम और नवोन्मेषी प्रोटोकॉल जैसे Sphinx और Loopix का उपयोग करते हैं ताकि आपका कनेक्शन जितना संभव हो उतना तेज़ हो।
+This is why you should choose our decentralized, secure, and private VPN
 
-चयन की जगह
-NymVPN के साथ आप दुनिया भर के सैकड़ों स्थानों से कनेक्ट होने का विकल्प चुन सकते हैं।
-ऐप डाउनलोड करें --> स्थान चुनें --> कनेक्ट करें
+Privacy
+Our dVPN was built with privacy in mind. We don't store logs (no-logs policy) nor track your activity. Even if someone wanted to steal your data from us, there would be nothing to steal.
 
-क्रिप्टो भुगतान
-क्या आप एक VPN ढूंढ रहे हैं जो क्रिप्टो भुगतान स्वीकार करता है? यहां हम हैं। हम क्रिप्टोकरेंसी के माध्यम से भुगतान स्वीकार करने के लिए खुश हैं।
+Censorship resistance
+Our VPN app makes your online activity completely anonymous. We encrypt your traffic, IP address, location and everything that someone with bad intentions could monitor. You are completely safe also thanks to features like the killswitch.
 
-हमारे VPN की सबसे पसंदीदा सुविधाएँ:
+Speed
+The speed of our VPN network grows by the minute thanks to many additional nodes joining the Mixnet network. Moreover, we use modern cryptographic algorithms and innovative protocols such as Sphinx and Loopix to make your connection as fast as possible.
 
--5-हॉप Mixnet: आपका इंटरनेट ट्रैफ़िक एन्क्रिप्ट किया जाएगा और मिश्रण नोड्स को भेजा जाएगा जो इसे 5 बार मिलाएंगे, जिससे किसी को आपकी ऑनलाइन गतिविधियों को ट्रैक करना असंभव हो जाएगा।
--2-हॉप dVPN: इस मामले में आपका ट्रैफ़िक एन्क्रिप्ट किया जाएगा और 2 मिश्रण नोड्स को भेजा जाएगा जो इसे मिलाएंगे। कम हॉप्स की संख्या उच्च गति का परिणाम होती है।
--केंद्रीकृत लॉग्स नहीं: हम कोई गतिविधि लॉग्स स्टोर नहीं करते, जिससे किसी को भी हमारे माध्यम से आपकी इंटरनेट गतिविधियों को एक्सेस करना असंभव हो जाता है।
--मनी-बैक गारंटी: यदि आप उत्पाद से संतुष्ट नहीं हैं तो हम मनी-बैक गारंटी पॉलिसी प्रदान करते हैं। यदि आप किसी चीज़ से खुश नहीं हैं, तो हमें support@nymvpn.com पर ईमेल करें, हम हमेशा सुधार की कोशिश कर रहे हैं।
--स्प्लिट टनलिंग: आप आसानी से चुन सकते हैं कि कौन से आपके ऐप्स VPN के माध्यम से इंटरनेट एक्सेस करेंगे और कौन से सीधे इंटरनेट एक्सेस करेंगे।
--IP छुपाएं: हमारा dVPN आपके IP पते सहित आपसे जुड़ी सभी जानकारी छुपा देगा।
--किल स्विच: हमारा VPN गोपनीयता और सुरक्षा प्रदान करने के लिए बनाया गया है, यही कारण है कि यदि आपका VPN कनेक्शन टूट जाता है तो किल स्विच आपके इंटरनेट एक्सेस को ब्लॉक कर देगा, आपकी और आपके डेटा की सुरक्षा करता है।
+Location of choice
+With NymVPN you can choose to connect from hundreds of locations around the world.
+Download the app --> Choose the location --> Connect
+
+Crypto payments
+You are looking for a VPN that accepts crypto payments? Here we are. We are happy to accept payments with cryptocurrencies.
+
+No-ads
+Enjoy your VPN ads-free. Our main goal is to protect your privacy, also because of this you won't see any ads in our VPN app.
+
+Limitless usage
+Enjoy the internet as much as you want, NymVPN will never limit your traffic.
+
+Our VPN most beloved features:
+- 5-hop Mixnet: your internet traffic will be encrypted and sent to mixnodes that will mix it with other traffic packages 5 times, making it impossible for someone to track your online activity.
+- 2-hop dVPN: in this case your traffic is encrypted and sent to 2 mixnodes that will mix it. The reduced number of hops results in higher speed.
+- No centralized logs: we don't store any activity logs, this makes it impossible for anyone to have access to your internet activity through us.
+- Money-back guarantee: if you are not happy with the product we offer a money-back guarantee policy. If you are not happy with something email us at support@nymvpn.com, we are always looking to improve.
+- Split tunneling: you can easily choose which of your apps will access the internet through the VPN and which ones will access the internet directly.
+- Hide IP: our dVPN will hide all the information linked to you including your IP address.
+- Killswitch: our VPN is built to provide privacy and security, that's why in case your VPN connection drops the killswitch will block your internet access, keeping you and your data safe

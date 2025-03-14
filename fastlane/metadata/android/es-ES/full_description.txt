@@ -1,11 +1,12 @@
-Descarga NymVPN y haz que tu actividad online sea segura.
 Con nuestra aplicación VPN puedes ocultar tu dirección IP, cifrar tu tráfico, ocultar tu identidad en línea y mucho más.
 
 Muchas entidades en Internet pueden espiar tu actividad y tomar tus datos.
 Los gobiernos, las grandes empresas tecnológicas, los intermediarios de datos, los proveedores de servicios de Internet y los anunciantes pueden intentar monitorear tu actividad en línea. Los recientes escándalos de fugas de datos dejaron claro que ni siquiera podemos confiar en las empresas de VPN tradicionales.
 
 Nuestra VPN nació para hacer que tus actividades en Internet sean privadas y una parte crucial de esto es hacer que no sea posible el registro y seguimiento de actividades.
+
 NymVPN es un nuevo tipo de VPN diseñado de manera que sea imposible para cualquier persona monitorear o registrar tu actividad en línea, incluso para nosotros. Nuestra VPN opera en una red descentralizada, sin partes "confiables" o componentes centralizados ni puntos únicos de falla. Todas las funcionalidades de NymVPN se realizan de forma descentralizada y distribuida, y no existe la posibilidad de habilitar el registro centralizado.
+
 Nuestra VPN cifra datos y protege los metadatos del análisis de tráfico a través de una Mixnet descentralizada. En pocas palabras: no hay forma de que registremos tu actividad, por lo tanto, nadie puede acceder a ella.
 
 Pero ¿qué es exactamente una Mixnet? Una Mixnet es una red de nodos que:
@@ -22,9 +23,18 @@ Nuestro dVPN se creó teniendo en cuenta la privacidad. No almacenamos registros
 Resistencia a la censura
 Nuestra aplicación VPN hace que tu actividad en línea sea completamente anónima. Ciframos tu tráfico, dirección IP, ubicación y todo lo que alguien con malas intenciones pueda monitorear. Estás completamente seguro también gracias a funciones como el interruptor de emergencia.
 
+Speed
+The speed of our VPN network grows by the minute thanks to many additional nodes joining the Mixnet network. Moreover, we use modern cryptographic algorithms and innovative protocols such as Sphinx and Loopix to make your connection as fast as possible.
+
 Ubicación de elección
 Con NymVPN puedes elegir conectarte desde cientos de ubicaciones en todo el mundo.
 Descarga la aplicación --> Elige la ubicación --> Conectar
+
+Crypto payments
+You are looking for a VPN that accepts crypto payments? Here we are. We are happy to accept payments with cryptocurrencies.
+
+No-ads
+Enjoy your VPN ads-free. Our main goal is to protect your privacy, also because of this you won't see any ads in our VPN app.
 
 Uso ilimitado
 Disfruta de Internet tanto como quieras, NymVPN nunca limitará tu tráfico.

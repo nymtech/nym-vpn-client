@@ -1,8 +1,12 @@
-Téléchargez NymVPN et sécurisez votre activité en ligne. Avec notre application VPN, vous pouvez masquer votre adresse IP, chiffrer votre trafic, cacher votre identité en ligne, et bien plus encore.
+Téléchargez NymVPN et sécurisez votre activité en ligne.
 
-De nombreuses entités sur Internet peuvent espionner votre activité et s'emparer de vos données. Les gouvernements, les grandes entreprises technologiques, les courtiers en données, les fournisseurs d'accès à Internet et les annonceurs peuvent tous essayer de surveiller votre activité en ligne. Les récents scandales de fuites de données ont clairement montré que nous ne pouvons même pas faire confiance aux entreprises VPN traditionnelles.
+De nombreuses entités sur Internet peuvent espionner votre activité et s'emparer de vos données.
+Les gouvernements, les grandes entreprises technologiques, les courtiers en données, les fournisseurs d'accès à Internet et les annonceurs peuvent tous essayer de surveiller votre activité en ligne. Les récents scandales de fuites de données ont clairement montré que nous ne pouvons même pas faire confiance aux entreprises VPN traditionnelles.
 
-Notre VPN est né pour rendre vos activités sur Internet privées et un élément crucial de cela est d'empêcher toute possibilité de journalisation et de suivi des activités. NymVPN est un nouveau type de VPN conçu de manière à rendre impossible pour quiconque de surveiller ou de journaliser votre activité en ligne, même pour nous. Notre VPN fonctionne sur un réseau décentralisé, sans parties de confiance, composants centralisés ou points de défaillance uniques. Toutes les fonctionnalités de NymVPN sont réalisées de manière décentralisée et distribuée, sans possibilité de journalisation centralisée.
+Notre VPN est né pour rendre vos activités sur Internet privées et un élément crucial de cela est d'empêcher toute possibilité de journalisation et de suivi des activités.
+
+NymVPN est un nouveau type de VPN conçu de manière à rendre impossible pour quiconque de surveiller ou de journaliser votre activité en ligne, même pour nous. Notre VPN fonctionne sur un réseau décentralisé, sans parties de confiance, composants centralisés ou points de défaillance uniques. Toutes les fonctionnalités de NymVPN sont réalisées de manière décentralisée et distribuée, sans possibilité de journalisation centralisée.
+
 Notre VPN crypte les données et protège les métadonnées contre l'analyse du trafic via un Mixnet décentralisé. En termes simples : il est impossible pour nous de journaliser votre activité, donc personne ne peut y accéder.
 
 Mais qu'est-ce qu'un Mixnet exactement ? Un Mixnet est un réseau de nœuds qui :
@@ -18,6 +22,19 @@ Notre dVPN a été conçu avec la confidentialité à l'esprit. Nous ne stockons
 
 Résistance à la censure
 Notre application VPN rend votre activité en ligne complètement anonyme. Nous chiffrons votre trafic, votre adresse IP, votre localisation et tout ce qu'une personne mal intentionnée pourrait surveiller. Vous êtes complètement en sécurité grâce à des fonctionnalités comme le killswitch.
+
+Speed
+The speed of our VPN network grows by the minute thanks to many additional nodes joining the Mixnet network. Moreover, we use modern cryptographic algorithms and innovative protocols such as Sphinx and Loopix to make your connection as fast as possible.
+
+Location of choice
+With NymVPN you can choose to connect from hundreds of locations around the world.
+Download the app --> Choose the location --> Connect
+
+Crypto payments
+You are looking for a VPN that accepts crypto payments? Here we are. We are happy to accept payments with cryptocurrencies.
+
+No-ads
+Enjoy your VPN ads-free. Our main goal is to protect your privacy, also because of this you won't see any ads in our VPN app.
 
 Utilisation illimitée
 Profitez d'Internet autant que vous le souhaitez, NymVPN ne limitera jamais votre trafic.
