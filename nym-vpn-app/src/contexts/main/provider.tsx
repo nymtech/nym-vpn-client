@@ -8,6 +8,7 @@ import { S_STATE } from '../../static';
 import { CCache } from '../../cache';
 import { kvGet, kvSet } from '../../kvStore';
 import { useInAppNotify } from '../in-app-notification';
+import { daemonStatusUpdate } from '../../state/helper';
 import { MainDispatchContext, MainStateContext } from './context';
 import { initialState, reducer } from './reducer';
 
@@ -32,11 +33,12 @@ function MainStateProvider({ children }: Props) {
       return;
     }
     initialized = true;
+    daemonStatusUpdate(S_STATE.vpnd, dispatch, push);
 
     // this first batch is needed to ensure the app is fully
     // initialized and ready, once done splash screen is removed
     // and the UI is shown
-    initFirstBatch(dispatch, push).then(async () => {
+    initFirstBatch(dispatch).then(async () => {
       console.log('init of 1st batch done');
       dispatch({ type: 'init-done' });
       const args = await invoke<Cli>(`cli_args`);
@@ -85,7 +87,7 @@ function MainStateProvider({ children }: Props) {
   }, [networkEnv]);
 
   useEffect(() => {
-    if (S_STATE.systemMessageInit) {
+    if (S_STATE.systemMessageInit || state.daemonStatus === 'down') {
       return;
     }
     S_STATE.systemMessageInit = true;
@@ -108,7 +110,7 @@ function MainStateProvider({ children }: Props) {
       }
     };
     querySystemMessages();
-  }, [push]);
+  }, [push, state.daemonStatus]);
 
   return (
     <MainStateContext.Provider value={state}>

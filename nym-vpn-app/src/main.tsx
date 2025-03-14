@@ -12,7 +12,12 @@ import App from './App';
 import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
 import initSentry from './sentry';
-import { StartupError as TStartupError, ThemeMode, VpnMode } from './types';
+import {
+  StartupError as TStartupError,
+  ThemeMode,
+  VpnMode,
+  VpndStatus,
+} from './types';
 import { StartupError } from './screens';
 import { init } from './log';
 import { DefaultVpnMode } from './constants';
@@ -82,6 +87,8 @@ async function setSplashTheme(window: WebviewWindow) {
     S_STATE.devMode = true;
   }
 
+  S_STATE.vpnd =
+    (await invoke<VpndStatus | undefined>('daemon_status')) || 'down';
   S_STATE.vpnModeAtStart = (await kvGet<VpnMode>('vpn-mode')) || DefaultVpnMode;
 
   // check for unrecoverable errors

@@ -1,7 +1,10 @@
 // global state managed out of the React tree
-import { VpnMode } from './types';
+import { VpnMode, VpndStatus } from './types';
 
 export type SState = {
+  // the connection status with the daemon at startup
+  vpnd: VpndStatus;
+  // either the vpn mode has been initialized or not
   vpnModeInit: boolean;
   vpnModeAtStart: VpnMode;
   systemMessageInit: boolean;
@@ -9,7 +12,7 @@ export type SState = {
 };
 
 export const S_STATE: SState = {
-  // Either the vpn mode has been initialized or not
+  vpnd: 'down',
   vpnModeInit: false,
   vpnModeAtStart: 'wg',
   systemMessageInit: false,

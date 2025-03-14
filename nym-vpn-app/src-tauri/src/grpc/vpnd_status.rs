@@ -5,14 +5,15 @@ use serde::Serialize;
 use tracing::error;
 use ts_rs::TS;
 
-#[derive(Serialize, Default, Clone, Debug, TS)]
+#[derive(Serialize, Default, Clone, Debug, PartialEq, TS)]
 #[ts(export, export_to = "DaemonInfo.ts")]
 pub struct VpndInfo {
     pub version: String,
     pub network: String,
+    pub git_commit: String,
 }
 
-#[derive(Serialize, Default, Clone, Debug, TS)]
+#[derive(Serialize, Default, Clone, Debug, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub enum VpndStatus {
@@ -39,6 +40,7 @@ impl From<&InfoResponse> for VpndInfo {
                 .as_ref()
                 .map(|network| network.network_name.to_owned())
                 .unwrap_or_else(|| "unknown".to_string()),
+            git_commit: info.git_commit.clone(),
         }
     }
 }
