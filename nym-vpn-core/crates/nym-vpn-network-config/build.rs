@@ -58,9 +58,23 @@ fn default_mainnet_discovery() {
     let nym_vpn_api_url = json_value["nym_vpn_api_url"]
         .as_str()
         .expect("Failed to parse nym_vpn_api_url");
+    let credential_mode = json_value["feature_flags"]
+        .as_object()
+        .expect("Failed to parse feature_flags")
+        .get("zkNyms")
+        .expect("Failed to find zkNyms value")
+        .as_object()
+        .expect("Failed to parse zkNyms")
+        .get("credentialMode")
+        .expect("Failed to find credentialMode")
+        .as_str()
+        .expect("Failed to parse credentialMode");
 
     let generated_code = format!(
         r#"
+        use std::collections::HashMap;
+        use crate::FlagValue;
+
         impl Default for Discovery {{
             #[allow(clippy::expect_used)]
             fn default() -> Self {{
@@ -69,7 +83,21 @@ fn default_mainnet_discovery() {
                     nym_api_url: "{nym_api_url}".parse().expect("Failed to parse NYM API URL"),
                     nym_vpn_api_url: "{nym_vpn_api_url}".parse().expect("Failed to parse NYM VPN API URL"),
                     account_management: Default::default(),
-                    feature_flags: Default::default(),
+                    feature_flags: Some(
+                        FeatureFlags {{
+                            flags: HashMap::from(
+                                [
+                                    (
+                                        "zkNyms".to_string(), FlagValue::Group(
+                                            HashMap::from(
+                                                [("credentialMode".to_string(), "{credential_mode}".to_string())]
+                                            )
+                                        )    
+                                    )
+                                ]
+                            )
+                        }}
+                    ),
                     system_configuration: Default::default(),
                     system_messages: Default::default(),
                     network_compatibility: Default::default(),
