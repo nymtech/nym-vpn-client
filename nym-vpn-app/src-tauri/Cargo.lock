@@ -3256,16 +3256,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nym-common"
-version = "1.6.0-beta"
-dependencies = [
- "libc",
- "thiserror 2.0.12",
- "tracing",
- "windows 0.59.0",
-]
-
-[[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
 source = "git+https://github.com/nymtech/nym?branch=dorina-patched-vpn-fork-develop#75882f9cc06f9392b7d0cbe05e34cbae2cf99417"
@@ -3294,11 +3284,9 @@ dependencies = [
  "async-stream",
  "hyper-util",
  "nym-windows",
- "thiserror 2.0.12",
  "tokio",
  "tokio-stream",
  "tonic",
- "tower 0.5.2",
  "tracing",
  "windows 0.59.0",
 ]
@@ -3357,7 +3345,6 @@ dependencies = [
  "prost-types",
  "tonic",
  "tonic-build",
- "tonic-reflection",
 ]
 
 [[package]]
@@ -3365,7 +3352,6 @@ name = "nym-windows"
 version = "1.6.0-beta"
 dependencies = [
  "futures",
- "nym-common",
  "thiserror 2.0.12",
  "tokio",
  "tracing",
@@ -6175,19 +6161,6 @@ dependencies = [
  "prost-types",
  "quote",
  "syn 2.0.100",
-]
-
-[[package]]
-name = "tonic-reflection"
-version = "0.12.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "878d81f52e7fcfd80026b7fdb6a9b578b3c3653ba987f87f0dce4b64043cba27"
-dependencies = [
- "prost",
- "prost-types",
- "tokio",
- "tokio-stream",
- "tonic",
 ]
 
 [[package]]
