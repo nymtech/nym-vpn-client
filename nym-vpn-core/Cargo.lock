@@ -5044,6 +5044,7 @@ dependencies = [
  "nym-vpn-api-client",
  "nym-wg-gateway-client",
  "si-scale",
+ "strum_macros",
  "thiserror 2.0.12",
  "time",
 ]

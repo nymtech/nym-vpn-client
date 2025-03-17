@@ -3,7 +3,7 @@
 
 use std::fmt;
 
-use crate::{RequestZkNymError, RequestZkNymErrorReason};
+use crate::{RequestZkNymError, RequestZkNymErrorReason, VpnApiErrorResponse};
 
 use super::{
     account::{
@@ -144,7 +144,7 @@ pub enum ActionAfterDisconnect {
     Error,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, strum_macros::AsRefStr)]
 pub enum ErrorStateReason {
     /// Issues related to firewall configuration.
     Firewall,
@@ -226,92 +226,103 @@ impl From<ErrorStateReason> for ClientErrorReason {
             ErrorStateReason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
             ErrorStateReason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
             ErrorStateReason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
-            ErrorStateReason::BadBandwidthIncrease => Self::Api(value.to_string()),
-            ErrorStateReason::SyncAccount(err) => Self::Api(err.to_string()),
-            ErrorStateReason::SyncDevice(err) => Self::Api(err.to_string()),
-            ErrorStateReason::RegisterDevice(err) => {
-                if err
-                    .message_id()
-                    .is_some_and(|id| id.contains(MAX_DEVICES_REACHED_MESSAGE_ID))
-                {
-                    Self::MaxDevicesReached
-                } else {
-                    Self::Api(err.to_string())
-                }
-            }
-            ErrorStateReason::RequestZkNym(err) => match err {
-                RequestZkNymErrorReason::VpnApi(e) => match e.message_id.as_ref() {
-                    Some(id) if id.contains(BANDWIDTH_LIMIT_REACHED_MESSAGE_ID) => {
-                        Self::BandwidthExceeded
-                    }
-                    Some(id) if id.contains(SUBSCRIPTION_EXPIRED_MESSAGE_ID) => {
-                        Self::SubscriptionExpired
-                    }
-                    _ => Self::Api(e.message),
-                },
-                RequestZkNymErrorReason::UnexpectedVpnApiResponse(message) => Self::Api(message),
-                reason => Self::Internal(reason.to_string()),
-            },
+            ErrorStateReason::BadBandwidthIncrease => Self::Api(value.as_ref().to_string()),
+            ErrorStateReason::SyncAccount(err) => err.into(),
+            ErrorStateReason::SyncDevice(err) => err.into(),
+            ErrorStateReason::RegisterDevice(err) => err.into(),
+            ErrorStateReason::RequestZkNym(err) => err.into(),
             ErrorStateReason::RequestZkNymBundle {
                 successes: _,
                 failed,
             } => {
-                if let Some(RequestZkNymErrorReason::VpnApi(e)) = failed
-                    .iter()
-                    .find(|e| matches!(e, RequestZkNymErrorReason::VpnApi { .. }))
-                {
-                    return match e.message_id.as_ref() {
-                        Some(id) if id.contains(BANDWIDTH_LIMIT_REACHED_MESSAGE_ID) => {
-                            Self::BandwidthExceeded
+                for error in &failed {
+                    match error {
+                        RequestZkNymErrorReason::VpnApi(e) => {
+                            return ClientErrorReason::from(error.clone());
                         }
-                        Some(id) if id.contains(SUBSCRIPTION_EXPIRED_MESSAGE_ID) => {
-                            Self::SubscriptionExpired
+                        RequestZkNymErrorReason::UnexpectedVpnApiResponse { .. } => {
+                            return ClientErrorReason::from(error.clone());
                         }
-                        _ => Self::Api(e.clone().message),
-                    };
+                        _ => continue,
+                    }
                 }
-                if let Some(err) = failed
-                    .iter()
-                    .find(|e| matches!(e, RequestZkNymErrorReason::UnexpectedVpnApiResponse { .. }))
-                {
-                    return Self::Api(err.to_string());
+                // return just the first error so we don't have a potentially massive error message
+                if let Some(first_error) = failed.first() {
+                    Self::Api(first_error.to_string())
+                } else {
+                    Self::Api("Empty failure list in RequestZkNymBundle".to_string())
                 }
-                Self::Internal(failed.into_iter().map(|e| e.to_string()).collect())
             }
             ErrorStateReason::Firewall => Self::Firewall,
             ErrorStateReason::TunDevice
             | ErrorStateReason::TunnelProvider
-            | ErrorStateReason::DuplicateTunFd
-            | ErrorStateReason::Dns => Self::Internal(value.to_string()),
+            | ErrorStateReason::DuplicateTunFd => Self::Internal(value.as_ref().to_string()),
             ErrorStateReason::Internal(message) => Self::Internal(message),
             ErrorStateReason::Routing => Self::Routing,
-            ErrorStateReason::ResolveGatewayAddrs => Self::Dns(value.to_string()),
-            ErrorStateReason::StartLocalDnsResolver => Self::Dns(value.to_string()),
+            ErrorStateReason::ResolveGatewayAddrs => Self::Dns(value.as_ref().to_string()),
+            ErrorStateReason::StartLocalDnsResolver => Self::Dns(value.as_ref().to_string()),
+            ErrorStateReason::Dns => Self::Dns(value.as_ref().to_string()),
         }
     }
 }
 
-impl fmt::Display for ErrorStateReason {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match *self {
-            ErrorStateReason::Firewall => write!(f, "Firewall"),
-            ErrorStateReason::Routing => write!(f, "Routing"),
-            ErrorStateReason::Dns => write!(f, "Dns"),
-            ErrorStateReason::TunDevice => write!(f, "TunnelDevice"),
-            ErrorStateReason::TunnelProvider => write!(f, "TunnelProvider"),
-            ErrorStateReason::SameEntryAndExitGateway => write!(f, "SameEntryAndExitGateway"),
-            ErrorStateReason::InvalidEntryGatewayCountry => write!(f, "InvalidEntryGatewayCountry"),
-            ErrorStateReason::InvalidExitGatewayCountry => write!(f, "InvalidExitGatewayCountry"),
-            ErrorStateReason::BadBandwidthIncrease => write!(f, "BadBandwidthIncrease"),
-            ErrorStateReason::DuplicateTunFd => write!(f, "DuplicateTunFd"),
-            ErrorStateReason::SyncAccount(_) => write!(f, "SyncAccount"),
-            ErrorStateReason::SyncDevice(_) => write!(f, "SyncDevice"),
-            ErrorStateReason::RegisterDevice(_) => write!(f, "RequestZkNym"),
-            ErrorStateReason::RequestZkNym(_) => write!(f, "InvalidExitGatewayCountry"),
-            ErrorStateReason::RequestZkNymBundle { .. } => write!(f, "RequestZkNymBundle "),
-            ErrorStateReason::Internal(_) => write!(f, "Internal"),
-            ErrorStateReason::ResolveGatewayAddrs => write!(f, "ResolveGatewayAddrs"),
-            ErrorStateReason::StartLocalDnsResolver => write!(f, "StartLocalDnsResolver"),
+impl From<RequestZkNymErrorReason> for ClientErrorReason {
+    fn from(error: RequestZkNymErrorReason) -> Self {
+        match error {
+            RequestZkNymErrorReason::VpnApi(e) => e.into(),
+            RequestZkNymErrorReason::UnexpectedVpnApiResponse(message) => Self::Api(message),
+            reason => Self::Internal(reason.to_string()),
+        }
+    }
+}
+
+impl From<VpnApiErrorResponse> for ClientErrorReason {
+    fn from(error: VpnApiErrorResponse) -> Self {
+        match error.message_id.as_ref() {
+            Some(id) if id.contains(BANDWIDTH_LIMIT_REACHED_MESSAGE_ID) => Self::BandwidthExceeded,
+            Some(id) if id.contains(SUBSCRIPTION_EXPIRED_MESSAGE_ID) => Self::SubscriptionExpired,
+            _ => {
+                let message = match error.message_id {
+                    None => error.message,
+                    Some(id) => format!("{}, ID [{}]", error.message, id),
+                };
+                Self::Api(message)
+            }
+        }
+    }
+}
+
+impl From<RegisterDeviceError> for ClientErrorReason {
+    fn from(value: RegisterDeviceError) -> Self {
+        if value
+            .message_id()
+            .is_some_and(|id| id.contains(MAX_DEVICES_REACHED_MESSAGE_ID))
+        {
+            Self::MaxDevicesReached
+        } else {
+            Self::Api(value.to_string())
+        }
+    }
+}
+
+impl From<SyncAccountError> for ClientErrorReason {
+    fn from(value: SyncAccountError) -> Self {
+        match value {
+            SyncAccountError::NoAccountStored => Self::Internal(value.to_string()),
+            SyncAccountError::SyncAccountEndpointFailure(response) => response.into(),
+            SyncAccountError::UnexpectedResponse(message) => Self::Internal(message),
+            SyncAccountError::Internal(message) => Self::Internal(message),
+        }
+    }
+}
+impl From<SyncDeviceError> for ClientErrorReason {
+    fn from(value: SyncDeviceError) -> Self {
+        match value {
+            SyncDeviceError::NoAccountStored => Self::Internal(value.to_string()),
+            SyncDeviceError::NoDeviceStored => Self::Internal(value.to_string()),
+            SyncDeviceError::SyncDeviceEndpointFailure(response) => response.into(),
+            SyncDeviceError::UnexpectedResponse(message) => Self::Internal(message),
+            SyncDeviceError::Internal(message) => Self::Internal(message),
         }
     }
 }

@@ -11,6 +11,7 @@ use nym_vpn_lib_types::{
     NymAddress, TunnelConnectionData, TunnelState, WireguardConnectionData, WireguardNode,
 };
 
+use crate::tunnel_state::ErrorStateReason;
 use crate::{
     conversions::ConversionError,
     tunnel_connection_data::{
@@ -44,28 +45,33 @@ impl TryFrom<ProtoError> for ClientErrorReason {
     type Error = &'static str;
 
     fn try_from(value: ProtoError) -> Result<Self, Self::Error> {
-        match value.reason {
-            0 => Ok(ClientErrorReason::Firewall),
-            1 => Ok(ClientErrorReason::Routing),
-            2 => Ok(ClientErrorReason::SameEntryAndExitGateway),
-            3 => Ok(ClientErrorReason::InvalidEntryGatewayCountry),
-            4 => Ok(ClientErrorReason::InvalidExitGatewayCountry),
-            5 => Ok(ClientErrorReason::MaxDevicesReached),
-            6 => Ok(ClientErrorReason::BandwidthExceeded),
-            7 => Ok(ClientErrorReason::SubscriptionExpired),
-            8 => match value.detail {
+        match value.reason() {
+            ErrorStateReason::Firewall => Ok(ClientErrorReason::Firewall),
+            ErrorStateReason::Routing => Ok(ClientErrorReason::Routing),
+            ErrorStateReason::SameEntryAndExitGateway => {
+                Ok(ClientErrorReason::SameEntryAndExitGateway)
+            }
+            ErrorStateReason::InvalidEntryGatewayCountry => {
+                Ok(ClientErrorReason::InvalidEntryGatewayCountry)
+            }
+            ErrorStateReason::InvalidExitGatewayCountry => {
+                Ok(ClientErrorReason::InvalidExitGatewayCountry)
+            }
+            ErrorStateReason::MaxDevicesReached => Ok(ClientErrorReason::MaxDevicesReached),
+            ErrorStateReason::BandwidthExceeded => Ok(ClientErrorReason::BandwidthExceeded),
+            ErrorStateReason::SubscriptionExpired => Ok(ClientErrorReason::SubscriptionExpired),
+            ErrorStateReason::Dns => match value.detail {
                 Some(detail) => Ok(ClientErrorReason::Dns(detail)),
-                None => Err("DNS variant requires a detail string"),
+                None => Err("DNS variant missing a detail string"),
             },
-            9 => match value.detail {
+            ErrorStateReason::Api => match value.detail {
                 Some(detail) => Ok(ClientErrorReason::Api(detail)),
-                None => Err("API variant requires a detail string"),
+                None => Err("API variant missing detail string"),
             },
-            10 => match value.detail {
+            ErrorStateReason::Internal => match value.detail {
                 Some(detail) => Ok(ClientErrorReason::Internal(detail)),
-                None => Err("Internal variant requires a detail string"),
+                None => Err("Internal variant missing a detail string"),
             },
-            _ => Err("Unknown ClientErrorReason value"),
         }
     }
 }
