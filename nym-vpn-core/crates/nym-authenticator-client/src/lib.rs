@@ -1191,6 +1191,7 @@ fn create_input_message(
     data: Vec<u8>,
     surbs: IncludedSurbs,
 ) -> nym_sdk::mixnet::InputMessage {
+    let disable_retransmissions = false;
     match surbs {
         IncludedSurbs::Amount(surbs) => nym_sdk::mixnet::InputMessage::new_anonymous(
             recipient,
@@ -1198,12 +1199,14 @@ fn create_input_message(
             surbs,
             TransmissionLane::General,
             None,
+            disable_retransmissions,
         ),
         IncludedSurbs::ExposeSelfAddress => nym_sdk::mixnet::InputMessage::new_regular(
             recipient,
             data,
             TransmissionLane::General,
             None,
+            disable_retransmissions,
         ),
     }
 }

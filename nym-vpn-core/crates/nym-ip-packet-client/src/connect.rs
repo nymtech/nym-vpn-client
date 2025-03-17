@@ -97,6 +97,7 @@ impl IprClientConnect {
     ) -> Result<u64> {
         let (request, request_id) = IpPacketRequest::new_connect_request(None);
 
+        let disable_retransmissions = false;
         // We use 20 surbs for the connect request because typically the IPR is configured to have
         // a min threshold of 10 surbs that it reserves for itself to request additional surbs.
         let surbs = 20;
@@ -105,6 +106,7 @@ impl IprClientConnect {
                 Recipient::from(ip_packet_router_address),
                 request,
                 surbs,
+                disable_retransmissions,
             ))
             .await?;
 
@@ -192,6 +194,7 @@ fn create_input_message(
     recipient: Recipient,
     request: IpPacketRequest,
     surbs: u32,
+    disable_retransmissions: bool,
 ) -> InputMessage {
     InputMessage::new_anonymous(
         recipient,
@@ -199,5 +202,6 @@ fn create_input_message(
         surbs,
         TransmissionLane::General,
         None,
+        disable_retransmissions,
     )
 }

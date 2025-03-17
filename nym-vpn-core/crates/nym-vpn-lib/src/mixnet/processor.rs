@@ -50,8 +50,15 @@ impl MessageCreator {
         // sphinx packets that carry the actual data, since we try to keep the payload for IP
         // traffic contained within a single sphinx packet.
         let surbs = 0;
-        let input_message =
-            InputMessage::new_anonymous(self.recipient, packet, surbs, lane, packet_type);
+        let disable_retransmissions = true;
+        let input_message = InputMessage::new_anonymous(
+            self.recipient,
+            packet,
+            surbs,
+            lane,
+            packet_type,
+            disable_retransmissions,
+        );
         Ok(input_message)
     }
 
@@ -62,8 +69,15 @@ impl MessageCreator {
         let lane = TransmissionLane::General;
         let packet_type = None;
         let surbs = 0;
-        let input_message =
-            InputMessage::new_anonymous(self.recipient, packet, surbs, lane, packet_type);
+        let disable_retransmissions = false;
+        let input_message = InputMessage::new_anonymous(
+            self.recipient,
+            packet,
+            surbs,
+            lane,
+            packet_type,
+            disable_retransmissions,
+        );
         Ok(input_message)
     }
 }

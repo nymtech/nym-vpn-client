@@ -175,16 +175,28 @@ impl IcmpConnectionBeacon {
 fn wrap_in_mixnet_message(recipient: Recipient, bundled_packets: Bytes) -> Result<InputMessage> {
     let packet = IpPacketRequest::new_data_request(bundled_packets).to_bytes()?;
     let surbs = 0;
-    Ok(create_input_message(recipient, packet, surbs))
+    let disable_retransmissions = true;
+    Ok(create_input_message(
+        recipient,
+        packet,
+        surbs,
+        disable_retransmissions,
+    ))
 }
 
-fn create_input_message(recipient: Recipient, data: Vec<u8>, surbs: u32) -> InputMessage {
+fn create_input_message(
+    recipient: Recipient,
+    data: Vec<u8>,
+    surbs: u32,
+    disable_retransmissions: bool,
+) -> InputMessage {
     nym_sdk::mixnet::InputMessage::new_anonymous(
         recipient,
         data,
         surbs,
         TransmissionLane::General,
         None,
+        disable_retransmissions,
     )
 }
 
