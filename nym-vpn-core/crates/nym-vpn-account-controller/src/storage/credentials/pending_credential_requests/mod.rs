@@ -32,9 +32,9 @@ impl PendingCredentialRequestsStorage {
     pub(crate) async fn init<P: AsRef<Path>>(
         database_path: P,
     ) -> Result<Self, PendingCredentialRequestsStorageError> {
-        tracing::info!(
-            "Setting up pending credential requests storage: {:?}",
-            database_path.as_ref().as_os_str()
+        tracing::debug!(
+            "Setting up pending credential requests storage: {}",
+            database_path.as_ref().display()
         );
 
         let opts = sqlx::sqlite::SqliteConnectOptions::new()

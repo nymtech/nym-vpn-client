@@ -161,7 +161,7 @@ where
     C: Serialize,
 {
     let config_str = toml::to_string(&config).unwrap();
-    tracing::info!("Creating config file at {}", file_path.display());
+    tracing::info!("Config file: {}", file_path.display());
 
     // Create path
     let config_dir = file_path
@@ -179,7 +179,7 @@ where
             file: file_path.clone(),
             error,
         })?;
-        tracing::info!("Config file created at {:?}", file_path.display());
+        tracing::info!("Config file created at {}", file_path.display());
     }
     Ok(config)
 }
