@@ -3,6 +3,7 @@
 
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{sockopt::Mark, SetSockOpt};
+use nym_vpn_network_config::start_background_discovery_refresh;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::net::Ipv4Addr;
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
@@ -440,6 +441,25 @@ impl TunnelMonitor {
 
         // todo: do initial ping
 
+        let discovery_refresher_handle =
+            self.tunnel_parameters
+                .nym_config
+                .config_path
+                .clone()
+                .map(|config_path| {
+                    start_background_discovery_refresh(
+                        config_path,
+                        self.tunnel_parameters
+                            .nym_config
+                            .network_env
+                            .nym_network
+                            .network
+                            .network_name
+                            .clone(),
+                        self.cancel_token.child_token(),
+                    )
+                });
+
         let connection_data = ConnectionData {
             connected_at: Some(OffsetDateTime::now_utc()),
             ..connection_data
@@ -472,6 +492,13 @@ impl TunnelMonitor {
         tracing::debug!("Wait for status listener to exit");
         if let Err(e) = status_listener_handle.await {
             tracing::error!("Failed to join on status listener: {}", e);
+        }
+
+        if let Some(discovery_refresher_handle) = discovery_refresher_handle {
+            tracing::debug!("Wait for discovery refresher to exit");
+            if let Err(e) = discovery_refresher_handle.await {
+                tracing::error!("Failed to join on discovery refresher: {}", e);
+            }
         }
 
         Ok(tun_devices)

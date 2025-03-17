@@ -112,6 +112,7 @@ pub(super) async fn start_state_machine(
     };
 
     let nym_config = NymConfig {
+        config_path: config.config_path,
         data_path: config.credential_data_path,
         gateway_config,
         network_env,

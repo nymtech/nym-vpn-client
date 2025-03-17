@@ -23,6 +23,7 @@ pub use network_compatibility::NetworkCompatibility;
 pub use nym_network::NymNetwork;
 use nym_sdk::mixnet::Recipient;
 pub use nym_vpn_network::NymVpnNetwork;
+pub use refresh::start_background_discovery_refresh;
 use system_configuration::SystemConfiguration;
 pub use system_messages::{SystemMessage, SystemMessages};
 

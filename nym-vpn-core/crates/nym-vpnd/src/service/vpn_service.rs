@@ -288,6 +288,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             wg_score_thresholds: None,
         };
         let nym_config = NymConfig {
+            config_path: Some(config_dir),
             data_path: Some(data_dir.clone()),
             gateway_config,
             network_env: network_env.clone(),

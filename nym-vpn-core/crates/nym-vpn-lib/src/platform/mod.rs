@@ -471,6 +471,7 @@ pub struct VPNConfig {
     pub tun_provider: Arc<dyn AndroidTunProvider>,
     #[cfg(target_os = "ios")]
     pub tun_provider: Arc<dyn OSTunProvider>,
+    pub config_path: Option<PathBuf>,
     pub credential_data_path: Option<PathBuf>,
     pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
     pub credential_mode: Option<bool>,
