@@ -42,14 +42,17 @@ impl From<ProtoActionAfterDisconnect> for ActionAfterDisconnect {
 }
 
 impl From<ProtoError> for ClientErrorReason {
-
     fn from(value: ProtoError) -> Self {
         match value.reason() {
             ErrorStateReason::Firewall => ClientErrorReason::Firewall,
             ErrorStateReason::Routing => ClientErrorReason::Routing,
             ErrorStateReason::SameEntryAndExitGateway => ClientErrorReason::SameEntryAndExitGateway,
-            ErrorStateReason::InvalidEntryGatewayCountry => ClientErrorReason::InvalidEntryGatewayCountry,
-            ErrorStateReason::InvalidExitGatewayCountry => ClientErrorReason::InvalidExitGatewayCountry,
+            ErrorStateReason::InvalidEntryGatewayCountry => {
+                ClientErrorReason::InvalidEntryGatewayCountry
+            }
+            ErrorStateReason::InvalidExitGatewayCountry => {
+                ClientErrorReason::InvalidExitGatewayCountry
+            }
             ErrorStateReason::MaxDevicesReached => ClientErrorReason::MaxDevicesReached,
             ErrorStateReason::BandwidthExceeded => ClientErrorReason::BandwidthExceeded,
             ErrorStateReason::SubscriptionExpired => ClientErrorReason::SubscriptionExpired,
