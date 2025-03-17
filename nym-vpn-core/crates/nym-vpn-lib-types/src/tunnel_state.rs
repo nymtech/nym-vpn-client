@@ -235,20 +235,9 @@ impl From<ErrorStateReason> for ClientErrorReason {
                 successes: _,
                 failed,
             } => {
-                for error in &failed {
-                    match error {
-                        RequestZkNymErrorReason::VpnApi(e) => {
-                            return ClientErrorReason::from(error.clone());
-                        }
-                        RequestZkNymErrorReason::UnexpectedVpnApiResponse { .. } => {
-                            return ClientErrorReason::from(error.clone());
-                        }
-                        _ => continue,
-                    }
-                }
-                // return just the first error so we don't have a potentially massive error message
+                // Return the first error if it exists, otherwise return a default error
                 if let Some(first_error) = failed.first() {
-                    Self::Api(first_error.to_string())
+                    ClientErrorReason::from(first_error.clone())
                 } else {
                     Self::Api("Empty failure list in RequestZkNymBundle".to_string())
                 }
