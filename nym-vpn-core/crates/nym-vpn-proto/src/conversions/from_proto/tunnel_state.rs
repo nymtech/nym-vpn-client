@@ -60,18 +60,9 @@ impl TryFrom<ProtoError> for ClientErrorReason {
             ErrorStateReason::MaxDevicesReached => Ok(ClientErrorReason::MaxDevicesReached),
             ErrorStateReason::BandwidthExceeded => Ok(ClientErrorReason::BandwidthExceeded),
             ErrorStateReason::SubscriptionExpired => Ok(ClientErrorReason::SubscriptionExpired),
-            ErrorStateReason::Dns => match value.detail {
-                Some(detail) => Ok(ClientErrorReason::Dns(detail)),
-                None => Err("DNS variant missing a detail string"),
-            },
-            ErrorStateReason::Api => match value.detail {
-                Some(detail) => Ok(ClientErrorReason::Api(detail)),
-                None => Err("API variant missing detail string"),
-            },
-            ErrorStateReason::Internal => match value.detail {
-                Some(detail) => Ok(ClientErrorReason::Internal(detail)),
-                None => Err("Internal variant missing a detail string"),
-            },
+            ErrorStateReason::Dns => Ok(ClientErrorReason::Dns(value.detail)),
+            ErrorStateReason::Api => Ok(ClientErrorReason::Api(value.detail)),
+            ErrorStateReason::Internal => Ok(ClientErrorReason::Internal(value.detail)),
         }
     }
 }

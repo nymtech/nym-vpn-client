@@ -230,9 +230,9 @@ pub enum ErrorStateReason {
     MaxDevicesReached,
     BandwidthExceeded,
     SubscriptionExpired,
-    Dns(String),
-    Api(String),
-    Internal(String),
+    Dns(Option<String>),
+    Api(Option<String>),
+    Internal(Option<String>),
 }
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]

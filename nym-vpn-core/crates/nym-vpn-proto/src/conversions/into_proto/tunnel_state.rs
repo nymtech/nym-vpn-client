@@ -75,18 +75,9 @@ impl From<ClientErrorReason> for ProtoError {
                 reason: 7,
                 detail: None,
             },
-            ClientErrorReason::Dns(detail) => ProtoError {
-                reason: 8,
-                detail: Some(detail),
-            },
-            ClientErrorReason::Api(detail) => ProtoError {
-                reason: 9,
-                detail: Some(detail),
-            },
-            ClientErrorReason::Internal(detail) => ProtoError {
-                reason: 10,
-                detail: Some(detail),
-            },
+            ClientErrorReason::Dns(detail) => ProtoError { reason: 8, detail },
+            ClientErrorReason::Api(detail) => ProtoError { reason: 9, detail },
+            ClientErrorReason::Internal(detail) => ProtoError { reason: 10, detail },
         }
     }
 }
