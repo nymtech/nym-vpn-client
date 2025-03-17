@@ -8,6 +8,7 @@ use nym_vpn_lib_types::{
     WireguardConnectionData, WireguardNode,
 };
 
+use crate::tunnel_state::ErrorStateReason;
 use crate::{
     tunnel_connection_data::{
         Mixnet as ProtoMixnetConnectionDataVariant, State as ProtoTunnelConnectionDataState,
@@ -44,40 +45,49 @@ impl From<ClientErrorReason> for ProtoError {
     fn from(value: ClientErrorReason) -> Self {
         match value {
             ClientErrorReason::Firewall => ProtoError {
-                reason: 0,
+                reason: ErrorStateReason::Firewall.into(),
                 detail: None,
             },
             ClientErrorReason::Routing => ProtoError {
-                reason: 1,
+                reason: ErrorStateReason::Routing.into(),
                 detail: None,
             },
             ClientErrorReason::SameEntryAndExitGateway => ProtoError {
-                reason: 2,
+                reason: ErrorStateReason::SameEntryAndExitGateway.into(),
                 detail: None,
             },
             ClientErrorReason::InvalidEntryGatewayCountry => ProtoError {
-                reason: 3,
+                reason: ErrorStateReason::InvalidEntryGatewayCountry.into(),
                 detail: None,
             },
             ClientErrorReason::InvalidExitGatewayCountry => ProtoError {
-                reason: 4,
+                reason: ErrorStateReason::InvalidExitGatewayCountry.into(),
                 detail: None,
             },
             ClientErrorReason::MaxDevicesReached => ProtoError {
-                reason: 5,
+                reason: ErrorStateReason::MaxDevicesReached.into(),
                 detail: None,
             },
             ClientErrorReason::BandwidthExceeded => ProtoError {
-                reason: 6,
+                reason: ErrorStateReason::BandwidthExceeded.into(),
                 detail: None,
             },
             ClientErrorReason::SubscriptionExpired => ProtoError {
-                reason: 7,
+                reason: ErrorStateReason::SubscriptionExpired.into(),
                 detail: None,
             },
-            ClientErrorReason::Dns(detail) => ProtoError { reason: 8, detail },
-            ClientErrorReason::Api(detail) => ProtoError { reason: 9, detail },
-            ClientErrorReason::Internal(detail) => ProtoError { reason: 10, detail },
+            ClientErrorReason::Dns(detail) => ProtoError {
+                reason: ErrorStateReason::Dns.into(),
+                detail,
+            },
+            ClientErrorReason::Api(detail) => ProtoError {
+                reason: ErrorStateReason::Api.into(),
+                detail,
+            },
+            ClientErrorReason::Internal(detail) => ProtoError {
+                reason: ErrorStateReason::Internal.into(),
+                detail,
+            },
         }
     }
 }

@@ -93,11 +93,7 @@ impl TryFrom<ProtoTunnelState> for TunnelState {
 
                 Self::Connected { connection_data }
             }
-            ProtoState::Error(error_state_reason) => {
-                let reason = ClientErrorReason::try_from(error_state_reason)
-                    .map_err(|_| ConversionError::NoValueSet("TunnelState.error"))?;
-                Self::Error(reason)
-            }
+            ProtoState::Error(error_state_reason) => Self::Error(error_state_reason.into()),
             ProtoState::Offline(ProtoOffline { reconnect }) => Self::Offline { reconnect },
         })
     }
