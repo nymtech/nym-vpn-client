@@ -32,4 +32,4 @@ nym-gateway-directory = { workspace = true, optional = true }
 nym-statistics-common = { workspace = true, optional = true }
 nym-vpn-api-client = { workspace = true, optional = true }
 nym-wg-gateway-client = { workspace = true, optional = true }
-strum_macros = "0.26.4"
+strum_macros = { workspace = true }

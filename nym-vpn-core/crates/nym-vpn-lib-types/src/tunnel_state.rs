@@ -144,7 +144,7 @@ pub enum ActionAfterDisconnect {
     Error,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, strum_macros::AsRefStr)]
+#[derive(Debug, Clone, Eq, PartialEq, strum_macros::Display)]
 pub enum ErrorStateReason {
     /// Issues related to firewall configuration.
     Firewall,
@@ -226,7 +226,7 @@ impl From<ErrorStateReason> for ClientErrorReason {
             ErrorStateReason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
             ErrorStateReason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
             ErrorStateReason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
-            ErrorStateReason::BadBandwidthIncrease => Self::Api(value.as_ref().to_string()),
+            ErrorStateReason::BadBandwidthIncrease => Self::Api(value.to_string()),
             ErrorStateReason::SyncAccount(err) => err.into(),
             ErrorStateReason::SyncDevice(err) => err.into(),
             ErrorStateReason::RegisterDevice(err) => err.into(),
@@ -245,12 +245,12 @@ impl From<ErrorStateReason> for ClientErrorReason {
             ErrorStateReason::Firewall => Self::Firewall,
             ErrorStateReason::TunDevice
             | ErrorStateReason::TunnelProvider
-            | ErrorStateReason::DuplicateTunFd => Self::Internal(value.as_ref().to_string()),
+            | ErrorStateReason::DuplicateTunFd => Self::Internal(value.to_string()),
             ErrorStateReason::Internal(message) => Self::Internal(message),
             ErrorStateReason::Routing => Self::Routing,
-            ErrorStateReason::ResolveGatewayAddrs => Self::Dns(value.as_ref().to_string()),
-            ErrorStateReason::StartLocalDnsResolver => Self::Dns(value.as_ref().to_string()),
-            ErrorStateReason::Dns => Self::Dns(value.as_ref().to_string()),
+            ErrorStateReason::ResolveGatewayAddrs => Self::Dns(value.to_string()),
+            ErrorStateReason::StartLocalDnsResolver => Self::Dns(value.to_string()),
+            ErrorStateReason::Dns => Self::Dns(value.to_string()),
         }
     }
 }
