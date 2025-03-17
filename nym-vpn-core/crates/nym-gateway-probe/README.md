@@ -12,7 +12,7 @@ preferred platform.
 
 Install required dependencies
 ```sh
-sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
+sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler llvm-dev libclang-dev clang
 ```
 
 Build the wireguard library
