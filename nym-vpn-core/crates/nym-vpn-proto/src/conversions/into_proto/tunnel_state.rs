@@ -8,7 +8,6 @@ use nym_vpn_lib_types::{
     WireguardConnectionData, WireguardNode,
 };
 
-use crate::tunnel_state::ErrorStateReason;
 use crate::{
     tunnel_connection_data::{
         Mixnet as ProtoMixnetConnectionDataVariant, State as ProtoTunnelConnectionDataState,
@@ -17,8 +16,8 @@ use crate::{
     tunnel_state::{
         ActionAfterDisconnect as ProtoActionAfterDisconnect, Connected as ProtoConnected,
         Connecting as ProtoConnecting, Disconnected as ProtoDisconnected,
-        Disconnecting as ProtoDisconnecting, Error as ProtoError, Offline as ProtoOffline,
-        State as ProtoState,
+        Disconnecting as ProtoDisconnecting, Error as ProtoError, ErrorStateReason,
+        Offline as ProtoOffline, State as ProtoState,
     },
     Address as ProtoAddress, ConnectionData as ProtoConnectionData,
     ForgetAccountError as ProtoForgetAccountError, Gateway as ProtoGateway,
