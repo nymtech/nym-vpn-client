@@ -20,7 +20,7 @@ use super::wintun::{self, WintunAdapterConfig};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_gateway_directory::{GatewayMinPerformance, ResolvedConfig};
-use nym_vpn_account_controller::AccountControllerCommander;
+use nym_vpn_account_controller::{AccountCommand, AccountControllerCommander};
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -45,7 +45,7 @@ use super::{
 };
 use nym_vpn_lib_types::{
     ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData, MixnetEvent, NymAddress,
-    TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
+    RequestZkNymError, TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
 };
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -486,25 +486,56 @@ impl TunnelMonitor {
     }
 
     async fn setup_account(&mut self) -> Result<()> {
-        self.send_event(TunnelMonitorEvent::SyncingAccount);
-        account::wait_for_account_sync(
-            self.account_controller_tx.clone(),
-            self.cancel_token.clone(),
-        )
-        .await?;
+        // Check if we have ticketbooks already stored, then we can sidestep the account and device
+        // sync
+        let is_already_tickets_stored = self
+            .account_controller_tx
+            .get_available_tickets()
+            .await
+            .map_err(|err| {
+                account::Error::from(RequestZkNymError::CredentialStorage(err.to_string()))
+            })?
+            .is_all_ticket_types_above_soft_threshold();
 
-        account::wait_for_device_sync(
-            self.account_controller_tx.clone(),
-            self.cancel_token.clone(),
-        )
-        .await?;
+        if is_already_tickets_stored {
+            // If we have tickets stored, trigger sync and register in the background while we
+            // proceed anyway.
+            self.send_event(TunnelMonitorEvent::SyncingAccount);
+            self.account_controller_tx
+                .send(AccountCommand::SyncAccountState(None))
+                .ok();
 
-        self.send_event(TunnelMonitorEvent::RegisteringDevice);
-        account::wait_for_device_register(
-            self.account_controller_tx.clone(),
-            self.cancel_token.clone(),
-        )
-        .await?;
+            self.account_controller_tx
+                .send(AccountCommand::SyncDeviceState(None))
+                .ok();
+
+            self.send_event(TunnelMonitorEvent::RegisteringDevice);
+            self.account_controller_tx
+                .send(AccountCommand::RegisterDevice(None))
+                .ok();
+        } else {
+            // If we don't have ticket stored, go through the steps one by one, syncing and
+            // registering and getting credentials.
+            self.send_event(TunnelMonitorEvent::SyncingAccount);
+            account::wait_for_account_sync(
+                self.account_controller_tx.clone(),
+                self.cancel_token.clone(),
+            )
+            .await?;
+
+            account::wait_for_device_sync(
+                self.account_controller_tx.clone(),
+                self.cancel_token.clone(),
+            )
+            .await?;
+
+            self.send_event(TunnelMonitorEvent::RegisteringDevice);
+            account::wait_for_device_register(
+                self.account_controller_tx.clone(),
+                self.cancel_token.clone(),
+            )
+            .await?;
+        }
 
         if self
             .tunnel_parameters
