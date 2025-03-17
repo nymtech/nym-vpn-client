@@ -331,13 +331,10 @@ impl MixnetMessageSinkTranslator for ToIprDataRequest {
         // sphinx packets that carry the actual data, since we try to keep the payload for IP
         // traffic contained within a single sphinx packet.
         let surbs = 0;
-        Ok(InputMessage::new_anonymous(
-            self.recipient,
-            packet,
-            surbs,
-            lane,
-            packet_type,
-        ))
+        Ok(
+            InputMessage::new_anonymous(self.recipient, packet, surbs, lane, packet_type)
+                .with_max_retransmissions(0),
+        )
     }
 }
 
