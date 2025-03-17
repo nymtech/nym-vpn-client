@@ -157,7 +157,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 	) {
 		if (!appUiState.managerState.isMnemonicStored) {
 			MainStyledButton(
-				onClick = { navController.navigate(Route.Credential) },
+				onClick = { navController.navigate(Route.Login) },
 				content = {
 					Text(
 						stringResource(id = R.string.log_in),

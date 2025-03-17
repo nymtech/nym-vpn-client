@@ -136,7 +136,7 @@ fun AccountScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 					Box(modifier = Modifier.width(100.dp.scaledWidth())) {
 						MainStyledButton(
 							onClick = {
-								navController.navigate(Route.Credential)
+								navController.navigate(Route.Login)
 							},
 							content = {
 								Text(

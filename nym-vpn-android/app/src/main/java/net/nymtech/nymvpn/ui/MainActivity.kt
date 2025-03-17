@@ -58,7 +58,7 @@ import net.nymtech.nymvpn.ui.screens.settings.account.AccountScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.language.LanguageScreen
-import net.nymtech.nymvpn.ui.screens.settings.credential.CredentialScreen
+import net.nymtech.nymvpn.ui.screens.settings.credential.LoginScreen
 import net.nymtech.nymvpn.ui.screens.settings.developer.DeveloperScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
@@ -217,10 +217,10 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Logs> { LogsScreen(appViewModel) }
 								composable<Route.Support> { SupportScreen(appViewModel) }
 								composable<Route.Legal> { LegalScreen(appViewModel) }
-								composable<Route.Credential>(enterTransition = {
+								composable<Route.Login>(enterTransition = {
 									fadeIn(animationSpec = tween(500))
 								}) {
-									CredentialScreen(appState, appViewModel)
+									LoginScreen(appState, appViewModel)
 								}
 								composable<Route.Account> { AccountScreen(appViewModel, appState) }
 								composable<Route.Licenses> {
@@ -238,7 +238,7 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Developer> {
 									DeveloperScreen(appState, appViewModel)
 								}
-								composable<Route.CredentialScanner> {
+								composable<Route.LoginScanner> {
 									ScannerScreen()
 								}
 							}

@@ -481,7 +481,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 							testTag = Constants.CONNECT_TEST_TAG,
 							onClick = {
 								scope.launch {
-									if (!appUiState.managerState.isMnemonicStored) return@launch navController.goFromRoot(Route.Credential)
+									if (!appUiState.managerState.isMnemonicStored) return@launch navController.goFromRoot(Route.Login)
 									if (uiState.connectionState is ConnectionState.Offline) return@launch snackbar.showMessage(context.getString(R.string.no_internet))
 									onConnectPressed()
 								}

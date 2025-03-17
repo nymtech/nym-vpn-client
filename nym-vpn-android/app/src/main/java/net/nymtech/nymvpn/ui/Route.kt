@@ -13,9 +13,6 @@ sealed class Route {
 	data object Splash : Route()
 
 	@Serializable
-	data object Analytics : Route()
-
-	@Serializable
 	data class Permission(val permission: net.nymtech.nymvpn.ui.screens.permission.Permission) : Route()
 
 	@Serializable
@@ -46,7 +43,7 @@ sealed class Route {
 	data object Licenses : Route()
 
 	@Serializable
-	data object Credential : Route()
+	data object Login : Route()
 
 	@Serializable
 	data object Account : Route()
@@ -58,5 +55,5 @@ sealed class Route {
 	data object ExitLocation : Route()
 
 	@Serializable
-	data object CredentialScanner : Route()
+	data object LoginScanner : Route()
 }

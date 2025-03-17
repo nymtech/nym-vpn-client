@@ -1,5 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.settings.credential
 
+import android.view.WindowManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -24,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +50,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
+import net.nymtech.nymvpn.ui.MainActivity
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
@@ -66,7 +69,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: CredentialViewModel = hiltViewModel()) {
+fun LoginScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: LoginViewModel = hiltViewModel()) {
 	val snackbar = SnackbarController.current
 	val imeState = rememberImeState()
 	val scrollState = rememberScrollState()
@@ -79,6 +82,19 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 	val showMaxDevicesModal by viewModel.showMaxDevicesModal.collectAsStateWithLifecycle(null)
 	var showModal by remember { mutableStateOf(false) }
 	var loading by remember { mutableStateOf(false) }
+
+	val activity = context as? MainActivity
+
+	// make screen secure due to sensitive information
+	DisposableEffect(Unit) {
+		activity?.window?.setFlags(
+			WindowManager.LayoutParams.FLAG_SECURE,
+			WindowManager.LayoutParams.FLAG_SECURE,
+		)
+		onDispose {
+			activity?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+		}
+	}
 
 	LaunchedEffect(success) {
 		loading = false
@@ -123,7 +139,7 @@ fun CredentialScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewMod
 		ActivityResultContracts.RequestPermission(),
 	) { isGranted ->
 		if (!isGranted) return@rememberLauncherForActivityResult snackbar.showMessage(context.getString(R.string.permission_required))
-		navController.navigate(Route.CredentialScanner)
+		navController.navigate(Route.LoginScanner)
 	}
 
 	LaunchedEffect(Unit) {

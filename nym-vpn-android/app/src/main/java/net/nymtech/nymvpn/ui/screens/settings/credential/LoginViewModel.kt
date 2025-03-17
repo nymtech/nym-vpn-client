@@ -14,7 +14,7 @@ import timber.log.Timber
 import javax.inject.Inject
 
 @HiltViewModel
-class CredentialViewModel
+class LoginViewModel
 @Inject
 constructor(
 	private val backendManager: BackendManager,
