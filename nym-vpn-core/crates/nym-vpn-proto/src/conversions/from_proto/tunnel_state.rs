@@ -41,28 +41,21 @@ impl From<ProtoActionAfterDisconnect> for ActionAfterDisconnect {
     }
 }
 
-impl TryFrom<ProtoError> for ClientErrorReason {
-    type Error = &'static str;
+impl From<ProtoError> for ClientErrorReason {
 
-    fn try_from(value: ProtoError) -> Result<Self, Self::Error> {
+    fn from(value: ProtoError) -> Self {
         match value.reason() {
-            ErrorStateReason::Firewall => Ok(ClientErrorReason::Firewall),
-            ErrorStateReason::Routing => Ok(ClientErrorReason::Routing),
-            ErrorStateReason::SameEntryAndExitGateway => {
-                Ok(ClientErrorReason::SameEntryAndExitGateway)
-            }
-            ErrorStateReason::InvalidEntryGatewayCountry => {
-                Ok(ClientErrorReason::InvalidEntryGatewayCountry)
-            }
-            ErrorStateReason::InvalidExitGatewayCountry => {
-                Ok(ClientErrorReason::InvalidExitGatewayCountry)
-            }
-            ErrorStateReason::MaxDevicesReached => Ok(ClientErrorReason::MaxDevicesReached),
-            ErrorStateReason::BandwidthExceeded => Ok(ClientErrorReason::BandwidthExceeded),
-            ErrorStateReason::SubscriptionExpired => Ok(ClientErrorReason::SubscriptionExpired),
-            ErrorStateReason::Dns => Ok(ClientErrorReason::Dns(value.detail)),
-            ErrorStateReason::Api => Ok(ClientErrorReason::Api(value.detail)),
-            ErrorStateReason::Internal => Ok(ClientErrorReason::Internal(value.detail)),
+            ErrorStateReason::Firewall => ClientErrorReason::Firewall,
+            ErrorStateReason::Routing => ClientErrorReason::Routing,
+            ErrorStateReason::SameEntryAndExitGateway => ClientErrorReason::SameEntryAndExitGateway,
+            ErrorStateReason::InvalidEntryGatewayCountry => ClientErrorReason::InvalidEntryGatewayCountry,
+            ErrorStateReason::InvalidExitGatewayCountry => ClientErrorReason::InvalidExitGatewayCountry,
+            ErrorStateReason::MaxDevicesReached => ClientErrorReason::MaxDevicesReached,
+            ErrorStateReason::BandwidthExceeded => ClientErrorReason::BandwidthExceeded,
+            ErrorStateReason::SubscriptionExpired => ClientErrorReason::SubscriptionExpired,
+            ErrorStateReason::Dns => ClientErrorReason::Dns(value.detail),
+            ErrorStateReason::Api => ClientErrorReason::Api(value.detail),
+            ErrorStateReason::Internal => ClientErrorReason::Internal(value.detail),
         }
     }
 }
