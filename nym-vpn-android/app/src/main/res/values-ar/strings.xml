@@ -61,4 +61,5 @@
     <string name="auto_connect">اتصال تلقائي</string>
     <string name="support">دعم</string>
     <string name="disabled_while_connecting">مُعطّل أثناء محاولة الاتصا‫‫ل بشبكة VPN</string>
+    <string name="anonymous">مجهول</string>
 </resources>
