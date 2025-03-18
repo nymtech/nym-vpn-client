@@ -92,7 +92,7 @@
     <string name="share_anonymous_analytics">Compartir análisis anónimos del producto</string>
     <string name="anonymous_error_reports">Informes de errores anónimos</string>
     <string name="gateways_error">No se pudo recuperar los gateways</string>
-	<string name="missing_credential">Falta la credencial</string>
+    <string name="missing_credential">Falta la credencial</string>
     <string name="country_load_failure">No se pudieron cargar los países de salto</string>
     <string name="app_shortcuts">Accesos directos</string>
     <string name="enable_shortcuts">Habilitar accesos directos</string>
@@ -210,4 +210,5 @@
     <string name="try_another_server_name">Prueba con otra ubicación o comprueba el nombre del servidor.</string>
     <string name="contact_for_help">Contáctanos para ayudarte</string>
     <string name="local_logs">Registros(guardados localmente)</string>
+    <string name="anonymous">Anónimo</string>
 </resources>
