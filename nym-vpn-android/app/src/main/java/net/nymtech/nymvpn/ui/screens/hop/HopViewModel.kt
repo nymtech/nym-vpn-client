@@ -100,7 +100,7 @@ class HopViewModel @Inject constructor(
 		_uiState.update {
 			it.copy(
 				countries = filteredCountries,
-				queriedGateways = filteredGateways
+				queriedGateways = filteredGateways,
 			)
 		}
 	}

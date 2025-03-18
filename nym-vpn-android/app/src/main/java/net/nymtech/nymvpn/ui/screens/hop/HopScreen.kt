@@ -90,12 +90,7 @@ import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HopScreen(
-	gatewayLocation: GatewayLocation,
-	appViewModel: AppViewModel,
-	appUiState: AppUiState,
-	viewModel: HopViewModel = hiltViewModel()
-) {
+fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appUiState: AppUiState, viewModel: HopViewModel = hiltViewModel()) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 	val navController = LocalNavController.current
 	val context = LocalContext.current
@@ -139,7 +134,7 @@ fun HopScreen(
 				title = { NavTitle(stringResource(if (gatewayLocation == GatewayLocation.EXIT) R.string.exit else R.string.entry)) },
 				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack) { navController.popBackStack() } },
 				trailing = { NavIcon(Icons.Outlined.Info) { showLocationTooltip = true } },
-			)
+			),
 		)
 		viewModel.initializeGateways(initialGateways)
 		viewModel.updateCountryCache(gatewayType)
@@ -158,7 +153,10 @@ fun HopScreen(
 
 	if (showGatewayDetailsModal) {
 		selectedGateway?.let {
-			GatewayDetailsModal(it, gatewayType, { selectedGateway = null; showGatewayDetailsModal = false })
+			GatewayDetailsModal(it, gatewayType, {
+				selectedGateway = null
+				showGatewayDetailsModal = false
+			})
 		}
 	}
 
@@ -166,7 +164,7 @@ fun HopScreen(
 		state = pullRefreshState,
 		isRefreshing = refreshing,
 		onRefresh = { refreshing = true },
-		modifier = Modifier.fillMaxSize()
+		modifier = Modifier.fillMaxSize(),
 	) {
 		LazyColumn(
 			horizontalAlignment = Alignment.CenterHorizontally,
@@ -174,14 +172,14 @@ fun HopScreen(
 			modifier = Modifier
 				.fillMaxSize()
 				.windowInsetsPadding(WindowInsets.navigationBars)
-				.imePadding()
+				.imePadding(),
 		) {
 			item {
 				Column(
 					verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight()),
 					modifier = Modifier
 						.padding(horizontal = 24.dp.scaledWidth())
-						.padding(top = 24.dp.scaledHeight())
+						.padding(top = 24.dp.scaledHeight()),
 				) {
 					CustomTextField(
 						value = uiState.query,
@@ -206,19 +204,19 @@ fun HopScreen(
 							.fillMaxWidth()
 							.padding(top = 24.dp.scaledHeight())
 							.padding(horizontal = 16.dp.scaledWidth()),
-						contentAlignment = Alignment.Center
+						contentAlignment = Alignment.Center,
 					) {
 						if (uiState.error) {
 							Text(
 								stringResource(R.string.country_load_failure),
 								style = MaterialTheme.typography.bodyMedium.copy(color = CustomColors.error),
-								textAlign = TextAlign.Center
+								textAlign = TextAlign.Center,
 							)
 						} else {
 							Text(
 								stringResource(R.string.loading),
 								style = MaterialTheme.typography.bodyMedium,
-								textAlign = TextAlign.Center
+								textAlign = TextAlign.Center,
 							)
 						}
 					}
@@ -233,12 +231,12 @@ fun HopScreen(
 						modifier = Modifier
 							.fillMaxWidth()
 							.padding(top = 24.dp.scaledHeight())
-							.padding(horizontal = 16.dp.scaledWidth())
+							.padding(horizontal = 16.dp.scaledWidth()),
 					) {
 						Text(
 							stringResource(R.string.no_results_found),
 							textAlign = TextAlign.Center,
-							style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground)
+							style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground),
 						)
 						Text(
 							buildAnnotatedString {
@@ -255,7 +253,7 @@ fun HopScreen(
 								}
 							},
 							textAlign = TextAlign.Center,
-							style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.outline)
+							style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.outline),
 						)
 					}
 				}
@@ -282,14 +280,14 @@ fun HopScreen(
 					},
 					modifier = Modifier
 						.padding(top = if (uiState.countries.indexOf(country) == 0) 24.dp.scaledHeight() else 0.dp)
-						.padding(vertical = 4.dp)
+						.padding(vertical = 4.dp),
 				)
 			}
 
 			if (uiState.queriedGateways.isNotEmpty()) {
 				itemsIndexed(
 					uiState.queriedGateways.scoreSorted(appUiState.settings.vpnMode),
-					key = { _, gateway -> gateway.identity }
+					key = { _, gateway -> gateway.identity },
 				) { index, gateway ->
 					val locale = gateway.twoLetterCountryISO?.let { Locale(it, it) }
 					SurfaceSelectionGroupButton(
@@ -305,7 +303,7 @@ fun HopScreen(
 										Image(
 											icon,
 											contentDescription = stringResource(R.string.gateway_score),
-											modifier = Modifier.size(16.dp)
+											modifier = Modifier.size(16.dp),
 										)
 									}
 								},
@@ -317,18 +315,18 @@ fun HopScreen(
 												showGatewayDetailsModal = true
 											}
 											.fillMaxHeight(),
-										contentAlignment = Alignment.Center
+										contentAlignment = Alignment.Center,
 									) {
 										Row(
 											horizontalArrangement = Arrangement.spacedBy(16.dp),
 											verticalAlignment = Alignment.CenterVertically,
-											modifier = Modifier.padding(end = 16.dp)
+											modifier = Modifier.padding(end = 16.dp),
 										) {
 											VerticalDivider(modifier = Modifier.height(42.dp))
 											Icon(
 												Icons.Outlined.Info,
 												contentDescription = stringResource(R.string.info),
-												modifier = Modifier.size(iconSize)
+												modifier = Modifier.size(iconSize),
 											)
 										}
 									}
@@ -338,7 +336,7 @@ fun HopScreen(
 										gateway.name,
 										maxLines = 1,
 										overflow = TextOverflow.Ellipsis,
-										style = MaterialTheme.typography.bodyLarge
+										style = MaterialTheme.typography.bodyLarge,
 									)
 								},
 								description = {
@@ -346,18 +344,18 @@ fun HopScreen(
 										"${locale?.displayCountry ?: stringResource(R.string.unknown)}, ${gateway.identity}",
 										maxLines = 1,
 										overflow = TextOverflow.Ellipsis,
-										style = MaterialTheme.typography.bodySmall
+										style = MaterialTheme.typography.bodySmall,
 									)
 								},
-								selected = selectedKey == gateway.identity
-							)
+								selected = selectedKey == gateway.identity,
+							),
 						),
 						shape = RectangleShape,
 						background = MaterialTheme.colorScheme.background,
 						divider = false,
 						anchorsPadding = 0.dp,
 						modifier = Modifier
-							.padding(top = if (index == 0 && uiState.countries.isEmpty()) 24.dp.scaledHeight() else 0.dp)
+							.padding(top = if (index == 0 && uiState.countries.isEmpty()) 24.dp.scaledHeight() else 0.dp),
 					)
 				}
 			}
@@ -373,7 +371,7 @@ fun CountryItem(
 	selectedKey: String?,
 	onSelectionChange: (String) -> Unit,
 	onGatewayDetails: (NymGateway) -> Unit,
-	modifier: Modifier = Modifier
+	modifier: Modifier = Modifier,
 ) {
 	val context = LocalContext.current
 	var expanded by rememberSaveable(key = "expanded_${country.country}") {
@@ -393,7 +391,7 @@ fun CountryItem(
 							Image(
 								icon,
 								contentDescription = stringResource(R.string.country_flag, country.displayCountry),
-								modifier = Modifier.size(iconSize)
+								modifier = Modifier.size(iconSize),
 							)
 						}
 					},
@@ -402,18 +400,18 @@ fun CountryItem(
 							modifier = Modifier
 								.clickable { expanded = !expanded }
 								.fillMaxHeight(),
-							contentAlignment = Alignment.Center
+							contentAlignment = Alignment.Center,
 						) {
 							Row(
 								horizontalArrangement = Arrangement.spacedBy(16.dp),
 								verticalAlignment = Alignment.CenterVertically,
-								modifier = Modifier.padding(end = 16.dp)
+								modifier = Modifier.padding(end = 16.dp),
 							) {
 								VerticalDivider(modifier = Modifier.height(42.dp))
 								Icon(
 									Icons.Filled.ArrowDropDown,
 									contentDescription = stringResource(if (expanded) R.string.collapse else R.string.expand),
-									modifier = Modifier.graphicsLayer(rotationZ = rotationAngle).size(iconSize)
+									modifier = Modifier.graphicsLayer(rotationZ = rotationAngle).size(iconSize),
 								)
 							}
 						}
@@ -422,21 +420,21 @@ fun CountryItem(
 					description = {
 						Text(
 							"${gateways.size} ${stringResource(R.string.servers)}",
-							style = MaterialTheme.typography.bodySmall
+							style = MaterialTheme.typography.bodySmall,
 						)
 					},
-					selected = countryCode == selectedKey
-				)
+					selected = countryCode == selectedKey,
+				),
 			),
 			shape = RectangleShape,
 			background = MaterialTheme.colorScheme.surface,
-			anchorsPadding = 0.dp
+			anchorsPadding = 0.dp,
 		)
 
 		AnimatedVisibility(
 			visible = expanded,
 			enter = expandVertically() + fadeIn(),
-			exit = shrinkVertically() + fadeOut()
+			exit = shrinkVertically() + fadeOut(),
 		) {
 			SurfaceSelectionGroupButton(
 				gateways.map { gateway ->
@@ -448,7 +446,7 @@ fun CountryItem(
 								Image(
 									icon,
 									contentDescription = stringResource(R.string.gateway_score),
-									modifier = Modifier.size(16.dp)
+									modifier = Modifier.size(16.dp),
 								)
 							}
 						},
@@ -457,18 +455,18 @@ fun CountryItem(
 								modifier = Modifier
 									.clickable { onGatewayDetails(gateway) }
 									.fillMaxHeight(),
-								contentAlignment = Alignment.Center
+								contentAlignment = Alignment.Center,
 							) {
 								Row(
 									horizontalArrangement = Arrangement.spacedBy(16.dp),
 									verticalAlignment = Alignment.CenterVertically,
-									modifier = Modifier.padding(end = 16.dp)
+									modifier = Modifier.padding(end = 16.dp),
 								) {
 									VerticalDivider(modifier = Modifier.height(42.dp))
 									Icon(
 										Icons.Outlined.Info,
 										contentDescription = stringResource(R.string.info),
-										modifier = Modifier.size(iconSize)
+										modifier = Modifier.size(iconSize),
 									)
 								}
 							}
@@ -478,7 +476,7 @@ fun CountryItem(
 								gateway.name,
 								maxLines = 1,
 								overflow = TextOverflow.Ellipsis,
-								style = MaterialTheme.typography.bodyLarge
+								style = MaterialTheme.typography.bodyLarge,
 							)
 						},
 						description = {
@@ -486,16 +484,16 @@ fun CountryItem(
 								gateway.identity,
 								maxLines = 1,
 								overflow = TextOverflow.Ellipsis,
-								style = MaterialTheme.typography.bodySmall
+								style = MaterialTheme.typography.bodySmall,
 							)
 						},
-						selected = selectedKey == gateway.identity
+						selected = selectedKey == gateway.identity,
 					)
 				},
 				shape = RectangleShape,
 				background = MaterialTheme.colorScheme.background,
 				divider = false,
-				anchorsPadding = 0.dp
+				anchorsPadding = 0.dp,
 			)
 		}
 	}
