@@ -96,7 +96,7 @@
     <string name="share_anonymous_analytics">共享匿名产品分析</string>
     <string name="anonymous_error_reports">匿名错误报告</string>
     <string name="gateways_error">检索网关失败</string>
-	<string name="missing_credential">缺少凭证</string>
+    <string name="missing_credential">缺少凭证</string>
     <string name="country_load_failure">加载跳转国家失败</string>
     <string name="app_shortcuts">应用程序快捷方式</string>
     <string name="disabled_while_connected">连接 VPN 时禁用</string>
@@ -211,4 +211,5 @@
     <string name="two_hop_explanation">通过双服务器连接体验最高速度。 该模式采用 AmneziaWG，这是一种抗审查版本的 WireGuard，是快速浏览、流媒体和文件共享的理想选择。</string>
     <string name="loading">加载中</string>
     <string name="logging_out">退出登录...</string>
+    <string name="anonymous">匿名</string>
 </resources>
