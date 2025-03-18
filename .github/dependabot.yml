@@ -51,15 +51,3 @@ updates:
           - "*"
         update-types:
           - "patch"
-  - package-ecosystem: cargo
-    directory: /nym-vpn-app/src-tauri
-    schedule:
-      interval: weekly
-    assignees:
-      - "doums"
-    groups:
-      patch-updates:
-        patterns:
-          - "*"
-        update-types:
-          - "patch"
