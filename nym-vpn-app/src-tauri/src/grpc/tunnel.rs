@@ -101,7 +101,7 @@ impl TunnelState {
             State::Disconnecting(action) => {
                 TunnelState::Disconnecting(TunnelAction::from_proto(action.after_disconnect()))
             }
-            State::Error(e) => TunnelState::Error(e.error_state_reason.into()),
+            State::Error(e) => TunnelState::Error(e.into()),
             State::Offline(o) => TunnelState::Offline {
                 reconnect: o.reconnect,
             },

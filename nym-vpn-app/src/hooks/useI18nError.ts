@@ -5,6 +5,13 @@ import { ErrorKey, TunnelError } from '../types';
 // enforce that all errors are handled
 type Terror = (error: ErrorKey | TunnelError) => string;
 
+function fmtErr(msg: string, data?: string | null) {
+  if (data && data.length > 0) {
+    return `${msg} - ${data}`;
+  }
+  return msg;
+}
+
 /**
  * Hook to get the translation function for backend errors
  *
@@ -18,31 +25,29 @@ function useI18nError() {
       if (typeof error === 'object') {
         // tunnel state errors
         switch (error.key) {
-          case 'api':
-            return t('tunnel.api', { reason: error.data });
           case 'internal':
-            if (error.data) {
-              return t('tunnel.internal-reason', { reason: error.data });
-            }
-            return t('tunnel.internal');
+            return fmtErr(t('tunnel.internal'), error.data);
+          case 'api':
+            return fmtErr(t('tunnel.api'), error.data);
           case 'firewall':
-            return t('tunnel.firewall');
+            return fmtErr(t('tunnel.firewall'), error.data);
           case 'routing':
-            return t('tunnel.routing');
+            return fmtErr(t('tunnel.routing'), error.data);
           case 'dns':
-            return t('tunnel.dns');
+            return fmtErr(t('tunnel.dns'), error.data);
           case 'same-entry-and-exit-gw':
-            return t('tunnel.same-entry-exit-gw');
+            return fmtErr(t('tunnel.same-entry-exit-gw'), error.data);
           case 'invalid-entry-gw-country':
-            return t('tunnel.invalid-entry-gw-country');
+            return fmtErr(t('tunnel.invalid-entry-gw-country'), error.data);
           case 'invalid-exit-gw-country':
-            return t('tunnel.invalid-exit-gw-country');
+            return fmtErr(t('tunnel.invalid-exit-gw-country'), error.data);
           case 'max-devices-reached':
-            return t('tunnel.max-devices-reached');
+            return fmtErr(t('tunnel.max-devices-reached'), error.data);
+          case 'bandwidth-exceeded':
+            return fmtErr(t('tunnel.bandwidth-exceeded'), error.data);
+          case 'subscription-expired':
+            return fmtErr(t('tunnel.subscription-expired'), error.data);
         }
-
-        console.warn('unhandled tunnel error', error);
-        return t('unknown');
       }
       // no tunnel errors
       switch (error) {

@@ -9,15 +9,16 @@
   "grpc": "Internal gRPC error",
   "tunnel": {
     "internal": "Internal error",
-    "internal-reason": "Internal error: {{reason}}",
-    "api": "API error: {{reason}}",
+    "api": "API error",
     "firewall": "Firewall error",
     "routing": "Routing error",
     "dns": "DNS error",
     "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
     "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
     "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
-    "max-devices-reached": "Max number of added devices reached, remove a device from your account and try again"
+    "max-devices-reached": "Max number of added devices reached, remove a device from your account and try again",
+    "bandwidth-exceeded": "Bandwidth exceeded",
+    "subscription-expired": "Subscription expired"
   },
   "account": {
     "invalid-recovery-phrase": "Invalid access code",

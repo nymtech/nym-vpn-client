@@ -1,224 +1,46 @@
 use nym_vpn_proto as p;
-use p::register_device_error::ErrorDetail as RegDeviceErr;
-use p::request_zk_nym_error::Outcome as ZkNymErr;
-use p::sync_account_error::ErrorDetail as SyncAccountErr;
-use p::sync_device_error::ErrorDetail as SyncDeviceErr;
-use p::tunnel_state::error::ErrorStateReason;
-use p::tunnel_state::BaseErrorStateReason;
-use p::{
-    RegisterDeviceError, RequestZkNymBundle, RequestZkNymError, SyncAccountError, SyncDeviceError,
-    VpnApiErrorResponse,
-};
+use p::tunnel_state::{Error as ProtoTunnelError, ErrorStateReason};
 use serde::Serialize;
-use std::fmt;
-use strum::Display;
-use tracing::{error, warn};
 use ts_rs::TS;
 
-const MAX_DEVICES_EXCEEDED_ID: &str =
-    "nym-vpn-website.public-api.register-device.max-devices-exceeded";
-
-#[derive(Serialize, Clone, Debug, Display, PartialEq, TS)]
+#[derive(Serialize, Clone, Debug, strum::Display, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "kebab-case")]
 #[serde(tag = "key", content = "data")]
 pub enum TunnelError {
     Internal(Option<String>),
-    Firewall,
-    Routing,
-    Dns,
-    SameEntryAndExitGw,
-    InvalidEntryGwCountry,
-    InvalidExitGwCountry,
-    MaxDevicesReached,
-    Api(String),
+    Dns(Option<String>),
+    Api(Option<String>),
+    Firewall(Option<String>),
+    Routing(Option<String>),
+    SameEntryAndExitGw(Option<String>),
+    InvalidEntryGwCountry(Option<String>),
+    InvalidExitGwCountry(Option<String>),
+    MaxDevicesReached(Option<String>),
+    BandwidthExceeded(Option<String>),
+    SubscriptionExpired(Option<String>),
 }
 
-impl TunnelError {
-    pub fn no_reason(from: Option<&str>) -> Self {
-        if let Some(v) = from {
-            return TunnelError::Internal(Some(format!("{}: BadTunnelErrorReason", v)));
-        }
-        TunnelError::Internal(Some("BadTunnelErrorReason".to_string()))
-    }
-
-    pub fn internal(reason: &str) -> Self {
-        TunnelError::Internal(Some(reason.to_string()))
-    }
-
-    fn api(from: &str, error: VpnApiError) -> Self {
-        TunnelError::Api(format!("{from}: {error}"))
-    }
-}
-
-impl From<Option<ErrorStateReason>> for TunnelError {
-    fn from(reason: Option<ErrorStateReason>) -> Self {
-        let Some(error) = reason else {
-            warn!("missing error reason in TunnelError");
-            return TunnelError::no_reason(None);
-        };
-        match error {
-            ErrorStateReason::BaseReason(e) => BaseErrorStateReason::try_from(e)
-                .inspect_err(|e| error!("failed to convert to BaseErrorStateReason: {}", e))
-                .unwrap_or(BaseErrorStateReason::Internal)
-                .into(),
-            ErrorStateReason::SyncAccount(e) => e.into(),
-            ErrorStateReason::SyncDevice(e) => e.into(),
-            ErrorStateReason::RegisterDevice(e) => e.into(),
-            ErrorStateReason::RequestZkNym(e) => e.into(),
-            ErrorStateReason::RequestZkNymBundle(e) => e.into(),
-        }
-    }
-}
-
-impl From<BaseErrorStateReason> for TunnelError {
-    fn from(reason: BaseErrorStateReason) -> Self {
-        match reason {
-            BaseErrorStateReason::Internal => TunnelError::Internal(None),
-            BaseErrorStateReason::Firewall => TunnelError::Firewall,
-            BaseErrorStateReason::Routing => TunnelError::Routing,
-            BaseErrorStateReason::Dns => TunnelError::Dns,
-            BaseErrorStateReason::TunDevice => {
-                TunnelError::internal(BaseErrorStateReason::TunDevice.as_str_name())
+impl From<ProtoTunnelError> for TunnelError {
+    fn from(error: ProtoTunnelError) -> Self {
+        match error.reason() {
+            ErrorStateReason::Internal => TunnelError::Internal(error.detail),
+            ErrorStateReason::Firewall => TunnelError::Firewall(error.detail),
+            ErrorStateReason::Routing => TunnelError::Routing(error.detail),
+            ErrorStateReason::Dns => TunnelError::Dns(error.detail),
+            ErrorStateReason::SameEntryAndExitGateway => {
+                TunnelError::SameEntryAndExitGw(error.detail)
             }
-            BaseErrorStateReason::TunnelProvider => {
-                TunnelError::internal(BaseErrorStateReason::TunnelProvider.as_str_name())
+            ErrorStateReason::InvalidEntryGatewayCountry => {
+                TunnelError::InvalidEntryGwCountry(error.detail)
             }
-            BaseErrorStateReason::SameEntryAndExitGateway => TunnelError::SameEntryAndExitGw,
-            BaseErrorStateReason::InvalidEntryGatewayCountry => TunnelError::InvalidEntryGwCountry,
-            BaseErrorStateReason::InvalidExitGatewayCountry => TunnelError::InvalidExitGwCountry,
-            BaseErrorStateReason::BadBandwidthIncrease => {
-                TunnelError::internal(BaseErrorStateReason::BadBandwidthIncrease.as_str_name())
+            ErrorStateReason::InvalidExitGatewayCountry => {
+                TunnelError::InvalidExitGwCountry(error.detail)
             }
-            BaseErrorStateReason::DuplicateTunFd => {
-                TunnelError::internal(BaseErrorStateReason::DuplicateTunFd.as_str_name())
-            }
-            BaseErrorStateReason::ResolveGatewayAddrs => {
-                TunnelError::internal(BaseErrorStateReason::ResolveGatewayAddrs.as_str_name())
-            }
-            BaseErrorStateReason::StartLocalDnsResolver => {
-                TunnelError::internal(BaseErrorStateReason::StartLocalDnsResolver.as_str_name())
-            }
-        }
-    }
-}
-
-impl From<SyncAccountError> for TunnelError {
-    fn from(error: SyncAccountError) -> Self {
-        let Some(e) = error.error_detail else {
-            warn!("missing error detail in SyncAccountError");
-            return TunnelError::no_reason(Some("SyncAccount"));
-        };
-        match e {
-            SyncAccountErr::NoAccountStored(b) => {
-                TunnelError::internal(&format!("SyncAccountNoAccountStored {b}"))
-            }
-            SyncAccountErr::UnexpectedResponse(s) => {
-                TunnelError::internal(&format!("SyncAccountUnexpectedResponse {s}"))
-            }
-            SyncAccountErr::Internal(s) => {
-                TunnelError::internal(&format!("SyncAccountInternal {s}"))
-            }
-            SyncAccountErr::ErrorResponse(res) => TunnelError::api("SyncAccount", VpnApiError(res)),
-        }
-    }
-}
-
-impl From<SyncDeviceError> for TunnelError {
-    fn from(error: SyncDeviceError) -> Self {
-        let Some(e) = error.error_detail else {
-            warn!("missing error detail in SyncDeviceError");
-            return TunnelError::no_reason(Some("SyncDevice"));
-        };
-        match e {
-            SyncDeviceErr::NoAccountStored(b) => {
-                TunnelError::internal(&format!("SyncDeviceNoAccountStored {b}"))
-            }
-            SyncDeviceErr::NoDeviceStored(b) => {
-                TunnelError::internal(&format!("SyncDeviceNoDeviceStored {b}"))
-            }
-            SyncDeviceErr::UnexpectedResponse(s) => {
-                TunnelError::internal(&format!("SyncDeviceUnexpectedResponse {s}"))
-            }
-            SyncDeviceErr::Internal(s) => TunnelError::internal(&format!("SyncDeviceInternal {s}")),
-            SyncDeviceErr::ErrorResponse(res) => TunnelError::api("SyncDevice", VpnApiError(res)),
-        }
-    }
-}
-
-impl From<RegisterDeviceError> for TunnelError {
-    fn from(error: RegisterDeviceError) -> Self {
-        let Some(e) = error.error_detail else {
-            warn!("missing error detail in RegisterDeviceError");
-            return TunnelError::no_reason(Some("RegisterDevice"));
-        };
-        match e {
-            RegDeviceErr::NoAccountStored(b) => {
-                TunnelError::internal(&format!("RegisterDeviceNoAccountStored {b}"))
-            }
-            RegDeviceErr::NoDeviceStored(b) => {
-                TunnelError::internal(&format!("RegisterDeviceNoDeviceStored {b}"))
-            }
-            RegDeviceErr::UnexpectedResponse(s) => {
-                TunnelError::internal(&format!("RegisterDeviceUnexpectedResponse {s}"))
-            }
-            RegDeviceErr::Internal(s) => {
-                TunnelError::internal(&format!("RegisterDeviceInternal {s}"))
-            }
-            RegDeviceErr::ErrorResponse(res) => {
-                if res.message_id() == MAX_DEVICES_EXCEEDED_ID {
-                    return TunnelError::MaxDevicesReached;
-                }
-                TunnelError::api("RegisterDevice", VpnApiError(res))
-            }
-        }
-    }
-}
-
-impl From<RequestZkNymError> for TunnelError {
-    fn from(error: RequestZkNymError) -> Self {
-        let Some(e) = error.outcome else {
-            warn!("missing error detail in RequestZkNymError");
-            return TunnelError::no_reason(Some("Zknym"));
-        };
-        match e {
-            ZkNymErr::NoAccountStored(b) => {
-                TunnelError::internal(&format!("ZknymNoAccountStored {b}"))
-            }
-            ZkNymErr::NoDeviceStored(b) => {
-                TunnelError::internal(&format!("ZknymNoDeviceStored {b}"))
-            }
-            ZkNymErr::UnexpectedVpnApiResponse(s) => {
-                TunnelError::internal(&format!("ZknymUnexpectedVpnApiResponse {s}"))
-            }
-            ZkNymErr::Storage(s) => TunnelError::internal(&format!("ZknymStorage {s}")),
-            ZkNymErr::Internal(s) => TunnelError::internal(&format!("ZknymInternal {s}")),
-            ZkNymErr::VpnApi(res) => TunnelError::api("Zknym", VpnApiError(res)),
-        }
-    }
-}
-
-impl From<RequestZkNymBundle> for TunnelError {
-    fn from(bundle: RequestZkNymBundle) -> Self {
-        // TODO how the heck client is expected to deal with that kind of API??
-
-        if bundle.failures.is_empty() {
-            warn!("no failure found in RequestZknymBundle");
-            return TunnelError::no_reason(Some("RequestZknymBundle"));
-        }
-        // let's suppose: get the first one and we good? ><
-        bundle.failures[0].clone().into()
-    }
-}
-
-struct VpnApiError(VpnApiErrorResponse);
-
-impl fmt::Display for VpnApiError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        if let Some(id) = &self.0.message_id {
-            write!(f, "{}, ID [{}]", self.0.message, id)
-        } else {
-            write!(f, "{}", self.0.message)
+            ErrorStateReason::MaxDevicesReached => TunnelError::MaxDevicesReached(error.detail),
+            ErrorStateReason::BandwidthExceeded => TunnelError::BandwidthExceeded(error.detail),
+            ErrorStateReason::SubscriptionExpired => TunnelError::SubscriptionExpired(error.detail),
+            ErrorStateReason::Api => TunnelError::Api(error.detail),
         }
     }
 }

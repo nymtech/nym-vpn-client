@@ -9,15 +9,16 @@
   "grpc": "Erreur interne gRPC",
   "tunnel": {
     "internal": "Erreur interne",
-    "internal-reason": "Erreur interne : {{reason}}",
-    "api": "Erreur d'API : {{reason}}",
+    "api": "Erreur d'API",
     "firewall": "Erreur de pare-feu",
     "routing": "Erreur de routage",
     "dns": "Erreur de DNS",
     "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
     "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
     "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
-    "max-devices-reached": "Le nombre maximum d'appareil ajouté a été atteint. Supprimez un appareil de votre compte et réessayez."
+    "max-devices-reached": "Le nombre maximum d'appareil ajouté a été atteint. Supprimez un appareil de votre compte et réessayez.",
+    "bandwidth-exceeded": "La bande est dépassée.",
+    "subscription-expired": "Abonnement expiré"
   },
   "countries-request": {
     "entry": "Échec de la recherche des pays de nœuds d'entrée disponibles",

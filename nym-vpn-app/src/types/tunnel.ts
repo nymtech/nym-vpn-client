@@ -66,14 +66,31 @@ export function isWireguardData(data: TunnelData): data is WireguardData {
 
 export type TunnelError =
   | { key: 'internal'; data: string | null }
-  | { key: 'firewall' }
-  | { key: 'routing' }
-  | { key: 'dns' }
-  | { key: 'same-entry-and-exit-gw' }
-  | { key: 'invalid-entry-gw-country' }
-  | { key: 'invalid-exit-gw-country' }
-  | { key: 'max-devices-reached' }
-  | { key: 'api'; data: string };
+  | {
+      key: 'dns';
+      data: string | null;
+    }
+  | { key: 'api'; data: string | null }
+  | {
+      key: 'firewall';
+      data: string | null;
+    }
+  | { key: 'routing'; data: string | null }
+  | {
+      key: 'same-entry-and-exit-gw';
+      data: string | null;
+    }
+  | { key: 'invalid-entry-gw-country'; data: string | null }
+  | {
+      key: 'invalid-exit-gw-country';
+      data: string | null;
+    }
+  | { key: 'max-devices-reached'; data: string | null }
+  | {
+      key: 'bandwidth-exceeded';
+      data: string | null;
+    }
+  | { key: 'subscription-expired'; data: string | null };
 
 export type TunnelStateEvent = {
   state: TunnelState;
