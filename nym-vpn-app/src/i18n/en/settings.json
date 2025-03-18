@@ -30,7 +30,9 @@
   },
   "logs": {
     "title": "Logs (stored locally)",
-    "desc": "Copy or delete logs"
+    "desc": "Copy or delete logs",
+    "app": "App logs",
+    "daemon": "Daemon logs"
   },
   "faq": "FAQ",
   "display-theme": "Display mode",

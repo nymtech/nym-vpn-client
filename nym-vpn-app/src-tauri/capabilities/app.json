@@ -35,6 +35,12 @@
         },
         {
           "path": "$HOME\\AppData\\Local\\nym-vpn-app\\log"
+        },
+        {
+          "path": "C:\\ProgramData\\nym-vpnd\\log"
+        },
+        {
+          "path": "/var/log/nym-vpnd"
         }
       ]
     },

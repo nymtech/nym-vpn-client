@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
-import { openPath, openUrl } from '@tauri-apps/plugin-opener';
+import { openUrl } from '@tauri-apps/plugin-opener';
 import { useAutostart, useDesktopNotifications } from '../../hooks';
 import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
@@ -76,17 +76,6 @@ function Settings() {
     kvSet('monitoring', isChecked);
   };
 
-  const handleLogs = async () => {
-    try {
-      const logDir = await invoke<string | undefined>('log_dir');
-      if (logDir) {
-        await openPath(logDir);
-      }
-    } catch (e) {
-      console.error(e);
-    }
-  };
-
   return (
     <PageAnim className="h-full flex flex-col mt-2 gap-6">
       {account ? (
@@ -124,10 +113,10 @@ function Settings() {
             title: t('logs.title'),
             desc: t('logs.desc'),
             leadingIcon: 'sort',
-            onClick: handleLogs,
+            onClick: () => navigate(routes.logs),
             trailing: (
               <MsIcon
-                icon="open_in_new"
+                icon="arrow_right"
                 className="dark:text-mercury-pinkish"
               />
             ),

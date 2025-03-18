@@ -13,6 +13,7 @@ import {
   LicenseDetails,
   LicenseList,
   Login,
+  Logs,
   MainLayout,
   NodeEntry,
   Settings,
@@ -100,6 +101,11 @@ const router = createRouterFn([
                 errorElement: <Error />,
               },
             ],
+          },
+          {
+            path: routes.logs,
+            element: <Logs />,
+            errorElement: <Error />,
           },
           {
             path: routes.support,
