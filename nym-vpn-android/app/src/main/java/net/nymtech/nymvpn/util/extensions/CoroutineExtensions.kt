@@ -9,7 +9,6 @@ import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.channels.ticker
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.selects.whileSelect
@@ -17,7 +16,6 @@ import timber.log.Timber
 import java.time.Duration
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.coroutines.coroutineContext
 
 /**
  * Chunks based on a time or size threshold.
@@ -76,12 +74,5 @@ fun <T> Flow<T>.chunked(size: Int, time: Duration) = channelFlow {
 fun <T> CoroutineScope.asChannel(flow: Flow<T>): ReceiveChannel<T> = produce {
 	flow.collect { value ->
 		channel.send(value)
-	}
-}
-
-suspend inline fun <T> Flow<T>.safeCollect(crossinline action: suspend (T) -> Unit) {
-	collect {
-		coroutineContext.ensureActive()
-		action(it)
 	}
 }

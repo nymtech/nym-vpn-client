@@ -54,7 +54,6 @@ import net.nymtech.nymvpn.ui.screens.main.MainScreen
 import net.nymtech.nymvpn.ui.screens.permission.PermissionScreen
 import net.nymtech.nymvpn.ui.screens.scanner.ScannerScreen
 import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
-import net.nymtech.nymvpn.ui.screens.settings.account.AccountScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.language.LanguageScreen
@@ -222,7 +221,6 @@ class MainActivity : AppCompatActivity() {
 								}) {
 									LoginScreen(appState, appViewModel)
 								}
-								composable<Route.Account> { AccountScreen(appViewModel, appState) }
 								composable<Route.Licenses> {
 									LicensesScreen(appViewModel)
 								}

@@ -255,7 +255,7 @@ fun LoginScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: L
 						},
 						content = {
 							if (loading && success == null) {
-								SpinningIcon(Icons.Outlined.Refresh)
+								SpinningIcon(Icons.Outlined.Refresh, stringResource(R.string.refresh))
 							} else {
 								Text(
 									stringResource(id = R.string.log_in),

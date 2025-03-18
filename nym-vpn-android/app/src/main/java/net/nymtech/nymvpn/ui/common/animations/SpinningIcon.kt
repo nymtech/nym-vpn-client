@@ -11,9 +11,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
+import net.nymtech.nymvpn.R
 
 @Composable
-fun SpinningIcon(icon: ImageVector) {
+fun SpinningIcon(icon: ImageVector, description: String) {
 	val infiniteTransition = rememberInfiniteTransition(label = "")
 	val rotation by infiniteTransition.animateFloat(
 		initialValue = 0f,
@@ -26,7 +28,7 @@ fun SpinningIcon(icon: ImageVector) {
 				easing = FastOutLinearInEasing,
 			),
 		),
-		label = "rotate",
+		label = stringResource(R.string.rotate),
 	)
-	Icon(icon, icon.name, modifier = Modifier.rotate(rotation))
+	Icon(icon, description, modifier = Modifier.rotate(rotation))
 }

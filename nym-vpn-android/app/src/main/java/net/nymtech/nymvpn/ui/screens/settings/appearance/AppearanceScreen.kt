@@ -40,7 +40,7 @@ fun AppearanceScreen(appViewModel: AppViewModel) {
 			NavBarState(
 				title = { NavTitle(stringResource(R.string.appearance)) },
 				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
 						navController.popBackStack()
 					}
 				},
@@ -64,13 +64,13 @@ fun AppearanceScreen(appViewModel: AppViewModel) {
 						val icon = Icons.Outlined.Translate
 						Icon(
 							icon,
-							icon.name,
+							stringResource(R.string.language),
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
+						Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 					},
 					title = { Text(stringResource(R.string.language), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Language) },
@@ -85,13 +85,13 @@ fun AppearanceScreen(appViewModel: AppViewModel) {
 						val icon = Icons.Outlined.Contrast
 						Icon(
 							icon,
-							icon.name,
+							stringResource(R.string.display_theme),
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
+						Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 					},
 					title = { Text(stringResource(R.string.display_theme), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Display) },

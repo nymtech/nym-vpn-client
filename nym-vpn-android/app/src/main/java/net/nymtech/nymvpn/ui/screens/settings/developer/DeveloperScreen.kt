@@ -37,6 +37,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -79,7 +80,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
 			NavBarState(
 				title = { NavTitle("Developer") },
 				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
 						navController.popBackStack()
 					}
 				},
@@ -115,7 +116,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
 									val icon = Icons.Outlined.Bolt
 									Icon(
 										icon,
-										icon.name,
+										"Tunnel details",
 										modifier = Modifier.size(iconSize),
 									)
 									Column(
@@ -161,7 +162,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
 									val icon = ImageVector.vectorResource(R.drawable.mixnet)
 									Icon(
 										icon,
-										icon.name,
+										"Mixnet",
 										modifier = Modifier.size(iconSize),
 									)
 									Column(
@@ -203,7 +204,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
 						val icon = Icons.Outlined.Place
 						Icon(
 							icon,
-							icon.name,
+							"Location",
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},
@@ -254,7 +255,7 @@ fun DeveloperScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
 						val icon = Icons.Outlined.Key
 						Icon(
 							icon,
-							icon.name,
+							"Key",
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},

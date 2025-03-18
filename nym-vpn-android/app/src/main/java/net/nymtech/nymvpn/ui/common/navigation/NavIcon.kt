@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import net.nymtech.nymvpn.ui.theme.iconSize
 
 @Composable
-fun NavIcon(icon: ImageVector, onClick: () -> Unit) {
+fun NavIcon(icon: ImageVector, description: String, onClick: () -> Unit) {
 	IconButton(
 		onClick = {
 			onClick()
@@ -18,7 +18,7 @@ fun NavIcon(icon: ImageVector, onClick: () -> Unit) {
 	) {
 		Icon(
 			imageVector = icon,
-			contentDescription = icon.name,
+			contentDescription = description,
 			tint = MaterialTheme.colorScheme.onSurface,
 			modifier =
 			Modifier.size(

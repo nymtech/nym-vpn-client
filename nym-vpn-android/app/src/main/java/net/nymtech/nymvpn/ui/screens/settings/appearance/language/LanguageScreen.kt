@@ -41,7 +41,7 @@ fun LanguageScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
 			NavBarState(
 				title = { NavTitle(stringResource(R.string.language)) },
 				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
 						navController.popBackStack()
 					}
 				},

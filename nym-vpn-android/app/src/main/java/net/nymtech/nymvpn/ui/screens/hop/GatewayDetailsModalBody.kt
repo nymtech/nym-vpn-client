@@ -69,20 +69,19 @@ fun GatewayDetailsModal(gateway: NymGateway, gatewayType: GatewayType, onDismiss
 					horizontalArrangement = Arrangement.spacedBy(8.dp),
 					verticalAlignment = Alignment.CenterVertically,
 				) {
-					val icon = gateway.getScoreIcon(gatewayType)
+					val (scoreIcon, scoreIconDescription) = gateway.getScoreIcon(gatewayType)
 					Image(
-						icon,
-						icon.name,
+						scoreIcon,
+						scoreIconDescription,
 						modifier = Modifier.height(16.dp).width(15.dp),
 					)
 					VerticalDivider(modifier = Modifier.width(1.dp).size(24.dp))
-					val countryIconResource = gateway.twoLetterCountryISO?.let {
-						context.getFlagImageVectorByName(it)
-					} ?: R.drawable.faq
-					val countryIcon = ImageVector.vectorResource(countryIconResource)
+					val (image, description) = gateway.twoLetterCountryISO?.let {
+						Pair(ImageVector.vectorResource(context.getFlagImageVectorByName(it)), stringResource(R.string.country_flag, it))
+					} ?: Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
 					Image(
-						countryIcon,
-						countryIcon.name,
+						image,
+						description,
 						modifier =
 						Modifier
 							.size(16.dp),
@@ -107,7 +106,7 @@ fun GatewayDetailsModal(gateway: NymGateway, gatewayType: GatewayType, onDismiss
 					val icon = Icons.Outlined.ContentCopy
 					Icon(
 						icon,
-						contentDescription = icon.name,
+						contentDescription = stringResource(R.string.identity_key),
 						Modifier.size(16.dp).clickable {
 							clipboard.setText(AnnotatedString(gateway.identity))
 						},

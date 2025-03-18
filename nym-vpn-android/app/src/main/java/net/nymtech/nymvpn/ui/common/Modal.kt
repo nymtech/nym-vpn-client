@@ -24,6 +24,7 @@ fun Modal(
 	title: @Composable () -> Unit,
 	text: @Composable () -> Unit,
 	icon: ImageVector = Icons.Outlined.Info,
+	description: String = stringResource(R.string.info),
 	confirmButton: @Composable () -> Unit = {
 		MainStyledButton(
 			onClick = {
@@ -47,7 +48,7 @@ fun Modal(
 				confirmButton()
 			},
 			icon = {
-				Icon(icon, icon.name, tint = MaterialTheme.colorScheme.onSurface)
+				Icon(icon, description, tint = MaterialTheme.colorScheme.onSurface)
 			},
 			title = {
 				title()

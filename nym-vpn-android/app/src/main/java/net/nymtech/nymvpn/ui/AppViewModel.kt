@@ -3,7 +3,6 @@ package net.nymtech.nymvpn.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +16,6 @@ import net.nymtech.connectivity.NetworkService
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
-import net.nymtech.nymvpn.di.qualifiers.IoDispatcher
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
 import net.nymtech.nymvpn.ui.common.navigation.NavBarState
@@ -39,7 +37,6 @@ constructor(
 	private val gatewayCacheService: GatewayCacheService,
 	private val backendManager: BackendManager,
 	networkService: NetworkService,
-	@IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
 	private val _navBarState = MutableStateFlow(NavBarState())
@@ -72,10 +69,6 @@ constructor(
 			SharingStarted.WhileSubscribed(Constants.SUBSCRIPTION_TIMEOUT),
 			AppUiState(),
 		)
-
-	fun setAnalyticsShown() = viewModelScope.launch {
-		settingsRepository.setAnalyticsShown(true)
-	}
 
 	fun logout() = viewModelScope.launch {
 		runCatching {

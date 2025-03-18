@@ -152,7 +152,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			NavBarState(
 				title = { MainTitle() },
 				trailing = {
-					NavIcon(Icons.Outlined.Settings) {
+					NavIcon(Icons.Outlined.Settings, stringResource(R.string.settings)) {
 						navController.goFromRoot(Route.Settings)
 					}
 				},
@@ -349,12 +349,23 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 						showInfoDialog = true
 					}, modifier = Modifier.size(iconSize)) {
 						val icon = Icons.Outlined.Info
-						Icon(icon, icon.name, tint = MaterialTheme.colorScheme.outline)
+						Icon(icon, stringResource(R.string.info), tint = MaterialTheme.colorScheme.outline)
 					}
 				}
 				Column(verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Bottom)) {
 					IconSurfaceButton(
-						leadingIcon = Icons.Outlined.Speed,
+						leading = {
+							Icon(
+								Icons.Outlined.Speed,
+								contentDescription = stringResource(R.string.fastest),
+								Modifier.size(iconSize.scaledWidth()),
+								if (appUiState.settings.vpnMode == Tunnel.Mode.TWO_HOP_MIXNET) {
+									MaterialTheme.colorScheme.primary
+								} else {
+									MaterialTheme.colorScheme.onSurface
+								},
+							)
+						},
 						title = stringResource(R.string.two_hop_title),
 						description = stringResource(R.string.two_hop_description),
 						onClick = {
@@ -365,7 +376,18 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 						selected = appUiState.settings.vpnMode == Tunnel.Mode.TWO_HOP_MIXNET,
 					)
 					IconSurfaceButton(
-						leadingIcon = Icons.Outlined.VisibilityOff,
+						leading = {
+							Icon(
+								Icons.Outlined.VisibilityOff,
+								contentDescription = stringResource(R.string.anonymous),
+								Modifier.size(iconSize.scaledWidth()),
+								if (appUiState.settings.vpnMode == Tunnel.Mode.FIVE_HOP_MIXNET) {
+									MaterialTheme.colorScheme.primary
+								} else {
+									MaterialTheme.colorScheme.onSurface
+								},
+							)
+						},
 						title = stringResource(R.string.five_hop_mixnet),
 						description = stringResource(R.string.five_hop_description),
 						onClick = {
@@ -383,6 +405,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			) {
 				GroupLabel(title = stringResource(R.string.connect_to))
 				val trailingIcon = ImageVector.vectorResource(R.drawable.link_arrow_right)
+				val trailingDescription = stringResource(R.string.go)
 				val indication = when (uiState.connectionState) {
 					ConnectionState.Disconnected, ConnectionState.Offline -> ripple()
 					else -> null
@@ -398,12 +421,12 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 						)
 					},
 					leading = {
-						val image = appUiState.entryPointCountry?.let {
-							ImageVector.vectorResource(context.getFlagImageVectorByName(it))
-						} ?: ImageVector.vectorResource(R.drawable.faq)
+						val (image, description) = appUiState.entryPointCountry?.let {
+							Pair(ImageVector.vectorResource(context.getFlagImageVectorByName(it)), stringResource(R.string.country_flag, it))
+						} ?: Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
 						Image(
 							image,
-							image.name,
+							description,
 							modifier =
 							Modifier
 								.padding(horizontal = 16.dp.scaledWidth(), vertical = 16.dp.scaledHeight())
@@ -414,7 +437,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 					},
 
 					trailing = {
-						Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
+						Icon(trailingIcon, trailingDescription, tint = MaterialTheme.colorScheme.onSurface)
 					},
 					singleLine = true,
 					modifier = Modifier
@@ -458,7 +481,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 						)
 					},
 					trailing = {
-						Icon(trailingIcon, trailingIcon.name, tint = MaterialTheme.colorScheme.onSurface)
+						Icon(trailingIcon, trailingDescription, tint = MaterialTheme.colorScheme.onSurface)
 					},
 					singleLine = true,
 					modifier = Modifier

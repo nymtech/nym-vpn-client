@@ -45,7 +45,7 @@ fun SupportScreen(appViewModel: AppViewModel) {
 			NavBarState(
 				title = { NavTitle(stringResource(R.string.support)) },
 				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
 						navController.popBackStack()
 					}
 				},
@@ -70,13 +70,13 @@ fun SupportScreen(appViewModel: AppViewModel) {
 						val icon = ImageVector.vectorResource(R.drawable.faq)
 						Icon(
 							icon,
-							icon.name,
+							stringResource(R.string.check_faq),
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
+						Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 					},
 					title = { Text(stringResource(R.string.check_faq), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { context.openWebUrl(context.getString(R.string.faq_url)) },
@@ -91,13 +91,13 @@ fun SupportScreen(appViewModel: AppViewModel) {
 						val icon = ImageVector.vectorResource(R.drawable.send)
 						Icon(
 							icon,
-							icon.name,
+							stringResource(R.string.get_in_touch),
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
+						Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 					},
 					title = { Text(stringResource(R.string.get_in_touch), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
@@ -114,13 +114,13 @@ fun SupportScreen(appViewModel: AppViewModel) {
 						val icon = ImageVector.vectorResource(R.drawable.github)
 						Icon(
 							icon,
-							icon.name,
+							stringResource(R.string.github_issues_url),
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
+						Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 					},
 					title = { Text(stringResource(R.string.open_github), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
@@ -139,13 +139,13 @@ fun SupportScreen(appViewModel: AppViewModel) {
 						val icon = ImageVector.vectorResource(R.drawable.matrix)
 						Icon(
 							icon,
-							icon.name,
+							stringResource(R.string.matrix_url),
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
+						Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 					},
 					title = { Text(stringResource(R.string.join_matrix), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
@@ -162,13 +162,13 @@ fun SupportScreen(appViewModel: AppViewModel) {
 						val icon = ImageVector.vectorResource(R.drawable.discord)
 						Icon(
 							icon,
-							icon.name,
+							stringResource(R.string.join_discord),
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
+						Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 					},
 					title = { Text(stringResource(R.string.join_discord), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {

@@ -11,25 +11,21 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun IconSurfaceButton(title: String, onClick: () -> Unit, selected: Boolean, leadingIcon: ImageVector? = null, description: String? = null) {
+fun IconSurfaceButton(title: String, onClick: () -> Unit, selected: Boolean, leading: (@Composable () -> Unit)? = null, description: String? = null) {
 	val border: BorderStroke? =
 		if (selected) BorderStroke(1.dp, MaterialTheme.colorScheme.primary) else null
 	val interactionSource = remember { MutableInteractionSource() }
@@ -63,13 +59,8 @@ fun IconSurfaceButton(title: String, onClick: () -> Unit, selected: Boolean, lea
 					verticalAlignment = Alignment.CenterVertically,
 					modifier = Modifier.padding(vertical = if (description == null) 10.dp.scaledHeight() else 0.dp),
 				) {
-					leadingIcon?.let {
-						Icon(
-							leadingIcon,
-							leadingIcon.name,
-							Modifier.size(iconSize.scaledWidth()),
-							if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface,
-						)
+					leading?.let {
+						it()
 					}
 					Column {
 						Text(title, style = MaterialTheme.typography.titleMedium)

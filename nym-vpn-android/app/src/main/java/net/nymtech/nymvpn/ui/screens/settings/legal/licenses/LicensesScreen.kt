@@ -52,7 +52,7 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 			NavBarState(
 				title = { NavTitle(stringResource(R.string.licenses)) },
 				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
 						navController.popBackStack()
 					}
 				},
@@ -96,7 +96,7 @@ fun LicensesScreen(appViewModel: AppViewModel, viewModel: LicensesViewModel = hi
 					SelectionItem(
 						trailing = {
 							val icon = Icons.AutoMirrored.Outlined.ArrowRight
-							Icon(icon, icon.name, Modifier.size(iconSize))
+							Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 						},
 						title = {
 							Text(

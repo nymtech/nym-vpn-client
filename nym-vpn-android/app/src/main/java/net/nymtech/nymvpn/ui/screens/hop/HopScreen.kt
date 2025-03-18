@@ -132,8 +132,8 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		appViewModel.onNavBarStateChange(
 			NavBarState(
 				title = { NavTitle(stringResource(if (gatewayLocation == GatewayLocation.EXIT) R.string.exit else R.string.entry)) },
-				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack) { navController.popBackStack() } },
-				trailing = { NavIcon(Icons.Outlined.Info) { showLocationTooltip = true } },
+				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) { navController.popBackStack() } },
+				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showLocationTooltip = true } },
 			),
 		)
 		viewModel.initializeGateways(initialGateways)
@@ -298,11 +298,11 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 									navController.popBackStack()
 								},
 								leading = {
-									val icon = gateway.getScoreIcon(gatewayType)
+									val (icon, description) = gateway.getScoreIcon(gatewayType)
 									Box(modifier = Modifier.padding(horizontal = 16.dp)) {
 										Image(
 											icon,
-											contentDescription = stringResource(R.string.gateway_score),
+											contentDescription = description,
 											modifier = Modifier.size(16.dp),
 										)
 									}
@@ -441,11 +441,11 @@ fun CountryItem(
 					SelectionItem(
 						onClick = { onSelectionChange(gateway.identity) },
 						leading = {
-							val icon = gateway.getScoreIcon(gatewayType)
+							val (icon, description) = gateway.getScoreIcon(gatewayType)
 							Box(modifier = Modifier.padding(horizontal = 16.dp)) {
 								Image(
 									icon,
-									contentDescription = stringResource(R.string.gateway_score),
+									contentDescription = description,
 									modifier = Modifier.size(16.dp),
 								)
 							}

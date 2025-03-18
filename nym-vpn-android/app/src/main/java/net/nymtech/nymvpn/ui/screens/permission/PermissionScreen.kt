@@ -64,7 +64,7 @@ fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 			NavBarState(
 				title = { NavTitle(stringResource(R.string.permission_required)) },
 				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
 						navController.popBackStack()
 					}
 				},
@@ -103,7 +103,7 @@ fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 								val icon = Icons.Outlined.VpnKey
 								Icon(
 									icon,
-									icon.name,
+									stringResource(R.string.vpn_connection),
 									modifier = Modifier.size(iconSize.scaledWidth()),
 								)
 							},
@@ -150,7 +150,7 @@ fun PermissionScreen(appViewModel: AppViewModel, permission: Permission) {
 								val icon = Icons.Outlined.VpnLock
 								Icon(
 									icon,
-									icon.name,
+									stringResource(R.string.vpn_settings),
 									modifier = Modifier.size(iconSize.scaledWidth()),
 								)
 							},

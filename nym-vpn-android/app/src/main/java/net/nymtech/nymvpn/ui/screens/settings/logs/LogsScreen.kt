@@ -77,7 +77,7 @@ fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewMo
 			NavBarState(
 				title = { NavTitle(stringResource(R.string.logs)) },
 				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
 						navController.popBackStack()
 					}
 				},
@@ -142,7 +142,7 @@ fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewMo
 				val icon = Icons.Filled.KeyboardDoubleArrowDown
 				Icon(
 					imageVector = icon,
-					contentDescription = icon.name,
+					contentDescription = stringResource(id = R.string.scroll_down),
 					tint = MaterialTheme.colorScheme.onPrimary,
 				)
 			}
@@ -173,7 +173,7 @@ fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewMo
 							val icon = Icons.Outlined.Share
 							Icon(
 								imageVector = icon,
-								contentDescription = icon.name,
+								contentDescription = stringResource(id = R.string.share),
 							)
 						},
 					),
@@ -196,7 +196,7 @@ fun LogsScreen(appViewModel: AppViewModel, viewModel: LogsViewModel = hiltViewMo
 							val icon = Icons.Outlined.Delete
 							Icon(
 								imageVector = icon,
-								contentDescription = icon.name,
+								contentDescription = stringResource(id = R.string.delete),
 							)
 						},
 					),

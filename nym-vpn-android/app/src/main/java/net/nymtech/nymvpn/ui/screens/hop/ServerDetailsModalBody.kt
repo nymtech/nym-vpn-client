@@ -46,7 +46,7 @@ fun ServerDetailsModalBody(onClick: () -> Unit) {
 				) {
 					Text(stringResource(id = R.string.continue_reading), style = MaterialTheme.typography.bodyMedium)
 					val icon = Icons.AutoMirrored.Outlined.OpenInNew
-					Icon(icon, icon.name, Modifier.size(16.dp))
+					Icon(icon, stringResource(R.string.go), Modifier.size(16.dp))
 				}
 			}
 		}

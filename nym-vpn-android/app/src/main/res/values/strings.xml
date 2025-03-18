@@ -241,4 +241,13 @@
 	<string name="collapse">Collapse</string>
 	<string name="expand">Expand</string>
 	<string name="country_flag">Flag of %1$s</string>
+	<string name="anonymous">Anonymous</string>
+	<string name="scroll_down">Scroll down</string>
+	<string name="back">Back</string>
+	<string name="rotate">Rotate</string>
+	<string name="refresh">Refresh</string>
+	<string name="go">Go</string>
+	<string name="bars_3">3 bars</string>
+	<string name="bars_2">2 bars</string>
+	<string name="bars_1">1 bar</string>
 </resources>

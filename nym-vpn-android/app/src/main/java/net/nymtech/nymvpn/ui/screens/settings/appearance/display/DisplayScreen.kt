@@ -35,7 +35,7 @@ fun DisplayScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel:
 			NavBarState(
 				title = { NavTitle(stringResource(R.string.display_theme)) },
 				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
 						navController.popBackStack()
 					}
 				},

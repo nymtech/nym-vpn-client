@@ -89,7 +89,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 			NavBarState(
 				title = { NavTitle(stringResource(R.string.settings)) },
 				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
+					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
 						navController.popBackStack()
 					}
 				},
@@ -175,13 +175,13 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 							val icon = Icons.Outlined.Person
 							Icon(
 								icon,
-								icon.name,
+								stringResource(id = R.string.account),
 								modifier = Modifier.size(iconSize.scaledWidth()),
 							)
 						},
 						{
 							val icon = Icons.AutoMirrored.Outlined.Launch
-							Icon(icon, icon.name, Modifier.size(iconSize))
+							Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 						},
 						title = { Text(stringResource(R.string.account), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 						description = {
@@ -217,13 +217,13 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						val icon = ImageVector.vectorResource(R.drawable.support)
 						Icon(
 							icon,
-							icon.name,
+							stringResource(id = R.string.support),
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
+						Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 					},
 					title = {
 						Text(
@@ -238,13 +238,13 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						val icon = ImageVector.vectorResource(R.drawable.logs)
 						Icon(
 							icon,
-							icon.name,
+							stringResource(id = R.string.logs),
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
+						Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 					},
 					title = { Text(stringResource(R.string.local_logs), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Logs) },
@@ -285,7 +285,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						val icon = ImageVector.vectorResource(R.drawable.auto)
 						Icon(
 							icon,
-							icon.name,
+							stringResource(R.string.auto_connect),
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},
@@ -308,13 +308,13 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						val icon = Icons.Outlined.AdminPanelSettings
 						Icon(
 							icon,
-							icon.name,
+							stringResource(R.string.kill_switch),
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
+						Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 					},
 					title = { Text(stringResource(R.string.kill_switch), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
@@ -331,13 +331,13 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						val icon = Icons.AutoMirrored.Outlined.ViewQuilt
 						Icon(
 							icon,
-							icon.name,
+							stringResource(R.string.appearance),
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
+						Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 					},
 					title = { Text(stringResource(R.string.appearance), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Appearance) },
@@ -347,13 +347,13 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 						val icon = Icons.Outlined.Notifications
 						Icon(
 							icon,
-							icon.name,
+							stringResource(R.string.notifications),
 							modifier = Modifier.size(iconSize.scaledWidth()),
 						)
 					},
 					{
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
+						Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 					},
 					title = { Text(stringResource(R.string.notifications), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = {
@@ -368,7 +368,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 								val icon = Icons.Outlined.AppShortcut
 								Icon(
 									icon,
-									icon.name,
+									stringResource(R.string.app_shortcuts),
 									modifier = Modifier.size(iconSize.scaledWidth()),
 								)
 							},
@@ -396,7 +396,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 				SelectionItem(
 					trailing = {
 						val icon = Icons.AutoMirrored.Outlined.ArrowRight
-						Icon(icon, icon.name, Modifier.size(iconSize))
+						Icon(icon, stringResource(R.string.go), Modifier.size(iconSize))
 					},
 					title = { Text(stringResource(R.string.legal), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 					onClick = { navController.navigate(Route.Legal) },

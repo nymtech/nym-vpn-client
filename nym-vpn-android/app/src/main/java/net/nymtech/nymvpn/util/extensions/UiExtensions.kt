@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
@@ -109,16 +110,16 @@ fun ExitPoint.Location.toDisplayCountry(): String {
 }
 
 @Composable
-fun NymGateway.getScoreIcon(gatewayType: GatewayType): ImageVector {
+fun NymGateway.getScoreIcon(gatewayType: GatewayType): Pair<ImageVector, String> {
 	val score = when (gatewayType) {
 		GatewayType.MIXNET_ENTRY, GatewayType.MIXNET_EXIT -> mixnetScore
 		GatewayType.WG -> wgScore
 	}
 	return when (score) {
-		Score.HIGH -> ImageVector.vectorResource(R.drawable.bars_3)
-		Score.MEDIUM -> ImageVector.vectorResource(R.drawable.bars_2)
-		Score.LOW -> ImageVector.vectorResource(R.drawable.bar_1)
-		Score.NONE -> ImageVector.vectorResource(R.drawable.faq)
-		null -> ImageVector.vectorResource(R.drawable.faq)
+		Score.HIGH -> Pair(ImageVector.vectorResource(R.drawable.bars_3), stringResource(R.string.bars_3))
+		Score.MEDIUM -> Pair(ImageVector.vectorResource(R.drawable.bars_2), stringResource(R.string.bars_2))
+		Score.LOW -> Pair(ImageVector.vectorResource(R.drawable.bar_1), stringResource(R.string.bars_1))
+		Score.NONE -> Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
+		null -> Pair(ImageVector.vectorResource(R.drawable.faq), stringResource(R.string.unknown))
 	}
 }

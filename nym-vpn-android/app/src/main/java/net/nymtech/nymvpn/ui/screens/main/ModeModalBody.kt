@@ -32,7 +32,7 @@ fun ModeModalBody(onClick: () -> Unit) {
 			verticalAlignment = Alignment.CenterVertically,
 		) {
 			val icon = Icons.Outlined.Speed
-			Icon(icon, icon.name, tint = MaterialTheme.colorScheme.onSurface)
+			Icon(icon, stringResource(R.string.fastest), tint = MaterialTheme.colorScheme.onSurface)
 			Text(
 				text = stringResource(id = R.string.two_hop_title),
 				style = MaterialTheme.typography.labelLarge,
@@ -49,7 +49,7 @@ fun ModeModalBody(onClick: () -> Unit) {
 			verticalAlignment = Alignment.CenterVertically,
 		) {
 			val icon = Icons.Outlined.VisibilityOff
-			Icon(icon, icon.name, tint = MaterialTheme.colorScheme.onSurface)
+			Icon(icon, stringResource(R.string.anonymous), tint = MaterialTheme.colorScheme.onSurface)
 			Text(
 				text = stringResource(id = R.string.five_hop_mixnet),
 				style = MaterialTheme.typography.labelLarge,
@@ -76,7 +76,7 @@ fun ModeModalBody(onClick: () -> Unit) {
 				) {
 					Text(stringResource(id = R.string.continue_reading), style = MaterialTheme.typography.bodyMedium)
 					val icon = Icons.AutoMirrored.Outlined.OpenInNew
-					Icon(icon, icon.name, Modifier.size(16.dp))
+					Icon(icon, stringResource(R.string.go), Modifier.size(16.dp))
 				}
 			}
 		}
