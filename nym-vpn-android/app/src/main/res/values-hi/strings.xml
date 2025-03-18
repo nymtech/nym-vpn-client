@@ -83,7 +83,7 @@
     <string name="and_acknowledge">और NymVPN की स्वीकृति और स्वीकार करते हैं</string>
     <string name="anonymous_error_reports">अनाम त्रुटि रिपोर्ट</string>
     <string name="gateways_error">गेटवे प्राप्त करने में विफल</string>
-	<string name="country_load_failure">हॉप देशों को लोड करने में विफल</string>
+    <string name="country_load_failure">हॉप देशों को लोड करने में विफल</string>
     <string name="app_shortcuts">ऐप शॉर्टकट्स</string>
     <string name="disabled_while_connected">VPN से जुड़े रहते समय अक्षम</string>
     <string name="exception_permission_not_granted">आवश्यक अनुमति प्रदान नहीं की गई है।</string>
@@ -199,4 +199,5 @@
     <string name="unexpected_error">एक अप्रत्याशित त्रुटि हुई:</string>
     <string name="no_active_subscription">कोई सक्रिय सदस्यता नहीं पाई गई।</string>
     <string name="disabled_while_connecting">VPN से जुड़ते समय अक्षम</string>
+    <string name="anonymous">अनाम</string>
 </resources>
