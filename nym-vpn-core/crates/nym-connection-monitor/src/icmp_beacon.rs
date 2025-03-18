@@ -182,7 +182,7 @@ fn wrap_in_mixnet_message(recipient: Recipient, bundled_packets: Bytes) -> Resul
         TransmissionLane::General,
         None,
     )
-    .with_max_retransmissions(Some(0));
+    .with_max_retransmissions(0);
     Ok(mixnet_message)
 }
 
