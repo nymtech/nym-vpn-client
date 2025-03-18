@@ -76,7 +76,7 @@
     <string name="feature_in_progress">Diese Funktion ist noch in Arbeit.</string>
     <string name="logs_saved">Logs wurden im Download Verzeichnis gespeichert</string>
     <string name="sentry_url">https://sentry.io</string>
-	<string name="missing_credential">Fehlende Zugangsberechtigung</string>
+    <string name="missing_credential">Fehlende Zugangsberechtigung</string>
     <string name="country_load_failure">Fehler beim Laden der Hops</string>
     <string name="app_shortcuts">App Shortcuts</string>
     <string name="enable_shortcuts">App Shortcuts aktivieren</string>
@@ -141,4 +141,5 @@
     <string name="always_on_message">Probleme? Stell sicher, dass \"Always on\" VPN in anderen Apps deaktiviert ist</string>
     <string name="new_to_nym">Neu bei NymVPN?</string>
     <string name="disabled_while_connecting">Deaktiviert während Verbindung mit dem VPN besteht</string>
+    <string name="anonymous">Anonym</string>
 </resources>
