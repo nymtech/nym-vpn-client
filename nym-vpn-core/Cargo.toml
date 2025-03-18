@@ -159,7 +159,7 @@ system-configuration = "0.6"
 tap = "1.0.1"
 tempfile = "3.19"
 thiserror = "2.0"
-time = "0.3.39"
+time = "0.3.40"
 tokio = "1.42"
 tokio-stream = "0.1.17"
 tokio-util = { version = "0.7.13", features = ["codec"] }
