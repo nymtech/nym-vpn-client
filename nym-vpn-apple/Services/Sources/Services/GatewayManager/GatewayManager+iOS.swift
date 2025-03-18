@@ -22,6 +22,11 @@ extension GatewayManager {
                 let exitGateways = exitNodes.map { GatewayNode(with: $0) }
                 let vpnGateways = vpnNodes.map { GatewayNode(with: $0) }
 
+                guard !entryGateways.isEmpty, !exitGateways.isEmpty, !vpnGateways.isEmpty
+                else {
+                    logger.info("Empty gateways from API")
+                    return
+                }
                 entry = entryGateways
                 exit = exitGateways
                 vpn = vpnGateways

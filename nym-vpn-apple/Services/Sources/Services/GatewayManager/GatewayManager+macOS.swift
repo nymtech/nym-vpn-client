@@ -9,6 +9,12 @@ extension GatewayManager {
             let exitGateways = try await grpcManager.gateways(for: .exit)
             let vpnGateways = try await grpcManager.gateways(for: .vpn)
 
+            guard !entryGateways.isEmpty, !exitGateways.isEmpty, !vpnGateways.isEmpty
+            else {
+                logger.info("Empty gateways from API")
+                return
+            }
+
             entry = entryGateways
             exit = exitGateways
             vpn = vpnGateways
