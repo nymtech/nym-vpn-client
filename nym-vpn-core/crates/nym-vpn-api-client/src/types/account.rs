@@ -91,7 +91,7 @@ impl VpnApiTime {
         let rtt = local_time_after_request - local_time_before_request;
         let estimated_remote_time = remote_timestamp + (rtt / 2);
         Self {
-            local_time: local_time_before_request,
+            local_time: local_time_after_request,
             estimated_remote_time,
         }
     }
