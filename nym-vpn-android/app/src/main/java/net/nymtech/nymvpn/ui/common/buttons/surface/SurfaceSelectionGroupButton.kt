@@ -38,10 +38,11 @@ fun SurfaceSelectionGroupButton(
 	background: Color,
 	divider: Boolean = true,
 	anchorsPadding: Dp = 16.dp,
+	modifier: Modifier = Modifier,
 ) {
 	val interactionSource = remember { MutableInteractionSource() }
 	Card(
-		modifier = Modifier.fillMaxWidth(),
+		modifier = modifier.fillMaxWidth(),
 		shape = shape,
 		colors = CardDefaults.cardColors(containerColor = background),
 	) {

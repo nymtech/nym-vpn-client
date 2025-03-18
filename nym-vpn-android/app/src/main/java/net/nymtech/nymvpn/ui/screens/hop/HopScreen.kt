@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,10 +22,10 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -41,10 +40,10 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -56,23 +55,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.core.os.ConfigurationCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.VerticalDivider
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
@@ -87,66 +79,32 @@ import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getFlagImageVectorByName
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
-import net.nymtech.nymvpn.util.extensions.navigateAndForget
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.nymvpn.util.extensions.scoreSorted
-import net.nymtech.nymvpn.util.extensions.toLocale
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
 import nym_vpn_lib.GatewayType
-import java.text.Collator
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appUiState: AppUiState, viewModel: HopViewModel = hiltViewModel()) {
+fun HopScreen(
+	gatewayLocation: GatewayLocation,
+	appViewModel: AppViewModel,
+	appUiState: AppUiState,
+	viewModel: HopViewModel = hiltViewModel()
+) {
 	val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-	val context = LocalContext.current
 	val navController = LocalNavController.current
+	val context = LocalContext.current
 
 	var refreshing by remember { mutableStateOf(false) }
 	var selectedGateway by remember { mutableStateOf<NymGateway?>(null) }
 	var showGatewayDetailsModal by remember { mutableStateOf(false) }
-	val pullRefreshState = rememberPullToRefreshState()
-
-	val currentLocale = ConfigurationCompat.getLocales(context.resources.configuration)[0]
-	val collator = Collator.getInstance(currentLocale)
-
-	val selectedKey = remember {
-		when (gatewayLocation) {
-			GatewayLocation.ENTRY -> appUiState.entryPointId
-			GatewayLocation.EXIT -> appUiState.exitPointId
-		}
-	}
-
 	var showLocationTooltip by remember { mutableStateOf(false) }
-
-	LaunchedEffect(Unit) {
-		appViewModel.onNavBarStateChange(
-			NavBarState(
-				title = {
-					NavTitle(
-						when (gatewayLocation) {
-							GatewayLocation.EXIT -> stringResource(R.string.exit)
-							GatewayLocation.ENTRY -> stringResource(R.string.entry)
-						},
-					)
-				},
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack) {
-						navController.popBackStack()
-					}
-				},
-				trailing = {
-					NavIcon(Icons.Outlined.Info) {
-						showLocationTooltip = true
-					}
-				},
-			),
-		)
-	}
+	val pullRefreshState = rememberPullToRefreshState()
 
 	val gatewayType = remember {
 		when (appUiState.settings.vpnMode) {
@@ -156,12 +114,18 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 					GatewayLocation.ENTRY -> GatewayType.MIXNET_ENTRY
 				}
 			}
-
 			Tunnel.Mode.TWO_HOP_MIXNET -> GatewayType.WG
 		}
 	}
 
-	val gateways = remember(appUiState.gateways) {
+	val selectedKey = remember {
+		when (gatewayLocation) {
+			GatewayLocation.ENTRY -> appUiState.entryPointId
+			GatewayLocation.EXIT -> appUiState.exitPointId
+		}
+	}
+
+	val initialGateways = remember {
 		when (gatewayType) {
 			GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
 			GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
@@ -169,35 +133,15 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		}
 	}
 
-	val countries = remember(uiState.query) {
-		derivedStateOf {
-			with(uiState.query.lowercase()) {
-				gateways.asSequence().distinctBy { it.twoLetterCountryISO }.filter { it.twoLetterCountryISO != null }
-					.map {
-						it.toLocale()!!
-					}.filter {
-						it.displayCountry.lowercase().contains(this) || it.country.lowercase().contains(this) || it.isO3Country.lowercase().contains(this)
-					}
-					.sortedWith(compareBy(collator) { it.displayCountry }).toList()
-			}
-		}
-	}.value
-
-	val queriedGateways = remember(uiState.query) {
-		derivedStateOf {
-			with(uiState.query.lowercase()) {
-				if (uiState.query.isNotBlank()) {
-					gateways.filter { it.identity.lowercase().contains(this) || it.name.lowercase().contains(this) }.sortedWith(
-						compareBy(collator) { it.identity },
-					)
-				} else {
-					emptyList()
-				}
-			}
-		}
-	}.value
-
-	LaunchedEffect(Unit) {
+	LaunchedEffect(gatewayType, initialGateways) {
+		appViewModel.onNavBarStateChange(
+			NavBarState(
+				title = { NavTitle(stringResource(if (gatewayLocation == GatewayLocation.EXIT) R.string.exit else R.string.entry)) },
+				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack) { navController.popBackStack() } },
+				trailing = { NavIcon(Icons.Outlined.Info) { showLocationTooltip = true } },
+			)
+		)
+		viewModel.initializeGateways(initialGateways)
 		viewModel.updateCountryCache(gatewayType)
 	}
 
@@ -206,31 +150,15 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		refreshing = false
 	}
 
-	fun onSelectionChange(id: String) {
-		viewModel.onSelected(id, gatewayLocation)
-		navController.navigateAndForget(Route.Main())
-	}
-
 	Modal(show = showLocationTooltip, onDismiss = { showLocationTooltip = false }, title = {
-		Text(
-			text = stringResource(R.string.gateway_locations_title),
-			color = MaterialTheme.colorScheme.onSurface,
-			style = CustomTypography.labelHuge,
-		)
+		Text(stringResource(R.string.gateway_locations_title), style = CustomTypography.labelHuge)
 	}, text = {
-		ServerDetailsModalBody(
-			onClick = {
-				context.openWebUrl(context.getString(R.string.location_support_link))
-			},
-		)
+		ServerDetailsModalBody(onClick = { context.openWebUrl(context.getString(R.string.location_support_link)) })
 	})
 
 	if (showGatewayDetailsModal) {
 		selectedGateway?.let {
-			GatewayDetailsModal(it, gatewayType, {
-				selectedGateway = null
-				showGatewayDetailsModal = false
-			})
+			GatewayDetailsModal(it, gatewayType, { selectedGateway = null; showGatewayDetailsModal = false })
 		}
 	}
 
@@ -238,326 +166,169 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		state = pullRefreshState,
 		isRefreshing = refreshing,
 		onRefresh = { refreshing = true },
+		modifier = Modifier.fillMaxSize()
 	) {
 		LazyColumn(
 			horizontalAlignment = Alignment.CenterHorizontally,
 			verticalArrangement = Arrangement.Top,
-			modifier =
-			Modifier
-				.fillMaxSize().windowInsetsPadding(WindowInsets.navigationBars).imePadding(),
+			modifier = Modifier
+				.fillMaxSize()
+				.windowInsetsPadding(WindowInsets.navigationBars)
+				.imePadding()
 		) {
 			item {
 				Column(
 					verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight()),
 					modifier = Modifier
-						.padding(bottom = 24.dp.scaledHeight())
-						.padding(horizontal = 24.dp.scaledWidth()),
+						.padding(horizontal = 24.dp.scaledWidth())
+						.padding(top = 24.dp.scaledHeight())
 				) {
-					Box(
-						modifier =
-						Modifier
-							.fillMaxWidth()
-							.padding(
-								horizontal = 16.dp.scaledWidth(),
-							),
-					)
 					CustomTextField(
 						value = uiState.query,
-						onValueChange = {
-							viewModel.onQueryChange(it)
-						},
+						onValueChange = { viewModel.onQueryChange(it) },
 						modifier = Modifier
 							.fillMaxWidth()
 							.height(56.dp.scaledHeight())
-							.background(color = Color.Transparent, RoundedCornerShape(30.dp)),
-						placeholder = {
-							Text(
-								stringResource(id = R.string.search_country),
-								color = MaterialTheme.colorScheme.outline,
-								style = MaterialTheme.typography.bodyLarge,
-							)
-						},
+							.background(Color.Transparent, RoundedCornerShape(30.dp)),
+						placeholder = { Text(stringResource(R.string.search_country), color = MaterialTheme.colorScheme.outline) },
 						singleLine = true,
-						leading = {
-							val icon = Icons.Rounded.Search
-							Icon(
-								imageVector = icon,
-								modifier = Modifier.size(iconSize),
-								tint = MaterialTheme.colorScheme.onBackground,
-								contentDescription = icon.name,
-							)
-						},
-						label = {
-							Text(
-								stringResource(R.string.search),
-							)
-						},
-						textStyle = MaterialTheme.typography.bodyLarge.copy(
-							color = MaterialTheme.colorScheme.onSurface,
-						),
+						leading = { Icon(Icons.Rounded.Search, contentDescription = stringResource(R.string.search), modifier = Modifier.size(iconSize)) },
+						label = { Text(stringResource(R.string.search)) },
+						textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
 					)
 				}
 			}
-			if (gateways.isEmpty()) {
+
+			if (uiState.countries.isEmpty() && uiState.queriedGateways.isEmpty() && initialGateways.isEmpty()) {
 				item {
-					if (uiState.error) {
-						Text(
-							stringResource(id = R.string.country_load_failure),
-							style = MaterialTheme.typography.bodyMedium.copy(
-								color = CustomColors.error,
-							),
-						)
-					} else {
-						Text(
-							stringResource(id = R.string.loading),
-							style = MaterialTheme.typography.bodyMedium,
-						)
+					Box(
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(top = 24.dp.scaledHeight())
+							.padding(horizontal = 16.dp.scaledWidth()),
+						contentAlignment = Alignment.Center
+					) {
+						if (uiState.error) {
+							Text(
+								stringResource(R.string.country_load_failure),
+								style = MaterialTheme.typography.bodyMedium.copy(color = CustomColors.error),
+								textAlign = TextAlign.Center
+							)
+						} else {
+							Text(
+								stringResource(R.string.loading),
+								style = MaterialTheme.typography.bodyMedium,
+								textAlign = TextAlign.Center
+							)
+						}
 					}
 				}
 			}
-			if (uiState.query != "" && countries.isEmpty() && queriedGateways.isEmpty() && gateways.isNotEmpty()) {
-				item {
-					val annotatedString = buildAnnotatedString {
-						append(stringResource(R.string.try_another_server_name))
-						append(" ")
-						withLink(
-							link = LinkAnnotation.Url(
-								url = stringResource(R.string.contact_url),
-								styles = TextLinkStyles(
-									style = SpanStyle(
-										textDecoration = TextDecoration.Underline,
-									),
 
-								),
-							),
-						) {
-							append(stringResource(R.string.contact_for_help))
-						}
-						append(" ")
-						append(stringResource(R.string.or_learn))
-						append(" ")
-						withLink(
-							link = LinkAnnotation.Url(
-								url = stringResource(R.string.docs_url),
-								styles = TextLinkStyles(
-									style = SpanStyle(
-										textDecoration = TextDecoration.Underline,
-									),
-								),
-							),
-						) {
-							append(stringResource(R.string.how_to_run_gateway))
-						}
-					}
+			if (uiState.query.isNotBlank() && uiState.countries.isEmpty() && uiState.queriedGateways.isEmpty() && !uiState.error) {
+				item {
 					Column(
 						horizontalAlignment = Alignment.CenterHorizontally,
-						verticalArrangement = Arrangement.spacedBy(5.dp.scaledHeight(), Alignment.Top),
-						modifier = Modifier.padding(horizontal = 16.dp.scaledWidth()).fillMaxWidth(),
+						verticalArrangement = Arrangement.spacedBy(5.dp.scaledHeight()),
+						modifier = Modifier
+							.fillMaxWidth()
+							.padding(top = 24.dp.scaledHeight())
+							.padding(horizontal = 16.dp.scaledWidth())
 					) {
 						Text(
 							stringResource(R.string.no_results_found),
 							textAlign = TextAlign.Center,
-							style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground).copy(
-								letterSpacing = 0.5.sp,
-								fontWeight = FontWeight(400),
-							),
+							style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onBackground)
 						)
 						Text(
-							annotatedString,
+							buildAnnotatedString {
+								append(stringResource(R.string.try_another_server_name))
+								append(" ")
+								withLink(LinkAnnotation.Url(stringResource(R.string.contact_url))) {
+									append(stringResource(R.string.contact_for_help))
+								}
+								append(" ")
+								append(stringResource(R.string.or_learn))
+								append(" ")
+								withLink(LinkAnnotation.Url(stringResource(R.string.docs_url))) {
+									append(stringResource(R.string.how_to_run_gateway))
+								}
+							},
 							textAlign = TextAlign.Center,
-							style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.outline).copy(
-								letterSpacing = 0.5.sp,
-								fontWeight = FontWeight(400),
-							),
+							style = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.outline)
 						)
 					}
 				}
 			}
-			items(countries, key = { it.displayCountry }) { country ->
-				Column(modifier = Modifier.padding(bottom = 8.dp)) {
-					var expanded by remember { mutableStateOf(false) }
 
-					LaunchedEffect(Unit) {
-						expanded = gateways.filter { it.twoLetterCountryISO == country.country.lowercase() }.any { it.identity == selectedKey }
-					}
+			items(uiState.countries, key = { it.country }) { country ->
+				CountryItem(
+					country = country,
+					gatewayType = gatewayType,
+					gateways = when (gatewayType) {
+						GatewayType.MIXNET_ENTRY -> appUiState.gateways.entryGateways
+						GatewayType.MIXNET_EXIT -> appUiState.gateways.exitGateways
+						GatewayType.WG -> appUiState.gateways.wgGateways
+						else -> emptyList()
+					}.filter { it.twoLetterCountryISO == country.country.lowercase() },
+					selectedKey = selectedKey,
+					onSelectionChange = { id ->
+						viewModel.onSelected(id, gatewayLocation)
+						navController.popBackStack()
+					},
+					onGatewayDetails = { gateway ->
+						selectedGateway = gateway
+						showGatewayDetailsModal = true
+					},
+					modifier = Modifier
+						.padding(top = if (uiState.countries.indexOf(country) == 0) 24.dp.scaledHeight() else 0.dp)
+						.padding(vertical = 4.dp)
+				)
+			}
 
-					val rotationAngle by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
-					val countryCode = country.country.lowercase()
+			if (uiState.queriedGateways.isNotEmpty()) {
+				itemsIndexed(
+					uiState.queriedGateways.scoreSorted(appUiState.settings.vpnMode),
+					key = { _, gateway -> gateway.identity }
+				) { index, gateway ->
+					val locale = gateway.twoLetterCountryISO?.let { Locale(it, it) }
 					SurfaceSelectionGroupButton(
 						listOf(
 							SelectionItem(
 								onClick = {
-									onSelectionChange(countryCode)
-								},
-								leading = {
-									val icon = ImageVector.vectorResource(
-										context.getFlagImageVectorByName(countryCode),
-									)
-									Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-										Image(
-											icon,
-											icon.name,
-											modifier =
-											Modifier
-												.size(
-													iconSize,
-												),
-										)
-									}
-								},
-								trailing = {
-									Box(
-										modifier = Modifier.clickable { expanded = !expanded }.fillMaxHeight(),
-										contentAlignment = Alignment.Center,
-									) {
-										Row(
-											horizontalArrangement = Arrangement.spacedBy(16.dp),
-											verticalAlignment = Alignment.CenterVertically,
-											modifier = Modifier.padding(end = 16.dp),
-										) {
-											VerticalDivider(modifier = Modifier.height(42.dp))
-											val icon = Icons.Filled.ArrowDropDown
-											Icon(
-												imageVector = icon,
-												contentDescription = if (expanded) "Collapse" else "Expand",
-												modifier = Modifier.graphicsLayer(rotationZ = rotationAngle).size(iconSize),
-											)
-										}
-									}
-								},
-								title = { Text(country.displayCountry, style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
-								description = {
-									Text(
-										"${gateways.count { it.twoLetterCountryISO == countryCode }}  ${stringResource(R.string.servers)}",
-										style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
-									)
-								},
-								selected = countryCode == selectedKey,
-							),
-						),
-						shape = RectangleShape,
-						background = MaterialTheme.colorScheme.surface,
-						anchorsPadding = 0.dp,
-					)
-					AnimatedVisibility(
-						visible = expanded,
-						enter = expandVertically() + fadeIn(),
-						exit = shrinkVertically() + fadeOut(),
-					) {
-						SurfaceSelectionGroupButton(
-							gateways.filter { it.twoLetterCountryISO == countryCode }
-								.scoreSorted(appUiState.settings.vpnMode).map { gateway ->
-									SelectionItem(
-										onClick = {
-											onSelectionChange(gateway.identity)
-										},
-										leading = {
-											val icon = gateway.getScoreIcon(gatewayType)
-											Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-												Image(
-													icon,
-													icon.name,
-													modifier = Modifier.height(16.dp).width(15.dp),
-												)
-											}
-										},
-										trailing = {
-											Box(
-												modifier = Modifier.clickable {
-													selectedGateway = gateway
-													showGatewayDetailsModal = true
-												}.fillMaxHeight(),
-												contentAlignment = Alignment.Center,
-											) {
-												Row(
-													horizontalArrangement = Arrangement.spacedBy(16.dp),
-													verticalAlignment = Alignment.CenterVertically,
-													modifier = Modifier.padding(end = 16.dp),
-												) {
-													VerticalDivider(modifier = Modifier.height(42.dp))
-													val icon = Icons.Outlined.Info
-													Icon(
-														imageVector = icon,
-														contentDescription = icon.name,
-														Modifier.size(iconSize),
-													)
-												}
-											}
-										},
-										title = {
-											Text(
-												gateway.name,
-												maxLines = 1,
-												overflow = TextOverflow.Ellipsis,
-												style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
-											)
-										},
-										description = {
-											Text(
-												gateway.identity,
-												maxLines = 1,
-												overflow = TextOverflow.Ellipsis,
-												style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
-											)
-										},
-										selected = selectedKey == gateway.identity,
-									)
-								},
-							shape = RectangleShape,
-							background = MaterialTheme.colorScheme.background,
-							divider = false,
-							anchorsPadding = 0.dp,
-						)
-					}
-					if (expanded && queriedGateways.isNotEmpty() &&
-						countries.lastOrNull() == country
-					) {
-						Spacer(modifier = Modifier.height(24.dp.scaledHeight()))
-					}
-				}
-			}
-			if (queriedGateways.isNotEmpty()) {
-				item {
-					SurfaceSelectionGroupButton(
-						queriedGateways.scoreSorted(appUiState.settings.vpnMode).map { gateway ->
-							val locale = gateway.twoLetterCountryISO?.let {
-								Locale(it, it)
-							}
-							SelectionItem(
-								onClick = {
-									onSelectionChange(gateway.identity)
+									viewModel.onSelected(gateway.identity, gatewayLocation)
+									navController.popBackStack()
 								},
 								leading = {
 									val icon = gateway.getScoreIcon(gatewayType)
 									Box(modifier = Modifier.padding(horizontal = 16.dp)) {
 										Image(
 											icon,
-											icon.name,
-											modifier =
-											Modifier.height(16.dp).width(15.dp),
+											contentDescription = stringResource(R.string.gateway_score),
+											modifier = Modifier.size(16.dp)
 										)
 									}
 								},
 								trailing = {
 									Box(
-										modifier = Modifier.clickable {
-											selectedGateway = gateway
-											showGatewayDetailsModal = true
-										}.fillMaxHeight(),
-										contentAlignment = Alignment.Center,
+										modifier = Modifier
+											.clickable {
+												selectedGateway = gateway
+												showGatewayDetailsModal = true
+											}
+											.fillMaxHeight(),
+										contentAlignment = Alignment.Center
 									) {
 										Row(
 											horizontalArrangement = Arrangement.spacedBy(16.dp),
 											verticalAlignment = Alignment.CenterVertically,
-											modifier = Modifier.padding(end = 16.dp),
-
+											modifier = Modifier.padding(end = 16.dp)
 										) {
 											VerticalDivider(modifier = Modifier.height(42.dp))
-											val icon = Icons.Outlined.Info
 											Icon(
-												imageVector = icon,
-												contentDescription = icon.name,
-												Modifier.size(iconSize),
+												Icons.Outlined.Info,
+												contentDescription = stringResource(R.string.info),
+												modifier = Modifier.size(iconSize)
 											)
 										}
 									}
@@ -567,7 +338,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 										gateway.name,
 										maxLines = 1,
 										overflow = TextOverflow.Ellipsis,
-										style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+										style = MaterialTheme.typography.bodyLarge
 									)
 								},
 								description = {
@@ -575,19 +346,157 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 										"${locale?.displayCountry ?: stringResource(R.string.unknown)}, ${gateway.identity}",
 										maxLines = 1,
 										overflow = TextOverflow.Ellipsis,
-										style = MaterialTheme.typography.bodySmall.copy(MaterialTheme.colorScheme.outline),
+										style = MaterialTheme.typography.bodySmall
 									)
 								},
-								selected = selectedKey == gateway.identity,
+								selected = selectedKey == gateway.identity
 							)
-						},
+						),
 						shape = RectangleShape,
 						background = MaterialTheme.colorScheme.background,
 						divider = false,
 						anchorsPadding = 0.dp,
+						modifier = Modifier
+							.padding(top = if (index == 0 && uiState.countries.isEmpty()) 24.dp.scaledHeight() else 0.dp)
 					)
 				}
 			}
+		}
+	}
+}
+
+@Composable
+fun CountryItem(
+	country: Locale,
+	gatewayType: GatewayType,
+	gateways: List<NymGateway>,
+	selectedKey: String?,
+	onSelectionChange: (String) -> Unit,
+	onGatewayDetails: (NymGateway) -> Unit,
+	modifier: Modifier = Modifier
+) {
+	val context = LocalContext.current
+	var expanded by rememberSaveable(key = "expanded_${country.country}") {
+		mutableStateOf(gateways.any { it.identity == selectedKey })
+	}
+	val rotationAngle by animateFloatAsState(targetValue = if (expanded) 180f else 0f)
+	val countryCode = country.country.lowercase()
+
+	Column(modifier = modifier) {
+		SurfaceSelectionGroupButton(
+			listOf(
+				SelectionItem(
+					onClick = { onSelectionChange(countryCode) },
+					leading = {
+						val icon = ImageVector.vectorResource(context.getFlagImageVectorByName(countryCode))
+						Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+							Image(
+								icon,
+								contentDescription = stringResource(R.string.country_flag, country.displayCountry),
+								modifier = Modifier.size(iconSize)
+							)
+						}
+					},
+					trailing = {
+						Box(
+							modifier = Modifier
+								.clickable { expanded = !expanded }
+								.fillMaxHeight(),
+							contentAlignment = Alignment.Center
+						) {
+							Row(
+								horizontalArrangement = Arrangement.spacedBy(16.dp),
+								verticalAlignment = Alignment.CenterVertically,
+								modifier = Modifier.padding(end = 16.dp)
+							) {
+								VerticalDivider(modifier = Modifier.height(42.dp))
+								Icon(
+									Icons.Filled.ArrowDropDown,
+									contentDescription = stringResource(if (expanded) R.string.collapse else R.string.expand),
+									modifier = Modifier.graphicsLayer(rotationZ = rotationAngle).size(iconSize)
+								)
+							}
+						}
+					},
+					title = { Text(country.displayCountry, style = MaterialTheme.typography.bodyLarge) },
+					description = {
+						Text(
+							"${gateways.size} ${stringResource(R.string.servers)}",
+							style = MaterialTheme.typography.bodySmall
+						)
+					},
+					selected = countryCode == selectedKey
+				)
+			),
+			shape = RectangleShape,
+			background = MaterialTheme.colorScheme.surface,
+			anchorsPadding = 0.dp
+		)
+
+		AnimatedVisibility(
+			visible = expanded,
+			enter = expandVertically() + fadeIn(),
+			exit = shrinkVertically() + fadeOut()
+		) {
+			SurfaceSelectionGroupButton(
+				gateways.map { gateway ->
+					SelectionItem(
+						onClick = { onSelectionChange(gateway.identity) },
+						leading = {
+							val icon = gateway.getScoreIcon(gatewayType)
+							Box(modifier = Modifier.padding(horizontal = 16.dp)) {
+								Image(
+									icon,
+									contentDescription = stringResource(R.string.gateway_score),
+									modifier = Modifier.size(16.dp)
+								)
+							}
+						},
+						trailing = {
+							Box(
+								modifier = Modifier
+									.clickable { onGatewayDetails(gateway) }
+									.fillMaxHeight(),
+								contentAlignment = Alignment.Center
+							) {
+								Row(
+									horizontalArrangement = Arrangement.spacedBy(16.dp),
+									verticalAlignment = Alignment.CenterVertically,
+									modifier = Modifier.padding(end = 16.dp)
+								) {
+									VerticalDivider(modifier = Modifier.height(42.dp))
+									Icon(
+										Icons.Outlined.Info,
+										contentDescription = stringResource(R.string.info),
+										modifier = Modifier.size(iconSize)
+									)
+								}
+							}
+						},
+						title = {
+							Text(
+								gateway.name,
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis,
+								style = MaterialTheme.typography.bodyLarge
+							)
+						},
+						description = {
+							Text(
+								gateway.identity,
+								maxLines = 1,
+								overflow = TextOverflow.Ellipsis,
+								style = MaterialTheme.typography.bodySmall
+							)
+						},
+						selected = selectedKey == gateway.identity
+					)
+				},
+				shape = RectangleShape,
+				background = MaterialTheme.colorScheme.background,
+				divider = false,
+				anchorsPadding = 0.dp
+			)
 		}
 	}
 }
