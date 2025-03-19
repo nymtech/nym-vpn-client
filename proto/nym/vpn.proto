@@ -498,6 +498,12 @@ message MixnetEvent {
   }
 }
 
+message GetLogPathResponse {
+  // directory path
+  string path = 1;
+  string filename = 2;
+}
+
 service NymVpnd {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
@@ -598,6 +604,9 @@ service NymVpnd {
 
   // Get the available tickets in the local credential store
   rpc GetAvailableTickets (google.protobuf.Empty) returns (GetAvailableTicketsResponse) {}
+
+  // Get the log file path
+  rpc GetLogPath (google.protobuf.Empty) returns (GetLogPathResponse) {}
 
   // Delete the log file
   rpc DeleteLogFile (google.protobuf.Empty) returns (DeleteLogFileResponse) {}

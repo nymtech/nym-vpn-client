@@ -13,7 +13,7 @@ use nym_vpn_proto::{
     DeleteLogFileResponse, DisconnectResponse, ForgetAccountResponse, GetAccountIdentityResponse,
     GetAccountLinksRequest, GetAccountLinksResponse, GetAccountStateResponse,
     GetAccountUsageResponse, GetAvailableTicketsResponse, GetDeviceIdentityResponse,
-    GetDeviceZkNymsResponse, GetDevicesResponse, GetFeatureFlagsResponse,
+    GetDeviceZkNymsResponse, GetDevicesResponse, GetFeatureFlagsResponse, GetLogPathResponse,
     GetNetworkCompatibilityResponse, GetSystemMessagesResponse, GetZkNymByIdRequest,
     GetZkNymByIdResponse, GetZkNymsAvailableForDownloadResponse, InfoResponse,
     IsAccountStoredResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
@@ -30,6 +30,7 @@ use super::{
 };
 use crate::{
     command_interface::protobuf::info_response::into_proto_available_tickets,
+    service,
     service::{ConnectOptions, VpnServiceCommand},
 };
 
@@ -894,6 +895,18 @@ impl NymVpnd for CommandInterface {
         };
 
         Ok(tonic::Response::new(response))
+    }
+
+    async fn get_log_path(
+        &self,
+        _: tonic::Request<()>,
+    ) -> Result<tonic::Response<GetLogPathResponse>, tonic::Status> {
+        let dir = service::log_dir();
+        tracing::debug!("log file path: {}", dir.display());
+        Ok(tonic::Response::new(GetLogPathResponse {
+            path: dir.to_string_lossy().to_string(),
+            filename: service::DEFAULT_LOG_FILE.to_string(),
+        }))
     }
 }
 
