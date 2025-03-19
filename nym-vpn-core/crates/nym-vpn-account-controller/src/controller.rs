@@ -130,14 +130,9 @@ where
         ));
 
         // Client to query the VPN API
-        let mut vpn_api_client =
+        let vpn_api_client =
             nym_vpn_api_client::VpnApiClient::new(network_env.vpn_api_url(), user_agent.clone())
                 .map_err(Error::SetupVpnApiClient)?;
-        vpn_api_client
-            .sync_with_remote_time()
-            .await
-            .inspect_err(|err| tracing::error!("Failed to get remote time: {err}"))
-            .ok();
 
         // We expose the account state as a shared object that can be queried without having to ask
         // the controller

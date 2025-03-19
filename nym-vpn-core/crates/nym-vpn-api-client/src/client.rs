@@ -1,14 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, net::SocketAddr, sync::Arc, time::Duration};
+use std::{fmt, net::SocketAddr, time::Duration};
 
 use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
 use nym_http_api_client::{ApiClient, HttpClientError, Params, PathSegments, UserAgent, NO_PARAMS};
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use time::OffsetDateTime;
-use tokio::sync::RwLock;
 use url::Url;
 
 use crate::{
@@ -37,8 +36,6 @@ pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(60);
 #[derive(Clone, Debug)]
 pub struct VpnApiClient {
     inner: nym_http_api_client::Client,
-    // compensation, in case the skew is too big
-    vpn_api_time: Arc<RwLock<Option<VpnApiTime>>>,
 }
 
 impl VpnApiClient {
@@ -85,7 +82,7 @@ impl VpnApiClient {
                 builder
             })
             .and_then(|builder| builder.build())
-            .map(|c| Self { inner: c, vpn_api_time: Arc::new(RwLock::new(None)) })
+            .map(|c| Self { inner: c })
             .map_err(VpnApiClientError::FailedToCreateVpnApiClient)
     }
 
@@ -112,7 +109,7 @@ impl VpnApiClient {
         }
     }
 
-    pub async fn sync_with_remote_time(&mut self) -> Result<()> {
+    async fn sync_with_remote_time(&self) -> Result<Option<VpnApiTime>> {
         let time_before = OffsetDateTime::now_utc();
         let remote_timestamp = self.get_health().await?.timestamp_utc;
         let time_after = OffsetDateTime::now_utc();
@@ -121,23 +118,23 @@ impl VpnApiClient {
             VpnApiTime::from_remote_timestamp(time_before, remote_timestamp, time_after);
 
         if Self::use_remote_time(remote_time) {
-            *self.vpn_api_time.write().await = Some(remote_time);
+            Ok(Some(remote_time))
+        } else {
+            Ok(None)
         }
-
-        Ok(())
     }
 
-    async fn get_authorized<T, E>(
+    async fn get_query<T, E>(
         &self,
         path: PathSegments<'_>,
         account: &VpnApiAccount,
         device: Option<&Device>,
+        jwt: Option<VpnApiTime>,
     ) -> std::result::Result<T, HttpClientError<E>>
     where
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
-        let jwt = *self.vpn_api_time.read().await;
         let request = self
             .inner
             .create_get_request(path, NO_PARAMS)
@@ -150,10 +147,36 @@ impl VpnApiClient {
             ),
             None => request,
         };
-
         let response = request.send().await?;
-
         nym_http_api_client::parse_response(response, false).await
+    }
+
+    async fn get_authorized<T, E>(
+        &self,
+        path: PathSegments<'_>,
+        account: &VpnApiAccount,
+        device: Option<&Device>,
+    ) -> std::result::Result<T, HttpClientError<E>>
+    where
+        T: DeserializeOwned,
+        E: fmt::Display + DeserializeOwned,
+    {
+        match self.get_query(path, account, device, None).await {
+            Ok(response) => Ok(response),
+            Err(err) => {
+                tracing::warn!("Failed query: {err}; retrying query with remote time");
+                if let Ok(Some(jwt)) = self
+                    .sync_with_remote_time()
+                    .await
+                    .inspect_err(|err| tracing::error!("Failed to get remote time: {err}"))
+                {
+                    // retry with remote vpn api time
+                    self.get_query(path, account, device, Some(jwt)).await
+                } else {
+                    Err(err.into())
+                }
+            }
+        }
     }
 
     #[allow(unused)]
@@ -167,16 +190,15 @@ impl VpnApiClient {
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
-        let jwt = *self.vpn_api_time.read().await;
         let request = self
             .inner
             .create_get_request(path, NO_PARAMS)
-            .bearer_auth(account.jwt(jwt).to_string());
+            .bearer_auth(account.jwt(None).to_string());
 
         let request = match device {
             Some(device) => request.header(
                 DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(jwt)),
+                format!("Bearer {}", device.jwt(None)),
             ),
             None => request,
         };
@@ -234,19 +256,19 @@ impl VpnApiClient {
         Ok(response)
     }
 
-    async fn post_authorized<T, B, E>(
+    async fn post_query<T, B, E>(
         &self,
         path: PathSegments<'_>,
         json_body: &B,
         account: &VpnApiAccount,
         device: Option<&Device>,
+        jwt: Option<VpnApiTime>,
     ) -> std::result::Result<T, HttpClientError<E>>
     where
         T: DeserializeOwned,
         B: Serialize,
         E: fmt::Display + DeserializeOwned,
     {
-        let jwt = *self.vpn_api_time.read().await;
         let request = self
             .inner
             .create_post_request(path, NO_PARAMS, json_body)
@@ -259,9 +281,72 @@ impl VpnApiClient {
             ),
             None => request,
         };
-
         let response = request.send().await?;
+        nym_http_api_client::parse_response(response, false).await
+    }
 
+    async fn post_authorized<T, B, E>(
+        &self,
+        path: PathSegments<'_>,
+        json_body: &B,
+        account: &VpnApiAccount,
+        device: Option<&Device>,
+    ) -> std::result::Result<T, HttpClientError<E>>
+    where
+        T: DeserializeOwned,
+        B: Serialize,
+        E: fmt::Display + DeserializeOwned,
+    {
+        match self
+            .post_query(path, json_body, account, device, None)
+            .await
+        {
+            Ok(response) => Ok(response),
+            Err(err) => {
+                if let HttpClientError::EndpointFailure {
+                    status: _,
+                    error: _,
+                } = err
+                {
+                    tracing::warn!("Retrying query with remote time");
+                    if let Ok(Some(jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
+                        tracing::error!("Failed to get remote time: {err}. Not retring anymore")
+                    }) {
+                        // retry with remote vpn api time
+                        return self
+                            .post_query(path, json_body, account, device, Some(jwt))
+                            .await;
+                    }
+                }
+                Err(err.into())
+            }
+        }
+    }
+
+    async fn delete_query<T, E>(
+        &self,
+        path: PathSegments<'_>,
+        account: &VpnApiAccount,
+        device: Option<&Device>,
+        jwt: Option<VpnApiTime>,
+    ) -> std::result::Result<T, HttpClientError<E>>
+    where
+        T: DeserializeOwned,
+        E: fmt::Display + DeserializeOwned,
+    {
+        let request = self
+            .inner
+            .create_delete_request(path, NO_PARAMS)
+            .bearer_auth(account.jwt(jwt).to_string());
+
+        let request = match device {
+            Some(device) => request.header(
+                DEVICE_AUTHORIZATION_HEADER,
+                format!("Bearer {}", device.jwt(jwt)),
+            ),
+            None => request,
+        };
+        let response = request.send().await?;
         nym_http_api_client::parse_response(response, false).await
     }
 
@@ -275,10 +360,43 @@ impl VpnApiClient {
         T: DeserializeOwned,
         E: fmt::Display + DeserializeOwned,
     {
-        let jwt = *self.vpn_api_time.read().await;
+        match self.delete_query(path, account, device, None).await {
+            Ok(response) => Ok(response),
+            Err(err) => {
+                if let HttpClientError::EndpointFailure {
+                    status: _,
+                    error: _,
+                } = err
+                {
+                    tracing::warn!("Retrying query with remote time");
+                    if let Ok(Some(jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
+                        tracing::error!("Failed to get remote time: {err}. Not retring anymore")
+                    }) {
+                        // retry with remote vpn api time
+                        return self.delete_query(path, account, device, Some(jwt)).await;
+                    }
+                }
+                Err(err.into())
+            }
+        }
+    }
+
+    async fn patch_query<T, B, E>(
+        &self,
+        path: PathSegments<'_>,
+        json_body: &B,
+        account: &VpnApiAccount,
+        device: Option<&Device>,
+        jwt: Option<VpnApiTime>,
+    ) -> std::result::Result<T, HttpClientError<E>>
+    where
+        T: DeserializeOwned,
+        B: Serialize,
+        E: fmt::Display + DeserializeOwned,
+    {
         let request = self
             .inner
-            .create_delete_request(path, NO_PARAMS)
+            .create_patch_request(path, NO_PARAMS, json_body)
             .bearer_auth(account.jwt(jwt).to_string());
 
         let request = match device {
@@ -288,9 +406,7 @@ impl VpnApiClient {
             ),
             None => request,
         };
-
         let response = request.send().await?;
-
         nym_http_api_client::parse_response(response, false).await
     }
 
@@ -306,23 +422,30 @@ impl VpnApiClient {
         B: Serialize,
         E: fmt::Display + DeserializeOwned,
     {
-        let jwt = *self.vpn_api_time.read().await;
-        let request = self
-            .inner
-            .create_patch_request(path, NO_PARAMS, json_body)
-            .bearer_auth(account.jwt(jwt).to_string());
-
-        let request = match device {
-            Some(device) => request.header(
-                DEVICE_AUTHORIZATION_HEADER,
-                format!("Bearer {}", device.jwt(jwt)),
-            ),
-            None => request,
-        };
-
-        let response = request.send().await?;
-
-        nym_http_api_client::parse_response(response, false).await
+        match self
+            .patch_query(path, json_body, account, device, None)
+            .await
+        {
+            Ok(response) => Ok(response),
+            Err(err) => {
+                if let HttpClientError::EndpointFailure {
+                    status: _,
+                    error: _,
+                } = err
+                {
+                    tracing::warn!("Retrying query with remote time");
+                    if let Ok(Some(jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
+                        tracing::error!("Failed to get remote time: {err}. Not retring anymore")
+                    }) {
+                        // retry with remote vpn api time
+                        return self
+                            .patch_query(path, json_body, account, device, Some(jwt))
+                            .await;
+                    }
+                }
+                Err(err.into())
+            }
+        }
     }
 
     // ACCOUNT
