@@ -6,7 +6,7 @@ StartLimitIntervalSec=24
 After=NetworkManager.service systemd-resolved.service
 
 [Service]
-ExecStart=/usr/bin/nym-vpnd
+ExecStart=/usr/bin/nym-vpnd --run-as-service
 Restart=always
 RestartSec=2
 

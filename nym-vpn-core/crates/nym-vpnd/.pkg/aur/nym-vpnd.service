@@ -6,7 +6,7 @@ Wants=network-pre.target
 After=network-pre.target NetworkManager.service systemd-resolved.service
 
 [Service]
-ExecStart=/usr/bin/nym-vpnd
+ExecStart=/usr/bin/nym-vpnd --run-as-service
 Restart=on-failure
 RestartSec=5
 
