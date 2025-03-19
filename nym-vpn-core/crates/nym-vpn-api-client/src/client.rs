@@ -122,6 +122,9 @@ impl VpnApiClient {
 
         if Self::use_remote_time(remote_time) {
             *self.vpn_api_time.write().await = Some(remote_time);
+        } else {
+            // reset to using local time
+            *self.vpn_api_time.write().await = None;
         }
 
         Ok(())
