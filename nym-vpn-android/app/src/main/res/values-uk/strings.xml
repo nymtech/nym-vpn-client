@@ -212,4 +212,26 @@
     <string name="servers">сервери</string>
     <string name="logging_out">Виходжу з системи.</string>
     <string name="anonymous">Анонімний</string>
+    <string name="update">Оновлення</string>
+    <string name="log_out_body">Для повторного входу вам знадобиться фраза відновлення.</string>
+    <string name="cancel">Скасувати</string>
+    <string name="remove_device">Видаліть пристрій зі свого акаунта і спробуйте ще раз.</string>
+    <string name="gateway_score">Оцінка шлюзу</string>
+    <string name="info">Інформація</string>
+    <string name="collapse">Згортання</string>
+    <string name="expand">Розгорнути</string>
+    <string name="country_flag">Прапор %1$s</string>
+    <string name="scroll_down">Прокрутіть вниз</string>
+    <string name="back">Назад</string>
+    <string name="rotate">Поворот</string>
+    <string name="refresh">Оновити</string>
+    <string name="go">Вперед</string>
+    <string name="bars_3">3 смужки</string>
+    <string name="bars_1">1 смужка</string>
+    <string name="identity_key">Ідентифікаційний ключ:</string>
+    <string name="app_update_required">Ваш додаток більше не підтримується. Будь ласка, оновіть його до останньої версії, щоб продовжити використання NymVPN.</string>
+    <string name="update_required">Потрібне оновлення!</string>
+    <string name="log_out_title">Ви впевнені, що хочете вийти з системи?</string>
+    <string name="subscription_expired">Термін дії підписки для цього облікового запису закінчився. Оновіть підписку, щоб продовжити використання.</string>
+    <string name="bars_2">2 смужки</string>
 </resources>
