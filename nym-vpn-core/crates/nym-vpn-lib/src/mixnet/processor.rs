@@ -257,14 +257,14 @@ impl MixnetProcessor {
         // signal shutdown for the mixnet client.
         if self.notify_disconnected.send(()).is_err() {
             tracing::error!("Failed to notify that the IPR is disconnected");
+        } else {
+            // After we've notified that we are disconnected, wait until the TaskManager has signelled
+            // shutdown before we return.
+            // Possibly we don't need this, but it seems like the correct thing to do. The footgun here
+            // is that we don't want to drop the mixnet client before the task manager has signalled
+            // shutdown.
+            task_client_mix_processor.recv_timeout().await;
         }
-
-        // After we've notified that we are disconnected, wait until the TaskManager has signelled
-        // shutdown before we return.
-        // Possibly we don't need this, but it seems like the correct thing to do. The footgun here
-        // is that we don't want to drop the mixnet client before the task manager has signalled
-        // shutdown.
-        task_client_mix_processor.recv_timeout().await;
 
         tracing::debug!("MixnetProcessor: Exiting");
         Ok(tun_device_sink
