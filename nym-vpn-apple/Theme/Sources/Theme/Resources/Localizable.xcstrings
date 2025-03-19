@@ -551,6 +551,17 @@
         }
       }
     },
+    "errorReason.bandwidthExceeded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bandwidth exceeded."
+          }
+        }
+      }
+    },
     "errorReason.dns" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -623,7 +634,18 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Invalid exit router country"
+            "value" : "Invalid exit gateway country"
+          }
+        }
+      }
+    },
+    "errorReason.maxDevicesReached" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max devices limit reached."
           }
         }
       }
@@ -712,6 +734,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Failed to start local dns proxy. Please try again."
+          }
+        }
+      }
+    },
+    "errorReason.subscriptionExpired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscription expired."
           }
         }
       }

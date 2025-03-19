@@ -1749,21 +1749,19 @@ struct Nym_Vpn_TunnelState: Sendable {
 
   }
 
-  enum BaseErrorStateReason: SwiftProtobuf.Enum, Swift.CaseIterable {
+  enum ErrorStateReason: SwiftProtobuf.Enum, Swift.CaseIterable {
     typealias RawValue = Int
     case firewall // = 0
     case routing // = 1
-    case dns // = 2
-    case tunDevice // = 3
-    case tunnelProvider // = 4
-    case sameEntryAndExitGateway // = 5
-    case invalidEntryGatewayCountry // = 6
-    case invalidExitGatewayCountry // = 7
-    case badBandwidthIncrease // = 8
-    case duplicateTunFd // = 9
+    case sameEntryAndExitGateway // = 2
+    case invalidEntryGatewayCountry // = 3
+    case invalidExitGatewayCountry // = 4
+    case maxDevicesReached // = 5
+    case bandwidthExceeded // = 6
+    case subscriptionExpired // = 7
+    case dns // = 8
+    case api // = 9
     case `internal` // = 10
-    case resolveGatewayAddrs // = 11
-    case startLocalDnsResolver // = 12
     case UNRECOGNIZED(Int)
 
     init() {
@@ -1774,17 +1772,15 @@ struct Nym_Vpn_TunnelState: Sendable {
       switch rawValue {
       case 0: self = .firewall
       case 1: self = .routing
-      case 2: self = .dns
-      case 3: self = .tunDevice
-      case 4: self = .tunnelProvider
-      case 5: self = .sameEntryAndExitGateway
-      case 6: self = .invalidEntryGatewayCountry
-      case 7: self = .invalidExitGatewayCountry
-      case 8: self = .badBandwidthIncrease
-      case 9: self = .duplicateTunFd
+      case 2: self = .sameEntryAndExitGateway
+      case 3: self = .invalidEntryGatewayCountry
+      case 4: self = .invalidExitGatewayCountry
+      case 5: self = .maxDevicesReached
+      case 6: self = .bandwidthExceeded
+      case 7: self = .subscriptionExpired
+      case 8: self = .dns
+      case 9: self = .api
       case 10: self = .internal
-      case 11: self = .resolveGatewayAddrs
-      case 12: self = .startLocalDnsResolver
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1793,36 +1789,32 @@ struct Nym_Vpn_TunnelState: Sendable {
       switch self {
       case .firewall: return 0
       case .routing: return 1
-      case .dns: return 2
-      case .tunDevice: return 3
-      case .tunnelProvider: return 4
-      case .sameEntryAndExitGateway: return 5
-      case .invalidEntryGatewayCountry: return 6
-      case .invalidExitGatewayCountry: return 7
-      case .badBandwidthIncrease: return 8
-      case .duplicateTunFd: return 9
+      case .sameEntryAndExitGateway: return 2
+      case .invalidEntryGatewayCountry: return 3
+      case .invalidExitGatewayCountry: return 4
+      case .maxDevicesReached: return 5
+      case .bandwidthExceeded: return 6
+      case .subscriptionExpired: return 7
+      case .dns: return 8
+      case .api: return 9
       case .internal: return 10
-      case .resolveGatewayAddrs: return 11
-      case .startLocalDnsResolver: return 12
       case .UNRECOGNIZED(let i): return i
       }
     }
 
     // The compiler won't synthesize support with the UNRECOGNIZED case.
-    static let allCases: [Nym_Vpn_TunnelState.BaseErrorStateReason] = [
+    static let allCases: [Nym_Vpn_TunnelState.ErrorStateReason] = [
       .firewall,
       .routing,
-      .dns,
-      .tunDevice,
-      .tunnelProvider,
       .sameEntryAndExitGateway,
       .invalidEntryGatewayCountry,
       .invalidExitGatewayCountry,
-      .badBandwidthIncrease,
-      .duplicateTunFd,
+      .maxDevicesReached,
+      .bandwidthExceeded,
+      .subscriptionExpired,
+      .dns,
+      .api,
       .internal,
-      .resolveGatewayAddrs,
-      .startLocalDnsResolver,
     ]
 
   }
@@ -1938,69 +1930,23 @@ struct Nym_Vpn_TunnelState: Sendable {
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
 
-    var errorStateReason: Nym_Vpn_TunnelState.Error.OneOf_ErrorStateReason? = nil
+    var reason: Nym_Vpn_TunnelState.ErrorStateReason = .firewall
 
-    var baseReason: Nym_Vpn_TunnelState.BaseErrorStateReason {
-      get {
-        if case .baseReason(let v)? = errorStateReason {return v}
-        return .firewall
-      }
-      set {errorStateReason = .baseReason(newValue)}
+    /// for errors with details like Dns, Api, Internal
+    var detail: String {
+      get {return _detail ?? String()}
+      set {_detail = newValue}
     }
-
-    var syncAccount: Nym_Vpn_SyncAccountError {
-      get {
-        if case .syncAccount(let v)? = errorStateReason {return v}
-        return Nym_Vpn_SyncAccountError()
-      }
-      set {errorStateReason = .syncAccount(newValue)}
-    }
-
-    var syncDevice: Nym_Vpn_SyncDeviceError {
-      get {
-        if case .syncDevice(let v)? = errorStateReason {return v}
-        return Nym_Vpn_SyncDeviceError()
-      }
-      set {errorStateReason = .syncDevice(newValue)}
-    }
-
-    var registerDevice: Nym_Vpn_RegisterDeviceError {
-      get {
-        if case .registerDevice(let v)? = errorStateReason {return v}
-        return Nym_Vpn_RegisterDeviceError()
-      }
-      set {errorStateReason = .registerDevice(newValue)}
-    }
-
-    var requestZkNym: Nym_Vpn_RequestZkNymError {
-      get {
-        if case .requestZkNym(let v)? = errorStateReason {return v}
-        return Nym_Vpn_RequestZkNymError()
-      }
-      set {errorStateReason = .requestZkNym(newValue)}
-    }
-
-    var requestZkNymBundle: Nym_Vpn_RequestZkNymBundle {
-      get {
-        if case .requestZkNymBundle(let v)? = errorStateReason {return v}
-        return Nym_Vpn_RequestZkNymBundle()
-      }
-      set {errorStateReason = .requestZkNymBundle(newValue)}
-    }
+    /// Returns true if `detail` has been explicitly set.
+    var hasDetail: Bool {return self._detail != nil}
+    /// Clears the value of `detail`. Subsequent reads from it will return its default value.
+    mutating func clearDetail() {self._detail = nil}
 
     var unknownFields = SwiftProtobuf.UnknownStorage()
 
-    enum OneOf_ErrorStateReason: Equatable, Sendable {
-      case baseReason(Nym_Vpn_TunnelState.BaseErrorStateReason)
-      case syncAccount(Nym_Vpn_SyncAccountError)
-      case syncDevice(Nym_Vpn_SyncDeviceError)
-      case registerDevice(Nym_Vpn_RegisterDeviceError)
-      case requestZkNym(Nym_Vpn_RequestZkNymError)
-      case requestZkNymBundle(Nym_Vpn_RequestZkNymBundle)
-
-    }
-
     init() {}
+
+    fileprivate var _detail: String? = nil
   }
 
   struct Offline: Sendable {
@@ -5225,21 +5171,19 @@ extension Nym_Vpn_TunnelState: SwiftProtobuf.Message, SwiftProtobuf._MessageImpl
   }
 }
 
-extension Nym_Vpn_TunnelState.BaseErrorStateReason: SwiftProtobuf._ProtoNameProviding {
+extension Nym_Vpn_TunnelState.ErrorStateReason: SwiftProtobuf._ProtoNameProviding {
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     0: .same(proto: "FIREWALL"),
     1: .same(proto: "ROUTING"),
-    2: .same(proto: "DNS"),
-    3: .same(proto: "TUN_DEVICE"),
-    4: .same(proto: "TUNNEL_PROVIDER"),
-    5: .same(proto: "SAME_ENTRY_AND_EXIT_GATEWAY"),
-    6: .same(proto: "INVALID_ENTRY_GATEWAY_COUNTRY"),
-    7: .same(proto: "INVALID_EXIT_GATEWAY_COUNTRY"),
-    8: .same(proto: "BAD_BANDWIDTH_INCREASE"),
-    9: .same(proto: "DUPLICATE_TUN_FD"),
+    2: .same(proto: "SAME_ENTRY_AND_EXIT_GATEWAY"),
+    3: .same(proto: "INVALID_ENTRY_GATEWAY_COUNTRY"),
+    4: .same(proto: "INVALID_EXIT_GATEWAY_COUNTRY"),
+    5: .same(proto: "MAX_DEVICES_REACHED"),
+    6: .same(proto: "BANDWIDTH_EXCEEDED"),
+    7: .same(proto: "SUBSCRIPTION_EXPIRED"),
+    8: .same(proto: "DNS"),
+    9: .same(proto: "API"),
     10: .same(proto: "INTERNAL"),
-    11: .same(proto: "RESOLVE_GATEWAY_ADDRS"),
-    12: .same(proto: "START_LOCAL_DNS_RESOLVER"),
   ]
 }
 
@@ -5378,12 +5322,8 @@ extension Nym_Vpn_TunnelState.Disconnecting: SwiftProtobuf.Message, SwiftProtobu
 extension Nym_Vpn_TunnelState.Error: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = Nym_Vpn_TunnelState.protoMessageName + ".Error"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "base_reason"),
-    2: .standard(proto: "sync_account"),
-    3: .standard(proto: "sync_device"),
-    4: .standard(proto: "register_device"),
-    5: .standard(proto: "request_zk_nym"),
-    6: .standard(proto: "request_zk_nym_bundle"),
+    1: .same(proto: "reason"),
+    2: .same(proto: "detail"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -5392,79 +5332,8 @@ extension Nym_Vpn_TunnelState.Error: SwiftProtobuf.Message, SwiftProtobuf._Messa
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try {
-        var v: Nym_Vpn_TunnelState.BaseErrorStateReason?
-        try decoder.decodeSingularEnumField(value: &v)
-        if let v = v {
-          if self.errorStateReason != nil {try decoder.handleConflictingOneOf()}
-          self.errorStateReason = .baseReason(v)
-        }
-      }()
-      case 2: try {
-        var v: Nym_Vpn_SyncAccountError?
-        var hadOneofValue = false
-        if let current = self.errorStateReason {
-          hadOneofValue = true
-          if case .syncAccount(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.errorStateReason = .syncAccount(v)
-        }
-      }()
-      case 3: try {
-        var v: Nym_Vpn_SyncDeviceError?
-        var hadOneofValue = false
-        if let current = self.errorStateReason {
-          hadOneofValue = true
-          if case .syncDevice(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.errorStateReason = .syncDevice(v)
-        }
-      }()
-      case 4: try {
-        var v: Nym_Vpn_RegisterDeviceError?
-        var hadOneofValue = false
-        if let current = self.errorStateReason {
-          hadOneofValue = true
-          if case .registerDevice(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.errorStateReason = .registerDevice(v)
-        }
-      }()
-      case 5: try {
-        var v: Nym_Vpn_RequestZkNymError?
-        var hadOneofValue = false
-        if let current = self.errorStateReason {
-          hadOneofValue = true
-          if case .requestZkNym(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.errorStateReason = .requestZkNym(v)
-        }
-      }()
-      case 6: try {
-        var v: Nym_Vpn_RequestZkNymBundle?
-        var hadOneofValue = false
-        if let current = self.errorStateReason {
-          hadOneofValue = true
-          if case .requestZkNymBundle(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.errorStateReason = .requestZkNymBundle(v)
-        }
-      }()
+      case 1: try { try decoder.decodeSingularEnumField(value: &self.reason) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self._detail) }()
       default: break
       }
     }
@@ -5475,38 +5344,18 @@ extension Nym_Vpn_TunnelState.Error: SwiftProtobuf.Message, SwiftProtobuf._Messa
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
-    switch self.errorStateReason {
-    case .baseReason?: try {
-      guard case .baseReason(let v)? = self.errorStateReason else { preconditionFailure() }
-      try visitor.visitSingularEnumField(value: v, fieldNumber: 1)
-    }()
-    case .syncAccount?: try {
-      guard case .syncAccount(let v)? = self.errorStateReason else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    }()
-    case .syncDevice?: try {
-      guard case .syncDevice(let v)? = self.errorStateReason else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    }()
-    case .registerDevice?: try {
-      guard case .registerDevice(let v)? = self.errorStateReason else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
-    }()
-    case .requestZkNym?: try {
-      guard case .requestZkNym(let v)? = self.errorStateReason else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
-    }()
-    case .requestZkNymBundle?: try {
-      guard case .requestZkNymBundle(let v)? = self.errorStateReason else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 6)
-    }()
-    case nil: break
+    if self.reason != .firewall {
+      try visitor.visitSingularEnumField(value: self.reason, fieldNumber: 1)
     }
+    try { if let v = self._detail {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 2)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Nym_Vpn_TunnelState.Error, rhs: Nym_Vpn_TunnelState.Error) -> Bool {
-    if lhs.errorStateReason != rhs.errorStateReason {return false}
+    if lhs.reason != rhs.reason {return false}
+    if lhs._detail != rhs._detail {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

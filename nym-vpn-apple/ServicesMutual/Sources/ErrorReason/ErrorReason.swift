@@ -13,21 +13,14 @@ public enum ErrorReason: LocalizedError {
     case firewall
     case routing
     case dns
-    case tunDevice
-    case tunnelProvider
     case internalUnknown
     case sameEntryAndExitGateway
     case invalidEntryGatewayCountry
     case invalidExitGatewayCountry
-    case badBandwidthIncrease
-    case duplicateTunFd
-    case syncAccount(details: String)
-    case syncDevice(details: String)
-    case registerDevice(details: String)
-    case requestZknym(details: String)
-    case requestZkNymBundle(successes: [String], failed: [String])
-    case resolveGatewayAddrs
-    case startLocalDnsResolver
+    case maxDevicesReached
+    case bandwidthExceeded
+    case subscriptionExpired
+    case api(String)
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -44,10 +37,6 @@ public enum ErrorReason: LocalizedError {
             self = .routing
         case .dns:
             self = .dns
-        case .tunDevice:
-            self = .tunDevice
-        case .tunnelProvider:
-            self = .tunnelProvider
         case .internal:
             self = .internalUnknown
         case .sameEntryAndExitGateway:
@@ -56,90 +45,14 @@ public enum ErrorReason: LocalizedError {
             self = .invalidEntryGatewayCountry
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
-        case .badBandwidthIncrease:
-            self = .badBandwidthIncrease
-        case .duplicateTunFd:
-            self = .duplicateTunFd
-        case let .syncAccount(details: details):
-            let messageString: String
-            switch details {
-            case .noAccountStored:
-                self = .noAccountStored
-                return
-            case let .errorResponse(vpnApiErrorResponse):
-                messageString = vpnApiErrorResponse.message
-            case let .unexpectedResponse(message), let .internal(message):
-                messageString = message
-            }
-            self = .syncAccount(details: messageString)
-        case let .syncDevice(details: details):
-            let messageString: String
-            switch details {
-            case .noAccountStored:
-                self = .noAccountStored
-                return
-            case .noDeviceStored:
-                self = .noDeviceStored
-                return
-            case let .errorResponse(vpnApiErrorResponse):
-                messageString = vpnApiErrorResponse.message
-            case let .unexpectedResponse(message), let .internal(message):
-                messageString = message
-            }
-            self = .syncDevice(details: messageString)
-        case let .registerDevice(details: details):
-            let messageString: String
-            switch details {
-            case .noAccountStored:
-                self = .noAccountStored
-                return
-            case .noDeviceStored:
-                self = .noDeviceStored
-                return
-            case let .errorResponse(vpnApiErrorResponse):
-                messageString = vpnApiErrorResponse.message
-            case let .unexpectedResponse(message):
-                messageString = message
-            case let .internal(message):
-                messageString = message
-            }
-            self = .registerDevice(details: messageString)
-        case let .requestZkNym(details: details):
-            let messageString: String
-            switch details {
-            case .noAccountStored:
-                self = .noAccountStored
-                return
-            case .noDeviceStored:
-                self = .noDeviceStored
-                return
-            case let .vpnApi(vpnApiErrorResponse):
-                messageString = vpnApiErrorResponse.message
-            case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
-                messageString = message
-            }
-            self = .requestZknym(details: messageString)
-        case let .requestZkNymBundle(successes: successes, failed: failed):
-            let newFailed = failed.compactMap {
-                switch $0 {
-                case .noAccountStored:
-                    return "errorReason.noAccountStored".localizedString
-                case .noDeviceStored:
-                    return "errorReason.noDeviceStored".localizedString
-                case let .vpnApi(vpnApiErrorResponse):
-                    return vpnApiErrorResponse.message
-                case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
-                    return message
-                }
-            }
-            self = .requestZkNymBundle(
-                successes: successes.compactMap { $0.id },
-                failed: newFailed
-            )
-        case .resolveGatewayAddrs:
-            self = .resolveGatewayAddrs
-        case .startLocalDnsResolver:
-            self = .startLocalDnsResolver
+        case .maxDevicesReached:
+            self = .maxDevicesReached
+        case .bandwidthExceeded:
+            self = .bandwidthExceeded
+        case .subscriptionExpired:
+            self = .subscriptionExpired
+        case let .api(message):
+            self = .api(message ?? Self.somethingWentWrong)
         }
     }
 #endif
@@ -168,10 +81,6 @@ public enum ErrorReason: LocalizedError {
             self = .routing
         case .dns:
             self = .dns
-        case .tunDevice:
-            self = .tunDevice
-        case .tunnelProvider:
-            self = .tunnelProvider
         case .internalUnknown:
             self = .internalUnknown
         case .sameEntryAndExitGateway:
@@ -180,37 +89,14 @@ public enum ErrorReason: LocalizedError {
             self = .invalidEntryGatewayCountry
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
-        case .badBandwidthIncrease:
-            self = .badBandwidthIncrease
-        case .duplicateTunFd:
-            self = .duplicateTunFd
-        case .syncAccount:
-            self = .syncAccount(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .syncDevice:
-            self = .syncDevice(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .registerDevice:
-            self = .registerDevice(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .requestZknym:
-            self = .requestZknym(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
-        case .requestZkNymBundle:
-            let decoder = JSONDecoder()
-            var successes = [String]()
-            var failures = [String]()
-            if let successesString = nsError.userInfo["requestZknymSuccesses"] as? String,
-               let jsonData = successesString.data(using: .utf8),
-               let decodedSuccesses = try? decoder.decode([String].self, from: jsonData) {
-                successes = decodedSuccesses
-            }
-            if let failuresString = nsError.userInfo["requestZknymFailures"] as? String,
-               let jsonData = failuresString.data(using: .utf8),
-               let decodedFailures = try? decoder.decode([String].self, from: jsonData) {
-                failures = decodedFailures
-            }
-            self = .requestZkNymBundle(successes: successes, failed: failures)
-        case .resolveGatewayAddrs:
-            self = .resolveGatewayAddrs
-        case .startLocalDnsResolver:
-            self = .startLocalDnsResolver
+        case .maxDevicesReached:
+            self = .maxDevicesReached
+        case .bandwidthExceeded:
+            self = .bandwidthExceeded
+        case .subscriptionExpired:
+            self = .subscriptionExpired
+        case .api:
+            self = .api(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         }
     }
 
@@ -219,22 +105,9 @@ public enum ErrorReason: LocalizedError {
     }
 
     public var nsError: NSError {
-        let jsonEncoder = JSONEncoder()
-        var userInfo: [String: String] = [
+        let userInfo: [String: String] = [
             "details": description
         ]
-        if let requestZknymDetails,
-           !requestZknymDetails.successes.isEmpty,
-           let jsonData = try? jsonEncoder.encode(requestZknymDetails.successes),
-           let jsonString = String(data: jsonData, encoding: .utf8) {
-            userInfo["requestZknymSuccesses"] = jsonString
-        }
-        if let requestZknymDetails,
-           !requestZknymDetails.failures.isEmpty,
-           let jsonData = try? jsonEncoder.encode(requestZknymDetails.failures),
-           let jsonString = String(data: jsonData, encoding: .utf8) {
-            userInfo["requestZknymFailures"] = jsonString
-        }
         return NSError(
             domain: ErrorReason.domain,
             code: errorCode,
@@ -247,15 +120,6 @@ extension ErrorReason {
     var errorCode: Int {
         ErrorReasonCode(errorReason: self)?.rawValue ?? 0
     }
-
-    var requestZknymDetails: (successes: [String], failures: [String])? {
-        switch self {
-        case let .requestZkNymBundle(successes: successes, failed: failed):
-            return (successes, failed)
-        default:
-            return nil
-        }
-    }
 }
 
 private extension ErrorReason {
@@ -267,10 +131,6 @@ private extension ErrorReason {
             "errorReason.routing".localizedString
         case .dns:
             "errorReason.dns".localizedString
-        case .tunDevice:
-            "errorReason.tunDevice".localizedString
-        case .tunnelProvider:
-            "errorReason.tunnelProvider".localizedString
         case .internalUnknown:
             "errorReason.internalUnknown".localizedString
         case .sameEntryAndExitGateway:
@@ -279,32 +139,22 @@ private extension ErrorReason {
             "errorReason.invalidEntryGatewayCountry".localizedString
         case .invalidExitGatewayCountry:
             "errorReason.invalidExitGatewayCountry".localizedString
-        case .badBandwidthIncrease:
-            "errorReason.badBandwidthIncrease".localizedString
-        case .duplicateTunFd:
-            "errorReason.duplicateTunFd".localizedString
         case .unknown:
             "errorReason.unknown".localizedString
-        case let .syncAccount(details: details):
-            details
-        case let .syncDevice(details: details):
-            details
-        case let .registerDevice(details: details):
-            details
-        case let .requestZknym(details: details):
-            details
-        case let .requestZkNymBundle(successes: successes, failed: failed):
-            "\(successes.first ?? "") \(failed.first ?? "")"
         case .offline:
             "errorReason.offline".localizedString
         case .noAccountStored:
             "errorReason.noAccountStored".localizedString
         case .noDeviceStored:
             "errorReason.noDeviceStored".localizedString
-        case .resolveGatewayAddrs:
-            "errorReason.resolveGatewayAddrs".localizedString
-        case .startLocalDnsResolver:
-            "errorReason.startLocalDnsResolver".localizedString
+        case .maxDevicesReached:
+            "errorReason.maxDevicesReached".localizedString
+        case .bandwidthExceeded:
+            "errorReason.bandwidthExceeded".localizedString
+        case .subscriptionExpired:
+            "errorReason.subscriptionExpired".localizedString
+        case let .api(message):
+            message
         }
     }
 }
@@ -323,21 +173,14 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case firewall
     case routing
     case dns
-    case tunDevice
-    case tunnelProvider
     case internalUnknown
     case sameEntryAndExitGateway
     case invalidEntryGatewayCountry
     case invalidExitGatewayCountry
-    case badBandwidthIncrease
-    case duplicateTunFd
-    case syncAccount
-    case syncDevice
-    case registerDevice
-    case requestZknym
-    case requestZkNymBundle
-    case resolveGatewayAddrs
-    case startLocalDnsResolver
+    case maxDevicesReached
+    case bandwidthExceeded
+    case subscriptionExpired
+    case api
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -355,10 +198,6 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .routing
         case .dns:
             self = .dns
-        case .tunDevice:
-            self = .tunDevice
-        case .tunnelProvider:
-            self = .tunnelProvider
         case .internalUnknown:
             self = .internalUnknown
         case .sameEntryAndExitGateway:
@@ -367,24 +206,14 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .invalidEntryGatewayCountry
         case .invalidExitGatewayCountry:
             self = .invalidExitGatewayCountry
-        case .badBandwidthIncrease:
-            self = .badBandwidthIncrease
-        case .duplicateTunFd:
-            self = .duplicateTunFd
-        case .syncAccount:
-            self = .syncAccount
-        case .syncDevice:
-            self = .syncDevice
-        case .registerDevice:
-            self = .registerDevice
-        case .requestZknym:
-            self = .requestZknym
-        case .requestZkNymBundle:
-            self = .requestZkNymBundle
-        case .resolveGatewayAddrs:
-            self = .resolveGatewayAddrs
-        case .startLocalDnsResolver:
-            self = .startLocalDnsResolver
+        case .maxDevicesReached:
+            self = .maxDevicesReached
+        case .bandwidthExceeded:
+            self = .bandwidthExceeded
+        case .subscriptionExpired:
+            self = .subscriptionExpired
+        case .api:
+            self = .api
         }
     }
 }

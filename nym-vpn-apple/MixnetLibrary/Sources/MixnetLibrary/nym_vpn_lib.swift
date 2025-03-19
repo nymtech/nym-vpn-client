@@ -3820,27 +3820,17 @@ public enum ErrorStateReason {
     
     case firewall
     case routing
-    case dns
-    case tunDevice
-    case tunnelProvider
-    case resolveGatewayAddrs
-    case startLocalDnsResolver
     case sameEntryAndExitGateway
     case invalidEntryGatewayCountry
     case invalidExitGatewayCountry
-    case badBandwidthIncrease
-    case duplicateTunFd
-    case syncAccount(SyncAccountError
+    case maxDevicesReached
+    case bandwidthExceeded
+    case subscriptionExpired
+    case dns(String?
     )
-    case syncDevice(SyncDeviceError
+    case api(String?
     )
-    case registerDevice(RegisterDeviceError
-    )
-    case requestZkNym(RequestZkNymError
-    )
-    case requestZkNymBundle(successes: [RequestZkNymSuccess], failed: [RequestZkNymError]
-    )
-    case `internal`(String
+    case `internal`(String?
     )
 }
 
@@ -3856,42 +3846,25 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
         
         case 2: return .routing
         
-        case 3: return .dns
+        case 3: return .sameEntryAndExitGateway
         
-        case 4: return .tunDevice
+        case 4: return .invalidEntryGatewayCountry
         
-        case 5: return .tunnelProvider
+        case 5: return .invalidExitGatewayCountry
         
-        case 6: return .resolveGatewayAddrs
+        case 6: return .maxDevicesReached
         
-        case 7: return .startLocalDnsResolver
+        case 7: return .bandwidthExceeded
         
-        case 8: return .sameEntryAndExitGateway
+        case 8: return .subscriptionExpired
         
-        case 9: return .invalidEntryGatewayCountry
-        
-        case 10: return .invalidExitGatewayCountry
-        
-        case 11: return .badBandwidthIncrease
-        
-        case 12: return .duplicateTunFd
-        
-        case 13: return .syncAccount(try FfiConverterTypeSyncAccountError.read(from: &buf)
+        case 9: return .dns(try FfiConverterOptionString.read(from: &buf)
         )
         
-        case 14: return .syncDevice(try FfiConverterTypeSyncDeviceError.read(from: &buf)
+        case 10: return .api(try FfiConverterOptionString.read(from: &buf)
         )
         
-        case 15: return .registerDevice(try FfiConverterTypeRegisterDeviceError.read(from: &buf)
-        )
-        
-        case 16: return .requestZkNym(try FfiConverterTypeRequestZkNymError.read(from: &buf)
-        )
-        
-        case 17: return .requestZkNymBundle(successes: try FfiConverterSequenceTypeRequestZkNymSuccess.read(from: &buf), failed: try FfiConverterSequenceTypeRequestZkNymError.read(from: &buf)
-        )
-        
-        case 18: return .`internal`(try FfiConverterString.read(from: &buf)
+        case 11: return .`internal`(try FfiConverterOptionString.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -3910,75 +3883,43 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
             writeInt(&buf, Int32(2))
         
         
-        case .dns:
+        case .sameEntryAndExitGateway:
             writeInt(&buf, Int32(3))
         
         
-        case .tunDevice:
+        case .invalidEntryGatewayCountry:
             writeInt(&buf, Int32(4))
         
         
-        case .tunnelProvider:
+        case .invalidExitGatewayCountry:
             writeInt(&buf, Int32(5))
         
         
-        case .resolveGatewayAddrs:
+        case .maxDevicesReached:
             writeInt(&buf, Int32(6))
         
         
-        case .startLocalDnsResolver:
+        case .bandwidthExceeded:
             writeInt(&buf, Int32(7))
         
         
-        case .sameEntryAndExitGateway:
+        case .subscriptionExpired:
             writeInt(&buf, Int32(8))
         
         
-        case .invalidEntryGatewayCountry:
+        case let .dns(v1):
             writeInt(&buf, Int32(9))
+            FfiConverterOptionString.write(v1, into: &buf)
+            
         
-        
-        case .invalidExitGatewayCountry:
+        case let .api(v1):
             writeInt(&buf, Int32(10))
-        
-        
-        case .badBandwidthIncrease:
-            writeInt(&buf, Int32(11))
-        
-        
-        case .duplicateTunFd:
-            writeInt(&buf, Int32(12))
-        
-        
-        case let .syncAccount(v1):
-            writeInt(&buf, Int32(13))
-            FfiConverterTypeSyncAccountError.write(v1, into: &buf)
-            
-        
-        case let .syncDevice(v1):
-            writeInt(&buf, Int32(14))
-            FfiConverterTypeSyncDeviceError.write(v1, into: &buf)
-            
-        
-        case let .registerDevice(v1):
-            writeInt(&buf, Int32(15))
-            FfiConverterTypeRegisterDeviceError.write(v1, into: &buf)
-            
-        
-        case let .requestZkNym(v1):
-            writeInt(&buf, Int32(16))
-            FfiConverterTypeRequestZkNymError.write(v1, into: &buf)
-            
-        
-        case let .requestZkNymBundle(successes,failed):
-            writeInt(&buf, Int32(17))
-            FfiConverterSequenceTypeRequestZkNymSuccess.write(successes, into: &buf)
-            FfiConverterSequenceTypeRequestZkNymError.write(failed, into: &buf)
+            FfiConverterOptionString.write(v1, into: &buf)
             
         
         case let .`internal`(v1):
-            writeInt(&buf, Int32(18))
-            FfiConverterString.write(v1, into: &buf)
+            writeInt(&buf, Int32(11))
+            FfiConverterOptionString.write(v1, into: &buf)
             
         }
     }

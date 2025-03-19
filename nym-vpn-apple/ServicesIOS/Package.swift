@@ -16,7 +16,8 @@ let package = Package(
         .library(name: "KeyboardManager", targets: ["KeyboardManager"])
     ],
     dependencies: [
-        .package(name: "MixnetLibrary", path: "../MixnetLibrary")
+        .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
+        .package(path: "../Theme")
     ],
     targets: [
         .target(
@@ -27,7 +28,8 @@ let package = Package(
         .target(
             name: "ErrorHandler",
             dependencies: [
-                .product(name: "MixnetLibrary", package: "MixnetLibrary")
+                .product(name: "MixnetLibrary", package: "MixnetLibrary"),
+                .product(name: "Theme", package: "Theme")
             ],
             path: "Sources/ErrorHandler"
         ),

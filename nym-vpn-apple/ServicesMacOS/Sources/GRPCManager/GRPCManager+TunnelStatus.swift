@@ -46,109 +46,32 @@ extension GRPCManager {
 }
 
 extension GRPCManager {
-    // swiftlint:disable:next function_body_length
     func resolveError(with tunnelStateError: Nym_Vpn_TunnelState.Error) -> Error? {
-        switch tunnelStateError.errorStateReason {
-        case let .baseReason(reason):
-            switch reason {
-            case .firewall:
-                return ErrorReason.firewall
-            case .routing:
-                return ErrorReason.routing
-            case .dns:
-                return ErrorReason.dns
-            case .tunDevice:
-                return ErrorReason.tunDevice
-            case .tunnelProvider:
-                return ErrorReason.tunnelProvider
-            case .sameEntryAndExitGateway:
-                return ErrorReason.sameEntryAndExitGateway
-            case .invalidEntryGatewayCountry:
-                return ErrorReason.invalidEntryGatewayCountry
-            case .invalidExitGatewayCountry:
-                return ErrorReason.invalidExitGatewayCountry
-            case .badBandwidthIncrease:
-                return ErrorReason.badBandwidthIncrease
-            case .duplicateTunFd:
-                return ErrorReason.duplicateTunFd
-            case .internal:
-                return ErrorReason.internalUnknown
-            case .UNRECOGNIZED:
-                return ErrorReason.unknown
-            case .resolveGatewayAddrs:
-                return ErrorReason.resolveGatewayAddrs
-            case .startLocalDnsResolver:
-                return ErrorReason.startLocalDnsResolver
-            }
-        case let .syncAccount(reason):
-            if reason.noAccountStored {
-                return ErrorReason.noAccountStored
-            } else {
-                return nil
-            }
-        case let .syncDevice(reason):
-            switch reason.errorDetail {
-            case let .noAccountStored(isOn):
-                return isOn ? ErrorReason.noAccountStored : nil
-            case let .noDeviceStored(isOn):
-                return isOn ? ErrorReason.noDeviceStored : nil
-            case let .errorResponse(details):
-                return GeneralNymError.library(message: details.message)
-            case let .unexpectedResponse(message), let .internal(message):
-                return GeneralNymError.library(message: message)
-            case .none:
-                return GeneralNymError.somethingWentWrong
-            }
-        case let .registerDevice(reason):
-            switch reason.errorDetail {
-            case let .noAccountStored(isOn):
-                return isOn ? ErrorReason.noAccountStored : nil
-            case let .noDeviceStored(isOn):
-                return isOn ? ErrorReason.noDeviceStored : nil
-            case let .errorResponse(details):
-                return GeneralNymError.library(message: details.message)
-            case let .unexpectedResponse(message), let .internal(message):
-                return GeneralNymError.library(message: message)
-            case .none:
-                return GeneralNymError.somethingWentWrong
-            }
-        case let .requestZkNym(reason):
-            switch reason.outcome {
-            case let .noAccountStored(isOn):
-                return isOn ? ErrorReason.noAccountStored : nil
-            case let .noDeviceStored(isOn):
-                return isOn ? ErrorReason.noDeviceStored : nil
-            case let .vpnApi(response):
-                return GeneralNymError.library(message: response.message)
-            case let .unexpectedVpnApiResponse(message):
-                return GeneralNymError.library(message: message)
-            case let .storage(message):
-                return GeneralNymError.library(message: message)
-            case let .internal(message):
-                return GeneralNymError.library(message: message)
-            case .none:
-                return GeneralNymError.somethingWentWrong
-            }
-        case let .requestZkNymBundle(reason):
-            let firstFailure = reason.failures.first
-            switch firstFailure?.outcome {
-            case let .noAccountStored(isOn):
-                return isOn ? ErrorReason.noAccountStored : nil
-            case let .noDeviceStored(isOn):
-                return isOn ? ErrorReason.noDeviceStored : nil
-            case let .vpnApi(response):
-                return GeneralNymError.library(message: response.message)
-            case let .unexpectedVpnApiResponse(message):
-                return GeneralNymError.library(message: message)
-            case let .storage(message):
-                return GeneralNymError.library(message: message)
-            case let .internal(message):
-                return GeneralNymError.library(message: message)
-            case .none:
-                return GeneralNymError.somethingWentWrong
-            }
-        default:
-            return ErrorReason.unknown
+        switch tunnelStateError.reason {
+        case .firewall:
+            ErrorReason.firewall
+        case .routing:
+            ErrorReason.routing
+        case .sameEntryAndExitGateway:
+            ErrorReason.sameEntryAndExitGateway
+        case .invalidEntryGatewayCountry:
+            ErrorReason.invalidEntryGatewayCountry
+        case .invalidExitGatewayCountry:
+            ErrorReason.invalidExitGatewayCountry
+        case .maxDevicesReached:
+            ErrorReason.maxDevicesReached
+        case .bandwidthExceeded:
+            ErrorReason.bandwidthExceeded
+        case .subscriptionExpired:
+            ErrorReason.subscriptionExpired
+        case .dns:
+            ErrorReason.dns
+        case .api:
+            ErrorReason.api(tunnelStateError.detail)
+        case .internal:
+            ErrorReason.internalUnknown
+        case .UNRECOGNIZED:
+            ErrorReason.unknown
         }
     }
 }
