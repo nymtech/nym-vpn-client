@@ -137,7 +137,7 @@ impl GrpcClient {
             })?
             .into_inner();
 
-        debug!("vpnd log path: {}", response.path);
+        debug!("vpnd log path: {:?}", response);
         Ok(response.path)
     }
 

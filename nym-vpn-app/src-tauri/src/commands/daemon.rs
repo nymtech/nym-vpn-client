@@ -8,6 +8,11 @@ use tauri::State;
 use tracing::{debug, info, instrument, warn};
 use ts_rs::TS;
 
+#[cfg(unix)]
+const DEFAULT_VPND_LOG_DIR: &str = "/var/log/nym-vpnd";
+#[cfg(windows)]
+const DEFAULT_VPND_LOG_DIR: &str = "C:\\ProgramData\\nym-vpnd\\log";
+
 #[derive(strum::AsRefStr, Serialize, Deserialize, Debug, Clone, TS)]
 #[serde(rename_all = "lowercase")]
 #[strum(serialize_all = "lowercase")]
@@ -89,12 +94,21 @@ pub async fn network_compat(
 
 #[instrument(skip_all)]
 #[tauri::command]
-pub async fn vpnd_log_path(grpc_client: State<'_, GrpcClient>) -> Result<String, BackendError> {
-    grpc_client
+pub async fn vpnd_log_dir(
+    app_state: State<'_, SharedAppState>,
+    grpc_client: State<'_, GrpcClient>,
+) -> Result<String, BackendError> {
+    let state = app_state.lock().await;
+    if state.vpnd_status == VpndStatus::Down {
+        warn!("vpnd is down, fallback to default log dir");
+        return Ok(DEFAULT_VPND_LOG_DIR.to_string());
+    }
+
+    Ok(grpc_client
         .vpnd_log_path()
         .await
         .inspect_err(|e| {
             warn!("failed to get vpnd log path: {:?}", e);
         })
-        .map_err(|e| e.into())
+        .unwrap_or_else(|_| DEFAULT_VPND_LOG_DIR.to_string()))
 }
