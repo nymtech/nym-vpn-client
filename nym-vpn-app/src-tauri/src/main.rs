@@ -227,6 +227,7 @@ async fn main() -> Result<()> {
             cmd_daemon::system_messages,
             cmd_daemon::feature_flags,
             cmd_daemon::network_compat,
+            cmd_daemon::vpnd_log_path,
             cmd_fs::log_dir,
             startup::startup_error,
             cmd_env::env,

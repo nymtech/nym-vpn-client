@@ -86,3 +86,15 @@ pub async fn network_compat(
 ) -> Result<Option<NetworkCompat>, BackendError> {
     Ok(app_state.lock().await.network_compat.clone())
 }
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn vpnd_log_path(grpc_client: State<'_, GrpcClient>) -> Result<String, BackendError> {
+    grpc_client
+        .vpnd_log_path()
+        .await
+        .inspect_err(|e| {
+            warn!("failed to get vpnd log path: {:?}", e);
+        })
+        .map_err(|e| e.into())
+}

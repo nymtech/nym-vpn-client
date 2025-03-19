@@ -122,6 +122,25 @@ impl GrpcClient {
         Ok(info)
     }
 
+    /// Get daemon log path
+    #[instrument(skip_all)]
+    pub async fn vpnd_log_path(&self) -> Result<String, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(());
+        let response = vpnd
+            .get_log_path(request)
+            .await
+            .map_err(|e| {
+                error!("grpc: {}", e);
+                VpndError::GrpcError(e)
+            })?
+            .into_inner();
+
+        debug!("vpnd log path: {}", response.path);
+        Ok(response.path)
+    }
+
     /// Get the current tunnel state and update the app state
     #[instrument(skip_all)]
     pub async fn tunnel_state(&self, app: &AppHandle) -> Result<TunnelState, VpndError> {
