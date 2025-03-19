@@ -11,7 +11,7 @@ use time::{Duration, OffsetDateTime};
 
 use crate::{error::Result, jwt::Jwt, VpnApiClientError};
 
-const MAX_ACCEPTABLE_SKEW_SECONDS: i64 = 30;
+const MAX_ACCEPTABLE_SKEW_SECONDS: i64 = 60;
 const SKEW_SECONDS_CONSIDERED_SAME: i64 = 2;
 
 #[derive(Clone, Debug)]
