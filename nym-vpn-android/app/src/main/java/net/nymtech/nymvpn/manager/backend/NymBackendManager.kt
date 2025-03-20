@@ -131,6 +131,7 @@ class NymBackendManager @Inject constructor(
 				stateChange = ::onStateChange,
 				backendEvent = ::onBackendEvent,
 				credentialMode = settingsRepository.isCredentialMode(),
+				bypassLan = settingsRepository.isBypassLanEnabled(),
 			)
 			backend.await().start(tunnel, context.toUserAgent())
 		}.onFailure {

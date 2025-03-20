@@ -25,6 +25,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val errorReporting = booleanPreferencesKey("ERROR_REPORTING")
 	private val analytics = booleanPreferencesKey("ANALYTICS")
 	private val autoStart = booleanPreferencesKey("AUTO_START")
+	private val bypassLanEnabled = booleanPreferencesKey("BYPASS_LAN")
 	private val analyticsShown = booleanPreferencesKey("ANALYTICS_SHOWN")
 	private val applicationShortcuts = booleanPreferencesKey("APPLICATION_SHORTCUTS")
 	private val environment = stringPreferencesKey("ENVIRONMENT")
@@ -96,28 +97,20 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(errorReporting, enabled)
 	}
 
-	override suspend fun setAnalytics(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(analytics, enabled)
-	}
-
-	override suspend fun isAnalyticsEnabled(): Boolean {
-		return dataStoreManager.getFromStore(analytics) ?: Settings.REPORTING_DEFAULT
-	}
-
-	override suspend fun isAnalyticsShown(): Boolean {
-		return dataStoreManager.getFromStore(analyticsShown) ?: Settings.ANALYTICS_SHOWN_DEFAULT
-	}
-
-	override suspend fun setAnalyticsShown(shown: Boolean) {
-		dataStoreManager.saveToDataStore(analyticsShown, shown)
-	}
-
 	override suspend fun isApplicationShortcutsEnabled(): Boolean {
 		return dataStoreManager.getFromStore(applicationShortcuts) ?: Settings.SHORTCUTS_DEFAULT
 	}
 
 	override suspend fun setApplicationShortcuts(enabled: Boolean) {
 		dataStoreManager.saveToDataStore(applicationShortcuts, enabled)
+	}
+
+	override suspend fun isBypassLanEnabled(): Boolean {
+		return dataStoreManager.getFromStore(bypassLanEnabled) ?: Settings.BYPASS_LAN_DEFAULT
+	}
+
+	override suspend fun setBypassLan(enabled: Boolean) {
+		dataStoreManager.saveToDataStore(bypassLanEnabled, enabled)
 	}
 
 	override suspend fun getEnvironment(): Tunnel.Environment {
@@ -174,6 +167,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						entryPoint = pref[entryPoint]?.asEntryPoint() ?: Settings.DEFAULT_ENTRY_POINT,
 						exitPoint = pref[exitPoint]?.asExitPoint() ?: Settings.DEFAULT_EXIT_POINT,
 						isShortcutsEnabled = pref[applicationShortcuts] ?: Settings.SHORTCUTS_DEFAULT,
+						isBypassLanEnabled = pref[bypassLanEnabled] ?: Settings.BYPASS_LAN_DEFAULT,
 						environment = pref[environment]?.let { Tunnel.Environment.valueOf(it) } ?: Settings.DEFAULT_ENVIRONMENT,
 						isCredentialMode = pref[credentialMode],
 						locale = pref[locale],

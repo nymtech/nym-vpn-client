@@ -478,7 +478,16 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 					addSearchDomain(it)
 				}
 
-				addRoute("0.0.0.0", 0)
+				if (owner?.tunnel?.bypassLan == true) {
+					Timber.d("Bypassing LAN")
+					Tunnel.IPV4_PUBLIC_NETWORKS.forEach {
+						val split = it.split("/")
+						addRoute(split[0], split[1].toInt())
+					}
+				} else {
+					addRoute("0.0.0.0", 0)
+				}
+
 				addRoute("::", 0)
 
 				// disable calculated routes for now because we bypass mixnet socket

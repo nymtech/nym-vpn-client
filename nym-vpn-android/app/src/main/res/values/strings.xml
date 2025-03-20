@@ -250,4 +250,5 @@
 	<string name="bars_3">3 bars</string>
 	<string name="bars_2">2 bars</string>
 	<string name="bars_1">1 bar</string>
+    <string name="bypass_lan">Bypass LAN</string>
 </resources>

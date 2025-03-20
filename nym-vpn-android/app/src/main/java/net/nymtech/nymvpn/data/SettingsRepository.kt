@@ -33,17 +33,13 @@ interface SettingsRepository {
 
 	suspend fun setErrorReporting(enabled: Boolean)
 
-	suspend fun setAnalytics(enabled: Boolean)
-
-	suspend fun isAnalyticsEnabled(): Boolean
-
-	suspend fun isAnalyticsShown(): Boolean
-
-	suspend fun setAnalyticsShown(shown: Boolean)
-
 	suspend fun isApplicationShortcutsEnabled(): Boolean
 
 	suspend fun setApplicationShortcuts(enabled: Boolean)
+
+	suspend fun isBypassLanEnabled(): Boolean
+
+	suspend fun setBypassLan(enabled: Boolean)
 
 	suspend fun getEnvironment(): Tunnel.Environment
 

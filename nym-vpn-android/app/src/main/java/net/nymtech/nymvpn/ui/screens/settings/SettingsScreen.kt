@@ -22,6 +22,7 @@ import androidx.compose.material.icons.automirrored.outlined.Launch
 import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
 import androidx.compose.material.icons.outlined.AdminPanelSettings
 import androidx.compose.material.icons.outlined.AppShortcut
+import androidx.compose.material.icons.outlined.Lan
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Icon
@@ -302,6 +303,22 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 						)
 					},
+				),
+				SelectionItem(
+					{
+						Icon(
+							Icons.Outlined.Lan,
+							stringResource(R.string.bypass_lan),
+							modifier = Modifier.size(iconSize.scaledWidth()),
+						)
+					},
+					{
+						ScaledSwitch(
+							appUiState.settings.isBypassLanEnabled,
+							onClick = { viewModel.onBypassLanSelected(it) },
+						)
+					},
+					title = { Text(stringResource(R.string.bypass_lan), style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface)) },
 				),
 				SelectionItem(
 					{

@@ -21,4 +21,8 @@ constructor(
 	fun onAppShortcutsSelected(selected: Boolean) = viewModelScope.launch {
 		settingsRepository.setApplicationShortcuts(selected)
 	}
+
+	fun onBypassLanSelected(selected: Boolean) = viewModelScope.launch {
+		settingsRepository.setBypassLan(selected)
+	}
 }
