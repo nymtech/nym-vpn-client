@@ -907,7 +907,7 @@ impl NymVpnd for CommandInterface {
         let log_path = if let Some(path) = result {
             path
         } else {
-            tracing::info!("No log path set, fallback to default");
+            tracing::info!("log path not set, fallback to default");
             LogPath::default()
         };
         tracing::debug!("log dir path: {}", log_path.dir.display());

@@ -152,6 +152,7 @@ async fn run_service_inner() -> anyhow::Result<()> {
 
     let network_config = (*SERVICE_NETWORK_CONFIG.lock().await).clone();
     let logging_setup = (*LOGGING_SETUP.lock().await).take();
+    let log_path = logging_setup.as_ref().map(|setup| setup.log_path.clone());
     let cloned_network_config = network_config.clone();
     let network_env_result = tokio::task::spawn_blocking(move || {
         let global_config_file =
@@ -215,6 +216,7 @@ async fn run_service_inner() -> anyhow::Result<()> {
         shutdown_token.child_token(),
         network_env,
         user_agent,
+        log_path,
     );
 
     tracing::info!("Service has started");
