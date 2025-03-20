@@ -37,7 +37,7 @@ jobs:
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.84.1
+          toolchain: 1.85
           components: rustfmt, clippy
 
       - name: Install target i686-pc-windows-msvc
