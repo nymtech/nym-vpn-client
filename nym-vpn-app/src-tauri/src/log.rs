@@ -1,12 +1,15 @@
 use crate::fs::path::APP_LOG_DIR;
 use crate::{env, Cli};
+use std::io::{self, IsTerminal};
 use std::{fs, path::PathBuf};
 
 use anyhow::{anyhow, Result};
 use tracing::{debug, info};
 use tracing_appender::{non_blocking::WorkerGuard, rolling};
 use tracing_subscriber::filter::LevelFilter;
-use tracing_subscriber::EnvFilter;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::{EnvFilter, Layer};
 
 const ENV_LOG_FILE: &str = "LOG_FILE";
 const LOG_FILE: &str = "app.log";
@@ -39,38 +42,54 @@ pub async fn setup_tracing(cli: &Cli) -> Result<Option<WorkerGuard>> {
             filter.add_directive(format!("{}={}", env!("CARGO_CRATE_NAME"), log_level).parse()?);
     }
 
+    let mut layers = Vec::new();
+    let mut worker = None;
+    let mut log_file = None;
+    let mut old_file = None;
+    #[cfg(windows)]
+    let enable_ansi = !cli.console;
+    #[cfg(not(windows))]
+    let enable_ansi = true;
+
+    let stdout_layer = tracing_subscriber::fmt::layer()
+        .compact()
+        .with_ansi(enable_ansi);
+
     if cli.log_file || env::is_truthy(ENV_LOG_FILE) {
         let log_dir = APP_LOG_DIR
             .clone()
             .ok_or(anyhow!("failed to get log dir"))?;
-        let old = rotate_log_file(log_dir.clone()).ok().flatten();
+        log_file = Some(log_dir.join(LOG_FILE));
+        old_file = rotate_log_file(log_dir.clone()).ok().flatten();
 
         let appender = rolling::never(log_dir.clone(), LOG_FILE);
         let (writer, guard) = tracing_appender::non_blocking(appender);
+        worker = Some(guard);
 
-        tracing_subscriber::fmt()
-            .with_env_filter(filter)
-            .compact()
-            .with_ansi(false)
+        let file_layer = tracing_subscriber::fmt::layer()
             .with_writer(writer)
-            .init();
-
-        if let Some(old) = old {
-            debug!("rotated log file: {}", old.display());
-        }
-        let log_file = log_dir.join(LOG_FILE);
-        info!("logging to file: {}", log_file.display());
-        Ok(Some(guard))
-    } else {
-        #[cfg(windows)]
-        let disable_ansi = cli.console;
-        #[cfg(not(windows))]
-        let disable_ansi = false;
-        tracing_subscriber::fmt()
-            .with_env_filter(filter)
             .compact()
-            .with_ansi(!disable_ansi)
-            .init();
-        Ok(None)
+            .with_ansi(false);
+        layers.push(file_layer.boxed());
+
+        if io::stdout().is_terminal() {
+            layers.push(stdout_layer.boxed());
+        }
+    } else {
+        layers.push(stdout_layer.boxed());
     }
+
+    tracing_subscriber::registry()
+        .with(filter)
+        .with(layers)
+        .init();
+
+    if let Some(file) = old_file {
+        debug!("rotated log file: {}", file.display());
+    }
+    if let Some(file) = log_file {
+        info!("logging to file: {}", file.display());
+    }
+
+    Ok(worker)
 }
