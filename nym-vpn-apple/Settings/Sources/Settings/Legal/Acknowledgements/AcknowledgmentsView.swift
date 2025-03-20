@@ -14,7 +14,7 @@ struct AcknowledgmentsView: View {
         VStack(spacing: 0) {
             navbar()
             section()
-                .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
+                .frame(maxWidth: Device.type == .ipad ? 358 : 390)
             Spacer()
         }
         .navigationBarBackButtonHidden(true)
@@ -53,5 +53,6 @@ private extension AcknowledgmentsView {
             Spacer()
                 .frame(height: 24)
         }
+        .scrollIndicators(.hidden)
     }
 }

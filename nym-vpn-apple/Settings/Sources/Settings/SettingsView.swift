@@ -29,7 +29,8 @@ private extension SettingsView {
                     .frame(height: 24)
                 settingsList()
             }
-            .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
+            .scrollIndicators(.hidden)
+            .frame(maxWidth: Device.type == .ipad ? 358 : 390)
             Spacer()
         }
         .navigationBarBackButtonHidden(true)

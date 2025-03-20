@@ -21,6 +21,7 @@ public struct LaunchView: View {
                             splashScreenDidDisplay: $splashScreenDidDisplay
                         )
                 )
+                .frame(maxWidth: 390)
                 Spacer()
             }
             Spacer()
