@@ -19,7 +19,7 @@ jobs:
 
   build-mac:
     needs: build-wireguard-go-mac
-    runs-on: macos-14
+    runs-on: macos-15
     outputs:
       UPLOAD_DIR_MAC: ${{ env.UPLOAD_DIR_MAC }}
     steps:
