@@ -65,6 +65,7 @@ struct NymVPNDaemonApp: App {
                         .transition(.slide)
                 }
             }
+            .frame(minWidth: 390, minHeight: 675)
             .onAppear {
                 NSApp.setActivationPolicy(.regular)
             }
@@ -76,14 +77,13 @@ struct NymVPNDaemonApp: App {
                 Button("ok".localizedString, role: .cancel) { }
             }
             .preferredColorScheme(appearance.colorScheme)
-            .frame(width: 390, height: 800)
             .animation(.default, value: appSettings.welcomeScreenDidDisplay)
             .environmentObject(appSettings)
             .environmentObject(connectionManager)
             .environmentObject(countriesManager)
             .environmentObject(logFileManager)
         }
-        .windowResizability(.contentSize)
+        .windowResizability(.contentMinSize)
         .commands {
             CommandGroup(replacing: .newItem, addition: {})
             CommandGroup(after: .appInfo) {
@@ -108,7 +108,9 @@ struct NymVPNDaemonApp: App {
             menuBarItemContent()
         } label: {
             Image(menuBarImageName)
+                .renderingMode(.template)
                 .frame(width: 32)
+                .foregroundStyle(.primary)
         }
         .menuBarExtraStyle(.menu)
         .onChange(of: connectionManager.currentTunnelStatus) { status in

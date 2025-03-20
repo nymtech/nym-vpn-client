@@ -16,7 +16,7 @@ struct LegalView: View {
             Spacer()
                 .frame(height: 24)
             section()
-                .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
+                .frame(maxWidth: Device.type == .ipad ? 358 : 390)
             Spacer()
         }
         .navigationBarBackButtonHidden(true)

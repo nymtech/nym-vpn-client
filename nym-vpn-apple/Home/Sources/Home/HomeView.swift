@@ -30,10 +30,10 @@ private extension HomeView {
                 statusAreaSection()
                 Spacer()
                 networkModeSection()
-                countryHopSection()
+                gatewaySection()
                 connectButton()
             }
-            .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
+            .frame(maxWidth: Device.type == .ipad ? 358 : 390)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
@@ -100,7 +100,7 @@ private extension HomeView {
         }
         .padding(.horizontal, 16)
         Spacer()
-            .frame(height: viewModel.appSettings.isSmallScreen ? 12 : 24)
+            .frame(height: 12)
 
         NetworkButton(
             viewModel: viewModel.fastButtonViewModel
@@ -113,17 +113,16 @@ private extension HomeView {
         NetworkButton(
             viewModel: viewModel.anonymousButtonViewModel
         )
-        .opacity(1.0)
         .padding(.horizontal, 16)
         .onTapGesture {
             viewModel.connectionManager.connectionType = .mixnet5hop
         }
         Spacer()
-            .frame(height: viewModel.appSettings.isSmallScreen ? 20 : 32)
+            .frame(height: 20)
     }
 
     @ViewBuilder
-    func countryHopSection() -> some View {
+    func gatewaySection() -> some View {
         HStack {
             Text(viewModel.connectToLocalizedTitle)
                 .foregroundStyle(NymColor.sysOnSurfaceWhite)
@@ -142,7 +141,7 @@ private extension HomeView {
         .padding(.horizontal, 16)
 
         Spacer()
-            .frame(height: viewModel.appSettings.isSmallScreen ? 20 : 32)
+            .frame(height: 20)
     }
 
     @ViewBuilder
@@ -183,10 +182,11 @@ private extension HomeView {
     func connectButton() -> some View {
         ConnectButton(state: viewModel.connectButtonState)
             .padding(.horizontal, 16)
+            .frame(width: 390)
             .onTapGesture {
                 viewModel.connectDisconnect()
             }
-            Spacer()
+        Spacer()
             .frame(height: viewModel.appSettings.isSmallScreen || Device.isMacOS ? 24 : 8)
     }
 }

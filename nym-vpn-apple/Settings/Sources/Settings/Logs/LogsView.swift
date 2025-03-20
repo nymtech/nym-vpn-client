@@ -165,6 +165,7 @@ private extension LogsView {
             }
             .pickerStyle(.segmented)
             .padding(16)
+            .frame(width: 390)
         }
     }
 

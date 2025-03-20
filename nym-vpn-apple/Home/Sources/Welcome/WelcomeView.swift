@@ -12,21 +12,20 @@ public struct WelcomeView: View {
     }
 
     public var body: some View {
-        VStack {
-            Spacer()
-            titleView()
-            subtitleView()
-            sentryToggle()
-                .frame(maxWidth: Device.type == .ipad ? 450 : .infinity)
-            continueButton()
-                .frame(maxWidth: Device.type == .ipad ? 450 : .infinity)
-            privacyPolicy()
-                .padding(.bottom, 24)
-        }
-        .frame(maxWidth: .infinity)
-        .background {
+        ZStack {
             NymColor.background
                 .ignoresSafeArea()
+
+            VStack {
+                Spacer()
+                titleView()
+                subtitleView()
+                sentryToggle()
+                continueButton()
+                privacyPolicy()
+                    .padding(.bottom, 24)
+            }
+            .frame(minWidth: 375, maxWidth: Device.type == .ipad ? 450 : 500)
         }
     }
 }

@@ -32,7 +32,7 @@ struct AddCredentialsView: View {
                 scrollViewContent(geometry: geometry)
 #endif
             }
-            .frame(maxWidth: Device.type == .ipad ? 358 : .infinity)
+            .frame(maxWidth: Device.type == .ipad ? 358 : 390)
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -79,6 +79,7 @@ private extension AddCredentialsView {
             }
             .frame(width: geometry.size.width, height: geometry.size.height)
         }
+        .scrollIndicators(.hidden)
         .onTapGesture {
             isFocused = false
         }
