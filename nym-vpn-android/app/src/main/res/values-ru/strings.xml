@@ -234,4 +234,5 @@
     <string name="go">Подключаемся</string>
     <string name="app_update_required">Ваше приложение больше не поддерживается. Пожалуйста, обновитесь до последней версии, чтобы продолжить использование NymVPN.</string>
     <string name="bars_3">3 полоски</string>
+    <string name="bypass_lan">Обход LAN</string>
 </resources>
