@@ -164,17 +164,20 @@ impl VpnApiClient {
         match self.get_query(path, account, device, None).await {
             Ok(response) => Ok(response),
             Err(err) => {
-                tracing::warn!("Failed query: {err}; retrying query with remote time");
-                if let Ok(Some(jwt)) = self
-                    .sync_with_remote_time()
-                    .await
-                    .inspect_err(|err| tracing::error!("Failed to get remote time: {err}"))
+                if let HttpClientError::EndpointFailure {
+                    status: _,
+                    error: _,
+                } = err
                 {
-                    // retry with remote vpn api time
-                    self.get_query(path, account, device, Some(jwt)).await
-                } else {
-                    Err(err)
+                    tracing::warn!("Retrying query with remote time");
+                    if let Ok(Some(jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
+                        tracing::error!("Failed to get remote time: {err}. Not retring anymore")
+                    }) {
+                        // retry with remote vpn api time
+                        return self.get_query(path, account, device, Some(jwt)).await;
+                    }
                 }
+                Err(err)
             }
         }
     }
