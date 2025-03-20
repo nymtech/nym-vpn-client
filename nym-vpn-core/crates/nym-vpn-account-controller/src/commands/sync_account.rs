@@ -78,14 +78,12 @@ impl SyncStateCommandHandler {
         err,
         level = Level::DEBUG,
     )]
-    pub(crate) async fn run_inner(
-        mut self,
-    ) -> Result<NymVpnAccountSummaryResponse, SyncAccountError> {
+    pub(crate) async fn run_inner(self) -> Result<NymVpnAccountSummaryResponse, SyncAccountError> {
         tracing::debug!("Running sync account state command handler: {}", self.id);
         let update_result = update_state(
             &self.account,
             &self.account_state,
-            &mut self.vpn_api_client,
+            &self.vpn_api_client,
             &self.previous_account_summary_response,
         )
         .await;

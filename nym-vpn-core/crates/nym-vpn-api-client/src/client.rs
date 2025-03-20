@@ -173,7 +173,7 @@ impl VpnApiClient {
                     // retry with remote vpn api time
                     self.get_query(path, account, device, Some(jwt)).await
                 } else {
-                    Err(err.into())
+                    Err(err)
                 }
             }
         }
@@ -318,7 +318,7 @@ impl VpnApiClient {
                             .await;
                     }
                 }
-                Err(err.into())
+                Err(err)
             }
         }
     }
@@ -376,7 +376,7 @@ impl VpnApiClient {
                         return self.delete_query(path, account, device, Some(jwt)).await;
                     }
                 }
-                Err(err.into())
+                Err(err)
             }
         }
     }
@@ -443,7 +443,7 @@ impl VpnApiClient {
                             .await;
                     }
                 }
-                Err(err.into())
+                Err(err)
             }
         }
     }
