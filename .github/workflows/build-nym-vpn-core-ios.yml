@@ -23,7 +23,7 @@ jobs:
 
   build-ios:
     needs: build-wireguard-go-ios
-    runs-on: macos-14
+    runs-on: macos-15
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
