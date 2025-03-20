@@ -1,5 +1,10 @@
 {
   "network_name": "mainnet",
   "nym_api_url": "https://validator.nymtech.net/api/",
-  "nym_vpn_api_url": "https://nymvpn.com/api/"
+  "nym_vpn_api_url": "https://nymvpn.com/api/",
+  "feature_flags": {
+    "zkNyms": {
+      "credentialMode": "true"
+    }
+  }
 }

@@ -126,23 +126,29 @@ impl Discovery {
 
     pub(super) fn ensure_exists(config_dir: &Path, network_name: &str) -> anyhow::Result<Self> {
         if !Self::path(config_dir, network_name).exists() && network_name == "mainnet" {
-            tracing::info!("No discovery file found, writing default discovery file");
-            Self::default()
+            tracing::info!("No discovery file found, writing creating a new discovery file");
+            Self::fetch(network_name)
+                .inspect_err(|err| {
+                    tracing::warn!(
+                        "Failed to fetch remote discovery file: {err}, creating a default one"
+                    )
+                })
+                .unwrap_or_default()
                 .write_to_file(config_dir)
-                .inspect_err(|err| tracing::warn!("Failed to write default discovery file: {err}"))
+                .inspect_err(|err| tracing::warn!("Failed to write discovery file: {err}"))
+                .ok();
+        } else {
+            // Download the file if it doesn't exists, or if the file is too old, refresh it.
+            // TODO: in the future, we should only refresh the discovery file when the tunnel is up.
+            // Probably in a background task.
+
+            Self::try_update_file(config_dir, network_name)
+                .inspect_err(|err| {
+                    tracing::warn!("Failed to refresh discovery file: {err}");
+                    tracing::warn!("Attempting to use existing discovery file");
+                })
                 .ok();
         }
-
-        // Download the file if it doesn't exists, or if the file is too old, refresh it.
-        // TODO: in the future, we should only refresh the discovery file when the tunnel is up.
-        // Probably in a background task.
-
-        Self::try_update_file(config_dir, network_name)
-            .inspect_err(|err| {
-                tracing::warn!("Failed to refresh discovery file: {err}");
-                tracing::warn!("Attempting to use existing discovery file");
-            })
-            .ok();
 
         Self::read_from_file(config_dir, network_name)
     }
