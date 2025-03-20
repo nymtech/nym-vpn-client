@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use tokio::sync::{mpsc, Mutex};
@@ -99,16 +100,44 @@ impl LogFileRemover {
 pub struct LoggingSetup {
     _worker_guard: WorkerGuard,
     file_appender: Arc<Mutex<Option<RollingFileAppender>>>,
+    pub log_path: LogPath,
 }
 
 impl LoggingSetup {
     pub fn new(
         _worker_guard: WorkerGuard,
         file_appender: Arc<Mutex<Option<RollingFileAppender>>>,
+        log_dir: PathBuf,
+        log_file: &str,
     ) -> Self {
         Self {
             _worker_guard,
             file_appender,
+            log_path: LogPath::new(log_dir, log_file),
+        }
+    }
+}
+
+#[derive(Clone, Debug)]
+pub struct LogPath {
+    pub dir: PathBuf,
+    pub filename: String,
+}
+
+impl LogPath {
+    pub fn new(log_dir: PathBuf, log_file: &str) -> Self {
+        Self {
+            dir: log_dir,
+            filename: log_file.to_string(),
+        }
+    }
+}
+
+impl Default for LogPath {
+    fn default() -> Self {
+        Self {
+            dir: service::log_dir(),
+            filename: service::DEFAULT_LOG_FILE.to_string(),
         }
     }
 }
@@ -173,9 +202,10 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     // Create file logger but only when running as a service on windows or macos
     let worker_guard = if options.enable_file_log {
         let log_dir = service::log_dir();
+        let log_file = service::DEFAULT_LOG_FILE;
         let file_appender = Arc::new(Mutex::new(Some(tracing_appender::rolling::never(
-            log_dir,
-            service::DEFAULT_LOG_FILE,
+            log_dir.clone(),
+            log_file,
         ))));
         let file_manager = FileManager::new(file_appender.clone());
         let (file_writer, worker_guard) = tracing_appender::non_blocking(file_manager);
@@ -185,7 +215,12 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
             .with_writer(file_writer)
             .with_ansi(false);
         layers.push(file_layer.boxed());
-        Some(LoggingSetup::new(worker_guard, file_appender))
+        Some(LoggingSetup::new(
+            worker_guard,
+            file_appender,
+            log_dir,
+            log_file,
+        ))
     } else {
         None
     };

@@ -35,13 +35,13 @@ use nym_vpn_lib::{
 use nym_vpn_lib_types::{TunnelEvent, TunnelState, TunnelType};
 use zeroize::Zeroizing;
 
-use crate::config::GlobalConfigFile;
-
 use super::{
     config::{NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
     error::{AccountError, Error, Result, SetNetworkError, VpnServiceDeleteLogFileError},
     VpnServiceConnectError, VpnServiceDisconnectError,
 };
+use crate::config::GlobalConfigFile;
+use crate::logging::LogPath;
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -91,6 +91,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<AvailableTicketbooks, AccountError>>,
         (),
     ),
+    GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
     DeleteLogFile(
         oneshot::Sender<Result<(), VpnServiceDeleteLogFileError>>,
         (),
@@ -162,6 +163,9 @@ where
     // Path to the data directory
     data_dir: PathBuf,
 
+    // If log to file is enabled, path to the log directory and log filename
+    log_path: Option<LogPath>,
+
     // Storage backend
     storage: Arc<tokio::sync::Mutex<S>>,
 
@@ -192,6 +196,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         shutdown_token: CancellationToken,
         network_env: Network,
         user_agent: UserAgent,
+        log_path: Option<LogPath>,
     ) -> JoinHandle<()> {
         tracing::trace!("Starting VPN service");
         tokio::spawn(async {
@@ -202,6 +207,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
                 shutdown_token,
                 network_env,
                 user_agent,
+                log_path,
             )
             .await
             {
@@ -231,6 +237,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         shutdown_token: CancellationToken,
         network_env: Network,
         user_agent: UserAgent,
+        log_path: Option<LogPath>,
     ) -> Result<Self> {
         let network_name = network_env.nym_network_details().network_name.clone();
 
@@ -307,6 +314,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             account_command_tx,
             config_file,
             data_dir,
+            log_path,
             storage,
             tunnel_state: watch::Sender::new(TunnelState::Disconnected),
             state_machine_handle,
@@ -485,6 +493,9 @@ where
             VpnServiceCommand::GetAvailableTickets(tx, ()) => {
                 let result = self.handle_get_available_tickets().await;
                 let _ = tx.send(result);
+            }
+            VpnServiceCommand::GetLogPath(tx, ()) => {
+                let _ = tx.send(self.log_path.clone());
             }
             VpnServiceCommand::DeleteLogFile(tx, ()) => {
                 let result = self.handle_delete_log_file().await;

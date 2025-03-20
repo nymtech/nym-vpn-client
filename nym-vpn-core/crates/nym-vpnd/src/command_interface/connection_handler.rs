@@ -4,6 +4,12 @@
 use tokio::sync::{mpsc::UnboundedSender, oneshot, watch};
 use zeroize::Zeroizing;
 
+use crate::logging::LogPath;
+use crate::service::{
+    AccountError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
+    VpnServiceConnectError, VpnServiceDeleteLogFileError, VpnServiceDisconnectError,
+    VpnServiceInfo,
+};
 use nym_vpn_account_controller::{AccountStateSummary, AvailableTicketbooks};
 use nym_vpn_api_client::response::{NymVpnDevice, NymVpnUsage};
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
@@ -12,12 +18,6 @@ use nym_vpn_network_config::{
     FeatureFlags, NetworkCompatibility, ParsedAccountLinks, SystemMessages,
 };
 use nym_vpnd_types::gateway;
-
-use crate::service::{
-    AccountError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
-    VpnServiceConnectError, VpnServiceDeleteLogFileError, VpnServiceDisconnectError,
-    VpnServiceInfo,
-};
 
 use super::protobuf::error::VpnCommandSendError;
 
@@ -286,6 +286,10 @@ impl CommandInterfaceConnectionHandler {
     ) -> Result<Result<(), VpnServiceDeleteLogFileError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::DeleteLogFile, ())
             .await
+    }
+
+    pub async fn handle_get_log_path(&self) -> Result<Option<LogPath>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::GetLogPath, ()).await
     }
 
     async fn send_and_wait<R, F, O>(&self, command: F, opts: O) -> Result<R, VpnCommandSendError>

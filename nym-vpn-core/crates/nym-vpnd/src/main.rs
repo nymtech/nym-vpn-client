@@ -123,6 +123,9 @@ async fn run_inner_async(
 ) -> anyhow::Result<()> {
     network_env.check_consistency().await?;
 
+    let log_path = logging_setup
+        .as_ref()
+        .map(|logging_setup| logging_setup.log_path.clone());
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
     let (file_logging_event_tx, file_logging_event_rx) = mpsc::channel(1);
     let shutdown_token = CancellationToken::new();
@@ -156,6 +159,7 @@ async fn run_inner_async(
         shutdown_token.child_token(),
         network_env,
         user_agent,
+        log_path,
     );
 
     let mut shutdown_join_set = shutdown_handler::install(shutdown_token);
