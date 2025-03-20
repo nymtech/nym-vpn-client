@@ -3286,7 +3286,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.5.0"
+version = "1.5.1-papaya"
 dependencies = [
  "anyhow",
  "build-info",
@@ -3331,7 +3331,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.5.3"
+version = "1.5.4"
 dependencies = [
  "nym-http-api-client",
  "prost",
