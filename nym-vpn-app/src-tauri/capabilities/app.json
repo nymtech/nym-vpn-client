@@ -34,6 +34,9 @@
           "path": "$HOME/.cache/nym-vpn-app/log"
         },
         {
+          "path": "$HOME/.var/app/net.nymtech.NymVPN/cache/nym-vpn-app/log"
+        },
+        {
           "path": "$HOME\\AppData\\Local\\nym-vpn-app\\log"
         },
         {
