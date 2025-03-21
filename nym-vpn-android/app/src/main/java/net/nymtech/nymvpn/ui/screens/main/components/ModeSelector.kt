@@ -13,7 +13,6 @@ import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SegmentedButtonDefaults.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,9 +33,9 @@ import net.nymtech.vpn.backend.Tunnel
 fun ModeSelector(
 	vpnMode: Tunnel.Mode,
 	connectionState: ConnectionState,
-	onTwoHopSelected: () -> Unit,
-	onFiveHopSelected: () -> Unit,
-	onInfoClicked: () -> Unit,
+	onTwoHopClick: () -> Unit,
+	onFiveHopClick: () -> Unit,
+	onInfoClick: () -> Unit,
 	modifier: Modifier = Modifier,
 	snackbar: SnackbarController,
 ) {
@@ -60,7 +59,7 @@ fun ModeSelector(
 			modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp.scaledHeight()),
 		) {
 			GroupLabel(title = stringResource(R.string.select_mode))
-			IconButton(onClick = onInfoClicked, modifier = Modifier.size(iconSize)) {
+			IconButton(onClick = onInfoClick, modifier = Modifier.size(iconSize)) {
 				Icon(Icons.Outlined.Info, stringResource(R.string.info), tint = MaterialTheme.colorScheme.outline)
 			}
 		}
@@ -75,7 +74,7 @@ fun ModeSelector(
 			},
 			title = stringResource(R.string.two_hop_title),
 			description = stringResource(R.string.two_hop_description),
-			onClick = { whenDisconnected(onTwoHopSelected) },
+			onClick = { whenDisconnected(onTwoHopClick) },
 			selected = vpnMode == Tunnel.Mode.TWO_HOP_MIXNET,
 		)
 		IconSurfaceButton(
@@ -89,7 +88,7 @@ fun ModeSelector(
 			},
 			title = stringResource(R.string.five_hop_mixnet),
 			description = stringResource(R.string.five_hop_description),
-			onClick = { whenDisconnected(onFiveHopSelected) },
+			onClick = { whenDisconnected(onFiveHopClick) },
 			selected = vpnMode == Tunnel.Mode.FIVE_HOP_MIXNET,
 		)
 	}

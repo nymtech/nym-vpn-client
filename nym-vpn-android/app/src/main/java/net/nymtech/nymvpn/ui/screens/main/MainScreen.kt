@@ -181,9 +181,9 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 			ModeSelector(
 				vpnMode = appUiState.settings.vpnMode,
 				connectionState = uiState.connectionState,
-				onTwoHopSelected = { viewModel.onTwoHopSelected() },
-				onFiveHopSelected = { viewModel.onFiveHopSelected() },
-				onInfoClicked = { showInfoDialog = true },
+				onTwoHopClick = { viewModel.onTwoHopSelected() },
+				onFiveHopClick = { viewModel.onFiveHopSelected() },
+				onInfoClick = { showInfoDialog = true },
 				snackbar = snackbar,
 			)
 			Column(

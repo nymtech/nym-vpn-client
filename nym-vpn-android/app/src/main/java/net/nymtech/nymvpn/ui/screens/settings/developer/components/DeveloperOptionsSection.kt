@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.settings.developer
+package net.nymtech.nymvpn.ui.screens.settings.developer.components
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
