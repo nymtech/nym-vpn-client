@@ -384,7 +384,7 @@ mod tests {
         );
 
         // simulate 1 byte/second depletion rate
-        let consumed = current_period.as_secs() * 1;
+        let consumed = current_period.as_secs();
         current_period = depletion_rate
             .update_dynamic_check_interval(current_period, BW_512MB - consumed)
             .unwrap()

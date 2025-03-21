@@ -52,11 +52,13 @@ pub struct NymVpnAccountSummaryDevices {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "camelCase")]
+#[allow(non_snake_case)]
+// These fields have the substring 'GB' in them, meaning we can't use `rename_all = "camelCase"`
+// like for the other structs
 pub struct NymVpnAccountSummaryFairUsage {
-    pub used_gb: Option<f64>,
-    pub limit_gb: Option<f64>,
-    pub resets_on_utc: Option<String>,
+    pub usedGB: Option<f64>,
+    pub limitGB: Option<f64>,
+    pub resetsOnUtc: Option<String>,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]

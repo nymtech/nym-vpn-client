@@ -546,9 +546,9 @@ impl From<NymVpnAccountSummaryDevices> for DeviceSummary {
 impl From<NymVpnAccountSummaryFairUsage> for FairUsage {
     fn from(fair_usage: NymVpnAccountSummaryFairUsage) -> Self {
         FairUsage {
-            used_gb: fair_usage.used_gb,
-            limit_gb: fair_usage.limit_gb,
-            resets_on_utc: fair_usage.resets_on_utc,
+            used_gb: fair_usage.usedGB,
+            limit_gb: fair_usage.limitGB,
+            resets_on_utc: fair_usage.resetsOnUtc,
         }
     }
 }
