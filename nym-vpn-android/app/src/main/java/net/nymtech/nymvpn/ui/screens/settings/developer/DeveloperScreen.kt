@@ -31,6 +31,7 @@ import net.nymtech.nymvpn.util.extensions.scaledWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import net.nymtech.nymvpn.ui.screens.settings.developer.components.ConnectionDataSection
+import net.nymtech.nymvpn.ui.screens.settings.developer.components.DeveloperOptionsSection
 import net.nymtech.nymvpn.ui.screens.settings.developer.components.MixnetStateSection
 
 @Composable
