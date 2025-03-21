@@ -181,9 +181,16 @@ message GetAccountStateResponse {
         uint64 remaining = 3;
       }
 
+      message FairUsageState {
+        uint64 limit_gb = 1;
+        uint64 used_gb = 2;
+        optional string resets_on_utc = 3;
+      }
+
       AccountState account = 1;
       SubscriptionState subscription = 2;
       DeviceSummary device_summary = 3;
+      FairUsageState fair_usage = 4;
     }
 
     enum DeviceState {

@@ -3,8 +3,8 @@
 
 use nym_vpn_account_controller::{
     shared_state::{
-        AccountRegistered, AccountState, AccountSummary, DeviceState, DeviceSummary, MnemonicState,
-        RegisterDeviceResult, RequestZkNymResult, SubscriptionState,
+        AccountRegistered, AccountState, AccountSummary, DeviceState, DeviceSummary, FairUsage,
+        MnemonicState, RegisterDeviceResult, RequestZkNymResult, SubscriptionState,
     },
     AccountStateSummary,
 };
@@ -14,7 +14,7 @@ use crate::{
         account_state_summary::{
             account_summary::{
                 AccountState as ProtoAccountState, DeviceSummary as ProtoDeviceSummary,
-                SubscriptionState as ProtoSubscriptionState,
+                FairUsageState as ProtoFairUsageState, SubscriptionState as ProtoSubscriptionState,
             },
             AccountRegistered as ProtoAccountRegistered, AccountSummary as ProtoAccountSummary,
             DeviceState as ProtoDeviceState, MnemonicState as ProtoMnemonicState,
@@ -75,12 +75,23 @@ impl From<DeviceSummary> for ProtoDeviceSummary {
     }
 }
 
+impl From<FairUsage> for ProtoFairUsageState {
+    fn from(fair_usage: FairUsage) -> Self {
+        Self {
+            used_gb: fair_usage.used_gb,
+            limit_gb: fair_usage.limit_gb,
+            resets_on_utc: fair_usage.resets_on_utc,
+        }
+    }
+}
+
 impl From<AccountSummary> for ProtoAccountSummary {
     fn from(account_summary: AccountSummary) -> Self {
         Self {
             account: ProtoAccountState::from(account_summary.account) as i32,
             subscription: ProtoSubscriptionState::from(account_summary.subscription) as i32,
             device_summary: Some(ProtoDeviceSummary::from(account_summary.device_summary)),
+            fair_usage: Some(ProtoFairUsageState::from(account_summary.fair_usage)),
         }
     }
 }

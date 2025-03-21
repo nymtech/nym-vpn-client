@@ -296,8 +296,8 @@ pub struct DeviceSummary {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FairUsage {
-    pub used_gb: Option<f64>,
-    pub limit_gb: Option<f64>,
+    pub used_gb: u64,
+    pub limit_gb: u64,
     pub resets_on_utc: Option<String>,
 }
 

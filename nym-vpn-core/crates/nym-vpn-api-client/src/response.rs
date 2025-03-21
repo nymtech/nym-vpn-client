@@ -56,8 +56,8 @@ pub struct NymVpnAccountSummaryDevices {
 // These fields have the substring 'GB' in them, meaning we can't use `rename_all = "camelCase"`
 // like for the other structs
 pub struct NymVpnAccountSummaryFairUsage {
-    pub usedGB: Option<f64>,
-    pub limitGB: Option<f64>,
+    pub usedGB: u64,
+    pub limitGB: u64,
     pub resetsOnUtc: Option<String>,
 }
 
