@@ -75,12 +75,12 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.InvalidEntryGatewayCountry -> context.getString(R.string.selected_entry_unavailable)
 		ErrorStateReason.InvalidExitGatewayCountry -> context.getString(R.string.selected_exit_unavailable)
 		is ErrorStateReason.Api -> context.getString(R.string.network_error)
-		ErrorStateReason.BandwidthExceeded -> context.getString(R.string.out_of_bandwidth_error)
+		ErrorStateReason.BandwidthExceeded -> context.getString(R.string.bandwidth_error)
 		is ErrorStateReason.Dns -> context.getString(R.string.network_error)
 		is ErrorStateReason.Internal -> context.getString(R.string.unexpected_error) + " ${error.v1}"
-		ErrorStateReason.MaxDevicesReached -> context.getString(R.string.max_devices_reached) + " ${context.getString(R.string.remove_device)}"
+		ErrorStateReason.MaxDevicesReached -> context.getString(R.string.max_devices_error)
 		ErrorStateReason.Firewall, ErrorStateReason.Routing -> context.getString(R.string.unexpected_error) + " ${error.javaClass.simpleName}"
-		ErrorStateReason.SubscriptionExpired -> context.getString(R.string.subscription_expired)
+		ErrorStateReason.SubscriptionExpired -> context.getString(R.string.subscription_expired_error)
 	}
 }
 

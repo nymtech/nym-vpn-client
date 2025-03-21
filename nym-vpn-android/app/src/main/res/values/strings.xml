@@ -234,7 +234,7 @@
 	<string name="log_out_title">Are you sure you want to log out?</string>
 	<string name="log_out_body">You will need your recovery phrase to log in again.</string>
 	<string name="cancel">Cancel</string>
-	<string name="subscription_expired">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
+	<string name="subscription_expired_error">Subscription has expired. Please purchase a plan for your account.</string>
 	<string name="remove_device">Remove a device from your account and try again.</string>
     <string name="gateway_score">Gateway score</string>
 	<string name="info">Info</string>
@@ -251,4 +251,6 @@
 	<string name="bars_2">2 bars</string>
 	<string name="bars_1">1 bar</string>
     <string name="bypass_lan">Bypass LAN</string>
+	<string name="bandwidth_error">Monthly bandwidth exceeded. Please upgrade your account plan.</string>
+	<string name="max_devices_error">Account device limit exceeded. Please remove a device from your account before connecting.</string>
 </resources>
