@@ -3,8 +3,8 @@
 # NymVPN installer combo
 #
 # Install the following components:
-# - daemon (nym-vpnd) as a systemd service (from prebuilt binary)
-# - client (nym-vpn-app) as AppImage
+# - daemon (nym-vpnd) as a systemd service
+# - client app (nym-vpn-app)
 #
 # To uninstall, run with `uninstall` as argument
 
@@ -38,17 +38,17 @@ BI_MGT="$ITL$B_MGT"
 ####
 
 # AppImage
-app_tag=nym-vpn-app-v1.5.0
-app_version=1.5.0
+app_tag=nym-vpn-app-v1.5.1
+app_version=1.5.1
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_x64.AppImage"
 app_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn-app_${app_version}_amd64.deb"
 desktop_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/app.desktop"
 icon_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/icon.svg"
 
 # nym-vpnd
-vpnd_tag=nym-vpn-core-v1.5.3
+vpnd_tag=nym-vpn-core-v1.5.4
 # ⚠ there are inconsistencies in the package version naming…
-vpnd_version=1.5.3
+vpnd_version=1.5.4
 vpnd_deb_ver=$vpnd_version
 vpnd_deb_ver_url=$vpnd_version
 vpnd_raw_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
