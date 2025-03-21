@@ -29,10 +29,6 @@ interface SettingsRepository {
 
 	suspend fun setAutoStart(enabled: Boolean)
 
-	suspend fun isErrorReportingEnabled(): Boolean
-
-	suspend fun setErrorReporting(enabled: Boolean)
-
 	suspend fun isApplicationShortcutsEnabled(): Boolean
 
 	suspend fun setApplicationShortcuts(enabled: Boolean)

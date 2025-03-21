@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.main
+package net.nymtech.nymvpn.ui.screens.main.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

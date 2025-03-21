@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.settings.credential.components
+package net.nymtech.nymvpn.ui.screens.settings.login.components
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

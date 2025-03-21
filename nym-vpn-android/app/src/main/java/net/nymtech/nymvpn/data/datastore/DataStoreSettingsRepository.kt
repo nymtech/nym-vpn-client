@@ -88,15 +88,6 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(autoStart, enabled)
 	}
 
-	override suspend fun isErrorReportingEnabled(): Boolean {
-		return dataStoreManager.getFromStore(errorReporting)
-			?: Settings.REPORTING_DEFAULT
-	}
-
-	override suspend fun setErrorReporting(enabled: Boolean) {
-		dataStoreManager.saveToDataStore(errorReporting, enabled)
-	}
-
 	override suspend fun isApplicationShortcutsEnabled(): Boolean {
 		return dataStoreManager.getFromStore(applicationShortcuts) ?: Settings.SHORTCUTS_DEFAULT
 	}

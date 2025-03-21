@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.settings.credential
+package net.nymtech.nymvpn.ui.screens.settings.login
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

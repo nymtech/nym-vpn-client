@@ -80,10 +80,6 @@ constructor(
 		}.onFailure { Timber.e(it) }
 	}
 
-	fun onErrorReportingSelected() = viewModelScope.launch {
-		settingsRepository.setErrorReporting(!uiState.value.settings.errorReportingEnabled)
-	}
-
 	fun onNavBarStateChange(navBarState: NavBarState) {
 		_navBarState.update {
 			navBarState

@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.hop
+package net.nymtech.nymvpn.ui.screens.hop.components
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable

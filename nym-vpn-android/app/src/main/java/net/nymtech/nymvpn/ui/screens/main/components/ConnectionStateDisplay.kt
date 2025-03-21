@@ -1,4 +1,4 @@
-package net.nymtech.nymvpn.ui.screens.main
+package net.nymtech.nymvpn.ui.screens.main.components
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
