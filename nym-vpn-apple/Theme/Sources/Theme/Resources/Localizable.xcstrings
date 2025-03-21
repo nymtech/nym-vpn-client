@@ -557,7 +557,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bandwidth exceeded."
+            "value" : "Monthly bandwidth exceeded. Please upgrade your account plan."
           }
         }
       }
@@ -645,7 +645,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Max devices limit reached."
+            "value" : "Account device limit exceeded. Please remove a device from your account before connecting."
           }
         }
       }
@@ -744,7 +744,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Subscription expired."
+            "value" : "Subscription has expired. Please purchase a plan for your account."
           }
         }
       }
