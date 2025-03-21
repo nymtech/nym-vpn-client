@@ -166,7 +166,7 @@ impl VpnApiClient {
             Err(err) => {
                 if let HttpClientError::EndpointFailure { status: _, error } = &err {
                     if error.to_string().contains("JWT") {
-                        tracing::warn!("Retrying query with remote time");
+                        tracing::warn!("Encountered possible JWT error: {error}. Retrying query with remote time");
                         if let Ok(Some(jwt)) =
                             self.sync_with_remote_time().await.inspect_err(|err| {
                                 tracing::error!(
@@ -314,7 +314,7 @@ impl VpnApiClient {
             Err(err) => {
                 if let HttpClientError::EndpointFailure { status: _, error } = &err {
                     if error.to_string().contains("JWT") {
-                        tracing::warn!("Retrying query with remote time");
+                        tracing::warn!("Encountered possible JWT error: {error}. Retrying query with remote time");
                         if let Ok(Some(jwt)) =
                             self.sync_with_remote_time().await.inspect_err(|err| {
                                 tracing::error!(
@@ -451,7 +451,7 @@ impl VpnApiClient {
             Err(err) => {
                 if let HttpClientError::EndpointFailure { status: _, error } = &err {
                     if error.to_string().contains("JWT") {
-                        tracing::warn!("Retrying query with remote time");
+                        tracing::warn!("Encountered possible JWT error: {error}. Retrying query with remote time");
                         if let Ok(Some(jwt)) =
                             self.sync_with_remote_time().await.inspect_err(|err| {
                                 tracing::error!(
