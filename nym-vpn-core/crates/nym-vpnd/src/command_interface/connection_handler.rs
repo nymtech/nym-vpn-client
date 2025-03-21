@@ -4,12 +4,6 @@
 use tokio::sync::{mpsc::UnboundedSender, oneshot, watch};
 use zeroize::Zeroizing;
 
-use crate::logging::LogPath;
-use crate::service::{
-    AccountError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
-    VpnServiceConnectError, VpnServiceDeleteLogFileError, VpnServiceDisconnectError,
-    VpnServiceInfo,
-};
 use nym_vpn_account_controller::{AccountStateSummary, AvailableTicketbooks};
 use nym_vpn_api_client::response::{NymVpnDevice, NymVpnUsage};
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
@@ -20,6 +14,12 @@ use nym_vpn_network_config::{
 use nym_vpnd_types::gateway;
 
 use super::protobuf::error::VpnCommandSendError;
+use crate::logging::LogPath;
+use crate::service::{
+    AccountError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
+    VpnServiceConnectError, VpnServiceDeleteLogFileError, VpnServiceDisconnectError,
+    VpnServiceInfo,
+};
 
 #[derive(Debug, thiserror::Error)]
 pub enum ListGatewayError {

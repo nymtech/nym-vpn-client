@@ -911,10 +911,7 @@ impl NymVpnd for CommandInterface {
             LogPath::default()
         };
         tracing::debug!("log dir path: {}", log_path.dir.display());
-        Ok(tonic::Response::new(GetLogPathResponse {
-            path: log_path.dir.to_string_lossy().to_string(),
-            filename: log_path.filename.to_string(),
-        }))
+        Ok(tonic::Response::new(log_path.into()))
     }
 }
 
@@ -968,5 +965,14 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             min_gateway_vpn_performance,
             user_agent,
         })
+    }
+}
+
+impl From<LogPath> for GetLogPathResponse {
+    fn from(log_path: LogPath) -> Self {
+        GetLogPathResponse {
+            path: log_path.dir.to_string_lossy().to_string(),
+            filename: log_path.filename.clone(),
+        }
     }
 }
