@@ -25,6 +25,7 @@ public final class CredentialsManager {
     public static let shared = CredentialsManager()
 
     public var deviceIdentifier: String?
+    public var accountIdentifier: String?
 
     public var isValidCredentialImported: Bool {
         appSettings.isCredentialImported
@@ -142,6 +143,7 @@ private extension CredentialsManager {
                 updateIsCredentialImported(with: false)
             }
             updateDeviceIdentifier()
+            updateAccountIdentifier()
         }
     }
 
@@ -161,6 +163,18 @@ private extension CredentialsManager {
             deviceIdentifier = try? getDeviceIdentityRaw(path: dataFolderURL.path())
 #elseif os(macOS)
             deviceIdentifier = try? await grpcManager.deviceIdentifier()
+#endif
+        }
+    }
+
+    func updateAccountIdentifier() {
+        Task {
+#if os(iOS)
+// TODO: get account identifier for iOS
+//            let dataFolderURL = try dataFolderURL()
+//            accountIdentifier =
+#elseif os(macOS)
+            accountIdentifier = try? await grpcManager.accountIdentifier()
 #endif
         }
     }

@@ -65,7 +65,7 @@ struct NymVPNDaemonApp: App {
                         .transition(.slide)
                 }
             }
-            .frame(minWidth: 390, minHeight: 675)
+            .frame(minWidth: MagicNumbers.macMinWidth.rawValue, minHeight: MagicNumbers.macMinHeight.rawValue)
             .onAppear {
                 NSApp.setActivationPolicy(.regular)
             }

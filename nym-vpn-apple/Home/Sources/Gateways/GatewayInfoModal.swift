@@ -142,6 +142,7 @@ private extension GatewayInfoModal {
                 Spacer()
                     .frame(width: 16)
                 GenericImage(imageName: "copy", allowsHover: true)
+                    .foregroundStyle(NymColor.accent)
                     .contentShape(Rectangle())
                     .frame(width: 16, height: 16)
                     .onTapGesture {

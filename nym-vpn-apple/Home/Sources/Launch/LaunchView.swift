@@ -21,7 +21,7 @@ public struct LaunchView: View {
                             splashScreenDidDisplay: $splashScreenDidDisplay
                         )
                 )
-                .frame(maxWidth: 390)
+                .frame(maxWidth: MagicNumbers.macMinWidth.rawValue)
                 Spacer()
             }
             Spacer()

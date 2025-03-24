@@ -21,7 +21,10 @@ public struct GatewaysView: View {
                 .frame(height: 24)
 
             searchView()
-                .frame(maxWidth: Device.type == .ipad ? 358 : 390)
+                .frame(
+                    maxWidth:
+                        Device.type == .ipad ? MagicNumbers.ipadMaxWidth.rawValue : MagicNumbers.macMinWidth.rawValue
+                )
             Spacer()
                 .frame(height: 24)
 
@@ -33,7 +36,10 @@ public struct GatewaysView: View {
                     foundGatewaysList()
                 }
                 .scrollIndicators(.hidden)
-                .frame(maxWidth: Device.type == .ipad ? 358 : 390)
+                .frame(
+                    maxWidth:
+                        Device.type == .ipad ? MagicNumbers.ipadMaxWidth.rawValue : MagicNumbers.macMinWidth.rawValue
+                )
                 .ignoresSafeArea(.all)
                 .onChange(of: viewModel.scrollToServer) { _ in
                     guard let server = viewModel.scrollToServer else { return }

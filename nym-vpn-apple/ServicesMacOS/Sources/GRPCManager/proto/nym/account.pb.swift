@@ -713,66 +713,66 @@ struct Nym_Vpn_GetAccountStateResponse: Sendable {
 
   }
 
-  struct AccountStateSummary: Sendable {
+  struct AccountStateSummary: @unchecked Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
 
     var mnemonic: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.MnemonicState {
-      get {return _mnemonic ?? .unspecified}
-      set {_mnemonic = newValue}
+      get {return _storage._mnemonic ?? .unspecified}
+      set {_uniqueStorage()._mnemonic = newValue}
     }
     /// Returns true if `mnemonic` has been explicitly set.
-    var hasMnemonic: Bool {return self._mnemonic != nil}
+    var hasMnemonic: Bool {return _storage._mnemonic != nil}
     /// Clears the value of `mnemonic`. Subsequent reads from it will return its default value.
-    mutating func clearMnemonic() {self._mnemonic = nil}
+    mutating func clearMnemonic() {_uniqueStorage()._mnemonic = nil}
 
     var accountRegistered: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountRegistered {
-      get {return _accountRegistered ?? .unspecified}
-      set {_accountRegistered = newValue}
+      get {return _storage._accountRegistered ?? .unspecified}
+      set {_uniqueStorage()._accountRegistered = newValue}
     }
     /// Returns true if `accountRegistered` has been explicitly set.
-    var hasAccountRegistered: Bool {return self._accountRegistered != nil}
+    var hasAccountRegistered: Bool {return _storage._accountRegistered != nil}
     /// Clears the value of `accountRegistered`. Subsequent reads from it will return its default value.
-    mutating func clearAccountRegistered() {self._accountRegistered = nil}
+    mutating func clearAccountRegistered() {_uniqueStorage()._accountRegistered = nil}
 
     var accountSummary: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary {
-      get {return _accountSummary ?? Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary()}
-      set {_accountSummary = newValue}
+      get {return _storage._accountSummary ?? Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary()}
+      set {_uniqueStorage()._accountSummary = newValue}
     }
     /// Returns true if `accountSummary` has been explicitly set.
-    var hasAccountSummary: Bool {return self._accountSummary != nil}
+    var hasAccountSummary: Bool {return _storage._accountSummary != nil}
     /// Clears the value of `accountSummary`. Subsequent reads from it will return its default value.
-    mutating func clearAccountSummary() {self._accountSummary = nil}
+    mutating func clearAccountSummary() {_uniqueStorage()._accountSummary = nil}
 
     var device: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.DeviceState {
-      get {return _device ?? .unspecified}
-      set {_device = newValue}
+      get {return _storage._device ?? .unspecified}
+      set {_uniqueStorage()._device = newValue}
     }
     /// Returns true if `device` has been explicitly set.
-    var hasDevice: Bool {return self._device != nil}
+    var hasDevice: Bool {return _storage._device != nil}
     /// Clears the value of `device`. Subsequent reads from it will return its default value.
-    mutating func clearDevice() {self._device = nil}
+    mutating func clearDevice() {_uniqueStorage()._device = nil}
 
     var registerDeviceResult: Nym_Vpn_RegisterDeviceResult {
-      get {return _registerDeviceResult ?? Nym_Vpn_RegisterDeviceResult()}
-      set {_registerDeviceResult = newValue}
+      get {return _storage._registerDeviceResult ?? Nym_Vpn_RegisterDeviceResult()}
+      set {_uniqueStorage()._registerDeviceResult = newValue}
     }
     /// Returns true if `registerDeviceResult` has been explicitly set.
-    var hasRegisterDeviceResult: Bool {return self._registerDeviceResult != nil}
+    var hasRegisterDeviceResult: Bool {return _storage._registerDeviceResult != nil}
     /// Clears the value of `registerDeviceResult`. Subsequent reads from it will return its default value.
-    mutating func clearRegisterDeviceResult() {self._registerDeviceResult = nil}
+    mutating func clearRegisterDeviceResult() {_uniqueStorage()._registerDeviceResult = nil}
 
     /// NOTE: don't reuse tag 6
     /// bool pending_zk_nym = 6;
     var requestZkNymResult: Nym_Vpn_RequestZkNymResult {
-      get {return _requestZkNymResult ?? Nym_Vpn_RequestZkNymResult()}
-      set {_requestZkNymResult = newValue}
+      get {return _storage._requestZkNymResult ?? Nym_Vpn_RequestZkNymResult()}
+      set {_uniqueStorage()._requestZkNymResult = newValue}
     }
     /// Returns true if `requestZkNymResult` has been explicitly set.
-    var hasRequestZkNymResult: Bool {return self._requestZkNymResult != nil}
+    var hasRequestZkNymResult: Bool {return _storage._requestZkNymResult != nil}
     /// Clears the value of `requestZkNymResult`. Subsequent reads from it will return its default value.
-    mutating func clearRequestZkNymResult() {self._requestZkNymResult = nil}
+    mutating func clearRequestZkNymResult() {_uniqueStorage()._requestZkNymResult = nil}
 
     var unknownFields = SwiftProtobuf.UnknownStorage()
 
@@ -916,6 +916,15 @@ struct Nym_Vpn_GetAccountStateResponse: Sendable {
       /// Clears the value of `deviceSummary`. Subsequent reads from it will return its default value.
       mutating func clearDeviceSummary() {self._deviceSummary = nil}
 
+      var fairUsage: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary.FairUsageState {
+        get {return _fairUsage ?? Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary.FairUsageState()}
+        set {_fairUsage = newValue}
+      }
+      /// Returns true if `fairUsage` has been explicitly set.
+      var hasFairUsage: Bool {return self._fairUsage != nil}
+      /// Clears the value of `fairUsage`. Subsequent reads from it will return its default value.
+      mutating func clearFairUsage() {self._fairUsage = nil}
+
       var unknownFields = SwiftProtobuf.UnknownStorage()
 
       enum AccountState: SwiftProtobuf.Enum, Swift.CaseIterable {
@@ -1026,19 +1035,40 @@ struct Nym_Vpn_GetAccountStateResponse: Sendable {
         init() {}
       }
 
+      struct FairUsageState: Sendable {
+        // SwiftProtobuf.Message conformance is added in an extension below. See the
+        // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+        // methods supported on all messages.
+
+        var limitGb: UInt64 = 0
+
+        var usedGb: UInt64 = 0
+
+        var resetsOnUtc: String {
+          get {return _resetsOnUtc ?? String()}
+          set {_resetsOnUtc = newValue}
+        }
+        /// Returns true if `resetsOnUtc` has been explicitly set.
+        var hasResetsOnUtc: Bool {return self._resetsOnUtc != nil}
+        /// Clears the value of `resetsOnUtc`. Subsequent reads from it will return its default value.
+        mutating func clearResetsOnUtc() {self._resetsOnUtc = nil}
+
+        var unknownFields = SwiftProtobuf.UnknownStorage()
+
+        init() {}
+
+        fileprivate var _resetsOnUtc: String? = nil
+      }
+
       init() {}
 
       fileprivate var _deviceSummary: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary.DeviceSummary? = nil
+      fileprivate var _fairUsage: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary.FairUsageState? = nil
     }
 
     init() {}
 
-    fileprivate var _mnemonic: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.MnemonicState? = nil
-    fileprivate var _accountRegistered: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountRegistered? = nil
-    fileprivate var _accountSummary: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary? = nil
-    fileprivate var _device: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.DeviceState? = nil
-    fileprivate var _registerDeviceResult: Nym_Vpn_RegisterDeviceResult? = nil
-    fileprivate var _requestZkNymResult: Nym_Vpn_RequestZkNymResult? = nil
+    fileprivate var _storage = _StorageClass.defaultInstance
   }
 
   init() {}
@@ -2917,56 +2947,106 @@ extension Nym_Vpn_GetAccountStateResponse.AccountStateSummary: SwiftProtobuf.Mes
     7: .standard(proto: "request_zk_nym_result"),
   ]
 
+  fileprivate class _StorageClass {
+    var _mnemonic: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.MnemonicState? = nil
+    var _accountRegistered: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountRegistered? = nil
+    var _accountSummary: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary? = nil
+    var _device: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.DeviceState? = nil
+    var _registerDeviceResult: Nym_Vpn_RegisterDeviceResult? = nil
+    var _requestZkNymResult: Nym_Vpn_RequestZkNymResult? = nil
+
+    #if swift(>=5.10)
+      // This property is used as the initial default value for new instances of the type.
+      // The type itself is protecting the reference to its storage via CoW semantics.
+      // This will force a copy to be made of this reference when the first mutation occurs;
+      // hence, it is safe to mark this as `nonisolated(unsafe)`.
+      static nonisolated(unsafe) let defaultInstance = _StorageClass()
+    #else
+      static let defaultInstance = _StorageClass()
+    #endif
+
+    private init() {}
+
+    init(copying source: _StorageClass) {
+      _mnemonic = source._mnemonic
+      _accountRegistered = source._accountRegistered
+      _accountSummary = source._accountSummary
+      _device = source._device
+      _registerDeviceResult = source._registerDeviceResult
+      _requestZkNymResult = source._requestZkNymResult
+    }
+  }
+
+  fileprivate mutating func _uniqueStorage() -> _StorageClass {
+    if !isKnownUniquelyReferenced(&_storage) {
+      _storage = _StorageClass(copying: _storage)
+    }
+    return _storage
+  }
+
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    while let fieldNumber = try decoder.nextFieldNumber() {
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every case branch when no optimizations are
-      // enabled. https://github.com/apple/swift-protobuf/issues/1034
-      switch fieldNumber {
-      case 1: try { try decoder.decodeSingularEnumField(value: &self._mnemonic) }()
-      case 2: try { try decoder.decodeSingularEnumField(value: &self._accountRegistered) }()
-      case 3: try { try decoder.decodeSingularMessageField(value: &self._accountSummary) }()
-      case 4: try { try decoder.decodeSingularEnumField(value: &self._device) }()
-      case 5: try { try decoder.decodeSingularMessageField(value: &self._registerDeviceResult) }()
-      case 7: try { try decoder.decodeSingularMessageField(value: &self._requestZkNymResult) }()
-      default: break
+    _ = _uniqueStorage()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      while let fieldNumber = try decoder.nextFieldNumber() {
+        // The use of inline closures is to circumvent an issue where the compiler
+        // allocates stack space for every case branch when no optimizations are
+        // enabled. https://github.com/apple/swift-protobuf/issues/1034
+        switch fieldNumber {
+        case 1: try { try decoder.decodeSingularEnumField(value: &_storage._mnemonic) }()
+        case 2: try { try decoder.decodeSingularEnumField(value: &_storage._accountRegistered) }()
+        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._accountSummary) }()
+        case 4: try { try decoder.decodeSingularEnumField(value: &_storage._device) }()
+        case 5: try { try decoder.decodeSingularMessageField(value: &_storage._registerDeviceResult) }()
+        case 7: try { try decoder.decodeSingularMessageField(value: &_storage._requestZkNymResult) }()
+        default: break
+        }
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    // The use of inline closures is to circumvent an issue where the compiler
-    // allocates stack space for every if/case branch local when no optimizations
-    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-    // https://github.com/apple/swift-protobuf/issues/1182
-    try { if let v = self._mnemonic {
-      try visitor.visitSingularEnumField(value: v, fieldNumber: 1)
-    } }()
-    try { if let v = self._accountRegistered {
-      try visitor.visitSingularEnumField(value: v, fieldNumber: 2)
-    } }()
-    try { if let v = self._accountSummary {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    } }()
-    try { if let v = self._device {
-      try visitor.visitSingularEnumField(value: v, fieldNumber: 4)
-    } }()
-    try { if let v = self._registerDeviceResult {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
-    } }()
-    try { if let v = self._requestZkNymResult {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
-    } }()
+    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every if/case branch local when no optimizations
+      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+      // https://github.com/apple/swift-protobuf/issues/1182
+      try { if let v = _storage._mnemonic {
+        try visitor.visitSingularEnumField(value: v, fieldNumber: 1)
+      } }()
+      try { if let v = _storage._accountRegistered {
+        try visitor.visitSingularEnumField(value: v, fieldNumber: 2)
+      } }()
+      try { if let v = _storage._accountSummary {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+      } }()
+      try { if let v = _storage._device {
+        try visitor.visitSingularEnumField(value: v, fieldNumber: 4)
+      } }()
+      try { if let v = _storage._registerDeviceResult {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 5)
+      } }()
+      try { if let v = _storage._requestZkNymResult {
+        try visitor.visitSingularMessageField(value: v, fieldNumber: 7)
+      } }()
+    }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Nym_Vpn_GetAccountStateResponse.AccountStateSummary, rhs: Nym_Vpn_GetAccountStateResponse.AccountStateSummary) -> Bool {
-    if lhs._mnemonic != rhs._mnemonic {return false}
-    if lhs._accountRegistered != rhs._accountRegistered {return false}
-    if lhs._accountSummary != rhs._accountSummary {return false}
-    if lhs._device != rhs._device {return false}
-    if lhs._registerDeviceResult != rhs._registerDeviceResult {return false}
-    if lhs._requestZkNymResult != rhs._requestZkNymResult {return false}
+    if lhs._storage !== rhs._storage {
+      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
+        let _storage = _args.0
+        let rhs_storage = _args.1
+        if _storage._mnemonic != rhs_storage._mnemonic {return false}
+        if _storage._accountRegistered != rhs_storage._accountRegistered {return false}
+        if _storage._accountSummary != rhs_storage._accountSummary {return false}
+        if _storage._device != rhs_storage._device {return false}
+        if _storage._registerDeviceResult != rhs_storage._registerDeviceResult {return false}
+        if _storage._requestZkNymResult != rhs_storage._requestZkNymResult {return false}
+        return true
+      }
+      if !storagesAreEqual {return false}
+    }
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -3004,6 +3084,7 @@ extension Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary: Sw
     1: .same(proto: "account"),
     2: .same(proto: "subscription"),
     3: .standard(proto: "device_summary"),
+    4: .standard(proto: "fair_usage"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -3015,6 +3096,7 @@ extension Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary: Sw
       case 1: try { try decoder.decodeSingularEnumField(value: &self.account) }()
       case 2: try { try decoder.decodeSingularEnumField(value: &self.subscription) }()
       case 3: try { try decoder.decodeSingularMessageField(value: &self._deviceSummary) }()
+      case 4: try { try decoder.decodeSingularMessageField(value: &self._fairUsage) }()
       default: break
       }
     }
@@ -3034,6 +3116,9 @@ extension Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary: Sw
     try { if let v = self._deviceSummary {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     } }()
+    try { if let v = self._fairUsage {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
+    } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
@@ -3041,6 +3126,7 @@ extension Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary: Sw
     if lhs.account != rhs.account {return false}
     if lhs.subscription != rhs.subscription {return false}
     if lhs._deviceSummary != rhs._deviceSummary {return false}
+    if lhs._fairUsage != rhs._fairUsage {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -3105,6 +3191,54 @@ extension Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary.Dev
     if lhs.active != rhs.active {return false}
     if lhs.max != rhs.max {return false}
     if lhs.remaining != rhs.remaining {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary.FairUsageState: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary.protoMessageName + ".FairUsageState"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .standard(proto: "limit_gb"),
+    2: .standard(proto: "used_gb"),
+    3: .standard(proto: "resets_on_utc"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularUInt64Field(value: &self.limitGb) }()
+      case 2: try { try decoder.decodeSingularUInt64Field(value: &self.usedGb) }()
+      case 3: try { try decoder.decodeSingularStringField(value: &self._resetsOnUtc) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    if self.limitGb != 0 {
+      try visitor.visitSingularUInt64Field(value: self.limitGb, fieldNumber: 1)
+    }
+    if self.usedGb != 0 {
+      try visitor.visitSingularUInt64Field(value: self.usedGb, fieldNumber: 2)
+    }
+    try { if let v = self._resetsOnUtc {
+      try visitor.visitSingularStringField(value: v, fieldNumber: 3)
+    } }()
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary.FairUsageState, rhs: Nym_Vpn_GetAccountStateResponse.AccountStateSummary.AccountSummary.FairUsageState) -> Bool {
+    if lhs.limitGb != rhs.limitGb {return false}
+    if lhs.usedGb != rhs.usedGb {return false}
+    if lhs._resetsOnUtc != rhs._resetsOnUtc {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

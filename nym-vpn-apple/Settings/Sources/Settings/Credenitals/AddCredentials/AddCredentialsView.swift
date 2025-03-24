@@ -32,7 +32,10 @@ struct AddCredentialsView: View {
                 scrollViewContent(geometry: geometry)
 #endif
             }
-            .frame(maxWidth: Device.type == .ipad ? 358 : 390)
+            .frame(
+                maxWidth:
+                    Device.type == .ipad ? MagicNumbers.ipadMaxWidth.rawValue : MagicNumbers.macMinWidth.rawValue
+            )
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
