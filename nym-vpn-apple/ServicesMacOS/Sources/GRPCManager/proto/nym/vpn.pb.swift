@@ -2274,6 +2274,21 @@ struct Nym_Vpn_MixnetEvent: Sendable {
   init() {}
 }
 
+struct Nym_Vpn_GetLogPathResponse: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  /// directory path
+  var path: String = String()
+
+  var filename: String = String()
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
 // MARK: - Code below here is support for the SwiftProtobuf runtime.
 
 fileprivate let _protobuf_package = "nym.vpn"
@@ -5918,6 +5933,44 @@ extension Nym_Vpn_MixnetEvent.ConnectionStatisticsEvent: SwiftProtobuf.Message, 
 
   static func ==(lhs: Nym_Vpn_MixnetEvent.ConnectionStatisticsEvent, rhs: Nym_Vpn_MixnetEvent.ConnectionStatisticsEvent) -> Bool {
     if lhs._rates != rhs._rates {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_GetLogPathResponse: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".GetLogPathResponse"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "path"),
+    2: .same(proto: "filename"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularStringField(value: &self.path) }()
+      case 2: try { try decoder.decodeSingularStringField(value: &self.filename) }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    if !self.path.isEmpty {
+      try visitor.visitSingularStringField(value: self.path, fieldNumber: 1)
+    }
+    if !self.filename.isEmpty {
+      try visitor.visitSingularStringField(value: self.filename, fieldNumber: 2)
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_GetLogPathResponse, rhs: Nym_Vpn_GetLogPathResponse) -> Bool {
+    if lhs.path != rhs.path {return false}
+    if lhs.filename != rhs.filename {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }

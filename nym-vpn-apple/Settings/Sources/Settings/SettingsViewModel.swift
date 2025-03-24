@@ -16,7 +16,6 @@ public class SettingsViewModel: SettingsFlowState {
     private let appSettings: AppSettings
     private let configurationManager: ConfigurationManager
     private let connectionManager: ConnectionManager
-    private let credentialsManager: CredentialsManager
     private let externalLinkManager: ExternalLinkManager
 #if os(macOS)
     private let helperManager: HelperManager
@@ -28,6 +27,7 @@ public class SettingsViewModel: SettingsFlowState {
         return "settings.deviceId".localizedString + deviceIdentifier
     }
 
+    let credentialsManager: CredentialsManager
     let settingsTitle = "settings".localizedString
 
     @Published var isLogoutConfirmationDisplayed = false
@@ -297,5 +297,16 @@ private extension SettingsViewModel {
                 )
             ]
         )
+    }
+}
+
+extension SettingsViewModel {
+    func copyToPasteboard(text: String) {
+#if os(iOS)
+        UIPasteboard.general.string = text
+#elseif os(macOS)
+        NSPasteboard.general.prepareForNewContents()
+        NSPasteboard.general.setString(text, forType: .string)
+#endif
     }
 }

@@ -1486,13 +1486,13 @@ public func FfiConverterTypeDnsSettings_lower(_ value: DnsSettings) -> RustBuffe
 
 
 public struct FairUsage {
-    public var usedGb: Double?
-    public var limitGb: Double?
+    public var usedGb: UInt64
+    public var limitGb: UInt64
     public var resetsOnUtc: String?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(usedGb: Double?, limitGb: Double?, resetsOnUtc: String?) {
+    public init(usedGb: UInt64, limitGb: UInt64, resetsOnUtc: String?) {
         self.usedGb = usedGb
         self.limitGb = limitGb
         self.resetsOnUtc = resetsOnUtc
@@ -1527,15 +1527,15 @@ public struct FfiConverterTypeFairUsage: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FairUsage {
         return
             try FairUsage(
-                usedGb: FfiConverterOptionDouble.read(from: &buf), 
-                limitGb: FfiConverterOptionDouble.read(from: &buf), 
+                usedGb: FfiConverterUInt64.read(from: &buf), 
+                limitGb: FfiConverterUInt64.read(from: &buf), 
                 resetsOnUtc: FfiConverterOptionString.read(from: &buf)
         )
     }
 
     public static func write(_ value: FairUsage, into buf: inout [UInt8]) {
-        FfiConverterOptionDouble.write(value.usedGb, into: &buf)
-        FfiConverterOptionDouble.write(value.limitGb, into: &buf)
+        FfiConverterUInt64.write(value.usedGb, into: &buf)
+        FfiConverterUInt64.write(value.limitGb, into: &buf)
         FfiConverterOptionString.write(value.resetsOnUtc, into: &buf)
     }
 }
@@ -5647,27 +5647,6 @@ fileprivate struct FfiConverterOptionUInt64: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterUInt64.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
-
-fileprivate struct FfiConverterOptionDouble: FfiConverterRustBuffer {
-    typealias SwiftType = Double?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterDouble.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterDouble.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }

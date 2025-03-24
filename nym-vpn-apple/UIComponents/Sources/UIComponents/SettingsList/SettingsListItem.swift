@@ -63,6 +63,7 @@ private extension SettingsListItem {
     func iconImage() -> some View {
         if let imageName = viewModel.imageName {
             Image(imageName, bundle: .module)
+                .renderingMode(.template)
                 .foregroundStyle(NymColor.sysOnSurface)
                 .padding(.leading, 8)
         }

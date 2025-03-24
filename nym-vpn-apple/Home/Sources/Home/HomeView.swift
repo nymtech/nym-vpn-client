@@ -33,7 +33,10 @@ private extension HomeView {
                 gatewaySection()
                 connectButton()
             }
-            .frame(maxWidth: Device.type == .ipad ? 358 : 390)
+            .frame(
+                maxWidth:
+                    Device.type == .ipad ? MagicNumbers.ipadMaxWidth.rawValue : MagicNumbers.macMinWidth.rawValue
+            )
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
@@ -182,7 +185,7 @@ private extension HomeView {
     func connectButton() -> some View {
         ConnectButton(state: viewModel.connectButtonState)
             .padding(.horizontal, 16)
-            .frame(width: 390)
+            .frame(width: MagicNumbers.macMinWidth.rawValue)
             .onTapGesture {
                 viewModel.connectDisconnect()
             }
