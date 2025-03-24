@@ -211,21 +211,31 @@ impl MixnetProcessor {
                     continue;
                 }
                 // Read from the tun device and send the IP packet to the mixnet
-                Some(Ok(tun_packet)) = tun_device_stream.next(), if !is_backpressure => {
-                    payload_topup_interval.reset();
-                    let packet = IprPacket::from(tun_packet.into_bytes());
-                    tokio::select! {
-                        ret = handle_packet(packet, &mut packet_bundler, &input_message_creator, &mixnet_sender) => {
-                            if ret.is_err() && !task_client_mix_processor.is_shutdown_poll() {
-                                tracing::error!("Failed to send IP packet to the mixnet");
+                tun_packet = tun_device_stream.next(), if !is_backpressure => match tun_packet {
+                    Some(Ok(tun_packet)) => {
+                        payload_topup_interval.reset();
+                        let packet = IprPacket::from(tun_packet.into_bytes());
+                        tokio::select! {
+                            ret = handle_packet(packet, &mut packet_bundler, &input_message_creator, &mixnet_sender) => {
+                                if ret.is_err() && !task_client_mix_processor.is_shutdown_poll() {
+                                    tracing::error!("Failed to send IP packet to the mixnet");
+                                }
+                            }
+                            _ = task_client_mix_processor.recv_with_delay() => {
+                                tracing::debug!("MixnetProcessor: Received shutdown while sending.");
+                                break;
                             }
                         }
-                        _ = task_client_mix_processor.recv_with_delay() => {
-                            tracing::debug!("MixnetProcessor: Received shutdown while sending.");
-                            break;
-                        }
                     }
-                }
+                    Some(Err(err)) => {
+                        tracing::error!("Failed to read from tun device: {err}");
+                        break;
+                    }
+                    None => {
+                        tracing::error!("Mixnet processor: tun device stream ended");
+                        break;
+                    }
+                },
                 // To make sure we don't wait too long before filling up the buffer, which destroys
                 // latency, cap the time waiting for the buffer to fill
                 _ = payload_topup_interval.tick() => {
@@ -251,15 +261,6 @@ impl MixnetProcessor {
                             break;
                         }
                     }
-                }
-                // NOTE: this will basically never fire. If the tun device stream ends, the select
-                // will still wait for the other branches to complete before this branch is taken.
-                //
-                // TODO: consider changing this so that a if tun_device_stream.next() returns None,
-                // break out of the loop directly
-                else => {
-                    tracing::error!("Mixnet processor: tun device stream ended");
-                    break;
                 }
             }
         }
