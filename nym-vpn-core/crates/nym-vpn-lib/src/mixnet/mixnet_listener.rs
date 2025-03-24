@@ -84,37 +84,39 @@ impl MixnetListener {
                     tracing::debug!("Mixnet listener: Received shutdown");
                     break;
                 }
-                Some(reconstructed_message) = mixnet_client.next() => {
-                    // We're just going to assume that all incoming messags are IPR messages
-                    match self.ipr_listener.handle_reconstructed_message(reconstructed_message).await {
-                        Ok(Some(MixnetMessageOutcome::IpPackets(packets))) => {
-                            for packet in packets {
-                                self.check_for_icmp_beacon_reply(&packet);
+                reconstructed_message = mixnet_client.next() => match reconstructed_message {
+                    Some(reconstructed_message) => {
+                        // We're just going to assume that all incoming messags are IPR messages
+                        match self.ipr_listener.handle_reconstructed_message(reconstructed_message).await {
+                            Ok(Some(MixnetMessageOutcome::IpPackets(packets))) => {
+                                for packet in packets {
+                                    self.check_for_icmp_beacon_reply(&packet);
 
-                                // Consider not including packets that are ICMP ping replies to our beacon
-                                // in the responses. We are defensive here just in case we incorrectly
-                                // label real packets as ping replies to our beacon.
-                                if let Err(err) = self.tun_device_sink.send(TunPacket::new(packet.to_vec())).await {
-                                    tracing::error!("Failed to send packet to tun device: {err}");
+                                    // Consider not including packets that are ICMP ping replies to our beacon
+                                    // in the responses. We are defensive here just in case we incorrectly
+                                    // label real packets as ping replies to our beacon.
+                                    if let Err(err) = self.tun_device_sink.send(TunPacket::new(packet.to_vec())).await {
+                                        tracing::error!("Failed to send packet to tun device: {err}");
+                                    }
                                 }
                             }
+                            Ok(Some(MixnetMessageOutcome::MixnetSelfPing)) => {
+                                self.send_connection_event(ConnectionStatusEvent::MixnetSelfPing);
+                            }
+                            Ok(Some(MixnetMessageOutcome::Disconnect)) => {
+                                tracing::debug!("Mixnet listener: Received disconnect message");
+                                break;
+                            }
+                            Ok(None) => {}
+                            Err(err) => {
+                                tracing::error!("Mixnet listener: {err}");
+                            }
                         }
-                        Ok(Some(MixnetMessageOutcome::MixnetSelfPing)) => {
-                            self.send_connection_event(ConnectionStatusEvent::MixnetSelfPing);
-                        }
-                        Ok(Some(MixnetMessageOutcome::Disconnect)) => {
-                            tracing::debug!("Mixnet listener: Received disconnect message");
-                            break;
-                        }
-                        Ok(None) => {}
-                        Err(err) => {
-                            tracing::error!("Mixnet listener: {err}");
-                        }
+                    },
+                    None => {
+                        tracing::error!("Mixnet listener: mixnet stream ended");
+                        break;
                     }
-                }
-                else => {
-                    tracing::error!("Mixnet listener: mixnet stream ended");
-                    break;
                 }
             }
         }
