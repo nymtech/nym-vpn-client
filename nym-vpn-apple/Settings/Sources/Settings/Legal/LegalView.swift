@@ -16,7 +16,10 @@ struct LegalView: View {
             Spacer()
                 .frame(height: 24)
             section()
-                .frame(maxWidth: Device.type == .ipad ? 358 : 390)
+                .frame(
+                    maxWidth:
+                        Device.type == .ipad ? MagicNumbers.ipadMaxWidth.rawValue : MagicNumbers.macMinWidth.rawValue
+                )
             Spacer()
         }
         .navigationBarBackButtonHidden(true)

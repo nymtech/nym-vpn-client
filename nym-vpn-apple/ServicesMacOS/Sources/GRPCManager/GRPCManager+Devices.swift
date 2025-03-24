@@ -8,9 +8,24 @@ extension GRPCManager {
 
             call.response.whenComplete { result in
                 switch result {
-                case .success(let response):
+                case let .success(response):
                     continuation.resume(returning: response.deviceIdentity)
-                case .failure(let error):
+                case let .failure(error):
+                    continuation.resume(throwing: error)
+                }
+            }
+        }
+    }
+
+    public func accountIdentifier() async throws -> String {
+        try await withCheckedThrowingContinuation { continuation in
+            let call = client.getAccountIdentity(Google_Protobuf_Empty())
+            
+            call.response.whenComplete { result in
+                switch result {
+                case let .success(response):
+                    continuation.resume(returning: response.accountIdentity.accountIdentity)
+                case let .failure(error):
                     continuation.resume(throwing: error)
                 }
             }

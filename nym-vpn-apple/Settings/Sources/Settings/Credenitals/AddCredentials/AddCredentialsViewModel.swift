@@ -1,5 +1,6 @@
 import SwiftUI
 import AppSettings
+import Constants
 import CredentialsManager
 import ConnectionManager
 import ConfigurationManager
@@ -18,14 +19,13 @@ final class AddCredentialsViewModel: ObservableObject {
     private let createAccountTitle = "addCredentials.createAccount".localizedString
 
     var signUpLink: String {
-        if let link = configurationManager.accountLinks?.signUp, !link.isEmpty {
-            return link
-        } else {
-            return "https://nym.com/account/create"
-        }
+        // TODO: readd once the link is updated in the api
+//        if let link = configurationManager.accountLinks?.signUp, !link.isEmpty {
+//            return link
+//        } else {
+            return Constants.pricingURL.rawValue
+//        }
     }
-
-    let signUpLinkFallback = "https://nym.com/account/create"
 
     let appSettings: AppSettings
     let loginButtonTitle = "addCredentials.Login.Title".localizedString

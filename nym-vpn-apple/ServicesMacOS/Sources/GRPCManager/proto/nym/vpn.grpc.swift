@@ -173,6 +173,11 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     callOptions: CallOptions?
   ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetAvailableTicketsResponse>
 
+  func getLogPath(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetLogPathResponse>
+
   func deleteLogFile(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
@@ -751,6 +756,24 @@ extension Nym_Vpn_NymVpndClientProtocol {
     )
   }
 
+  /// Get the log file path
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to GetLogPath.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func getLogPath(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetLogPathResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getLogPath.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetLogPathInterceptors() ?? []
+    )
+  }
+
   /// Delete the log file
   ///
   /// - Parameters:
@@ -986,6 +1009,11 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetAvailableTicketsResponse>
+
+  func makeGetLogPathCall(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetLogPathResponse>
 
   func makeDeleteLogFileCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -1372,6 +1400,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       request: request,
       callOptions: callOptions ?? self.defaultCallOptions,
       interceptors: self.interceptors?.makeGetAvailableTicketsInterceptors() ?? []
+    )
+  }
+
+  internal func makeGetLogPathCall(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetLogPathResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getLogPath.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetLogPathInterceptors() ?? []
     )
   }
 
@@ -1762,6 +1802,18 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
     )
   }
 
+  internal func getLogPath(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_GetLogPathResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.getLogPath.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeGetLogPathInterceptors() ?? []
+    )
+  }
+
   internal func deleteLogFile(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
@@ -1887,6 +1939,9 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when invoking 'getAvailableTickets'.
   func makeGetAvailableTicketsInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetAvailableTicketsResponse>]
 
+  /// - Returns: Interceptors to use when invoking 'getLogPath'.
+  func makeGetLogPathInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetLogPathResponse>]
+
   /// - Returns: Interceptors to use when invoking 'deleteLogFile'.
   func makeDeleteLogFileInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_DeleteLogFileResponse>]
 }
@@ -1927,6 +1982,7 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       Nym_Vpn_NymVpndClientMetadata.Methods.getZkNymById,
       Nym_Vpn_NymVpndClientMetadata.Methods.confirmZkNymDownloaded,
       Nym_Vpn_NymVpndClientMetadata.Methods.getAvailableTickets,
+      Nym_Vpn_NymVpndClientMetadata.Methods.getLogPath,
       Nym_Vpn_NymVpndClientMetadata.Methods.deleteLogFile,
     ]
   )
@@ -2118,6 +2174,12 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       type: GRPCCallType.unary
     )
 
+    internal static let getLogPath = GRPCMethodDescriptor(
+      name: "GetLogPath",
+      path: "/nym.vpn.NymVpnd/GetLogPath",
+      type: GRPCCallType.unary
+    )
+
     internal static let deleteLogFile = GRPCMethodDescriptor(
       name: "DeleteLogFile",
       path: "/nym.vpn.NymVpnd/DeleteLogFile",
@@ -2225,6 +2287,9 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
 
   /// Get the available tickets in the local credential store
   func getAvailableTickets(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAvailableTicketsResponse>
+
+  /// Get the log file path
+  func getLogPath(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetLogPathResponse>
 
   /// Delete the log file
   func deleteLogFile(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_DeleteLogFileResponse>
@@ -2521,6 +2586,15 @@ extension Nym_Vpn_NymVpndProvider {
         userFunction: self.getAvailableTickets(request:context:)
       )
 
+    case "GetLogPath":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetLogPathResponse>(),
+        interceptors: self.interceptors?.makeGetLogPathInterceptors() ?? [],
+        userFunction: self.getLogPath(request:context:)
+      )
+
     case "DeleteLogFile":
       return UnaryServerHandler(
         context: context,
@@ -2732,6 +2806,12 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     request: SwiftProtobuf.Google_Protobuf_Empty,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_GetAvailableTicketsResponse
+
+  /// Get the log file path
+  func getLogPath(
+    request: SwiftProtobuf.Google_Protobuf_Empty,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_GetLogPathResponse
 
   /// Delete the log file
   func deleteLogFile(
@@ -3038,6 +3118,15 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         wrapping: { try await self.getAvailableTickets(request: $0, context: $1) }
       )
 
+    case "GetLogPath":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_GetLogPathResponse>(),
+        interceptors: self.interceptors?.makeGetLogPathInterceptors() ?? [],
+        wrapping: { try await self.getLogPath(request: $0, context: $1) }
+      )
+
     case "DeleteLogFile":
       return GRPCAsyncServerHandler(
         context: context,
@@ -3179,6 +3268,10 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeGetAvailableTicketsInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetAvailableTicketsResponse>]
 
+  /// - Returns: Interceptors to use when handling 'getLogPath'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeGetLogPathInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetLogPathResponse>]
+
   /// - Returns: Interceptors to use when handling 'deleteLogFile'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeDeleteLogFileInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_DeleteLogFileResponse>]
@@ -3220,6 +3313,7 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       Nym_Vpn_NymVpndServerMetadata.Methods.getZkNymById,
       Nym_Vpn_NymVpndServerMetadata.Methods.confirmZkNymDownloaded,
       Nym_Vpn_NymVpndServerMetadata.Methods.getAvailableTickets,
+      Nym_Vpn_NymVpndServerMetadata.Methods.getLogPath,
       Nym_Vpn_NymVpndServerMetadata.Methods.deleteLogFile,
     ]
   )
@@ -3408,6 +3502,12 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
     internal static let getAvailableTickets = GRPCMethodDescriptor(
       name: "GetAvailableTickets",
       path: "/nym.vpn.NymVpnd/GetAvailableTickets",
+      type: GRPCCallType.unary
+    )
+
+    internal static let getLogPath = GRPCMethodDescriptor(
+      name: "GetLogPath",
+      path: "/nym.vpn.NymVpnd/GetLogPath",
       type: GRPCCallType.unary
     )
 

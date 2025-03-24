@@ -1860,6 +1860,17 @@
         }
       }
     },
+    "settings.accountID" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account ID"
+          }
+        }
+      }
+    },
     "settings.anonymousErrorReports.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {

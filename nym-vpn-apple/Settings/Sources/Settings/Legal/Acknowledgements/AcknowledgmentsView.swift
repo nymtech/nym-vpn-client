@@ -14,7 +14,10 @@ struct AcknowledgmentsView: View {
         VStack(spacing: 0) {
             navbar()
             section()
-                .frame(maxWidth: Device.type == .ipad ? 358 : 390)
+                .frame(
+                    maxWidth:
+                        Device.type == .ipad ? MagicNumbers.ipadMaxWidth.rawValue : MagicNumbers.macMinWidth.rawValue
+                )
             Spacer()
         }
         .navigationBarBackButtonHidden(true)

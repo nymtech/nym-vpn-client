@@ -5,16 +5,19 @@ public final class SettingsListItemViewModel: Hashable {
         case arrow
         case toggle(viewModel: ToggleViewModel)
         case externalLink
+        case copy
         case empty
 
         var imageName: String? {
             switch self {
             case .arrow:
-                return "arrowRight"
+                "arrowRight"
             case .externalLink:
-                return "externalLink"
+                "externalLink"
+            case .copy:
+                "copy"
             case .toggle, .empty:
-                return nil
+                nil
             }
         }
     }
