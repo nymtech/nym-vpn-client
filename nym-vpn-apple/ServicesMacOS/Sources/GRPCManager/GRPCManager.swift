@@ -21,8 +21,6 @@ public final class GRPCManager: ObservableObject {
     let client: Nym_Vpn_NymVpndClientProtocol
     let logger = Logger(label: "GRPC Manager")
 
-    public static let shared = GRPCManager()
-
     var userAgent: Nym_Vpn_UserAgent {
         var agent = Nym_Vpn_UserAgent()
         agent.application = AppVersionProvider.app
@@ -31,10 +29,11 @@ public final class GRPCManager: ObservableObject {
         return agent
     }
 
+    public static let shared = GRPCManager()
+
     @Published public var tunnelStatus: TunnelStatus = .disconnected
     @Published public var errorReason: Error?
     @Published public var connectedDate: Date?
-    @Published public var isServing = false
     @Published public var networkName: String?
     public var daemonVersion = "unknown"
     public var requiredVersion: String {
@@ -64,30 +63,9 @@ public final class GRPCManager: ObservableObject {
     }
 
     func setup() {
-        setupHealthObserver()
         setupListenToTunnelStateChangesObserver()
-    }
-
-    // MARK: - Info -
-
-    public func version() async throws {
-        logger.log(level: .info, "Version")
-        return try await withCheckedThrowingContinuation { continuation in
-            Task {
-                let call = client.info(Google_Protobuf_Empty(), callOptions: CallOptions(timeLimit: .timeout(.seconds(5))))
-
-                call.response.whenComplete { [weak self] result in
-                    switch result {
-                    case let .success(response):
-                        self?.daemonVersion = response.version
-                        self?.networkName = response.nymNetwork.networkName
-                        self?.logger.info("🛜 \(response.nymNetwork.networkName)")
-                        continuation.resume()
-                    case let .failure(error):
-                        continuation.resume(throwing: error)
-                    }
-                }
-            }
+        Task {
+            try? await version()
         }
     }
 
