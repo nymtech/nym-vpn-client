@@ -21,7 +21,7 @@ use tokio::{sync::oneshot, task::JoinHandle};
 use tokio_util::{codec::Encoder, sync::CancellationToken};
 use tun::{AsyncDevice, Device};
 
-use super::MixnetError;
+use super::{backpressure::MixnetBackpressureMonitor, MixnetError};
 
 #[derive(Debug)]
 pub(crate) struct MixnetProcessorConfig {
@@ -153,12 +153,24 @@ impl MixnetProcessor {
         let mut payload_topup_interval =
             tokio::time::interval(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
 
+        // The packet bundler is the buffer where we bundle multiple IP packets into a single
+        // mixnet payload.
         let mut packet_bundler = MultiIpPacketCodec::new();
 
+        // Create input messages for the mixnet client from bundled IP packets
         let input_message_creator = ToIprDataRequest::new(self.ip_packet_router_address);
+
+        // The backpressure monitor checks for backpressure inside the mixnet client. More
+        // specifically, at the queues in the Poisson process
+        let backpressure_monitor =
+            MixnetBackpressureMonitor::new(lane_queue_lengths.clone(), None).start();
+        let notify_backpressure_lifted = backpressure_monitor.get_notify_backpressure_lifted();
 
         tracing::info!("Mixnet processor is running");
         while !task_client_mix_processor.is_shutdown() {
+            // Disable the TUN read select branch if we are in backpressure
+            let is_backpressure = backpressure_monitor.is_backpressure();
+
             tokio::select! {
                 biased;
                 // When we get the cancel token, send a disconnect message to the IPR. We keep
@@ -192,17 +204,37 @@ impl MixnetProcessor {
                     tracing::debug!("MixnetProcessor: Received shutdown");
                     break;
                 }
+                // The backpressure monitor will notify us when the backpressure is lifted, so we
+                // can restart the select with updated preconditions
+                _ = notify_backpressure_lifted.notified(), if is_backpressure => {
+                    tracing::trace!("MixnetProcessor: backpressure lifted");
+                    continue;
+                }
+                // Read from the tun device and send the IP packet to the mixnet
+                Some(Ok(tun_packet)) = tun_device_stream.next(), if !is_backpressure => {
+                    payload_topup_interval.reset();
+                    let packet = IprPacket::from(tun_packet.into_bytes());
+                    tokio::select! {
+                        ret = handle_packet(packet, &mut packet_bundler, &input_message_creator, &mixnet_sender) => {
+                            if ret.is_err() && !task_client_mix_processor.is_shutdown_poll() {
+                                tracing::error!("Failed to send IP packet to the mixnet");
+                            }
+                        }
+                        _ = task_client_mix_processor.recv_with_delay() => {
+                            tracing::debug!("MixnetProcessor: Received shutdown while sending.");
+                            break;
+                        }
+                    }
+                }
                 // To make sure we don't wait too long before filling up the buffer, which destroys
                 // latency, cap the time waiting for the buffer to fill
                 _ = payload_topup_interval.tick() => {
                     tracing::trace!("MixnetProcessor: Buffer timeout");
 
-                    // Check the lane queue lengths, which are the pending packets idling in the
-                    // Poisson process in the mixnet client. If we already have pending packets
-                    // that we are waiting to send to the mixnet, there is no point in flushing the
-                    // current buffer. Instead keep filling up so we can fit more IP packets in the
-                    // mixnet packet payload.
-                    let packet_queue = lane_queue_lengths.get(&TransmissionLane::General).unwrap_or_default();
+                    // If we already have pending packets that we are waiting to send to the
+                    // mixnet, there is no point in flushing the current buffer. Instead keep
+                    // filling up so we can fit more IP packets in the mixnet packet payload.
+                    let packet_queue = backpressure_monitor.packet_queue_length();
                     if packet_queue > 0 {
                         tracing::trace!("Skipping payload topup timeout (queue: {packet_queue})");
                         continue;
@@ -220,22 +252,6 @@ impl MixnetProcessor {
                         }
                     }
                 }
-                // Read from the tun device and send the IP packet to the mixnet
-                Some(Ok(tun_packet)) = tun_device_stream.next() => {
-                    payload_topup_interval.reset();
-                    let packet = IprPacket::from(tun_packet.into_bytes());
-                    tokio::select! {
-                        ret = handle_packet(packet, &mut packet_bundler, &input_message_creator, &mixnet_sender) => {
-                            if ret.is_err() && !task_client_mix_processor.is_shutdown_poll() {
-                                tracing::error!("Failed to send IP packet to the mixnet");
-                            }
-                        }
-                        _ = task_client_mix_processor.recv_with_delay() => {
-                            tracing::debug!("MixnetProcessor: Received shutdown while sending.");
-                            break;
-                        }
-                    }
-                }
                 // NOTE: this will basically never fire. If the tun device stream ends, the select
                 // will still wait for the other branches to complete before this branch is taken.
                 //
@@ -247,6 +263,9 @@ impl MixnetProcessor {
                 }
             }
         }
+
+        tracing::info!("Stopping mixnet backpressure monitor");
+        backpressure_monitor.stop().await;
 
         tracing::info!("Waiting for mixnet listener to finish");
         let tun_device_sink = mixnet_listener_handle.await.unwrap();
