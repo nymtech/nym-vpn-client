@@ -29,6 +29,7 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.unit.dp
+import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.common.animations.SpinningIcon
@@ -162,8 +163,11 @@ fun LoginInputSection(
 								tag = "signUpLink",
 								styles = TextLinkStyles(SpanStyle(color = MaterialTheme.colorScheme.primary)),
 							) {
-								val url = appUiState.managerState.accountLinks?.signUp
-									?: context.getString(R.string.create_account_url)
+								val url = if (BuildConfig.FLAVOR == Constants.FDROID) {
+									context.getString(R.string.pricing_url)
+								} else {
+									appUiState.managerState.accountLinks?.signUp ?: context.getString(R.string.create_account_url)
+								}
 								context.openWebUrl(url)
 							},
 						) {

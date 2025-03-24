@@ -232,6 +232,5 @@
     <string name="app_update_required">Ваш додаток більше не підтримується. Будь ласка, оновіть його до останньої версії, щоб продовжити використання NymVPN.</string>
     <string name="update_required">Потрібне оновлення!</string>
     <string name="log_out_title">Ви впевнені, що хочете вийти з системи?</string>
-    <string name="subscription_expired">Термін дії підписки для цього облікового запису закінчився. Оновіть підписку, щоб продовжити використання.</string>
     <string name="bars_2">2 смужки</string>
 </resources>

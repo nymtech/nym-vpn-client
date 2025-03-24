@@ -2,6 +2,7 @@ package net.nymtech.nymvpn.util
 
 object Constants {
 
+	const val FDROID = "fdroid"
 	const val APP_PROJECT_NAME = "nym-vpn-android"
 
 	const val SUBSCRIPTION_TIMEOUT = 5_000L
