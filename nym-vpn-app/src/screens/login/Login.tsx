@@ -10,6 +10,7 @@ import { routes } from '../../router';
 import { BackendError, StateDispatch } from '../../types';
 import { Button, Link, PageAnim, TextArea } from '../../ui';
 import { CCache } from '../../cache';
+import { NymVpnPricingUrl } from '../../constants';
 
 type AddError = {
   error: string;
@@ -21,14 +22,13 @@ function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<AddError | null>(null);
 
-  const { daemonStatus, accountLinks, state } = useMainState();
+  const { daemonStatus, state } = useMainState();
 
   const { push } = useInAppNotify();
   const navigate = useNavigate();
   const { t } = useTranslation('addCredential');
   const { tE } = useI18nError();
   const dispatch = useMainDispatch() as StateDispatch;
-  const signUpUrl = accountLinks?.signUp;
 
   const onChange = (phrase: string) => {
     setPhrase(phrase);
@@ -123,14 +123,12 @@ function Login() {
           >
             {t('login-button')}
           </Button>
-          {signUpUrl && (
-            <div className="flex flex-row justify-center items-center gap-2">
-              <span className="dark:text-mercury-pinkish truncate">
-                {t('create-account.text')}
-              </span>
-              <Link text={t('create-account.link')} url={signUpUrl} icon />
-            </div>
-          )}
+          <div className="flex flex-row justify-center items-center gap-2">
+            <span className="dark:text-mercury-pinkish truncate">
+              {t('create-account.text')}
+            </span>
+            <Link text={t('create-account.link')} url={NymVpnPricingUrl} icon />
+          </div>
         </div>
       </div>
     </PageAnim>

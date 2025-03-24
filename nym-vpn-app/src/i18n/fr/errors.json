@@ -16,9 +16,9 @@
     "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
     "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
     "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
-    "max-devices-reached": "Le nombre maximum d'appareil ajouté a été atteint. Supprimez un appareil de votre compte et réessayez.",
-    "bandwidth-exceeded": "La bande est dépassée.",
-    "subscription-expired": "Abonnement expiré"
+    "max-devices-reached": "Le nombre maximum d'appareils ajoutés a été atteint. Veuillez Supprimer un appareil de votre compte et réessayez.",
+    "bandwidth-exceeded": "La bande passante mensuelle a été dépassée. Veuillez mettre à niveau l'abonnement de votre compte.",
+    "subscription-expired": "Votre abonnement a expiré. Veuillez souscrire à un nouvel abonnement dans votre compte."
   },
   "countries-request": {
     "entry": "Échec de la recherche des pays de nœuds d'entrée disponibles",

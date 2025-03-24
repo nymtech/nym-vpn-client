@@ -16,9 +16,9 @@
     "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
     "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
     "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
-    "max-devices-reached": "Max number of added devices reached, remove a device from your account and try again",
-    "bandwidth-exceeded": "Bandwidth exceeded",
-    "subscription-expired": "Subscription expired"
+    "max-devices-reached": "Account device limit exceeded. Please remove a device from your account before connecting.",
+    "bandwidth-exceeded": "Monthly bandwidth exceeded. Please upgrade your account plan.",
+    "subscription-expired": "Subscription has expired. Please purchase a plan for your account."
   },
   "account": {
     "invalid-recovery-phrase": "Invalid access code",
