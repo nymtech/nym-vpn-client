@@ -218,7 +218,6 @@
     <string name="log_out_title">Вы уверены, что хотите выйти?</string>
     <string name="log_out_body">Для повторного входа вам понадобится ваша фраза восстановления.</string>
     <string name="cancel">Отмена</string>
-    <string name="subscription_expired">Срок действия вашей подписки истек. Продлите ее, чтобы продолжить использование.</string>
     <string name="remove_device">Удалите устройство из вашего аккаунта и попробуйте снова.</string>
     <string name="gateway_score">Оценка шлюза</string>
     <string name="info">Информация</string>
