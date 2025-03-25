@@ -154,13 +154,14 @@ async fn run_service_inner() -> anyhow::Result<()> {
     let logging_setup = (*LOGGING_SETUP.lock().await).take();
     let log_path = logging_setup.as_ref().map(|setup| setup.log_path.clone());
     let cloned_network_config = network_config.clone();
-    let network_env_result = tokio::task::spawn_blocking(move || {
+    let network_env_result = tokio::task::spawn(async move {
         let global_config_file =
             crate::setup_global_config(cloned_network_config.network.as_deref())?;
         crate::environment::setup_environment(
             &global_config_file,
             cloned_network_config.config_env_file.as_deref(),
         )
+        .await
     })
     .await;
     let network_env = match network_env_result {
