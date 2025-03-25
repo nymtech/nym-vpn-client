@@ -37,7 +37,7 @@ function Support() {
           openUrl(GitHubIssuesUrl);
         }}
         leadingComponent={
-          <GitHubIcon className="w-6 h-7 fill-baltic-sea dark:fill-mercury-pinkish" />
+          <GitHubIcon className="w-6 h-7 fill-baltic-sea dark:fill-white" />
         }
         trailingIcon="open_in_new"
       />
@@ -47,7 +47,7 @@ function Support() {
           openUrl(MatrixRoomUrl);
         }}
         leadingComponent={
-          <ElementIcon className="w-6 h-6 fill-baltic-sea dark:fill-mercury-pinkish" />
+          <ElementIcon className="w-6 h-6 fill-baltic-sea dark:fill-white" />
         }
         trailingIcon="open_in_new"
       />
@@ -57,7 +57,7 @@ function Support() {
           openUrl(DiscordInviteUrl);
         }}
         leadingComponent={
-          <DiscordIcon className="w-6 h-6 fill-baltic-sea dark:fill-mercury-pinkish" />
+          <DiscordIcon className="w-6 h-6 fill-baltic-sea dark:fill-white" />
         }
         trailingIcon="open_in_new"
       />

@@ -7,42 +7,38 @@
   --color-*: initial;
   /*****************/
   --color-transparent: transparent;
+  /* [D] main text */
+  /* [L] main elevation */
   --color-white: #fff;
   --color-black: #000;
-  --color-baltic-sea-jaguar: #2b2831;
+  /* [L] main text */
   --color-baltic-sea: #1c1b1f;
-  --color-cornflower: #7075ff;
-  --color-teaberry: #e33b5a;
-  --color-comet: #625b71;
-  --color-vert-menthe: #2bc761;
-  --color-liquid-lava: #f97316;
-  --color-vert-prasin: #47c45d;
-  --color-mercury-pinkish: #e6e1e5;
-  --color-mercury: #e2e4ea;
-  --color-mercury-mist: #938f99;
-  --color-coal-mine-dark: #56545a;
-  --color-coal-mine-light: #a4a4a4;
-  --color-dim-gray: #696571;
-  --color-cement-feet: #79747e;
-  --color-gun-powder: #49454f;
-  --color-mine-shaft: #2b3234;
-  --color-bombay: #b0adb6;
-  --color-laughing-jack: #cac4d0;
-  --color-oil: #313033;
-  --color-dusty-grey: #ceccd1;
-  --color-aluminium: #8da3b1;
-  --color-poivre-noir: #484649;
+  /* [D] main bg */
   --color-ash: #242b2d;
-  --color-octave: #32373d;
-  --color-octave-arsenic: #374042;
+  /* [L] main bg */
   --color-faded-lavender: #ebeef4;
+  /* [D] main elevation */
+  --color-charcoal: #374042;
+  /* [L] connection badge bg */
+  --color-mercury: #e2e4ea;
+  /* [D] connection badge bg */
+  --color-mine-shaft: #2b3234;
+  /* [D] gray1 */
+  /* [L] gray2 */
+  --color-bombay: #b0adb6;
+  /* [D] gray2 */
+  /* [L] gray1 */
+  --color-iron: #606060;
   --color-malachite: #14e76f;
   --color-malachite-moss: #0b8a42;
-  --color-rouge-basque: #672d32;
-  --color-rouge-ecarlate: #e02c4d;
   --color-aphrodisiac: #ed5060;
-  --color-rose-bruni: #f3cac8;
-  --color-king-nacho: #ffb400;
+  --color-king-nacho: #ffc700;
+  --color-cornflower: #9189ff;
+
+  /* daemon dot (dev mode) */
+  --color-vert-menthe: #2bc761;
+  --color-rouge-ecarlate: #e02c4d;
+  --color-liquid-lava: #f97316;
 
   --font-sans:
     Lato, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
@@ -80,7 +76,7 @@
    *  </div>
    */
   @apply invisible absolute p-2 px-3 rounded-sm shadow-md
-        bg-white dark:bg-poivre-noir text-sm
+        bg-white dark:bg-ash text-sm
         transition-opacity duration-200 opacity-0 ease-out;
 
   .attach-tooltip:hover & {

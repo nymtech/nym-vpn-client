@@ -18,7 +18,7 @@ function Lang() {
               role="presentation"
               className={clsx([
                 'flex flex-row justify-between items-center w-full',
-                'hover:bg-gun-powder/10 dark:hover:bg-laughing-jack/10',
+                'hover:bg-iron/10 dark:hover:bg-bombay/10',
                 'rounded-lg px-3 py-1 transition duration-75 cursor-default',
               ])}
               onClick={() => set(lang.code)}
@@ -29,7 +29,7 @@ function Lang() {
               <div
                 className={clsx([
                   'pr-4 ml-2 flex items-center font-medium text-xs',
-                  'text-cement-feet dark:text-mercury-mist',
+                  'text-iron dark:text-bombay',
                 ])}
               >
                 {i18n.language === lang.code &&

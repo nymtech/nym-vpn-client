@@ -177,7 +177,7 @@ export default function TopBar() {
         },
         rightIcon: 'info',
         rightIconClassName:
-          'text-cement-feet dark:text-mercury-mist hover:text-gun-powder dark:hover:text-mercury-pinkish',
+          'text-iron dark:text-bombay hover:text-baltic-sea dark:hover:text-white',
         handleRightNav: () => {
           show('location-info');
         },
@@ -190,7 +190,7 @@ export default function TopBar() {
         },
         rightIcon: 'info',
         rightIconClassName:
-          'text-cement-feet dark:text-mercury-mist hover:text-gun-powder dark:hover:text-mercury-pinkish',
+          'text-iron dark:text-bombay hover:text-baltic-sea dark:hover:text-white',
         handleRightNav: () => {
           show('location-info');
         },
@@ -232,11 +232,11 @@ export default function TopBar() {
       }}
       className={clsx([
         'flex flex-row flex-nowrap justify-between items-center shrink-0',
-        'text-baltic-sea dark:text-mercury-pinkish',
+        'text-baltic-sea dark:text-white',
         'h-16 text-xl z-30 select-none cursor-default',
         currentNavLocation.noBackground
           ? 'dark:bg-ash bg-faded-lavender'
-          : 'dark:bg-octave-arsenic bg-white',
+          : 'dark:bg-charcoal bg-white',
       ])}
     >
       {currentNavLocation.leftIcon ? (
@@ -252,7 +252,7 @@ export default function TopBar() {
             <MsIcon
               icon={currentNavLocation.leftIcon}
               className={clsx([
-                'dark:text-laughing-jack transition duration-150',
+                'dark:text-bombay transition duration-150',
                 'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black dark:hover:text-white',
               ])}
             />
@@ -275,7 +275,7 @@ export default function TopBar() {
             <MsIcon
               icon={currentNavLocation.rightIcon}
               className={clsx([
-                'dark:text-laughing-jack transition duration-150',
+                'dark:text-bombay transition duration-150',
                 'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black dark:hover:text-white',
                 currentNavLocation.rightIconClassName,
               ])}

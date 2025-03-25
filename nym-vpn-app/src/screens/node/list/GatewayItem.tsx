@@ -52,7 +52,7 @@ const GatewayItem = ({
           className={clsx(
             'w-1.5 rounded-r-sm shrink-0 self-stretch',
             isSelected === node && 'bg-malachite',
-            isSelected && isSelected !== node && 'bg-dim-gray',
+            isSelected && isSelected !== node && 'bg-iron',
           )}
         />
         <div className="flex flex-row items-center p-2 gap-4 overflow-hidden">
@@ -64,7 +64,7 @@ const GatewayItem = ({
           </div>
           <div className="flex flex-col text-start overflow-hidden">
             <p className="truncate">{gateway.name}</p>
-            <p className="text-sm text-dim-gray dark:text-bombay truncate">
+            <p className="text-sm text-iron dark:text-bombay truncate">
               {truncateId(gateway.id)}
             </p>
           </div>
@@ -74,7 +74,7 @@ const GatewayItem = ({
         <Button
           className={clsx(
             'w-16 flex justify-center items-center mr-3 shrink-0',
-            'border-l-1 border-bombay dark:border-dim-gray',
+            'border-l-1 border-bombay dark:border-iron',
             'text-baltic-sea/80 dark:text-white/80',
             'hover:text-baltic-sea dark:hover:text-white',
             'focus:outline-none',

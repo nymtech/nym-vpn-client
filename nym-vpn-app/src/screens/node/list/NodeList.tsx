@@ -52,8 +52,8 @@ function NodeList({
             <div
               className={clsx(
                 'flex flex-row justify-between',
-                ' bg-white dark:bg-octave-arsenic',
-                'hover:bg-white/60 dark:hover:bg-octave-arsenic/80',
+                ' bg-white dark:bg-charcoal',
+                'hover:bg-white/60 dark:hover:bg-charcoal/85',
               )}
             >
               <div
@@ -61,7 +61,7 @@ function NodeList({
                   'w-1.5 rounded-r-sm',
                   (isSelected === node || isSelected === 'entry-and-exit') &&
                     'bg-malachite',
-                  isSelected && isSelected !== node && 'bg-dim-gray',
+                  isSelected && isSelected !== node && 'bg-iron',
                 )}
               />
               <div

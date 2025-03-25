@@ -41,7 +41,7 @@ function StartupError({
     <div className={clsx([theme === 'dark' && 'dark', 'h-full'])}>
       <div
         className={clsx([
-          'min-w-64 bg-white dark:bg-oil text-baltic-sea dark:text-mercury-pinkish',
+          'min-w-64 bg-white dark:bg-charcoal text-baltic-sea dark:text-white',
           'flex flex-col items-center justify-between h-full gap-4',
           'cursor-default select-none p-6 px-6',
         ])}
@@ -59,7 +59,7 @@ function StartupError({
         </p>
         {error?.details && (
           <div className="w-full max-h-32 overflow-auto select-text text-balance break-words">
-            <p className="text-teaberry text-center cursor-auto">
+            <p className="text-aphrodisiac text-center cursor-auto">
               {error.details}
             </p>
           </div>

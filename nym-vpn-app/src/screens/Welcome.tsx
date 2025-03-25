@@ -35,7 +35,7 @@ function Welcome() {
           <h1 className="truncate">{t('title.part1')}</h1>
           <h1 className="truncate">{t('title.part2')}</h1>
         </div>
-        <h2 className="text-center dark:text-laughing-jack w-72">
+        <h2 className="text-center dark:text-bombay w-72">
           {`${t('description.part1')} `}
           <span className="underline">{t('description.part2')}</span>
           {` ${t('description.part3')} (${t('via', { ns: 'glossary' })} `}
@@ -46,7 +46,7 @@ function Welcome() {
           />
           {`) ${t('description.part4')}`}
         </h2>
-        <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-80">
+        <p className="text-xs text-center text-iron dark:text-bombay w-80">
           {t('experimental')}
         </p>
       </div>
@@ -79,7 +79,7 @@ function Welcome() {
         <Button className="mt-1" onClick={handleContinue}>
           {t('continue-button')}
         </Button>
-        <p className="text-xs text-center text-dim-gray dark:text-mercury-mist w-80">
+        <p className="text-xs text-center text-iron dark:text-bombay w-80">
           {`${t('tos.part1')} `}
           <Link
             text={t('tos', { ns: 'common' })}

@@ -27,8 +27,8 @@ function ButtonText({
       case 'rain':
         return [
           'bg-faded-lavender dark:bg-ash',
-          'data-hover:text-oil data-hover:bg-cement-feet/10',
-          'dark:data-hover:text-laughing-jack dark:data-hover:bg-black/5',
+          'data-hover:text-iron data-hover:bg-iron/10',
+          'dark:data-hover:text-bombay dark:data-hover:bg-black/5',
         ];
     }
   };

@@ -30,11 +30,11 @@ function UiScaler() {
     <div
       className={clsx([
         'flex flex-row justify-between items-center gap-10',
-        'bg-white dark:bg-octave',
+        'bg-white dark:bg-charcoal',
         'px-6 py-5 rounded-lg',
       ])}
     >
-      <p className="text-base text-baltic-sea dark:text-mercury-pinkish flex-nowrap select-none">
+      <p className="text-base text-baltic-sea dark:text-white flex-nowrap select-none">
         {slideValue}
       </p>
       <Slider

@@ -84,11 +84,11 @@ function Logout() {
             <div className="flex justify-center w-11/12">
               <MsIcon
                 icon="pending"
-                className="text-3xl text-baltic-sea dark:text-mercury-pinkish"
+                className="text-3xl text-baltic-sea dark:text-white"
               />
             </div>
 
-            <p className="text-center text-cement-feet dark:text-laughing-jack md:text-nowrap max-w-80">
+            <p className="text-center text-iron dark:text-bombay md:text-nowrap max-w-80">
               {t('logout-confirmation.logging-out')}
             </p>
           </>
@@ -97,17 +97,17 @@ function Logout() {
             <div className="flex flex-col items-center gap-4 w-11/12">
               <MsIcon
                 icon="info"
-                className="text-3xl text-baltic-sea dark:text-mercury-pinkish"
+                className="text-3xl text-baltic-sea dark:text-white"
               />
               <DialogTitle
                 as="h3"
-                className="text-lg text-baltic-sea dark:text-mercury-pinkish font-bold text-center w-full truncate"
+                className="text-lg text-baltic-sea dark:text-white font-bold text-center w-full truncate"
               >
                 {t('logout-confirmation.title')}
               </DialogTitle>
             </div>
 
-            <p className="text-center text-cement-feet dark:text-laughing-jack md:text-nowrap max-w-80">
+            <p className="text-center text-iron dark:text-bombay md:text-nowrap max-w-80">
               {t('logout-confirmation.description')}
             </p>
 

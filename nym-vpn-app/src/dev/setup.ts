@@ -10,6 +10,7 @@ import {
   NetworkCompat,
   Tunnel,
   TunnelData,
+  TunnelStateIpc,
   VpndStatus,
 } from '../types';
 import { TunnelStateEvent } from '../constants';
@@ -75,7 +76,14 @@ export function mockTauriIPC() {
       );
     }
     if (cmd === 'get_tunnel_state') {
-      return { state: 'disconnected' };
+      const state: TunnelStateIpc = 'disconnected';
+      // const state: TunnelStateIpc = { connecting: null };
+      // const state: TunnelStateIpc = { disconnecting: null };
+      // const state: TunnelStateIpc = { offline: { reconnect: false } };
+      // const state: TunnelStateIpc = { offline: { reconnect: true } };
+      // const state: TunnelStateIpc = { error: { key: 'internal', data: null } };
+
+      return state;
     }
 
     if (cmd === 'get_gateways') {

@@ -55,7 +55,7 @@ function RadioGroup<K extends Key>({
       );
     }
     return (
-      <span className="font-icon text-2xl text-cement-feet dark:laughing-jack">
+      <span className="font-icon text-2xl text-iron dark:text-bombay">
         radio_button_unchecked
       </span>
     );
@@ -83,21 +83,21 @@ function RadioGroup<K extends Key>({
               value={option.key}
               className={({ checked }) =>
                 clsx([
-                  'bg-white dark:bg-octave relative flex rounded-lg px-5 py-2 focus:outline-hidden',
+                  'bg-white dark:bg-charcoal relative flex rounded-lg px-5 py-2 focus:outline-hidden',
                   checked &&
                     'border border-malachite-moss hover:border-malachite-moss',
                   checked &&
                     'dark:border-malachite dark:hover:border-malachite',
-                  !checked && 'border border-white dark:border-octave',
+                  !checked && 'border border-white dark:border-charcoal',
                   !option.disabled &&
                     !checked &&
-                    'hover:border-transparent dark:hover:border-octave/70',
+                    'hover:border-transparent dark:hover:border-charcoal/85',
                   !option.disabled &&
-                    'hover:bg-white/50 dark:hover:bg-octave/70',
+                    'hover:bg-white/60 dark:hover:bg-charcoal/85',
                   'transition-noborder cursor-default',
                   option.tooltip && 'attach-tooltip',
                   disabled &&
-                    'opacity-50 dark:opacity-60 hover hover:bg-white! dark:hover:bg-octave!',
+                    'opacity-50 dark:opacity-60 hover hover:bg-white! dark:hover:bg-charcoal!',
                 ])
               }
               disabled={option.disabled}
@@ -128,7 +128,7 @@ function RadioGroup<K extends Key>({
                         <Label
                           as="p"
                           className={clsx([
-                            'truncate text-base text-baltic-sea dark:text-mercury-pinkish',
+                            'truncate text-base text-baltic-sea dark:text-white',
                           ])}
                         >
                           {option.label}
@@ -136,7 +136,7 @@ function RadioGroup<K extends Key>({
                         {option.desc && (
                           <Description
                             as="span"
-                            className="truncate text-sm text-cement-feet dark:text-mercury-mist"
+                            className="truncate text-sm text-iron dark:text-bombay"
                           >
                             <span>{option.desc}</span>
                           </Description>

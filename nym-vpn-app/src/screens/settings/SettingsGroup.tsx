@@ -27,16 +27,16 @@ function SettingsGroup({ settings, className }: Props) {
           onClick={setting.onClick}
           className={clsx([
             'cursor-default',
-            'bg-white dark:bg-octave relative flex px-5 py-2 focus:outline-hidden min-h-16',
-            'hover:bg-white/70 dark:hover:bg-octave/85',
+            'bg-white dark:bg-charcoal relative flex px-5 py-2 focus:outline-hidden min-h-16',
+            'hover:bg-white/60 dark:hover:bg-charcoal/85',
             'transition duration-75',
             index === 0 && 'rounded-t-lg',
             index === settings.length - 1 &&
               settings.length === 2 &&
-              'border-t border-mercury-pinkish dark:border-gun-powder',
+              'border-t border-bombay/40 dark:border-iron/60',
             index !== 0 &&
               index !== settings.length - 1 &&
-              'border-y border-mercury-pinkish dark:border-gun-powder',
+              'border-y border-bombay/40 dark:border-iron/60',
             index === settings.length - 1 && 'rounded-b-lg',
             setting.desc ? 'py-2' : 'py-4',
             setting.disabled &&
@@ -48,20 +48,20 @@ function SettingsGroup({ settings, className }: Props) {
             className="flex flex-1 items-center justify-between gap-4 overflow-hidden cursor-default"
           >
             {setting.leadingIcon && (
-              <span className="font-icon text-2xl select-none dark:text-mercury-pinkish">
+              <span className="font-icon text-2xl select-none dark:text-white">
                 {setting.leadingIcon}
               </span>
             )}
             <div className="flex flex-col flex-1 justify-center min-w-4">
               <Label
                 as="div"
-                className="text-base text-baltic-sea dark:text-mercury-pinkish select-none truncate"
+                className="text-base text-baltic-sea dark:text-white select-none truncate"
               >
                 {setting.title}
               </Label>
               <Description
                 as="div"
-                className="text-sm text-cement-feet dark:text-mercury-mist select-none truncate"
+                className="text-sm text-iron dark:text-bombay select-none truncate"
               >
                 {typeof setting.desc === 'string' ? (
                   <span>{setting.desc}</span>

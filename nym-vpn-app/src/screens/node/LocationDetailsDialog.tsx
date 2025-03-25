@@ -21,17 +21,17 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
       <div className="flex flex-col items-center gap-4">
         <MsIcon
           icon="info"
-          className="text-3xl text-baltic-sea dark:text-mercury-pinkish"
+          className="text-3xl text-baltic-sea dark:text-white"
         />
         <DialogTitle
           as="h3"
-          className="text-lg text-baltic-sea dark:text-mercury-pinkish font-bold text-center"
+          className="text-lg text-baltic-sea dark:text-white font-bold text-center"
         >
           {t('location-details.title')}
         </DialogTitle>
       </div>
 
-      <p className="text-center text-cement-feet dark:text-laughing-jack md:text-nowrap max-w-80">
+      <p className="text-center text-iron dark:text-bombay md:text-nowrap max-w-80">
         {t('location-details.description')}
       </p>
 

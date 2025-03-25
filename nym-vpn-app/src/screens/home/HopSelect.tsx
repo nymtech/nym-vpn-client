@@ -64,11 +64,11 @@ export default function HopSelect({
     <div
       className={clsx([
         'w-full flex flex-row justify-between items-center py-3 px-4',
-        'text-baltic-sea dark:text-mercury-pinkish',
-        'border border-cement-feet dark:border-gun-powder rounded-lg',
+        'text-baltic-sea dark:text-white',
+        'border border-bombay dark:border-iron rounded-lg',
         !locked && [
           'hover:border-baltic-sea hover:ring-baltic-sea',
-          'dark:hover:border-mercury-pinkish dark:hover:ring-mercury-pinkish',
+          'dark:hover:border-white dark:hover:ring-white',
         ],
         'relative transition select-none cursor-default',
         locked && 'opacity-50',

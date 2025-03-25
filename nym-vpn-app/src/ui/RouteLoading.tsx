@@ -10,7 +10,7 @@ function RouteLoading() {
       ])}
     >
       {/* Top-bar placeholder */}
-      <div className="w-full h-16 shadow-sm bg-white dark:bg-octave-arsenic"></div>
+      <div className="w-full h-16 shadow-sm bg-white dark:bg-charcoal"></div>
     </div>
   );
 }

@@ -59,8 +59,8 @@ function TextArea({
         className={clsx([
           'text-base bg-faded-lavender dark:bg-ash transition',
           'w-full flex flex-row justify-between items-center py-4 px-4',
-          'text-baltic-sea dark:text-mercury-pinkish',
-          'placeholder:text-cement-feet dark:placeholder:text-mercury-mist',
+          'text-baltic-sea dark:text-white',
+          'placeholder:text-iron dark:placeholder:text-bombay',
           ...inputStates,
           resize && getResizeClass(resize),
           label && 'relative',
@@ -75,7 +75,7 @@ function TextArea({
         <Label
           className={clsx([
             'select-none absolute left-3 -top-2 px-1',
-            'dark:text-mercury-pinkish',
+            'dark:text-white',
             'bg-faded-lavender dark:bg-ash text-xs',
           ])}
         >

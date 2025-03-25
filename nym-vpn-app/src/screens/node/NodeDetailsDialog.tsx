@@ -42,7 +42,7 @@ function NodeDetailsDialog({ isOpen, onClose, ref }: Props) {
       <h3 className="text-xl font-semibold">{gateway?.name}</h3>
       <div className="flex flex-row items-center gap-3">
         <MsIcon className={clsx(scoreIcon[1], 'text-xl')} icon={scoreIcon[0]} />
-        <div className="w-[1px] bg-bombay dark:bg-dim-gray self-stretch" />
+        <div className="w-[1px] bg-bombay dark:bg-iron self-stretch" />
         <div className="flex flex-row items-center gap-2">
           <FlagIcon
             code={country.code.toLowerCase() as countryCode}
@@ -53,7 +53,7 @@ function NodeDetailsDialog({ isOpen, onClose, ref }: Props) {
         </div>
       </div>
       <div className="flex flex-col gap-2">
-        <p className="text-sm text-dim-gray dark:text-bombay">
+        <p className="text-sm text-iron dark:text-bombay">
           {t('node-details.id-label')}
         </p>
         <div className="flex flex-row">

@@ -47,8 +47,8 @@ function TextInput({
         className={clsx([
           'text-base bg-faded-lavender dark:bg-ash transition',
           'w-full flex flex-row justify-between items-center py-3 px-4',
-          'text-baltic-sea dark:text-mercury-pinkish',
-          'placeholder:text-cement-feet dark:placeholder:text-mercury-mist',
+          'text-baltic-sea dark:text-white',
+          'placeholder:text-iron dark:placeholder:text-bombay',
           ...inputStates,
           className,
           label && 'relative',
@@ -63,7 +63,7 @@ function TextInput({
         <Label
           className={clsx([
             'select-none absolute left-3 -top-2 px-1',
-            'dark:text-mercury-pinkish',
+            'dark:text-white',
             'bg-faded-lavender dark:bg-ash text-xs',
           ])}
         >
@@ -73,7 +73,7 @@ function TextInput({
       {leftIcon && (
         <MsIcon
           icon={leftIcon}
-          className="absolute left-3 text-baltic-sea dark:text-laughing-jack hover:cursor-text"
+          className="absolute left-3 text-baltic-sea dark:text-bombay hover:cursor-text"
         />
       )}
     </Field>

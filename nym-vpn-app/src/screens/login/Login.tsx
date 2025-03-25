@@ -77,7 +77,7 @@ function Login() {
       <div className="grow w-full" />
       <div className="flex flex-col items-center gap-4 px-4">
         <h1 className="text-2xl dark:text-white">{t('welcome')}</h1>
-        <h2 className="text-center text-dim-gray dark:text-mercury-mist w-11/12">
+        <h2 className="text-center text-iron dark:text-bombay w-11/12">
           {t('description')}
         </h2>
       </div>
@@ -99,7 +99,7 @@ function Login() {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.15, ease: 'easeInOut' }}
               className={clsx([
-                'text-teaberry overflow-y-scroll max-h-16 mt-3 mb-3 break-words',
+                'text-aphrodisiac overflow-y-scroll max-h-16 mt-3 mb-3 break-words',
                 'select-text',
               ])}
             >
@@ -124,7 +124,7 @@ function Login() {
             {t('login-button')}
           </Button>
           <div className="flex flex-row justify-center items-center gap-2">
-            <span className="dark:text-mercury-pinkish truncate">
+            <span className="dark:text-white truncate">
               {t('create-account.text')}
             </span>
             <Link text={t('create-account.link')} url={NymVpnPricingUrl} icon />

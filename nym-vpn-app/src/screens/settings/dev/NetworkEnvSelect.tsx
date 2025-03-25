@@ -36,12 +36,12 @@ function NetworkEnvSelect({ current }: Props) {
 
   return (
     <div className="mt-2">
-      <h3 className="text-lg text-baltic-sea dark:text-mercury-pinkish font-bold">
+      <h3 className="text-lg text-baltic-sea dark:text-white font-bold">
         Network env
       </h3>
       <div className="flex flex-row flex-nowrap items-center text-sm">
         <MsIcon icon="priority_high" className="text-liquid-lava" />
-        <p className="text-dim-gray dark:text-mercury-mist truncate">
+        <p className="text-iron dark:text-bombay truncate">
           This require to restart the daemon to take effect
         </p>
       </div>
@@ -78,7 +78,7 @@ function NetworkEnvSelect({ current }: Props) {
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.15, ease: 'easeInOut' }}
           className={clsx([
-            'text-teaberry overflow-y-scroll max-h-16 mt-3 break-words',
+            'text-aphrodisiac overflow-y-scroll max-h-16 mt-3 break-words',
             'select-none',
           ])}
         >

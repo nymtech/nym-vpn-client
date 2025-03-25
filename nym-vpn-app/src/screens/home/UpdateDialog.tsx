@@ -55,16 +55,16 @@ function UpdateDialog({ isOpen, onClose, appUpdate, daemonUpdate }: Props) {
       <div className="flex flex-col items-center gap-4">
         <MsIcon
           icon="info"
-          className="text-3xl text-baltic-sea dark:text-mercury-pinkish"
+          className="text-3xl text-baltic-sea dark:text-white"
         />
         <DialogTitle
           as="h3"
-          className="text-lg text-baltic-sea dark:text-mercury-pinkish font-bold"
+          className="text-lg text-baltic-sea dark:text-white font-bold"
         >
           {t('update-dialog.title')}
         </DialogTitle>
       </div>
-      <p className="text-cement-feet dark:text-laughing-jack md:text-nowrap">
+      <p className="text-iron dark:text-bombay md:text-nowrap">
         {description()} {t('update-dialog.description-2')}
       </p>
       <Button onClick={handleClose} className="mt-2">

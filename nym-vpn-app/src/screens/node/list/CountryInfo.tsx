@@ -30,7 +30,7 @@ const CountryInfo = ({ country, name, gwCount }: CountryInfoProps) => {
         >
           {name}
         </div>
-        <div className="text-dim-gray dark:text-bombay text-sm">{`${gwCount} ${t('server', { count: gwCount })}`}</div>
+        <div className="text-iron dark:text-bombay text-sm">{`${gwCount} ${t('server', { count: gwCount })}`}</div>
       </div>
     </div>
   );

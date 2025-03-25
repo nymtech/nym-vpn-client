@@ -55,7 +55,7 @@ function NetworkModeSelect() {
         'font-icon text-3xl',
         checked
           ? 'text-malachite-moss dark:text-malachite'
-          : 'text-baltic-sea dark:text-mercury-pinkish',
+          : 'text-baltic-sea dark:text-white',
       );
 
     return [
@@ -95,8 +95,8 @@ function NetworkModeSelect() {
             icon="info"
             className={clsx([
               'text-xl',
-              'text-cement-feet dark:text-mercury-mist transition duration-150',
-              'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-gun-powder dark:hover:text-mercury-pinkish',
+              'text-iron dark:text-bombay transition duration-150',
+              'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-baltic-sea dark:hover:text-white',
             ])}
           />
         </Button>

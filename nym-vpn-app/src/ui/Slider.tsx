@@ -36,7 +36,7 @@ function Slider({
       )}
       disabled={disabled}
     >
-      <RxSlider.Track className="relative h-1.5 grow rounded-full bg-coal-mine-light/60 dark:bg-coal-mine-dark">
+      <RxSlider.Track className="relative h-1.5 grow rounded-full bg-bombay/60 dark:bg-iron">
         <RxSlider.Range className="absolute h-full rounded-full bg-malachite-moss/50 dark:bg-malachite-moss/60" />
       </RxSlider.Track>
       <RxSlider.Thumb
