@@ -113,8 +113,10 @@ private extension HelperManager {
             newState = .unknown
         }
 
-        if requiresDaemonMigration() && grpcManager.isHelperRunning() {
-            newState = .requiresManualRemoval
+        if requiresDaemonMigration() {
+            if grpcManager.isHelperRunning() {
+                newState = .requiresManualRemoval
+            }
         }
 
         guard newState != daemonState else { return }

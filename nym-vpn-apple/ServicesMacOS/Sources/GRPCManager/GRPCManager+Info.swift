@@ -6,11 +6,10 @@ extension GRPCManager {
     public func isHelperRunning() -> Bool {
         guard let output = Shell.exec(command: Command.isHelperRunning), !output.isEmpty
         else {
-            tunnelStatus = .disconnected
-            setup()
+            updateIsServing(with: false)
             return false
         }
-        requiredCallsAfterSeviceIsUp()
+        updateIsServing(with: true)
         return true
     }
 
@@ -39,13 +38,20 @@ extension GRPCManager {
 }
 
 private extension GRPCManager {
-    func requiredCallsAfterSeviceIsUp() {
-        if daemonVersion == "noVersion" {
-            daemonVersion = "unknown"
-        }
-        Task { [weak self] in
-            _ = try? await self?.version()
-            self?.setup()
+    func updateIsServing(with value: Bool) {
+        guard isServing != value else { return }
+        isServing = value
+
+        if isServing {
+            if daemonVersion == "noVersion" {
+                daemonVersion = "unknown"
+            }
+            Task { [weak self] in
+                _ = try? await self?.version()
+            }
+        } else {
+            tunnelStatus = .disconnected
+            setup()
         }
     }
 }

@@ -28,6 +28,7 @@ public final class GRPCManager: ObservableObject {
         agent.platform = AppVersionProvider.platform
         return agent
     }
+    var isServing = false
 
     public static let shared = GRPCManager()
 
