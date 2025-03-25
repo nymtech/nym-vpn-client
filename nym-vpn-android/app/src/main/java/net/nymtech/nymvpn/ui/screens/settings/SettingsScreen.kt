@@ -19,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -32,6 +33,7 @@ import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.navigation.NavIcon
 import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
+import net.nymtech.nymvpn.ui.screens.settings.components.AccountId
 import net.nymtech.nymvpn.ui.screens.settings.components.AccountSection
 import net.nymtech.nymvpn.ui.screens.settings.components.AppVersion
 import net.nymtech.nymvpn.ui.screens.settings.components.AppearanceSection
@@ -49,6 +51,7 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 	val context = LocalContext.current
 	val snackbar = SnackbarController.current
 	val navController = LocalNavController.current
+	val clipboardManager = LocalClipboardManager.current
 	val padding = WindowInsets.systemBars.asPaddingValues()
 
 	var loggingOut by remember { mutableStateOf(false) }
@@ -111,6 +114,9 @@ fun SettingsScreen(appViewModel: AppViewModel, appUiState: AppUiState, viewModel
 				}
 			},
 		)
-		AppVersion()
+		if (appUiState.managerState.accountId != null) {
+			AccountId(clipboardManager, appUiState.managerState.accountId)
+		}
+		AppVersion(clipboardManager, navController)
 	}
 }

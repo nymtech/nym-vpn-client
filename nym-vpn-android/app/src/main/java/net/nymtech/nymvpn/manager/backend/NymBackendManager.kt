@@ -79,11 +79,13 @@ class NymBackendManager @Inject constructor(
 			val isCompatible = isClientNetworkCompatible(env)
 			val isMnemonicStored = isMnemonicStored()
 			val deviceId = if (isMnemonicStored) getDeviceId() else null
+			val accountId = if (isMnemonicStored) getAccountId() else null
 			_state.update {
 				it.copy(
 					isInitialized = true,
 					isMnemonicStored = isMnemonicStored,
 					deviceId = deviceId,
+					accountId = accountId,
 					isNetworkCompatible = isCompatible,
 				)
 			}
@@ -157,7 +159,7 @@ class NymBackendManager @Inject constructor(
 	override suspend fun storeMnemonic(mnemonic: String) {
 		backend.await().storeMnemonic(mnemonic)
 		emitMnemonicStored(true)
-		updateDeviceId()
+		updateAccountIds()
 		refreshAccountLinks()
 	}
 
@@ -171,11 +173,10 @@ class NymBackendManager @Inject constructor(
 		refreshAccountLinks()
 	}
 
-	private suspend fun updateDeviceId() {
+	private suspend fun updateAccountIds() {
 		runCatching {
-			val id = getDeviceId()
 			_state.update {
-				it.copy(deviceId = id)
+				it.copy(deviceId = getDeviceId(), accountId = getAccountId())
 			}
 		}.onFailure {
 			Timber.e(it)
@@ -184,6 +185,10 @@ class NymBackendManager @Inject constructor(
 
 	private suspend fun getDeviceId(): String {
 		return backend.await().getDeviceIdentity()
+	}
+
+	private suspend fun getAccountId(): String {
+		return backend.await().getAccountIdentity()
 	}
 
 	override suspend fun getAccountSummary(): AccountStateSummary {
