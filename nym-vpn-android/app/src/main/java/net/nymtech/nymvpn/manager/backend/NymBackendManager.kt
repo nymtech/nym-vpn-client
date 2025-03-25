@@ -8,7 +8,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -65,16 +64,8 @@ class NymBackendManager @Inject constructor(
 	private val backend = CompletableDeferred<Backend>()
 
 	private val _state = MutableStateFlow(TunnelManagerState())
-	override val stateFlow: Flow<TunnelManagerState> = _state.onStart {
-		val isMnemonicStored = isMnemonicStored()
-		val deviceId = if (isMnemonicStored) getDeviceId() else null
-		_state.update {
-			it.copy(
-				isMnemonicStored = isMnemonicStored,
-				deviceId = deviceId,
-			)
-		}
-	}.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.Eagerly, TunnelManagerState())
+	override val stateFlow: Flow<TunnelManagerState> = _state
+		.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.Eagerly, TunnelManagerState())
 
 	override fun initialize() {
 		applicationScope.launch {
@@ -86,8 +77,15 @@ class NymBackendManager @Inject constructor(
 			}
 			backend.complete(nymBackend)
 			val isCompatible = isClientNetworkCompatible(env)
+			val isMnemonicStored = isMnemonicStored()
+			val deviceId = if (isMnemonicStored) getDeviceId() else null
 			_state.update {
-				it.copy(isInitialized = true, isNetworkCompatible = isCompatible)
+				it.copy(
+					isInitialized = true,
+					isMnemonicStored = isMnemonicStored,
+					deviceId = deviceId,
+					isNetworkCompatible = isCompatible,
+				)
 			}
 		}
 	}
@@ -121,7 +119,6 @@ class NymBackendManager @Inject constructor(
 
 	override suspend fun startTunnel() {
 		runCatching {
-			// clear any error states
 			emitBackendUiEvent(null)
 			val tunnel = NymTunnel(
 				entryPoint = getEntryPoint(),
@@ -244,9 +241,6 @@ class NymBackendManager @Inject constructor(
 		when (backendEvent) {
 			is BackendEvent.Mixnet -> when (val event = backendEvent.event) {
 				is MixnetEvent.Bandwidth -> {
-					// TODO disable for now
-// 					emitBackendUiEvent(BackendUiEvent.BandwidthAlert(event.v1))
-// 					launchBandwidthNotification(event.v1)
 					Timber.d("Bandwidth: ${event.v1}")
 				}
 				is MixnetEvent.Connection -> emitMixnetConnectionEvent(event.v1)

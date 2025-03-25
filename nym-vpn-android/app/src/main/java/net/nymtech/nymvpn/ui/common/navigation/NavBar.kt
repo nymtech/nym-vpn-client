@@ -1,5 +1,10 @@
 package net.nymtech.nymvpn.ui.common.navigation
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -23,7 +28,11 @@ fun NavBar(navBarState: NavBarState, navController: NavController, modifier: Mod
 		keyboardController?.hide()
 	}
 
-	if (navBarState.show) {
+	AnimatedVisibility(
+		visible = navBarState.show,
+		enter = slideInVertically() + fadeIn(),
+		exit = slideOutVertically() + fadeOut(),
+	) {
 		CenterAlignedTopAppBar(
 			modifier = modifier,
 			title = {
