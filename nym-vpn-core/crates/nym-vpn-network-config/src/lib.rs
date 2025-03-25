@@ -91,12 +91,12 @@ impl Network {
     // Fetch network information directly from the endpoint without going through the path of first
     // persisting to disk etc.
     // Currently used on mobile only.
-    pub fn fetch(network_name: &str) -> anyhow::Result<Self> {
-        let discovery = Discovery::fetch(network_name)?;
+    pub async fn fetch(network_name: &str) -> anyhow::Result<Self> {
+        let discovery = Discovery::fetch(network_name).await?;
         let feature_flags = discovery.feature_flags.clone();
         let system_configuration = discovery.system_configuration;
         let network_compatibility = discovery.network_compatibility.clone();
-        let nym_network = discovery.fetch_nym_network_details()?;
+        let nym_network = discovery.fetch_nym_network_details().await?;
         let nyxd_url = nym_network
             .network
             .endpoints
@@ -207,11 +207,11 @@ impl Network {
     }
 }
 
-pub fn discover_networks(config_path: &Path) -> anyhow::Result<RegisteredNetworks> {
-    RegisteredNetworks::ensure_exists(config_path)
+pub async fn discover_networks(config_path: &Path) -> anyhow::Result<RegisteredNetworks> {
+    RegisteredNetworks::ensure_exists(config_path).await
 }
 
-pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Network> {
+pub async fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Network> {
     tracing::trace!(
         "Discovering network details: config_path={:?}, network_name={}",
         config_path,
@@ -219,7 +219,7 @@ pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Ne
     );
 
     // Lookup network discovery to bootstrap
-    let discovery = Discovery::ensure_exists(config_path, network_name)?;
+    let discovery = Discovery::ensure_exists(config_path, network_name).await?;
     tracing::debug!("Discovery: {:#?}", discovery);
 
     tracing::debug!(
@@ -243,7 +243,7 @@ pub fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Ne
     }
 
     // Using discovery, fetch and setup nym network details
-    let nym_network = NymNetwork::ensure_exists(config_path, &discovery)?;
+    let nym_network = NymNetwork::ensure_exists(config_path, &discovery).await?;
     let nyxd_url = nym_network
         .network
         .endpoints

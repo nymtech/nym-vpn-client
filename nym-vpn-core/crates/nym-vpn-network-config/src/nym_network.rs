@@ -64,10 +64,14 @@ impl NymNetwork {
         Ok(())
     }
 
-    pub(super) fn ensure_exists(config_dir: &Path, discovery: &Discovery) -> anyhow::Result<Self> {
+    pub(super) async fn ensure_exists(
+        config_dir: &Path,
+        discovery: &Discovery,
+    ) -> anyhow::Result<Self> {
         if Self::path_is_stale(config_dir, &discovery.network_name)? {
             discovery
-                .fetch_nym_network_details()?
+                .fetch_nym_network_details()
+                .await?
                 .write_to_file(config_dir)?;
         }
         Self::read_from_file(config_dir, &discovery.network_name)

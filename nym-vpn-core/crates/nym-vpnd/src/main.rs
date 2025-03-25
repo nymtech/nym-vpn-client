@@ -34,12 +34,9 @@ fn run() -> anyhow::Result<()> {
         enable_stdout_log: true,
     };
     let logging_setup = logging::setup_logging(options);
-
     let global_config_file = setup_global_config(args.network.as_deref())?;
-    let network_env =
-        environment::setup_environment(&global_config_file, args.config_env_file.as_deref())?;
 
-    run_inner(args, network_env, logging_setup)
+    run_inner(args, global_config_file, logging_setup)
 }
 
 #[cfg(windows)]
@@ -90,12 +87,9 @@ fn run() -> anyhow::Result<()> {
             enable_stdout_log: true,
         };
         let logging_setup = logging::setup_logging(options);
-
         let global_config_file = setup_global_config(args.network.as_deref())?;
-        let network_env =
-            environment::setup_environment(&global_config_file, args.config_env_file.as_deref())?;
 
-        run_inner(args, network_env, logging_setup)
+        run_inner(args, global_config_file, logging_setup)
     }
 }
 
@@ -110,10 +104,15 @@ fn setup_global_config(network: Option<&str>) -> anyhow::Result<GlobalConfigFile
 
 fn run_inner(
     args: CliArgs,
-    network_env: Network,
+    global_config_file: GlobalConfigFile,
     logging_setup: Option<LoggingSetup>,
 ) -> anyhow::Result<()> {
-    runtime::new_runtime().block_on(run_inner_async(args, network_env, logging_setup))
+    runtime::new_runtime().block_on(async {
+        let network_env =
+            environment::setup_environment(&global_config_file, args.config_env_file.as_deref())
+                .await?;
+        run_inner_async(args, network_env, logging_setup).await
+    })
 }
 
 async fn run_inner_async(

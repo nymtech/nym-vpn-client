@@ -23,11 +23,13 @@ impl DiscoveryRefresher {
         }
     }
 
-    fn refresh_discovery_file(&self) -> anyhow::Result<()> {
+    async fn refresh_discovery_file(&self) -> anyhow::Result<()> {
         if !Discovery::path_is_stale(self.config_path.as_path(), &self.network_name)? {
             return Ok(());
         }
-        Discovery::fetch(&self.network_name)?.write_to_file(self.config_path.as_path())?;
+        Discovery::fetch(&self.network_name)
+            .await?
+            .write_to_file(self.config_path.as_path())?;
         Ok(())
     }
 
@@ -39,7 +41,7 @@ impl DiscoveryRefresher {
         loop {
             tokio::select! {
                 _ = interval.tick() => {
-                    if let Err(err) = self.refresh_discovery_file() {
+                    if let Err(err) = self.refresh_discovery_file().await {
                         tracing::error!("Failed to refresh discovery file: {:?}", err);
                     }
                 }

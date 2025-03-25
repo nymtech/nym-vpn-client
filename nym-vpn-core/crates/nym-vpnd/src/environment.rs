@@ -8,7 +8,7 @@ use nym_vpn_network_config::Network;
 
 use crate::config::GlobalConfigFile;
 
-pub fn setup_environment(
+pub async fn setup_environment(
     global_config_file: &GlobalConfigFile,
     config_env_file: Option<&Path>,
 ) -> anyhow::Result<Network> {
@@ -22,11 +22,11 @@ pub fn setup_environment(
         let config_path = crate::service::config_dir();
 
         tracing::debug!("Setting up registered networks");
-        let networks = nym_vpn_network_config::discover_networks(&config_path)?;
+        let networks = nym_vpn_network_config::discover_networks(&config_path).await?;
         tracing::debug!("Registered networks: {}", networks);
 
         tracing::info!("Setting up environment by discovering the network: {network_name}");
-        nym_vpn_network_config::discover_env(&config_path, &network_name)?
+        nym_vpn_network_config::discover_env(&config_path, &network_name).await?
     };
 
     // TODO: we need to export to env here to bridge the gap to older code.

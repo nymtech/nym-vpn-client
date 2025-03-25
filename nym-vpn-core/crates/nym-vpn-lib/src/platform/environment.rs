@@ -8,11 +8,11 @@ use super::uniffi_custom_impls::{
 use super::{error::VpnError, NETWORK_ENVIRONMENT};
 
 pub(crate) async fn init_environment(network_name: &str) -> Result<(), VpnError> {
-    let network = nym_vpn_network_config::Network::fetch(network_name).map_err(|err| {
-        VpnError::NetworkConnectionError {
+    let network = nym_vpn_network_config::Network::fetch(network_name)
+        .await
+        .map_err(|err| VpnError::NetworkConnectionError {
             details: err.to_string(),
-        }
-    })?;
+        })?;
 
     // To bridge with old code, export to environment. New code should not rely on this.
     network.export_to_env();

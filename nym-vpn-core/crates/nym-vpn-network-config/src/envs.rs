@@ -65,11 +65,8 @@ impl RegisteredNetworks {
         }
     }
 
-    fn fetch() -> anyhow::Result<Self> {
+    async fn fetch() -> anyhow::Result<Self> {
         tracing::debug!("Fetching registered networks");
-        // Create the runtime
-        let rt = tokio::runtime::Runtime::new()?;
-
         // allow panic because a broken bootstrap url means everything will fail anyways.
         #[allow(clippy::expect_used)]
         let default_url = Discovery::DEFAULT_VPN_API_URL
@@ -77,9 +74,9 @@ impl RegisteredNetworks {
             .expect("Failed to parse NYM VPN API URL");
 
         // Spawn the root task
-        let inner = rt
-            .block_on(BootstrapVpnApiClient::new(default_url)?.get_wellknown_envs())
-            .with_context(|| "Failed to fetch envs")?;
+        let inner = BootstrapVpnApiClient::new(default_url)?
+            .get_wellknown_envs()
+            .await?;
         tracing::debug!("Envs response: {:#?}", inner);
 
         Ok(Self { inner })
@@ -119,15 +116,15 @@ impl RegisteredNetworks {
         Ok(())
     }
 
-    fn try_update_file(config_dir: &Path) -> anyhow::Result<()> {
+    async fn try_update_file(config_dir: &Path) -> anyhow::Result<()> {
         if Self::path_is_stale(config_dir)? {
-            Self::fetch()?.write_to_file(config_dir)?;
+            Self::fetch().await?.write_to_file(config_dir)?;
         }
 
         Ok(())
     }
 
-    pub(super) fn ensure_exists(config_dir: &Path) -> anyhow::Result<Self> {
+    pub(super) async fn ensure_exists(config_dir: &Path) -> anyhow::Result<Self> {
         if !Self::path(config_dir).exists() {
             Self::default()
                 .write_to_file(config_dir)
@@ -140,6 +137,7 @@ impl RegisteredNetworks {
         // Probably in a background task.
 
         Self::try_update_file(config_dir)
+            .await
             .inspect_err(|err| {
                 tracing::warn!("Failed to update envs file: {err}");
                 tracing::warn!("Attempting to read envs file instead");
