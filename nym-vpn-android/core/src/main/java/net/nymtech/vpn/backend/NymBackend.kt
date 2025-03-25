@@ -240,6 +240,13 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		}
 	}
 
+	override suspend fun getAccountIdentity(): String {
+		return withContext(ioDispatcher) {
+			initialized.await()
+			nym_vpn_lib.getAccountIdentity()
+		}
+	}
+
 	@Throws(VpnException::class)
 	override suspend fun removeMnemonic() {
 		withContext(ioDispatcher) {

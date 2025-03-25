@@ -9,6 +9,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
@@ -22,7 +24,13 @@ fun DeleteLogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit)
 	Modal(
 		show = show,
 		onDismiss = onDismiss,
-		title = { Text(stringResource(R.string.delete_logs_title), style = CustomTypography.labelHuge) },
+		title = {
+			Text(
+				stringResource(R.string.delete_logs_title).uppercase(),
+				style = CustomTypography.labelHuge,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
+			)
+		},
 		text = {
 			Text(
 				stringResource(R.string.delete_logs_description),
@@ -34,7 +42,7 @@ fun DeleteLogsModal(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit)
 		confirmButton = {
 			MainStyledButton(
 				onClick = onConfirm,
-				content = { Text(stringResource(R.string.yes)) },
+				content = { Text(stringResource(R.string.yes).uppercase(), fontFamily = FontFamily(Font(R.font.lab_grotesque_mono))) },
 				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
 			)
 		},

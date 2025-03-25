@@ -233,12 +233,27 @@ pub fn getDeviceIdentity() -> Result<String, VpnError> {
     RUNTIME.block_on(account::get_device_id())
 }
 
+/// Get the account identity
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getAccountIdentity() -> Result<String, VpnError> {
+    RUNTIME.block_on(get_account_id())
+}
+
 /// Get the device identity
 /// This is a version that can be called when the account controller is not running.
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getDeviceIdentityRaw(path: String) -> Result<String, VpnError> {
     RUNTIME.block_on(account::raw::get_device_id_raw(&path))
+}
+
+/// Get the account identity
+/// This is a version that can be called when the account controller is not running.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getAccountIdentityRaw(path: String) -> Result<String, VpnError> {
+    RUNTIME.block_on(account::raw::get_account_id_raw(&path))
 }
 
 /// This manually syncs the account state with the server. Normally this is done automatically, but
@@ -269,6 +284,12 @@ pub fn getGatewayCountries(
         user_agent,
         min_gateway_performance,
     ))
+}
+
+async fn get_account_id() -> Result<String, VpnError> {
+    account::get_account_id()
+        .await?
+        .ok_or(VpnError::NoAccountStored)
 }
 
 async fn get_gateway_countries(

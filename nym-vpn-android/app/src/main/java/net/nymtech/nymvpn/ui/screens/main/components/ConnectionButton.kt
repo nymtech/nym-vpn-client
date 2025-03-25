@@ -11,6 +11,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import kotlinx.coroutines.launch
@@ -50,19 +52,34 @@ fun ConnectionButton(
 						onConnect()
 					}
 				},
-				content = { Text(stringResource(R.string.connect), style = CustomTypography.labelHuge) },
+				content = {
+					Text(stringResource(R.string.connect).uppercase(), style = CustomTypography.labelHuge, fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)))
+				},
 				modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 			)
 			ConnectionState.Disconnecting, is ConnectionState.Connecting, ConnectionState.WaitingForConnection -> MainStyledButton(
 				onClick = onDisconnect,
-				content = { Text(stringResource(R.string.stop), style = CustomTypography.labelHuge, color = MaterialTheme.colorScheme.background) },
+				content = {
+					Text(
+						stringResource(R.string.stop).uppercase(),
+						style = CustomTypography.labelHuge,
+						color = MaterialTheme.colorScheme.background,
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
+					)
+				},
 				color = CustomColors.disconnect,
 				modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 			)
 			ConnectionState.Connected -> MainStyledButton(
 				testTag = Constants.DISCONNECT_TEST_TAG,
 				onClick = onDisconnect,
-				content = { Text(stringResource(R.string.disconnect), style = CustomTypography.labelHuge) },
+				content = {
+					Text(
+						stringResource(R.string.disconnect).uppercase(),
+						style = CustomTypography.labelHuge,
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
+					)
+				},
 				color = CustomColors.disconnect,
 				modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 			)

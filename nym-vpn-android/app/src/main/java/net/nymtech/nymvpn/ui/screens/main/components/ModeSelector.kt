@@ -56,7 +56,7 @@ fun ModeSelector(
 		Row(
 			horizontalArrangement = Arrangement.SpaceBetween,
 			verticalAlignment = Alignment.CenterVertically,
-			modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp.scaledHeight()),
+			modifier = Modifier.fillMaxWidth(),
 		) {
 			GroupLabel(title = stringResource(R.string.select_mode))
 			IconButton(onClick = onInfoClick, modifier = Modifier.size(iconSize)) {

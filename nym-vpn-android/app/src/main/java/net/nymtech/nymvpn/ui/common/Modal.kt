@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.common.buttons.MainStyledButton
@@ -31,7 +33,7 @@ fun Modal(
 				onDismiss()
 			},
 			content = {
-				Text(text = stringResource(id = R.string.okay))
+				Text(text = stringResource(id = R.string.okay).uppercase(), fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)))
 			},
 			modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
 		)

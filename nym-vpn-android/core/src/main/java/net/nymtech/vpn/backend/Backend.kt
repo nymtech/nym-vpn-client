@@ -25,6 +25,8 @@ interface Backend {
 
 	suspend fun getDeviceIdentity(): String
 
+	suspend fun getAccountIdentity(): String
+
 	suspend fun removeMnemonic()
 
 	suspend fun start(tunnel: Tunnel, userAgent: UserAgent)
