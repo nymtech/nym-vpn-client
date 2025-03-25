@@ -508,11 +508,6 @@ impl TunnelMonitor {
             self.account_controller_tx
                 .send(AccountCommand::SyncDeviceState(None))
                 .ok();
-
-            self.send_event(TunnelMonitorEvent::RegisteringDevice);
-            self.account_controller_tx
-                .send(AccountCommand::RegisterDevice(None))
-                .ok();
         } else {
             // If we don't have ticket stored, go through the steps one by one, syncing and
             // registering and getting credentials.
