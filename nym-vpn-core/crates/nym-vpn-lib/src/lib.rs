@@ -40,12 +40,7 @@ pub use crate::{
     mixnet::MixnetError,
 };
 
-pub const DEFAULT_DNS_SERVERS: [IpAddr; 12] = [
-    // Google Public DNS
-    IpAddr::V4(Ipv4Addr::new(8, 8, 8, 8)),
-    IpAddr::V4(Ipv4Addr::new(8, 8, 4, 4)),
-    IpAddr::V6(Ipv6Addr::new(0x2001, 0x4860, 0x4860, 0, 0, 0, 0, 0x8888)),
-    IpAddr::V6(Ipv6Addr::new(0x2001, 0x4860, 0x4860, 0, 0, 0, 0, 0x8844)),
+pub const DEFAULT_DNS_SERVERS: [IpAddr; 8] = [
     // Quad 9
     IpAddr::V4(Ipv4Addr::new(9, 9, 9, 9)),
     IpAddr::V4(Ipv4Addr::new(149, 112, 112, 112)),
