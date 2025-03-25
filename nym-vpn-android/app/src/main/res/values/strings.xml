@@ -254,4 +254,5 @@
 	<string name="bandwidth_error">Monthly bandwidth exceeded. Please upgrade your account plan.</string>
 	<string name="max_devices_error">Account device limit exceeded. Please remove a device from your account before connecting.</string>
     <string name="pricing_url">nym.com/pricing</string>
+	<string name="account_id">Account ID:</string>
 </resources>
