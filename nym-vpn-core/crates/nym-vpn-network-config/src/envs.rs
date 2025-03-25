@@ -172,9 +172,9 @@ mod tests {
         assert!(registered_networks.inner.contains("mainnet"));
     }
 
-    #[test]
-    fn test_registered_networks_fetch() {
-        let registered_networks = RegisteredNetworks::fetch().unwrap();
+    #[tokio::test]
+    async fn test_registered_networks_fetch() {
+        let registered_networks = RegisteredNetworks::fetch().await.unwrap();
         assert!(registered_networks.inner.contains("mainnet"));
     }
 
@@ -190,10 +190,10 @@ mod tests {
         assert_eq!(registered_networks, read_registered_networks);
     }
 
-    #[test]
-    fn test_envs_default_same_as_fetched() {
+    #[tokio::test]
+    async fn test_envs_default_same_as_fetched() {
         let default_envs = RegisteredNetworks::default();
-        let fetched_envs = RegisteredNetworks::fetch().unwrap();
+        let fetched_envs = RegisteredNetworks::fetch().await.unwrap();
         assert_eq!(default_envs, fetched_envs);
     }
 }

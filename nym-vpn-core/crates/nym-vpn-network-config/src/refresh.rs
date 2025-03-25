@@ -24,9 +24,11 @@ impl DiscoveryRefresher {
     }
 
     async fn refresh_discovery_file(&self) -> anyhow::Result<()> {
+        tracing::info!("Checking descovery file age");
         if !Discovery::path_is_stale(self.config_path.as_path(), &self.network_name)? {
             return Ok(());
         }
+        tracing::info!("Refreshing and updating file");
         Discovery::fetch(&self.network_name)
             .await?
             .write_to_file(self.config_path.as_path())?;
@@ -35,7 +37,7 @@ impl DiscoveryRefresher {
 
     async fn run(self) {
         // Check once an hour
-        let mut interval = tokio::time::interval(Duration::from_secs(60 * 60));
+        let mut interval = tokio::time::interval(Duration::from_secs(60));
         interval.tick().await; // initial tick
 
         loop {
