@@ -31,9 +31,7 @@ private extension SettingsView {
                 accountIdentifier()
             }
             .scrollIndicators(.hidden)
-            .frame(
-                maxWidth: Device.type == .ipad ? MagicNumbers.ipadMaxWidth.rawValue : MagicNumbers.macMinWidth.rawValue
-            )
+            .frame(maxWidth: MagicNumbers.maxWidth)
             Spacer()
         }
         .navigationBarBackButtonHidden(true)

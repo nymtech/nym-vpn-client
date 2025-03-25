@@ -16,10 +16,7 @@ struct SupportView: View {
             Spacer()
                 .frame(height: 24)
             sections()
-                .frame(
-                    maxWidth:
-                        Device.type == .ipad ? MagicNumbers.ipadMaxWidth.rawValue : MagicNumbers.macMinWidth.rawValue
-                )
+                .frame(maxWidth: MagicNumbers.maxWidth)
             Spacer()
         }
         .navigationBarBackButtonHidden(true)
