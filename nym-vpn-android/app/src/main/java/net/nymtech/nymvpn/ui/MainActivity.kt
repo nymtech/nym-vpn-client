@@ -183,7 +183,10 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Splash> {
 									SplashScreen(appViewModel, appState)
 								}
-								composable<Route.Main> {
+								composable<Route.Main>(
+									enterTransition = { fadeIn() },
+									exitTransition = { fadeOut() },
+								) {
 									val args = it.toRoute<Route.Main>()
 									MainScreen(appViewModel, appState, args.autoStart)
 								}
@@ -193,7 +196,10 @@ class MainActivity : AppCompatActivity() {
 										PermissionScreen(appViewModel, args.permission)
 									}
 								}
-								composable<Route.Settings> {
+								composable<Route.Settings>(
+									enterTransition = { fadeIn() },
+									exitTransition = { fadeOut() },
+								) {
 									SettingsScreen(
 										appViewModel,
 										appState,
@@ -216,9 +222,10 @@ class MainActivity : AppCompatActivity() {
 								composable<Route.Logs> { LogsScreen(appViewModel) }
 								composable<Route.Support> { SupportScreen(appViewModel) }
 								composable<Route.Legal> { LegalScreen(appViewModel) }
-								composable<Route.Login>(enterTransition = {
-									fadeIn(animationSpec = tween(500))
-								}) {
+								composable<Route.Login>(
+									enterTransition = { fadeIn() },
+									exitTransition = { fadeOut() },
+								) {
 									LoginScreen(appState, appViewModel)
 								}
 								composable<Route.Licenses> {
