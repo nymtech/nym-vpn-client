@@ -226,21 +226,21 @@ pub fn forgetAccountRaw(path: String) -> Result<(), VpnError> {
     RUNTIME.block_on(account::raw::forget_account_raw(&path))
 }
 
-//// Get the device identity
+/// Get the device identity
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getDeviceIdentity() -> Result<String, VpnError> {
     RUNTIME.block_on(account::get_device_id())
 }
 
-/// Get the device identity
+/// Get the account identity
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn getAccountIdentity() -> Result<String, VpnError> {
     RUNTIME.block_on(get_account_id())
 }
 
-/// Get the account identity
+/// Get the device identity
 /// This is a version that can be called when the account controller is not running.
 #[allow(non_snake_case)]
 #[uniffi::export]
