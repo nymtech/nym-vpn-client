@@ -11,6 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
@@ -32,7 +34,14 @@ fun CredentialModalBody(onClick: () -> Unit) {
 			MainStyledButton(
 				onClick = { onClick() },
 				content = {
-					Text(stringResource(id = R.string.manage_devices), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onPrimary)
+					Text(
+						stringResource(id = R.string.manage_devices).uppercase(),
+						style = MaterialTheme.typography.labelLarge,
+						fontFamily = FontFamily(
+							Font(R.font.lab_grotesque_mono),
+						),
+						color = MaterialTheme.colorScheme.onPrimary,
+					)
 				},
 				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
 			)

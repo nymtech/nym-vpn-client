@@ -11,6 +11,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import net.nymtech.nymvpn.R
@@ -44,7 +46,15 @@ fun PermissionContent(permission: Permission, navController: NavController) {
 							snackbar.showMessage(context.getString(R.string.permission_required))
 						}
 					},
-					content = { Text(stringResource(R.string.try_reconnecting), style = CustomTypography.labelHuge) },
+					content = {
+						Text(
+							stringResource(R.string.try_reconnecting).uppercase(),
+							style = CustomTypography.labelHuge,
+							fontFamily = FontFamily(
+								Font(R.font.lab_grotesque_mono),
+							),
+						)
+					},
 					modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 				)
 			}

@@ -26,6 +26,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
@@ -54,7 +56,11 @@ fun GatewayDetailsModal(gateway: NymGateway, gatewayType: GatewayType, onDismiss
 					onDismiss()
 				},
 				content = {
-					Text(text = stringResource(id = R.string.close), style = MaterialTheme.typography.labelLarge)
+					Text(
+						text = stringResource(id = R.string.close).uppercase(),
+						style = MaterialTheme.typography.labelLarge,
+						fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
+					)
 				},
 				modifier = Modifier.fillMaxWidth().height(40.dp.scaledHeight()),
 			)
@@ -64,7 +70,12 @@ fun GatewayDetailsModal(gateway: NymGateway, gatewayType: GatewayType, onDismiss
 				horizontalAlignment = Alignment.Start,
 				verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
 			) {
-				Text(gateway.name, style = CustomTypography.labelHuge, textAlign = TextAlign.Start)
+				Text(
+					gateway.name.uppercase(),
+					style = CustomTypography.labelHuge,
+					textAlign = TextAlign.Start,
+					fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
+				)
 				Row(
 					horizontalArrangement = Arrangement.spacedBy(8.dp),
 					verticalAlignment = Alignment.CenterVertically,

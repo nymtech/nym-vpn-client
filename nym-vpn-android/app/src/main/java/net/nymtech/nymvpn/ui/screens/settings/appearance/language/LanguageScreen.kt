@@ -51,8 +51,7 @@ fun LanguageScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
 
 	val collator = Collator.getInstance(Locale.getDefault())
 
-	// TODO re-enable fa
-	val locales = LocaleUtil.supportedLocales.filter { it != "fa" }.map {
+	val locales = LocaleUtil.supportedLocales.map {
 		val tag = it.replace("_", "-")
 		Locale.forLanguageTag(tag)
 	}

@@ -45,6 +45,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
@@ -137,7 +139,11 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 	}
 
 	Modal(show = showLocationTooltip, onDismiss = { showLocationTooltip = false }, title = {
-		Text(stringResource(R.string.gateway_locations_title), style = CustomTypography.labelHuge)
+		Text(
+			stringResource(R.string.gateway_locations_title).uppercase(),
+			style = CustomTypography.labelHuge,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
+		)
 	}, text = {
 		ServerDetailsModalBody(onClick = { context.openWebUrl(context.getString(R.string.location_support_link)) })
 	})
