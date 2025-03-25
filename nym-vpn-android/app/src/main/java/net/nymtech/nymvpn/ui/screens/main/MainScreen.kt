@@ -33,6 +33,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.delay
@@ -222,9 +224,10 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		onDismiss = { showInfoDialog = false },
 		title = {
 			Text(
-				text = stringResource(R.string.mode_selection),
+				text = stringResource(R.string.mode_selection).uppercase(),
 				color = MaterialTheme.colorScheme.onSurface,
 				style = CustomTypography.labelHuge,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
 			)
 		},
 		text = {
@@ -239,9 +242,10 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 		onDismiss = { showCompatibilityDialog = false },
 		title = {
 			Text(
-				text = stringResource(R.string.update_required),
+				text = stringResource(R.string.update_required).uppercase(),
 				color = MaterialTheme.colorScheme.onSurface,
 				style = CustomTypography.labelHuge,
+				fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
 			)
 		},
 		text = {
@@ -264,7 +268,7 @@ fun MainScreen(appViewModel: AppViewModel, appUiState: AppUiState, autoStart: Bo
 					showCompatibilityDialog = false
 					context.openWebUrl(context.getString(R.string.download_url))
 				},
-				content = { Text(stringResource(R.string.update)) },
+				content = { Text(stringResource(R.string.update).uppercase(), fontFamily = FontFamily(Font(R.font.lab_grotesque_mono))) },
 				modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
 			)
 		},

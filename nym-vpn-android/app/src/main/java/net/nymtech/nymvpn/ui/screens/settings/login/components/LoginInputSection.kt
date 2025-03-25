@@ -28,6 +28,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.R
@@ -131,8 +133,9 @@ fun LoginInputSection(
 							SpinningIcon(Icons.Outlined.Refresh, stringResource(R.string.refresh))
 						} else {
 							Text(
-								stringResource(R.string.log_in),
+								stringResource(R.string.log_in).uppercase(),
 								style = CustomTypography.labelHuge,
+								fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
 							)
 						}
 					},

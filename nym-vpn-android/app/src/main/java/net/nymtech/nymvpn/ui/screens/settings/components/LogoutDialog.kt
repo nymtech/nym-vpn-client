@@ -13,6 +13,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
@@ -49,12 +51,26 @@ fun LogoutDialog(show: Boolean, onDismiss: () -> Unit, onConfirm: () -> Unit) {
 				) {
 					MainStyledButton(
 						onClick = onDismiss,
-						content = { Text(stringResource(R.string.cancel), style = MaterialTheme.typography.labelLarge) },
+						content = {
+							Text(
+								stringResource(R.string.cancel).uppercase(),
+								style = MaterialTheme.typography.labelLarge,
+								fontFamily = FontFamily(
+									Font(R.font.lab_grotesque_mono),
+								),
+							)
+						},
 						modifier = Modifier.weight(1f).height(46.dp),
 					)
 					OutlineStyledButton(
 						onClick = onConfirm,
-						content = { Text(stringResource(R.string.log_out), style = MaterialTheme.typography.labelLarge) },
+						content = {
+							Text(
+								stringResource(R.string.log_out).uppercase(),
+								style = MaterialTheme.typography.labelLarge,
+								fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
+							)
+						},
 						backgroundColor = Color.Transparent,
 						modifier = Modifier.weight(1f).height(46.dp),
 					)

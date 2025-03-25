@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import net.nymtech.nymvpn.R
@@ -29,9 +31,10 @@ fun LoginHeader() {
 		modifier = Modifier.padding(vertical = 24.dp.scaledHeight()),
 	) {
 		Text(
-			text = stringResource(R.string.welcome_to_nym),
+			text = stringResource(R.string.welcome_to_nym).uppercase(),
 			style = MaterialTheme.typography.headlineSmall,
 			color = MaterialTheme.colorScheme.onBackground,
+			fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
 		)
 		Text(
 			text = stringResource(R.string.enter_access_code),
