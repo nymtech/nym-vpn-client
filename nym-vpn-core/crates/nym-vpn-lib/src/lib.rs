@@ -15,7 +15,9 @@ pub mod tunnel_provider;
 pub mod tunnel_state_machine;
 mod wg_config;
 
-use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
+use std::{net::IpAddr, sync::LazyLock};
+
+use hickory_resolver::config::NameServerConfigGroup;
 
 // Re-export some our nym dependencies
 pub use nym_authenticator_client::Error as AuthenticatorClientError;
@@ -40,18 +42,20 @@ pub use crate::{
     mixnet::MixnetError,
 };
 
-pub const DEFAULT_DNS_SERVERS: [IpAddr; 8] = [
-    // Quad 9
-    IpAddr::V4(Ipv4Addr::new(9, 9, 9, 9)),
-    IpAddr::V4(Ipv4Addr::new(149, 112, 112, 112)),
-    IpAddr::V6(Ipv6Addr::new(0x2620, 0x00fe, 0, 0, 0, 0, 0, 0x00fe)),
-    IpAddr::V6(Ipv6Addr::new(0x2620, 0x00fe, 0, 0, 0, 0, 0x00fe, 0x0009)),
-    // Cloudflare
-    IpAddr::V4(Ipv4Addr::new(1, 1, 1, 1)),
-    IpAddr::V4(Ipv4Addr::new(1, 0, 0, 1)),
-    IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1111)),
-    IpAddr::V6(Ipv6Addr::new(0x2606, 0x4700, 0x4700, 0, 0, 0, 0, 0x1001)),
-];
+static DEFAULT_DNS_SERVERS_CONFIG: LazyLock<NameServerConfigGroup> = LazyLock::new(|| {
+    let mut name_servers = NameServerConfigGroup::quad9_tls();
+    name_servers.merge(NameServerConfigGroup::quad9_https());
+    name_servers.merge(NameServerConfigGroup::cloudflare_tls());
+    name_servers.merge(NameServerConfigGroup::cloudflare_https());
+    name_servers
+});
+
+pub static DEFAULT_DNS_SERVERS: LazyLock<Vec<IpAddr>> = LazyLock::new(|| {
+    DEFAULT_DNS_SERVERS_CONFIG
+        .iter()
+        .map(|ns| ns.socket_addr.ip())
+        .collect()
+});
 
 #[derive(Clone, Default, Debug, Eq, PartialEq)]
 pub struct MixnetClientConfig {

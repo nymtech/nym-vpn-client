@@ -4920,6 +4920,7 @@ dependencies = [
  "debounced",
  "futures",
  "hickory-proto",
+ "hickory-resolver",
  "hickory-server",
  "ipnetwork",
  "itertools 0.13.0",

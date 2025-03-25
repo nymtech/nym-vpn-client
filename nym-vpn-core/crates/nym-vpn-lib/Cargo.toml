@@ -16,6 +16,10 @@ async-trait.workspace = true
 bincode.workspace = true
 bytes.workspace = true
 futures.workspace = true
+hickory-resolver = { workspace = true, features = [
+    "dns-over-tls",
+    "dns-over-https",
+] }
 ipnetwork.workspace = true
 itertools.workspace = true
 lazy_static.workspace = true
