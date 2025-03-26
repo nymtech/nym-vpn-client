@@ -6,7 +6,16 @@
 # - daemon (nym-vpnd) as a systemd service
 # - client app (nym-vpn-app)
 #
-# To uninstall, run with `uninstall` as argument
+# On deb based systems, the script installs the deb packages.
+# Otherwise it installs vpnd raw binary and app's AppImage.
+# To force raw install run `INSTALL_TYPE=raw ./install`.
+#
+# By default, the script installs the latest stable build.
+# To install latest nightly/dev builds, run
+# `BUILD_CHANNEL=dev ./install`
+#
+# To uninstall, run
+# `./install uninstall`
 
 set -E
 set -o pipefail
@@ -37,7 +46,13 @@ BI="$ITL$BLD"
 BI_MGT="$ITL$B_MGT"
 ####
 
-# AppImage
+BUILD_CHANNEL=${BUILD_CHANNEL:-stable}
+# these are only used when BUILD_CHANNEL=dev
+APP_RELEASE=${APP_RELEASE:-"nym-vpn-app-nightly"}
+CORE_BUILD=${CORE_BUILD:-0}
+
+## STABLE BUILDS #################################################
+# app artifacts
 app_tag=nym-vpn-app-v1.6.0
 app_version=1.6.0
 appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_x64.AppImage"
@@ -45,7 +60,7 @@ app_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_ta
 desktop_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/app.desktop"
 icon_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-app/.pkg/icon.svg"
 
-# nym-vpnd
+# nym-vpnd artifacts
 vpnd_tag=nym-vpn-core-v1.6.1
 # ⚠ there are inconsistencies in the package version naming…
 vpnd_version=1.6.1
@@ -54,6 +69,7 @@ vpnd_deb_ver_url=$vpnd_version
 vpnd_raw_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpn-core-v${vpnd_version}_linux_x86_64.tar.gz"
 vpnd_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$vpnd_tag/nym-vpnd_${vpnd_deb_ver_url}_amd64.deb"
 unit_url="https://raw.githubusercontent.com/nymtech/nym-vpn-client/fb526935/nym-vpn-core/crates/nym-vpnd/.pkg/aur/nym-vpnd.service"
+##################################################################
 
 # function called when an error occurs, will print the exit
 # status, function name and line number
@@ -143,15 +159,16 @@ vpnd_bin="nym-vpnd"
 vpnd_service="nym-vpnd.service"
 vpnd_deb="nym-vpnd_${vpnd_deb_ver}_amd64.deb"
 units_dir="/usr/lib/systemd/system"
-desktop_exec='env LOG_FILE=1 RUST_LOG=info,nym_vpn_app=debug NymVPN.AppImage %U'
+desktop_exec='env RUST_LOG=info,nym_vpn_app=debug NymVPN.AppImage -l %U'
 os=$(uname -a)
 # → to lowercase
 os="${os,,}"
-install_type="raw"
+install_type=raw
 
 # for deb based systems install from deb packages
-[[ "$os" == *debian* || "$os" == *ubuntu* || "$os" == *mint* ]] &&
-  install_type="deb"
+[[ -z "$INSTALL_TYPE" ]] &&
+  [[ "$os" == *debian* || "$os" == *ubuntu* || "$os" == *mint* ]] &&
+  install_type=deb
 
 # components to install/uninstall
 # 0 = to be (un)installed
@@ -159,6 +176,65 @@ _vpnd=1
 _app=1
 # system packages to check
 sys_pkgs=()
+
+########################
+app_dev_setup() {
+  app_tag=$APP_RELEASE
+  app_version=$(curl -sSL \
+    -H "Accept: application/vnd.github+json" \
+    -H "X-GitHub-Api-Version: 2022-11-28" \
+    https://api.github.com/repos/nymtech/nym-vpn-client/releases/tags/"$app_tag" |
+    grep -m1 -oP '(?<="name": "NymVPN_).+(?=_x64\.AppImage)')
+  appimage_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/NymVPN_${app_version}_x64.AppImage"
+  app_deb_url="https://github.com/nymtech/nym-vpn-client/releases/download/$app_tag/nym-vpn-app_${app_version}_amd64.deb"
+  appimage="NymVPN_${app_version}_x64.AppImage"
+  app_deb="nym-vpn-app_${app_version}_amd64.deb"
+}
+
+get_core_dev() {
+  core_archive=$(curl -s "$1" |
+    grep -oP '(?<=^<a href=")nym-vpn-core-v.+_linux_x86_64\.tar\.gz(?=">)')
+  vpnd_raw_url="$1$core_archive"
+  ver="${core_archive#nym-vpn-core-v}"
+  vpnd_version="${ver%_linux_x86_64.tar.gz}"
+}
+
+get_vpnd_dev_deb() {
+  vpnd_deb=$(curl -s "$1" |
+    grep -oP '(?<=^<a href=")nym-vpnd_.+_amd64\.deb(?=">)')
+  ver="${vpnd_deb#nym-vpnd_}"
+  vpnd_deb_ver="${ver%_amd64.deb}"
+  vpnd_deb_url="$1$vpnd_deb"
+}
+
+vpnd_dev_setup() {
+  if [ "$CORE_BUILD" = 0 ]; then
+    core_build_url=https://builds.ci.nymte.ch/nym-vpn-client/nym-vpn-core/develop/
+    latest=$(curl -s $core_build_url |
+      grep -oP '(?<=<a href=")\d+/' |
+      sort -r |
+      head -n 1)
+    build_url="$core_build_url$latest"
+  else
+    build_url="$CORE_BUILD/"
+  fi
+
+  get_core_dev "$build_url"
+  get_vpnd_dev_deb "$build_url"
+}
+
+dev_setup() {
+  log "${BI_YLW}⚠ dev channel$RS"
+  log "${I_GRY}fetching app release $APP_RELEASE…$RS"
+  app_dev_setup
+  if [ "$CORE_BUILD" = 0 ]; then
+    log "${I_GRY}fetching latest vpn-core dev build…$RS"
+  else
+    log "${I_GRY}fetching vpn-core build…$RS"
+  fi
+  vpnd_dev_setup
+  log
+}
 
 # do not install/uninstall if system packages are installed
 # ⚠ be sure to call `select_components` before this function
@@ -184,17 +260,6 @@ check_system_pkg() {
     return 0
     ;;
   esac
-}
-
-pre_check() {
-  if [ -z "$app_tag" ] || [ -z "$app_version" ]; then
-    log "${B_RED}✗$RS \`app_tag\` and \`app_version\` must be set"
-    exit 1
-  fi
-  if [ -z "$vpnd_tag" ] || [ -z "$vpnd_version" ]; then
-    log "${B_RED}✗$RS \`vpnd_tag\` and \`vpnd_version\` must be set"
-    exit 1
-  fi
 }
 
 select_components() {
@@ -226,7 +291,7 @@ select_components() {
 download_app_appimage() {
   _pushd "$temp_dir"
   log "  ${B_GRN}Downloading$RS $appimage"
-  curl -fL -# "$appimage_url" -o $appimage
+  curl -fL -# "$appimage_url" -o "$appimage"
   log "  ${B_GRN}Downloading$RS $appimage.sha256sum"
   curl -fL -# "$appimage_url.sha256sum" -o "$appimage.sha256sum"
   log "  ${B_GRN}Checking$RS sha256sum"
@@ -243,7 +308,7 @@ download_app_appimage() {
 download_app_deb() {
   _pushd "$temp_dir"
   log "  ${B_GRN}Downloading$RS $app_deb"
-  curl -fL -# "$app_deb_url" -o $app_deb
+  curl -fL -# "$app_deb_url" -o "$app_deb"
   log "  ${B_GRN}Downloading$RS $app_deb.sha256sum"
   curl -fL -# "$app_deb_url.sha256sum" -o "$app_deb.sha256sum"
   log "  ${B_GRN}Checking$RS sha256sum"
@@ -256,7 +321,7 @@ download_app_deb() {
 download_vpnd_raw() {
   _pushd "$temp_dir"
   log "  ${B_GRN}Downloading$RS nym-vpnd archive"
-  curl -fL -# "$vpnd_raw_url" -o $core_archive
+  curl -fL -# "$vpnd_raw_url" -o "$core_archive"
   log "  ${B_GRN}Downloading$RS archive sha256sum"
   curl -fL -# "$vpnd_raw_url.sha256sum" -o "$core_archive.sha256sum"
   log "  ${B_GRN}Checking$RS sha256sum"
@@ -274,7 +339,7 @@ download_vpnd_raw() {
 download_vpnd_deb() {
   _pushd "$temp_dir"
   log "  ${B_GRN}Downloading$RS $vpnd_deb"
-  curl -fL -# "$vpnd_deb_url" -o $vpnd_deb
+  curl -fL -# "$vpnd_deb_url" -o "$vpnd_deb"
   log "  ${B_GRN}Downloading$RS $vpnd_deb.sha256sum"
   curl -fL -# "$vpnd_deb_url.sha256sum" -o "$vpnd_deb.sha256sum"
   log "  ${B_GRN}Checking$RS sha256sum"
@@ -530,14 +595,11 @@ cleanup() {
 }
 
 _install() {
-  log "$ITL${B_GRN}nym$RS${BI_GRY}VPN$RS ${BI}installer$RS\n"
   log "  app ${BI_YLW}$app_version$RS ${I_GRY}client$RS"
   log "  nym-vpnd ${BI_YLW}$vpnd_version$RS ${I_GRY}daemon$RS\n"
 
   need_cmd mktemp
   temp_dir=$(mktemp -d)
-
-  pre_check
   select_components
 
   if [ "$install_type" = raw ]; then
@@ -643,4 +705,6 @@ if [ "$1" == uninstall ]; then
   exit 0
 fi
 
+log "$ITL${B_GRN}nym$RS${BI_GRY}VPN$RS ${BI}installer$RS\n"
+[[ "$BUILD_CHANNEL" = "dev" ]] && dev_setup
 _install
