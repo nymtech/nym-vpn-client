@@ -3,6 +3,7 @@
 
 mod acl;
 mod explicit_access;
+pub mod fs;
 mod security_attributes;
 mod security_descriptor;
 mod sid;
@@ -12,5 +13,5 @@ pub use acl::Acl;
 pub use explicit_access::ExplicitAccess;
 pub use security_attributes::SecurityAttributes;
 pub use security_descriptor::SecurityDescriptor;
-pub use sid::Sid;
+pub use sid::{LookedUpAccount, Sid};
 pub use trustee::Trustee;

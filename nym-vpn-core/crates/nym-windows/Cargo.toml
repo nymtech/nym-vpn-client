@@ -7,6 +7,7 @@ edition.workspace = true
 version.workspace = true
 
 [target.'cfg(windows)'.dependencies]
+bitflags.workspace = true
 thiserror.workspace = true
 futures.workspace = true
 tokio = { workspace = true, features = ["sync"] }
@@ -31,3 +32,6 @@ features = [
     "Win32_NetworkManagement_IpHelper",
     "Win32_NetworkManagement_Ndis",
 ]
+
+[target.'cfg(windows)'.dev-dependencies]
+tempfile.workspace = true
