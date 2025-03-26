@@ -119,6 +119,10 @@ private extension HelperManager {
             }
         }
 
+        if newState == .requiresUpdate {
+            _ = grpcManager.isHelperRunning()
+        }
+
         guard newState != daemonState else { return }
         daemonState = newState
     }

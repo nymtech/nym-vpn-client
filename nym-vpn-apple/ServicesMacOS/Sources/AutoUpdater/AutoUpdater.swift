@@ -1,21 +1,27 @@
 import SwiftUI
 import Sparkle
 
-public final class AutoUpdater {
+public final class AutoUpdater: NSObject {
     public static let shared = AutoUpdater()
-    private let updaterController: SPUStandardUpdaterController
+
+    public var didPrepareForQuit = false
+
+    private lazy var updaterController: SPUStandardUpdaterController = {
+        SPUStandardUpdaterController(
+            startingUpdater: true,
+            updaterDelegate: self,
+            userDriverDelegate: nil
+        )
+    }()
 
     public var updater: SPUUpdater {
         updaterController.updater
     }
+}
 
-    public init() {
-        // If you want to start the updater manually, pass false to startingUpdater and call .startUpdater() later
-        // This is where you can also pass an updater delegate if you need one
-        updaterController = SPUStandardUpdaterController(
-            startingUpdater: true,
-            updaterDelegate: nil,
-            userDriverDelegate: nil
-        )
+extension AutoUpdater: SPUUpdaterDelegate {
+    public func updaterWillRelaunchApplication(_ updater: SPUUpdater) {
+        didPrepareForQuit = true
+        NSApp.setActivationPolicy(.regular)
     }
 }
