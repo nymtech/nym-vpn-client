@@ -120,7 +120,10 @@ private extension HelperManager {
         }
 
         if newState == .requiresUpdate {
-            _ = grpcManager.isHelperRunning()
+            Task {
+                _ = grpcManager.isHelperRunning()
+                _ = try? await grpcManager.version()
+            }
         }
 
         guard newState != daemonState else { return }
@@ -135,7 +138,7 @@ private extension HelperManager {
             guard let self else { return }
             while pollingTask != nil {
                 updateDaemonState()
-                try? await Task.sleep(for: .seconds(4))
+                try? await Task.sleep(for: .seconds(3))
             }
         }
     }
