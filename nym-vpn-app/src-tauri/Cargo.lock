@@ -3279,7 +3279,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "1.6.0-beta"
+version = "1.7.0-beta"
 dependencies = [
  "async-stream",
  "hyper-util",
@@ -3293,7 +3293,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.6.0-dev"
+version = "1.7.0-dev"
 dependencies = [
  "anyhow",
  "build-info",
@@ -3338,7 +3338,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.6.0-beta"
+version = "1.7.0-beta"
 dependencies = [
  "nym-http-api-client",
  "prost",
@@ -3349,7 +3349,7 @@ dependencies = [
 
 [[package]]
 name = "nym-windows"
-version = "1.6.0-beta"
+version = "1.7.0-beta"
 dependencies = [
  "futures",
  "thiserror 2.0.12",

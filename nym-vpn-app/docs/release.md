@@ -102,6 +102,7 @@ on new stable, the rest of the packages need to be updated manually.
 
 - refer to [update AUR](update_aur.md) for Arch Linux packages
 - refer to [update Flatpak](update_flatpak.md) for Flatpak package
+- refer to [update Linux installer](update_linux_installer.md) for Linux installer script
 
 #### nym.com
 
