@@ -70,8 +70,13 @@ struct NymVPNDaemonApp: App {
                 NSApp.setActivationPolicy(.regular)
             }
             .onDisappear {
-                NSApp.setActivationPolicy(.accessory)
-                NSApp.deactivate()
+                if autoUpdater.didPrepareForQuit {
+                    appDelegate.shouldTerminate = true
+                    NSApplication.shared.terminate(self)
+                } else {
+                    NSApp.setActivationPolicy(.accessory)
+                    NSApp.deactivate()
+                }
             }
             .alert(alertTitle, isPresented: $isDisplayingAlert) {
                 Button("ok".localizedString, role: .cancel) { }
