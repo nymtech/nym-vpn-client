@@ -31,9 +31,7 @@ private extension SettingsView {
                 accountIdentifier()
             }
             .scrollIndicators(.hidden)
-            .frame(
-                maxWidth: Device.type == .ipad ? MagicNumbers.ipadMaxWidth.rawValue : MagicNumbers.macMinWidth.rawValue
-            )
+            .frame(maxWidth: MagicNumbers.maxWidth)
             Spacer()
         }
         .navigationBarBackButtonHidden(true)
@@ -98,7 +96,7 @@ private extension SettingsView {
 
     @ViewBuilder
     func accountIdentifier() -> some View {
-        if let accountIdentifier = viewModel.credentialsManager.accountIdentifier {
+        if let accountIdentifier = viewModel.credentialsManager.accountIdentifier, !accountIdentifier.isEmpty {
             HStack {
                 Text("\("settings.accountID".localizedString): \(accountIdentifier)")
                     .foregroundStyle(NymColor.settingsVersion)

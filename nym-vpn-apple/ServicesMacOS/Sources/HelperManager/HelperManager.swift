@@ -12,7 +12,7 @@ public final class HelperManager {
 
     private var pollingTask: Task<Void, Never>?
     private var isInstalledAndUpToDate: Bool {
-        daemon.status == .enabled && !grpcManager.requiresUpdate && grpcManager.isServing
+        daemon.status == .enabled && !grpcManager.requiresUpdate && grpcManager.isHelperRunning()
     }
 
     public static let shared = HelperManager()
@@ -84,7 +84,7 @@ public final class HelperManager {
     }
 
     public func requiresDaemonMigration() -> Bool {
-        currentVersion.compare("1.2.0", options: .numeric) != .orderedDescending
+        (currentVersion.compare("1.2.0", options: .numeric) != .orderedDescending) || currentVersion == "noVersion"
     }
 }
 
@@ -102,7 +102,7 @@ private extension HelperManager {
         case .notRegistered, .notFound:
             newState = .unknown
         case .enabled:
-            if currentVersion != "unknown" {
+            if currentVersion != "unknown" || currentVersion != "noVersion" {
                 newState = isInstalledAndUpToDate ? .running : .requiresUpdate
             } else {
                 newState = .authorized
@@ -114,19 +114,13 @@ private extension HelperManager {
         }
 
         if requiresDaemonMigration() {
-            newState = .requiresManualRemoval
+            if grpcManager.isHelperRunning() {
+                newState = .requiresManualRemoval
+            }
         }
 
         guard newState != daemonState else { return }
         daemonState = newState
-    }
-
-    func isHelperRunning() -> Bool {
-        guard let output = Shell.exec(command: Command.isHelperRunning), !output.isEmpty
-        else {
-            return false
-        }
-        return true
     }
 }
 

@@ -170,9 +170,8 @@ private extension CredentialsManager {
     func updateAccountIdentifier() {
         Task {
 #if os(iOS)
-// TODO: get account identifier for iOS
-//            let dataFolderURL = try dataFolderURL()
-//            accountIdentifier =
+            let dataFolderURL = try dataFolderURL()
+            accountIdentifier = try? getAccountIdentityRaw(path: dataFolderURL.path())
 #elseif os(macOS)
             accountIdentifier = try? await grpcManager.accountIdentifier()
 #endif

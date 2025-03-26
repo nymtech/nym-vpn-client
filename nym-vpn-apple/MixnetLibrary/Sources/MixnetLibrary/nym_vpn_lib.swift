@@ -6976,6 +6976,26 @@ public func forgetAccountRaw(path: String)throws  {try rustCallWithError(FfiConv
 }
 }
 /**
+ * Get the account identity
+ */
+public func getAccountIdentity()throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_getaccountidentity($0
+    )
+})
+}
+/**
+ * Get the account identity
+ * This is a version that can be called when the account controller is not running.
+ */
+public func getAccountIdentityRaw(path: String)throws  -> String {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+    uniffi_nym_vpn_lib_fn_func_getaccountidentityraw(
+        FfiConverterString.lower(path),$0
+    )
+})
+}
+/**
  * Returns the account links for the current network environment
  */
 public func getAccountLinks(locale: String)throws  -> AccountLinks {
@@ -7400,6 +7420,12 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_forgetaccountraw() != 63705) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_getaccountidentity() != 1334) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_getaccountidentityraw() != 59465) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getaccountlinks() != 37969) {
