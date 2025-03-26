@@ -37,7 +37,8 @@ let package = Package(
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 .product(name: "SystemMessageModels", package: "ServicesMutual"),
                 .product(name: "Base58Swift", package: "Base58Swift"),
-                .product(name: "GRPC", package: "grpc-swift")
+                .product(name: "GRPC", package: "grpc-swift"),
+                "Shell"
             ],
             path: "Sources/GRPCManager"
         ),
@@ -45,7 +46,6 @@ let package = Package(
             name: "HelperManager",
             dependencies: [
                 "GRPCManager",
-                "Shell",
                 .product(name: "Theme", package: "Theme")
             ],
             path: "Sources/HelperManager"
