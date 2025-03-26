@@ -112,11 +112,8 @@ impl Discovery {
         Ok(())
     }
 
-    async fn try_update_file(config_dir: &Path, network_name: &str) -> anyhow::Result<()> {
-        if Self::path_is_stale(config_dir, network_name)? {
-            Self::fetch(network_name).await?.write_to_file(config_dir)?;
-        }
-        Ok(())
+    async fn update_file(config_dir: &Path, network_name: &str) -> anyhow::Result<()> {
+        Self::fetch(network_name).await?.write_to_file(config_dir)
     }
 
     pub(super) async fn ensure_exists(
@@ -137,11 +134,11 @@ impl Discovery {
                 .inspect_err(|err| tracing::warn!("Failed to write discovery file: {err}"))
                 .ok();
         } else {
-            // Download the file if it doesn't exists, or if the file is too old, refresh it.
+            // Download the file if it doesn't exists, or refresh it.
             // TODO: in the future, we should only refresh the discovery file when the tunnel is up.
             // Probably in a background task.
 
-            Self::try_update_file(config_dir, network_name)
+            Self::update_file(config_dir, network_name)
                 .await
                 .inspect_err(|err| {
                     tracing::warn!("Failed to refresh discovery file: {err}");
