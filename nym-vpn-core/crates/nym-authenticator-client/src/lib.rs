@@ -14,8 +14,8 @@ use nym_credentials_interface::CredentialSpendingData;
 use nym_crypto::asymmetric::x25519::PrivateKey;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{
-    ClientStatsEvents, ClientStatsSender, IncludedSurbs, MixnetClient, MixnetClientSender,
-    MixnetMessageSender, Recipient, ReconstructedMessage, TransmissionLane,
+    ClientStatsEvents, ClientStatsSender, IncludedSurbs, MixnetClientSender, MixnetMessageSender,
+    Recipient, ReconstructedMessage, TransmissionLane,
 };
 use nym_service_provider_requests_common::ServiceProviderType;
 use nym_wireguard_types::PeerPublicKey;
@@ -1023,55 +1023,36 @@ impl From<semver::Version> for AuthenticatorVersion {
 }
 
 pub struct AuthClient {
-    mixnet_client: SharedMixnetClient,
     mixnet_listener: broadcast::Receiver<ReconstructedMessage>,
     mixnet_sender: MixnetClientSender,
     stats_sender: ClientStatsSender,
-    nym_address: Recipient,
+    our_nym_address: Recipient,
 }
 
 impl Clone for AuthClient {
     fn clone(&self) -> Self {
         Self {
-            mixnet_client: self.mixnet_client.clone(),
             mixnet_listener: self.mixnet_listener.resubscribe(),
             mixnet_sender: self.mixnet_sender.clone(),
             stats_sender: self.stats_sender.clone(),
-            nym_address: self.nym_address,
+            our_nym_address: self.our_nym_address,
         }
     }
 }
 
 impl AuthClient {
     pub async fn new(
-        mixnet_client: SharedMixnetClient,
+        mixnet_sender: MixnetClientSender,
         mixnet_listener: broadcast::Receiver<ReconstructedMessage>,
+        stats_sender: ClientStatsSender,
+        our_nym_address: Recipient,
     ) -> Self {
-        let mixnet_sender = mixnet_client.lock().await.as_ref().unwrap().split_sender();
-        let nym_address = *mixnet_client
-            .inner()
-            .lock()
-            .await
-            .as_ref()
-            .unwrap()
-            .nym_address();
-        let stats_sender = mixnet_client
-            .lock()
-            .await
-            .as_ref()
-            .unwrap()
-            .stats_events_reporter();
         Self {
-            mixnet_client,
             mixnet_listener,
             mixnet_sender,
             stats_sender,
-            nym_address,
+            our_nym_address,
         }
-    }
-
-    pub fn mixnet_client(&self) -> SharedMixnetClient {
-        self.mixnet_client.clone()
     }
 
     pub async fn send(
@@ -1104,7 +1085,7 @@ impl AuthClient {
         message: &ClientMessage,
         authenticator_address: Recipient,
     ) -> Result<u64> {
-        let (data, request_id) = message.bytes(self.nym_address)?;
+        let (data, request_id) = message.bytes(self.our_nym_address)?;
 
         // We use 20 surbs for the connect request because typically the
         // authenticator mixnet client on the nym-node is configured to have a min
@@ -1306,12 +1287,20 @@ pub struct WgGatewayMixnetListenerHandle {
 impl WgGatewayMixnetListenerHandle {
     pub async fn cancel(self) -> WgGatewayMixnetListener {
         self.cancel_token.cancel();
-        self.handle.await.unwrap();
+        if let Err(err) = self.handle.await {
+            tracing::error!("Error while waiting for mixnet listener to stop: {err}");
+        }
         WgGatewayMixnetListener {
             mixnet_client: self.mixnet_client,
             message_broadcast: self.message_broadcast,
             external_cancel_token: self.external_canel_token,
             cancel_token: CancellationToken::new(),
+        }
+    }
+
+    pub async fn wait(self) {
+        if let Err(err) = self.handle.await {
+            tracing::error!("Error while waiting for mixnet listener to stop: {err}");
         }
     }
 }

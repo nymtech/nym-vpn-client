@@ -477,6 +477,8 @@ impl TunnelHandle {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
 
+        self.wg_gw_mixnet_listener_handle.wait().await;
+
         self.event_handler_task.await
     }
 

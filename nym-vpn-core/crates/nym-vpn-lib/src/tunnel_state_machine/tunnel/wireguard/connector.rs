@@ -4,7 +4,7 @@
 use std::path::PathBuf;
 
 use nym_vpn_network_config::Network;
-use tokio::{sync::broadcast, task::JoinHandle};
+use tokio::task::JoinHandle;
 
 use nym_authenticator_client::{
     AuthClient, WgGatewayMixnetListener, WgGatewayMixnetListenerHandle,
@@ -12,12 +12,9 @@ use nym_authenticator_client::{
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient};
 use nym_mixnet_client::SharedMixnetClient;
-use nym_sdk::mixnet::{
-    ConnectionStatsEvent, EphemeralCredentialStorage, ReconstructedMessage, StoragePaths,
-};
+use nym_sdk::mixnet::{ConnectionStatsEvent, EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
-use tokio_stream::StreamExt;
 use tokio_util::sync::CancellationToken;
 
 use super::connected_tunnel::ConnectedTunnel;
@@ -119,7 +116,16 @@ impl Connector {
         let mixnet_listener = wg_gateway_mixnet_listener.subscribe();
         let wg_gateway_mixnet_listener_handle = wg_gateway_mixnet_listener.start();
 
-        let auth_client = AuthClient::new(mixnet_client, mixnet_listener).await;
+        let mixnet_sender = mixnet_client.split_sender().await;
+        let stats_sender = mixnet_client.stats_sender().await;
+        let our_nym_address = mixnet_client.nym_address().await;
+        let auth_client = AuthClient::new(
+            mixnet_sender,
+            mixnet_listener,
+            stats_sender,
+            our_nym_address,
+        )
+        .await;
 
         let mut wg_entry_gateway_client = if enable_credentials_mode {
             WgGatewayClient::new_free_entry(

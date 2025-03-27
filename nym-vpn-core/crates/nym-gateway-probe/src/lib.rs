@@ -363,8 +363,16 @@ async fn wg_probe(
     awg_args: String,
     netstack_args: NetstackArgs,
 ) -> anyhow::Result<WgProbeResults> {
-    let mut auth_client =
-        nym_authenticator_client::AuthClient::new(shared_mixnet_client, mixnet_listener).await;
+    let mixnet_sender = shared_mixnet_client.split_sender().await;
+    let stats_sender = shared_mixnet_client.stats_sender().await;
+    let our_nym_address = shared_mixnet_client.nym_address().await;
+    let mut auth_client = nym_authenticator_client::AuthClient::new(
+        mixnet_sender,
+        mixnet_listener,
+        stats_sender,
+        our_nym_address,
+    )
+    .await;
     info!("attempting to use authenticator version {auth_version:?}");
 
     let mut rng = rand::thread_rng();
