@@ -19,8 +19,8 @@ pub type MixnetMessageBroadcastReceiver = broadcast::Receiver<Arc<ReconstructedM
 // While it is running, it has a lock on the shared mixnet client. This is the reason it's
 // designed to be able to start and stop, so that the lock can be released when it's not needed.
 //
-// NOTE: this comes at the cost of cloning all incoming messages, meaning this is not intended for
-// high data rate applications. Only for controll messages like the ones used by the authenticator.
+// NOTE: this is potentially bit wasteful. Ideally we should have proper channels where the
+// recipient only gets messages they're interested in.
 pub struct AuthClientMixnetListener {
     // The shared mixnet client that we're listening to
     mixnet_client: SharedMixnetClient,
