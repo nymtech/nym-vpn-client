@@ -8,16 +8,16 @@
   /*****************/
   --color-transparent: transparent;
   /* [D] main text */
-  /* [L] main elevation */
+  /* [L] layer2 bg */
   --color-white: #fff;
   --color-black: #000;
   /* [L] main text */
   --color-baltic-sea: #1c1b1f;
-  /* [D] main bg */
+  /* [D] base bg */
   --color-ash: #242b2d;
-  /* [L] main bg */
+  /* [L] base bg */
   --color-faded-lavender: #ebeef4;
-  /* [D] main elevation */
+  /* [D] layer2 bg */
   --color-charcoal: #374042;
   /* [L] connection badge bg */
   --color-mercury: #e2e4ea;

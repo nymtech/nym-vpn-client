@@ -17,7 +17,10 @@ export const DefaultCountry: Country = {
   name: 'Switzerland',
   code: 'CH',
 };
-export const DefaultThemeMode = 'System';
+export const DefaultThemeMode = 'system';
+// ⚠ keep those in sync with the theme definition in `styles.css`
+export const ColorMainBgLight = '#242b2d';
+export const ColorMainBgDark = '#ebeef4';
 
 // Various external links
 export const DownloadAppUrl = 'https://nym.com/download';

@@ -33,10 +33,10 @@ function SettingsGroup({ settings, className }: Props) {
             index === 0 && 'rounded-t-lg',
             index === settings.length - 1 &&
               settings.length === 2 &&
-              'border-t border-bombay/40 dark:border-iron/60',
+              'border-t border-faded-lavender dark:border-ash',
             index !== 0 &&
               index !== settings.length - 1 &&
-              'border-y border-bombay/40 dark:border-iron/60',
+              'border-y border-faded-lavender dark:border-ash',
             index === settings.length - 1 && 'rounded-b-lg',
             setting.desc ? 'py-2' : 'py-4',
             setting.disabled &&

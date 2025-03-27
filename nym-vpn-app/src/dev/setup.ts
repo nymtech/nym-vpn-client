@@ -11,6 +11,7 @@ import {
   Tunnel,
   TunnelData,
   TunnelStateIpc,
+  UiTheme,
   VpndStatus,
 } from '../types';
 import { TunnelStateEvent } from '../constants';
@@ -22,6 +23,10 @@ import mxExitGwJson from './mx-exit-gw.json';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type MockIpcFn = (cmd: string, payload?: InvokeArgs) => Promise<any>;
+
+// some fake state
+const uiTheme: UiTheme = 'dark';
+let autostart = true;
 
 export function mockTauriIPC() {
   mockWindows('main');
@@ -112,7 +117,7 @@ export function mockTauriIPC() {
           res = 12;
           break;
         case 'ui-theme':
-          res = 'Dark';
+          res = uiTheme;
           break;
         case 'welcome-screen-seen':
           res = true;
@@ -205,6 +210,16 @@ export function mockTauriIPC() {
           DEV_MODE: true,
         }),
       );
+    }
+
+    if (cmd === 'plugin:autostart|is_enabled') {
+      return new Promise((resolve) => resolve(autostart));
+    }
+    if (cmd === 'plugin:autostart|disable') {
+      autostart = false;
+    }
+    if (cmd === 'plugin:autostart|enable') {
+      autostart = true;
     }
   }) as MockIpcFn);
 }

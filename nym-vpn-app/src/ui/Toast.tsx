@@ -30,7 +30,7 @@ function Toast({
   title,
   message,
   close,
-  type,
+  type = 'info',
   clickAway = false,
 }: ToastProps) {
   const [open, setOpen] = useState(() => {
@@ -92,7 +92,7 @@ function Toast({
                 type === 'error' &&
                   'border-2 text-aphrodisiac! dark:text-aphrodisiac! border-aphrodisiac',
                 type === 'warn' && 'border-2 border-king-nacho',
-                type === 'info' && 'border-2 border-bombay/20 dark:border-0',
+                type === 'info' && 'border-2 border-bombay/90',
               )}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
