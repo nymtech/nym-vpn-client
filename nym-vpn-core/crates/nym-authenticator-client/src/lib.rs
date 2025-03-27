@@ -1057,16 +1057,6 @@ impl AuthClient {
         }
     }
 
-    //pub async fn new_from(mixnet_interaction: MixnetInteraction) -> Self {
-    //    Self::new(
-    //        mixnet_interaction.sender,
-    //        mixnet_interaction.receiver,
-    //        mixnet_interaction.stats_sender,
-    //        mixnet_interaction.our_nym_address,
-    //    )
-    //    .await
-    //}
-    //
     pub async fn send(
         &mut self,
         message: &ClientMessage,
