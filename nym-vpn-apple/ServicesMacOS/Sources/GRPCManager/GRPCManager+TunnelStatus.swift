@@ -10,11 +10,12 @@ extension GRPCManager {
             self?.updateTunnelStatus(with: tunnelState)
         }
 
-        call.status.whenComplete { result in
+        call.status.whenComplete { [weak self] result in
             switch result {
-            case .success(let status):
+            case let .success(status):
                 print("Stream completed with status: \(status)")
-            case .failure(let error):
+                self?.setup()
+            case let .failure(error):
                 print("Stream failed with error: \(error)")
             }
         }

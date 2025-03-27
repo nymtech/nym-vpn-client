@@ -70,7 +70,7 @@ public final class HelperManager {
             do {
                 try await uninstall()
                 try daemon.register()
-                try await Task.sleep(for: .seconds(1))
+                try await Task.sleep(for: .seconds(3))
                 Task { @MainActor [weak self] in
                     self?.daemonState = .running
                 }
@@ -84,7 +84,9 @@ public final class HelperManager {
     }
 
     public func requiresDaemonMigration() -> Bool {
-        (currentVersion.compare("1.2.0", options: .numeric) != .orderedDescending) || currentVersion == "noVersion"
+        let url = URL(fileURLWithPath: "/Library/LaunchDaemons/net.nymtech.vpn.helper.plist")
+        let legacyStatus = SMAppService.statusForLegacyPlist(at: url)
+        return legacyStatus == .enabled || legacyStatus == .requiresApproval
     }
 }
 
@@ -114,16 +116,7 @@ private extension HelperManager {
         }
 
         if requiresDaemonMigration() {
-            if grpcManager.isHelperRunning() {
-                newState = .requiresManualRemoval
-            }
-        }
-
-        if newState == .requiresUpdate {
-            Task {
-                _ = grpcManager.isHelperRunning()
-                _ = try? await grpcManager.version()
-            }
+            newState = .requiresManualRemoval
         }
 
         guard newState != daemonState else { return }

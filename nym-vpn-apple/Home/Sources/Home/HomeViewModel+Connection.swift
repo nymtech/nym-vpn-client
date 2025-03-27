@@ -21,7 +21,7 @@ public extension HomeViewModel {
 #if os(macOS)
             guard !helperManager.isInstallNeeded()
             else {
-                await navigateToInstallHelper()
+                navigateToInstallHelper()
                 return
             }
 #endif
@@ -29,7 +29,7 @@ public extension HomeViewModel {
             if lastTunnelStatus != .connected {
                 guard credentialsManager.isValidCredentialImported
                 else {
-                    await navigateToAddCredentials()
+                    navigateToAddCredentials()
                     return
                 }
             }

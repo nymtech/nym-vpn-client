@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 import ErrorReason
 import UIComponents
 
@@ -40,6 +41,17 @@ extension HomeViewModel {
             lastError = error
             updateStatusInfoState(with: .error(message: error.localizedDescription))
             navigateToAddCredetialsIfNeeded(error: error)
+        }
+    }
+
+    func offlineState(with hasInternet: Bool) {
+        Task { @MainActor [weak self] in
+            guard let self else { return }
+            withAnimation { [weak self] in
+                guard let self else { return }
+                statusButtonConfig = StatusButtonConfig(tunnelStatus: lastTunnelStatus, hasInternet: hasInternet)
+                statusInfoState = StatusInfoState(hasInternet: hasInternet)
+            }
         }
     }
 }

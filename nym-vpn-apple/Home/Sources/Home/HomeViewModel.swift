@@ -24,8 +24,6 @@ import HelperManager
 #endif
 
 public class HomeViewModel: HomeFlowState {
-    private var tunnelStatusUpdateCancellable: AnyCancellable?
-
     let title = "NymVPN".localizedString
     let connectToLocalizedTitle = "connectTo".localizedString
     let networkSelectLocalizedTitle = "selectNetwork".localizedString
@@ -49,6 +47,7 @@ public class HomeViewModel: HomeFlowState {
 
     @ObservedObject var connectionManager: ConnectionManager
     var cancellables = Set<AnyCancellable>()
+    var tunnelStatusUpdateCancellable: AnyCancellable?
     var lastTunnelStatus = TunnelStatus.disconnected
     var lastError: Error?
 
@@ -190,15 +189,17 @@ public extension HomeViewModel {
 private extension HomeViewModel {
     func setup() {
         setupTunnelManagerObservers()
-        setupConnectionErrorObservers()
         setupUpdateRequiredObserver()
-#if os(macOS)
-        setupGRPCManagerObservers()
-#endif
         setupCountriesManagerObservers()
         setupGatewayManagerObserver()
         setupSystemMessageObservers()
+
+#if os(iOS)
+        setupConnectionErrorObservers()
         setupNetworkMonitorObservers()
+#elseif os(macOS)
+        setupGRPCManagerObservers()
+#endif
     }
 
     func setupTunnelManagerObservers() {
@@ -270,56 +271,6 @@ private extension HomeViewModel {
         .store(in: &cancellables)
     }
 
-    func setupNetworkMonitorObservers() {
-        // We use networkMonitor only as a source of truth for iOS disconnected state.
-        // For macOS - we rely on daemon tunnel states.
-#if os(iOS)
-        networkMonitor.$isAvailable
-            .removeDuplicates()
-            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.global(qos: .background))
-            .sink { [weak self] isAvailable in
-                self?.offlineState(with: isAvailable)
-            }
-            .store(in: &cancellables)
-#endif
-    }
-
-    func setupConnectionErrorObservers() {
-#if os(iOS)
-        connectionManager.$lastError
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] error in
-                MainActor.assumeIsolated {
-                    self?.updateLastError(error)
-                }
-            }
-            .store(in: &cancellables)
-#endif
-    }
-#if os(iOS)
-    func configureTunnelStatusObservation(with tunnel: Tunnel) {
-        tunnelStatusUpdateCancellable = tunnel.$status
-            .removeDuplicates()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] status in
-                MainActor.assumeIsolated {
-                    self?.updateUI(with: status)
-                }
-            }
-    }
-#endif
-
-    func offlineState(with hasInternet: Bool) {
-        Task { @MainActor [weak self] in
-            guard let self else { return }
-            withAnimation { [weak self] in
-                guard let self else { return }
-                statusButtonConfig = StatusButtonConfig(tunnelStatus: lastTunnelStatus, hasInternet: hasInternet)
-                statusInfoState = StatusInfoState(hasInternet: hasInternet)
-            }
-        }
-    }
-
     func fetchCountries() {
         countriesManager.fetchCountries()
     }
@@ -357,6 +308,10 @@ extension HomeViewModel {
                 statusInfoState = .error(message: lastError.localizedDescription)
             } else {
                 statusInfoState = StatusInfoState(tunnelStatus: newStatus, isOnline: networkMonitor.isAvailable)
+            }
+
+            if newStatus == .connected {
+                resetStatusInfoState()
             }
         }
     }
