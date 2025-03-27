@@ -356,6 +356,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		tunnel?.onStateChange(state)
 	}
 
+	// Separate service to keep app/state machine active even after tunnel shutdown so we can keep retrying new connections
 	internal class StateMachineService : LifecycleService() {
 
 		private val notificationManager = NotificationManager.getInstance(this)
@@ -406,6 +407,8 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 			return super.onStartCommand(intent, flags, startId)
 		}
 
+		// Forever wakelock required to keep bandwidth controller websocket connection alive
+		// Once bandwidth controller is changes from persistent connection, we can remove to save battery
 		private fun initWakeLock() {
 			wakeLock = (getSystemService(POWER_SERVICE) as PowerManager).run {
 				val tag = this.javaClass.name
@@ -499,6 +502,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 				addRoute("::", 0)
 
 				// disable calculated routes for now because we bypass mixnet socket
+				// may be useful in the future
 				// addRoutes(config, calculator)
 
 				setMtu(config.mtu.toInt())

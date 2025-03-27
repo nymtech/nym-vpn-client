@@ -41,8 +41,10 @@ android {
 			useSupportLibrary = true
 		}
 
+		// for in-app language selector
 		buildConfigField("String[]", "LANGUAGES", "new String[]{ ${languageList().joinToString(separator = ", ") { "\"$it\"" }} }")
 
+		// for useragent core lib property
 		buildConfigField("String", "COMMIT_HASH", "\"${grgitService.service.get().grgit.head().id}\"")
 		buildConfigField("Boolean", "IS_PRERELEASE", "false")
 		proguardFile("fdroid-rules.pro")
@@ -79,6 +81,7 @@ android {
 			isDebuggable = false
 			isMinifyEnabled = true
 			isShrinkResources = true
+			// reproducibility
 			vcsInfo.include = false
 			proguardFiles(
 				getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -151,6 +154,7 @@ android {
 		allowUrl(Constants.XZING_LICENSE_URL)
 	}
 
+	// for git hash
 	gross { enableAndroidAssetGeneration.set(true) }
 
 	buildFeatures {
@@ -165,6 +169,9 @@ android {
 		jniLibs.keepDebugSymbols.add("**/*.so")
 	}
 
+	/* TODO add support for more ABIs in the future
+	There were issues getting our native deps to build for other android architectures, so we focused on arm64-v8a
+	 */
 	if (isBundleBuild()) {
 		defaultConfig.ndk.abiFilters("arm64-v8a")
 	}

@@ -1,6 +1,6 @@
 ## Release
 
-This doc describes how to release a new version of the NymVPN \
+This doc describes how to release a new version of the NymVPN
 Android app.
 
 ### Types of releases
@@ -12,7 +12,13 @@ Release tags must follow the following patterns:
 - RC `nym-vpn-android-v1.2.3-rc.1`
 - nightly `nym-vpn-android-nightly`
 
+> **_NOTE:_**  Nightly releases are triggered on via a scheduled cron job and build from the the `develop` branch.
+
 ### Bump versions
+
+> **_IMPORTANT:_**  Version changes should never land in develop unless being cherry-picked from a release branch after a release.
+>
+> This is because a version code/name change will trigger a Fdroid automatic update. We only want this to occur after a successful release from a release branch.
 
 1. Navigate to the file `buildSrc/src/main/kotlin/Constants.kt` \
    and update the version name and version code.
@@ -36,11 +42,11 @@ Go to the workflow
    [publish-nym-vpn-android](https://github.com/nymtech/nym-vpn-client/actions/workflows/publish-nym-vpn-android.yml)
    and click on the _Run workflow_ button
 
-> When creating a **stable** release, this will automatically publish to the [F-Droid official](https://f-droid.org/) \
-and [Nym's F-Droid](https://github.com/nymtech/fdroid) repositories by matching against the GitHub release tag name. \
-[F-Droid official](https://f-droid.org/) takes roughly one week for the new version to be available in the store. Progress \
-can be monitored using the [F-Droid monitor](https://monitor.f-droid.org/builds). [Nym's F-Droid](https://github.com/nymtech/fdroid) should have \
-the new version available for download almost immediately upon it being published to GitHub.
+> **_NOTE:_** When creating a **stable** GitHub release, this will automatically publish to [Nym's F-Droid](https://github.com/nymtech/fdroid) repository \
+by matching against the GitHub release tag name and to  the [F-Droid official](https://f-droid.org/) repository by matching against \
+version code/name/tag. [F-Droid official](https://f-droid.org/) takes roughly one week for the new version to be available in the store. \
+Progress can be monitored using the [F-Droid monitor](https://monitor.f-droid.org/builds). [Nym's F-Droid](https://github.com/nymtech/fdroid) should have \
+the new version available for download almost immediately when the version is published to GitHub.
 
 1. Select the branch from which the release should be made \
    (including the version bump changes)
@@ -66,16 +72,22 @@ publishing app metadata to Google Play. This is useful when there are errors wit
 missing localization files or screenshots that are blocking a deployment or when \
 publishing a preproduction app version.
 
-5. Enter in `Tag name for release` the tag name following the release tag naming \
+5. `Publish accrescent` checkbox would typically only apply on **stable** releases. \
+Checking this box will trigger a job on release to create a `.apks` file from the release \
+bundle which is the file type the [Accrescent](https://accrescent.app/) store expects. This \
+file can then needs to be downloaded from the workflow and uploaded to the \
+[Accrescent console](https://console.accrescent.app/login). If you do not already have access, \
+access can be gained by emailing the Accrescent developer and requesting access.
+
+6. Enter in `Tag name for release` the tag name following the release tag naming \
 convention highlighted above.
 
-6. Select in `GitHub release type` the release type for the release to GitHub \
-   (subsequently to F-Droid as well).
+7. Select in `GitHub release type` the release type for the release to GitHub \
    * _release_ is for a **stable** releases
    * _prerelease_ is for any dev or RC release
    * _nightly_ is for triggering a nightly release manually
    * _none_ skips GitHub release
 
-7. When everything is correct, click _Run workflow_.
+8. When everything is correct, click _Run workflow_.
 
 

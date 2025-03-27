@@ -10,8 +10,6 @@ plugins {
 
 android {
 
-	project.tasks.preBuild.dependsOn(Constants.BUILD_LIB_TASK)
-
 	lint {
 		disable.add("UnsafeOptInUsageError")
 	}
@@ -84,8 +82,9 @@ android {
 }
 
 dependencies {
-
+	// for allowsIps calculator (future)
 	implementation(project(":ip-calculator"))
+	// for monitoring network offline status
 	implementation(project(":connectivity"))
 	implementation(libs.androidx.lifecycle.service)
 	coreLibraryDesugaring(libs.com.android.tools.desugar)
@@ -114,6 +113,7 @@ dependencies {
 	detektPlugins(libs.detekt.rules.compose)
 }
 
+// this task builds the native core from source and moves the files to the jniLibs dir
 tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
 	if (project.hasProperty(Constants.BUILD_LIB_TASK) &&
 		project.property(Constants.BUILD_LIB_TASK) == "false"
@@ -133,4 +133,14 @@ tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
 	} else {
 		commandLine("bash").args(script, ndkPath)
 	}
+}
+
+tasks.named("preBuild") {
+	dependsOn(Constants.BUILD_LIB_TASK)
+}
+
+tasks.register<CleanJniLibsTask>("cleanJniLibs")
+
+tasks.named("clean") {
+	dependsOn("cleanJniLibs")
 }
