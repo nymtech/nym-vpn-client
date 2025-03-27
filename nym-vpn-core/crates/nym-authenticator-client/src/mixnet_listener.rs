@@ -29,18 +29,19 @@ pub struct AuthClientsMixnetListener {
 }
 
 impl AuthClientsMixnetListener {
-    pub fn new(
-        mixnet_client: SharedMixnetClient,
-        external_cancel_token: Option<CancellationToken>,
-    ) -> Self {
+    pub fn new(mixnet_client: SharedMixnetClient) -> Self {
         let (message_broadcast, _) = broadcast::channel(100);
-        let external_cancel_token = external_cancel_token.unwrap_or_else(CancellationToken::new);
         Self {
             mixnet_client,
             message_broadcast,
-            external_cancel_token,
+            external_cancel_token: CancellationToken::new(),
             internal_cancel_token: CancellationToken::new(),
         }
+    }
+
+    pub fn with_external_cancel_token(mut self, external_cancel_token: CancellationToken) -> Self {
+        self.external_cancel_token = external_cancel_token;
+        self
     }
 
     pub fn subscribe(&self) -> broadcast::Receiver<ReconstructedMessage> {

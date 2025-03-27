@@ -111,14 +111,16 @@ impl Connector {
         let exit_version = selected_gateways.exit.version.clone().into();
         tracing::debug!("Exit gateway version: {exit_version}");
 
+        // Start the auth clients mixnet listener, which will listen for incoming messages from the
+        // mixnet and rebroadcast them to the auth clients.
         let auth_clients_mixnet_listener_handle =
-            AuthClientsMixnetListener::new(mixnet_client.clone(), cancel_token.child_token())
+            AuthClientsMixnetListener::new(mixnet_client.clone())
+                .with_external_cancel_token(cancel_token.clone())
                 .start();
-        let mixnet_listener = auth_clients_mixnet_listener_handle.subscribe();
 
         let auth_client = AuthClient::new(
             mixnet_client.split_sender().await,
-            mixnet_listener,
+            auth_clients_mixnet_listener_handle.subscribe(),
             mixnet_client.stats_sender().await,
             mixnet_client.nym_address().await,
         )

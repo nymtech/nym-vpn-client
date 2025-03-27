@@ -315,7 +315,7 @@ impl Probe {
         {
             // Start the mixnet listener that the auth clients use to receive messages.
             let mixnet_listener_task =
-                AuthClientsMixnetListener::new(shared_client.clone(), None).start();
+                AuthClientsMixnetListener::new(shared_client.clone()).start();
             let mixnet_listener = mixnet_listener_task.subscribe();
 
             let outcome = wg_probe(
