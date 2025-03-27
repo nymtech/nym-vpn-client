@@ -126,13 +126,13 @@ else
 fi
 
 # -----------------------------------------------------------------------------
-# 4. Update the libVersion in AppVersionProvider.swift with LIB_VERSION (with timestamp).
+# 4. Update the libVersion in AppVersionProvider.swift (remove timestamp from beta/dev versions only)
 # -----------------------------------------------------------------------------
-LIB_VERSION_NO_TIMESTAMP=$(echo "$LIB_VERSION" | sed -E 's/\.[^.]+$//')
+LIB_VERSION_NO_TIMESTAMP=$(echo "$LIB_VERSION" | sed -E 's/(\-(dev|beta))\.[0-9]{12}$/\1/')
 
 app_version_file="../ServicesMutual/Sources/AppVersionProvider/AppVersionProvider.swift"
 if [[ -f "$app_version_file" ]]; then
-    sed -i '' "s/public static let libVersion = \".*\"/public static let libVersion = \"$LIB_VERSION_NO_TIMESTAMP\"/g" "$app_version_file"
+    sed -i '' -E 's|(public static let libVersion = ")[^"]*(")|\1'"$LIB_VERSION_NO_TIMESTAMP"'\2|' "$app_version_file"
     echo "✅ libVersion updated to $LIB_VERSION_NO_TIMESTAMP in $app_version_file."
 else
     echo "❌ Error: AppVersionProvider.swift file not found at $app_version_file"
@@ -234,5 +234,11 @@ fi
 echo "Cleaning up..."
 rm -f "$ios_zip_file"
 rm -rf "$extracted_folder"
+
+# -----------------------------------------------------------------------------
+# 7. Update daemon info.plist
+# -----------------------------------------------------------------------------
+sh UpdateDaemonInfoPlist.sh ${DAEMON_VERSION}
+
 echo "✅ Cleanup completed."
 echo "✅ Update completed successfully for nightly build (LIB_VERSION: $LIB_VERSION, Daemon: $DAEMON_VERSION)."
