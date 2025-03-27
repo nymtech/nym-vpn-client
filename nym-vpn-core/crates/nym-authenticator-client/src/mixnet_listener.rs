@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use futures::StreamExt;
 use nym_mixnet_client::SharedMixnetClient;
-use nym_sdk::mixnet::{ClientStatsSender, MixnetClientSender, Recipient, ReconstructedMessage};
+use nym_sdk::mixnet::ReconstructedMessage;
 use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -113,12 +113,11 @@ pub struct AuthClientMixnetListenerHandle {
 
 impl AuthClientMixnetListenerHandle {
     pub async fn new_auth_client(&self) -> AuthClient {
-        AuthClient::new_from(
-            MixnetInteraction::new(
-                self.mixnet_client.clone(),
-                self.message_broadcast.subscribe(),
-            )
-            .await,
+        AuthClient::new(
+            self.mixnet_client.split_sender().await,
+            self.message_broadcast.subscribe(),
+            self.mixnet_client.stats_sender().await,
+            self.mixnet_client.nym_address().await,
         )
         .await
     }
@@ -143,28 +142,6 @@ impl AuthClientMixnetListenerHandle {
     pub async fn wait(self) {
         if let Err(err) = self.handle.await {
             tracing::error!("Error while waiting for auth clients mixnet listener to stop: {err}");
-        }
-    }
-}
-
-// Bundle the components used to interact with the mixnet
-pub struct MixnetInteraction {
-    pub sender: MixnetClientSender,
-    pub receiver: MixnetMessageBroadcastReceiver,
-    pub stats_sender: ClientStatsSender,
-    pub our_nym_address: Recipient,
-}
-
-impl MixnetInteraction {
-    pub async fn new(
-        shared_mixnet_client: SharedMixnetClient,
-        receiver: MixnetMessageBroadcastReceiver,
-    ) -> Self {
-        Self {
-            sender: shared_mixnet_client.split_sender().await,
-            receiver,
-            stats_sender: shared_mixnet_client.stats_sender().await,
-            our_nym_address: shared_mixnet_client.nym_address().await,
         }
     }
 }
