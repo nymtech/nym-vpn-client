@@ -9,16 +9,18 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+bincode.workspace = true
+futures.workspace = true
 nym-authenticator-requests.workspace = true
 nym-credentials-interface.workspace = true
 nym-crypto.workspace = true
-nym-service-provider-requests-common.workspace = true
 nym-sdk.workspace = true
+nym-service-provider-requests-common.workspace = true
 nym-wireguard-types.workspace = true
-bincode.workspace = true
-tracing.workspace = true
-thiserror.workspace = true
-tokio.workspace = true
 semver.workspace = true
+thiserror.workspace = true
+tokio-util.workspace = true
+tokio.workspace = true
+tracing.workspace = true
 
 nym-mixnet-client = { workspace = true }

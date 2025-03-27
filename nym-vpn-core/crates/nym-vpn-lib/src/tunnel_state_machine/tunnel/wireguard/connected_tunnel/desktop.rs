@@ -3,6 +3,7 @@
 
 use std::{error::Error as StdError, net::IpAddr};
 
+use nym_authenticator_client::WgGatewayMixnetListenerHandle;
 #[cfg(windows)]
 use tokio::sync::mpsc;
 use tokio::task::{JoinError, JoinHandle};
@@ -28,10 +29,7 @@ use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 use crate::tunnel_state_machine::tunnel::wireguard::fd::DupFd;
 use crate::{
     tunnel_state_machine::tunnel::{
-        wireguard::{
-            connector::{ConnectionData, WgGatewayMixnetListenerHandle},
-            two_hop_config::TwoHopConfig,
-        },
+        wireguard::{connector::ConnectionData, two_hop_config::TwoHopConfig},
         Error, Result, Tombstone,
     },
     wg_config::WgNodeConfig,

@@ -6,7 +6,9 @@ use std::path::PathBuf;
 use nym_vpn_network_config::Network;
 use tokio::{sync::broadcast, task::JoinHandle};
 
-use nym_authenticator_client::AuthClient;
+use nym_authenticator_client::{
+    AuthClient, WgGatewayMixnetListener, WgGatewayMixnetListenerHandle,
+};
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient};
 use nym_mixnet_client::SharedMixnetClient;
@@ -259,102 +261,4 @@ struct ConnectResult {
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
     wg_gateway_mixnet_listener_handle: WgGatewayMixnetListenerHandle,
-}
-
-// The WgGatewayMixnetListener listens to mixnet messages and rebroadcasts them to the
-// WgGatewayClients, or whoever else is interested.
-struct WgGatewayMixnetListener {
-    mixnet_client: SharedMixnetClient,
-    message_broadcast: broadcast::Sender<ReconstructedMessage>,
-
-    // Listen to cancel from the outside world
-    external_cancel_token: CancellationToken,
-
-    // Cancel this task, returning to initial state so it can be restarted
-    cancel_token: CancellationToken,
-}
-
-impl WgGatewayMixnetListener {
-    fn new(mixnet_client: SharedMixnetClient, external_cancel_token: CancellationToken) -> Self {
-        let (message_broadcast, _) = broadcast::channel(100);
-        let cancel_token = CancellationToken::new();
-        Self {
-            mixnet_client,
-            message_broadcast,
-            external_cancel_token,
-            cancel_token,
-        }
-    }
-
-    fn subscribe(&self) -> broadcast::Receiver<ReconstructedMessage> {
-        self.message_broadcast.subscribe()
-    }
-
-    async fn run(self) {
-        let mut mixnet_client = self.mixnet_client.lock().await.take().unwrap();
-        loop {
-            tokio::select! {
-                _ = self.external_cancel_token.cancelled() => {
-                    tracing::info!("Mixnet listener shutting down");
-                    break;
-                }
-                _ = self.cancel_token.cancelled() => {
-                    tracing::info!("Mixnet listener stopping and returning to initial state");
-                    break;
-                }
-                event = mixnet_client.next() => {
-                    match event {
-                        Some(event) => {
-                            if let Err(err) = self.message_broadcast.send(event) {
-                                tracing::error!("Failed to broadcast mixnet message: {err}");
-                            }
-                        }
-                        None => {
-                            tracing::error!("Mixnet client stream ended unexpectedly");
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-        self.mixnet_client.lock().await.replace(mixnet_client);
-    }
-
-    fn start(self) -> WgGatewayMixnetListenerHandle {
-        let mixnet_client = self.mixnet_client.clone();
-        let message_broadcast = self.message_broadcast.clone();
-        let external_canel_token = self.external_cancel_token.clone();
-        let cancel_token = self.cancel_token.clone();
-
-        let handle = tokio::spawn(self.run());
-
-        WgGatewayMixnetListenerHandle {
-            mixnet_client,
-            message_broadcast,
-            external_canel_token,
-            cancel_token,
-            handle,
-        }
-    }
-}
-
-pub(super) struct WgGatewayMixnetListenerHandle {
-    mixnet_client: SharedMixnetClient,
-    message_broadcast: broadcast::Sender<ReconstructedMessage>,
-    external_canel_token: CancellationToken,
-    cancel_token: CancellationToken,
-    handle: JoinHandle<()>,
-}
-
-impl WgGatewayMixnetListenerHandle {
-    pub(super) async fn cancel(self) -> WgGatewayMixnetListener {
-        self.cancel_token.cancel();
-        self.handle.await.unwrap();
-        WgGatewayMixnetListener {
-            mixnet_client: self.mixnet_client,
-            message_broadcast: self.message_broadcast,
-            external_cancel_token: self.external_canel_token,
-            cancel_token: CancellationToken::new(),
-        }
-    }
 }
