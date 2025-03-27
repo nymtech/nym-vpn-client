@@ -15,7 +15,7 @@ use bytes::BytesMut;
 use clap::Args;
 use futures::StreamExt;
 use nym_authenticator_client::{
-    AuthenticatorResponse, AuthenticatorVersion, ClientMessage, WgGatewayMixnetListener,
+    AuthClientsMixnetListener, AuthenticatorResponse, AuthenticatorVersion, ClientMessage,
 };
 use nym_authenticator_requests::{v2, v3, v4, v5};
 use nym_client_core::config::ForgetMe;
@@ -314,11 +314,9 @@ impl Probe {
             (node_info.authenticator_address, node_info.ip_address)
         {
             // Start the mixnet listener that the auth clients use to receive messages.
-            let cancel_token = CancellationToken::new();
-            let wg_gw_mixnet_listener =
-                WgGatewayMixnetListener::new(shared_client.clone(), cancel_token);
-            let mixnet_listener = wg_gw_mixnet_listener.subscribe();
-            let wg_gw_mixnet_listener_handle = wg_gw_mixnet_listener.start();
+            let mixnet_listener_task =
+                AuthClientsMixnetListener::new(shared_client.clone(), None).start();
+            let mixnet_listener = mixnet_listener_task.subscribe();
 
             let outcome = wg_probe(
                 authenticator,
@@ -332,7 +330,7 @@ impl Probe {
             .await
             .unwrap_or_default();
 
-            let _ = wg_gw_mixnet_listener_handle.cancel().await;
+            let _ = mixnet_listener_task.cancel().await;
 
             outcome
         } else {

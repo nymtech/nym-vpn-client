@@ -7,7 +7,7 @@ use nym_vpn_network_config::Network;
 use tokio::task::JoinHandle;
 
 use nym_authenticator_client::{
-    AuthClient, WgGatewayMixnetListener, WgGatewayMixnetListenerHandle,
+    AuthClient, AuthClientsMixnetListener, AuthClientsMixnetListenerHandle,
 };
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient};
@@ -75,7 +75,7 @@ impl Connector {
                 connect_result.exit_gateway_client,
                 connect_result.connection_data,
                 connect_result.bandwidth_controller_handle,
-                connect_result.wg_gateway_mixnet_listener_handle,
+                connect_result.auth_clients_mixnet_listener_handle,
             )),
             Err(e) => Err(ConnectorError::new(
                 e,
@@ -111,19 +111,16 @@ impl Connector {
         let exit_version = selected_gateways.exit.version.clone().into();
         tracing::debug!("Exit gateway version: {exit_version}");
 
-        let wg_gateway_mixnet_listener =
-            WgGatewayMixnetListener::new(mixnet_client.clone(), cancel_token.child_token());
-        let mixnet_listener = wg_gateway_mixnet_listener.subscribe();
-        let wg_gateway_mixnet_listener_handle = wg_gateway_mixnet_listener.start();
+        let auth_clients_mixnet_listener_handle =
+            AuthClientsMixnetListener::new(mixnet_client.clone(), cancel_token.child_token())
+                .start();
+        let mixnet_listener = auth_clients_mixnet_listener_handle.subscribe();
 
-        let mixnet_sender = mixnet_client.split_sender().await;
-        let stats_sender = mixnet_client.stats_sender().await;
-        let our_nym_address = mixnet_client.nym_address().await;
         let auth_client = AuthClient::new(
-            mixnet_sender,
+            mixnet_client.split_sender().await,
             mixnet_listener,
-            stats_sender,
-            our_nym_address,
+            mixnet_client.stats_sender().await,
+            mixnet_client.nym_address().await,
         )
         .await;
 
@@ -237,7 +234,7 @@ impl Connector {
             exit_gateway_client: wg_exit_gateway_client,
             connection_data,
             bandwidth_controller_handle,
-            wg_gateway_mixnet_listener_handle,
+            auth_clients_mixnet_listener_handle,
         })
     }
 
@@ -266,5 +263,5 @@ struct ConnectResult {
     exit_gateway_client: WgGatewayClient,
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
-    wg_gateway_mixnet_listener_handle: WgGatewayMixnetListenerHandle,
+    auth_clients_mixnet_listener_handle: AuthClientsMixnetListenerHandle,
 }
