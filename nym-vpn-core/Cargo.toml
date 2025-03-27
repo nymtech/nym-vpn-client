@@ -63,6 +63,7 @@ default-members = [
 # nym-pemstore = { path = "../../nym/common/pemstore" }
 # nym-service-provider-requests-common = { path = "../../nym/common/service-provider-requests-common" }
 # nym-sdk = { path = "../../nym/sdk/rust/nym-sdk" }
+# nym-sphinx-params = { path = "../../nym/sdk/rust/nymsphinx/params" }
 # nym-statistics-common = { path = "../../nym/common/statistics" }
 # nym-task = { path = "../../nym/common/task" }
 # nym-topology = { path = "../../nym/common/topology" }
@@ -235,6 +236,7 @@ nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2025.
 nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.5-chokito" }
 nym-sdk = { git = "https://github.com/nymtech/nym", branch = "release/2025.5-chokito" }
 nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.5-chokito" }
+nym-sphinx-params = { git = "https://github.com/nymtech/nym", branch = "release/2025.5-chokito" }
 nym-task = { git = "https://github.com/nymtech/nym", branch = "release/2025.5-chokito" }
 nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2025.5-chokito" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.5-chokito" }

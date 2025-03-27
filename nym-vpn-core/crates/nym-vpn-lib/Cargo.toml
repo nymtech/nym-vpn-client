@@ -65,6 +65,7 @@ nym-ip-packet-client.workspace = true
 nym-macos.workspace = true
 nym-mixnet-client.workspace = true
 nym-offline-monitor.workspace = true
+nym-sphinx-params.workspace = true
 nym-vpn-account-controller.workspace = true
 nym-vpn-api-client.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }

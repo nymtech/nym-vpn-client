@@ -43,6 +43,7 @@ fn apply_mixnet_client_config(
         disable_background_cover_traffic,
         min_mixnode_performance,
         min_gateway_performance,
+        primary_packet_size,
     } = mixnet_client_config;
 
     tracing::info!(
@@ -73,6 +74,14 @@ fn apply_mixnet_client_config(
     }
     tracing::info!(
         "mixnet client minimum gateway performance: {}",
+        debug_config.topology.minimum_gateway_performance,
+    );
+
+    if let Some(packet_size) = primary_packet_size {
+        debug_config.traffic.primary_packet_size = *packet_size;
+    }
+    tracing::debug!(
+        "mixnet client primary sphinx packet size: {}",
         debug_config.topology.minimum_gateway_performance,
     );
 }

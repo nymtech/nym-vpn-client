@@ -600,6 +600,7 @@ where
             min_gateway_performance: options
                 .min_gateway_mixnet_performance
                 .map(|p| p.round_to_integer()),
+            primary_packet_size: None,
         };
 
         let tunnel_type = if options.enable_two_hop {

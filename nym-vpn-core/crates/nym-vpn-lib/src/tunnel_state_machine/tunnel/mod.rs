@@ -200,6 +200,8 @@ pub async fn connect_mixnet(
             mixnet_client_config.disable_poisson_rate = true;
             // Always disable background cover traffic in wireguard.
             mixnet_client_config.disable_background_cover_traffic = false;
+            // try larger packet size to reduce the number of packets used for control channel;
+            mixnet_client_config.primary_packet_size = Some(nym_sphinx_params::PacketSize::ExtendedPacket32);
         }
     };
 
