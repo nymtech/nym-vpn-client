@@ -77,6 +77,13 @@ impl SharedMixnetClient {
         self.connection_fd_callback.clone()
     }
 
+    // If the mixnet client does NOT have an external task manager, call this method to disconnect.
+    pub async fn disconnect(&self) {
+        let mixnet_client = self.lock().await.take().unwrap();
+        mixnet_client.disconnect().await;
+    }
+
+    // If the mixnet does have an external task manager, call this method to dispose.
     pub async fn dispose(self) {
         // A mixnet client that has an external task manager is dropped to disconnect.
         self.lock().await.take();

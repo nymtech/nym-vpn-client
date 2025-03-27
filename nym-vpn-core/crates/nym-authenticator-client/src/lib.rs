@@ -17,7 +17,6 @@ use nym_sdk::mixnet::{
 };
 use nym_service_provider_requests_common::ServiceProviderType;
 use nym_wireguard_types::PeerPublicKey;
-use tokio::sync::broadcast;
 use tracing::{debug, error};
 
 mod error;
@@ -25,7 +24,10 @@ mod mixnet_listener;
 
 pub use crate::{
     error::{Error, Result},
-    mixnet_listener::{AuthClientsMixnetListener, AuthClientsMixnetListenerHandle},
+    mixnet_listener::{
+        AuthClientMixnetListener, AuthClientMixnetListenerHandle, MixnetInteraction,
+        MixnetMessageBroadcastReceiver,
+    },
 };
 
 pub trait Versionable {
@@ -1024,7 +1026,7 @@ impl From<semver::Version> for AuthenticatorVersion {
 }
 
 pub struct AuthClient {
-    mixnet_listener: broadcast::Receiver<ReconstructedMessage>,
+    mixnet_listener: MixnetMessageBroadcastReceiver,
     mixnet_sender: MixnetClientSender,
     stats_sender: ClientStatsSender,
     our_nym_address: Recipient,
@@ -1044,7 +1046,7 @@ impl Clone for AuthClient {
 impl AuthClient {
     pub async fn new(
         mixnet_sender: MixnetClientSender,
-        mixnet_listener: broadcast::Receiver<ReconstructedMessage>,
+        mixnet_listener: MixnetMessageBroadcastReceiver,
         stats_sender: ClientStatsSender,
         our_nym_address: Recipient,
     ) -> Self {
@@ -1054,6 +1056,16 @@ impl AuthClient {
             stats_sender,
             our_nym_address,
         }
+    }
+
+    pub async fn new_from(mixnet_interaction: MixnetInteraction) -> Self {
+        Self::new(
+            mixnet_interaction.sender,
+            mixnet_interaction.receiver,
+            mixnet_interaction.stats_sender,
+            mixnet_interaction.our_nym_address,
+        )
+        .await
     }
 
     pub async fn send(

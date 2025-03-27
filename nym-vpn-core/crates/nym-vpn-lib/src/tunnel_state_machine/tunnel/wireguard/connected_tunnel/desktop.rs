@@ -3,7 +3,7 @@
 
 use std::{error::Error as StdError, net::IpAddr};
 
-use nym_authenticator_client::AuthClientsMixnetListenerHandle;
+use nym_authenticator_client::AuthClientMixnetListenerHandle;
 #[cfg(windows)]
 use tokio::sync::mpsc;
 use tokio::task::{JoinError, JoinHandle};
@@ -41,7 +41,7 @@ pub struct ConnectedTunnel {
     exit_gateway_client: WgGatewayClient,
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
-    auth_clients_mixnet_listener_handle: AuthClientsMixnetListenerHandle,
+    auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
 }
 
 impl ConnectedTunnel {
@@ -51,7 +51,7 @@ impl ConnectedTunnel {
         exit_gateway_client: WgGatewayClient,
         connection_data: ConnectionData,
         bandwidth_controller_handle: JoinHandle<()>,
-        auth_clients_mixnet_listener_handle: AuthClientsMixnetListenerHandle,
+        auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
     ) -> Self {
         Self {
             task_manager,
@@ -59,7 +59,7 @@ impl ConnectedTunnel {
             exit_gateway_client,
             connection_data,
             bandwidth_controller_handle,
-            auth_clients_mixnet_listener_handle,
+            auth_client_mixnet_listener_handle,
         }
     }
 
@@ -207,7 +207,7 @@ impl ConnectedTunnel {
             shutdown_token,
             event_handler_task,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
-            auth_clients_mixnet_listener_handle: self.auth_clients_mixnet_listener_handle,
+            auth_client_mixnet_listener_handle: self.auth_client_mixnet_listener_handle,
             #[cfg(windows)]
             wintun_entry_interface: Some(wintun_entry_interface),
             #[cfg(windows)]
@@ -320,7 +320,7 @@ impl ConnectedTunnel {
             shutdown_token,
             event_handler_task,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
-            auth_clients_mixnet_listener_handle: self.auth_clients_mixnet_listener_handle,
+            auth_client_mixnet_listener_handle: self.auth_client_mixnet_listener_handle,
             #[cfg(windows)]
             wintun_entry_interface: None,
             #[cfg(windows)]
@@ -444,7 +444,7 @@ pub struct TunnelHandle {
     shutdown_token: CancellationToken,
     event_handler_task: JoinHandle<Tombstone>,
     bandwidth_controller_handle: JoinHandle<()>,
-    auth_clients_mixnet_listener_handle: AuthClientsMixnetListenerHandle,
+    auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
     #[cfg(windows)]
     wintun_entry_interface: Option<WintunInterface>,
     #[cfg(windows)]
@@ -480,7 +480,7 @@ impl TunnelHandle {
         // No need to call cancel on auth_clients_mixnet_listener_handle as its external
         // cancel_token should already be cancelled by the time we reach this point.
         // We just need to wait for the task to finish.
-        self.auth_clients_mixnet_listener_handle.wait().await;
+        self.auth_client_mixnet_listener_handle.wait().await;
 
         self.event_handler_task.await
     }

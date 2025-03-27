@@ -6,9 +6,7 @@ use std::path::PathBuf;
 use nym_vpn_network_config::Network;
 use tokio::task::JoinHandle;
 
-use nym_authenticator_client::{
-    AuthClient, AuthClientsMixnetListener, AuthClientsMixnetListenerHandle,
-};
+use nym_authenticator_client::{AuthClientMixnetListener, AuthClientMixnetListenerHandle};
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient};
 use nym_mixnet_client::SharedMixnetClient;
@@ -75,7 +73,7 @@ impl Connector {
                 connect_result.exit_gateway_client,
                 connect_result.connection_data,
                 connect_result.bandwidth_controller_handle,
-                connect_result.auth_clients_mixnet_listener_handle,
+                connect_result.auth_client_mixnet_listener_handle,
             )),
             Err(e) => Err(ConnectorError::new(
                 e,
@@ -111,20 +109,13 @@ impl Connector {
         let exit_version = selected_gateways.exit.version.clone().into();
         tracing::debug!("Exit gateway version: {exit_version}");
 
-        // Start the auth clients mixnet listener, which will listen for incoming messages from the
+        // Start the auth client mixnet listener, which will listen for incoming messages from the
         // mixnet and rebroadcast them to the auth clients.
-        let auth_clients_mixnet_listener_handle =
-            AuthClientsMixnetListener::new(mixnet_client.clone())
-                .with_external_cancel_token(cancel_token.clone())
-                .start();
+        let mixnet_listener = AuthClientMixnetListener::new(mixnet_client.clone())
+            .with_external_cancel_token(cancel_token.clone())
+            .start();
 
-        let auth_client = AuthClient::new(
-            mixnet_client.split_sender().await,
-            auth_clients_mixnet_listener_handle.subscribe(),
-            mixnet_client.stats_sender().await,
-            mixnet_client.nym_address().await,
-        )
-        .await;
+        let auth_client = mixnet_listener.new_auth_client().await;
 
         let mut wg_entry_gateway_client = if enable_credentials_mode {
             WgGatewayClient::new_free_entry(
@@ -236,7 +227,7 @@ impl Connector {
             exit_gateway_client: wg_exit_gateway_client,
             connection_data,
             bandwidth_controller_handle,
-            auth_clients_mixnet_listener_handle,
+            auth_client_mixnet_listener_handle: mixnet_listener,
         })
     }
 
@@ -265,5 +256,5 @@ struct ConnectResult {
     exit_gateway_client: WgGatewayClient,
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
-    auth_clients_mixnet_listener_handle: AuthClientsMixnetListenerHandle,
+    auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
 }
