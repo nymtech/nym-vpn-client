@@ -55,10 +55,10 @@ async function setSplashTheme(window: WebviewWindow) {
   let isDarkMode = false;
 
   const mode = await kvGet<ThemeMode>('ui-theme');
-  if (mode === 'Dark') {
+  if (mode === 'dark') {
     isDarkMode = true;
   }
-  if (!mode || mode === 'System') {
+  if (!mode || mode === 'system') {
     const theme = await window.theme();
     if (theme === 'dark') {
       isDarkMode = true;

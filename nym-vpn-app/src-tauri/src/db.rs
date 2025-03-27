@@ -147,10 +147,7 @@ impl Db {
             .get_raw(key)?
             .map(|v| serde_json::from_slice::<T>(&v))
             .transpose()
-            .map_err(|e| {
-                error!("failed to deserialize value for key [{key}]: {e}");
-                DbError::Deserialize(e)
-            });
+            .map_err(DbError::Deserialize);
 
         Db::get_log(key, &res);
         self.discard_deserialize(key, res)
@@ -163,10 +160,7 @@ impl Db {
             .get_raw(key)?
             .map(|v| serde_json::from_slice::<Value>(&v))
             .transpose()
-            .map_err(|e| {
-                error!("failed to deserialize value for key [{key}]: {e}");
-                DbError::Deserialize(e)
-            });
+            .map_err(DbError::Deserialize);
 
         Db::get_log(key, &res);
         self.discard_deserialize(key, res)

@@ -47,10 +47,10 @@ export type AppState = {
   progressMessages: ConnectProgressMsg[];
   tunnelConnectedAt?: Dayjs | null;
   vpnMode: VpnMode;
-  // `UiTheme` is the current applied theme to the UI, that is either `Dark` or `Light`
+  // `UiTheme` is the current applied theme to the UI, that is either `dark` or `light`
   uiTheme: UiTheme;
-  // `themeMode` is the current user selected mode, could be `System`, `Dark` or `Light`
-  //  if `System` is selected, the app follows the system theme
+  // `themeMode` is the current user selected mode, could be `system`, `dark` or `light`
+  //  if `system` is selected, the app follows the system theme
   themeMode: ThemeMode;
   autostart: boolean;
   autoConnect: boolean;

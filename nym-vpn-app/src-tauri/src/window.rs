@@ -11,12 +11,15 @@ use tracing::{debug, error, instrument, warn};
 use ts_rs::TS;
 
 const MAIN_WEBVIEW_URL: &str = "index.html";
-const BG_COLOR_LIGHT: [u8; 3] = [242, 244, 246]; // #F2F4F6
-const BG_COLOR_DARK: [u8; 3] = [28, 27, 31]; // #1C1B1F
+// ⚠ keep those in sync with the theme definition in `src/styles.css`
+const BG_COLOR_LIGHT: [u8; 3] = [235, 238, 244]; // #ebeef4
+const BG_COLOR_DARK: [u8; 3] = [36, 43, 45]; // #242b2d
 
 pub struct AppWindow(pub WebviewWindow);
 
-#[derive(Deserialize, Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, TS)]
+#[serde(rename_all = "lowercase")]
+#[ts(export)]
 enum UiTheme {
     #[default]
     System,
@@ -25,7 +28,9 @@ enum UiTheme {
 }
 
 /// concrete UI mode
-#[derive(Debug, Default)]
+#[derive(Serialize, Deserialize, Debug, Default, TS)]
+#[serde(rename_all = "lowercase")]
+#[ts(export)]
 enum UiMode {
     #[default]
     Light,

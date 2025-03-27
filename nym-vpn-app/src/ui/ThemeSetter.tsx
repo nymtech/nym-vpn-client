@@ -10,7 +10,7 @@ export default function ThemeSetter({
   const { uiTheme } = useMainState();
 
   return (
-    <div className={clsx([uiTheme === 'Dark' && 'dark', 'h-full'])}>
+    <div className={clsx([uiTheme === 'dark' && 'dark', 'h-full'])}>
       {children}
     </div>
   );

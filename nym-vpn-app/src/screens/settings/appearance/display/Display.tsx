@@ -5,8 +5,9 @@ import { getCurrentWindow } from '@tauri-apps/api/window';
 import { useMainDispatch, useMainState } from '../../../../contexts';
 import { kvSet } from '../../../../kvStore';
 import { useSystemTheme } from '../../../../state';
-import { StateDispatch, ThemeMode } from '../../../../types';
+import { StateDispatch, ThemeMode, UiTheme } from '../../../../types';
 import { PageAnim, RadioGroup, RadioGroupOption } from '../../../../ui';
+import { ColorMainBgDark, ColorMainBgLight } from '../../../../constants';
 import UiScaler from './UiScaler';
 
 function Display() {
@@ -20,7 +21,7 @@ function Display() {
     if (mode !== state.themeMode) {
       dispatch({
         type: 'set-ui-theme',
-        theme: mode === 'System' ? systemTheme : mode,
+        theme: mode === 'system' ? systemTheme : mode,
       });
       dispatch({
         type: 'set-theme-mode',
@@ -28,16 +29,16 @@ function Display() {
       });
       kvSet('ui-theme', mode);
       try {
-        let theme: 'Dark' | 'Light';
-        if (mode === 'System') {
+        let theme: UiTheme;
+        if (mode === 'system') {
           const window = getCurrentWindow();
           const systemTheme = await window.theme();
-          theme = systemTheme === 'dark' ? 'Dark' : 'Light';
+          theme = systemTheme === 'dark' ? 'dark' : 'light';
         } else {
           theme = mode;
         }
         await invoke('set_background_color', {
-          hexColor: theme === 'Dark' ? '#1C1B1F' : '#F2F4F6',
+          hexColor: theme === 'dark' ? ColorMainBgDark : ColorMainBgLight,
         });
         console.log('updated webview window background color');
       } catch (e) {
@@ -49,17 +50,17 @@ function Display() {
   const options = useMemo<RadioGroupOption<ThemeMode>[]>(() => {
     return [
       {
-        key: 'System',
+        key: 'system',
         label: t('options.system'),
         desc: t('system-desc'),
       },
       {
-        key: 'Light',
+        key: 'light',
         label: t('options.light'),
         className: 'min-h-11',
       },
       {
-        key: 'Dark',
+        key: 'dark',
         label: t('options.dark'),
         className: 'min-h-11',
       },

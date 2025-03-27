@@ -55,7 +55,7 @@ export default function TopBar() {
       <NymVpnTextLogo
         className={clsx(
           'w-24 h-6',
-          uiTheme === 'Dark' ? 'fill-white' : 'fill-ash',
+          uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
         )}
       />
     );

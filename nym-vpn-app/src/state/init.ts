@@ -34,7 +34,7 @@ const getInitialTunnelState = async () => {
 
 const getTheme = async () => {
   const winTheme: UiTheme =
-    (await getCurrentWebviewWindow().theme()) === 'dark' ? 'Dark' : 'Light';
+    (await getCurrentWebviewWindow().theme()) === 'dark' ? 'dark' : 'light';
   const themeMode = await kvGet<ThemeMode>('ui-theme');
   return { winTheme, themeMode };
 };
@@ -115,8 +115,8 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     name: 'getTheme',
     request: () => getTheme(),
     onFulfilled: ({ winTheme, themeMode }) => {
-      let uiTheme: UiTheme = 'Light';
-      if (themeMode === 'System') {
+      let uiTheme: UiTheme = 'light';
+      if (themeMode === 'system') {
         uiTheme = winTheme;
       } else {
         // if no theme has been saved, fallback to system theme

@@ -72,7 +72,7 @@ export const initialState: AppState = {
   networkEnv: 'mainnet',
   version: null,
   vpnMode: S_STATE.vpnModeAtStart,
-  uiTheme: 'Light',
+  uiTheme: 'light',
   themeMode: DefaultThemeMode,
   progressMessages: [],
   autostart: false,
@@ -225,7 +225,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
         themeMode: action.mode,
       };
     case 'system-theme-changed':
-      if (state.themeMode === 'System' && state.uiTheme !== action.theme) {
+      if (state.themeMode === 'system' && state.uiTheme !== action.theme) {
         return {
           ...state,
           uiTheme: action.theme,

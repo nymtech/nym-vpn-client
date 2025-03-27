@@ -107,7 +107,7 @@ export function useTauriEvents(
       console.log(`system theme changed: ${payload}`);
       dispatch({
         type: 'system-theme-changed',
-        theme: payload === 'dark' ? 'Dark' : 'Light',
+        theme: payload === 'dark' ? 'dark' : 'light',
       });
     });
   }, [dispatch]);
