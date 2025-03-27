@@ -10,14 +10,16 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
   const getBadgeStyle = (state: TunnelState) => {
     switch (state) {
       case 'Connected':
-        return ['text-malachite-moss dark:text-malachite'];
+        return ['text-malachite-moss dark:text-malachite bg-malachite/10!'];
       case 'Disconnected':
         return ['text-iron dark:text-bombay'];
+      case 'Connecting':
+      case 'Disconnecting':
+        return ['text-baltic-sea dark:text-white'];
       case 'Error':
       case 'Offline':
-        return ['text-aphrodisiac'];
-      default:
-        return ['text-baltic-sea dark:text-white'];
+      case 'OfflineAutoReconnect':
+        return ['text-white bg-aphrodisiac!'];
     }
   };
 
@@ -55,7 +57,6 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
       {(state === 'Connecting' || state === 'Disconnecting') && (
         <PulseDot color="cornflower" />
       )}
-      {state === 'OfflineAutoReconnect' && <PulseDot color="red" />}
     </motion.div>
   );
 }

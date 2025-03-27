@@ -1,12 +1,21 @@
 import clsx from 'clsx';
 
 export type PulseDotProps = {
-  color: 'cornflower' | 'red';
+  color: 'cornflower' | 'red' | 'yellow';
 };
 
-function PulseDot({ color }: PulseDotProps) {
-  const dotColor =
-    color === 'cornflower' ? 'bg-cornflower' : 'bg-rouge-ecarlate';
+function PulseDot({ color = 'cornflower' }: PulseDotProps) {
+  const dotColor = () => {
+    switch (color) {
+      case 'cornflower':
+        return 'bg-cornflower';
+      case 'red':
+        return 'bg-rouge-ecarlate';
+      case 'yellow':
+        return 'bg-[#f59e0b] dark:bg-king-nacho';
+    }
+  };
+
   return (
     <div
       className={clsx([
@@ -19,11 +28,11 @@ function PulseDot({ color }: PulseDotProps) {
       <div
         className={clsx(
           'animate-ping absolute h-full w-full rounded-full opacity-75',
-          dotColor,
+          dotColor(),
         )}
       />
       <div
-        className={clsx('relative rounded-full', 'h-[6px] w-[6px]', dotColor)}
+        className={clsx('relative rounded-full', 'h-[6px] w-[6px]', dotColor())}
       />
     </div>
   );

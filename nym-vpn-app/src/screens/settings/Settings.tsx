@@ -89,9 +89,7 @@ function Settings() {
       ) : (
         <Button
           onClick={() => navigate(routes.login)}
-          disabled={
-            import.meta.env.MODE !== 'dev-browser' && daemonStatus === 'down'
-          }
+          disabled={daemonStatus === 'down'}
         >
           {t('login-button')}
         </Button>

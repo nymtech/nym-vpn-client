@@ -95,7 +95,7 @@ function Button({
         'focus:outline-hidden',
         'transition data-disabled:opacity-60 data-active:ring-0',
         outline && 'data-hover:ring-1 data-hover:ring-malachite',
-        'shadow-sm tracking-normal cursor-default',
+        'tracking-normal cursor-default',
         colorStyle,
         className && className,
       ])}

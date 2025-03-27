@@ -92,7 +92,7 @@ function Toast({
                 type === 'error' &&
                   'border-2 text-aphrodisiac! dark:text-aphrodisiac! border-aphrodisiac',
                 type === 'warn' && 'border-2 border-king-nacho',
-                type === 'info' && 'border-2 border-bombay/90',
+                type === 'info' && 'border-2 border-iron dark:border-bombay',
               )}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
