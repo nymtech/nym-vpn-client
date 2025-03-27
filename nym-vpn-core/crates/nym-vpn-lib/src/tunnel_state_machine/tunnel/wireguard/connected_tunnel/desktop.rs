@@ -28,7 +28,10 @@ use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 use crate::tunnel_state_machine::tunnel::wireguard::fd::DupFd;
 use crate::{
     tunnel_state_machine::tunnel::{
-        wireguard::{connector::ConnectionData, two_hop_config::TwoHopConfig},
+        wireguard::{
+            connector::{ConnectionData, WgGatewayMixnetListenerHandle},
+            two_hop_config::TwoHopConfig,
+        },
         Error, Result, Tombstone,
     },
     wg_config::WgNodeConfig,
@@ -40,6 +43,7 @@ pub struct ConnectedTunnel {
     exit_gateway_client: WgGatewayClient,
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
+    wg_gw_mixnet_listener_handle: WgGatewayMixnetListenerHandle,
 }
 
 impl ConnectedTunnel {
@@ -49,6 +53,7 @@ impl ConnectedTunnel {
         exit_gateway_client: WgGatewayClient,
         connection_data: ConnectionData,
         bandwidth_controller_handle: JoinHandle<()>,
+        wg_gw_mixnet_listener_handle: WgGatewayMixnetListenerHandle,
     ) -> Self {
         Self {
             task_manager,
@@ -56,6 +61,7 @@ impl ConnectedTunnel {
             exit_gateway_client,
             connection_data,
             bandwidth_controller_handle,
+            wg_gw_mixnet_listener_handle,
         }
     }
 
@@ -203,6 +209,7 @@ impl ConnectedTunnel {
             shutdown_token,
             event_handler_task,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
+            wg_gw_mixnet_listener_handle: self.wg_gw_mixnet_listener_handle,
             #[cfg(windows)]
             wintun_entry_interface: Some(wintun_entry_interface),
             #[cfg(windows)]
@@ -315,6 +322,7 @@ impl ConnectedTunnel {
             shutdown_token,
             event_handler_task,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
+            wg_gw_mixnet_listener_handle: self.wg_gw_mixnet_listener_handle,
             #[cfg(windows)]
             wintun_entry_interface: None,
             #[cfg(windows)]
@@ -438,6 +446,7 @@ pub struct TunnelHandle {
     shutdown_token: CancellationToken,
     event_handler_task: JoinHandle<Tombstone>,
     bandwidth_controller_handle: JoinHandle<()>,
+    wg_gw_mixnet_listener_handle: WgGatewayMixnetListenerHandle,
     #[cfg(windows)]
     wintun_entry_interface: Option<WintunInterface>,
     #[cfg(windows)]
