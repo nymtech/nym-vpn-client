@@ -9,6 +9,7 @@ use std::{error::Error as StdError, net::IpAddr};
 
 #[cfg(target_os = "ios")]
 use nym_apple_dispatch::{Queue, QueueAttr};
+use nym_authenticator_client::AuthClientMixnetListenerHandle;
 #[cfg(target_os = "ios")]
 use tokio::sync::mpsc;
 use tokio::task::{JoinError, JoinHandle};
@@ -49,6 +50,7 @@ pub struct ConnectedTunnel {
     exit_gateway_client: WgGatewayClient,
     connection_data: ConnectionData,
     bandwidth_controller_handle: JoinHandle<()>,
+    auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
 }
 
 impl ConnectedTunnel {
@@ -58,6 +60,7 @@ impl ConnectedTunnel {
         exit_gateway_client: WgGatewayClient,
         connection_data: ConnectionData,
         bandwidth_controller_handle: JoinHandle<()>,
+        auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
     ) -> Self {
         Self {
             task_manager,
@@ -65,6 +68,7 @@ impl ConnectedTunnel {
             exit_gateway_client,
             connection_data,
             bandwidth_controller_handle,
+            auth_client_mixnet_listener_handle,
         }
     }
 
@@ -222,6 +226,7 @@ impl ConnectedTunnel {
             shutdown_token,
             event_loop_handle,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
+            auth_client_mixnet_listener_handle: self.auth_client_mixnet_listener_handle,
         })
     }
 }
@@ -231,6 +236,7 @@ pub struct TunnelHandle {
     shutdown_token: CancellationToken,
     event_loop_handle: JoinHandle<Tombstone>,
     bandwidth_controller_handle: JoinHandle<()>,
+    auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
 }
 
 impl TunnelHandle {
@@ -258,6 +264,11 @@ impl TunnelHandle {
         if let Err(e) = self.bandwidth_controller_handle.await {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
+
+        // No need to call cancel on auth_clients_mixnet_listener_handle as its external
+        // cancel_token should already be cancelled by the time we reach this point.
+        // We just need to wait for the task to finish.
+        self.auth_client_mixnet_listener_handle.wait().await;
 
         self.event_loop_handle.await
     }
