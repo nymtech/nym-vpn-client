@@ -89,6 +89,7 @@ struct NymVPNDaemonApp: App {
             .environmentObject(logFileManager)
         }
         .windowResizability(.contentMinSize)
+        .defaultSize(width: MagicNumbers.macMinWidth.rawValue, height: MagicNumbers.macMinHeight.rawValue)
         .commands {
             CommandGroup(replacing: .newItem, addition: {})
             CommandGroup(after: .appInfo) {
@@ -103,7 +104,6 @@ struct NymVPNDaemonApp: App {
                         } catch {
                             alertTitle = error.localizedDescription
                         }
-
                         isDisplayingAlert = true
                     }
                 }
@@ -148,7 +148,11 @@ private extension NymVPNDaemonApp {
     func bringWindowToFront() {
         NSApp.setActivationPolicy(.regular)
         NSApp.windows.first?.makeKeyAndOrderFront(self)
-        NSApp.activate(ignoringOtherApps: true)
+        if #available(macOS 14.0, *) {
+            NSApplication.shared.activate()
+        } else {
+            NSApp.activate(ignoringOtherApps: true)
+        }
     }
 
     func updateImageName(with status: TunnelStatus) {
