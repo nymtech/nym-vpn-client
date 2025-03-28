@@ -55,7 +55,7 @@ fun SupportOptions() {
 				leading = {
 					Icon(
 						ImageVector.vectorResource(R.drawable.send),
-						stringResource(R.string.get_in_touch),
+						stringResource(R.string.get_help),
 						modifier = Modifier.size(iconSize.scaledWidth()),
 					)
 				},
@@ -100,6 +100,33 @@ fun SupportOptions() {
 					)
 				},
 				onClick = { context.openWebUrl(context.getString(R.string.github_issues_url)) },
+			),
+		),
+	)
+	SettingsGroup(
+		items = listOf(
+			SelectionItem(
+				leading = {
+					Icon(
+						ImageVector.vectorResource(R.drawable.telegram),
+						stringResource(R.string.telegram_url),
+						modifier = Modifier.size(iconSize.scaledWidth()),
+					)
+				},
+				trailing = {
+					Icon(
+						Icons.AutoMirrored.Outlined.ArrowRight,
+						stringResource(R.string.go),
+						modifier = Modifier.size(iconSize),
+					)
+				},
+				title = {
+					Text(
+						stringResource(R.string.join_telegram),
+						style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+					)
+				},
+				onClick = { context.openWebUrl(context.getString(R.string.telegram_url)) },
 			),
 		),
 	)

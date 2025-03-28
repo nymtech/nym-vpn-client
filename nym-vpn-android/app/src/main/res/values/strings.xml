@@ -256,4 +256,7 @@
     <string name="pricing_url">nym.com/pricing</string>
 	<string name="account_id">Account ID:</string>
 	<string name="developer">Developer</string>
+	<string name="get_help">Get help</string>
+	<string name="telegram_url">https://nym.com/go/telegram</string>
+	<string name="join_telegram">Join us on Telegram</string>
 </resources>
