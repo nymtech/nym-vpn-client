@@ -29,12 +29,12 @@ pub use nym_sdk::{
     mixnet::{NodeIdentity, Recipient, StoragePaths},
     UserAgent,
 };
+pub use nym_sphinx_params::PacketSize;
 pub use nym_task::{
     event::{SentStatus, TaskStatus},
     StatusReceiver,
 };
 pub use nym_wg_gateway_client as wg_gateway_client;
-pub use nym_sphinx_params::PacketSize;
 
 #[cfg(any(target_os = "ios", target_os = "macos"))]
 pub use crate::platform::swift;
