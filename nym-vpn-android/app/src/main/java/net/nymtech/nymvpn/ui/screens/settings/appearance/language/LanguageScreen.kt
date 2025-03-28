@@ -8,10 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,10 +19,6 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.common.buttons.SelectionItemButton
 import net.nymtech.nymvpn.ui.common.labels.SelectedLabel
-import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.common.navigation.NavBarState
-import net.nymtech.nymvpn.ui.common.navigation.NavIcon
-import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.extensions.capitalize
 import net.nymtech.nymvpn.util.extensions.scaledWidth
@@ -34,21 +27,6 @@ import java.util.Locale
 
 @Composable
 fun LanguageScreen(appUiState: AppUiState, appViewModel: AppViewModel) {
-	val navController = LocalNavController.current
-
-	LaunchedEffect(Unit) {
-		appViewModel.onNavBarStateChange(
-			NavBarState(
-				title = { NavTitle(stringResource(R.string.language)) },
-				leading = {
-					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.popBackStack()
-					}
-				},
-			),
-		)
-	}
-
 	val collator = Collator.getInstance(Locale.getDefault())
 
 	val locales = LocaleUtil.supportedLocales.map {

@@ -25,7 +25,6 @@ import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.theme.ThemeColors
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
 
@@ -37,16 +36,8 @@ fun SplashScreen(appViewModel: AppViewModel, appUiState: AppUiState) {
 	var splashFinished by remember { mutableStateOf(false) }
 	val isAppReady by appViewModel.isAppReady.collectAsStateWithLifecycle()
 
-	LaunchedEffect(Unit) {
-		appViewModel.onNavBarStateChange(
-			NavBarState(
-				show = false,
-			),
-		)
-		appViewModel.onAppStartup()
-	}
-
 	LaunchedEffect(composition) {
+		appViewModel.onAppStartup()
 		delay(3000)
 		splashFinished = true
 	}

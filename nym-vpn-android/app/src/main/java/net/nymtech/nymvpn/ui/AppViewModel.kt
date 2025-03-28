@@ -18,7 +18,6 @@ import net.nymtech.nymvpn.data.GatewayRepository
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.service.gateway.GatewayCacheService
-import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
@@ -38,9 +37,6 @@ constructor(
 	private val backendManager: BackendManager,
 	networkService: NetworkService,
 ) : ViewModel() {
-
-	private val _navBarState = MutableStateFlow(NavBarState())
-	val navBarState = _navBarState.asStateFlow()
 
 	private val _systemMessage = MutableStateFlow<SystemMessage?>(null)
 	val systemMessage = _systemMessage.asStateFlow()
@@ -78,12 +74,6 @@ constructor(
 				SnackbarController.showMessage(StringValue.StringResource(R.string.action_requires_tunnel_down))
 			}
 		}.onFailure { Timber.e(it) }
-	}
-
-	fun onNavBarStateChange(navBarState: NavBarState) {
-		_navBarState.update {
-			navBarState
-		}
 	}
 
 	fun onLocaleChange(localeTag: String) = viewModelScope.launch {

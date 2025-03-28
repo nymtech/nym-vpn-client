@@ -15,6 +15,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarDuration
@@ -57,10 +58,10 @@ import net.nymtech.nymvpn.ui.screens.settings.SettingsScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.AppearanceScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.display.DisplayScreen
 import net.nymtech.nymvpn.ui.screens.settings.appearance.language.LanguageScreen
-import net.nymtech.nymvpn.ui.screens.settings.login.LoginScreen
 import net.nymtech.nymvpn.ui.screens.settings.developer.DeveloperScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.LegalScreen
 import net.nymtech.nymvpn.ui.screens.settings.legal.licenses.LicensesScreen
+import net.nymtech.nymvpn.ui.screens.settings.login.LoginScreen
 import net.nymtech.nymvpn.ui.screens.settings.logs.LogsScreen
 import net.nymtech.nymvpn.ui.screens.settings.support.SupportScreen
 import net.nymtech.nymvpn.ui.screens.splash.SplashScreen
@@ -84,6 +85,7 @@ class MainActivity : AppCompatActivity() {
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		val appViewModel by viewModels<AppViewModel>()
+
 		installSplashScreen().setKeepOnScreenCondition { false }
 
 		enableEdgeToEdge(
@@ -101,7 +103,6 @@ class MainActivity : AppCompatActivity() {
 
 		setContent {
 			val appState by appViewModel.uiState.collectAsStateWithLifecycle(lifecycle)
-			val navBarState by appViewModel.navBarState.collectAsStateWithLifecycle(lifecycle)
 			val systemMessage by appViewModel.systemMessage.collectAsStateWithLifecycle(lifecycle)
 			val configurationChange by appViewModel.configurationChange.collectAsStateWithLifecycle(lifecycle)
 
@@ -153,7 +154,6 @@ class MainActivity : AppCompatActivity() {
 							},
 							topBar = {
 								NavBar(
-									navBarState,
 									navController,
 									Modifier.onGloballyPositioned {
 										navHeight = with(density) {
@@ -188,12 +188,12 @@ class MainActivity : AppCompatActivity() {
 									exitTransition = { fadeOut() },
 								) {
 									val args = it.toRoute<Route.Main>()
-									MainScreen(appViewModel, appState, args.autoStart)
+									MainScreen(appState, args.autoStart)
 								}
 								composable<Route.Permission> {
 									val args = it.toRoute<Route.Permission>()
 									runCatching {
-										PermissionScreen(appViewModel, args.permission)
+										PermissionScreen(args.permission)
 									}
 								}
 								composable<Route.Settings>(
@@ -219,23 +219,23 @@ class MainActivity : AppCompatActivity() {
 										appState,
 									)
 								}
-								composable<Route.Logs> { LogsScreen(appViewModel) }
-								composable<Route.Support> { SupportScreen(appViewModel) }
-								composable<Route.Legal> { LegalScreen(appViewModel) }
+								composable<Route.Logs> { LogsScreen() }
+								composable<Route.Support> { SupportScreen() }
+								composable<Route.Legal> { LegalScreen() }
 								composable<Route.Login>(
 									enterTransition = { fadeIn() },
 									exitTransition = { fadeOut() },
 								) {
-									LoginScreen(appState, appViewModel)
+									LoginScreen(appState)
 								}
 								composable<Route.Licenses> {
-									LicensesScreen(appViewModel)
+									LicensesScreen()
 								}
 								composable<Route.Appearance> {
-									AppearanceScreen(appViewModel)
+									AppearanceScreen()
 								}
 								composable<Route.Display> {
-									DisplayScreen(appState, appViewModel)
+									DisplayScreen(appState)
 								}
 								composable<Route.Language> {
 									LanguageScreen(appState, appViewModel)

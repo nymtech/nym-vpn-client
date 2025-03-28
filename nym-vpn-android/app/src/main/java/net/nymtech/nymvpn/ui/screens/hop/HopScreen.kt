@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,8 +44,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.Font
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
@@ -56,23 +53,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
 import net.nymtech.nymvpn.ui.AppViewModel
-import net.nymtech.nymvpn.ui.common.Modal
 import net.nymtech.nymvpn.ui.common.VerticalDivider
 import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.buttons.surface.SurfaceSelectionGroupButton
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.common.navigation.NavBarState
-import net.nymtech.nymvpn.ui.common.navigation.NavIcon
-import net.nymtech.nymvpn.ui.common.navigation.NavTitle
 import net.nymtech.nymvpn.ui.common.textbox.CustomTextField
 import net.nymtech.nymvpn.ui.screens.hop.components.CountryItem
 import net.nymtech.nymvpn.ui.screens.hop.components.GatewayDetailsModal
-import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
 import net.nymtech.nymvpn.ui.theme.CustomColors
-import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
-import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.nymvpn.util.extensions.scoreSorted
@@ -91,7 +81,6 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 	var refreshing by remember { mutableStateOf(false) }
 	var selectedGateway by remember { mutableStateOf<NymGateway?>(null) }
 	var showGatewayDetailsModal by remember { mutableStateOf(false) }
-	var showLocationTooltip by remember { mutableStateOf(false) }
 	val pullRefreshState = rememberPullToRefreshState()
 
 	val gatewayType = remember {
@@ -122,13 +111,6 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 	}
 
 	LaunchedEffect(gatewayType, initialGateways) {
-		appViewModel.onNavBarStateChange(
-			NavBarState(
-				title = { NavTitle(stringResource(if (gatewayLocation == GatewayLocation.EXIT) R.string.exit else R.string.entry)) },
-				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) { navController.popBackStack() } },
-				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showLocationTooltip = true } },
-			),
-		)
 		viewModel.initializeGateways(initialGateways)
 		viewModel.updateCountryCache(gatewayType)
 	}
@@ -137,16 +119,6 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 		if (refreshing) viewModel.updateCountryCache(gatewayType)
 		refreshing = false
 	}
-
-	Modal(show = showLocationTooltip, onDismiss = { showLocationTooltip = false }, title = {
-		Text(
-			stringResource(R.string.gateway_locations_title).uppercase(),
-			style = CustomTypography.labelHuge,
-			fontFamily = FontFamily(Font(R.font.lab_grotesque_mono)),
-		)
-	}, text = {
-		ServerDetailsModalBody(onClick = { context.openWebUrl(context.getString(R.string.location_support_link)) })
-	})
 
 	if (showGatewayDetailsModal) {
 		selectedGateway?.let {

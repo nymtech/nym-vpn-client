@@ -10,5 +10,6 @@
 		<item name="windowSplashScreenAnimatedIcon">@android:color/transparent</item>
 		<!-- Set the theme of the Activity that follows your splash screen. -->
 		<item name="postSplashScreenTheme">@style/Theme.NymVPN</item>
+		<item name="android:navigationBarColor">@color/dark_background</item>
 	</style>
 </resources>

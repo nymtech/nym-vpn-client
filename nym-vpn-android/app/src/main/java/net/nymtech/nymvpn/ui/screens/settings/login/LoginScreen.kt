@@ -29,12 +29,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.AppUiState
-import net.nymtech.nymvpn.ui.AppViewModel
 import net.nymtech.nymvpn.ui.MainActivity
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.functions.rememberImeState
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
-import net.nymtech.nymvpn.ui.common.navigation.NavBarState
 import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.settings.login.components.LoginHeader
 import net.nymtech.nymvpn.ui.screens.settings.login.components.LoginInputSection
@@ -44,7 +42,7 @@ import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun LoginScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: LoginViewModel = hiltViewModel()) {
+fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewModel()) {
 	val snackbar = SnackbarController.current
 	val imeState = rememberImeState()
 	val scrollState = rememberScrollState()
@@ -74,10 +72,6 @@ fun LoginScreen(appUiState: AppUiState, appViewModel: AppViewModel, viewModel: L
 		loading = false
 		if (success == true) navController.navigateAndForget(Route.Main())
 		if (success == false && showMaxDevicesModal == true) showModal = true
-	}
-
-	LaunchedEffect(Unit) {
-		appViewModel.onNavBarStateChange(NavBarState(show = false))
 	}
 
 	LaunchedEffect(imeState.value) {

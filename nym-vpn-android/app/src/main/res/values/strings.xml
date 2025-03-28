@@ -255,4 +255,5 @@
 	<string name="max_devices_error">Account device limit exceeded. Please remove a device from your account before connecting.</string>
     <string name="pricing_url">nym.com/pricing</string>
 	<string name="account_id">Account ID:</string>
+	<string name="developer">Developer</string>
 </resources>
