@@ -105,7 +105,7 @@ impl Versionable for v5::topup::TopUpMessage {
     }
 }
 
-pub trait InitMessage: Versionable {
+pub trait InitMessage: Versionable + fmt::Debug {
     fn pub_key(&self) -> PeerPublicKey;
 }
 
@@ -133,7 +133,7 @@ impl InitMessage for v5::registration::InitMessage {
     }
 }
 
-pub trait FinalMessage: Versionable {
+pub trait FinalMessage: Versionable + fmt::Debug {
     fn gateway_client_pub_key(&self) -> PeerPublicKey;
     fn gateway_client_ipv4(&self) -> Option<Ipv4Addr>;
     fn gateway_client_ipv6(&self) -> Option<Ipv6Addr>;
@@ -236,6 +236,7 @@ impl FinalMessage for v5::registration::FinalMessage {
 }
 
 // Temporary solution for lacking a query message wrapper in monorepo
+#[derive(Debug)]
 pub struct QueryMessageImpl {
     pub pub_key: PeerPublicKey,
     pub version: AuthenticatorVersion,
@@ -247,7 +248,7 @@ impl Versionable for QueryMessageImpl {
     }
 }
 
-pub trait QueryMessage: Versionable {
+pub trait QueryMessage: Versionable + fmt::Debug {
     fn pub_key(&self) -> PeerPublicKey;
 }
 
@@ -257,7 +258,7 @@ impl QueryMessage for QueryMessageImpl {
     }
 }
 
-pub trait TopUpMessage: Versionable {
+pub trait TopUpMessage: Versionable + fmt::Debug {
     fn pub_key(&self) -> PeerPublicKey;
     fn credential(&self) -> CredentialSpendingData;
 }
@@ -292,6 +293,7 @@ impl TopUpMessage for v5::topup::TopUpMessage {
     }
 }
 
+#[derive(Debug)]
 pub enum ClientMessage {
     Initial(Box<dyn InitMessage + Send + Sync + 'static>),
     Final(Box<dyn FinalMessage + Send + Sync + 'static>),
@@ -623,7 +625,7 @@ impl Id for v5::response::TopUpBandwidthResponse {
     }
 }
 
-pub trait PendingRegistrationResponse: Id {
+pub trait PendingRegistrationResponse: Id + fmt::Debug {
     fn nonce(&self) -> u64;
     fn verify(
         &self,
@@ -717,7 +719,7 @@ impl PendingRegistrationResponse for v5::response::PendingRegistrationResponse {
     }
 }
 
-pub trait RegisteredResponse: Id {
+pub trait RegisteredResponse: Id + fmt::Debug {
     fn private_ips(&self) -> IpPair;
     fn pub_key(&self) -> PeerPublicKey;
     fn wg_port(&self) -> u16;
@@ -778,7 +780,7 @@ impl RegisteredResponse for v5::response::RegisteredResponse {
     }
 }
 
-pub trait RemainingBandwidthResponse: Id {
+pub trait RemainingBandwidthResponse: Id + fmt::Debug {
     fn available_bandwidth(&self) -> Option<i64>;
 }
 
@@ -806,7 +808,7 @@ impl RemainingBandwidthResponse for v5::response::RemainingBandwidthResponse {
     }
 }
 
-pub trait TopUpBandwidthResponse: Id {
+pub trait TopUpBandwidthResponse: Id + fmt::Debug {
     fn available_bandwidth(&self) -> i64;
 }
 
@@ -828,6 +830,7 @@ impl TopUpBandwidthResponse for v5::response::TopUpBandwidthResponse {
     }
 }
 
+#[derive(Debug)]
 pub enum AuthenticatorResponse {
     PendingRegistration(Box<dyn PendingRegistrationResponse + Send + Sync + 'static>),
     Registered(Box<dyn RegisteredResponse + Send + Sync + 'static>),

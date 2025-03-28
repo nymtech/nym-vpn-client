@@ -25,7 +25,7 @@ use nym_sdk::mixnet::{ClientStatsEvents, CredentialStorage};
 use nym_validator_client::QueryHttpRpcNyxdClient;
 use nym_wg_go::PublicKey;
 use rand::{rngs::OsRng, CryptoRng, RngCore};
-use tracing::{debug, error, info, warn};
+use tracing::{debug, error, info, trace, warn};
 
 use crate::error::Result;
 
@@ -372,6 +372,7 @@ impl WgGatewayClient {
             }
             AuthenticatorVersion::UNKNOWN => return Err(Error::UnsupportedAuthenticatorVersion),
         };
+        trace!("sending init msg to {}: {:?}", &gateway_host, &init_message);
         let response = self
             .auth_client
             .send(&init_message, self.auth_recipient)
@@ -383,6 +384,12 @@ impl WgGatewayClient {
                 if let Err(e) = pending_registration_response.verify(self.keypair.private_key()) {
                     return Err(Error::VerificationFailed(e));
                 }
+
+                trace!(
+                    "received \"pending-registration\" msg from {}: {:?}",
+                    &gateway_host,
+                    &pending_registration_response
+                );
 
                 let credential = if enable_credentials_mode {
                     let cred = Self::request_bandwidth(
@@ -445,6 +452,12 @@ impl WgGatewayClient {
                         return Err(Error::UnsupportedAuthenticatorVersion)
                     }
                 };
+                trace!(
+                    "sending final msg to {}: {:?}",
+                    &gateway_host,
+                    &finalized_message
+                );
+
                 let response = self.light_client().send(finalized_message).await?;
                 let AuthenticatorResponse::Registered(registered_response) = response else {
                     return Err(Error::InvalidGatewayAuthResponse);
@@ -454,6 +467,12 @@ impl WgGatewayClient {
             AuthenticatorResponse::Registered(registered_response) => registered_response,
             _ => return Err(Error::InvalidGatewayAuthResponse),
         };
+
+        trace!(
+            "received \"registered\" msg from {}: {:?}",
+            &gateway_host,
+            &registered_data
+        );
 
         let gateway_data = GatewayData {
             public_key: PublicKey::from(registered_data.pub_key().to_bytes()),
