@@ -43,7 +43,6 @@ import nym_vpn_lib.VpnException
 import nym_vpn_lib.forgetAccount
 import nym_vpn_lib.getNetworkCompatibilityVersions
 import nym_vpn_lib.initEnvironment
-import nym_vpn_lib.initEnvironmentAsync
 import nym_vpn_lib.initFallbackMainnetEnvironment
 import nym_vpn_lib.initLogger
 import nym_vpn_lib.isAccountMnemonicStored
@@ -158,7 +157,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	private suspend fun initEnvironment(environment: Tunnel.Environment) {
 		withContext(ioDispatcher) {
 			runCatching {
-				initEnvironmentAsync(environment.networkName())
+				initEnvironment(environment.networkName())
 			}.onFailure {
 				Timber.w("Failed to setup environment, defaulting to bundle mainnet")
 				initFallbackMainnetEnvironment()
