@@ -6,7 +6,7 @@ public struct SettingButtonViewModel {
     let subtitle: String?
     let isSelected: Bool
 
-    public init(title: String, subtitle: String?, isSelected: Bool) {
+    public init(title: String, subtitle: String? = nil, isSelected: Bool) {
         self.title = title
         self.subtitle = subtitle
         self.isSelected = isSelected

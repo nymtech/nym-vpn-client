@@ -25,6 +25,7 @@ public final class SettingsListItemViewModel: Hashable {
     let title: String
     let subtitle: String?
     let imageName: String?
+    let systemImageName: String?
     let accessory: Accessory
     let action: (() -> Void)
 
@@ -35,12 +36,14 @@ public final class SettingsListItemViewModel: Hashable {
         title: String,
         subtitle: String? = nil,
         imageName: String? = nil,
+        systemImageName: String? = nil,
         position: SettingsListItemPosition = SettingsListItemPosition(isFirst: false, isLast: false),
         action: @escaping (() -> Void)
     ) {
         self.title = title
         self.subtitle = subtitle
         self.imageName = imageName
+        self.systemImageName = systemImageName
         self.accessory = accessory
         self.position = position
         self.action = action

@@ -47,8 +47,15 @@ struct NymVPNDaemonApp: App {
     @State private var splashScreenDidDisplay = false
     @State private var menuBarImageName = "NymLogoDisabled"
     @State private var menuBarConnectButtonState = ConnectButtonState.connect
+    @State private var isMenuBarVisible: Bool
 
     init() {
+        switch AppSettings.shared.appMode {
+        case .both, .menubarOnly:
+            isMenuBarVisible = true
+        case .dockOnly:
+            isMenuBarVisible = false
+        }
         setup()
     }
 
@@ -67,15 +74,11 @@ struct NymVPNDaemonApp: App {
             }
             .frame(minWidth: MagicNumbers.macMinWidth.rawValue, minHeight: MagicNumbers.macMinHeight.rawValue)
             .onAppear {
-                NSApp.setActivationPolicy(.regular)
+                configureApp(for: appSettings.appMode)
             }
             .onDisappear {
                 if autoUpdater.didPrepareForQuit {
-                    appDelegate.shouldTerminate = true
-                    NSApplication.shared.terminate(self)
-                } else {
-                    NSApp.setActivationPolicy(.accessory)
-                    NSApp.deactivate()
+                    quitApp()
                 }
             }
             .alert(alertTitle, isPresented: $isDisplayingAlert) {
@@ -88,10 +91,19 @@ struct NymVPNDaemonApp: App {
             .environmentObject(countriesManager)
             .environmentObject(logFileManager)
         }
+        .onChange(of: appSettings.appMode) { newMode in
+            configureApp(for: newMode)
+        }
         .windowResizability(.contentMinSize)
         .defaultSize(width: MagicNumbers.macMinWidth.rawValue, height: MagicNumbers.macMinHeight.rawValue)
         .commands {
             CommandGroup(replacing: .newItem, addition: {})
+            CommandGroup(replacing: .appTermination) {
+                Button("quitNymVPN".localizedString) {
+                    quitApp()
+                }
+                .keyboardShortcut("q")
+            }
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesView(viewModel: checkForUpdatesViewModel)
             }
@@ -109,19 +121,7 @@ struct NymVPNDaemonApp: App {
                 }
             }
         }
-        MenuBarExtra {
-            menuBarItemContent()
-        } label: {
-            Image(menuBarImageName)
-                .renderingMode(.template)
-                .frame(width: 32)
-                .foregroundStyle(.primary)
-        }
-        .menuBarExtraStyle(.menu)
-        .onChange(of: connectionManager.currentTunnelStatus) { status in
-            updateImageName(with: status)
-            menuBarConnectButtonState = ConnectButtonState(tunnelStatus: status)
-        }
+        menuBarExtraView()
     }
 }
 
@@ -144,9 +144,23 @@ private extension NymVPNDaemonApp {
     }
 }
 
+// MARK: - Menubar -
 private extension NymVPNDaemonApp {
+    func configureApp(for mode: AppSetting.AppMode) {
+        switch mode {
+        case .menubarOnly:
+            NSApp.setActivationPolicy(.accessory)
+            isMenuBarVisible = true
+        case .dockOnly:
+            NSApp.setActivationPolicy(.regular)
+            isMenuBarVisible = false
+        case .both:
+            NSApp.setActivationPolicy(.regular)
+            isMenuBarVisible = true
+        }
+    }
+
     func bringWindowToFront() {
-        NSApp.setActivationPolicy(.regular)
         NSApp.windows.first?.makeKeyAndOrderFront(self)
         if #available(macOS 14.0, *) {
             NSApplication.shared.activate()
@@ -159,6 +173,27 @@ private extension NymVPNDaemonApp {
         menuBarImageName = status == .connected ? "NymLogo" : "NymLogoDisabled"
     }
 
+    func menuBarExtraView() -> some Scene {
+        MenuBarExtra(isInserted: $isMenuBarVisible) {
+            menuBarItemContent()
+        } label: {
+            Image(menuBarImageName)
+                .renderingMode(.template)
+                .frame(width: 32)
+                .foregroundStyle(.primary)
+        }
+        .menuBarExtraStyle(.menu)
+        .onChange(of: connectionManager.currentTunnelStatus) { status in
+            updateImageName(with: status)
+            menuBarConnectButtonState = ConnectButtonState(tunnelStatus: status)
+        }
+    }
+
+    func quitApp() {
+        appDelegate.shouldTerminate = true
+        NSApplication.shared.terminate(self)
+    }
+
     @ViewBuilder
     func menuBarItemContent() -> some View {
         connectDisconnectButton()
@@ -169,8 +204,7 @@ private extension NymVPNDaemonApp {
         .keyboardShortcut("o")
         Divider()
         Button("menuBar.quit".localizedString) {
-            appDelegate.shouldTerminate = true
-            NSApplication.shared.terminate(self)
+            quitApp()
         }
     }
 

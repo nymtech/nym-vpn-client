@@ -1739,6 +1739,17 @@
         }
       }
     },
+    "quitNymVPN" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit NymVPN"
+          }
+        }
+      }
+    },
     "search" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1900,6 +1911,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Appearance"
+          }
+        }
+      }
+    },
+    "settings.appMode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App mode"
+          }
+        }
+      }
+    },
+    "settings.appMode.both" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menubar & Dock"
+          }
+        }
+      }
+    },
+    "settings.appMode.dockOnly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dock only"
+          }
+        }
+      }
+    },
+    "settings.appMode.menuBarOnly" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Menubar only"
           }
         }
       }

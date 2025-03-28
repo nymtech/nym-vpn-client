@@ -120,6 +120,12 @@ public class SettingsViewModel: SettingsFlowState {
 }
 
 private extension SettingsViewModel {
+#if os(macOS)
+    @MainActor func navigateToAppMode() {
+        path.append(SettingLink.appMode)
+    }
+#endif
+
     @MainActor func navigateToTheme() {
         path.append(SettingLink.theme)
     }
@@ -212,20 +218,33 @@ private extension SettingsViewModel {
     }
 
     func themeSection() -> SettingsSection {
-        .theme(
-            viewModels: [
-                SettingsListItemViewModel(
-                    accessory: .arrow,
-                    title: "settings.appearance".localizedString,
-                    imageName: "appearance",
-                    action: { [weak self] in
-                        Task { @MainActor in
-                            self?.navigateToTheme()
-                        }
+        var viewModels = [
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.appearance".localizedString,
+                imageName: "appearance",
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToTheme()
                     }
-                )
-            ]
+                }
+            )
+        ]
+#if os(macOS)
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.appMode".localizedString,
+                systemImageName: "menubar.dock.rectangle",
+                action: { [weak self] in
+                    Task { @MainActor in
+                        self?.navigateToAppMode()
+                    }
+                }
+            )
         )
+#endif
+        return .theme(viewModels: viewModels)
     }
 
     func feedbackSection() -> SettingsSection {

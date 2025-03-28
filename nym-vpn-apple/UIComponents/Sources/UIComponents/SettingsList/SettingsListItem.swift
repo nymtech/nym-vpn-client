@@ -66,6 +66,12 @@ private extension SettingsListItem {
                 .renderingMode(.template)
                 .foregroundStyle(NymColor.sysOnSurface)
                 .padding(.leading, 8)
+        } else if let systemImageName = viewModel.systemImageName {
+            Image(systemName: systemImageName)
+                .renderingMode(.template)
+                .foregroundStyle(NymColor.sysOnSurface)
+                .font(.system(size: 17, weight: .bold))
+                .padding(.leading, 8)
         }
     }
 

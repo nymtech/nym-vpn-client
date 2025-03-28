@@ -1,4 +1,5 @@
 import SwiftUI
+import Theme
 
 public struct AppSetting {
     public enum Appearance: Int, CaseIterable {
@@ -33,5 +34,22 @@ public struct AppSetting {
             }
         }
 #endif
+    }
+
+    public enum AppMode: Int, CaseIterable {
+        case both
+        case menubarOnly
+        case dockOnly
+
+        public var localizedTitle: String {
+            switch self {
+            case .menubarOnly:
+                "settings.appMode.menuBarOnly".localizedString
+            case .dockOnly:
+                "settings.appMode.dockOnly".localizedString
+            case .both:
+                "settings.appMode.both".localizedString
+            }
+        }
     }
 }

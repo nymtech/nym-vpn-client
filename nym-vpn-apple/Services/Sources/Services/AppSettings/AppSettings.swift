@@ -5,7 +5,7 @@ import CountriesManagerTypes
 public final class AppSettings: ObservableObject {
     public static let shared = AppSettings()
 
-    #if os(iOS)
+#if os(iOS)
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
     public var currentAppearance: AppSetting.Appearance = .automatic {
         didSet {
@@ -13,10 +13,14 @@ public final class AppSettings: ObservableObject {
             keyWindow.rootViewController?.overrideUserInterfaceStyle = currentAppearance.userInterfaceStyle
         }
     }
-    #else
+#else
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
     public var currentAppearance: AppSetting.Appearance = .light
-    #endif
+
+    @AppStorage(AppSettingKey.appMode.rawValue)
+    public var appMode: AppSetting.AppMode = .both
+#endif
+
     @AppStorage(AppSettingKey.errorReporting.rawValue)
     public var isErrorReportingOn = false {
         didSet {
@@ -88,6 +92,7 @@ private extension AppSettings {
 
 public enum AppSettingKey: String {
     case currentAppearance
+    case appMode
     case errorReporting
     case credenitalExists
     case smallScreen

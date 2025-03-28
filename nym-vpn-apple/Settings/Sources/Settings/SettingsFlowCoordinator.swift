@@ -43,6 +43,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
                     afterInstallAction: afterInstallAction
                 )
             )
+        case .appMode:
+            AppModeView(path: $flowState.path)
 #endif
         }
     }

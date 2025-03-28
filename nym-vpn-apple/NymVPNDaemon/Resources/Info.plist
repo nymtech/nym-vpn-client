@@ -32,7 +32,7 @@
 	<key>SUFeedURL</key>
 	<string>https://nymtech.net/.wellknown/macos-vpn/appcast.xml</string>
 	<key>LSUIElement</key>
-	<true/>
+	<false/>
 	<key>SUPublicEDKey</key>
 	<string>9OobPkT0p5WGp0wf2aSbADivVllEKZaz0gKhElMocU0=</string>
 </dict>

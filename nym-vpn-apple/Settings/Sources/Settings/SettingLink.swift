@@ -14,6 +14,7 @@ public enum SettingLink: Hashable, Identifiable {
     case santasMenu
 #if os(macOS)
     case installHelper(afterInstallAction: HelperAfterInstallAction)
+    case appMode
 #endif
 
     public var id: String {
