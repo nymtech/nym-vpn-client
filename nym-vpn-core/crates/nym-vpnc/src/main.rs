@@ -143,7 +143,6 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
         entry: entry.map(into_entry_point),
         exit: exit.map(into_exit_point),
         dns: connect_args.dns.map(nym_vpn_proto::Dns::from),
-        disable_routing: connect_args.disable_routing,
         enable_two_hop: connect_args.enable_two_hop,
         netstack: connect_args.netstack,
         disable_poisson_rate: connect_args.disable_poisson_rate,

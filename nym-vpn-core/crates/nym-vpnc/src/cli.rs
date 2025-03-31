@@ -170,12 +170,6 @@ pub struct ConnectArgs {
     #[arg(long)]
     pub dns: Option<IpAddr>,
 
-    /// Disable routing all traffic through the nym TUN device. When the flag is set, the nym TUN
-    /// device will be created, but to route traffic through it you will need to do it manually,
-    /// e.g. ping -Itun0.
-    #[arg(long)]
-    pub disable_routing: bool,
-
     /// Enable two-hop wireguard traffic. This means that traffic jumps directly from entry gateway to
     /// exit gateway using Wireguard protocol.
     #[arg(long)]

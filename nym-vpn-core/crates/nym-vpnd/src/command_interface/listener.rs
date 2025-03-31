@@ -954,7 +954,6 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
 
         Ok(ConnectOptions {
             dns,
-            disable_routing: request.disable_routing,
             enable_two_hop: request.enable_two_hop,
             netstack: request.netstack,
             disable_poisson_rate: request.disable_poisson_rate,

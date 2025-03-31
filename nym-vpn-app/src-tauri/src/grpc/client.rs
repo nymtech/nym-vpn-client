@@ -263,7 +263,6 @@ impl GrpcClient {
         let request = Request::new(ConnectRequest {
             entry: Some(entry_node.into()),
             exit: Some(exit_node.into()),
-            disable_routing: false,
             enable_two_hop: two_hop_mod,
             netstack,
             disable_poisson_rate: false,

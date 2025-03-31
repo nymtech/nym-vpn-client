@@ -229,7 +229,6 @@ message ConnectRequest {
   EntryNode entry = 1;
   ExitNode exit = 2;
   Dns dns = 3;
-  bool disable_routing = 4;
   bool enable_two_hop = 5;
   bool netstack = 13;
   bool disable_poisson_rate = 6;
