@@ -37,20 +37,24 @@ impl MixnetBackpressureMonitor {
     }
 
     async fn run(self) {
+        let mut check_interval = tokio::time::interval(Duration::from_millis(40));
         let mut previous_should_read = true;
         loop {
-            if self.cancel_token.is_cancelled() {
-                break;
-            }
-            let queue_len = self.queue_length();
-            let should_read = queue_len <= self.threshold;
+            tokio::select! {
+                _ = self.cancel_token.cancelled() => {
+                    break;
+                }
+                _ = check_interval.tick() => {
+                    let queue_len = self.queue_length();
+                    let should_read = queue_len <= self.threshold;
 
-            if should_read && !previous_should_read {
-                self.notify_backpressure_lifted.notify_one();
-            }
+                    if should_read && !previous_should_read {
+                        self.notify_backpressure_lifted.notify_one();
+                    }
 
-            previous_should_read = should_read;
-            tokio::time::sleep(Duration::from_millis(40)).await;
+                    previous_should_read = should_read;
+                }
+            }
         }
         tracing::debug!("Mixnet backpressure monitor exiting");
     }
