@@ -40,15 +40,17 @@
   --color-rouge-ecarlate: #e02c4d;
   --color-liquid-lava: #f97316;
 
-  --font-sans: LabGrotesque, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-  'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-sans:
+    LabGrotesque, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-icon: Material Symbols Outlined;
   --font-icon--font-variation-settings: 'opsz' 24;
 }
 
 @utility transition-noborder {
-  transition-property: color, background-color, text-decoration-color, fill, stroke, opacity,
-  box-shadow, transform, filter, backdrop-filter;
+  transition-property:
+    color, background-color, text-decoration-color, fill, stroke, opacity,
+    box-shadow, transform, filter, backdrop-filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -99,21 +101,24 @@
     font-family: 'LabGrotesque';
     font-style: normal;
     font-weight: 400;
-    src: url(assets/fonts/LabGrotesque/LabGrotesque-Regular.woff2) format('woff2');
+    src: url(assets/fonts/LabGrotesque/LabGrotesque-Regular.woff2)
+      format('woff2');
   }
   /* Italic */
   @font-face {
     font-family: 'LabGrotesque';
     font-style: italic;
     font-weight: 400;
-    src: url(assets/fonts/LabGrotesque/LabGrotesque-Italic.woff2) format('woff2');
+    src: url(assets/fonts/LabGrotesque/LabGrotesque-Italic.woff2)
+      format('woff2');
   }
   /* Medium */
   @font-face {
     font-family: 'LabGrotesque';
     font-style: normal;
     font-weight: 500;
-    src: url(assets/fonts/LabGrotesque/LabGrotesque-Medium.woff2) format('woff2');
+    src: url(assets/fonts/LabGrotesque/LabGrotesque-Medium.woff2)
+      format('woff2');
   }
   /* Bold */
   @font-face {
