@@ -48,6 +48,7 @@ struct NymVPNDaemonApp: App {
     @State private var menuBarImageName = "NymLogoDisabled"
     @State private var menuBarConnectButtonState = ConnectButtonState.connect
     @State private var isMenuBarVisible: Bool
+    @State private var isQuitModalDisplayed = false
 
     init() {
         switch AppSettings.shared.appMode {
@@ -84,6 +85,20 @@ struct NymVPNDaemonApp: App {
             .alert(alertTitle, isPresented: $isDisplayingAlert) {
                 Button("ok".localizedString, role: .cancel) { }
             }
+            .overlay {
+                if isQuitModalDisplayed {
+                    QuitAppModal(
+                        isDisplayed: $isQuitModalDisplayed,
+                        closeAction: {
+                            closeWindow()
+                        }, quitAction: {
+                            quitApp()
+                        }
+                    )
+                        .transition(.opacity)
+                        .animation(.easeInOut, value: isQuitModalDisplayed)
+                }
+            }
             .preferredColorScheme(appearance.colorScheme)
             .animation(.default, value: appSettings.welcomeScreenDidDisplay)
             .environmentObject(appSettings)
@@ -99,8 +114,8 @@ struct NymVPNDaemonApp: App {
         .commands {
             CommandGroup(replacing: .newItem, addition: {})
             CommandGroup(replacing: .appTermination) {
-                Button("quitNymVPN".localizedString) {
-                    quitApp()
+                Button("quit.NymVPN".localizedString) {
+                    isQuitModalDisplayed = true
                 }
                 .keyboardShortcut("q")
             }
@@ -189,6 +204,18 @@ private extension NymVPNDaemonApp {
         }
     }
 
+    func closeWindow() {
+        if #available(macOS 14.0, *) {
+            @Environment(\.dismissWindow)
+            var dismissWindow
+            dismissWindow(id: windowId)
+        } else {
+            NSApplication.shared.windows
+                .first(where: { $0.identifier?.rawValue == windowId })?
+                .close()
+        }
+    }
+
     func quitApp() {
         appDelegate.shouldTerminate = true
         NSApplication.shared.terminate(self)
@@ -203,7 +230,7 @@ private extension NymVPNDaemonApp {
         }
         .keyboardShortcut("o")
         Divider()
-        Button("menuBar.quit".localizedString) {
+        Button("quit.NymVPN".localizedString) {
             quitApp()
         }
     }

@@ -78,6 +78,7 @@
 		D9BEF2E32BEB8D7E0036C566 /* Constants in Frameworks */ = {isa = PBXBuildFile; productRef = D9BEF2E22BEB8D7E0036C566 /* Constants */; };
 		D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */ = {isa = PBXBuildFile; productRef = D9BEF2E42BEBA4010036C566 /* AppSettings */; };
 		D9BF292B2D5A23F500CDFC9A /* HelperInstall in Frameworks */ = {isa = PBXBuildFile; productRef = D9BF292A2D5A23F500CDFC9A /* HelperInstall */; };
+		D9CA18992D9AB96500FA8FAC /* QuitAppModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CA18982D9AB95C00FA8FAC /* QuitAppModal.swift */; };
 		D9CACB072D67B6DB0004F9E0 /* gatewaysVpnCountries.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB062D67B6DB0004F9E0 /* gatewaysVpnCountries.json */; };
 		D9CACB082D67B6DB0004F9E0 /* gatewaysVpnCountries.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB062D67B6DB0004F9E0 /* gatewaysVpnCountries.json */; };
 		D9CACB0C2D67B7090004F9E0 /* gatewaysEntry.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB092D67B7090004F9E0 /* gatewaysEntry.json */; };
@@ -217,6 +218,7 @@
 		D9BEF2D62BEB63320036C566 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D9BEF2D92BEB63320036C566 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		D9BEF2DB2BEB63320036C566 /* NymVPNDaemon.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NymVPNDaemon.entitlements; sourceTree = "<group>"; };
+		D9CA18982D9AB95C00FA8FAC /* QuitAppModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuitAppModal.swift; sourceTree = "<group>"; };
 		D9CACB062D67B6DB0004F9E0 /* gatewaysVpnCountries.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatewaysVpnCountries.json; sourceTree = "<group>"; };
 		D9CACB092D67B7090004F9E0 /* gatewaysEntry.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatewaysEntry.json; sourceTree = "<group>"; };
 		D9CACB0A2D67B7090004F9E0 /* gatewaysExit.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatewaysExit.json; sourceTree = "<group>"; };
@@ -450,6 +452,7 @@
 			children = (
 				D9F744742D79BF5900DD9277 /* AppDelegate.swift */,
 				D9BEF2D22BEB63310036C566 /* NymVPNDaemonApp.swift */,
+				D9CA18982D9AB95C00FA8FAC /* QuitAppModal.swift */,
 				D9BEF2D82BEB63320036C566 /* Preview Content */,
 				D90F19062BEED6A2008D2232 /* Resources */,
 			);
@@ -839,6 +842,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				D9F744752D79BF5C00DD9277 /* AppDelegate.swift in Sources */,
+				D9CA18992D9AB96500FA8FAC /* QuitAppModal.swift in Sources */,
 				D9BEF2D32BEB63310036C566 /* NymVPNDaemonApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

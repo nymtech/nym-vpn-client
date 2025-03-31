@@ -1629,17 +1629,6 @@
         }
       }
     },
-    "menuBar.quit" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Quit NymVPN"
-          }
-        }
-      }
-    },
     "modeSelectionInfo.anonymousDescription" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1739,13 +1728,57 @@
         }
       }
     },
-    "quitNymVPN" : {
+    "quit.closeWindow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Close Window"
+          }
+        }
+      }
+    },
+    "quit.NymVPN" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Quit NymVPN"
+          }
+        }
+      }
+    },
+    "quit.question" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Do you want to quit NymVPN completely, or just close this window?"
+          }
+        }
+      }
+    },
+    "quit.quit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quit"
+          }
+        }
+      }
+    },
+    "quit.subQuestion" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quitting will stop all tasks and remove NymVPN from the menu bar."
           }
         }
       }
