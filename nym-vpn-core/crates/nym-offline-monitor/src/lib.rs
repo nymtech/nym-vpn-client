@@ -63,6 +63,10 @@ impl MonitorHandle {
         }
     }
 
+    pub fn subscribe(&self) -> watch::Receiver<Connectivity> {
+        self.rx.clone()
+    }
+
     /// Returns next connectivity status once changed.
     ///
     /// # Cancel safety
@@ -139,6 +143,14 @@ pub enum Connectivity {
 }
 
 impl Connectivity {
+    pub fn presume_offline() -> Self {
+        #[cfg(not(target_os = "android"))]
+        return Connectivity::Status { ipv4: false, ipv6: false };
+
+        #[cfg(target_os = "android")]
+        return Connectivity::Status { connected: false };
+    }
+
     /// Inverse of [`Connectivity::is_offline`].
     pub fn is_online(&self) -> bool {
         !self.is_offline()
