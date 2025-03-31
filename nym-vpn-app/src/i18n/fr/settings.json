@@ -33,7 +33,7 @@
     "title": "Notifications sur le bureau"
   },
   "logs": {
-    "title": "Journaux (stockés localement)",
+    "title": "Journaux",
     "desc": "Copier ou supprimer les journaux"
   },
   "info": {
