@@ -430,6 +430,13 @@ impl TunnelStateMachine {
         )
         .await;
 
+        let offline_watch = offline_monitor.subscribe();
+        account_command_tx
+            .register_offline_watch(offline_watch)
+            .await
+            .inspect_err(|err| tracing::error!("Failed to register offline watch: {}", err))
+            .ok();
+
         let (mixnet_event_sender, mixnet_event_receiver) = mpsc::unbounded_channel();
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
