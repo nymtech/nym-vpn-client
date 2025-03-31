@@ -5,7 +5,10 @@ use windows::{
     core::Result,
     Win32::{
         Foundation::{self, HLOCAL},
-        Security,
+        Security::{
+            self,
+            Authorization::{GetExplicitEntriesFromAclW, EXPLICIT_ACCESS_W},
+        },
     },
 };
 
@@ -35,6 +38,25 @@ impl Acl {
             inner,
             _entries: entries,
         })
+    }
+
+    /// TBD
+    pub fn get_entries(&self) -> Result<Vec<ExplicitAccess>> {
+        let mut num_entries = 0;
+
+        // todo: call LocalFree() on this pointer!
+        let mut pentries: *mut EXPLICIT_ACCESS_W = std::ptr::null_mut();
+
+        unsafe { GetExplicitEntriesFromAclW(self.inner, &mut num_entries, &mut pentries).ok()? };
+
+        for i in 0..num_entries {
+            let offset = isize::try_from(i).expect("failed to convert to pointer offset");
+            let entry = unsafe { pentries.offset(offset) };
+
+            println!("{:?}", unsafe { *entry });
+        }
+
+        Ok(Vec::new())
     }
 
     /// Returns the inner pointer to `ACL`.

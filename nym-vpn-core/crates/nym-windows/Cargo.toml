@@ -20,6 +20,8 @@ features = [
     "Win32_Globalization",
     "Win32_Security",
     "Win32_Security_Authorization",
+    "Win32_Security_Authentication_Identity",
+    "Win32_Storage_FileSystem",
     "Win32_System",
     "Win32_System_Memory",
     "Win32_System_SystemServices",

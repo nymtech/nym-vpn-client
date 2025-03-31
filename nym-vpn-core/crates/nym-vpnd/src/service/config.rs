@@ -6,6 +6,7 @@ use std::os::unix::fs::PermissionsExt;
 use std::{fmt, fs, path::PathBuf};
 
 use nym_vpn_lib::gateway_directory;
+use nym_windows::security::{AceFlags, SecurityObjectType};
 use serde::{de::DeserializeOwned, Serialize};
 
 #[cfg(not(windows))]
@@ -128,6 +129,13 @@ pub enum ConfigSetupError {
     #[cfg(unix)]
     #[error("failed to set permissions for directory {dir}: {error}")]
     SetPermissions { dir: PathBuf, error: std::io::Error },
+
+    #[cfg(windows)]
+    #[error("failed to set permissions for directory {dir}: {error}")]
+    SetPermissions {
+        dir: PathBuf,
+        error: windows::core::Error,
+    },
 }
 
 #[derive(Debug, serde::Serialize, serde::Deserialize)]
@@ -232,6 +240,44 @@ pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError
     }
 
     // TODO: same for windows?
+    #[cfg(windows)]
+    {
+        use nym_windows::security::{
+            self, AccessMode, Acl, ExplicitAccess, SecurityInfo, Sid, Trustee, TrusteeType,
+        };
+
+        use windows::Win32::Foundation::GENERIC_ALL;
+
+        let trustee = Trustee::new(
+            Sid::local_system().map_err(|error| ConfigSetupError::SetPermissions {
+                dir: data_dir.clone(),
+                error,
+            })?,
+            TrusteeType::Group,
+        );
+
+        let mut explicit_access = ExplicitAccess::new(trustee);
+        explicit_access.set_access_mode(AccessMode::SetAccess);
+        explicit_access.set_access_permissions(GENERIC_ALL.0);
+        explicit_access.set_inheritance(AceFlags::NO_INHERITANCE);
+
+        tracing::info!("Set data dir permissions: {}", data_dir.display());
+
+        let acl = Acl::new(vec![explicit_access]).unwrap();
+
+        security::set_named_security_info(
+            &data_dir,
+            SecurityObjectType::FileObject,
+            SecurityInfo::DACL | SecurityInfo::PROTECTED_DACL,
+            None,
+            None,
+            Some(&acl),
+        )
+        .map_err(|error| ConfigSetupError::SetPermissions {
+            dir: data_dir.clone(),
+            error,
+        })?;
+    }
 
     Ok(())
 }

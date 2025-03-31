@@ -3,15 +3,16 @@
 
 mod acl;
 mod explicit_access;
-pub mod fs;
 mod security_attributes;
 mod security_descriptor;
+mod security_info;
 mod sid;
 mod trustee;
 
 pub use acl::Acl;
-pub use explicit_access::ExplicitAccess;
+pub use explicit_access::{AccessMode, AceFlags, ExplicitAccess};
 pub use security_attributes::SecurityAttributes;
 pub use security_descriptor::SecurityDescriptor;
-pub use sid::{LookedUpAccount, Sid};
-pub use trustee::Trustee;
+pub use security_info::{set_named_security_info, SecurityInfo, SecurityObjectType};
+pub use sid::{AccountLookupResult, Sid};
+pub use trustee::{Trustee, TrusteeType};

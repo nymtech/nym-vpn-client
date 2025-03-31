@@ -37,6 +37,8 @@ nym-bin-common.workspace = true
 nym-credentials-interface.workspace = true
 nym-task.workspace = true
 nym-validator-client.workspace = true
+nym-windows.workspace = true
+windows = { workspace = true, features = ["Win32_Security"] }
 
 # Local crates
 nym-ipc.workspace = true
@@ -54,10 +56,10 @@ windows-service.workspace = true
 eventlog.workspace = true
 
 [target.'cfg(windows)'.dependencies.windows]
-workspace = true
 features = [
     "Win32_Foundation",
     "Win32_Security",
+    "Win32_Storage_FileSystem",
     "Win32_Security_Authorization",
     "Win32_Security_Authentication_Identity",
     "Win32_System_Diagnostics_Debug",
@@ -65,6 +67,7 @@ features = [
     "Win32_System_Memory",
     "Win32_System_Threading",
 ]
+workspace = true
 
 [build-dependencies]
 vergen = { workspace = true, default-features = false, features = [

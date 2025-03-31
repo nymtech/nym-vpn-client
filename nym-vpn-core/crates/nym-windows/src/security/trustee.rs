@@ -3,7 +3,11 @@
 
 use windows::{
     core::PWSTR,
-    Win32::Security::Authorization::{TRUSTEE_IS_SID, TRUSTEE_TYPE, TRUSTEE_W},
+    Win32::Security::Authorization::{
+        TRUSTEE_IS_ALIAS, TRUSTEE_IS_COMPUTER, TRUSTEE_IS_DELETED, TRUSTEE_IS_DOMAIN,
+        TRUSTEE_IS_GROUP, TRUSTEE_IS_INVALID, TRUSTEE_IS_SID, TRUSTEE_IS_USER,
+        TRUSTEE_IS_WELL_KNOWN_GROUP, TRUSTEE_TYPE, TRUSTEE_W,
+    },
 };
 
 use super::Sid;
@@ -18,10 +22,10 @@ pub struct Trustee {
 
 impl Trustee {
     /// Create new trustee with sid and type.
-    pub fn new(sid: Sid, trustee_type: TRUSTEE_TYPE) -> Self {
+    pub fn new(sid: Sid, trustee_type: TrusteeType) -> Self {
         let inner = TRUSTEE_W {
             TrusteeForm: TRUSTEE_IS_SID,
-            TrusteeType: trustee_type,
+            TrusteeType: trustee_type.to_raw(),
 
             // SAFETY: ptstrName is only the first variant of a union type but windows bindings lack the detail
             // so we must cast to unrelated type (LPWSTR) which simply holds a pointer.
@@ -46,5 +50,41 @@ impl Trustee {
     /// The returned value stores raw pointers inside, which are only guaranteed to remain valid during the lifetime of this struct.
     pub unsafe fn inner(&self) -> TRUSTEE_W {
         self.inner
+    }
+}
+
+/// Type of trustee.
+#[derive(Debug, Copy, Clone)]
+pub enum TrusteeType {
+    /// tbd
+    User,
+    /// tbd
+    Group,
+    /// tbd
+    Domain,
+    /// tbd
+    Alias,
+    /// tbd
+    WellKnownGroup,
+    /// tbd
+    Deleted,
+    /// tbd
+    Invalid,
+    /// tbd
+    Computer,
+}
+
+impl TrusteeType {
+    fn to_raw(&self) -> TRUSTEE_TYPE {
+        match self {
+            Self::User => TRUSTEE_IS_USER,
+            Self::Group => TRUSTEE_IS_GROUP,
+            Self::Domain => TRUSTEE_IS_DOMAIN,
+            Self::Alias => TRUSTEE_IS_ALIAS,
+            Self::WellKnownGroup => TRUSTEE_IS_WELL_KNOWN_GROUP,
+            Self::Deleted => TRUSTEE_IS_DELETED,
+            Self::Invalid => TRUSTEE_IS_INVALID,
+            Self::Computer => TRUSTEE_IS_COMPUTER,
+        }
     }
 }

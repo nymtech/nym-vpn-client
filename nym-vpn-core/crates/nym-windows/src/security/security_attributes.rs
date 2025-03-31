@@ -3,13 +3,12 @@
 
 use windows::{
     core::Result,
-    Win32::{
-        Foundation,
-        Security::{self, Authorization::TRUSTEE_IS_WELL_KNOWN_GROUP, SECURITY_ATTRIBUTES},
-    },
+    Win32::{Foundation, Security::SECURITY_ATTRIBUTES},
 };
 
-use super::{Acl, ExplicitAccess, SecurityDescriptor, Sid, Trustee};
+use super::{
+    AccessMode, AceFlags, Acl, ExplicitAccess, SecurityDescriptor, Sid, Trustee, TrusteeType,
+};
 
 /// Struct that contains the security identifier for an object and specifies whether the handle retrieved by specifying this struct is inheritable.
 #[derive(Debug)]
@@ -37,12 +36,12 @@ impl SecurityAttributes {
     ///
     /// Permissions mask is expected to contain any of the values listed under [`ACCESS_MASK`](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-mask)
     pub fn allow_everyone(permissions: u32) -> Result<SecurityAttributes> {
-        let trustee = Trustee::new(Sid::everyone()?, TRUSTEE_IS_WELL_KNOWN_GROUP);
+        let trustee = Trustee::new(Sid::everyone()?, TrusteeType::WellKnownGroup);
 
         let mut explicit_access = ExplicitAccess::new(trustee);
-        explicit_access.set_access_mode(Security::Authorization::SET_ACCESS);
+        explicit_access.set_access_mode(AccessMode::SetAccess);
         explicit_access.set_access_permissions(permissions);
-        explicit_access.set_inheritance(Security::NO_INHERITANCE);
+        explicit_access.set_inheritance(AceFlags::NO_INHERITANCE);
 
         let acl = Acl::new(vec![explicit_access])?;
         let mut security_descriptor = SecurityDescriptor::new()?;

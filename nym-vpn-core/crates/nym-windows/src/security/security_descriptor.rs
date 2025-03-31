@@ -51,6 +51,7 @@ impl SecurityDescriptor {
     /// This method is used internally to create self-relative security descriptor stored within a contiguous memory block.
     ///
     /// Note that `capacity` less than `sizeof(SECURITY_DESCRIPTOR)` will be ignored and identical to calling `SecurityDescriptor::new()`.
+    #[allow(dead_code)]
     pub(crate) unsafe fn new_with_capacity(capacity: usize) -> Result<Self> {
         let min_capacity: usize = std::mem::size_of::<SECURITY_DESCRIPTOR>();
         let actual_capacity = std::cmp::max(min_capacity, capacity);
@@ -116,7 +117,7 @@ impl SecurityDescriptor {
             Ok(None)
         } else {
             // Safety: make a copy of sid since `GetSecurityDescriptorOwner` returns a pointer to the internal buffer.
-            Ok(Some(unsafe { Sid::new_with_copy(sid)? }))
+            Ok(Some(unsafe { Sid::copy_from(sid)? }))
         }
     }
 
@@ -149,7 +150,7 @@ impl SecurityDescriptor {
             Ok(None)
         } else {
             // Safety: make a copy of sid since `GetSecurityDescriptorGroup` returns a pointer to the internal buffer.
-            Ok(Some(unsafe { Sid::new_with_copy(sid)? }))
+            Ok(Some(unsafe { Sid::copy_from(sid)? }))
         }
     }
 
