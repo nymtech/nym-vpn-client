@@ -4,8 +4,9 @@
 use windows::{
     core::PWSTR,
     Win32::Security::Authorization::{
-        TRUSTEE_IS_ALIAS, TRUSTEE_IS_COMPUTER, TRUSTEE_IS_DELETED, TRUSTEE_IS_DOMAIN,
-        TRUSTEE_IS_GROUP, TRUSTEE_IS_INVALID, TRUSTEE_IS_SID, TRUSTEE_IS_USER,
+        TRUSTEE_FORM, TRUSTEE_IS_ALIAS, TRUSTEE_IS_COMPUTER, TRUSTEE_IS_DELETED, TRUSTEE_IS_DOMAIN,
+        TRUSTEE_IS_GROUP, TRUSTEE_IS_INVALID, TRUSTEE_IS_NAME, TRUSTEE_IS_OBJECTS_AND_NAME,
+        TRUSTEE_IS_OBJECTS_AND_SID, TRUSTEE_IS_SID, TRUSTEE_IS_UNKNOWN, TRUSTEE_IS_USER,
         TRUSTEE_IS_WELL_KNOWN_GROUP, TRUSTEE_TYPE, TRUSTEE_W,
     },
 };
@@ -53,6 +54,31 @@ impl Trustee {
     }
 }
 
+/// tbd
+#[derive(Debug, Copy, Clone)]
+pub enum TrusteeForm {
+    /// tbd
+    Sid,
+    /// tbd
+    Name,
+    /// tbd
+    ObjectsAndSid,
+    /// tbd
+    ObjectsAndName,
+}
+
+impl From<TRUSTEE_FORM> for TrusteeForm {
+    fn from(trustee_form: TRUSTEE_FORM) -> Self {
+        match trustee_form {
+            TRUSTEE_IS_SID => Self::Sid,
+            TRUSTEE_IS_NAME => Self::Name,
+            TRUSTEE_IS_OBJECTS_AND_SID => Self::ObjectsAndSid,
+            TRUSTEE_IS_OBJECTS_AND_NAME => Self::ObjectsAndName,
+            _ => Self::ObjectsAndName,
+        }
+    }
+}
+
 /// Type of trustee.
 #[derive(Debug, Copy, Clone)]
 pub enum TrusteeType {
@@ -72,6 +98,8 @@ pub enum TrusteeType {
     Invalid,
     /// tbd
     Computer,
+    // tbd
+    Unknown,
 }
 
 impl TrusteeType {
@@ -85,6 +113,24 @@ impl TrusteeType {
             Self::Deleted => TRUSTEE_IS_DELETED,
             Self::Invalid => TRUSTEE_IS_INVALID,
             Self::Computer => TRUSTEE_IS_COMPUTER,
+            Self::Unknown => TRUSTEE_IS_UNKNOWN,
+        }
+    }
+}
+
+impl From<TRUSTEE_TYPE> for TrusteeType {
+    fn from(trustee_type: TRUSTEE_TYPE) -> Self {
+        match trustee_type {
+            TRUSTEE_IS_USER => Self::User,
+            TRUSTEE_IS_GROUP => Self::Group,
+            TRUSTEE_IS_DOMAIN => Self::Domain,
+            TRUSTEE_IS_ALIAS => Self::Alias,
+            TRUSTEE_IS_WELL_KNOWN_GROUP => Self::WellKnownGroup,
+            TRUSTEE_IS_DELETED => Self::Deleted,
+            TRUSTEE_IS_INVALID => Self::Invalid,
+            TRUSTEE_IS_COMPUTER => Self::Computer,
+            TRUSTEE_IS_UNKNOWN => Self::Unknown,
+            _ => Self::Unknown,
         }
     }
 }

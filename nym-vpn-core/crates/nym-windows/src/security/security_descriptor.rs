@@ -1,19 +1,23 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::marker::PhantomData;
+
 use windows::{
     core::Result,
     Win32::{
         Foundation::{self, HLOCAL},
         Security::{
-            self, PSECURITY_DESCRIPTOR, PSID, SECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL,
-            SE_SELF_RELATIVE,
+            self,
+            Authorization::{GetExplicitEntriesFromAclW, EXPLICIT_ACCESS_W, TRUSTEE_W},
+            GetSecurityDescriptorDacl, PSECURITY_DESCRIPTOR, PSID, SECURITY_DESCRIPTOR,
+            SECURITY_DESCRIPTOR_CONTROL, SE_SELF_RELATIVE,
         },
         System::{Memory, SystemServices},
     },
 };
 
-use super::{Acl, Sid};
+use super::{trustee::TrusteeForm, AceFlags, Acl, Sid, TrusteeType};
 
 /// Struct that contains the security information associated with an object.
 #[derive(Debug)]
@@ -187,4 +191,156 @@ impl Drop for SecurityDescriptor {
             unsafe { Foundation::LocalFree(Some(HLOCAL(self.inner.0))) };
         }
     }
+}
+
+/// Struct that contains the security information associated with an object in a contiguous memory buffer.
+#[derive(Debug)]
+pub struct RelativeSecurityDescriptor<'a> {
+    inner: PSECURITY_DESCRIPTOR,
+    data: PhantomData<&'a SECURITY_DESCRIPTOR>,
+}
+
+impl<'a> RelativeSecurityDescriptor<'a> {
+    unsafe fn from_ptr(ptr: PSECURITY_DESCRIPTOR) -> Self {
+        Self {
+            inner: ptr,
+            data: PhantomData,
+        }
+    }
+
+    fn get_acl(&self) -> Result<Option<BorrowedAcl<'a>>> {
+        let mut lpbdaclpresent = Foundation::BOOL::default();
+        let mut pdacl = std::ptr::null_mut();
+        let mut lpbdacldefaulted = Foundation::BOOL::default();
+
+        unsafe {
+            GetSecurityDescriptorDacl(
+                self.inner,
+                &mut lpbdaclpresent,
+                &mut pdacl,
+                &mut lpbdacldefaulted,
+            )?;
+        }
+
+        if lpbdaclpresent.as_bool() {
+            Ok(Some(unsafe { BorrowedAcl::from_ptr(pdacl) }))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
+/// tbd
+pub struct BorrowedAcl<'a> {
+    inner: *const Security::ACL,
+    data: PhantomData<&'a Security::ACL>,
+}
+
+impl<'a> BorrowedAcl<'a> {
+    unsafe fn from_ptr(ptr: *const Security::ACL) -> Self {
+        Self {
+            inner: ptr,
+            data: PhantomData,
+        }
+    }
+
+    /// TBD
+    pub fn get_entries(&self) -> Result<Vec<BorrowedExplicitAccess>> {
+        let mut num_entries = 0;
+
+        // todo: call LocalFree() on this pointer!
+        let mut pentries: *mut EXPLICIT_ACCESS_W = std::ptr::null_mut();
+
+        unsafe { GetExplicitEntriesFromAclW(self.inner, &mut num_entries, &mut pentries).ok()? };
+
+        let entries = (0..num_entries)
+            .into_iter()
+            .map(|i| {
+                // Safety: cast to isize should be fine as number of entries is likely limited.
+                let entry_ptr = unsafe { pentries.offset(i as isize) };
+                let explicit_access = unsafe { BorrowedExplicitAccess::from_ptr(entry_ptr) };
+                explicit_access
+            })
+            .collect::<Vec<_>>();
+
+        Ok(entries)
+    }
+}
+
+pub struct BorrowedExplicitAccess<'a> {
+    inner: *const EXPLICIT_ACCESS_W,
+    data: PhantomData<&'a EXPLICIT_ACCESS_W>,
+}
+
+impl<'a> BorrowedExplicitAccess<'a> {
+    unsafe fn from_ptr(ptr: *const EXPLICIT_ACCESS_W) -> Self {
+        Self {
+            inner: ptr,
+            data: PhantomData,
+        }
+    }
+
+    pub fn get_access_permissions(&self) -> u32 {
+        unsafe { (*self.inner).grfAccessPermissions }
+    }
+
+    pub fn get_inheritance(&self) -> AceFlags {
+        let raw_flags = unsafe { (*self.inner).grfInheritance };
+        AceFlags::from_bits_retain(raw_flags.0)
+    }
+
+    pub fn get_trustee(&self) -> BorrowedTrustee<'a> {
+        unsafe { BorrowedTrustee::new(&(*self.inner).Trustee) }
+    }
+}
+
+pub struct BorrowedTrustee<'a> {
+    inner: &'a TRUSTEE_W,
+}
+impl<'a> BorrowedTrustee<'a> {
+    unsafe fn new(trustee: &'a TRUSTEE_W) -> Self {
+        Self { inner: trustee }
+    }
+
+    pub fn get_trustee_type(&self) -> TrusteeType {
+        TrusteeType::from((*self.inner).TrusteeType)
+    }
+
+    pub fn get_trustee_form(&self) -> TrusteeForm {
+        TrusteeForm::from((*self.inner).TrusteeForm)
+    }
+
+    pub fn get_trustee_name(&self) -> Result<TrusteeSpecificInfo> {
+        // union {
+        //     LPWSTR             ptstrName;
+        //     SID                *pSid;
+        //     OBJECTS_AND_SID    *pObjectsAndSid;
+        //     OBJECTS_AND_NAME_W *pObjectsAndName;
+        // };
+
+        match self.get_trustee_form() {
+            TrusteeForm::Name => {
+                let name = unsafe { self.inner.ptstrName.to_hstring().to_string() };
+                Ok(TrusteeSpecificInfo::Name(name))
+            }
+            TrusteeForm::Sid => {
+                let psid = PSID(self.inner.ptstrName.0 as *mut _);
+                let sid = unsafe { Sid::copy_from(psid)? };
+                Ok(TrusteeSpecificInfo::Sid(sid))
+            }
+            TrusteeForm::ObjectsAndName => {
+                todo!()
+            }
+            TrusteeForm::ObjectsAndSid => {
+                todo!()
+            }
+        }
+    }
+}
+
+pub enum TrusteeSpecificInfo {
+    Name(String),
+    Sid(Sid),
+    ObjectsAndSid,
+    ObjectsAndName,
 }

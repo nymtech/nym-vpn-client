@@ -15,4 +15,4 @@ pub use security_attributes::SecurityAttributes;
 pub use security_descriptor::SecurityDescriptor;
 pub use security_info::{set_named_security_info, SecurityInfo, SecurityObjectType};
 pub use sid::{AccountLookupResult, Sid};
-pub use trustee::{Trustee, TrusteeType};
+pub use trustee::{Trustee, TrusteeForm, TrusteeType};

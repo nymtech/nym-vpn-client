@@ -6,7 +6,10 @@ use std::ffi::OsStr;
 use windows::{
     core::{Result, HSTRING},
     Win32::Security::{
-        Authorization::{SetNamedSecurityInfoW, SE_FILE_OBJECT, SE_OBJECT_TYPE, SE_SERVICE},
+        Authorization::{
+            GetNamedSecurityInfoW, SetNamedSecurityInfoW, SE_FILE_OBJECT, SE_OBJECT_TYPE,
+            SE_SERVICE,
+        },
         ATTRIBUTE_SECURITY_INFORMATION, DACL_SECURITY_INFORMATION, GROUP_SECURITY_INFORMATION,
         OBJECT_SECURITY_INFORMATION, OWNER_SECURITY_INFORMATION,
         PROTECTED_DACL_SECURITY_INFORMATION,
@@ -80,6 +83,31 @@ where
             None,
         )
         .ok()
+    }
+}
+
+pub fn get_security_info(
+    object_name: S,
+    object_type: SecurityObjectType,
+    security_info: SecurityInfo,
+    owner: Option<&Sid>,
+    group: Option<&Sid>,
+    dacl: Option<&Acl>,
+) -> Result<()>
+where
+    S: AsRef<OsStr>,
+{
+    unsafe {
+        GetNamedSecurityInfoW(
+            &HSTRING::from(object_name.as_ref()),
+            object_type.to_raw(),
+            securityinfo,
+            ppsidowner,
+            ppsidgroup,
+            ppdacl,
+            ppsacl,
+            ppsecuritydescriptor,
+        )
     }
 }
 
