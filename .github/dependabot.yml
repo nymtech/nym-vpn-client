@@ -10,8 +10,6 @@ updates:
     directory: /nym-vpn-android
     schedule:
       interval: weekly
-    assignees:
-      - "zaneschepke"
     groups:
       patch-updates:
         patterns:
@@ -43,8 +41,6 @@ updates:
     directory: /nym-vpn-app
     schedule:
       interval: weekly
-#    assignees:
-#      - "doums"
     groups:
       patch-updates:
         patterns:
