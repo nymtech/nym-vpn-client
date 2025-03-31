@@ -95,7 +95,7 @@ function Node({ node }: { node: NodeHop }) {
     return (
       <PageAnim className="h-full flex flex-col">
         <div className="w-4/5 h-2/3 overflow-auto break-words text-center">
-          <p className="text-aphrodisiac font-semibold">An error occurred</p>
+          <p className="text-aphrodisiac font-medium">An error occurred</p>
           <p className="text-base font-mono">{`${tE(error.key)}: ${error.message} ${error.data?.details || '-'}`}</p>
         </div>
       </PageAnim>

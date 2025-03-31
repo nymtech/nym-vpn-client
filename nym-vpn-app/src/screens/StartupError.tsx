@@ -47,8 +47,8 @@ function StartupError({
         ])}
       >
         <div className="flex flex-col justify-center items-center gap-2">
-          <MsIcon className="text-2xl font-bold" icon={'error'} />
-          <h1 className="text-xl font-bold tracking-wider leading-loose">
+          <MsIcon className="text-2xl font-medium" icon={'error'} />
+          <h1 className="text-xl font-medium tracking-wider leading-loose">
             Problem detected
           </h1>
         </div>

@@ -40,17 +40,15 @@
   --color-rouge-ecarlate: #e02c4d;
   --color-liquid-lava: #f97316;
 
-  --font-sans:
-    Lato, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
-    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-sans: LabGrotesque, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+  'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   --font-icon: Material Symbols Outlined;
   --font-icon--font-variation-settings: 'opsz' 24;
 }
 
 @utility transition-noborder {
-  transition-property:
-    color, background-color, text-decoration-color, fill, stroke, opacity,
-    box-shadow, transform, filter, backdrop-filter;
+  transition-property: color, background-color, text-decoration-color, fill, stroke, opacity,
+  box-shadow, transform, filter, backdrop-filter;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
@@ -98,38 +96,31 @@
 
   /* Regular */
   @font-face {
-    font-family: 'Lato';
+    font-family: 'LabGrotesque';
     font-style: normal;
     font-weight: 400;
-    src: url(assets/fonts/Lato/Lato-Regular.ttf) format('truetype');
+    src: url(assets/fonts/LabGrotesque/LabGrotesque-Regular.woff2) format('woff2');
   }
-  /* Regular italic */
+  /* Italic */
   @font-face {
-    font-family: 'Lato';
+    font-family: 'LabGrotesque';
     font-style: italic;
     font-weight: 400;
-    src: url(assets/fonts/Lato/Lato-Italic.ttf) format('truetype');
+    src: url(assets/fonts/LabGrotesque/LabGrotesque-Italic.woff2) format('woff2');
   }
   /* Medium */
   @font-face {
-    font-family: 'Lato';
+    font-family: 'LabGrotesque';
     font-style: normal;
     font-weight: 500;
-    src: url(assets/fonts/Lato/Lato-Medium.ttf) format('truetype');
-  }
-  /* Semi-bold */
-  @font-face {
-    font-family: 'Lato';
-    font-style: normal;
-    font-weight: 600;
-    src: url(assets/fonts/Lato/Lato-Semibold.ttf) format('truetype');
+    src: url(assets/fonts/LabGrotesque/LabGrotesque-Medium.woff2) format('woff2');
   }
   /* Bold */
   @font-face {
-    font-family: 'Lato';
+    font-family: 'LabGrotesque';
     font-style: normal;
     font-weight: 700;
-    src: url(assets/fonts/Lato/Lato-Bold.ttf) format('truetype');
+    src: url(assets/fonts/LabGrotesque/LabGrotesque-Bold.woff2) format('woff2');
   }
 
   /* icon font */

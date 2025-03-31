@@ -71,7 +71,7 @@ function RadioGroup<K extends Key>({
         {rootLabel && (
           <Label
             as="div"
-            className="font-semibold text-base text-baltic-sea dark:text-white mb-6 cursor-default"
+            className="font-medium text-base text-baltic-sea dark:text-white mb-6 cursor-default"
           >
             {rootLabel}
           </Label>

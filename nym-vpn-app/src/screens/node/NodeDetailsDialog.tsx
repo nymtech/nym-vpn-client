@@ -39,7 +39,7 @@ function NodeDetailsDialog({ isOpen, onClose, ref }: Props) {
       onClose={onClose}
       className="flex flex-col dark:text-white gap-8"
     >
-      <h3 className="text-xl font-semibold">{gateway?.name}</h3>
+      <h3 className="text-xl font-medium">{gateway?.name}</h3>
       <div className="flex flex-row items-center gap-3">
         <MsIcon className={clsx(scoreIcon[1], 'text-xl')} icon={scoreIcon[0]} />
         <div className="w-[1px] bg-bombay dark:bg-iron self-stretch" />

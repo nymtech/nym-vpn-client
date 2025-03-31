@@ -37,7 +37,7 @@ function LicenseDetails() {
         <article className="flex flex-col gap-4">
           <div className="flex flex-row items-center gap-4">
             {label(t('name'))}
-            <p className="truncate font-semibold">{name}</p>
+            <p className="truncate font-medium">{name}</p>
           </div>
           <div className="flex flex-row items-center gap-4">
             {label(t('version'))}

@@ -25,7 +25,7 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
         />
         <DialogTitle
           as="h3"
-          className="text-lg text-baltic-sea dark:text-white font-bold text-center"
+          className="text-xl text-baltic-sea dark:text-white text-center"
         >
           {t('location-details.title')}
         </DialogTitle>

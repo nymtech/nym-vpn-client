@@ -164,7 +164,7 @@ function Home() {
           <div className="flex flex-col justify-between gap-y-4">
             <NetworkModeSelect />
             <div className="flex flex-col gap-6">
-              <div className="mt-3 text-base font-semibold cursor-default">
+              <div className="mt-3 text-base font-medium cursor-default">
                 {t('select-node-title')}
               </div>
               <div className="flex flex-col gap-5">

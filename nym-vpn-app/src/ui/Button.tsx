@@ -90,7 +90,7 @@ function Button({
     <HuButton
       className={clsx([
         'flex justify-center items-center w-full',
-        'rounded-lg text-lg font-bold py-3 px-6',
+        'rounded-lg text-lg font-medium py-3 px-6',
         outline ? getOutlineTextColor() : 'text-black dark:text-baltic-sea',
         'focus:outline-hidden',
         'transition data-disabled:opacity-60 data-active:ring-0',

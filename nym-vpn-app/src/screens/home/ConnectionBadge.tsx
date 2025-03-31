@@ -19,7 +19,7 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
       case 'Error':
       case 'Offline':
       case 'OfflineAutoReconnect':
-        return ['text-white bg-aphrodisiac!'];
+        return ['text-baltic-sea bg-aphrodisiac!'];
     }
   };
 
@@ -50,7 +50,7 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
         'flex justify-center items-center tracking-normal gap-4 min-w-36',
         'bg-mercury dark:bg-mine-shaft',
         ...getBadgeStyle(state),
-        'text-lg font-bold py-3 px-6 rounded-full tracking-normal',
+        'text-lg font-medium py-3 px-6 rounded-full tracking-normal',
       ])}
     >
       {getStatusText(state)}

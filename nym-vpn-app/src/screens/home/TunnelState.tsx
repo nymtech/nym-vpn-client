@@ -31,16 +31,10 @@ function TunnelState() {
     return () => clearTimeout(timer);
   }, [state.state]);
 
-  const GeneralError = (error: AppError) => (
+  const generalError = (error: AppError) => (
     <>
-      <p className="text-sm text-aphrodisiac font-bold">
-        {error.key ? tE(error.key) : error.message}
-      </p>
-      {error.data && (
-        <p className="text-sm text-aphrodisiac font-bold text-left">
-          {setToString(error.data)}
-        </p>
-      )}
+      <p>{error.key ? tE(error.key) : error.message}</p>
+      {error.data && <p className="text-left">{setToString(error.data)}</p>}
     </>
   );
 
@@ -51,7 +45,7 @@ function TunnelState() {
       transition={{ duration: 0.1, ease: 'easeOut' }}
       className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default select-none"
     >
-      <p className="text-sm text-iron dark:text-bombay font-bold">{message}</p>
+      <p className="text-base text-iron dark:text-bombay">{message}</p>
     </motion.div>
   );
 
@@ -90,14 +84,12 @@ function TunnelState() {
             initial={{ opacity: 0, scale: 0.9, translateX: -8 }}
             animate={{ opacity: 1, scale: 1, translateX: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
-            className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default"
+            className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default text-aphrodisiac"
           >
             {state.tunnelError ? (
-              <p className="text-sm text-aphrodisiac font-bold">
-                {tE(state.tunnelError)}
-              </p>
+              <p>{tE(state.tunnelError)}</p>
             ) : (
-              state.error && GeneralError(state.error)
+              state.error && generalError(state.error)
             )}
           </motion.div>
         )}

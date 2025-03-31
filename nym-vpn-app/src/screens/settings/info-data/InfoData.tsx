@@ -45,7 +45,7 @@ function InfoData() {
         className={clsx([
           'select-none',
           'flex grow flex-col justify-end text-iron dark:text-iron text-sm',
-          'tracking-tight leading-tight font-semibold mb-4 cursor-default',
+          'tracking-tight leading-tight font-medium mb-4 cursor-default',
         ])}
       >
         <div className={clsx('flex flex-row flex-nowrap gap-1')}>

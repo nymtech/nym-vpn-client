@@ -83,7 +83,7 @@ function NetworkModeSelect() {
       <div
         className={clsx([
           'flex flex-row items-center justify-between',
-          'font-semibold text-base text-baltic-sea dark:text-white mb-5 cursor-default',
+          'font-medium text-base text-baltic-sea dark:text-white mb-5 cursor-default',
         ])}
       >
         <label>{t('select-mode-label')}</label>

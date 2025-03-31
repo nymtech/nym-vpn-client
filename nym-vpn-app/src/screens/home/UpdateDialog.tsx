@@ -59,7 +59,7 @@ function UpdateDialog({ isOpen, onClose, appUpdate, daemonUpdate }: Props) {
         />
         <DialogTitle
           as="h3"
-          className="text-lg text-baltic-sea dark:text-white font-bold"
+          className="text-xl text-baltic-sea dark:text-white"
         >
           {t('update-dialog.title')}
         </DialogTitle>

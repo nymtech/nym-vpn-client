@@ -75,7 +75,7 @@ function Display() {
         onChange={handleThemeChange}
         rootLabel={t('theme-section-title')}
       />
-      <div className="mt-3 text-base font-semibold cursor-default">
+      <div className="mt-3 text-base font-medium cursor-default">
         {t('zoom-section-title')}
       </div>
       <UiScaler />

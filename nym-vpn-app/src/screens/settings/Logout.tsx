@@ -101,7 +101,7 @@ function Logout() {
               />
               <DialogTitle
                 as="h3"
-                className="text-lg text-baltic-sea dark:text-white font-bold text-center w-full truncate"
+                className="text-xl text-baltic-sea dark:text-white text-center w-full truncate"
               >
                 {t('logout-confirmation.title')}
               </DialogTitle>

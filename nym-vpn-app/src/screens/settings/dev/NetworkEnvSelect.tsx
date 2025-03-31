@@ -36,7 +36,7 @@ function NetworkEnvSelect({ current }: Props) {
 
   return (
     <div className="mt-2">
-      <h3 className="text-lg text-baltic-sea dark:text-white font-bold">
+      <h3 className="text-lg text-baltic-sea dark:text-white font-medium">
         Network env
       </h3>
       <div className="flex flex-row flex-nowrap items-center text-sm">
