@@ -9,6 +9,9 @@ pub mod tunnel_state;
 pub mod vpn_api_client;
 pub mod vpnd;
 
+#[cfg(feature = "conversions")]
+use nym_http_api_client::UserAgent;
+
 impl From<String> for crate::Url {
     fn from(url: String) -> Self {
         crate::Url { url }
@@ -68,8 +71,9 @@ impl From<u8> for crate::Threshold {
     }
 }
 
-impl From<nym_http_api_client::UserAgent> for crate::UserAgent {
-    fn from(user_agent: nym_http_api_client::UserAgent) -> Self {
+#[cfg(feature = "conversions")]
+impl From<UserAgent> for crate::UserAgent {
+    fn from(user_agent: UserAgent) -> Self {
         Self {
             application: user_agent.application,
             version: user_agent.version,

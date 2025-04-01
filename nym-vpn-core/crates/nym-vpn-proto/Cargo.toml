@@ -36,6 +36,7 @@ conversions = [
     "dep:nym-sdk",
     "dep:nym-vpn-account-controller",
     "dep:nym-vpn-api-client",
+    "dep:nym-http-api-client",
     "dep:nym-vpn-network-config",
     "dep:nym-vpnd-types",
     "dep:nym-vpn-lib-types",
