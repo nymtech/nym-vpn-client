@@ -125,6 +125,16 @@ impl VpnCredentialStorage {
             .map_err(Error::from)
     }
 
+    pub(crate) async fn contains_issued_ticketbook(
+        &self,
+        ticketbook: &IssuedTicketBook,
+    ) -> Result<bool, Error> {
+        self.credential_storage
+            .contains_issued_ticketbook(ticketbook)
+            .await
+            .map_err(Error::from)
+    }
+
     pub(crate) async fn insert_master_verification_key(
         &self,
         key: &EpochVerificationKey,
