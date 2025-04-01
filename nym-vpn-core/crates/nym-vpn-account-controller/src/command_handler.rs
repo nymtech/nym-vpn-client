@@ -100,6 +100,16 @@ impl AccountCommandHandler {
         self.waiting_request_zknym_command_handler
             .update_vpn_api_client(vpn_api_client);
     }
+
+    async fn spawn(
+        &mut self,
+        command: AccountCommand,
+        task: impl std::future::Future<Output = AccountCommandResult> + Send + 'static,
+    ) {
+        if self.running_commands.add(command).await == Command::IsFirst {
+            self.running_command_tasks.spawn(task);
+        }
+    }
 }
 
 // ----------------------------------------------------------------------------
@@ -123,9 +133,7 @@ impl AccountCommandHandler {
 
         let command_handler = self.waiting_sync_account_command_handler.build(account);
 
-        if self.running_commands.add(command).await == Command::IsFirst {
-            self.running_command_tasks.spawn(command_handler.run());
-        }
+        self.spawn(command, command_handler.run()).await;
     }
 
     pub(crate) async fn finish_sync_account_state(
@@ -163,9 +171,7 @@ impl AccountCommandHandler {
             .waiting_sync_device_command_handler
             .build(account, device);
 
-        if self.running_commands.add(command).await == Command::IsFirst {
-            self.running_command_tasks.spawn(command_handler.run());
-        }
+        self.spawn(command, command_handler.run()).await;
     }
 
     pub(crate) async fn finish_sync_device_state(
@@ -204,9 +210,7 @@ impl AccountCommandHandler {
         let command_handler =
             RegisterDeviceCommandHandler::new(account, device, account_state, vpn_api_client);
 
-        if self.running_commands.add(command).await == Command::IsFirst {
-            self.running_command_tasks.spawn(command_handler.run());
-        }
+        self.spawn(command, command_handler.run()).await;
     }
 
     pub(crate) async fn finish_register_device(
@@ -244,9 +248,7 @@ impl AccountCommandHandler {
             .waiting_request_zknym_command_handler
             .build(account, device);
 
-        if self.running_commands.add(command).await == Command::IsFirst {
-            self.running_command_tasks.spawn(command_handler.run());
-        }
+        self.spawn(command, command_handler.run()).await;
     }
 
     pub(crate) async fn finish_request_zk_nym(
