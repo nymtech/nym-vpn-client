@@ -12,6 +12,7 @@ pub mod storage_cleanup;
 
 mod commander;
 mod commands;
+mod connectivity;
 mod controller;
 mod error;
 mod storage;
