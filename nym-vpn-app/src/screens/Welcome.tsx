@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
+import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
 import { PrivacyPolicyUrl, SentryHomePage, ToSUrl } from '../constants';
 import { useMainDispatch } from '../contexts';
@@ -32,23 +32,22 @@ function Welcome() {
     <PageAnim className="h-full flex flex-col justify-end items-center gap-14 select-none cursor-default">
       <div className="flex flex-col items-center gap-4 px-4 mt-4">
         <div className="flex flex-col gap-2 text-2xl text-center dark:text-white">
-          <h1 className="truncate">{t('title.part1')}</h1>
-          <h1 className="truncate">{t('title.part2')}</h1>
+          <h1 className="truncate">{t('title')}</h1>
         </div>
         <h2 className="text-center dark:text-bombay w-72">
-          {`${t('description.part1')} `}
-          <span className="underline">{t('description.part2')}</span>
-          {` ${t('description.part3')} (${t('via', { ns: 'glossary' })} `}
-          <Link
-            text={t('sentry', { ns: 'common' })}
-            url={SentryHomePage}
-            className=""
+          <Trans
+            i18nKey="description"
+            ns="welcome"
+            components={{
+              sentryLink: (
+                <Link
+                  text={t('sentry', { ns: 'common' })}
+                  url={SentryHomePage}
+                />
+              ),
+            }}
           />
-          {`) ${t('description.part4')}`}
         </h2>
-        <p className="text-xs text-center text-iron dark:text-bombay w-80">
-          {t('experimental')}
-        </p>
       </div>
       <div className="flex flex-col items-center gap-4 w-full">
         <SettingsGroup
@@ -56,15 +55,7 @@ function Welcome() {
           settings={[
             {
               title: t('error-monitoring.title', { ns: 'settings' }),
-              desc: (
-                <span>
-                  {`(${t('via', { ns: 'glossary' })} `}
-                  <span className="text-malachite-moss dark:text-malachite">
-                    {t('sentry', { ns: 'common' })}
-                  </span>
-                  {`), ${t('error-monitoring.desc', { ns: 'settings' })}`}
-                </span>
-              ),
+              desc: t('anon-toggle-desc'),
               leadingIcon: 'bug_report',
               onClick: handleMonitoringChanged,
               trailing: (
@@ -80,21 +71,28 @@ function Welcome() {
           {t('continue-button')}
         </Button>
         <p className="text-xs text-center text-iron dark:text-bombay w-80">
-          {`${t('tos.part1')} `}
-          <Link
-            text={t('tos', { ns: 'common' })}
-            url={ToSUrl}
-            className="text-black dark:text-white"
-            textClassName="underline-offset-2"
+          <Trans
+            i18nKey="tos-notice"
+            ns="welcome"
+            components={{
+              tosLink: (
+                <Link
+                  text={t('tos', { ns: 'common' })}
+                  url={ToSUrl}
+                  className="text-black dark:text-white"
+                  textClassName="underline-offset-2"
+                />
+              ),
+              privacyLink: (
+                <Link
+                  text={t('privacy-statement', { ns: 'common' })}
+                  url={PrivacyPolicyUrl}
+                  className="text-black dark:text-white"
+                  textClassName="underline-offset-2"
+                />
+              ),
+            }}
           />
-          {` ${t('tos.part2')} `}
-          <Link
-            text={t('privacy-statement', { ns: 'common' })}
-            url={PrivacyPolicyUrl}
-            className="text-black dark:text-white"
-            textClassName="underline-offset-2"
-          />
-          {t('tos.part3')}
         </p>
       </div>
     </PageAnim>

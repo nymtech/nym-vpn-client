@@ -1,19 +1,7 @@
 {
-  "title": {
-    "part1": "Bienvenue",
-    "part2": "dans NymVPN (alpha)"
-  },
-  "tos": {
-    "part1": "En continuant, vous acceptez les conditions d'utilisation de NymVPN",
-    "part2": "et reconnaissez les conditions d'utilisation de NymVPN",
-    "part3": "."
-  },
-  "continue-button": "Continuer",
-  "experimental": "Il s'agit d'un logiciel expérimental. Ne comptez pas sur lui pour assurer un anonymat fort (pour l'instant).",
-  "description": {
-    "part1": "Aidez-nous à améliorer l'application en phase alpha !",
-    "part2": "Vos retours utilisateurs sont indispensables",
-    "part3": "pour identifier et résoudre les bogues. Activez les rapports d'erreurs anonymes",
-    "part4": "et les rapports d'analyse. Vous pouvez changer vos préférences à tout moment. Merci de votre soutien !"
-  }
+  "title": "Bienvenue dans NymVPN",
+  "description": "Aidez-nous à améliorer l'application en identifiant les bogues. Activez les rapports d'erreurs anonymes et les rapports d'analyse (via <sentryLink/>). Vous pouvez changer vos préférences à tout moment. Merci de votre soutien !",
+  "anon-toggle-desc": "S'applique au redémarrage de l'app",
+  "tos-notice": "En continuant, vous acceptez les conditions d'utilisation de NymVPN <tosLink /> et reconnaissez les conditions d'utilisation de NymVPN <privacyLink />.",
+  "continue-button": "Continuer"
 }
