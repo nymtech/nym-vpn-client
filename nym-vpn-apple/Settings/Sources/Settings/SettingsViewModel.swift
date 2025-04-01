@@ -178,6 +178,7 @@ private extension SettingsViewModel {
         newSections.append(
             contentsOf: [
                 feedbackSection(),
+                killswitchSection(),
                 themeSection(),
                 legalSection()
             ]
@@ -282,6 +283,20 @@ private extension SettingsViewModel {
                     title: "settings.anonymousErrorReports.title".localizedString,
                     subtitle: "settings.anonymousErrorReports.subtitle".localizedString,
                     imageName: "errorReport",
+                    action: {}
+                )
+            ]
+        )
+    }
+
+    func killswitchSection() -> SettingsSection {
+        .killSwitch(
+            viewModels: [
+                SettingsListItemViewModel(
+                    accessory: .toggle(viewModel: ToggleViewModel(isOn: true, isDisabled: true)),
+                    title: "settings.killswitch.title".localizedString,
+                    subtitle: "settings.killswitch.subtitle".localizedString,
+                    systemImageName: "power",
                     action: {}
                 )
             ]

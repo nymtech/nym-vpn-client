@@ -38,10 +38,6 @@ public struct NymColor {
     public static let settingsSeparator = Color(.settingsSeparator)
     public static let settingsVersion = Color(.settingsVersion)
 
-    // MARK: - Toggle -
-    public static let toggleBackground = Color(.toggleBackground)
-    public static let toggleStroke = Color(.toggleStroke)
-
     // MARK: - Credentials -
     public static let credetnialsTitle = Color(.credentialTitle)
     public static let credetnialsSubtitle = Color(.credentialSubtitle)
@@ -64,6 +60,7 @@ public struct NymColor {
     public static let elevation = Color(.elevation)
     public static let elevationHover = Color(.elevationHover)
     public static let accent = Color(.accent)
+    public static let accentHover = Color(.accentHover)
     public static let action = Color(.action)
     public static let info = Color(.info)
     public static let warning = Color(.warning)

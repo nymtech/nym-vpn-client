@@ -2014,6 +2014,28 @@
         }
       }
     },
+    "settings.killswitch.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disconnect if the internet drops"
+          }
+        }
+      }
+    },
+    "settings.killswitch.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Killswitch"
+          }
+        }
+      }
+    },
     "settings.logIn" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -11,15 +11,17 @@ public final class ToggleViewModel: ObservableObject, Identifiable, Hashable {
     }
     @Published var offset = CGFloat(0)
     @Published var circleDiameter = CGFloat(16)
-    @Published var circleColor = NymColor.toggleStroke
-    @Published var backgroundColor = NymColor.toggleBackground
-    @Published var strokeColor = NymColor.toggleStroke
+    @Published var circleColor = NymColor.gray1
+    @Published var backgroundColor = NymColor.elevation
+    @Published var strokeColor = NymColor.gray1
+    @Published var isDisabled: Bool
 
     private var action: ((Bool) -> Void)
 
-    public init(isOn: Bool, action: @escaping ((Bool) -> Void)) {
+    public init(isOn: Bool, isDisabled: Bool = false, action: @escaping ((Bool) -> Void) = { _ in }) {
         self.isOn = isOn
         self.action = action
+        self.isDisabled = isDisabled
         configure(with: isOn)
     }
 
@@ -44,8 +46,8 @@ private extension ToggleViewModel {
         offset.negate()
         offset = isOn ? 8 : -8
         circleDiameter = isOn ? 24 : 16
-        circleColor = isOn ? NymColor.sysOnPrimary : NymColor.toggleStroke
-        backgroundColor = isOn ? NymColor.accent : NymColor.toggleBackground
-        strokeColor = isOn ? NymColor.accent : NymColor.toggleStroke
+        circleColor = isOn ? NymColor.background : NymColor.gray1
+        backgroundColor = isOn ? NymColor.accent : NymColor.elevation
+        strokeColor = isOn ? NymColor.accent : NymColor.gray1
     }
 }
