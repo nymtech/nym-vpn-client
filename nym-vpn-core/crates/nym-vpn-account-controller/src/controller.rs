@@ -175,7 +175,7 @@ where
             cancel_token,
             user_agent,
             // connectivity: Arc::new(std::sync::Mutex::new(Connectivity::PresumeOnline)),
-            connectivity: Arc::new(std::sync::Mutex::new(Connectivity::presume_offline())),
+            connectivity: Arc::new(std::sync::Mutex::new(Connectivity::new_presume_offline())),
             offline_watch: None,
         })
     }
