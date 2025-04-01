@@ -106,6 +106,7 @@ where
         user_agent: UserAgent,
         credentials_mode: Option<bool>,
         network_env: Network,
+        initial_connectivity: Option<Connectivity>,
         cancel_token: CancellationToken,
     ) -> Result<Self, Error> {
         let credentials_mode = credentials_mode.unwrap_or_else(|| {
@@ -161,7 +162,7 @@ where
                 command_tx: command_tx.clone(),
                 shared_state: account_state.clone(),
             },
-            Connectivity::new_presume_offline(),
+            initial_connectivity.unwrap_or(Connectivity::new_presume_offline()),
         );
 
         Ok(AccountController {

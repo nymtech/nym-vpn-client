@@ -262,6 +262,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             user_agent.clone(),
             None,
             network_env.clone(),
+            None,
             shutdown_token.child_token(),
         )
         .await
