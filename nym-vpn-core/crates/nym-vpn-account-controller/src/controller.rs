@@ -92,8 +92,7 @@ where
     // User agent used by api client.
     user_agent: UserAgent,
 
-    // connectivity: Arc<std::sync::Mutex<Connectivity>>,
-    // offline_watch: Option<watch::Receiver<Connectivity>>,
+    // Keep track of offline state
     offline_watch: OfflineWatch,
 }
 
@@ -913,6 +912,8 @@ where
                 },
             }
         }
+
+        self.offline_watch.wait(Duration::from_secs(5)).await;
     }
 
     async fn print_info(&self) {
