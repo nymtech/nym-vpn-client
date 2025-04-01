@@ -128,17 +128,39 @@ function Settings() {
           },
         ]}
       />
-      <SettingsMenuCard
-        title={t('autostart.title')}
-        desc={t('autostart.desc')}
-        leadingIcon="computer"
-        onClick={handleAutostartChanged}
-        trailingComponent={
-          <Switch
-            checked={autostartEnabled}
-            onChange={handleAutostartChanged}
-          />
-        }
+      <SettingsGroup
+        settings={[
+          {
+            title: t('autostart.title'),
+            desc: t('autostart.desc'),
+            leadingIcon: 'computer',
+            onClick: handleAutostartChanged,
+            trailing: (
+              <Switch
+                checked={autostartEnabled}
+                onChange={handleAutostartChanged}
+              />
+            ),
+          },
+          {
+            title: t('killswitch.title'),
+            desc: t('killswitch.desc'),
+            leadingIcon: 'power_settings_new',
+            onClick: () => {
+              /**/
+            },
+            trailing: (
+              <Switch
+                checked={true}
+                onChange={() => {
+                  /* */
+                }}
+                disabled
+              />
+            ),
+            disabled: true,
+          },
+        ]}
       />
       <SettingsGroup
         settings={[
