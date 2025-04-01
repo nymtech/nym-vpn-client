@@ -10,6 +10,7 @@
 pub mod shared_state;
 pub mod storage_cleanup;
 
+mod command_handler;
 mod commander;
 mod commands;
 mod connectivity;

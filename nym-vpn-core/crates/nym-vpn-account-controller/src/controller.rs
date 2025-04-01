@@ -16,18 +16,13 @@ use nym_vpn_network_config::Network;
 use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
-    task::{JoinError, JoinSet},
+    task::JoinError,
 };
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    commands::{
-        register_device::RegisterDeviceCommandHandler,
-        request_zknym::WaitingRequestZkNymCommandHandler,
-        sync_account::WaitingSyncAccountCommandHandler,
-        sync_device::WaitingSyncDeviceCommandHandler, AccountCommand, AccountCommandResult,
-        Command, RunningCommands,
-    },
+    command_handler::AccountCommandHandler,
+    commands::{AccountCommand, AccountCommandResult},
     connectivity::OfflineWatch,
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
@@ -67,20 +62,8 @@ where
     // controller, but also to queue up commands to itself
     command_tx: UnboundedSender<AccountCommand>,
 
-    // List of currently running command tasks and their type
-    running_commands: RunningCommands,
-
-    // Command tasks that are currently running
-    running_command_tasks: JoinSet<AccountCommandResult>,
-
-    // Account sync command handler state reused between runs
-    waiting_sync_account_command_handler: WaitingSyncAccountCommandHandler,
-
-    // Device sync command handler state reused between runs
-    waiting_sync_device_command_handler: WaitingSyncDeviceCommandHandler,
-
-    // Zk-nym request command handler state reused between runs
-    waiting_request_zknym_command_handler: WaitingRequestZkNymCommandHandler,
+    // Manage the commands that the controller is currently running
+    command_handler: AccountCommandHandler,
 
     // When credential mode is disabled we don't automatically request zk-nyms. We can still do
     // so manually, but we don't want to do it automatically
@@ -116,8 +99,8 @@ where
         });
 
         tracing::info!("Starting account controller");
-        tracing::info!("Account controller: data directory: {:?}", data_dir);
-        tracing::info!("Account controller: credential mode: {}", credentials_mode);
+        tracing::info!("Account controller: data directory: {}", data_dir.display());
+        tracing::info!("Account controller: credential mode: {credentials_mode}");
 
         let account_storage = AccountStorage::from(storage);
 
@@ -147,14 +130,10 @@ where
         // The channels used to communicate with the controller
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
 
-        let waiting_sync_account_command_handler =
-            WaitingSyncAccountCommandHandler::new(account_state.clone(), vpn_api_client.clone());
-        let waiting_sync_device_command_handler =
-            WaitingSyncDeviceCommandHandler::new(account_state.clone(), vpn_api_client.clone());
-        let waiting_request_zknym_command_handler = WaitingRequestZkNymCommandHandler::new(
-            credential_storage.clone(),
+        let command_handler = AccountCommandHandler::new(
             account_state.clone(),
             vpn_api_client.clone(),
+            credential_storage.clone(),
         );
 
         let offline_watch = OfflineWatch::new(
@@ -173,11 +152,7 @@ where
             account_state,
             command_rx,
             command_tx,
-            running_commands: Default::default(),
-            running_command_tasks: JoinSet::new(),
-            waiting_sync_account_command_handler,
-            waiting_sync_device_command_handler,
-            waiting_request_zknym_command_handler,
+            command_handler,
             background_zk_nym_refresh: credentials_mode,
             cancel_token,
             user_agent,
@@ -213,12 +188,9 @@ where
             }
         };
 
-        let command_handler = self
-            .waiting_request_zknym_command_handler
-            .build(account, device);
-        if self.running_commands.add(command).await == Command::IsFirst {
-            self.running_command_tasks.spawn(command_handler.run());
-        }
+        self.command_handler
+            .request_zk_nym(command, account, device)
+            .await;
     }
 
     async fn update_mnemonic_state(&self) -> Result<VpnApiAccount, Error> {
@@ -251,10 +223,7 @@ where
 
     async fn is_background_zk_nym_refresh_active(&self) -> bool {
         self.background_zk_nym_refresh
-            && !self
-                .waiting_request_zknym_command_handler
-                .max_fails_reached()
-                .await
+            && !self.command_handler.max_zknym_request_fails_reached().await
     }
 
     async fn is_all_ticket_types_above_soft_threshold(&self) -> Result<bool, AccountCommandError> {
@@ -379,7 +348,7 @@ where
             });
 
         // Once we have removed or reset all storage, we need to reset the account state
-        self.waiting_request_zknym_command_handler.reset();
+        self.command_handler.reset();
         self.account_state.reset().await;
 
         // And now we are ready to start reconstructing
@@ -457,11 +426,9 @@ where
             return;
         }
 
-        let command_handler = self.waiting_sync_account_command_handler.build(account);
-
-        if self.running_commands.add(command).await == Command::IsFirst {
-            self.running_command_tasks.spawn(command_handler.run());
-        }
+        self.command_handler
+            .sync_account_state(command, account)
+            .await;
     }
 
     async fn handle_sync_device_state(&mut self, command: AccountCommand) {
@@ -487,13 +454,9 @@ where
             return;
         }
 
-        let command_handler = self
-            .waiting_sync_device_command_handler
-            .build(account, device);
-
-        if self.running_commands.add(command).await == Command::IsFirst {
-            self.running_command_tasks.spawn(command_handler.run());
-        }
+        self.command_handler
+            .sync_device_state(command, account, device)
+            .await;
     }
 
     async fn handle_get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
@@ -549,15 +512,15 @@ where
             return;
         }
 
-        let command_handler = RegisterDeviceCommandHandler::new(
-            account,
-            device,
-            self.account_state.clone(),
-            self.vpn_api_client.clone(),
-        );
-        if self.running_commands.add(command).await == Command::IsFirst {
-            self.running_command_tasks.spawn(command_handler.run());
-        }
+        self.command_handler
+            .register_device(
+                command,
+                account,
+                device,
+                self.account_state.clone(),
+                self.vpn_api_client.clone(),
+            )
+            .await;
     }
 
     async fn handle_get_devices(&mut self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
@@ -799,11 +762,7 @@ where
                     )
                     .map(|new_vpn_api_client| {
                         self.vpn_api_client.swap_inner_client(&new_vpn_api_client);
-                        self.waiting_sync_account_command_handler
-                            .update_vpn_api_client(&new_vpn_api_client);
-                        self.waiting_sync_device_command_handler
-                            .update_vpn_api_client(&new_vpn_api_client);
-                        self.waiting_request_zknym_command_handler
+                        self.command_handler
                             .update_vpn_api_client(&new_vpn_api_client);
                     })
                     .map_err(|e| {
@@ -833,15 +792,7 @@ where
         match result {
             AccountCommandResult::SyncAccountState(r) => {
                 tracing::debug!("Account sync task: {r:?}");
-                let commands = self
-                    .running_commands
-                    .remove(&AccountCommand::SyncAccountState(None))
-                    .await;
-                for command in commands {
-                    if let AccountCommand::SyncAccountState(Some(tx)) = command {
-                        tx.send(r.clone());
-                    }
-                }
+                self.command_handler.finish_sync_account_state(&r).await;
                 if r.is_ok() {
                     self.register_device_if_ready().await;
                     self.request_zk_nym_if_ready().await;
@@ -849,15 +800,7 @@ where
             }
             AccountCommandResult::SyncDeviceState(r) => {
                 tracing::debug!("Device sync task: {r:?}");
-                let commands = self
-                    .running_commands
-                    .remove(&AccountCommand::SyncDeviceState(None))
-                    .await;
-                for command in commands {
-                    if let AccountCommand::SyncDeviceState(Some(tx)) = command {
-                        tx.send(r.clone());
-                    }
-                }
+                self.command_handler.finish_sync_device_state(&r).await;
                 if r.is_ok() {
                     self.register_device_if_ready().await;
                     self.request_zk_nym_if_ready().await;
@@ -865,15 +808,7 @@ where
             }
             AccountCommandResult::RegisterDevice(r) => {
                 tracing::debug!("Device register task: {r:?}");
-                let commands = self
-                    .running_commands
-                    .remove(&AccountCommand::RegisterDevice(None))
-                    .await;
-                for command in commands {
-                    if let AccountCommand::RegisterDevice(Some(tx)) = command {
-                        tx.send(r.clone());
-                    }
-                }
+                self.command_handler.finish_register_device(&r).await;
                 if r.is_ok() {
                     self.queue_command(AccountCommand::SyncAccountState(None));
                     self.request_zk_nym_if_ready().await;
@@ -881,15 +816,7 @@ where
             }
             AccountCommandResult::RequestZkNym(r) => {
                 tracing::debug!("Request zk-nym task: {r:?}");
-                let commands = self
-                    .running_commands
-                    .remove(&AccountCommand::RequestZkNym(None))
-                    .await;
-                for command in commands {
-                    if let AccountCommand::RequestZkNym(Some(tx)) = command {
-                        tx.send(r.clone());
-                    }
-                }
+                self.command_handler.finish_request_zk_nym(r).await;
             }
         }
     }
@@ -897,13 +824,13 @@ where
     async fn cleanup(mut self) {
         let timeout = tokio::time::sleep(Duration::from_secs(5));
         tokio::pin!(timeout);
-        while !self.running_command_tasks.is_empty() {
+        while self.command_handler.is_command_running() {
             tokio::select! {
                 _ = &mut timeout => {
                     tracing::warn!("Timeout waiting for polling tasks to finish, pending zk-nym's not imported into local credential store!");
                     break;
                 },
-                Some(result) = self.running_command_tasks.join_next() => {
+                Some(result) = self.command_handler.join_next() => {
                     self.handle_command_result(result).await
                 },
             }
@@ -957,7 +884,7 @@ where
                 }
                 // Check the results of finished tasks
                 _ = command_finish_timer.tick() => {
-                    while let Some(result) = self.running_command_tasks.try_join_next() {
+                    while let Some(result) = self.command_handler.try_join_next() {
                         self.handle_command_result(result).await;
                     }
                 }
