@@ -4,7 +4,7 @@
 use std::{sync::Arc, time::Duration};
 
 use nym_offline_monitor::Connectivity;
-use tokio::{sync::watch, task::JoinError};
+use tokio::sync::watch;
 
 use crate::{AccountCommand, AccountControllerCommander};
 
@@ -38,7 +38,7 @@ impl OfflineWatch {
         }
     }
 
-    pub(super) fn is_oneline(&self) -> bool {
+    pub(super) fn is_online(&self) -> bool {
         self.connectivity
             .lock()
             .map(|c| c.is_online())
@@ -46,7 +46,7 @@ impl OfflineWatch {
     }
 
     pub(super) fn is_offline(&self) -> bool {
-        !self.is_oneline()
+        !self.is_online()
     }
 
     pub(super) fn register_offline_watch(
