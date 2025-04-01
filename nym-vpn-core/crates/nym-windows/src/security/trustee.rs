@@ -98,7 +98,7 @@ pub enum TrusteeType {
     Invalid,
     /// tbd
     Computer,
-    // tbd
+    /// tbd
     Unknown,
 }
 

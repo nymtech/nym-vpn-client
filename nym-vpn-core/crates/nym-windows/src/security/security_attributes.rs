@@ -3,28 +3,29 @@
 
 use windows::{
     core::Result,
-    Win32::{Foundation, Security::SECURITY_ATTRIBUTES},
+    Win32::{Foundation::BOOL, Security::SECURITY_ATTRIBUTES},
 };
 
 use super::{
-    AccessMode, AceFlags, Acl, ExplicitAccess, SecurityDescriptor, Sid, Trustee, TrusteeType,
+    AbsoluteSecurityDescriptor, AccessMode, AceFlags, Acl, ExplicitAccess, Sid, Trustee,
+    TrusteeType,
 };
 
 /// Struct that contains the security identifier for an object and specifies whether the handle retrieved by specifying this struct is inheritable.
 #[derive(Debug)]
 pub struct SecurityAttributes {
     inner: SECURITY_ATTRIBUTES,
-    _security_descriptor: SecurityDescriptor,
+    _security_descriptor: AbsoluteSecurityDescriptor,
 }
 
 unsafe impl Send for SecurityAttributes {}
 
 impl SecurityAttributes {
     /// Create new security attributes with security descriptor.
-    pub fn new(security_descriptor: SecurityDescriptor) -> Self {
+    pub fn new(security_descriptor: AbsoluteSecurityDescriptor) -> Self {
         Self {
             inner: SECURITY_ATTRIBUTES {
-                bInheritHandle: Foundation::BOOL::from(false),
+                bInheritHandle: BOOL::from(false),
                 lpSecurityDescriptor: unsafe { security_descriptor.inner().0 as _ },
                 nLength: std::mem::size_of::<SECURITY_ATTRIBUTES>() as u32,
             },
@@ -44,7 +45,7 @@ impl SecurityAttributes {
         explicit_access.set_inheritance(AceFlags::NO_INHERITANCE);
 
         let acl = Acl::new(vec![explicit_access])?;
-        let mut security_descriptor = SecurityDescriptor::new()?;
+        let mut security_descriptor = AbsoluteSecurityDescriptor::new()?;
         security_descriptor.set_dacl(acl)?;
 
         Ok(SecurityAttributes::new(security_descriptor))

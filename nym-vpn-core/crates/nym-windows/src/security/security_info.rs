@@ -12,11 +12,11 @@ use windows::{
         },
         ATTRIBUTE_SECURITY_INFORMATION, DACL_SECURITY_INFORMATION, GROUP_SECURITY_INFORMATION,
         OBJECT_SECURITY_INFORMATION, OWNER_SECURITY_INFORMATION,
-        PROTECTED_DACL_SECURITY_INFORMATION,
+        PROTECTED_DACL_SECURITY_INFORMATION, PSECURITY_DESCRIPTOR, PSID,
     },
 };
 
-use super::{Acl, Sid};
+use super::{Acl, RelativeSecurityDescriptor, Sid};
 
 /// This struct is awesome
 #[derive(Debug, Copy, Clone)]
@@ -86,29 +86,39 @@ where
     }
 }
 
-pub fn get_security_info(
+/// Retrieve a copy of the security descriptor for an object specified by name.
+///
+/// Documentation: <https://learn.microsoft.com/en-us/windows/win32/api/aclapi/nf-aclapi-getnamedsecurityinfow>
+pub fn get_named_security_info<'a, S>(
     object_name: S,
     object_type: SecurityObjectType,
     security_info: SecurityInfo,
-    owner: Option<&Sid>,
-    group: Option<&Sid>,
-    dacl: Option<&Acl>,
-) -> Result<()>
+) -> Result<RelativeSecurityDescriptor<'a>>
 where
     S: AsRef<OsStr>,
 {
+    let mut sid_owner = PSID::default();
+    let mut sid_group = PSID::default();
+    let mut dacl = std::ptr::null_mut();
+    let mut sacl: *mut windows::Win32::Security::ACL = std::ptr::null_mut();
+    let mut security_descriptor = PSECURITY_DESCRIPTOR::default();
+
     unsafe {
         GetNamedSecurityInfoW(
             &HSTRING::from(object_name.as_ref()),
             object_type.to_raw(),
-            securityinfo,
-            ppsidowner,
-            ppsidgroup,
-            ppdacl,
-            ppsacl,
-            ppsecuritydescriptor,
+            security_info.to_raw(),
+            Some(&mut sid_owner as _),
+            Some(&mut sid_group as _),
+            Some(&mut dacl as _),
+            Some(&mut sacl as _),
+            &mut security_descriptor,
         )
+        .ok()?;
     }
+
+    assert!(!security_descriptor.is_invalid());
+    Ok(unsafe { RelativeSecurityDescriptor::from_ptr(security_descriptor) })
 }
 
 #[cfg(test)]
@@ -156,5 +166,29 @@ mod tests {
             Some(&acl),
         )
         .unwrap();
+
+        let security_descriptor = get_named_security_info(
+            &data_dir,
+            SecurityObjectType::FileObject,
+            SecurityInfo::DACL,
+        )
+        .unwrap();
+
+        let acl = security_descriptor.get_acl().unwrap().unwrap();
+        let entries = acl.get_entries().unwrap();
+
+        for e in entries.as_vec() {
+            let trustee = e.get_trustee();
+            let trustee_specific_info = trustee.get_trustee_specific_info().unwrap();
+
+            println!(
+                "permissions: {}, inheritance: {:?}, trustee.type: {:?}, trustee.form: {:?}, trustee.info: {:?}",
+                e.get_access_permissions(),
+                e.get_inheritance(),
+                trustee.get_trustee_type(),
+                trustee.get_trustee_form(),
+                trustee_specific_info
+            );
+        }
     }
 }

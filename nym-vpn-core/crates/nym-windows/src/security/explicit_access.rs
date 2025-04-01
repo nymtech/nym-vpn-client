@@ -101,6 +101,7 @@ impl AccessMode {
 bitflags::bitflags! {
     /// ACE inheritance flags.
     /// See: <https://learn.microsoft.com/en-us/windows/win32/api/accctrl/ns-accctrl-explicit_access_a>
+    #[derive(Debug)]
     pub struct AceFlags: u32 {
         /// tbd
         const CONTAINER_INHERIT_ACE = CONTAINER_INHERIT_ACE.0;
