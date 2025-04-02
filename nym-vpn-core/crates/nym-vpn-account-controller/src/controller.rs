@@ -21,8 +21,7 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    command_handler::AccountCommandHandler,
-    commands::{AccountCommand, AccountCommandResult},
+    commands::{AccountCommand, AccountCommandHandler, AccountCommandResult},
     connectivity::OfflineWatch,
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
@@ -342,7 +341,7 @@ where
         // Purge all files in the data directory that we are not explicitly deleting through it's
         // owner. Ideally we should strive for this to be removed.
         // If this fails, we still need to continue with the remaining steps
-        let remove_files_result = crate::storage_cleanup::remove_files_for_account(&self.data_dir)
+        let remove_files_result = crate::storage::remove_files_for_account(&self.data_dir)
             .inspect_err(|err| {
                 tracing::error!("Failed to remove files for account: {err:?}");
             });

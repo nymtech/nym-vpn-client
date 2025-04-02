@@ -75,10 +75,10 @@ pub enum AccountError {
     #[error("failed to get account summary")]
     FailedToGetAccountSummary,
 
-    #[error("failed to send command")]
-    SendCommand {
-        source: Box<SendError<nym_vpn_account_controller::AccountCommand>>,
-    },
+    //#[error("failed to send command")]
+    //SendCommand {
+    //    source: Box<SendError<nym_vpn_account_controller::AccountCommand>>,
+    //},
 
     #[error("account controller not ready to handle command")]
     RecvCommand { source: Box<RecvError> },

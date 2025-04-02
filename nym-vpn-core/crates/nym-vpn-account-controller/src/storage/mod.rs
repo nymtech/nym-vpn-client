@@ -2,9 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod account;
+mod cleanup;
 mod credentials;
-
-pub use credentials::PendingCredentialRequestsStorageError;
 
 pub(crate) use account::AccountStorage;
 pub(crate) use credentials::{PendingCredentialRequest, VpnCredentialStorage};
+
+pub use credentials::PendingCredentialRequestsStorageError;
+pub use cleanup::remove_files_for_account;

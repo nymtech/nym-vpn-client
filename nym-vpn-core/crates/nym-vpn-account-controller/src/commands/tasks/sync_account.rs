@@ -7,9 +7,10 @@ use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAc
 use nym_vpn_lib_types::{SyncAccountError, VpnApiErrorResponse};
 use tracing::Level;
 
-use crate::shared_state::{AccountRegistered, AccountSummary, SharedAccountState};
-
-use super::AccountCommandResult;
+use crate::{
+    commands::AccountCommandResult,
+    shared_state::{AccountRegistered, AccountSummary, SharedAccountState},
+};
 
 type PreviousAccountSummaryResponse = Arc<tokio::sync::Mutex<Option<NymVpnAccountSummaryResponse>>>;
 

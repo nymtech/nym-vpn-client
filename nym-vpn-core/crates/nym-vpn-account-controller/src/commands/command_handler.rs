@@ -14,15 +14,17 @@ use tokio::task::{JoinError, JoinSet};
 
 use crate::{
     commands::{
-        register_device::RegisterDeviceCommandHandler,
-        request_zknym::{RequestZkNymSummary, WaitingRequestZkNymCommandHandler},
-        sync_account::WaitingSyncAccountCommandHandler,
-        sync_device::WaitingSyncDeviceCommandHandler,
-        AccountCommandResult, Command, RunningCommands,
+        tasks::{
+            register_device::RegisterDeviceCommandHandler,
+            request_zknym::{RequestZkNymSummary, WaitingRequestZkNymCommandHandler},
+            sync_account::WaitingSyncAccountCommandHandler,
+            sync_device::WaitingSyncDeviceCommandHandler,
+        },
+        AccountCommand, AccountCommandResult, Command, RunningCommands,
     },
     shared_state::DeviceState,
     storage::VpnCredentialStorage,
-    AccountCommand, SharedAccountState,
+    SharedAccountState,
 };
 
 pub(crate) struct AccountCommandHandler {

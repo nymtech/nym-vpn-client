@@ -9,11 +9,10 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{RegisterDeviceError, VpnApiErrorResponse};
 
 use crate::{
+    commands::AccountCommandResult,
     shared_state::{DeviceState, RegisterDeviceResult},
     SharedAccountState,
 };
-
-use super::AccountCommandResult;
 
 pub(crate) struct RegisterDeviceCommandHandler {
     id: uuid::Uuid,
