@@ -6,7 +6,9 @@ mod cleanup;
 mod credentials;
 
 pub(crate) use account::AccountStorage;
-pub(crate) use credentials::{PendingCredentialRequest, VpnCredentialStorage};
+pub(crate) use credentials::{
+    PendingCredentialRequest, SharedVpnCredentialStorage, VpnCredentialStorage,
+};
 
 pub use cleanup::remove_files_for_account;
 pub use credentials::PendingCredentialRequestsStorageError;

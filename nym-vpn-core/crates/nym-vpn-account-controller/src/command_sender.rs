@@ -19,13 +19,23 @@ use crate::{
 
 #[derive(Clone)]
 pub struct AccountCommandSender {
-    pub(super) command_tx: UnboundedSender<AccountCommand>,
-    pub(super) shared_state: SharedAccountState,
+    command_tx: UnboundedSender<AccountCommand>,
+    shared_state: SharedAccountState,
 }
 
 // Basic set of commands that can be sent to the account controller
 
 impl AccountCommandSender {
+    pub fn new(
+        command_tx: UnboundedSender<AccountCommand>,
+        shared_state: SharedAccountState,
+    ) -> Self {
+        Self {
+            command_tx,
+            shared_state,
+        }
+    }
+
     pub async fn store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx

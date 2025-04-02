@@ -25,7 +25,7 @@ use crate::{
     connectivity::OfflineWatch,
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
-    storage::{AccountStorage, VpnCredentialStorage},
+    storage::{AccountStorage, SharedVpnCredentialStorage, VpnCredentialStorage},
     AccountCommandSender, AvailableTicketbooks,
 };
 
@@ -35,47 +35,66 @@ const ZK_NYM_AUTOMATIC_REQUEST_INTERVAL: Duration = Duration::from_secs(60);
 // The interval at which we update the account state
 const ACCOUNT_UPDATE_INTERVAL: Duration = Duration::from_secs(5 * 60);
 
+pub struct AccountControllerConfig {
+    // The data directory where we store the account and device keys.
+    pub data_dir: PathBuf,
+
+    // User agent used by api client.
+    pub user_agent: UserAgent,
+
+    // Credentials mode is a feature flag that determines if we should automatically request
+    // zk-nyms.
+    pub credentials_mode: Option<bool>,
+
+    // The network environment that the controller is running in.
+    pub network_env: Network,
+}
+
+impl AccountControllerConfig {
+    // Determine if the credentials mode is enabled. This is determined by the credentials_mode
+    // field in the config, if it is set. Else the network environment feature flag is used.
+    fn background_zk_nym_refresh(&self) -> bool {
+        self.credentials_mode.unwrap_or_else(|| {
+            self.network_env
+                .get_feature_flag_credential_mode()
+                .unwrap_or(false)
+        })
+    }
+}
+
 pub struct AccountController<S>
 where
     S: VpnStorage,
 {
+    // The configuration that was used to create the controller.
+    config: AccountControllerConfig,
+
     // The storage used for the account and device keys
     account_storage: AccountStorage<S>,
 
     // Storage used for credentials.
-    credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
-
-    // The data directory where we store the account and device keys.
-    data_dir: PathBuf,
-
-    // The API client used to interact with the nym-vpn-api
-    vpn_api_client: nym_vpn_api_client::VpnApiClient,
+    credential_storage: SharedVpnCredentialStorage,
 
     // The current state of the account
     account_state: SharedAccountState,
 
-    // Receiver channel used to receive commands from the consumer
+    // The API client used to interact with the nym-vpn-api
+    vpn_api_client: nym_vpn_api_client::VpnApiClient,
+
+    // Receiver channel used to receive commands from the outside.
     command_rx: UnboundedReceiver<AccountCommand>,
 
-    // Sender channel primarily used when the consumer requests a channel to talk to the
-    // controller, but also to queue up commands to itself
+    // Sender channel for sending commands to the controller.
     command_tx: UnboundedSender<AccountCommand>,
 
     // Manage the commands that the controller is currently running
     command_handler: AccountCommandHandler,
 
-    // When credential mode is disabled we don't automatically request zk-nyms. We can still do
-    // so manually, but we don't want to do it automatically
-    background_zk_nym_refresh: bool,
+    // Keep track of offline state
+    offline_watch: OfflineWatch,
 
     // Listen for cancellation signals
     cancel_token: CancellationToken,
-
-    // User agent used by api client.
-    user_agent: UserAgent,
-
-    // Keep track of offline state
-    offline_watch: OfflineWatch,
 }
 
 impl<S> AccountController<S>
@@ -83,29 +102,88 @@ where
     S: VpnStorage,
 {
     pub async fn new(
+        config: AccountControllerConfig,
         storage: Arc<tokio::sync::Mutex<S>>,
-        data_dir: PathBuf,
-        user_agent: UserAgent,
-        credentials_mode: Option<bool>,
-        network_env: Network,
         initial_connectivity: Option<Connectivity>,
         cancel_token: CancellationToken,
     ) -> Result<Self, Error> {
-        let credentials_mode = credentials_mode.unwrap_or_else(|| {
-            network_env
-                .get_feature_flag_credential_mode()
-                .unwrap_or(false)
-        });
+        tracing::info!(
+            "Starting account controller: data_dir: {}",
+            config.data_dir.display(),
+        );
 
-        tracing::info!("Starting account controller");
-        tracing::info!("Account controller: data directory: {}", data_dir.display());
-        tracing::info!("Account controller: credential mode: {credentials_mode}");
+        // Setup up the storage. We have both the account storage as well as the credential storage
+        let (account_storage, credential_storage) = Self::create_storage(&config, storage).await?;
 
+        // Client to query the VPN API
+        let vpn_api_client = Self::create_vpn_api_client(&config).await?;
+
+        // We expose the account state as a shared object that can be queried without having to ask
+        // the controller
+        let account_state = Self::create_initial_shared_state(&account_storage).await;
+
+        // The channels used to communicate with the controller
+        let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
+
+        // Keep track of the commands that are currently running
+        let command_handler = AccountCommandHandler::new(
+            account_state.clone(),
+            vpn_api_client.clone(),
+            credential_storage.clone(),
+        );
+
+        // The offline watch is used to keep track of the current connectivity state, since we
+        // don't want to do certain operations when we are offline
+        let offline_watch = OfflineWatch::new(
+            AccountCommandSender::new(command_tx.clone(), account_state.clone()),
+            initial_connectivity.unwrap_or(Connectivity::new_presume_offline()),
+        );
+
+        Ok(AccountController {
+            config,
+            account_storage,
+            credential_storage,
+            vpn_api_client,
+            account_state,
+            command_rx,
+            command_tx,
+            command_handler,
+            cancel_token,
+            offline_watch,
+        })
+    }
+
+    async fn create_storage(
+        config: &AccountControllerConfig,
+        storage: Arc<tokio::sync::Mutex<S>>,
+    ) -> Result<(AccountStorage<S>, SharedVpnCredentialStorage), Error> {
+        // Setup the account storage, which is used to store the account and device keys
         let account_storage = AccountStorage::from(storage);
 
         // Generate the device keys if we don't already have them
         account_storage.init_keys().await?;
 
+        // Setup the credential storage, which is used to store the ticketbooks
+        let credential_storage = Arc::new(tokio::sync::Mutex::new(
+            VpnCredentialStorage::setup_from_path(config.data_dir.clone()).await?,
+        ));
+
+        Ok((account_storage, credential_storage))
+    }
+
+    async fn create_vpn_api_client(
+        config: &AccountControllerConfig,
+    ) -> Result<nym_vpn_api_client::VpnApiClient, Error> {
+        nym_vpn_api_client::VpnApiClient::new(
+            config.network_env.vpn_api_url(),
+            config.user_agent.clone(),
+        )
+        .map_err(Error::SetupVpnApiClient)
+    }
+
+    async fn create_initial_shared_state(
+        account_storage: &AccountStorage<S>,
+    ) -> SharedAccountState {
         // Load the account id if we have one stored
         let mnemonic_state = account_storage
             .load_account_id()
@@ -113,61 +191,15 @@ where
             .map(|id| MnemonicState::Stored { id })
             .unwrap_or(MnemonicState::NotStored);
 
-        let credential_storage = Arc::new(tokio::sync::Mutex::new(
-            VpnCredentialStorage::setup_from_path(data_dir.clone()).await?,
-        ));
-
-        // Client to query the VPN API
-        let vpn_api_client =
-            nym_vpn_api_client::VpnApiClient::new(network_env.vpn_api_url(), user_agent.clone())
-                .map_err(Error::SetupVpnApiClient)?;
-
-        // We expose the account state as a shared object that can be queried without having to ask
-        // the controller
-        let account_state = SharedAccountState::new(mnemonic_state);
-
-        // The channels used to communicate with the controller
-        let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
-
-        let command_handler = AccountCommandHandler::new(
-            account_state.clone(),
-            vpn_api_client.clone(),
-            credential_storage.clone(),
-        );
-
-        let offline_watch = OfflineWatch::new(
-            AccountCommandSender {
-                command_tx: command_tx.clone(),
-                shared_state: account_state.clone(),
-            },
-            initial_connectivity.unwrap_or(Connectivity::new_presume_offline()),
-        );
-
-        Ok(AccountController {
-            account_storage,
-            credential_storage,
-            data_dir,
-            vpn_api_client,
-            account_state,
-            command_rx,
-            command_tx,
-            command_handler,
-            background_zk_nym_refresh: credentials_mode,
-            cancel_token,
-            user_agent,
-            offline_watch,
-        })
+        SharedAccountState::new(mnemonic_state)
     }
 
-    pub fn shared_state(&self) -> SharedAccountState {
+    pub fn get_shared_state(&self) -> SharedAccountState {
         self.account_state.clone()
     }
 
-    pub fn command_sender(&self) -> AccountCommandSender {
-        AccountCommandSender {
-            command_tx: self.command_tx.clone(),
-            shared_state: self.account_state.clone(),
-        }
+    pub fn get_command_sender(&self) -> AccountCommandSender {
+        AccountCommandSender::new(self.command_tx.clone(), self.account_state.clone())
     }
 
     async fn update_mnemonic_state(&self) -> Result<VpnApiAccount, Error> {
@@ -188,9 +220,9 @@ where
     }
 
     async fn register_device_if_ready(&self) {
-        match self.shared_state().ready_to_register_device().await {
+        match self.get_shared_state().ready_to_register_device().await {
             ReadyToRegisterDevice::Ready => {
-                self.command_sender().background_register_device();
+                self.get_command_sender().background_register_device();
             }
             not_ready => {
                 tracing::debug!("Not trying to register device: {not_ready}");
@@ -199,7 +231,7 @@ where
     }
 
     async fn is_background_zk_nym_refresh_active(&self) -> bool {
-        self.background_zk_nym_refresh
+        self.config.background_zk_nym_refresh()
             && !self.command_handler.max_zknym_request_fails_reached().await
     }
 
@@ -229,9 +261,9 @@ where
             tracing::debug!("All ticket types are above soft threshold, not requesting zk-nym");
             return;
         }
-        match self.shared_state().ready_to_request_zk_nym().await {
+        match self.get_shared_state().ready_to_request_zk_nym().await {
             ReadyToRequestZkNym::Ready => {
-                self.command_sender().background_request_zk_nyms();
+                self.get_command_sender().background_request_zk_nyms();
             }
             not_ready => {
                 tracing::debug!("Not ready to try to request zk-nym: {not_ready}");
@@ -257,7 +289,8 @@ where
 
     async fn unregister_device_from_api(&self) -> Result<NymVpnDevice, AccountCommandError> {
         tracing::info!("Unregistering device from API");
-        if self.shared_state().ready_to_register_device().await == ReadyToRegisterDevice::InProgress
+        if self.get_shared_state().ready_to_register_device().await
+            == ReadyToRegisterDevice::InProgress
         {
             return Err(ForgetAccountError::RegistrationInProgress.into());
         }
@@ -298,8 +331,8 @@ where
             .map_err(AccountCommandError::internal)?;
 
         // We don't need to wait for the sync to finish, so queue it up and return
-        self.command_sender().background_sync_account_state();
-        self.command_sender().background_sync_device_state();
+        self.get_command_sender().background_sync_account_state();
+        self.get_command_sender().background_sync_device_state();
 
         Ok(())
     }
@@ -349,7 +382,7 @@ where
         // Purge all files in the data directory that we are not explicitly deleting through it's
         // owner. Ideally we should strive for this to be removed.
         // If this fails, we still need to continue with the remaining steps
-        let remove_files_result = crate::storage::remove_files_for_account(&self.data_dir)
+        let remove_files_result = crate::storage::remove_files_for_account(&self.config.data_dir)
             .inspect_err(|err| {
                 tracing::error!("Failed to remove files for account: {err:?}");
             });
@@ -677,7 +710,7 @@ where
     ) -> Result<(), AccountCommandError> {
         nym_vpn_api_client::VpnApiClient::new_with_resolver_overrides(
             self.vpn_api_client.current_url().clone(),
-            self.user_agent.clone(),
+            self.config.user_agent.clone(),
             static_api_addresses.as_deref(),
         )
         .map(|new_vpn_api_client| {
@@ -800,7 +833,7 @@ where
                 tracing::debug!("Device register task: {r:?}");
                 self.command_handler.finish_register_device(&r).await;
                 if r.is_ok() {
-                    self.command_sender().background_sync_account_state();
+                    self.get_command_sender().background_sync_account_state();
                     self.request_zk_nym_if_ready().await;
                 }
             }
@@ -882,8 +915,8 @@ where
                 _ = sync_account_state_timer.tick() => {
                     if self.offline_watch.is_online() {
                         tracing::info!("Timed sync of account and device state");
-                        self.command_sender().background_sync_account_state();
-                        self.command_sender().background_sync_device_state();
+                        self.get_command_sender().background_sync_account_state();
+                        self.get_command_sender().background_sync_device_state();
                     }
                 }
                 // On a timer to check if we need to request more zk-nyms
