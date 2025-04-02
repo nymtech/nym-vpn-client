@@ -70,12 +70,16 @@ async fn start_account_controller(
     // TODO: the whole mobile API should be refactored to start the state machine on init.
     let initial_connectivity = Connectivity::PresumeOnline;
 
-    let account_controller = nym_vpn_account_controller::AccountController::new(
-        Arc::clone(&storage),
-        data_dir.clone(),
+    let account_controller_config = nym_vpn_account_controller::AccountControllerConfig {
+        data_dir,
         user_agent,
-        credential_mode,
+        credentials_mode: credential_mode,
         network_env,
+    };
+
+    let account_controller = nym_vpn_account_controller::AccountController::new(
+        account_controller_config,
+        Arc::clone(&storage),
         Some(initial_connectivity),
         shutdown_token.child_token(),
     )
@@ -84,8 +88,8 @@ async fn start_account_controller(
         details: err.to_string(),
     })?;
 
-    let shared_account_state = account_controller.shared_state();
-    let command_sender = account_controller.command_sender();
+    let shared_account_state = account_controller.get_shared_state();
+    let command_sender = account_controller.get_command_sender();
     let account_controller_handle = tokio::spawn(account_controller.run());
 
     Ok(AccountControllerHandle {

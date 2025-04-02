@@ -13,8 +13,8 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_account_controller::{
-    AccountCommandSender, AccountController, AccountStateSummary, AvailableTicketbooks,
-    SharedAccountState,
+    AccountCommandSender, AccountController, AccountControllerConfig, AccountStateSummary,
+    AvailableTicketbooks, SharedAccountState,
 };
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
@@ -256,12 +256,16 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             .as_ref()
             .and_then(|config| config.statistics_recipient);
 
+        let account_controller_config = AccountControllerConfig {
+            data_dir: data_dir.clone(),
+            user_agent: user_agent.clone(),
+            credentials_mode: None,
+            network_env: network_env.clone(),
+        };
+
         let account_controller = AccountController::new(
+            account_controller_config,
             Arc::clone(&storage),
-            data_dir.clone(),
-            user_agent.clone(),
-            None,
-            network_env.clone(),
             None,
             shutdown_token.child_token(),
         )
@@ -269,8 +273,8 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         .map_err(|source| Error::Account(AccountError::AccountControllerError { source }))?;
 
         // These are used to interact with the account controller
-        let shared_account_state = account_controller.shared_state();
-        let account_command_tx = account_controller.command_sender();
+        let shared_account_state = account_controller.get_shared_state();
+        let account_command_tx = account_controller.get_command_sender();
         let _account_controller_handle = tokio::task::spawn(account_controller.run());
 
         // These used to interact with the tunnel state machine

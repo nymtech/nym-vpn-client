@@ -17,7 +17,7 @@ mod storage;
 mod ticketbooks;
 
 pub use command_sender::AccountCommandSender;
-pub use controller::AccountController;
+pub use controller::{AccountController, AccountControllerConfig};
 pub use error::Error;
 pub use shared_state::{AccountStateSummary, SharedAccountState};
 pub use storage::remove_files_for_account;
