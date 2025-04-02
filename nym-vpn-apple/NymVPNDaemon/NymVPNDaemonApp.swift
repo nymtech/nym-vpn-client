@@ -86,18 +86,7 @@ struct NymVPNDaemonApp: App {
                 Button("ok".localizedString, role: .cancel) { }
             }
             .overlay {
-                if isQuitModalDisplayed {
-                    QuitAppModal(
-                        isDisplayed: $isQuitModalDisplayed,
-                        closeAction: {
-                            closeWindow()
-                        }, quitAction: {
-                            quitApp()
-                        }
-                    )
-                        .transition(.opacity)
-                        .animation(.easeInOut, value: isQuitModalDisplayed)
-                }
+                quitModalOverlay()
             }
             .preferredColorScheme(appearance.colorScheme)
             .animation(.default, value: appSettings.welcomeScreenDidDisplay)
@@ -155,6 +144,24 @@ private extension NymVPNDaemonApp {
             NotificationsManager.shared.setup()
             SentryManager.shared.setup()
             Migrations.shared.setup()
+        }
+    }
+}
+
+private extension NymVPNDaemonApp {
+    @ViewBuilder
+    func quitModalOverlay() -> some View {
+        if isQuitModalDisplayed {
+            QuitAppModal(
+                isDisplayed: $isQuitModalDisplayed,
+                closeAction: {
+                    closeWindow()
+                }, quitAction: {
+                    quitApp()
+                }
+            )
+            .transition(.opacity)
+            .animation(.easeInOut, value: isQuitModalDisplayed)
         }
     }
 }
