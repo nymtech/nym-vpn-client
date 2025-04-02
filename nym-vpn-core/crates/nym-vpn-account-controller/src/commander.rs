@@ -13,7 +13,6 @@ use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
     commands::{tasks::request_zknym::RequestZkNymSummary, AccountCommand, ReturnSender},
-    error::Error,
     shared_state::{AccountRegistered, DeviceState, SharedAccountState},
     AvailableTicketbooks,
 };
@@ -143,6 +142,42 @@ impl AccountControllerCommander {
             .send(AccountCommand::RequestZkNym(Some(tx)))
             .map_err(RequestZkNymError::internal)?;
         rx.await.map_err(RequestZkNymError::internal)?
+    }
+
+    pub fn background_request_zk_nyms(&self) -> Result<(), AccountCommandError> {
+        self.command_tx
+            .send(AccountCommand::RequestZkNym(None))
+            .map_err(RequestZkNymError::internal)
+            .map_err(AccountCommandError::from)
+    }
+
+    // TODO: also return the result
+    pub fn get_device_zk_nym(&self) -> Result<(), AccountCommandError> {
+        self.command_tx
+            .send(AccountCommand::GetDeviceZkNym)
+            .map_err(AccountCommandError::internal)
+    }
+
+    // TODO: also return the result
+    pub fn get_zk_nyms_available_for_download(&self) -> Result<(), AccountCommandError> {
+        self.command_tx
+            .send(AccountCommand::GetZkNymsAvailableForDownload)
+            .map_err(AccountCommandError::internal)
+    }
+
+    // TODO: also return the result
+    pub fn get_zk_nym_by_id(&self, id: String) -> Result<(), AccountCommandError> {
+        self.command_tx
+            .send(AccountCommand::GetZkNymById(id))
+            .map_err(AccountCommandError::internal)
+    }
+
+    // TODO: also return the result.
+    // TODO: map the error
+    pub fn confirm_zk_nym_id_downloaded(&self, id: String) -> Result<(), AccountCommandError> {
+        self.command_tx
+            .send(AccountCommand::ConfirmZkNymIdDownloaded(id))
+            .map_err(AccountCommandError::internal)
     }
 
     pub async fn set_static_api_addresses(

@@ -13,8 +13,8 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_account_controller::{
-    AccountCommand, AccountController, AccountControllerCommander, AccountStateSummary,
-    AvailableTicketbooks, SharedAccountState,
+    AccountController, AccountControllerCommander, AccountStateSummary, AvailableTicketbooks,
+    SharedAccountState,
 };
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
@@ -857,40 +857,55 @@ where
     }
 
     async fn handle_request_zk_nym(&self) -> Result<(), AccountError> {
+        //self.account_command_tx
+        //    .send(AccountCommand::RequestZkNym(None))
+        //    .map_err(|source| AccountError::AccountControllerError { source })
         self.account_command_tx
-            .send(AccountCommand::RequestZkNym(None))
-            .map_err(|source| AccountError::AccountControllerError { source })
+            .background_request_zk_nyms()
+            .map_err(|source| AccountError::AccountCommandError { source })
     }
 
     async fn handle_get_device_zk_nyms(&self) -> Result<(), AccountError> {
+        //self.account_command_tx
+        //    .send(AccountCommand::GetDeviceZkNym)
+        //    .map_err(|source| AccountError::AccountControllerError { source })
         self.account_command_tx
-            .send(AccountCommand::GetDeviceZkNym)
-            .map_err(|source| AccountError::AccountControllerError { source })
+            .get_device_zk_nym()
+            .map_err(AccountError::from)
     }
 
     async fn handle_get_zk_nyms_available_for_download(&self) -> Result<(), AccountError> {
+        //self.account_command_tx
+        //    .send(AccountCommand::GetZkNymsAvailableForDownload)
+        //    .map_err(|source| AccountError::AccountControllerError { source })
         self.account_command_tx
-            .send(AccountCommand::GetZkNymsAvailableForDownload)
-            .map_err(|source| AccountError::AccountControllerError { source })
+            .get_zk_nyms_available_for_download()
+            .map_err(AccountError::from)
     }
 
     async fn handle_get_zk_nym_by_id(&self, id: String) -> Result<(), AccountError> {
+        //self.account_command_tx
+        //    .send(AccountCommand::GetZkNymById(id))
+        //    .map_err(|source| AccountError::AccountControllerError { source })
         self.account_command_tx
-            .send(AccountCommand::GetZkNymById(id))
-            .map_err(|source| AccountError::AccountControllerError { source })
+            .get_zk_nym_by_id(id)
+            .map_err(AccountError::from)
     }
 
     async fn handle_confirm_zk_nym_id_downloaded(&self, id: String) -> Result<(), AccountError> {
+        //self.account_command_tx
+        //    .send(AccountCommand::ConfirmZkNymIdDownloaded(id))
+        //    .map_err(AccountError::from)
         self.account_command_tx
-            .send(AccountCommand::ConfirmZkNymIdDownloaded(id))
-            .map_err(|source| AccountError::AccountControllerError { source })
+            .confirm_zk_nym_id_downloaded(id)
+            .map_err(AccountError::from)
     }
 
     async fn handle_get_available_tickets(&self) -> Result<AvailableTicketbooks, AccountError> {
         self.account_command_tx
             .get_available_tickets()
             .await
-            .map_err(|source| AccountError::AccountCommandError { source })
+            .map_err(AccountError::from)
     }
 
     async fn handle_delete_log_file(&self) -> Result<(), VpnServiceDeleteLogFileError> {
