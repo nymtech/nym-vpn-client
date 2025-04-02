@@ -82,10 +82,10 @@ where
     vpn_api_client: nym_vpn_api_client::VpnApiClient,
 
     // Receiver channel used to receive commands from the outside.
-    command_rx: UnboundedReceiver<AccountCommand>,
-
-    // Sender channel for sending commands to the controller.
-    command_tx: UnboundedSender<AccountCommand>,
+    command_channel: (
+        UnboundedSender<AccountCommand>,
+        UnboundedReceiver<AccountCommand>,
+    ),
 
     // Manage the commands that the controller is currently running
     command_handler: AccountCommandHandler,
@@ -123,7 +123,7 @@ where
         let account_state = Self::create_initial_shared_state(&account_storage).await;
 
         // The channels used to communicate with the controller
-        let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
+        let command_channel = tokio::sync::mpsc::unbounded_channel();
 
         // Keep track of the commands that are currently running
         let command_handler = AccountCommandHandler::new(
@@ -135,7 +135,7 @@ where
         // The offline watch is used to keep track of the current connectivity state, since we
         // don't want to do certain operations when we are offline
         let offline_watch = OfflineWatch::new(
-            AccountCommandSender::new(command_tx.clone(), account_state.clone()),
+            AccountCommandSender::new(command_channel.0.clone(), account_state.clone()),
             initial_connectivity.unwrap_or(Connectivity::new_presume_offline()),
         );
 
@@ -145,8 +145,7 @@ where
             credential_storage,
             vpn_api_client,
             account_state,
-            command_rx,
-            command_tx,
+            command_channel,
             command_handler,
             cancel_token,
             offline_watch,
@@ -199,7 +198,7 @@ where
     }
 
     pub fn get_command_sender(&self) -> AccountCommandSender {
-        AccountCommandSender::new(self.command_tx.clone(), self.account_state.clone())
+        AccountCommandSender::new(self.command_channel.0.clone(), self.account_state.clone())
     }
 
     async fn update_mnemonic_state(&self) -> Result<VpnApiAccount, Error> {
@@ -902,7 +901,7 @@ where
         loop {
             tokio::select! {
                 // Handle incoming commands
-                Some(command) = self.command_rx.recv() => {
+                Some(command) = self.command_channel.1.recv() => {
                     self.handle_command(command).await;
                 }
                 // Check the results of finished tasks
