@@ -21,7 +21,7 @@ use super::wintun::{self, WintunAdapterConfig};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_gateway_directory::{GatewayMinPerformance, ResolvedConfig};
-use nym_vpn_account_controller::AccountControllerCommander;
+use nym_vpn_account_controller::AccountCommandSender;
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -205,14 +205,14 @@ pub struct TunnelMonitor {
     tun_provider: Arc<dyn OSTunProvider>,
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
-    account_controller_tx: AccountControllerCommander,
+    account_controller_tx: AccountCommandSender,
     cancel_token: CancellationToken,
 }
 
 impl TunnelMonitor {
     pub fn start(
         tunnel_parameters: TunnelParameters,
-        account_controller_tx: AccountControllerCommander,
+        account_controller_tx: AccountCommandSender,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
         mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

@@ -18,14 +18,14 @@ use crate::{
 };
 
 #[derive(Clone)]
-pub struct AccountControllerCommander {
+pub struct AccountCommandSender {
     pub(super) command_tx: UnboundedSender<AccountCommand>,
     pub(super) shared_state: SharedAccountState,
 }
 
 // Basic set of commands that can be sent to the account controller
 
-impl AccountControllerCommander {
+impl AccountCommandSender {
     pub async fn store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
@@ -199,7 +199,7 @@ impl AccountControllerCommander {
 // Set of commands used to ensure that the account controller is in the correct state before
 // proceeding with other operations
 
-impl AccountControllerCommander {
+impl AccountCommandSender {
     pub async fn ensure_update_account(
         &self,
     ) -> Result<Option<NymVpnAccountSummaryResponse>, SyncAccountError> {

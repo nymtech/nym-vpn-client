@@ -8,7 +8,7 @@
 
 pub mod shared_state;
 
-mod commander;
+mod command_sender;
 mod commands;
 mod connectivity;
 mod controller;
@@ -16,7 +16,7 @@ mod error;
 mod storage;
 mod ticketbooks;
 
-pub use commander::AccountControllerCommander;
+pub use command_sender::AccountCommandSender;
 pub use controller::AccountController;
 pub use error::Error;
 pub use shared_state::{AccountStateSummary, SharedAccountState};
