@@ -6,9 +6,15 @@ import {
   FaqUrl,
   GitHubIssuesUrl,
   MatrixRoomUrl,
+  TelegramUrl,
 } from '../../../constants';
 import { PageAnim, SettingsMenuCard } from '../../../ui';
-import { DiscordIcon, ElementIcon, GitHubIcon } from '../../../assets';
+import {
+  DiscordIcon,
+  ElementIcon,
+  GitHubIcon,
+  TelegramIcon,
+} from '../../../assets';
 
 function Support() {
   const { t } = useTranslation('settings');
@@ -32,12 +38,12 @@ function Support() {
         trailingIcon="open_in_new"
       />
       <SettingsMenuCard
-        title={t('support.github')}
+        title={t('support.telegram')}
         onClick={() => {
-          openUrl(GitHubIssuesUrl);
+          openUrl(TelegramUrl);
         }}
         leadingComponent={
-          <GitHubIcon className="w-6 h-7 fill-baltic-sea dark:fill-white" />
+          <TelegramIcon className="w-6 h-6 fill-baltic-sea dark:fill-white" />
         }
         trailingIcon="open_in_new"
       />
@@ -58,6 +64,16 @@ function Support() {
         }}
         leadingComponent={
           <DiscordIcon className="w-6 h-6 fill-baltic-sea dark:fill-white" />
+        }
+        trailingIcon="open_in_new"
+      />
+      <SettingsMenuCard
+        title={t('support.github')}
+        onClick={() => {
+          openUrl(GitHubIssuesUrl);
+        }}
+        leadingComponent={
+          <GitHubIcon className="w-6 h-7 fill-baltic-sea dark:fill-white" />
         }
         trailingIcon="open_in_new"
       />

@@ -26,6 +26,8 @@ type ArgsObj<T> = Record<string, T>;
 
 // fake state
 const uiTheme: UiTheme = 'dark';
+const lang = 'en';
+const showWelcome = false;
 // const daemon: VpndStatus = 'down';
 const daemon: VpndStatus = {
   ok: {
@@ -51,7 +53,6 @@ const networkCompat: NetworkCompat = {
 const env = {
   DEV_MODE: true,
 };
-const showWelcome = true;
 
 export function mockTauriIPC() {
   mockWindows('main');
@@ -124,8 +125,11 @@ export function mockTauriIPC() {
         case 'ui-theme':
           res = uiTheme;
           break;
+        case 'ui-language':
+          res = lang;
+          break;
         case 'welcome-screen-seen':
-          res = showWelcome;
+          res = !showWelcome;
           break;
 
         /* 1740391345259 */

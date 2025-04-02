@@ -1,19 +1,7 @@
 {
-  "title": {
-    "part1": "Welcome",
-    "part2": "to NymVPN beta"
-  },
-  "description": {
-    "part1": "Help us refine our app during the beta test!",
-    "part2": "Your feedback is crucial",
-    "part3": "for identifying and resolving issues. Opt-in for anonymous error monitoring",
-    "part4": "and analytics, you can opt out anytime. Thanks for your support!"
-  },
-  "tos": {
-    "part1": "By continuing, you agree to NymVPN's",
-    "part2": "and acknowledge NymVPN's",
-    "part3": "."
-  },
-  "experimental": "This is experimental software. Do not rely on it for strong anonymity (yet).",
+  "title": "Welcome to NymVPN",
+  "description": "Help us improve the app by identifying and resolving issues. Opt-in for anonymous error monitoring (via <sentryLink />) and analytics, you can opt out anytime. Thanks for your support!",
+  "anon-toggle-desc": "Applies on app restart",
+  "tos-notice": "By continuing, you agree to NymVPN's <tosLink /> and acknowledge NymVPN's <privacyLink />.",
   "continue-button": "Continue"
 }

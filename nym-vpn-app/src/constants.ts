@@ -27,6 +27,7 @@ export const DownloadAppUrl = 'https://nym.com/download';
 export const GitHubIssuesUrl =
   'https://nym.com/go/github/nym-vpn-client/issues';
 export const MatrixRoomUrl = 'https://nym.com/go/matrix';
+export const TelegramUrl = 'https://nym.com/go/telegram';
 export const DiscordInviteUrl = 'https://nym.com/go/discord';
 export const FaqUrl = 'https://support.nym.com/hc';
 export const ContactSupportUrl = 'https://support.nym.com/hc/requests/new';

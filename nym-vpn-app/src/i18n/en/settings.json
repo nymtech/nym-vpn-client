@@ -15,6 +15,7 @@
     "title": "Support & feedback",
     "faq": "Check the FAQ",
     "get-in-touch": "Get in touch",
+    "telegram": "Chat on Telegram",
     "github": "Open a GitHub issue",
     "matrix": "Join us on Matrix",
     "discord": "Join us on Discord"
@@ -53,5 +54,9 @@
   "autostart": {
     "title": "Autostart",
     "desc": "Launch NymVPN when system starts"
+  },
+  "killswitch": {
+    "title": "Killswitch",
+    "desc": "Disconnect if the internet drops"
   }
 }
