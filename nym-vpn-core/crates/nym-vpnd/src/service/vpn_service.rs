@@ -783,8 +783,8 @@ where
 
     async fn handle_refresh_account_state(&self) -> Result<(), AccountError> {
         self.account_command_tx
-            .send(AccountCommand::SyncAccountState(None))
-            .map_err(|err| AccountError::AccountControllerError { source: err })
+            .background_sync_account_state()
+            .map_err(|source| AccountError::AccountCommandError { source })
     }
 
     async fn handle_get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountError> {
@@ -818,9 +818,12 @@ where
                 source: Box::new(err),
             })?;
 
+        //self.account_command_tx
+        //    .send(AccountCommand::SyncAccountState(None))
+        //    .map_err(|source| AccountError::AccountControllerError { source })
         self.account_command_tx
-            .send(AccountCommand::SyncAccountState(None))
-            .map_err(|source| AccountError::AccountControllerError { source })
+            .background_sync_account_state()
+            .map_err(|source| AccountError::AccountCommandError { source })
     }
 
     async fn handle_get_device_identity(&self) -> Result<String, AccountError> {
@@ -831,9 +834,12 @@ where
     }
 
     async fn handle_register_device(&self) -> Result<(), AccountError> {
+        //self.account_command_tx
+        //    .send(AccountCommand::RegisterDevice(None))
+        //    .map_err(|source| AccountError::AccountControllerError { source })
         self.account_command_tx
-            .send(AccountCommand::RegisterDevice(None))
-            .map_err(|source| AccountError::AccountControllerError { source })
+            .background_sync_device_state()
+            .map_err(|source| AccountError::AccountCommandError { source })
     }
 
     async fn handle_get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountError> {

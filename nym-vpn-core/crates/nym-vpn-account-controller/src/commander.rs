@@ -12,7 +12,7 @@ use nym_vpn_store::mnemonic::Mnemonic;
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
-    commands::{request_zknym::RequestZkNymSummary, AccountCommand, ReturnSender},
+    commands::{tasks::request_zknym::RequestZkNymSummary, AccountCommand, ReturnSender},
     error::Error,
     shared_state::{AccountRegistered, DeviceState, SharedAccountState},
     AvailableTicketbooks,
@@ -28,11 +28,11 @@ pub struct AccountControllerCommander {
 
 impl AccountControllerCommander {
     // Send a basic command without waiting for a response
-    pub fn send(&self, command: AccountCommand) -> Result<(), Error> {
-        self.command_tx
-            .send(command)
-            .map_err(|source| Error::AccountCommandSend { source })
-    }
+    //fn send(&self, command: AccountCommand) -> Result<(), Error> {
+    //    self.command_tx
+    //        .send(command)
+    //        .map_err(|source| Error::AccountCommandSend { source })
+    //}
 
     pub async fn store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
@@ -67,12 +67,26 @@ impl AccountControllerCommander {
         rx.await.map_err(SyncAccountError::internal)?
     }
 
+    pub fn background_sync_account_state(&self) -> Result<(), AccountCommandError> {
+        self.command_tx
+            .send(AccountCommand::SyncAccountState(None))
+            .map_err(SyncAccountError::internal)
+            .map_err(AccountCommandError::from)
+    }
+
     pub async fn sync_device_state(&self) -> Result<DeviceState, SyncDeviceError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::SyncDeviceState(Some(tx)))
             .map_err(SyncDeviceError::internal)?;
         rx.await.map_err(SyncDeviceError::internal)?
+    }
+
+    pub fn background_sync_device_state(&self) -> Result<(), AccountCommandError> {
+        self.command_tx
+            .send(AccountCommand::SyncDeviceState(None))
+            .map_err(SyncDeviceError::internal)
+            .map_err(AccountCommandError::from)
     }
 
     pub async fn get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountCommandError> {

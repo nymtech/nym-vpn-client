@@ -21,7 +21,7 @@ use super::wintun::{self, WintunAdapterConfig};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_gateway_directory::{GatewayMinPerformance, ResolvedConfig};
-use nym_vpn_account_controller::{AccountCommand, AccountControllerCommander};
+use nym_vpn_account_controller::AccountControllerCommander;
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -530,11 +530,10 @@ impl TunnelMonitor {
             // proceed anyway.
             self.send_event(TunnelMonitorEvent::SyncingAccount);
             self.account_controller_tx
-                .send(AccountCommand::SyncAccountState(None))
+                .background_sync_account_state()
                 .ok();
-
             self.account_controller_tx
-                .send(AccountCommand::SyncDeviceState(None))
+                .background_sync_device_state()
                 .ok();
         } else {
             // If we don't have ticket stored, go through the steps one by one, syncing and
