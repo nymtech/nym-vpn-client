@@ -59,11 +59,11 @@ impl AccountCommandSender {
         rx.await.map_err(SyncAccountError::internal)?
     }
 
-    pub fn background_sync_account_state(&self) -> Result<(), AccountCommandError> {
+    pub fn background_sync_account_state(&self) {
         self.command_tx
             .send(AccountCommand::SyncAccountState(None))
-            .map_err(SyncAccountError::internal)
-            .map_err(AccountCommandError::from)
+            .inspect_err(|err| tracing::error!("Failed to send sync account state command: {err}"))
+            .ok();
     }
 
     pub async fn sync_device_state(&self) -> Result<DeviceState, SyncDeviceError> {
@@ -74,11 +74,11 @@ impl AccountCommandSender {
         rx.await.map_err(SyncDeviceError::internal)?
     }
 
-    pub fn background_sync_device_state(&self) -> Result<(), AccountCommandError> {
+    pub fn background_sync_device_state(&self) {
         self.command_tx
             .send(AccountCommand::SyncDeviceState(None))
-            .map_err(SyncDeviceError::internal)
-            .map_err(AccountCommandError::from)
+            .inspect_err(|err| tracing::error!("Failed to send sync device state command: {err}"))
+            .ok();
     }
 
     pub async fn get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
@@ -103,6 +103,13 @@ impl AccountCommandSender {
             .send(AccountCommand::RegisterDevice(Some(tx)))
             .map_err(RegisterDeviceError::internal)?;
         rx.await.map_err(RegisterDeviceError::internal)?
+    }
+
+    pub fn background_register_device(&self) {
+        self.command_tx
+            .send(AccountCommand::RegisterDevice(None))
+            .inspect_err(|err| tracing::error!("Failed to send register device command: {err}"))
+            .ok();
     }
 
     pub async fn get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
@@ -137,11 +144,11 @@ impl AccountCommandSender {
         rx.await.map_err(RequestZkNymError::internal)?
     }
 
-    pub fn background_request_zk_nyms(&self) -> Result<(), AccountCommandError> {
+    pub fn background_request_zk_nyms(&self) {
         self.command_tx
             .send(AccountCommand::RequestZkNym(None))
-            .map_err(RequestZkNymError::internal)
-            .map_err(AccountCommandError::from)
+            .inspect_err(|err| tracing::error!("Failed to send request zk-nyms command: {err}"))
+            .ok();
     }
 
     // TODO: also return the result

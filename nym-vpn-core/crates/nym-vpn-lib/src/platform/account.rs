@@ -85,7 +85,7 @@ async fn start_account_controller(
     })?;
 
     let shared_account_state = account_controller.shared_state();
-    let command_sender = account_controller.commander();
+    let command_sender = account_controller.command_sender();
     let account_controller_handle = tokio::spawn(account_controller.run());
 
     Ok(AccountControllerHandle {
