@@ -26,13 +26,6 @@ pub struct AccountControllerCommander {
 // Basic set of commands that can be sent to the account controller
 
 impl AccountControllerCommander {
-    // Send a basic command without waiting for a response
-    //fn send(&self, command: AccountCommand) -> Result<(), Error> {
-    //    self.command_tx
-    //        .send(command)
-    //        .map_err(|source| Error::AccountCommandSend { source })
-    //}
-
     pub async fn store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
