@@ -115,13 +115,13 @@ private extension GatewayCountryDropDown {
     func countryNameTitle() -> some View {
         Text(country.name)
             .foregroundStyle(NymColor.primary)
-            .textStyle(.BodyLegacy.Large.regular)
+            .textStyle(.Body.Large.regular)
     }
 
     func serverCountNumberSubtitle() -> some View {
         Text("\(servers.count) \("servers".localizedString)")
             .foregroundStyle(NymColor.gray1)
-            .textStyle(.BodyLegacy.Small.primary)
+            .textStyle(.Body.Small.regular)
     }
 
     func lineSeparator() -> some View {

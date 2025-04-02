@@ -49,7 +49,7 @@ private extension QRScannerView {
                 Spacer()
 
                 Text(viewModel.subtitleLolizedString)
-                    .textStyle(.BodyLegacy.Large.regular)
+                    .textStyle(.Body.Medium.regular)
 
                 Spacer()
             }

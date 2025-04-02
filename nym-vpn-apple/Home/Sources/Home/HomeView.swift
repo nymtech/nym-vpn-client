@@ -87,7 +87,7 @@ private extension HomeView {
     func networkModeSection() -> some View {
         HStack {
             Text(viewModel.networkSelectLocalizedTitle)
-                .textStyle(.TitleLegacy.Medium.primary)
+                .textStyle(.Headline.Small.regular)
             Spacer()
             GenericImage(systemImageName: "info.circle", allowsHover: true)
                 .foregroundColor(NymColor.sysOutline)
@@ -126,7 +126,7 @@ private extension HomeView {
         HStack {
             Text(viewModel.connectToLocalizedTitle)
                 .foregroundStyle(NymColor.sysOnSurfaceWhite)
-                .textStyle(.TitleLegacy.Medium.primary)
+                .textStyle(.Headline.Small.regular)
             Spacer()
         }
         .padding(.horizontal, 16)

@@ -53,7 +53,7 @@ private extension ResetVPNProfileDialog {
     @ViewBuilder
     func title() -> some View {
         Text(viewModel.resetVpnProfileTitle)
-            .textStyle(NymTextStyle.LabelLegacy.Huge.bold)
+            .textStyle(.Headline.Medium.regular)
             .foregroundStyle(NymColor.sysOnSurface)
             .multilineTextAlignment(.center)
 
@@ -65,7 +65,7 @@ private extension ResetVPNProfileDialog {
     func subtitle() -> some View {
         Text(viewModel.resetVpnProfileSubtitle)
             .foregroundStyle(NymColor.modeInfoViewDescription)
-            .textStyle(.BodyLegacy.Medium.regular)
+            .textStyle(.Body.Medium.regular)
             .multilineTextAlignment(.center)
             .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
     }

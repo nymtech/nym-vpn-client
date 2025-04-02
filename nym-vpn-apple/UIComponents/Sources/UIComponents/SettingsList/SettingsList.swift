@@ -31,7 +31,7 @@ private extension SettingsList {
         HStack {
             Text(viewModel.versionTitle)
                 .foregroundStyle(NymColor.settingsVersion)
-                .textStyle(.BodyLegacy.Medium.regular)
+                .textStyle(.Body.Medium.regular)
                 .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 0))
             Spacer()
         }

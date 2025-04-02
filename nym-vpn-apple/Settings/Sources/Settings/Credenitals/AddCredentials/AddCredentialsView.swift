@@ -136,13 +136,13 @@ private extension AddCredentialsView {
     @ViewBuilder
     func welcomeText() -> some View {
         Text(viewModel.welcomeTitle)
-            .textStyle(.HeadlineLegacy.Small.primary)
+            .textStyle(.Headline.Large.regular)
     }
 
     @ViewBuilder
     func getStartedTitleText() -> some View {
         Text(viewModel.getStartedTitle)
-            .textStyle(.BodyLegacy.Large.regular)
+            .textStyle(.Body.Large.regular)
             .foregroundStyle(NymColor.credetnialsTitle)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 16)
@@ -163,7 +163,7 @@ private extension AddCredentialsView {
                     }
                 }
                 .submitLabel(.done)
-                .textStyle(NymTextStyle.BodyLegacy.Large.regular)
+                .textStyle(NymTextStyle.Body.Large.regular)
                 .padding(16)
                 .lineLimit(8, reservesSpace: true)
                 .focused($isFocused)
@@ -185,7 +185,7 @@ private extension AddCredentialsView {
         .overlay(alignment: .topLeading) {
             Text(viewModel.mnemonicSubtitle)
                 .foregroundStyle(viewModel.credentialSubtitleColor)
-                .textStyle(.BodyLegacy.Small.primary)
+                .textStyle(.Body.Small.regular)
                 .padding(4)
                 .background(NymColor.background)
                 .position(x: 55, y: 0)
@@ -199,7 +199,7 @@ private extension AddCredentialsView {
             Text(title)
                 .foregroundStyle(NymColor.sysError)
                 .lineLimit(nil)
-                .textStyle(NymTextStyle.BodyLegacy.Small.primary)
+                .textStyle(.Body.Small.regular)
             Spacer()
         }
         .padding(EdgeInsets(top: 0, leading: 28, bottom: 16, trailing: 28))
@@ -234,7 +234,7 @@ private extension AddCredentialsView {
             Text(createAccountAttributedString)
                 .tint(NymColor.accent)
                 .foregroundStyle(NymColor.sysOnSurface)
-                .textStyle(.BodyLegacy.Large.regular)
+                .textStyle(.Body.Large.regular)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)
         }

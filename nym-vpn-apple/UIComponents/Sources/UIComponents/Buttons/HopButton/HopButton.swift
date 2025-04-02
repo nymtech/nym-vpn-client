@@ -48,6 +48,6 @@ private extension HopButton {
         Text(text)
             .lineLimit(1)
             .foregroundStyle(NymColor.sysOnSurface)
-            .textStyle(.BodyLegacy.Large.semibold)
+            .textStyle(.Body.Large.regular)
     }
 }

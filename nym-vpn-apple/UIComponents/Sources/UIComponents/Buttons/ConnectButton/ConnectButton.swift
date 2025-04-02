@@ -13,8 +13,8 @@ public struct ConnectButton: View {
     public var body: some View {
         HStack {
             Text(state.localizedTitle)
-                .foregroundStyle(NymColor.connectTitle)
-                .textStyle(.LabelLegacy.Huge.bold)
+                .foregroundStyle(NymColor.black)
+                .textStyle(.Headline.Medium.regular)
                 .transaction { transaction in
                     transaction.animation = nil
                 }

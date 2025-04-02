@@ -57,12 +57,12 @@ extension SearchView {
             if searchText.isEmpty {
                 Text(searchTitle)
                     .foregroundStyle(NymColor.sysOutline)
-                    .textStyle(.BodyLegacy.Large.regular)
+                    .textStyle(.Body.Large.regular)
             }
             TextField("", text: $searchText)
                 .foregroundStyle(NymColor.sysOnSurface)
                 .textFieldStyle(PlainTextFieldStyle())
-                .textStyle(.BodyLegacy.Large.semibold)
+                .textStyle(.Body.Large.regular)
                 .focused($isSearchFocused)
         }
     }

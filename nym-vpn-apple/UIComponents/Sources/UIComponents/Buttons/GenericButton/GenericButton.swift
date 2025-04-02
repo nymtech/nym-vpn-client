@@ -19,7 +19,7 @@ public struct GenericButton: View {
     public var body: some View {
         HStack {
             Text(title)
-                .foregroundStyle(borderOnly ? mainColor : NymColor.connectTitle)
+                .foregroundStyle(borderOnly ? mainColor : NymColor.black)
                 .textStyle(.Headline.Small.regular)
                 .padding(.vertical, 10)
         }

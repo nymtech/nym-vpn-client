@@ -106,7 +106,7 @@ extension GatewayCell {
         Text(server.moniker ?? server.id)
             .lineLimit(1)
             .foregroundStyle(NymColor.primary)
-            .textStyle(.BodyLegacy.Large.regular)
+            .textStyle(.Body.Large.regular)
     }
 
     func serverSubtitleString() -> String {
@@ -122,7 +122,7 @@ extension GatewayCell {
             .lineLimit(1)
             .truncationMode(.middle)
             .foregroundStyle(NymColor.gray1)
-            .textStyle(.BodyLegacy.Small.primary)
+            .textStyle(.Body.Small.regular)
     }
 
     func lineSeparator() -> some View {

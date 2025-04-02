@@ -61,7 +61,7 @@ private extension ModeSelectionInfoView {
     @ViewBuilder
     func title() -> some View {
         Text(viewModel.titleLocalizedString)
-            .textStyle(NymTextStyle.LabelLegacy.Huge.bold)
+            .textStyle(.Headline.Medium.regular)
             .foregroundStyle(NymColor.sysOnSurface)
 
         Spacer()
@@ -77,7 +77,7 @@ private extension ModeSelectionInfoView {
                 .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 8))
 
             Text(viewModel.anonymousTitleLocalizedString)
-                .textStyle(.LabelLegacy.Large.bold)
+                .textStyle(.Headline.Small.regular)
                 .foregroundStyle(NymColor.modeInfoViewTitle)
 
             Spacer()
@@ -91,7 +91,7 @@ private extension ModeSelectionInfoView {
         HStack {
             Text(viewModel.anonymousDescriptionLocalizedString)
                 .foregroundStyle(NymColor.modeInfoViewDescription)
-                .textStyle(.BodyLegacy.Medium.regular)
+                .textStyle(.Body.Medium.regular)
 
             Spacer()
         }
@@ -110,7 +110,7 @@ private extension ModeSelectionInfoView {
                 .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 8))
 
             Text(viewModel.fastTitleLocalizedString)
-                .textStyle(.LabelLegacy.Large.bold)
+                .textStyle(.Headline.Small.regular)
                 .foregroundStyle(NymColor.modeInfoViewTitle)
 
             Spacer()
@@ -124,7 +124,7 @@ private extension ModeSelectionInfoView {
         HStack {
             Text(viewModel.fastDescriptionLocalizedString)
                 .foregroundStyle(NymColor.modeInfoViewDescription)
-                .textStyle(.BodyLegacy.Medium.regular)
+                .textStyle(.Body.Medium.regular)
 
             Spacer()
         }
@@ -138,7 +138,7 @@ private extension ModeSelectionInfoView {
     func continueReadingLink() -> some View {
         HStack {
             Text(viewModel.continueReadingLocalizedString)
-                .textStyle(.BodyLegacy.Medium.regular)
+                .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.accent)
 
             GenericImage(imageName: viewModel.continueReadingLinkImageName)

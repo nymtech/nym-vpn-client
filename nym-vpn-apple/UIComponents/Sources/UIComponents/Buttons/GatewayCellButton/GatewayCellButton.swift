@@ -15,7 +15,7 @@ public struct GatewayCellButton: View {
 
             Text(viewModel.title)
                 .foregroundStyle(NymColor.sysOnSurface)
-                .textStyle(.BodyLegacy.Large.regular)
+                .textStyle(.Body.Large.regular)
 
             Spacer()
             selectedTitleView()
@@ -49,7 +49,7 @@ private extension GatewayCellButton {
     func selectedTitleView() -> some View {
         if viewModel.isSelected {
             Text(viewModel.selectedTitle)
-                .textStyle(.LabelLegacy.Small.primary)
+                .textStyle(.Headline.Small.regular)
                 .padding(.trailing, 24)
         }
     }

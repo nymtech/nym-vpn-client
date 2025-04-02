@@ -28,7 +28,7 @@ public struct CustomNavBar: View {
             Spacer()
             if let title {
                 Text(title)
-                    .textStyle(.TitleLegacy.Large.primary)
+                    .textStyle(.Headline.Medium.regular)
             } else {
                 Image("logoText", bundle: .module)
                     .frame(width: 110, height: 16)

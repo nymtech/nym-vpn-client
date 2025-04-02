@@ -48,7 +48,7 @@ extension HelperInstallView {
 
     func explanationText() -> some View {
         Text(viewModel.infoText)
-            .textStyle(.BodyLegacy.Medium.regular)
+            .textStyle(.Body.Medium.regular)
             .foregroundStyle(NymColor.modeInfoViewTitle)
             .multilineTextAlignment(.center)
             .padding(16)
@@ -79,7 +79,7 @@ extension HelperInstallView {
         switch step {
         case .uninstallOldDeamon:
             Text(step.title)
-                .textStyle(.BodyLegacy.Medium.regular)
+                .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.modeInfoViewTitle)
                 .padding(.horizontal, 16)
             Spacer()
@@ -94,7 +94,7 @@ extension HelperInstallView {
             HStack {
                 PulsingImageView(systemImageName: step.systemImageName, imageColor: step.imageColor)
                 Text(step.title)
-                    .textStyle(.BodyLegacy.Large.semibold)
+                    .textStyle(.Body.Large.regular)
                     .lineLimit(3)
                     .foregroundStyle(NymColor.modeInfoViewTitle)
             }
@@ -106,7 +106,7 @@ extension HelperInstallView {
     func errorMessage() -> some View {
         if let message = viewModel.error?.localizedDescription {
             Text(message)
-                .textStyle(.BodyLegacy.Large.semibold)
+                .textStyle(.Body.Large.regular)
                 .foregroundStyle(NymColor.sysError)
         }
     }

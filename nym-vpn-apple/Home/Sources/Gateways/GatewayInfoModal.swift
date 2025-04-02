@@ -67,7 +67,7 @@ private extension GatewayInfoModal {
     func serverTitle() -> some View {
         Text(server.moniker ?? server.id)
             .foregroundStyle(NymColor.primary)
-            .textStyle(.LabelLegacy.Huge.bold)
+            .textStyle(.Headline.Medium.regular)
             .padding(.horizontal, 24)
     }
 
@@ -126,7 +126,7 @@ private extension GatewayInfoModal {
         if let country = countriesManager.country(with: server.countryCode) {
             Text(country.name)
                 .foregroundStyle(NymColor.primary)
-                .textStyle(.BodyLegacy.Large.regular)
+                .textStyle(.Body.Large.regular)
                 .padding(0)
         }
     }
@@ -166,13 +166,13 @@ private extension GatewayInfoModal {
     func identityKeyTitle() -> some View {
         Text("getewaySelector.identityKey".localizedString)
             .foregroundStyle(NymColor.gray1)
-            .textStyle(.BodyLegacy.Small.primary)
+            .textStyle(.Body.Small.regular)
     }
 
     func identityKeyValueText() -> some View {
         Text(server.id)
             .foregroundStyle(NymColor.primary)
-            .textStyle(.BodyLegacy.Medium.regular)
+            .textStyle(.Body.Medium.regular)
     }
 
     func closeButton() -> some View {
