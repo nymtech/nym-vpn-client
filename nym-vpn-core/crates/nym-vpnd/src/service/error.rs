@@ -3,7 +3,7 @@
 
 use nym_vpn_lib::tunnel_state_machine::Error as TunnelStateMachineError;
 use nym_vpn_lib_types::AccountCommandError;
-use tokio::sync::{mpsc::error::SendError, oneshot::error::RecvError};
+use tokio::sync::oneshot::error::RecvError;
 use tracing::error;
 
 use super::config::ConfigSetupError;
@@ -79,7 +79,6 @@ pub enum AccountError {
     //SendCommand {
     //    source: Box<SendError<nym_vpn_account_controller::AccountCommand>>,
     //},
-
     #[error("account controller not ready to handle command")]
     RecvCommand { source: Box<RecvError> },
 
@@ -98,11 +97,15 @@ pub enum AccountError {
 
     #[error(transparent)]
     AccountControllerError {
+        #[from]
         source: nym_vpn_account_controller::Error,
     },
 
     #[error(transparent)]
-    AccountCommandError { source: AccountCommandError },
+    AccountCommandError {
+        #[from]
+        source: AccountCommandError,
+    },
 
     #[error("account not configured")]
     AccountManagementNotConfigured,
