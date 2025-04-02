@@ -100,7 +100,6 @@ fn default_mainnet_discovery() {
                     ),
                     system_configuration: Default::default(),
                     system_messages: Default::default(),
-                    network_compatibility: Default::default(),
                 }}
             }}
         }}
