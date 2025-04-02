@@ -5,7 +5,7 @@ use std::{path::PathBuf, str::FromStr, sync::Arc, time::Duration};
 
 use nym_offline_monitor::Connectivity;
 use nym_vpn_account_controller::{
-    shared_state::DeviceState, AccountControllerCommander, SharedAccountState,
+    shared_state::DeviceState, AccountCommandSender, SharedAccountState,
 };
 use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
 use nym_vpn_network_config::Network;
@@ -97,7 +97,7 @@ async fn start_account_controller(
 }
 
 pub(super) struct AccountControllerHandle {
-    command_sender: AccountControllerCommander,
+    command_sender: AccountCommandSender,
     shared_state: nym_vpn_account_controller::SharedAccountState,
     handle: JoinHandle<()>,
     shutdown_token: CancellationToken,
@@ -137,7 +137,7 @@ async fn get_shared_account_state() -> Result<SharedAccountState, VpnError> {
     }
 }
 
-pub(super) async fn get_command_sender() -> Result<AccountControllerCommander, VpnError> {
+pub(super) async fn get_command_sender() -> Result<AccountCommandSender, VpnError> {
     if let Some(guard) = &*ACCOUNT_CONTROLLER_HANDLE.lock().await {
         Ok(guard.command_sender.clone())
     } else {

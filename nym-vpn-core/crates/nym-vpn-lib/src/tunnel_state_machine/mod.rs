@@ -27,7 +27,7 @@ use std::{
     path::PathBuf,
 };
 
-use nym_vpn_account_controller::AccountControllerCommander;
+use nym_vpn_account_controller::AccountCommandSender;
 use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -365,7 +365,7 @@ pub struct SharedState {
     tun_provider: Arc<dyn OSTunProvider>,
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
-    account_command_tx: AccountControllerCommander,
+    account_command_tx: AccountCommandSender,
 }
 
 #[derive(Debug, Clone)]
@@ -395,7 +395,7 @@ impl TunnelStateMachine {
         event_sender: mpsc::UnboundedSender<TunnelEvent>,
         nym_config: NymConfig,
         tunnel_settings: TunnelSettings,
-        account_command_tx: AccountControllerCommander,
+        account_command_tx: AccountCommandSender,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         shutdown_token: CancellationToken,

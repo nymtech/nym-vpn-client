@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_account_controller::AccountControllerCommander;
+use nym_vpn_account_controller::AccountCommandSender;
 use nym_vpn_api_client::types::ScoreThresholds;
 use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -22,7 +22,7 @@ pub(super) async fn init_state_machine(
     config: VPNConfig,
     network_env: Network,
     enable_credentials_mode: bool,
-    account_controller_tx: AccountControllerCommander,
+    account_controller_tx: AccountCommandSender,
 ) -> Result<(), VpnError> {
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
@@ -76,7 +76,7 @@ pub(super) async fn start_state_machine(
     config: VPNConfig,
     network_env: Network,
     enable_credentials_mode: bool,
-    account_controller_tx: AccountControllerCommander,
+    account_controller_tx: AccountCommandSender,
 ) -> Result<StateMachineHandle, VpnError> {
     let tunnel_type = if config.enable_two_hop {
         TunnelType::Wireguard

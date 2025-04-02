@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_account_controller::AccountControllerCommander;
+use nym_vpn_account_controller::AccountCommandSender;
 use nym_vpn_lib_types::{
     RegisterDeviceError, RequestZkNymError, SyncAccountError, SyncDeviceError,
 };
@@ -26,7 +26,7 @@ pub enum Error {
 }
 
 pub async fn wait_for_account_sync(
-    account_controller_tx: AccountControllerCommander,
+    account_controller_tx: AccountCommandSender,
     cancel_token: CancellationToken,
 ) -> Result<(), Error> {
     cancel_token
@@ -38,7 +38,7 @@ pub async fn wait_for_account_sync(
 }
 
 pub async fn wait_for_device_sync(
-    account_controller_tx: AccountControllerCommander,
+    account_controller_tx: AccountCommandSender,
     cancel_token: CancellationToken,
 ) -> Result<(), Error> {
     cancel_token
@@ -50,7 +50,7 @@ pub async fn wait_for_device_sync(
 }
 
 pub async fn wait_for_device_register(
-    account_controller_tx: AccountControllerCommander,
+    account_controller_tx: AccountCommandSender,
     cancel_token: CancellationToken,
 ) -> Result<(), Error> {
     cancel_token
@@ -63,7 +63,7 @@ pub async fn wait_for_device_register(
 // Waiting for credentials to be ready can take a while if it's from scratch, in the order of 30
 // seconds at least.
 pub async fn wait_for_credentials_ready(
-    account_controller_tx: AccountControllerCommander,
+    account_controller_tx: AccountCommandSender,
     cancel_token: CancellationToken,
 ) -> Result<(), Error> {
     cancel_token

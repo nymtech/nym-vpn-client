@@ -13,7 +13,7 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_account_controller::{
-    AccountController, AccountControllerCommander, AccountStateSummary, AvailableTicketbooks,
+    AccountCommandSender, AccountController, AccountStateSummary, AvailableTicketbooks,
     SharedAccountState,
 };
 use nym_vpn_api_client::{
@@ -154,7 +154,7 @@ where
     file_logging_event_tx: mpsc::Sender<()>,
 
     // Send commands to the account controller
-    account_command_tx: AccountControllerCommander,
+    account_command_tx: AccountCommandSender,
 
     // Path to the main config file
     config_file: PathBuf,

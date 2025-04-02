@@ -26,7 +26,7 @@ use crate::{
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
     storage::{AccountStorage, VpnCredentialStorage},
-    AccountControllerCommander, AvailableTicketbooks,
+    AccountCommandSender, AvailableTicketbooks,
 };
 
 // The interval at which we automatically request zk-nyms
@@ -136,7 +136,7 @@ where
         );
 
         let offline_watch = OfflineWatch::new(
-            AccountControllerCommander {
+            AccountCommandSender {
                 command_tx: command_tx.clone(),
                 shared_state: account_state.clone(),
             },
@@ -163,8 +163,8 @@ where
         self.account_state.clone()
     }
 
-    pub fn commander(&self) -> AccountControllerCommander {
-        AccountControllerCommander {
+    pub fn commander(&self) -> AccountCommandSender {
+        AccountCommandSender {
             command_tx: self.command_tx.clone(),
             shared_state: self.account_state.clone(),
         }
