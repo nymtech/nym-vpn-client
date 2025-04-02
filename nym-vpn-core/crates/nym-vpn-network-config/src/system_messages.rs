@@ -8,10 +8,7 @@ use nym_sdk::mixnet::Recipient;
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 
-use nym_vpn_api_client::{
-    response::{SystemConfigurationResponse, SystemMessageResponse},
-    NetworkCompatibility,
-};
+use nym_vpn_api_client::response::{SystemConfigurationResponse, SystemMessageResponse};
 
 use crate::system_configuration::{ScoreThresholds, SystemConfiguration};
 
@@ -167,9 +164,7 @@ impl From<SystemConfigurationResponse> for SystemConfiguration {
                 .ok()
         });
 
-        let min_supported_app_versions = value
-            .min_supported_app_versions
-            .map(NetworkCompatibility::from);
+        let min_supported_app_versions = value.min_supported_app_versions;
 
         SystemConfiguration {
             mix_thresholds: ScoreThresholds {
