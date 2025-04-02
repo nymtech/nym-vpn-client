@@ -5,12 +5,13 @@ use tokio::sync::{mpsc::UnboundedSender, oneshot, watch};
 use zeroize::Zeroizing;
 
 use nym_vpn_account_controller::{AccountStateSummary, AvailableTicketbooks};
-use nym_vpn_api_client::response::{NymVpnDevice, NymVpnUsage};
+use nym_vpn_api_client::{
+    response::{NymVpnDevice, NymVpnUsage},
+    NetworkCompatibility,
+};
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
 use nym_vpn_lib_types::TunnelState;
-use nym_vpn_network_config::{
-    FeatureFlags, NetworkCompatibility, ParsedAccountLinks, SystemMessages,
-};
+use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::gateway;
 
 use super::protobuf::error::VpnCommandSendError;

@@ -51,6 +51,7 @@ fn setup_statistics_recipient(
     // The statistics recipient can be set in the system configuration
     let statistics_recipient_from_system = network_env
         .system_configuration
+        .as_ref()
         .and_then(|sc| sc.statistics_recipient)
         .map(Box::new);
 
@@ -91,16 +92,23 @@ pub(super) async fn start_state_machine(
     let api_url = network_env.api_url();
     let nyxd_url = network_env.nyxd_url();
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
-    let mix_score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
-        high: sc.mix_thresholds.high,
-        medium: sc.mix_thresholds.medium,
-        low: sc.mix_thresholds.low,
-    });
-    let wg_score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
-        high: sc.wg_thresholds.high,
-        medium: sc.wg_thresholds.medium,
-        low: sc.wg_thresholds.low,
-    });
+    let mix_score_thresholds =
+        network_env
+            .system_configuration
+            .as_ref()
+            .map(|sc| ScoreThresholds {
+                high: sc.mix_thresholds.high,
+                medium: sc.mix_thresholds.medium,
+                low: sc.mix_thresholds.low,
+            });
+    let wg_score_thresholds = network_env
+        .system_configuration
+        .as_ref()
+        .map(|sc| ScoreThresholds {
+            high: sc.wg_thresholds.high,
+            medium: sc.wg_thresholds.medium,
+            low: sc.wg_thresholds.low,
+        });
 
     let gateway_config = GatewayDirectoryConfig {
         nyxd_url,

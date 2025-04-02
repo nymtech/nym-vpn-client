@@ -81,8 +81,8 @@ impl From<nym_vpn_network_config::SystemMessage> for crate::SystemMessage {
     }
 }
 
-impl From<nym_vpn_network_config::NetworkCompatibility> for crate::NetworkCompatibility {
-    fn from(value: nym_vpn_network_config::NetworkCompatibility) -> Self {
+impl From<nym_vpn_api_client::NetworkCompatibility> for crate::NetworkCompatibility {
+    fn from(value: nym_vpn_api_client::NetworkCompatibility) -> Self {
         Self {
             core: value.core,
             ios: value.ios,

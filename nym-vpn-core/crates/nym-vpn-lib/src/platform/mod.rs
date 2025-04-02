@@ -302,11 +302,15 @@ async fn get_gateway_countries(
     let api_url = network_env.api_url();
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
     let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
-    let mix_score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
-        high: sc.mix_thresholds.high,
-        medium: sc.mix_thresholds.medium,
-        low: sc.mix_thresholds.low,
-    });
+    let mix_score_thresholds =
+        network_env
+            .system_configuration
+            .as_ref()
+            .map(|sc| ScoreThresholds {
+                high: sc.mix_thresholds.high,
+                medium: sc.mix_thresholds.medium,
+                low: sc.mix_thresholds.low,
+            });
     let wg_score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
         high: sc.wg_thresholds.high,
         medium: sc.wg_thresholds.medium,
@@ -351,11 +355,15 @@ async fn get_gateways(
     let api_url = network_env.api_url();
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
     let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
-    let mix_score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
-        high: sc.mix_thresholds.high,
-        medium: sc.mix_thresholds.medium,
-        low: sc.mix_thresholds.low,
-    });
+    let mix_score_thresholds =
+        network_env
+            .system_configuration
+            .as_ref()
+            .map(|sc| ScoreThresholds {
+                high: sc.mix_thresholds.high,
+                medium: sc.mix_thresholds.medium,
+                low: sc.mix_thresholds.low,
+            });
     let wg_score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
         high: sc.wg_thresholds.high,
         medium: sc.wg_thresholds.medium,

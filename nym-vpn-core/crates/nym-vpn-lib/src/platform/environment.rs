@@ -67,7 +67,8 @@ pub(crate) async fn get_system_messages() -> Result<Vec<SystemMessage>, VpnError
 pub(crate) async fn get_network_compatibility() -> Result<Option<NetworkCompatibility>, VpnError> {
     current_environment_details().await.map(|network| {
         network
-            .network_compatibility
+            .system_configuration
+            .and_then(|sc| sc.min_supported_app_versions)
             .map(NetworkCompatibility::from)
     })
 }

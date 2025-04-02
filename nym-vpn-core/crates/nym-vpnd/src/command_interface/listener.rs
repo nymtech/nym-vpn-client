@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::{stream::BoxStream, StreamExt};
-use nym_vpn_network_config::{Network, NetworkCompatibility};
+use nym_vpn_api_client::NetworkCompatibility;
+use nym_vpn_network_config::Network;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
 use nym_vpn_api_client::types::{GatewayMinPerformance, ScoreThresholds};
@@ -286,19 +287,21 @@ impl NymVpnd for CommandInterface {
         let mix_score_thresholds =
             self.network_env
                 .system_configuration
+                .as_ref()
                 .map(|sc| ScoreThresholds {
                     high: sc.mix_thresholds.high,
                     medium: sc.mix_thresholds.medium,
                     low: sc.mix_thresholds.low,
                 });
-        let wg_score_thresholds = self
-            .network_env
-            .system_configuration
-            .map(|sc| ScoreThresholds {
-                high: sc.wg_thresholds.high,
-                medium: sc.wg_thresholds.medium,
-                low: sc.wg_thresholds.low,
-            });
+        let wg_score_thresholds =
+            self.network_env
+                .system_configuration
+                .as_ref()
+                .map(|sc| ScoreThresholds {
+                    high: sc.wg_thresholds.high,
+                    medium: sc.wg_thresholds.medium,
+                    low: sc.wg_thresholds.low,
+                });
         let directory_config = nym_vpn_lib::gateway_directory::Config {
             nyxd_url: self.network_env.nyxd_url(),
             api_url: self.network_env.api_url(),
@@ -363,19 +366,21 @@ impl NymVpnd for CommandInterface {
         let mix_score_thresholds =
             self.network_env
                 .system_configuration
+                .as_ref()
                 .map(|sc| ScoreThresholds {
                     high: sc.mix_thresholds.high,
                     medium: sc.mix_thresholds.medium,
                     low: sc.mix_thresholds.low,
                 });
-        let wg_score_thresholds = self
-            .network_env
-            .system_configuration
-            .map(|sc| ScoreThresholds {
-                high: sc.wg_thresholds.high,
-                medium: sc.wg_thresholds.medium,
-                low: sc.wg_thresholds.low,
-            });
+        let wg_score_thresholds =
+            self.network_env
+                .system_configuration
+                .as_ref()
+                .map(|sc| ScoreThresholds {
+                    high: sc.wg_thresholds.high,
+                    medium: sc.wg_thresholds.medium,
+                    low: sc.wg_thresholds.low,
+                });
         let directory_config = nym_vpn_lib::gateway_directory::Config {
             nyxd_url: self.network_env.nyxd_url(),
             api_url: self.network_env.api_url(),

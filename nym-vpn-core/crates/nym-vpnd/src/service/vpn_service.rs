@@ -4,10 +4,6 @@
 use std::{net::IpAddr, path::PathBuf, sync::Arc, time::Instant};
 
 use bip39::Mnemonic;
-use nym_vpn_network_config::{
-    FeatureFlags, Network, NetworkCompatibility, NymNetwork, NymVpnNetwork, ParsedAccountLinks,
-    SystemMessages,
-};
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
@@ -23,6 +19,7 @@ use nym_vpn_account_controller::{
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::Percent,
+    NetworkCompatibility,
 };
 use nym_vpn_lib::{
     gateway_directory::{self, EntryPoint, ExitPoint},
@@ -33,6 +30,9 @@ use nym_vpn_lib::{
     MixnetClientConfig, Recipient, UserAgent,
 };
 use nym_vpn_lib_types::{TunnelEvent, TunnelState, TunnelType};
+use nym_vpn_network_config::{
+    FeatureFlags, Network, NymNetwork, NymVpnNetwork, ParsedAccountLinks, SystemMessages,
+};
 use zeroize::Zeroizing;
 
 use super::{
@@ -253,6 +253,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
 
         let statistics_recipient = network_env
             .system_configuration
+            .as_ref()
             .and_then(|config| config.statistics_recipient);
 
         let account_controller = AccountController::new(
@@ -711,7 +712,10 @@ where
     }
 
     async fn handle_get_network_compatibility(&self) -> Option<NetworkCompatibility> {
-        self.network_env.network_compatibility.clone()
+        self.network_env
+            .system_configuration
+            .as_ref()
+            .and_then(|sc| sc.min_supported_app_versions.clone())
     }
 
     async fn handle_get_feature_flags(&self) -> Option<FeatureFlags> {

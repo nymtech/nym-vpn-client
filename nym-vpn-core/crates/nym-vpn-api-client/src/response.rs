@@ -9,6 +9,8 @@ use nym_credential_proxy_requests::api::v1::ticketbook::models::TicketbookWallet
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 
+use crate::network_compatibility::NetworkCompatibility;
+
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
@@ -611,6 +613,7 @@ pub struct SystemConfigurationResponse {
     pub mix_thresholds: ScoreThresholdsResponse,
     pub wg_thresholds: ScoreThresholdsResponse,
     pub statistics_recipient: Option<String>,
+    pub min_supported_app_versions: Option<NetworkCompatibility>,
 }
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]

@@ -1,6 +1,7 @@
-use nym_vpn_api_client::response::NetworkCompatibilityResponse;
 use serde::{Deserialize, Serialize};
 use std::fmt;
+
+use crate::response::NetworkCompatibilityResponse;
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct NetworkCompatibility {
