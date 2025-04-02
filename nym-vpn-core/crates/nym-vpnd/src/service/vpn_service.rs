@@ -270,7 +270,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
 
         // These are used to interact with the account controller
         let shared_account_state = account_controller.shared_state();
-        let account_command_tx = account_controller.commander();
+        let account_command_tx = account_controller.command_sender();
         let _account_controller_handle = tokio::task::spawn(account_controller.run());
 
         // These used to interact with the tunnel state machine
@@ -782,9 +782,8 @@ where
     }
 
     async fn handle_refresh_account_state(&self) -> Result<(), AccountError> {
-        self.account_command_tx
-            .background_sync_account_state()
-            .map_err(|source| AccountError::AccountCommandError { source })
+        self.account_command_tx.background_sync_account_state();
+        Ok(())
     }
 
     async fn handle_get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountError> {
@@ -818,12 +817,9 @@ where
                 source: Box::new(err),
             })?;
 
-        //self.account_command_tx
-        //    .send(AccountCommand::SyncAccountState(None))
-        //    .map_err(|source| AccountError::AccountControllerError { source })
-        self.account_command_tx
-            .background_sync_account_state()
-            .map_err(|source| AccountError::AccountCommandError { source })
+        self.account_command_tx.background_sync_account_state();
+
+        Ok(())
     }
 
     async fn handle_get_device_identity(&self) -> Result<String, AccountError> {
@@ -834,12 +830,8 @@ where
     }
 
     async fn handle_register_device(&self) -> Result<(), AccountError> {
-        //self.account_command_tx
-        //    .send(AccountCommand::RegisterDevice(None))
-        //    .map_err(|source| AccountError::AccountControllerError { source })
-        self.account_command_tx
-            .background_sync_device_state()
-            .map_err(|source| AccountError::AccountCommandError { source })
+        self.account_command_tx.background_sync_device_state();
+        Ok(())
     }
 
     async fn handle_get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountError> {
@@ -857,45 +849,29 @@ where
     }
 
     async fn handle_request_zk_nym(&self) -> Result<(), AccountError> {
-        //self.account_command_tx
-        //    .send(AccountCommand::RequestZkNym(None))
-        //    .map_err(|source| AccountError::AccountControllerError { source })
-        self.account_command_tx
-            .background_request_zk_nyms()
-            .map_err(|source| AccountError::AccountCommandError { source })
+        self.account_command_tx.background_request_zk_nyms();
+        Ok(())
     }
 
     async fn handle_get_device_zk_nyms(&self) -> Result<(), AccountError> {
-        //self.account_command_tx
-        //    .send(AccountCommand::GetDeviceZkNym)
-        //    .map_err(|source| AccountError::AccountControllerError { source })
         self.account_command_tx
             .get_device_zk_nym()
             .map_err(AccountError::from)
     }
 
     async fn handle_get_zk_nyms_available_for_download(&self) -> Result<(), AccountError> {
-        //self.account_command_tx
-        //    .send(AccountCommand::GetZkNymsAvailableForDownload)
-        //    .map_err(|source| AccountError::AccountControllerError { source })
         self.account_command_tx
             .get_zk_nyms_available_for_download()
             .map_err(AccountError::from)
     }
 
     async fn handle_get_zk_nym_by_id(&self, id: String) -> Result<(), AccountError> {
-        //self.account_command_tx
-        //    .send(AccountCommand::GetZkNymById(id))
-        //    .map_err(|source| AccountError::AccountControllerError { source })
         self.account_command_tx
             .get_zk_nym_by_id(id)
             .map_err(AccountError::from)
     }
 
     async fn handle_confirm_zk_nym_id_downloaded(&self, id: String) -> Result<(), AccountError> {
-        //self.account_command_tx
-        //    .send(AccountCommand::ConfirmZkNymIdDownloaded(id))
-        //    .map_err(AccountError::from)
         self.account_command_tx
             .confirm_zk_nym_id_downloaded(id)
             .map_err(AccountError::from)

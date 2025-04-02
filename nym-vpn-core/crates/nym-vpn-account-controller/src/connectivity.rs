@@ -68,13 +68,7 @@ impl OfflineWatch {
     }
 
     fn signal_went_online_to_controller(&self) {
-        let _ = self
-            .command_sender
-            .background_sync_account_state()
-            .inspect_err(|e| tracing::error!("{e}"));
-        let _ = self
-            .command_sender
-            .background_sync_device_state()
-            .inspect_err(|e| tracing::error!("{e}"));
+        self.command_sender.background_sync_account_state();
+        self.command_sender.background_sync_device_state();
     }
 }

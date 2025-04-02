@@ -528,12 +528,8 @@ impl TunnelMonitor {
             // If we have tickets stored, trigger sync and register in the background while we
             // proceed anyway.
             self.send_event(TunnelMonitorEvent::SyncingAccount);
-            self.account_controller_tx
-                .background_sync_account_state()
-                .ok();
-            self.account_controller_tx
-                .background_sync_device_state()
-                .ok();
+            self.account_controller_tx.background_sync_account_state();
+            self.account_controller_tx.background_sync_device_state();
         } else {
             // If we don't have ticket stored, go through the steps one by one, syncing and
             // registering and getting credentials.

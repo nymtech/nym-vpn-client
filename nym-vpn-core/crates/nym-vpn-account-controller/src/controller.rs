@@ -1,10 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::PathBuf, sync::Arc, time::Duration};
+use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
 
 use nym_http_api_client::UserAgent;
-use nym_offline_monitor::Connectivity;
+use nym_offline_monitor::{Connectivity, MonitorHandle};
 use nym_vpn_api_client::{
     response::{NymVpnAccountResponse, NymVpnDevice, NymVpnUsage},
     types::{DeviceStatus, VpnApiAccount},
@@ -163,33 +163,11 @@ where
         self.account_state.clone()
     }
 
-    pub fn commander(&self) -> AccountCommandSender {
+    pub fn command_sender(&self) -> AccountCommandSender {
         AccountCommandSender {
             command_tx: self.command_tx.clone(),
             shared_state: self.account_state.clone(),
         }
-    }
-
-    async fn handle_request_zk_nym(&mut self, command: AccountCommand) {
-        let account = match self.update_mnemonic_state().await {
-            Ok(account) => account,
-            Err(err) => {
-                command.return_no_account(err);
-                return;
-            }
-        };
-
-        let device = match self.account_storage.load_device_keys().await {
-            Ok(device) => device,
-            Err(err) => {
-                command.return_no_device(err);
-                return;
-            }
-        };
-
-        self.command_handler
-            .request_zk_nym(command, account, device)
-            .await;
     }
 
     async fn update_mnemonic_state(&self) -> Result<VpnApiAccount, Error> {
@@ -212,7 +190,7 @@ where
     async fn register_device_if_ready(&self) {
         match self.shared_state().ready_to_register_device().await {
             ReadyToRegisterDevice::Ready => {
-                self.queue_command(AccountCommand::RegisterDevice(None));
+                self.command_sender().background_register_device();
             }
             not_ready => {
                 tracing::debug!("Not trying to register device: {not_ready}");
@@ -253,7 +231,7 @@ where
         }
         match self.shared_state().ready_to_request_zk_nym().await {
             ReadyToRequestZkNym::Ready => {
-                self.queue_command(AccountCommand::RequestZkNym(None));
+                self.command_sender().background_request_zk_nyms();
             }
             not_ready => {
                 tracing::debug!("Not ready to try to request zk-nym: {not_ready}");
@@ -277,6 +255,36 @@ where
             })
     }
 
+    async fn unregister_device_from_api(&self) -> Result<NymVpnDevice, AccountCommandError> {
+        tracing::info!("Unregistering device from API");
+        if self.shared_state().ready_to_register_device().await == ReadyToRegisterDevice::InProgress
+        {
+            return Err(ForgetAccountError::RegistrationInProgress.into());
+        }
+
+        let device = self
+            .account_storage
+            .load_device_keys()
+            .await
+            .map_err(|_err| AccountCommandError::NoDeviceStored)?;
+
+        let account = self
+            .account_storage
+            .load_account()
+            .await
+            .map_err(|_err| AccountCommandError::NoAccountStored)?;
+
+        self.vpn_api_client
+            .update_device(&account, &device, DeviceStatus::DeleteMe)
+            .await
+            .map_err(|err| {
+                VpnApiErrorResponse::try_from(err)
+                    .map(ForgetAccountError::UpdateDeviceErrorResponse)
+                    .unwrap_or_else(|err| ForgetAccountError::UnexpectedResponse(err.to_string()))
+                    .into()
+            })
+    }
+
     async fn handle_store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
         //get account to check that it is a valid account before storing
         self.get_account_by_mnemonic(mnemonic.clone()).await?;
@@ -290,8 +298,8 @@ where
             .map_err(AccountCommandError::internal)?;
 
         // We don't need to wait for the sync to finish, so queue it up and return
-        self.queue_command(AccountCommand::SyncAccountState(None));
-        self.queue_command(AccountCommand::SyncDeviceState(None));
+        self.command_sender().background_sync_account_state();
+        self.command_sender().background_sync_device_state();
 
         Ok(())
     }
@@ -378,36 +386,6 @@ where
         }
 
         Ok(())
-    }
-
-    async fn unregister_device_from_api(&self) -> Result<NymVpnDevice, AccountCommandError> {
-        tracing::info!("Unregistering device from API");
-        if self.shared_state().ready_to_register_device().await == ReadyToRegisterDevice::InProgress
-        {
-            return Err(ForgetAccountError::RegistrationInProgress.into());
-        }
-
-        let device = self
-            .account_storage
-            .load_device_keys()
-            .await
-            .map_err(|_err| AccountCommandError::NoDeviceStored)?;
-
-        let account = self
-            .account_storage
-            .load_account()
-            .await
-            .map_err(|_err| AccountCommandError::NoAccountStored)?;
-
-        self.vpn_api_client
-            .update_device(&account, &device, DeviceStatus::DeleteMe)
-            .await
-            .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
-                    .map(ForgetAccountError::UpdateDeviceErrorResponse)
-                    .unwrap_or_else(|err| ForgetAccountError::UnexpectedResponse(err.to_string()))
-                    .into()
-            })
     }
 
     async fn handle_sync_account_state(&mut self, command: AccountCommand) {
@@ -578,6 +556,28 @@ where
         Ok(devices.items)
     }
 
+    async fn handle_request_zk_nym(&mut self, command: AccountCommand) {
+        let account = match self.update_mnemonic_state().await {
+            Ok(account) => account,
+            Err(err) => {
+                command.return_no_account(err);
+                return;
+            }
+        };
+
+        let device = match self.account_storage.load_device_keys().await {
+            Ok(device) => device,
+            Err(err) => {
+                command.return_no_device(err);
+                return;
+            }
+        };
+
+        self.command_handler
+            .request_zk_nym(command, account, device)
+            .await;
+    }
+
     async fn handle_get_device_zk_nym(&mut self) -> Result<(), Error> {
         tracing::info!("Getting device zk-nym from API");
 
@@ -651,7 +651,7 @@ where
             .await
             .map_err(Error::ConfirmZkNymDownload)?;
 
-        tracing::info!("Confirmed zk-nym downloaded: {:?}", response);
+        tracing::info!("Confirmed zk-nym downloaded: {response:?}");
 
         Ok(())
     }
@@ -671,22 +671,41 @@ where
             .map_err(|err| AccountCommandError::Storage(err.to_string()))
     }
 
-    fn queue_command(&self, command: AccountCommand) {
-        if let Err(err) = self.command_tx.send(command) {
-            tracing::error!("Failed to queue command: {:#?}", err);
-        }
+    fn handle_set_static_api_addresses(
+        &mut self,
+        static_api_addresses: Option<Vec<SocketAddr>>,
+    ) -> Result<(), AccountCommandError> {
+        nym_vpn_api_client::VpnApiClient::new_with_resolver_overrides(
+            self.vpn_api_client.current_url().clone(),
+            self.user_agent.clone(),
+            static_api_addresses.as_deref(),
+        )
+        .map(|new_vpn_api_client| {
+            self.vpn_api_client.swap_inner_client(&new_vpn_api_client);
+            self.command_handler
+                .update_vpn_api_client(&new_vpn_api_client);
+        })
+        .map_err(|e| AccountCommandError::internal(format!("Failed to set static addresses: {e}")))
+    }
+
+    async fn handle_register_offline_monitor(
+        &mut self,
+        offline_monitor: MonitorHandle,
+    ) -> Result<(), AccountCommandError> {
+        self.offline_watch
+            .register_offline_monitor(offline_monitor)
+            .await;
+        Ok(())
     }
 
     async fn handle_command(&mut self, command: AccountCommand) {
         tracing::info!("← {}", command);
         match command {
             AccountCommand::StoreAccount(result_tx, mnemonic) => {
-                let result = self.handle_store_account(mnemonic).await;
-                result_tx.send(result);
+                result_tx.send(self.handle_store_account(mnemonic).await);
             }
             AccountCommand::ForgetAccount(result_tx) => {
-                let result = self.handle_forget_account().await;
-                result_tx.send(result);
+                result_tx.send(self.handle_forget_account().await);
             }
             AccountCommand::SyncAccountState(_) => {
                 self.handle_sync_account_state(command).await;
@@ -695,23 +714,19 @@ where
                 self.handle_sync_device_state(command).await;
             }
             AccountCommand::GetUsage(result_tx) => {
-                let result = self.handle_get_usage().await;
-                result_tx.send(result);
+                result_tx.send(self.handle_get_usage().await);
             }
             AccountCommand::GetDeviceIdentity(result_tx) => {
-                let result = self.handle_get_device_identity().await;
-                result_tx.send(result);
+                result_tx.send(self.handle_get_device_identity().await);
             }
             AccountCommand::RegisterDevice(_) => {
                 self.handle_register_device(command).await;
             }
             AccountCommand::GetDevices(result_tx) => {
-                let result = self.handle_get_devices().await;
-                result_tx.send(result);
+                result_tx.send(self.handle_get_devices().await);
             }
             AccountCommand::GetActiveDevices(result_tx) => {
-                let result = self.handle_get_active_devices().await;
-                result_tx.send(result);
+                result_tx.send(self.handle_get_active_devices().await);
             }
             AccountCommand::RequestZkNym(_) => {
                 self.handle_request_zk_nym(command).await;
@@ -719,63 +734,39 @@ where
             AccountCommand::GetDeviceZkNym => {
                 self.handle_get_device_zk_nym()
                     .await
-                    .inspect_err(|err| {
-                        tracing::error!("Failed to get device zk-nym: {:#?}", err);
-                    })
+                    .inspect_err(|err| tracing::error!("Failed to get device zk-nym: {err:#?}"))
                     .ok();
             }
             AccountCommand::GetZkNymsAvailableForDownload => {
                 self.handle_get_zk_nyms_available_for_download()
                     .await
                     .inspect_err(|err| {
-                        tracing::error!("Failed to get zk-nyms available for download: {:#?}", err);
+                        tracing::error!("Failed to get zk-nyms available for download: {err:#?}")
                     })
                     .ok();
             }
             AccountCommand::GetZkNymById(id) => {
                 self.handle_get_zk_nym_by_id(&id)
                     .await
-                    .inspect_err(|err| {
-                        tracing::error!("Failed to get zk-nym by id: {:#?}", err);
-                    })
+                    .inspect_err(|err| tracing::error!("Failed to get zk-nym by id: {err:#?}"))
                     .ok();
             }
             AccountCommand::ConfirmZkNymIdDownloaded(id) => {
                 self.handle_confirm_zk_nym_downloaded(id)
                     .await
                     .inspect_err(|err| {
-                        tracing::error!("Failed to confirm zk-nym downloaded: {:#?}", err);
+                        tracing::error!("Failed to confirm zk-nym downloaded: {err:#?}")
                     })
                     .ok();
             }
             AccountCommand::GetAvailableTickets(result_tx) => {
-                let result = self.handle_get_available_tickets().await;
-                result_tx.send(result);
+                result_tx.send(self.handle_get_available_tickets().await);
             }
             AccountCommand::SetStaticApiAddresses(result_tx, static_api_addresses) => {
-                result_tx.send(
-                    nym_vpn_api_client::VpnApiClient::new_with_resolver_overrides(
-                        self.vpn_api_client.current_url().clone(),
-                        self.user_agent.clone(),
-                        static_api_addresses.as_deref(),
-                    )
-                    .map(|new_vpn_api_client| {
-                        self.vpn_api_client.swap_inner_client(&new_vpn_api_client);
-                        self.command_handler
-                            .update_vpn_api_client(&new_vpn_api_client);
-                    })
-                    .map_err(|e| {
-                        AccountCommandError::internal(format!(
-                            "Failed to set static addresses: {e}",
-                        ))
-                    }),
-                );
+                result_tx.send(self.handle_set_static_api_addresses(static_api_addresses));
             }
-            AccountCommand::RegisterOfflineMonitor(result_tx, offline_watch) => {
-                self.offline_watch
-                    .register_offline_monitor(offline_watch)
-                    .await;
-                result_tx.send(Ok(()));
+            AccountCommand::RegisterOfflineMonitor(result_tx, offline_monitor) => {
+                result_tx.send(self.handle_register_offline_monitor(offline_monitor).await);
             }
         };
     }
@@ -809,7 +800,7 @@ where
                 tracing::debug!("Device register task: {r:?}");
                 self.command_handler.finish_register_device(&r).await;
                 if r.is_ok() {
-                    self.queue_command(AccountCommand::SyncAccountState(None));
+                    self.command_sender().background_sync_account_state();
                     self.request_zk_nym_if_ready().await;
                 }
             }
@@ -891,8 +882,8 @@ where
                 _ = sync_account_state_timer.tick() => {
                     if self.offline_watch.is_online() {
                         tracing::info!("Timed sync of account and device state");
-                        self.queue_command(AccountCommand::SyncAccountState(None));
-                        self.queue_command(AccountCommand::SyncDeviceState(None));
+                        self.command_sender().background_sync_account_state();
+                        self.command_sender().background_sync_device_state();
                     }
                 }
                 // On a timer to check if we need to request more zk-nyms
