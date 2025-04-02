@@ -12,8 +12,10 @@ public enum Constants: String {
     case createAccounURL = "https://nym.com/account/create"
     case pricingURL = "https://nym.com/pricing"
 
+    case telegramLink = "https://nym.com/go/telegram"
     case discordLink = "https://nym.com/go/discord"
     case ghIssuesLink = "https://nym.com/go/github/nym-vpn-client/issues"
+    case matrixLink = "https://nym.com/go/matrix"
 
     case logFileName = "Logs.log"
 }

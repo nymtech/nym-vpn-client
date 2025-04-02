@@ -9,7 +9,8 @@ final class SupportViewModel: ObservableObject {
     private let faqLink = Constants.supportURL.rawValue
     private let newSupportRequest = Constants.newSupportRequest.rawValue
     private let githubIssueLink = Constants.ghIssuesLink.rawValue
-    private let matrixLink = "https://nym.com/go/matrix"
+    private let telegramLink = Constants.telegramLink.rawValue
+    private let matrixLink = Constants.matrixLink.rawValue
     private let discordLink = Constants.discordLink.rawValue
     private let connectionManager: ConnectionManager
 
@@ -21,10 +22,11 @@ final class SupportViewModel: ObservableObject {
     var sections: [SettingsListItemViewModel] {
         var newSections = [
             faqSectionViewModel(),
-            emailSectionViewModel(),
-            githubIssueViewModel(),
+            getInTouchSectionViewModel(),
+            chatOnTelegramSectionViewModel(),
             matrixSectionViewModel(),
-            discordSectionViewModel()
+            discordSectionViewModel(),
+            githubIssueViewModel()
         ]
 #if os(iOS)
         newSections.append(resetVPNProfileSectionViewModel())
@@ -80,7 +82,7 @@ private extension SupportViewModel {
         )
     }
 
-    func emailSectionViewModel() -> SettingsListItemViewModel {
+    func getInTouchSectionViewModel() -> SettingsListItemViewModel {
         SettingsListItemViewModel(
             accessory: .arrow,
             title: "settings.getInTouch".localizedString,
@@ -88,6 +90,18 @@ private extension SupportViewModel {
             position: SettingsListItemPosition(isFirst: true, isLast: true),
             action: { [weak self] in
                 self?.openExternalURL(urlString: self?.newSupportRequest)
+            }
+        )
+    }
+
+    func chatOnTelegramSectionViewModel() -> SettingsListItemViewModel {
+        SettingsListItemViewModel(
+            accessory: .arrow,
+            title: "settings.chatOnTelegram".localizedString,
+            imageName: "telegram",
+            position: SettingsListItemPosition(isFirst: true, isLast: true),
+            action: { [weak self] in
+                self?.openExternalURL(urlString: self?.telegramLink)
             }
         )
     }

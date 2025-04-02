@@ -1992,6 +1992,17 @@
         }
       }
     },
+    "settings.chatOnTelegram" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chat on Telegram"
+          }
+        }
+      }
+    },
     "settings.deviceId" : {
       "extractionState" : "manual",
       "localizations" : {
