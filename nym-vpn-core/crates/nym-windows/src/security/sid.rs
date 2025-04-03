@@ -109,13 +109,13 @@ impl Sid {
     ///
     /// * `sid_type` - Member of the `WELL_KNOWN_SID_TYPE` enumeration that specifies what the SID will identify.
     /// * `domain_sid` - A pointer to a SID that identifies the domain to use when creating the SID. Pass NULL to use the local computer.
-    pub fn new_well_known(sid_type: WELL_KNOWN_SID_TYPE, domain_sid: Option<&Sid>) -> Result<Self> {
+    pub fn new_well_known(sid_type: WellKnownSid, domain_sid: Option<&Sid>) -> Result<Self> {
         let mut cbsize = SECURITY_MAX_SID_SIZE;
         let empty_sid = Self::empty()?;
 
         unsafe {
             CreateWellKnownSid(
-                sid_type,
+                sid_type.to_raw(),
                 domain_sid.as_ref().map(|x| x.inner()),
                 Some(empty_sid.inner),
                 &mut cbsize,
@@ -329,6 +329,23 @@ pub struct AccountLookupResult {
 
     /// Type of security identifier (SID)
     pub sid_type: SID_NAME_USE,
+}
+
+/// A mirror of `WELL_KNOWN_SID_TYPE`
+#[derive(Debug, Clone, Copy)]
+pub enum WellKnownSid {
+    /// tbd
+    WinBuiltinAdministratorsSid,
+}
+
+impl WellKnownSid {
+    fn to_raw(&self) -> WELL_KNOWN_SID_TYPE {
+        use windows::Win32::Security as S;
+
+        match self {
+            Self::WinBuiltinAdministratorsSid => S::WinBuiltinAdministratorsSid,
+        }
+    }
 }
 
 #[cfg(test)]

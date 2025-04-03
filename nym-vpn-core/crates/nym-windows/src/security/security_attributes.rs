@@ -68,9 +68,8 @@ mod test {
 
     #[test]
     fn test_allow_everyone_everything() {
-        SecurityAttributes::allow_everyone(
-            GenericAccessRights::GENERIC_READ | GenericAccessRights::GENERIC_WRITE,
-        )
-        .expect("failed to create security attributes that allow everyone everything");
+        let permissions = GenericAccessRights::GENERIC_READ | GenericAccessRights::GENERIC_WRITE;
+        SecurityAttributes::allow_everyone(permissions.bits())
+            .expect("failed to create security attributes that allow everyone everything");
     }
 }

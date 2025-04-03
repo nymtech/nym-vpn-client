@@ -123,14 +123,11 @@ where
 
 #[cfg(test)]
 mod tests {
-    use windows::Win32::{
-        Security::WinBuiltinAdministratorsSid, Storage::FileSystem::FILE_ALL_ACCESS,
-    };
-
     use super::*;
     use crate::security::{
         explicit_access::{AccessMode, AceFlags},
         Acl, ExplicitAccess, FileAccessRights, Sid, Trustee, TrusteeSpecificInfo, TrusteeType,
+        WellKnownSid,
     };
 
     #[test]
@@ -140,7 +137,8 @@ mod tests {
         let permissions = FileAccessRights::FILE_ALL_ACCESS;
 
         let local_system_sid = Sid::local_system().unwrap();
-        let administrators_sid = Sid::new_well_known(WinBuiltinAdministratorsSid, None).unwrap();
+        let administrators_sid =
+            Sid::new_well_known(WellKnownSid::WinBuiltinAdministratorsSid, None).unwrap();
 
         let ace_flags = AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE;
 
@@ -150,7 +148,7 @@ mod tests {
         );
         let mut allow_local_system_access = ExplicitAccess::new(local_system_trustee);
         allow_local_system_access.set_access_mode(AccessMode::SetAccess);
-        allow_local_system_access.set_access_permissions(permissions);
+        allow_local_system_access.set_access_permissions(permissions.bits());
         allow_local_system_access.set_inheritance(ace_flags);
 
         let administrators_trustee = Trustee::new(
@@ -159,7 +157,7 @@ mod tests {
         );
         let mut allow_admin_group_access = ExplicitAccess::new(administrators_trustee);
         allow_admin_group_access.set_access_mode(AccessMode::SetAccess);
-        allow_admin_group_access.set_access_permissions(permissions);
+        allow_admin_group_access.set_access_permissions(permissions.bits());
         allow_admin_group_access.set_inheritance(ace_flags);
 
         let acl = Acl::new(vec![allow_local_system_access, allow_admin_group_access]).unwrap();
@@ -187,8 +185,8 @@ mod tests {
 
         assert!(entries.len() == 2);
 
-        assert_eq!(entries[0].get_access_permissions(), permissions);
-        assert_eq!(entries[0].get_inheritance(), AceFlags::NO_INHERITANCE);
+        assert_eq!(entries[0].get_access_permissions(), permissions.bits());
+        assert_eq!(entries[0].get_inheritance(), ace_flags);
         assert!(matches!(
             entries[0]
                 .get_trustee()
@@ -197,8 +195,8 @@ mod tests {
             TrusteeSpecificInfo::Sid(sid) if sid == local_system_sid
         ));
 
-        assert_eq!(entries[1].get_access_permissions(), permissions);
-        assert_eq!(entries[1].get_inheritance(), AceFlags::NO_INHERITANCE);
+        assert_eq!(entries[1].get_access_permissions(), permissions.bits());
+        assert_eq!(entries[1].get_inheritance(), ace_flags);
         assert!(matches!(
             entries[1]
                 .get_trustee()

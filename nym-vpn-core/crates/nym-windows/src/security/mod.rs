@@ -26,5 +26,5 @@ pub use explicit_access::{AccessMode, AceFlags, ExplicitAccess};
 pub use relative_security_descriptor::RelativeSecurityDescriptor;
 pub use security_attributes::SecurityAttributes;
 pub use security_info::{set_named_security_info, SecurityInfo, SecurityObjectType};
-pub use sid::{AccountLookupResult, Sid};
+pub use sid::{AccountLookupResult, Sid, WellKnownSid};
 pub use trustee::{Trustee, TrusteeForm, TrusteeType};
