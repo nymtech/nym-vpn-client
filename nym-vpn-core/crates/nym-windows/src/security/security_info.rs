@@ -130,7 +130,7 @@ mod tests {
     use super::*;
     use crate::security::{
         explicit_access::{AccessMode, AceFlags},
-        Acl, ExplicitAccess, Sid, Trustee, TrusteeType,
+        Acl, ExplicitAccess, Sid, Trustee, TrusteeSpecificInfo, TrusteeType,
     };
 
     #[test]
@@ -175,14 +175,42 @@ mod tests {
         .unwrap();
 
         let acl = security_descriptor.get_acl().unwrap().unwrap();
-        let entries = acl.get_entries().unwrap();
+        let entry_list = acl.get_entries().unwrap();
 
-        for e in entries.as_vec() {
+        let entries = entry_list.as_vec();
+
+        assert!(entries.len() == 2);
+
+        assert_eq!(entries[0].get_access_permissions(), FILE_ALL_ACCESS.0);
+        assert_eq!(entries[0].get_inheritance(), AceFlags::NO_INHERITANCE);
+
+        let local_system = Sid::local_system().unwrap();
+        assert!(matches!(
+            entries[0]
+                .get_trustee()
+                .get_trustee_specific_info()
+                .unwrap(),
+            TrusteeSpecificInfo::Sid(sid) if sid == local_system
+        ));
+
+        assert_eq!(entries[1].get_access_permissions(), FILE_ALL_ACCESS.0);
+        assert_eq!(entries[1].get_inheritance(), AceFlags::NO_INHERITANCE);
+
+        let administrators_sid = Sid::new_well_known(WinBuiltinAdministratorsSid, None).unwrap();
+        assert!(matches!(
+            entries[1]
+                .get_trustee()
+                .get_trustee_specific_info()
+                .unwrap(),
+            TrusteeSpecificInfo::Sid(sid) if sid == administrators_sid
+        ));
+
+        for e in entry_list.as_vec() {
             let trustee = e.get_trustee();
             let trustee_specific_info = trustee.get_trustee_specific_info().unwrap();
 
             println!(
-                "permissions: {}, inheritance: {:?}, trustee.type: {:?}, trustee.form: {:?}, trustee.info: {:?}",
+                "permissions: {}, inheritance: {:?}, trustee.type: {:?}, trustee.form: {:?}, trustee.info: {}",
                 e.get_access_permissions(),
                 e.get_inheritance(),
                 trustee.get_trustee_type(),

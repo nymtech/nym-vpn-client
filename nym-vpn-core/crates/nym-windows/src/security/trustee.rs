@@ -1,14 +1,11 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use windows::{
-    core::PWSTR,
-    Win32::Security::Authorization::{
-        TRUSTEE_FORM, TRUSTEE_IS_ALIAS, TRUSTEE_IS_COMPUTER, TRUSTEE_IS_DELETED, TRUSTEE_IS_DOMAIN,
-        TRUSTEE_IS_GROUP, TRUSTEE_IS_INVALID, TRUSTEE_IS_NAME, TRUSTEE_IS_OBJECTS_AND_NAME,
-        TRUSTEE_IS_OBJECTS_AND_SID, TRUSTEE_IS_SID, TRUSTEE_IS_UNKNOWN, TRUSTEE_IS_USER,
-        TRUSTEE_IS_WELL_KNOWN_GROUP, TRUSTEE_TYPE, TRUSTEE_W,
-    },
+use windows::Win32::Security::Authorization::{
+    BuildTrusteeWithSidW, TRUSTEE_FORM, TRUSTEE_IS_ALIAS, TRUSTEE_IS_COMPUTER, TRUSTEE_IS_DELETED,
+    TRUSTEE_IS_DOMAIN, TRUSTEE_IS_GROUP, TRUSTEE_IS_INVALID, TRUSTEE_IS_NAME,
+    TRUSTEE_IS_OBJECTS_AND_NAME, TRUSTEE_IS_OBJECTS_AND_SID, TRUSTEE_IS_SID, TRUSTEE_IS_UNKNOWN,
+    TRUSTEE_IS_USER, TRUSTEE_IS_WELL_KNOWN_GROUP, TRUSTEE_TYPE, TRUSTEE_W,
 };
 
 use super::Sid;
@@ -24,25 +21,15 @@ pub struct Trustee {
 impl Trustee {
     /// Create new trustee with sid and type.
     pub fn new(sid: Sid, trustee_type: TrusteeType) -> Self {
-        let inner = TRUSTEE_W {
-            TrusteeForm: TRUSTEE_IS_SID,
-            TrusteeType: trustee_type.to_raw(),
+        let mut trustee = TRUSTEE_W::default();
+        unsafe { BuildTrusteeWithSidW(&mut trustee, Some(sid.inner())) };
+        trustee.TrusteeForm = TRUSTEE_IS_SID;
+        trustee.TrusteeType = trustee_type.to_raw();
 
-            // SAFETY: ptstrName is only the first variant of a union type but windows bindings lack the detail
-            // so we must cast to unrelated type (LPWSTR) which simply holds a pointer.
-            //
-            // union {
-            //     LPWSTR             ptstrName;
-            //     SID                *pSid;
-            //     OBJECTS_AND_SID    *pObjectsAndSid;
-            //     OBJECTS_AND_NAME_W *pObjectsAndName;
-            // };
-            ptstrName: PWSTR(unsafe { sid.inner().0 as _ }),
-
-            ..Default::default()
-        };
-
-        Self { inner, _sid: sid }
+        Self {
+            inner: trustee,
+            _sid: sid,
+        }
     }
 
     /// Returns a copy of inner `TRUSTEE_W`.

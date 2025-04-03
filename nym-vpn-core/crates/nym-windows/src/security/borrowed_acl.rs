@@ -13,7 +13,8 @@ use windows::{
 
 use super::AclEntryList;
 
-/// tbd
+/// Borrowed version of `Acl`
+#[derive(Debug)]
 pub struct BorrowedAcl<'a> {
     inner: *const ACL,
     data: PhantomData<&'a ACL>,
@@ -35,6 +36,6 @@ impl<'a> BorrowedAcl<'a> {
 
         unsafe { GetExplicitEntriesFromAclW(self.inner, &mut num_entries, &mut entries).ok()? };
 
-        Ok(unsafe { AclEntryList::from_ptr(entries, num_entries) })
+        Ok(unsafe { AclEntryList::new(entries, num_entries) })
     }
 }

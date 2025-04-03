@@ -10,7 +10,7 @@ use windows::Win32::{
 
 use super::BorrowedExplicitAccess;
 
-/// tbd
+/// Container type holding a list of `EXPLICIT_ACCESS_W` structs.
 #[derive(Debug)]
 pub struct AclEntryList<'a> {
     entries: *mut EXPLICIT_ACCESS_W,
@@ -25,8 +25,8 @@ impl<'a> Drop for AclEntryList<'a> {
 }
 
 impl<'a> AclEntryList<'a> {
-    /// tbd
-    pub(crate) unsafe fn from_ptr(entries: *mut EXPLICIT_ACCESS_W, num_entries: u32) -> Self {
+    /// Take owneship of an array of `EXPLICIT_ACCESS_W` structs.
+    pub(crate) unsafe fn new(entries: *mut EXPLICIT_ACCESS_W, num_entries: u32) -> Self {
         Self {
             entries,
             num_entries,
@@ -34,7 +34,7 @@ impl<'a> AclEntryList<'a> {
         }
     }
 
-    /// tbd
+    /// Return a view into explicit access structs.
     pub fn as_vec(&self) -> Vec<BorrowedExplicitAccess> {
         (0..self.num_entries)
             .into_iter()

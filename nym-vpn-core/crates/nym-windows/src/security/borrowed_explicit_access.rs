@@ -7,14 +7,15 @@ use windows::Win32::Security::Authorization::EXPLICIT_ACCESS_W;
 
 use super::{AceFlags, BorrowedTrustee};
 
-/// tbd
+/// Borrowed version of `ExplicitAccess`
+#[derive(Debug)]
 pub struct BorrowedExplicitAccess<'a> {
     inner: *const EXPLICIT_ACCESS_W,
     data: PhantomData<&'a EXPLICIT_ACCESS_W>,
 }
 
 impl<'a> BorrowedExplicitAccess<'a> {
-    /// tbd
+    /// Create new instance from ponter, without taking ownership of the underlying memory.
     pub unsafe fn from_ptr(ptr: *const EXPLICIT_ACCESS_W) -> Self {
         Self {
             inner: ptr,
@@ -22,18 +23,18 @@ impl<'a> BorrowedExplicitAccess<'a> {
         }
     }
 
-    /// tbd
+    /// Returns access permissions
     pub fn get_access_permissions(&self) -> u32 {
         unsafe { (*self.inner).grfAccessPermissions }
     }
 
-    /// tbd
+    /// Returns inheritance flags.
     pub fn get_inheritance(&self) -> AceFlags {
         let raw_flags = unsafe { (*self.inner).grfInheritance };
         AceFlags::from_bits_retain(raw_flags.0)
     }
 
-    /// tbd
+    /// Returns trustee data.
     pub fn get_trustee(&self) -> BorrowedTrustee<'a> {
         unsafe { BorrowedTrustee::new(&(*self.inner).Trustee) }
     }
