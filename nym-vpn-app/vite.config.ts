@@ -27,10 +27,31 @@ export default defineConfig(() => ({
         manualChunks: {
           // put the following packages in their own chunk
           // to reduce main chunk size
+          tauri: [
+            '@tauri-apps/api',
+            '@tauri-apps/plugin-autostart',
+            '@tauri-apps/plugin-clipboard-manager',
+            '@tauri-apps/plugin-dialog',
+            '@tauri-apps/plugin-notification',
+            '@tauri-apps/plugin-opener',
+            '@tauri-apps/plugin-os',
+            '@tauri-apps/plugin-process',
+            '@tauri-apps/plugin-updater',
+            '@tauri-apps/plugin-window-state',
+          ],
           motion: ['motion'],
           sentry: ['@sentry/react'],
+          i18next: ['i18next', 'i18next-browser-languagedetector'],
+          ui: [
+            '@headlessui/react',
+            '@radix-ui/react-accordion',
+            '@radix-ui/react-slider',
+            '@radix-ui/react-toast',
+          ],
+          lodash: ['lodash-es'],
         },
       },
     },
+    chunkSizeWarningLimit: 800,
   },
 }));
