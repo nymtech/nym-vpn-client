@@ -441,14 +441,14 @@ mod tests {
         }
 
         // spike a 1 MB/s depletion rate
-        for _ in 0..24 {
+        for _ in 0..17 {
             current_bandwidth -= current_period.as_secs() * BW_1MB;
             current_period = depletion_rate
                 .update_dynamic_check_interval(current_period, current_bandwidth)
                 .unwrap()
                 .unwrap();
             assert_eq!(current_period, UPPER_BOUND_CHECK_DURATION);
-            assert!(current_bandwidth > 300 * BW_1MB);
+            assert!(current_bandwidth > 500 * BW_1MB);
         }
 
         current_bandwidth -= current_period.as_secs() * BW_1MB;
@@ -456,7 +456,8 @@ mod tests {
             .update_dynamic_check_interval(current_period, current_bandwidth)
             .unwrap();
         // when we get bellow a convinient dynamic threshold, we start reqwesting more bandwidth (returning None)
-        assert!(current_bandwidth < 300 * BW_1MB);
+        println!("Current bandwidth {current_bandwidth}");
+        assert!(current_bandwidth < 500 * BW_1MB);
         assert!(ret.is_none());
     }
 }
