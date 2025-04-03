@@ -243,10 +243,9 @@ pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError
     #[cfg(windows)]
     {
         use nym_windows::security::{
-            self, AccessMode, Acl, ExplicitAccess, SecurityInfo, Sid, Trustee, TrusteeType,
+            self, AccessMode, Acl, ExplicitAccess, GenericAccessRights, SecurityInfo, Sid, Trustee,
+            TrusteeType,
         };
-
-        use windows::Win32::Foundation::GENERIC_ALL;
 
         let trustee = Trustee::new(
             Sid::local_system().map_err(|error| ConfigSetupError::SetPermissions {
@@ -258,7 +257,7 @@ pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError
 
         let mut explicit_access = ExplicitAccess::new(trustee);
         explicit_access.set_access_mode(AccessMode::SetAccess);
-        explicit_access.set_access_permissions(GENERIC_ALL.0);
+        explicit_access.set_access_permissions(GenericAccessRights::GENERIC_ALL);
         explicit_access.set_inheritance(AceFlags::NO_INHERITANCE);
 
         tracing::info!("Set data dir permissions: {}", data_dir.display());

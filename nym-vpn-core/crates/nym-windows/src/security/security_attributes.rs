@@ -36,6 +36,7 @@ impl SecurityAttributes {
     /// Create new security attributes with permissions for everyone.
     ///
     /// Permissions mask is expected to contain any of the values listed under [`ACCESS_MASK`](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-mask)
+    /// Use values defined by `FileAccessRights`, `GenericAccessRights`, `StandardAccessRights`.
     pub fn allow_everyone(permissions: u32) -> Result<SecurityAttributes> {
         let trustee = Trustee::new(Sid::everyone()?, TrusteeType::WellKnownGroup);
 
@@ -63,13 +64,13 @@ impl SecurityAttributes {
 #[cfg(test)]
 mod test {
     use super::SecurityAttributes;
-    use windows::Win32::Foundation;
+    use crate::security::GenericAccessRights;
 
     #[test]
     fn test_allow_everyone_everything() {
-        let permissions = Foundation::GENERIC_READ | Foundation::GENERIC_WRITE;
-
-        SecurityAttributes::allow_everyone(permissions.0)
-            .expect("failed to create security attributes that allow everyone everything");
+        SecurityAttributes::allow_everyone(
+            GenericAccessRights::GENERIC_READ | GenericAccessRights::GENERIC_WRITE,
+        )
+        .expect("failed to create security attributes that allow everyone everything");
     }
 }

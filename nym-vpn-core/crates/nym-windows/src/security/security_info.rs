@@ -130,17 +130,19 @@ mod tests {
     use super::*;
     use crate::security::{
         explicit_access::{AccessMode, AceFlags},
-        Acl, ExplicitAccess, Sid, Trustee, TrusteeSpecificInfo, TrusteeType,
+        Acl, ExplicitAccess, FileAccessRights, Sid, Trustee, TrusteeSpecificInfo, TrusteeType,
     };
 
     #[test]
     fn test_set_named_security() {
         let data_dir = std::path::PathBuf::from("C:\\ProgramData\\test");
 
-        let permissions = FILE_ALL_ACCESS;
+        let permissions = FileAccessRights::FILE_ALL_ACCESS;
 
         let local_system_sid = Sid::local_system().unwrap();
         let administrators_sid = Sid::new_well_known(WinBuiltinAdministratorsSid, None).unwrap();
+
+        let ace_flags = AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE;
 
         let local_system_trustee = Trustee::new(
             local_system_sid.clone().unwrap(),
@@ -148,8 +150,8 @@ mod tests {
         );
         let mut allow_local_system_access = ExplicitAccess::new(local_system_trustee);
         allow_local_system_access.set_access_mode(AccessMode::SetAccess);
-        allow_local_system_access.set_access_permissions(permissions.0);
-        allow_local_system_access.set_inheritance(AceFlags::NO_INHERITANCE);
+        allow_local_system_access.set_access_permissions(permissions);
+        allow_local_system_access.set_inheritance(ace_flags);
 
         let administrators_trustee = Trustee::new(
             administrators_sid.clone().unwrap(),
@@ -157,8 +159,8 @@ mod tests {
         );
         let mut allow_admin_group_access = ExplicitAccess::new(administrators_trustee);
         allow_admin_group_access.set_access_mode(AccessMode::SetAccess);
-        allow_admin_group_access.set_access_permissions(permissions.0);
-        allow_admin_group_access.set_inheritance(AceFlags::NO_INHERITANCE);
+        allow_admin_group_access.set_access_permissions(permissions);
+        allow_admin_group_access.set_inheritance(ace_flags);
 
         let acl = Acl::new(vec![allow_local_system_access, allow_admin_group_access]).unwrap();
 
@@ -181,14 +183,12 @@ mod tests {
 
         let acl = security_descriptor.get_acl().unwrap().unwrap();
         let entry_list = acl.get_entries().unwrap();
-
         let entries = entry_list.as_vec();
 
         assert!(entries.len() == 2);
 
-        assert_eq!(entries[0].get_access_permissions(), FILE_ALL_ACCESS.0);
+        assert_eq!(entries[0].get_access_permissions(), permissions);
         assert_eq!(entries[0].get_inheritance(), AceFlags::NO_INHERITANCE);
-
         assert!(matches!(
             entries[0]
                 .get_trustee()
@@ -197,9 +197,8 @@ mod tests {
             TrusteeSpecificInfo::Sid(sid) if sid == local_system_sid
         ));
 
-        assert_eq!(entries[1].get_access_permissions(), FILE_ALL_ACCESS.0);
+        assert_eq!(entries[1].get_access_permissions(), permissions);
         assert_eq!(entries[1].get_inheritance(), AceFlags::NO_INHERITANCE);
-
         assert!(matches!(
             entries[1]
                 .get_trustee()

@@ -19,7 +19,7 @@ use tokio_stream::Stream;
 use tonic::transport::server::Connected;
 use windows::Win32::Foundation;
 
-use nym_windows::security::SecurityAttributes;
+use nym_windows::security::{GenericAccessRights, SecurityAttributes};
 
 /// Connect timeout used when the pipe reports that it's busy.
 const PIPE_AVAILABILITY_TIMEOUT: Duration = Duration::from_secs(5);
@@ -44,8 +44,8 @@ pub async fn connect(pipe_name: impl AsRef<OsStr>) -> io::Result<TokioIo<NamedPi
 pub fn incoming(
     pipe_name: OsString,
 ) -> io::Result<impl Stream<Item = io::Result<Connector<NamedPipeServer>>>> {
-    let permissions = Foundation::GENERIC_READ | Foundation::GENERIC_WRITE;
-    let security_attributes = SecurityAttributes::allow_everyone(permissions.0)?;
+    let permissions = GenericAccessRights::GENERIC_READ | GenericAccessRights::GENERIC_WRITE;
+    let security_attributes = SecurityAttributes::allow_everyone(permissions)?;
 
     NamedPipeListener::new(pipe_name, security_attributes).incoming()
 }

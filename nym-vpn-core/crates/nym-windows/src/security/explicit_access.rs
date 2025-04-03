@@ -48,6 +48,7 @@ impl ExplicitAccess {
     /// Set access permissions.
     ///
     /// Permissions mask is expected to contain any of the values listed under [`ACCESS_MASK`](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-mask)
+    /// Use values defined by `FileAccessRights`, `GenericAccessRights, `StandardAccessRights`.
     pub fn set_access_permissions(&mut self, permissions: u32) {
         self.inner.grfAccessPermissions = permissions;
     }
@@ -100,8 +101,8 @@ impl AccessMode {
 
 bitflags::bitflags! {
     /// ACE inheritance flags.
-    /// See: <https://learn.microsoft.com/en-us/windows/win32/api/accctrl/ns-accctrl-explicit_access_a>
-    #[derive(Debug, Eq, PartialEq)]
+    /// See: <https://learn.microsoft.com/en-us/windows/win32/api/accctrl/ns-accctrl-explicit_access_w>
+    #[derive(Debug, Copy, Clone, Eq, PartialEq)]
     pub struct AceFlags: u32 {
         /// tbd
         const CONTAINER_INHERIT_ACE = CONTAINER_INHERIT_ACE.0;

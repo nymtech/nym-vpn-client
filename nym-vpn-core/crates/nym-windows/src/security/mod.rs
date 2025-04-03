@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod absolute_security_descriptor;
+mod access_rights;
 mod acl;
 mod acl_entry_list;
 mod borrowed_acl;
@@ -15,6 +16,7 @@ mod sid;
 mod trustee;
 
 pub use absolute_security_descriptor::AbsoluteSecurityDescriptor;
+pub use access_rights::{FileAccessRights, GenericAccessRights, StandardAccessRights};
 pub use acl::Acl;
 pub use acl_entry_list::AclEntryList;
 pub use borrowed_acl::BorrowedAcl;
