@@ -139,15 +139,20 @@ mod tests {
 
         let permissions = FILE_ALL_ACCESS;
 
-        let local_system_trustee =
-            Trustee::new(Sid::local_system().unwrap(), TrusteeType::WellKnownGroup);
+        let local_system_sid = Sid::local_system().unwrap();
+        let administrators_sid = Sid::new_well_known(WinBuiltinAdministratorsSid, None).unwrap();
+
+        let local_system_trustee = Trustee::new(
+            local_system_sid.clone().unwrap(),
+            TrusteeType::WellKnownGroup,
+        );
         let mut allow_local_system_access = ExplicitAccess::new(local_system_trustee);
         allow_local_system_access.set_access_mode(AccessMode::SetAccess);
         allow_local_system_access.set_access_permissions(permissions.0);
         allow_local_system_access.set_inheritance(AceFlags::NO_INHERITANCE);
 
         let administrators_trustee = Trustee::new(
-            Sid::new_well_known(WinBuiltinAdministratorsSid, None).unwrap(),
+            administrators_sid.clone().unwrap(),
             TrusteeType::WellKnownGroup,
         );
         let mut allow_admin_group_access = ExplicitAccess::new(administrators_trustee);
@@ -184,19 +189,17 @@ mod tests {
         assert_eq!(entries[0].get_access_permissions(), FILE_ALL_ACCESS.0);
         assert_eq!(entries[0].get_inheritance(), AceFlags::NO_INHERITANCE);
 
-        let local_system = Sid::local_system().unwrap();
         assert!(matches!(
             entries[0]
                 .get_trustee()
                 .get_trustee_specific_info()
                 .unwrap(),
-            TrusteeSpecificInfo::Sid(sid) if sid == local_system
+            TrusteeSpecificInfo::Sid(sid) if sid == local_system_sid
         ));
 
         assert_eq!(entries[1].get_access_permissions(), FILE_ALL_ACCESS.0);
         assert_eq!(entries[1].get_inheritance(), AceFlags::NO_INHERITANCE);
 
-        let administrators_sid = Sid::new_well_known(WinBuiltinAdministratorsSid, None).unwrap();
         assert!(matches!(
             entries[1]
                 .get_trustee()
@@ -204,19 +207,5 @@ mod tests {
                 .unwrap(),
             TrusteeSpecificInfo::Sid(sid) if sid == administrators_sid
         ));
-
-        for e in entry_list.as_vec() {
-            let trustee = e.get_trustee();
-            let trustee_specific_info = trustee.get_trustee_specific_info().unwrap();
-
-            println!(
-                "permissions: {}, inheritance: {:?}, trustee.type: {:?}, trustee.form: {:?}, trustee.info: {}",
-                e.get_access_permissions(),
-                e.get_inheritance(),
-                trustee.get_trustee_type(),
-                trustee.get_trustee_form(),
-                trustee_specific_info
-            );
-        }
     }
 }
