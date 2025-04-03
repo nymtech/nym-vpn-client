@@ -63,6 +63,7 @@ function NodeDetailsDialog({ isOpen, onClose, ref }: Props) {
           <ButtonIcon
             icon="content_copy"
             onClick={() => copy(gateway.id, false)}
+            clickFeedback
           />
         </div>
       </div>
