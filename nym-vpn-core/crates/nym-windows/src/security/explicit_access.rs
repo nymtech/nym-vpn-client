@@ -23,18 +23,6 @@ pub struct ExplicitAccess {
 }
 
 impl ExplicitAccess {
-    /// Create a new `ExplicitAccess` struct only filling in the trustee field and leaving the rest as default.
-    pub fn with_trustee(trustee: Trustee) -> Self {
-        let inner = EXPLICIT_ACCESS_W {
-            Trustee: unsafe { trustee.inner() },
-            ..Default::default()
-        };
-        Self {
-            inner,
-            _trustee: trustee,
-        }
-    }
-
     /// Create a new `ExplicitAccess` struct filling in all of the information at once.
     pub fn new(
         trustee: Trustee,
