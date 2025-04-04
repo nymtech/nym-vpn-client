@@ -137,7 +137,7 @@ pub enum ConfigSetupError {
     #[error("failed to set permissions for directory {dir}: {error}")]
     SetPermissions {
         dir: PathBuf,
-        error: windows::core::Error,
+        error: nym_windows::security::Error,
     },
 }
 
