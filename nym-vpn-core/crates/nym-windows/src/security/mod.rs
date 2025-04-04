@@ -16,7 +16,9 @@ mod sid;
 mod trustee;
 
 pub use absolute_security_descriptor::AbsoluteSecurityDescriptor;
-pub use access_rights::{FileAccessRights, GenericAccessRights, StandardAccessRights};
+pub use access_rights::{
+    AccessRights, FileAccessRights, GenericAccessRights, StandardAccessRights,
+};
 pub use acl::Acl;
 pub use acl_entry_list::AclEntryList;
 pub use borrowed_acl::BorrowedAcl;
@@ -28,3 +30,9 @@ pub use security_attributes::SecurityAttributes;
 pub use security_info::{set_named_security_info, SecurityInfo, SecurityObjectType};
 pub use sid::{AccountLookupResult, Sid, WellKnownSid};
 pub use trustee::{Trustee, TrusteeForm, TrusteeType};
+
+// Re-export windows types
+/// tbd
+pub type Result<T> = windows::core::Result<T>;
+/// tbd
+pub type Error = windows::core::Error;

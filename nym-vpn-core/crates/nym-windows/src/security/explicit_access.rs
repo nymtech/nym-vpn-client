@@ -11,7 +11,7 @@ use windows::Win32::Security::{
     SUB_CONTAINERS_AND_OBJECTS_INHERIT, SUB_CONTAINERS_ONLY_INHERIT, SUB_OBJECTS_ONLY_INHERIT,
 };
 
-use super::Trustee;
+use super::{AccessRights, Trustee};
 
 /// Access control information for a specified trustee.
 ///
@@ -23,11 +23,30 @@ pub struct ExplicitAccess {
 }
 
 impl ExplicitAccess {
-    /// Create a new `ExplicitAccess` struct.
-    pub fn new(trustee: Trustee) -> Self {
+    /// Create a new `ExplicitAccess` struct only filling in the trustee field and leaving the rest as default.
+    pub fn with_trustee(trustee: Trustee) -> Self {
         let inner = EXPLICIT_ACCESS_W {
             Trustee: unsafe { trustee.inner() },
             ..Default::default()
+        };
+        Self {
+            inner,
+            _trustee: trustee,
+        }
+    }
+
+    /// Create a new `ExplicitAccess` struct filling in all of the information at once.
+    pub fn new(
+        trustee: Trustee,
+        access_mode: AccessMode,
+        access_permissions: AccessRights,
+        inheritance_flags: AceFlags,
+    ) -> Self {
+        let inner = EXPLICIT_ACCESS_W {
+            Trustee: unsafe { trustee.inner() },
+            grfAccessMode: access_mode.to_raw(),
+            grfAccessPermissions: access_permissions.bits(),
+            grfInheritance: ACE_FLAGS(inheritance_flags.bits()),
         };
         Self {
             inner,
@@ -49,8 +68,8 @@ impl ExplicitAccess {
     ///
     /// Permissions mask is expected to contain any of the values listed under [`ACCESS_MASK`](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-mask)
     /// Use values defined by `FileAccessRights`, `GenericAccessRights, `StandardAccessRights`.
-    pub fn set_access_permissions(&mut self, permissions: u32) {
-        self.inner.grfAccessPermissions = permissions;
+    pub fn set_access_permissions(&mut self, permissions: AccessRights) {
+        self.inner.grfAccessPermissions = permissions.bits();
     }
 
     /// Set bit flags that determines whether other containers or objects can inherit the ACE from the primary object to which the ACL is attached.

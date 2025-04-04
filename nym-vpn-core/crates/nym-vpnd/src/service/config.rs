@@ -3,10 +3,13 @@
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
-use std::{fmt, fs, path::PathBuf};
+use std::{
+    fmt, fs,
+    path::{Path, PathBuf},
+};
 
 use nym_vpn_lib::gateway_directory;
-use nym_windows::security::{AceFlags, SecurityObjectType, WellKnownSid};
+use nym_windows::security::{AceFlags, SecurityObjectType};
 use serde::{de::DeserializeOwned, Serialize};
 
 #[cfg(not(windows))]
@@ -239,46 +242,67 @@ pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError
         })?;
     }
 
-    // TODO: same for windows?
     #[cfg(windows)]
     {
-        use nym_windows::security::{
-            self, AccessMode, Acl, ExplicitAccess, GenericAccessRights, SecurityInfo, Sid, Trustee,
-            TrusteeType,
-        };
-
-        let trustee = Trustee::new(
-            Sid::well_known(WellKnownSid::LocalSystem).map_err(|error| {
-                ConfigSetupError::SetPermissions {
-                    dir: data_dir.clone(),
-                    error,
-                }
-            })?,
-            TrusteeType::Group,
-        );
-
-        let mut explicit_access = ExplicitAccess::new(trustee);
-        explicit_access.set_access_mode(AccessMode::SetAccess);
-        explicit_access.set_access_permissions(GenericAccessRights::GENERIC_ALL.bits());
-        explicit_access.set_inheritance(AceFlags::NO_INHERITANCE);
-
-        tracing::info!("Set data dir permissions: {}", data_dir.display());
-
-        let acl = Acl::new(vec![explicit_access]).unwrap();
-
-        security::set_named_security_info(
-            &data_dir,
-            SecurityObjectType::FileObject,
-            SecurityInfo::DACL | SecurityInfo::PROTECTED_DACL,
-            None,
-            None,
-            Some(&acl),
-        )
-        .map_err(|error| ConfigSetupError::SetPermissions {
+        set_data_dir_permissions(data_dir).map_err(|error| ConfigSetupError::SetPermissions {
             dir: data_dir.clone(),
             error,
         })?;
     }
+
+    Ok(())
+}
+
+#[cfg(windows)]
+fn set_data_dir_permissions(data_dir: impl AsRef<Path>) -> nym_windows::security::Result<()> {
+    use nym_windows::security::{
+        set_named_security_info, AccessMode, Acl, ExplicitAccess, FileAccessRights, SecurityInfo,
+        Sid, Trustee, TrusteeType, WellKnownSid,
+    };
+
+    let creator_owner_sid = Sid::well_known(WellKnownSid::CreatorOwner)?;
+    let local_system_sid = Sid::well_known(WellKnownSid::LocalSystem)?;
+    let administrators_sid = Sid::well_known(WellKnownSid::BuiltinAdministrators)?;
+
+    let creator_owner_trustee = Trustee::new(creator_owner_sid.clone()?, TrusteeType::User);
+    let allow_creator_owner_access = ExplicitAccess::new(
+        creator_owner_trustee,
+        AccessMode::SetAccess,
+        FileAccessRights::FILE_ALL_ACCESS.into(),
+        AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE,
+    );
+
+    let local_system_trustee = Trustee::new(local_system_sid.clone()?, TrusteeType::WellKnownGroup);
+    let allow_local_system_access = ExplicitAccess::new(
+        local_system_trustee,
+        AccessMode::SetAccess,
+        FileAccessRights::FILE_ALL_ACCESS.into(),
+        AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE,
+    );
+
+    let administrators_trustee =
+        Trustee::new(administrators_sid.clone()?, TrusteeType::WellKnownGroup);
+    let allow_admin_group_access = ExplicitAccess::new(
+        administrators_trustee,
+        AccessMode::SetAccess,
+        FileAccessRights::FILE_ALL_ACCESS.into(),
+        AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE,
+    );
+
+    let acl = Acl::new(vec![
+        allow_creator_owner_access,
+        allow_local_system_access,
+        allow_admin_group_access,
+    ])?;
+
+    set_named_security_info(
+        data_dir.as_ref(),
+        SecurityObjectType::FileObject,
+        SecurityInfo::DACL | SecurityInfo::PROTECTED_DACL,
+        None,
+        None,
+        Some(&acl),
+    )?;
 
     Ok(())
 }

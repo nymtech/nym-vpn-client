@@ -45,7 +45,7 @@ pub fn incoming(
     pipe_name: OsString,
 ) -> io::Result<impl Stream<Item = io::Result<Connector<NamedPipeServer>>>> {
     let permissions = GenericAccessRights::GENERIC_READ | GenericAccessRights::GENERIC_WRITE;
-    let security_attributes = SecurityAttributes::allow_everyone(permissions.bits())?;
+    let security_attributes = SecurityAttributes::allow_everyone(permissions.into())?;
 
     NamedPipeListener::new(pipe_name, security_attributes).incoming()
 }

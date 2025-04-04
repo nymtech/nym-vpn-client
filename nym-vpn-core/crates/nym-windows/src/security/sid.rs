@@ -4,21 +4,20 @@
 use windows::{
     core::{Result, HRESULT, PWSTR},
     Win32::{
-        Foundation::{self, LocalFree, ERROR_INSUFFICIENT_BUFFER, HLOCAL},
+        Foundation::{LocalFree, ERROR_INSUFFICIENT_BUFFER, HLOCAL},
         Security::{
-            self,
             Authentication::Identity::{
                 LsaClose, LsaFreeMemory, LsaOpenPolicy, LsaQueryInformationPolicy,
                 PolicyAccountDomainInformation, LSA_HANDLE, LSA_OBJECT_ATTRIBUTES,
                 POLICY_ACCOUNT_DOMAIN_INFO, POLICY_VIEW_LOCAL_INFORMATION,
             },
             Authorization::ConvertSidToStringSidW,
-            CreateWellKnownSid, GetTokenInformation, IsWellKnownSid, LookupAccountSidW, TokenUser,
-            PSID, SECURITY_MAX_SID_SIZE, SID_NAME_USE, TOKEN_QUERY, TOKEN_USER,
-            WELL_KNOWN_SID_TYPE,
+            CopySid, CreateWellKnownSid, EqualSid, FreeSid, GetLengthSid, GetTokenInformation,
+            IsWellKnownSid, LookupAccountSidW, TokenUser, PSID, SECURITY_MAX_SID_SIZE,
+            SID_NAME_USE, TOKEN_QUERY, TOKEN_USER, WELL_KNOWN_SID_TYPE,
         },
         System::{
-            Memory::{self, LocalAlloc},
+            Memory::{LocalAlloc, LPTR},
             Threading::{GetCurrentProcess, OpenProcessToken},
         },
     },
@@ -94,12 +93,12 @@ pub struct Sid {
 impl Sid {
     /// Create new SID copying data from raw pointer.
     pub(crate) unsafe fn copy_from(psid: PSID) -> Result<Self> {
-        let sid_len = Security::GetLengthSid(psid);
+        let sid_len = GetLengthSid(psid);
         let sid_len_sz = usize::try_from(sid_len).expect("sid length is too large");
-        let buffer = Memory::LocalAlloc(Memory::LPTR, sid_len_sz)?;
+        let buffer = LocalAlloc(LPTR, sid_len_sz)?;
         let dest_sid = PSID(buffer.0 as *mut _);
 
-        unsafe { Security::CopySid(sid_len, dest_sid, psid)? };
+        unsafe { CopySid(sid_len, dest_sid, psid)? };
 
         Ok(Self { inner: dest_sid })
     }
@@ -118,7 +117,7 @@ impl Sid {
         domain_sid: Option<&Sid>,
     ) -> Result<Self> {
         let mut cbsize = SECURITY_MAX_SID_SIZE;
-        let buffer = unsafe { Memory::LocalAlloc(Memory::LPTR, cbsize as usize)? };
+        let buffer = unsafe { LocalAlloc(LPTR, cbsize as usize)? };
         let inner = PSID(buffer.0 as *mut _);
 
         unsafe {
@@ -156,7 +155,7 @@ impl Sid {
             })?;
 
         let len: usize = usize::try_from(buffer_size).expect("buffer_size is larger than usize");
-        let buffer = unsafe { LocalAlloc(Memory::LPTR, len)? };
+        let buffer = unsafe { LocalAlloc(LPTR, len)? };
 
         let result = unsafe {
             GetTokenInformation(
@@ -185,7 +184,7 @@ impl Sid {
         unsafe { ConvertSidToStringSidW(self.inner, &mut wide_str as _)? };
         let result = unsafe { wide_str.to_string()? };
         if !wide_str.is_null() {
-            unsafe { Foundation::LocalFree(Some(HLOCAL(wide_str.0 as *mut _))) };
+            unsafe { LocalFree(Some(HLOCAL(wide_str.0 as *mut _))) };
         }
 
         Ok(result)
@@ -263,14 +262,14 @@ impl Sid {
 
 impl PartialEq for Sid {
     fn eq(&self, other: &Self) -> bool {
-        unsafe { Security::EqualSid(self.inner, other.inner).is_ok() }
+        unsafe { EqualSid(self.inner, other.inner).is_ok() }
     }
 }
 
 impl Drop for Sid {
     fn drop(&mut self) {
         if !self.inner.is_invalid() {
-            unsafe { Security::FreeSid(self.inner) };
+            unsafe { FreeSid(self.inner) };
         }
     }
 }
@@ -291,12 +290,16 @@ pub struct AccountLookupResult {
 /// A mirror of `WELL_KNOWN_SID_TYPE`
 #[derive(Debug, Clone, Copy)]
 pub enum WellKnownSid {
+    /// Indicates a SID that matches the owner or creator of an object.
+    CreatorOwner,
     /// Indicates a SID that matches everyone.
     World,
     /// Indicates a SID that matches the local system.
     LocalSystem,
     /// Indicates a SID that matches the administrator group.
     BuiltinAdministrators,
+    /// Indicates a SID that matches built-in user accounts.
+    BuiltinUsers,
     // todo: add more well known SIDs from WELL_KNOWN_SID_TYPE
 }
 
@@ -305,9 +308,11 @@ impl WellKnownSid {
         use windows::Win32::Security as S;
 
         match self {
+            Self::CreatorOwner => S::WinCreatorOwnerSid,
             Self::World => S::WinWorldSid,
             Self::LocalSystem => S::WinLocalSystemSid,
             Self::BuiltinAdministrators => S::WinBuiltinAdministratorsSid,
+            Self::BuiltinUsers => S::WinBuiltinUsersSid,
         }
     }
 }
@@ -317,7 +322,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_everyone_sid_to_string() {
+    fn test_sid_to_string() {
         let sid = Sid::well_known(WellKnownSid::World).unwrap();
         let sid_str = sid.to_string().unwrap();
         assert_eq!(sid_str, "S-1-1-0");

@@ -7,8 +7,8 @@ use windows::{
 };
 
 use super::{
-    AbsoluteSecurityDescriptor, AccessMode, AceFlags, Acl, ExplicitAccess, Sid, Trustee,
-    TrusteeType, WellKnownSid,
+    AbsoluteSecurityDescriptor, AccessMode, AccessRights, AceFlags, Acl, ExplicitAccess, Sid,
+    Trustee, TrusteeType, WellKnownSid,
 };
 
 /// Struct that contains the security identifier for an object and specifies whether the handle retrieved by specifying this struct is inheritable.
@@ -37,16 +37,18 @@ impl SecurityAttributes {
     ///
     /// Permissions mask is expected to contain any of the values listed under [`ACCESS_MASK`](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-mask)
     /// Use values defined by `FileAccessRights`, `GenericAccessRights`, `StandardAccessRights`.
-    pub fn allow_everyone(permissions: u32) -> Result<SecurityAttributes> {
+    pub fn allow_everyone(permissions: AccessRights) -> Result<SecurityAttributes> {
         let trustee = Trustee::new(
             Sid::well_known(WellKnownSid::World)?,
             TrusteeType::WellKnownGroup,
         );
 
-        let mut explicit_access = ExplicitAccess::new(trustee);
-        explicit_access.set_access_mode(AccessMode::SetAccess);
-        explicit_access.set_access_permissions(permissions);
-        explicit_access.set_inheritance(AceFlags::NO_INHERITANCE);
+        let explicit_access = ExplicitAccess::new(
+            trustee,
+            AccessMode::SetAccess,
+            permissions,
+            AceFlags::NO_INHERITANCE,
+        );
 
         let acl = Acl::new(vec![explicit_access])?;
         let mut security_descriptor = AbsoluteSecurityDescriptor::new()?;
@@ -72,7 +74,7 @@ mod test {
     #[test]
     fn test_allow_everyone_everything() {
         let permissions = GenericAccessRights::GENERIC_READ | GenericAccessRights::GENERIC_WRITE;
-        SecurityAttributes::allow_everyone(permissions.bits())
+        SecurityAttributes::allow_everyone(permissions.into())
             .expect("failed to create security attributes that allow everyone everything");
     }
 }

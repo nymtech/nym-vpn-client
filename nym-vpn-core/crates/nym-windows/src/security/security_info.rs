@@ -124,6 +124,7 @@ where
 
 #[cfg(test)]
 mod tests {
+
     use super::*;
     use crate::security::{
         explicit_access::{AccessMode, AceFlags},
@@ -133,34 +134,29 @@ mod tests {
 
     #[test]
     fn test_set_named_security() {
-        let data_dir = std::path::PathBuf::from("C:\\ProgramData\\test");
-
-        let permissions = FileAccessRights::FILE_ALL_ACCESS;
+        let temp_dir = tempfile::tempdir().unwrap();
+        let data_dir = temp_dir.path();
 
         let local_system_sid = Sid::well_known(WellKnownSid::LocalSystem).unwrap();
-        let administrators_sid = Sid::well_known(WellKnownSid::BuiltinAdministrators).unwrap();
+        let users_sid = Sid::well_known(WellKnownSid::BuiltinUsers).unwrap();
 
-        let ace_flags = AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE;
-
-        let local_system_trustee = Trustee::new(
-            local_system_sid.clone().unwrap(),
-            TrusteeType::WellKnownGroup,
+        let local_system_trustee =
+            Trustee::new(local_system_sid.clone().unwrap(), TrusteeType::User);
+        let allow_local_system_access = ExplicitAccess::new(
+            local_system_trustee,
+            AccessMode::SetAccess,
+            FileAccessRights::FILE_ALL_ACCESS.into(),
+            AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE,
         );
-        let mut allow_local_system_access = ExplicitAccess::new(local_system_trustee);
-        allow_local_system_access.set_access_mode(AccessMode::SetAccess);
-        allow_local_system_access.set_access_permissions(permissions.bits());
-        allow_local_system_access.set_inheritance(ace_flags);
 
-        let administrators_trustee = Trustee::new(
-            administrators_sid.clone().unwrap(),
-            TrusteeType::WellKnownGroup,
+        let allow_users_access = ExplicitAccess::new(
+            Trustee::new(users_sid.clone().unwrap(), TrusteeType::WellKnownGroup),
+            AccessMode::SetAccess,
+            FileAccessRights::FILE_ALL_ACCESS.into(),
+            AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE,
         );
-        let mut allow_admin_group_access = ExplicitAccess::new(administrators_trustee);
-        allow_admin_group_access.set_access_mode(AccessMode::SetAccess);
-        allow_admin_group_access.set_access_permissions(permissions.bits());
-        allow_admin_group_access.set_inheritance(ace_flags);
 
-        let acl = Acl::new(vec![allow_local_system_access, allow_admin_group_access]).unwrap();
+        let acl = Acl::new(vec![allow_local_system_access, allow_users_access]).unwrap();
 
         set_named_security_info(
             &data_dir,
@@ -183,10 +179,16 @@ mod tests {
         let entry_list = acl.get_entries().unwrap();
         let entries = entry_list.as_vec();
 
-        assert!(entries.len() == 2);
+        assert_eq!(entries.len(), 2);
 
-        assert_eq!(entries[0].get_access_permissions(), permissions.bits());
-        assert_eq!(entries[0].get_inheritance(), ace_flags);
+        assert_eq!(
+            entries[0].get_access_permissions(),
+            FileAccessRights::FILE_ALL_ACCESS.bits()
+        );
+        assert_eq!(
+            entries[0].get_inheritance(),
+            AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE
+        );
         assert!(matches!(
             entries[0]
                 .get_trustee()
@@ -195,14 +197,20 @@ mod tests {
             TrusteeSpecificInfo::Sid(sid) if sid == local_system_sid
         ));
 
-        assert_eq!(entries[1].get_access_permissions(), permissions.bits());
-        assert_eq!(entries[1].get_inheritance(), ace_flags);
+        assert_eq!(
+            entries[1].get_access_permissions(),
+            FileAccessRights::FILE_ALL_ACCESS.bits()
+        );
+        assert_eq!(
+            entries[1].get_inheritance(),
+            AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE
+        );
         assert!(matches!(
             entries[1]
                 .get_trustee()
                 .get_trustee_specific_info()
                 .unwrap(),
-            TrusteeSpecificInfo::Sid(sid) if sid == administrators_sid
+            TrusteeSpecificInfo::Sid(sid) if sid == users_sid
         ));
     }
 }
