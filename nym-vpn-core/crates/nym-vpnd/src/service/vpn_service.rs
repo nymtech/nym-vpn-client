@@ -43,8 +43,7 @@ use super::{
         VpnServiceDeleteLogFileError,
     },
 };
-use crate::config::GlobalConfigFile;
-use crate::logging::LogPath;
+use crate::{config::GlobalConfigFile, logging::LogPath};
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -246,14 +245,15 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
 
         let config_dir = super::config::config_dir().join(&network_name);
         let config_file = config_dir.join(DEFAULT_CONFIG_FILE);
-        let data_dir = super::config::data_dir().join(&network_name);
+        let data_dir = super::config::data_dir();
+        let network_data_dir = data_dir.join(&network_name);
 
         let storage = Arc::new(tokio::sync::Mutex::new(
-            nym_vpn_lib::storage::VpnClientOnDiskStorage::new(data_dir.clone()),
+            nym_vpn_lib::storage::VpnClientOnDiskStorage::new(network_data_dir.clone()),
         ));
 
         // Make sure the data dir exists
-        super::config::create_data_dir(&data_dir).map_err(Error::ConfigSetup)?;
+        super::config::create_data_dir(&data_dir, &network_name).map_err(Error::ConfigSetup)?;
 
         let statistics_recipient = network_env
             .system_configuration
@@ -261,7 +261,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             .and_then(|config| config.statistics_recipient);
 
         let account_controller_config = AccountControllerConfig {
-            data_dir: data_dir.clone(),
+            data_dir: network_data_dir.clone(),
             user_agent: user_agent.clone(),
             credentials_mode: None,
             network_env: network_env.clone(),
@@ -303,7 +303,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         };
         let nym_config = NymConfig {
             config_path: Some(config_dir),
-            data_path: Some(data_dir.clone()),
+            data_path: Some(network_data_dir.clone()),
             gateway_config,
             network_env: network_env.clone(),
         };
@@ -328,7 +328,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             file_logging_event_tx,
             account_command_tx,
             config_file,
-            data_dir,
+            data_dir: network_data_dir,
             log_path,
             storage,
             tunnel_state: watch::Sender::new(TunnelState::Disconnected),

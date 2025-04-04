@@ -223,36 +223,50 @@ where
     Ok(config)
 }
 
-pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError> {
-    fs::create_dir_all(data_dir).map_err(|error| ConfigSetupError::CreateDirectory {
+pub(super) fn create_data_dir(
+    data_dir: &PathBuf,
+    network_name: &str,
+) -> Result<(), ConfigSetupError> {
+    let network_data_dir = data_dir.join(network_name);
+
+    fs::create_dir_all(&network_data_dir).map_err(|error| ConfigSetupError::CreateDirectory {
         dir: data_dir.clone(),
         error,
     })?;
-    tracing::debug!("Making sure data dir exists at {:?}", data_dir);
 
-    #[cfg(unix)]
-    {
-        // Set directory permissions to 700 (rwx------)
-        let permissions = fs::Permissions::from_mode(0o700);
-        fs::set_permissions(data_dir, permissions).map_err(|error| {
-            ConfigSetupError::SetPermissions {
-                dir: data_dir.clone(),
-                error,
-            }
-        })?;
-    }
+    tracing::debug!(
+        "Making sure data dir exists at {}",
+        network_data_dir.display()
+    );
 
-    #[cfg(windows)]
-    {
-        set_data_dir_permissions(data_dir).map_err(|error| ConfigSetupError::SetPermissions {
-            dir: data_dir.clone(),
-            error,
-        })?;
+    for dir_path in [&network_data_dir, &data_dir] {
+        #[cfg(unix)]
+        {
+            // Set directory permissions to 700 (rwx------)
+            let permissions = fs::Permissions::from_mode(0o700);
+            fs::set_permissions(dir_path, permissions).map_err(|error| {
+                ConfigSetupError::SetPermissions {
+                    dir: dir_path.clone(),
+                    error,
+                }
+            })?;
+        }
+
+        #[cfg(windows)]
+        {
+            set_data_dir_permissions(dir_path).map_err(|error| {
+                ConfigSetupError::SetPermissions {
+                    dir: network_data_dir.clone(),
+                    error,
+                }
+            })?;
+        }
     }
 
     Ok(())
 }
 
+/// Set directory permissions to Creator Owner, Local System, and Administrators with Full Control.
 #[cfg(windows)]
 fn set_data_dir_permissions(data_dir: impl AsRef<Path>) -> nym_windows::security::Result<()> {
     use nym_windows::security::{
