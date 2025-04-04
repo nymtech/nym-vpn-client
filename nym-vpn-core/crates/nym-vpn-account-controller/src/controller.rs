@@ -113,14 +113,14 @@ where
         );
 
         // Setup up the storage. We have both the account storage as well as the credential storage
-        let (account_storage, credential_storage) = Self::create_storage(&config, storage).await?;
+        let (account_storage, credential_storage) = init::create_storage(&config, storage).await?;
 
         // Client to query the VPN API
-        let vpn_api_client = Self::create_vpn_api_client(&config).await?;
+        let vpn_api_client = init::create_vpn_api_client(&config).await?;
 
         // We expose the account state as a shared object that can be queried without having to ask
         // the controller
-        let account_state = Self::create_initial_shared_state(&account_storage).await;
+        let account_state = init::create_initial_shared_state(&account_storage).await;
 
         // The channels used to communicate with the controller
         let command_channel = tokio::sync::mpsc::unbounded_channel();
@@ -150,47 +150,6 @@ where
             cancel_token,
             offline_watch,
         })
-    }
-
-    async fn create_storage(
-        config: &AccountControllerConfig,
-        storage: Arc<tokio::sync::Mutex<S>>,
-    ) -> Result<(AccountStorage<S>, SharedVpnCredentialStorage), Error> {
-        // Setup the account storage, which is used to store the account and device keys
-        let account_storage = AccountStorage::from(storage);
-
-        // Generate the device keys if we don't already have them
-        account_storage.init_keys().await?;
-
-        // Setup the credential storage, which is used to store the ticketbooks
-        let credential_storage = Arc::new(tokio::sync::Mutex::new(
-            VpnCredentialStorage::setup_from_path(config.data_dir.clone()).await?,
-        ));
-
-        Ok((account_storage, credential_storage))
-    }
-
-    async fn create_vpn_api_client(
-        config: &AccountControllerConfig,
-    ) -> Result<nym_vpn_api_client::VpnApiClient, Error> {
-        nym_vpn_api_client::VpnApiClient::new(
-            config.network_env.vpn_api_url(),
-            config.user_agent.clone(),
-        )
-        .map_err(Error::SetupVpnApiClient)
-    }
-
-    async fn create_initial_shared_state(
-        account_storage: &AccountStorage<S>,
-    ) -> SharedAccountState {
-        // Load the account id if we have one stored
-        let mnemonic_state = account_storage
-            .load_account_id()
-            .await
-            .map(|id| MnemonicState::Stored { id })
-            .unwrap_or(MnemonicState::NotStored);
-
-        SharedAccountState::new(mnemonic_state)
     }
 
     pub fn get_shared_state(&self) -> SharedAccountState {
@@ -252,14 +211,23 @@ where
         if !self.is_background_zk_nym_refresh_active().await {
             return;
         }
-        if self
-            .is_all_ticket_types_above_soft_threshold()
-            .await
-            .unwrap_or(false)
-        {
-            tracing::debug!("All ticket types are above soft threshold, not requesting zk-nym");
-            return;
+
+        match self.is_all_ticket_types_above_soft_threshold().await {
+            Ok(false) => (),
+            Ok(true) => {
+                tracing::debug!("All ticket types are above soft threshold, not requesting zk-nym");
+                return;
+            }
+            Err(err) => {
+                // Be conservative, it might be wasteful to request zknyms if we can't store them
+                // locally anyway.
+                tracing::error!(
+                    "Failed to lookup current tickets, not requesting more zk-nyms: {err}"
+                );
+                return;
+            }
         }
+
         match self.get_shared_state().ready_to_request_zk_nym().await {
             ReadyToRequestZkNym::Ready => {
                 self.get_command_sender().background_request_zk_nyms();
@@ -270,7 +238,7 @@ where
         }
     }
 
-    async fn get_account_by_mnemonic(
+    async fn check_account_exists_on_api(
         &self,
         mnemonic: Mnemonic,
     ) -> Result<NymVpnAccountResponse, AccountCommandError> {
@@ -318,8 +286,8 @@ where
     }
 
     async fn handle_store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
-        //get account to check that it is a valid account before storing
-        self.get_account_by_mnemonic(mnemonic.clone()).await?;
+        self.check_account_exists_on_api(mnemonic.clone()).await?;
+
         self.account_storage
             .store_account(mnemonic)
             .await
@@ -342,14 +310,10 @@ where
         // TODO: here we should put the controller in some sort of idle state, and wait for all
         // currently running operations to finish before proceeding with the reset
 
-        //delete device from nym vpn api
-        match self.unregister_device_from_api().await {
-            Ok(_) => {
-                tracing::info!("Device has been unregistered");
-            }
-            Err(error) => {
-                tracing::error!("Failed to unregister device: {error:?}");
-            }
+        if let Err(err) = self.unregister_device_from_api().await {
+            tracing::error!("Failed to unregister device: {err}");
+        } else {
+            tracing::info!("Device has been unregistered");
         }
 
         self.account_storage
@@ -938,5 +902,64 @@ where
 
         self.cleanup().await;
         tracing::debug!("Account controller is exiting");
+    }
+}
+
+mod init {
+    use std::sync::Arc;
+
+    use nym_vpn_store::VpnStorage;
+
+    use crate::{shared_state::MnemonicState, Error, SharedAccountState};
+
+    use super::{
+        AccountControllerConfig, AccountStorage, SharedVpnCredentialStorage, VpnCredentialStorage,
+    };
+
+    pub(super) async fn create_storage<S>(
+        config: &AccountControllerConfig,
+        storage: Arc<tokio::sync::Mutex<S>>,
+    ) -> Result<(AccountStorage<S>, SharedVpnCredentialStorage), Error>
+    where
+        S: VpnStorage,
+    {
+        // Setup the account storage, which is used to store the account and device keys
+        let account_storage = AccountStorage::from(storage);
+
+        // Generate the device keys if we don't already have them
+        account_storage.init_keys().await?;
+
+        // Setup the credential storage, which is used to store the ticketbooks
+        let credential_storage = Arc::new(tokio::sync::Mutex::new(
+            VpnCredentialStorage::setup_from_path(config.data_dir.clone()).await?,
+        ));
+
+        Ok((account_storage, credential_storage))
+    }
+
+    pub(super) async fn create_vpn_api_client(
+        config: &AccountControllerConfig,
+    ) -> Result<nym_vpn_api_client::VpnApiClient, Error> {
+        nym_vpn_api_client::VpnApiClient::new(
+            config.network_env.vpn_api_url(),
+            config.user_agent.clone(),
+        )
+        .map_err(Error::SetupVpnApiClient)
+    }
+
+    pub(super) async fn create_initial_shared_state<S>(
+        account_storage: &AccountStorage<S>,
+    ) -> SharedAccountState
+    where
+        S: VpnStorage,
+    {
+        // Load the account id if we have one stored
+        let mnemonic_state = account_storage
+            .load_account_id()
+            .await
+            .map(|id| MnemonicState::Stored { id })
+            .unwrap_or(MnemonicState::NotStored);
+
+        SharedAccountState::new(mnemonic_state)
     }
 }
