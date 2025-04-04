@@ -19,7 +19,10 @@ use tokio_stream::Stream;
 use tonic::transport::server::Connected;
 use windows::Win32::Foundation::ERROR_PIPE_BUSY;
 
-use nym_windows::security::{GenericAccessRights, SecurityAttributes};
+use nym_windows::security::{
+    AbsoluteSecurityDescriptor, AccessMode, AceFlags, Acl, ExplicitAccess, GenericAccessRights,
+    SecurityAttributes, Sid, Trustee, TrusteeType, WellKnownSid,
+};
 
 /// Connect timeout used when the pipe reports that it's busy.
 const PIPE_AVAILABILITY_TIMEOUT: Duration = Duration::from_secs(5);
@@ -45,7 +48,24 @@ pub fn incoming(
     pipe_name: OsString,
 ) -> io::Result<impl Stream<Item = io::Result<Connector<NamedPipeServer>>>> {
     let permissions = GenericAccessRights::GENERIC_READ | GenericAccessRights::GENERIC_WRITE;
-    let security_attributes = SecurityAttributes::allow_everyone(permissions.into())?;
+
+    let trustee = Trustee::new(
+        Sid::well_known(WellKnownSid::World)?,
+        TrusteeType::WellKnownGroup,
+    );
+
+    let explicit_access = ExplicitAccess::new(
+        trustee,
+        AccessMode::SetAccess,
+        permissions.into(),
+        AceFlags::NO_INHERITANCE,
+    );
+
+    let acl = Acl::new(vec![explicit_access])?;
+    let mut security_descriptor = AbsoluteSecurityDescriptor::new()?;
+    security_descriptor.set_dacl(acl)?;
+
+    let security_attributes = SecurityAttributes::new(security_descriptor);
 
     NamedPipeListener::new(pipe_name, security_attributes).incoming()
 }

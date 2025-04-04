@@ -66,7 +66,6 @@ impl ExplicitAccess {
 
     /// Set access permissions.
     ///
-    /// Permissions mask is expected to contain any of the values listed under [`ACCESS_MASK`](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-mask)
     /// Use values defined by `FileAccessRights`, `GenericAccessRights, `StandardAccessRights`.
     pub fn set_access_permissions(&mut self, permissions: AccessRights) {
         self.inner.grfAccessPermissions = permissions.bits();

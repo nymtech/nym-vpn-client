@@ -33,30 +33,6 @@ impl SecurityAttributes {
         }
     }
 
-    /// Create new security attributes with permissions for everyone.
-    ///
-    /// Permissions mask is expected to contain any of the values listed under [`ACCESS_MASK`](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-mask)
-    /// Use values defined by `FileAccessRights`, `GenericAccessRights`, `StandardAccessRights`.
-    pub fn allow_everyone(permissions: AccessRights) -> Result<SecurityAttributes> {
-        let trustee = Trustee::new(
-            Sid::well_known(WellKnownSid::World)?,
-            TrusteeType::WellKnownGroup,
-        );
-
-        let explicit_access = ExplicitAccess::new(
-            trustee,
-            AccessMode::SetAccess,
-            permissions,
-            AceFlags::NO_INHERITANCE,
-        );
-
-        let acl = Acl::new(vec![explicit_access])?;
-        let mut security_descriptor = AbsoluteSecurityDescriptor::new()?;
-        security_descriptor.set_dacl(acl)?;
-
-        Ok(SecurityAttributes::new(security_descriptor))
-    }
-
     /// Returns a mutable pointer to the underlying `SECURITY_ATTRIBUTES` struct.
     ///
     /// # Safety

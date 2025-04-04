@@ -256,7 +256,7 @@ pub(super) fn create_data_dir(
         {
             set_data_dir_permissions(dir_path).map_err(|error| {
                 ConfigSetupError::SetPermissions {
-                    dir: network_data_dir.clone(),
+                    dir: dir_path.clone(),
                     error,
                 }
             })?;
