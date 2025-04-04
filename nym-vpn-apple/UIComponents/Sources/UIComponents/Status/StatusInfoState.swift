@@ -61,9 +61,9 @@ public enum StatusInfoState: Equatable {
     var textColor: Color {
         switch self {
         case .initialising, .connecting, .connectionTime, .installingDaemon, .noInternet, .noInternetReconnect:
-            NymColor.statusInfoText
+            NymColor.gray1
         case .error, .unknown:
-            NymColor.sysError
+            NymColor.error
         }
     }
 }

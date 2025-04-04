@@ -58,7 +58,7 @@ private extension QRScannerView {
         }
         .frame(height: 120)
         .background {
-            NymColor.navigationBarBackground
+            NymColor.background
                 .ignoresSafeArea()
         }
     }

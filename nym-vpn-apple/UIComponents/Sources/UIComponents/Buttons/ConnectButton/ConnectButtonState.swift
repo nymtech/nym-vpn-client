@@ -48,13 +48,11 @@ public enum ConnectButtonState {
         case .connect, .noInternet:
             NymColor.accent
         case .installingDaemon, .noInternetReconnect:
-            NymColor.sysSecondary
+            NymColor.gray1
         case .stop, .disconnecting, .disconnect:
             NymColor.error
         }
     }
-
-
 }
 
 #if os(macOS)

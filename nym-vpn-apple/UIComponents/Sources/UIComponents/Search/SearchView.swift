@@ -56,11 +56,11 @@ extension SearchView {
         ZStack(alignment: .leading) {
             if searchText.isEmpty {
                 Text(searchTitle)
-                    .foregroundStyle(NymColor.sysOutline)
+                    .foregroundStyle(NymColor.gray1)
                     .textStyle(.Body.Large.regular)
             }
             TextField("", text: $searchText)
-                .foregroundStyle(NymColor.sysOnSurface)
+                .foregroundStyle(NymColor.primary)
                 .textFieldStyle(PlainTextFieldStyle())
                 .textStyle(.Body.Large.regular)
                 .focused($isSearchFocused)

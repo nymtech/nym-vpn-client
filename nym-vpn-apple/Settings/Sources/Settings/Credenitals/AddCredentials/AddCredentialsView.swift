@@ -143,7 +143,7 @@ private extension AddCredentialsView {
     func getStartedTitleText() -> some View {
         Text(viewModel.getStartedTitle)
             .textStyle(.Body.Large.regular)
-            .foregroundStyle(NymColor.credetnialsTitle)
+            .foregroundStyle(NymColor.gray1)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 16)
     }
@@ -197,7 +197,7 @@ private extension AddCredentialsView {
     func errorMessageView(title: String) -> some View {
         HStack {
             Text(title)
-                .foregroundStyle(NymColor.sysError)
+                .foregroundStyle(NymColor.error)
                 .lineLimit(nil)
                 .textStyle(.Body.Small.regular)
             Spacer()
@@ -233,7 +233,7 @@ private extension AddCredentialsView {
         if let createAccountAttributedString = viewModel.createAnAccountAttributedString() {
             Text(createAccountAttributedString)
                 .tint(NymColor.accent)
-                .foregroundStyle(NymColor.sysOnSurface)
+                .foregroundStyle(NymColor.primary)
                 .textStyle(.Body.Large.regular)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 16)

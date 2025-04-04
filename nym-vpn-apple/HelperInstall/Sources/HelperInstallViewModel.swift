@@ -79,7 +79,7 @@ import Theme
         case .unknown, .registered, .requiresAuthorization, .running, .requiresUpdate:
             NymColor.accent
         case .authorized, .updating, .requiresManualRemoval:
-            NymColor.sysSecondary
+            NymColor.gray1
         }
     }
 

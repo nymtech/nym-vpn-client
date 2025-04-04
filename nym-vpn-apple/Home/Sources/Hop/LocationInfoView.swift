@@ -31,7 +31,7 @@ struct LocationInfoView: View {
                     continueReadingLink()
                     okButton()
                 }
-                .background(NymColor.modeInfoViewBackground)
+                .background(NymColor.elevation)
                 .cornerRadius(16)
 
                 Spacer()
@@ -59,7 +59,7 @@ private extension LocationInfoView {
     func title() -> some View {
         Text(viewModel.titleLocalizedString)
             .textStyle(.Headline.Medium.regular)
-            .foregroundStyle(NymColor.sysOnSurface)
+            .foregroundStyle(NymColor.primary)
 
         Spacer()
             .frame(height: 16)
@@ -69,7 +69,7 @@ private extension LocationInfoView {
     func message() -> some View {
         HStack {
             Text(viewModel.messageLocalizedString)
-                .foregroundStyle(NymColor.modeInfoViewDescription)
+                .foregroundStyle(NymColor.gray1)
                 .textStyle(.Body.Medium.regular)
                 .multilineTextAlignment(.center)
 

@@ -9,6 +9,6 @@ public struct BoltImage: View {
             .resizable()
             .frame(width: 24, height: 24)
             .cornerRadius(50)
-            .foregroundStyle(NymColor.sysOnSurface)
+            .foregroundStyle(NymColor.primary)
     }
 }

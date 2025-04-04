@@ -34,7 +34,7 @@ public struct StrokeBorderView<Content: View>: View {
         }
         .overlay(alignment: .topLeading) {
             Text(strokeTitle)
-                .foregroundStyle(NymColor.sysOnSurface)
+                .foregroundStyle(NymColor.primary)
                 .textStyle(.Body.Small.regular)
                 .padding(.horizontal, 4)
                 .background(

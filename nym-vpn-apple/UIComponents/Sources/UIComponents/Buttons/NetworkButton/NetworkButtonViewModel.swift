@@ -30,7 +30,7 @@ public final class NetworkButtonViewModel: ObservableObject {
     }
 
     @Published var isSmallScreen: Bool
-    @Published var selectionImageColor: Color = NymColor.networkButtonCircle
+    @Published var selectionImageColor: Color = NymColor.gray1
     @Published var selectionStrokeColor: Color = .clear
 
     var imageName: String {
@@ -61,7 +61,7 @@ public final class NetworkButtonViewModel: ObservableObject {
     }
 
     func updateUI(isSelected: Bool) {
-        self.selectionImageColor = isSelected ? NymColor.action : NymColor.networkButtonCircle
+        self.selectionImageColor = isSelected ? NymColor.action : NymColor.gray1
         self.selectionStrokeColor = isSelected ? NymColor.action : .clear
     }
 }

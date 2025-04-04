@@ -48,7 +48,7 @@ private extension StatusInfoView {
         if infoState != .noInternet || infoState != .noInternetReconnect, let timeConnectedString {
             TimelineView(.animation(minimumInterval: 1.0, paused: false)) { _ in
                 Text(timeConnectedString)
-                    .foregroundStyle(NymColor.statusTimer)
+                    .foregroundStyle(NymColor.primary)
                     .textStyle(.Headline.Medium.regular)
                     .transition(.opacity)
                     .animation(.easeInOut, value: timeConnectedString)

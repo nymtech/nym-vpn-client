@@ -90,7 +90,7 @@ private extension HomeView {
                 .textStyle(.Headline.Small.regular)
             Spacer()
             GenericImage(systemImageName: "info.circle", allowsHover: true)
-                .foregroundColor(NymColor.sysOutline)
+                .foregroundColor(NymColor.gray1)
                 .frame(width: 14, height: 14)
                 .onTapGesture {
                     withAnimation {
@@ -125,7 +125,7 @@ private extension HomeView {
     func gatewaySection() -> some View {
         HStack {
             Text(viewModel.connectToLocalizedTitle)
-                .foregroundStyle(NymColor.sysOnSurfaceWhite)
+                .foregroundStyle(NymColor.primary)
                 .textStyle(.Headline.Small.regular)
             Spacer()
         }

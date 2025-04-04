@@ -7,14 +7,14 @@ public enum SnackbarStyle {
     var backgroundColor: Color {
         switch self {
         case .info:
-            NymColor.sysOnSecondary
+            NymColor.gray1
         }
     }
 
     var textColor: Color {
         switch self {
         case .info:
-            NymColor.sysOnSurface
+            NymColor.primary
         }
     }
 
@@ -28,7 +28,7 @@ public enum SnackbarStyle {
     var iconColor: Color {
         switch self {
         case .info:
-            NymColor.sysOnSurface
+            NymColor.primary
         }
     }
 }

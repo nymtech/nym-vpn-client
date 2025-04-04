@@ -49,7 +49,7 @@ extension HelperInstallView {
     func explanationText() -> some View {
         Text(viewModel.infoText)
             .textStyle(.Body.Medium.regular)
-            .foregroundStyle(NymColor.modeInfoViewTitle)
+            .foregroundStyle(NymColor.gray1)
             .multilineTextAlignment(.center)
             .padding(16)
     }
@@ -80,7 +80,7 @@ extension HelperInstallView {
         case .uninstallOldDeamon:
             Text(step.title)
                 .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.modeInfoViewTitle)
+                .foregroundStyle(NymColor.primary)
                 .padding(.horizontal, 16)
             Spacer()
                 .frame(height: 16)
@@ -96,7 +96,7 @@ extension HelperInstallView {
                 Text(step.title)
                     .textStyle(.Body.Large.regular)
                     .lineLimit(3)
-                    .foregroundStyle(NymColor.modeInfoViewTitle)
+                    .foregroundStyle(NymColor.primary)
             }
             .padding(.horizontal, 16)
         }
@@ -107,7 +107,7 @@ extension HelperInstallView {
         if let message = viewModel.error?.localizedDescription {
             Text(message)
                 .textStyle(.Body.Large.regular)
-                .foregroundStyle(NymColor.sysError)
+                .foregroundStyle(NymColor.error)
         }
     }
 }

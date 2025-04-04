@@ -47,7 +47,7 @@ private extension HopButton {
     func titleText(with text: String) -> some View {
         Text(text)
             .lineLimit(1)
-            .foregroundStyle(NymColor.sysOnSurface)
+            .foregroundStyle(NymColor.primary)
             .textStyle(.Body.Large.regular)
     }
 }

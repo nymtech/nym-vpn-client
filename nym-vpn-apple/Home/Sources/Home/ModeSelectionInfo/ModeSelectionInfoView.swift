@@ -34,7 +34,7 @@ struct ModeSelectionInfoView: View {
                     continueReadingLink()
                     okButton()
                 }
-                .background(NymColor.modeInfoViewBackground)
+                .background(NymColor.elevation)
                 .cornerRadius(16)
 
                 Spacer()
@@ -62,7 +62,7 @@ private extension ModeSelectionInfoView {
     func title() -> some View {
         Text(viewModel.titleLocalizedString)
             .textStyle(.Headline.Medium.regular)
-            .foregroundStyle(NymColor.sysOnSurface)
+            .foregroundStyle(NymColor.primary)
 
         Spacer()
             .frame(height: 16)
@@ -72,13 +72,13 @@ private extension ModeSelectionInfoView {
     func anonymousTitle() -> some View {
         HStack {
             GenericImage(imageName: viewModel.anonymousImageName)
-                .foregroundStyle(NymColor.modeInfoViewTitle)
+                .foregroundStyle(NymColor.primary)
                 .frame(width: 16, height: 16)
                 .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 8))
 
             Text(viewModel.anonymousTitleLocalizedString)
                 .textStyle(.Headline.Small.regular)
-                .foregroundStyle(NymColor.modeInfoViewTitle)
+                .foregroundStyle(NymColor.primary)
 
             Spacer()
         }
@@ -90,7 +90,7 @@ private extension ModeSelectionInfoView {
     func anonymousDescription() -> some View {
         HStack {
             Text(viewModel.anonymousDescriptionLocalizedString)
-                .foregroundStyle(NymColor.modeInfoViewDescription)
+                .foregroundStyle(NymColor.gray1)
                 .textStyle(.Body.Medium.regular)
 
             Spacer()
@@ -105,13 +105,13 @@ private extension ModeSelectionInfoView {
     func fastTitle() -> some View {
         HStack {
             GenericImage(imageName: viewModel.fastImageName)
-                .foregroundStyle(NymColor.modeInfoViewTitle)
+                .foregroundStyle(NymColor.primary)
                 .frame(width: 16, height: 16)
                 .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 8))
 
             Text(viewModel.fastTitleLocalizedString)
                 .textStyle(.Headline.Small.regular)
-                .foregroundStyle(NymColor.modeInfoViewTitle)
+                .foregroundStyle(NymColor.primary)
 
             Spacer()
         }
@@ -123,7 +123,7 @@ private extension ModeSelectionInfoView {
     func fastDescription() -> some View {
         HStack {
             Text(viewModel.fastDescriptionLocalizedString)
-                .foregroundStyle(NymColor.modeInfoViewDescription)
+                .foregroundStyle(NymColor.gray1)
                 .textStyle(.Body.Medium.regular)
 
             Spacer()

@@ -18,10 +18,10 @@ public struct NetworkButton: View {
 
                 VStack(alignment: .leading) {
                     Text(viewModel.title)
-                        .foregroundStyle(NymColor.sysOnSurface)
+                        .foregroundStyle(NymColor.primary)
                         .textStyle(.Body.Large.regular)
                     Text(viewModel.subtitle)
-                        .foregroundStyle(NymColor.sysOutline)
+                        .foregroundStyle(NymColor.gray1)
                         .textStyle(.Body.Small.regular)
                 }
                 .padding(.leading, 8)
@@ -29,7 +29,7 @@ public struct NetworkButton: View {
             }
         }
         .frame(height: viewModel.isSmallScreen ? 56 : 64)
-        .background(NymColor.navigationBarBackground.opacity(isHovered ? 0.7 : 1))
+        .background(NymColor.elevation.opacity(isHovered ? 0.7 : 1))
         .cornerRadius(8)
         .overlay(
             RoundedRectangle(cornerRadius: 8)

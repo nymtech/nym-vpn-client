@@ -29,7 +29,7 @@ public struct SettingsListItem: View {
         }
         .frame(maxWidth: .infinity, minHeight: 64, maxHeight: 64)
         .background {
-            NymColor.navigationBarBackground.opacity(isHovered ? 0.7 : 1)
+            NymColor.elevation.opacity(isHovered ? 0.7 : 1)
         }
         .clipShape(
             .rect(
@@ -55,7 +55,7 @@ private extension SettingsListItem {
         if !viewModel.position.isLast {
             Divider()
                 .frame(height: 1)
-                .overlay(NymColor.settingsSeparator)
+                .overlay(NymColor.background)
         }
     }
 
@@ -64,12 +64,12 @@ private extension SettingsListItem {
         if let imageName = viewModel.imageName {
             Image(imageName, bundle: .module)
                 .renderingMode(.template)
-                .foregroundStyle(NymColor.sysOnSurface)
+                .foregroundStyle(NymColor.primary)
                 .padding(.leading, 8)
         } else if let systemImageName = viewModel.systemImageName {
             Image(systemName: systemImageName)
                 .renderingMode(.template)
-                .foregroundStyle(NymColor.sysOnSurface)
+                .foregroundStyle(NymColor.primary)
                 .font(.system(size: 17, weight: .bold))
                 .padding(.leading, 8)
         }
@@ -79,13 +79,13 @@ private extension SettingsListItem {
     func titleSubtitle() -> some View {
         VStack(alignment: .leading) {
             Text(viewModel.title)
-                .foregroundStyle(NymColor.sysOnSurface)
+                .foregroundStyle(NymColor.primary)
                 .textStyle(.Body.Large.regular)
             if let subtitle = viewModel.subtitle {
                 BouncingMarqueeTextView(
                     text: subtitle,
                     textStyle: .Body.Medium.regular,
-                    fontColor: NymColor.sysOutline,
+                    fontColor: NymColor.gray1,
                     speed: 70,
                     pauseDuration: 1.0
                 )
@@ -99,7 +99,7 @@ private extension SettingsListItem {
     func optionalAccessoryImage() -> some View {
         if let imageName = viewModel.accessory.imageName {
             Image(imageName, bundle: .module)
-                .foregroundStyle(NymColor.sysOnSurface)
+                .foregroundStyle(NymColor.primary)
                 .padding(.trailing, 24)
         }
     }

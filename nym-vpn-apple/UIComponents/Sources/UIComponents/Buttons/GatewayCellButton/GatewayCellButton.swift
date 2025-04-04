@@ -14,7 +14,7 @@ public struct GatewayCellButton: View {
                 .padding(.trailing, 12)
 
             Text(viewModel.title)
-                .foregroundStyle(NymColor.sysOnSurface)
+                .foregroundStyle(NymColor.primary)
                 .textStyle(.Body.Large.regular)
 
             Spacer()
@@ -58,6 +58,6 @@ private extension GatewayCellButton {
         GenericImage(systemImageName: "network")
             .frame(width: 24, height: 24)
             .cornerRadius(50)
-            .foregroundStyle(NymColor.sysOnSurface)
+            .foregroundStyle(NymColor.primary)
     }
 }

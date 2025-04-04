@@ -71,12 +71,12 @@ private extension LogsView {
     func button(systemImageName: String, title: String) -> some View {
         VStack {
             Image(systemName: systemImageName)
-                .foregroundStyle(NymColor.sysOnSurface)
+                .foregroundStyle(NymColor.primary)
                 .frame(width: 24, height: 24)
                 .padding(8)
 
             Text(title)
-                .foregroundStyle(NymColor.sysOnSurface)
+                .foregroundStyle(NymColor.primary)
                 .textStyle(.Headline.Small.regular)
         }
         .contentShape(RoundedRectangle(cornerRadius: 8))

@@ -52,7 +52,7 @@ private extension CustomNavBarButton {
         } label: {
             if let imageName = type.imageName {
                 Image(imageName, bundle: .module)
-                    .foregroundStyle(NymColor.navigationBarSettingsGear)
+                    .foregroundStyle(NymColor.gray1)
             }
         }
         .buttonStyle(PlainButtonStyle())

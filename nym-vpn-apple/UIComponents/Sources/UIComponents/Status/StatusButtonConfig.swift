@@ -41,20 +41,20 @@ public enum StatusButtonConfig: String {
         case .connected:
             NymColor.action
         case .connecting, .disconnecting, .noInternet, .noInternetReconnect:
-            NymColor.sysOnSurfaceWhite
+            NymColor.primary
         case .disconnected, .error:
-            NymColor.sysOnSecondary
+            NymColor.gray1
         }
     }
 
     var backgroundColor: Color {
         switch self {
         case .connected:
-            NymColor.statusGreen
+            NymColor.accent
         case .connecting, .disconnecting, .disconnected, .error:
-            NymColor.statusButtonBackground
+            NymColor.backgroundHover
         case .noInternet, .noInternetReconnect:
-            NymColor.noInternet
+            NymColor.error
         }
     }
 }

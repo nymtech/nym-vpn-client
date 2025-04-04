@@ -51,11 +51,11 @@ enum HelperInstallStep: Hashable, Identifiable {
     var imageColor: Color {
         switch self {
         case let .register(isOn), let .authorize(isOn), let .running(isOn):
-            isOn ? NymColor.accent : NymColor.noInternet
+            isOn ? NymColor.accent : NymColor.error
         case let .versionCheck(requiresUpdate):
-            requiresUpdate ? NymColor.noInternet : NymColor.accent
+            requiresUpdate ? NymColor.error : NymColor.accent
         case .uninstallOldDeamon:
-            NymColor.noInternet
+            NymColor.error
         }
     }
 }

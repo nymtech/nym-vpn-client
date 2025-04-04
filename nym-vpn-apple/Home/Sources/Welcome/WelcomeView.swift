@@ -45,7 +45,7 @@ private extension WelcomeView {
         Text("\(Text(viewModel.subtitle1Text)) \(Text("[\(viewModel.sentryText)](https://sentry.io)"))\(Text(viewModel.subtitle2Text)) \n\n\(Text(viewModel.disclaimerText))")
             .textStyle(.Body.Large.regular)
             .tint(NymColor.accent)
-            .foregroundStyle(NymColor.statusInfoText)
+            .foregroundStyle(NymColor.gray1)
             .multilineTextAlignment(.center)
             .padding(.horizontal, viewModel.subtitleViewHorizontalPadding())
         Spacer()
@@ -72,8 +72,8 @@ private extension WelcomeView {
     @ViewBuilder
     func privacyPolicy() -> some View {
         Text("By continuing, you agree to NymVPN's [Terms of use](https://nym.com/vpn-terms) and acknowledge NymVPN's [Privacy policy](https://nym.com/vpn-privacy-statement).")
-            .tint(NymColor.sysOnSurfaceWhite)
-            .foregroundStyle(NymColor.sysOutline)
+            .tint(NymColor.primary)
+            .foregroundStyle(NymColor.gray1)
             .textStyle(.Body.Small.regular)
             .multilineTextAlignment(.center)
             .padding(.horizontal, 16)

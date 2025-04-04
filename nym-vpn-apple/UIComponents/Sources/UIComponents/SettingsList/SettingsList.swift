@@ -30,7 +30,7 @@ private extension SettingsList {
     func appVersionText() -> some View {
         HStack {
             Text(viewModel.versionTitle)
-                .foregroundStyle(NymColor.settingsVersion)
+                .foregroundStyle(NymColor.gray1)
                 .textStyle(.Body.Medium.regular)
                 .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 0))
             Spacer()

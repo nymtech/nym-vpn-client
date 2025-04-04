@@ -30,7 +30,7 @@ public struct ActionDialogView: View {
                     buttons()
                         .padding(24)
                 }
-                .background(NymColor.modeInfoViewBackground)
+                .background(NymColor.elevation)
                 .cornerRadius(16)
 
                 Spacer()
@@ -58,7 +58,7 @@ private extension ActionDialogView {
         if let title = viewModel.configuration.titleLocalizedString {
             Text(title)
                 .textStyle(NymTextStyle.Headline.Large.regular)
-                .foregroundStyle(NymColor.sysOnSurface)
+                .foregroundStyle(NymColor.primary)
                 .multilineTextAlignment(.center)
 
             Spacer()
@@ -70,7 +70,7 @@ private extension ActionDialogView {
     func subtitle() -> some View {
         if let subtitle = viewModel.configuration.subtitleLocalizedString {
             Text(subtitle)
-                .foregroundStyle(NymColor.modeInfoViewDescription)
+                .foregroundStyle(NymColor.gray1)
                 .textStyle(.Body.Medium.regular)
                 .multilineTextAlignment(.center)
                 .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))

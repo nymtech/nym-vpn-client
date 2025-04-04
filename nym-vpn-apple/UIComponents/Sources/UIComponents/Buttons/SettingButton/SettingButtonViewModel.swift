@@ -21,6 +21,6 @@ public struct SettingButtonViewModel {
     }
 
     var selectionImageColor: Color {
-        isSelected ? NymColor.accent : NymColor.networkButtonCircle
+        isSelected ? NymColor.accent : NymColor.gray1
     }
 }

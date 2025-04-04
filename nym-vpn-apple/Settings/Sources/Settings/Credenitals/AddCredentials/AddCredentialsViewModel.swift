@@ -52,8 +52,8 @@ final class AddCredentialsViewModel: ObservableObject {
             }
         }
     }
-    @Published var textFieldStrokeColor = NymColor.sysOutlineVariant
-    @Published var credentialSubtitleColor = NymColor.sysOnSurface
+    @Published var textFieldStrokeColor = NymColor.gray2
+    @Published var credentialSubtitleColor = NymColor.primary
     @Published var bottomPadding: CGFloat = 12
     @Published var errorMessageTitle = ""
     @MainActor @Published var isScannerDisplayed = false
@@ -126,8 +126,8 @@ extension AddCredentialsViewModel {
     @MainActor func configureError() {
         let error = error as? CredentialsManagerError
 
-        textFieldStrokeColor = error == .noError ? NymColor.sysOutlineVariant : NymColor.sysError
-        credentialSubtitleColor = error == .noError ? NymColor.sysOnSurface : NymColor.sysError
+        textFieldStrokeColor = error == .noError ? NymColor.gray2 : NymColor.error
+        credentialSubtitleColor = error == .noError ? NymColor.primary : NymColor.error
         bottomPadding = error != .noError ? 4 : 12
 
         errorMessageTitle = (error == .noError ? "" : error?.localizedTitle)
