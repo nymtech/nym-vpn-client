@@ -18,12 +18,12 @@ use windows::{
 
 use super::{Acl, RelativeSecurityDescriptor, Sid};
 
-/// This struct is awesome
+/// Types of Windows objects that support security
 #[derive(Debug, Copy, Clone)]
 pub enum SecurityObjectType {
-    /// tbd
+    /// Indicates a file or directory
     FileObject,
-    /// tbd
+    /// Indicates a Windows service. A service object can be a local service, such as ServiceName, or a remote service, such as \\ComputerName\ServiceName.
     Service,
 }
 
@@ -37,17 +37,13 @@ impl SecurityObjectType {
 }
 
 bitflags::bitflags! {
-    /// tbd
     pub struct SecurityInfo: u32 {
-        /// tbd
         const ATTRIBUTE = ATTRIBUTE_SECURITY_INFORMATION.0;
         /// The DACL of the object is being referenced.
         const DACL = DACL_SECURITY_INFORMATION.0;
         /// The DACL cannot inherit access control entries (ACEs).tbd
         const PROTECTED_DACL = PROTECTED_DACL_SECURITY_INFORMATION.0;
-        /// tbd
         const GROUP = GROUP_SECURITY_INFORMATION.0;
-        /// tbd
         const OWNER = OWNER_SECURITY_INFORMATION.0;
     }
 }

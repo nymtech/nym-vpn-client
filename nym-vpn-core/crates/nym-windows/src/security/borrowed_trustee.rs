@@ -58,16 +58,11 @@ impl<'a> BorrowedTrustee<'a> {
     }
 }
 
-/// tbd
 #[derive(Debug)]
 pub enum TrusteeSpecificInfo {
-    /// tbd
     Name(String),
-    /// tbd
     Sid(Sid),
-    /// tbd
     ObjectsAndSid,
-    /// tbd
     ObjectsAndName,
 }
 

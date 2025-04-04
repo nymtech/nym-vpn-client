@@ -21,7 +21,6 @@ pub struct BorrowedAcl<'a> {
 }
 
 impl<'a> BorrowedAcl<'a> {
-    /// tbd
     pub unsafe fn from_ptr(ptr: *const ACL) -> Self {
         Self {
             inner: ptr,

@@ -97,9 +97,7 @@ pub enum AccessMode {
     DenyAccess,
     /// Indicates that all existing `ACCESS_ALLOWED_ACE` or `SYSTEM_AUDIT_ACE` structures for the specified trustee are removed.
     RevokeAccess,
-    /// tbd
     SetAuditSuccess,
-    /// tbd
     SetAuditFailure,
 }
 
@@ -122,25 +120,15 @@ bitflags::bitflags! {
     /// See: <https://learn.microsoft.com/en-us/windows/win32/api/accctrl/ns-accctrl-explicit_access_w>
     #[derive(Debug, Copy, Clone, Eq, PartialEq)]
     pub struct AceFlags: u32 {
-        /// tbd
         const CONTAINER_INHERIT_ACE = CONTAINER_INHERIT_ACE.0;
-        /// tbd
         const INHERIT_NO_PROPAGATE = INHERIT_NO_PROPAGATE.0;
-        /// tbd
         const INHERIT_ONLY = INHERIT_ONLY.0;
-        /// tbd
         const INHERIT_ONLY_ACE = INHERIT_ONLY_ACE.0;
-        /// tbd
         const NO_INHERITANCE = NO_INHERITANCE.0;
-        /// tbd
         const NO_PROPAGATE_INHERIT_ACE = NO_PROPAGATE_INHERIT_ACE.0;
-        /// tbd
         const OBJECT_INHERIT_ACE = OBJECT_INHERIT_ACE.0;
-        /// tbd
         const SUB_CONTAINERS_AND_OBJECTS_INHERIT = SUB_CONTAINERS_AND_OBJECTS_INHERIT.0;
-        /// tbd
         const SUB_CONTAINERS_ONLY_INHERIT = SUB_CONTAINERS_ONLY_INHERIT.0;
-        /// tbd
         const SUB_OBJECTS_ONLY_INHERIT = SUB_OBJECTS_ONLY_INHERIT.0;
     }
 

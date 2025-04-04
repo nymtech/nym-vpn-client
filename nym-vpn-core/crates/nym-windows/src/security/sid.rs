@@ -23,13 +23,10 @@ use windows::{
     },
 };
 
-/// tbd
 #[derive(Debug)]
 #[allow(dead_code)]
 pub struct LocalDomain {
-    /// tbd
     pub domain_name: String,
-    /// tbd
     pub domain_sid: Sid,
 }
 

@@ -32,7 +32,5 @@ pub use sid::{AccountLookupResult, Sid, WellKnownSid};
 pub use trustee::{Trustee, TrusteeForm, TrusteeType};
 
 // Re-export windows types
-/// tbd
 pub type Result<T> = windows::core::Result<T>;
-/// tbd
 pub type Error = windows::core::Error;

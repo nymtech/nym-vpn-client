@@ -41,16 +41,11 @@ impl Trustee {
     }
 }
 
-/// tbd
 #[derive(Debug, Copy, Clone)]
 pub enum TrusteeForm {
-    /// tbd
     Sid,
-    /// tbd
     Name,
-    /// tbd
     ObjectsAndSid,
-    /// tbd
     ObjectsAndName,
 }
 
@@ -69,23 +64,14 @@ impl From<TRUSTEE_FORM> for TrusteeForm {
 /// Type of trustee.
 #[derive(Debug, Copy, Clone)]
 pub enum TrusteeType {
-    /// tbd
     User,
-    /// tbd
     Group,
-    /// tbd
     Domain,
-    /// tbd
     Alias,
-    /// tbd
     WellKnownGroup,
-    /// tbd
     Deleted,
-    /// tbd
     Invalid,
-    /// tbd
     Computer,
-    /// tbd
     Unknown,
 }
 
