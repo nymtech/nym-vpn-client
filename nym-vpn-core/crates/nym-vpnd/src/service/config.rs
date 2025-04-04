@@ -266,7 +266,7 @@ pub(super) fn create_data_dir(
     Ok(())
 }
 
-/// Set directory permissions to Creator Owner, Local System, and Administrators with Full Control.
+/// Set directory permissions to Creator Owner, Administrators with Full Control.
 #[cfg(windows)]
 fn set_data_dir_permissions(data_dir: impl AsRef<Path>) -> nym_windows::security::Result<()> {
     use nym_windows::security::{
@@ -274,28 +274,10 @@ fn set_data_dir_permissions(data_dir: impl AsRef<Path>) -> nym_windows::security
         SecurityInfo, Sid, Trustee, TrusteeType, WellKnownSid,
     };
 
-    let creator_owner_sid = Sid::well_known(WellKnownSid::CreatorOwner)?;
-    let local_system_sid = Sid::well_known(WellKnownSid::LocalSystem)?;
     let administrators_sid = Sid::well_known(WellKnownSid::BuiltinAdministrators)?;
 
     let permissions = AccessRights::from(FileAccessRights::FILE_ALL_ACCESS);
     let ace_flags = AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE;
-
-    let creator_owner_trustee = Trustee::new(creator_owner_sid.clone()?, TrusteeType::User);
-    let allow_creator_owner_access = ExplicitAccess::new(
-        creator_owner_trustee,
-        AccessMode::SetAccess,
-        permissions,
-        ace_flags,
-    );
-
-    let local_system_trustee = Trustee::new(local_system_sid.clone()?, TrusteeType::WellKnownGroup);
-    let allow_local_system_access = ExplicitAccess::new(
-        local_system_trustee,
-        AccessMode::SetAccess,
-        permissions,
-        ace_flags,
-    );
 
     let administrators_trustee =
         Trustee::new(administrators_sid.clone()?, TrusteeType::WellKnownGroup);
@@ -306,11 +288,7 @@ fn set_data_dir_permissions(data_dir: impl AsRef<Path>) -> nym_windows::security
         ace_flags,
     );
 
-    let acl = Acl::new(vec![
-        allow_creator_owner_access,
-        allow_local_system_access,
-        allow_admin_group_access,
-    ])?;
+    let acl = Acl::new(vec![allow_admin_group_access])?;
 
     set_named_security_info(
         data_dir.as_ref(),
