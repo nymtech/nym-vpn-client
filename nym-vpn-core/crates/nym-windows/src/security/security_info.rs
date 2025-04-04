@@ -41,7 +41,7 @@ bitflags::bitflags! {
         const ATTRIBUTE = ATTRIBUTE_SECURITY_INFORMATION.0;
         /// The DACL of the object is being referenced.
         const DACL = DACL_SECURITY_INFORMATION.0;
-        /// The DACL cannot inherit access control entries (ACEs).tbd
+        /// The DACL cannot inherit access control entries (ACEs).
         const PROTECTED_DACL = PROTECTED_DACL_SECURITY_INFORMATION.0;
         const GROUP = GROUP_SECURITY_INFORMATION.0;
         const OWNER = OWNER_SECURITY_INFORMATION.0;
