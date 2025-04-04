@@ -334,8 +334,9 @@ pub struct AccountLookupResult {
 /// A mirror of `WELL_KNOWN_SID_TYPE`
 #[derive(Debug, Clone, Copy)]
 pub enum WellKnownSid {
-    /// tbd
+    /// Indicates a SID that matches the administrator group.
     WinBuiltinAdministratorsSid,
+    // todo: add more well known SIDs from WELL_KNOWN_SID_TYPE
 }
 
 impl WellKnownSid {
