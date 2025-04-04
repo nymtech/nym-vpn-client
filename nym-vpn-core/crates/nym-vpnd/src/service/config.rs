@@ -6,7 +6,7 @@ use std::os::unix::fs::PermissionsExt;
 use std::{fmt, fs, path::PathBuf};
 
 use nym_vpn_lib::gateway_directory;
-use nym_windows::security::{AceFlags, SecurityObjectType};
+use nym_windows::security::{AceFlags, SecurityObjectType, WellKnownSid};
 use serde::{de::DeserializeOwned, Serialize};
 
 #[cfg(not(windows))]
@@ -248,16 +248,18 @@ pub(super) fn create_data_dir(data_dir: &PathBuf) -> Result<(), ConfigSetupError
         };
 
         let trustee = Trustee::new(
-            Sid::local_system().map_err(|error| ConfigSetupError::SetPermissions {
-                dir: data_dir.clone(),
-                error,
+            Sid::well_known(WellKnownSid::LocalSystem).map_err(|error| {
+                ConfigSetupError::SetPermissions {
+                    dir: data_dir.clone(),
+                    error,
+                }
             })?,
             TrusteeType::Group,
         );
 
         let mut explicit_access = ExplicitAccess::new(trustee);
         explicit_access.set_access_mode(AccessMode::SetAccess);
-        explicit_access.set_access_permissions(GenericAccessRights::GENERIC_ALL);
+        explicit_access.set_access_permissions(GenericAccessRights::GENERIC_ALL.bits());
         explicit_access.set_inheritance(AceFlags::NO_INHERITANCE);
 
         tracing::info!("Set data dir permissions: {}", data_dir.display());

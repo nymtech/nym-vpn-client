@@ -8,7 +8,7 @@ use windows::{
 
 use super::{
     AbsoluteSecurityDescriptor, AccessMode, AceFlags, Acl, ExplicitAccess, Sid, Trustee,
-    TrusteeType,
+    TrusteeType, WellKnownSid,
 };
 
 /// Struct that contains the security identifier for an object and specifies whether the handle retrieved by specifying this struct is inheritable.
@@ -38,7 +38,10 @@ impl SecurityAttributes {
     /// Permissions mask is expected to contain any of the values listed under [`ACCESS_MASK`](https://learn.microsoft.com/en-us/windows/win32/secauthz/access-mask)
     /// Use values defined by `FileAccessRights`, `GenericAccessRights`, `StandardAccessRights`.
     pub fn allow_everyone(permissions: u32) -> Result<SecurityAttributes> {
-        let trustee = Trustee::new(Sid::everyone()?, TrusteeType::WellKnownGroup);
+        let trustee = Trustee::new(
+            Sid::well_known(WellKnownSid::World)?,
+            TrusteeType::WellKnownGroup,
+        );
 
         let mut explicit_access = ExplicitAccess::new(trustee);
         explicit_access.set_access_mode(AccessMode::SetAccess);

@@ -19,7 +19,6 @@ use windows::{
         },
         System::{
             Memory::{self, LocalAlloc},
-            SystemServices,
             Threading::{GetCurrentProcess, OpenProcessToken},
         },
     },
@@ -105,33 +104,38 @@ impl Sid {
         Ok(Self { inner: dest_sid })
     }
 
-    /// Create new well known SID.
+    /// Create new well known SID with domain set to local computer.
+    pub fn well_known(well_known_sid: WellKnownSid) -> Result<Self> {
+        Self::well_known_with_domain(well_known_sid, None)
+    }
+
+    /// Create new well known SID, optionally providing domain.
     ///
-    /// * `sid_type` - Member of the `WELL_KNOWN_SID_TYPE` enumeration that specifies what the SID will identify.
-    /// * `domain_sid` - A pointer to a SID that identifies the domain to use when creating the SID. Pass NULL to use the local computer.
-    pub fn new_well_known(sid_type: WellKnownSid, domain_sid: Option<&Sid>) -> Result<Self> {
+    /// * `well_known_sid` - a type of well known SID to create.
+    /// * `domain_sid` - a reference to domain sid that's used when creating a well known sid. Pass `None` to use the local computer.
+    pub fn well_known_with_domain(
+        well_known_sid: WellKnownSid,
+        domain_sid: Option<&Sid>,
+    ) -> Result<Self> {
         let mut cbsize = SECURITY_MAX_SID_SIZE;
-        let empty_sid = Self::empty()?;
+        let buffer = unsafe { Memory::LocalAlloc(Memory::LPTR, cbsize as usize)? };
+        let inner = PSID(buffer.0 as *mut _);
 
         unsafe {
             CreateWellKnownSid(
-                sid_type.to_raw(),
+                well_known_sid.to_raw(),
                 domain_sid.as_ref().map(|x| x.inner()),
-                Some(empty_sid.inner),
+                Some(inner),
                 &mut cbsize,
             )?
         };
 
-        Ok(empty_sid)
+        Ok(Self { inner })
     }
 
-    /// Create new empty SID allocating enough memory to fit any kind of SID.
-    fn empty() -> Result<Self> {
-        // Safety: cannot be longer than usize
-        let len = SECURITY_MAX_SID_SIZE as usize;
-        let buffer = unsafe { Memory::LocalAlloc(Memory::LPTR, len)? };
-        let inner = PSID(buffer.0 as *mut _);
-        Ok(Self { inner })
+    /// Returns true if SID is well known.
+    pub fn is_well_known(&self, sid_type: WELL_KNOWN_SID_TYPE) -> bool {
+        unsafe { IsWellKnownSid(self.inner, sid_type).as_bool() }
     }
 
     /// Returns SID for current user.
@@ -173,53 +177,6 @@ impl Sid {
         unsafe { LocalFree(Some(buffer)) };
 
         result
-    }
-
-    /// Returns true if SID is well known.
-    pub fn is_well_known(&self, sid_type: WELL_KNOWN_SID_TYPE) -> bool {
-        unsafe { IsWellKnownSid(self.inner, sid_type).as_bool() }
-    }
-
-    /// Returns a SID that corresponds to local system account on the machine.
-    pub fn local_system() -> Result<Self> {
-        let mut inner = PSID::default();
-        unsafe {
-            Security::AllocateAndInitializeSid(
-                &Security::SECURITY_NT_AUTHORITY,
-                1,
-                SystemServices::SECURITY_LOCAL_SYSTEM_RID as u32,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                &mut inner as _,
-            )?;
-        }
-        Ok(Self { inner })
-    }
-
-    /// Returns a SID that corresponds to everyone on the machine.
-    pub fn everyone() -> Result<Self> {
-        let mut inner = PSID::default();
-        unsafe {
-            Security::AllocateAndInitializeSid(
-                &Security::SECURITY_WORLD_SID_AUTHORITY,
-                1,
-                SystemServices::SECURITY_WORLD_RID as u32,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                &mut inner as _,
-            )?;
-        }
-        Ok(Self { inner })
     }
 
     /// Convert SID to string.
@@ -334,8 +291,12 @@ pub struct AccountLookupResult {
 /// A mirror of `WELL_KNOWN_SID_TYPE`
 #[derive(Debug, Clone, Copy)]
 pub enum WellKnownSid {
+    /// Indicates a SID that matches everyone.
+    World,
+    /// Indicates a SID that matches the local system.
+    LocalSystem,
     /// Indicates a SID that matches the administrator group.
-    WinBuiltinAdministratorsSid,
+    BuiltinAdministrators,
     // todo: add more well known SIDs from WELL_KNOWN_SID_TYPE
 }
 
@@ -344,7 +305,9 @@ impl WellKnownSid {
         use windows::Win32::Security as S;
 
         match self {
-            Self::WinBuiltinAdministratorsSid => S::WinBuiltinAdministratorsSid,
+            Self::World => S::WinWorldSid,
+            Self::LocalSystem => S::WinLocalSystemSid,
+            Self::BuiltinAdministrators => S::WinBuiltinAdministratorsSid,
         }
     }
 }
@@ -355,14 +318,14 @@ mod tests {
 
     #[test]
     fn test_everyone_sid_to_string() {
-        let sid = Sid::everyone().unwrap();
+        let sid = Sid::well_known(WellKnownSid::World).unwrap();
         let sid_str = sid.to_string().unwrap();
         assert_eq!(sid_str, "S-1-1-0");
     }
 
     #[test]
     fn test_clone_sid() {
-        let src = Sid::everyone().unwrap();
+        let src = Sid::well_known(WellKnownSid::World).unwrap();
         let dst = src.clone().unwrap();
         assert_eq!(src, dst);
     }
@@ -380,7 +343,6 @@ mod tests {
 
     #[test]
     fn test_get_local_domain() {
-        let d = LocalDomain::query().unwrap();
-        println!("{:?}", d);
+        LocalDomain::query().unwrap();
     }
 }

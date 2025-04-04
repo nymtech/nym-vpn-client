@@ -89,6 +89,7 @@ where
 /// Retrieve a copy of the security descriptor for an object specified by name.
 ///
 /// Documentation: <https://learn.microsoft.com/en-us/windows/win32/api/aclapi/nf-aclapi-getnamedsecurityinfow>
+#[allow(dead_code)]
 pub fn get_named_security_info<'a, S>(
     object_name: S,
     object_type: SecurityObjectType,
@@ -136,9 +137,8 @@ mod tests {
 
         let permissions = FileAccessRights::FILE_ALL_ACCESS;
 
-        let local_system_sid = Sid::local_system().unwrap();
-        let administrators_sid =
-            Sid::new_well_known(WellKnownSid::WinBuiltinAdministratorsSid, None).unwrap();
+        let local_system_sid = Sid::well_known(WellKnownSid::LocalSystem).unwrap();
+        let administrators_sid = Sid::well_known(WellKnownSid::BuiltinAdministrators).unwrap();
 
         let ace_flags = AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE;
 
