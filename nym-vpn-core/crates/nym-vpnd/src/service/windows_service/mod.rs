@@ -43,7 +43,14 @@ pub static SERVICE_DISPLAY_NAME: &str = "NymVPN Service";
 pub static SERVICE_DESCRIPTION: &str = "A service that creates and runs tunnels to the Nym network";
 static SERVICE_TYPE: ServiceType = ServiceType::OWN_PROCESS;
 
-pub const FETCH_NETWORK_EXIT_CODE: u32 = 1;
+/// Exit codes used by Nym windows service.
+#[repr(u32)]
+pub enum ServiceSpecificExitCode {
+    /// Failure to perform network fetch
+    NetworkFetch = 1,
+    /// Failure to join on network fetch task
+    JoinNetworkFetch = 2,
+}
 
 enum ServiceEvent {
     Stop { completion_tx: oneshot::Sender<()> },
@@ -170,8 +177,9 @@ async fn run_service_inner() -> anyhow::Result<()> {
             network_env
         }
         Ok(Err(err)) => {
-            persistent_status
-                .set_stopped(ServiceExitCode::ServiceSpecific(FETCH_NETWORK_EXIT_CODE))?;
+            persistent_status.set_stopped(ServiceExitCode::ServiceSpecific(
+                ServiceSpecificExitCode::NetworkFetch as u32,
+            ))?;
 
             tracing::error!(
                 "Failed to fetch network environment for '{}': {}",
@@ -181,6 +189,10 @@ async fn run_service_inner() -> anyhow::Result<()> {
             return Err(err).with_context(|| "Failed to fetch network environment");
         }
         Err(err) => {
+            persistent_status.set_stopped(ServiceExitCode::ServiceSpecific(
+                ServiceSpecificExitCode::JoinNetworkFetch as u32,
+            ))?;
+
             tracing::error!("Failed to join on network fetch task: {}", err);
             return Err(err).with_context(|| "Failed to join on network fetch task");
         }
