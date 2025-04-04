@@ -230,7 +230,7 @@ pub(super) fn create_data_dir(
     let network_data_dir = data_dir.join(network_name);
 
     fs::create_dir_all(&network_data_dir).map_err(|error| ConfigSetupError::CreateDirectory {
-        dir: data_dir.clone(),
+        dir: network_data_dir.clone(),
         error,
     })?;
 
