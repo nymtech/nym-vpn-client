@@ -39,7 +39,7 @@ const BASE: AmneziaConfig = AmneziaConfig {
 /// - S1 — S1 < 1280; S1 + 56 ≠ S2; recommended range is from 15 to 150 inclusive
 /// - S2 — S2 < 1280; recommended range is from 15 to 150 inclusive
 /// - H1/H2/H3/H4 — must be unique among each other;
-///     recommended range is from 5 to 2_147_483_647  (2^31 - 1   i.e. signed 32 bit int) inclusive
+///   recommended range is from 5 to 2_147_483_647  (2^31 - 1   i.e. signed 32 bit int) inclusive
 ///
 /// Note: changes to S1, S2, H1, H2, H3, and H4 are required to match between client
 /// and server. The connection will not work otherwise.
@@ -132,7 +132,7 @@ impl AmneziaConfig {
     /// - S1 — S1 < 1280; S1 + 56 ≠ S2; recommended range is from 15 to 150 inclusive
     /// - S2 — S2 < 1280; recommended range is from 15 to 150 inclusive
     /// - H1/H2/H3/H4 — must be unique among each other;
-    ///     recommended range is from 5 to 2_147_483_647  (2^31 - 1   i.e. signed 32 bit int) inclusive
+    ///   recommended range is from 5 to 2_147_483_647  (2^31 - 1   i.e. signed 32 bit int) inclusive
     pub fn validate(&self) -> bool {
         if self.junk_pkt_count > 128
             || self.junk_pkt_max_size > 1280
