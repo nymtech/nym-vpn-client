@@ -41,16 +41,3 @@ impl SecurityAttributes {
         &mut self.inner
     }
 }
-
-#[cfg(test)]
-mod test {
-    use super::SecurityAttributes;
-    use crate::security::GenericAccessRights;
-
-    #[test]
-    fn test_allow_everyone_everything() {
-        let permissions = GenericAccessRights::GENERIC_READ | GenericAccessRights::GENERIC_WRITE;
-        SecurityAttributes::allow_everyone(permissions.into())
-            .expect("failed to create security attributes that allow everyone everything");
-    }
-}

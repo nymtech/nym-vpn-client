@@ -47,13 +47,13 @@ pub async fn connect(pipe_name: impl AsRef<OsStr>) -> io::Result<TokioIo<NamedPi
 pub fn incoming(
     pipe_name: OsString,
 ) -> io::Result<impl Stream<Item = io::Result<Connector<NamedPipeServer>>>> {
-    let permissions = GenericAccessRights::GENERIC_READ | GenericAccessRights::GENERIC_WRITE;
 
     let trustee = Trustee::new(
         Sid::well_known(WellKnownSid::World)?,
         TrusteeType::WellKnownGroup,
     );
 
+    let permissions = GenericAccessRights::GENERIC_READ | GenericAccessRights::GENERIC_WRITE;
     let explicit_access = ExplicitAccess::new(
         trustee,
         AccessMode::SetAccess,

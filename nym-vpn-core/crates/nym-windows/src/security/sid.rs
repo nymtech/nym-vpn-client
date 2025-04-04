@@ -130,8 +130,8 @@ impl Sid {
     }
 
     /// Returns true if SID is well known.
-    pub fn is_well_known(&self, sid_type: WELL_KNOWN_SID_TYPE) -> bool {
-        unsafe { IsWellKnownSid(self.inner, sid_type).as_bool() }
+    pub fn is_well_known(&self, sid_type: WellKnownSid) -> bool {
+        unsafe { IsWellKnownSid(self.inner, sid_type.to_raw()).as_bool() }
     }
 
     /// Returns SID for current user.
@@ -317,6 +317,13 @@ impl WellKnownSid {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn test_is_well_known() {
+        let sid = Sid::well_known(WellKnownSid::World).unwrap();
+        assert!(sid.is_well_known(WellKnownSid::World));
+        assert!(!sid.is_well_known(WellKnownSid::BuiltinUsers));
+    }
 
     #[test]
     fn test_sid_to_string() {
