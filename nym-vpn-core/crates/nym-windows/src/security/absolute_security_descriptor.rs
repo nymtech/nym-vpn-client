@@ -33,7 +33,6 @@ impl AbsoluteSecurityDescriptor {
     /// Initialize new security descriptor.
     pub fn new() -> Result<Self> {
         let buffer = unsafe { LocalAlloc(LPTR, std::mem::size_of::<SECURITY_DESCRIPTOR>())? };
-        // Safety: The pointer has enough capacity to hold SECURITY_DESCRIPTOR.
         let inner = PSECURITY_DESCRIPTOR(buffer.0);
         unsafe { InitializeSecurityDescriptor(inner, SECURITY_DESCRIPTOR_REVISION)? };
         Ok(Self {
