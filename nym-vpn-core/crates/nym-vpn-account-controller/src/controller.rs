@@ -160,34 +160,6 @@ where
         AccountCommandSender::new(self.command_channel.0.clone(), self.account_state.clone())
     }
 
-    async fn update_mnemonic_state(&self) -> Result<VpnApiAccount, Error> {
-        match self.account_storage.load_account().await {
-            Ok(account) => {
-                tracing::debug!("Our account id: {}", account.id());
-                self.account_state
-                    .set_mnemonic(MnemonicState::Stored { id: account.id() })
-                    .await;
-                Ok(account)
-            }
-            Err(err) => {
-                tracing::debug!("No account stored: {err}");
-                self.account_state.reset_to(MnemonicState::NotStored).await;
-                Err(err)
-            }
-        }
-    }
-
-    async fn register_device_if_ready(&self) {
-        match self.get_shared_state().ready_to_register_device().await {
-            ReadyToRegisterDevice::Ready => {
-                self.get_command_sender().background_register_device();
-            }
-            not_ready => {
-                tracing::debug!("Not trying to register device: {not_ready}");
-            }
-        }
-    }
-
     async fn is_background_zk_nym_refresh_active(&self) -> bool {
         self.config.background_zk_nym_refresh()
             && !self.command_handler.max_zknym_request_fails_reached().await
@@ -200,6 +172,39 @@ where
             .is_all_ticket_types_above_soft_threshold()
             .await
             .map_err(AccountCommandError::internal)
+    }
+
+    async fn update_mnemonic_state(&self) -> Result<VpnApiAccount, Error> {
+        let account = self.account_storage.load_account().await;
+        match account {
+            Ok(ref account) => {
+                tracing::debug!("Our account id: {}", account.id());
+                self.account_state
+                    .set_mnemonic(MnemonicState::Stored { id: account.id() })
+                    .await;
+            }
+            Err(ref err) => {
+                tracing::debug!("No account stored: {err}");
+                self.account_state.reset_to(MnemonicState::NotStored).await;
+            }
+        }
+        account
+    }
+
+    async fn register_device_if_ready(&self) {
+        if self.offline_watch.is_offline() {
+            tracing::info!("Not registering device as we are offline");
+            return;
+        }
+
+        match self.get_shared_state().ready_to_register_device().await {
+            ReadyToRegisterDevice::Ready => {
+                self.get_command_sender().background_register_device();
+            }
+            not_ready => {
+                tracing::debug!("Not trying to register device: {not_ready}");
+            }
+        }
     }
 
     async fn request_zk_nym_if_ready(&self) {
