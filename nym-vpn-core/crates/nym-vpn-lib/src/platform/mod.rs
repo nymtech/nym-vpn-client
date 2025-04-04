@@ -9,38 +9,38 @@
 //!
 //! 1. Initialize the environment: `initEnvironment(..)` or `initFallbackMainnetEnvironment`.
 //!
-//!     This is required to set the network environment details.
+//!    This is required to set the network environment details.
 //!
 //! 2. Initialise the library: `configureLib(..)`.
 //!
-//!     This sets up the logger and starts the account controller that runs in the background and
-//!     manages the account state.
+//!    This sets up the logger and starts the account controller that runs in the background and
+//!    manages the account state.
 //!
 //! 3. At this point we can interact with the vpn-api and the account controller to do things like:
 //!
-//!     - Get gateway countries: `getGatewayCountries(..)`.
-//!     - Store the account mnemonic: `storeAccountMnemonic(..)`.
-//!     - Get the account state: `getAccountState()`.
-//!     - Get system messages: `getSystemMessages()`.
-//!     - Get account links: `getAccountLinks(..)`.
-//!     - ...
+//!    - Get gateway countries: `getGatewayCountries(..)`.
+//!    - Store the account mnemonic: `storeAccountMnemonic(..)`.
+//!    - Get the account state: `getAccountState()`.
+//!    - Get system messages: `getSystemMessages()`.
+//!    - Get account links: `getAccountLinks(..)`.
+//!    - ...
 //!
 //! 3. Start the VPN: `startVPN(..)`.
 //!
-//!     This will:
+//!    This will:
 //!
-//!     1. Check if the account is ready to connect.
-//!     2. Request zknym credentials if needed.
-//!     3. Start the VPN state machine.
+//!    1. Check if the account is ready to connect.
+//!    2. Request zknym credentials if needed.
+//!    3. Start the VPN state machine.
 //!
 //! 4. Stop the VPN: `stopVPN()`.
 //!
-//!     This will stop the VPN state machine.
+//!    This will stop the VPN state machine.
 //!
 //! 5. Shutdown the library: `shutdown()`.
 //!
-//!     This will stop the account controller and clean up any resources, including make sure there
-//!     are no open DB connections.
+//!    This will stop the account controller and clean up any resources, including make sure there
+//!    are no open DB connections.
 
 #[cfg(target_os = "android")]
 pub mod android;
@@ -63,12 +63,13 @@ use nym_vpn_api_client::types::ScoreThresholds;
 use tokio::{runtime::Runtime, sync::Mutex};
 
 use self::error::VpnError;
-use crate::gateway_directory::GatewayClient;
-use crate::platform::uniffi_custom_impls::NetworkCompatibility;
 #[cfg(target_os = "android")]
 use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
+use crate::{
+    gateway_directory::GatewayClient, platform::uniffi_custom_impls::NetworkCompatibility,
+};
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
     AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayInfo, GatewayMinPerformance,
