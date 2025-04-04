@@ -9,7 +9,6 @@ use std::{
 };
 
 use nym_vpn_lib::gateway_directory;
-use nym_windows::security::{AceFlags, SecurityObjectType};
 use serde::{de::DeserializeOwned, Serialize};
 
 #[cfg(not(windows))]
@@ -270,8 +269,8 @@ pub(super) fn create_data_dir(
 #[cfg(windows)]
 fn set_data_dir_permissions(data_dir: impl AsRef<Path>) -> nym_windows::security::Result<()> {
     use nym_windows::security::{
-        set_named_security_info, AccessMode, Acl, ExplicitAccess, FileAccessRights, SecurityInfo,
-        Sid, Trustee, TrusteeType, WellKnownSid,
+        set_named_security_info, AccessMode, AceFlags, Acl, ExplicitAccess, FileAccessRights,
+        SecurityInfo, SecurityObjectType, Sid, Trustee, TrusteeType, WellKnownSid,
     };
 
     let administrators_sid = Sid::well_known(WellKnownSid::BuiltinAdministrators)?;
