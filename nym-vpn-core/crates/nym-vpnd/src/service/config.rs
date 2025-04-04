@@ -266,26 +266,21 @@ pub(super) fn create_data_dir(
     Ok(())
 }
 
-/// Set directory permissions to Creator Owner, Administrators with Full Control.
+/// Set directory permissions to Administrators with Full Control.
 #[cfg(windows)]
 fn set_data_dir_permissions(data_dir: impl AsRef<Path>) -> nym_windows::security::Result<()> {
     use nym_windows::security::{
-        set_named_security_info, AccessMode, AccessRights, Acl, ExplicitAccess, FileAccessRights,
-        SecurityInfo, Sid, Trustee, TrusteeType, WellKnownSid,
+        set_named_security_info, AccessMode, Acl, ExplicitAccess, FileAccessRights, SecurityInfo,
+        Sid, Trustee, TrusteeType, WellKnownSid,
     };
 
     let administrators_sid = Sid::well_known(WellKnownSid::BuiltinAdministrators)?;
 
-    let permissions = AccessRights::from(FileAccessRights::FILE_ALL_ACCESS);
-    let ace_flags = AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE;
-
-    let administrators_trustee =
-        Trustee::new(administrators_sid.clone()?, TrusteeType::WellKnownGroup);
     let allow_admin_group_access = ExplicitAccess::new(
-        administrators_trustee,
+        Trustee::new(administrators_sid.clone()?, TrusteeType::WellKnownGroup),
         AccessMode::SetAccess,
-        permissions,
-        ace_flags,
+        FileAccessRights::FILE_ALL_ACCESS.into(),
+        AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE,
     );
 
     let acl = Acl::new(vec![allow_admin_group_access])?;
