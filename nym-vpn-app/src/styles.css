@@ -1,4 +1,16 @@
-@import 'tailwindcss';
+@import 'tailwindcss' source(none);
+
+/*
+  ⚠ explicit declaration of files to be scanned is required
+  because if not tailwind:
+  - uses the current working directory as its starting point
+  - skips all .gitignore'd files
+  which is problematic when building the project in exotic
+  environments like when building packages, eg. AUR PKGBUILD
+  see https://tailwindcss.com/docs/detecting-classes-in-source-files
+ */
+@source '../index.html';
+@source '../src';
 
 @custom-variant dark (&:is(.dark *));
 
