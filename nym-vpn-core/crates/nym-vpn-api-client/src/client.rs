@@ -86,8 +86,8 @@ impl VpnApiClient {
             .map_err(VpnApiClientError::FailedToCreateVpnApiClient)
     }
 
-    pub fn swap_inner_client(&mut self, client: &VpnApiClient) {
-        self.inner = client.inner.clone();
+    pub fn swap_inner_client(&mut self, client: VpnApiClient) {
+        self.inner = client.inner;
     }
 
     pub fn current_url(&self) -> &Url {

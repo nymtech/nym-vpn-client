@@ -47,7 +47,7 @@ impl WaitingSyncAccountCommandHandler {
 
     pub(crate) fn update_vpn_api_client(
         &mut self,
-        vpn_api_client: &nym_vpn_api_client::VpnApiClient,
+        vpn_api_client: nym_vpn_api_client::VpnApiClient,
     ) {
         self.vpn_api_client.swap_inner_client(vpn_api_client);
     }
