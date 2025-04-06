@@ -15,6 +15,7 @@ mod controller;
 mod error;
 mod storage;
 mod ticketbooks;
+mod vpn_api_client;
 
 pub use command_sender::AccountCommandSender;
 pub use controller::{AccountController, AccountControllerConfig};

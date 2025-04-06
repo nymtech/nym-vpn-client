@@ -6,7 +6,7 @@ use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
 use nym_http_api_client::UserAgent;
 use nym_offline_monitor::{Connectivity, MonitorHandle};
 use nym_vpn_api_client::{
-    response::{NymVpnAccountResponse, NymVpnDevice, NymVpnUsage},
+    response::{NymVpnDevice, NymVpnUsage},
     types::{DeviceStatus, VpnApiAccount},
 };
 use nym_vpn_lib_types::{
@@ -26,6 +26,7 @@ use crate::{
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
     storage::{AccountStorage, SharedVpnCredentialStorage, VpnCredentialStorage},
+    vpn_api_client::AccountControllerVpnApiClient,
     AccountCommandSender, AvailableTicketbooks,
 };
 
@@ -79,7 +80,7 @@ where
     account_state: SharedAccountState,
 
     // The API client used to interact with the nym-vpn-api
-    vpn_api_client: nym_vpn_api_client::VpnApiClient,
+    vpn_api_client: AccountControllerVpnApiClient,
 
     // Receiver channel used to receive commands from the outside.
     command_channel: (
@@ -128,7 +129,7 @@ where
         // Keep track of the commands that are currently running
         let command_handler = AccountCommandHandler::new(
             account_state.clone(),
-            vpn_api_client.clone(),
+            vpn_api_client.inner().clone(),
             credential_storage.clone(),
         );
 
@@ -243,22 +244,6 @@ where
         }
     }
 
-    async fn check_account_exists_on_api(
-        &self,
-        mnemonic: Mnemonic,
-    ) -> Result<NymVpnAccountResponse, AccountCommandError> {
-        let account = VpnApiAccount::from(mnemonic);
-        self.vpn_api_client
-            .get_account(&account)
-            .await
-            .map_err(|e| {
-                VpnApiErrorResponse::try_from(e)
-                    .map(StoreAccountError::GetAccountEndpointFailure)
-                    .unwrap_or_else(|e| StoreAccountError::UnexpectedResponse(e.to_string()))
-                    .into()
-            })
-    }
-
     async fn unregister_device_from_api(&self) -> Result<NymVpnDevice, AccountCommandError> {
         tracing::info!("Unregistering device from API");
         if self.get_shared_state().ready_to_register_device().await
@@ -291,7 +276,9 @@ where
     }
 
     async fn handle_store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
-        self.check_account_exists_on_api(mnemonic.clone()).await?;
+        self.vpn_api_client
+            .check_account_exists_on_api(&VpnApiAccount::from(mnemonic.clone()))
+            .await?;
 
         self.account_storage
             .store_account(mnemonic)
@@ -496,7 +483,7 @@ where
                 account,
                 device,
                 self.account_state.clone(),
-                self.vpn_api_client.clone(),
+                self.vpn_api_client.inner().clone(),
             )
             .await;
     }
@@ -916,7 +903,10 @@ mod init {
 
     use nym_vpn_store::VpnStorage;
 
-    use crate::{shared_state::MnemonicState, Error, SharedAccountState};
+    use crate::{
+        shared_state::MnemonicState, vpn_api_client::AccountControllerVpnApiClient, Error,
+        SharedAccountState,
+    };
 
     use super::{
         AccountControllerConfig, AccountStorage, SharedVpnCredentialStorage, VpnCredentialStorage,
@@ -945,12 +935,13 @@ mod init {
 
     pub(super) async fn create_vpn_api_client(
         config: &AccountControllerConfig,
-    ) -> Result<nym_vpn_api_client::VpnApiClient, Error> {
+    ) -> Result<AccountControllerVpnApiClient, Error> {
         nym_vpn_api_client::VpnApiClient::new(
             config.network_env.vpn_api_url(),
             config.user_agent.clone(),
         )
         .map_err(Error::SetupVpnApiClient)
+        .map(AccountControllerVpnApiClient::new)
     }
 
     pub(super) async fn create_initial_shared_state<S>(
