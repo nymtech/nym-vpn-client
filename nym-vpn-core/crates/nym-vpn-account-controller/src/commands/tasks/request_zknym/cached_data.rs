@@ -27,7 +27,7 @@ impl CachedData {
         }
     }
 
-    pub fn update_vpn_api_client(&mut self, vpn_api_client: &VpnApiClient) {
+    pub fn update_vpn_api_client(&mut self, vpn_api_client: VpnApiClient) {
         self.vpn_api_client.swap_inner_client(vpn_api_client);
     }
 

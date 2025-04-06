@@ -93,12 +93,12 @@ impl AccountCommandHandler {
     // configuration change.
     pub(crate) fn update_vpn_api_client(
         &mut self,
-        vpn_api_client: &nym_vpn_api_client::VpnApiClient,
+        vpn_api_client: nym_vpn_api_client::VpnApiClient,
     ) {
         self.waiting_sync_account_command_handler
-            .update_vpn_api_client(vpn_api_client);
+            .update_vpn_api_client(vpn_api_client.clone());
         self.waiting_sync_device_command_handler
-            .update_vpn_api_client(vpn_api_client);
+            .update_vpn_api_client(vpn_api_client.clone());
         self.waiting_request_zknym_command_handler
             .update_vpn_api_client(vpn_api_client);
     }

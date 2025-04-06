@@ -682,9 +682,10 @@ where
             static_api_addresses.as_deref(),
         )
         .map(|new_vpn_api_client| {
-            self.vpn_api_client.swap_inner_client(&new_vpn_api_client);
+            self.vpn_api_client
+                .swap_inner_client(new_vpn_api_client.clone());
             self.command_handler
-                .update_vpn_api_client(&new_vpn_api_client);
+                .update_vpn_api_client(new_vpn_api_client);
         })
         .map_err(|e| AccountCommandError::internal(format!("Failed to set static addresses: {e}")))
     }
