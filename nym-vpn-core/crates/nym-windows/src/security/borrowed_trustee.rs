@@ -19,7 +19,10 @@ pub struct BorrowedTrustee<'a> {
     inner: &'a TRUSTEE_W,
 }
 impl<'a> BorrowedTrustee<'a> {
-    /// Create new instance from reference, without taking ownership of the underlying memory.
+    /// Create new instance from reference, without taking ownership of memory.
+    ///
+    /// # Safety
+    /// The caller must ensure the validity of pointer during the lifetime of this struct.
     pub unsafe fn new(trustee: &'a TRUSTEE_W) -> Self {
         Self { inner: trustee }
     }
@@ -69,7 +72,7 @@ pub enum TrusteeSpecificInfo {
 impl fmt::Display for TrusteeSpecificInfo {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Name(name) => f.write_str(&name),
+            Self::Name(name) => f.write_str(name),
             Self::Sid(sid) => f.write_str(
                 sid.to_string()
                     .as_deref()

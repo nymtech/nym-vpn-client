@@ -20,7 +20,11 @@ pub struct BorrowedAcl<'a> {
     data: PhantomData<&'a ACL>,
 }
 
-impl<'a> BorrowedAcl<'a> {
+impl BorrowedAcl<'_> {
+    /// Create new instance from pointer without taking ownership of memory.
+    ///
+    /// # Safety
+    /// The caller must ensure the validity of pointer during the lifetime of this struct.
     pub unsafe fn from_ptr(ptr: *const ACL) -> Self {
         Self {
             inner: ptr,

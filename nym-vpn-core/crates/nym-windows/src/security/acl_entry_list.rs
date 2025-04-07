@@ -18,13 +18,13 @@ pub struct AclEntryList<'a> {
     data: PhantomData<&'a EXPLICIT_ACCESS_W>,
 }
 
-impl<'a> Drop for AclEntryList<'a> {
+impl Drop for AclEntryList<'_> {
     fn drop(&mut self) {
         unsafe { LocalFree(Some(HLOCAL(self.entries as *mut _))) };
     }
 }
 
-impl<'a> AclEntryList<'a> {
+impl AclEntryList<'_> {
     /// Take owneship of an array of `EXPLICIT_ACCESS_W` structs.
     pub(crate) unsafe fn new(entries: *mut EXPLICIT_ACCESS_W, num_entries: u32) -> Self {
         Self {
@@ -37,7 +37,6 @@ impl<'a> AclEntryList<'a> {
     /// Return a view into explicit access structs.
     pub fn as_vec(&self) -> Vec<BorrowedExplicitAccess> {
         (0..self.num_entries)
-            .into_iter()
             .map(|i| {
                 // Safety: cast to isize should be fine as number of entries is likely limited.
                 let entry_ptr = unsafe { self.entries.offset(i as isize) };

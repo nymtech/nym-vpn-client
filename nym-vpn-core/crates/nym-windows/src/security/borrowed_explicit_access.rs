@@ -15,7 +15,10 @@ pub struct BorrowedExplicitAccess<'a> {
 }
 
 impl<'a> BorrowedExplicitAccess<'a> {
-    /// Create new instance from ponter, without taking ownership of the underlying memory.
+    /// Create new instance from pointer, without taking ownership of memory.
+    ///
+    /// # Safety
+    /// The caller must ensure the validity of pointer during the lifetime of this struct.
     pub unsafe fn from_ptr(ptr: *const EXPLICIT_ACCESS_W) -> Self {
         Self {
             inner: ptr,

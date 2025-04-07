@@ -155,7 +155,7 @@ mod tests {
         let acl = Acl::new(vec![allow_local_system_access, allow_users_access]).unwrap();
 
         set_named_security_info(
-            &data_dir,
+            data_dir,
             SecurityObjectType::FileObject,
             SecurityInfo::DACL | SecurityInfo::PROTECTED_DACL,
             None,
@@ -165,7 +165,7 @@ mod tests {
         .unwrap();
 
         let security_descriptor = get_named_security_info(
-            &data_dir,
+            data_dir,
             SecurityObjectType::FileObject,
             SecurityInfo::DACL,
         )
