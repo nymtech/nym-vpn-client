@@ -529,11 +529,11 @@ impl NymVpnd for CommandInterface {
         let response = match result {
             Ok(account_links) => GetAccountLinksResponse {
                 res: Some(nym_vpn_proto::get_account_links_response::Res::Links(
-                    account_links.into(),
+                    nym_vpn_proto::AccountManagement::from(account_links),
                 )),
             },
             Err(err) => {
-                tracing::error!("Failed to get account links: {:?}", err);
+                tracing::error!("Failed to get account links: {err:?}");
                 GetAccountLinksResponse {
                     res: Some(nym_vpn_proto::get_account_links_response::Res::Error(
                         nym_vpn_proto::AccountError::from(err),

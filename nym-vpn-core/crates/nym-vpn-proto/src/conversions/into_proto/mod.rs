@@ -8,6 +8,7 @@ pub mod tunnel_event;
 pub mod tunnel_state;
 pub mod vpn_api_client;
 pub mod vpnd;
+pub mod service;
 
 impl From<String> for crate::Url {
     fn from(url: String) -> Self {

@@ -16,5 +16,5 @@ pub use error::{
     VpnServiceDisconnectError,
 };
 pub use vpn_service::{
-    ConnectArgs, ConnectOptions, NymVpnService, VpnServiceCommand, VpnServiceInfo,
+    ConnectArgs, ConnectOptions, NymVpnService, VpnServiceCommand,
 };

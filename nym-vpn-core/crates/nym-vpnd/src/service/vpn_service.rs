@@ -29,10 +29,8 @@ use nym_vpn_lib::{
     },
     MixnetClientConfig, Recipient, UserAgent,
 };
-use nym_vpn_lib_types::{TunnelEvent, TunnelState, TunnelType};
-use nym_vpn_network_config::{
-    FeatureFlags, Network, NymNetwork, NymVpnNetwork, ParsedAccountLinks, SystemMessages,
-};
+use nym_vpn_lib_types::{TunnelEvent, TunnelState, TunnelType, VpnServiceInfo};
+use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use zeroize::Zeroizing;
 
 use super::{
@@ -117,17 +115,6 @@ pub struct ConnectOptions {
     pub min_gateway_mixnet_performance: Option<Percent>,
     pub min_gateway_vpn_performance: Option<Percent>,
     pub user_agent: Option<UserAgent>,
-}
-
-#[derive(Clone, Debug)]
-pub struct VpnServiceInfo {
-    pub version: String,
-    pub build_timestamp: Option<OffsetDateTime>,
-    pub triple: String,
-    pub platform: String,
-    pub git_commit: String,
-    pub nym_network: NymNetwork,
-    pub nym_vpn_network: NymVpnNetwork,
 }
 
 pub struct NymVpnService<S>
