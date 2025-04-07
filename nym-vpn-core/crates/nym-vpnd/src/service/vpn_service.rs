@@ -270,7 +270,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             shutdown_token.child_token(),
         )
         .await
-        .map_err(|source| Error::Account(AccountError::AccountControllerError { source }))?;
+        .map_err(AccountError::from)?;
 
         // These are used to interact with the account controller
         let shared_account_state = account_controller.get_shared_state();
@@ -376,6 +376,7 @@ where
         Ok(())
     }
 
+    // Wrap handle_service_command in timing code to log long-running commands
     async fn handle_service_command_timed(&mut self, command: VpnServiceCommand) {
         let start = Instant::now();
         let command_str = command.to_string();
@@ -732,10 +733,8 @@ where
         account: Zeroizing<String>,
     ) -> Result<(), AccountError> {
         let mnemonic = Mnemonic::parse::<&str>(account.as_ref())?;
-        self.account_command_tx
-            .store_account(mnemonic)
-            .await
-            .map_err(|source| AccountError::AccountCommandError { source })
+        self.account_command_tx.store_account(mnemonic).await?;
+        Ok(())
     }
 
     async fn handle_is_account_stored(&self) -> Result<bool, AccountError> {
@@ -753,10 +752,8 @@ where
             data_dir.display()
         );
 
-        self.account_command_tx
-            .forget_account()
-            .await
-            .map_err(|source| AccountError::AccountCommandError { source })
+        self.account_command_tx.forget_account().await?;
+        Ok(())
     }
 
     async fn handle_get_account_identity(&self) -> Result<Option<String>, AccountError> {
@@ -794,7 +791,7 @@ where
         self.account_command_tx
             .get_usage()
             .await
-            .map_err(|source| AccountError::AccountCommandError { source })
+            .map_err(AccountError::from)
     }
 
     async fn handle_reset_device_identity(
@@ -830,7 +827,7 @@ where
         self.account_command_tx
             .get_device_identity()
             .await
-            .map_err(|source| AccountError::AccountCommandError { source })
+            .map_err(AccountError::from)
     }
 
     async fn handle_register_device(&self) -> Result<(), AccountError> {
@@ -842,14 +839,14 @@ where
         self.account_command_tx
             .get_devices()
             .await
-            .map_err(|source| AccountError::AccountCommandError { source })
+            .map_err(AccountError::from)
     }
 
     async fn handle_get_active_devices(&self) -> Result<Vec<NymVpnDevice>, AccountError> {
         self.account_command_tx
             .get_active_devices()
             .await
-            .map_err(|source| AccountError::AccountCommandError { source })
+            .map_err(AccountError::from)
     }
 
     async fn handle_request_zk_nym(&self) -> Result<(), AccountError> {
