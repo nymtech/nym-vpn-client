@@ -7,6 +7,7 @@ pub mod request_zknym;
 pub mod store_account;
 pub mod sync_account;
 pub mod sync_device;
+pub mod ticketbooks;
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
 pub enum AccountCommandError {

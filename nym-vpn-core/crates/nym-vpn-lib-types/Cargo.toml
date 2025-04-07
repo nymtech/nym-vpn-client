@@ -18,8 +18,8 @@ nym-type-conversions = [
     "dep:nym-gateway-directory",
     "dep:nym-statistics-common",
     "dep:nym-vpn-api-client",
-    "dep:nym-wg-gateway-client",
     "dep:nym-vpn-network-config",
+    "dep:nym-wg-gateway-client",
 ]
 
 [dependencies]
