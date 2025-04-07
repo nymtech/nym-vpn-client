@@ -3,7 +3,6 @@
 
 use nym_vpn_lib::tunnel_state_machine::Error as TunnelStateMachineError;
 use nym_vpn_lib_types::AccountCommandError;
-use tokio::sync::oneshot::error::RecvError;
 use tracing::error;
 
 use super::config::ConfigSetupError;
@@ -27,67 +26,24 @@ pub enum VpnServiceDisconnectError {
 
 #[derive(Debug, thiserror::Error)]
 pub enum AccountError {
+    // Failures related to the operational aspects of the account controller
+    #[error(transparent)]
+    AccountControllerError {
+        #[from]
+        source: nym_vpn_account_controller::Error,
+    },
+
+    // Failures for commands run by the account controller
+    #[error(transparent)]
+    AccountCommandError {
+        #[from]
+        source: AccountCommandError,
+    },
+
     #[error("invalid mnemonic")]
     InvalidMnemonic {
         #[from]
         source: bip39::Error,
-    },
-
-    #[error("failed to store account: {source}")]
-    FailedToStoreAccount {
-        source: Box<dyn std::error::Error + Send + Sync>,
-    },
-
-    #[error("failed to check if account is stored: {source}")]
-    FailedToCheckIfAccountIsStored {
-        source: Box<dyn std::error::Error + Send + Sync>,
-    },
-
-    #[error("failed to remove account: {source}")]
-    FailedToRemoveAccount {
-        source: Box<dyn std::error::Error + Send + Sync>,
-    },
-
-    #[error("failed to forget account: {source}")]
-    FailedToForgetAccount {
-        source: Box<dyn std::error::Error + Send + Sync>,
-    },
-
-    #[error("failed to load account: {source}")]
-    FailedToLoadAccount {
-        source: Box<dyn std::error::Error + Send + Sync>,
-    },
-
-    #[error("no nym-vpn-api url setup")]
-    MissingApiUrl,
-
-    #[error("invalid nym-vpn-api url")]
-    InvalidApiUrl,
-
-    #[error(transparent)]
-    VpnApiClientError(#[from] nym_vpn_api_client::VpnApiClientError),
-
-    #[error("failed to load keys: {source}")]
-    FailedToLoadKeys {
-        source: Box<dyn std::error::Error + Send + Sync>,
-    },
-
-    #[error("failed to get account summary")]
-    FailedToGetAccountSummary,
-
-    //#[error("failed to send command")]
-    //SendCommand {
-    //    source: Box<SendError<nym_vpn_account_controller::AccountCommand>>,
-    //},
-    #[error("account controller not ready to handle command")]
-    RecvCommand { source: Box<RecvError> },
-
-    #[error("no account stored")]
-    NoAccountStored,
-
-    #[error("failed to init device keys")]
-    FailedToInitDeviceKeys {
-        source: Box<dyn std::error::Error + Send + Sync>,
     },
 
     #[error("failed to reset device keys")]
@@ -95,26 +51,11 @@ pub enum AccountError {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
-    #[error(transparent)]
-    AccountControllerError {
-        #[from]
-        source: nym_vpn_account_controller::Error,
-    },
-
-    #[error(transparent)]
-    AccountCommandError {
-        #[from]
-        source: AccountCommandError,
-    },
-
     #[error("account not configured")]
     AccountManagementNotConfigured,
 
     #[error("failed to parse account links")]
     FailedToParseAccountLinks,
-
-    #[error("timeout: {0}")]
-    Timeout(String),
 
     #[error("unable to proceed while connected")]
     IsConnected,
