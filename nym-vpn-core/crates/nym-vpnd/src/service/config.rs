@@ -275,7 +275,7 @@ fn set_data_dir_permissions(data_dir: impl AsRef<Path>) -> nym_windows::security
     let administrators_sid = Sid::well_known(WellKnownSid::BuiltinAdministrators)?;
 
     let allow_admin_group_access = ExplicitAccess::new(
-        Trustee::new(administrators_sid.clone()?, TrusteeType::WellKnownGroup),
+        Trustee::new(administrators_sid.try_clone()?, TrusteeType::WellKnownGroup),
         AccessMode::SetAccess,
         FileAccessRights::FILE_ALL_ACCESS.into(),
         AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE,

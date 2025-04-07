@@ -32,7 +32,7 @@ impl ExplicitAccess {
     ) -> Self {
         let inner = EXPLICIT_ACCESS_W {
             Trustee: unsafe { trustee.inner() },
-            grfAccessMode: access_mode.to_raw(),
+            grfAccessMode: access_mode.into(),
             grfAccessPermissions: access_permissions.bits(),
             grfInheritance: ACE_FLAGS(inheritance_flags.bits()),
         };
@@ -49,7 +49,7 @@ impl ExplicitAccess {
     ///
     /// For more information, see [`ACCESS_MODE`](https://learn.microsoft.com/en-us/windows/win32/api/accctrl/ne-accctrl-access_mode)
     pub fn set_access_mode(&mut self, access_mode: AccessMode) {
-        self.inner.grfAccessMode = access_mode.to_raw();
+        self.inner.grfAccessMode = access_mode.into();
     }
 
     /// Set access permissions.
@@ -89,16 +89,16 @@ pub enum AccessMode {
     SetAuditFailure,
 }
 
-impl AccessMode {
-    fn to_raw(&self) -> ACCESS_MODE {
-        match self {
-            Self::NotUsedAccess => NOT_USED_ACCESS,
-            Self::GrantAccess => GRANT_ACCESS,
-            Self::SetAccess => SET_ACCESS,
-            Self::DenyAccess => DENY_ACCESS,
-            Self::RevokeAccess => REVOKE_ACCESS,
-            Self::SetAuditSuccess => SET_AUDIT_SUCCESS,
-            Self::SetAuditFailure => SET_AUDIT_FAILURE,
+impl From<AccessMode> for ACCESS_MODE {
+    fn from(mode: AccessMode) -> ACCESS_MODE {
+        match mode {
+            AccessMode::NotUsedAccess => NOT_USED_ACCESS,
+            AccessMode::GrantAccess => GRANT_ACCESS,
+            AccessMode::SetAccess => SET_ACCESS,
+            AccessMode::DenyAccess => DENY_ACCESS,
+            AccessMode::RevokeAccess => REVOKE_ACCESS,
+            AccessMode::SetAuditSuccess => SET_AUDIT_SUCCESS,
+            AccessMode::SetAuditFailure => SET_AUDIT_FAILURE,
         }
     }
 }

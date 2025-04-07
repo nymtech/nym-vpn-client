@@ -27,11 +27,11 @@ pub enum SecurityObjectType {
     Service,
 }
 
-impl SecurityObjectType {
-    fn to_raw(&self) -> SE_OBJECT_TYPE {
-        match self {
-            Self::FileObject => SE_FILE_OBJECT,
-            Self::Service => SE_SERVICE,
+impl From<SecurityObjectType> for SE_OBJECT_TYPE {
+    fn from(value: SecurityObjectType) -> SE_OBJECT_TYPE {
+        match value {
+            SecurityObjectType::FileObject => SE_FILE_OBJECT,
+            SecurityObjectType::Service => SE_SERVICE,
         }
     }
 }
@@ -48,9 +48,9 @@ bitflags::bitflags! {
     }
 }
 
-impl SecurityInfo {
-    fn to_raw(&self) -> OBJECT_SECURITY_INFORMATION {
-        OBJECT_SECURITY_INFORMATION(self.bits())
+impl From<SecurityInfo> for OBJECT_SECURITY_INFORMATION {
+    fn from(value: SecurityInfo) -> OBJECT_SECURITY_INFORMATION {
+        OBJECT_SECURITY_INFORMATION(value.bits())
     }
 }
 
@@ -71,8 +71,8 @@ where
     unsafe {
         SetNamedSecurityInfoW(
             &HSTRING::from(object_name.as_ref()),
-            object_type.to_raw(),
-            security_info.to_raw(),
+            object_type.into(),
+            security_info.into(),
             owner.as_ref().map(|x| x.inner()),
             group.as_ref().map(|x| x.inner()),
             dacl.as_ref().map(|x| x.as_ptr()),
@@ -103,8 +103,8 @@ where
     unsafe {
         GetNamedSecurityInfoW(
             &HSTRING::from(object_name.as_ref()),
-            object_type.to_raw(),
-            security_info.to_raw(),
+            object_type.into(),
+            security_info.into(),
             Some(&mut sid_owner as _),
             Some(&mut sid_group as _),
             Some(&mut dacl as _),
@@ -137,7 +137,7 @@ mod tests {
         let users_sid = Sid::well_known(WellKnownSid::BuiltinUsers).unwrap();
 
         let local_system_trustee =
-            Trustee::new(local_system_sid.clone().unwrap(), TrusteeType::User);
+            Trustee::new(local_system_sid.try_clone().unwrap(), TrusteeType::User);
         let allow_local_system_access = ExplicitAccess::new(
             local_system_trustee,
             AccessMode::SetAccess,
@@ -146,7 +146,7 @@ mod tests {
         );
 
         let allow_users_access = ExplicitAccess::new(
-            Trustee::new(users_sid.clone().unwrap(), TrusteeType::WellKnownGroup),
+            Trustee::new(users_sid.try_clone().unwrap(), TrusteeType::WellKnownGroup),
             AccessMode::SetAccess,
             FileAccessRights::FILE_ALL_ACCESS.into(),
             AceFlags::OBJECT_INHERIT_ACE | AceFlags::CONTAINER_INHERIT_ACE,
@@ -164,12 +164,9 @@ mod tests {
         )
         .unwrap();
 
-        let security_descriptor = get_named_security_info(
-            data_dir,
-            SecurityObjectType::FileObject,
-            SecurityInfo::DACL,
-        )
-        .unwrap();
+        let security_descriptor =
+            get_named_security_info(data_dir, SecurityObjectType::FileObject, SecurityInfo::DACL)
+                .unwrap();
 
         let acl = security_descriptor.get_acl().unwrap().unwrap();
         let entry_list = acl.get_entries().unwrap();

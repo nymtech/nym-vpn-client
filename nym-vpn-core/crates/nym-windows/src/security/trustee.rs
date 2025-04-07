@@ -24,7 +24,7 @@ impl Trustee {
         let mut trustee = TRUSTEE_W::default();
         unsafe { BuildTrusteeWithSidW(&mut trustee, Some(sid.inner())) };
         trustee.TrusteeForm = TRUSTEE_IS_SID;
-        trustee.TrusteeType = trustee_type.to_raw();
+        trustee.TrusteeType = trustee_type.into();
 
         Self {
             inner: trustee,
@@ -75,18 +75,18 @@ pub enum TrusteeType {
     Unknown,
 }
 
-impl TrusteeType {
-    fn to_raw(&self) -> TRUSTEE_TYPE {
-        match self {
-            Self::User => TRUSTEE_IS_USER,
-            Self::Group => TRUSTEE_IS_GROUP,
-            Self::Domain => TRUSTEE_IS_DOMAIN,
-            Self::Alias => TRUSTEE_IS_ALIAS,
-            Self::WellKnownGroup => TRUSTEE_IS_WELL_KNOWN_GROUP,
-            Self::Deleted => TRUSTEE_IS_DELETED,
-            Self::Invalid => TRUSTEE_IS_INVALID,
-            Self::Computer => TRUSTEE_IS_COMPUTER,
-            Self::Unknown => TRUSTEE_IS_UNKNOWN,
+impl From<TrusteeType> for TRUSTEE_TYPE {
+    fn from(value: TrusteeType) -> Self {
+        match value {
+            TrusteeType::User => TRUSTEE_IS_USER,
+            TrusteeType::Group => TRUSTEE_IS_GROUP,
+            TrusteeType::Domain => TRUSTEE_IS_DOMAIN,
+            TrusteeType::Alias => TRUSTEE_IS_ALIAS,
+            TrusteeType::WellKnownGroup => TRUSTEE_IS_WELL_KNOWN_GROUP,
+            TrusteeType::Deleted => TRUSTEE_IS_DELETED,
+            TrusteeType::Invalid => TRUSTEE_IS_INVALID,
+            TrusteeType::Computer => TRUSTEE_IS_COMPUTER,
+            TrusteeType::Unknown => TRUSTEE_IS_UNKNOWN,
         }
     }
 }

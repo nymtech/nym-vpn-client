@@ -119,7 +119,7 @@ impl Sid {
 
         unsafe {
             CreateWellKnownSid(
-                well_known_sid.to_raw(),
+                well_known_sid.into(),
                 domain_sid.as_ref().map(|x| x.inner()),
                 Some(inner),
                 &mut cbsize,
@@ -131,7 +131,7 @@ impl Sid {
 
     /// Returns true if SID is well known.
     pub fn is_well_known(&self, sid_type: WellKnownSid) -> bool {
-        unsafe { IsWellKnownSid(self.inner, sid_type.to_raw()).as_bool() }
+        unsafe { IsWellKnownSid(self.inner, sid_type.into()).as_bool() }
     }
 
     /// Returns SID for current user.
@@ -244,7 +244,7 @@ impl Sid {
     }
 
     /// Returns a copy of the SID.
-    pub fn clone(&self) -> Result<Self> {
+    pub fn try_clone(&self) -> Result<Self> {
         unsafe { Self::copy_from(self.inner) }
     }
 
@@ -300,16 +300,15 @@ pub enum WellKnownSid {
     // todo: add more well known SIDs from WELL_KNOWN_SID_TYPE
 }
 
-impl WellKnownSid {
-    fn to_raw(&self) -> WELL_KNOWN_SID_TYPE {
+impl From<WellKnownSid> for WELL_KNOWN_SID_TYPE {
+    fn from(well_known_sid: WellKnownSid) -> Self {
         use windows::Win32::Security as S;
-
-        match self {
-            Self::CreatorOwner => S::WinCreatorOwnerSid,
-            Self::World => S::WinWorldSid,
-            Self::LocalSystem => S::WinLocalSystemSid,
-            Self::BuiltinAdministrators => S::WinBuiltinAdministratorsSid,
-            Self::BuiltinUsers => S::WinBuiltinUsersSid,
+        match well_known_sid {
+            WellKnownSid::CreatorOwner => S::WinCreatorOwnerSid,
+            WellKnownSid::World => S::WinWorldSid,
+            WellKnownSid::LocalSystem => S::WinLocalSystemSid,
+            WellKnownSid::BuiltinAdministrators => S::WinBuiltinAdministratorsSid,
+            WellKnownSid::BuiltinUsers => S::WinBuiltinUsersSid,
         }
     }
 }
@@ -335,7 +334,7 @@ mod tests {
     #[test]
     fn test_clone_sid() {
         let src = Sid::well_known(WellKnownSid::World).unwrap();
-        let dst = src.clone().unwrap();
+        let dst = src.try_clone().unwrap();
         assert_eq!(src, dst);
     }
 
