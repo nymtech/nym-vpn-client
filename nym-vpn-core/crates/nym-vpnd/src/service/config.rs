@@ -238,7 +238,7 @@ pub(super) fn create_data_dir(
         network_data_dir.display()
     );
 
-    for dir_path in [&network_data_dir, &data_dir] {
+    for dir_path in [&network_data_dir, data_dir] {
         #[cfg(unix)]
         {
             // Set directory permissions to 700 (rwx------)
