@@ -5088,6 +5088,7 @@ dependencies = [
  "nym-gateway-directory",
  "nym-statistics-common",
  "nym-vpn-api-client",
+ "nym-vpn-network-config",
  "nym-wg-gateway-client",
  "si-scale",
  "strum_macros",
