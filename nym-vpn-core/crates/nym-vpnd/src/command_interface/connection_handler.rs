@@ -10,7 +10,9 @@ use nym_vpn_api_client::{
     NetworkCompatibility,
 };
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
-use nym_vpn_lib_types::{TunnelState, VpnServiceInfo};
+use nym_vpn_lib_types::{
+    TunnelState, VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo,
+};
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::gateway;
 
@@ -18,7 +20,7 @@ use super::protobuf::error::VpnCommandSendError;
 use crate::logging::LogPath;
 use crate::service::{
     AccountError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
-    VpnServiceConnectError, VpnServiceDeleteLogFileError, VpnServiceDisconnectError,
+    VpnServiceDeleteLogFileError,
 };
 
 #[derive(Debug, thiserror::Error)]

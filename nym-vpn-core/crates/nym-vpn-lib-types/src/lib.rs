@@ -22,7 +22,7 @@ pub use connection_data::{
     ConnectionData, Gateway, MixnetConnectionData, NymAddress, TunnelConnectionData,
     WireguardConnectionData, WireguardNode,
 };
-pub use service::VpnServiceInfo;
+pub use service::{VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo};
 pub use tunnel_event::{
     BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent, SphinxPacketRates,
     TunnelEvent,

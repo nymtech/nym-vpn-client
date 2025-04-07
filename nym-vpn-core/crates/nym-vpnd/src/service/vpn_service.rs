@@ -29,14 +29,16 @@ use nym_vpn_lib::{
     },
     MixnetClientConfig, Recipient, UserAgent,
 };
-use nym_vpn_lib_types::{TunnelEvent, TunnelState, TunnelType, VpnServiceInfo};
+use nym_vpn_lib_types::{
+    TunnelEvent, TunnelState, TunnelType, VpnServiceConnectError, VpnServiceDisconnectError,
+    VpnServiceInfo,
+};
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use zeroize::Zeroizing;
 
 use super::{
     config::{NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
     error::{AccountError, Error, Result, SetNetworkError, VpnServiceDeleteLogFileError},
-    VpnServiceConnectError, VpnServiceDisconnectError,
 };
 use crate::config::GlobalConfigFile;
 use crate::logging::LogPath;
