@@ -30,10 +30,7 @@ use super::{
     helpers::{parse_entry_point, parse_exit_point, threshold_into_percent},
 };
 use crate::logging::LogPath;
-use crate::{
-    command_interface::protobuf::info_response::into_proto_available_tickets,
-    service::{ConnectOptions, VpnServiceCommand},
-};
+use crate::service::{ConnectOptions, VpnServiceCommand};
 
 pub(super) struct CommandInterface {
     // Send commands to the VPN service
@@ -854,13 +851,16 @@ impl NymVpnd for CommandInterface {
             .map_err(|err| {
                 tracing::error!("Failed to get available tickets: {:?}", err);
                 tonic::Status::internal("Failed to get available tickets")
-            })?;
+            })?
+            .map(nym_vpn_lib_types::AvailableTickets::from);
 
         let response = match result {
             Ok(ticketbooks) => GetAvailableTicketsResponse {
                 resp: Some(
                     nym_vpn_proto::get_available_tickets_response::Resp::AvailableTickets(
-                        into_proto_available_tickets(ticketbooks),
+                        nym_vpn_proto::get_available_tickets_response::AvailableTickets::from(
+                            ticketbooks,
+                        ),
                     ),
                 ),
             },

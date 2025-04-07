@@ -227,3 +227,25 @@ impl TryFrom<Vec<BasicTicketbookInformation>> for AvailableTicketbooks {
         Ok(AvailableTicketbooks::from(ticketbooks))
     }
 }
+
+impl From<AvailableTicketbooks> for nym_vpn_lib_types::AvailableTickets {
+    fn from(ticketbooks: AvailableTicketbooks) -> Self {
+        Self {
+            mixnet_entry_tickets: ticketbooks.remaining_tickets(TicketType::V1MixnetEntry),
+            mixnet_entry_data: ticketbooks.remaining_data(TicketType::V1MixnetEntry),
+            mixnet_entry_data_si: ticketbooks.remaining_data_si(TicketType::V1MixnetEntry),
+
+            mixnet_exit_tickets: ticketbooks.remaining_tickets(TicketType::V1MixnetExit),
+            mixnet_exit_data: ticketbooks.remaining_data(TicketType::V1MixnetExit),
+            mixnet_exit_data_si: ticketbooks.remaining_data_si(TicketType::V1MixnetExit),
+
+            vpn_entry_tickets: ticketbooks.remaining_tickets(TicketType::V1WireguardEntry),
+            vpn_entry_data: ticketbooks.remaining_data(TicketType::V1WireguardEntry),
+            vpn_entry_data_si: ticketbooks.remaining_data_si(TicketType::V1WireguardEntry),
+
+            vpn_exit_tickets: ticketbooks.remaining_tickets(TicketType::V1WireguardExit),
+            vpn_exit_data: ticketbooks.remaining_data(TicketType::V1WireguardExit),
+            vpn_exit_data_si: ticketbooks.remaining_data_si(TicketType::V1WireguardExit),
+        }
+    }
+}

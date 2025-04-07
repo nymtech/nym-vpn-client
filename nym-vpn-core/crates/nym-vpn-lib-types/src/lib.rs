@@ -16,6 +16,7 @@ pub use account::{
     store_account::StoreAccountError,
     sync_account::SyncAccountError,
     sync_device::SyncDeviceError,
+    ticketbooks::AvailableTickets,
     AccountCommandError, VpnApiErrorResponse,
 };
 pub use connection_data::{
