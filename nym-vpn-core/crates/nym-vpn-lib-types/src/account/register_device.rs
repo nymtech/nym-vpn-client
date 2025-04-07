@@ -17,6 +17,9 @@ pub enum RegisterDeviceError {
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
 
+    #[error("no connectivity")]
+    Offline,
+
     #[error("internal error: {0}")]
     Internal(String),
 }
@@ -36,31 +39,34 @@ impl RegisterDeviceError {
             RegisterDeviceError::NoDeviceStored => self.to_string(),
             RegisterDeviceError::RegisterDeviceEndpointFailure(failure) => failure.message.clone(),
             RegisterDeviceError::UnexpectedResponse(message) => message.clone(),
+            RegisterDeviceError::Offline => self.to_string(),
             RegisterDeviceError::Internal(_) => self.to_string(),
         }
     }
 
     pub fn message_id(&self) -> Option<String> {
         match self {
-            RegisterDeviceError::NoAccountStored => None,
-            RegisterDeviceError::NoDeviceStored => None,
             RegisterDeviceError::RegisterDeviceEndpointFailure(failure) => {
                 failure.message_id.clone()
             }
-            RegisterDeviceError::UnexpectedResponse(_) => None,
-            RegisterDeviceError::Internal(_) => None,
+            RegisterDeviceError::NoAccountStored
+            | RegisterDeviceError::NoDeviceStored
+            | RegisterDeviceError::UnexpectedResponse(_)
+            | RegisterDeviceError::Offline
+            | RegisterDeviceError::Internal(_) => None,
         }
     }
 
     pub fn code_reference_id(&self) -> Option<String> {
         match self {
-            RegisterDeviceError::NoAccountStored => None,
-            RegisterDeviceError::NoDeviceStored => None,
             RegisterDeviceError::RegisterDeviceEndpointFailure(failure) => {
                 failure.code_reference_id.clone()
             }
-            RegisterDeviceError::UnexpectedResponse(_) => None,
-            RegisterDeviceError::Internal(_) => None,
+            RegisterDeviceError::NoAccountStored
+            | RegisterDeviceError::NoDeviceStored
+            | RegisterDeviceError::UnexpectedResponse(_)
+            | RegisterDeviceError::Offline
+            | RegisterDeviceError::Internal(_) => None,
         }
     }
 }

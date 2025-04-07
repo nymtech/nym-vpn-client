@@ -17,6 +17,9 @@ pub enum SyncDeviceError {
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
 
+    #[error("no connectivity")]
+    Offline,
+
     #[error("internal error: {0}")]
     Internal(String),
 }
@@ -36,29 +39,32 @@ impl SyncDeviceError {
             SyncDeviceError::NoDeviceStored => self.to_string(),
             SyncDeviceError::SyncDeviceEndpointFailure(failure) => failure.message.clone(),
             SyncDeviceError::UnexpectedResponse(response) => response.to_string(),
+            SyncDeviceError::Offline => self.to_string(),
             SyncDeviceError::Internal(_) => self.to_string(),
         }
     }
 
     pub fn message_id(&self) -> Option<String> {
         match self {
-            SyncDeviceError::NoAccountStored => None,
-            SyncDeviceError::NoDeviceStored => None,
             SyncDeviceError::SyncDeviceEndpointFailure(failure) => failure.message_id.clone(),
-            SyncDeviceError::UnexpectedResponse(_) => None,
-            SyncDeviceError::Internal(_) => None,
+            SyncDeviceError::NoAccountStored
+            | SyncDeviceError::NoDeviceStored
+            | SyncDeviceError::UnexpectedResponse(_)
+            | SyncDeviceError::Offline
+            | SyncDeviceError::Internal(_) => None,
         }
     }
 
     pub fn code_reference_id(&self) -> Option<String> {
         match self {
-            SyncDeviceError::NoAccountStored => None,
-            SyncDeviceError::NoDeviceStored => None,
             SyncDeviceError::SyncDeviceEndpointFailure(failure) => {
                 failure.code_reference_id.clone()
             }
-            SyncDeviceError::UnexpectedResponse(_) => None,
-            SyncDeviceError::Internal(_) => None,
+            SyncDeviceError::NoAccountStored
+            | SyncDeviceError::NoDeviceStored
+            | SyncDeviceError::UnexpectedResponse(_)
+            | SyncDeviceError::Offline
+            | SyncDeviceError::Internal(_) => None,
         }
     }
 }

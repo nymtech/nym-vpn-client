@@ -40,6 +40,9 @@ impl From<RequestZkNymErrorReason> for ProtoRequestZkNymError {
             RequestZkNymErrorReason::Storage(err) => {
                 Some(crate::request_zk_nym_error::Outcome::Storage(err))
             }
+            RequestZkNymErrorReason::Offline => {
+                Some(crate::request_zk_nym_error::Outcome::Offline(true))
+            }
             RequestZkNymErrorReason::Internal(err) => {
                 Some(crate::request_zk_nym_error::Outcome::Internal(err))
             }

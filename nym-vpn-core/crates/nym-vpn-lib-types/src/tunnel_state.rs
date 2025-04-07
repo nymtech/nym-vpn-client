@@ -300,6 +300,7 @@ impl From<SyncAccountError> for ClientErrorReason {
             SyncAccountError::NoAccountStored => Self::Internal(Some(value.to_string())),
             SyncAccountError::SyncAccountEndpointFailure(response) => response.into(),
             SyncAccountError::UnexpectedResponse(message) => Self::Internal(Some(message)),
+            SyncAccountError::Offline => Self::Internal(Some(value.to_string())),
             SyncAccountError::Internal(message) => Self::Internal(Some(message)),
         }
     }
@@ -311,6 +312,7 @@ impl From<SyncDeviceError> for ClientErrorReason {
             SyncDeviceError::NoDeviceStored => Self::Internal(Some(value.to_string())),
             SyncDeviceError::SyncDeviceEndpointFailure(response) => response.into(),
             SyncDeviceError::UnexpectedResponse(message) => Self::Internal(Some(message)),
+            SyncDeviceError::Offline => Self::Internal(Some(value.to_string())),
             SyncDeviceError::Internal(message) => Self::Internal(Some(message)),
         }
     }

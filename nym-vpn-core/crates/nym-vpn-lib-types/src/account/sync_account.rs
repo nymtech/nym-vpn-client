@@ -14,6 +14,9 @@ pub enum SyncAccountError {
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
 
+    #[error("no connectivity")]
+    Offline,
+
     #[error("internal error: {0}")]
     Internal(String),
 }
@@ -32,27 +35,30 @@ impl SyncAccountError {
             SyncAccountError::NoAccountStored => self.to_string(),
             SyncAccountError::SyncAccountEndpointFailure(failure) => failure.message.clone(),
             SyncAccountError::UnexpectedResponse(response) => response.to_string(),
+            SyncAccountError::Offline => self.to_string(),
             SyncAccountError::Internal(_) => self.to_string(),
         }
     }
 
     pub fn message_id(&self) -> Option<String> {
         match self {
-            SyncAccountError::NoAccountStored => None,
             SyncAccountError::SyncAccountEndpointFailure(failure) => failure.message_id.clone(),
-            SyncAccountError::UnexpectedResponse(_) => None,
-            SyncAccountError::Internal(_) => None,
+            SyncAccountError::NoAccountStored
+            | SyncAccountError::UnexpectedResponse(_)
+            | SyncAccountError::Offline
+            | SyncAccountError::Internal(_) => None,
         }
     }
 
     pub fn code_reference_id(&self) -> Option<String> {
         match self {
-            SyncAccountError::NoAccountStored => None,
             SyncAccountError::SyncAccountEndpointFailure(failure) => {
                 failure.code_reference_id.clone()
             }
-            SyncAccountError::UnexpectedResponse(_) => None,
-            SyncAccountError::Internal(_) => None,
+            SyncAccountError::NoAccountStored
+            | SyncAccountError::UnexpectedResponse(_)
+            | SyncAccountError::Offline
+            | SyncAccountError::Internal(_) => None,
         }
     }
 }
