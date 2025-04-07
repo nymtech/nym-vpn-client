@@ -117,7 +117,7 @@ where
         let (account_storage, credential_storage) = init::create_storage(&config, storage).await?;
 
         // Client to query the VPN API
-        let vpn_api_client = init::create_vpn_api_client(&config).await?;
+        let vpn_api_client = AccountControllerVpnApiClient::new(&config)?;
 
         // We expose the account state as a shared object that can be queried without having to ask
         // the controller
@@ -903,10 +903,7 @@ mod init {
 
     use nym_vpn_store::VpnStorage;
 
-    use crate::{
-        shared_state::MnemonicState, vpn_api_client::AccountControllerVpnApiClient, Error,
-        SharedAccountState,
-    };
+    use crate::{shared_state::MnemonicState, Error, SharedAccountState};
 
     use super::{
         AccountControllerConfig, AccountStorage, SharedVpnCredentialStorage, VpnCredentialStorage,
@@ -931,17 +928,6 @@ mod init {
         ));
 
         Ok((account_storage, credential_storage))
-    }
-
-    pub(super) async fn create_vpn_api_client(
-        config: &AccountControllerConfig,
-    ) -> Result<AccountControllerVpnApiClient, Error> {
-        nym_vpn_api_client::VpnApiClient::new(
-            config.network_env.vpn_api_url(),
-            config.user_agent.clone(),
-        )
-        .map_err(Error::SetupVpnApiClient)
-        .map(AccountControllerVpnApiClient::new)
     }
 
     pub(super) async fn create_initial_shared_state<S>(
