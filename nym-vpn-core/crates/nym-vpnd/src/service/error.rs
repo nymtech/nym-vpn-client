@@ -28,14 +28,14 @@ pub enum VpnServiceDisconnectError {
 pub enum AccountError {
     // Failures related to the operational aspects of the account controller
     #[error(transparent)]
-    AccountControllerError {
+    AccountController {
         #[from]
         source: nym_vpn_account_controller::Error,
     },
 
     // Failures for commands run by the account controller
     #[error(transparent)]
-    AccountCommandError {
+    AccountCommand {
         #[from]
         source: AccountCommandError,
     },
@@ -86,7 +86,7 @@ pub enum VpnServiceDeleteLogFileError {
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("account error: {0}")]
-    Account(#[source] AccountError),
+    Account(#[from] AccountError),
 
     #[error("config setup error: {0}")]
     ConfigSetup(#[source] ConfigSetupError),
