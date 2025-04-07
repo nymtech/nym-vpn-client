@@ -9,12 +9,8 @@ use super::config::ConfigSetupError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum AccountError {
-    // Failures related to the operational aspects of the account controller
-    #[error(transparent)]
-    AccountController {
-        #[from]
-        source: nym_vpn_account_controller::Error,
-    },
+    #[error("failed to init account controller: {reason}")]
+    Initialization { reason: String },
 
     // Failures for commands run by the account controller
     #[error(transparent)]
