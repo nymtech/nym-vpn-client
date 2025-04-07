@@ -1097,7 +1097,10 @@ impl AuthClient {
         // threshold of 10 surbs that it reserves for itself to request additional
         // surbs.
         let surbs = if message.use_surbs() {
-            IncludedSurbs::new(20)
+            match &message {
+                ClientMessage::Initial(_) => IncludedSurbs::new(20),
+                _ => IncludedSurbs::new(1),
+            }
         } else {
             IncludedSurbs::ExposeSelfAddress
         };
