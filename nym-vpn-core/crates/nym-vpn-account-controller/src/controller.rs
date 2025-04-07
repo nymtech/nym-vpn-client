@@ -276,9 +276,13 @@ where
     }
 
     async fn handle_store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
-        self.vpn_api_client
-            .check_account_exists_on_api(&VpnApiAccount::from(mnemonic.clone()))
-            .await?;
+        if self.offline_watch.is_online() {
+            self.vpn_api_client
+                .check_account_exists_on_api(&VpnApiAccount::from(mnemonic.clone()))
+                .await?;
+        } else {
+            tracing::info!("Not checking if account exists on vpn-api as we are offline");
+        }
 
         self.account_storage
             .store_account(mnemonic)
@@ -289,9 +293,11 @@ where
             .await
             .map_err(AccountCommandError::internal)?;
 
-        // We don't need to wait for the sync to finish, so queue it up and return
-        self.get_command_sender().background_sync_account_state();
-        self.get_command_sender().background_sync_device_state();
+        if self.offline_watch.is_online() {
+            // We don't need to wait for the sync to finish, so queue it up and return
+            self.get_command_sender().background_sync_account_state();
+            self.get_command_sender().background_sync_device_state();
+        }
 
         Ok(())
     }
@@ -302,10 +308,14 @@ where
         // TODO: here we should put the controller in some sort of idle state, and wait for all
         // currently running operations to finish before proceeding with the reset
 
-        if let Err(err) = self.unregister_device_from_api().await {
-            tracing::error!("Failed to unregister device: {err}");
+        if self.offline_watch.is_online() {
+            if let Err(err) = self.unregister_device_from_api().await {
+                tracing::error!("Failed to unregister device: {err}");
+            } else {
+                tracing::info!("Device has been unregistered");
+            }
         } else {
-            tracing::info!("Device has been unregistered");
+            tracing::info!("Not unregistering device as we are offline");
         }
 
         self.account_storage
@@ -356,8 +366,10 @@ where
             });
 
         // And conclude by syncing with the remote state
-        self.handle_sync_account_state(AccountCommand::SyncAccountState(None))
-            .await;
+        if self.offline_watch.is_online() {
+            self.handle_sync_account_state(AccountCommand::SyncAccountState(None))
+                .await;
+        }
 
         if let Err(err) = remove_files_result {
             return Err(ForgetAccountError::RemoveAccountFiles(format!(
