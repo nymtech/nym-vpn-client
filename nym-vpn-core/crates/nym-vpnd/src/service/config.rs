@@ -3,10 +3,9 @@
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt;
-use std::{
-    fmt, fs,
-    path::{Path, PathBuf},
-};
+#[cfg(windows)]
+use std::path::Path;
+use std::{fmt, fs, path::PathBuf};
 
 use nym_vpn_lib::gateway_directory;
 use serde::{de::DeserializeOwned, Serialize};
