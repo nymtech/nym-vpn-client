@@ -456,7 +456,6 @@ mod tests {
             .update_dynamic_check_interval(current_period, current_bandwidth)
             .unwrap();
         // when we get bellow a convinient dynamic threshold, we start reqwesting more bandwidth (returning None)
-        println!("Current bandwidth {current_bandwidth}");
         assert!(current_bandwidth < 500 * BW_1MB);
         assert!(ret.is_none());
     }
