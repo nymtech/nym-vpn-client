@@ -5208,6 +5208,7 @@ dependencies = [
  "nym-vpn-proto",
  "nym-vpn-store",
  "nym-vpnd-types",
+ "nym-windows",
  "serde",
  "serde_json",
  "strum",

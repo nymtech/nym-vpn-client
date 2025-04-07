@@ -47,7 +47,6 @@ pub async fn connect(pipe_name: impl AsRef<OsStr>) -> io::Result<TokioIo<NamedPi
 pub fn incoming(
     pipe_name: OsString,
 ) -> io::Result<impl Stream<Item = io::Result<Connector<NamedPipeServer>>>> {
-
     let trustee = Trustee::new(
         Sid::well_known(WellKnownSid::World)?,
         TrusteeType::WellKnownGroup,
