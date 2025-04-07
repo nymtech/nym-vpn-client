@@ -81,7 +81,7 @@ impl RegisterDeviceCommandHandler {
                 Ok(device)
             }
             Err(err) => {
-                tracing::warn!("Failed to register device: {}", err);
+                tracing::warn!("Failed to register device: {err}");
                 self.account_state
                     .set_device_registration(RegisterDeviceResult::Failed(err.clone()))
                     .await;

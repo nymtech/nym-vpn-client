@@ -19,84 +19,7 @@ impl From<AccountError> for nym_vpn_proto::AccountError {
                     "reason".to_string() => source.to_string(),
                 },
             },
-            AccountError::FailedToStoreAccount { ref source } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "reason".to_string() => source.to_string(),
-                },
-            },
-            AccountError::FailedToCheckIfAccountIsStored { ref source } => {
-                nym_vpn_proto::AccountError {
-                    kind: AccountErrorType::Storage as i32,
-                    message: err.to_string(),
-                    details: hashmap! {
-                        "reason".to_string() => source.to_string(),
-                    },
-                }
-            }
-            AccountError::FailedToRemoveAccount { ref source } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "reason".to_string() => source.to_string(),
-                },
-            },
-            AccountError::FailedToForgetAccount { ref source } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "reason".to_string() => source.to_string(),
-                },
-            },
-            AccountError::FailedToLoadAccount { ref source } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {
-                    "reason".to_string() => source.to_string(),
-                },
-            },
-            AccountError::MissingApiUrl => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::InvalidApiUrl => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::VpnApiClientError(_) => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::FailedToLoadKeys { .. } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::FailedToInitDeviceKeys { .. } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
             AccountError::FailedToResetDeviceKeys { .. } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::FailedToGetAccountSummary => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::RecvCommand { .. } => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::NoAccountStored => nym_vpn_proto::AccountError {
                 kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
                 details: hashmap! {},
@@ -117,11 +40,6 @@ impl From<AccountError> for nym_vpn_proto::AccountError {
                 details: hashmap! {},
             },
             AccountError::FailedToParseAccountLinks => nym_vpn_proto::AccountError {
-                kind: AccountErrorType::Storage as i32,
-                message: err.to_string(),
-                details: hashmap! {},
-            },
-            AccountError::Timeout(_) => nym_vpn_proto::AccountError {
                 kind: AccountErrorType::Storage as i32,
                 message: err.to_string(),
                 details: hashmap! {},
