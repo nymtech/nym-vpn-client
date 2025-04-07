@@ -37,13 +37,29 @@ impl AccountControllerVpnApiClient {
         });
 
         // TODO: handle these cases
+        // The logic below replicates the previous behaviour, but we should extend it to also
+        // handle where the account exists, but is not active or soft-deleted.
         match response {
             Ok(account) => match account.status {
                 NymVpnAccountStatusResponse::Active => Ok(()),
-                NymVpnAccountStatusResponse::Inactive => Ok(()),
-                NymVpnAccountStatusResponse::DeleteMe => Ok(()),
+                NymVpnAccountStatusResponse::Inactive => {
+                    tracing::warn!("Account is inactive - proceeding anyway");
+                    Ok(())
+                }
+                NymVpnAccountStatusResponse::DeleteMe => {
+                    tracing::warn!("Account is marked for deletion - proceeding anyway");
+                    Ok(())
+                }
             },
             Err(err) => Err(err),
+        }
+    }
+}
+
+impl From<nym_vpn_api_client::VpnApiClient> for AccountControllerVpnApiClient {
+    fn from(vpn_api_client: nym_vpn_api_client::VpnApiClient) -> Self {
+        Self {
+            inner: vpn_api_client,
         }
     }
 }
