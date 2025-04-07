@@ -3014,6 +3014,7 @@ public struct VpnConfig {
     public var exitRouter: ExitPoint
     public var enableTwoHop: Bool
     public var tunProvider: OsTunProvider
+    public var configPath: PathBuf?
     public var credentialDataPath: PathBuf?
     public var tunStatusListener: TunnelStatusListener?
     public var credentialMode: Bool?
@@ -3022,11 +3023,12 @@ public struct VpnConfig {
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?, credentialMode: Bool?, statisticsRecipient: String?, userAgent: UserAgent) {
+    public init(entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, configPath: PathBuf?, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?, credentialMode: Bool?, statisticsRecipient: String?, userAgent: UserAgent) {
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
         self.enableTwoHop = enableTwoHop
         self.tunProvider = tunProvider
+        self.configPath = configPath
         self.credentialDataPath = credentialDataPath
         self.tunStatusListener = tunStatusListener
         self.credentialMode = credentialMode
@@ -3045,6 +3047,7 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
                 exitRouter: FfiConverterTypeExitPoint.read(from: &buf), 
                 enableTwoHop: FfiConverterBool.read(from: &buf), 
                 tunProvider: FfiConverterTypeOSTunProvider.read(from: &buf), 
+                configPath: FfiConverterOptionTypePathBuf.read(from: &buf), 
                 credentialDataPath: FfiConverterOptionTypePathBuf.read(from: &buf), 
                 tunStatusListener: FfiConverterOptionTypeTunnelStatusListener.read(from: &buf), 
                 credentialMode: FfiConverterOptionBool.read(from: &buf), 
@@ -3058,6 +3061,7 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
         FfiConverterTypeExitPoint.write(value.exitRouter, into: &buf)
         FfiConverterBool.write(value.enableTwoHop, into: &buf)
         FfiConverterTypeOSTunProvider.write(value.tunProvider, into: &buf)
+        FfiConverterOptionTypePathBuf.write(value.configPath, into: &buf)
         FfiConverterOptionTypePathBuf.write(value.credentialDataPath, into: &buf)
         FfiConverterOptionTypeTunnelStatusListener.write(value.tunStatusListener, into: &buf)
         FfiConverterOptionBool.write(value.credentialMode, into: &buf)
