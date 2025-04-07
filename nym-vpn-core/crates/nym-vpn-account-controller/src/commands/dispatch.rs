@@ -85,16 +85,16 @@ impl AccountCommand {
         tracing::debug!("No connectivity");
         match self {
             AccountCommand::SyncAccountState(Some(tx)) => {
-                tx.send(Err(SyncAccountError::internal("No connectivity")));
+                tx.send(Err(SyncAccountError::Offline));
             }
             AccountCommand::SyncDeviceState(Some(tx)) => {
-                tx.send(Err(SyncDeviceError::internal("No connectivity")));
+                tx.send(Err(SyncDeviceError::Offline));
             }
             AccountCommand::RegisterDevice(Some(tx)) => {
-                tx.send(Err(RegisterDeviceError::internal("No connectivity")));
+                tx.send(Err(RegisterDeviceError::Offline));
             }
             AccountCommand::RequestZkNym(Some(tx)) => {
-                tx.send(Err(RequestZkNymError::internal("No connectivity")));
+                tx.send(Err(RequestZkNymError::Offline));
             }
             _ => {}
         }

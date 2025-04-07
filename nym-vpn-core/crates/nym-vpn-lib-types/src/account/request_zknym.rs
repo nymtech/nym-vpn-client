@@ -98,11 +98,14 @@ pub enum RequestZkNymError {
     #[error("credential storage error: {0}")]
     CredentialStorage(String),
 
-    #[error("internal error: {0}")]
-    Internal(String),
-
     #[error("nym-vpn-api: unexpected error response: {0}")]
     UnexpectedErrorResponse(String),
+
+    #[error("no connectivity")]
+    Offline,
+
+    #[error("internal error: {0}")]
+    Internal(String),
 }
 
 impl RequestZkNymError {
@@ -179,6 +182,9 @@ pub enum RequestZkNymErrorReason {
     #[error("storage error: {0}")]
     Storage(String),
 
+    #[error("no connectivity")]
+    Offline,
+
     #[error("{0}")]
     Internal(String),
 }
@@ -205,6 +211,7 @@ impl From<RequestZkNymError> for RequestZkNymErrorReason {
                 Self::UnexpectedVpnApiResponse(message)
             }
             RequestZkNymError::CredentialStorage(message) => Self::Storage(message),
+            RequestZkNymError::Offline => Self::Offline,
             RequestZkNymError::CreateEcashKeyPair(_)
             | RequestZkNymError::ConstructWithdrawalRequest(_)
             | RequestZkNymError::InvalidTicketTypeInResponse(_)

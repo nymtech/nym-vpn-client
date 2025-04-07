@@ -133,6 +133,9 @@ impl From<SyncAccountError> for ProtoSyncAccountError {
                     err,
                 )),
             },
+            SyncAccountError::Offline => ProtoSyncAccountError {
+                error_detail: Some(crate::sync_account_error::ErrorDetail::Offline(true)),
+            },
             SyncAccountError::Internal(err) => ProtoSyncAccountError {
                 error_detail: Some(crate::sync_account_error::ErrorDetail::Internal(err)),
             },
@@ -160,6 +163,9 @@ impl From<SyncDeviceError> for ProtoSyncDeviceError {
                 error_detail: Some(crate::sync_device_error::ErrorDetail::UnexpectedResponse(
                     err,
                 )),
+            },
+            SyncDeviceError::Offline => ProtoSyncDeviceError {
+                error_detail: Some(crate::sync_device_error::ErrorDetail::Offline(true)),
             },
             SyncDeviceError::Internal(err) => ProtoSyncDeviceError {
                 error_detail: Some(crate::sync_device_error::ErrorDetail::Internal(err)),
@@ -192,6 +198,9 @@ impl From<RegisterDeviceError> for ProtoRegisterDeviceError {
                 error_detail: Some(
                     crate::register_device_error::ErrorDetail::UnexpectedResponse(err),
                 ),
+            },
+            RegisterDeviceError::Offline => ProtoRegisterDeviceError {
+                error_detail: Some(crate::register_device_error::ErrorDetail::Offline(true)),
             },
             RegisterDeviceError::Internal(err) => ProtoRegisterDeviceError {
                 error_detail: Some(crate::register_device_error::ErrorDetail::Internal(err)),
