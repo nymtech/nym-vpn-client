@@ -6,16 +6,21 @@ use std::ops::Deref;
 use nym_vpn_api_client::{response::NymVpnAccountStatusResponse, types::VpnApiAccount};
 use nym_vpn_lib_types::{StoreAccountError, VpnApiErrorResponse};
 
+use crate::{AccountControllerConfig, Error};
+
 #[derive(Clone, Debug)]
 pub(crate) struct AccountControllerVpnApiClient {
     inner: nym_vpn_api_client::VpnApiClient,
 }
 
 impl AccountControllerVpnApiClient {
-    pub(crate) fn new(vpn_api_client: nym_vpn_api_client::VpnApiClient) -> Self {
-        Self {
-            inner: vpn_api_client,
-        }
+    pub(crate) fn new(config: &AccountControllerConfig) -> Result<Self, Error> {
+        nym_vpn_api_client::VpnApiClient::new(
+            config.network_env.vpn_api_url(),
+            config.user_agent.clone(),
+        )
+        .map_err(Error::SetupVpnApiClient)
+        .map(AccountControllerVpnApiClient::from)
     }
 
     pub(crate) fn inner(&self) -> &nym_vpn_api_client::VpnApiClient {
