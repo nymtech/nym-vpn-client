@@ -70,10 +70,10 @@ impl AccountCommandSender {
     }
 
     pub fn background_sync_account_state(&self) {
-        self.command_tx
+        let _ = self
+            .command_tx
             .send(AccountCommand::SyncAccountState(None))
-            .inspect_err(|err| tracing::error!("Failed to send sync account state command: {err}"))
-            .ok();
+            .inspect_err(|err| tracing::error!("Failed to send sync account state command: {err}"));
     }
 
     pub async fn sync_device_state(&self) -> Result<DeviceState, SyncDeviceError> {
