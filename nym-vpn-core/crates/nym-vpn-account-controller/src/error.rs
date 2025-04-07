@@ -1,10 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use tokio::sync::mpsc::error::SendError;
-
-use crate::commands::AccountCommand;
-
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[error("failed to setup nym-vpn-api client")]
@@ -39,12 +35,6 @@ pub enum Error {
 
     #[error("failed to remove credential storage: {0}")]
     RemoveCredentialStorage(std::io::Error),
-
-    #[error("failed to send account controller command")]
-    AccountCommandSend {
-        #[from]
-        source: SendError<AccountCommand>,
-    },
 
     #[error("internal error: {0}")]
     Internal(String),

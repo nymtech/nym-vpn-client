@@ -259,7 +259,12 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             shutdown_token.child_token(),
         )
         .await
-        .map_err(AccountError::from)?;
+        .map_err(|err| {
+            tracing::error!("Failed to create account controller: {err:?}");
+            AccountError::Initialization {
+                reason: err.to_string(),
+            }
+        })?;
 
         // These are used to interact with the account controller
         let shared_account_state = account_controller.get_shared_state();
