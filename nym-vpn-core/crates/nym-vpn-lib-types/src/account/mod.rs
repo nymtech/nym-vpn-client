@@ -26,6 +26,9 @@ pub enum AccountCommandError {
     #[error("no device stored")]
     NoDeviceStored,
 
+    #[error("no connectivity")]
+    Offline,
+
     //
     // --- Error cases for specific commands ---
     //
@@ -57,6 +60,10 @@ pub enum AccountCommandError {
 impl AccountCommandError {
     pub fn internal(message: impl ToString) -> Self {
         AccountCommandError::Internal(message.to_string())
+    }
+
+    pub fn storage(message: impl ToString) -> Self {
+        AccountCommandError::Storage(message.to_string())
     }
 }
 
