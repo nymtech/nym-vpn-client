@@ -102,6 +102,9 @@ impl From<AccountCommandError> for VpnError {
             AccountCommandError::VpnApi(e) => Self::VpnApi { details: e.into() },
             AccountCommandError::NoAccountStored => Self::NoAccountStored,
             AccountCommandError::NoDeviceStored => Self::NoDeviceIdentity,
+            AccountCommandError::Offline => Self::NetworkConnectionError {
+                details: "Unable to proceed with command since we are offline".to_owned(),
+            },
             AccountCommandError::StoreAccount(e) => Self::StoreAccount { details: e.into() },
             AccountCommandError::SyncAccount(e) => Self::SyncAccount { details: e.into() },
             AccountCommandError::SyncDevice(e) => Self::SyncDevice { details: e.into() },

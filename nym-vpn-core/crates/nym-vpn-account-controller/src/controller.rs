@@ -442,6 +442,11 @@ where
             .load_account()
             .await
             .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
+        if self.offline_watch.is_offline() {
+            tracing::error!("Unable to get usage as we are offline");
+            return Err(AccountCommandError::Offline);
+        }
+
         let usage = self
             .vpn_api_client
             .get_usage(&account)
@@ -509,6 +514,11 @@ where
             .await
             .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
 
+        if self.offline_watch.is_offline() {
+            tracing::error!("Unable to get devices as we are offline");
+            return Err(AccountCommandError::Offline);
+        }
+
         let devices = self
             .vpn_api_client
             .get_devices(&account)
@@ -536,7 +546,12 @@ where
             .account_storage
             .load_account()
             .await
-            .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
+            .map_err(AccountCommandError::storage)?;
+
+        if self.offline_watch.is_offline() {
+            tracing::error!("Unable to get active devices as we are offline");
+            return Err(AccountCommandError::Offline);
+        }
 
         let devices = self
             .vpn_api_client
@@ -573,22 +588,46 @@ where
             }
         };
 
+        if self.offline_watch.is_offline() {
+            tracing::info!("Not requesting zknyms as we are offline");
+            command.return_no_connectivity();
+            return;
+        }
+
         self.command_handler
             .request_zk_nym(command, account, device)
             .await;
     }
 
-    async fn handle_get_device_zk_nym(&mut self) -> Result<(), Error> {
+    async fn handle_get_device_zk_nym(&mut self) -> Result<(), AccountCommandError> {
         tracing::info!("Getting device zk-nym from API");
 
-        let account = self.account_storage.load_account().await?;
-        let device = self.account_storage.load_device_keys().await?;
+        let account = self
+            .account_storage
+            .load_account()
+            .await
+            .map_err(AccountCommandError::storage)?;
+
+        let device = self
+            .account_storage
+            .load_device_keys()
+            .await
+            .map_err(AccountCommandError::storage)?;
+
+        if self.offline_watch.is_offline() {
+            tracing::error!("Unable to get device zknyms as we are offline");
+            return Err(AccountCommandError::Offline);
+        }
 
         let reported_device_zk_nyms = self
             .vpn_api_client
             .get_device_zk_nyms(&account, &device)
             .await
-            .map_err(Error::GetZkNyms)?;
+            .map_err(|err| {
+                VpnApiErrorResponse::try_from(err)
+                    .map(AccountCommandError::from)
+                    .unwrap_or_else(AccountCommandError::internal)
+            })?;
 
         tracing::info!("The device as the following zk-nyms associated to it on the account:");
         // TODO: pagination
@@ -598,17 +637,35 @@ where
         Ok(())
     }
 
-    async fn handle_get_zk_nyms_available_for_download(&self) -> Result<(), Error> {
+    async fn handle_get_zk_nyms_available_for_download(&self) -> Result<(), AccountCommandError> {
         tracing::info!("Getting zk-nyms available for download from API");
 
-        let account = self.account_storage.load_account().await?;
-        let device = self.account_storage.load_device_keys().await?;
+        let account = self
+            .account_storage
+            .load_account()
+            .await
+            .map_err(AccountCommandError::storage)?;
+
+        let device = self
+            .account_storage
+            .load_device_keys()
+            .await
+            .map_err(AccountCommandError::storage)?;
+
+        if self.offline_watch.is_offline() {
+            tracing::error!("Unable to get zknyms available for download as we are offline");
+            return Err(AccountCommandError::Offline);
+        }
 
         let reported_device_zk_nyms = self
             .vpn_api_client
             .get_zk_nyms_available_for_download(&account, &device)
             .await
-            .map_err(Error::GetZkNyms)?;
+            .map_err(|err| {
+                VpnApiErrorResponse::try_from(err)
+                    .map(AccountCommandError::from)
+                    .unwrap_or_else(AccountCommandError::internal)
+            })?;
 
         tracing::info!("The device as the following zk-nyms available to download:");
         // TODO: pagination
@@ -619,17 +676,35 @@ where
         Ok(())
     }
 
-    async fn handle_get_zk_nym_by_id(&self, id: &str) -> Result<(), Error> {
+    async fn handle_get_zk_nym_by_id(&self, id: &str) -> Result<(), AccountCommandError> {
         tracing::info!("Getting zk-nym by id from API");
 
-        let account = self.account_storage.load_account().await?;
-        let device = self.account_storage.load_device_keys().await?;
+        let account = self
+            .account_storage
+            .load_account()
+            .await
+            .map_err(AccountCommandError::storage)?;
+
+        let device = self
+            .account_storage
+            .load_device_keys()
+            .await
+            .map_err(AccountCommandError::storage)?;
+
+        if self.offline_watch.is_offline() {
+            tracing::error!("Unable to get zknym by id as we are offline");
+            return Err(AccountCommandError::Offline);
+        }
 
         let reported_device_zk_nyms = self
             .vpn_api_client
             .get_zk_nym_by_id(&account, &device, id)
             .await
-            .map_err(Error::GetZkNyms)?;
+            .map_err(|err| {
+                VpnApiErrorResponse::try_from(err)
+                    .map(AccountCommandError::from)
+                    .unwrap_or_else(AccountCommandError::internal)
+            })?;
 
         tracing::info!(
             "The device as the following zk-nym available to download: {:#?}",
@@ -639,17 +714,38 @@ where
         Ok(())
     }
 
-    async fn handle_confirm_zk_nym_downloaded(&self, id: String) -> Result<(), Error> {
+    async fn handle_confirm_zk_nym_downloaded(
+        &self,
+        id: String,
+    ) -> Result<(), AccountCommandError> {
         tracing::info!("Confirming zk-nym downloaded: {}", id);
 
-        let account = self.account_storage.load_account().await?;
-        let device = self.account_storage.load_device_keys().await?;
+        let account = self
+            .account_storage
+            .load_account()
+            .await
+            .map_err(AccountCommandError::storage)?;
+
+        let device = self
+            .account_storage
+            .load_device_keys()
+            .await
+            .map_err(AccountCommandError::storage)?;
+
+        if self.offline_watch.is_offline() {
+            tracing::error!("Unable to confirm zknym downloaded as we are offline");
+            return Err(AccountCommandError::Offline);
+        }
 
         let response = self
             .vpn_api_client
             .confirm_zk_nym_download_by_id(&account, &device, &id)
             .await
-            .map_err(Error::ConfirmZkNymDownload)?;
+            .map_err(|err| {
+                VpnApiErrorResponse::try_from(err)
+                    .map(AccountCommandError::from)
+                    .unwrap_or_else(AccountCommandError::internal)
+            })?;
 
         tracing::info!("Confirmed zk-nym downloaded: {response:?}");
 
