@@ -2,7 +2,10 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::{Arc, LazyLock};
+use std::{
+    fmt,
+    sync::{Arc, LazyLock},
+};
 
 use nym_common::ErrorExt;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -41,6 +44,14 @@ pub struct MonitorHandle {
     inner: Arc<Option<imp::MonitorHandle>>,
     rx: watch::Receiver<Connectivity>,
     _shutdown_drop_guard: Arc<DropGuard>,
+}
+
+impl fmt::Debug for MonitorHandle {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("MonitorHandle")
+            .field("rx", &self.rx)
+            .finish()
+    }
 }
 
 impl MonitorHandle {

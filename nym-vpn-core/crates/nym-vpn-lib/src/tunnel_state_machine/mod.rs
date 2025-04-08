@@ -430,7 +430,7 @@ impl TunnelStateMachine {
         )
         .await;
 
-        let offline_watch = offline_monitor.subscribe();
+        let offline_watch = offline_monitor.clone();
         account_command_tx
             .register_offline_watch(offline_watch)
             .await

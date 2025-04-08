@@ -6,7 +6,7 @@ pub(crate) mod request_zknym;
 pub(crate) mod sync_account;
 pub(crate) mod sync_device;
 
-use nym_offline_monitor::Connectivity;
+use nym_offline_monitor::MonitorHandle;
 use nym_vpn_lib_types::{
     AccountCommandError, RegisterDeviceError, RequestZkNymError, SyncAccountError, SyncDeviceError,
 };
@@ -16,7 +16,7 @@ use request_zknym::RequestZkNymSummary;
 use std::{collections::HashMap, net::SocketAddr, sync::Arc};
 
 use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
-use tokio::sync::{oneshot, watch};
+use tokio::sync::oneshot;
 
 use crate::{shared_state::DeviceState, AvailableTicketbooks, Error};
 
@@ -103,10 +103,7 @@ pub enum AccountCommand {
         ReturnSender<(), AccountCommandError>,
         Option<Vec<SocketAddr>>,
     ),
-    RegisterOfflineWatch(
-        ReturnSender<(), AccountCommandError>,
-        watch::Receiver<Connectivity>,
-    ),
+    RegisterOfflineWatch(ReturnSender<(), AccountCommandError>, MonitorHandle),
 }
 
 impl AccountCommand {

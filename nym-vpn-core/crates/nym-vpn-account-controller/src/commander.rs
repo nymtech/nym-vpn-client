@@ -3,13 +3,13 @@
 
 use std::net::SocketAddr;
 
-use nym_offline_monitor::Connectivity;
+use nym_offline_monitor::MonitorHandle;
 use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
 use nym_vpn_lib_types::{
     AccountCommandError, RegisterDeviceError, RequestZkNymError, SyncAccountError, SyncDeviceError,
 };
 use nym_vpn_store::mnemonic::Mnemonic;
-use tokio::sync::{mpsc::UnboundedSender, watch};
+use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
     commands::{request_zknym::RequestZkNymSummary, AccountCommand, ReturnSender},
@@ -144,7 +144,7 @@ impl AccountControllerCommander {
 
     pub async fn register_offline_watch(
         &self,
-        offline_watch: watch::Receiver<Connectivity>,
+        offline_watch: MonitorHandle,
     ) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx

@@ -3,8 +3,7 @@
 
 use std::{sync::Arc, time::Duration};
 
-use nym_offline_monitor::Connectivity;
-use tokio::sync::watch;
+use nym_offline_monitor::{Connectivity, MonitorHandle};
 
 use crate::{AccountCommand, AccountControllerCommander};
 
@@ -51,7 +50,7 @@ impl OfflineWatch {
 
     pub(super) fn register_offline_watch(
         &mut self,
-        offline_watch: watch::Receiver<Connectivity>,
+        offline_watch: MonitorHandle,
     ) -> Result<(), OfflineMonitorError> {
         if self.task.is_some() {
             return Err(OfflineMonitorError::WatchAlreadyRegistered);
@@ -85,14 +84,14 @@ impl OfflineWatch {
 
 struct OfflineWatchTask {
     connectivity: Arc<std::sync::Mutex<Connectivity>>,
-    offline_watch: watch::Receiver<Connectivity>,
+    offline_watch: MonitorHandle,
     commander: AccountControllerCommander,
 }
 
 impl OfflineWatchTask {
     fn new(
         connectivity: Arc<std::sync::Mutex<Connectivity>>,
-        offline_watch: watch::Receiver<Connectivity>,
+        offline_watch: MonitorHandle,
         commander: AccountControllerCommander,
     ) -> Self {
         Self {
@@ -129,16 +128,13 @@ impl OfflineWatchTask {
         }
     }
 
-    fn update_state_from_watch(&self) {
-        let new_state = *self.offline_watch.borrow();
-        self.update_state(new_state);
-    }
-
     async fn run(mut self) {
         tracing::info!("Starting offline watch task");
-        self.update_state_from_watch();
-        while self.offline_watch.changed().await.is_ok() {
-            self.update_state_from_watch();
+        let initial_state = self.offline_watch.connectivity().await;
+        self.update_state(initial_state);
+
+        while let Some(state) = self.offline_watch.next().await {
+            self.update_state(state);
         }
         tracing::info!("Offline watch task has finished");
     }
