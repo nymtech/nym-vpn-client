@@ -11,8 +11,8 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
 use nym_vpn_lib_types::{
-    AccountCommandError, ForgetAccountError, TunnelState, VpnServiceConnectError,
-    VpnServiceDisconnectError, VpnServiceInfo,
+    AccountCommandError, ForgetAccountError, StoreAccountError, TunnelState,
+    VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo,
 };
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::gateway;
@@ -150,7 +150,7 @@ impl CommandInterfaceConnectionHandler {
     pub async fn handle_store_account(
         &self,
         account: Zeroizing<String>,
-    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<(), StoreAccountError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::StoreAccount, account)
             .await
     }

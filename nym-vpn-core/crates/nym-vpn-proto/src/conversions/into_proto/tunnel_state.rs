@@ -94,6 +94,11 @@ impl From<ClientErrorReason> for ProtoError {
 impl From<StoreAccountError> for ProtoStoreAccountError {
     fn from(value: StoreAccountError) -> Self {
         match value {
+            StoreAccountError::InvalidMnemonic(err) => ProtoStoreAccountError {
+                error_detail: Some(crate::store_account_error::ErrorDetail::InvalidMnemonic(
+                    err,
+                )),
+            },
             StoreAccountError::Storage(err) => ProtoStoreAccountError {
                 error_detail: Some(crate::store_account_error::ErrorDetail::StorageError(err)),
             },
@@ -108,6 +113,9 @@ impl From<StoreAccountError> for ProtoStoreAccountError {
                 error_detail: Some(crate::store_account_error::ErrorDetail::UnexpectedResponse(
                     err,
                 )),
+            },
+            StoreAccountError::Internal(err) => ProtoStoreAccountError {
+                error_detail: Some(crate::store_account_error::ErrorDetail::Internal(err)),
             },
         }
     }

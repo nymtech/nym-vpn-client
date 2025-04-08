@@ -248,6 +248,8 @@ pub enum StoreAccountError {
 impl From<CoreStoreAccountError> for StoreAccountError {
     fn from(value: CoreStoreAccountError) -> Self {
         match value {
+            // Map to storage error for compatibility, and to avoid churn on Android in particular
+            CoreStoreAccountError::InvalidMnemonic(message) => Self::Storage(message),
             CoreStoreAccountError::Storage(err) => Self::Storage(err),
             CoreStoreAccountError::GetAccountEndpointFailure(failure) => {
                 Self::GetAccountEndpointFailure(failure.into())
@@ -255,6 +257,8 @@ impl From<CoreStoreAccountError> for StoreAccountError {
             CoreStoreAccountError::UnexpectedResponse(response) => {
                 Self::UnexpectedResponse(response)
             }
+            // Map to storage error for compatibility, and to avoid churn on Android in particular
+            CoreStoreAccountError::Internal(err) => Self::Storage(err),
         }
     }
 }

@@ -22,6 +22,9 @@ impl TryFrom<ProtoStoreAccountError> for StoreAccountError {
             "StoreAccountError.error_detail",
         ))?;
         Ok(match error_detail {
+            crate::store_account_error::ErrorDetail::InvalidMnemonic(message) => {
+                Self::InvalidMnemonic(message)
+            }
             crate::store_account_error::ErrorDetail::StorageError(err) => Self::Storage(err),
             crate::store_account_error::ErrorDetail::ErrorResponse(vpn_api_endpoint_failure) => {
                 Self::GetAccountEndpointFailure(vpn_api_endpoint_failure.into())
@@ -29,6 +32,7 @@ impl TryFrom<ProtoStoreAccountError> for StoreAccountError {
             crate::store_account_error::ErrorDetail::UnexpectedResponse(err) => {
                 Self::UnexpectedResponse(err)
             }
+            crate::store_account_error::ErrorDetail::Internal(err) => Self::Internal(err),
         })
     }
 }

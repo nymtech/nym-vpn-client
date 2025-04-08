@@ -7,7 +7,7 @@ use nym_offline_monitor::MonitorHandle;
 use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
 use nym_vpn_lib_types::{
     AccountCommandError, ForgetAccountError, RegisterDeviceError, RequestZkNymError,
-    SyncAccountError, SyncDeviceError,
+    StoreAccountError, SyncAccountError, SyncDeviceError,
 };
 use nym_vpn_store::mnemonic::Mnemonic;
 use tokio::sync::mpsc::UnboundedSender;
@@ -37,12 +37,12 @@ impl AccountCommandSender {
         }
     }
 
-    pub async fn store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
+    pub async fn store_account(&self, mnemonic: Mnemonic) -> Result<(), StoreAccountError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::StoreAccount(tx, mnemonic))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(StoreAccountError::internal)?;
+        rx.await.map_err(StoreAccountError::internal)?
     }
 
     pub async fn login(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
