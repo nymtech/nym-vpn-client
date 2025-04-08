@@ -130,10 +130,7 @@ message StoreAccountResponse {
 }
 
 message IsAccountStoredResponse {
-  oneof resp {
-    bool is_stored = 1;
-    AccountError error = 2;
-  }
+  bool is_stored = 1;
 }
 
 message ForgetAccountResponse {
@@ -213,10 +210,7 @@ message GetAccountStateResponse {
     optional RequestZkNymResult request_zk_nym_result = 7;
   }
 
-  oneof result {
-    AccountStateSummary account = 1;
-    AccountError error = 2;
-  }
+  AccountStateSummary account = 1;
 }
 
 message RegisterDeviceResult {
@@ -264,10 +258,7 @@ message GetAccountUsageResponse {
     double bandwidth_used_gb = 8;
   }
 
-  oneof result {
-    AccountUsages account_usages = 1;
-    AccountError error = 2;
-  }
+  AccountUsages account_usages = 1;
 }
 
 message ResetDeviceIdentityRequest {
@@ -275,16 +266,10 @@ message ResetDeviceIdentityRequest {
   optional bytes seed = 1;
 }
 
-message ResetDeviceIdentityResponse {
-  bool success = 1;
-  AccountError error = 2;
-}
+message ResetDeviceIdentityResponse {}
 
 message GetDeviceIdentityResponse {
-  oneof id {
-    string device_identity = 1;
-    AccountError error = 2;
-  }
+  string device_identity = 1;
 }
 
 message RegisterDeviceResponse {}
