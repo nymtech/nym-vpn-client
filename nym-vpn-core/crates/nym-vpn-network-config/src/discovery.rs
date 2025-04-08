@@ -129,8 +129,7 @@ impl Discovery {
                 })
                 .unwrap_or_default()
                 .write_to_file(config_dir)
-                .inspect_err(|err| tracing::warn!("Failed to write discovery file: {err}"))
-                .ok();
+                .inspect_err(|err| tracing::warn!("Failed to write discovery file: {err}"))?;
         } else {
             // Download the file if it doesn't exists, or refresh it.
             // TODO: in the future, we should only refresh the discovery file when the tunnel is up.
@@ -164,6 +163,12 @@ impl Discovery {
         Ok(NymNetwork {
             network: network_details.network,
         })
+    }
+
+    pub async fn update_nym_network_file(&self, config_dir: &Path) -> anyhow::Result<()> {
+        self.fetch_nym_network_details()
+            .await?
+            .write_to_file(config_dir)
     }
 }
 

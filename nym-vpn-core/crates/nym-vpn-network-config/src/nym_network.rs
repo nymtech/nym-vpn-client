@@ -6,9 +6,9 @@ use std::path::{Path, PathBuf};
 use anyhow::Context;
 use nym_config::defaults::NymNetworkDetails;
 
-use super::{discovery::Discovery, MAX_FILE_AGE, NETWORKS_SUBDIR};
+use super::{discovery::Discovery, NETWORKS_SUBDIR};
 
-#[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
 pub struct NymNetwork {
     pub network: NymNetworkDetails,
 }
@@ -22,14 +22,6 @@ impl NymNetwork {
         config_dir
             .join(NETWORKS_SUBDIR)
             .join(format!("{}.json", network_name))
-    }
-
-    fn path_is_stale(config_dir: &Path, network_name: &str) -> anyhow::Result<bool> {
-        if let Some(age) = crate::util::get_age_of_file(&Self::path(config_dir, network_name))? {
-            Ok(age > MAX_FILE_AGE)
-        } else {
-            Ok(true)
-        }
     }
 
     pub(super) fn read_from_file(config_dir: &Path, network_name: &str) -> anyhow::Result<Self> {
@@ -68,12 +60,31 @@ impl NymNetwork {
         config_dir: &Path,
         discovery: &Discovery,
     ) -> anyhow::Result<Self> {
-        if Self::path_is_stale(config_dir, &discovery.network_name)? {
+        if !Self::path(config_dir, &discovery.network_name).exists()
+            && discovery.network_name == "mainnet"
+        {
             discovery
                 .fetch_nym_network_details()
-                .await?
-                .write_to_file(config_dir)?;
+                .await
+                .inspect_err(|err| {
+                    tracing::warn!(
+                        "Failed to fetch remote nym network file: {err},  creating a default one"
+                    )
+                })
+                .unwrap_or_default()
+                .write_to_file(config_dir)
+                .inspect_err(|err| tracing::warn!("Failed to write nym network file: {err}"))?;
+        } else {
+            discovery
+                .update_nym_network_file(config_dir)
+                .await
+                .inspect_err(|err| {
+                    tracing::warn!("Failed to refresh discovery file: {err}");
+                    tracing::warn!("Attempting to use existing discovery file");
+                })
+                .ok();
         }
+
         Self::read_from_file(config_dir, &discovery.network_name)
     }
 
