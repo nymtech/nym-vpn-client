@@ -235,28 +235,28 @@ impl CommandInterfaceConnectionHandler {
 
     pub async fn handle_get_active_devices(
         &self,
-    ) -> Result<Result<Vec<NymVpnDevice>, AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<Vec<NymVpnDevice>, AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetActiveDevices, ())
             .await
     }
 
     pub async fn handle_request_zk_nym(
         &self,
-    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<(), AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::RequestZkNym, ())
             .await
     }
 
     pub async fn handle_get_device_zk_nyms(
         &self,
-    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<(), AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetDeviceZkNyms, ())
             .await
     }
 
     pub async fn handle_get_zk_nyms_available_for_download(
         &self,
-    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<(), AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetZkNymsAvailableForDownload, ())
             .await
     }
