@@ -103,7 +103,7 @@ pub enum AccountCommand {
         ReturnSender<(), AccountCommandError>,
         Option<Vec<SocketAddr>>,
     ),
-    RegisterOfflineWatch(ReturnSender<(), AccountCommandError>, MonitorHandle),
+    RegisterOfflineMonitor(ReturnSender<(), AccountCommandError>, MonitorHandle),
 }
 
 impl AccountCommand {

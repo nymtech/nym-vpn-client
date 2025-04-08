@@ -432,7 +432,7 @@ impl TunnelStateMachine {
 
         let offline_watch = offline_monitor.clone();
         account_command_tx
-            .register_offline_watch(offline_watch)
+            .register_offline_monitor(offline_watch)
             .await
             .inspect_err(|err| tracing::error!("Failed to register offline watch: {}", err))
             .ok();

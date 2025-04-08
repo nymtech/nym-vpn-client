@@ -813,10 +813,10 @@ where
                     }),
                 );
             }
-            AccountCommand::RegisterOfflineWatch(result_tx, offline_watch) => {
+            AccountCommand::RegisterOfflineMonitor(result_tx, offline_watch) => {
                 let res = self
                     .offline_watch
-                    .register_offline_watch(offline_watch)
+                    .register_offline_monitor(offline_watch)
                     .map_err(|e| {
                         AccountCommandError::internal(format!(
                             "Failed to register offline watch: {e}"

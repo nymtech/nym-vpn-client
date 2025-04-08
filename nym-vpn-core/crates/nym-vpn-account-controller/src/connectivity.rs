@@ -8,9 +8,9 @@ use nym_offline_monitor::{Connectivity, MonitorHandle};
 use crate::{AccountCommand, AccountControllerCommander};
 
 #[derive(Debug, thiserror::Error)]
-pub enum OfflineMonitorError {
-    #[error("offline watch already registered")]
-    WatchAlreadyRegistered,
+pub enum OfflineWatchError {
+    #[error("offline monitor already registered")]
+    MonitorAlreadyRegistered,
 }
 
 pub(super) struct OfflineWatch {
@@ -48,17 +48,17 @@ impl OfflineWatch {
         !self.is_online()
     }
 
-    pub(super) fn register_offline_watch(
+    pub(super) fn register_offline_monitor(
         &mut self,
-        offline_watch: MonitorHandle,
-    ) -> Result<(), OfflineMonitorError> {
+        offline_monitor: MonitorHandle,
+    ) -> Result<(), OfflineWatchError> {
         if self.task.is_some() {
-            return Err(OfflineMonitorError::WatchAlreadyRegistered);
+            return Err(OfflineWatchError::MonitorAlreadyRegistered);
         }
 
         let offline_watch_task = OfflineWatchTask::new(
             self.connectivity.clone(),
-            offline_watch,
+            offline_monitor,
             self.commander.clone(),
         );
         let handle = tokio::spawn(offline_watch_task.run());

@@ -142,13 +142,13 @@ impl AccountControllerCommander {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn register_offline_watch(
+    pub async fn register_offline_monitor(
         &self,
-        offline_watch: MonitorHandle,
+        offline_monitor: MonitorHandle,
     ) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
-            .send(AccountCommand::RegisterOfflineWatch(tx, offline_watch))
+            .send(AccountCommand::RegisterOfflineMonitor(tx, offline_monitor))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

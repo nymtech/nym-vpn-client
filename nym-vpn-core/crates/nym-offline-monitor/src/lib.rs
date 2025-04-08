@@ -50,7 +50,7 @@ impl fmt::Debug for MonitorHandle {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("MonitorHandle")
             .field("rx", &self.rx)
-            .finish()
+            .finish_non_exhaustive()
     }
 }
 
@@ -87,11 +87,6 @@ impl MonitorHandle {
         } else {
             None
         }
-    }
-
-    /// Returns a receiver that will be notified when the connectivity status changes.
-    pub fn subscribe(&self) -> watch::Receiver<Connectivity> {
-        self.rx.clone()
     }
 }
 
