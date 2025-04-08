@@ -50,7 +50,7 @@ public enum StatusButtonConfig: String {
     var backgroundColor: Color {
         switch self {
         case .connected:
-            NymColor.accent
+            NymColor.action.opacity(0.1)
         case .connecting, .disconnecting, .disconnected, .error:
             NymColor.backgroundHover
         case .noInternet, .noInternetReconnect:

@@ -28,7 +28,7 @@ public final class ConfigurationManager: ObservableObject {
             isCurrentAppVersionCompatible = appVersion.compare(
                 lastCompatibleAppVersion,
                 options: .numeric
-            ) != .orderedAscending 
+            ) != .orderedAscending
         }
     }
     private var lastCompatibleCoreVersion: String?
