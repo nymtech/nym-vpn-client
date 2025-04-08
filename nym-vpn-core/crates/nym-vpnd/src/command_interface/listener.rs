@@ -422,15 +422,8 @@ impl NymVpnd for CommandInterface {
             .handle_store_account(account)
             .await?;
 
-        let response = match result {
-            Ok(()) => StoreAccountResponse {
-                success: true,
-                error: None,
-            },
-            Err(err) => StoreAccountResponse {
-                success: false,
-                error: Some(nym_vpn_proto::AccountError::from(err)),
-            },
+        let response = StoreAccountResponse {
+            error: result.err().map(nym_vpn_proto::StoreAccountError::from),
         };
 
         tracing::debug!("Returning store account response: {:?}", response);

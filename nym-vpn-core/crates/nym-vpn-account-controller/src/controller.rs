@@ -275,7 +275,7 @@ where
             })
     }
 
-    async fn handle_store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
+    async fn handle_store_account(&self, mnemonic: Mnemonic) -> Result<(), StoreAccountError> {
         if self.offline_watch.is_online() {
             self.vpn_api_client
                 .check_account_exists_on_api(&VpnApiAccount::from(mnemonic.clone()))
@@ -287,11 +287,11 @@ where
         self.account_storage
             .store_account(mnemonic)
             .await
-            .map_err(|err| StoreAccountError::Storage(err.to_string()))?;
+            .map_err(StoreAccountError::storage)?;
 
         self.update_mnemonic_state()
             .await
-            .map_err(AccountCommandError::internal)?;
+            .map_err(StoreAccountError::internal)?;
 
         if self.offline_watch.is_online() {
             // We don't need to wait for the sync to finish, so queue it up and return

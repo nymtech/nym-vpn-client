@@ -29,9 +29,11 @@ message AccountError {
 
 message StoreAccountError {
   oneof error_detail {
+    string invalid_mnemonic = 5;
     string storage_error = 1;
     VpnApiErrorResponse error_response = 2;
     string unexpected_response = 3;
+    string internal = 4;
   }
 }
 
@@ -120,8 +122,7 @@ message StoreAccountRequest {
 }
 
 message StoreAccountResponse {
-  bool success = 1;
-  AccountError error = 2;
+  StoreAccountError error = 2;
 }
 
 message IsAccountStoredResponse {

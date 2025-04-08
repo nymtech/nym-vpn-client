@@ -323,18 +323,17 @@ async fn store_account(opts: CliOptions, store_args: &cli::StoreAccountArgs) -> 
     if opts.verbose {
         println!("{:#?}", response);
     }
-    if response.success {
-        println!("Account recovery phrase stored");
+
+    if let Some(err) = response
+        .error
+        .map(nym_vpn_lib_types::StoreAccountError::try_from)
+        .map(|err| format!("{err:?}"))
+    {
+        println!("Error: {err}");
     } else {
-        let msg = if let Some(error) = response.error {
-            let kind = nym_vpn_proto::account_error::AccountErrorType::try_from(error.kind)
-                .context("failed to parse account error kind");
-            format!("{} (id={:?})", error.message, kind)
-        } else {
-            "unknown".to_owned()
-        };
-        println!("Error: {msg}");
+        println!("Account recovery phrase stored");
     }
+
     Ok(())
 }
 

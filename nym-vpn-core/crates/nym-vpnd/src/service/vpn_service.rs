@@ -30,8 +30,8 @@ use nym_vpn_lib::{
     MixnetClientConfig, Recipient, UserAgent,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, ForgetAccountError, TunnelEvent, TunnelState, TunnelType,
-    VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo,
+    AccountCommandError, ForgetAccountError, StoreAccountError, TunnelEvent, TunnelState,
+    TunnelType, VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo,
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use zeroize::Zeroizing;
@@ -63,7 +63,10 @@ pub enum VpnServiceCommand {
     Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
     SubscribeToTunnelState(oneshot::Sender<watch::Receiver<TunnelState>>, ()),
-    StoreAccount(oneshot::Sender<Result<(), AccountError>>, Zeroizing<String>),
+    StoreAccount(
+        oneshot::Sender<Result<(), StoreAccountError>>,
+        Zeroizing<String>,
+    ),
     IsAccountStored(oneshot::Sender<bool>, ()),
     ForgetAccount(oneshot::Sender<Result<(), ForgetAccountError>>, ()),
     GetAccountIdentity(oneshot::Sender<Option<String>>, ()),
@@ -429,8 +432,7 @@ where
                 let _ = tx.send(rx);
             }
             VpnServiceCommand::StoreAccount(tx, account) => {
-                let result = self.handle_store_account(account).await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_store_account(account).await);
             }
             VpnServiceCommand::IsAccountStored(tx, ()) => {
                 let _ = tx.send(self.handle_is_account_stored().await);
@@ -718,10 +720,10 @@ where
     async fn handle_store_account(
         &mut self,
         account: Zeroizing<String>,
-    ) -> Result<(), AccountError> {
-        let mnemonic = Mnemonic::parse::<&str>(account.as_ref())?;
-        self.account_command_tx.store_account(mnemonic).await?;
-        Ok(())
+    ) -> Result<(), StoreAccountError> {
+        let mnemonic = Mnemonic::parse::<&str>(account.as_ref())
+            .map_err(|err| StoreAccountError::InvalidMnemonic(err.to_string()))?;
+        self.account_command_tx.store_account(mnemonic).await
     }
 
     async fn handle_is_account_stored(&self) -> bool {
