@@ -40,7 +40,7 @@ pub enum Error {
     #[error("The channel sender was dropped")]
     ManagerChannelDown,
     /// Platform specific error occurred
-    #[error("Internal route manager error")]
+    #[error("Internal route manager error: {0}")]
     PlatformError(#[from] imp::Error),
     /// Attempt to use route manager that has been dropped
     #[error("Cannot send message to route manager since it is down")]
