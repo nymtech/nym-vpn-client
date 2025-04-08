@@ -662,24 +662,16 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<RegisterDeviceResponse>, tonic::Status> {
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+        let _ = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_register_device()
-            .await?;
-
-        let response = match result {
-            Ok(device) => RegisterDeviceResponse {
-                json: serde_json::to_string(&device)
-                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
-                error: None,
-            },
-            Err(err) => RegisterDeviceResponse {
-                json: err.to_string(),
-                error: Some(AccountError::from(err)),
-            },
-        };
+            .await?
+            .map_err(|err| {
+                tracing::error!("Failed to register device: {:?}", err);
+                tonic::Status::internal("Failed to register device")
+            })?;
 
         tracing::debug!("Returning register device response");
-        Ok(tonic::Response::new(response))
+        Ok(tonic::Response::new(RegisterDeviceResponse {}))
     }
 
     async fn get_devices(

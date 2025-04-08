@@ -287,10 +287,7 @@ message GetDeviceIdentityResponse {
   }
 }
 
-message RegisterDeviceResponse {
-  string json = 1;
-  AccountError error = 2;
-}
+message RegisterDeviceResponse {}
 
 message GetDevicesResponse {
   message Device {
