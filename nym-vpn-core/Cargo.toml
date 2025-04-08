@@ -160,7 +160,7 @@ tap = "1.0.1"
 tempfile = "3.19"
 thiserror = "2.0"
 time = "0.3.41"
-tokio = "1.42"
+tokio = "1.44"
 tokio-stream = "0.1.17"
 tokio-util = { version = "0.7.13", features = ["codec"] }
 toml = "0.8"
