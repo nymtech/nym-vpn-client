@@ -9,12 +9,11 @@ use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use nym_vpn_api_client::types::{GatewayMinPerformance, ScoreThresholds};
 use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
-    conversions::ConversionError, get_available_tickets_response::AvailableTickets,
-    nym_vpnd_server::NymVpnd, AccountError, ConfirmZkNymDownloadedRequest,
-    ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse, DeleteLogFileResponse,
-    DisconnectResponse, ForgetAccountResponse, GetAccountIdentityResponse, GetAccountLinksRequest,
-    GetAccountLinksResponse, GetAccountStateResponse, GetAccountUsageResponse,
-    GetAvailableTicketsResponse, GetDeviceIdentityResponse, GetDeviceZkNymsResponse,
+    conversions::ConversionError, nym_vpnd_server::NymVpnd, AccountError, AvailableTickets,
+    ConfirmZkNymDownloadedRequest, ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse,
+    DeleteLogFileResponse, DisconnectResponse, ForgetAccountResponse, GetAccountIdentityResponse,
+    GetAccountLinksRequest, GetAccountLinksResponse, GetAccountStateResponse,
+    GetAccountUsageResponse, GetDeviceIdentityResponse, GetDeviceZkNymsResponse,
     GetDevicesResponse, GetFeatureFlagsResponse, GetLogPathResponse,
     GetNetworkCompatibilityResponse, GetSystemMessagesResponse, GetZkNymByIdRequest,
     GetZkNymByIdResponse, GetZkNymsAvailableForDownloadResponse, InfoResponse,
@@ -843,22 +842,20 @@ impl NymVpnd for CommandInterface {
     async fn get_available_tickets(
         &self,
         _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<GetAvailableTicketsResponse>, tonic::Status> {
+    ) -> Result<tonic::Response<AvailableTickets>, tonic::Status> {
         tracing::debug!("Got get available tickets request");
 
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_available_tickets()
-            .await?
-            .map_err(|err| {
-                tracing::error!("Failed to get available tickets: {err:?}");
-                tonic::Status::internal("Failed to get available tickets")
-            })?;
+        let available_ticketbooks =
+            CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+                .handle_get_available_tickets()
+                .await?
+                .map_err(|err| {
+                    tracing::error!("Failed to get available tickets: {err:?}");
+                    tonic::Status::internal("Failed to get available tickets")
+                })?;
 
-        let available_tickets = nym_vpn_lib_types::AvailableTickets::from(result);
-
-        let response = GetAvailableTicketsResponse {
-            available_tickets: Some(AvailableTickets::from(available_tickets)),
-        };
+        let available_tickets = nym_vpn_lib_types::AvailableTickets::from(available_ticketbooks);
+        let response = AvailableTickets::from(available_tickets);
 
         Ok(tonic::Response::new(response))
     }
