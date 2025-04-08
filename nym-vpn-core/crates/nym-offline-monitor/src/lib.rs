@@ -2,7 +2,7 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::LazyLock;
+use std::sync::{Arc, LazyLock};
 
 use nym_common::ErrorExt;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -36,10 +36,11 @@ static FORCE_DISABLE_OFFLINE_MONITOR: LazyLock<bool> = LazyLock::new(|| {
         .unwrap_or(false)
 });
 
+#[derive(Clone)]
 pub struct MonitorHandle {
-    inner: Option<imp::MonitorHandle>,
+    inner: Arc<Option<imp::MonitorHandle>>,
     rx: watch::Receiver<Connectivity>,
-    _shutdown_drop_guard: DropGuard,
+    _shutdown_drop_guard: Arc<DropGuard>,
 }
 
 impl MonitorHandle {
@@ -49,9 +50,9 @@ impl MonitorHandle {
         shutdown_drop_guard: DropGuard,
     ) -> Self {
         Self {
-            inner,
+            inner: Arc::new(inner),
             rx,
-            _shutdown_drop_guard: shutdown_drop_guard,
+            _shutdown_drop_guard: Arc::new(shutdown_drop_guard),
         }
     }
 
