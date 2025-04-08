@@ -596,10 +596,9 @@ impl<'a> PolicyBatch<'a> {
                     .flat_map(|server| get_allow_dns_endpoints_when_connecting(*server))
                     .collect::<Vec<_>>();
 
-                // todo: we should do fwmark, at some point
                 peer_endpoints
                     .iter()
-                    .for_each(|endpoint| self.add_allow_endpoint_rules(endpoint));
+                    .for_each(|endpoint| self.add_allow_tunnel_endpoint_rules(endpoint, fwmark));
                 allowed_endpoints
                     .iter()
                     .chain(dns_endpoints.iter())
