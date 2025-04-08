@@ -814,15 +814,10 @@ where
                 );
             }
             AccountCommand::RegisterOfflineMonitor(result_tx, offline_watch) => {
-                let res = self
-                    .offline_watch
+                self.offline_watch
                     .register_offline_monitor(offline_watch)
-                    .map_err(|e| {
-                        AccountCommandError::internal(format!(
-                            "Failed to register offline watch: {e}"
-                        ))
-                    });
-                result_tx.send(res);
+                    .await;
+                result_tx.send(Ok(()));
             }
         };
     }
@@ -913,8 +908,6 @@ where
                 },
             }
         }
-
-        self.offline_watch.wait(Duration::from_secs(5)).await;
     }
 
     async fn print_info(&self) {
@@ -983,6 +976,9 @@ where
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("Received cancellation signal");
                     break;
+                }
+                Some(connectivity) = self.offline_watch.next() => {
+                    self.offline_watch.handle_changed_connectivity(connectivity).await;
                 }
                 else => {
                     tracing::debug!("Account controller channel closed");
