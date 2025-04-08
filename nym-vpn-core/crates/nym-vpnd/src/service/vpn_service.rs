@@ -64,18 +64,15 @@ pub enum VpnServiceCommand {
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
     SubscribeToTunnelState(oneshot::Sender<watch::Receiver<TunnelState>>, ()),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, Zeroizing<String>),
-    IsAccountStored(oneshot::Sender<Result<bool, AccountCommandError>>, ()),
+    IsAccountStored(oneshot::Sender<bool>, ()),
     ForgetAccount(oneshot::Sender<Result<(), AccountError>>, ()),
-    GetAccountIdentity(oneshot::Sender<Result<Option<String>, AccountError>>, ()),
+    GetAccountIdentity(oneshot::Sender<Option<String>>, ()),
     GetAccountLinks(
         oneshot::Sender<Result<ParsedAccountLinks, AccountError>>,
         Locale,
     ),
-    GetAccountState(
-        oneshot::Sender<Result<AccountStateSummary, AccountCommandError>>,
-        (),
-    ),
-    RefreshAccountState(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    GetAccountState(oneshot::Sender<AccountStateSummary>, ()),
+    RefreshAccountState(oneshot::Sender<()>, ()),
     GetAccountUsage(
         oneshot::Sender<Result<Vec<NymVpnUsage>, AccountCommandError>>,
         (),
@@ -85,7 +82,7 @@ pub enum VpnServiceCommand {
         Option<Seed>,
     ),
     GetDeviceIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
-    RegisterDevice(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    RegisterDevice(oneshot::Sender<()>, ()),
     GetDevices(
         oneshot::Sender<Result<Vec<NymVpnDevice>, AccountCommandError>>,
         (),
@@ -94,7 +91,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Vec<NymVpnDevice>, AccountCommandError>>,
         (),
     ),
-    RequestZkNym(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    RequestZkNym(oneshot::Sender<()>, ()),
     GetDeviceZkNyms(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     GetZkNymsAvailableForDownload(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     GetZkNymById(oneshot::Sender<Result<(), AccountCommandError>>, String),
@@ -436,7 +433,7 @@ where
                 let _ = tx.send(result);
             }
             VpnServiceCommand::IsAccountStored(tx, ()) => {
-                let _ = tx.send(Ok(self.handle_is_account_stored().await));
+                let _ = tx.send(self.handle_is_account_stored().await);
             }
             VpnServiceCommand::ForgetAccount(tx, ()) => {
                 let _ = tx.send(self.handle_forget_account().await);
@@ -448,11 +445,11 @@ where
                 let _ = tx.send(self.handle_get_account_links(locale).await);
             }
             VpnServiceCommand::GetAccountState(tx, ()) => {
-                let _ = tx.send(Ok(self.handle_get_account_state().await));
+                let _ = tx.send(self.handle_get_account_state().await);
             }
             VpnServiceCommand::RefreshAccountState(tx, ()) => {
                 self.handle_refresh_account_state().await;
-                let _ = tx.send(Ok(()));
+                let _ = tx.send(());
             }
             VpnServiceCommand::GetAccountUsage(tx, ()) => {
                 let _ = tx.send(self.handle_get_usage().await);
@@ -465,7 +462,7 @@ where
             }
             VpnServiceCommand::RegisterDevice(tx, ()) => {
                 self.handle_register_device().await;
-                let _ = tx.send(Ok(()));
+                let _ = tx.send(());
             }
             VpnServiceCommand::GetDevices(tx, ()) => {
                 let _ = tx.send(self.handle_get_devices().await);
@@ -475,7 +472,7 @@ where
             }
             VpnServiceCommand::RequestZkNym(tx, ()) => {
                 self.handle_request_zk_nym().await;
-                let _ = tx.send(Ok(()));
+                let _ = tx.send(());
             }
             VpnServiceCommand::GetDeviceZkNyms(tx, ()) => {
                 let _ = tx.send(self.handle_get_device_zk_nyms().await);
@@ -746,15 +743,15 @@ where
         Ok(())
     }
 
-    async fn handle_get_account_identity(&self) -> Result<Option<String>, AccountError> {
-        Ok(self.shared_account_state.get_account_id().await)
+    async fn handle_get_account_identity(&self) -> Option<String> {
+        self.shared_account_state.get_account_id().await
     }
 
     async fn handle_get_account_links(
         &self,
         locale: String,
     ) -> Result<ParsedAccountLinks, AccountError> {
-        let account_id = self.handle_get_account_identity().await?;
+        let account_id = self.handle_get_account_identity().await;
 
         self.network_env
             .nym_vpn_network
