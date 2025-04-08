@@ -39,7 +39,7 @@ use zeroize::Zeroizing;
 use super::{
     config::{NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
     error::{
-        AccountError, AccountLinksError, Error, Result, SetNetworkError,
+        AccountControllerError, AccountLinksError, Error, Result, SetNetworkError,
         VpnServiceDeleteLogFileError,
     },
 };
@@ -87,7 +87,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<(), AccountCommandError>>,
         Option<Seed>,
     ),
-    GetDeviceIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
+    GetDeviceIdentity(oneshot::Sender<Result<String, AccountCommandError>>, ()),
     RegisterDevice(oneshot::Sender<()>, ()),
     GetDevices(
         oneshot::Sender<Result<Vec<NymVpnDevice>, AccountCommandError>>,
@@ -276,7 +276,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         .await
         .map_err(|err| {
             tracing::error!("Failed to create account controller: {err:?}");
-            AccountError::Initialization {
+            AccountControllerError::Initialization {
                 reason: err.to_string(),
             }
         })?;
@@ -805,11 +805,8 @@ where
         Ok(())
     }
 
-    async fn handle_get_device_identity(&self) -> Result<String, AccountError> {
-        self.account_command_tx
-            .get_device_identity()
-            .await
-            .map_err(AccountError::from)
+    async fn handle_get_device_identity(&self) -> Result<String, AccountCommandError> {
+        self.account_command_tx.get_device_identity().await
     }
 
     async fn handle_register_device(&self) {
