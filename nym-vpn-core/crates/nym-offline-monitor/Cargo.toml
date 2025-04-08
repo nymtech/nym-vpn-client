@@ -12,7 +12,7 @@ license.workspace = true
 thiserror.workspace = true
 tracing.workspace = true
 futures.workspace = true
-tokio.workspace = true
+tokio = { workspace = true, features = ["macros", "sync", "time", "rt"] }
 debounced.workspace = true
 tokio-stream.workspace = true
 tokio-util.workspace = true
