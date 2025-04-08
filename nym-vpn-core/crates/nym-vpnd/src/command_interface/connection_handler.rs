@@ -222,14 +222,14 @@ impl CommandInterfaceConnectionHandler {
 
     pub async fn handle_register_device(
         &self,
-    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<(), AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::RegisterDevice, ())
             .await
     }
 
     pub async fn handle_get_devices(
         &self,
-    ) -> Result<Result<Vec<NymVpnDevice>, AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<Vec<NymVpnDevice>, AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetDevices, ()).await
     }
 

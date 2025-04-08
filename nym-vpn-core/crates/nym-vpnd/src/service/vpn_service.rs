@@ -79,8 +79,11 @@ pub enum VpnServiceCommand {
     GetAccountUsage(oneshot::Sender<Result<Vec<NymVpnUsage>, AccountError>>, ()),
     ResetDeviceIdentity(oneshot::Sender<Result<(), AccountError>>, Option<Seed>),
     GetDeviceIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
-    RegisterDevice(oneshot::Sender<Result<(), AccountError>>, ()),
-    GetDevices(oneshot::Sender<Result<Vec<NymVpnDevice>, AccountError>>, ()),
+    RegisterDevice(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    GetDevices(
+        oneshot::Sender<Result<Vec<NymVpnDevice>, AccountCommandError>>,
+        (),
+    ),
     GetActiveDevices(
         oneshot::Sender<Result<Vec<NymVpnDevice>, AccountCommandError>>,
         (),
@@ -463,47 +466,39 @@ where
                 let _ = tx.send(result);
             }
             VpnServiceCommand::RegisterDevice(tx, ()) => {
-                let result = self.handle_register_device().await;
-                let _ = tx.send(result);
+                self.handle_register_device().await;
+                let _ = tx.send(Ok(()));
             }
             VpnServiceCommand::GetDevices(tx, ()) => {
-                let result = self.handle_get_devices().await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_get_devices().await);
             }
             VpnServiceCommand::GetActiveDevices(tx, ()) => {
-                let result = self.handle_get_active_devices().await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_get_active_devices().await);
             }
             VpnServiceCommand::RequestZkNym(tx, ()) => {
                 self.handle_request_zk_nym().await;
                 let _ = tx.send(Ok(()));
             }
             VpnServiceCommand::GetDeviceZkNyms(tx, ()) => {
-                let result = self.handle_get_device_zk_nyms().await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_get_device_zk_nyms().await);
             }
             VpnServiceCommand::GetZkNymsAvailableForDownload(tx, ()) => {
-                let result = self.handle_get_zk_nyms_available_for_download().await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_get_zk_nyms_available_for_download().await);
             }
             VpnServiceCommand::GetZkNymById(tx, id) => {
-                let result = self.handle_get_zk_nym_by_id(id).await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_get_zk_nym_by_id(id).await);
             }
             VpnServiceCommand::ConfirmZkNymIdDownloaded(tx, id) => {
-                let result = self.handle_confirm_zk_nym_id_downloaded(id).await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_confirm_zk_nym_id_downloaded(id).await);
             }
             VpnServiceCommand::GetAvailableTickets(tx, ()) => {
-                let result = self.handle_get_available_tickets().await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_get_available_tickets().await);
             }
             VpnServiceCommand::GetLogPath(tx, ()) => {
                 let _ = tx.send(self.log_path.clone());
             }
             VpnServiceCommand::DeleteLogFile(tx, ()) => {
-                let result = self.handle_delete_log_file().await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_delete_log_file().await);
             }
         }
     }
@@ -827,16 +822,12 @@ where
             .map_err(AccountError::from)
     }
 
-    async fn handle_register_device(&self) -> Result<(), AccountError> {
+    async fn handle_register_device(&self) {
         self.account_command_tx.background_sync_device_state();
-        Ok(())
     }
 
-    async fn handle_get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountError> {
-        self.account_command_tx
-            .get_devices()
-            .await
-            .map_err(AccountError::from)
+    async fn handle_get_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
+        self.account_command_tx.get_devices().await
     }
 
     async fn handle_get_active_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
