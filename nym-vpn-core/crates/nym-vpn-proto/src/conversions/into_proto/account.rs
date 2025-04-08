@@ -6,17 +6,9 @@ use nym_vpn_lib_types::{
 };
 
 use crate::{
-    AccountIdentity as ProtoAccountIdentity, AvailableTickets as ProtoAvailableTickets,
-    RequestZkNymError as ProtoRequestZkNymError, RequestZkNymSuccess as ProtoRequestZkNymSuccess,
+    AvailableTickets as ProtoAvailableTickets, RequestZkNymError as ProtoRequestZkNymError,
+    RequestZkNymSuccess as ProtoRequestZkNymSuccess,
 };
-
-impl From<Option<String>> for ProtoAccountIdentity {
-    fn from(identity: Option<String>) -> Self {
-        Self {
-            account_identity: identity,
-        }
-    }
-}
 
 impl From<RequestZkNymSuccess> for ProtoRequestZkNymSuccess {
     fn from(value: RequestZkNymSuccess) -> Self {

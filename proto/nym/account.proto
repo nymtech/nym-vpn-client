@@ -111,12 +111,6 @@ message RequestZkNymBundle {
   repeated RequestZkNymError failures = 2;
 }
 
-// --- Common types ---
-
-message AccountIdentity {
-  optional string account_identity = 1;
-}
-
 // --- Requests and responses ---
 
 message StoreAccountRequest {
@@ -139,10 +133,7 @@ message ForgetAccountResponse {
 }
 
 message GetAccountIdentityResponse {
-  oneof id {
-    AccountIdentity account_identity = 1;
-    AccountError error = 2;
-  }
+  optional string account_identity = 1;
 }
 
 message GetAccountStateResponse {

@@ -155,9 +155,7 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
-    pub async fn handle_is_account_stored(
-        &self,
-    ) -> Result<Result<bool, AccountCommandError>, VpnCommandSendError> {
+    pub async fn handle_is_account_stored(&self) -> Result<bool, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::IsAccountStored, ())
             .await
     }
@@ -169,9 +167,7 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
-    pub async fn handle_get_account_identity(
-        &self,
-    ) -> Result<Result<Option<String>, AccountError>, VpnCommandSendError> {
+    pub async fn handle_get_account_identity(&self) -> Result<Option<String>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetAccountIdentity, ())
             .await
     }
@@ -186,14 +182,12 @@ impl CommandInterfaceConnectionHandler {
 
     pub async fn handle_get_account_state(
         &self,
-    ) -> Result<Result<AccountStateSummary, AccountCommandError>, VpnCommandSendError> {
+    ) -> Result<AccountStateSummary, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetAccountState, ())
             .await
     }
 
-    pub async fn handle_refresh_account_state(
-        &self,
-    ) -> Result<Result<(), AccountCommandError>, VpnCommandSendError> {
+    pub async fn handle_refresh_account_state(&self) -> Result<(), VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::RefreshAccountState, ())
             .await
     }
@@ -220,9 +214,7 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
-    pub async fn handle_register_device(
-        &self,
-    ) -> Result<Result<(), AccountCommandError>, VpnCommandSendError> {
+    pub async fn handle_register_device(&self) -> Result<(), VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::RegisterDevice, ())
             .await
     }
@@ -240,9 +232,7 @@ impl CommandInterfaceConnectionHandler {
             .await
     }
 
-    pub async fn handle_request_zk_nym(
-        &self,
-    ) -> Result<Result<(), AccountCommandError>, VpnCommandSendError> {
+    pub async fn handle_request_zk_nym(&self) -> Result<(), VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::RequestZkNym, ())
             .await
     }
