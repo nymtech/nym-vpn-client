@@ -183,7 +183,6 @@ impl AccountCommandSender {
     }
 
     // TODO: also return the result.
-    // TODO: map the error
     pub fn confirm_zk_nym_id_downloaded(&self, id: String) -> Result<(), AccountCommandError> {
         self.command_tx
             .send(AccountCommand::ConfirmZkNymIdDownloaded(id))

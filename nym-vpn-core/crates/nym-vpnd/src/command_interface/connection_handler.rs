@@ -11,7 +11,8 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
 use nym_vpn_lib_types::{
-    TunnelState, VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo,
+    AccountCommandError, TunnelState, VpnServiceConnectError, VpnServiceDisconnectError,
+    VpnServiceInfo,
 };
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::gateway;
@@ -263,7 +264,7 @@ impl CommandInterfaceConnectionHandler {
     pub async fn handle_get_zk_nym_by_id(
         &self,
         id: String,
-    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<(), AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetZkNymById, id)
             .await
     }
@@ -271,7 +272,7 @@ impl CommandInterfaceConnectionHandler {
     pub async fn handle_confirm_zk_nym_downloaded(
         &self,
         id: String,
-    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<(), AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::ConfirmZkNymIdDownloaded, id)
             .await
     }

@@ -30,8 +30,8 @@ use nym_vpn_lib::{
     MixnetClientConfig, Recipient, UserAgent,
 };
 use nym_vpn_lib_types::{
-    TunnelEvent, TunnelState, TunnelType, VpnServiceConnectError, VpnServiceDisconnectError,
-    VpnServiceInfo,
+    AccountCommandError, TunnelEvent, TunnelState, TunnelType, VpnServiceConnectError,
+    VpnServiceDisconnectError, VpnServiceInfo,
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use zeroize::Zeroizing;
@@ -85,8 +85,8 @@ pub enum VpnServiceCommand {
     RequestZkNym(oneshot::Sender<Result<(), AccountError>>, ()),
     GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>, ()),
     GetZkNymsAvailableForDownload(oneshot::Sender<Result<(), AccountError>>, ()),
-    GetZkNymById(oneshot::Sender<Result<(), AccountError>>, String),
-    ConfirmZkNymIdDownloaded(oneshot::Sender<Result<(), AccountError>>, String),
+    GetZkNymById(oneshot::Sender<Result<(), AccountCommandError>>, String),
+    ConfirmZkNymIdDownloaded(oneshot::Sender<Result<(), AccountCommandError>>, String),
     GetAvailableTickets(
         oneshot::Sender<Result<AvailableTicketbooks, AccountError>>,
         (),
@@ -860,16 +860,15 @@ where
             .map_err(AccountError::from)
     }
 
-    async fn handle_get_zk_nym_by_id(&self, id: String) -> Result<(), AccountError> {
-        self.account_command_tx
-            .get_zk_nym_by_id(id)
-            .map_err(AccountError::from)
+    async fn handle_get_zk_nym_by_id(&self, id: String) -> Result<(), AccountCommandError> {
+        self.account_command_tx.get_zk_nym_by_id(id)
     }
 
-    async fn handle_confirm_zk_nym_id_downloaded(&self, id: String) -> Result<(), AccountError> {
-        self.account_command_tx
-            .confirm_zk_nym_id_downloaded(id)
-            .map_err(AccountError::from)
+    async fn handle_confirm_zk_nym_id_downloaded(
+        &self,
+        id: String,
+    ) -> Result<(), AccountCommandError> {
+        self.account_command_tx.confirm_zk_nym_id_downloaded(id)
     }
 
     async fn handle_get_available_tickets(&self) -> Result<AvailableTicketbooks, AccountError> {

@@ -336,18 +336,13 @@ message GetZkNymByIdRequest {
   string id = 1;
 }
 
-message GetZkNymByIdResponse {
-  string json = 1;
-  AccountError error = 2;
-}
+message GetZkNymByIdResponse {}
 
 message ConfirmZkNymDownloadedRequest {
   string id = 1;
 }
 
-message ConfirmZkNymDownloadedResponse {
-  AccountError error = 2;
-}
+message ConfirmZkNymDownloadedResponse {}
 
 message AvailableTickets {
   // Remaining number of mixnet entry tickets

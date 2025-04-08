@@ -799,24 +799,18 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<GetZkNymByIdResponse>, tonic::Status> {
         let id = request.into_inner().id;
 
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+        // This is an internal command, and returning the ID is not yet implemented. It's primary
+        // purpose is to trigger the command interface.
+        let _ = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_zk_nym_by_id(id)
-            .await?;
+            .await?
+            .map_err(|err| {
+                tracing::error!("Failed to get zknym by id: {:?}", err);
+                tonic::Status::internal("Failed to get zknym by id")
+            })?;
 
-        let response = match result {
-            Ok(response) => GetZkNymByIdResponse {
-                json: serde_json::to_string(&response)
-                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
-                error: None,
-            },
-            Err(err) => GetZkNymByIdResponse {
-                json: err.to_string(),
-                error: Some(AccountError::from(err)),
-            },
-        };
-
-        tracing::debug!("Returning get zk nym by id response");
-        Ok(tonic::Response::new(response))
+        tracing::debug!("Returning get zknym by id response");
+        Ok(tonic::Response::new(GetZkNymByIdResponse {}))
     }
 
     async fn confirm_zk_nym_downloaded(
@@ -825,18 +819,15 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<ConfirmZkNymDownloadedResponse>, tonic::Status> {
         let id = request.into_inner().id;
 
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+        let _ = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_confirm_zk_nym_downloaded(id)
-            .await?;
+            .await?
+            .map_err(|err| {
+                tracing::error!("Failed to confirm zk nym downloaded: {:?}", err);
+                tonic::Status::internal("Failed to confirm zk nym downloaded")
+            })?;
 
-        let response = match result {
-            Ok(()) => ConfirmZkNymDownloadedResponse { error: None },
-            Err(err) => ConfirmZkNymDownloadedResponse {
-                error: Some(AccountError::from(err)),
-            },
-        };
-
-        Ok(tonic::Response::new(response))
+        Ok(tonic::Response::new(ConfirmZkNymDownloadedResponse {}))
     }
 
     async fn get_available_tickets(
