@@ -77,6 +77,7 @@ message ForgetAccountError {
     string reset_credential_store = 6;
     string remove_account_files = 7;
     string init_device_keys = 8;
+    string internal = 9;
   }
 }
 
@@ -128,8 +129,7 @@ message IsAccountStoredResponse {
 }
 
 message ForgetAccountResponse {
-  bool success = 1;
-  AccountError error = 2;
+  ForgetAccountError error = 2;
 }
 
 message GetAccountIdentityResponse {

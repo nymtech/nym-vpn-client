@@ -6,7 +6,8 @@ use std::net::SocketAddr;
 use nym_offline_monitor::MonitorHandle;
 use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
 use nym_vpn_lib_types::{
-    AccountCommandError, RegisterDeviceError, RequestZkNymError, SyncAccountError, SyncDeviceError,
+    AccountCommandError, ForgetAccountError, RegisterDeviceError, RequestZkNymError,
+    SyncAccountError, SyncDeviceError,
 };
 use nym_vpn_store::mnemonic::Mnemonic;
 use tokio::sync::mpsc::UnboundedSender;
@@ -51,12 +52,12 @@ impl AccountCommandSender {
         Ok(())
     }
 
-    pub async fn forget_account(&self) -> Result<(), AccountCommandError> {
+    pub async fn forget_account(&self) -> Result<(), ForgetAccountError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::ForgetAccount(tx))
-            .map_err(AccountCommandError::internal)?;
-        rx.await.map_err(AccountCommandError::internal)?
+            .map_err(ForgetAccountError::internal)?;
+        rx.await.map_err(ForgetAccountError::internal)?
     }
 
     pub async fn sync_account_state(

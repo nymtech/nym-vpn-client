@@ -457,15 +457,8 @@ impl NymVpnd for CommandInterface {
             .handle_forget_account()
             .await?;
 
-        let response = match result {
-            Ok(()) => ForgetAccountResponse {
-                success: true,
-                error: None,
-            },
-            Err(err) => ForgetAccountResponse {
-                success: false,
-                error: Some(nym_vpn_proto::AccountError::from(err)),
-            },
+        let response = ForgetAccountResponse {
+            error: result.err().map(nym_vpn_proto::ForgetAccountError::from),
         };
 
         tracing::debug!("Returning forget account response");
