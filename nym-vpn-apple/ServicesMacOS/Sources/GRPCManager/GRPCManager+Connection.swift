@@ -19,7 +19,6 @@ extension GRPCManager {
             request.entry = entryNode(from: entryGateway)
             request.exit = exitNode(from: exitRouter)
 
-            request.disableRouting = false
             request.enableTwoHop = isTwoHopEnabled
             request.disableBackgroundCoverTraffic = false
             request.enableCredentialsMode = isZknymEnabled ?? false
