@@ -34,7 +34,7 @@ private extension StatusInfoView {
     func infoLabel() -> some View {
         Text(infoState.localizedTitle)
             .foregroundStyle(infoState.textColor)
-            .textStyle(.Headline.Medium.regular)
+            .textStyle(.Body.Medium.regular)
             .lineLimit(3, reservesSpace: infoState.localizedTitle.count > 30 ? true : false)
             .multilineTextAlignment(.center)
             .transition(.opacity)
@@ -49,7 +49,7 @@ private extension StatusInfoView {
             TimelineView(.animation(minimumInterval: 1.0, paused: false)) { _ in
                 Text(timeConnectedString)
                     .foregroundStyle(NymColor.primary)
-                    .textStyle(.Headline.Medium.regular)
+                    .textStyle(.Body.Medium.regular)
                     .transition(.opacity)
                     .animation(.easeInOut, value: timeConnectedString)
             }

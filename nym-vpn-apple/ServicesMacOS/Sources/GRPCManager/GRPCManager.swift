@@ -17,7 +17,6 @@ public final class GRPCManager: ObservableObject {
     private let channel: GRPCChannel
     private let unixDomainSocket = "/var/run/nym-vpn.sock"
 
-    let healthClient: Grpc_Health_V1_HealthClientProtocol
     let client: Nym_Vpn_NymVpndClientProtocol
     let logger = Logger(label: "GRPC Manager")
 
@@ -54,7 +53,6 @@ public final class GRPCManager: ObservableObject {
                     )
         )
         client = Nym_Vpn_NymVpndNIOClient(channel: channel)
-        healthClient = Grpc_Health_V1_HealthNIOClient(channel: channel)
         setup()
     }
 

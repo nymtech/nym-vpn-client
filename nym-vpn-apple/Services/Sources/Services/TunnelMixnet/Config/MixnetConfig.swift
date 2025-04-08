@@ -63,6 +63,7 @@ extension MixnetConfig {
             exitRouter: exitRouter.exitPoint,
             enableTwoHop: isTwoHopEnabled,
             tunProvider: tunProvider,
+            configPath: nil,
             credentialDataPath: credentialsDataPath,
             tunStatusListener: tunStatusListener,
             credentialMode: isZknymEnabled,

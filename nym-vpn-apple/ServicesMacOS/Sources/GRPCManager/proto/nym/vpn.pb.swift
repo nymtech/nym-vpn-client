@@ -1012,11 +1012,6 @@ struct Nym_Vpn_ConnectRequest: @unchecked Sendable {
   /// Clears the value of `dns`. Subsequent reads from it will return its default value.
   mutating func clearDns() {_uniqueStorage()._dns = nil}
 
-  var disableRouting: Bool {
-    get {return _storage._disableRouting}
-    set {_uniqueStorage()._disableRouting = newValue}
-  }
-
   var enableTwoHop: Bool {
     get {return _storage._enableTwoHop}
     set {_uniqueStorage()._enableTwoHop = newValue}
@@ -3820,7 +3815,6 @@ extension Nym_Vpn_ConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     1: .same(proto: "entry"),
     2: .same(proto: "exit"),
     3: .same(proto: "dns"),
-    4: .standard(proto: "disable_routing"),
     5: .standard(proto: "enable_two_hop"),
     13: .same(proto: "netstack"),
     6: .standard(proto: "disable_poisson_rate"),
@@ -3836,7 +3830,6 @@ extension Nym_Vpn_ConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     var _entry: Nym_Vpn_EntryNode? = nil
     var _exit: Nym_Vpn_ExitNode? = nil
     var _dns: Nym_Vpn_Dns? = nil
-    var _disableRouting: Bool = false
     var _enableTwoHop: Bool = false
     var _netstack: Bool = false
     var _disablePoissonRate: Bool = false
@@ -3863,7 +3856,6 @@ extension Nym_Vpn_ConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       _entry = source._entry
       _exit = source._exit
       _dns = source._dns
-      _disableRouting = source._disableRouting
       _enableTwoHop = source._enableTwoHop
       _netstack = source._netstack
       _disablePoissonRate = source._disablePoissonRate
@@ -3894,7 +3886,6 @@ extension Nym_Vpn_ConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
         case 1: try { try decoder.decodeSingularMessageField(value: &_storage._entry) }()
         case 2: try { try decoder.decodeSingularMessageField(value: &_storage._exit) }()
         case 3: try { try decoder.decodeSingularMessageField(value: &_storage._dns) }()
-        case 4: try { try decoder.decodeSingularBoolField(value: &_storage._disableRouting) }()
         case 5: try { try decoder.decodeSingularBoolField(value: &_storage._enableTwoHop) }()
         case 6: try { try decoder.decodeSingularBoolField(value: &_storage._disablePoissonRate) }()
         case 7: try { try decoder.decodeSingularBoolField(value: &_storage._disableBackgroundCoverTraffic) }()
@@ -3925,9 +3916,6 @@ extension Nym_Vpn_ConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
       try { if let v = _storage._dns {
         try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
       } }()
-      if _storage._disableRouting != false {
-        try visitor.visitSingularBoolField(value: _storage._disableRouting, fieldNumber: 4)
-      }
       if _storage._enableTwoHop != false {
         try visitor.visitSingularBoolField(value: _storage._enableTwoHop, fieldNumber: 5)
       }
@@ -3967,7 +3955,6 @@ extension Nym_Vpn_ConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
         if _storage._entry != rhs_storage._entry {return false}
         if _storage._exit != rhs_storage._exit {return false}
         if _storage._dns != rhs_storage._dns {return false}
-        if _storage._disableRouting != rhs_storage._disableRouting {return false}
         if _storage._enableTwoHop != rhs_storage._enableTwoHop {return false}
         if _storage._netstack != rhs_storage._netstack {return false}
         if _storage._disablePoissonRate != rhs_storage._disablePoissonRate {return false}
