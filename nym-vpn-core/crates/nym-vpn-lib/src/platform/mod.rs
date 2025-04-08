@@ -89,16 +89,16 @@ lazy_static! {
 /// including exporting to the environment
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn initEnvironment(network_name: &str) -> Result<(), VpnError> {
-    RUNTIME.block_on(environment::init_environment(network_name))
+pub fn initEnvironment(data_dir: String, network_name: &str) -> Result<(), VpnError> {
+    RUNTIME.block_on(environment::init_environment(data_dir, network_name))
 }
 
 /// Async variant of initEnvironment. Fetches the network environment details from the network name
 /// and initializes the environment, including exporting to the environment
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub async fn initEnvironmentAsync(network_name: &str) -> Result<(), VpnError> {
-    environment::init_environment(network_name).await
+pub async fn initEnvironmentAsync(data_dir: String, network_name: &str) -> Result<(), VpnError> {
+    environment::init_environment(data_dir, network_name).await
 }
 
 /// Sets up mainnet defaults without making any network calls. This means no system messages or

@@ -1,18 +1,19 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::path::PathBuf;
+
 use super::uniffi_custom_impls::{
     AccountLinks, NetworkCompatibility, NetworkEnvironment, SystemMessage,
 };
 
 use super::{error::VpnError, NETWORK_ENVIRONMENT};
 
-pub(crate) async fn init_environment(network_name: &str) -> Result<(), VpnError> {
-    let network = nym_vpn_network_config::Network::fetch(network_name)
-        .await
-        .map_err(|err| VpnError::NetworkConnectionError {
-            details: err.to_string(),
-        })?;
+pub(crate) async fn init_environment(data_dir: String, network_name: &str) -> Result<(), VpnError> {
+    let network =
+        nym_vpn_network_config::discover_env(PathBuf::from(data_dir).as_path(), network_name)
+            .await
+            .map_err(VpnError::internal)?;
 
     // To bridge with old code, export to environment. New code should not rely on this.
     network.export_to_env();
