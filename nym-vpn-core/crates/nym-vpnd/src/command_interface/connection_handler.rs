@@ -17,12 +17,15 @@ use nym_vpn_lib_types::{
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::gateway;
 
-use super::protobuf::error::VpnCommandSendError;
-use crate::logging::LogPath;
-use crate::service::{
-    AccountError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
-    VpnServiceDeleteLogFileError,
+use crate::{
+    logging::LogPath,
+    service::{
+        AccountError, AccountLinksError, ConnectArgs, ConnectOptions, SetNetworkError,
+        VpnServiceCommand, VpnServiceDeleteLogFileError,
+    },
 };
+
+use super::protobuf::error::VpnCommandSendError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ListGatewayError {
@@ -175,7 +178,7 @@ impl CommandInterfaceConnectionHandler {
     pub async fn handle_get_account_links(
         &self,
         locale: String,
-    ) -> Result<Result<ParsedAccountLinks, AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<ParsedAccountLinks, AccountLinksError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetAccountLinks, locale)
             .await
     }

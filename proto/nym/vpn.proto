@@ -333,13 +333,6 @@ message GetAccountLinksRequest {
   string locale = 1;
 }
 
-message GetAccountLinksResponse {
-  oneof res {
-    AccountManagement links = 1;
-    AccountError error = 2;
-  }
-}
-
 message ConnectionData {
   Gateway entry_gateway = 1;
   Gateway exit_gateway = 2;
@@ -558,7 +551,7 @@ service NymVpnd {
   rpc GetAccountIdentity (google.protobuf.Empty) returns (GetAccountIdentityResponse) {}
 
   // Get the set of account links for the user
-  rpc GetAccountLinks (GetAccountLinksRequest) returns (GetAccountLinksResponse) {}
+  rpc GetAccountLinks (GetAccountLinksRequest) returns (AccountManagement) {}
 
   // Query the account state, which is synced from the nym-vpn-api account, as it
   // is known and interpreted by nym-vpnd

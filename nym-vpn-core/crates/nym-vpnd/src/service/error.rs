@@ -56,6 +56,15 @@ pub enum SetNetworkError {
     NetworkNotFound(String),
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum AccountLinksError {
+    #[error("account management not configured")]
+    AccountManagementNotConfigured,
+
+    #[error("failed to parse account management paths")]
+    FailedToParseAccountLinks,
+}
+
 #[derive(Clone, Debug, thiserror::Error)]
 pub enum VpnServiceDeleteLogFileError {
     #[error("internal error: {0}")]

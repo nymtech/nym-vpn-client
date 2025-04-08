@@ -13,6 +13,7 @@ use cli::Internal;
 use itertools::Itertools;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_lib_types::TunnelState;
+use nym_vpn_network_config::ParsedAccountLinks;
 use nym_vpn_proto::{
     ConfirmZkNymDownloadedRequest, ConnectRequest, GetAccountLinksRequest, GetZkNymByIdRequest,
     InfoResponse, ListCountriesRequest, ListGatewaysRequest, ResetDeviceIdentityRequest,
@@ -381,19 +382,10 @@ async fn get_account_links(opts: CliOptions, args: &cli::GetAccountLinksArgs) ->
     if opts.verbose {
         println!("{:#?}", response);
     }
-    match response
-        .res
-        .context("failed to parse get account links response")?
-    {
-        nym_vpn_proto::get_account_links_response::Res::Links(links) => {
-            let links = nym_vpn_network_config::ParsedAccountLinks::try_from(links)
-                .context("failed to parse account links into ParsedAccountLinks")?;
-            println!("{links}");
-        }
-        nym_vpn_proto::get_account_links_response::Res::Error(err) => {
-            println!("Error: {err:#?}");
-        }
-    };
+
+    let links = ParsedAccountLinks::try_from(response)
+        .context("failed to parse account management response")?;
+    println!("{links}");
 
     Ok(())
 }

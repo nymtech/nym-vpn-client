@@ -11,18 +11,17 @@ use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
     conversions::ConversionError, get_account_state_response::AccountStateSummary,
     get_account_usage_response::AccountUsages, get_devices_response::Devices,
-    nym_vpnd_server::NymVpnd, AvailableTickets, ConfirmZkNymDownloadedRequest,
+    nym_vpnd_server::NymVpnd, AccountManagement, AvailableTickets, ConfirmZkNymDownloadedRequest,
     ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse, DeleteLogFileResponse,
     DisconnectResponse, ForgetAccountResponse, GetAccountIdentityResponse, GetAccountLinksRequest,
-    GetAccountLinksResponse, GetAccountStateResponse, GetAccountUsageResponse,
-    GetDeviceIdentityResponse, GetDeviceZkNymsResponse, GetDevicesResponse,
-    GetFeatureFlagsResponse, GetLogPathResponse, GetNetworkCompatibilityResponse,
-    GetSystemMessagesResponse, GetZkNymByIdRequest, GetZkNymByIdResponse,
-    GetZkNymsAvailableForDownloadResponse, InfoResponse, IsAccountStoredResponse,
-    ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
-    RefreshAccountStateResponse, RegisterDeviceResponse, RequestZkNymResponse,
-    ResetDeviceIdentityRequest, ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse,
-    StoreAccountRequest, StoreAccountResponse, TunnelState,
+    GetAccountStateResponse, GetAccountUsageResponse, GetDeviceIdentityResponse,
+    GetDeviceZkNymsResponse, GetDevicesResponse, GetFeatureFlagsResponse, GetLogPathResponse,
+    GetNetworkCompatibilityResponse, GetSystemMessagesResponse, GetZkNymByIdRequest,
+    GetZkNymByIdResponse, GetZkNymsAvailableForDownloadResponse, InfoResponse,
+    IsAccountStoredResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
+    ListGatewaysResponse, RefreshAccountStateResponse, RegisterDeviceResponse,
+    RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
+    SetNetworkRequest, SetNetworkResponse, StoreAccountRequest, StoreAccountResponse, TunnelState,
 };
 use zeroize::Zeroizing;
 
@@ -474,30 +473,18 @@ impl NymVpnd for CommandInterface {
     async fn get_account_links(
         &self,
         request: tonic::Request<GetAccountLinksRequest>,
-    ) -> Result<tonic::Response<GetAccountLinksResponse>, tonic::Status> {
+    ) -> Result<tonic::Response<AccountManagement>, tonic::Status> {
         let locale = request.into_inner().locale;
 
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+        let account_links = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_account_links(locale)
-            .await?;
+            .await?
+            .map_err(|err| {
+                tracing::error!("Failed to get account links: {:?}", err);
+                tonic::Status::internal("Failed to get account links")
+            })?;
 
-        let response = match result {
-            Ok(account_links) => GetAccountLinksResponse {
-                res: Some(nym_vpn_proto::get_account_links_response::Res::Links(
-                    nym_vpn_proto::AccountManagement::from(account_links),
-                )),
-            },
-            Err(err) => {
-                tracing::error!("Failed to get account links: {err:?}");
-                GetAccountLinksResponse {
-                    res: Some(nym_vpn_proto::get_account_links_response::Res::Error(
-                        nym_vpn_proto::AccountError::from(err),
-                    )),
-                }
-            }
-        };
-
-        Ok(tonic::Response::new(response))
+        Ok(tonic::Response::new(AccountManagement::from(account_links)))
     }
 
     async fn get_account_state(
