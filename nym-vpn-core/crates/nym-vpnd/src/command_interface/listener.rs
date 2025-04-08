@@ -9,18 +9,19 @@ use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use nym_vpn_api_client::types::{GatewayMinPerformance, ScoreThresholds};
 use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
-    conversions::ConversionError, nym_vpnd_server::NymVpnd, AccountError, AvailableTickets,
-    ConfirmZkNymDownloadedRequest, ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse,
-    DeleteLogFileResponse, DisconnectResponse, ForgetAccountResponse, GetAccountIdentityResponse,
-    GetAccountLinksRequest, GetAccountLinksResponse, GetAccountStateResponse,
-    GetAccountUsageResponse, GetDeviceIdentityResponse, GetDeviceZkNymsResponse,
-    GetDevicesResponse, GetFeatureFlagsResponse, GetLogPathResponse,
-    GetNetworkCompatibilityResponse, GetSystemMessagesResponse, GetZkNymByIdRequest,
-    GetZkNymByIdResponse, GetZkNymsAvailableForDownloadResponse, InfoResponse,
-    IsAccountStoredResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
-    ListGatewaysResponse, RefreshAccountStateResponse, RegisterDeviceResponse,
-    RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
-    SetNetworkRequest, SetNetworkResponse, StoreAccountRequest, StoreAccountResponse, TunnelState,
+    conversions::ConversionError, get_devices_response::Devices, nym_vpnd_server::NymVpnd,
+    AccountError, AvailableTickets, ConfirmZkNymDownloadedRequest, ConfirmZkNymDownloadedResponse,
+    ConnectRequest, ConnectResponse, DeleteLogFileResponse, DisconnectResponse,
+    ForgetAccountResponse, GetAccountIdentityResponse, GetAccountLinksRequest,
+    GetAccountLinksResponse, GetAccountStateResponse, GetAccountUsageResponse,
+    GetDeviceIdentityResponse, GetDeviceZkNymsResponse, GetDevicesResponse,
+    GetFeatureFlagsResponse, GetLogPathResponse, GetNetworkCompatibilityResponse,
+    GetSystemMessagesResponse, GetZkNymByIdRequest, GetZkNymByIdResponse,
+    GetZkNymsAvailableForDownloadResponse, InfoResponse, IsAccountStoredResponse,
+    ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
+    RefreshAccountStateResponse, RegisterDeviceResponse, RequestZkNymResponse,
+    ResetDeviceIdentityRequest, ResetDeviceIdentityResponse, SetNetworkRequest, SetNetworkResponse,
+    StoreAccountRequest, StoreAccountResponse, TunnelState,
 };
 use zeroize::Zeroizing;
 
@@ -685,112 +686,88 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetDevicesResponse>, tonic::Status> {
-        let response = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+        let devices = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_devices()
             .await?
-            .map(|devices| GetDevicesResponse {
-                result: Some(nym_vpn_proto::get_devices_response::Result::Devices(
-                    nym_vpn_proto::get_devices_response::Devices::from(devices),
-                )),
-            })
-            .unwrap_or_else(|err| GetDevicesResponse {
-                result: Some(nym_vpn_proto::get_devices_response::Result::Error(
-                    nym_vpn_proto::AccountError::from(err),
-                )),
-            });
-        Ok(tonic::Response::new(response))
+            .map_err(|err| {
+                tracing::error!("Failed to get devices: {:?}", err);
+                tonic::Status::internal("Failed to get devices")
+            })?;
+
+        Ok(tonic::Response::new(GetDevicesResponse {
+            devices: Some(Devices::from(devices)),
+        }))
     }
 
     async fn get_active_devices(
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetDevicesResponse>, tonic::Status> {
-        let response = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+        let devices = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_active_devices()
             .await?
-            .map(|devices| GetDevicesResponse {
-                result: Some(nym_vpn_proto::get_devices_response::Result::Devices(
-                    nym_vpn_proto::get_devices_response::Devices::from(devices),
-                )),
-            })
-            .unwrap_or_else(|err| GetDevicesResponse {
-                result: Some(nym_vpn_proto::get_devices_response::Result::Error(
-                    nym_vpn_proto::AccountError::from(err),
-                )),
-            });
-        Ok(tonic::Response::new(response))
+            .map_err(|err| {
+                tracing::error!("Failed to get active devices: {:?}", err);
+                tonic::Status::internal("Failed to get active devices")
+            })?;
+
+        Ok(tonic::Response::new(GetDevicesResponse {
+            devices: Some(Devices::from(devices)),
+        }))
     }
 
     async fn request_zk_nym(
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<RequestZkNymResponse>, tonic::Status> {
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+        let _ = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_request_zk_nym()
-            .await?;
-
-        let response = match result {
-            Ok(response) => RequestZkNymResponse {
-                json: serde_json::to_string(&response)
-                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
-                error: None,
-            },
-            Err(err) => RequestZkNymResponse {
-                json: err.to_string(),
-                error: Some(AccountError::from(err)),
-            },
-        };
+            .await?
+            .map_err(|err| {
+                tracing::error!("Failed to request zk nym: {:?}", err);
+                tonic::Status::internal("Failed to request zk nym")
+            })?;
 
         tracing::debug!("Returning request zk nym response");
-        Ok(tonic::Response::new(response))
+        Ok(tonic::Response::new(RequestZkNymResponse {}))
     }
 
     async fn get_device_zk_nyms(
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetDeviceZkNymsResponse>, tonic::Status> {
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+        // Internal command where returning the result is not yet implemented. It's primary
+        // implementation is to trigger the command interface.
+        let _ = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_device_zk_nyms()
-            .await?;
-
-        let response = match result {
-            Ok(response) => GetDeviceZkNymsResponse {
-                json: serde_json::to_string(&response)
-                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
-                error: None,
-            },
-            Err(err) => GetDeviceZkNymsResponse {
-                json: err.to_string(),
-                error: Some(AccountError::from(err)),
-            },
-        };
+            .await?
+            .map_err(|err| {
+                tracing::error!("Failed to get device zknyms: {:?}", err);
+                tonic::Status::internal("Failed to get devicezk nyms")
+            })?;
 
         tracing::debug!("Returning get device zk nyms response");
-        Ok(tonic::Response::new(response))
+        Ok(tonic::Response::new(GetDeviceZkNymsResponse {}))
     }
 
     async fn get_zk_nyms_available_for_download(
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetZkNymsAvailableForDownloadResponse>, tonic::Status> {
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+        // Internal command where returning the result is not yet implemented. It's primary
+        // purpose is to trigger the command interface.
+        let _ = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
             .handle_get_zk_nyms_available_for_download()
-            .await?;
-
-        let response = match result {
-            Ok(response) => GetZkNymsAvailableForDownloadResponse {
-                json: serde_json::to_string(&response)
-                    .unwrap_or_else(|_| "failed to serialize".to_owned()),
-                error: None,
-            },
-            Err(err) => GetZkNymsAvailableForDownloadResponse {
-                json: err.to_string(),
-                error: Some(AccountError::from(err)),
-            },
-        };
+            .await?
+            .map_err(|err| {
+                tracing::error!("Failed to get zknyms available for download: {:?}", err);
+                tonic::Status::internal("Failed to get zknyms available for download")
+            })?;
 
         tracing::debug!("Returning get zk nyms available to download response");
-        Ok(tonic::Response::new(response))
+        Ok(tonic::Response::new(
+            GetZkNymsAvailableForDownloadResponse {},
+        ))
     }
 
     async fn get_zk_nym_by_id(

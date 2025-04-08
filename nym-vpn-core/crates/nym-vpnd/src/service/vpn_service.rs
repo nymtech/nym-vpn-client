@@ -81,10 +81,13 @@ pub enum VpnServiceCommand {
     GetDeviceIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
     RegisterDevice(oneshot::Sender<Result<(), AccountError>>, ()),
     GetDevices(oneshot::Sender<Result<Vec<NymVpnDevice>, AccountError>>, ()),
-    GetActiveDevices(oneshot::Sender<Result<Vec<NymVpnDevice>, AccountError>>, ()),
-    RequestZkNym(oneshot::Sender<Result<(), AccountError>>, ()),
-    GetDeviceZkNyms(oneshot::Sender<Result<(), AccountError>>, ()),
-    GetZkNymsAvailableForDownload(oneshot::Sender<Result<(), AccountError>>, ()),
+    GetActiveDevices(
+        oneshot::Sender<Result<Vec<NymVpnDevice>, AccountCommandError>>,
+        (),
+    ),
+    RequestZkNym(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    GetDeviceZkNyms(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    GetZkNymsAvailableForDownload(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     GetZkNymById(oneshot::Sender<Result<(), AccountCommandError>>, String),
     ConfirmZkNymIdDownloaded(oneshot::Sender<Result<(), AccountCommandError>>, String),
     GetAvailableTickets(
@@ -472,8 +475,8 @@ where
                 let _ = tx.send(result);
             }
             VpnServiceCommand::RequestZkNym(tx, ()) => {
-                let result = self.handle_request_zk_nym().await;
-                let _ = tx.send(result);
+                self.handle_request_zk_nym().await;
+                let _ = tx.send(Ok(()));
             }
             VpnServiceCommand::GetDeviceZkNyms(tx, ()) => {
                 let result = self.handle_get_device_zk_nyms().await;
@@ -836,28 +839,20 @@ where
             .map_err(AccountError::from)
     }
 
-    async fn handle_get_active_devices(&self) -> Result<Vec<NymVpnDevice>, AccountError> {
-        self.account_command_tx
-            .get_active_devices()
-            .await
-            .map_err(AccountError::from)
+    async fn handle_get_active_devices(&self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
+        self.account_command_tx.get_active_devices().await
     }
 
-    async fn handle_request_zk_nym(&self) -> Result<(), AccountError> {
+    async fn handle_request_zk_nym(&self) {
         self.account_command_tx.background_request_zk_nyms();
-        Ok(())
     }
 
-    async fn handle_get_device_zk_nyms(&self) -> Result<(), AccountError> {
-        self.account_command_tx
-            .get_device_zk_nym()
-            .map_err(AccountError::from)
+    async fn handle_get_device_zk_nyms(&self) -> Result<(), AccountCommandError> {
+        self.account_command_tx.get_device_zk_nym()
     }
 
-    async fn handle_get_zk_nyms_available_for_download(&self) -> Result<(), AccountError> {
-        self.account_command_tx
-            .get_zk_nyms_available_for_download()
-            .map_err(AccountError::from)
+    async fn handle_get_zk_nyms_available_for_download(&self) -> Result<(), AccountCommandError> {
+        self.account_command_tx.get_zk_nyms_available_for_download()
     }
 
     async fn handle_get_zk_nym_by_id(&self, id: String) -> Result<(), AccountCommandError> {

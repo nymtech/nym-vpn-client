@@ -311,25 +311,17 @@ message GetDevicesResponse {
     repeated Device devices = 1;
   }
 
-  oneof result {
-    Devices devices = 1;
-    AccountError error = 2;
-  }
+  Devices devices = 1;
 }
 
-message RequestZkNymResponse {
-  string json = 1;
-  AccountError error = 2;
-}
+message RequestZkNymResponse {}
 
 message GetDeviceZkNymsResponse {
-  string json = 1;
-  AccountError error = 2;
+  // todo
 }
 
 message GetZkNymsAvailableForDownloadResponse {
-  string json = 1;
-  AccountError error = 2;
+  // todo
 }
 
 message GetZkNymByIdRequest {
