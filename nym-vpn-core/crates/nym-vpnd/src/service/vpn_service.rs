@@ -38,7 +38,10 @@ use zeroize::Zeroizing;
 
 use super::{
     config::{NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
-    error::{AccountError, Error, Result, SetNetworkError, VpnServiceDeleteLogFileError},
+    error::{
+        AccountError, AccountLinksError, Error, Result, SetNetworkError,
+        VpnServiceDeleteLogFileError,
+    },
 };
 use crate::config::GlobalConfigFile;
 use crate::logging::LogPath;
@@ -71,7 +74,7 @@ pub enum VpnServiceCommand {
     ForgetAccount(oneshot::Sender<Result<(), ForgetAccountError>>, ()),
     GetAccountIdentity(oneshot::Sender<Option<String>>, ()),
     GetAccountLinks(
-        oneshot::Sender<Result<ParsedAccountLinks, AccountError>>,
+        oneshot::Sender<Result<ParsedAccountLinks, AccountLinksError>>,
         Locale,
     ),
     GetAccountState(oneshot::Sender<AccountStateSummary>, ()),
@@ -753,18 +756,18 @@ where
     async fn handle_get_account_links(
         &self,
         locale: String,
-    ) -> Result<ParsedAccountLinks, AccountError> {
+    ) -> Result<ParsedAccountLinks, AccountLinksError> {
         let account_id = self.handle_get_account_identity().await;
 
         self.network_env
             .nym_vpn_network
             .account_management
             .clone()
-            .ok_or(AccountError::AccountManagementNotConfigured)?
+            .ok_or(AccountLinksError::AccountManagementNotConfigured)?
             .try_into_parsed_links(&locale, account_id.as_deref())
             .map_err(|err| {
                 tracing::error!("Failed to parse account links: {:?}", err);
-                AccountError::FailedToParseAccountLinks
+                AccountLinksError::FailedToParseAccountLinks
             })
     }
 
