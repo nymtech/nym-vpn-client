@@ -349,38 +349,34 @@ message ConfirmZkNymDownloadedResponse {
   AccountError error = 2;
 }
 
-message GetAvailableTicketsResponse {
-  message AvailableTickets {
-    // Remaining number of mixnet entry tickets
-    uint64 mixnet_entry_tickets = 1;
-    // Remaining mixnet entry data in bytes
-    uint64 mixnet_entry_data = 2;
-    // Remaining mixnet entry data formatted to a string using SI units
-    string mixnet_entry_data_si = 3;
+message AvailableTickets {
+  // Remaining number of mixnet entry tickets
+  uint64 mixnet_entry_tickets = 1;
+  // Remaining mixnet entry data in bytes
+  uint64 mixnet_entry_data = 2;
+  // Remaining mixnet entry data formatted to a string using SI units
+  string mixnet_entry_data_si = 3;
 
-    // Remaining number of mixnet exit tickets
-    uint64 mixnet_exit_tickets = 4;
-    // Remaining mixnet exit data in bytes
-    uint64 mixnet_exit_data = 5;
-    // Remaining mixnet exit data formatted to a string using SI units
-    string mixnet_exit_data_si = 6;
+  // Remaining number of mixnet exit tickets
+  uint64 mixnet_exit_tickets = 4;
+  // Remaining mixnet exit data in bytes
+  uint64 mixnet_exit_data = 5;
+  // Remaining mixnet exit data formatted to a string using SI units
+  string mixnet_exit_data_si = 6;
 
-    // Remaining number of vpn entry tickets
-    uint64 vpn_entry_tickets = 7;
-    // Remaining vpn entry data in bytes
-    uint64 vpn_entry_data = 8;
-    // Remaining vpn entry data formatted to a string using SI units
-    string vpn_entry_data_si = 9;
+  // Remaining number of vpn entry tickets
+  uint64 vpn_entry_tickets = 7;
+  // Remaining vpn entry data in bytes
+  uint64 vpn_entry_data = 8;
+  // Remaining vpn entry data formatted to a string using SI units
+  string vpn_entry_data_si = 9;
 
-    // Remaining number of vpn exit tickets
-    uint64 vpn_exit_tickets = 10;
-    // Remaining vpn exit data in bytes
-    uint64 vpn_exit_data = 11;
-    // Remaining vpn exit data formatted to a string using SI units
-    string vpn_exit_data_si = 12;
-  }
-
-  AvailableTickets available_tickets = 1;
+  // Remaining number of vpn exit tickets
+  uint64 vpn_exit_tickets = 10;
+  // Remaining vpn exit data in bytes
+  uint64 vpn_exit_data = 11;
+  // Remaining vpn exit data formatted to a string using SI units
+  string vpn_exit_data_si = 12;
 }
 
 message DeleteLogFileResponse {

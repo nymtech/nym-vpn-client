@@ -6,9 +6,8 @@ use nym_vpn_lib_types::{
 };
 
 use crate::{
-    get_available_tickets_response::AvailableTickets as ProtoAvailableTickets,
-    AccountIdentity as ProtoAccountIdentity, RequestZkNymError as ProtoRequestZkNymError,
-    RequestZkNymSuccess as ProtoRequestZkNymSuccess,
+    AccountIdentity as ProtoAccountIdentity, AvailableTickets as ProtoAvailableTickets,
+    RequestZkNymError as ProtoRequestZkNymError, RequestZkNymSuccess as ProtoRequestZkNymSuccess,
 };
 
 impl From<Option<String>> for ProtoAccountIdentity {

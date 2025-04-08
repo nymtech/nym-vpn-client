@@ -602,7 +602,7 @@ service NymVpnd {
   rpc ConfirmZkNymDownloaded (ConfirmZkNymDownloadedRequest) returns (ConfirmZkNymDownloadedResponse) {}
 
   // Get the available tickets in the local credential store
-  rpc GetAvailableTickets (google.protobuf.Empty) returns (GetAvailableTicketsResponse) {}
+  rpc GetAvailableTickets (google.protobuf.Empty) returns (AvailableTickets) {}
 
   // Get the log file path
   rpc GetLogPath (google.protobuf.Empty) returns (GetLogPathResponse) {}
