@@ -64,7 +64,7 @@ pub enum VpnServiceCommand {
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
     SubscribeToTunnelState(oneshot::Sender<watch::Receiver<TunnelState>>, ()),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, Zeroizing<String>),
-    IsAccountStored(oneshot::Sender<Result<bool, AccountError>>, ()),
+    IsAccountStored(oneshot::Sender<Result<bool, AccountCommandError>>, ()),
     ForgetAccount(oneshot::Sender<Result<(), AccountError>>, ()),
     GetAccountIdentity(oneshot::Sender<Result<Option<String>, AccountError>>, ()),
     GetAccountLinks(
@@ -72,12 +72,18 @@ pub enum VpnServiceCommand {
         Locale,
     ),
     GetAccountState(
-        oneshot::Sender<Result<AccountStateSummary, AccountError>>,
+        oneshot::Sender<Result<AccountStateSummary, AccountCommandError>>,
         (),
     ),
-    RefreshAccountState(oneshot::Sender<Result<(), AccountError>>, ()),
-    GetAccountUsage(oneshot::Sender<Result<Vec<NymVpnUsage>, AccountError>>, ()),
-    ResetDeviceIdentity(oneshot::Sender<Result<(), AccountError>>, Option<Seed>),
+    RefreshAccountState(oneshot::Sender<Result<(), AccountCommandError>>, ()),
+    GetAccountUsage(
+        oneshot::Sender<Result<Vec<NymVpnUsage>, AccountCommandError>>,
+        (),
+    ),
+    ResetDeviceIdentity(
+        oneshot::Sender<Result<(), AccountCommandError>>,
+        Option<Seed>,
+    ),
     GetDeviceIdentity(oneshot::Sender<Result<String, AccountError>>, ()),
     RegisterDevice(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     GetDevices(
@@ -94,7 +100,7 @@ pub enum VpnServiceCommand {
     GetZkNymById(oneshot::Sender<Result<(), AccountCommandError>>, String),
     ConfirmZkNymIdDownloaded(oneshot::Sender<Result<(), AccountCommandError>>, String),
     GetAvailableTickets(
-        oneshot::Sender<Result<AvailableTicketbooks, AccountError>>,
+        oneshot::Sender<Result<AvailableTicketbooks, AccountCommandError>>,
         (),
     ),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
@@ -430,40 +436,32 @@ where
                 let _ = tx.send(result);
             }
             VpnServiceCommand::IsAccountStored(tx, ()) => {
-                let result = self.handle_is_account_stored().await;
-                let _ = tx.send(result);
+                let _ = tx.send(Ok(self.handle_is_account_stored().await));
             }
             VpnServiceCommand::ForgetAccount(tx, ()) => {
-                let result = self.handle_forget_account().await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_forget_account().await);
             }
             VpnServiceCommand::GetAccountIdentity(tx, ()) => {
-                let result = self.handle_get_account_identity().await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_get_account_identity().await);
             }
             VpnServiceCommand::GetAccountLinks(tx, locale) => {
-                let result = self.handle_get_account_links(locale).await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_get_account_links(locale).await);
             }
             VpnServiceCommand::GetAccountState(tx, ()) => {
-                let result = self.handle_get_account_state().await;
-                let _ = tx.send(result);
+                let _ = tx.send(Ok(self.handle_get_account_state().await));
             }
             VpnServiceCommand::RefreshAccountState(tx, ()) => {
-                let result = self.handle_refresh_account_state().await;
-                let _ = tx.send(result);
+                self.handle_refresh_account_state().await;
+                let _ = tx.send(Ok(()));
             }
             VpnServiceCommand::GetAccountUsage(tx, ()) => {
-                let result = self.handle_get_usage().await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_get_usage().await);
             }
             VpnServiceCommand::ResetDeviceIdentity(tx, seed) => {
-                let result = self.handle_reset_device_identity(seed).await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_reset_device_identity(seed).await);
             }
             VpnServiceCommand::GetDeviceIdentity(tx, ()) => {
-                let result = self.handle_get_device_identity().await;
-                let _ = tx.send(result);
+                let _ = tx.send(self.handle_get_device_identity().await);
             }
             VpnServiceCommand::RegisterDevice(tx, ()) => {
                 self.handle_register_device().await;
@@ -729,8 +727,8 @@ where
         Ok(())
     }
 
-    async fn handle_is_account_stored(&self) -> Result<bool, AccountError> {
-        Ok(self.shared_account_state.is_account_stored().await)
+    async fn handle_is_account_stored(&self) -> bool {
+        self.shared_account_state.is_account_stored().await
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountError> {
@@ -770,45 +768,34 @@ where
             })
     }
 
-    async fn handle_get_account_state(&self) -> Result<AccountStateSummary, AccountError> {
-        Ok(self.shared_account_state.lock().await.clone())
+    async fn handle_get_account_state(&self) -> AccountStateSummary {
+        self.shared_account_state.lock().await.clone()
     }
 
-    async fn handle_refresh_account_state(&self) -> Result<(), AccountError> {
+    async fn handle_refresh_account_state(&self) {
         self.account_command_tx.background_sync_account_state();
-        Ok(())
     }
 
-    async fn handle_get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountError> {
-        self.account_command_tx
-            .get_usage()
-            .await
-            .map_err(AccountError::from)
+    async fn handle_get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
+        self.account_command_tx.get_usage().await
     }
 
     async fn handle_reset_device_identity(
         &mut self,
         seed: Option<[u8; 32]>,
-    ) -> Result<(), AccountError> {
+    ) -> Result<(), AccountCommandError> {
         if *self.tunnel_state.borrow() != TunnelState::Disconnected {
-            return Err(AccountError::IsConnected);
+            return Err(AccountCommandError::internal(
+                "Unable to reset device identity while connected",
+            ));
         }
-
-        // First disconnect the VPN
-        self.handle_disconnect()
-            .await
-            .map_err(|err| AccountError::FailedToResetDeviceKeys {
-                source: Box::new(err),
-            })?;
 
         self.storage
             .lock()
             .await
             .reset_keys(seed)
             .await
-            .map_err(|err| AccountError::FailedToResetDeviceKeys {
-                source: Box::new(err),
-            })?;
+            .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
 
         self.account_command_tx.background_sync_account_state();
 
@@ -857,11 +844,10 @@ where
         self.account_command_tx.confirm_zk_nym_id_downloaded(id)
     }
 
-    async fn handle_get_available_tickets(&self) -> Result<AvailableTicketbooks, AccountError> {
-        self.account_command_tx
-            .get_available_tickets()
-            .await
-            .map_err(AccountError::from)
+    async fn handle_get_available_tickets(
+        &self,
+    ) -> Result<AvailableTicketbooks, AccountCommandError> {
+        self.account_command_tx.get_available_tickets().await
     }
 
     async fn handle_delete_log_file(&self) -> Result<(), VpnServiceDeleteLogFileError> {

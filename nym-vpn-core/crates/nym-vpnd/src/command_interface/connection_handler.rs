@@ -157,7 +157,7 @@ impl CommandInterfaceConnectionHandler {
 
     pub async fn handle_is_account_stored(
         &self,
-    ) -> Result<Result<bool, AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<bool, AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::IsAccountStored, ())
             .await
     }
@@ -186,21 +186,21 @@ impl CommandInterfaceConnectionHandler {
 
     pub async fn handle_get_account_state(
         &self,
-    ) -> Result<Result<AccountStateSummary, AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<AccountStateSummary, AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetAccountState, ())
             .await
     }
 
     pub async fn handle_refresh_account_state(
         &self,
-    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<(), AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::RefreshAccountState, ())
             .await
     }
 
     pub async fn handle_get_account_usage(
         &self,
-    ) -> Result<Result<Vec<NymVpnUsage>, AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<Vec<NymVpnUsage>, AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetAccountUsage, ())
             .await
     }
@@ -208,7 +208,7 @@ impl CommandInterfaceConnectionHandler {
     pub async fn handle_reset_device_identity(
         &self,
         seed: Option<[u8; 32]>,
-    ) -> Result<Result<(), AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<(), AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::ResetDeviceIdentity, seed)
             .await
     }
@@ -279,7 +279,7 @@ impl CommandInterfaceConnectionHandler {
 
     pub async fn handle_get_available_tickets(
         &self,
-    ) -> Result<Result<AvailableTicketbooks, AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<AvailableTicketbooks, AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetAvailableTickets, ())
             .await
     }
