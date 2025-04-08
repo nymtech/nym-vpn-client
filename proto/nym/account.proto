@@ -380,10 +380,7 @@ message GetAvailableTicketsResponse {
     string vpn_exit_data_si = 12;
   }
 
-  oneof resp {
-    AvailableTickets available_tickets = 1;
-    AccountError error = 2;
-  }
+  AvailableTickets available_tickets = 1;
 }
 
 message DeleteLogFileResponse {
