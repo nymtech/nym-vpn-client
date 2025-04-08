@@ -302,7 +302,7 @@ where
         Ok(())
     }
 
-    async fn handle_forget_account(&mut self) -> Result<(), AccountCommandError> {
+    async fn handle_forget_account(&mut self) -> Result<(), ForgetAccountError> {
         tracing::info!("REMOVING ACCOUNT AND ALL ASSOCIATED DATA");
 
         // TODO: here we should put the controller in some sort of idle state, and wait for all
@@ -374,15 +374,13 @@ where
         if let Err(err) = remove_files_result {
             return Err(ForgetAccountError::RemoveAccountFiles(format!(
                 "Failed to remove files for account: {err}"
-            ))
-            .into());
+            )));
         }
 
         if let Err(err) = reinit_keys_result {
             return Err(ForgetAccountError::InitDeviceKeys(format!(
                 "Failed to reinitialize device keys: {err}"
-            ))
-            .into());
+            )));
         }
 
         Ok(())

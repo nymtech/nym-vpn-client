@@ -30,8 +30,8 @@ use nym_vpn_lib::{
     MixnetClientConfig, Recipient, UserAgent,
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, TunnelEvent, TunnelState, TunnelType, VpnServiceConnectError,
-    VpnServiceDisconnectError, VpnServiceInfo,
+    AccountCommandError, ForgetAccountError, TunnelEvent, TunnelState, TunnelType,
+    VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo,
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use zeroize::Zeroizing;
@@ -65,7 +65,7 @@ pub enum VpnServiceCommand {
     SubscribeToTunnelState(oneshot::Sender<watch::Receiver<TunnelState>>, ()),
     StoreAccount(oneshot::Sender<Result<(), AccountError>>, Zeroizing<String>),
     IsAccountStored(oneshot::Sender<bool>, ()),
-    ForgetAccount(oneshot::Sender<Result<(), AccountError>>, ()),
+    ForgetAccount(oneshot::Sender<Result<(), ForgetAccountError>>, ()),
     GetAccountIdentity(oneshot::Sender<Option<String>>, ()),
     GetAccountLinks(
         oneshot::Sender<Result<ParsedAccountLinks, AccountError>>,
@@ -728,9 +728,11 @@ where
         self.shared_account_state.is_account_stored().await
     }
 
-    async fn handle_forget_account(&mut self) -> Result<(), AccountError> {
+    async fn handle_forget_account(&mut self) -> Result<(), ForgetAccountError> {
         if *self.tunnel_state.borrow() != TunnelState::Disconnected {
-            return Err(AccountError::IsConnected);
+            return Err(ForgetAccountError::internal(
+                "Unable to forget account while connected",
+            ));
         }
 
         let data_dir = self.data_dir.clone();
@@ -739,8 +741,7 @@ where
             data_dir.display()
         );
 
-        self.account_command_tx.forget_account().await?;
-        Ok(())
+        self.account_command_tx.forget_account().await
     }
 
     async fn handle_get_account_identity(&self) -> Option<String> {

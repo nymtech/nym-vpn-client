@@ -3,7 +3,8 @@
 
 use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_lib_types::{
-    AccountCommandError, RegisterDeviceError, RequestZkNymError, SyncAccountError, SyncDeviceError,
+    AccountCommandError, ForgetAccountError, RegisterDeviceError, RequestZkNymError,
+    SyncAccountError, SyncDeviceError,
 };
 use nym_vpn_store::mnemonic::Mnemonic;
 
@@ -20,7 +21,7 @@ use crate::{
 #[derive(Debug, strum::Display)]
 pub enum AccountCommand {
     StoreAccount(ReturnSender<(), AccountCommandError>, Mnemonic),
-    ForgetAccount(ReturnSender<(), AccountCommandError>),
+    ForgetAccount(ReturnSender<(), ForgetAccountError>),
     SyncAccountState(Option<ReturnSender<NymVpnAccountSummaryResponse, SyncAccountError>>),
     SyncDeviceState(Option<ReturnSender<DeviceState, SyncDeviceError>>),
     GetUsage(ReturnSender<Vec<NymVpnUsage>, AccountCommandError>),

@@ -160,6 +160,7 @@ impl TryFrom<ProtoForgetAccountError> for ForgetAccountError {
             crate::forget_account_error::ErrorDetail::InitDeviceKeys(err) => {
                 Self::InitDeviceKeys(err)
             }
+            crate::forget_account_error::ErrorDetail::Internal(err) => Self::Internal(err),
         })
     }
 }

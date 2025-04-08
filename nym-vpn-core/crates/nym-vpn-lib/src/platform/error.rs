@@ -121,6 +121,14 @@ impl From<AccountCommandError> for VpnError {
     }
 }
 
+impl From<nym_vpn_lib_types::ForgetAccountError> for VpnError {
+    fn from(value: nym_vpn_lib_types::ForgetAccountError) -> Self {
+        Self::ForgetAccount {
+            details: value.into(),
+        }
+    }
+}
+
 impl From<crate::Error> for VpnError {
     fn from(value: crate::Error) -> Self {
         Self::InternalError {

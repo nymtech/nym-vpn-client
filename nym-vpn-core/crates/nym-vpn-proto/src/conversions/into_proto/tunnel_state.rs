@@ -250,6 +250,9 @@ impl From<ForgetAccountError> for ProtoForgetAccountError {
                     err,
                 )),
             },
+            ForgetAccountError::Internal(err) => Self {
+                error_detail: Some(crate::forget_account_error::ErrorDetail::Internal(err)),
+            },
         }
     }
 }

@@ -28,4 +28,13 @@ pub enum ForgetAccountError {
 
     #[error("failed to init device keys: {0}")]
     InitDeviceKeys(String),
+
+    #[error("internal error: {0}")]
+    Internal(String),
+}
+
+impl ForgetAccountError {
+    pub fn internal(err: impl ToString) -> Self {
+        ForgetAccountError::Internal(err.to_string())
+    }
 }

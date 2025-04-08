@@ -441,6 +441,9 @@ impl From<CoreForgetAccountError> for ForgetAccountError {
             }
             CoreForgetAccountError::RemoveAccountFiles(err) => Self::RemoveAccountFiles(err),
             CoreForgetAccountError::InitDeviceKeys(err) => Self::InitDeviceKeys(err),
+            // Map internal errors to RemoveAccount for compatibility, and to avoid churn on
+            // Android in particular
+            CoreForgetAccountError::Internal(err) => Self::RemoveAccount(err),
         }
     }
 }
