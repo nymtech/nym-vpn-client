@@ -4,29 +4,6 @@ package nym.vpn;
 
 // --- Error types
 
-message AccountError {
-  enum AccountErrorType {
-    STORE_ACCOUNT_ERROR_UNSPECIFIED = 0;
-
-    // The provided mnemonic was not able to be parsed
-    INVALID_MNEMONIC = 1;
-
-    // General error from the storage backend
-    STORAGE = 2;
-
-    // Unable to proceed while connected
-    IS_CONNECTED = 3;
-  }
-
-  AccountErrorType kind = 1;
-
-  // Detailed error message for logging and debugging
-  string message = 2;
-
-  // Optional additional details
-  map<string, string> details = 3;
-}
-
 message StoreAccountError {
   oneof error_detail {
     string invalid_mnemonic = 5;

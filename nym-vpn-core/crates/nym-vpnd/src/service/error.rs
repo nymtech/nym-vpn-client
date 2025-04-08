@@ -2,42 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib::tunnel_state_machine::Error as TunnelStateMachineError;
-use nym_vpn_lib_types::AccountCommandError;
 use tracing::error;
 
 use super::config::ConfigSetupError;
 
 #[derive(Debug, thiserror::Error)]
-pub enum AccountError {
+pub enum AccountControllerError {
     #[error("failed to init account controller: {reason}")]
     Initialization { reason: String },
-
-    // Failures for commands run by the account controller
-    #[error(transparent)]
-    AccountCommand {
-        #[from]
-        source: AccountCommandError,
-    },
-
-    #[error("invalid mnemonic")]
-    InvalidMnemonic {
-        #[from]
-        source: bip39::Error,
-    },
-
-    #[error("failed to reset device keys")]
-    FailedToResetDeviceKeys {
-        source: Box<dyn std::error::Error + Send + Sync>,
-    },
-
-    #[error("account not configured")]
-    AccountManagementNotConfigured,
-
-    #[error("failed to parse account links")]
-    FailedToParseAccountLinks,
-
-    #[error("unable to proceed while connected")]
-    IsConnected,
 }
 
 #[derive(Debug, thiserror::Error)]
@@ -74,7 +46,7 @@ pub enum VpnServiceDeleteLogFileError {
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("account error: {0}")]
-    Account(#[from] AccountError),
+    AccountController(#[from] AccountControllerError),
 
     #[error("config setup error: {0}")]
     ConfigSetup(#[source] ConfigSetupError),

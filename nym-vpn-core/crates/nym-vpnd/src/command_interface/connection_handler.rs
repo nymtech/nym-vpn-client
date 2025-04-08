@@ -20,8 +20,8 @@ use nym_vpnd_types::gateway;
 use crate::{
     logging::LogPath,
     service::{
-        AccountError, AccountLinksError, ConnectArgs, ConnectOptions, SetNetworkError,
-        VpnServiceCommand, VpnServiceDeleteLogFileError,
+        AccountLinksError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
+        VpnServiceDeleteLogFileError,
     },
 };
 
@@ -212,7 +212,7 @@ impl CommandInterfaceConnectionHandler {
 
     pub async fn handle_get_device_identity(
         &self,
-    ) -> Result<Result<String, AccountError>, VpnCommandSendError> {
+    ) -> Result<Result<String, AccountCommandError>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetDeviceIdentity, ())
             .await
     }
