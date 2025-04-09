@@ -42,25 +42,25 @@ pub enum Error {
     StartRouteMonitor(#[from] nym_routing::Error),
 }
 
-enum MonitorHandleInner {
+enum ConnectivityHandleInner {
     State(Arc<Mutex<ConnectivityInner>>),
     PathMonitorImp(path_monitor::ConnectivityHandle),
 }
 
 pub struct ConnectivityHandle {
-    inner: MonitorHandleInner,
+    inner: ConnectivityHandleInner,
 }
 
 impl ConnectivityHandle {
-    fn new(inner: MonitorHandleInner) -> Self {
+    fn new(inner: ConnectivityHandleInner) -> Self {
         Self { inner }
     }
 
     /// Return whether the host is offline
     pub async fn connectivity(&self) -> Connectivity {
         match &self.inner {
-            MonitorHandleInner::State(state) => state.lock().await.into_connectivity(),
-            MonitorHandleInner::PathMonitorImp(imp) => imp.connectivity().await,
+            ConnectivityHandleInner::State(state) => state.lock().await.into_connectivity(),
+            ConnectivityHandleInner::PathMonitorImp(imp) => imp.connectivity().await,
         }
     }
 }
@@ -95,9 +95,9 @@ pub async fn spawn_monitor(
         tracing::info!("Using path monitor.");
         let path_monitor = super::path_monitor::spawn_monitor(notify_tx, shutdown_token).await;
 
-        Ok(ConnectivityHandle::new(MonitorHandleInner::PathMonitorImp(
-            path_monitor,
-        )))
+        Ok(ConnectivityHandle::new(
+            ConnectivityHandleInner::PathMonitorImp(path_monitor),
+        ))
     } else {
         spawn_route_monitor(notify_tx, route_manager, shutdown_token).await
     }
@@ -190,5 +190,7 @@ async fn spawn_route_monitor(
         tracing::trace!("Offline monitor exiting");
     });
 
-    Ok(ConnectivityHandle::new(MonitorHandleInner::State(state)))
+    Ok(ConnectivityHandle::new(ConnectivityHandleInner::State(
+        state,
+    )))
 }
