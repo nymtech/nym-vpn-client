@@ -9,7 +9,6 @@ use tokio_stream::{wrappers::UnboundedReceiverStream, StreamExt};
 use tokio_util::sync::CancellationToken;
 
 use nym_apple_network::{InterfaceType, Path, PathMonitor, PathStatus};
-use nym_common::BoxedError;
 
 use crate::Connectivity;
 
@@ -43,7 +42,7 @@ impl ConnectivityHandle {
 pub async fn spawn_monitor(
     sender: watch::Sender<Connectivity>,
     shutdown_token: CancellationToken,
-) -> Result<ConnectivityHandle, BoxedError> {
+) -> ConnectivityHandle {
     let (network_path_tx, mut network_path_rx) = mpsc::unbounded_channel();
     let path_monitor = start_path_monitor(network_path_tx);
 
@@ -99,7 +98,7 @@ pub async fn spawn_monitor(
         tracing::debug!("Offline monitor exiting");
     });
 
-    Ok(ConnectivityHandle::new(initial_state, path_monitor))
+    ConnectivityHandle::new(initial_state, path_monitor)
 }
 
 fn start_path_monitor(path_tx: mpsc::UnboundedSender<Path>) -> PathMonitor {
