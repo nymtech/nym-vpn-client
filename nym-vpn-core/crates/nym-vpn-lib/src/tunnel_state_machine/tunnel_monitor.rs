@@ -44,6 +44,7 @@ use super::{
     },
     Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
 };
+use nym_common::ErrorExt;
 use nym_vpn_lib_types::{
     ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData, MixnetEvent, NymAddress,
     RequestZkNymError, TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
@@ -243,7 +244,7 @@ impl TunnelMonitor {
         let (tombstone, reason) = match self.run_inner().await {
             Ok(tombstone) => (tombstone, None),
             Err(e) => {
-                tracing::error!("Tunnel monitor exited with error: {}", e);
+                tracing::error!("Tunnel monitor exited with error: {}", e.display_chain());
                 (Tombstone::default(), e.error_state_reason())
             }
         };
