@@ -79,7 +79,7 @@ struct NymVPNDaemonApp: App {
             }
             .onDisappear {
                 if autoUpdater.didPrepareForQuit {
-                    quitApp()
+                    quitApp(from: .app)
                 }
             }
             .alert(alertTitle, isPresented: $isDisplayingAlert) {
@@ -106,7 +106,7 @@ struct NymVPNDaemonApp: App {
                 Button("quit.NymVPN".localizedString) {
                     isQuitModalDisplayed = true
                 }
-                .keyboardShortcut("q")
+                .keyboardShortcut("q", modifiers: .command)
             }
             CommandGroup(after: .appInfo) {
                 CheckForUpdatesView(viewModel: checkForUpdatesViewModel)
@@ -157,7 +157,7 @@ private extension NymVPNDaemonApp {
                 closeAction: {
                     closeWindow()
                 }, quitAction: {
-                    quitApp()
+                    quitApp(from: .app)
                 }
             )
             .transition(.opacity)
@@ -223,7 +223,8 @@ private extension NymVPNDaemonApp {
         }
     }
 
-    func quitApp() {
+    func quitApp(from terminationType: TerminationType) {
+        appDelegate.terminationType = terminationType
         appDelegate.shouldTerminate = true
         NSApplication.shared.terminate(self)
     }
@@ -238,7 +239,7 @@ private extension NymVPNDaemonApp {
         .keyboardShortcut("o")
         Divider()
         Button("quit.NymVPN".localizedString) {
-            quitApp()
+            quitApp(from: .menubar)
         }
     }
 

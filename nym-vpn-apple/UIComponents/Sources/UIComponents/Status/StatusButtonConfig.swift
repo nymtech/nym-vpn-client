@@ -29,6 +29,8 @@ public enum StatusButtonConfig: String {
             self = .noInternet
         case .offlineReconnect:
             self = .noInternetReconnect
+        case .error:
+            self = .error
         }
     }
 
@@ -42,8 +44,10 @@ public enum StatusButtonConfig: String {
             NymColor.action
         case .connecting, .disconnecting, .noInternet, .noInternetReconnect:
             NymColor.primary
-        case .disconnected, .error:
+        case .disconnected:
             NymColor.gray1
+        case .error:
+            NymColor.black
         }
     }
 
@@ -51,9 +55,9 @@ public enum StatusButtonConfig: String {
         switch self {
         case .connected:
             NymColor.action.opacity(0.1)
-        case .connecting, .disconnecting, .disconnected, .error:
+        case .connecting, .disconnecting, .disconnected:
             NymColor.backgroundHover
-        case .noInternet, .noInternetReconnect:
+        case .noInternet, .noInternetReconnect, .error:
             NymColor.error
         }
     }

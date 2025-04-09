@@ -458,7 +458,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Error:"
+            "value" : "Error"
           }
         }
       }
@@ -2031,7 +2031,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Disconnect if the internet drops"
+            "value" : "Always on to protect your data"
           }
         }
       }
