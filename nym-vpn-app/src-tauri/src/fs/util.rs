@@ -1,3 +1,4 @@
+use crate::APP_DIR;
 use anyhow::{Context, Result};
 use std::fs;
 use std::fs::File;
@@ -31,4 +32,35 @@ pub fn check_file(path: &PathBuf) -> Result<()> {
             .context(format!("Failed to create file `{}`", path.display()))?;
     }
     Ok(())
+}
+
+/// Remove all app local files
+pub fn clean_local_files() {
+    let mut paths = vec![];
+    paths.push(dirs::config_dir().map(|mut p| {
+        p.push(APP_DIR);
+        p
+    }));
+    paths.push(dirs::data_dir().map(|mut p| {
+        p.push(APP_DIR);
+        p
+    }));
+    paths.push(dirs::cache_dir().map(|mut p| {
+        p.push(APP_DIR);
+        p
+    }));
+    #[cfg(target_os = "linux")]
+    paths.push(dirs::state_dir().map(|mut p| {
+        p.push(APP_DIR);
+        p
+    }));
+
+    for path in paths.iter().flatten() {
+        if path.exists() {
+            fs::remove_dir_all(path)
+                .inspect_err(|e| eprintln!("failed to remove {}: {e}", path.display()))
+                .inspect(|_| println!("removed: {}", path.display()))
+                .ok();
+        }
+    }
 }

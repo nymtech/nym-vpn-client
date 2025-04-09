@@ -7,7 +7,7 @@ use crate::cli::{db_command, Commands};
 use crate::startup_error::ErrorKey;
 use crate::window::AppWindow;
 use crate::{
-    cli::{print_build_info, Cli},
+    cli::Cli,
     db::Db,
     fs::{config::AppConfig, storage::AppStorage},
     grpc::client::GrpcClient,
@@ -68,6 +68,10 @@ async fn main() -> Result<()> {
 
     // parse the command line arguments
     let cli = Cli::parse();
+    if cli.clean_local_files {
+        fs::util::clean_local_files();
+        return Ok(());
+    }
     let _guard = log::setup_tracing(&cli).await?;
     trace!("cli args: {:#?}", cli);
 
@@ -84,7 +88,7 @@ async fn main() -> Result<()> {
     let pkg_info = context.package_info();
 
     if cli.build_info {
-        print_build_info(pkg_info);
+        cli::print_build_info(pkg_info);
         return Ok(());
     }
 

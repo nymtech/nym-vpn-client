@@ -679,6 +679,10 @@ Section Uninstall
   ; Uninstall NymVPN service
   ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
 
+  ${If} $DeleteAppDataCheckboxState == 1
+    ExecWait '"$INSTDIR\${MAINBINARYNAME}.exe" --clean-local-files'
+  ${EndIf}
+
   ; Delete the app directory and its content from disk
   ; Copy main executable
   Delete "$INSTDIR\${MAINBINARYNAME}.exe"
