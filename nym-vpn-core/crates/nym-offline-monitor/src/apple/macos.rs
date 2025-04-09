@@ -40,9 +40,6 @@ const SYNTHETIC_OFFLINE_DURATION: Duration = Duration::from_secs(1);
 pub enum Error {
     #[error("Failed to initialize route monitor")]
     StartRouteMonitor(#[from] nym_routing::Error),
-
-    #[error("Failed to initialize path monitor")]
-    StartPathMonitor(#[from] path_monitor::Error),
 }
 
 enum MonitorHandleInner {
@@ -96,11 +93,11 @@ pub async fn spawn_monitor(
 ) -> Result<ConnectivityHandle, Error> {
     if *USE_PATH_MONITOR {
         tracing::info!("Using path monitor.");
-        Ok(
-            super::path_monitor::spawn_monitor(notify_tx, shutdown_token)
-                .await
-                .map(|imp| ConnectivityHandle::new(MonitorHandleInner::PathMonitorImp(imp)))?,
-        )
+        let path_monitor = super::path_monitor::spawn_monitor(notify_tx, shutdown_token).await;
+
+        Ok(ConnectivityHandle::new(MonitorHandleInner::PathMonitorImp(
+            path_monitor,
+        )))
     } else {
         spawn_route_monitor(notify_tx, route_manager, shutdown_token).await
     }

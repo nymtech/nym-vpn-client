@@ -3,7 +3,7 @@
 
 use std::{cell::RefCell, ptr::NonNull, rc::Rc};
 
-use objc2::runtime::NSObjectProtocol;
+use objc2::runtime::{Bool, NSObjectProtocol};
 use objc2_foundation::NSString;
 
 use super::{
@@ -33,7 +33,8 @@ impl Path {
     }
 
     pub fn description(&self) -> String {
-        unsafe { objc2::rc::Retained::cast::<NSString>((*self.inner).description()) }.to_string()
+        unsafe { objc2::rc::Retained::cast_unchecked::<NSString>((*self.inner).description()) }
+            .to_string()
     }
 
     pub fn status(&self) -> PathStatus {
@@ -43,7 +44,7 @@ impl Path {
     pub fn uses_interface_type(&self, interface_type: InterfaceType) -> bool {
         unsafe {
             sys::nw_path_uses_interface_type(self.inner.as_mut_ptr(), interface_type.as_raw())
-                == objc2::ffi::YES
+                == Bool::YES
         }
     }
 
@@ -61,7 +62,7 @@ impl Path {
             cloned_interfaces.borrow_mut().push(interface);
 
             // Return yes to continue iteration
-            objc2::runtime::Bool::YES
+            Bool::YES
         });
         unsafe { sys::nw_path_enumerate_interfaces(self.inner.as_mut_ptr(), &block) };
         interfaces.take()
@@ -81,7 +82,7 @@ impl Path {
             cloned_gateways.borrow_mut().push(endpoint);
 
             // Return yes to continue iteration
-            objc2::runtime::Bool::YES
+            Bool::YES
         });
         unsafe { sys::nw_path_enumerate_gateways(self.inner.as_mut_ptr(), &block) };
         gateways.take()
@@ -89,35 +90,34 @@ impl Path {
 
     /// Checks whether the path can route IPv4 traffic.
     pub fn supports_ipv4(&self) -> bool {
-        unsafe { sys::nw_path_has_ipv4(self.inner.as_mut_ptr()) == objc2::ffi::YES }
+        unsafe { sys::nw_path_has_ipv4(self.inner.as_mut_ptr()) == Bool::YES }
     }
 
     /// Checks whether the path can route IPv6 traffic.
     pub fn supports_ipv6(&self) -> bool {
-        unsafe { sys::nw_path_has_ipv6(self.inner.as_mut_ptr()) == objc2::ffi::YES }
+        unsafe { sys::nw_path_has_ipv6(self.inner.as_mut_ptr()) == Bool::YES }
     }
 
     /// Checks whether the path has a DNS server configured.
     pub fn supports_dns(&self) -> bool {
-        unsafe { sys::nw_path_has_dns(self.inner.as_mut_ptr()) == objc2::ffi::YES }
+        unsafe { sys::nw_path_has_dns(self.inner.as_mut_ptr()) == Bool::YES }
     }
 
     /// Checks whether the path uses an interface in Low Data Mode.
     pub fn is_constrained(&self) -> bool {
-        unsafe { sys::nw_path_is_constrained(self.inner.as_mut_ptr()) == objc2::ffi::YES }
+        unsafe { sys::nw_path_is_constrained(self.inner.as_mut_ptr()) == Bool::YES }
     }
 
     /// Checks whether the path uses an interface that is considered expensive, such as Cellular or a Personal Hotspot.
     pub fn is_expensive(&self) -> bool {
-        unsafe { sys::nw_path_is_expensive(self.inner.as_mut_ptr()) == objc2::ffi::YES }
+        unsafe { sys::nw_path_is_expensive(self.inner.as_mut_ptr()) == Bool::YES }
     }
 }
 
 impl PartialEq for Path {
     fn eq(&self, other: &Self) -> bool {
         unsafe {
-            sys::nw_path_is_equal(self.inner.as_mut_ptr(), other.inner.as_mut_ptr())
-                == objc2::ffi::YES
+            sys::nw_path_is_equal(self.inner.as_mut_ptr(), other.inner.as_mut_ptr()) == Bool::YES
         }
     }
 }

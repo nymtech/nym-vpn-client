@@ -22,7 +22,7 @@ nym-routing.workspace = true
 nym-windows.workspace = true
 
 [target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
-nym-apple-dispatch.workspace = true
+dispatch2.workspace = true
 nym-apple-network.workspace = true
 
 [target.'cfg(target_os = "android")'.dependencies]

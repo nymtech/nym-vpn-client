@@ -8,14 +8,13 @@
 
 use std::ffi::{c_char, c_int};
 
+use dispatch2::DispatchQueue;
 use nix::sys::socket::sockaddr;
 use objc2::{
     encode::{Encoding, RefEncode},
-    runtime::NSObjectProtocol,
+    runtime::{Bool, NSObjectProtocol},
     Message,
 };
-
-use nym_apple_dispatch::dispatch_queue_t;
 
 macro_rules! create_opaque_type {
     ($type_name: ident, $typedef_name: ident) => {
@@ -88,7 +87,7 @@ unsafe extern "C" {
         monitor: nw_path_monitor_t,
         interface_type: nw_interface_type_t,
     );
-    pub fn nw_path_monitor_set_queue(monitor: nw_path_monitor_t, dispatch_queue: dispatch_queue_t);
+    pub fn nw_path_monitor_set_queue(monitor: nw_path_monitor_t, dispatch_queue: &DispatchQueue);
     pub fn nw_path_monitor_set_update_handler(
         monitor: nw_path_monitor_t,
         update_handler: &nw_path_monitor_update_handler_t,
@@ -104,8 +103,8 @@ unsafe extern "C" {
     pub fn nw_path_uses_interface_type(
         path: nw_path_t,
         interface_type: nw_interface_type_t,
-    ) -> objc2::ffi::BOOL;
-    pub fn nw_path_is_equal(path: nw_path_t, other_path: nw_path_t) -> objc2::ffi::BOOL;
+    ) -> Bool;
+    pub fn nw_path_is_equal(path: nw_path_t, other_path: nw_path_t) -> Bool;
     pub fn nw_path_enumerate_interfaces(
         path: nw_path_t,
         enumerate_block: &nw_path_enumerate_interfaces_block_t,
@@ -114,11 +113,11 @@ unsafe extern "C" {
         path: nw_path_t,
         enumerate_block: &nw_path_enumerate_gateways_block_t,
     );
-    pub fn nw_path_has_ipv4(path: nw_path_t) -> objc2::ffi::BOOL;
-    pub fn nw_path_has_ipv6(path: nw_path_t) -> objc2::ffi::BOOL;
-    pub fn nw_path_has_dns(path: nw_path_t) -> objc2::ffi::BOOL;
-    pub fn nw_path_is_constrained(path: nw_path_t) -> objc2::ffi::BOOL;
-    pub fn nw_path_is_expensive(path: nw_path_t) -> objc2::ffi::BOOL;
+    pub fn nw_path_has_ipv4(path: nw_path_t) -> Bool;
+    pub fn nw_path_has_ipv6(path: nw_path_t) -> Bool;
+    pub fn nw_path_has_dns(path: nw_path_t) -> Bool;
+    pub fn nw_path_is_constrained(path: nw_path_t) -> Bool;
+    pub fn nw_path_is_expensive(path: nw_path_t) -> Bool;
 
     pub fn nw_interface_get_type(interface: nw_interface_t) -> nw_interface_type_t;
     pub fn nw_interface_get_name(interface: nw_interface_t) -> *const c_char;

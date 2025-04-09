@@ -3,12 +3,13 @@
 
 use std::{sync::Arc, time::Duration};
 
+use dispatch2::{DispatchQueue, QueueAttribute};
 use tokio::sync::{mpsc, watch, Mutex};
 use tokio_stream::{wrappers::UnboundedReceiverStream, StreamExt};
 use tokio_util::sync::CancellationToken;
 
-use nym_apple_dispatch::{Queue, QueueAttr};
 use nym_apple_network::{InterfaceType, Path, PathMonitor, PathStatus};
+use nym_common::BoxedError;
 
 use crate::Connectivity;
 
@@ -42,9 +43,9 @@ impl ConnectivityHandle {
 pub async fn spawn_monitor(
     sender: watch::Sender<Connectivity>,
     shutdown_token: CancellationToken,
-) -> Result<ConnectivityHandle, Error> {
+) -> Result<ConnectivityHandle, BoxedError> {
     let (network_path_tx, mut network_path_rx) = mpsc::unbounded_channel();
-    let path_monitor = start_path_monitor(network_path_tx)?;
+    let path_monitor = start_path_monitor(network_path_tx);
 
     // Wait for initial state since path monitor should always send an update on start()
     let initial_connectivity = tokio::time::timeout(INITIAL_STATE_TIMEOUT, network_path_rx.recv())
@@ -101,9 +102,8 @@ pub async fn spawn_monitor(
     Ok(ConnectivityHandle::new(initial_state, path_monitor))
 }
 
-fn start_path_monitor(path_tx: mpsc::UnboundedSender<Path>) -> Result<PathMonitor, Error> {
-    let queue = Queue::new(Some("net.nymtech.vpn.offline-monitor"), QueueAttr::serial())
-        .map_err(Error::CreateDispatchQueue)?;
+fn start_path_monitor(path_tx: mpsc::UnboundedSender<Path>) -> PathMonitor {
+    let queue = DispatchQueue::new("net.nymtech.vpn.offline-monitor", QueueAttribute::Serial);
 
     let mut path_monitor = PathMonitor::new();
     path_monitor.prohibit_interface_type(InterfaceType::Other);
@@ -115,7 +115,7 @@ fn start_path_monitor(path_tx: mpsc::UnboundedSender<Path>) -> Result<PathMonito
     });
     path_monitor.start();
 
-    Ok(path_monitor)
+    path_monitor
 }
 
 fn map_network_path_to_connectivity(nw_path: &Path) -> Connectivity {
@@ -133,10 +133,4 @@ fn map_network_path_to_connectivity(nw_path: &Path) -> Connectivity {
             Connectivity::PresumeOnline
         }
     }
-}
-
-#[derive(thiserror::Error, Debug)]
-pub enum Error {
-    #[error("Failed to create a dispatch queue")]
-    CreateDispatchQueue(#[source] std::ffi::NulError),
 }
