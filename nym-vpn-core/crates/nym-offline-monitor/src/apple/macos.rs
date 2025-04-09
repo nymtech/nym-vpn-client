@@ -56,7 +56,7 @@ impl ConnectivityHandle {
         Self { inner }
     }
 
-    /// Return whether the host is offline
+    /// Returns host connectivity status.
     pub async fn connectivity(&self) -> Connectivity {
         match &self.inner {
             ConnectivityHandleInner::State(state) => state.lock().await.into_connectivity(),
