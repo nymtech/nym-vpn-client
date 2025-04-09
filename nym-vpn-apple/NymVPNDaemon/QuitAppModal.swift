@@ -72,6 +72,7 @@ private extension QuitAppModal {
         GenericButton(title: "quit.closeWindow".localizedString, height: 39)
             .padding(.horizontal, 24)
             .onTapGesture {
+                isDisplayed = false
                 closeAction()
             }
     }
@@ -80,6 +81,7 @@ private extension QuitAppModal {
         GenericButton(title: "quit.quit".localizedString, height: 39)
             .padding(.horizontal, 24)
             .onTapGesture {
+                isDisplayed = false
                 quitAction()
             }
     }

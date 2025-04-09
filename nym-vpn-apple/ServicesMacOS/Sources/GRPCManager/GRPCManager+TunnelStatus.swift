@@ -36,7 +36,7 @@ extension GRPCManager {
         case .disconnecting:
             tunnelStatus = .disconnecting
         case let .error(details):
-            tunnelStatus = .disconnected
+            tunnelStatus = .error
             errorReason = resolveError(with: details)
         case let .offline(details):
             tunnelStatus = details.reconnect ? .offlineReconnect : .offline

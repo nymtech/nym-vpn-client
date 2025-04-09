@@ -58,7 +58,7 @@ private extension NetworkMonitor {
                     isAvailable = true
                 case .offline, .offlineReconnect:
                     isAvailable = false
-                case .disconnected, .disconnecting:
+                case .disconnected, .disconnecting, .error:
                     break
                 }
             }

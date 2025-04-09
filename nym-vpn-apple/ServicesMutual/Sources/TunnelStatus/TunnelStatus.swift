@@ -5,6 +5,7 @@ public enum TunnelStatus: Int, Equatable, Codable {
     case connecting
     case disconnected
     case disconnecting
+    case error
     case reasserting
     case restarting // Restarting tunnel (done after saving modifications to an active tunnel)
     case offline

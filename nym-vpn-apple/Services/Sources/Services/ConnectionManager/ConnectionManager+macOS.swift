@@ -56,11 +56,10 @@ extension ConnectionManager {
     @MainActor public func connectDisconnect() async throws {
         let config = generateConfig()
 
-        if grpcManager.tunnelStatus == .connected
-            || grpcManager.tunnelStatus == .connecting
-            || grpcManager.tunnelStatus == .offlineReconnect {
+        switch grpcManager.tunnelStatus {
+        case .connected, .connecting, .offlineReconnect, .error:
             grpcManager.disconnect()
-        } else {
+        case .disconnected, .disconnecting, .reasserting, .restarting, .offline, .unknown:
             try await connect(with: config)
         }
     }
