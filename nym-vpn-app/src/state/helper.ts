@@ -1,12 +1,15 @@
 import i18n from 'i18next';
 import {
+  DaemonInfo,
   DaemonStatus,
+  NetworkEnv,
   StateDispatch,
   VpndStatus,
   isVpndNonCompat,
   isVpndOk,
 } from '../types';
 import { Notification } from '../contexts';
+import { kvGet, kvSet } from '../kvStore';
 
 export type TauriReq<
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -45,12 +48,11 @@ export function daemonStatusUpdate(
     type: 'set-daemon-status',
     status: vpndStatusToState(status),
   });
-  let info;
-  if (isVpndOk(status) && status.ok) {
-    info = status.ok;
+  const info = getVpndInfo(status);
+  if (info) {
+    dispatch({ type: 'set-daemon-info', info });
   }
   if (isVpndNonCompat(status)) {
-    info = status.nonCompat.current;
     push({
       id: 'daemon-no-compat',
       message: i18n.t('daemon-no-compat', {
@@ -76,9 +78,30 @@ export function daemonStatusUpdate(
       throttle: 10,
     });
   }
-  if (info) {
-    dispatch({ type: 'set-daemon-info', info });
+}
+
+export async function networkEnvChanged(status: VpndStatus) {
+  if (status === 'down') {
+    return false;
   }
+  const prevEnv = await kvGet<NetworkEnv>('last-network-env');
+  const newEnv = getVpndInfo(status)?.network;
+  const hasChanged = prevEnv !== newEnv;
+  if (hasChanged) {
+    console.info(`network env changed [${newEnv}]`);
+    await kvSet('last-network-env', newEnv);
+  }
+  return hasChanged;
+}
+
+export function getVpndInfo(status: VpndStatus): DaemonInfo | null {
+  if (isVpndOk(status) && status.ok) {
+    return status.ok;
+  }
+  if (isVpndNonCompat(status)) {
+    return status.nonCompat.current;
+  }
+  return null;
 }
 
 function vpndStatusToState(status: VpndStatus): DaemonStatus {

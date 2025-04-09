@@ -22,7 +22,7 @@ import {
 } from '../constants';
 import { Notification } from '../contexts';
 import { CCache } from '../cache';
-import { daemonStatusUpdate } from './helper';
+import { daemonStatusUpdate, networkEnvChanged } from './helper';
 import { tunnelUpdate } from './tunnelUpdate';
 
 export function useTauriEvents(
@@ -37,8 +37,14 @@ export function useTauriEvents(
           `received event [${event}], status: ${status === 'down' ? status : JSON.stringify(status)}`,
         );
         daemonStatusUpdate(status, dispatch, push);
-        await CCache.del('cache-account-id');
-        await CCache.del('cache-device-id');
+        const changed = await networkEnvChanged(status);
+        if (changed) {
+          console.info('network env changed, clearing cache');
+          await CCache.clear();
+        } else {
+          await CCache.del('cache-account-id');
+          await CCache.del('cache-device-id');
+        }
 
         // refresh account status
         if (isVpndOk(status) || isVpndNonCompat(status)) {
