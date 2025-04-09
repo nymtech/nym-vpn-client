@@ -50,7 +50,6 @@ impl std::fmt::Display for Error {
     }
 }
 
-#[allow(clippy::unused_async)]
 pub async fn spawn_monitor(
     sender: watch::Sender<Connectivity>,
     mut connectivity_adapter: impl NativeConnectivityAdapter + 'static,
