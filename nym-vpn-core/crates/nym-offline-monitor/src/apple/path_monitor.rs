@@ -18,7 +18,7 @@ const INITIAL_STATE_TIMEOUT: Duration = Duration::from_secs(1);
 /// Delay before acting on default route changes.
 const DEFAULT_PATH_DEBOUNCE: Duration = Duration::from_secs(1);
 
-pub struct MonitorHandle {
+pub struct ConnectivityHandle {
     state: Arc<Mutex<Connectivity>>,
 
     // Network path monitor.
@@ -26,9 +26,9 @@ pub struct MonitorHandle {
     _path_monitor: PathMonitor,
 }
 
-impl MonitorHandle {
+impl ConnectivityHandle {
     fn new(initial_state: Arc<Mutex<Connectivity>>, path_monitor: PathMonitor) -> Self {
-        MonitorHandle {
+        ConnectivityHandle {
             state: initial_state,
             _path_monitor: path_monitor,
         }
@@ -42,7 +42,7 @@ impl MonitorHandle {
 pub async fn spawn_monitor(
     sender: watch::Sender<Connectivity>,
     shutdown_token: CancellationToken,
-) -> Result<MonitorHandle, Error> {
+) -> Result<ConnectivityHandle, Error> {
     let (network_path_tx, mut network_path_rx) = mpsc::unbounded_channel();
     let path_monitor = start_path_monitor(network_path_tx)?;
 
@@ -98,7 +98,7 @@ pub async fn spawn_monitor(
         tracing::debug!("Offline monitor exiting");
     });
 
-    Ok(MonitorHandle::new(initial_state, path_monitor))
+    Ok(ConnectivityHandle::new(initial_state, path_monitor))
 }
 
 fn start_path_monitor(path_tx: mpsc::UnboundedSender<Path>) -> Result<PathMonitor, Error> {

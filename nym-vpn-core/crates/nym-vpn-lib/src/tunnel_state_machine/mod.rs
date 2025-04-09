@@ -354,7 +354,7 @@ pub struct SharedState {
     firewall: Firewall,
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     dns_handler: DnsHandlerHandle,
-    offline_monitor: nym_offline_monitor::MonitorHandle,
+    offline_monitor: nym_offline_monitor::ConnectivityHandle,
     /// Filtering resolver handle
     #[cfg(target_os = "macos")]
     filtering_resolver: resolver::ResolverHandle,

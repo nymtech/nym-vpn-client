@@ -223,13 +223,13 @@ fn is_offline_str(offline: bool) -> &'static str {
     }
 }
 
-pub type MonitorHandle = BroadcastListener;
+pub type ConnectivityHandle = BroadcastListener;
 
 pub async fn spawn_monitor(
     sender: watch::Sender<Connectivity>,
     route_manager: RouteManagerHandle,
     shutdown_token: CancellationToken,
-) -> Result<MonitorHandle, Error> {
+) -> Result<ConnectivityHandle, Error> {
     let power_mgmt_rx = PowerManagementListener::new();
     BroadcastListener::start(sender, route_manager, power_mgmt_rx, shutdown_token).await
 }

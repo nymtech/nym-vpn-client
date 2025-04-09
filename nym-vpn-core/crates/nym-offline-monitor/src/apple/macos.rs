@@ -47,14 +47,14 @@ pub enum Error {
 
 enum MonitorHandleInner {
     State(Arc<Mutex<ConnectivityInner>>),
-    PathMonitorImp(path_monitor::MonitorHandle),
+    PathMonitorImp(path_monitor::ConnectivityHandle),
 }
 
-pub struct MonitorHandle {
+pub struct ConnectivityHandle {
     inner: MonitorHandleInner,
 }
 
-impl MonitorHandle {
+impl ConnectivityHandle {
     fn new(inner: MonitorHandleInner) -> Self {
         Self { inner }
     }
@@ -93,13 +93,13 @@ pub async fn spawn_monitor(
     notify_tx: watch::Sender<Connectivity>,
     route_manager: RouteManagerHandle,
     shutdown_token: CancellationToken,
-) -> Result<MonitorHandle, Error> {
+) -> Result<ConnectivityHandle, Error> {
     if *USE_PATH_MONITOR {
         tracing::info!("Using path monitor.");
         Ok(
             super::path_monitor::spawn_monitor(notify_tx, shutdown_token)
                 .await
-                .map(|imp| MonitorHandle::new(MonitorHandleInner::PathMonitorImp(imp)))?,
+                .map(|imp| ConnectivityHandle::new(MonitorHandleInner::PathMonitorImp(imp)))?,
         )
     } else {
         spawn_route_monitor(notify_tx, route_manager, shutdown_token).await
@@ -110,7 +110,7 @@ async fn spawn_route_monitor(
     notify_tx: watch::Sender<Connectivity>,
     route_manager: RouteManagerHandle,
     shutdown_token: CancellationToken,
-) -> Result<MonitorHandle, Error> {
+) -> Result<ConnectivityHandle, Error> {
     // note: begin observing before initializing the state
     let mut route_listener = route_manager.default_route_listener().await?;
 
@@ -193,5 +193,5 @@ async fn spawn_route_monitor(
         tracing::trace!("Offline monitor exiting");
     });
 
-    Ok(MonitorHandle::new(MonitorHandleInner::State(state)))
+    Ok(ConnectivityHandle::new(MonitorHandleInner::State(state)))
 }

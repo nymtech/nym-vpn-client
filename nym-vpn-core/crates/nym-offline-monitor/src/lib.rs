@@ -40,23 +40,23 @@ static FORCE_DISABLE_OFFLINE_MONITOR: LazyLock<bool> = LazyLock::new(|| {
 });
 
 #[derive(Clone)]
-pub struct MonitorHandle {
-    inner: Arc<Option<imp::MonitorHandle>>,
+pub struct ConnectivityHandle {
+    inner: Arc<Option<imp::ConnectivityHandle>>,
     rx: watch::Receiver<Connectivity>,
     _shutdown_drop_guard: Arc<DropGuard>,
 }
 
-impl fmt::Debug for MonitorHandle {
+impl fmt::Debug for ConnectivityHandle {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("MonitorHandle")
+        f.debug_struct("ConnectivityHandle")
             .field("rx", &self.rx)
             .finish_non_exhaustive()
     }
 }
 
-impl MonitorHandle {
+impl ConnectivityHandle {
     fn new(
-        inner: Option<imp::MonitorHandle>,
+        inner: Option<imp::ConnectivityHandle>,
         rx: watch::Receiver<Connectivity>,
         shutdown_drop_guard: DropGuard,
     ) -> Self {
@@ -95,7 +95,7 @@ pub async fn spawn_monitor(
     #[cfg(not(any(target_os = "android", target_os = "ios")))] route_manager: RouteManagerHandle,
     #[cfg(target_os = "android")] connectivity_adapter: impl imp::NativeConnectivityAdapter + 'static,
     #[cfg(target_os = "linux")] fwmark: Option<u32>,
-) -> MonitorHandle {
+) -> ConnectivityHandle {
     let (tx, rx) = watch::channel(Connectivity::PresumeOnline);
     let shutdown_token = CancellationToken::new();
     let child_token = shutdown_token.child_token();
@@ -124,7 +124,7 @@ pub async fn spawn_monitor(
         .ok()
     };
 
-    MonitorHandle::new(monitor, rx, shutdown_token.drop_guard())
+    ConnectivityHandle::new(monitor, rx, shutdown_token.drop_guard())
 }
 
 /// Details about the hosts's connectivity.

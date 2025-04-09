@@ -1,13 +1,13 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_offline_monitor::{Connectivity, MonitorHandle};
+use nym_offline_monitor::{Connectivity, ConnectivityHandle};
 
 use crate::{AccountCommand, AccountControllerCommander};
 
 pub(super) struct OfflineWatch {
     // The handle to the offline monitor, used for receiving connectivity changes.
-    handle: Option<MonitorHandle>,
+    handle: Option<ConnectivityHandle>,
 
     // The account controller commander, used for sending commands to the account controller that
     // are triggered by connectivity changes.
@@ -35,7 +35,7 @@ impl OfflineWatch {
         !self.is_online()
     }
 
-    pub(super) async fn register_offline_monitor(&mut self, offline_monitor: MonitorHandle) {
+    pub(super) async fn register_offline_monitor(&mut self, offline_monitor: ConnectivityHandle) {
         self.last_state = offline_monitor.connectivity().await;
         tracing::info!(
             "Registering offline monitor with initial state: {:?}",

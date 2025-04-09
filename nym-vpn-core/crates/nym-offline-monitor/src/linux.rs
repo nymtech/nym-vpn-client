@@ -19,7 +19,7 @@ pub enum Error {
     RouteManagerError(#[source] nym_routing::Error),
 }
 
-pub struct MonitorHandle {
+pub struct ConnectivityHandle {
     route_manager: RouteManagerHandle,
     fwmark: Option<u32>,
 }
@@ -31,7 +31,7 @@ const PUBLIC_INTERNET_ADDRESS_V6: IpAddr = IpAddr::V6(Ipv6Addr::new(
     0x2606, 0x4700, 0x4700, 0x0, 0x0, 0x0, 0x0, 0x1111,
 ));
 
-impl MonitorHandle {
+impl ConnectivityHandle {
     pub async fn connectivity(&self) -> Connectivity {
         check_connectivity(&self.route_manager, self.fwmark).await
     }
@@ -42,7 +42,7 @@ pub async fn spawn_monitor(
     route_manager: RouteManagerHandle,
     fwmark: Option<u32>,
     shutdown_token: CancellationToken,
-) -> Result<MonitorHandle> {
+) -> Result<ConnectivityHandle> {
     let mut listener = route_manager
         .change_listener()
         .await
@@ -50,7 +50,7 @@ pub async fn spawn_monitor(
 
     let mut connectivity = check_connectivity(&route_manager, fwmark).await;
 
-    let monitor_handle = MonitorHandle {
+    let monitor_handle = ConnectivityHandle {
         route_manager: route_manager.clone(),
         fwmark,
     };

@@ -6,7 +6,7 @@ pub(crate) mod request_zknym;
 pub(crate) mod sync_account;
 pub(crate) mod sync_device;
 
-use nym_offline_monitor::MonitorHandle;
+use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_lib_types::{
     AccountCommandError, RegisterDeviceError, RequestZkNymError, SyncAccountError, SyncDeviceError,
 };
@@ -103,7 +103,7 @@ pub enum AccountCommand {
         ReturnSender<(), AccountCommandError>,
         Option<Vec<SocketAddr>>,
     ),
-    RegisterOfflineMonitor(ReturnSender<(), AccountCommandError>, MonitorHandle),
+    RegisterOfflineMonitor(ReturnSender<(), AccountCommandError>, ConnectivityHandle),
 }
 
 impl AccountCommand {
