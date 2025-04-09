@@ -8,7 +8,8 @@ use std::time::Duration;
 use std::{error::Error as StdError, net::IpAddr};
 
 #[cfg(target_os = "ios")]
-use nym_apple_dispatch::{Queue, QueueAttr};
+use dispatch2::{DispatchQueue, QueueAttribute};
+
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
 #[cfg(target_os = "ios")]
 use tokio::sync::mpsc;
@@ -158,8 +159,7 @@ impl ConnectedTunnel {
                 );
 
                 let queue =
-                    Queue::new(Some("net.nymtech.vpn.wg-path-monitor"), QueueAttr::serial())
-                        .expect("failed to create dispatch queue");
+                    DispatchQueue::new("net.nymtech.vpn.wg-path-monitor", QueueAttribute::Serial);
                 let mut path_monitor = PathMonitor::new();
                 path_monitor.set_dispatch_queue(&queue);
                 path_monitor.set_update_handler(move |network_path| {
