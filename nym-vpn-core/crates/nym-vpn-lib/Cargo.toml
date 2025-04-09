@@ -15,7 +15,6 @@ crate-type = ["cdylib", "lib", "staticlib"]
 async-trait.workspace = true
 bincode.workspace = true
 bytes.workspace = true
-dispatch2.workspace = true
 futures.workspace = true
 hickory-resolver = { workspace = true, features = [
     "dns-over-tls",
@@ -105,6 +104,7 @@ tracing-oslog.workspace = true
 
 [target.'cfg(target_os = "ios")'.dependencies]
 debounced.workspace = true
+dispatch2.workspace = true
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }
