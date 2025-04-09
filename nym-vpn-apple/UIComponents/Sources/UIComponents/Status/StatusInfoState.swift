@@ -25,6 +25,8 @@ public enum StatusInfoState: Equatable {
             self = .noInternet
         case .offlineReconnect:
             self = .noInternetReconnect
+        case .error:
+            self = .error(message: " ")
         }
     }
 

@@ -25,6 +25,8 @@ public enum ConnectButtonState {
             self = .noInternet
         case .offlineReconnect:
             self = .noInternetReconnect
+        case .error:
+            self = .stop
         }
     }
 

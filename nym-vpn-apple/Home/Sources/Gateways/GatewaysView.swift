@@ -32,6 +32,7 @@ public struct GatewaysView: View {
                     foundCountriesList()
                     foundGatewaysList()
                 }
+                .scrollDismissesKeyboard(.immediately)
                 .scrollIndicators(.hidden)
                 .frame(maxWidth: MagicNumbers.maxWidth)
                 .ignoresSafeArea(.all)

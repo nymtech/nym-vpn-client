@@ -124,7 +124,7 @@ extension ConnectionManager {
         switch activeTunnel.status {
         case .connected, .connecting, .reasserting, .restarting, .offlineReconnect:
             return true
-        case .disconnecting, .disconnected, .offline, .unknown:
+        case .disconnecting, .disconnected, .offline, .unknown, .error:
             return false
         }
     }
