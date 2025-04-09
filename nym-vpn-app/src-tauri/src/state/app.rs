@@ -1,4 +1,5 @@
 use anyhow::Result;
+use semver::Version;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 use tracing::{debug, error, info, instrument, warn};
@@ -15,8 +16,6 @@ use crate::{
     fs::config::AppConfig,
     grpc::client::{VpndInfo, VpndStatus},
 };
-
-const NETWORK_VERSION_REQ_OP: &str = ">=";
 
 #[derive(Default, Debug, Serialize, Deserialize, TS, Clone, PartialEq, Eq)]
 #[ts(export)]
@@ -128,16 +127,15 @@ impl AppState {
             warn!("no network compatibility data");
             return;
         };
-        let core_compat = check_version(&compat.core, &info.version)
+        let core_compat = check_network_compat(&compat.core, &info.version)
             .inspect_err(|e| warn!("failed to check core version: {e}"))
             .ok();
         log_compat(&info.version, &compat.core, core_compat, "core");
 
         let tauri_ver = pkg_version.to_string();
-        let tauri_compat = check_version(&compat.tauri, &tauri_ver)
+        let tauri_compat = check_network_compat(&compat.tauri, &tauri_ver)
             .inspect_err(|e| warn!("failed to check tauri version: {e}"))
             .ok();
-
         log_compat(&tauri_ver, &compat.tauri, tauri_compat, "tauri");
         self.network_compat = Some(NetworkCompat::new(core_compat, tauri_compat));
     }
@@ -161,9 +159,14 @@ impl NetworkCompat {
 }
 
 #[instrument]
-fn check_version(req: &str, version: &str) -> Result<bool> {
-    let ver_check = VersionCheck::new(&format!("{NETWORK_VERSION_REQ_OP}{req}"))?;
-    ver_check.check(version)
+fn check_network_compat(network: &str, local: &str) -> Result<bool> {
+    let network_ver = Version::parse(network).inspect_err(|e| {
+        error!("failed to parse network version [{network}]: {e}");
+    })?;
+    let local_ver = Version::parse(local).inspect_err(|e| {
+        error!("failed to parse local version [{local}]: {e}");
+    })?;
+    Ok(local_ver >= network_ver)
 }
 
 fn log_compat(local: &str, network: &str, is_compat: Option<bool>, comp_name: &str) {
