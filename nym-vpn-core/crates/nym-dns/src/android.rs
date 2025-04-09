@@ -18,11 +18,15 @@ impl super::DnsMonitorT for DnsMonitor {
         Ok(DnsMonitor)
     }
 
-    fn set(&mut self, _interface: &str, _servers: ResolvedDnsConfig) -> Result<(), Self::Error> {
+    async fn set(
+        &mut self,
+        _interface: &str,
+        _servers: ResolvedDnsConfig,
+    ) -> Result<(), Self::Error> {
         Ok(())
     }
 
-    fn reset(&mut self) -> Result<(), Self::Error> {
+    async fn reset(&mut self) -> Result<(), Self::Error> {
         Ok(())
     }
 }
