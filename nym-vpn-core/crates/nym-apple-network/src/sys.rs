@@ -49,10 +49,8 @@ create_opaque_type!(OS_nw_endpoint, nw_endpoint_t);
 pub type nw_path_monitor_update_handler_t = block2::Block<dyn Fn(nw_path_t)>;
 pub type nw_path_monitor_cancel_handler_t = block2::Block<dyn Fn()>;
 pub type nw_path_status_t = c_int;
-pub type nw_path_enumerate_interfaces_block_t =
-    block2::Block<dyn Fn(nw_interface_t) -> objc2::runtime::Bool>;
-pub type nw_path_enumerate_gateways_block_t =
-    block2::Block<dyn Fn(nw_endpoint_t) -> objc2::runtime::Bool>;
+pub type nw_path_enumerate_interfaces_block_t = block2::Block<dyn Fn(nw_interface_t) -> Bool>;
+pub type nw_path_enumerate_gateways_block_t = block2::Block<dyn Fn(nw_endpoint_t) -> Bool>;
 
 pub type nw_path_status_type_t = c_int;
 pub const nw_path_status_invalid: nw_path_status_type_t = 0;
