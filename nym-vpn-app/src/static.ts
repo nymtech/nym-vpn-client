@@ -9,6 +9,7 @@ export type SState = {
   vpnModeAtStart: VpnMode;
   systemMessageInit: boolean;
   devMode: boolean;
+  welcomeScreenSeen: boolean;
 };
 
 export const S_STATE: SState = {
@@ -17,4 +18,5 @@ export const S_STATE: SState = {
   vpnModeAtStart: 'wg',
   systemMessageInit: false,
   devMode: false,
+  welcomeScreenSeen: false,
 };

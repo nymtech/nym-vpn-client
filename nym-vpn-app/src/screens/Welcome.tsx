@@ -7,6 +7,7 @@ import { kvSet } from '../kvStore';
 import { routes } from '../router';
 import { StateDispatch } from '../types';
 import { Button, Link, PageAnim, Switch } from '../ui';
+import { S_STATE } from '../static';
 import SettingsGroup from './settings/SettingsGroup';
 
 function Welcome() {
@@ -17,6 +18,7 @@ function Welcome() {
 
   const handleContinue = () => {
     kvSet('welcome-screen-seen', true).then(() => {
+      S_STATE.welcomeScreenSeen = true;
       navigate(routes.root);
     });
   };
