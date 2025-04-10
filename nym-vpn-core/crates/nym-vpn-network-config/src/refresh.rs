@@ -8,13 +8,13 @@ use tokio_util::sync::CancellationToken;
 
 use super::discovery::Discovery;
 
-struct DiscoveryRefresher {
+struct FileRefresher {
     config_path: PathBuf,
     network_name: String,
     cancel_token: CancellationToken,
 }
 
-impl DiscoveryRefresher {
+impl FileRefresher {
     fn new(config_path: PathBuf, network_name: String, cancel_token: CancellationToken) -> Self {
         Self {
             config_path,
@@ -55,11 +55,11 @@ impl DiscoveryRefresher {
 
 // Ideally we only refresh the discovery file when the tunnel is up
 #[allow(unused)]
-pub fn start_background_discovery_refresh(
-    config_path: PathBuf,
+pub fn start_background_file_refresh(
+    data_dir: PathBuf,
     network_name: String,
     cancel_token: CancellationToken,
 ) -> JoinHandle<()> {
-    let refresher = DiscoveryRefresher::new(config_path, network_name, cancel_token);
+    let refresher = FileRefresher::new(data_dir, network_name, cancel_token);
     tokio::spawn(refresher.run())
 }

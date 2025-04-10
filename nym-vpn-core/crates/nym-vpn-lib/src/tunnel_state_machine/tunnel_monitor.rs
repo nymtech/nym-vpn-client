@@ -3,7 +3,7 @@
 
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{sockopt::Mark, SetSockOpt};
-use nym_vpn_network_config::start_background_discovery_refresh;
+use nym_vpn_network_config::start_background_file_refresh;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::net::Ipv4Addr;
 #[cfg(any(target_os = "linux", target_os = "ios", target_os = "android"))]
@@ -12,7 +12,7 @@ use std::os::fd::BorrowedFd;
 use std::os::fd::{AsRawFd, IntoRawFd};
 #[cfg(target_os = "android")]
 use std::os::fd::{FromRawFd, OwnedFd};
-use std::{cmp, net::IpAddr, time::Duration};
+use std::{cmp, net::IpAddr, path::PathBuf, time::Duration};
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
@@ -441,24 +441,25 @@ impl TunnelMonitor {
 
         // todo: do initial ping
 
-        let discovery_refresher_handle =
-            self.tunnel_parameters
-                .nym_config
-                .config_path
-                .clone()
-                .map(|config_path| {
-                    start_background_discovery_refresh(
-                        config_path,
-                        self.tunnel_parameters
-                            .nym_config
-                            .network_env
-                            .nym_network
-                            .network
-                            .network_name
-                            .clone(),
-                        self.cancel_token.child_token(),
-                    )
-                });
+        let discovery_refresher_handle = self
+            .tunnel_parameters
+            .nym_config
+            .data_path
+            .as_ref()
+            .and_then(|data_path: &PathBuf| data_path.parent())
+            .map(|data_dir| {
+                start_background_file_refresh(
+                    PathBuf::from(data_dir),
+                    self.tunnel_parameters
+                        .nym_config
+                        .network_env
+                        .nym_network
+                        .network
+                        .network_name
+                        .clone(),
+                    self.cancel_token.child_token(),
+                )
+            });
 
         let connection_data = ConnectionData {
             connected_at: Some(OffsetDateTime::now_utc()),
