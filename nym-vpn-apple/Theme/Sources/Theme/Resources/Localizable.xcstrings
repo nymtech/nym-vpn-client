@@ -2003,6 +2003,17 @@
         }
       }
     },
+    "settings.copiedToPasteboard" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copied to Clipboard!"
+          }
+        }
+      }
+    },
     "settings.deviceId" : {
       "extractionState" : "manual",
       "localizations" : {
