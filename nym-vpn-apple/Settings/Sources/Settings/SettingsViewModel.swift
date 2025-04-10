@@ -21,17 +21,18 @@ public class SettingsViewModel: SettingsFlowState {
     private let helperManager: HelperManager
 #endif
 
+    @ObservedObject private var credentialsManager: CredentialsManager
     private var cancellables = Set<AnyCancellable>()
     private var deviceIdentifier: String? {
         guard let deviceIdentifier = credentialsManager.deviceIdentifier else { return nil }
         return "settings.deviceId".localizedString + deviceIdentifier
     }
 
-    let credentialsManager: CredentialsManager
     let settingsTitle = "settings".localizedString
 
     @Published var isLogoutConfirmationDisplayed = false
     @Published var sections: [SettingsSection] = []
+    @Published var accountIdentifier: String? = nil
 
     var isValidCredentialImported: Bool {
         credentialsManager.isValidCredentialImported
@@ -160,6 +161,7 @@ private extension SettingsViewModel {
 private extension SettingsViewModel {
     func setup() {
         setupAppSettingsObservers()
+        setupCredentialManagerObservers()
         configureSections()
     }
 
@@ -168,6 +170,17 @@ private extension SettingsViewModel {
             self?.configureSections()
         }
         .store(in: &cancellables)
+    }
+
+    func setupCredentialManagerObservers() {
+        credentialsManager.$accountIdentifier
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newValue in
+                MainActor.assumeIsolated {
+                    self?.accountIdentifier = newValue
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func configureSections() {

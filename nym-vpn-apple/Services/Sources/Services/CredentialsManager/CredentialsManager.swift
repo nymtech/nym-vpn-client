@@ -12,7 +12,7 @@ import GRPCManager
 import HelperManager
 #endif
 
-public final class CredentialsManager {
+public final class CredentialsManager: ObservableObject {
     private let logger = Logger(label: "CredentialsManager")
 #if os(macOS)
     private let grpcManager = GRPCManager.shared
@@ -25,7 +25,7 @@ public final class CredentialsManager {
     public static let shared = CredentialsManager()
 
     public var deviceIdentifier: String?
-    public var accountIdentifier: String?
+    @Published public var accountIdentifier: String?
 
     public var isValidCredentialImported: Bool {
         appSettings.isCredentialImported
