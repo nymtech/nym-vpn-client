@@ -85,6 +85,11 @@ pub struct Cli {
     #[arg(long, hide = true)]
     pub dev_mode: bool,
 
+    /// Remove all app local files, like config, data, and cache files
+    // ⚠ Use this only when you know what you're doing
+    #[arg(long, hide = true)]
+    pub clean_local_files: bool,
+
     #[command(subcommand)]
     pub command: Option<Commands>,
 }
