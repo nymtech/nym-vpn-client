@@ -89,8 +89,8 @@ lazy_static! {
 /// including exporting to the environment
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn initEnvironment(data_dir: String, network_name: &str) -> Result<(), VpnError> {
-    RUNTIME.block_on(environment::init_environment(data_dir, network_name))
+pub fn initEnvironment(cache_dir: String, network_name: &str) -> Result<(), VpnError> {
+    RUNTIME.block_on(environment::init_environment(cache_dir, network_name))
 }
 
 /// Async variant of initEnvironment. Fetches the network environment details from the network name

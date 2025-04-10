@@ -9,9 +9,12 @@ use super::uniffi_custom_impls::{
 
 use super::{error::VpnError, NETWORK_ENVIRONMENT};
 
-pub(crate) async fn init_environment(data_dir: String, network_name: &str) -> Result<(), VpnError> {
+pub(crate) async fn init_environment(
+    cache_dir: String,
+    network_name: &str,
+) -> Result<(), VpnError> {
     let network =
-        nym_vpn_network_config::discover_env(PathBuf::from(data_dir).as_path(), network_name)
+        nym_vpn_network_config::discover_env(PathBuf::from(cache_dir).as_path(), network_name)
             .await
             .map_err(VpnError::internal)?;
 
