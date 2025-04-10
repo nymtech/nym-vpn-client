@@ -6,6 +6,8 @@ use std::path::{Path, PathBuf};
 use anyhow::Context;
 use nym_config::defaults::NymNetworkDetails;
 
+use crate::MAX_FILE_AGE;
+
 use super::{discovery::Discovery, NETWORKS_SUBDIR};
 
 #[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
@@ -22,6 +24,14 @@ impl NymNetwork {
         config_dir
             .join(NETWORKS_SUBDIR)
             .join(format!("{}.json", network_name))
+    }
+
+    pub(super) fn path_is_stale(config_dir: &Path, network_name: &str) -> anyhow::Result<bool> {
+        if let Some(age) = crate::util::get_age_of_file(&Self::path(config_dir, network_name))? {
+            Ok(age > MAX_FILE_AGE)
+        } else {
+            Ok(true)
+        }
     }
 
     pub(super) fn read_from_file(config_dir: &Path, network_name: &str) -> anyhow::Result<Self> {

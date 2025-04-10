@@ -116,7 +116,7 @@ impl RegisteredNetworks {
         Ok(())
     }
 
-    async fn try_update_file(config_dir: &Path) -> anyhow::Result<()> {
+    pub(super) async fn try_update_file(config_dir: &Path) -> anyhow::Result<()> {
         if Self::path_is_stale(config_dir)? {
             Self::fetch().await?.write_to_file(config_dir)?;
         }

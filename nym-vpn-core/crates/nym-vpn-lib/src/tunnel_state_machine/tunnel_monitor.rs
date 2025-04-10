@@ -444,12 +444,12 @@ impl TunnelMonitor {
         let discovery_refresher_handle = self
             .tunnel_parameters
             .nym_config
-            .data_path
+            .config_path
             .as_ref()
-            .and_then(|data_path: &PathBuf| data_path.parent())
-            .map(|data_dir| {
+            .and_then(|config_path: &PathBuf| config_path.parent())
+            .map(|config_dir| {
                 start_background_file_refresh(
-                    PathBuf::from(data_dir),
+                    PathBuf::from(config_dir),
                     self.tunnel_parameters
                         .nym_config
                         .network_env

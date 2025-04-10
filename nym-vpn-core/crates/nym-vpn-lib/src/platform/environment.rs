@@ -13,10 +13,14 @@ pub(crate) async fn init_environment(
     cache_dir: String,
     network_name: &str,
 ) -> Result<(), VpnError> {
-    let network =
-        nym_vpn_network_config::discover_env(PathBuf::from(cache_dir).as_path(), network_name)
-            .await
-            .map_err(VpnError::internal)?;
+    let network = nym_vpn_network_config::discover_env(
+        PathBuf::from(cache_dir)
+            .parent()
+            .ok_or(VpnError::internal("cache directory can't be root"))?,
+        network_name,
+    )
+    .await
+    .map_err(VpnError::internal)?;
 
     // To bridge with old code, export to environment. New code should not rely on this.
     network.export_to_env();

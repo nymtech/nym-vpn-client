@@ -6,6 +6,8 @@ use std::{path::PathBuf, time::Duration};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
+use crate::NymNetwork;
+
 use super::discovery::Discovery;
 
 struct FileRefresher {
@@ -23,13 +25,22 @@ impl FileRefresher {
         }
     }
 
-    async fn refresh_discovery_file(&self) -> anyhow::Result<()> {
+    async fn refresh_discovery_file(&self) -> anyhow::Result<Option<Discovery>> {
         if !Discovery::path_is_stale(self.config_path.as_path(), &self.network_name)? {
+            return Ok(None);
+        }
+        let discovery = Discovery::fetch(&self.network_name).await?;
+        discovery.write_to_file(self.config_path.as_path())?;
+
+        Ok(Some(discovery))
+    }
+
+    async fn refresh_nym_network_file(&self, discovery: Discovery) -> anyhow::Result<()> {
+        if !NymNetwork::path_is_stale(self.config_path.as_path(), &self.network_name)? {
             return Ok(());
         }
-        Discovery::fetch(&self.network_name)
-            .await?
-            .write_to_file(self.config_path.as_path())?;
+        discovery.update_nym_network_file(&self.config_path).await?;
+
         Ok(())
     }
 
@@ -41,8 +52,14 @@ impl FileRefresher {
         loop {
             tokio::select! {
                 _ = interval.tick() => {
-                    if let Some(Err(err)) = self.cancel_token.run_until_cancelled(self.refresh_discovery_file()).await {
-                        tracing::error!("Failed to refresh discovery file: {:?}", err);
+                    match self.cancel_token.run_until_cancelled(self.refresh_discovery_file()).await {
+                        Some(Err(err)) => tracing::error!("Failed to refresh discovery file: {:?}", err),
+                        Some(Ok(Some(discovery))) => {
+                            if let Some(Err(err)) = self.cancel_token.run_until_cancelled(self.refresh_nym_network_file(discovery)).await {
+                                tracing::error!("Failed to refresh nym network file: {:?}", err);
+                            }
+                        }
+                        _ => {},
                     }
                 }
                 _ = self.cancel_token.cancelled() => {
@@ -56,10 +73,10 @@ impl FileRefresher {
 // Ideally we only refresh the discovery file when the tunnel is up
 #[allow(unused)]
 pub fn start_background_file_refresh(
-    data_dir: PathBuf,
+    config_path: PathBuf,
     network_name: String,
     cancel_token: CancellationToken,
 ) -> JoinHandle<()> {
-    let refresher = FileRefresher::new(data_dir, network_name, cancel_token);
+    let refresher = FileRefresher::new(config_path, network_name, cancel_token);
     tokio::spawn(refresher.run())
 }
