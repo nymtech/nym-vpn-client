@@ -7,7 +7,6 @@ import { motion } from 'motion/react';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';
-import { kvGet } from '../../kvStore';
 import { S_STATE } from '../../static';
 import { Button } from '../../ui';
 import { capFirst } from '../../util';
@@ -84,13 +83,9 @@ function Home() {
   }, [networkCompat]);
 
   useEffect(() => {
-    const showWelcomeScreen = async () => {
-      const seen = await kvGet<boolean>('welcome-screen-seen');
-      if (!seen) {
-        navigate(routes.welcome);
-      }
-    };
-    showWelcomeScreen();
+    if (!S_STATE.welcomeScreenSeen) {
+      navigate(routes.welcome);
+    }
   }, [navigate]);
 
   useEffect(() => {
