@@ -7,6 +7,7 @@ import Theme
 
 public struct SettingsView: View {
     @StateObject private var viewModel: SettingsViewModel
+    @State private var displayCopiedOverlay = false
 
     public init(viewModel: SettingsViewModel) {
         _viewModel = StateObject(wrappedValue: viewModel)
@@ -105,7 +106,31 @@ private extension SettingsView {
                 Spacer()
             }
             .onTapGesture {
+
                 viewModel.copyToPasteboard(text: accountIdentifier)
+
+                withAnimation {
+                    displayCopiedOverlay = true
+                    Task { @MainActor in
+                        try? await Task.sleep(for: .seconds(3))
+                        displayCopiedOverlay = false
+                    }
+                }
+            }
+            .overlay {
+                if displayCopiedOverlay {
+                    HStack {
+                        Spacer()
+                        Text("settings.copiedToPasteboard".localizedString)
+                            .padding(8)
+                            .background(NymColor.elevation)
+                            .foregroundColor(NymColor.gray1)
+                            .cornerRadius(8)
+                            .transition(.opacity)
+                            .padding(.trailing, 16)
+                    }
+                    .animation(.easeInOut, value: displayCopiedOverlay)
+                }
             }
         }
     }
