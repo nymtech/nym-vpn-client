@@ -186,14 +186,6 @@ impl Db {
                 DbError::Deserialize(e)
             });
 
-        // flush db in the background
-        let db = self.db.clone();
-        tokio::spawn(async move {
-            let _ = db.flush_async().await.inspect_err(|e| {
-                error!("failed to flush: {e}");
-            });
-            debug!("flushed db");
-        });
         debug!("set key [{key}]");
         self.discard_deserialize(key, res)
     }
@@ -219,15 +211,6 @@ impl Db {
                 error!("failed to deserialize value for key [{key}]: {e}");
                 DbError::Deserialize(e)
             });
-
-        // flush db in the background
-        let db = self.db.clone();
-        tokio::spawn(async move {
-            let _ = db.flush_async().await.inspect_err(|e| {
-                error!("failed to flush: {e}");
-            });
-            debug!("flushed db");
-        });
 
         debug!("del key [{key}]");
         self.discard_deserialize(key, res)

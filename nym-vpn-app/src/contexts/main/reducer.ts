@@ -23,7 +23,6 @@ import {
   UiTheme,
   VpnMode,
 } from '../../types';
-import { S_STATE } from '../../static';
 
 export type StateAction =
   | { type: 'init-done' }
@@ -71,7 +70,7 @@ export const initialState: AppState = {
   daemonStatus: 'down',
   networkEnv: 'mainnet',
   version: null,
-  vpnMode: S_STATE.vpnModeAtStart,
+  vpnMode: 'wg',
   uiTheme: 'light',
   themeMode: DefaultThemeMode,
   progressMessages: [],

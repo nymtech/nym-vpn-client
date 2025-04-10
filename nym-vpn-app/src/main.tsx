@@ -90,6 +90,8 @@ async function setSplashTheme(window: WebviewWindow) {
   S_STATE.vpnd =
     (await invoke<VpndStatus | undefined>('daemon_status')) || 'down';
   S_STATE.vpnModeAtStart = (await kvGet<VpnMode>('vpn-mode')) || DefaultVpnMode;
+  S_STATE.welcomeScreenSeen =
+    (await kvGet<boolean>('welcome-screen-seen')) || false;
 
   // check for unrecoverable errors
   const error = await invoke<TStartupError | undefined>('startup_error');

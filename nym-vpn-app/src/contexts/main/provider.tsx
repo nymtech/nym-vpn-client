@@ -1,14 +1,13 @@
 import { invoke } from '@tauri-apps/api/core';
 import React, { useEffect, useReducer } from 'react';
 import { sleep } from '../../util';
-import { Cli, NetworkEnv, SystemMessage } from '../../types';
+import { Cli, SystemMessage } from '../../types';
 import { initFirstBatch, initSecondBatch } from '../../state/init';
 import { useTauriEvents } from '../../state/useTauriEvents';
 import { S_STATE } from '../../static';
-import { CCache } from '../../cache';
-import { kvGet, kvSet } from '../../kvStore';
 import { useInAppNotify } from '../in-app-notification';
-import { daemonStatusUpdate } from '../../state/helper';
+import { daemonStatusUpdate, networkEnvChanged } from '../../state/helper';
+import { CCache } from '../../cache';
 import { MainDispatchContext, MainStateContext } from './context';
 import { initialState, reducer } from './reducer';
 
@@ -20,7 +19,6 @@ type Props = {
 
 function MainStateProvider({ children }: Props) {
   const [state, dispatch] = useReducer(reducer, initialState);
-  const { networkEnv } = state;
 
   const { push } = useInAppNotify();
   useTauriEvents(dispatch, push);
@@ -34,6 +32,12 @@ function MainStateProvider({ children }: Props) {
     }
     initialized = true;
     daemonStatusUpdate(S_STATE.vpnd, dispatch, push);
+    networkEnvChanged(S_STATE.vpnd).then(async (changed) => {
+      if (changed) {
+        console.info('network env changed, clearing cache');
+        await CCache.clear();
+      }
+    });
 
     // this first batch is needed to ensure the app is fully
     // initialized and ready, once done splash screen is removed
@@ -48,15 +52,14 @@ function MainStateProvider({ children }: Props) {
       }
       // wait for the splash screen to be visible for a short time
       // as init phase is very fast
-      // duration → 700ms
-      await sleep(700);
+      await sleep(300);
       const splash = document.getElementById('splash');
       if (splash) {
         // starts the fade out animation
         splash.style.opacity = '0';
-        // fade out animation duration is set to 150ms, so we wait 300ms
+        // fade out animation duration is set to 150ms, so we wait 200ms
         // to ensure it's done before removing the splash screen
-        await sleep(300);
+        await sleep(200);
         splash.remove();
         console.log('splash animation done');
       }
@@ -69,22 +72,6 @@ function MainStateProvider({ children }: Props) {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // whenever the network environment changes (e.i. daemon has been reconfigured),
-  // clear cache
-  useEffect(() => {
-    const handleNetEnvUpdate = async () => {
-      const env = await kvGet<NetworkEnv>('last-network-env');
-      if (env === networkEnv) {
-        return;
-      }
-      console.info(`network env changed [${networkEnv}], clearing cache`);
-      await kvSet('last-network-env', networkEnv);
-      await CCache.clear();
-    };
-
-    handleNetEnvUpdate();
-  }, [networkEnv]);
 
   useEffect(() => {
     if (S_STATE.systemMessageInit || state.daemonStatus === 'down') {
