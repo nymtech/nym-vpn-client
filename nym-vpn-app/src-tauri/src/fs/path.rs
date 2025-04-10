@@ -43,7 +43,7 @@ pub static APP_DATA_DIR: Lazy<Option<PathBuf>> = Lazy::new(|| {
             .inspect(|p| info!("app data dir: {}", p.display()))
             .ok()
     } else {
-        error!("failed to get config dir");
+        error!("failed to get data dir");
         None
     }
 });

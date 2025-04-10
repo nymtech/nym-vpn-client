@@ -29,6 +29,7 @@ ${StrLoc}
 !define MAINBINARYNAME "{{main_binary_name}}"
 !define MAINBINARYSRCPATH "{{main_binary_path}}"
 !define BUNDLEID "{{bundle_id}}"
+!define APPDIR "nym-vpn-app"
 !define COPYRIGHT "{{copyright}}"
 !define OUTFILE "{{out_file}}"
 !define ARCH "{{arch}}"
@@ -735,7 +736,9 @@ Section Uninstall
   ${If} $DeleteAppDataCheckboxState == 1
     SetShellVarContext current
     RmDir /r "$APPDATA\${BUNDLEID}"
+    RmDir /r "$APPDATA\${APPDIR}"
     RmDir /r "$LOCALAPPDATA\${BUNDLEID}"
+    RmDir /r "$LOCALAPPDATA\${APPDIR}"
   ${EndIf}
 
   ${GetOptions} $CMDLINE "/P" $R0
