@@ -29,6 +29,7 @@ ${StrLoc}
 !define MAINBINARYNAME "{{main_binary_name}}"
 !define MAINBINARYSRCPATH "{{main_binary_path}}"
 !define BUNDLEID "{{bundle_id}}"
+!define APPDIR "nym-vpn-app"
 !define COPYRIGHT "{{copyright}}"
 !define OUTFILE "{{out_file}}"
 !define ARCH "{{arch}}"
@@ -679,10 +680,6 @@ Section Uninstall
   ; Uninstall NymVPN service
   ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
 
-  ${If} $DeleteAppDataCheckboxState == 1
-    ExecWait '"$INSTDIR\${MAINBINARYNAME}.exe" --clean-local-files'
-  ${EndIf}
-
   ; Delete the app directory and its content from disk
   ; Copy main executable
   Delete "$INSTDIR\${MAINBINARYNAME}.exe"
@@ -739,7 +736,9 @@ Section Uninstall
   ${If} $DeleteAppDataCheckboxState == 1
     SetShellVarContext current
     RmDir /r "$APPDATA\${BUNDLEID}"
+    RmDir /r "$APPDATA\${APPDIR}"
     RmDir /r "$LOCALAPPDATA\${BUNDLEID}"
+    RmDir /r "$LOCALAPPDATA\${APPDIR}"
   ${EndIf}
 
   ${GetOptions} $CMDLINE "/P" $R0

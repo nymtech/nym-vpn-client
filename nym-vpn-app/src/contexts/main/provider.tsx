@@ -55,11 +55,7 @@ function MainStateProvider({ children }: Props) {
       await sleep(300);
       const splash = document.getElementById('splash');
       if (splash) {
-        // starts the fade out animation
         splash.style.opacity = '0';
-        // fade out animation duration is set to 150ms, so we wait 200ms
-        // to ensure it's done before removing the splash screen
-        await sleep(200);
         splash.remove();
         console.log('splash animation done');
       }
