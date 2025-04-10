@@ -96,7 +96,7 @@ private extension SettingsView {
 
     @ViewBuilder
     func accountIdentifier() -> some View {
-        if let accountIdentifier = viewModel.credentialsManager.accountIdentifier, !accountIdentifier.isEmpty {
+        if let accountIdentifier = viewModel.accountIdentifier, !accountIdentifier.isEmpty {
             HStack {
                 Text("\("settings.accountID".localizedString): \(accountIdentifier)")
                     .foregroundStyle(NymColor.gray1)
