@@ -4,7 +4,7 @@
 use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
 
 use nym_http_api_client::UserAgent;
-use nym_offline_monitor::{Connectivity, MonitorHandle};
+use nym_offline_monitor::{Connectivity, ConnectivityHandle};
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::{DeviceStatus, VpnApiAccount},
@@ -679,7 +679,7 @@ where
 
     async fn handle_register_offline_monitor(
         &mut self,
-        offline_monitor: MonitorHandle,
+        offline_monitor: ConnectivityHandle,
     ) -> Result<(), AccountCommandError> {
         self.offline_watch
             .register_offline_monitor(offline_monitor)
