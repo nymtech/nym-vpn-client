@@ -20,7 +20,6 @@ use nym_vpn_proto::{
 };
 use protobuf_conversion::into_gateway_type;
 use sysinfo::System;
-use vpnd_client::ClientType;
 
 use crate::{
     cli::Command,
@@ -29,7 +28,6 @@ use crate::{
 
 #[derive(Clone, Debug)]
 struct CliOptions {
-    client_type: ClientType,
     verbose: bool,
     user_agent: Option<nym_http_api_client::UserAgent>,
 }
@@ -37,13 +35,7 @@ struct CliOptions {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = cli::CliArgs::parse();
-    let client_type = if args.http {
-        vpnd_client::ClientType::Http
-    } else {
-        vpnd_client::ClientType::Ipc
-    };
     let opts = CliOptions {
-        client_type,
         verbose: args.verbose,
         user_agent: args.user_agent,
     };
@@ -51,15 +43,15 @@ async fn main() -> Result<()> {
     match args.command {
         Command::Connect(ref connect_args) => connect(opts, connect_args).await?,
         Command::Disconnect { wait } => disconnect(opts, wait).await?,
-        Command::Status { listen } => status(listen, opts).await?,
-        Command::Info => info(opts.client_type).await?,
-        Command::SetNetwork(ref args) => set_network(opts.client_type, args).await?,
+        Command::Status { listen } => status(listen).await?,
+        Command::Info => info().await?,
+        Command::SetNetwork(ref args) => set_network(args).await?,
         Command::StoreAccount(ref store_args) => store_account(opts, store_args).await?,
-        Command::IsAccountStored => is_account_stored(opts.client_type).await?,
-        Command::ForgetAccount => forget_account(opts.client_type).await?,
-        Command::GetAccountId => get_account_id(opts.client_type).await?,
+        Command::IsAccountStored => is_account_stored().await?,
+        Command::ForgetAccount => forget_account().await?,
+        Command::GetAccountId => get_account_id().await?,
         Command::GetAccountLinks(ref args) => get_account_links(opts, args).await?,
-        Command::GetAccountState => get_account_state(opts.client_type).await?,
+        Command::GetAccountState => get_account_state().await?,
         Command::ListEntryGateways(ref list_args) => {
             list_gateways(opts, list_args, GatewayType::MixnetEntry).await?
         }
@@ -78,28 +70,22 @@ async fn main() -> Result<()> {
         Command::ListVpnCountries(ref list_args) => {
             list_countries(opts, list_args, GatewayType::Wg).await?
         }
-        Command::GetDeviceId => get_device_id(opts.client_type).await?,
+        Command::GetDeviceId => get_device_id().await?,
         Command::Internal(internal) => match internal {
-            Internal::GetSystemMessages => get_system_messages(opts.client_type).await?,
-            Internal::GetFeatureFlags => get_feature_flags(opts.client_type).await?,
-            Internal::SyncAccountState => refresh_account_state(opts.client_type).await?,
-            Internal::GetAccountUsage => get_account_usage(opts.client_type).await?,
-            Internal::ResetDeviceIdentity(ref args) => {
-                reset_device_identity(opts.client_type, args).await?
-            }
-            Internal::RegisterDevice => register_device(opts.client_type).await?,
-            Internal::GetDevices => get_devices(opts.client_type).await?,
-            Internal::GetActiveDevices => get_active_devices(opts.client_type).await?,
-            Internal::RequestZkNym => request_zk_nym(opts.client_type).await?,
-            Internal::GetDeviceZkNym => get_device_zk_nym(opts.client_type).await?,
-            Internal::GetZkNymsAvailableForDownload => {
-                get_zk_nyms_available_for_download(opts.client_type).await?
-            }
-            Internal::GetZkNymById(args) => get_zk_nym_by_id(opts.client_type, args).await?,
-            Internal::ConfirmZkNymDownloaded(args) => {
-                confirm_zk_nym_downloaded(opts.client_type, args).await?
-            }
-            Internal::GetAvailableTickets => get_available_tickets(opts.client_type).await?,
+            Internal::GetSystemMessages => get_system_messages().await?,
+            Internal::GetFeatureFlags => get_feature_flags().await?,
+            Internal::SyncAccountState => refresh_account_state().await?,
+            Internal::GetAccountUsage => get_account_usage().await?,
+            Internal::ResetDeviceIdentity(ref args) => reset_device_identity(args).await?,
+            Internal::RegisterDevice => register_device().await?,
+            Internal::GetDevices => get_devices().await?,
+            Internal::GetActiveDevices => get_active_devices().await?,
+            Internal::RequestZkNym => request_zk_nym().await?,
+            Internal::GetDeviceZkNym => get_device_zk_nym().await?,
+            Internal::GetZkNymsAvailableForDownload => get_zk_nyms_available_for_download().await?,
+            Internal::GetZkNymById(args) => get_zk_nym_by_id(args).await?,
+            Internal::ConfirmZkNymDownloaded(args) => confirm_zk_nym_downloaded(args).await?,
+            Internal::GetAvailableTickets => get_available_tickets().await?,
         },
     }
     Ok(())
@@ -135,7 +121,7 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
     let entry = cli::parse_entry_point(connect_args)?;
     let exit = cli::parse_exit_point(connect_args)?;
 
-    let mut client = vpnd_client::get_client(&opts.client_type).await?;
+    let mut client = vpnd_client::get_client().await?;
     let info = client.info(()).await?.into_inner();
     let user_agent = setup_user_agent(&opts, info);
 
@@ -167,7 +153,7 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
     }
 
     if response.success {
-        handle_connect_success(opts, connect_args).await
+        handle_connect_success(connect_args).await
     } else if let Some(error) = response.error {
         handle_connect_failure(error)
     } else {
@@ -176,10 +162,10 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
     }
 }
 
-async fn handle_connect_success(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()> {
+async fn handle_connect_success(connect_args: &cli::ConnectArgs) -> Result<()> {
     if connect_args.wait {
         println!("Successfully sent connect command. Waiting until connected or failed.");
-        wait_until_connected(opts).await
+        wait_until_connected().await
     } else {
         println!("Successfully sent connect command");
         Ok(())
@@ -193,8 +179,8 @@ fn handle_connect_failure(error: nym_vpn_proto::ConnectRequestError) -> Result<(
     Ok(())
 }
 
-async fn wait_until_connected(opts: CliOptions) -> Result<()> {
-    let mut client = vpnd_client::get_client(&opts.client_type).await?;
+async fn wait_until_connected() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
 
     let mut stream = client.listen_to_tunnel_state(()).await?.into_inner();
     while let Some(new_state) = stream.message().await? {
@@ -222,7 +208,7 @@ async fn wait_until_connected(opts: CliOptions) -> Result<()> {
 }
 
 async fn disconnect(opts: CliOptions, wait: bool) -> Result<()> {
-    let mut client = vpnd_client::get_client(&opts.client_type.clone()).await?;
+    let mut client = vpnd_client::get_client().await?;
     let response = client.vpn_disconnect(()).await?.into_inner();
 
     if opts.verbose {
@@ -232,7 +218,7 @@ async fn disconnect(opts: CliOptions, wait: bool) -> Result<()> {
     if response.success {
         if wait {
             println!("Successfully sent disconnect command. Waiting until disconnected.");
-            wait_until_disconnected(opts).await
+            wait_until_disconnected().await
         } else {
             println!("Successfully sent disconnect command");
             Ok(())
@@ -243,8 +229,8 @@ async fn disconnect(opts: CliOptions, wait: bool) -> Result<()> {
     }
 }
 
-async fn wait_until_disconnected(opts: CliOptions) -> Result<()> {
-    let mut client = vpnd_client::get_client(&opts.client_type).await?;
+async fn wait_until_disconnected() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let mut stream = client.listen_to_tunnel_state(()).await?.into_inner();
     while let Some(new_state) = stream.message().await? {
         let new_state = TunnelState::try_from(new_state)?;
@@ -263,8 +249,8 @@ async fn wait_until_disconnected(opts: CliOptions) -> Result<()> {
     Ok(())
 }
 
-async fn status(listen: bool, opts: CliOptions) -> Result<()> {
-    let mut client = vpnd_client::get_client(&opts.client_type).await?;
+async fn status(listen: bool) -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
 
     if listen {
         let mut stream = client.listen_to_tunnel_state(()).await?.into_inner();
@@ -280,8 +266,8 @@ async fn status(listen: bool, opts: CliOptions) -> Result<()> {
     Ok(())
 }
 
-async fn info(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn info() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.info(()).await?.into_inner();
     let info = nym_vpn_proto::conversions::InfoResponse::try_from(response)
         .context("failed to parse info response")?;
@@ -289,8 +275,8 @@ async fn info(client_type: ClientType) -> Result<()> {
     Ok(())
 }
 
-async fn set_network(client_type: ClientType, args: &cli::SetNetworkArgs) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn set_network(args: &cli::SetNetworkArgs) -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let request = tonic::Request::new(SetNetworkRequest {
         network: args.network.clone(),
     });
@@ -299,22 +285,22 @@ async fn set_network(client_type: ClientType, args: &cli::SetNetworkArgs) -> Res
     Ok(())
 }
 
-async fn get_system_messages(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn get_system_messages() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.get_system_messages(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn get_feature_flags(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn get_feature_flags() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.get_feature_flags(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn store_account(opts: CliOptions, store_args: &cli::StoreAccountArgs) -> Result<()> {
-    let mut client = vpnd_client::get_client(&opts.client_type).await?;
+    let mut client = vpnd_client::get_client().await?;
     let request = tonic::Request::new(StoreAccountRequest {
         mnemonic: store_args.mnemonic.clone(),
         nonce: 0,
@@ -338,43 +324,43 @@ async fn store_account(opts: CliOptions, store_args: &cli::StoreAccountArgs) -> 
     Ok(())
 }
 
-async fn refresh_account_state(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn refresh_account_state() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.refresh_account_state(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn is_account_stored(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn is_account_stored() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.is_account_stored(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn get_account_usage(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn get_account_usage() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.get_account_usage(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn forget_account(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn forget_account() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.forget_account(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn get_account_id(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn get_account_id() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.get_account_identity(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
 async fn get_account_links(opts: CliOptions, args: &cli::GetAccountLinksArgs) -> Result<()> {
-    let mut client = vpnd_client::get_client(&opts.client_type).await?;
+    let mut client = vpnd_client::get_client().await?;
     let request = tonic::Request::new(GetAccountLinksRequest {
         locale: args.locale.clone(),
     });
@@ -399,18 +385,15 @@ async fn get_account_links(opts: CliOptions, args: &cli::GetAccountLinksArgs) ->
     Ok(())
 }
 
-async fn get_account_state(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn get_account_state() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.get_account_state(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn reset_device_identity(
-    client_type: ClientType,
-    args: &cli::ResetDeviceIdentityArgs,
-) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn reset_device_identity(args: &cli::ResetDeviceIdentityArgs) -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let request = tonic::Request::new(ResetDeviceIdentityRequest {
         seed: args.seed.as_ref().map(|seed| seed.clone().into_bytes()),
     });
@@ -419,50 +402,50 @@ async fn reset_device_identity(
     Ok(())
 }
 
-async fn get_device_id(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn get_device_id() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.get_device_identity(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn register_device(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn register_device() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.register_device(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn get_devices(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn get_devices() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.get_devices(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn get_active_devices(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn get_active_devices() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.get_active_devices(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn request_zk_nym(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn request_zk_nym() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.request_zk_nym(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn get_device_zk_nym(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn get_device_zk_nym() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.get_device_zk_nyms(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
 }
 
-async fn get_zk_nyms_available_for_download(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn get_zk_nyms_available_for_download() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client
         .get_zk_nyms_available_for_download(())
         .await?
@@ -471,8 +454,8 @@ async fn get_zk_nyms_available_for_download(client_type: ClientType) -> Result<(
     Ok(())
 }
 
-async fn get_zk_nym_by_id(client_type: ClientType, args: cli::GetZkNymByIdArgs) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn get_zk_nym_by_id(args: cli::GetZkNymByIdArgs) -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let request = tonic::Request::new(GetZkNymByIdRequest {
         id: args.id.clone(),
     });
@@ -481,11 +464,8 @@ async fn get_zk_nym_by_id(client_type: ClientType, args: cli::GetZkNymByIdArgs) 
     Ok(())
 }
 
-async fn confirm_zk_nym_downloaded(
-    client_type: ClientType,
-    args: cli::ConfirmZkNymDownloadedArgs,
-) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn confirm_zk_nym_downloaded(args: cli::ConfirmZkNymDownloadedArgs) -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let request = tonic::Request::new(ConfirmZkNymDownloadedRequest {
         id: args.id.clone(),
     });
@@ -497,8 +477,8 @@ async fn confirm_zk_nym_downloaded(
     Ok(())
 }
 
-async fn get_available_tickets(client_type: ClientType) -> Result<()> {
-    let mut client = vpnd_client::get_client(&client_type).await?;
+async fn get_available_tickets() -> Result<()> {
+    let mut client = vpnd_client::get_client().await?;
     let response = client.get_available_tickets(()).await?.into_inner();
     println!("{:#?}", response);
     Ok(())
@@ -509,7 +489,7 @@ async fn list_gateways(
     list_args: &cli::ListGatewaysArgs,
     gw_type: GatewayType,
 ) -> Result<()> {
-    let mut client = vpnd_client::get_client(&opts.client_type).await?;
+    let mut client = vpnd_client::get_client().await?;
 
     let info = client.info(()).await?.into_inner();
     let user_agent = setup_user_agent(&opts, info);
@@ -545,7 +525,7 @@ async fn list_countries(
     list_args: &cli::ListCountriesArgs,
     gw_type: GatewayType,
 ) -> Result<()> {
-    let mut client = vpnd_client::get_client(&opts.client_type).await?;
+    let mut client = vpnd_client::get_client().await?;
 
     let info = client.info(()).await?.into_inner();
     let user_agent = setup_user_agent(&opts, info);

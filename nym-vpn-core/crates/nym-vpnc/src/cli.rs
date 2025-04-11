@@ -11,10 +11,6 @@ use nym_http_api_client::UserAgent;
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about)]
 pub struct CliArgs {
-    /// Use HTTP instead of socket file for IPC with the daemon.
-    #[arg(long)]
-    pub http: bool,
-
     #[arg(long)]
     pub verbose: bool,
 

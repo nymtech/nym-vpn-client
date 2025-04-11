@@ -10,7 +10,3 @@ pub fn get_socket_path() -> PathBuf {
     #[cfg(windows)]
     return Path::new(r"\\.\pipe\nym-vpn").to_path_buf();
 }
-
-pub fn default_endpoint() -> String {
-    "http://[::1]:53181".to_string()
-}
