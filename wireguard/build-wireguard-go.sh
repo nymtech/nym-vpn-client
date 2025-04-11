@@ -171,9 +171,19 @@ function build_unix {
 
 function build_android {
     echo "Building for android"
-    local docker_image_hash="fe6c1ded2e1f8a7e6ff0da2800c98b9d564d4723cc63ae46b1a8a3af33f78d1f"
 
     if $IS_DOCKER_BUILD; then
+        # See https://hub.docker.com/r/nymtech/android-wg-patched/tags
+        local docker_amd64_image_hash="965b2386e7387d0679498416fb39441c8ced350f1f7744df519495f4abd72405"
+        local docker_arm64_image_hash="e697125820a8143803a549f30d3fe935ee9f5955876345def8dc5277dd7e2606"
+        
+        # Pick the host system architecture for better performance
+        local arch="$(uname -m)";
+        case  "$arch" in
+            arm64*) local docker_image_hash=$docker_arm64_image_hash ;;
+                 *) local docker_image_hash=$docker_amd64_image_hash ;;
+        esac
+
         docker run --rm \
             -v "$(pwd)/../":/workspace \
             --entrypoint "/workspace/wireguard/$LIB_DIR/build-android.sh" \
