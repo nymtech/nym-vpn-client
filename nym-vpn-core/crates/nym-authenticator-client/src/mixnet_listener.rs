@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use futures::StreamExt;
 use nym_mixnet_client::SharedMixnetClient;
@@ -126,11 +126,9 @@ impl AuthClientMixnetListenerHandle {
         self.message_broadcast.subscribe()
     }
 
-    pub async fn cancel(self) -> AuthClientMixnetListener {
+    pub async fn cancel(mut self) -> AuthClientMixnetListener {
         self.cancel_token.cancel();
-        if let Err(err) = self.handle.await {
-            tracing::error!("Error while waiting for auth clients mixnet listener to stop: {err}");
-        }
+        self.wait().await;
         AuthClientMixnetListener {
             mixnet_client: self.mixnet_client,
             message_broadcast: self.message_broadcast,
@@ -139,9 +137,17 @@ impl AuthClientMixnetListenerHandle {
         }
     }
 
-    pub async fn wait(self) {
-        if let Err(err) = self.handle.await {
-            tracing::error!("Error while waiting for auth clients mixnet listener to stop: {err}");
+    pub async fn wait(&mut self) {
+        tokio::select! {
+            join_result = &mut self.handle => {
+                if let Err(err) = join_result {
+                    tracing::error!("Error waiting for auth clients mixnet listener to stop: {err}");
+                }
+            }
+            _ = tokio::time::sleep(Duration::from_secs(5)) => {
+                tracing::error!("Timeout waiting for auth clients mixnet listener to stop. Forcing stop");
+                self.handle.abort();
+            }
         }
     }
 }
