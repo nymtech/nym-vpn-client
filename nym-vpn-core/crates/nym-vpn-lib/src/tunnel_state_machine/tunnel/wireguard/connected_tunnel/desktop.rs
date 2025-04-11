@@ -472,7 +472,7 @@ impl TunnelHandle {
     /// Wait until the tunnel finished execution.
     ///
     /// Returns a tombstone containing the no longer used tunnel devices and wireguard tunnels (on Windows).
-    pub async fn wait(mut self) -> Result<Tombstone, JoinError> {
+    pub async fn wait(self) -> Result<Tombstone, JoinError> {
         if let Err(e) = self.bandwidth_controller_handle.await {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }

@@ -53,27 +53,16 @@ impl AuthClientMixnetListener {
 
     async fn run(self, cancel_token: CancellationToken) {
         let mut mixnet_client = self.mixnet_client.lock().await.take().unwrap();
-        loop {
-            tokio::select! {
-                _ = cancel_token.cancelled() => {
-                    tracing::info!("Mixnet listener stopping and returning to initial state");
-                    break;
-                }
-                event = mixnet_client.next() => {
-                    match event {
-                        Some(event) => {
-                            if let Err(err) = self.message_broadcast.send(Arc::new(event)) {
-                                tracing::error!("Failed to broadcast mixnet message: {err}");
-                            }
-                        }
-                        None => {
-                            tracing::error!("Mixnet client stream ended unexpectedly");
-                            break;
-                        }
+        cancel_token
+            .run_until_cancelled(async {
+                while let Some(event) = mixnet_client.next().await {
+                    if let Err(err) = self.message_broadcast.send(Arc::new(event)) {
+                        tracing::error!("Failed to broadcast mixnet message: {err}");
                     }
                 }
-            }
-        }
+                tracing::error!("Mixnet client stream ended unexpectedly");
+            })
+            .await;
         self.mixnet_client.lock().await.replace(mixnet_client);
     }
 
@@ -120,7 +109,7 @@ impl AuthClientMixnetListenerHandle {
 
     pub async fn disconnect(mut self) -> AuthClientMixnetListener {
         self.internal_cancel_token.cancel();
-        self.wait().await;
+        self = self.wait().await;
         AuthClientMixnetListener {
             mixnet_client: self.mixnet_client,
             message_broadcast: self.message_broadcast,
@@ -128,7 +117,7 @@ impl AuthClientMixnetListenerHandle {
         }
     }
 
-    pub async fn wait(&mut self) {
+    pub async fn wait(mut self) -> Self {
         tokio::select! {
             join_result = &mut self.handle => {
                 if let Err(err) = join_result {
@@ -140,5 +129,6 @@ impl AuthClientMixnetListenerHandle {
                 self.handle.abort();
             }
         }
+        self
     }
 }
