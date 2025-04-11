@@ -30,9 +30,6 @@ pub struct AuthClientMixnetListener {
 
     // Listen to cancel from the outside world
     external_cancel_token: CancellationToken,
-
-    // Cancel this task, returning to initial state so it can be restarted
-    internal_cancel_token: CancellationToken,
 }
 
 impl AuthClientMixnetListener {
@@ -42,7 +39,6 @@ impl AuthClientMixnetListener {
             mixnet_client,
             message_broadcast,
             external_cancel_token: CancellationToken::new(),
-            internal_cancel_token: CancellationToken::new(),
         }
     }
 
@@ -55,15 +51,11 @@ impl AuthClientMixnetListener {
         self.message_broadcast.subscribe()
     }
 
-    async fn run(self) {
+    async fn run(self, cancel_token: CancellationToken) {
         let mut mixnet_client = self.mixnet_client.lock().await.take().unwrap();
         loop {
             tokio::select! {
-                _ = self.external_cancel_token.cancelled() => {
-                    tracing::info!("Mixnet listener shutting down");
-                    break;
-                }
-                _ = self.internal_cancel_token.cancelled() => {
+                _ = cancel_token.cancelled() => {
                     tracing::info!("Mixnet listener stopping and returning to initial state");
                     break;
                 }
@@ -88,16 +80,16 @@ impl AuthClientMixnetListener {
     pub fn start(self) -> AuthClientMixnetListenerHandle {
         let mixnet_client = self.mixnet_client.clone();
         let message_broadcast = self.message_broadcast.clone();
-        let external_canel_token = self.external_cancel_token.clone();
-        let cancel_token = self.internal_cancel_token.clone();
+        let external_cancel_token = self.external_cancel_token.clone();
+        let internal_cancel_token = self.external_cancel_token.child_token();
 
-        let handle = tokio::spawn(self.run());
+        let handle = tokio::spawn(self.run(internal_cancel_token.clone()));
 
         AuthClientMixnetListenerHandle {
             mixnet_client,
             message_broadcast,
-            external_canel_token,
-            cancel_token,
+            external_cancel_token,
+            internal_cancel_token,
             handle,
         }
     }
@@ -106,8 +98,8 @@ impl AuthClientMixnetListener {
 pub struct AuthClientMixnetListenerHandle {
     mixnet_client: SharedMixnetClient,
     message_broadcast: MixnetMessageBroadcastSender,
-    external_canel_token: CancellationToken,
-    cancel_token: CancellationToken,
+    external_cancel_token: CancellationToken,
+    internal_cancel_token: CancellationToken,
     handle: JoinHandle<()>,
 }
 
@@ -126,14 +118,13 @@ impl AuthClientMixnetListenerHandle {
         self.message_broadcast.subscribe()
     }
 
-    pub async fn cancel(mut self) -> AuthClientMixnetListener {
-        self.cancel_token.cancel();
+    pub async fn disconnect(mut self) -> AuthClientMixnetListener {
+        self.internal_cancel_token.cancel();
         self.wait().await;
         AuthClientMixnetListener {
             mixnet_client: self.mixnet_client,
             message_broadcast: self.message_broadcast,
-            external_cancel_token: self.external_canel_token,
-            internal_cancel_token: CancellationToken::new(),
+            external_cancel_token: self.external_cancel_token,
         }
     }
 

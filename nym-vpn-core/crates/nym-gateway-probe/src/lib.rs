@@ -327,7 +327,7 @@ impl Probe {
             .await
             .unwrap_or_default();
 
-            let _ = mixnet_listener_task.cancel().await;
+            let _ = mixnet_listener_task.disconnect().await;
 
             outcome
         } else {
