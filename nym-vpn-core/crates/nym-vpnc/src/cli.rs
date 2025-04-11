@@ -215,40 +215,41 @@ pub struct ConnectArgs {
 #[group(multiple = false)]
 pub struct CliEntry {
     /// Mixnet public ID of the entry gateway.
-    #[arg(long, alias = "entry-id")]
-    pub entry_gateway_id: Option<String>,
+    #[arg(long, alias = "entry-gateway-id")]
+    pub entry_id: Option<String>,
 
     /// Auto-select entry gateway by country ISO.
-    #[arg(long, alias = "entry-country")]
-    pub entry_gateway_country: Option<String>,
+    #[arg(long, alias = "entry-gateway-country")]
+    pub entry_country: Option<String>,
 
     /// Auto-select entry gateway by latency
-    #[arg(long, alias = "entry-fastest")]
-    pub entry_gateway_low_latency: bool,
+    #[arg(long, alias = "entry-gateway-low-latency")]
+    pub entry_fastest: bool,
 
     /// Auto-select entry gateway randomly.
-    #[arg(long, alias = "entry-random")]
-    pub entry_gateway_random: bool,
+    #[arg(long, alias = "entry-gateway-random")]
+    pub entry_random: bool,
 }
 
 #[derive(Args)]
 #[group(multiple = false)]
 pub struct CliExit {
-    /// Mixnet recipient address.
-    #[clap(long, alias = "exit-address")]
-    pub exit_router_address: Option<String>,
+    /// Mixnet recipient address of the IPR connecting to, if specified directly. This is only
+    /// useful when connecting to standalone IPRs.
+    #[clap(long, hide = true)]
+    pub exit_ipr_address: Option<String>,
 
     /// Mixnet public ID of the exit gateway.
-    #[clap(long, alias = "exit-id")]
-    pub exit_gateway_id: Option<String>,
+    #[clap(long, alias = "exit-gateway-id")]
+    pub exit_id: Option<String>,
 
     /// Auto-select exit gateway by country ISO.
-    #[clap(long, alias = "exit-country")]
-    pub exit_gateway_country: Option<String>,
+    #[clap(long, alias = "exit-gateway-country")]
+    pub exit_country: Option<String>,
 
     /// Auto-select exit gateway randomly.
-    #[clap(long, alias = "exit-random")]
-    pub exit_gateway_random: bool,
+    #[clap(long, alias = "exit-gateway-random")]
+    pub exit_random: bool,
 }
 
 #[derive(Args)]
@@ -323,18 +324,18 @@ pub struct ConfirmZkNymDownloadedArgs {
 }
 
 pub fn parse_entry_point(args: &ConnectArgs) -> Result<Option<EntryPoint>> {
-    if let Some(ref entry_gateway_id) = args.entry.entry_gateway_id {
+    if let Some(ref entry_gateway_id) = args.entry.entry_id {
         Ok(Some(EntryPoint::Gateway {
             identity: NodeIdentity::from_base58_string(entry_gateway_id.clone())
                 .map_err(|_| anyhow!("Failed to parse gateway id"))?,
         }))
-    } else if let Some(ref entry_gateway_country) = args.entry.entry_gateway_country {
+    } else if let Some(ref entry_gateway_country) = args.entry.entry_country {
         Ok(Some(EntryPoint::Location {
             location: entry_gateway_country.clone(),
         }))
-    } else if args.entry.entry_gateway_low_latency {
+    } else if args.entry.entry_fastest {
         Ok(Some(EntryPoint::RandomLowLatency))
-    } else if args.entry.entry_gateway_random {
+    } else if args.entry.entry_random {
         Ok(Some(EntryPoint::Random))
     } else {
         Ok(None)
@@ -342,23 +343,23 @@ pub fn parse_entry_point(args: &ConnectArgs) -> Result<Option<EntryPoint>> {
 }
 
 pub fn parse_exit_point(args: &ConnectArgs) -> Result<Option<ExitPoint>> {
-    if let Some(ref exit_router_address) = args.exit.exit_router_address {
+    if let Some(ref exit_router_address) = args.exit.exit_ipr_address {
         Ok(Some(ExitPoint::Address {
             address: Box::new(
                 Recipient::try_from_base58_string(exit_router_address.clone())
                     .map_err(|_| anyhow!("Failed to parse exit node address"))?,
             ),
         }))
-    } else if let Some(ref exit_router_id) = args.exit.exit_gateway_id {
+    } else if let Some(ref exit_router_id) = args.exit.exit_id {
         Ok(Some(ExitPoint::Gateway {
             identity: NodeIdentity::from_base58_string(exit_router_id.clone())
                 .map_err(|_| anyhow!("Failed to parse gateway id"))?,
         }))
-    } else if let Some(ref exit_gateway_country) = args.exit.exit_gateway_country {
+    } else if let Some(ref exit_gateway_country) = args.exit.exit_country {
         Ok(Some(ExitPoint::Location {
             location: exit_gateway_country.clone(),
         }))
-    } else if args.exit.exit_gateway_random {
+    } else if args.exit.exit_random {
         Ok(Some(ExitPoint::Random))
     } else {
         Ok(None)
