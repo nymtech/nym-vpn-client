@@ -221,7 +221,7 @@ pub struct CliEntry {
 pub struct CliExit {
     /// Mixnet recipient address of the IPR connecting to, if specified directly. This is only
     /// useful when connecting to standalone IPRs.
-    #[clap(long, hide = true)]
+    #[clap(long, hide = true, alias = "exit-router-address")]
     pub exit_ipr_address: Option<String>,
 
     /// Mixnet public ID of the exit gateway.
