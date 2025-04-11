@@ -695,7 +695,7 @@ dependencies = [
 [[package]]
 name = "block2"
 version = "0.6.0"
-source = "git+https://github.com/madsmtm/objc2/?rev=91a74f332f3db66378f457ad954f26c2d72277ca#91a74f332f3db66378f457ad954f26c2d72277ca"
+source = "git+https://github.com/madsmtm/objc2?rev=91a74f332f3db66378f457ad954f26c2d72277ca#91a74f332f3db66378f457ad954f26c2d72277ca"
 dependencies = [
  "objc2",
 ]
@@ -1643,7 +1643,7 @@ dependencies = [
 [[package]]
 name = "dispatch2"
 version = "0.2.0"
-source = "git+https://github.com/madsmtm/objc2/?rev=91a74f332f3db66378f457ad954f26c2d72277ca#91a74f332f3db66378f457ad954f26c2d72277ca"
+source = "git+https://github.com/madsmtm/objc2?rev=91a74f332f3db66378f457ad954f26c2d72277ca#91a74f332f3db66378f457ad954f26c2d72277ca"
 dependencies = [
  "bitflags 2.9.0",
  "block2",
@@ -5301,7 +5301,7 @@ dependencies = [
 [[package]]
 name = "objc2"
 version = "0.6.0"
-source = "git+https://github.com/madsmtm/objc2/?rev=91a74f332f3db66378f457ad954f26c2d72277ca#91a74f332f3db66378f457ad954f26c2d72277ca"
+source = "git+https://github.com/madsmtm/objc2?rev=91a74f332f3db66378f457ad954f26c2d72277ca#91a74f332f3db66378f457ad954f26c2d72277ca"
 dependencies = [
  "objc2-encode",
 ]
@@ -5309,7 +5309,7 @@ dependencies = [
 [[package]]
 name = "objc2-core-foundation"
 version = "0.3.0"
-source = "git+https://github.com/madsmtm/objc2/?rev=91a74f332f3db66378f457ad954f26c2d72277ca#91a74f332f3db66378f457ad954f26c2d72277ca"
+source = "git+https://github.com/madsmtm/objc2?rev=91a74f332f3db66378f457ad954f26c2d72277ca#91a74f332f3db66378f457ad954f26c2d72277ca"
 dependencies = [
  "bitflags 2.9.0",
  "dispatch2",
@@ -5319,12 +5319,12 @@ dependencies = [
 [[package]]
 name = "objc2-encode"
 version = "4.1.0"
-source = "git+https://github.com/madsmtm/objc2/?rev=91a74f332f3db66378f457ad954f26c2d72277ca#91a74f332f3db66378f457ad954f26c2d72277ca"
+source = "git+https://github.com/madsmtm/objc2?rev=91a74f332f3db66378f457ad954f26c2d72277ca#91a74f332f3db66378f457ad954f26c2d72277ca"
 
 [[package]]
 name = "objc2-foundation"
 version = "0.3.0"
-source = "git+https://github.com/madsmtm/objc2/?rev=91a74f332f3db66378f457ad954f26c2d72277ca#91a74f332f3db66378f457ad954f26c2d72277ca"
+source = "git+https://github.com/madsmtm/objc2?rev=91a74f332f3db66378f457ad954f26c2d72277ca#91a74f332f3db66378f457ad954f26c2d72277ca"
 dependencies = [
  "bitflags 2.9.0",
  "block2",

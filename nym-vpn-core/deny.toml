@@ -130,8 +130,8 @@ expression = "MIT AND ISC AND OpenSSL"
 # and the crate will be checked normally, which may produce warnings or errors
 # depending on the rest of your configuration
 license-files = [
-# Each entry is a crate relative path, and the (opaque) hash of its contents
-{ path = "LICENSE", hash = 0xbd0eed23 }
+    # Each entry is a crate relative path, and the (opaque) hash of its contents
+    { path = "LICENSE", hash = 0xbd0eed23 },
 ]
 
 [licenses.private]
@@ -181,7 +181,7 @@ deny = [
     # Wrapper crates can optionally be specified to allow the crate when it
     # is a direct dependency of the otherwise banned crate
     #{ crate = "ansi_term@0.11.0", wrappers = ["this-crate-directly-depends-on-ansi_term"] },
-    { crate = "openssl", use-instead = "rustls"}
+    { crate = "openssl", use-instead = "rustls" },
 ]
 
 # List of features to allow/deny
@@ -240,7 +240,7 @@ unknown-git = "warn"
 # if not specified. If it is specified but empty, no registries are allowed.
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 # List of URLs for allowed Git repositories
-allow-git = []
+allow-git = ["https://github.com/madsmtm/objc2"]
 
 [sources.allow-org]
 # github.com organizations to allow git sources for
