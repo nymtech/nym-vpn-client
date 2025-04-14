@@ -36,9 +36,9 @@ export type DbKey =
  * backend side
  * */
 export type ErrorKey =
-  | 'unknown-error'
-  | 'internal-error'
-  | 'grpc-error'
+  | 'unknown'
+  | 'internal'
+  | 'grpc'
   | 'not-connected-to-daemon'
   | 'entry-gw-down'
   | 'exit-gw-down-ipv4'
@@ -47,8 +47,6 @@ export type ErrorKey =
   | 'exit-gw-routing-error-ipv6'
   | 'no-bandwidth'
   | 'account-invalid-mnemonic'
-  | 'account-storage'
-  | 'account-is-connected'
   | 'get-mixnet-entry-countries-query'
   | 'get-mixnet-exit-countries-query'
   | 'get-wg-countries-query'

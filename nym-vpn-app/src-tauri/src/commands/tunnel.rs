@@ -100,7 +100,7 @@ pub async fn connect(
                 _ => {
                     app.emit_disconnected(Some(BackendError::new(
                         "Internal gRPC error",
-                        ErrorKey::GrpcError,
+                        ErrorKey::Grpc,
                     )));
                 }
             }

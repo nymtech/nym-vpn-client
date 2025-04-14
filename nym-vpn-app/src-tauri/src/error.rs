@@ -3,10 +3,9 @@ use std::{
     fmt::{self, Display},
 };
 
-use nym_vpn_proto::account_error::AccountErrorType;
 use nym_vpn_proto::connect_request_error::ConnectRequestErrorType;
 use nym_vpn_proto::set_network_request_error::SetNetworkRequestErrorType;
-use nym_vpn_proto::{AccountError, ConnectRequestError, SetNetworkRequestError};
+use nym_vpn_proto::{ConnectRequestError, SetNetworkRequestError};
 use serde::Serialize;
 use thiserror::Error;
 use ts_rs::TS;
@@ -19,7 +18,8 @@ use crate::grpc::gateway::GatewayType;
 /// Generic error type made to be passed to the frontend and
 /// displayed in the UI as localized error message
 pub struct BackendError {
-    /// Human readable error message for debugging/logs purposes
+    /// Error message for debugging/logs purposes
+    /// this should be not displayed to the user
     pub message: String,
     /// Error key to be used in the UI to display localized error message
     pub key: ErrorKey,
@@ -44,15 +44,15 @@ impl BackendError {
         }
     }
 
-    pub fn with_details(message: &str, key: ErrorKey, details: String) -> Self {
+    pub fn with_detail(message: &str, key: ErrorKey, detail: String) -> Self {
         Self {
             message: message.to_string(),
             key,
-            data: Some(HashMap::from([("details".to_string(), details)])),
+            data: Some(HashMap::from([("details".to_string(), detail)])),
         }
     }
 
-    pub fn with_optional_data(
+    pub fn _with_optional_data(
         message: &str,
         key: ErrorKey,
         data: Option<HashMap<String, String>>,
@@ -67,8 +67,16 @@ impl BackendError {
     pub fn internal(message: &str, data: Option<HashMap<String, String>>) -> Self {
         Self {
             message: message.to_string(),
-            key: ErrorKey::InternalError,
+            key: ErrorKey::Internal,
             data: data.map(|d| d.into_iter().map(|(k, v)| (k.to_string(), v)).collect()),
+        }
+    }
+
+    pub fn internal_with_detail(message: &str, detail: String) -> Self {
+        Self {
+            message: message.to_string(),
+            key: ErrorKey::Internal,
+            data: Some(HashMap::from([("details".to_string(), detail)])),
         }
     }
 }
@@ -89,7 +97,7 @@ impl From<VpndError> for BackendError {
     fn from(error: VpndError) -> Self {
         match error {
             VpndError::GrpcError(s) => {
-                BackendError::new(&format!("grpc error: {}", s), ErrorKey::GrpcError)
+                BackendError::new(&format!("grpc error: {}", s), ErrorKey::Grpc)
             }
             VpndError::FailedToConnectIpc(_) => BackendError::new(
                 "not connected to the daemon",
@@ -107,14 +115,14 @@ impl From<VpndError> for BackendError {
 #[ts(export)]
 pub enum ErrorKey {
     /// Generic unhandled error
-    UnknownError,
+    Unknown,
     /// Any error that is not explicitly handled, and not related
     /// to the application layer
     /// Extra data should be passed along to help specialize the problem
-    InternalError,
+    Internal,
     /// gRPC bare layer error, when an RPC call fails (aka `tonic::Status`)
     /// That is, the error does not come from the application layer
-    GrpcError,
+    Grpc,
     /// Happens when the app is not connected to a running daemon
     /// and attempts to make a gRPC call
     NotConnectedToDaemon,
@@ -125,10 +133,8 @@ pub enum ErrorKey {
     ExitGwRoutingErrorIpv4,
     ExitGwRoutingErrorIpv6,
     NoBandwidth,
-    // Forwarded from proto `account_error::AccountErrorType`
+    // Some specific account management errors
     AccountInvalidMnemonic,
-    AccountStorage,
-    AccountIsConnected,
     // Failure when querying countries from gRPC
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,
@@ -137,39 +143,13 @@ pub enum ErrorKey {
     InvalidNetworkName,
 }
 
-impl From<AccountError> for BackendError {
-    fn from(error: AccountError) -> Self {
-        let data = error.details.clone().into();
-        match error.kind() {
-            AccountErrorType::StoreAccountErrorUnspecified => {
-                BackendError::internal("grpc UNSPECIFIED", data)
-            }
-            AccountErrorType::InvalidMnemonic => BackendError::with_optional_data(
-                "The provided mnemonic was not able to be parsed",
-                ErrorKey::AccountInvalidMnemonic,
-                data,
-            ),
-            AccountErrorType::Storage => BackendError::with_optional_data(
-                "General error from the storage backend",
-                ErrorKey::AccountStorage,
-                data,
-            ),
-            AccountErrorType::IsConnected => BackendError::with_optional_data(
-                "Unable to proceed while connected",
-                ErrorKey::AccountIsConnected,
-                data,
-            ),
-        }
-    }
-}
-
 impl From<ConnectRequestErrorType> for ErrorKey {
     fn from(error: ConnectRequestErrorType) -> Self {
         match error {
             // let's keep this 0brain pattern matching for the sake
             // of reference and safety in case of future changes
             ConnectRequestErrorType::Internal | ConnectRequestErrorType::Unspecified => {
-                ErrorKey::InternalError
+                ErrorKey::Internal
             }
         }
     }
@@ -194,9 +174,9 @@ impl From<GatewayType> for ErrorKey {
 impl From<SetNetworkRequestErrorType> for ErrorKey {
     fn from(error: SetNetworkRequestErrorType) -> Self {
         match error {
-            SetNetworkRequestErrorType::Internal => ErrorKey::InternalError,
+            SetNetworkRequestErrorType::Internal => ErrorKey::Internal,
             SetNetworkRequestErrorType::InvalidNetworkName => ErrorKey::InvalidNetworkName,
-            SetNetworkRequestErrorType::Unspecified => ErrorKey::UnknownError,
+            SetNetworkRequestErrorType::Unspecified => ErrorKey::Unknown,
         }
     }
 }

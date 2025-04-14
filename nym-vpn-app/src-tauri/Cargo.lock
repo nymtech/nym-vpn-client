@@ -3092,6 +3092,7 @@ dependencies = [
 name = "nym-windows"
 version = "1.8.0-beta"
 dependencies = [
+ "bitflags 2.9.0",
  "futures",
  "thiserror 2.0.12",
  "tokio",

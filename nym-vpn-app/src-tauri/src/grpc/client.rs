@@ -3,12 +3,9 @@ use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use nym_vpn_proto::{
-    get_account_identity_response::Id as AccountIdRes,
-    get_account_links_response::Res as AccountLinkRes,
-    get_device_identity_response::Id as DeviceIdRes,
-    is_account_stored_response::Resp as IsAccountStoredResp, nym_vpnd_client::NymVpndClient,
-    tunnel_event::Event, ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest,
-    Location, SetNetworkRequest, StoreAccountRequest, UserAgent,
+    nym_vpnd_client::NymVpndClient, tunnel_event::Event, ConnectRequest, Dns,
+    GetAccountLinksRequest, ListGatewaysRequest, Location, SetNetworkRequest, StoreAccountRequest,
+    UserAgent,
 };
 use tauri::{AppHandle, Manager, PackageInfo};
 use tokio::sync::mpsc;
@@ -325,19 +322,10 @@ impl GrpcClient {
         })?;
         debug!("grpc response: {:?}", response);
         let response = response.into_inner();
-        if response.success {
-            return Ok(());
+        if let Some(error) = response.error.map(BackendError::from) {
+            return Err(VpndError::Response(error));
         }
-        Err(VpndError::Response(
-            response
-                .error
-                .inspect(|e| warn!("store account error: {:?}", e))
-                .map(BackendError::from)
-                .ok_or_else(|| {
-                    error!("store account bad response: no AccountError");
-                    VpndError::internal("store account bad response: no AccountError")
-                })?,
-        ))
+        Ok(())
     }
 
     /// Removes everything related to the account, including the device identity,
@@ -353,19 +341,10 @@ impl GrpcClient {
         })?;
         debug!("grpc response: {:?}", response);
         let response = response.into_inner();
-        if response.success {
-            return Ok(());
+        if let Some(error) = response.error.map(BackendError::from) {
+            return Err(VpndError::Response(error));
         }
-        Err(VpndError::Response(
-            response
-                .error
-                .inspect(|e| warn!("forget account error: {:?}", e))
-                .map(BackendError::from)
-                .ok_or_else(|| {
-                    error!("forget account bad response: no AccountError");
-                    VpndError::internal("forget account bad response: no AccountError")
-                })?,
-        ))
+        Ok(())
     }
 
     /// Check if an account is stored
@@ -378,15 +357,9 @@ impl GrpcClient {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;
-        debug!("grpc response: {:?}", response);
         let response = response.into_inner();
-        match response.resp.ok_or_else(|| {
-            error!("failed to get stored account: invalid response");
-            VpndError::internal("failed to get stored account: invalid response")
-        })? {
-            IsAccountStoredResp::IsStored(v) => Ok(v),
-            IsAccountStoredResp::Error(e) => Err(VpndError::Response(e.into())),
-        }
+        debug!("grpc response: {:?}", response);
+        Ok(response.is_stored)
     }
 
     /// Get the account identity \
@@ -405,13 +378,7 @@ impl GrpcClient {
             })?
             .into_inner();
         debug!("grpc response: {:?}", response);
-        match response.id.ok_or_else(|| {
-            error!("failed to get account id: invalid response");
-            VpndError::internal("failed to get account id: invalid response")
-        })? {
-            AccountIdRes::AccountIdentity(id) => Ok(id.account_identity),
-            AccountIdRes::Error(e) => Err(VpndError::Response(e.into())),
-        }
+        Ok(response.account_identity)
     }
 
     /// Get the device identity
@@ -429,13 +396,7 @@ impl GrpcClient {
             })?
             .into_inner();
         debug!("grpc response: {:?}", response);
-        match response.id.ok_or_else(|| {
-            error!("failed to get device id: invalid response");
-            VpndError::internal("failed to get device id: invalid response")
-        })? {
-            DeviceIdRes::DeviceIdentity(id) => Ok(id),
-            DeviceIdRes::Error(e) => Err(VpndError::Response(e.into())),
-        }
+        Ok(response.device_identity)
     }
 
     /// Get the account links
@@ -452,14 +413,8 @@ impl GrpcClient {
             VpndError::GrpcError(e)
         })?;
         let response = response.into_inner();
-        debug!("grpc response: {:?}", response.res);
-        match response.res.ok_or_else(|| {
-            error!("failed to get account links: invalid response");
-            VpndError::internal("failed to get account links: invalid response")
-        })? {
-            AccountLinkRes::Links(l) => Ok(l.into()),
-            AccountLinkRes::Error(e) => Err(VpndError::Response(e.into())),
-        }
+        debug!("grpc response: {:?}", response);
+        Ok(response.into())
     }
 
     /// Get the list of available gateways

@@ -74,7 +74,7 @@ pub async fn get_gateways(
         .gateways(node_type)
         .await
         .map_err(|e| {
-            BackendError::with_details(
+            BackendError::with_detail(
                 &format!("failed to get gateways for {}", node_type),
                 ErrorKey::from(node_type),
                 e.to_string(),

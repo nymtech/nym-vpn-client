@@ -65,18 +65,16 @@ function useI18nError() {
         case 'no-bandwidth':
           return t('no-bandwidth');
         // general errors
-        case 'internal-error':
+        case 'internal':
           return t('internal');
+        case 'grpc':
+          return t('grpc');
+        case 'unknown':
+          return t('unknown');
         case 'not-connected-to-daemon':
           return t('daemon.not-connected');
-        case 'grpc-error':
-          return t('grpc');
         case 'account-invalid-mnemonic':
           return t('account.invalid-recovery-phrase');
-        case 'account-storage':
-          return t('account.storage');
-        case 'account-is-connected':
-          return t('account.is-connected');
         case 'get-mixnet-entry-countries-query':
           return t('countries-request.entry');
         case 'get-mixnet-exit-countries-query':
@@ -85,8 +83,6 @@ function useI18nError() {
           return t('countries-request.fast-mode');
         case 'invalid-network-name':
           return t('daemon.invalid-network');
-        case 'unknown-error':
-          return t('unknown');
       }
 
       console.warn('unhandled backend error', error);
