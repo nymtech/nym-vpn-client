@@ -57,10 +57,24 @@ Preferred NDK version is `r25c`.
 
 ```sh
 git clone https://github.com/nymtech/nym-vpn-client
-cd nym-vpn-client/nym-vpn-android
+```
+
+### Update uniffi bindings for nym-vpn-lib
+
+```sh
+cd nym-vpn-client/nym-vpn-core
+cargo ndk -t armeabi-v7a build -p nym-vpn-lib --release
+make generate-uniffi-android
+cp crates/nym-vpn-lib/uniffi/nym_vpn_lib.kt ../nym-vpn-android/core/src/main/java/net/nymtech/vpn/nym_vpn_lib 
 ```
 
 ### Build
+
+Change directory to `nym-vpn-android`:
+
+```sh
+cd nym-vpn-client/nym-vpn-android
+```
 
 To create a build with native core build if not already present:
 ```sh
@@ -72,6 +86,4 @@ To create a debug build with fresh native core build (useful for when there are 
 ./gradlew clean
 ./gradlew assembleFdroidDebug
 ```
-
-
 
