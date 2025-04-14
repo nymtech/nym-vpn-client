@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::fmt::Debug;
+
 use super::VpnApiErrorResponse;
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq, Clone)]
@@ -25,8 +27,8 @@ pub enum SyncDeviceError {
 }
 
 impl SyncDeviceError {
-    pub fn unexpected_response(err: impl ToString) -> Self {
-        SyncDeviceError::UnexpectedResponse(err.to_string())
+    pub fn unexpected_response(err: impl Debug) -> Self {
+        SyncDeviceError::UnexpectedResponse(format!("{err:?}"))
     }
 
     pub fn internal(err: impl ToString) -> Self {

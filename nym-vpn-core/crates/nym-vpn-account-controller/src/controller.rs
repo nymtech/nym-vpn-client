@@ -270,7 +270,7 @@ where
             .map_err(|err| {
                 VpnApiErrorResponse::try_from(err)
                     .map(ForgetAccountError::UpdateDeviceErrorResponse)
-                    .unwrap_or_else(|err| ForgetAccountError::UnexpectedResponse(err.to_string()))
+                    .unwrap_or_else(ForgetAccountError::unexpected_response)
                     .into()
             })
     }

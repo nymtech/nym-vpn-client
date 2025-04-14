@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::fmt::Debug;
+
 use super::VpnApiErrorResponse;
 
 #[derive(Debug, thiserror::Error, Clone, PartialEq, Eq)]
@@ -28,6 +30,10 @@ impl StoreAccountError {
 
     pub fn storage(err: impl ToString) -> Self {
         StoreAccountError::Storage(err.to_string())
+    }
+
+    pub fn unexpected_response(err: impl Debug) -> Self {
+        StoreAccountError::UnexpectedResponse(format!("{err:?}"))
     }
 
     pub fn message(&self) -> String {

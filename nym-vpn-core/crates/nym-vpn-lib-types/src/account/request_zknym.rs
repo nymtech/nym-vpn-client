@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::fmt::Debug;
+
 use super::VpnApiErrorResponse;
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
@@ -113,8 +115,8 @@ impl RequestZkNymError {
         RequestZkNymError::Internal(message.to_string())
     }
 
-    pub fn unexpected_response(message: impl ToString) -> Self {
-        RequestZkNymError::UnexpectedErrorResponse(message.to_string())
+    pub fn unexpected_response(message: impl Debug) -> Self {
+        RequestZkNymError::UnexpectedErrorResponse(format!("{message:?}"))
     }
 
     pub fn vpn_api_error(&self) -> Option<VpnApiErrorResponse> {

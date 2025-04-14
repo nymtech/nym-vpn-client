@@ -38,7 +38,7 @@ impl AccountControllerVpnApiClient {
         let response = self.inner.get_account(account).await.map_err(|e| {
             VpnApiErrorResponse::try_from(e)
                 .map(StoreAccountError::GetAccountEndpointFailure)
-                .unwrap_or_else(|e| StoreAccountError::UnexpectedResponse(e.to_string()))
+                .unwrap_or_else(StoreAccountError::unexpected_response)
         });
 
         // TODO: handle these cases

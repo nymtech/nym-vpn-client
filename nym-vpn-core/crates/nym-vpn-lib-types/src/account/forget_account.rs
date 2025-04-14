@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::fmt::Debug;
+
 use super::VpnApiErrorResponse;
 
 #[derive(Debug, thiserror::Error, Clone, PartialEq, Eq)]
@@ -36,5 +38,9 @@ pub enum ForgetAccountError {
 impl ForgetAccountError {
     pub fn internal(err: impl ToString) -> Self {
         ForgetAccountError::Internal(err.to_string())
+    }
+
+    pub fn unexpected_response(err: impl Debug) -> Self {
+        ForgetAccountError::UnexpectedResponse(format!("{err:?}"))
     }
 }

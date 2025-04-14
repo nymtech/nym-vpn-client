@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::fmt::Debug;
+
 use super::VpnApiErrorResponse;
 
 #[derive(Debug, thiserror::Error, Clone, PartialEq, Eq)]
@@ -25,8 +27,8 @@ pub enum RegisterDeviceError {
 }
 
 impl RegisterDeviceError {
-    pub fn unexpected_response(message: impl ToString) -> Self {
-        RegisterDeviceError::UnexpectedResponse(message.to_string())
+    pub fn unexpected_response(message: impl Debug) -> Self {
+        RegisterDeviceError::UnexpectedResponse(format!("{message:?}"))
     }
 
     pub fn internal(message: impl ToString) -> Self {
