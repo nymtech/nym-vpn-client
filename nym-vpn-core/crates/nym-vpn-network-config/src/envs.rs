@@ -125,7 +125,7 @@ impl RegisteredNetworks {
     }
 
     pub(super) async fn ensure_exists(config_dir: &Path) -> anyhow::Result<Self> {
-        if !Self::path(config_dir).exists() {
+        if !tokio::fs::try_exists(Self::path(config_dir)).await? {
             Self::default()
                 .write_to_file(config_dir)
                 .inspect_err(|err| tracing::warn!("Failed to write default envs file: {err}"))

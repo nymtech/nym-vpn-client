@@ -118,7 +118,9 @@ impl Discovery {
         config_dir: &Path,
         network_name: &str,
     ) -> anyhow::Result<Self> {
-        if !Self::path(config_dir, network_name).exists() && network_name == "mainnet" {
+        if !tokio::fs::try_exists(Self::path(config_dir, network_name)).await?
+            && network_name == "mainnet"
+        {
             tracing::info!("No discovery file found, writing creating a new discovery file");
             Self::fetch(network_name)
                 .await

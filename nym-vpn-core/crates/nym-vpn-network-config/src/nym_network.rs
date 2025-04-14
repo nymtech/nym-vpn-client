@@ -70,7 +70,7 @@ impl NymNetwork {
         config_dir: &Path,
         discovery: &Discovery,
     ) -> anyhow::Result<Self> {
-        if !Self::path(config_dir, &discovery.network_name).exists()
+        if !tokio::fs::try_exists(Self::path(config_dir, &discovery.network_name)).await?
             && discovery.network_name == "mainnet"
         {
             discovery
