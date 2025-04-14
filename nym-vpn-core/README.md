@@ -1,34 +1,59 @@
 # Nym VPN Core
 
-## Build
+## Prerequisites
 
-These instructions assume a debian based system. Adjust accordingly for your
-preferred platform.
+### Linux 
 
-Install required dependencies
 ```sh
 sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
 ```
 
+### Windows
 
-Build the wireguard library
+If you don't have Visual Studio 2022 installed, here is a one liner to install all that is needed.
 
-```sh
-# from the root of the repository
-make build-wireguard
+```pwsh
+winget install --id Microsoft.VisualStudio.2022.Community --override "--wait --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 --add Microsoft.VisualStudio.Component.VC.Llvm.Clang"
 ```
 
-Build VPN libraries and executables
+if you already have it installed, open Visual Studio Installer and modify the Visual Studio 2022 installation by adding the following components:
 
-```sh
-cd nym-vpn-core/
+- Add workload: Desktop development with C++
+- Add individual components: 
+  - C++ Clang tools for Windows
+  - MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools
 
-# build only the the vpn daemon
-cargo build -p nym-vpnd
+Add clang to path:
 
-# build all 
-cargo build --release
+- ARM64 host:
 ```
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\ARM64\bin
+```
+- x64 host:
+```
+C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\x64\bin
+```
+
+## Build
+
+1. Build the wireguard library
+  
+  ```sh
+  # from the root of the repository
+  make build-wireguard
+  ```
+
+2. Build VPN libraries and executables
+
+  ```sh
+  cd nym-vpn-core/
+
+  # build only the the vpn daemon
+  cargo build -p nym-vpnd
+
+  # build all 
+  cargo build --release
+  ```C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\ARM64\bin
 
 ## Build for Windows from MacOS
 

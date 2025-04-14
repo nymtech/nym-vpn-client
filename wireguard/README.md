@@ -13,9 +13,9 @@ It is forked from (https://github.com/mullvad/mullvadvpn-app) which maintains co
 
 ### Windows
 
-- Install Visual Studio Build Tools (x64 + arm64) via Command Prompt:
+- Install Visual Studio and VC build tools (x64 + arm64) via Command Prompt:
   ```sh
-  winget install --id=Microsoft.VisualStudio.2022.BuildTools --override "--wait --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended --add Microsoft.VisualStudio.Component.VC.Tools.ARM64"
+  winget install --id Microsoft.VisualStudio.2022.Community --override "--wait --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended --add Microsoft.VisualStudio.Component.VC.Tools.ARM64"
   ```
 - Download [msys2](https://www.msys2.org/#installation) and install it in the default location that it offers during installation (i.e: `C:\msys64`).
 - Type in msys2 in the taskbar search then open "msys2 mingw64" if you run x64 Windows or "msys2 clangarm64" if you run arm64 Windows.
