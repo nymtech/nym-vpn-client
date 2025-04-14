@@ -19,7 +19,7 @@ use crate::grpc::gateway::GatewayType;
 /// displayed in the UI as localized error message
 pub struct BackendError {
     /// Error message for debugging/logs purposes
-    /// this should be not displayed to the user
+    /// not intended to be displayed to the user
     pub message: String,
     /// Error key to be used in the UI to display localized error message
     pub key: ErrorKey,
