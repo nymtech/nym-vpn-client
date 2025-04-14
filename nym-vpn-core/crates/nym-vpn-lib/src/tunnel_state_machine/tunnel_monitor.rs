@@ -449,7 +449,7 @@ impl TunnelMonitor {
             .and_then(|config_path: &PathBuf| config_path.parent())
             .map(|config_dir| {
                 start_background_file_refresh(
-                    PathBuf::from(config_dir),
+                    config_dir.to_path_buf(),
                     self.tunnel_parameters
                         .nym_config
                         .network_env
