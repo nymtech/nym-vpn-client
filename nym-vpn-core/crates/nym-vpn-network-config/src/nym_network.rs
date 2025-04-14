@@ -84,15 +84,9 @@ impl NymNetwork {
                 .unwrap_or_default()
                 .write_to_file(config_dir)
                 .inspect_err(|err| tracing::warn!("Failed to write nym network file: {err}"))?;
-        } else {
-            discovery
-                .update_nym_network_file(config_dir)
-                .await
-                .inspect_err(|err| {
-                    tracing::warn!("Failed to refresh discovery file: {err}");
-                    tracing::warn!("Attempting to use existing discovery file");
-                })
-                .ok();
+        } else if let Err(err) = discovery.update_nym_network_file(config_dir).await {
+            tracing::warn!("Failed to refresh discovery file: {err}");
+            tracing::warn!("Attempting to use existing discovery file");
         }
 
         Self::read_from_file(config_dir, &discovery.network_name)
