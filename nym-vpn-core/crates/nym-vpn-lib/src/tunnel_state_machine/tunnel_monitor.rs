@@ -205,14 +205,14 @@ pub struct TunnelMonitor {
     tun_provider: Arc<dyn OSTunProvider>,
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
-    account_controller_tx: AccountCommandSender,
+    account_commands: AccountCommandSender,
     cancel_token: CancellationToken,
 }
 
 impl TunnelMonitor {
     pub fn start(
         tunnel_parameters: TunnelParameters,
-        account_controller_tx: AccountCommandSender,
+        account_commands: AccountCommandSender,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
         mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -229,7 +229,7 @@ impl TunnelMonitor {
             route_handler,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
-            account_controller_tx,
+            account_commands,
             cancel_token: cancel_token.clone(),
         };
         let join_handle = tokio::spawn(tunnel_monitor.run());
@@ -515,10 +515,14 @@ impl TunnelMonitor {
     }
 
     async fn setup_account(&mut self) -> Result<()> {
+        // Check that the device time is synced as a precondition to continuing
+        account::check_device_time_sync(self.account_commands.clone(), self.cancel_token.clone())
+            .await?;
+
         // Check if we have ticketbooks already stored, then we can sidestep the account and device
         // sync
         let is_already_tickets_stored = self
-            .account_controller_tx
+            .account_commands
             .get_available_tickets()
             .await
             .map_err(|err| {
@@ -530,27 +534,24 @@ impl TunnelMonitor {
             // If we have tickets stored, trigger sync and register in the background while we
             // proceed anyway.
             self.send_event(TunnelMonitorEvent::SyncingAccount);
-            self.account_controller_tx.background_sync_account_state();
-            self.account_controller_tx.background_sync_device_state();
+            self.account_commands.background_sync_account_state();
+            self.account_commands.background_sync_device_state();
         } else {
             // If we don't have ticket stored, go through the steps one by one, syncing and
             // registering and getting credentials.
             self.send_event(TunnelMonitorEvent::SyncingAccount);
             account::wait_for_account_sync(
-                self.account_controller_tx.clone(),
+                self.account_commands.clone(),
                 self.cancel_token.clone(),
             )
             .await?;
 
-            account::wait_for_device_sync(
-                self.account_controller_tx.clone(),
-                self.cancel_token.clone(),
-            )
-            .await?;
+            account::wait_for_device_sync(self.account_commands.clone(), self.cancel_token.clone())
+                .await?;
 
             self.send_event(TunnelMonitorEvent::RegisteringDevice);
             account::wait_for_device_register(
-                self.account_controller_tx.clone(),
+                self.account_commands.clone(),
                 self.cancel_token.clone(),
             )
             .await?;
@@ -563,7 +564,7 @@ impl TunnelMonitor {
         {
             self.send_event(TunnelMonitorEvent::RequestingZkNyms);
             account::wait_for_credentials_ready(
-                self.account_controller_tx.clone(),
+                self.account_commands.clone(),
                 self.cancel_token.clone(),
             )
             .await?;

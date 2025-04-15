@@ -6,7 +6,7 @@ use std::{net::SocketAddr, sync::Arc, time::Duration};
 use nym_offline_monitor::{Connectivity, ConnectivityHandle};
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
-    types::{DeviceStatus, VpnApiAccount},
+    types::{DeviceStatus, VpnApiAccount, VpnApiTimeSynced},
 };
 use nym_vpn_lib_types::{
     AccountCommandError, ForgetAccountError, StoreAccountError, VpnApiErrorResponse,
@@ -771,6 +771,23 @@ where
         Ok(())
     }
 
+    async fn handle_check_device_time_sync(&self) -> Result<VpnApiTimeSynced, AccountCommandError> {
+        if self.offline_watch.is_offline() {
+            tracing::error!("Unable to check remote time as we are offline");
+            return Err(AccountCommandError::Offline);
+        }
+
+        self.vpn_api_client
+            .get_remote_time()
+            .await
+            .map_err(|err| {
+                VpnApiErrorResponse::try_from(err)
+                    .map(AccountCommandError::from)
+                    .unwrap_or_else(AccountCommandError::unexpected_response)
+            })
+            .map(|vpn_api_time| vpn_api_time.is_synced())
+    }
+
     async fn handle_command(&mut self, command: AccountCommand) {
         tracing::info!("← {}", command);
         match command {
@@ -840,6 +857,9 @@ where
             }
             AccountCommand::RegisterOfflineMonitor(result_tx, offline_monitor) => {
                 result_tx.send(self.handle_register_offline_monitor(offline_monitor).await);
+            }
+            AccountCommand::CheckDeviceTimeSync(result_tx) => {
+                result_tx.send(self.handle_check_device_time_sync().await);
             }
         };
     }

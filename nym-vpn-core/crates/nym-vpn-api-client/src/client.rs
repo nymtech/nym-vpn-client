@@ -25,7 +25,10 @@ use crate::{
         NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
-    types::{Device, DeviceStatus, GatewayMinPerformance, GatewayType, VpnApiAccount, VpnApiTime},
+    types::{
+        Device, DeviceStatus, GatewayMinPerformance, GatewayType, VpnApiAccount, VpnApiTime,
+        VpnApiTimeSynced,
+    },
 };
 
 pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
@@ -94,28 +97,39 @@ impl VpnApiClient {
         self.inner.current_url()
     }
 
-    fn use_remote_time(remote_time: VpnApiTime) -> bool {
-        if remote_time.is_almost_same() {
-            tracing::debug!("{remote_time}");
-            false
-        } else if remote_time.is_acceptable_synced() {
-            tracing::info!("{remote_time}");
-            false
-        } else {
-            tracing::warn!(
-                "The time skew between the local and remote time is too large, we'll use remote instead for JWT ({remote_time})."
-            );
-            true
-        }
-    }
-
-    async fn sync_with_remote_time(&self) -> Result<Option<VpnApiTime>> {
+    pub async fn get_remote_time(&self) -> Result<VpnApiTime> {
         let time_before = OffsetDateTime::now_utc();
         let remote_timestamp = self.get_health().await?.timestamp_utc;
         let time_after = OffsetDateTime::now_utc();
 
-        let remote_time =
-            VpnApiTime::from_remote_timestamp(time_before, remote_timestamp, time_after);
+        Ok(VpnApiTime::from_remote_timestamp(
+            time_before,
+            remote_timestamp,
+            time_after,
+        ))
+    }
+
+    fn use_remote_time(remote_time: VpnApiTime) -> bool {
+        match remote_time.is_synced() {
+            VpnApiTimeSynced::AlmostSame => {
+                tracing::debug!("{remote_time}");
+                false
+            }
+            VpnApiTimeSynced::AcceptableSynced => {
+                tracing::info!("{remote_time}");
+                false
+            }
+            VpnApiTimeSynced::NotSynced => {
+                tracing::warn!(
+                    "The time skew between the local and remote time is too large, we'll use remote instead for JWT ({remote_time})."
+                );
+                true
+            }
+        }
+    }
+
+    async fn sync_with_remote_time(&self) -> Result<Option<VpnApiTime>> {
+        let remote_time = self.get_remote_time().await?;
 
         if Self::use_remote_time(remote_time) {
             Ok(Some(remote_time))

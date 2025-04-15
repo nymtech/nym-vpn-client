@@ -387,6 +387,7 @@ message TunnelState {
     SUBSCRIPTION_EXPIRED = 7;
     DNS = 8;
     API = 9;
+    DEVICE_TIME_SYNC = 11;
     INTERNAL = 10;
   }
 

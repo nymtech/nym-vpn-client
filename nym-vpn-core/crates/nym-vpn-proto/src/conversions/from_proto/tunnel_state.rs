@@ -58,6 +58,7 @@ impl From<ProtoError> for ClientErrorReason {
             ErrorStateReason::SubscriptionExpired => ClientErrorReason::SubscriptionExpired,
             ErrorStateReason::Dns => ClientErrorReason::Dns(value.detail),
             ErrorStateReason::Api => ClientErrorReason::Api(value.detail),
+            ErrorStateReason::DeviceTimeSync => ClientErrorReason::DeviceTimeNotSynced,
             ErrorStateReason::Internal => ClientErrorReason::Internal(value.detail),
         }
     }

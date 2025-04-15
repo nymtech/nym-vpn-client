@@ -10,7 +10,10 @@ use nym_vpn_store::mnemonic::Mnemonic;
 
 use std::net::SocketAddr;
 
-use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
+use nym_vpn_api_client::{
+    response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage},
+    types::VpnApiTimeSynced,
+};
 use tokio::sync::oneshot;
 
 use crate::{
@@ -40,6 +43,7 @@ pub enum AccountCommand {
         Option<Vec<SocketAddr>>,
     ),
     RegisterOfflineMonitor(ReturnSender<(), AccountCommandError>, ConnectivityHandle),
+    CheckDeviceTimeSync(ReturnSender<VpnApiTimeSynced, AccountCommandError>),
 }
 
 impl AccountCommand {

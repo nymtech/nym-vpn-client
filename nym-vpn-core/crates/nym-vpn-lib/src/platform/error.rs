@@ -32,6 +32,9 @@ pub enum VpnError {
         details: super::uniffi_lib_types::VpnApiErrorResponse,
     },
 
+    #[error("unexpected response from nym-vpn-api: {details}")]
+    UnexpectedVpnApiResponse { details: String },
+
     #[error("timeout connecting to nym-vpn-api")]
     VpnApiTimeout,
 
@@ -100,6 +103,7 @@ impl From<AccountCommandError> for VpnError {
             AccountCommandError::Internal(err) => Self::InternalError { details: err },
             AccountCommandError::Storage(err) => Self::Storage { details: err },
             AccountCommandError::VpnApi(e) => Self::VpnApi { details: e.into() },
+            AccountCommandError::UnexpectedVpnApiResponse(e) => Self::InternalError { details: e },
             AccountCommandError::NoAccountStored => Self::NoAccountStored,
             AccountCommandError::NoDeviceStored => Self::NoDeviceIdentity,
             AccountCommandError::Offline => Self::NetworkConnectionError {
