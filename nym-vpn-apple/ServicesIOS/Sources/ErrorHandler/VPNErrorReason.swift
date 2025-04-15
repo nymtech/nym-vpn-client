@@ -23,6 +23,7 @@ public enum VPNErrorReason: LocalizedError {
     case requestZknym(details: String)
     case requestZkNymBundle(successes: [String], failed: [String])
     case forgetAccount(details: String)
+    case offline
     case unkownTunnelState
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -77,6 +78,8 @@ public enum VPNErrorReason: LocalizedError {
                 messageString = vpnApiErrorResponse.message
             case let .unexpectedResponse(message), let .internal(message):
                 messageString = message
+            case .offline:
+                messageString = "errorReason.unknownTunnelState".localizedString
             }
             self = .syncAccount(details: messageString)
         case let .SyncDevice(details: details):
@@ -92,6 +95,9 @@ public enum VPNErrorReason: LocalizedError {
                 messageString = vpnApiErrorResponse.message
             case let .unexpectedResponse(message), let .internal(message):
                 messageString = message
+            case .offline:
+                self = .offline
+                return
             }
             self = .syncDevice(details: messageString)
         case let .RegisterDevice(details: details):
@@ -109,6 +115,9 @@ public enum VPNErrorReason: LocalizedError {
                 messageString = message
             case let .internal(message):
                 messageString = message
+            case .offline:
+                self = .offline
+                return
             }
             self = .registerDevice(details: messageString)
         case let .RequestZkNym(details: details):
@@ -124,6 +133,9 @@ public enum VPNErrorReason: LocalizedError {
                 messageString = vpnApiErrorResponse.message
             case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
                 messageString = message
+            case .offline:
+                self = .offline
+                return
             }
             self = .requestZknym(details: messageString)
         case let .RequestZkNymBundle(successes: successes, failed: failed):
@@ -137,6 +149,8 @@ public enum VPNErrorReason: LocalizedError {
                     return vpnApiErrorResponse.message
                 case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
                     return message
+                case .offline:
+                    return "errorReason.offline".localizedString
                 }
             }
             self = .requestZkNymBundle(
@@ -222,6 +236,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .requestZkNymBundle(successes: successes, failed: failures)
         case .forgetAccount:
             self = .forgetAccount(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .offline:
+            self = .offline
         case .unkownTunnelState:
             self = .unkownTunnelState
         }
@@ -304,7 +320,9 @@ extension VPNErrorReason {
         case let .forgetAccount(details):
             details
         case .unkownTunnelState:
-            "".localizedString
+            "errorReason.unknownTunnelState".localizedString
+        case .offline:
+            "errorReason.offline".localizedString
         }
     }
 
@@ -345,6 +363,7 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
     case requestZknym
     case requestZkNymBundle
     case forgetAccount
+    case offline
     case unkownTunnelState
 
     init?(vpnErrorReason: VPNErrorReason) {
@@ -389,6 +408,8 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
             self = .forgetAccount
         case .unkownTunnelState:
             self = .unkownTunnelState
+        case .offline:
+            self = .offline
         }
     }
 }

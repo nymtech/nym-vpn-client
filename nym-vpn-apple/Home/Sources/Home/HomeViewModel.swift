@@ -71,7 +71,7 @@ public class HomeViewModel: HomeFlowState {
 
     var offlineOverlayConfiguration: ActionDialogConfiguration {
         ActionDialogConfiguration(
-            iconImageName: "exclamationmark.circle",
+            systemIconImageName: "exclamationmark.circle",
             titleLocalizedString: "home.modal.noInternetConnection.title".localizedString,
             subtitleLocalizedString: "home.modal.noInternetConnection.subtitle".localizedString,
             yesLocalizedString: "close".localizedString
@@ -80,7 +80,7 @@ public class HomeViewModel: HomeFlowState {
 
     var updateAvailableOverlayConfiguration: ActionDialogConfiguration {
         ActionDialogConfiguration(
-            iconImageName: "exclamationmark.circle",
+            systemIconImageName: "exclamationmark.circle",
             titleLocalizedString: "home.modal.updateAvailable.title".localizedString,
             subtitleLocalizedString: "home.modal.updateAvailable.subtitle".localizedString,
             yesLocalizedString: "home.modal.update".localizedString,

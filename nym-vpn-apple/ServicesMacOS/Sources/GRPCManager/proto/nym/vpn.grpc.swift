@@ -101,7 +101,7 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
   func getAccountLinks(
     _ request: Nym_Vpn_GetAccountLinksRequest,
     callOptions: CallOptions?
-  ) -> UnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse>
+  ) -> UnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_AccountManagement>
 
   func getAccountState(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -171,7 +171,7 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
   func getAvailableTickets(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetAvailableTicketsResponse>
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_AvailableTickets>
 
   func getLogPath(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -493,7 +493,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
   internal func getAccountLinks(
     _ request: Nym_Vpn_GetAccountLinksRequest,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse> {
+  ) -> UnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_AccountManagement> {
     return self.makeUnaryCall(
       path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountLinks.path,
       request: request,
@@ -747,7 +747,7 @@ extension Nym_Vpn_NymVpndClientProtocol {
   internal func getAvailableTickets(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
-  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetAvailableTicketsResponse> {
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_AvailableTickets> {
     return self.makeUnaryCall(
       path: Nym_Vpn_NymVpndClientMetadata.Methods.getAvailableTickets.path,
       request: request,
@@ -938,7 +938,7 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
   func makeGetAccountLinksCall(
     _ request: Nym_Vpn_GetAccountLinksRequest,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse>
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_AccountManagement>
 
   func makeGetAccountStateCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -1008,7 +1008,7 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
   func makeGetAvailableTicketsCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetAvailableTicketsResponse>
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_AvailableTickets>
 
   func makeGetLogPathCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
@@ -1226,7 +1226,7 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
   internal func makeGetAccountLinksCall(
     _ request: Nym_Vpn_GetAccountLinksRequest,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse> {
+  ) -> GRPCAsyncUnaryCall<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_AccountManagement> {
     return self.makeAsyncUnaryCall(
       path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountLinks.path,
       request: request,
@@ -1394,7 +1394,7 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
   internal func makeGetAvailableTicketsCall(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
-  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetAvailableTicketsResponse> {
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_AvailableTickets> {
     return self.makeAsyncUnaryCall(
       path: Nym_Vpn_NymVpndClientMetadata.Methods.getAvailableTickets.path,
       request: request,
@@ -1625,7 +1625,7 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
   internal func getAccountLinks(
     _ request: Nym_Vpn_GetAccountLinksRequest,
     callOptions: CallOptions? = nil
-  ) async throws -> Nym_Vpn_GetAccountLinksResponse {
+  ) async throws -> Nym_Vpn_AccountManagement {
     return try await self.performAsyncUnaryCall(
       path: Nym_Vpn_NymVpndClientMetadata.Methods.getAccountLinks.path,
       request: request,
@@ -1793,7 +1793,7 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
   internal func getAvailableTickets(
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions? = nil
-  ) async throws -> Nym_Vpn_GetAvailableTicketsResponse {
+  ) async throws -> Nym_Vpn_AvailableTickets {
     return try await self.performAsyncUnaryCall(
       path: Nym_Vpn_NymVpndClientMetadata.Methods.getAvailableTickets.path,
       request: request,
@@ -1895,7 +1895,7 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
   func makeGetAccountIdentityInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetAccountIdentityResponse>]
 
   /// - Returns: Interceptors to use when invoking 'getAccountLinks'.
-  func makeGetAccountLinksInterceptors() -> [ClientInterceptor<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse>]
+  func makeGetAccountLinksInterceptors() -> [ClientInterceptor<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_AccountManagement>]
 
   /// - Returns: Interceptors to use when invoking 'getAccountState'.
   func makeGetAccountStateInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetAccountStateResponse>]
@@ -1937,7 +1937,7 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
   func makeConfirmZkNymDownloadedInterceptors() -> [ClientInterceptor<Nym_Vpn_ConfirmZkNymDownloadedRequest, Nym_Vpn_ConfirmZkNymDownloadedResponse>]
 
   /// - Returns: Interceptors to use when invoking 'getAvailableTickets'.
-  func makeGetAvailableTicketsInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetAvailableTicketsResponse>]
+  func makeGetAvailableTicketsInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_AvailableTickets>]
 
   /// - Returns: Interceptors to use when invoking 'getLogPath'.
   func makeGetLogPathInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetLogPathResponse>]
@@ -2242,7 +2242,7 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   func getAccountIdentity(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAccountIdentityResponse>
 
   /// Get the set of account links for the user
-  func getAccountLinks(request: Nym_Vpn_GetAccountLinksRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAccountLinksResponse>
+  func getAccountLinks(request: Nym_Vpn_GetAccountLinksRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_AccountManagement>
 
   /// Query the account state, which is synced from the nym-vpn-api account, as it
   /// is known and interpreted by nym-vpnd
@@ -2286,7 +2286,7 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
   func confirmZkNymDownloaded(request: Nym_Vpn_ConfirmZkNymDownloadedRequest, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_ConfirmZkNymDownloadedResponse>
 
   /// Get the available tickets in the local credential store
-  func getAvailableTickets(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetAvailableTicketsResponse>
+  func getAvailableTickets(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_AvailableTickets>
 
   /// Get the log file path
   func getLogPath(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_GetLogPathResponse>
@@ -2455,7 +2455,7 @@ extension Nym_Vpn_NymVpndProvider {
       return UnaryServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetAccountLinksRequest>(),
-        responseSerializer: ProtobufSerializer<Nym_Vpn_GetAccountLinksResponse>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_AccountManagement>(),
         interceptors: self.interceptors?.makeGetAccountLinksInterceptors() ?? [],
         userFunction: self.getAccountLinks(request:context:)
       )
@@ -2581,7 +2581,7 @@ extension Nym_Vpn_NymVpndProvider {
       return UnaryServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<Nym_Vpn_GetAvailableTicketsResponse>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_AvailableTickets>(),
         interceptors: self.interceptors?.makeGetAvailableTicketsInterceptors() ?? [],
         userFunction: self.getAvailableTickets(request:context:)
       )
@@ -2719,7 +2719,7 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
   func getAccountLinks(
     request: Nym_Vpn_GetAccountLinksRequest,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Nym_Vpn_GetAccountLinksResponse
+  ) async throws -> Nym_Vpn_AccountManagement
 
   /// Query the account state, which is synced from the nym-vpn-api account, as it
   /// is known and interpreted by nym-vpnd
@@ -2805,7 +2805,7 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
   func getAvailableTickets(
     request: SwiftProtobuf.Google_Protobuf_Empty,
     context: GRPCAsyncServerCallContext
-  ) async throws -> Nym_Vpn_GetAvailableTicketsResponse
+  ) async throws -> Nym_Vpn_AvailableTickets
 
   /// Get the log file path
   func getLogPath(
@@ -2987,7 +2987,7 @@ extension Nym_Vpn_NymVpndAsyncProvider {
       return GRPCAsyncServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<Nym_Vpn_GetAccountLinksRequest>(),
-        responseSerializer: ProtobufSerializer<Nym_Vpn_GetAccountLinksResponse>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_AccountManagement>(),
         interceptors: self.interceptors?.makeGetAccountLinksInterceptors() ?? [],
         wrapping: { try await self.getAccountLinks(request: $0, context: $1) }
       )
@@ -3113,7 +3113,7 @@ extension Nym_Vpn_NymVpndAsyncProvider {
       return GRPCAsyncServerHandler(
         context: context,
         requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
-        responseSerializer: ProtobufSerializer<Nym_Vpn_GetAvailableTicketsResponse>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_AvailableTickets>(),
         interceptors: self.interceptors?.makeGetAvailableTicketsInterceptors() ?? [],
         wrapping: { try await self.getAvailableTickets(request: $0, context: $1) }
       )
@@ -3210,7 +3210,7 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when handling 'getAccountLinks'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeGetAccountLinksInterceptors() -> [ServerInterceptor<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_GetAccountLinksResponse>]
+  func makeGetAccountLinksInterceptors() -> [ServerInterceptor<Nym_Vpn_GetAccountLinksRequest, Nym_Vpn_AccountManagement>]
 
   /// - Returns: Interceptors to use when handling 'getAccountState'.
   ///   Defaults to calling `self.makeInterceptors()`.
@@ -3266,7 +3266,7 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when handling 'getAvailableTickets'.
   ///   Defaults to calling `self.makeInterceptors()`.
-  func makeGetAvailableTicketsInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_GetAvailableTicketsResponse>]
+  func makeGetAvailableTicketsInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_AvailableTickets>]
 
   /// - Returns: Interceptors to use when handling 'getLogPath'.
   ///   Defaults to calling `self.makeInterceptors()`.

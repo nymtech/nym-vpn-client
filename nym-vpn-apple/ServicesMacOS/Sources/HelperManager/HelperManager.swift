@@ -1,3 +1,4 @@
+import Combine
 import SecurityFoundation
 import ServiceManagement
 import AppVersionProvider
@@ -6,23 +7,17 @@ import Shell
 
 // Any changes made to Info.plist & Launchd.plist - are used to create daemon in nym-vpnd.
 
-public final class HelperManager {
+public final class HelperManager: ObservableObject {
     private let grpcManager: GRPCManager
     private let daemon = SMAppService.daemon(plistName: "net.nymtech.vpn.helper.plist")
 
+    private var cancellables = Set<AnyCancellable>()
     private var pollingTask: Task<Void, Never>?
     private var isInstalledAndUpToDate: Bool {
-        daemon.status == .enabled && !grpcManager.requiresUpdate && grpcManager.isHelperRunning()
+        daemon.status == .enabled && !grpcManager.requiresUpdate && grpcManager.isServing
     }
 
     public static let shared = HelperManager()
-
-    public var requiredVersion: String {
-        grpcManager.requiredVersion
-    }
-    public var currentVersion: String {
-        grpcManager.daemonVersion
-    }
 
     @Published public var daemonState = DaemonState.unknown
 
@@ -37,25 +32,6 @@ public final class HelperManager {
         return true
     }
 
-    public func install() throws {
-        do {
-            switch daemon.status {
-            case .notRegistered, .notFound:
-                try daemon.register()
-                try install()
-            case .enabled:
-                return
-            case .requiresApproval:
-                SMAppService.openSystemSettingsLoginItems()
-            @unknown default:
-                break
-            }
-        } catch {
-            daemonState = .unknown
-            throw error
-        }
-    }
-
     public func uninstall() async throws {
         do {
             try await daemon.unregister()
@@ -64,23 +40,8 @@ public final class HelperManager {
         }
     }
 
-    public func update() throws {
-        daemonState = .updating
-        Task {
-            do {
-                try await uninstall()
-                try daemon.register()
-                try await Task.sleep(for: .seconds(3))
-                Task { @MainActor [weak self] in
-                    self?.daemonState = .running
-                }
-            } catch {
-                Task { @MainActor [weak self] in
-                    self?.daemonState = .running
-                }
-                throw error
-            }
-        }
+    public func openSystemSettings() {
+        SMAppService.openSystemSettingsLoginItems()
     }
 
     public func requiresDaemonMigration() -> Bool {
@@ -93,7 +54,29 @@ public final class HelperManager {
 // MARK: - Private -
 private extension HelperManager {
     func setup() {
-        starPolling()
+        updateDaemonState()
+        setupGrpcManagerObservers()
+        registerDaemonIfNeeded()
+        try? updateDaemonIfNeeded()
+    }
+
+    func setupGrpcManagerObservers() {
+        grpcManager.$daemonVersion
+            .receive(on: DispatchQueue.main)
+            .removeDuplicates()
+            .sink { [weak self] _ in
+                self?.updateDaemonState()
+            }
+            .store(in: &cancellables)
+
+        grpcManager.$tunnelStatus
+            .receive(on: DispatchQueue.main)
+            .removeDuplicates()
+            .sink { [weak self] newTunnelStatus in
+                guard newTunnelStatus != .connected else { return }
+                try? self?.updateDaemonIfNeeded()
+            }
+            .store(in: &cancellables)
     }
 
     func updateDaemonState() {
@@ -104,7 +87,7 @@ private extension HelperManager {
         case .notRegistered, .notFound:
             newState = .unknown
         case .enabled:
-            if currentVersion != "unknown" || currentVersion != "noVersion" {
+            if grpcManager.daemonVersion != "unknown" || grpcManager.daemonVersion != "noVersion" {
                 newState = isInstalledAndUpToDate ? .running : .requiresUpdate
             } else {
                 newState = .authorized
@@ -117,10 +100,47 @@ private extension HelperManager {
 
         if requiresDaemonMigration() {
             newState = .requiresManualRemoval
+            starPolling()
+        } else {
+            pollingTask?.cancel()
+            pollingTask = nil
+            try? updateDaemonIfNeeded()
         }
 
         guard newState != daemonState else { return }
         daemonState = newState
+    }
+
+    func registerDaemonIfNeeded() {
+        do {
+            switch daemon.status {
+            case .notRegistered, .notFound:
+                try? daemon.register()
+            default:
+                break
+            }
+        }
+    }
+
+    func updateDaemonIfNeeded() throws {
+        guard daemonState == .requiresUpdate, grpcManager.tunnelStatus != .connected else { return }
+        daemonState = .updating
+        Task {
+            do {
+                try await uninstall()
+                try daemon.register()
+                try await Task.sleep(for: .seconds(3))
+                Task { @MainActor [weak self] in
+                    self?.daemonState = .running
+                }
+            } catch {
+                Task { @MainActor [weak self] in
+                    self?.daemonState = .running
+                    self?.updateDaemonState()
+                }
+                throw error
+            }
+        }
     }
 }
 
@@ -131,7 +151,7 @@ private extension HelperManager {
             guard let self else { return }
             while pollingTask != nil {
                 updateDaemonState()
-                try? await Task.sleep(for: .seconds(3))
+                try? await Task.sleep(for: .seconds(5))
             }
         }
     }

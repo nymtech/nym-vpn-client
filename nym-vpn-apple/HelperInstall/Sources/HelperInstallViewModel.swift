@@ -1,88 +1,78 @@
 import Combine
 import SwiftUI
 import AppSettings
+import Constants
+import GRPCManager
 import HelperManager
 import Theme
+import UIComponents
 
 @MainActor public final class HelperInstallViewModel: ObservableObject {
     private let appSettings: AppSettings
     private let helperManager: HelperManager
     private let afterInstallAction: HelperAfterInstallAction
+    private let grpcManager: GRPCManager
 
-    private var daemonStateCancellable: AnyCancellable?
-    private var timerCancellable: AnyCancellable?
-    private var lastDaemonState = DaemonState.unknown
+    private var cancellables = Set<AnyCancellable>()
 
     let navTitle = "helper.installView.pageTitle".localizedString
     let infoText = "helper.installView.daemonText".localizedString
     let copiedSuccesfullyMessage = "helper.installView.copyToClipboardSuccess".localizedString
 
     @Binding var path: NavigationPath
-    @Published var steps: [HelperInstallStep] = []
     @Published var secondsRemaining: Int = 5
-    @Published var error: Error?
     @Published var isSnackBarDisplayed = false
+    @Published var isSuccessModalDisplayed = false
+    @Published var isMigrationModalDisplayed = false
+
+    var updateAvailableOverlayConfiguration: ActionDialogConfiguration {
+        ActionDialogConfiguration(
+            systemIconImageName: "checkmark",
+            systemIconImageColor: NymColor.action,
+            titleLocalizedString: "helper.installView.successModal.title".localizedString,
+            subtitleLocalizedString: "helper.installView.successModal.subtitle".localizedString,
+            yesLocalizedString: "helper.installview.backToMainScreen".localizedString,
+            yesAction: { [weak self] in
+                self?.navigateBack()
+            }
+        )
+    }
+
+    var migrationOverlayConfiguration: ActionDialogConfiguration {
+        ActionDialogConfiguration(
+            systemIconImageColor: NymColor.error,
+            titleLocalizedString: "helper.installView.daemonMigrationRequired".localizedString,
+            subtitleLocalizedString: "helper.installView.step.uninstallOldDaemon".localizedString,
+            yesLocalizedString: "helper.installView.copy".localizedString,
+            yesAction: { [weak self] in
+                self?.copyCommands()
+            },
+            shouldCloseAfterYesAction: false
+        )
+    }
+
+    func thirdStepAttributedString() -> AttributedString? {
+        try? AttributedString(markdown: "\("helper.installView.thirdStep".localizedString) [\("helper.installView.thirdStep.supportTeam".localizedString)](\(Constants.supportURL.rawValue))")
+    }
 
     public init(
         path: Binding<NavigationPath>,
         afterInstallAction: HelperAfterInstallAction,
         appSettings: AppSettings = .shared,
-        helperManager: HelperManager = .shared
+        helperManager: HelperManager = .shared,
+        grpcManager: GRPCManager = .shared
     ) {
         _path = path
         self.afterInstallAction = afterInstallAction
         self.appSettings = appSettings
         self.helperManager = helperManager
+        self.grpcManager = grpcManager
 
         setup()
     }
 }
 
 @MainActor extension HelperInstallViewModel {
-    func buttonAction() {
-        error = nil
-        switch helperManager.daemonState {
-        case .requiresManualRemoval:
-            break
-        case .unknown, .registered, .requiresAuthorization:
-            install()
-        case .authorized, .updating:
-            break
-        case .running:
-            navigateBack()
-        case .requiresUpdate:
-            update()
-        }
-    }
-
-    func buttonTitle() -> String {
-        switch helperManager.daemonState {
-        case .unknown:
-            "helper.installView.registerAndAuhtorize".localizedString
-        case .registered, .requiresAuthorization:
-            "helper.installView.authorize".localizedString
-        case .authorized:
-            "helper.installView.waitingToStart".localizedString
-        case .running:
-            "\("helper.installView.continue".localizedString) \(secondsRemaining)..."
-        case .requiresUpdate:
-            "helper.installView.update".localizedString
-        case .updating:
-            "helper.installView.updating".localizedString
-        case .requiresManualRemoval:
-            "helper.installView.verifying".localizedString
-        }
-    }
-
-    func buttonColor() -> Color {
-        switch helperManager.daemonState {
-        case .unknown, .registered, .requiresAuthorization, .running, .requiresUpdate:
-            NymColor.accent
-        case .authorized, .updating, .requiresManualRemoval:
-            NymColor.gray1
-        }
-    }
-
     func copyCommands() {
         let text = """
 sudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist
@@ -107,127 +97,37 @@ sfltool resetbtm
     func navigateBack() {
         if !path.isEmpty { path.removeLast() }
     }
+
+    func openSystemSettings() {
+        helperManager.openSystemSettings()
+    }
 }
 
 // MARK: - Private -
 @MainActor private extension HelperInstallViewModel {
     func setup() {
-        setupDaemonStateObserver()
-        updateSteps()
+        setupIsServingObserver()
+        setupHelperStateObserver()
     }
 
-    func setupDaemonStateObserver() {
-        daemonStateCancellable = helperManager.$daemonState
+    func setupIsServingObserver() {
+        grpcManager.$isServing
             .receive(on: DispatchQueue.main)
             .removeDuplicates()
             .delay(for: .seconds(3), scheduler: DispatchQueue.main)
-            .sink { [weak self] newState in
-                guard let self, newState != lastDaemonState else { return }
-                lastDaemonState = newState
-                updateSteps()
-                startCountdownIfNeeded()
+            .sink { [weak self] isServing in
+                guard let self, isServing else { return }
+                isSuccessModalDisplayed = true
             }
+            .store(in: &cancellables)
     }
 
-    func updateSteps() {
-        var newSteps = [HelperInstallStep]()
-        if requiresDaemonMigration() {
-            newSteps.append(.uninstallOldDeamon)
-        } else {
-            newSteps.append(contentsOf: [
-                .register(isRegistered: isDaemonRegistered()),
-                .authorize(isAuthorized: isDaemonAuthorized()),
-                .running(isRunning: isDaemonRunning()),
-                .versionCheck(requiresUpdate: requiresUpdate())
-            ])
-        }
-        steps = newSteps
-    }
-
-    func install() {
-        do {
-            try helperManager.install()
-        } catch {
-            self.error = error
-        }
-    }
-
-    func update() {
-        do {
-            try helperManager.update()
-        } catch {
-            self.error = error
-        }
-    }
-
-    func startCountdownIfNeeded() {
-        guard isDaemonRegistered(),
-              isDaemonAuthorized(),
-              isDaemonRunning(),
-              !requiresUpdate(),
-              !requiresDaemonMigration(),
-              timerCancellable == nil
-        else {
-            return
-        }
-        timerCancellable = Timer.publish(every: 1.0, on: .main, in: .common)
-            .autoconnect()
+    func setupHelperStateObserver() {
+        helperManager.$daemonState
             .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                guard let self = self else { return }
-                if let daemonStateCancellable {
-                    daemonStateCancellable.cancel()
-                    self.daemonStateCancellable = nil
-                }
-                secondsRemaining -= 1
-
-                if secondsRemaining <= 0 {
-                    timerCancellable?.cancel()
-                    completeAction()
-                }
+            .sink { [weak self] daemonState in
+                self?.isMigrationModalDisplayed = daemonState == .requiresManualRemoval
             }
-    }
-}
-
-@MainActor private extension HelperInstallViewModel {
-    func requiresDaemonMigration() -> Bool {
-        helperManager.daemonState == .requiresManualRemoval
-    }
-
-    func isDaemonRegistered() -> Bool {
-        switch helperManager.daemonState {
-        case .registered, .requiresAuthorization, .authorized, .running, .requiresUpdate, .updating:
-            true
-        default:
-            false
-        }
-    }
-
-    func isDaemonAuthorized() -> Bool {
-        switch helperManager.daemonState {
-        case .authorized, .running, .requiresUpdate, .updating:
-            true
-        default:
-            false
-        }
-    }
-
-    func isDaemonRunning() -> Bool {
-        switch helperManager.daemonState {
-        case .running, .requiresUpdate:
-            true
-        default:
-            false
-        }
-    }
-
-    func requiresUpdate() -> Bool {
-        guard isDaemonRunning() else { return true }
-        switch helperManager.daemonState {
-        case .requiresUpdate:
-            return true
-        default:
-            return false
-        }
+            .store(in: &cancellables)
     }
 }

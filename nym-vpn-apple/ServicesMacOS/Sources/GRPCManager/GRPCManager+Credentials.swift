@@ -1,6 +1,7 @@
 import Constants
 import GRPC
 import SwiftProtobuf
+import ErrorReason
 
 extension GRPCManager {
     public func storeAccount(with mnemonic: String) async throws {
@@ -12,8 +13,16 @@ extension GRPCManager {
             call.response.whenComplete { result in
                 switch result {
                 case .success(let response):
-                    if response.hasError {
-                        continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
+                    if response.hasError, let errorDetail = response.error.errorDetail {
+                        switch errorDetail {
+                        case let .errorResponse(apiErrorResponse):
+                            continuation.resume(throwing: ErrorReason.api(apiErrorResponse.message))
+                        case let .internal(message),
+                            let .invalidMnemonic(message),
+                            let .storageError(message),
+                            let .unexpectedResponse(message):
+                            continuation.resume(throwing: GeneralNymError.library(message: message))
+                        }
                         break
                     }
                     continuation.resume()
@@ -33,8 +42,21 @@ extension GRPCManager {
             call.response.whenComplete { result in
                 switch result {
                 case .success(let response):
-                    if response.hasError {
-                        continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
+                    if response.hasError, let errorDetail = response.error.errorDetail {
+                        switch errorDetail {
+                        case let .errorResponse(apiErrorResponse):
+                            continuation.resume(throwing: ErrorReason.api(apiErrorResponse.message))
+                        case .registrationInProgress(_):
+                            continuation.resume(throwing: ErrorReason.registrationInProgress)
+                        case let .unexpectedResponse(message),
+                            let .removeAccount(message),
+                            let .removeDeviceKeys(message),
+                            let .resetCredentialStore(message),
+                            let .removeAccountFiles(message),
+                            let .initDeviceKeys(message),
+                            let .internal(message):
+                            continuation.resume(throwing: GeneralNymError.library(message: message))
+                        }
                     } else {
                         continuation.resume()
                     }
@@ -76,15 +98,15 @@ extension GRPCManager {
 
             call.response.whenComplete { result in
                 switch result {
-                case .success(let response):
+                case let .success(response):
                     continuation.resume(
                         returning: (
-                            account: response.links.account.url,
-                            signIn: response.links.signIn.url,
-                            signUp: response.links.signUp.url
+                            account: response.account.url,
+                            signIn: response.signIn.url,
+                            signUp: response.signUp.url
                         )
                     )
-                case .failure(let error):
+                case let .failure(error):
                     continuation.resume(throwing: error)
                 }
             }

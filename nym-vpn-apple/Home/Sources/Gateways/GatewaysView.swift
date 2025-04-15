@@ -1,7 +1,6 @@
 import SwiftUI
 import Constants
 import CountriesManagerTypes
-import Device
 import ExternalLinkManager
 import Theme
 import UIComponents

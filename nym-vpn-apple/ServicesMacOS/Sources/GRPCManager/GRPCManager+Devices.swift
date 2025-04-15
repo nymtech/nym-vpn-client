@@ -24,7 +24,7 @@ extension GRPCManager {
             call.response.whenComplete { result in
                 switch result {
                 case let .success(response):
-                    continuation.resume(returning: response.accountIdentity.accountIdentity)
+                    continuation.resume(returning: response.accountIdentity)
                 case let .failure(error):
                     continuation.resume(throwing: error)
                 }
