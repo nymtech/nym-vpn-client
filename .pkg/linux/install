@@ -143,6 +143,7 @@ rmfile() {
   fi
 }
 
+app_id="net.nymtech.vpn"
 data_home=${XDG_DATA_HOME:-$HOME/.local/share}
 state_home=${XDG_STATE_HOME:-$HOME/.local/state}
 config_home=${XDG_CONFIG_HOME:-$HOME/.config}
@@ -662,6 +663,10 @@ _uninstall_raw() {
         "$data_home/$app_dir"
         "$state_home/$app_dir"
         "$cache_home/$app_dir"
+        "$config_home/$app_id"
+        "$data_home/$app_id"
+        "$state_home/$app_id"
+        "$cache_home/$app_id"
       )
       remove_file_set 'app_dirs'
     fi
@@ -694,7 +699,7 @@ need_cmd which
 need_cmd grep
 
 if [ "$1" == uninstall ]; then
-  log "$ITL${B_GRN}nym$RS${BI_GRY}VPN$RS ${BI}uninstaller$RS\n"
+  log "$ITL${BI_GRY}nym$RS${BI_GRN}VPN$RS ${BI}uninstaller$RS\n"
   select_components uninstall
   if [ "$install_type" = raw ]; then
     _uninstall_raw
@@ -705,6 +710,6 @@ if [ "$1" == uninstall ]; then
   exit 0
 fi
 
-log "$ITL${B_GRN}nym$RS${BI_GRY}VPN$RS ${BI}installer$RS\n"
+log "$ITL${BI_GRY}nym$RS${BI_GRN}VPN$RS ${BI}installer$RS\n"
 [[ "$BUILD_CHANNEL" = "dev" ]] && dev_setup
 _install
