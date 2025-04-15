@@ -55,7 +55,8 @@ pub async fn wait_for_account_sync(
     cancel_token
         .run_until_cancelled(account_controller_tx.ensure_update_account())
         .await
-        .ok_or(Error::Cancelled)??
+        .ok_or(Error::Cancelled)?
+        .map_err(Error::SyncAccount)
         .map(|_| ())
 }
 
@@ -66,7 +67,8 @@ pub async fn wait_for_device_sync(
     cancel_token
         .run_until_cancelled(account_controller_tx.ensure_update_device())
         .await
-        .ok_or(Error::Cancelled)??
+        .ok_or(Error::Cancelled)?
+        .map_err(Error::SyncDevice)
         .map(|_| ())
 }
 
@@ -77,7 +79,8 @@ pub async fn wait_for_device_register(
     cancel_token
         .run_until_cancelled(account_controller_tx.ensure_register_device())
         .await
-        .ok_or(Error::Cancelled)??
+        .ok_or(Error::Cancelled)?
+        .map_err(Error::RegisterDevice)
 }
 
 // Waiting for credentials to be ready can take a while if it's from scratch, in the order of 30
@@ -89,5 +92,6 @@ pub async fn wait_for_credentials_ready(
     cancel_token
         .run_until_cancelled(account_controller_tx.ensure_available_zk_nyms())
         .await
-        .ok_or(Error::Cancelled)??
+        .ok_or(Error::Cancelled)?
+        .map_err(Error::RequestZkNym)
 }
