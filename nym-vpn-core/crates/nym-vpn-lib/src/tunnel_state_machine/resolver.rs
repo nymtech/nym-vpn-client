@@ -536,7 +536,7 @@ mod test {
         name_server::TokioConnectionProvider,
         TokioResolver,
     };
-    use std::{mem, net::UdpSocket, thread, time::Duration};
+    use std::{mem, net::UdpSocket, time::Duration};
 
     async fn start_resolver() -> ResolverHandle {
         super::start_resolver().await.unwrap()
@@ -552,48 +552,40 @@ mod test {
             .build()
     }
 
-    #[test]
-    fn test_successful_lookup() {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-        let handle = rt.block_on(start_resolver());
+    #[tokio::test]
+    async fn test_successful_lookup() {
+        let handle = start_resolver().await;
         let test_resolver = get_test_resolver(handle.listening_port());
 
-        rt.block_on(async move {
-            for domain in &*ALLOWED_DOMAINS {
-                test_resolver.lookup(domain, RecordType::A).await?;
-            }
-            Ok::<(), ResolveError>(())
-        })
-        .expect("Resolution of domains failed");
+        for domain in &*ALLOWED_DOMAINS {
+            test_resolver
+                .lookup(domain, RecordType::A)
+                .await
+                .expect("domain resolution failed");
+        }
     }
 
-    #[test]
-    fn test_failed_lookup() {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-
-        let handle = rt.block_on(start_resolver());
+    #[tokio::test]
+    async fn test_failed_lookup() {
+        let handle = start_resolver().await;
         let test_resolver = get_test_resolver(handle.listening_port());
 
         let captive_portal_domain = LowerName::from(Name::from_str("apple.com").unwrap());
-        let resolver_result = rt.block_on(async move {
+        assert!(
             test_resolver
                 .lookup(captive_portal_domain, RecordType::A)
                 .await
-        });
-        assert!(
-            resolver_result.is_err(),
+                .is_err(),
             "Non-whitelisted DNS request should fail"
         )
     }
 
-    #[test]
-    fn test_shutdown() {
-        let rt = tokio::runtime::Runtime::new().unwrap();
-
-        let handle = rt.block_on(start_resolver());
+    #[tokio::test]
+    async fn test_shutdown() {
+        let handle = start_resolver().await;
         let port = handle.listening_port();
         mem::drop(handle);
-        thread::sleep(Duration::from_millis(300));
+        tokio::time::sleep(Duration::from_millis(300)).await;
         UdpSocket::bind((Ipv4Addr::LOCALHOST, port))
             .expect("Failed to bind to a port that should have been removed");
     }
