@@ -694,6 +694,17 @@
         }
       }
     },
+    "errorReason.registrtationInProgress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Registration in progress. Please try again."
+          }
+        }
+      }
+    },
     "errorReason.resolveGatewayAddrs" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1002,6 +1013,17 @@
         }
       }
     },
+    "helper.installview.backToMainScreen" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back to main screen"
+          }
+        }
+      }
+    },
     "helper.installView.continue" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1035,13 +1057,46 @@
         }
       }
     },
+    "helper.installView.daemonMigrationRequired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daemon migration required"
+          }
+        }
+      }
+    },
     "helper.installView.daemonText" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN uses a background service(daemon) to keep your connection secure.\n\nDaemon handles encryption and network routing, even when the app isn’t open, so your online activity stays protected at all times.\n\nOnce registered and authorized, the daemon launches automatically."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+          }
+        }
+      }
+    },
+    "helper.installView.firstStep" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1. Open system settings using button below"
+          }
+        }
+      }
+    },
+    "helper.installView.openSystemSettings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open system settings"
           }
         }
       }
@@ -1064,6 +1119,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Register & authorize"
+          }
+        }
+      }
+    },
+    "helper.installView.secondStep" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2. Navigate to the “Allow in the Background” section, find NymVPN in the app list, and turn on the switch."
           }
         }
       }
@@ -1129,7 +1195,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Due to migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required. Please execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
+            "value" : "Due to migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required.\nPlease execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
           }
         }
       }
@@ -1174,6 +1240,50 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Waiting for daemon start"
+          }
+        }
+      }
+    },
+    "helper.installView.successModal.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can resume using NymVPN after returning to the main screen."
+          }
+        }
+      }
+    },
+    "helper.installView.successModal.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daemon successfully installed"
+          }
+        }
+      }
+    },
+    "helper.installView.thirdStep" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NymVPN automatically detects changes and informs you about a successful installation. If nothing happens, contact our "
+          }
+        }
+      }
+    },
+    "helper.installView.thirdStep.supportTeam" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Support team."
           }
         }
       }

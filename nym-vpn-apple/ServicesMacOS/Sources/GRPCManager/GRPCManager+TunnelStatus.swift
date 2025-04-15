@@ -15,6 +15,8 @@ extension GRPCManager {
             case let .success(status):
                 print("Stream completed with status: \(status)")
                 self?.setup()
+                self?.tunnelStatus = .unknown
+                self?.isServing = false
             case let .failure(error):
                 print("Stream failed with error: \(error)")
             }
@@ -43,6 +45,9 @@ extension GRPCManager {
         case .none:
             tunnelStatus = .unknown
         }
+
+        guard !isServing else { return }
+        isServing = true
     }
 }
 

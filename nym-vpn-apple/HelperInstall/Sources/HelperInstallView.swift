@@ -3,8 +3,6 @@ import Theme
 import UIComponents
 
 public struct HelperInstallView: View {
-    @State private var animationScaleSize: CGFloat = 1
-
     @ObservedObject var viewModel: HelperInstallViewModel
 
     public init(viewModel: HelperInstallViewModel) {
@@ -14,20 +12,25 @@ public struct HelperInstallView: View {
     public var body: some View {
         VStack {
             navbar()
-            Spacer()
             explanationText()
+            firstStepText()
+            openSystemSettingsButton()
+            secondStepText()
+            secondStepImage()
+            thirdStepText()
             Spacer()
-            allStepsView()
-            Spacer()
-            errorMessage()
-            Spacer()
-            actionButton()
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity)
         .background {
             NymColor.background
                 .ignoresSafeArea()
+        }
+        .overlay {
+            succesfullyInstaledModal()
+        }
+        .overlay {
+            migrationModal()
         }
         // Copy to clipboard success message
         .snackbar(
@@ -47,67 +50,96 @@ extension HelperInstallView {
     }
 
     func explanationText() -> some View {
-        Text(viewModel.infoText)
-            .textStyle(.Body.Medium.regular)
-            .foregroundStyle(NymColor.gray1)
-            .multilineTextAlignment(.center)
-            .padding(16)
-    }
-
-    @ViewBuilder
-    func actionButton() -> some View {
-        GenericButton(title: viewModel.buttonTitle(), mainColor: viewModel.buttonColor())
-            .padding(EdgeInsets(top: 0, leading: 16, bottom: 24, trailing: 16))
-            .onTapGesture {
-                viewModel.buttonAction()
-            }
-    }
-
-    @ViewBuilder
-    func allStepsView() -> some View {
-        VStack(alignment: .leading) {
-            ForEach(viewModel.steps, id: \.self) { step in
-                stepView(step: step)
-                Spacer()
-                    .frame(height: 16)
-            }
-        }
-    }
-
-    @ViewBuilder
-    func stepView(step: HelperInstallStep) -> some View {
-        switch step {
-        case .uninstallOldDeamon:
-            Text(step.title)
-                .textStyle(.Body.Medium.regular)
-                .foregroundStyle(NymColor.primary)
-                .padding(.horizontal, 16)
-            Spacer()
-                .frame(height: 16)
-
-            GenericButton(title: "helper.installView.copy".localizedString, borderOnly: true)
-                .padding(.horizontal, 16)
-                .onTapGesture {
-                    viewModel.copyCommands()
-                }
-        default:
-            HStack {
-                PulsingImageView(systemImageName: step.systemImageName, imageColor: step.imageColor)
-                Text(step.title)
-                    .textStyle(.Body.Large.regular)
-                    .lineLimit(3)
-                    .foregroundStyle(NymColor.primary)
-            }
-            .padding(.horizontal, 16)
-        }
-    }
-
-    @ViewBuilder
-    func errorMessage() -> some View {
-        if let message = viewModel.error?.localizedDescription {
-            Text(message)
+        HStack {
+            Text(viewModel.infoText)
                 .textStyle(.Body.Large.regular)
-                .foregroundStyle(NymColor.error)
+                .foregroundStyle(NymColor.primary)
+                .multilineTextAlignment(.leading)
+            Spacer()
+        }
+        .padding(EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16))
+    }
+
+    func firstStepText() -> some View {
+        HStack {
+            Text("helper.installView.firstStep".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(NymColor.gray1)
+                .multilineTextAlignment(.leading)
+            Spacer()
+        }
+        .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16))
+    }
+
+    func openSystemSettingsButton() -> some View {
+        GenericButton(
+            title: "helper.installView.openSystemSettings".localizedString,
+            height: 40,
+            isWidthExpanded: false
+        )
+        .padding(.bottom, 24)
+        .onTapGesture {
+            viewModel.openSystemSettings()
+        }
+    }
+
+    func secondStepText() -> some View {
+        HStack {
+            Text("helper.installView.secondStep".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(NymColor.gray1)
+                .multilineTextAlignment(.leading)
+            Spacer()
+        }
+        .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16))
+    }
+
+    func secondStepImage() -> some View {
+        GenericImage(imageName: "daemonSystemSettings")
+            .frame(maxWidth: 450)
+            .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16))
+    }
+
+    @ViewBuilder
+    func thirdStepText() -> some View {
+        if let thirdStepText = viewModel.thirdStepAttributedString() {
+            HStack {
+                Text("3. \(thirdStepText)")
+                    .tint(NymColor.action)
+                    .textStyle(.Body.Medium.regular)
+                    .foregroundStyle(NymColor.gray1)
+                    .multilineTextAlignment(.leading)
+                Spacer()
+            }
+            .padding(EdgeInsets(top: 0, leading: 16, bottom: 16, trailing: 16))
+        }
+    }
+
+    @ViewBuilder
+    func succesfullyInstaledModal() -> some View {
+        if viewModel.isSuccessModalDisplayed {
+            ActionDialogView(
+                viewModel: ActionDialogViewModel(
+                    isDisplayed: $viewModel.isSuccessModalDisplayed,
+                    configuration: viewModel.updateAvailableOverlayConfiguration
+                )
+            )
+            .transition(.opacity)
+            .animation(.easeInOut, value: viewModel.isSuccessModalDisplayed)
+        }
+    }
+
+    @ViewBuilder
+    func migrationModal() -> some View {
+        if viewModel.isMigrationModalDisplayed {
+            ActionDialogView(
+                viewModel: ActionDialogViewModel(
+                    isDisplayed: $viewModel.isMigrationModalDisplayed,
+                    configuration: viewModel.migrationOverlayConfiguration
+                )
+            )
+            .transition(.opacity)
+            .animation(.easeInOut, value: viewModel.isMigrationModalDisplayed)
         }
     }
 }

@@ -27,15 +27,28 @@ public final class GRPCManager: ObservableObject {
         agent.platform = AppVersionProvider.platform
         return agent
     }
-    var isServing = false
 
     public static let shared = GRPCManager()
 
-    @Published public var tunnelStatus: TunnelStatus = .disconnected
+    @Published public var isServing = false {
+        didSet {
+            guard isServing
+            else {
+                if daemonVersion == "noVersion" {
+                    daemonVersion = "unknown"
+                }
+                return
+            }
+            Task {
+                try? await version()
+            }
+        }
+    }
+    @Published public var tunnelStatus: TunnelStatus = .unknown
     @Published public var errorReason: Error?
     @Published public var connectedDate: Date?
     @Published public var networkName: String?
-    public var daemonVersion = "unknown"
+    @Published public var daemonVersion = "unknown"
     public var requiredVersion: String {
         AppVersionProvider.libVersion
     }
@@ -63,9 +76,6 @@ public final class GRPCManager: ObservableObject {
 
     func setup() {
         setupListenToTunnelStateChangesObserver()
-        Task {
-            try? await version()
-        }
     }
 
     // MARK: - Connection -

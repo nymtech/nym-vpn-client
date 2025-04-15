@@ -21,11 +21,11 @@ public enum StatusButtonConfig: String {
             self = .connected
         case .connecting, .reasserting, .restarting:
             self = .connecting
-        case .disconnected:
+        case .disconnected, .unknown:
             self = .disconnected
         case .disconnecting:
             self = .disconnecting
-        case .offline, .unknown:
+        case .offline:
             self = .noInternet
         case .offlineReconnect:
             self = .noInternetReconnect

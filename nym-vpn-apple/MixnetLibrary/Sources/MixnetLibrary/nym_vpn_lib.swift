@@ -4525,6 +4525,7 @@ public enum RegisterDeviceError {
     )
     case unexpectedResponse(String
     )
+    case offline
     case `internal`(String
     )
 }
@@ -4547,7 +4548,9 @@ public struct FfiConverterTypeRegisterDeviceError: FfiConverterRustBuffer {
         case 4: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
         )
         
-        case 5: return .`internal`(try FfiConverterString.read(from: &buf)
+        case 5: return .offline
+        
+        case 6: return .`internal`(try FfiConverterString.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -4576,8 +4579,12 @@ public struct FfiConverterTypeRegisterDeviceError: FfiConverterRustBuffer {
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .`internal`(v1):
+        case .offline:
             writeInt(&buf, Int32(5))
+        
+        
+        case let .`internal`(v1):
+            writeInt(&buf, Int32(6))
             FfiConverterString.write(v1, into: &buf)
             
         }
@@ -4678,6 +4685,7 @@ public enum RequestZkNymError {
     )
     case storage(String
     )
+    case offline
     case `internal`(String
     )
 }
@@ -4703,7 +4711,9 @@ public struct FfiConverterTypeRequestZkNymError: FfiConverterRustBuffer {
         case 5: return .storage(try FfiConverterString.read(from: &buf)
         )
         
-        case 6: return .`internal`(try FfiConverterString.read(from: &buf)
+        case 6: return .offline
+        
+        case 7: return .`internal`(try FfiConverterString.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -4737,8 +4747,12 @@ public struct FfiConverterTypeRequestZkNymError: FfiConverterRustBuffer {
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .`internal`(v1):
+        case .offline:
             writeInt(&buf, Int32(6))
+        
+        
+        case let .`internal`(v1):
+            writeInt(&buf, Int32(7))
             FfiConverterString.write(v1, into: &buf)
             
         }
@@ -5048,6 +5062,7 @@ public enum SyncAccountError {
     )
     case unexpectedResponse(String
     )
+    case offline
     case `internal`(String
     )
 }
@@ -5068,7 +5083,9 @@ public struct FfiConverterTypeSyncAccountError: FfiConverterRustBuffer {
         case 3: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
         )
         
-        case 4: return .`internal`(try FfiConverterString.read(from: &buf)
+        case 4: return .offline
+        
+        case 5: return .`internal`(try FfiConverterString.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -5093,8 +5110,12 @@ public struct FfiConverterTypeSyncAccountError: FfiConverterRustBuffer {
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .`internal`(v1):
+        case .offline:
             writeInt(&buf, Int32(4))
+        
+        
+        case let .`internal`(v1):
+            writeInt(&buf, Int32(5))
             FfiConverterString.write(v1, into: &buf)
             
         }
@@ -5127,6 +5148,7 @@ public enum SyncDeviceError {
     )
     case unexpectedResponse(String
     )
+    case offline
     case `internal`(String
     )
 }
@@ -5149,7 +5171,9 @@ public struct FfiConverterTypeSyncDeviceError: FfiConverterRustBuffer {
         case 4: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
         )
         
-        case 5: return .`internal`(try FfiConverterString.read(from: &buf)
+        case 5: return .offline
+        
+        case 6: return .`internal`(try FfiConverterString.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -5178,8 +5202,12 @@ public struct FfiConverterTypeSyncDeviceError: FfiConverterRustBuffer {
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .`internal`(v1):
+        case .offline:
             writeInt(&buf, Int32(5))
+        
+        
+        case let .`internal`(v1):
+            writeInt(&buf, Int32(6))
             FfiConverterString.write(v1, into: &buf)
             
         }

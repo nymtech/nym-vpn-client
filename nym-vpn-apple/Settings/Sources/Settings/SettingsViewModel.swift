@@ -32,7 +32,7 @@ public class SettingsViewModel: SettingsFlowState {
 
     @Published var isLogoutConfirmationDisplayed = false
     @Published var sections: [SettingsSection] = []
-    @Published var accountIdentifier: String? = nil
+    @Published var accountIdentifier: String?
 
     var isValidCredentialImported: Bool {
         credentialsManager.isValidCredentialImported
@@ -40,7 +40,7 @@ public class SettingsViewModel: SettingsFlowState {
 
     var logoutDialogConfiguration: ActionDialogConfiguration {
         ActionDialogConfiguration(
-            iconImageName: "exclamationmark.circle",
+            systemIconImageName: "exclamationmark.circle",
             titleLocalizedString: "settings.logoutTitle".localizedString,
             subtitleLocalizedString: "settings.logoutSubtitle".localizedString,
             yesLocalizedString: "cancel".localizedString,

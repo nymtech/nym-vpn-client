@@ -44,11 +44,12 @@ public struct ActionDialogView: View {
 private extension ActionDialogView {
     @ViewBuilder
     func icon() -> some View {
-        if let iconImageName = viewModel.configuration.iconImageName {
+        if let iconImageName = viewModel.configuration.systemIconImageName {
             Spacer()
                 .frame(height: 24)
 
             Image(systemName: iconImageName)
+                .foregroundStyle(viewModel.configuration.systemIconImageColor ?? NymColor.primary)
                 .frame(width: 24, height: 24)
         }
     }
@@ -57,9 +58,10 @@ private extension ActionDialogView {
     func title() -> some View {
         if let title = viewModel.configuration.titleLocalizedString {
             Text(title)
-                .textStyle(NymTextStyle.Headline.Large.regular)
+                .textStyle(NymTextStyle.Headline.Medium.regular)
                 .foregroundStyle(NymColor.primary)
                 .multilineTextAlignment(.center)
+                .padding(.horizontal, 24)
 
             Spacer()
                 .frame(height: 16)
@@ -73,7 +75,7 @@ private extension ActionDialogView {
                 .foregroundStyle(NymColor.gray1)
                 .textStyle(.Body.Medium.regular)
                 .multilineTextAlignment(.center)
-                .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 24))
+                .padding(.horizontal, 24)
         }
     }
 
@@ -104,7 +106,9 @@ private extension ActionDialogView {
                 viewModel.impactGenerator.success()
 #endif
                 viewModel.configuration.yesAction?()
-                viewModel.isDisplayed = false
+                if viewModel.configuration.shouldCloseAfterYesAction {
+                    viewModel.isDisplayed = false
+                }
             }
     }
 
