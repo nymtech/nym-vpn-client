@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::fmt::Debug;
+
 pub mod forget_account;
 pub mod register_device;
 pub mod request_zknym;
@@ -20,6 +22,9 @@ pub enum AccountCommandError {
 
     #[error("vpn api error: {0}")]
     VpnApi(#[from] VpnApiErrorResponse),
+
+    #[error("unexpected vpn api response: {0}")]
+    UnexpectedVpnApiResponse(String),
 
     #[error("no account stored")]
     NoAccountStored,
@@ -65,6 +70,10 @@ impl AccountCommandError {
 
     pub fn storage(message: impl ToString) -> Self {
         AccountCommandError::Storage(message.to_string())
+    }
+
+    pub fn unexpected_response(message: impl Debug) -> Self {
+        AccountCommandError::UnexpectedVpnApiResponse(format!("{message:?}"))
     }
 }
 

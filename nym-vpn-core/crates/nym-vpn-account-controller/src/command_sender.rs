@@ -4,7 +4,10 @@
 use std::net::SocketAddr;
 
 use nym_offline_monitor::ConnectivityHandle;
-use nym_vpn_api_client::response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage};
+use nym_vpn_api_client::{
+    response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage},
+    types::VpnApiTimeSynced,
+};
 use nym_vpn_lib_types::{
     AccountCommandError, ForgetAccountError, RegisterDeviceError, RequestZkNymError,
     StoreAccountError, SyncAccountError, SyncDeviceError,
@@ -208,6 +211,14 @@ impl AccountCommandSender {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::RegisterOfflineMonitor(tx, offline_monitor))
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
+    }
+
+    pub async fn check_device_time_sync(&self) -> Result<VpnApiTimeSynced, AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::CheckDeviceTimeSync(tx))
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)?
     }

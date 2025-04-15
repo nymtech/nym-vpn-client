@@ -232,24 +232,28 @@ pub enum ErrorStateReason {
     SubscriptionExpired,
     Dns(Option<String>),
     Api(Option<String>),
+    DeviceTimeNotSynced,
     Internal(Option<String>),
 }
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
 pub enum StoreAccountError {
+    #[error("invalid mnemonic: {0}")]
+    InvalidMnemonic(String),
     #[error("storage: {0}")]
     Storage(String),
     #[error("vpn api endpoint failure: {0}")]
     GetAccountEndpointFailure(VpnApiErrorResponse),
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
+    #[error("internal error: {0}")]
+    Internal(String),
 }
 
 impl From<CoreStoreAccountError> for StoreAccountError {
     fn from(value: CoreStoreAccountError) -> Self {
         match value {
-            // Map to storage error for compatibility, and to avoid churn on Android in particular
-            CoreStoreAccountError::InvalidMnemonic(message) => Self::Storage(message),
+            CoreStoreAccountError::InvalidMnemonic(message) => Self::InvalidMnemonic(message),
             CoreStoreAccountError::Storage(err) => Self::Storage(err),
             CoreStoreAccountError::GetAccountEndpointFailure(failure) => {
                 Self::GetAccountEndpointFailure(failure.into())
@@ -257,8 +261,7 @@ impl From<CoreStoreAccountError> for StoreAccountError {
             CoreStoreAccountError::UnexpectedResponse(response) => {
                 Self::UnexpectedResponse(response)
             }
-            // Map to storage error for compatibility, and to avoid churn on Android in particular
-            CoreStoreAccountError::Internal(err) => Self::Storage(err),
+            CoreStoreAccountError::Internal(err) => Self::Internal(err),
         }
     }
 }
@@ -426,6 +429,8 @@ pub enum ForgetAccountError {
     RemoveAccountFiles(String),
     #[error("failed to init device keys: {0}")]
     InitDeviceKeys(String),
+    #[error("internal error: {0}")]
+    Internal(String),
 }
 
 impl From<CoreForgetAccountError> for ForgetAccountError {
@@ -445,9 +450,7 @@ impl From<CoreForgetAccountError> for ForgetAccountError {
             }
             CoreForgetAccountError::RemoveAccountFiles(err) => Self::RemoveAccountFiles(err),
             CoreForgetAccountError::InitDeviceKeys(err) => Self::InitDeviceKeys(err),
-            // Map internal errors to RemoveAccount for compatibility, and to avoid churn on
-            // Android in particular
-            CoreForgetAccountError::Internal(err) => Self::RemoveAccount(err),
+            CoreForgetAccountError::Internal(err) => Self::Internal(err),
         }
     }
 }
@@ -495,6 +498,7 @@ impl From<ClientErrorReason> for ErrorStateReason {
             ClientErrorReason::SubscriptionExpired => Self::SubscriptionExpired,
             ClientErrorReason::Dns(message) => Self::Dns(message),
             ClientErrorReason::Api(message) => Self::Api(message),
+            ClientErrorReason::DeviceTimeNotSynced => Self::DeviceTimeNotSynced,
             ClientErrorReason::Internal(message) => Self::Internal(message),
         }
     }
