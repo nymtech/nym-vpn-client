@@ -24,18 +24,14 @@ use futures::{
     SinkExt, StreamExt,
 };
 
-use hickory_proto::{
-    op::{LowerQuery, ResponseCode},
-    rr::{LowerName, RecordType},
-    ProtoErrorKind,
-};
 use hickory_server::{
     authority::{
         EmptyLookup, LookupObject, MessageRequest, MessageResponse, MessageResponseBuilder,
     },
     proto::{
-        op::{header::MessageType, op_code::OpCode, Header},
-        rr::{domain::Name, rdata, record_data::RData, Record},
+        op::{header::MessageType, op_code::OpCode, Header, LowerQuery, ResponseCode},
+        rr::{domain::Name, rdata, record_data::RData, LowerName, Record, RecordType},
+        ProtoErrorKind,
     },
     resolver::{
         config::{NameServerConfigGroup, ResolverConfig},

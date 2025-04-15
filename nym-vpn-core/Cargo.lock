@@ -5143,7 +5143,6 @@ dependencies = [
  "bytes",
  "debounced",
  "futures",
- "hickory-proto 0.25.1",
  "hickory-resolver 0.25.1",
  "hickory-server",
  "ipnetwork",
