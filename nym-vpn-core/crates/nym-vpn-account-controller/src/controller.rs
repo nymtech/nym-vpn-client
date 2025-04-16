@@ -1,9 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::SocketAddr, path::PathBuf, sync::Arc, time::Duration};
+use std::{net::SocketAddr, sync::Arc, time::Duration};
 
-use nym_http_api_client::UserAgent;
 use nym_offline_monitor::{Connectivity, ConnectivityHandle};
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
@@ -12,7 +11,6 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{
     AccountCommandError, ForgetAccountError, StoreAccountError, VpnApiErrorResponse,
 };
-use nym_vpn_network_config::Network;
 use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
@@ -27,41 +25,8 @@ use crate::{
     shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
     storage::{AccountStorage, SharedVpnCredentialStorage, VpnCredentialStorage},
     vpn_api_client::AccountControllerVpnApiClient,
-    AccountCommandSender, AvailableTicketbooks,
+    AccountCommandSender, AccountControllerConfig, AvailableTicketbooks,
 };
-
-// The interval at which we automatically request zk-nyms
-const ZK_NYM_AUTOMATIC_REQUEST_INTERVAL: Duration = Duration::from_secs(60);
-
-// The interval at which we update the account state
-const ACCOUNT_UPDATE_INTERVAL: Duration = Duration::from_secs(5 * 60);
-
-pub struct AccountControllerConfig {
-    // The data directory where we store the account and device keys.
-    pub data_dir: PathBuf,
-
-    // User agent used by api client.
-    pub user_agent: UserAgent,
-
-    // Credentials mode is a feature flag that determines if we should automatically request
-    // zk-nyms.
-    pub credentials_mode: Option<bool>,
-
-    // The network environment that the controller is running in.
-    pub network_env: Network,
-}
-
-impl AccountControllerConfig {
-    // Determine if the credentials mode is enabled. This is determined by the credentials_mode
-    // field in the config, if it is set. Else the network environment feature flag is used.
-    fn background_zk_nym_refresh(&self) -> bool {
-        self.credentials_mode.unwrap_or_else(|| {
-            self.network_env
-                .get_feature_flag_credential_mode()
-                .unwrap_or(false)
-        })
-    }
-}
 
 pub struct AccountController<S>
 where
@@ -102,6 +67,12 @@ impl<S> AccountController<S>
 where
     S: VpnStorage,
 {
+    // The interval at which we automatically request zk-nyms
+    const ZK_NYM_AUTOMATIC_REQUEST_INTERVAL: Duration = Duration::from_secs(60);
+
+    // The interval at which we update the account state
+    const ACCOUNT_UPDATE_INTERVAL: Duration = Duration::from_secs(5 * 60);
+
     pub async fn new(
         config: AccountControllerConfig,
         storage: Arc<tokio::sync::Mutex<S>>,
@@ -955,11 +926,12 @@ where
         // Timer to periodically sync the remote account state.
         // Call tick() once to start the timer immediately. We don't want the first sync to happen
         // immediately, so we wait for the first tick to happen.
-        let mut sync_account_state_timer = tokio::time::interval(ACCOUNT_UPDATE_INTERVAL);
+        let mut sync_account_state_timer = tokio::time::interval(Self::ACCOUNT_UPDATE_INTERVAL);
         sync_account_state_timer.tick().await;
 
         // Timer to periodically check if we need to request more zk-nyms
-        let mut update_zk_nym_timer = tokio::time::interval(ZK_NYM_AUTOMATIC_REQUEST_INTERVAL);
+        let mut update_zk_nym_timer =
+            tokio::time::interval(Self::ZK_NYM_AUTOMATIC_REQUEST_INTERVAL);
 
         loop {
             tokio::select! {

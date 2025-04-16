@@ -10,6 +10,7 @@ pub mod shared_state;
 
 mod command_sender;
 mod commands;
+mod config;
 mod connectivity;
 mod controller;
 mod error;
@@ -18,7 +19,8 @@ mod ticketbooks;
 mod vpn_api_client;
 
 pub use command_sender::AccountCommandSender;
-pub use controller::{AccountController, AccountControllerConfig};
+pub use config::AccountControllerConfig;
+pub use controller::AccountController;
 pub use error::Error;
 pub use shared_state::{AccountStateSummary, SharedAccountState};
 pub use storage::remove_files_for_account;
