@@ -10,50 +10,44 @@ sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
 
 ### Windows
 
-If you don't have Visual Studio 2022 installed, here is a one liner to install all that is needed.
+- Install Visual Studio 2022 Community
 
-```pwsh
-winget install --id Microsoft.VisualStudio.2022.Community --override "--wait --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 --add Microsoft.VisualStudio.Component.VC.Llvm.Clang"
-```
+  ```pwsh
+  winget install --id Microsoft.VisualStudio.2022.Community --override "--wait --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended --add Microsoft.VisualStudio.Component.VC.Tools.ARM64 --add Microsoft.VisualStudio.Component.VC.Llvm.Clang"
+  ```
 
-if you already have it installed, open Visual Studio Installer and modify the Visual Studio 2022 installation by adding the following components:
+  if you already have it installed, open Visual Studio Installer and modify the Visual Studio 2022 installation by adding the following components:
 
-- Add workload: Desktop development with C++
-- Add individual components: 
-  - C++ Clang tools for Windows
-  - MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools
+  - Add workload: Desktop development with C++
+  - Add individual components: 
+    - C++ Clang tools for Windows
+    - MSVC v143 - VS 2022 C++ ARM64/ARM64EC build tools
 
-Add clang to path:
+- Install GNU make:
 
-- ARM64 host:
-```
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\ARM64\bin
-```
-- x64 host:
-```
-C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\x64\bin
-```
+  ```
+  winget install -e --id=GnuWin32.Make
+  ```
 
 ## Build
 
-1. Build the wireguard library
+- Build all dependencies: `winfw`, `libwg` and download `wintun`
   
   ```sh
-  # from the root of the repository
-  make build-wireguard
+  make -f Windows.mk RELEASE=1
   ```
 
-2. Build VPN libraries and executables
+- Build VPN libraries and executables
 
   ```sh
   cd nym-vpn-core/
 
   # build only the the vpn daemon
-  cargo build -p nym-vpnd
+  cargo build -p nym-vpnd --release
 
   # build all 
   cargo build --release
-  ```C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\Llvm\ARM64\bin
+  ```
 
 ## Build for Windows from MacOS
 

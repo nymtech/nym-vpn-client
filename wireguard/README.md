@@ -49,8 +49,8 @@ It is forked from (https://github.com/mullvad/mullvadvpn-app) which maintains co
   TARGET_ARCH="arm64"
 
   export PATH="$PATH:/c/Program Files/Go/bin"
-  export PATH="$PATH:/c/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/MSBuild/Current/Bin"
-  export PATH="$PATH:/c/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.41.34120/bin/Host$HOST_ARCH/$TARGET_ARCH"
+  export PATH="$PATH:/c/Program Files/Microsoft Visual Studio/2022/Community/MSBuild/Current/Bin"
+  export PATH="$PATH:/c/Program Files/Microsoft Visual Studio/2022/Community/VC/Tools/MSVC/14.41.34808/bin/Host$HOST_ARCH/$TARGET_ARCH"
   ```
 - Execute the build script: 
   - Build for x64: `./build-wireguard-go.sh`
