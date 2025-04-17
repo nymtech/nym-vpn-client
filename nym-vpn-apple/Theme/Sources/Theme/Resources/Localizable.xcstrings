@@ -6387,8 +6387,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Registration in progress. Please try again."
+            "state" : "translated",
+            "value" : "Registro en curso. Por favor, inténtelo de nuevo."
           }
         },
         "fa" : {
@@ -6441,14 +6441,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Registration in progress. Please try again."
+            "state" : "translated",
+            "value" : "Kayıt işlemi sürüyor. Lütfen tekrar deneyin."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Registration in progress. Please try again."
+            "state" : "translated",
+            "value" : "Реєстрація триває. Будь ласка, спробуйте ще раз."
           }
         },
         "vi" : {
@@ -9316,8 +9316,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Back to main screen"
+            "state" : "translated",
+            "value" : "Volver a la pantalla principal"
           }
         },
         "fa" : {
@@ -9370,14 +9370,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Back to main screen"
+            "state" : "translated",
+            "value" : "Ana ekrana geri dön"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Back to main screen"
+            "state" : "translated",
+            "value" : "Повернутися на головний екран"
           }
         },
         "vi" : {
@@ -9720,8 +9720,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon migration required"
+            "state" : "translated",
+            "value" : "Se requiere migración del daemon"
           }
         },
         "fa" : {
@@ -9774,14 +9774,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon migration required"
+            "state" : "translated",
+            "value" : "Demon migrasyonu gerekli"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon migration required"
+            "state" : "translated",
+            "value" : "Необхідна міграція daemon"
           }
         },
         "vi" : {
@@ -9821,8 +9821,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "state" : "translated",
+            "value" : "NymVPN ejecuta un servicio en segundo plano (daemon) para mantener tu conexión segura. Se encarga de la encriptación y el enrutamiento, protegiendo tu actividad incluso cuando la app está cerrada.\n\nSigue los pasos a continuación para instalar el daemon."
           }
         },
         "fa" : {
@@ -9875,14 +9875,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "state" : "translated",
+            "value" : "NymVPN, bağlantınızı güvenli tutmak için arka planda bir hizmet (daemon) kullanır. Daemon, uygulama açık olmasa bile şifreleme ve yönlendirmeyi yönetir, böylece çevrimiçi etkinliğiniz her zaman korunur.\n\nDaemon ile ilgili yükleme adımlarını izleyin."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "state" : "translated",
+            "value" : "NymVPN використовує фонову службу (daemon), щоб захистити ваше з'єднання.\n\nDaemon обробляє шифрування та маршрутизацію мережі, навіть коли програма не відкрита, тому ваша онлайн-активність залишається захищеною в будь-який час.\n\nПісля реєстрації та авторизації daemon запускається автоматично."
           }
         },
         "vi" : {
@@ -9922,8 +9922,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "1. Open system settings using button below"
+            "state" : "translated",
+            "value" : "1. Abre la configuración del sistema usando el botón de abajo"
           }
         },
         "fa" : {
@@ -9976,14 +9976,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "1. Open system settings using button below"
+            "state" : "translated",
+            "value" : "1. Aşağıdaki butonu kullanarak sistem ayarlarını açın"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "1. Open system settings using button below"
+            "state" : "translated",
+            "value" : "1. Відкрийте системні налаштування, натиснувши кнопку нижче"
           }
         },
         "vi" : {
@@ -10023,8 +10023,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open system settings"
+            "state" : "translated",
+            "value" : "Abre los ajustes del sistema"
           }
         },
         "fa" : {
@@ -10077,14 +10077,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open system settings"
+            "state" : "translated",
+            "value" : "Sistem ayarlarını aç"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open system settings"
+            "state" : "translated",
+            "value" : "Відкрити налаштування системи"
           }
         },
         "vi" : {
@@ -10326,8 +10326,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "2. Navigate to the “Allow in the Background” section, find NymVPN in the app list, and turn on the switch."
+            "state" : "translated",
+            "value" : "2. Navega a la sección “Permitir en segundo plano”, busca NymVPN en la lista de aplicaciones y activa el interruptor."
           }
         },
         "fa" : {
@@ -10380,14 +10380,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "2. Navigate to the “Allow in the Background” section, find NymVPN in the app list, and turn on the switch."
+            "state" : "translated",
+            "value" : "2. \"Arka Planda İzin Ver\" bölümüne gidin, uygulama listesinden NymVPN'i bulun ve anahtarı açın."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "2. Navigate to the “Allow in the Background” section, find NymVPN in the app list, and turn on the switch."
+            "state" : "translated",
+            "value" : "2. Перейдіть до розділу «Дозволити у фоновому режимі», знайдіть NymVPN у списку додатків і увімкніть перемикач."
           }
         },
         "vi" : {
@@ -10932,8 +10932,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Due to migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required.\nPlease execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
+            "state" : "translated",
+            "value" : "Debido a la migración de SMJOBBless a SMAPPservice, se requiere la eliminación manual del daemon heredado.\nPor favor, ejecuta los siguientes comandos en Terminal:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nDespués de ejecutar estos comandos, reinicia tu Mac."
           }
         },
         "fa" : {
@@ -10986,14 +10986,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Due to migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required.\nPlease execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
+            "state" : "translated",
+            "value" : "Legacy daemon'ı manuel olarak kaldırmak için aşağıdaki Terminal komutlarını çalıştırın:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nBu komutları çalıştırdıktan sonra, Mac'inizi yeniden başlatın."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Due to migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required.\nPlease execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
+            "state" : "translated",
+            "value" : "У зв'язку з міграцією від SMJOBBless до SMAPPservice, необхідно вручну видалити застарілий демон. Будь ласка, виконайте наступні команди терміналу:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nПісля виконання цих команд перезавантажте ваш Mac."
           }
         },
         "vi" : {
@@ -11437,8 +11437,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You can resume using NymVPN after returning to the main screen."
+            "state" : "translated",
+            "value" : "Puedes volver a usar NymVPN después de regresar a la pantalla principal."
           }
         },
         "fa" : {
@@ -11491,14 +11491,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You can resume using NymVPN after returning to the main screen."
+            "state" : "translated",
+            "value" : "Ana ekrana döndükten sonra NymVPN kullanmaya devam edebilirsiniz."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You can resume using NymVPN after returning to the main screen."
+            "state" : "translated",
+            "value" : "Ви можете поновити використання NymVPN після повернення на головний екран."
           }
         },
         "vi" : {
@@ -11538,8 +11538,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon successfully installed"
+            "state" : "translated",
+            "value" : "Daemon instalado con éxito"
           }
         },
         "fa" : {
@@ -11592,14 +11592,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon successfully installed"
+            "state" : "translated",
+            "value" : "Daemon başarıyla kuruldu"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon successfully installed"
+            "state" : "translated",
+            "value" : "Daemon успішно встановлено"
           }
         },
         "vi" : {
@@ -11639,8 +11639,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN automatically detects changes and informs you about a successful installation. If nothing happens, contact our "
+            "state" : "translated",
+            "value" : "NymVPN detecta automáticamente los cambios e informa sobre una instalación exitosa. Si no ocurre nada, contacta con nuestro "
           }
         },
         "fa" : {
@@ -11693,14 +11693,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN automatically detects changes and informs you about a successful installation. If nothing happens, contact our "
+            "state" : "translated",
+            "value" : "NymVPN değişiklikleri otomatik olarak algılar ve sizi başarılı bir kurulum hakkında bilgilendirir. Hiçbir şey olmazsa, bizimle iletişime geçin"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN automatically detects changes and informs you about a successful installation. If nothing happens, contact our "
+            "state" : "translated",
+            "value" : "NymVPN автоматично виявляє зміни та повідомляє вас про успішну установку. Якщо нічого не відбувається, зв'яжіться з нашою "
           }
         },
         "vi" : {
@@ -11740,8 +11740,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support team."
+            "state" : "translated",
+            "value" : "Equipo de soporte."
           }
         },
         "fa" : {
@@ -11794,14 +11794,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support team."
+            "state" : "translated",
+            "value" : "Destek ekibi"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support team."
+            "state" : "translated",
+            "value" : "Команда підтримки."
           }
         },
         "vi" : {
