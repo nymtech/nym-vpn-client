@@ -22,6 +22,7 @@ use crate::{
         },
         AccountCommand, AccountCommandResult, Command, RunningCommands,
     },
+    connectivity::OfflineWatch,
     shared_state::DeviceState,
     storage::VpnCredentialStorage,
     SharedAccountState,
@@ -49,6 +50,7 @@ impl AccountCommandHandler {
         account_state: SharedAccountState,
         vpn_api_client: nym_vpn_api_client::VpnApiClient,
         credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
+        offline_watch: OfflineWatch,
     ) -> Self {
         let waiting_sync_account_command_handler =
             WaitingSyncAccountCommandHandler::new(account_state.clone(), vpn_api_client.clone());
@@ -58,6 +60,7 @@ impl AccountCommandHandler {
             credential_storage,
             account_state.clone(),
             vpn_api_client.clone(),
+            offline_watch,
         );
 
         Self {

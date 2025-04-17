@@ -23,7 +23,10 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiErrorResponse};
 use time::Date;
 
-use crate::storage::{PendingCredentialRequest, VpnCredentialStorage};
+use crate::{
+    connectivity::OfflineWatch,
+    storage::{PendingCredentialRequest, VpnCredentialStorage},
+};
 
 use super::{cached_data::CachedData, ZkNymId};
 
@@ -35,6 +38,7 @@ pub(super) struct RequestZkNymTask {
     device: Device,
     vpn_api_client: VpnApiClient,
     credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
+    offline_watch: OfflineWatch,
     cached_data: CachedData,
 }
 
@@ -44,6 +48,7 @@ impl RequestZkNymTask {
         device: Device,
         vpn_api_client: VpnApiClient,
         credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
+        offline_watch: OfflineWatch,
         cached_data: CachedData,
     ) -> Self {
         RequestZkNymTask {
@@ -51,6 +56,7 @@ impl RequestZkNymTask {
             device,
             vpn_api_client,
             credential_storage,
+            offline_watch,
             cached_data,
         }
     }
@@ -147,6 +153,9 @@ impl RequestZkNymTask {
         request: &ZkNymRequestData,
     ) -> Result<NymVpnZkNymPost, RequestZkNymError> {
         tracing::debug!("Requesting zk-nym ticketbook");
+        if self.offline_watch.is_offline() {
+            return Err(RequestZkNymError::Offline);
+        }
         self.vpn_api_client
             .request_zk_nym(
                 &self.account,
@@ -207,6 +216,10 @@ impl RequestZkNymTask {
         let start_time = Instant::now();
         loop {
             tracing::debug!("Polling zk-nym status");
+            if self.offline_watch.is_offline() {
+                return Err(RequestZkNymError::Offline);
+            }
+
             match self
                 .vpn_api_client
                 .get_zk_nym_by_id(&self.account, &self.device, id)
@@ -573,6 +586,9 @@ impl RequestZkNymTask {
 
     async fn confirm_zk_nym_downloaded(&self, id: &str) -> Result<StatusOk, RequestZkNymError> {
         tracing::info!("Confirming zk-nym downloaded");
+        if self.offline_watch.is_offline() {
+            return Err(RequestZkNymError::Offline);
+        }
         self.vpn_api_client
             .confirm_zk_nym_download_by_id(&self.account, &self.device, id)
             .await

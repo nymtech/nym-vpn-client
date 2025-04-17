@@ -18,7 +18,7 @@ use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiErrorRespo
 use tokio::task::JoinSet;
 
 use crate::{
-    commands::AccountCommandResult, shared_state::RequestZkNymResult,
+    commands::AccountCommandResult, connectivity::OfflineWatch, shared_state::RequestZkNymResult,
     storage::VpnCredentialStorage, SharedAccountState,
 };
 
@@ -36,6 +36,7 @@ pub(crate) struct WaitingRequestZkNymCommandHandler {
     credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
     account_state: SharedAccountState,
     vpn_api_client: VpnApiClient,
+    offline_watch: OfflineWatch,
     zk_nym_fails_in_a_row: Arc<AtomicU32>,
 
     // Cache some of the data used to import zk-nyms between requests, to speed things up. Consider
@@ -48,12 +49,14 @@ impl WaitingRequestZkNymCommandHandler {
         credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
         account_state: SharedAccountState,
         vpn_api_client: nym_vpn_api_client::VpnApiClient,
+        offline_watch: OfflineWatch,
     ) -> Self {
-        let cached_data = CachedData::new(vpn_api_client.clone());
+        let cached_data = CachedData::new(vpn_api_client.clone(), offline_watch.clone());
         WaitingRequestZkNymCommandHandler {
             credential_storage,
             account_state,
             vpn_api_client,
+            offline_watch,
             zk_nym_fails_in_a_row: Default::default(),
             cached_data,
         }
@@ -73,6 +76,7 @@ impl WaitingRequestZkNymCommandHandler {
             credential_storage: self.credential_storage.clone(),
             account_state: self.account_state.clone(),
             vpn_api_client: self.vpn_api_client.clone(),
+            offline_watch: self.offline_watch.clone(),
             zk_nym_fails_in_a_row: self.zk_nym_fails_in_a_row.clone(),
             cached_data: self.cached_data.clone(),
         }
@@ -100,6 +104,7 @@ pub(crate) struct RequestZkNymCommandHandler {
     credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
     account_state: SharedAccountState,
     vpn_api_client: VpnApiClient,
+    offline_watch: OfflineWatch,
 
     zk_nym_fails_in_a_row: Arc<AtomicU32>,
     cached_data: CachedData,
@@ -200,6 +205,7 @@ impl RequestZkNymCommandHandler {
                 self.device.clone(),
                 self.vpn_api_client.clone(),
                 self.credential_storage.clone(),
+                self.offline_watch.clone(),
                 self.cached_data.clone(),
             );
             join_set.spawn(async move { task.request_zk_nym_ticketbook(ticket_type).await });
@@ -250,6 +256,9 @@ impl RequestZkNymCommandHandler {
     }
 
     async fn get_zk_nyms_available_for_download(&self) -> Result<Vec<ZkNymId>, RequestZkNymError> {
+        if self.offline_watch.is_offline() {
+            return Err(RequestZkNymError::Offline);
+        }
         self.vpn_api_client
             .get_zk_nyms_available_for_download(&self.account, &self.device)
             .await
@@ -279,6 +288,7 @@ impl RequestZkNymCommandHandler {
                 self.device.clone(),
                 self.vpn_api_client.clone(),
                 self.credential_storage.clone(),
+                self.offline_watch.clone(),
                 self.cached_data.clone(),
             );
             join_set

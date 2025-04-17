@@ -5,6 +5,7 @@ use nym_offline_monitor::{Connectivity, ConnectivityHandle};
 
 use crate::AccountCommandSender;
 
+#[derive(Clone)]
 pub(super) struct OfflineWatch {
     // The handle to the offline monitor, used for receiving connectivity changes.
     handle: Option<ConnectivityHandle>,

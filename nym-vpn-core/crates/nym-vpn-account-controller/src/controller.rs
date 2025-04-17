@@ -97,18 +97,19 @@ where
         // The channels used to communicate with the controller
         let command_channel = tokio::sync::mpsc::unbounded_channel();
 
-        // Keep track of the commands that are currently running
-        let command_handler = AccountCommandHandler::new(
-            account_state.clone(),
-            vpn_api_client.inner().clone(),
-            credential_storage.clone(),
-        );
-
         // The offline watch is used to keep track of the current connectivity state, since we
         // don't want to do certain operations when we are offline
         let offline_watch = OfflineWatch::new(
             AccountCommandSender::new(command_channel.0.clone(), account_state.clone()),
             initial_connectivity.unwrap_or(Connectivity::new_presume_offline()),
+        );
+
+        // Keep track of the commands that are currently running
+        let command_handler = AccountCommandHandler::new(
+            account_state.clone(),
+            vpn_api_client.inner().clone(),
+            credential_storage.clone(),
+            offline_watch.clone(),
         );
 
         Ok(AccountController {
@@ -124,19 +125,25 @@ where
         })
     }
 
+    /// Get the current state of the account. This is a shared object that can be queried without
+    /// having to ask the controller.
     pub fn get_shared_state(&self) -> SharedAccountState {
         self.account_state.clone()
     }
 
+    /// Get the command channel used to send commands to the controller.
     pub fn get_command_sender(&self) -> AccountCommandSender {
         AccountCommandSender::new(self.command_channel.0.clone(), self.account_state.clone())
     }
 
+    // Check if the controller is allowed to request zk-nyms in the background.
     async fn is_background_zk_nym_refresh_active(&self) -> bool {
         self.config.background_zk_nym_refresh()
             && !self.command_handler.max_zknym_request_fails_reached().await
     }
 
+    // Check if all ticket types are above the soft threshold. This is used to determine if we
+    // should request more zk-nyms.
     async fn is_all_ticket_types_above_soft_threshold(&self) -> Result<bool, AccountCommandError> {
         self.credential_storage
             .lock()

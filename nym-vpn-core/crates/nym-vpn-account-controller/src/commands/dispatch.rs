@@ -62,7 +62,9 @@ impl AccountCommand {
             AccountCommand::RequestZkNym(Some(tx)) => {
                 tx.send(Err(RequestZkNymError::NoAccountStored));
             }
-            _ => {}
+            _ => {
+                tracing::error!("Command does not support no account: {self}");
+            }
         }
     }
 
@@ -78,7 +80,9 @@ impl AccountCommand {
             AccountCommand::RequestZkNym(Some(tx)) => {
                 tx.send(Err(RequestZkNymError::NoDeviceStored));
             }
-            _ => {}
+            _ => {
+                tracing::error!("Command does not support no device: {self}");
+            }
         }
     }
 
@@ -97,7 +101,9 @@ impl AccountCommand {
             AccountCommand::RequestZkNym(Some(tx)) => {
                 tx.send(Err(RequestZkNymError::Offline));
             }
-            _ => {}
+            _ => {
+                tracing::error!("Command does not support offline mode: {self}");
+            }
         }
     }
 }

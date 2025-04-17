@@ -7,6 +7,8 @@ use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificat
 use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_lib_types::{RequestZkNymError, VpnApiErrorResponse};
 
+use crate::connectivity::OfflineWatch;
+
 // Generic struct to store cached data during the request process, both between concurrent requests
 // for different types, and between requests for the same type.
 #[derive(Clone)]
@@ -17,13 +19,16 @@ pub struct CachedData {
 
     // nym-vpn-api client used to fetch new data
     vpn_api_client: VpnApiClient,
+
+    offline_watch: OfflineWatch,
 }
 
 impl CachedData {
-    pub fn new(vpn_api_client: VpnApiClient) -> Self {
+    pub fn new(vpn_api_client: VpnApiClient, offline_watch: OfflineWatch) -> Self {
         CachedData {
             partial_verification_keys: Arc::new(tokio::sync::Mutex::new(HashMap::new())),
             vpn_api_client,
+            offline_watch,
         }
     }
 
@@ -43,6 +48,9 @@ impl CachedData {
             Ok(issuers.clone())
         } else {
             tracing::info!("Fetching partial verification keys for epoch: {epoch_id}");
+            if self.offline_watch.is_offline() {
+                return Err(RequestZkNymError::Offline);
+            }
             let issuers = self
                 .vpn_api_client
                 .get_directory_zk_nyms_ticketbook_partial_verification_keys()
