@@ -42,55 +42,56 @@ fn run() -> anyhow::Result<()> {
 #[cfg(windows)]
 fn run() -> anyhow::Result<()> {
     let args = CliArgs::parse();
-    if args.command.install {
-        println!(
-            "Processing request to install {} as a service...",
-            service::windows_service::SERVICE_NAME
-        );
-        service::windows_service::install_service()?;
-        Ok(())
-    } else if args.command.uninstall {
-        println!(
-            "Processing request to uninstall {} as a service...",
-            service::windows_service::SERVICE_NAME
-        );
-        service::windows_service::uninstall_service()?;
-        Ok(())
-    } else if args.command.start {
-        println!(
-            "Processing request to start service {}...",
-            service::windows_service::SERVICE_NAME
-        );
-        service::windows_service::start_service()?;
-        Ok(())
-    } else if args.command.run_as_service {
-        // TODO: enable this through setting or flag
-        // println!("Configuring logging source...");
-        // eventlog::init(SERVICE_DISPLAY_NAME, log::Level::Info).unwrap();
-        let logging_setup = logging::setup_logging(logging::Options {
-            verbosity_level: args.verbosity_level(),
-            enable_file_log: true,
-            enable_stdout_log: false,
-        });
-        service::windows_service::start(
-            service::windows_service::ServiceNetworkConfig {
-                network: args.network.to_owned(),
-                config_env_file: args.config_env_file.to_owned(),
-            },
-            logging_setup,
-        )?;
-        Ok(())
-    } else {
-        let options = logging::Options {
-            verbosity_level: args.verbosity_level(),
-            enable_file_log: false,
-            enable_stdout_log: true,
-        };
-        let logging_setup = logging::setup_logging(options);
-        let global_config_file = setup_global_config(args.network.as_deref())?;
+    let service_name = service::windows_service::SERVICE_NAME;
 
-        run_inner(args, global_config_file, logging_setup)
+    // Prioritize installation > uninstallation > start > run_as_service
+    match (
+        args.command.install,
+        args.command.uninstall,
+        args.command.start,
+        args.command.run_as_service,
+    ) {
+        (true, _, _, _) => {
+            println!("Processing request to install {} as a service...", service_name);
+            service::windows_service::install_service()?;
+        }
+        (_, true, _, _) => {
+            println!("Processing request to uninstall {} as a service...", service_name);
+            service::windows_service::uninstall_service()?;
+        }
+        (_, _, true, _) => {
+            println!("Processing request to start service {}...", service_name);
+            service::windows_service::start_service()?;
+        }
+        (_, _, _, true) => {
+            // TODO: enable this through setting or flag
+            let logging_setup = logging::setup_logging(logging::Options {
+                verbosity_level: args.verbosity_level(),
+                enable_file_log: true,
+                enable_stdout_log: false,
+            });
+
+            service::windows_service::start(
+                service::windows_service::ServiceNetworkConfig {
+                    network: args.network.to_owned(),
+                    config_env_file: args.config_env_file.to_owned(),
+                },
+                logging_setup,
+            )?;
+        }
+        _ => {
+            let logging_setup = logging::setup_logging(logging::Options {
+                verbosity_level: args.verbosity_level(),
+                enable_file_log: false,
+                enable_stdout_log: true,
+            });
+
+            let global_config_file = setup_global_config(args.network.as_deref())?;
+            return run_inner(args, global_config_file, logging_setup);
+        }
     }
+
+    Ok(())
 }
 
 fn setup_global_config(network: Option<&str>) -> anyhow::Result<GlobalConfigFile> {
