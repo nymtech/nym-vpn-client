@@ -116,10 +116,12 @@ define setup_env_path
 		$$msvc_path = Get-ChildItem -Path "$(MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName ; #\\
 		$$env:Path += ";$(MSBUILD_PATH)" ; #\\
 		$$env:Path += ";$$msvc_path\bin\Host$(MSVC_PLATFORM)\$(MSVC_PLATFORM)" ; #\\
+		Write-Output "Add env for MSVS"; #\\
 	} elseif (Test-Path "$(BUILDTOOLS_DIR)") { #\\
 		$$msvc_path = Get-ChildItem -Path "$(BUILDTOOLS_MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName ; #\\
 		$$env:Path += ";$(BUILDTOOLS_MSBUILD_PATH)" ; #\\
 		$$env:Path += ";$$msvc_path\bin\Host$(MSVC_PLATFORM)\$(MSVC_PLATFORM)" ; #\\
+		Write-Output "Add env for MS build tools"; #\\
 	} else { #\\
 		Write-Output "MSVS not found, skipping PATH setup" ; #\\
 	}
