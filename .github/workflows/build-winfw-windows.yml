@@ -43,13 +43,13 @@ jobs:
       # This step is prone to compiler error that are simply blanks, this action auto retries a few times in case of error
       - name: Build/Move winfw
         uses: nick-fields/retry@v3
-        working-directory: nym-vpn-core
         with:
           shell: pwsh
           timeout_seconds: 300
           max_attempts: 3
           retry_on: error
           command: |
+            cd nym-vpn-core
             if ('${{ env.CPP_BUILD_MODES }}' -eq "Release") {
               $RELEASE = 1
             } else {
