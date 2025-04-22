@@ -43,7 +43,7 @@ endif
 LIBWG_BUILD_DIR := $(CURDIR)/../build/lib/$(RUST_TARGET)-pc-windows-msvc
 LIBWG_DLL := libwg.dll
 
-WINFW_BUILD_DIR := $(CURDIR)/../build/winfw/$(CPU_ARCH)-$(WINFW_PROFILE)
+WINFW_BUILD_DIR := $(CURDIR)/../build/winfw/$(WINFW_PLATFORM)-$(WINFW_PROFILE)
 WINFW_DLL := winfw.dll
 
 # Ensure that msys2 inherits PATH from environment
