@@ -14,6 +14,7 @@ use std::{
 use anyhow::Context;
 use tokio::sync::{broadcast, mpsc, oneshot, Mutex};
 use tokio_util::sync::CancellationToken;
+use tracing_appender::non_blocking::WorkerGuard;
 use windows::Win32::Foundation::ERROR_SERVICE_DOES_NOT_EXIST;
 use windows_service::{
     service::{
@@ -69,6 +70,10 @@ static SERVICE_NETWORK_CONFIG: LazyLock<Mutex<ServiceNetworkConfig>> =
 
 /// Logging setup passed from `main()` and used later to interact with logging.
 static LOGGING_SETUP: LazyLock<Mutex<Option<LoggingSetup>>> = LazyLock::new(|| Mutex::new(None));
+
+/// Network configuration passed from `main()` and used later to fetch network environment.
+static LOGGING_WORKER_GUARD: LazyLock<Mutex<Option<WorkerGuard>>> =
+    LazyLock::new(|| Mutex::new(None));
 
 fn service_main(arguments: Vec<OsString>) {
     if let Err(err) = run_service(arguments) {
@@ -243,11 +248,15 @@ async fn run_service_inner() -> anyhow::Result<()> {
         tracing::error!("Failed to join on command interface: {}", e);
     }
 
-    if let Some(file_logging_handle) = file_logging_handle {
-        if let Err(e) = file_logging_handle.await {
-            tracing::error!("Failed to join on file logging: {}", e);
-        }
-    }
+    let worker_guard = if let Some(file_logging_handle) = file_logging_handle {
+        file_logging_handle
+            .await
+            .inspect_err(|e| tracing::error!("Failed to join on file logging: {}", e))
+            .ok()
+    } else {
+        None
+    };
+    *LOGGING_WORKER_GUARD.lock().await = worker_guard;
 
     tracing::info!("Service is stopping!");
     persistent_status.set_stopped(ServiceExitCode::NO_ERROR)?;
@@ -281,14 +290,17 @@ pub(super) fn get_service_info() -> ServiceInfo {
 pub fn start(
     service_network_config: ServiceNetworkConfig,
     logging_setup: Option<LoggingSetup>,
-) -> Result<(), windows_service::Error> {
+) -> Result<Option<WorkerGuard>, windows_service::Error> {
     // Important: release mutex lock before starting service dispatcher to avoid deadlock.
     *SERVICE_NETWORK_CONFIG.blocking_lock() = service_network_config;
     *LOGGING_SETUP.blocking_lock() = logging_setup;
 
     // Register generated `ffi_service_main` with the system and start the service, blocking
     // this thread until the service is stopped.
-    service_dispatcher::start(SERVICE_NAME, ffi_service_main)
+    service_dispatcher::start(SERVICE_NAME, ffi_service_main)?;
+
+    let worker_guard = (*LOGGING_WORKER_GUARD.blocking_lock()).take();
+    Ok(worker_guard)
 }
 
 pub fn install_service() -> anyhow::Result<()> {

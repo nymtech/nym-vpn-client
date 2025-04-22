@@ -112,7 +112,7 @@ impl LogFileRemover {
         }
     }
 
-    pub(crate) async fn run(mut self) {
+    pub(crate) async fn run(mut self) -> WorkerGuard {
         loop {
             tokio::select! {
                 Some(_) = self.tunnel_event_rx.recv() => {
@@ -129,6 +129,7 @@ impl LogFileRemover {
                 }
             }
         }
+        self.logging_setup.worker_guard
     }
 
     pub(crate) async fn handle_delete_log_file(&mut self) {
@@ -137,19 +138,19 @@ impl LogFileRemover {
 }
 
 pub struct LoggingSetup {
-    _worker_guard: WorkerGuard,
+    worker_guard: WorkerGuard,
     file_appender: FileAppender,
     pub log_path: LogPath,
 }
 
 impl LoggingSetup {
-    pub fn new(_worker_guard: WorkerGuard, file_appender: FileAppender) -> Self {
+    pub fn new(worker_guard: WorkerGuard, file_appender: FileAppender) -> Self {
         let log_path = LogPath::new(
             file_appender.log_dir.clone(),
             file_appender.log_file.to_string(),
         );
         Self {
-            _worker_guard,
+            worker_guard,
             file_appender,
             log_path,
         }

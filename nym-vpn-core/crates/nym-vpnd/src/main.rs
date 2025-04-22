@@ -17,15 +17,17 @@ use nym_vpn_network_config::Network;
 use service::NymVpnService;
 use tokio::sync::{broadcast, mpsc};
 use tokio_util::sync::CancellationToken;
+use tracing_appender::non_blocking::WorkerGuard;
 
 use crate::{cli::CliArgs, config::GlobalConfigFile};
 
 fn main() -> anyhow::Result<()> {
-    run()
+    let _ = run()?;
+    Ok(())
 }
 
 #[cfg(unix)]
-fn run() -> anyhow::Result<()> {
+fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
 
     let options = logging::Options {
@@ -40,7 +42,7 @@ fn run() -> anyhow::Result<()> {
 }
 
 #[cfg(windows)]
-fn run() -> anyhow::Result<()> {
+fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
     if args.command.install {
         println!(
@@ -48,21 +50,21 @@ fn run() -> anyhow::Result<()> {
             service::windows_service::SERVICE_NAME
         );
         service::windows_service::install_service()?;
-        Ok(())
+        Ok(None)
     } else if args.command.uninstall {
         println!(
             "Processing request to uninstall {} as a service...",
             service::windows_service::SERVICE_NAME
         );
         service::windows_service::uninstall_service()?;
-        Ok(())
+        Ok(None)
     } else if args.command.start {
         println!(
             "Processing request to start service {}...",
             service::windows_service::SERVICE_NAME
         );
         service::windows_service::start_service()?;
-        Ok(())
+        Ok(None)
     } else if args.command.run_as_service {
         // TODO: enable this through setting or flag
         // println!("Configuring logging source...");
@@ -72,14 +74,14 @@ fn run() -> anyhow::Result<()> {
             enable_file_log: true,
             enable_stdout_log: false,
         });
-        service::windows_service::start(
+        let worker_guard = service::windows_service::start(
             service::windows_service::ServiceNetworkConfig {
                 network: args.network.to_owned(),
                 config_env_file: args.config_env_file.to_owned(),
             },
             logging_setup,
         )?;
-        Ok(())
+        Ok(worker_guard)
     } else {
         let options = logging::Options {
             verbosity_level: args.verbosity_level(),
@@ -106,7 +108,7 @@ fn run_inner(
     args: CliArgs,
     global_config_file: GlobalConfigFile,
     logging_setup: Option<LoggingSetup>,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<Option<WorkerGuard>> {
     runtime::new_runtime().block_on(async {
         let network_env =
             environment::setup_environment(&global_config_file, args.config_env_file.as_deref())
@@ -119,7 +121,7 @@ async fn run_inner_async(
     args: CliArgs,
     network_env: Network,
     logging_setup: Option<LoggingSetup>,
-) -> anyhow::Result<()> {
+) -> anyhow::Result<Option<WorkerGuard>> {
     network_env.check_consistency().await?;
 
     let log_path = logging_setup
@@ -171,13 +173,16 @@ async fn run_inner_async(
         tracing::error!("Failed to join on command interface: {}", e);
     }
 
-    if let Some(file_logging_handle) = file_logging_handle {
-        if let Err(e) = file_logging_handle.await {
-            tracing::error!("Failed to join on file logging: {}", e);
-        }
-    }
+    let worker_guard = if let Some(file_logging_handle) = file_logging_handle {
+        file_logging_handle
+            .await
+            .inspect_err(|e| tracing::error!("Failed to join on file logging: {}", e))
+            .ok()
+    } else {
+        None
+    };
 
     shutdown_join_set.shutdown().await;
 
-    Ok(())
+    Ok(worker_guard)
 }
