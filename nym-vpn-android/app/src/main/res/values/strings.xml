@@ -259,4 +259,5 @@
 	<string name="get_help">Get help</string>
 	<string name="telegram_url">https://nym.com/go/telegram</string>
 	<string name="join_telegram">Join us on Telegram</string>
+	<string name="device_time_out_of_sync">Device time ouf of sync</string>
 </resources>
