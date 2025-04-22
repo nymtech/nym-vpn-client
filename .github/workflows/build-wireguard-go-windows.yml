@@ -46,7 +46,9 @@ jobs:
       - name: Build wireguard
         env:
           MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
-        run: make -f nym-vpn-core/Windows.mk libwg CPU_ARCH=amd64
+        run: |
+          cd nym-vpn-core
+          make -f Windows.mk libwg CPU_ARCH=amd64
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

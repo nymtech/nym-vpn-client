@@ -49,12 +49,13 @@ jobs:
           max_attempts: 3
           retry_on: error
           command: |
+            cd nym-vpn-core
             if ('${{ env.CPP_BUILD_MODES }}' -eq "Release") {
               $RELEASE = 1
             } else {
               $RELEASE = 0
             }
-            make -f nym-vpn-core/Windows.mk winfw CPU_ARCH=amd64 RELEASE=$RELEASE
+            make -f Windows.mk winfw CPU_ARCH=amd64 RELEASE=$RELEASE
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
