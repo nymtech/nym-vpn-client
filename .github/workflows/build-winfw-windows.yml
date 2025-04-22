@@ -38,6 +38,7 @@ jobs:
       - name: Install GNU make
         run: |
           winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
+          echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
       # This step is prone to compiler error that are simply blanks, this action auto retries a few times in case of error
       - name: Build/Move winfw
