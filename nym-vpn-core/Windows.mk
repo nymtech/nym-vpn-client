@@ -113,7 +113,7 @@ define setup_env_path
 		$$msvc_path = Get-ChildItem -Path "$(MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName ; #\\
 		$$env:Path += ";$(MSBUILD_PATH)" ; #\\
 		$$env:Path += ";$$msvc_path\bin\Host$(CPU_ARCH_LOWER)\$(CPU_ARCH_LOWER)" ; #\\
-	} else if (Test-Path "$(BUILDTOOLS_DIR)") { #\\
+	} elseif (Test-Path "$(BUILDTOOLS_DIR)") { #\\
 		$$msvc_path = Get-ChildItem -Path "$(BUILDTOOLS_DIR)" -Directory | Select-Object -ExpandProperty FullName ; #\\
 		$$env:Path += ";$(BUILDTOOLS_MSBUILD_PATH)" ; #\\
 		$$env:Path += ";$$msvc_path\bin\Host$(CPU_ARCH_LOWER)\$(CPU_ARCH_LOWER)" ; #\\
