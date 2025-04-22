@@ -76,7 +76,7 @@ libwg: create_target_dir
 
 winfw: create_target_dir
 	$(call setup_env_path) ; #\
-	& "$(CURDIR)/../build-windows-modules.ps1" -BuildConfiguration $(WINFW_PROFILE) -Platform $(WINFW_PLATFORM) -CopyToBuildDir 1
+	powershell -ExecutionPolicy Bypass -Command "$(CURDIR)/../build-windows-modules.ps1" -BuildConfiguration $(WINFW_PROFILE) -Platform $(WINFW_PLATFORM) -CopyToBuildDir 1
 	Copy-Item "$(WINFW_BUILD_DIR)/$(WINFW_DLL)" -Destination "$(TARGET_DIR)/$(WINFW_DLL)" -Force -Verbose
 
 wintun: create_target_dir
