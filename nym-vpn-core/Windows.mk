@@ -12,7 +12,8 @@ WINTUN_BIN_DIR := $(TMP)/wintun/bin
 WINTUN_DLL_NAME := wintun.dll
 WINTUN_FINGERPRINT := DF98E075A012ED8C86FBCF14854B8F9555CB3D45
 
-MSYS2_SHELL := C:/msys64/msys2_shell.cmd
+MSYS2_LOCATION ?= C:/msys64
+MSYS2_SHELL := $(MSYS2_LOCATION)/msys2_shell.cmd
 
 GO_PATH := $(ProgramW6432)/Go/bin
 MSVS_DIR := $(ProgramW6432)/Microsoft Visual Studio/2022/Community
