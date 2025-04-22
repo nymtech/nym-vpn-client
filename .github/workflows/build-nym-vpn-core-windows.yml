@@ -83,12 +83,10 @@ jobs:
           name: ${{ env.WINFW_LIB_NAME }}.dll
           path: ${{ env.WINFW_PATH }}/
 
-      - name: Download/Unzip/Move wintun.zip, winpcap.zip also move libwg and winfw lib
+      - name: Download/Unzip/Move wintun.zip, also move libwg and winfw lib
         shell: bash
         run: |
-          curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
-          unzip ${GITHUB_WORKSPACE}/wintun.zip
-          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll nym-vpn-core/
+          make -f nym-vpn-core/Windows.mk wintun CPU_ARCH=amd64 TARGET_DIR=${{ github.workspace }}/nym-vpn-core
           mv '${{ env.LIBS_PATH }}/libwg.dll' nym-vpn-core/
           mv '${{ env.WINFW_PATH }}/winfw.dll' nym-vpn-core/
 

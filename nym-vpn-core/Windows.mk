@@ -1,3 +1,10 @@
+# Makefile used for building Windows dependencies used by nym-vpnd
+# 
+# Supported variables:
+# - CPU_ARCH: CPU architecture (amd64 or arm64)
+# - RELEASE: 1 for release build, 0 for debug build (default if omitted)
+# - TARGET_DIR: Directory to copy the built DLLs to (default is target/debug or target/release, depending on RELEASE)
+
 SHELL := C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
 
 WIUNTUN_URL := https://www.wintun.net/builds/wintun-0.14.1.zip
@@ -15,9 +22,9 @@ MSBUILD_PATH := $(MSVS_DIR)/MSBuild/Current/Bin
 # Make on Windows is a 32-bit application
 # Use PROCESSOR_ARCHITEW6432 to get the native CPU architecture
 ifdef PROCESSOR_ARCHITEW6432
-	CPU_ARCH := $(PROCESSOR_ARCHITEW6432)
+	CPU_ARCH ?= $(PROCESSOR_ARCHITEW6432)
 else
-	CPU_ARCH := $(PROCESSOR_ARCHITECTURE)
+	CPU_ARCH ?= $(PROCESSOR_ARCHITECTURE)
 endif
 
 CPU_ARCH_LOWER := $(shell "$(CPU_ARCH)".ToLower())
@@ -34,10 +41,10 @@ endif
 
 ifeq ($(RELEASE),1)
 	WINFW_PROFILE := Release
-	TARGET_DIR := $(CURDIR)/target/release
+	TARGET_DIR ?= $(CURDIR)/target/release
 else
 	WINFW_PROFILE := Debug
-	TARGET_DIR := $(CURDIR)/target/debug
+	TARGET_DIR ?= $(CURDIR)/target/debug
 endif
 
 LIBWG_BUILD_DIR := $(CURDIR)/../build/lib/$(RUST_TARGET)-pc-windows-msvc
