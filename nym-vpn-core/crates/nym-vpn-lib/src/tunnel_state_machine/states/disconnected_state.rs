@@ -14,7 +14,7 @@ use crate::tunnel_state_machine::{
 };
 
 pub struct DisconnectedState {
-    #[allow(unused)]
+    #[cfg_attr(any(target_os = "android", target_os = "ios"), allow(unused))]
     resolved_gateway_config: Option<ResolvedConfig>,
 }
 
@@ -64,7 +64,7 @@ impl TunnelStateHandler for DisconnectedState {
             Some(command) = command_rx.recv() => {
                 match command {
                     TunnelCommand::Connect => {
-                        NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)
+                        NextTunnelState::NewState(ConnectingState::enter(0, None, self.resolved_gateway_config, shared_state).await)
                     },
                     TunnelCommand::Disconnect => NextTunnelState::SameState(self),
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {

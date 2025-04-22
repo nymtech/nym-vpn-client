@@ -57,6 +57,7 @@ impl ConnectingState {
     pub async fn enter(
         retry_attempt: u32,
         selected_gateways: Option<SelectedGateways>,
+        resolved_gateway_config: Option<ResolvedConfig>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
@@ -120,7 +121,7 @@ impl ConnectingState {
                 monitor_event_receiver,
                 retry_attempt,
                 selected_gateways,
-                resolved_gateway_config: None,
+                resolved_gateway_config,
                 resolve_config_fut,
             }),
             PrivateTunnelState::Connecting {
@@ -565,6 +566,7 @@ impl TunnelStateHandler for ConnectingState {
                         NextTunnelState::NewState(ConnectingState::enter(
                             next_attempt,
                             self.selected_gateways,
+                            self.resolved_gateway_config,
                             shared_state
                         ).await)
                     }
@@ -608,7 +610,8 @@ impl TunnelStateHandler for ConnectingState {
                                 } else {
                                     self.selected_gateways
                                 };
-                                NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, next_gateways, shared_state).await)
+                                NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, next_gateways,
+                                    self.resolved_gateway_config,shared_state).await)
                             }
                         }
                     }

@@ -174,6 +174,7 @@ impl TunnelStateHandler for OfflineState {
                     NextTunnelState::NewState(ConnectingState::enter(
                         self.retry_attempt,
                         self.selected_gateways,
+                        self.resolved_gateway_config,
                         shared_state
                     ).await)
                 } else {

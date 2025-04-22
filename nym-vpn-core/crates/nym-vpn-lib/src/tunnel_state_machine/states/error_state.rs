@@ -207,7 +207,7 @@ impl TunnelStateHandler for ErrorState {
                         if shared_state.offline_monitor.connectivity().await.is_offline() {
                             NextTunnelState::NewState(OfflineState::enter(true,  0, None, None, shared_state).await)
                         } else {
-                            NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)
+                            NextTunnelState::NewState(ConnectingState::enter(0, None, self.resolved_gateway_config, shared_state).await)
                         }
                     },
                     TunnelCommand::Disconnect => {

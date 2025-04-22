@@ -105,7 +105,7 @@ impl TunnelStateHandler for DisconnectingState {
                         NextTunnelState::NewState(ErrorState::enter(reason, self.resolved_gateway_config, shared_state).await)
                     },
                     PrivateActionAfterDisconnect::Reconnect { retry_attempt } => {
-                        NextTunnelState::NewState(ConnectingState::enter(retry_attempt, None, shared_state).await)
+                        NextTunnelState::NewState(ConnectingState::enter(retry_attempt, None, self.resolved_gateway_config, shared_state).await)
                     },
                     PrivateActionAfterDisconnect::Offline { reconnect, retry_attempt, gateways } => {
                         NextTunnelState::NewState(OfflineState::enter(reconnect, retry_attempt, gateways, None, shared_state).await)
