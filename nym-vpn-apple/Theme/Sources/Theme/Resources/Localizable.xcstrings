@@ -143,8 +143,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Best for browsing, streaming, sharing"
+            "state" : "translated",
+            "value" : "ब्राउज़िंग, स्ट्रीमिंग और साझाकरण के लिए"
           }
         },
         "it" : {
@@ -244,8 +244,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Best for payments, emails, messages"
+            "state" : "translated",
+            "value" : "भुगतान, ईमेल, संदेशों के लिए "
           }
         },
         "it" : {
@@ -345,8 +345,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous (mixnet)"
+            "state" : "translated",
+            "value" : "अनाम (मिक्सनेट)"
           }
         },
         "it" : {
@@ -446,8 +446,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get Access Code"
+            "state" : "translated",
+            "value" : "एक्सेस कोड प्राप्त करें"
           }
         },
         "it" : {
@@ -547,8 +547,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Credential"
+            "state" : "translated",
+            "value" : "क्रेडेंशियल"
           }
         },
         "it" : {
@@ -648,8 +648,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add new credential"
+            "state" : "translated",
+            "value" : "नया क्रेडेंशियल जोड़ें"
           }
         },
         "it" : {
@@ -749,8 +749,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "days left"
+            "state" : "translated",
+            "value" : "दिन बचे हैं"
           }
         },
         "it" : {
@@ -850,8 +850,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "out of"
+            "state" : "translated",
+            "value" : "में से"
           }
         },
         "it" : {
@@ -951,8 +951,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Soon to expire?"
+            "state" : "translated",
+            "value" : "जल्द ही समाप्त होने वाला?"
           }
         },
         "it" : {
@@ -4195,8 +4195,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Error"
+            "state" : "translated",
+            "value" : "エラー"
           }
         },
         "pt" : {
@@ -4213,8 +4213,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Error"
+            "state" : "translated",
+            "value" : "Ошибка"
           }
         },
         "tr" : {
@@ -4231,8 +4231,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Error"
+            "state" : "translated",
+            "value" : "Lỗi"
           }
         },
         "zh-Hans" : {
@@ -6102,8 +6102,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Device not registered. Please try again."
+            "state" : "translated",
+            "value" : "उपकरण पंजीकृत नहीं है। कृपया फिर से प्रयास करें।"
           }
         },
         "it" : {
@@ -6203,8 +6203,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Offline"
+            "state" : "translated",
+            "value" : "ऑफ़लाइन"
           }
         },
         "it" : {
@@ -6304,8 +6304,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Registration in progress. Please try again."
+            "state" : "translated",
+            "value" : "पंजीकरण प्रगति में है। कृपया फिर से प्रयास करें।"
           }
         },
         "it" : {
@@ -6405,8 +6405,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Registration in progress. Please try again."
+            "state" : "translated",
+            "value" : "पंजीकरण प्रगति में है। कृपया पुनः प्रयास करें।"
           }
         },
         "it" : {
@@ -6417,8 +6417,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Registration in progress. Please try again."
+            "state" : "translated",
+            "value" : "登録処理中です。もう一度やり直してください。"
           }
         },
         "pt" : {
@@ -6429,14 +6429,14 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Registration in progress. Please try again."
+            "state" : "translated",
+            "value" : "Registro em andamento. Por favor, tente novamente."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Registration in progress. Please try again."
+            "state" : "translated",
+            "value" : "Регистрация в процессе. Пожалуйста, попробуйте еще раз."
           }
         },
         "tr" : {
@@ -6453,8 +6453,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Registration in progress. Please try again."
+            "state" : "translated",
+            "value" : "Đang tiến hành đăng ký. Vui lòng thử lại sau."
           }
         },
         "zh-Hans" : {
@@ -6506,8 +6506,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to resolve API domains. Please try again."
+            "state" : "translated",
+            "value" : "API डोमेन को हल करने में विफल। कृपया पुनः प्रयास करें।"
           }
         },
         "it" : {
@@ -6607,8 +6607,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to configure routing"
+            "state" : "translated",
+            "value" : "राउटिंग को कॉन्फ़िगर करने में असफल"
           }
         },
         "it" : {
@@ -6708,8 +6708,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For privacy, NymVPN won't use the same gateway for entry and exit. Reconnect or choose different locations."
+            "state" : "translated",
+            "value" : "गोपनीयता के लिए, NymVPN प्रवेश और निकास के लिए समान गेटवे का उपयोग नहीं करेगा। फिर से कनेक्ट करें या विभिन्न स्थान चुनें।"
           }
         },
         "it" : {
@@ -6809,8 +6809,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to start local dns proxy. Please try again."
+            "state" : "translated",
+            "value" : "स्थानीय DNS प्रॉक्सी शुरू करने में विफल। कृपया दोबारा प्रयास करें।"
           }
         },
         "it" : {
@@ -6910,8 +6910,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Subscription has expired. Please purchase a plan for your account."
+            "state" : "translated",
+            "value" : "सब्सक्रिप्शन समाप्त हो गई है। कृपया अपने खाते के लिए एक प्लान खरीदें।"
           }
         },
         "it" : {
@@ -7011,8 +7011,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to configure tunnel device"
+            "state" : "translated",
+            "value" : "संगन को कॉन्फ़िगर करने में विफल"
           }
         },
         "it" : {
@@ -7112,8 +7112,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to configure packet tunnel provider"
+            "state" : "translated",
+            "value" : "पैकेट सुरंग प्रदाता को कॉन्फ़िगर करने में विफलपैकेट टनल प्रोवाइडर को कॉन्फ़िगर करने में विफल"
           }
         },
         "it" : {
@@ -7213,8 +7213,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Unknown reason. Please try again."
+            "state" : "translated",
+            "value" : "अज्ञात कारण। कृपया फिर से प्रयास करें।"
           }
         },
         "it" : {
@@ -7314,8 +7314,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Unknown tunnel state. Please try again."
+            "state" : "translated",
+            "value" : "अज्ञात टनल स्थिति। कृपया पुनः प्रयास करें।"
           }
         },
         "it" : {
@@ -7415,8 +7415,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Establishing connection"
+            "state" : "translated",
+            "value" : "कनेक्शन स्थापित किया जा रहा है"
           }
         },
         "it" : {
@@ -7516,8 +7516,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Lowest ping"
+            "state" : "translated",
+            "value" : "सबसे कम पिंग"
           }
         },
         "it" : {
@@ -7617,8 +7617,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Help us improve NymVPN"
+            "state" : "translated",
+            "value" : "हमें NymVPN में सुधार करने में मदद करें"
           }
         },
         "it" : {
@@ -7718,8 +7718,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Turn on error reporting"
+            "state" : "translated",
+            "value" : "त्रुटि रिपोर्टिंग चालू करें"
           }
         },
         "it" : {
@@ -7819,8 +7819,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open a GitHub issue"
+            "state" : "translated",
+            "value" : "GitHub मुद्दा खोलें"
           }
         },
         "it" : {
@@ -7920,8 +7920,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Send us feedback"
+            "state" : "translated",
+            "value" : "हमें फीडबैक भेजें"
           }
         },
         "it" : {
@@ -8021,8 +8021,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry"
+            "state" : "translated",
+            "value" : "उद्भव स्थान"
           }
         },
         "it" : {
@@ -8122,8 +8122,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Random"
+            "state" : "translated",
+            "value" : "रैंडम"
           }
         },
         "it" : {
@@ -8223,8 +8223,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Random low latency"
+            "state" : "translated",
+            "value" : "रैंडम कम लेटेंसी"
           }
         },
         "it" : {
@@ -8324,8 +8324,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "servers"
+            "state" : "translated",
+            "value" : "सर्वर"
           }
         },
         "it" : {
@@ -8425,8 +8425,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong: Cannot fetch countries"
+            "state" : "translated",
+            "value" : "कुछ गलत हो गया: देशों की जानकारी नहीं मिल सकी"
           }
         },
         "it" : {
@@ -8526,8 +8526,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong: Cannot parse pre-bundled countries"
+            "state" : "translated",
+            "value" : "कुछ गलत हुआ: पहले से बंडल किए गए देशों को पार्स नहीं कर सकते"
           }
         },
         "it" : {
@@ -8627,8 +8627,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong: Invalid url"
+            "state" : "translated",
+            "value" : "कुछ गलत हो गया: अमान्य यूआरएल"
           }
         },
         "it" : {
@@ -8728,8 +8728,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to fetch environment"
+            "state" : "translated",
+            "value" : "पर्यावरण प्राप्त करने में विफल"
           }
         },
         "it" : {
@@ -8829,8 +8829,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong: Cannot load pre-bundled countries"
+            "state" : "translated",
+            "value" : "कुछ गड़बड़ हो गई: प्री-बंडल देशों को लोड नहीं कर सकते"
           }
         },
         "it" : {
@@ -8930,8 +8930,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong. Please try again."
+            "state" : "translated",
+            "value" : "कुछ गलत हुआ। कृपया फिर से प्रयास करें।"
           }
         },
         "it" : {
@@ -9031,8 +9031,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Close"
+            "state" : "translated",
+            "value" : "बंद करें"
           }
         },
         "it" : {
@@ -9132,8 +9132,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Identity key:"
+            "state" : "translated",
+            "value" : "आइडेंटिटी की:"
           }
         },
         "it" : {
@@ -9233,8 +9233,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authorize"
+            "state" : "translated",
+            "value" : "अनुमति दें"
           }
         },
         "it" : {
@@ -9334,8 +9334,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Back to main screen"
+            "state" : "translated",
+            "value" : "मुख्य स्क्रीन पर लौटें"
           }
         },
         "it" : {
@@ -9346,8 +9346,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Back to main screen"
+            "state" : "translated",
+            "value" : "メイン画面に戻る"
           }
         },
         "pt" : {
@@ -9364,8 +9364,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Back to main screen"
+            "state" : "translated",
+            "value" : "Вернуться на главную страницу"
           }
         },
         "tr" : {
@@ -9382,8 +9382,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Back to main screen"
+            "state" : "translated",
+            "value" : "Quay trở lại màn hình chính"
           }
         },
         "zh-Hans" : {
@@ -9435,8 +9435,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "आगे बढ़ें"
           }
         },
         "it" : {
@@ -9536,8 +9536,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copy commands"
+            "state" : "translated",
+            "value" : "कमांड कॉपी करें"
           }
         },
         "it" : {
@@ -9637,8 +9637,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Successfully copied to clipboard!"
+            "state" : "translated",
+            "value" : "क्लिपबोर्ड में सफलतापूर्वक कॉपी किया गया!"
           }
         },
         "it" : {
@@ -9738,8 +9738,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon migration required"
+            "state" : "translated",
+            "value" : "डेमॉन माइग्रेशन आवश्यक है"
           }
         },
         "it" : {
@@ -9750,8 +9750,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon migration required"
+            "state" : "translated",
+            "value" : "デーモンの移行が必要です"
           }
         },
         "pt" : {
@@ -9768,8 +9768,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon migration required"
+            "state" : "translated",
+            "value" : "Требуется миграция демона"
           }
         },
         "tr" : {
@@ -9786,8 +9786,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon migration required"
+            "state" : "translated",
+            "value" : "Cần di chuyển daemon"
           }
         },
         "zh-Hans" : {
@@ -9839,8 +9839,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "state" : "translated",
+            "value" : "NymVPN एक पृष्ठभूमि सेवा (डेमन) चलाता है \n जिससे आपका कनेक्शन सुरक्षित रहता है। यह एन्क्रिप्शन और रूटिंग का प्रबंधन करता है, जिससे आपका कार्य सुरक्षित रहता है, भले ही ऐप बंद हो जाए।\n\nडेमन स्थापित करने के लिए नीचे दिए गए चरणों का पालन करें।"
           }
         },
         "it" : {
@@ -9851,8 +9851,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "state" : "translated",
+            "value" : "NymVPNは、接続を安全に保つためにバックグラウンドサービス（デーモン）を実行します。このデーモンが暗号化とルーティングを処理することで、アプリを閉じていてもアクティビティが保護されます。\n\n以下の手順に従って、デーモンをインストールしてください。"
           }
         },
         "pt" : {
@@ -9869,8 +9869,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "state" : "translated",
+            "value" : "NymVPN использует фоновую службу (демон) \nдля обеспечения безопасности вашего соединения. Она обрабатывает шифрование и маршрутизацию, защищая вашу активность даже когда приложение закрыто.\n\nСледуйте инструкциям ниже, чтобы установить демон."
           }
         },
         "tr" : {
@@ -9887,8 +9887,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "state" : "translated",
+            "value" : "NymVPN sử dụng một dịch vụ nền (daemon) \nđể giữ kết nối của bạn luôn an toàn. Daemon xử lý mã hóa và định tuyến, bảo vệ hoạt động của bạn ngay cả khi ứng dụng không mở.\n\nHãy làm theo các bước dưới đây để cài đặt daemon."
           }
         },
         "zh-Hans" : {
@@ -9940,8 +9940,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "1. Open system settings using button below"
+            "state" : "translated",
+            "value" : "1. नीचे दिए गए बटन का उपयोग करके सिस्टम सेटिंग्स खोलें"
           }
         },
         "it" : {
@@ -9952,8 +9952,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "1. Open system settings using button below"
+            "state" : "translated",
+            "value" : "1. 下のボタンでシステム設定を開く"
           }
         },
         "pt" : {
@@ -9964,14 +9964,14 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "1. Open system settings using button below"
+            "state" : "translated",
+            "value" : "1. Abra as configurações do sistema usando o botão abaixo"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "1. Open system settings using button below"
+            "state" : "translated",
+            "value" : "1. Откройте системные настройки, нажав кнопку ниже"
           }
         },
         "tr" : {
@@ -9988,8 +9988,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "1. Open system settings using button below"
+            "state" : "translated",
+            "value" : "1. Mở cài đặt hệ thống bằng cách ấn nút bên dưới"
           }
         },
         "zh-Hans" : {
@@ -10041,8 +10041,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open system settings"
+            "state" : "translated",
+            "value" : "सिस्टम सेटिंग्स खोलें"
           }
         },
         "it" : {
@@ -10053,8 +10053,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open system settings"
+            "state" : "translated",
+            "value" : "システム設定を開く"
           }
         },
         "pt" : {
@@ -10065,14 +10065,14 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open system settings"
+            "state" : "translated",
+            "value" : "Abrir configurações do sistema"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open system settings"
+            "state" : "translated",
+            "value" : "Открыть системные настройки"
           }
         },
         "tr" : {
@@ -10089,8 +10089,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open system settings"
+            "state" : "translated",
+            "value" : "Xem các cài đặt hệ thống"
           }
         },
         "zh-Hans" : {
@@ -10142,8 +10142,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Install daemon"
+            "state" : "translated",
+            "value" : "डेमन स्थापित करें"
           }
         },
         "it" : {
@@ -10243,8 +10243,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Register & authorize"
+            "state" : "translated",
+            "value" : "रजिस्टर और प्राधिकृत करें"
           }
         },
         "it" : {
@@ -10344,8 +10344,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "2. Navigate to the “Allow in the Background” section, find NymVPN in the app list, and turn on the switch."
+            "state" : "translated",
+            "value" : "2. \"Allow in the Background\" अनुभाग पर जाएं, ऐप सूची में NymVPN खोजें, और स्विच को चालू करें।"
           }
         },
         "it" : {
@@ -10356,8 +10356,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "2. Navigate to the “Allow in the Background” section, find NymVPN in the app list, and turn on the switch."
+            "state" : "translated",
+            "value" : "2. \"バックグラウンドでの許可\"セクションに移動し、アプリ一覧からNymVPNを探して、スイッチをオンにします。"
           }
         },
         "pt" : {
@@ -10374,8 +10374,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "2. Navigate to the “Allow in the Background” section, find NymVPN in the app list, and turn on the switch."
+            "state" : "translated",
+            "value" : "2. Перейдите в раздел «Разрешить в фоне», найдите NymVPN в списке приложений и включите переключатель."
           }
         },
         "tr" : {
@@ -10392,8 +10392,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "2. Navigate to the “Allow in the Background” section, find NymVPN in the app list, and turn on the switch."
+            "state" : "translated",
+            "value" : "2. Chuyển đến phần “Cho phép trong nền”, tìm NymVPN trong danh sách ứng dụng và bật cho phép."
           }
         },
         "zh-Hans" : {
@@ -10445,8 +10445,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authorize daemon"
+            "state" : "translated",
+            "value" : "डीमॉन को अधिकृत करें"
           }
         },
         "it" : {
@@ -10546,8 +10546,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "current"
+            "state" : "translated",
+            "value" : "वर्तमान संस्करण"
           }
         },
         "it" : {
@@ -10647,8 +10647,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Register daemon"
+            "state" : "translated",
+            "value" : "डेमन पंजीकरण करें"
           }
         },
         "it" : {
@@ -10748,8 +10748,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon is running"
+            "state" : "translated",
+            "value" : "डेमन चालू है"
           }
         },
         "it" : {
@@ -10849,8 +10849,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "required"
+            "state" : "translated",
+            "value" : "आवश्यक"
           }
         },
         "it" : {
@@ -10950,8 +10950,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Due to migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required.\nPlease execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
+            "state" : "translated",
+            "value" : "SMJOBBless से SMAPPservice में माइग्रेशन के कारण, पुराने डेमन को मैनुअल रूप से हटाना आवश्यक है।\nकृपया निम्नलिखित टर्मिनल कमांड्स चलाएँ:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nइन कमांड्स को चलाने के बाद, अपने मैक को पुनरारंभ करें।"
           }
         },
         "it" : {
@@ -10962,8 +10962,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Due to migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required.\nPlease execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
+            "state" : "translated",
+            "value" : "SMJOBBlessからSMAPPserviceへの移行のため、レガシーデーモンを手動で除去する必要があります。 以下のターミナルコマンドを実行してください。\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nこれらのコマンドを実行した後、Macを再起動してください。"
           }
         },
         "pt" : {
@@ -10980,8 +10980,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Due to migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required.\nPlease execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
+            "state" : "translated",
+            "value" : "Из-за миграции с SMJOBBless на SMAPPservice требуется вручную удалить устаревший демон. Пожалуйста, выполните следующие команды в Терминале:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nПосле выполнения этих команд перезагрузите ваш Mac."
           }
         },
         "tr" : {
@@ -10998,8 +10998,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Due to migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required.\nPlease execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
+            "state" : "translated",
+            "value" : "Do quá trình chuyển đổi từ SMJOBBless sang SMAPPService, bạn cần gỡ thủ công daemon cũ. Vui lòng thực hiện các lệnh sau trong Terminal:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nSau khi chạy các lệnh này, hãy khởi động lại máy Mac của bạn."
           }
         },
         "zh-Hans" : {
@@ -11051,8 +11051,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Verifying version"
+            "state" : "translated",
+            "value" : "संस्करण सत्यापित करना"
           }
         },
         "it" : {
@@ -11152,8 +11152,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Version OK"
+            "state" : "translated",
+            "value" : "संस्करण ठीक है"
           }
         },
         "it" : {
@@ -11253,8 +11253,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon version mismatch:"
+            "state" : "translated",
+            "value" : "डेमन संस्करण असंगत:"
           }
         },
         "it" : {
@@ -11354,8 +11354,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Waiting for daemon start"
+            "state" : "translated",
+            "value" : "डेमन प्रारंभ होने की प्रतीक्षा कर रहा है"
           }
         },
         "it" : {
@@ -11455,8 +11455,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You can resume using NymVPN after returning to the main screen."
+            "state" : "translated",
+            "value" : "आप मुख्य स्क्रीन पर लौटने के बाद NymVPN का उपयोग फिर से शुरू कर सकते हैं।"
           }
         },
         "it" : {
@@ -11467,8 +11467,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You can resume using NymVPN after returning to the main screen."
+            "state" : "translated",
+            "value" : "メイン画面に戻った後、NymVPN の使用を再開できます。"
           }
         },
         "pt" : {
@@ -11485,8 +11485,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You can resume using NymVPN after returning to the main screen."
+            "state" : "translated",
+            "value" : "Вы можете продолжить использовать NymVPN после возврата на главную страницу."
           }
         },
         "tr" : {
@@ -11503,8 +11503,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You can resume using NymVPN after returning to the main screen."
+            "state" : "translated",
+            "value" : "Bạn có thể tiếp tục sử dụng NymVPN sau khi quay lại màn hình chính."
           }
         },
         "zh-Hans" : {
@@ -11556,8 +11556,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon successfully installed"
+            "state" : "translated",
+            "value" : "डेमन सफलतापूर्वक स्थापित किया गया"
           }
         },
         "it" : {
@@ -11568,8 +11568,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon successfully installed"
+            "state" : "translated",
+            "value" : "デーモンが正常にインストールされました"
           }
         },
         "pt" : {
@@ -11586,8 +11586,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon successfully installed"
+            "state" : "translated",
+            "value" : "Демон успешно установлен"
           }
         },
         "tr" : {
@@ -11604,8 +11604,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon successfully installed"
+            "state" : "translated",
+            "value" : "Đã cài đặt Daemon thành công"
           }
         },
         "zh-Hans" : {
@@ -11657,8 +11657,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN automatically detects changes and informs you about a successful installation. If nothing happens, contact our "
+            "state" : "translated",
+            "value" : "NymVPN स्वतः परिवर्तनों का पता लगाता है और आपको सफल स्थापना के बारे में सूचित करता है। यदि कुछ नहीं होता है, तो हमारी संपर्क करें "
           }
         },
         "it" : {
@@ -11669,8 +11669,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN automatically detects changes and informs you about a successful installation. If nothing happens, contact our "
+            "state" : "translated",
+            "value" : "NymVPNは自動的に変更を検出し、インストールに成功したことを知らせます。何も起こらない場合は、私たちに連絡してください。 "
           }
         },
         "pt" : {
@@ -11687,8 +11687,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN automatically detects changes and informs you about a successful installation. If nothing happens, contact our "
+            "state" : "translated",
+            "value" : "NymVPN автоматически обнаруживает изменения и информирует вас об успешной установке. Если ничего не происходит, свяжитесь с нашей "
           }
         },
         "tr" : {
@@ -11705,8 +11705,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN automatically detects changes and informs you about a successful installation. If nothing happens, contact our "
+            "state" : "translated",
+            "value" : "NymVPN tự động phát hiện các thay đổi và thông báo cho bạn về một lần cài đặt thành công. Nếu không có gì xảy ra, hãy liên hệ với "
           }
         },
         "zh-Hans" : {
@@ -11758,8 +11758,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support team."
+            "state" : "translated",
+            "value" : "समर्थन टीम।"
           }
         },
         "it" : {
@@ -11770,8 +11770,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support team."
+            "state" : "translated",
+            "value" : "サポートチーム."
           }
         },
         "pt" : {
@@ -11782,14 +11782,14 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support team."
+            "state" : "translated",
+            "value" : "Equipe de Suporte."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support team."
+            "state" : "translated",
+            "value" : "Командой поддержки."
           }
         },
         "tr" : {
@@ -11806,8 +11806,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support team."
+            "state" : "translated",
+            "value" : "Đội ngũ hỗ trợ."
           }
         },
         "zh-Hans" : {
@@ -11859,8 +11859,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Update"
+            "state" : "translated",
+            "value" : "अपडेट करें"
           }
         },
         "it" : {
@@ -11960,8 +11960,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Updating…"
+            "state" : "translated",
+            "value" : "अपडेट हो रहा है..."
           }
         },
         "it" : {
@@ -12061,8 +12061,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Verifying…"
+            "state" : "translated",
+            "value" : "सत्यापित कर रहा है …"
           }
         },
         "it" : {
@@ -12162,8 +12162,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Starting daemon"
+            "state" : "translated",
+            "value" : "डेमन शुरू करना"
           }
         },
         "it" : {
@@ -12263,8 +12263,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Successfully uninstalled NymVPN helper"
+            "state" : "translated",
+            "value" : "NymVPN हेल्पर को सफलतापूर्वक अनइंस्टॉल कर दिया गया"
           }
         },
         "it" : {
@@ -12364,8 +12364,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Uninstall NymVPN helper"
+            "state" : "translated",
+            "value" : "NymVPN सहायक को अनइंस्टॉल करें"
           }
         },
         "it" : {
@@ -12465,8 +12465,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your device has no internet connection"
+            "state" : "translated",
+            "value" : "आपके डिवाइस में इंटरनेट कनेक्शन नहीं है"
           }
         },
         "it" : {
@@ -12566,8 +12566,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Will connect once device goes online"
+            "state" : "translated",
+            "value" : "उपकरण ऑनलाइन होने पर कनेक्ट होगा"
           }
         },
         "it" : {
@@ -12667,8 +12667,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry"
+            "state" : "translated",
+            "value" : "उद्भव स्थान"
           }
         },
         "it" : {
@@ -12768,8 +12768,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit"
+            "state" : "translated",
+            "value" : "बाहर निकलें"
           }
         },
         "it" : {
@@ -12869,8 +12869,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Installing and authorizing daemon..."
+            "state" : "translated",
+            "value" : "डेमन स्थापित करना और अधिकृत करना..."
           }
         },
         "it" : {
@@ -12970,8 +12970,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Preparing…"
+            "state" : "translated",
+            "value" : "तैयार कर रहे हैं..."
           }
         },
         "it" : {
@@ -13071,8 +13071,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Error: Failed to install and authorize daemon"
+            "state" : "translated",
+            "value" : "त्रुटि: डेमन को स्थापित करने और अधिकृत करने में विफल"
           }
         },
         "it" : {
@@ -13172,8 +13172,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "It appears you are not connected to the internet. Please check your internet connection and try to connect."
+            "state" : "translated",
+            "value" : "आप इंटरनेट से जुड़े नहीं हैं। कृपया अपने इंटरनेट कनेक्शन की जांच करें और फिर से कनेक्ट करने की कोशिश करें।"
           }
         },
         "it" : {
@@ -13273,8 +13273,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No internet connection"
+            "state" : "translated",
+            "value" : "इंटरनेट कनेक्शन नहीं है"
           }
         },
         "it" : {
@@ -13374,8 +13374,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Update"
+            "state" : "translated",
+            "value" : "अपडेट करें"
           }
         },
         "it" : {
@@ -13475,8 +13475,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your app is no longer supported. Please download the latest version to continue using NymVPN."
+            "state" : "translated",
+            "value" : "आपका ऐप अब समर्थित नहीं है। कृपया NymVPN का उपयोग जारी रखने के लिए नए वर्ज़न के साथ अपडेट करें।"
           }
         },
         "it" : {
@@ -13576,8 +13576,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Update required"
+            "state" : "translated",
+            "value" : "अपडेट आवश्यक है!"
           }
         },
         "it" : {
@@ -13677,8 +13677,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Initializing client..."
+            "state" : "translated",
+            "value" : "क्लाइंट प्रारंभ हो रहा है…..."
           }
         },
         "it" : {
@@ -13778,8 +13778,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Join us on Discord"
+            "state" : "translated",
+            "value" : "Discord पर हमसे जुड़ें"
           }
         },
         "it" : {
@@ -13879,8 +13879,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Join us on Matrix"
+            "state" : "translated",
+            "value" : "Matrix पर हमसे जुड़ें"
           }
         },
         "it" : {
@@ -13980,8 +13980,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit"
+            "state" : "translated",
+            "value" : "बाहर निकलें"
           }
         },
         "it" : {
@@ -14081,8 +14081,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Legal"
+            "state" : "translated",
+            "value" : "कानूनी सूचनायें"
           }
         },
         "it" : {
@@ -14182,8 +14182,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Licence"
+            "state" : "translated",
+            "value" : "लाइसेंस"
           }
         },
         "it" : {
@@ -14283,8 +14283,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Licences"
+            "state" : "translated",
+            "value" : "लाइसेंस"
           }
         },
         "it" : {
@@ -14384,8 +14384,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Privacy statement"
+            "state" : "translated",
+            "value" : "गोपनीयता कथन"
           }
         },
         "it" : {
@@ -14485,8 +14485,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Terms of use"
+            "state" : "translated",
+            "value" : "उपयोग की शर्तें"
           }
         },
         "it" : {
@@ -14586,8 +14586,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Light theme"
+            "state" : "translated",
+            "value" : "लाइट थीम"
           }
         },
         "it" : {
@@ -14687,8 +14687,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "We infer server locations based on their IP addresses, but the actual locations may vary slightly."
+            "state" : "translated",
+            "value" : "हम IP पतों के आधार पर सर्वर स्थानों का अनुमान लगाते हैं, लेकिन वास्तविक स्थानों में थोड़ा बदलाव हो सकता है।"
           }
         },
         "it" : {
@@ -14788,8 +14788,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Read more"
+            "state" : "translated",
+            "value" : "आगे पढ़ें"
           }
         },
         "it" : {
@@ -14889,8 +14889,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Details on server locations"
+            "state" : "translated",
+            "value" : "सर्वर स्थानों की जानकारी"
           }
         },
         "it" : {
@@ -14990,8 +14990,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Logs (stored locally)"
+            "state" : "translated",
+            "value" : "लॉगिंग आउट.."
           }
         },
         "it" : {
@@ -15091,8 +15091,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Delete"
+            "state" : "translated",
+            "value" : "हटाएं"
           }
         },
         "it" : {
@@ -15192,8 +15192,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Are you sure you want to delete all logs?"
+            "state" : "translated",
+            "value" : "क्या आप निश्चित हैं कि आप सभी लॉग्स हटाना चाहते हैं?"
           }
         },
         "it" : {
@@ -15293,8 +15293,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Export"
+            "state" : "translated",
+            "value" : "एक्सपोर्ट"
           }
         },
         "it" : {
@@ -15394,8 +15394,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Displaying the last 1000 lines. Please export to see the full log."
+            "state" : "translated",
+            "value" : "अंतिम 1000 लाइनों को दिखाना। कृपया पूर्ण लॉग देखने के लिए निर्यात करें।"
           }
         },
         "it" : {
@@ -15495,8 +15495,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No"
+            "state" : "translated",
+            "value" : "नहीं"
           }
         },
         "it" : {
@@ -15596,8 +15596,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No logs available"
+            "state" : "translated",
+            "value" : "कोई लॉग उपलब्ध नहीं हैं"
           }
         },
         "it" : {
@@ -15697,8 +15697,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You will not be able to retrieve them"
+            "state" : "translated",
+            "value" : "आप उन्हें प्राप्त नहीं कर पाएंगे"
           }
         },
         "it" : {
@@ -15798,8 +15798,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Yes"
+            "state" : "translated",
+            "value" : "हाँ"
           }
         },
         "it" : {
@@ -15899,8 +15899,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open NymVPN..."
+            "state" : "translated",
+            "value" : "NymVPN खोलें..."
           }
         },
         "it" : {
@@ -16000,8 +16000,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages."
+            "state" : "translated",
+            "value" : "5 सर्वरों के माध्यम से मिक्सनेट के जरिए अपने कनेक्शन को रूट करके अधिकतम स्तर की गोपनीयता का आनंद लें। भुगतान, ईमेल, और संदेशों को सुरक्षित रूप से संभालने के लिए यह आदर्श है।"
           }
         },
         "it" : {
@@ -16101,8 +16101,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue reading"
+            "state" : "translated",
+            "value" : "पढ़ना जारी रखें"
           }
         },
         "it" : {
@@ -16202,8 +16202,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing."
+            "state" : "translated",
+            "value" : "सबसे अधिक गति का लाभ 2-सर्वर से पाएं। यह मोड AmneziaWG का उपयोग करता है, जो WireGuard का सेंसरशिप-प्रतिरोधी संस्करण है - जो तेज़ ब्राउज़िंग, स्ट्रीमिंग और फ़ाइल साझाकरण के लिए आदर्श है।"
           }
         },
         "it" : {
@@ -16303,8 +16303,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Mode selection"
+            "state" : "translated",
+            "value" : "मोड चयन"
           }
         },
         "it" : {
@@ -16404,8 +16404,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No"
+            "state" : "translated",
+            "value" : "नहीं"
           }
         },
         "it" : {
@@ -16505,8 +16505,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No internet"
+            "state" : "translated",
+            "value" : "इंटरनेट नहीं है"
           }
         },
         "it" : {
@@ -16606,8 +16606,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No internet"
+            "state" : "translated",
+            "value" : "इंटरनेट नहीं है"
           }
         },
         "it" : {
@@ -16707,7 +16707,7 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "NymVPN"
           }
         },
@@ -16808,8 +16808,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Ok"
+            "state" : "translated",
+            "value" : "ठीक है"
           }
         },
         "it" : {
@@ -16909,8 +16909,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Close Window"
+            "state" : "translated",
+            "value" : "विंडो बंद करें"
           }
         },
         "it" : {
@@ -17010,8 +17010,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Quit NymVPN"
+            "state" : "translated",
+            "value" : "NymVPN बंद करें"
           }
         },
         "it" : {
@@ -17111,8 +17111,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Do you want to quit NymVPN completely, or just close this window?"
+            "state" : "translated",
+            "value" : "क्या आप NymVPN को पूरी तरह से छोड़ना चाहते हैं, या केवल इस विंडो को बंद करना चाहते हैं?"
           }
         },
         "it" : {
@@ -17212,8 +17212,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Quit"
+            "state" : "translated",
+            "value" : "लॉग आउट"
           }
         },
         "it" : {
@@ -17313,8 +17313,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Quitting will stop all tasks and remove NymVPN from the menu bar."
+            "state" : "translated",
+            "value" : "क्विटिंग सभी कार्यों को रोक देगा और NymVPN को मेनू बार से हटा देगा।"
           }
         },
         "it" : {
@@ -17414,8 +17414,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Search"
+            "state" : "translated",
+            "value" : "खोजें"
           }
         },
         "it" : {
@@ -17515,8 +17515,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Contact us for help"
+            "state" : "translated",
+            "value" : "हमसे मदद के लिए संपर्क करें"
           }
         },
         "it" : {
@@ -17616,8 +17616,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "how to run a gateway"
+            "state" : "translated",
+            "value" : "गेटवे को कैसे चलाएँ।"
           }
         },
         "it" : {
@@ -17717,8 +17717,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No results found."
+            "state" : "translated",
+            "value" : "कोई परिणाम नहीं मिला।"
           }
         },
         "it" : {
@@ -17818,8 +17818,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Try another location or check the server name."
+            "state" : "translated",
+            "value" : "कोई अन्य स्थान चुनें या सर्वर नाम की जाँच करें।"
           }
         },
         "it" : {
@@ -17919,8 +17919,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "or learn"
+            "state" : "translated",
+            "value" : "या सीखें"
           }
         },
         "it" : {
@@ -18020,8 +18020,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Search location or server"
+            "state" : "translated",
+            "value" : "सर्च लोकेशन या सर्वर"
           }
         },
         "it" : {
@@ -18121,8 +18121,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Selected"
+            "state" : "translated",
+            "value" : "चयनित"
           }
         },
         "it" : {
@@ -18222,8 +18222,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select mode"
+            "state" : "translated",
+            "value" : "मोड चुनें"
           }
         },
         "it" : {
@@ -18323,8 +18323,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Settings"
+            "state" : "translated",
+            "value" : "सेटिंग्स"
           }
         },
         "it" : {
@@ -18424,8 +18424,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account"
+            "state" : "translated",
+            "value" : "अकाउंट"
           }
         },
         "it" : {
@@ -18525,8 +18525,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account ID"
+            "state" : "translated",
+            "value" : "खाता पहचान"
           }
         },
         "it" : {
@@ -18626,8 +18626,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "(via Sentry)"
+            "state" : "translated",
+            "value" : "(Sentry के माध्यम से)"
           }
         },
         "it" : {
@@ -18727,8 +18727,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous error reports"
+            "state" : "translated",
+            "value" : "अनाम त्रुटि रिपोर्ट"
           }
         },
         "it" : {
@@ -18828,8 +18828,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Appearance"
+            "state" : "translated",
+            "value" : "दिखावट"
           }
         },
         "it" : {
@@ -18929,8 +18929,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "App mode"
+            "state" : "translated",
+            "value" : "ऐप मोड"
           }
         },
         "it" : {
@@ -19030,8 +19030,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Menubar & Dock"
+            "state" : "translated",
+            "value" : "मेनूबार & डॉक"
           }
         },
         "it" : {
@@ -19131,8 +19131,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Dock only"
+            "state" : "translated",
+            "value" : "डॉक केवल"
           }
         },
         "it" : {
@@ -19232,8 +19232,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Menubar only"
+            "state" : "translated",
+            "value" : "मेनू बार केवल"
           }
         },
         "it" : {
@@ -19333,8 +19333,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Chat on Telegram"
+            "state" : "translated",
+            "value" : "टेलीग्राम पर चैट करें"
           }
         },
         "it" : {
@@ -19434,8 +19434,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copied to Clipboard!"
+            "state" : "translated",
+            "value" : "क्लिपबोर्ड में कॉपी किया गया"
           }
         },
         "it" : {
@@ -19446,8 +19446,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copied to Clipboard!"
+            "state" : "translated",
+            "value" : "クリップボードにコピーしました!"
           }
         },
         "pt" : {
@@ -19464,8 +19464,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copied to Clipboard!"
+            "state" : "translated",
+            "value" : "Скопировано в буфер!"
           }
         },
         "tr" : {
@@ -19482,8 +19482,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copied to Clipboard!"
+            "state" : "translated",
+            "value" : "Đã sao chép vào bộ nhớ tạm!"
           }
         },
         "zh-Hans" : {
@@ -19535,8 +19535,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Device ID: "
+            "state" : "translated",
+            "value" : "डिवाइस आईडी"
           }
         },
         "it" : {
@@ -19636,8 +19636,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get in touch"
+            "state" : "translated",
+            "value" : "संपर्क करें"
           }
         },
         "it" : {
@@ -19737,8 +19737,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Always on to protect your data"
+            "state" : "translated",
+            "value" : "आपके डेटा की सुरक्षा के लिए हमेशा ऑन"
           }
         },
         "it" : {
@@ -19749,8 +19749,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Always on to protect your data"
+            "state" : "translated",
+            "value" : "常にデータを保護する"
           }
         },
         "pt" : {
@@ -19767,8 +19767,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Always on to protect your data"
+            "state" : "translated",
+            "value" : "Всегда включен для защиты ваших данных"
           }
         },
         "tr" : {
@@ -19785,8 +19785,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Always on to protect your data"
+            "state" : "translated",
+            "value" : "Luôn bật để bảo vệ dữ liệu của bạn"
           }
         },
         "zh-Hans" : {
@@ -19838,8 +19838,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Killswitch"
+            "state" : "translated",
+            "value" : "किल स्विच"
           }
         },
         "it" : {
@@ -19939,8 +19939,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connect device"
+            "state" : "translated",
+            "value" : "डिवाइस कनेक्ट करें"
           }
         },
         "it" : {
@@ -20040,8 +20040,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Logout"
+            "state" : "translated",
+            "value" : "लॉगआउट"
           }
         },
         "it" : {
@@ -20141,8 +20141,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You will need your anonymous Access Code to log in again."
+            "state" : "translated",
+            "value" : "आपको फिर से लॉग इन करने के लिए अपना गुमनाम एक्सेस कोड की आवश्यकता होगी।"
           }
         },
         "it" : {
@@ -20242,8 +20242,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Are you sure you want to logout?"
+            "state" : "translated",
+            "value" : "क्या आप सुनिश्चित हैं कि आप लॉग आउट करना चाहते हैं?"
           }
         },
         "it" : {
@@ -20343,8 +20343,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN profile will be deleted from your device.\n\nIf connected: deleting VPN profile will disconnect you from VPN."
+            "state" : "translated",
+            "value" : "NymVPN प्रोफ़ाइल आपके डिवाइस से हटा दी जाएगी।\n\nयदि कनेक्ट किया गया है: वीपीएन प्रोफ़ाइल हटाने से आप वीपीएन से डिस्कनेक्ट हो जाएंगे।"
           }
         },
         "it" : {
@@ -20444,8 +20444,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Reset VPN profile?"
+            "state" : "translated",
+            "value" : "वीपीएन प्रोफ़ाइल रिसेट करें?"
           }
         },
         "it" : {
@@ -20545,8 +20545,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Reset VPN profile"
+            "state" : "translated",
+            "value" : "वीपीएन प्रोफ़ाइल रीसेट करें"
           }
         },
         "it" : {
@@ -20646,8 +20646,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support & feedback"
+            "state" : "translated",
+            "value" : "सहायता"
           }
         },
         "it" : {
@@ -20747,8 +20747,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Stop"
+            "state" : "translated",
+            "value" : "रोकें"
           }
         },
         "it" : {
@@ -20848,8 +20848,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "tunnel"
+            "state" : "translated",
+            "value" : "टनल "
           }
         },
         "it" : {
@@ -20949,8 +20949,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Version"
+            "state" : "translated",
+            "value" : "संस्करण"
           }
         },
         "it" : {
@@ -21050,8 +21050,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "By continuing, you agree to NymVPN's [Terms of use](https://nym.com/vpn-terms) and acknowledge NymVPN's [Privacy policy](https://nym.com/vpn-privacy-statement)."
+            "state" : "translated",
+            "value" : "जारी रखने पर, आप NymVPN के [उपयोग की शर्तों](https://nym.com/vpn-terms) से सहमत होते हैं और NymVPN की [गोपनीयता नीति](https://nym.com/vpn-privacy-statement) को मान्यता देते हैं।"
           }
         },
         "it" : {
@@ -21151,8 +21151,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "जारी रखें"
           }
         },
         "it" : {
@@ -21252,8 +21252,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
+            "state" : "translated",
+            "value" : "यह प्रयोगात्मक सॉफ़्टवेयर है। (फ़िलहाल) इसके लिए मजबूत गुमनामी पर भरोसा न करें।"
           }
         },
         "it" : {
@@ -21353,8 +21353,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Sentry"
+            "state" : "translated",
+            "value" : "सेंट्री"
           }
         },
         "it" : {
@@ -21454,8 +21454,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Help us refine our app! Your feedback is crucial for identifying and resolving issues. Opt-in for anonymous error monitoring (via"
+            "state" : "translated",
+            "value" : "हमें हमारे एप्लिकेशन को बेहतर बनाने में मदद करें! आपकी प्रतिक्रिया मुद्दों की पहचान और समाधान के लिए महत्वपूर्ण है। गुमनाम त्रुटि निगरानी के लिए विकल्प चुनें (के माध्यम से"
           }
         },
         "it" : {
@@ -21555,8 +21555,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : ") and analytics at will—you can opt out anytime.\nThanks for your support!"
+            "state" : "translated",
+            "value" : ") और विश्लेषण के लिए, आप कभी भी ऑप्ट-आउट कर सकते हैं। आपके समर्थन के लिए धन्यवाद!"
           }
         },
         "it" : {
@@ -21656,8 +21656,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome\nto NymVPN"
+            "state" : "translated",
+            "value" : "NymVPN में आपका स्वागत है"
           }
         },
         "it" : {
@@ -21757,8 +21757,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Yes"
+            "state" : "translated",
+            "value" : "हाँ"
           }
         },
         "it" : {
