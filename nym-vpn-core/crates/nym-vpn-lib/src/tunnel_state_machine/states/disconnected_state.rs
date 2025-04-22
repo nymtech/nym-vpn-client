@@ -1,6 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_gateway_directory::ResolvedConfig;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -12,10 +13,14 @@ use crate::tunnel_state_machine::{
     NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
 };
 
-pub struct DisconnectedState;
+pub struct DisconnectedState {
+    #[allow(unused)]
+    resolved_gateway_config: Option<ResolvedConfig>,
+}
 
 impl DisconnectedState {
     pub async fn enter(
+        resolved_gateway_config: Option<ResolvedConfig>,
         _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
@@ -28,7 +33,12 @@ impl DisconnectedState {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         Self::reset_firewall_policy(_shared_state);
 
-        (Box::new(Self), PrivateTunnelState::Disconnected)
+        (
+            Box::new(Self {
+                resolved_gateway_config,
+            }),
+            PrivateTunnelState::Disconnected,
+        )
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -65,7 +75,7 @@ impl TunnelStateHandler for DisconnectedState {
             }
             Some(connectivity) = shared_state.offline_monitor.next() => {
                 if connectivity.is_offline() {
-                    NextTunnelState::NewState(OfflineState::enter(false, 0, None, shared_state).await)
+                    NextTunnelState::NewState(OfflineState::enter(false, 0, None, None, shared_state).await)
                 } else {
                     NextTunnelState::SameState(self)
                 }

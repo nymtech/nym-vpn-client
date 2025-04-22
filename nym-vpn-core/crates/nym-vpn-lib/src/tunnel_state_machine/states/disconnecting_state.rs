@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use futures::future::{BoxFuture, Fuse, FutureExt};
+use nym_gateway_directory::ResolvedConfig;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -19,12 +20,15 @@ pub struct DisconnectingState {
     after_disconnect: PrivateActionAfterDisconnect,
     retry_attempt: u32,
     wait_handle: Fuse<WaitHandle>,
+    #[cfg_attr(any(target_os = "android", target_os = "ios"), allow(unused))]
+    resolved_gateway_config: Option<ResolvedConfig>,
 }
 
 impl DisconnectingState {
     pub fn enter(
         after_disconnect: PrivateActionAfterDisconnect,
         monitor_handle: TunnelMonitorHandle,
+        resolved_gateway_config: Option<ResolvedConfig>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         // It's safe to abort status listener as it's stateless.
@@ -45,6 +49,7 @@ impl DisconnectingState {
                 after_disconnect: after_disconnect.clone(),
                 retry_attempt,
                 wait_handle: monitor_handle.wait().boxed().fuse(),
+                resolved_gateway_config,
             }),
             PrivateTunnelState::Disconnecting { after_disconnect },
         )
@@ -95,15 +100,15 @@ impl TunnelStateHandler for DisconnectingState {
                 Self::handle_tunnel_close(result, shared_state).await;
 
                 match self.after_disconnect {
-                    PrivateActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter(shared_state).await),
+                    PrivateActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter(self.resolved_gateway_config, shared_state).await),
                     PrivateActionAfterDisconnect::Error(reason) => {
-                        NextTunnelState::NewState(ErrorState::enter(reason, shared_state).await)
+                        NextTunnelState::NewState(ErrorState::enter(reason, self.resolved_gateway_config, shared_state).await)
                     },
                     PrivateActionAfterDisconnect::Reconnect { retry_attempt } => {
                         NextTunnelState::NewState(ConnectingState::enter(retry_attempt, None, shared_state).await)
                     },
                     PrivateActionAfterDisconnect::Offline { reconnect, retry_attempt, gateways } => {
-                        NextTunnelState::NewState(OfflineState::enter(reconnect, retry_attempt, gateways, shared_state).await)
+                        NextTunnelState::NewState(OfflineState::enter(reconnect, retry_attempt, gateways, None, shared_state).await)
                     }
                 }
             }
@@ -136,7 +141,7 @@ impl TunnelStateHandler for DisconnectingState {
                 let result = self.wait_handle.await;
                 Self::handle_tunnel_close(result, shared_state).await;
 
-                NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
+                NextTunnelState::NewState(DisconnectedState::enter(self.resolved_gateway_config, shared_state).await)
             }
         }
     }

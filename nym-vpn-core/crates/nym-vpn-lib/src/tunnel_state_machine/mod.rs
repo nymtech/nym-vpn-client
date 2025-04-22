@@ -473,9 +473,9 @@ impl TunnelStateMachine {
             .await
             .is_offline()
         {
-            OfflineState::enter(false, 0, None, &mut shared_state).await
+            OfflineState::enter(false, 0, None, None, &mut shared_state).await
         } else {
-            DisconnectedState::enter(&mut shared_state).await
+            DisconnectedState::enter(None, &mut shared_state).await
         };
 
         let tunnel_state_machine = Self {

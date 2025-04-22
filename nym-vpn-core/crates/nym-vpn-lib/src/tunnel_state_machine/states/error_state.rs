@@ -11,6 +11,7 @@ use std::{
 use ipnetwork::IpNetwork;
 #[cfg(target_os = "macos")]
 use nym_dns::DnsConfig;
+use nym_gateway_directory::ResolvedConfig;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -18,6 +19,7 @@ use tokio_util::sync::CancellationToken;
 use nym_common::ErrorExt;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::FirewallPolicy;
+use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, TransportProtocol};
 
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::{ios::OSTunProvider, tunnel_settings::TunnelSettings};
@@ -40,18 +42,27 @@ const BLOCKING_INTERFACE_ADDRS: [IpAddr; 2] = [
     )),
 ];
 
-pub struct ErrorState;
+pub struct ErrorState {
+    #[cfg_attr(any(target_os = "android", target_os = "ios"), allow(unused))]
+    resolved_gateway_config: Option<ResolvedConfig>,
+}
 
 impl ErrorState {
     pub async fn enter(
         reason: ErrorStateReason,
+        resolved_gateway_config: Option<ResolvedConfig>,
         _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
         if !Self::prevents_filtering_resolver(&reason)
             && Self::set_local_dns_resolver(_shared_state).await.is_err()
         {
-            return Box::pin(Self::enter(ErrorStateReason::Dns, _shared_state)).await;
+            return Box::pin(Self::enter(
+                ErrorStateReason::Dns,
+                resolved_gateway_config,
+                _shared_state,
+            ))
+            .await;
         }
 
         #[cfg(target_os = "ios")]
@@ -60,22 +71,51 @@ impl ErrorState {
         }
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        if let Err(e) = Self::set_firewall_policy(_shared_state) {
+        if let Err(e) = Self::set_firewall_policy(resolved_gateway_config.clone(), _shared_state) {
             log::error!(
                 "{}",
                 e.display_chain_with_msg("Failed to apply firewall policy for blocked state")
             );
         }
 
-        (Box::new(Self), PrivateTunnelState::Error(reason))
+        (
+            Box::new(Self {
+                resolved_gateway_config,
+            }),
+            PrivateTunnelState::Error(reason),
+        )
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    fn set_firewall_policy(shared_state: &mut SharedState) -> Result<()> {
+    fn set_firewall_policy(
+        resolved_gateway_config: Option<ResolvedConfig>,
+        shared_state: &mut SharedState,
+    ) -> Result<()> {
+        let allowed_endpoints = resolved_gateway_config
+            .and_then(|resolved_gateway_config| {
+                Some(
+                    resolved_gateway_config
+                        .nym_vpn_api_socket_addrs
+                        .unwrap_or_default()
+                        .into_iter()
+                        .map(|addr| {
+                            AllowedEndpoint::new(
+                                Endpoint::from_socket_address(addr, TransportProtocol::Tcp),
+                                #[cfg(any(target_os = "linux", target_os = "macos"))]
+                                AllowedClients::Root,
+                                #[cfg(target_os = "windows")]
+                                AllowedClients::current_exe(),
+                            )
+                        })
+                        .collect::<Vec<_>>(),
+                )
+            })
+            .unwrap_or_default();
+
         let policy = FirewallPolicy::Blocked {
             // todo: fetch from config
             allow_lan: true,
-            allowed_endpoints: Vec::new(),
+            allowed_endpoints,
             #[cfg(target_os = "macos")]
             dns_redirect_port: shared_state.filtering_resolver.listening_port(),
         };
@@ -165,16 +205,16 @@ impl TunnelStateHandler for ErrorState {
                 match command {
                     TunnelCommand::Connect => {
                         if shared_state.offline_monitor.connectivity().await.is_offline() {
-                            NextTunnelState::NewState(OfflineState::enter(true,  0, None, shared_state).await)
+                            NextTunnelState::NewState(OfflineState::enter(true,  0, None, None, shared_state).await)
                         } else {
                             NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)
                         }
                     },
                     TunnelCommand::Disconnect => {
                         if shared_state.offline_monitor.connectivity().await.is_offline() {
-                            NextTunnelState::NewState(OfflineState::enter(false,  0, None, shared_state).await)
+                            NextTunnelState::NewState(OfflineState::enter(false,  0, None, None, shared_state).await)
                         } else {
-                            NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
+                            NextTunnelState::NewState(DisconnectedState::enter(self.resolved_gateway_config, shared_state).await)
                         }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
