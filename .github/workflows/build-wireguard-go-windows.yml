@@ -37,6 +37,10 @@ jobs:
           msystem: MINGW64
           install: mingw-w64-x86_64-clang
 
+      - name: Install GNU make
+        run: |
+          winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
+
       - name: Build wireguard
         run: make -f nym-vpn-core/Windows.mk libwg CPU_ARCH=amd64
 

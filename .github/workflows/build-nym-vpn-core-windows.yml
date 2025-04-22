@@ -40,6 +40,10 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
+      - name: Install GNU make
+        run: |
+          winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
+
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
