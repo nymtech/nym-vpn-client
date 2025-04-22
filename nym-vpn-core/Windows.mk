@@ -20,6 +20,9 @@ MSVS_DIR := $(ProgramW6432)/Microsoft Visual Studio/2022/Community
 MSVC_PATH := $(MSVS_DIR)/VC/Tools/MSVC
 MSBUILD_PATH := $(MSVS_DIR)/MSBuild/Current/Bin
 
+BUILDTOOLS_DIR := $(ProgramFiles(x86))/Microsoft Visual Studio/2022/BuildTools
+BUILDTOOLS_MSBUILD_PATH := $(BUILDTOOLS_DIR)/MSBuild/Current/Bin
+
 # Make on Windows is a 32-bit application
 # Use PROCESSOR_ARCHITEW6432 to get the native CPU architecture
 ifdef PROCESSOR_ARCHITEW6432
@@ -105,10 +108,14 @@ create_target_dir:
 
 # Add Go, MSBuild and MSVC to PATH
 define setup_env_path
+	$$env:Path += ";$(GO_PATH)" ; #\\
 	if (Test-Path "$(MSVS_DIR)") { #\\
 		$$msvc_path = Get-ChildItem -Path "$(MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName ; #\\
-		$$env:Path += ";$(GO_PATH)" ; #\\
 		$$env:Path += ";$(MSBUILD_PATH)" ; #\\
+		$$env:Path += ";$$msvc_path\bin\Host$(CPU_ARCH_LOWER)\$(CPU_ARCH_LOWER)" ; #\\
+	} else if (Test-Path "$(BUILDTOOLS_DIR)") { #\\
+		$$msvc_path = Get-ChildItem -Path "$(BUILDTOOLS_DIR)" -Directory | Select-Object -ExpandProperty FullName ; #\\
+		$$env:Path += ";$(BUILDTOOLS_MSBUILD_PATH)" ; #\\
 		$$env:Path += ";$$msvc_path\bin\Host$(CPU_ARCH_LOWER)\$(CPU_ARCH_LOWER)" ; #\\
 	} else { #\\
 		Write-Output "MSVS not found, skipping PATH setup" ; #\\
