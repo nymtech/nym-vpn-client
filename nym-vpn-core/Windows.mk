@@ -37,9 +37,11 @@ CPU_ARCH_LOWER := $(shell "$(CPU_ARCH)".ToLower())
 ifeq ($(CPU_ARCH_LOWER),amd64)
 	RUST_TARGET := x86_64
 	WINFW_PLATFORM := x64
+	MSVC_PLATFORM := x64
 else ifeq ($(CPU_ARCH_LOWER),arm64)
 	RUST_TARGET := aarch64
 	WINFW_PLATFORM := ARM64
+	MSVC_PLATFORM := arm64
 else
 	$(error Unsupported CPU architecture: $(CPU_ARCH_LOWER))
 endif
@@ -113,11 +115,11 @@ define setup_env_path
 	if (Test-Path "$(MSVS_DIR)") { #\\
 		$$msvc_path = Get-ChildItem -Path "$(MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName ; #\\
 		$$env:Path += ";$(MSBUILD_PATH)" ; #\\
-		$$env:Path += ";$$msvc_path\bin\Host$(CPU_ARCH_LOWER)\$(CPU_ARCH_LOWER)" ; #\\
+		$$env:Path += ";$$msvc_path\bin\Host$(MSVC_PLATFORM)\$(MSVC_PLATFORM)" ; #\\
 	} elseif (Test-Path "$(BUILDTOOLS_DIR)") { #\\
 		$$msvc_path = Get-ChildItem -Path "$(BUILDTOOLS_MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName ; #\\
 		$$env:Path += ";$(BUILDTOOLS_MSBUILD_PATH)" ; #\\
-		$$env:Path += ";$$msvc_path\bin\Host$(CPU_ARCH_LOWER)\$(CPU_ARCH_LOWER)" ; #\\
+		$$env:Path += ";$$msvc_path\bin\Host$(MSVC_PLATFORM)\$(MSVC_PLATFORM)" ; #\\
 	} else { #\\
 		Write-Output "MSVS not found, skipping PATH setup" ; #\\
 	}
