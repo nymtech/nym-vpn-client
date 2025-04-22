@@ -34,7 +34,7 @@ pub enum Command {
     /// Disconnect from the Nym network.
     Disconnect {
         /// Blocks until disconnected.
-        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
+        #[arg(short, long, default_value = "false", action = ArgAction::SetTrue)]
         wait: bool,
     },
 
