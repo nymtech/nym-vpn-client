@@ -104,8 +104,12 @@ create_target_dir:
 
 # Add Go, MSBuild and MSVC to PATH
 define setup_env_path
-	$$msvc_path = Get-ChildItem -Path "$(MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName ; #\\
-	$$env:Path += ";$(GO_PATH)" ; #\\
-	$$env:Path += ";$(MSBUILD_PATH)" ; #\\
-	$$env:Path += ";$$msvc_path\bin\Host$(CPU_ARCH_LOWER)\$(CPU_ARCH_LOWER)" ;
+	if (Test-Path "$(MSVS_DIR)") { #\\
+		$$msvc_path = Get-ChildItem -Path "$(MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName ; #\\
+		$$env:Path += ";$(GO_PATH)" ; #\\
+		$$env:Path += ";$(MSBUILD_PATH)" ; #\\
+		$$env:Path += ";$$msvc_path\bin\Host$(CPU_ARCH_LOWER)\$(CPU_ARCH_LOWER)" ; #\\
+	} else { #\\
+		Write-Output "MSVS not found, skipping PATH setup" ; #\\
+	}
 endef
