@@ -57,6 +57,7 @@ jobs:
 
       - name: Setup msys2
         uses: msys2/setup-msys2@v2
+        id: msys2
         with:
           update: false
           msystem: MINGW64
@@ -68,6 +69,8 @@ jobs:
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
       - name: Build Windows dependencies: winfw, libwg, wintun
+        env:
+          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
         run: make -f nym-vpn-core/Windows.mk CPU_ARCH=amd64
 
       - name: rustfmt check
