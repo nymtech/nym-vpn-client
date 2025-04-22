@@ -16,7 +16,7 @@ pub enum Error {
     Command(#[from] nym_vpn_lib_types::AccountCommandError),
 
     #[error("device time not synced")]
-    DeviceTimeNotSynced,
+    DeviceTimeOutOfSync,
 
     #[error(transparent)]
     SyncAccount(#[from] SyncAccountError),
@@ -42,7 +42,7 @@ pub async fn check_device_time_sync(
 
     if device_time.is_not_synced() {
         tracing::error!("Device time is not synced with the vpn-api. Please sync your device time and try again.");
-        return Err(Error::DeviceTimeNotSynced);
+        return Err(Error::DeviceTimeOutOfSync);
     }
 
     Ok(())

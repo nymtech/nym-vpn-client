@@ -83,8 +83,8 @@ impl From<ClientErrorReason> for ProtoError {
                 reason: ErrorStateReason::Api.into(),
                 detail,
             },
-            ClientErrorReason::DeviceTimeNotSynced => ProtoError {
-                reason: ErrorStateReason::DeviceTimeSync.into(),
+            ClientErrorReason::DeviceTimeOutOfSync => ProtoError {
+                reason: ErrorStateReason::DeviceTimeOutOfSync.into(),
                 detail: None,
             },
             ClientErrorReason::Internal(detail) => ProtoError {

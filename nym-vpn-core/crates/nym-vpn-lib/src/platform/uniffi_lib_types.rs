@@ -232,7 +232,7 @@ pub enum ErrorStateReason {
     SubscriptionExpired,
     Dns(Option<String>),
     Api(Option<String>),
-    DeviceTimeNotSynced,
+    DeviceTimeOutOfSync,
     Internal(Option<String>),
 }
 
@@ -498,7 +498,7 @@ impl From<ClientErrorReason> for ErrorStateReason {
             ClientErrorReason::SubscriptionExpired => Self::SubscriptionExpired,
             ClientErrorReason::Dns(message) => Self::Dns(message),
             ClientErrorReason::Api(message) => Self::Api(message),
-            ClientErrorReason::DeviceTimeNotSynced => Self::DeviceTimeNotSynced,
+            ClientErrorReason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
             ClientErrorReason::Internal(message) => Self::Internal(message),
         }
     }

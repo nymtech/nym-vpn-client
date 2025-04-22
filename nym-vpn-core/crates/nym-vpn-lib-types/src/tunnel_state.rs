@@ -203,7 +203,7 @@ pub enum ErrorStateReason {
 
     /// The device time is not synced with the server time.
     /// If the time is not synced, the device will not be able to connect to the entry gateways.
-    DeviceTimeNotSynced,
+    DeviceTimeOutOfSync,
 
     /// Program errors that must not happen.
     Internal(String),
@@ -221,7 +221,7 @@ pub enum ClientErrorReason {
     SubscriptionExpired,
     Dns(Option<String>),
     Api(Option<String>),
-    DeviceTimeNotSynced,
+    DeviceTimeOutOfSync,
     Internal(Option<String>),
 }
 
@@ -256,7 +256,7 @@ impl From<ErrorStateReason> for ClientErrorReason {
             ErrorStateReason::ResolveGatewayAddrs => Self::Dns(Some(value.to_string())),
             ErrorStateReason::StartLocalDnsResolver => Self::Dns(Some(value.to_string())),
             ErrorStateReason::Dns => Self::Dns(Some(value.to_string())),
-            ErrorStateReason::DeviceTimeNotSynced => Self::DeviceTimeNotSynced,
+            ErrorStateReason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
         }
     }
 }

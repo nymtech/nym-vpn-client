@@ -615,7 +615,7 @@ pub enum Error {
     Account(#[from] account::Error),
 
     #[error("device time not synced")]
-    DeviceTimeNotSynced,
+    DeviceTimeOutOfSync,
 }
 
 impl Error {
@@ -647,7 +647,7 @@ impl Error {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::GetRouteHandle(e) => ErrorStateReason::Internal(e.to_string()),
             Self::Account(err) => err.error_state_reason()?,
-            Self::DeviceTimeNotSynced => ErrorStateReason::DeviceTimeNotSynced,
+            Self::DeviceTimeOutOfSync => ErrorStateReason::DeviceTimeOutOfSync,
         })
     }
 }
@@ -703,7 +703,7 @@ impl account::Error {
             Self::RegisterDevice(e) => Some(e.into()),
             Self::RequestZkNym(e) => Some(e.into()),
             Self::Command(e) => Some(ErrorStateReason::Internal(e.to_string())),
-            Self::DeviceTimeNotSynced => Some(ErrorStateReason::DeviceTimeNotSynced),
+            Self::DeviceTimeOutOfSync => Some(ErrorStateReason::DeviceTimeOutOfSync),
             Self::Cancelled => None,
         }
     }
