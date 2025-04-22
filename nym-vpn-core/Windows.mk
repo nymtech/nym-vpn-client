@@ -21,6 +21,7 @@ MSVC_PATH := $(MSVS_DIR)/VC/Tools/MSVC
 MSBUILD_PATH := $(MSVS_DIR)/MSBuild/Current/Bin
 
 BUILDTOOLS_DIR := $(ProgramFiles(x86))/Microsoft Visual Studio/2022/BuildTools
+BUILDTOOLS_MSVC_PATH := $(BUILDTOOLS_DIR)/VC/Tools/MSVC
 BUILDTOOLS_MSBUILD_PATH := $(BUILDTOOLS_DIR)/MSBuild/Current/Bin
 
 # Make on Windows is a 32-bit application
@@ -114,7 +115,7 @@ define setup_env_path
 		$$env:Path += ";$(MSBUILD_PATH)" ; #\\
 		$$env:Path += ";$$msvc_path\bin\Host$(CPU_ARCH_LOWER)\$(CPU_ARCH_LOWER)" ; #\\
 	} elseif (Test-Path "$(BUILDTOOLS_DIR)") { #\\
-		$$msvc_path = Get-ChildItem -Path "$(BUILDTOOLS_DIR)" -Directory | Select-Object -ExpandProperty FullName ; #\\
+		$$msvc_path = Get-ChildItem -Path "$(BUILDTOOLS_MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName ; #\\
 		$$env:Path += ";$(BUILDTOOLS_MSBUILD_PATH)" ; #\\
 		$$env:Path += ";$$msvc_path\bin\Host$(CPU_ARCH_LOWER)\$(CPU_ARCH_LOWER)" ; #\\
 	} else { #\\
