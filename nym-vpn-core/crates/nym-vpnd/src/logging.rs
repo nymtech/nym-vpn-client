@@ -50,6 +50,20 @@ impl FileAppender {
     pub(crate) fn new() -> Self {
         let log_dir = service::log_dir();
         let log_file = service::DEFAULT_LOG_FILE.to_string();
+
+        let mut log_file_path = log_dir.clone();
+        log_file_path.push(&log_file);
+        let mut old_log_file_path = log_dir.clone();
+        old_log_file_path.push(service::DEFAULT_OLD_LOG_FILE);
+
+        if std::fs::exists(&log_file_path).unwrap_or(false)
+            && std::fs::rename(&log_file_path, &old_log_file_path).is_err()
+        {
+            tracing::warn!(
+                "Log rotation could not be performed, we're going to just append to the same file"
+            );
+        }
+
         let inner = Arc::new(Mutex::new(Some(tracing_appender::rolling::never(
             log_dir.clone(),
             &log_file,
@@ -62,8 +76,8 @@ impl FileAppender {
     }
 
     pub(crate) async fn refresh(&mut self) {
-        let mut file_path = service::log_dir();
-        file_path.push(service::DEFAULT_LOG_FILE);
+        let mut file_path = self.log_dir.clone();
+        file_path.push(&self.log_file);
         let mut file_lock = self.inner.lock().await;
         // drop the file appeneder, so that we can remove the file in the next step
         let _ = file_lock.take();
@@ -73,8 +87,8 @@ impl FileAppender {
         }
         // re-create the empty file
         *file_lock = Some(tracing_appender::rolling::never(
-            service::log_dir(),
-            service::DEFAULT_LOG_FILE,
+            &self.log_dir,
+            &self.log_file,
         ));
     }
 }
@@ -91,8 +105,6 @@ impl LogFileRemover {
         logging_setup: LoggingSetup,
         shutdown_token: CancellationToken,
     ) -> Self {
-        let mut file_path = service::log_dir();
-        file_path.push(service::DEFAULT_LOG_FILE);
         Self {
             tunnel_event_rx,
             logging_setup,

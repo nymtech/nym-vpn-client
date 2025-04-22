@@ -18,6 +18,7 @@ const DEFAULT_LOG_DIR: &str = "/var/log/nym-vpnd";
 const DEFAULT_CONFIG_DIR: &str = "/etc/nym";
 pub const DEFAULT_CONFIG_FILE: &str = "nym-vpnd.toml";
 pub const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
+pub const DEFAULT_OLD_LOG_FILE: &str = "nym-vpnd.old.log";
 
 pub const DEFAULT_GLOBAL_CONFIG_FILE: &str = "config.toml";
 
