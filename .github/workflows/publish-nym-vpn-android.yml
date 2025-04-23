@@ -313,9 +313,15 @@ jobs:
         with:
           go-version: '1.23.6'  # If this changes, we need a PR to Fdroid to update pipeline for reproducibility
 
-      - name: Install cargo deps
-        run: |
-          cargo install --locked cargo-ndk cargo-license
+      - name: Install cargo-ndk
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-ndk
+      
+      - name: Install cargo-license
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-license
 
       # Here we need to decode keystore.jks from base64 string and place it
       # in the folder specified in the release signing configuration

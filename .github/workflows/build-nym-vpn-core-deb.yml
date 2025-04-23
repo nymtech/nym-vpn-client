@@ -36,9 +36,10 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
 
-      - name: Setup cargo deb
-        run: |
-          cargo install --locked cargo-deb
+      - name: Install cargo-deb
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-deb
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -53,7 +54,9 @@ jobs:
           subcommand: workspace.package.version --entry nym-vpn-core
 
       - name: Install cargo-edit
-        run: cargo install --locked cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
 
       - name: Append timestamp if it's a dev version
         run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}
