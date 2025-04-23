@@ -267,10 +267,22 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             network_env: network_env.clone(),
         };
 
+        let route_handler = nym_vpn_lib::tunnel_state_machine::RouteHandler::new()
+            .await
+            .map_err(nym_vpn_lib::tunnel_state_machine::Error::CreateRouteHandler)
+            .map_err(Error::StateMachine)?;
+
+        let offline_monitor = nym_offline_monitor::spawn_monitor(
+            route_handler.inner_handle(),
+            #[cfg(target_os = "linux")]
+            Some(nym_vpn_lib::tunnel_state_machine::TUNNEL_FWMARK),
+        )
+        .await;
+
         let account_controller = AccountController::new(
             account_controller_config,
             Arc::clone(&storage),
-            None,
+            Some(offline_monitor.clone()),
             shutdown_token.child_token(),
         )
         .await
@@ -314,6 +326,9 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             nym_config,
             tunnel_settings,
             account_command_tx.clone(),
+            offline_monitor,
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            route_handler,
             shutdown_token.child_token(),
         )
         .await

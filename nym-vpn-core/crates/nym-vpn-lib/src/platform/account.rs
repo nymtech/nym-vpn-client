@@ -3,7 +3,6 @@
 
 use std::{path::PathBuf, str::FromStr, sync::Arc, time::Duration};
 
-use nym_offline_monitor::Connectivity;
 use nym_vpn_account_controller::{
     shared_state::DeviceState, AccountCommandSender, SharedAccountState,
 };
@@ -65,11 +64,6 @@ async fn start_account_controller(
     let user_agent = crate::util::construct_user_agent();
     let shutdown_token = CancellationToken::new();
 
-    // Since the offline monitor is only started later, together with the state machine. Assume
-    // online.
-    // TODO: the whole mobile API should be refactored to start the state machine on init.
-    let initial_connectivity = Connectivity::PresumeOnline;
-
     let account_controller_config = nym_vpn_account_controller::AccountControllerConfig {
         data_dir,
         user_agent,
@@ -80,7 +74,7 @@ async fn start_account_controller(
     let account_controller = nym_vpn_account_controller::AccountController::new(
         account_controller_config,
         Arc::clone(&storage),
-        Some(initial_connectivity),
+        None,
         shutdown_token.child_token(),
     )
     .await

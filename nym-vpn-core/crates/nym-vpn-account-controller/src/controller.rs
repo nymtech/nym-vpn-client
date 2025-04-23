@@ -76,7 +76,7 @@ where
     pub async fn new(
         config: AccountControllerConfig,
         storage: Arc<tokio::sync::Mutex<S>>,
-        initial_connectivity: Option<Connectivity>,
+        connectivity_handle: Option<ConnectivityHandle>,
         cancel_token: CancellationToken,
     ) -> Result<Self, Error> {
         tracing::info!(
@@ -97,11 +97,21 @@ where
         // The channels used to communicate with the controller
         let command_channel = tokio::sync::mpsc::unbounded_channel();
 
+        let initial_state = if let Some(connectivity_handle) = connectivity_handle.as_ref() {
+            connectivity_handle.connectivity().await
+        } else {
+            // Since the offline monitor is only started later, together with the state machine. Assume
+            // online.
+            // TODO: the whole mobile API should be refactored to start the state machine on init.
+            Connectivity::PresumeOnline
+        };
+
         // The offline watch is used to keep track of the current connectivity state, since we
         // don't want to do certain operations when we are offline
         let offline_watch = OfflineWatch::new(
+            connectivity_handle,
             AccountCommandSender::new(command_channel.0.clone(), account_state.clone()),
-            initial_connectivity.unwrap_or(Connectivity::new_presume_offline()),
+            initial_state,
         );
 
         // Keep track of the commands that are currently running

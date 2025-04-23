@@ -153,6 +153,21 @@ pub(super) async fn start_state_machine(
         }
     });
 
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    let route_handler = crate::tunnel_state_machine::RouteHandler::new()
+        .await
+        .map_err(crate::tunnel_state_machine::Error::CreateRouteHandler)?;
+
+    let offline_monitor = nym_offline_monitor::spawn_monitor(
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        route_handler.inner_handle(),
+        #[cfg(target_os = "android")]
+        crate::tunnel_state_machine::AndroidConnectivityAdapter::new(config.tun_provider.clone()),
+        #[cfg(target_os = "linux")]
+        Some(crate::tunnel_state_machine::TUNNEL_FWMARK),
+    )
+    .await;
+
     let shutdown_token = CancellationToken::new();
     let state_machine_handle = TunnelStateMachine::spawn(
         command_receiver,
@@ -160,6 +175,9 @@ pub(super) async fn start_state_machine(
         nym_config,
         tunnel_settings,
         account_controller_tx,
+        offline_monitor,
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        route_handler,
         #[cfg(any(target_os = "ios", target_os = "android"))]
         config.tun_provider,
         shutdown_token.child_token(),

@@ -98,7 +98,7 @@ impl RouteHandler {
     }
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    pub(super) fn inner_handle(&self) -> nym_routing::RouteManagerHandle {
+    pub fn inner_handle(&self) -> nym_routing::RouteManagerHandle {
         self.route_manager.clone()
     }
 

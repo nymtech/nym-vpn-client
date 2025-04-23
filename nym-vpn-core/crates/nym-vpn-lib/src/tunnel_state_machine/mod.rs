@@ -27,6 +27,7 @@ use std::{
     path::PathBuf,
 };
 
+use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::AccountCommandSender;
 use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -56,10 +57,14 @@ use crate::{
     bandwidth_controller::Error as BandwidthControllerError, GatewayDirectoryError,
     MixnetClientConfig,
 };
+#[cfg(target_os = "android")]
+pub use android_connectivity_adapter::AndroidConnectivityAdapter;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use dns_handler::DnsHandlerHandle;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use route_handler::RouteHandler;
+pub use route_handler::RouteHandler;
+#[cfg(target_os = "linux")]
+pub use route_handler::TUNNEL_FWMARK;
 use states::{DisconnectedState, OfflineState};
 
 #[async_trait::async_trait]
@@ -390,12 +395,15 @@ pub struct TunnelStateMachine {
 }
 
 impl TunnelStateMachine {
+    #[allow(clippy::too_many_arguments)]
     pub async fn spawn(
         command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
         event_sender: mpsc::UnboundedSender<TunnelEvent>,
         nym_config: NymConfig,
         tunnel_settings: TunnelSettings,
         account_command_tx: AccountCommandSender,
+        offline_monitor: ConnectivityHandle,
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         shutdown_token: CancellationToken,
@@ -406,11 +414,6 @@ impl TunnelStateMachine {
             .map_err(Error::StartLocalDnsResolver)?;
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        let route_handler = RouteHandler::new()
-            .await
-            .map_err(Error::CreateRouteHandler)?;
-
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let dns_handler_shutdown_token = CancellationToken::new();
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let (dns_handler, dns_handler_task) = DnsHandlerHandle::spawn(
@@ -419,16 +422,6 @@ impl TunnelStateMachine {
             dns_handler_shutdown_token.child_token(),
         )
         .map_err(Error::CreateDnsHandler)?;
-
-        let offline_monitor = nym_offline_monitor::spawn_monitor(
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            route_handler.inner_handle(),
-            #[cfg(target_os = "android")]
-            android_connectivity_adapter::AndroidConnectivityAdapter::new(tun_provider.clone()),
-            #[cfg(target_os = "linux")]
-            Some(route_handler::TUNNEL_FWMARK),
-        )
-        .await;
 
         let offline_watch = offline_monitor.clone();
         account_command_tx
