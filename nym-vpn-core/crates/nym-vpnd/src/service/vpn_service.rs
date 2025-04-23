@@ -4,7 +4,6 @@
 use std::{net::IpAddr, path::PathBuf, sync::Arc, time::Instant};
 
 use bip39::Mnemonic;
-use nym_offline_monitor::Connectivity;
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
@@ -267,14 +266,25 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             credentials_mode: None,
             network_env: network_env.clone(),
         };
-        // Since the offline monitor is only started later, together with the state machine. Assume
-        // online.
-        let initial_connectivity = Connectivity::PresumeOnline;
+
+        let route_handler = nym_vpn_lib::tunnel_state_machine::RouteHandler::new()
+            .await
+            .map_err(nym_vpn_lib::tunnel_state_machine::Error::CreateRouteHandler)
+            .map_err(Error::StateMachine)?;
+
+        let offline_monitor = nym_offline_monitor::spawn_monitor(
+            route_handler.inner_handle(),
+            #[cfg(target_os = "linux")]
+            Some(nym_vpn_lib::tunnel_state_machine::TUNNEL_FWMARK),
+        )
+        .await;
+
+        let initial_connectivity = offline_monitor.connectivity().await;
 
         let account_controller = AccountController::new(
             account_controller_config,
             Arc::clone(&storage),
-            Some(initial_connectivity),
+            initial_connectivity,
             shutdown_token.child_token(),
         )
         .await
@@ -318,6 +328,9 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             nym_config,
             tunnel_settings,
             account_command_tx.clone(),
+            offline_monitor,
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            route_handler,
             shutdown_token.child_token(),
         )
         .await

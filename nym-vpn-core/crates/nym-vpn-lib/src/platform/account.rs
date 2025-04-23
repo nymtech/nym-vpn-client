@@ -80,7 +80,7 @@ async fn start_account_controller(
     let account_controller = nym_vpn_account_controller::AccountController::new(
         account_controller_config,
         Arc::clone(&storage),
-        Some(initial_connectivity),
+        initial_connectivity,
         shutdown_token.child_token(),
     )
     .await

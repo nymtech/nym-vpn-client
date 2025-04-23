@@ -76,7 +76,7 @@ where
     pub async fn new(
         config: AccountControllerConfig,
         storage: Arc<tokio::sync::Mutex<S>>,
-        initial_connectivity: Option<Connectivity>,
+        initial_connectivity: Connectivity,
         cancel_token: CancellationToken,
     ) -> Result<Self, Error> {
         tracing::info!(
@@ -101,7 +101,7 @@ where
         // don't want to do certain operations when we are offline
         let offline_watch = OfflineWatch::new(
             AccountCommandSender::new(command_channel.0.clone(), account_state.clone()),
-            initial_connectivity.unwrap_or(Connectivity::new_presume_offline()),
+            initial_connectivity,
         );
 
         // Keep track of the commands that are currently running
