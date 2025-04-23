@@ -1,13 +1,17 @@
 # Makefile used for building Windows dependencies used by nym-vpnd
 # 
 # Supported variables:
-# - CPU_ARCH: CPU architecture (amd64 or arm64)
+#
+# Primary variables:
+# - CPU_ARCH: CPU architecture (amd64 or arm64, default is the architecture of the machine)
 # - RELEASE: 1 for release build, 0 for debug build (default if omitted)
 # - TARGET_DIR: Directory to copy the built DLLs to (default is target/debug or target/release, depending on RELEASE)
+#
+# CI extras:
 # - PWSH: Set to 1 to use PowerShell Core (pwsh) instead of Windows PowerShell (powershell)
+# - MSYS2_LOCATION: Location of MSYS2 installation (default is C:/msys64)
 
-# Powershell configuration on CI does not support the `Expand-Archive` cmdlet.
-# Therefore prefer pwsh instead. On stock Windows 11 installation Powershell seems to work just fine.
+# Powershell on CI does not support the `Expand-Archive` cmdlet. Prefer pwsh instead.
 ifdef PWSH
 	SHELL := $(ProgramW6432)/PowerShell/7/pwsh.exe
 else
