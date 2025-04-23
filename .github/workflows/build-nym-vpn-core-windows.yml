@@ -88,13 +88,17 @@ jobs:
           name: ${{ env.WINFW_LIB_NAME }}.dll
           path: ${{ env.WINFW_PATH }}/
 
-      - name: Download/Unzip/Move wintun.zip, also move libwg and winfw lib
+      - name: Move libwg and winfw lib
         shell: bash
         working-directory: nym-vpn-core
         run: |
-          make -f Windows.mk wintun CPU_ARCH=amd64 TARGET_DIR=${{ github.workspace }}/nym-vpn-core
           mv '${{ env.LIBS_PATH }}/libwg.dll' .
           mv '${{ env.WINFW_PATH }}/winfw.dll' .
+
+      - name: Download wintun
+        shell: pwsh
+        run: |
+          make -f Windows.mk wintun CPU_ARCH=amd64 TARGET_DIR=${{ github.workspace }}/nym-vpn-core
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
