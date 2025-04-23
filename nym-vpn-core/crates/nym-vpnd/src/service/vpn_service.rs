@@ -279,12 +279,10 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         )
         .await;
 
-        let initial_connectivity = offline_monitor.connectivity().await;
-
         let account_controller = AccountController::new(
             account_controller_config,
             Arc::clone(&storage),
-            initial_connectivity,
+            Some(offline_monitor.clone()),
             shutdown_token.child_token(),
         )
         .await
