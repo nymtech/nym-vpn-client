@@ -18,7 +18,7 @@ MSYS2_SHELL := $(MSYS2_LOCATION)/msys2_shell.cmd
 GO_PATH := $(ProgramW6432)/Go/bin
 MSVS_DIR := $(ProgramW6432)/Microsoft Visual Studio/2022/Community
 MSVC_PATH := $(MSVS_DIR)/VC/Tools/MSVC
-MSBUILD_PATH := $(MSVS_DIR)/MSBuild/Current/Bin
+MSVC_MSBUILD_PATH := $(MSVS_DIR)/MSBuild/Current/Bin
 
 BUILDTOOLS_DIR := ${ProgramFiles(x86)}/Microsoft Visual Studio/2022/BuildTools
 BUILDTOOLS_MSVC_PATH := $(BUILDTOOLS_DIR)/VC/Tools/MSVC
@@ -57,8 +57,10 @@ endif
 LIBWG_BUILD_DIR := $(CURDIR)/../build/lib/$(RUST_TARGET)-pc-windows-msvc
 LIBWG_DLL := libwg.dll
 
-WINFW_BUILD_DIR := $(CURDIR)/../build/winfw/$(WINFW_PLATFORM)-$(WINFW_PROFILE)
+WINFW_DIST_DIR := $(CURDIR)/../build/winfw/$(WINFW_PLATFORM)-$(WINFW_PROFILE)
+WINFW_BUILD_DIR := $(CURDIR)/../nym-vpn-windows/winfw/bin/$(WINFW_PLATFORM)-$(WINFW_PROFILE)
 WINFW_DLL := winfw.dll
+WINFW_LIB := winfw.lib
 
 # Ensure that msys2 inherits PATH from environment
 export MSYS2_PATH_TYPE = inherit
@@ -81,9 +83,17 @@ libwg: create_target_dir
 	Copy-Item "$(LIBWG_BUILD_DIR)/$(LIBWG_DLL)" -Destination "$(TARGET_DIR)/$(LIBWG_DLL)" -Force -Verbose
 
 winfw: create_target_dir
+# Setup environment and build winfw
 	$(call setup_env_path) ; #\
-	powershell -ExecutionPolicy Bypass -Command "$(CURDIR)/../build-windows-modules.ps1" -BuildConfiguration $(WINFW_PROFILE) -Platform $(WINFW_PLATFORM) -CopyToBuildDir 1
-	Copy-Item "$(WINFW_BUILD_DIR)/$(WINFW_DLL)" -Destination "$(TARGET_DIR)/$(WINFW_DLL)" -Force -Verbose
+	MSBuild.exe /m "$(CURDIR)/../nym-vpn-windows/winfw/winfw.sln" /p:Configuration=$(WINFW_PROFILE) /p:Platform=$(WINFW_PLATFORM)
+	
+# Copy winfw dll and lib to distribution directory where nym-vpn-core looks for import lib
+	New-Item -ItemType Directory -Force -Path "$(WINFW_DIST_DIR)" -Verbose
+	Copy-Item "$(WINFW_BUILD_DIR)/$(WINFW_DLL)" -Destination "$(WINFW_DIST_DIR)/$(WINFW_DLL)" -Force -Verbose
+	Copy-Item "$(WINFW_BUILD_DIR)/$(WINFW_LIB)" -Destination "$(WINFW_DIST_DIR)/$(WINFW_LIB)" -Force -Verbose
+
+# Copy winfw dll to target directory
+	Copy-Item "$(WINFW_DIST_DIR)/$(WINFW_DLL)" -Destination "$(TARGET_DIR)/$(WINFW_DLL)" -Force -Verbose
 
 wintun: create_target_dir
 # Download and extract wintun
@@ -110,11 +120,13 @@ create_target_dir:
 	}
 
 # Add Go, MSBuild and MSVC to PATH
+# Both Visual Studio and build tools come with the same set of tools
+# Check if one or the other exist and add relevant directories to PATH
 define setup_env_path
 	$$env:Path += ";$(GO_PATH)" ; #\\
 	if (Test-Path "$(MSVS_DIR)") { #\\
 		$$msvc_path = Get-ChildItem -Path "$(MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName ; #\\
-		$$env:Path += ";$(MSBUILD_PATH)" ; #\\
+		$$env:Path += ";$(MSVC_MSBUILD_PATH)" ; #\\
 		$$env:Path += ";$$msvc_path\bin\Host$(MSVC_PLATFORM)\$(MSVC_PLATFORM)" ; #\\
 		Write-Output "Add env for MSVS"; #\\
 	} elseif (Test-Path "$(BUILDTOOLS_DIR)") { #\\
@@ -123,6 +135,6 @@ define setup_env_path
 		$$env:Path += ";$$msvc_path\bin\Host$(MSVC_PLATFORM)\$(MSVC_PLATFORM)" ; #\\
 		Write-Output "Add env for MS build tools"; #\\
 	} else { #\\
-		Write-Output "MSVS not found, skipping PATH setup" ; #\\
+		Write-Output "Neither Visual Studio nor Build tools can be located, skipping PATH setup" ; #\\
 	}
 endef
