@@ -45,6 +45,7 @@ jobs:
         run: |
           Set-PSRepository PSGallery -InstallationPolicy Trusted
           Install-Module Microsoft.PowerShell.Archive -Confirm
+          Import-Module Microsoft.PowerShell.Archive
           Set-PSRepository PSGallery -InstallationPolicy Untrusted
 
       - name: Install GNU make
