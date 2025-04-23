@@ -93,8 +93,8 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           make -f Windows.mk wintun CPU_ARCH=amd64 TARGET_DIR=${{ github.workspace }}/nym-vpn-core
-          #mv '${{ env.LIBS_PATH }}/libwg.dll' .
-          #mv '${{ env.WINFW_PATH }}/winfw.dll' .
+          mv '${{ env.LIBS_PATH }}/libwg.dll' .
+          mv '${{ env.WINFW_PATH }}/winfw.dll' .
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
