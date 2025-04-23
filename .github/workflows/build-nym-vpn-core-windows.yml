@@ -41,8 +41,7 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Unleash the power of Powershell
-        shell: powershell -command "{0}"
-        run: Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser
+        run: powershell.exe -command "Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser"
 
       - name: Install Powershell modules
         shell: powershell
