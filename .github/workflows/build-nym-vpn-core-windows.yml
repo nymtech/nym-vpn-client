@@ -40,6 +40,11 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
+      - name: Install Powershell modules
+        shell: pwsh
+        run: |
+          powershell -ExecutionPolicy Bypass -Command  Install-Module Microsoft.PowerShell.Archive -Confirm
+
       - name: Install GNU make
         run: |
           winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
