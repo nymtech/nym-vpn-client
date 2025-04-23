@@ -96,9 +96,6 @@ winfw: create_target_dir
 	Copy-Item "$(WINFW_DIST_DIR)/$(WINFW_DLL)" -Destination "$(TARGET_DIR)/$(WINFW_DLL)" -Force -Verbose
 
 wintun: create_target_dir
-# Activate archive module which is not loaded by default
-	Import-Module Microsoft.PowerShell.Archive #\
-	
 # Download and extract wintun
 	Invoke-WebRequest "$(WIUNTUN_URL)" -OutFile "$(TMP)/wintun.zip"; #\
 	Expand-Archive -Path $(TMP)/wintun.zip -DestinationPath "$(TMP)" -Force; #\
