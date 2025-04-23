@@ -44,7 +44,7 @@ If you omit the `RELEASE` flag or set it to `0`, the binaries will be put into `
 
 > [!NOTE] 
 > Note that the `RELEASE` flag only affects the build configuration for `winfw`.
-> Both libwg and wintun are always provided as release binaries.
+> Both `libwg` and `wintun` are always provided as release binaries.
 
 For convenience, all build artifacts are also mirrored under `build/` directory in the repo root.
 
