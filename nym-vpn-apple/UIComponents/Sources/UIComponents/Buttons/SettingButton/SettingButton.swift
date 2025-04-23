@@ -19,11 +19,11 @@ public struct SettingButton: View {
                     .padding(.leading, 16)
 
                 VStack(alignment: .leading) {
-                    Text(viewModel.title)
+                    LocalizedText(viewModel.title)
                         .foregroundStyle(NymColor.primary)
                         .textStyle(.Body.Large.regular)
                     if let subtitle = viewModel.subtitle {
-                        Text(subtitle)
+                        LocalizedText(subtitle)
                             .foregroundStyle(NymColor.gray1)
                             .textStyle(.Body.Medium.regular)
                     }

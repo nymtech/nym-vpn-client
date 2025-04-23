@@ -35,7 +35,7 @@ public enum StatusButtonConfig: String {
     }
 
     var title: String {
-        self.rawValue.localizedString
+        self.rawValue
     }
 
     var textColor: Color {

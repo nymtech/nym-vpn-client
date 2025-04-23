@@ -86,7 +86,7 @@ private extension HomeView {
     @ViewBuilder
     func networkModeSection() -> some View {
         HStack {
-            Text(viewModel.networkSelectLocalizedTitle)
+            LocalizedText(viewModel.networkSelectLocalizedTitle)
                 .textStyle(.Headline.Small.regular)
             Spacer()
             GenericImage(systemImageName: "info.circle", allowsHover: true)
@@ -102,21 +102,17 @@ private extension HomeView {
         Spacer()
             .frame(height: 12)
 
-        NetworkButton(
-            viewModel: viewModel.fastButtonViewModel
-        )
-        .padding(EdgeInsets(top: 0, leading: 16, bottom: 12, trailing: 16))
-        .onTapGesture {
-            viewModel.connectionManager.connectionType = .wireguard
-        }
+        NetworkButton(viewModel: viewModel.fastButtonViewModel)
+            .padding(EdgeInsets(top: 0, leading: 16, bottom: 12, trailing: 16))
+            .onTapGesture {
+                viewModel.connectionManager.connectionType = .wireguard
+            }
 
-        NetworkButton(
-            viewModel: viewModel.anonymousButtonViewModel
-        )
-        .padding(.horizontal, 16)
-        .onTapGesture {
-            viewModel.connectionManager.connectionType = .mixnet5hop
-        }
+        NetworkButton(viewModel: viewModel.anonymousButtonViewModel)
+            .padding(.horizontal, 16)
+            .onTapGesture {
+                viewModel.connectionManager.connectionType = .mixnet5hop
+            }
         Spacer()
             .frame(height: 20)
     }
@@ -124,7 +120,7 @@ private extension HomeView {
     @ViewBuilder
     func gatewaySection() -> some View {
         HStack {
-            Text(viewModel.connectToLocalizedTitle)
+            LocalizedText(viewModel.connectToLocalizedTitle)
                 .foregroundStyle(NymColor.primary)
                 .textStyle(.Headline.Small.regular)
             Spacer()

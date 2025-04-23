@@ -8,10 +8,10 @@ final class LogsDeleteConfirmationDialogViewModel: ObservableObject {
     let impactGenerator: ImpactGenerator
 #endif
     let trashIconImageName = "trash"
-    let deleteAllLogsLocalizedString = "logs.deleteAllLogs".localizedString
-    let cannotRetrieveLogsLocalizedString = "logs.noRetrieval".localizedString
-    let yesLocalizedString = "logs.yes".localizedString
-    let noLocalizedString = "logs.no".localizedString
+    let deleteAllLogsLocalizedString = "logs.deleteAllLogs"
+    let cannotRetrieveLogsLocalizedString = "logs.noRetrieval"
+    let yesLocalizedString = "logs.yes"
+    let noLocalizedString = "logs.no"
 
     let action: () -> Void
 

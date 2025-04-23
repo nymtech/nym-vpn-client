@@ -13,6 +13,7 @@ import Home
 import HelperManager
 import NotificationsManager
 import NymLogger
+import Localizations
 import Migrations
 import SentryManager
 import SystemMessageManager
@@ -39,6 +40,7 @@ struct NymVPNDaemonApp: App {
     @ObservedObject private var appSettings = AppSettings.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
     @ObservedObject private var countriesManager = CountriesManager.shared
+    @ObservedObject private var localizationManager = LocalizationManager.shared
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
     @StateObject private var welcomeViewModel = WelcomeViewModel()
@@ -94,6 +96,7 @@ struct NymVPNDaemonApp: App {
             .environmentObject(connectionManager)
             .environmentObject(countriesManager)
             .environmentObject(logFileManager)
+            .environmentObject(localizationManager)
         }
         .onChange(of: appSettings.appMode) { newMode in
             configureApp(for: newMode)
@@ -246,13 +249,13 @@ private extension NymVPNDaemonApp {
     @ViewBuilder
     func connectDisconnectButton() -> some View {
         if menuBarConnectButtonState.menuBarItemIsAction {
-            Button(menuBarConnectButtonState.localizedTitle) {
+            Button(menuBarConnectButtonState.localizedTitleKey.localizedString) {
                 Task { @MainActor in
                     try? await connectionManager.connectDisconnect()
                 }
             }
         } else {
-            Text(menuBarConnectButtonState.localizedTitle)
+            LocalizedText(menuBarConnectButtonState.localizedTitleKey)
         }
         Divider()
     }

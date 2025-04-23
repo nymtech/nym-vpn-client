@@ -45,18 +45,18 @@ public final class NetworkButtonViewModel: ObservableObject {
     var title: String {
         switch type {
         case .mixnet5hop:
-            "5hopMixnetTitle".localizedString
+            "5hopMixnetTitle"
         case .wireguard:
-            "2hopMixnetTitle".localizedString
+            "2hopMixnetTitle"
         }
     }
 
     var subtitle: String {
         switch type {
         case .mixnet5hop:
-            "5hopMixnetSubtitle".localizedString
+            "5hopMixnetSubtitle"
         case .wireguard:
-            "2hopWireGuardSubtitle".localizedString
+            "2hopWireGuardSubtitle"
         }
     }
 

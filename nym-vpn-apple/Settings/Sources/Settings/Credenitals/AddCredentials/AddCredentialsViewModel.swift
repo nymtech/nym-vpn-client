@@ -15,8 +15,8 @@ final class AddCredentialsViewModel: ObservableObject {
 #if os(iOS)
     private let keyboardManager: KeyboardManager
 #endif
-    private let newToNymVPNTitle = "addCredentials.newToNymVPN".localizedString
-    private let createAccountTitle = "addCredentials.createAccount".localizedString
+    private let newToNymVPNTitle = "addCredentials.newToNymVPN"
+    private let createAccountTitle = "addCredentials.createAccount"
 
     var signUpLink: String {
         // TODO: readd once the link is updated in the api
@@ -28,11 +28,11 @@ final class AddCredentialsViewModel: ObservableObject {
     }
 
     let appSettings: AppSettings
-    let loginButtonTitle = "addCredentials.Login.Title".localizedString
-    let welcomeTitle = "addCredentials.welcome.Title".localizedString
-    let getStartedTitle = "addCredentials.getStarted.Title".localizedString
-    let mnemonicSubtitle = "addCredtenials.mnemonic".localizedString
-    let credentialsPlaceholderTitle = "addCredentials.placeholder".localizedString
+    let loginButtonTitle = "addCredentials.Login.Title"
+    let welcomeTitle = "addCredentials.welcome.Title"
+    let getStartedTitle = "addCredentials.getStarted.Title"
+    let mnemonicSubtitle = "addCredtenials.mnemonic"
+    let credentialsPlaceholderTitle = "addCredentials.placeholder"
     let scannerIconName = "qrcode.viewfinder"
 
     @Binding private var path: NavigationPath

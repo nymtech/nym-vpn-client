@@ -60,7 +60,7 @@ private extension ModeSelectionInfoView {
 
     @ViewBuilder
     func title() -> some View {
-        Text(viewModel.titleLocalizedString)
+        LocalizedText(viewModel.titleLocalizedString)
             .textStyle(.Headline.Medium.regular)
             .foregroundStyle(NymColor.primary)
 
@@ -76,7 +76,7 @@ private extension ModeSelectionInfoView {
                 .frame(width: 16, height: 16)
                 .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 8))
 
-            Text(viewModel.anonymousTitleLocalizedString)
+            LocalizedText(viewModel.anonymousTitleLocalizedString)
                 .textStyle(.Headline.Small.regular)
                 .foregroundStyle(NymColor.primary)
 
@@ -89,7 +89,7 @@ private extension ModeSelectionInfoView {
     @ViewBuilder
     func anonymousDescription() -> some View {
         HStack {
-            Text(viewModel.anonymousDescriptionLocalizedString)
+            LocalizedText(viewModel.anonymousDescriptionLocalizedString)
                 .foregroundStyle(NymColor.gray1)
                 .textStyle(.Body.Medium.regular)
 
@@ -109,7 +109,7 @@ private extension ModeSelectionInfoView {
                 .frame(width: 16, height: 16)
                 .padding(EdgeInsets(top: 0, leading: 24, bottom: 0, trailing: 8))
 
-            Text(viewModel.fastTitleLocalizedString)
+            LocalizedText(viewModel.fastTitleLocalizedString)
                 .textStyle(.Headline.Small.regular)
                 .foregroundStyle(NymColor.primary)
 
@@ -122,7 +122,7 @@ private extension ModeSelectionInfoView {
     @ViewBuilder
     func fastDescription() -> some View {
         HStack {
-            Text(viewModel.fastDescriptionLocalizedString)
+            LocalizedText(viewModel.fastDescriptionLocalizedString)
                 .foregroundStyle(NymColor.gray1)
                 .textStyle(.Body.Medium.regular)
 
@@ -137,7 +137,7 @@ private extension ModeSelectionInfoView {
     @ViewBuilder
     func continueReadingLink() -> some View {
         HStack {
-            Text(viewModel.continueReadingLocalizedString)
+            LocalizedText(viewModel.continueReadingLocalizedString)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.accent)
 

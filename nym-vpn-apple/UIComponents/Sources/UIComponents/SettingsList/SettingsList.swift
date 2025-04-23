@@ -2,7 +2,7 @@ import SwiftUI
 import Theme
 
 public struct SettingsList: View {
-    private let viewModel: SettingsListViewModel
+    @ObservedObject private var viewModel: SettingsListViewModel
 
     public init(viewModel: SettingsListViewModel) {
         self.viewModel = viewModel

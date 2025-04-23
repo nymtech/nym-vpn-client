@@ -110,7 +110,7 @@ extension GatewayCell {
     }
 
     func serverSubtitleString() -> String {
-        if isSearching, let country = countriesManager.country(with: server.countryCode) {
+        if isSearching, let country = countriesManager.localizedCountry(with: server.countryCode) {
             "\(country.name), \(server.id)"
         } else {
             server.id

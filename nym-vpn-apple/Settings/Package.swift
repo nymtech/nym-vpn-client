@@ -18,6 +18,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../HelperInstall"),
+        .package(path: "../Localizations"),
         .package(path: "../Services"),
         .package(path: "../ServicesIOS"),
         .package(path: "../ServicesMutual"),
@@ -40,6 +41,7 @@ let package = Package(
                 .product(name: "HelperInstall", package: "HelperInstall", condition: .when(platforms: [.macOS])),
                 .product(name: "ImpactGenerator", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "KeyboardManager", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
+                .product(name: "Localizations", package: "Localizations"),
                 .product(name: "SentryManager", package: "Services"),
                 .product(name: "NymLogger", package: "Services"),
                 .product(name: "Theme", package: "Theme"),

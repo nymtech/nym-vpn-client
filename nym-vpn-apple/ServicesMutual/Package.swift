@@ -19,8 +19,8 @@ let package = Package(
         .library(name: "TunnelStatus", targets: ["TunnelStatus"])
     ],
     dependencies: [
-        .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
-        .package(name: "Theme", path: "../Theme")
+        .package(name: "Localizations", path: "../Localizations"),
+        .package(name: "MixnetLibrary", path: "../MixnetLibrary")
     ],
     targets: [
         .target(
@@ -32,7 +32,7 @@ let package = Package(
             name: "ConnectionTypes",
             dependencies: [
                 "CountriesManagerTypes",
-                "Theme"
+                .product(name: "Localizations", package: "Localizations")
             ],
             path: "Sources/ConnectionTypes"
         ),
@@ -46,7 +46,7 @@ let package = Package(
             name: "ErrorReason",
             dependencies: [
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
-                "Theme"
+                .product(name: "Localizations", package: "Localizations")
             ],
             path: "Sources/ErrorReason"
         ),

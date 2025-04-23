@@ -32,13 +32,13 @@ public struct StatusInfoView: View {
 private extension StatusInfoView {
     @ViewBuilder
     func infoLabel() -> some View {
-        Text(infoState.localizedTitle)
+        LocalizedText(infoState.titleLocalizedKey)
             .foregroundStyle(infoState.textColor)
             .textStyle(.Body.Medium.regular)
-            .lineLimit(3, reservesSpace: infoState.localizedTitle.count > 30 ? true : false)
+            .lineLimit(3, reservesSpace: infoState.titleLocalizedKey.count > 30 ? true : false)
             .multilineTextAlignment(.center)
             .transition(.opacity)
-            .animation(.easeInOut, value: infoState.localizedTitle)
+            .animation(.easeInOut, value: infoState.titleLocalizedKey)
         Spacer()
             .frame(height: 8)
     }

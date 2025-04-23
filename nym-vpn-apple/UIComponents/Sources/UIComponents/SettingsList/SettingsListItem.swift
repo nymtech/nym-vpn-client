@@ -78,7 +78,7 @@ private extension SettingsListItem {
     @ViewBuilder
     func titleSubtitle() -> some View {
         VStack(alignment: .leading) {
-            Text(viewModel.title)
+            LocalizedText(viewModel.title)
                 .foregroundStyle(NymColor.primary)
                 .textStyle(.Body.Large.regular)
             if let subtitle = viewModel.subtitle {

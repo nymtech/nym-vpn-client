@@ -13,7 +13,7 @@ public struct StatusButton: View {
 
     public var body: some View {
         HStack(alignment: .center, spacing: 10) {
-            Text(config.title)
+            LocalizedText(config.title)
                 .foregroundStyle(config.textColor)
                 .textStyle(.Headline.Small.regular)
         }

@@ -59,7 +59,7 @@ extension SnackbarView {
 
     @ViewBuilder
     func messageText() -> some View {
-        Text(message)
+        LocalizedText(message)
             .foregroundColor(style.textColor)
             .font(.system(size: 14))
             .frame(alignment: .leading)

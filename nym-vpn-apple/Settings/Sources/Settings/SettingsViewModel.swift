@@ -10,6 +10,7 @@ import ExternalLinkManager
 import HelperInstall
 import HelperManager
 #endif
+import Localizations
 import UIComponents
 
 public class SettingsViewModel: SettingsFlowState {
@@ -20,6 +21,7 @@ public class SettingsViewModel: SettingsFlowState {
 #if os(macOS)
     private let helperManager: HelperManager
 #endif
+    private let localizationManager: LocalizationManager
 
     @ObservedObject private var credentialsManager: CredentialsManager
     private var cancellables = Set<AnyCancellable>()
@@ -28,11 +30,12 @@ public class SettingsViewModel: SettingsFlowState {
         return "settings.deviceId".localizedString + deviceIdentifier
     }
 
-    let settingsTitle = "settings".localizedString
+    let settingsTitle = "settings"
 
     @Published var isLogoutConfirmationDisplayed = false
     @Published var sections: [SettingsSection] = []
     @Published var accountIdentifier: String?
+    @Published var settingsListViewModel: SettingsListViewModel?
 
     var isValidCredentialImported: Bool {
         credentialsManager.isValidCredentialImported
@@ -60,13 +63,15 @@ public class SettingsViewModel: SettingsFlowState {
         configurationManager: ConfigurationManager = .shared,
         connectionManager: ConnectionManager = .shared,
         credentialsManager: CredentialsManager = .shared,
-        externalLinkManager: ExternalLinkManager = .shared
+        externalLinkManager: ExternalLinkManager = .shared,
+        localizationManager: LocalizationManager = .shared
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.connectionManager = connectionManager
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
+        self.localizationManager = localizationManager
         super.init(path: path)
         setup()
     }
@@ -78,7 +83,8 @@ public class SettingsViewModel: SettingsFlowState {
         connectionManager: ConnectionManager = .shared,
         credentialsManager: CredentialsManager = .shared,
         externalLinkManager: ExternalLinkManager = .shared,
-        helperManager: HelperManager = .shared
+        helperManager: HelperManager = .shared,
+        localizationManager: LocalizationManager = .shared
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
@@ -86,6 +92,7 @@ public class SettingsViewModel: SettingsFlowState {
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
         self.helperManager = helperManager
+        self.localizationManager = localizationManager
         super.init(path: path)
         setup()
     }
@@ -127,8 +134,8 @@ private extension SettingsViewModel {
     }
 #endif
 
-    @MainActor func navigateToTheme() {
-        path.append(SettingLink.theme)
+    @MainActor func navigateToAppearance() {
+        path.append(SettingLink.appearance)
     }
 
     @MainActor func navigateToLogs() {
@@ -163,6 +170,7 @@ private extension SettingsViewModel {
         setupAppSettingsObservers()
         setupCredentialManagerObservers()
         configureSections()
+        setupLangaugeObserver()
     }
 
     func setupAppSettingsObservers() {
@@ -183,6 +191,17 @@ private extension SettingsViewModel {
             .store(in: &cancellables)
     }
 
+    func setupLangaugeObserver() {
+        localizationManager.$language
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] _ in
+                MainActor.assumeIsolated {
+                    self?.configureSections()
+                }
+            }
+            .store(in: &cancellables)
+    }
+
     func configureSections() {
         var newSections = [SettingsSection]()
         if appSettings.isCredentialImported {
@@ -192,7 +211,7 @@ private extension SettingsViewModel {
             contentsOf: [
                 feedbackSection(),
                 killswitchSection(),
-                themeSection(),
+                appearanceSection(),
                 legalSection()
             ]
         )
@@ -200,6 +219,15 @@ private extension SettingsViewModel {
             newSections.append(logoutSection())
         }
         sections = newSections
+
+        settingsListViewModel = SettingsListViewModel(
+            sections: sections,
+            appVersion: appVersion(),
+            configurationManager: configurationManager,
+            navigateToSantasMenuAction: { [weak self] in
+                self?.navigateToSantasMenu()
+            }
+        )
     }
 }
 
@@ -231,7 +259,7 @@ private extension SettingsViewModel {
         )
     }
 
-    func themeSection() -> SettingsSection {
+    func appearanceSection() -> SettingsSection {
         var viewModels = [
             SettingsListItemViewModel(
                 accessory: .arrow,
@@ -239,7 +267,7 @@ private extension SettingsViewModel {
                 imageName: "appearance",
                 action: { [weak self] in
                     Task { @MainActor in
-                        self?.navigateToTheme()
+                        self?.navigateToAppearance()
                     }
                 }
             )

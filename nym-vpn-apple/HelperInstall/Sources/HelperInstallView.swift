@@ -73,7 +73,7 @@ extension HelperInstallView {
 
     func openSystemSettingsButton() -> some View {
         GenericButton(
-            title: "helper.installView.openSystemSettings".localizedString,
+            title: "helper.installView.openSystemSettings",
             height: 40,
             isWidthExpanded: false
         )

@@ -7,16 +7,17 @@ import CountriesManagerTypes
 #if os(macOS)
 import GRPCManager
 import HelperManager
-#endif
-#if os(iOS)
+#elseif os(iOS)
 import MixnetLibrary
 #endif
 import Constants
+import Localizations
 import Logging
 
 public final class CountriesManager: ObservableObject {
     private let appSettings: AppSettings
     private let configurationManager: ConfigurationManager
+    private let localizationManager: LocalizationManager
 
     let logger = Logger(label: "CountriesManager")
 #if os(macOS)
@@ -28,15 +29,16 @@ public final class CountriesManager: ObservableObject {
 #if os(iOS)
     public static let shared = CountriesManager(
         appSettings: AppSettings.shared,
-        configurationManager: ConfigurationManager.shared
+        configurationManager: ConfigurationManager.shared,
+        localizationManager: LocalizationManager.shared
     )
-#endif
-#if os(macOS)
+#elseif os(macOS)
     public static let shared = CountriesManager(
         appSettings: .shared,
         grpcManager: .shared,
         helperManager: .shared,
-        configurationManager: .shared
+        configurationManager: .shared,
+        localizationManager: .shared
     )
 #endif
     var isLoading = false
@@ -52,10 +54,12 @@ public final class CountriesManager: ObservableObject {
 #if os(iOS)
     public init(
         appSettings: AppSettings,
-        configurationManager: ConfigurationManager
+        configurationManager: ConfigurationManager,
+        localizationManager: LocalizationManager
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
+        self.localizationManager = localizationManager
         self.entryCountries = []
         self.exitCountries = []
         self.vpnCountries = []
@@ -68,12 +72,14 @@ public final class CountriesManager: ObservableObject {
         appSettings: AppSettings,
         grpcManager: GRPCManager,
         helperManager: HelperManager,
-        configurationManager: ConfigurationManager
+        configurationManager: ConfigurationManager,
+        localizationManager: LocalizationManager
     ) {
         self.appSettings = appSettings
         self.configurationManager = configurationManager
         self.grpcManager = grpcManager
         self.helperManager = helperManager
+        self.localizationManager = localizationManager
         self.entryCountries = []
         self.exitCountries = []
         self.vpnCountries = []
@@ -206,7 +212,7 @@ private extension CountriesManager {
             let data = try Data(contentsOf: fileURL)
             let countryCodes = try JSONDecoder().decode([String].self, from: data)
             let countries = countryCodes.compactMap { [weak self] countryCode in
-                self?.country(with: countryCode)
+                self?.localizedCountry(with: countryCode)
             }
             .sorted(by: { $0.name < $1.name })
 
@@ -236,7 +242,7 @@ private extension CountriesManager {
     func fetchEntryCountries() async throws {
             let countryCodes = try await grpcManager.countryCodes(for: .entry)
             let countries = countryCodes.compactMap { countryCode in
-                country(with: countryCode)
+                localizedCountry(with: countryCode)
             }
             .sorted(by: { $0.name < $1.name })
 
@@ -251,7 +257,7 @@ private extension CountriesManager {
     func fetchExitCountries() async throws {
         let countryCodes = try await grpcManager.countryCodes(for: .exit)
         let countries = countryCodes.compactMap { countryCode in
-            country(with: countryCode)
+            localizedCountry(with: countryCode)
         }
         .sorted(by: { $0.name < $1.name })
 
@@ -266,7 +272,7 @@ private extension CountriesManager {
     func fetchVPNCountries() async throws {
         let countryCodes = try await grpcManager.countryCodes(for: .vpn)
         let countries = countryCodes.compactMap { countryCode in
-            country(with: countryCode)
+            localizedCountry(with: countryCode)
         }
         .sorted(by: { $0.name < $1.name })
 
@@ -298,7 +304,7 @@ private extension CountriesManager {
             )
             logger.info("Fetched \(entryLocations.count) entry countries")
             let newEntryCountries = entryLocations.compactMap {
-                country(with: $0.twoLetterIsoCountryCode)
+                localizedCountry(with: $0.twoLetterIsoCountryCode)
             }
             .sorted(by: { $0.name < $1.name })
 
@@ -309,7 +315,7 @@ private extension CountriesManager {
             )
             logger.info("Fetched \(exitLocations.count) exit countries")
             let newExitCountries = exitLocations.compactMap {
-                country(with: $0.twoLetterIsoCountryCode)
+                localizedCountry(with: $0.twoLetterIsoCountryCode)
             }
             .sorted(by: { $0.name < $1.name })
 
@@ -320,7 +326,7 @@ private extension CountriesManager {
             )
             logger.info("Fetched \(newVpnLocations.count) vpn countries")
             let newVpnCountries = newVpnLocations.compactMap {
-                country(with: $0.twoLetterIsoCountryCode)
+                localizedCountry(with: $0.twoLetterIsoCountryCode)
             }
             .sorted(by: { $0.name < $1.name })
 
@@ -348,8 +354,14 @@ private extension CountriesManager {
 #endif
 
 extension CountriesManager {
-    public func country(with countryCode: String) -> Country? {
-        guard !countryCode.isEmpty, let countryName = Locale.current.localizedString(forRegionCode: countryCode)
+    public func localizedCountry(with countryCode: String) -> Country? {
+        let locale: Locale
+        if localizationManager.language.isEmpty {
+            locale = Locale.current
+        } else {
+            locale = Locale(identifier: localizationManager.language)
+        }
+        guard !countryCode.isEmpty, let countryName = locale.localizedString(forRegionCode: countryCode)
         else {
             logger.log(level: .error, "Failed resolving country code for: \(countryCode)")
             return nil

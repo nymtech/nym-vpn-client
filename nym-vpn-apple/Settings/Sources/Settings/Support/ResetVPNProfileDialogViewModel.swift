@@ -7,10 +7,10 @@ final class ResetVPNProfileDialogViewModel: ObservableObject {
 #if os(iOS)
     let impactGenerator: ImpactGenerator
 #endif
-    let resetVpnProfileTitle = "settings.resetVpnProfileTitle".localizedString
-    let resetVpnProfileSubtitle = "settings.resetVpnProfileSubtitle".localizedString
-    let yesLocalizedString = "logs.yes".localizedString
-    let noLocalizedString = "logs.no".localizedString
+    let resetVpnProfileTitle = "settings.resetVpnProfileTitle"
+    let resetVpnProfileSubtitle = "settings.resetVpnProfileSubtitle"
+    let yesLocalizedString = "logs.yes"
+    let noLocalizedString = "logs.no"
 
     let action: () -> Void
 

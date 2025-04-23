@@ -69,7 +69,7 @@ private extension QuitAppModal {
     }
 
     func closeWindow() -> some View {
-        GenericButton(title: "quit.closeWindow".localizedString, height: 39)
+        GenericButton(title: "quit.closeWindow", height: 39)
             .padding(.horizontal, 24)
             .onTapGesture {
                 isDisplayed = false
@@ -78,7 +78,7 @@ private extension QuitAppModal {
     }
 
     func quitButton() -> some View {
-        GenericButton(title: "quit.quit".localizedString, height: 39)
+        GenericButton(title: "quit.quit", height: 39)
             .padding(.horizontal, 24)
             .onTapGesture {
                 isDisplayed = false
@@ -87,7 +87,7 @@ private extension QuitAppModal {
     }
 
     func cancelButton() -> some View {
-        GenericButton(title: "cancel".localizedString, height: 39)
+        GenericButton(title: "cancel", height: 39)
             .padding(.horizontal, 24)
             .onTapGesture {
                 isDisplayed = false

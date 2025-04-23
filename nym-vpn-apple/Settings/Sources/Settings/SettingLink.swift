@@ -5,7 +5,9 @@ import HelperInstall
 
 public enum SettingLink: Hashable, Identifiable {
     case addCredentials
-    case theme
+    case appearance
+    case language
+    case displayTheme
     case logs
     case support
     case legal

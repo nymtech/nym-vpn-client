@@ -6,7 +6,7 @@ public struct NetworkButton: View {
     @State private var isHovered = false
 
     public init(viewModel: NetworkButtonViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel)
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     public var body: some View {
@@ -17,10 +17,10 @@ public struct NetworkButton: View {
                     .padding(.leading, 16)
 
                 VStack(alignment: .leading) {
-                    Text(viewModel.title)
+                    LocalizedText(viewModel.title)
                         .foregroundStyle(NymColor.primary)
                         .textStyle(.Body.Large.regular)
-                    Text(viewModel.subtitle)
+                    LocalizedText(viewModel.subtitle)
                         .foregroundStyle(NymColor.gray1)
                         .textStyle(.Body.Small.regular)
                 }

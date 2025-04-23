@@ -11,10 +11,10 @@ public final class QRScannerViewModel: ObservableObject {
     private let externalLinkManager: ExternalLinkManager
     private let keyboardManager: KeyboardManager
 
-    let titleLocalizedString = "addCredentials.qrScanner".localizedString
-    let subtitleLolizedString = "addCredentials.scanQrCode".localizedString
-    let noCameraPermissionLocalizedString = "addCredentials.qrScanner.cameraNotAvailable".localizedString
-    let openSettingsLocalizedString = "addCredentials.qrScanner.openSettings".localizedString
+    let titleLocalizedString = "addCredentials.qrScanner"
+    let subtitleLolizedString = "addCredentials.scanQrCode"
+    let noCameraPermissionLocalizedString = "addCredentials.qrScanner.cameraNotAvailable"
+    let openSettingsLocalizedString = "addCredentials.qrScanner.openSettings"
 
     @MainActor @Binding var isDisplayed: Bool
     @Binding var scannedText: String

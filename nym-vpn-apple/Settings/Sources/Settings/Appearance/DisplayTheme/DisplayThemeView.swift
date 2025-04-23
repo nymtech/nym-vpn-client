@@ -4,17 +4,17 @@ import Device
 import Theme
 import UIComponents
 
-public struct AppearanceView: View {
-    @ObservedObject private var viewModel: AppearanceViewModel
+public struct DisplayThemeView: View {
+    @ObservedObject private var viewModel: DisplayThemeViewModel
     @State private var isHovered = false
     @State private var hoveredId: Int?
 
-    public init(viewModel: AppearanceViewModel) {
+    public init(viewModel: DisplayThemeViewModel) {
         self.viewModel = viewModel
     }
 
     public var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             navbar()
             themeOptions()
                 .frame(maxWidth: MagicNumbers.maxWidth)
@@ -30,7 +30,7 @@ public struct AppearanceView: View {
     }
 }
 
-private extension AppearanceView {
+private extension DisplayThemeView {
     @ViewBuilder
     func navbar() -> some View {
         CustomNavBar(

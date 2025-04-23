@@ -5,12 +5,12 @@ import Theme
 final class LocationInfoViewModel {
     let externalLinkManager: ExternalLinkManager
     let infoIconImageName = "info.circle"
-    let titleLocalizedString = "locationModal.title".localizedString
-    let messageLocalizedString = "locationModal.message".localizedString
-    let readMoreLocalizedString = "locationModal.readMore".localizedString
+    let titleLocalizedString = "locationModal.title"
+    let messageLocalizedString = "locationModal.message"
+    let readMoreLocalizedString = "locationModal.readMore"
     let readMoreLinkImageName = "export"
     let readMoreURLString = "https://support.nym.com/hc/articles/26448676449297-How-is-server-location-determined-by-NymVPN"
-    let okLocalizedString = "ok".localizedString
+    let okLocalizedString = "ok"
 
     @Binding var isDisplayed: Bool
 

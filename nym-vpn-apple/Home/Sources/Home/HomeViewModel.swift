@@ -24,9 +24,9 @@ import HelperManager
 #endif
 
 public class HomeViewModel: HomeFlowState {
-    let title = "NymVPN".localizedString
-    let connectToLocalizedTitle = "connectTo".localizedString
-    let networkSelectLocalizedTitle = "selectNetwork".localizedString
+    let title = "NymVPN"
+    let connectToLocalizedTitle = "connectTo"
+    let networkSelectLocalizedTitle = "selectNetwork"
 
     let appSettings: AppSettings
     let configurationManager: ConfigurationManager

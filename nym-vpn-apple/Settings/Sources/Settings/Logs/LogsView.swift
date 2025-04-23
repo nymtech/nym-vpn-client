@@ -160,7 +160,7 @@ private extension LogsView {
         if viewModel.logFileTypes.count > 1 {
             Picker("", selection: $viewModel.currentLogFileType) {
                 ForEach(viewModel.logFileTypes, id: \.self) {
-                    Text($0.rawValue.capitalized.localizedString)
+                    Text($0.rawValue.localizedString.capitalized)
                 }
             }
             .pickerStyle(.segmented)

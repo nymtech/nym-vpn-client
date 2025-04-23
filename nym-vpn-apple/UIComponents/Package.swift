@@ -17,6 +17,7 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../Localizations"),
         .package(path: "../Services"),
         .package(path: "../ServicesIOS"),
         .package(path: "../ServicesMutual"),
@@ -36,7 +37,8 @@ let package = Package(
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
                 .product(name: "Device", package: "Services"),
                 .product(name: "ImpactGenerator", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
-                .product(name: "Lottie", package: "lottie-spm")
+                .product(name: "Lottie", package: "lottie-spm"),
+                .product(name: "Localizations", package: "Localizations")
             ],
             resources: [
                 .process("Resources/Assets.xcassets")

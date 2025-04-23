@@ -48,7 +48,8 @@ private extension AppModeView {
             SettingButton(
                 viewModel:
                     SettingButtonViewModel(
-                        title: appMode.localizedTitle,
+                        title: appMode.localizedTitleKey,
+                        subtitle: nil,
                         isSelected: appSettings.appMode == appMode
                     ),
                 isHovered: appMode.rawValue == hoveredId ? $isHovered : Binding.constant(false)

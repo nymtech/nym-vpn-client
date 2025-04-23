@@ -2,7 +2,7 @@ import Foundation
 #if os(iOS)
 import MixnetLibrary
 #endif
-import Theme
+import Localizations
 
 public enum ErrorReason: LocalizedError {
     // App
@@ -29,7 +29,6 @@ public enum ErrorReason: LocalizedError {
     public static let domain = "ErrorHandler.ErrorReason"
 
 #if os(iOS)
-    // swiftlint:disable:next function_body_length
     public init(with errorStateReason: ErrorStateReason) {
         switch errorStateReason {
         case .firewall:
@@ -58,7 +57,6 @@ public enum ErrorReason: LocalizedError {
     }
 #endif
 
-    // swiftlint:disable:next function_body_length
     public init?(nsError: NSError) {
         guard nsError.domain == ErrorReason.domain,
               let errorReason = ErrorReasonCode(rawValue: nsError.code)

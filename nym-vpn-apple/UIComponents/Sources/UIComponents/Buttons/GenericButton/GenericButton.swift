@@ -26,7 +26,7 @@ public struct GenericButton: View {
 
     public var body: some View {
         HStack {
-            Text(title)
+            LocalizedText(title)
                 .foregroundStyle(borderOnly ? mainColor : NymColor.black)
                 .textStyle(.Headline.Small.regular)
                 .padding(EdgeInsets(top: 10, leading: 16, bottom: 10, trailing: 16))

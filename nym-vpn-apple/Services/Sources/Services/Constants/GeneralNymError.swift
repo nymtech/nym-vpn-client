@@ -1,5 +1,5 @@
 import Foundation
-import Theme
+import Localizations
 
 public enum GeneralNymError: Error, Equatable {
     case invalidUrl

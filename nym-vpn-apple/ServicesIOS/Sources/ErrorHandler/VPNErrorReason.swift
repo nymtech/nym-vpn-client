@@ -1,7 +1,7 @@
 #if os(iOS)
 import Foundation
 import MixnetLibrary
-import Theme
+import Localizations
 
 public enum VPNErrorReason: LocalizedError {
     case internalError(details: String)

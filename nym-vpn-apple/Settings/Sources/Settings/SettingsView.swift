@@ -21,7 +21,7 @@ public struct SettingsView: View {
 private extension SettingsView {
     @ViewBuilder
     func content() -> some View {
-        VStack {
+        VStack(spacing: 0) {
             navbar()
             ScrollView {
                 credentialOrAddCredentialView()
@@ -71,7 +71,7 @@ private extension SettingsView {
 
     @ViewBuilder
     func loginButton() -> some View {
-        GenericButton(title: "settings.logIn".localizedString)
+        GenericButton(title: "settings.logIn")
             .frame(height: 64)
             .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
             .onTapGesture {
@@ -81,18 +81,9 @@ private extension SettingsView {
 
     @ViewBuilder
     func settingsList() -> some View {
-        SettingsList(
-            viewModel:
-                SettingsListViewModel(
-                    sections: viewModel.sections,
-                    appVersion: viewModel.appVersion(),
-                    configurationManager: ConfigurationManager.shared,
-                    navigateToSantasMenuAction: { [weak viewModel] in
-                        guard let viewModel else { return }
-                        viewModel.navigateToSantasMenu()
-                    }
-                )
-        )
+        if let settingsListViewModel = viewModel.settingsListViewModel {
+            SettingsList(viewModel: settingsListViewModel)
+        }
     }
 
     @ViewBuilder

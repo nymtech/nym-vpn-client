@@ -123,7 +123,7 @@ private extension GatewayInfoModal {
 
     @ViewBuilder
     func countryNameText() -> some View {
-        if let country = countriesManager.country(with: server.countryCode) {
+        if let country = countriesManager.localizedCountry(with: server.countryCode) {
             Text(country.name)
                 .foregroundStyle(NymColor.primary)
                 .textStyle(.Body.Large.regular)
@@ -176,7 +176,7 @@ private extension GatewayInfoModal {
     }
 
     func closeButton() -> some View {
-        GenericButton(title: "getewaySelector.close".localizedString)
+        GenericButton(title: "getewaySelector.close")
             .padding(.horizontal, 24)
             .onTapGesture {
                 isDisplayed.toggle()

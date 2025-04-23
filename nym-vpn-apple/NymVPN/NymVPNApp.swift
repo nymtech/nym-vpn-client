@@ -8,6 +8,7 @@ import GatewayManager
 import Home
 import Extensions
 import KeyboardManager
+import Localizations
 import Migrations
 import NymLogger
 import NotificationsManager
@@ -24,6 +25,7 @@ struct NymVPNApp: App {
     @ObservedObject private var appSettings = AppSettings.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
     @ObservedObject private var countriesManager = CountriesManager.shared
+    @ObservedObject private var localizationManager = LocalizationManager.shared
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var welcomeViewModel = WelcomeViewModel()
     @State private var splashScreenDidDisplay = false
@@ -54,6 +56,7 @@ struct NymVPNApp: App {
             .environmentObject(countriesManager)
             .environmentObject(KeyboardManager.shared)
             .environmentObject(logFileManager)
+            .environmentObject(localizationManager)
         }
     }
 }

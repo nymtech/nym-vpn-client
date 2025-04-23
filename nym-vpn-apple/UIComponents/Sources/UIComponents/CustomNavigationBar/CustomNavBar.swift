@@ -27,7 +27,7 @@ public struct CustomNavBar: View {
             leftButton
             Spacer()
             if let title {
-                Text(title)
+                LocalizedText(title)
                     .textStyle(.Headline.Medium.regular)
             } else {
                 Image("logoText", bundle: .module)

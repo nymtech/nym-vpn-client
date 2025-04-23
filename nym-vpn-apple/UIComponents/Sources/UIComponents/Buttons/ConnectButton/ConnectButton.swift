@@ -12,7 +12,7 @@ public struct ConnectButton: View {
 
     public var body: some View {
         HStack {
-            Text(state.localizedTitle)
+            LocalizedText(state.localizedTitleKey)
                 .foregroundStyle(NymColor.black)
                 .textStyle(.Headline.Medium.bold)
                 .transaction { transaction in

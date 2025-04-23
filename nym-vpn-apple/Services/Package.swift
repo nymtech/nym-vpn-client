@@ -33,6 +33,7 @@ let package = Package(
         .library(name: "TunnelMixnet", targets: ["TunnelMixnet"])
     ],
     dependencies: [
+        .package(path: "../Localizations"),
         .package(path: "../ServicesIOS"),
         .package(path: "../ServicesMacOS"),
         .package(path: "../ServicesMutual"),
@@ -78,7 +79,7 @@ let package = Package(
         .target(
             name: "Constants",
             dependencies: [
-                "Theme"
+                .product(name: "Localizations", package: "Localizations")
             ],
             path: "Sources/Services/Constants"
         ),
@@ -92,7 +93,8 @@ let package = Package(
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 "NymLogger",
-                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
+                .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
+                .product(name: "Localizations", package: "Localizations")
             ],
             path: "Sources/Services/CountriesManager"
         ),

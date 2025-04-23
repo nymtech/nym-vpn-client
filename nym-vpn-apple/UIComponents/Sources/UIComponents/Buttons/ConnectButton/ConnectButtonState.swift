@@ -30,18 +30,18 @@ public enum ConnectButtonState {
         }
     }
 
-    public var localizedTitle: String {
+    public var localizedTitleKey: String {
         switch self {
         case .connect, .noInternet:
-            "connect".localizedString
+            "connect"
         case .disconnect:
-            "disconnect".localizedString
+            "disconnect"
         case .disconnecting:
-            "disconnecting".localizedString
+            "disconnecting"
         case .stop, .noInternetReconnect:
-            "stop".localizedString
+            "stop"
         case .installingDaemon:
-            "home.installDaemonButton".localizedString
+            "home.installDaemonButton"
         }
     }
 

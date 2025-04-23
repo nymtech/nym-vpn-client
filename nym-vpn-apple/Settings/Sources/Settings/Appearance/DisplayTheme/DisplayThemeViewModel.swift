@@ -2,10 +2,10 @@ import SwiftUI
 import AppSettings
 import Theme
 
-public final class AppearanceViewModel: ObservableObject {
+public final class DisplayThemeViewModel: ObservableObject {
     @ObservedObject private var appSettings: AppSettings
 
-    let title = "settings.appearance".localizedString
+    let title = "settings.displayTheme".localizedString
 
     @Published var currentAppearance: AppSetting.Appearance
     @Binding var path: NavigationPath
@@ -26,7 +26,7 @@ public final class AppearanceViewModel: ObservableObject {
     }
 }
 
-extension AppearanceViewModel {
+extension DisplayThemeViewModel {
     func appearanceTitle(for theme: AppSetting.Appearance) -> String {
         switch theme {
         case .light:
@@ -53,7 +53,7 @@ extension AppearanceViewModel {
 }
 
 // MARK: - Navigation -
-extension AppearanceViewModel {
+extension DisplayThemeViewModel {
     func navigateBack() {
         if !path.isEmpty { path.removeLast() }
     }

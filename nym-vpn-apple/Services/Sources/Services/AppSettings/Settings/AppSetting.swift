@@ -41,14 +41,14 @@ public struct AppSetting {
         case menubarOnly
         case dockOnly
 
-        public var localizedTitle: String {
+        public var localizedTitleKey: String {
             switch self {
             case .menubarOnly:
-                "settings.appMode.menuBarOnly".localizedString
+                "settings.appMode.menuBarOnly"
             case .dockOnly:
-                "settings.appMode.dockOnly".localizedString
+                "settings.appMode.dockOnly"
             case .both:
-                "settings.appMode.both".localizedString
+                "settings.appMode.both"
             }
         }
     }

@@ -33,7 +33,7 @@ public struct StrokeBorderView<Content: View>: View {
                 .stroke(NymColor.gray2.opacity(isHovered ? 0.7 : 1), lineWidth: 1)
         }
         .overlay(alignment: .topLeading) {
-            Text(strokeTitle)
+            LocalizedText(strokeTitle)
                 .foregroundStyle(NymColor.primary)
                 .textStyle(.Body.Small.regular)
                 .padding(.horizontal, 4)

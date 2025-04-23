@@ -88,7 +88,7 @@ import UIComponents
         }
         let countryCodes = Array(Set(gateways.map { $0.countryCode }))
         countries = countryCodes.compactMap {
-            countriesManager.country(with: $0)
+            countriesManager.localizedCountry(with: $0)
         }
         .sorted(by: { $0.name < $1.name })
     }

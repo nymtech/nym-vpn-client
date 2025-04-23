@@ -57,9 +57,11 @@ private extension LocationInfoView {
 
     @ViewBuilder
     func title() -> some View {
-        Text(viewModel.titleLocalizedString)
+        LocalizedText(viewModel.titleLocalizedString)
             .textStyle(.Headline.Medium.regular)
             .foregroundStyle(NymColor.primary)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 16)
 
         Spacer()
             .frame(height: 16)
@@ -68,7 +70,7 @@ private extension LocationInfoView {
     @ViewBuilder
     func message() -> some View {
         HStack {
-            Text(viewModel.messageLocalizedString)
+            LocalizedText(viewModel.messageLocalizedString)
                 .foregroundStyle(NymColor.gray1)
                 .textStyle(.Body.Medium.regular)
                 .multilineTextAlignment(.center)
@@ -84,7 +86,7 @@ private extension LocationInfoView {
     @ViewBuilder
     func continueReadingLink() -> some View {
         HStack {
-            Text(viewModel.readMoreLocalizedString)
+            LocalizedText(viewModel.readMoreLocalizedString)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.accent)
 

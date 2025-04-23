@@ -113,7 +113,7 @@ private extension GatewayCountryDropDown {
     }
 
     func countryNameTitle() -> some View {
-        Text(country.name)
+        LocalizedText(country.name)
             .foregroundStyle(NymColor.primary)
             .textStyle(.Body.Large.regular)
     }

@@ -1,6 +1,6 @@
 import Foundation
 import CountriesManagerTypes
-import Theme
+import Localizations
 
 public enum EntryGateway: Codable, Equatable {
     case country(Country)
@@ -29,14 +29,15 @@ public enum EntryGateway: Codable, Equatable {
 }
 
 extension EntryGateway: GatewayInfoProtocol {
+    // Remove name usage from country, due to dynamic localizations
     public var name: String {
         switch self {
         case let .country(country), let .lowLatencyCountry(country):
-            country.name
+            country.code
         case .randomLowLatency:
-            "gateway.randomLowLatency".localizedString
+            "gateway.randomLowLatency"
         case .random:
-            "gateway.random".localizedString
+            "gateway.random"
         case let .gateway(gateway):
             gateway.moniker ?? gateway.id
         }

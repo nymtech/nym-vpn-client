@@ -34,25 +34,25 @@ public enum StatusInfoState: Equatable {
         self = hasInternet ? .unknown : .noInternet
     }
 
-    var localizedTitle: String {
+    var titleLocalizedKey: String {
         switch self {
         case .initialising:
-            "initializingClient".localizedString
+            "initializingClient"
         case .connecting:
-            "establishingConnection".localizedString
+            "establishingConnection"
         case .connectionTime:
-            "connectionTime".localizedString
+            "connectionTime"
         case let .error(message):
             message
         case .noInternet:
-            "home.deviceNoInternet".localizedString
+            "home.deviceNoInternet"
         case .noInternetReconnect:
-            "home.deviceNoInternetReconnect".localizedString
+            "home.deviceNoInternetReconnect"
         case .unknown:
             // Empty string hides the view. To not mess up UX spacing - need 'space' to still show it.
             " "
         case .installingDaemon:
-            "home.installDaemon".localizedString
+            "home.installDaemon"
         }
     }
 

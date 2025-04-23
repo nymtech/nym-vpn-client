@@ -6,12 +6,12 @@ import Theme
 public final class WelcomeViewModel: ObservableObject {
     private var appSettings: AppSettings
 
-    let titleText = "welcome.title".localizedString
-    let subtitle1Text = "welcome.subtitle1".localizedString
-    let subtitle2Text = "welcome.subtitle2".localizedString
-    let sentryText = "welcome.sentry".localizedString
-    let continueText = "welcome.continue".localizedString
-    let disclaimerText = "welcome.disclaimer".localizedString
+    let titleText = "welcome.title"
+    let subtitle1Text = "welcome.subtitle1"
+    let subtitle2Text = "welcome.subtitle2"
+    let sentryText = "welcome.sentry"
+    let continueText = "welcome.continue"
+    let disclaimerText = "welcome.disclaimer"
 
     public init(appSettings: AppSettings = AppSettings.shared) {
         self.appSettings = appSettings

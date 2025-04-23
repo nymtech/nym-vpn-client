@@ -4,12 +4,12 @@ import ConfigurationManager
 import Device
 import Theme
 
-public struct SettingsListViewModel {
+public class SettingsListViewModel: ObservableObject {
     private let appVersion: String
     private let configurationManager: ConfigurationManager
     private let navigateToSantasMenuAction: (() -> Void)
 
-    let sections: [SettingsSection]
+    @Published var sections: [SettingsSection]
 
     var versionTitle: String {
         "\("version".localizedString) \(appVersion) (\(AppVersionProvider.libVersion))"

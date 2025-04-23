@@ -2,8 +2,8 @@ import SwiftUI
 import Theme
 
 public struct SearchView: View {
-    private let strokeTitle = "search".localizedString
-    private let searchTitle = "search.title".localizedString
+    private let strokeTitle = "search"
+    private let searchTitle = "search.title"
     private let searchImageName = "searchIcon"
 
     @State private var isHovered = false
@@ -55,7 +55,7 @@ extension SearchView {
     func searchTextfield() -> some View {
         ZStack(alignment: .leading) {
             if searchText.isEmpty {
-                Text(searchTitle)
+                LocalizedText(searchTitle)
                     .foregroundStyle(NymColor.gray1)
                     .textStyle(.Body.Large.regular)
             }

@@ -2324,6 +2324,17 @@
         }
       }
     },
+    "App" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "App"
+          }
+        }
+      }
+    },
     "autoConnectSubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3532,6 +3543,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "连接至"
+          }
+        }
+      }
+    },
+    "Daemon" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daemon"
           }
         }
       }
@@ -9804,37 +9826,37 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN ejecuta un servicio en segundo plano (daemon) para mantener tu conexión segura. Se encarga de la encriptación y el enrutamiento, protegiendo tu actividad incluso cuando la app está cerrada.\n\nSigue los pasos a continuación para instalar el daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "hi" : {
@@ -9846,7 +9868,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "ja" : {
@@ -9858,13 +9880,13 @@
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "ru" : {
@@ -9894,7 +9916,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         }
       }
@@ -13935,6 +13957,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "加入Matrix"
+          }
+        }
+      }
+    },
+    "language.automatic" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Automatic"
           }
         }
       }
@@ -19595,6 +19628,17 @@
         }
       }
     },
+    "settings.displayTheme" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Display theme"
+          }
+        }
+      }
+    },
     "settings.getInTouch" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -19894,6 +19938,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Killswitch"
+          }
+        }
+      }
+    },
+    "settings.language" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language"
           }
         }
       }
