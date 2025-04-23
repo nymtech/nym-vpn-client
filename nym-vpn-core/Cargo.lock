@@ -5320,6 +5320,7 @@ dependencies = [
  "nym-bin-common",
  "nym-credentials-interface",
  "nym-ipc",
+ "nym-offline-monitor",
  "nym-task",
  "nym-validator-client",
  "nym-vpn-account-controller",

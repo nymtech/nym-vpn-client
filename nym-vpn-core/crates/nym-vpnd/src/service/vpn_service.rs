@@ -4,6 +4,7 @@
 use std::{net::IpAddr, path::PathBuf, sync::Arc, time::Instant};
 
 use bip39::Mnemonic;
+use nym_offline_monitor::Connectivity;
 use serde::{Deserialize, Serialize};
 use time::{format_description::well_known::Rfc3339, OffsetDateTime};
 use tokio::{
@@ -266,11 +267,14 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             credentials_mode: None,
             network_env: network_env.clone(),
         };
+        // Since the offline monitor is only started later, together with the state machine. Assume
+        // online.
+        let initial_connectivity = Connectivity::PresumeOnline;
 
         let account_controller = AccountController::new(
             account_controller_config,
             Arc::clone(&storage),
-            None,
+            Some(initial_connectivity),
             shutdown_token.child_token(),
         )
         .await
