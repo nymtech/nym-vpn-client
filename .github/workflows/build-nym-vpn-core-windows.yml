@@ -43,7 +43,9 @@ jobs:
       - name: Install Powershell modules
         shell: pwsh
         run: |
-          powershell -ExecutionPolicy Bypass -Command  Install-Module Microsoft.PowerShell.Archive -Confirm
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module Microsoft.PowerShell.Archive -Confirm
+          Set-PSRepository PSGallery -InstallationPolicy Untrusted
 
       - name: Install GNU make
         run: |
