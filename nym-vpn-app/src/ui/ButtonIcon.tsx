@@ -15,6 +15,7 @@ export type ButtonIconProps = {
   iconClassName?: string;
   clickedIconClassName?: string;
   clickDuration?: number;
+  'data-testid'?: string;
 };
 
 function ButtonIcon({
@@ -27,8 +28,10 @@ function ButtonIcon({
   iconClassName,
   clickedIconClassName,
   clickDuration = 500,
+  ...rest
 }: ButtonIconProps) {
   const [isClicked, click] = useTransition();
+  const testId = rest['data-testid'] || 'button-icon';
 
   const clickAnim = () => {
     click(async () => {
@@ -54,6 +57,9 @@ function ButtonIcon({
         onClick();
       }}
       disabled={disabled}
+      data-testid={testId}
+      data-disabled={disabled ? 'true' : 'false'}
+      data-clicked={isClicked ? 'true' : 'false'}
     >
       {isClicked ? (
         <motion.div
@@ -63,6 +69,7 @@ function ButtonIcon({
             duration: 0.15,
             scale: { type: 'spring', visualDuration: 0.2, bounce: 0.5 },
           }}
+          data-testid={`${testId}-clicked-container`}
         >
           <MsIcon
             icon={clickedIcon}
@@ -70,6 +77,7 @@ function ButtonIcon({
               'text-2xl w-10 h-10 min-w-10 min-h-10',
               clickedIconClassName,
             ])}
+            data-testid={`${testId}-clicked-icon`}
           />
         </motion.div>
       ) : (
@@ -79,6 +87,7 @@ function ButtonIcon({
             'text-2xl w-10 h-10 min-w-10 min-h-10',
             iconClassName,
           ])}
+          data-testid={`${testId}-icon`}
         />
       )}
     </HuButton>

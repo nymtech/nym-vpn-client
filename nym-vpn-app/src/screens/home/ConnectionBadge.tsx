@@ -52,10 +52,12 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
         ...getBadgeStyle(state),
         'text-lg font-medium py-3 px-6 rounded-full tracking-normal',
       ])}
+      data-testid="connection-badge"
+      data-status={state}
     >
-      {getStatusText(state)}
+      <span data-testid="connection-status-text">{getStatusText(state)}</span>
       {(state === 'Connecting' || state === 'Disconnecting') && (
-        <PulseDot color="cornflower" />
+        <PulseDot color="cornflower" data-testid="connection-pulse-dot" />
       )}
     </motion.div>
   );

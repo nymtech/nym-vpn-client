@@ -15,6 +15,7 @@ export type TextInputProps = {
   className?: string;
   leftIcon?: string;
   readonly?: boolean;
+  'data-testid'?: string;
 };
 
 function TextInput({
@@ -26,10 +27,13 @@ function TextInput({
   leftIcon,
   autoFocus,
   className,
+  ...rest
 }: TextInputProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
   };
+
+  const testId = rest['data-testid'] || 'text-input';
 
   return (
     <Field
@@ -37,6 +41,7 @@ function TextInput({
         'w-full flex flex-row items-center',
         label && 'relative',
       ])}
+      data-testid={`${testId}-field`}
     >
       <Input
         id="passphrase"
@@ -58,6 +63,8 @@ function TextInput({
         onChange={handleChange}
         spellCheck={spellCheck}
         autoFocus={autoFocus}
+        data-testid={testId}
+        data-has-left-icon={leftIcon ? 'true' : 'false'}
       />
       {label && (
         <Label
@@ -66,6 +73,7 @@ function TextInput({
             'dark:text-white',
             'bg-faded-lavender dark:bg-ash text-xs',
           ])}
+          data-testid={`${testId}-label`}
         >
           {label}
         </Label>
@@ -74,6 +82,7 @@ function TextInput({
         <MsIcon
           icon={leftIcon}
           className="absolute left-3 text-baltic-sea dark:text-bombay hover:cursor-text"
+          data-testid={`${testId}-left-icon`}
         />
       )}
     </Field>

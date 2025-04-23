@@ -13,6 +13,7 @@ export type TextAreaProps = {
   spellCheck?: boolean;
   // Additional css style for textarea element
   className?: string;
+  'data-testid'?: string;
 };
 
 function TextArea({
@@ -24,6 +25,7 @@ function TextArea({
   label,
   placeholder,
   className,
+  ...rest
 }: TextAreaProps) {
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     onChange(e.target.value);
@@ -44,12 +46,15 @@ function TextArea({
     }
   };
 
+  const testId = rest['data-testid'] || 'text-area';
+
   return (
     <Field
       className={clsx([
         'w-full flex flex-row items-center mb-2',
         label && 'relative',
       ])}
+      data-testid={`${testId}-field`}
     >
       <Textarea
         id="passphrase"
@@ -70,6 +75,9 @@ function TextArea({
         onChange={handleChange}
         rows={rows}
         spellCheck={spellCheck}
+        data-testid={testId}
+        data-resize={resize}
+        data-rows={rows}
       />
       {label && (
         <Label
@@ -78,6 +86,7 @@ function TextArea({
             'dark:text-white',
             'bg-faded-lavender dark:bg-ash text-xs',
           ])}
+          data-testid={`${testId}-label`}
         >
           {label}
         </Label>

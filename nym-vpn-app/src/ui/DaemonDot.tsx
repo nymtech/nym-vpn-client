@@ -4,9 +4,10 @@ import { S_STATE } from '../static';
 
 type DaemonDotProps = {
   status: DaemonStatus;
+  'data-testid'?: string;
 };
 
-function DaemonDot({ status }: DaemonDotProps) {
+function DaemonDot({ status, ...rest }: DaemonDotProps) {
   const bgColor = () => {
     switch (status) {
       case 'ok':
@@ -22,14 +23,21 @@ function DaemonDot({ status }: DaemonDotProps) {
     return null;
   }
 
+  const testId = rest['data-testid'] || 'daemon-dot';
+
   return (
     <div
       className={clsx([
         'absolute z-30 left-1 top-1 pointer-events-none select-none',
         status === 'ok' ? 'animate-pulse' : 'animate-pulse-fast',
       ])}
+      data-testid={testId}
+      data-status={status}
     >
-      <div className={clsx(['relative w-2.5 h-2.5 rounded-full', bgColor()])} />
+      <div 
+        className={clsx(['relative w-2.5 h-2.5 rounded-full', bgColor()])}
+        data-testid={`${testId}-indicator`}
+      />
     </div>
   );
 }

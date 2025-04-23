@@ -2,9 +2,10 @@ import clsx from 'clsx';
 
 export type PulseDotProps = {
   color: 'cornflower' | 'red' | 'yellow';
+  'data-testid'?: string;
 };
 
-function PulseDot({ color = 'cornflower' }: PulseDotProps) {
+function PulseDot({ color = 'cornflower', ...rest }: PulseDotProps) {
   const dotColor = () => {
     switch (color) {
       case 'cornflower':
@@ -16,6 +17,8 @@ function PulseDot({ color = 'cornflower' }: PulseDotProps) {
     }
   };
 
+  const testId = rest['data-testid'] || `pulse-dot-${color}`;
+
   return (
     <div
       className={clsx([
@@ -24,15 +27,19 @@ function PulseDot({ color = 'cornflower' }: PulseDotProps) {
         // with the different UI scaling factors
         'h-[10px] w-[10px]',
       ])}
+      data-testid={testId}
+      data-color={color}
     >
       <div
         className={clsx(
           'animate-ping absolute h-full w-full rounded-full opacity-75',
           dotColor(),
         )}
+        data-testid={`${testId}-ping`}
       />
       <div
         className={clsx('relative rounded-full', 'h-[6px] w-[6px]', dotColor())}
+        data-testid={`${testId}-dot`}
       />
     </div>
   );
