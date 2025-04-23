@@ -1011,6 +1011,17 @@
         }
       }
     },
+    "addCredentials.error.cannotCreateCache" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cannot create cache"
+          }
+        }
+      }
+    },
     "addCredentials.error.cannotCreateDB" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9861,8 +9872,8 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "NymVPN एक पृष्ठभूमि सेवा (डेमन) चलाता है \n जिससे आपका कनेक्शन सुरक्षित रहता है। यह एन्क्रिप्शन और रूटिंग का प्रबंधन करता है, जिससे आपका कार्य सुरक्षित रहता है, भले ही ऐप बंद हो जाए।\n\nडेमन स्थापित करने के लिए नीचे दिए गए चरणों का पालन करें।"
+            "state" : "new",
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "it" : {
@@ -9873,8 +9884,8 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "NymVPNは、接続を安全に保つためにバックグラウンドサービス（デーモン）を実行します。このデーモンが暗号化とルーティングを処理することで、アプリを閉じていてもアクティビティが保護されます。\n\n以下の手順に従って、デーモンをインストールしてください。"
+            "state" : "new",
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt" : {
@@ -9891,8 +9902,8 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "NymVPN использует фоновую службу (демон) \nдля обеспечения безопасности вашего соединения. Она обрабатывает шифрование и маршрутизацию, защищая вашу активность даже когда приложение закрыто.\n\nСледуйте инструкциям ниже, чтобы установить демон."
+            "state" : "new",
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "tr" : {
@@ -9909,8 +9920,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "NymVPN sử dụng một dịch vụ nền (daemon) \nđể giữ kết nối của bạn luôn an toàn. Daemon xử lý mã hóa và định tuyến, bảo vệ hoạt động của bạn ngay cả khi ứng dụng không mở.\n\nHãy làm theo các bước dưới đây để cài đặt daemon."
+            "state" : "new",
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "zh-Hans" : {
