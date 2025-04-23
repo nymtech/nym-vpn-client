@@ -77,7 +77,7 @@ function Settings() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col mt-2 gap-6" data-test-id="settings-page">
+    <PageAnim className="h-full flex flex-col mt-2 gap-6">
       {account ? (
         <SettingsMenuCard
           title={capFirst(t('account', { ns: 'glossary' }))}
@@ -85,13 +85,11 @@ function Settings() {
           leadingIcon="person"
           trailingIcon="open_in_new"
           disabled={!accountLoginUrl}
-          data-test-id="account-button"
         />
       ) : (
         <Button
           onClick={() => navigate(routes.login)}
           disabled={daemonStatus === 'down'}
-          data-test-id="login-button"
         >
           {t('login-button')}
         </Button>
@@ -103,7 +101,6 @@ function Settings() {
             leadingIcon: 'question_answer',
             onClick: () => navigate(routes.support),
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
-            'data-test-id': 'support-button',
           },
           {
             title: t('logs.title'),
@@ -111,7 +108,6 @@ function Settings() {
             leadingIcon: 'sort',
             onClick: () => navigate(routes.logs),
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
-            'data-test-id': 'logs-button',
           },
           {
             title: t('error-monitoring.title'),
@@ -127,16 +123,10 @@ function Settings() {
             leadingIcon: 'bug_report',
             onClick: handleMonitoringChanged,
             trailing: (
-              <Switch 
-                checked={monitoring} 
-                onChange={handleMonitoringChanged}
-                data-test-id="error-monitoring-switch" 
-              />
+              <Switch checked={monitoring} onChange={handleMonitoringChanged} />
             ),
-            'data-test-id': 'error-monitoring-option',
           },
         ]}
-        data-test-id="support-settings-group"
       />
       <SettingsGroup
         settings={[
@@ -149,10 +139,8 @@ function Settings() {
               <Switch
                 checked={autostartEnabled}
                 onChange={handleAutostartChanged}
-                data-test-id="autostart-switch"
               />
             ),
-            'data-test-id': 'autostart-option',
           },
           {
             title: t('killswitch.title'),
@@ -168,14 +156,11 @@ function Settings() {
                   /* */
                 }}
                 disabled
-                data-test-id="killswitch-switch"
               />
             ),
             disabled: true,
-            'data-test-id': 'killswitch-option',
           },
         ]}
-        data-test-id="system-settings-group"
       />
       <SettingsGroup
         settings={[
@@ -184,7 +169,6 @@ function Settings() {
             leadingIcon: 'view_comfy',
             onClick: () => navigate(routes.appearance),
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
-            'data-test-id': 'appearance-button',
           },
           {
             title: t('notifications.title'),
@@ -194,26 +178,18 @@ function Settings() {
               <Switch
                 checked={desktopNotifications}
                 onChange={toggleDNotifications}
-                data-test-id="notifications-switch"
               />
             ),
-            'data-test-id': 'notifications-option',
           },
         ]}
-        data-test-id="appearance-settings-group"
       />
       <SettingsMenuCard
         title={t('legal.title')}
         onClick={() => navigate(routes.legal)}
         trailingIcon="arrow_right"
-        data-test-id="legal-button"
       />
       <Logout />
-      <SettingsMenuCard 
-        title={t('quit')} 
-        onClick={exit}
-        data-test-id="quit-button" 
-      />
+      <SettingsMenuCard title={t('quit')} onClick={exit} />
       <InfoData />
     </PageAnim>
   );
