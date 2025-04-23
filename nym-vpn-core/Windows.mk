@@ -128,20 +128,20 @@ create_target_dir:
 
 # Add Go, MSBuild and MSVC to PATH
 # Both Visual Studio and build tools come with the same set of tools
-# Check if one or the other exist and add relevant directories to PATH
+# Check if one or the other exist and add relevant directories to Path
 define setup_env_path
 	$$env:Path += ";$(GO_PATH)" ; #\\
 	if (Test-Path "$(MSVS_DIR)") { #\\
 		$$msvc_path = Get-ChildItem -Path "$(MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName ; #\\
 		$$env:Path += ";$(MSVC_MSBUILD_PATH)" ; #\\
 		$$env:Path += ";$$msvc_path\bin\Host$(MSVC_PLATFORM)\$(MSVC_PLATFORM)" ; #\\
-		Write-Output "Add env for MSVS"; #\\
+		Write-Output "Add Visual Studio to Path"; #\\
 	} elseif (Test-Path "$(BUILDTOOLS_DIR)") { #\\
 		$$msvc_path = Get-ChildItem -Path "$(BUILDTOOLS_MSVC_PATH)" -Directory | Select-Object -ExpandProperty FullName ; #\\
 		$$env:Path += ";$(BUILDTOOLS_MSBUILD_PATH)" ; #\\
 		$$env:Path += ";$$msvc_path\bin\Host$(MSVC_PLATFORM)\$(MSVC_PLATFORM)" ; #\\
-		Write-Output "Add env for MS build tools"; #\\
+		Write-Output "Add MS Build Tools to Path"; #\\
 	} else { #\\
-		Write-Output "Neither Visual Studio nor Build tools can be located, skipping PATH setup" ; #\\
+		Write-Output "Neither Visual Studio nor Build Tools can be located, skipping PATH setup" ; #\\
 	}
 endef
