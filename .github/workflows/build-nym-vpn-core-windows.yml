@@ -58,8 +58,9 @@ jobs:
           subcommand: workspace.package.version --entry nym-vpn-core
 
       - name: Install cargo-edit
-        shell: bash
-        run: cargo install --locked cargo-edit || true
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
 
       - name: Append timestamp if it's a dev version
         shell: bash
