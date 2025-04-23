@@ -67,7 +67,6 @@ impl ConnectedState {
                         .expect("failed to obtain error state reason"),
                 ),
                 connected_state.monitor_handle,
-                Some(connected_state.resolved_gateway_config.clone()),
                 _shared_state,
             );
         } else if let Err(e) = connected_state.set_dns(_shared_state).await {
@@ -77,7 +76,6 @@ impl ConnectedState {
                         .expect("failed to obtain error state reason"),
                 ),
                 connected_state.monitor_handle,
-                Some(connected_state.resolved_gateway_config.clone()),
                 _shared_state,
             );
         }
@@ -248,7 +246,6 @@ impl TunnelStateHandler for ConnectedState {
                         NextTunnelState::NewState(DisconnectingState::enter(
                             PrivateActionAfterDisconnect::Nothing,
                             self.monitor_handle,
-                            Some(self.resolved_gateway_config),
                             shared_state
                         ))
                     },
@@ -260,7 +257,6 @@ impl TunnelStateHandler for ConnectedState {
                             NextTunnelState::NewState(DisconnectingState::enter(
                                 PrivateActionAfterDisconnect::Reconnect { retry_attempt: 0 },
                                 self.monitor_handle,
-                                Some(self.resolved_gateway_config),
                                 shared_state
                             ))
                         }
@@ -274,7 +270,7 @@ impl TunnelStateHandler for ConnectedState {
                             .unwrap_or(PrivateActionAfterDisconnect::Reconnect { retry_attempt: 0 });
                         _ = reply_tx.send(());
 
-                        NextTunnelState::NewState(DisconnectingState::enter(after_disconnect, self.monitor_handle, Some(self.resolved_gateway_config), shared_state))
+                        NextTunnelState::NewState(DisconnectingState::enter(after_disconnect, self.monitor_handle, shared_state))
                     }
                     _ => {
                         NextTunnelState::SameState(self)
@@ -290,7 +286,6 @@ impl TunnelStateHandler for ConnectedState {
                             gateways: Some(self.selected_gateways)
                         },
                         self.monitor_handle,
-                        Some(self.resolved_gateway_config),
                         shared_state
                     ))
                 } else {
@@ -301,7 +296,6 @@ impl TunnelStateHandler for ConnectedState {
                 NextTunnelState::NewState(DisconnectingState::enter(
                     PrivateActionAfterDisconnect::Nothing,
                     self.monitor_handle,
-                    Some(self.resolved_gateway_config),
                     shared_state
                 ))
             }

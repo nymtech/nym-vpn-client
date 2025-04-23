@@ -1,7 +1,6 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_gateway_directory::ResolvedConfig;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -31,9 +30,6 @@ pub struct OfflineState {
 
     /// Gateways to which the tunnel will reconnect to once online
     selected_gateways: Option<SelectedGateways>,
-
-    #[cfg_attr(any(target_os = "android", target_os = "ios"), allow(unused))]
-    resolved_gateway_config: Option<ResolvedConfig>,
 }
 
 impl OfflineState {
@@ -41,17 +37,11 @@ impl OfflineState {
         reconnect: bool,
         retry_attempt: u32,
         selected_gateways: Option<SelectedGateways>,
-        resolved_gateway_config: Option<ResolvedConfig>,
         _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
         if Self::set_local_dns_resolver(_shared_state).await.is_err() {
-            return Box::pin(ErrorState::enter(
-                ErrorStateReason::Dns,
-                resolved_gateway_config,
-                _shared_state,
-            ))
-            .await;
+            return Box::pin(ErrorState::enter(ErrorStateReason::Dns, _shared_state)).await;
         }
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -67,7 +57,6 @@ impl OfflineState {
                 reconnect,
                 retry_attempt,
                 selected_gateways,
-                resolved_gateway_config,
             }),
             PrivateTunnelState::Offline { reconnect },
         )
@@ -174,14 +163,13 @@ impl TunnelStateHandler for OfflineState {
                     NextTunnelState::NewState(ConnectingState::enter(
                         self.retry_attempt,
                         self.selected_gateways,
-                        self.resolved_gateway_config,
                         shared_state
                     ).await)
                 } else {
                     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                     Self::reset_dns(shared_state).await;
 
-                    NextTunnelState::NewState(DisconnectedState::enter(self.resolved_gateway_config, shared_state).await)
+                    NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
                 }
             }
             _ = shutdown_token.cancelled() => {

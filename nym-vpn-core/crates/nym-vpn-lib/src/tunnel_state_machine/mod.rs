@@ -36,7 +36,9 @@ use tokio_util::sync::CancellationToken;
 use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
-use nym_gateway_directory::{Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, Recipient};
+use nym_gateway_directory::{
+    Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, Recipient, ResolvedConfig,
+};
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
     ActionAfterDisconnect, ClientErrorReason, ConnectionData, ErrorStateReason, MixnetEvent,
@@ -366,6 +368,7 @@ pub struct SharedState {
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_command_tx: AccountCommandSender,
+    resolved_gateway_config: Option<ResolvedConfig>,
 }
 
 #[derive(Debug, Clone)]
@@ -465,6 +468,7 @@ impl TunnelStateMachine {
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
             account_command_tx,
+            resolved_gateway_config: None,
         };
 
         let (current_state_handler, _) = if shared_state
@@ -473,9 +477,9 @@ impl TunnelStateMachine {
             .await
             .is_offline()
         {
-            OfflineState::enter(false, 0, None, None, &mut shared_state).await
+            OfflineState::enter(false, 0, None, &mut shared_state).await
         } else {
-            DisconnectedState::enter(None, &mut shared_state).await
+            DisconnectedState::enter(&mut shared_state).await
         };
 
         let tunnel_state_machine = Self {

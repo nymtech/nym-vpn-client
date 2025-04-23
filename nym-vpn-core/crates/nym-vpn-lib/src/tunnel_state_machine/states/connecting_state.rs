@@ -49,7 +49,6 @@ pub struct ConnectingState {
     monitor_event_sender: Option<TunnelMonitorEventSender>,
     monitor_event_receiver: TunnelMonitorEventReceiver,
     selected_gateways: Option<SelectedGateways>,
-    resolved_gateway_config: Option<ResolvedConfig>,
     resolve_config_fut: Fuse<ResolveConfigFuture>,
 }
 
@@ -57,7 +56,6 @@ impl ConnectingState {
     pub async fn enter(
         retry_attempt: u32,
         selected_gateways: Option<SelectedGateways>,
-        resolved_gateway_config: Option<ResolvedConfig>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
@@ -65,7 +63,6 @@ impl ConnectingState {
             return ErrorState::enter(
                 e.error_state_reason()
                     .expect("failed to map to error state reason"),
-                None,
                 shared_state,
             )
             .await;
@@ -83,8 +80,7 @@ impl ConnectingState {
                 tracing::debug!("Poking route manager to update default routes");
                 shared_state.route_handler.refresh_routes().await;
             }
-            return OfflineState::enter(true, retry_attempt, selected_gateways, None, shared_state)
-                .await;
+            return OfflineState::enter(true, retry_attempt, selected_gateways, shared_state).await;
         }
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -96,7 +92,6 @@ impl ConnectingState {
                 return ErrorState::enter(
                     e.error_state_reason()
                         .expect("failed to map to error state reason"),
-                    None,
                     shared_state,
                 )
                 .await;
@@ -121,7 +116,6 @@ impl ConnectingState {
                 monitor_event_receiver,
                 retry_attempt,
                 selected_gateways,
-                resolved_gateway_config,
                 resolve_config_fut,
             }),
             PrivateTunnelState::Connecting {
@@ -284,13 +278,13 @@ impl ConnectingState {
                     ErrorState::enter(
                         e.error_state_reason()
                             .expect("failed to map to error reason"),
-                        None,
                         shared_state,
                     )
                     .await,
                 );
             }
         };
+        shared_state.resolved_gateway_config = Some(resolved_gateway_config.clone());
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         {
@@ -309,7 +303,6 @@ impl ConnectingState {
                     ErrorState::enter(
                         e.error_state_reason()
                             .expect("failed to map to error state reason"),
-                        Some(resolved_gateway_config),
                         shared_state,
                     )
                     .await,
@@ -335,7 +328,6 @@ impl ConnectingState {
                     ErrorStateReason::Internal(
                         "Failed to set static NYM API addresses to account controller".to_owned(),
                     ),
-                    Some(resolved_gateway_config),
                     shared_state,
                 )
                 .await,
@@ -348,7 +340,6 @@ impl ConnectingState {
                     ErrorStateReason::Internal(
                         "Monitor event sender is not set. This is a logical error.".to_owned(),
                     ),
-                    Some(resolved_gateway_config),
                     shared_state,
                 )
                 .await,
@@ -374,7 +365,6 @@ impl ConnectingState {
         );
 
         self.monitor_handle = Some(monitor_handle);
-        self.resolved_gateway_config = Some(resolved_gateway_config);
 
         NextTunnelState::SameState(self)
     }
@@ -387,7 +377,7 @@ impl ConnectingState {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         {
             let resolved_addrs =
-                if let Some(resolved_config) = self.resolved_gateway_config.as_ref() {
+                if let Some(resolved_config) = _shared_state.resolved_gateway_config.as_ref() {
                     resolved_config.all_socket_addrs()
                 } else {
                     tracing::warn!("Resolved gateway config is not set. This is a logical error!");
@@ -415,7 +405,7 @@ impl ConnectingState {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let set_policy_result = {
             let resolved_addrs =
-                if let Some(resolved_config) = self.resolved_gateway_config.as_ref() {
+                if let Some(resolved_config) = _shared_state.resolved_gateway_config.as_ref() {
                     resolved_config.all_socket_addrs()
                 } else {
                     tracing::warn!("Resolved gateway config is not set. This is a logical error!");
@@ -485,14 +475,12 @@ impl TunnelStateHandler for ConnectingState {
                                     // todo: fix that expect()
                                     PrivateActionAfterDisconnect::Error(e.error_state_reason().expect("failed to obtain error state reason")),
                                     monitor_handle,
-                                    self.resolved_gateway_config,
                                     shared_state
                                 ))
                             } else {
                                 NextTunnelState::NewState(ErrorState::enter(
                                     // todo: fix that expect()
                                     e.error_state_reason().expect("failed to obtain error state reason"),
-                                    self.resolved_gateway_config,
                                     shared_state
                                 ).await)
                             }
@@ -514,14 +502,12 @@ impl TunnelStateHandler for ConnectingState {
                                     // todo: fix that expect()
                                     PrivateActionAfterDisconnect::Error(e.error_state_reason().expect("failed to obtain error state reason")),
                                     monitor_handle,
-                                    self.resolved_gateway_config,
                                     shared_state
                                 ))
                             } else {
                                 NextTunnelState::NewState(ErrorState::enter(
                                     // todo: fix that expect()
                                     e.error_state_reason().expect("failed to obtain error state reason"),
-                                    self.resolved_gateway_config,
                                     shared_state
                                 ).await)
                             }
@@ -535,7 +521,7 @@ impl TunnelStateHandler for ConnectingState {
                         tunnel_interface,
                         *connection_data,
                         self.selected_gateways.expect("selected gateways must be set"),
-                        self.resolved_gateway_config.expect("resolved gateway config must be set!"),
+                        shared_state.resolved_gateway_config.clone().expect("resolved gateway config must be set!"),
                         self.monitor_handle.expect("monitor handle must be set!"),
                         self.monitor_event_receiver,
                         shared_state,
@@ -549,7 +535,6 @@ impl TunnelStateHandler for ConnectingState {
                         NextTunnelState::NewState(DisconnectingState::enter(
                             PrivateActionAfterDisconnect::Error(error_state_reason),
                             self.monitor_handle.expect("monitor handle must be set!"),
-                            self.resolved_gateway_config,
                             shared_state
                         ))
                     } else {
@@ -566,7 +551,6 @@ impl TunnelStateHandler for ConnectingState {
                         NextTunnelState::NewState(ConnectingState::enter(
                             next_attempt,
                             self.selected_gateways,
-                            self.resolved_gateway_config,
                             shared_state
                         ).await)
                     }
@@ -581,11 +565,10 @@ impl TunnelStateHandler for ConnectingState {
                             NextTunnelState::NewState(DisconnectingState::enter(
                                 PrivateActionAfterDisconnect::Nothing,
                                 monitor_handle,
-                                self.resolved_gateway_config,
                                 shared_state,
                             ))
                         } else {
-                            NextTunnelState::NewState(DisconnectedState::enter(self.resolved_gateway_config, shared_state).await)
+                            NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
                         }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
@@ -601,7 +584,6 @@ impl TunnelStateHandler for ConnectingState {
                                 NextTunnelState::NewState(DisconnectingState::enter(
                                     PrivateActionAfterDisconnect::Reconnect { retry_attempt: 0 },
                                      monitor_handle,
-                                     self.resolved_gateway_config,
                                     shared_state,
                                 ))
                             } else {
@@ -610,8 +592,7 @@ impl TunnelStateHandler for ConnectingState {
                                 } else {
                                     self.selected_gateways
                                 };
-                                NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, next_gateways,
-                                    self.resolved_gateway_config,shared_state).await)
+                                NextTunnelState::NewState(ConnectingState::enter(self.retry_attempt, next_gateways, shared_state).await)
                             }
                         }
                     }
@@ -627,11 +608,10 @@ impl TunnelStateHandler for ConnectingState {
                                 gateways: self.selected_gateways
                             },
                             monitor_handle,
-                            self.resolved_gateway_config,
                             shared_state
                         ))
                     } else {
-                        NextTunnelState::NewState(OfflineState::enter(true, self.retry_attempt, self.selected_gateways, self.resolved_gateway_config, shared_state).await)
+                        NextTunnelState::NewState(OfflineState::enter(true, self.retry_attempt, self.selected_gateways, shared_state).await)
                     }
                 } else {
                     NextTunnelState::SameState(self)
@@ -642,11 +622,10 @@ impl TunnelStateHandler for ConnectingState {
                     NextTunnelState::NewState(DisconnectingState::enter(
                         PrivateActionAfterDisconnect::Nothing,
                         monitor_handle,
-                        self.resolved_gateway_config,
                         shared_state,
                     ))
                 } else {
-                    NextTunnelState::NewState(DisconnectedState::enter(self.resolved_gateway_config, shared_state).await)
+                    NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
                 }
             }
         }
