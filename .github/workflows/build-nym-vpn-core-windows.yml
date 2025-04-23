@@ -41,11 +41,11 @@ jobs:
         uses: microsoft/setup-msbuild@v2
 
       - name: Install Powershell modules
-       shell: powershell
-       run: |
-         Set-PSRepository PSGallery -InstallationPolicy Trusted
-         Install-Module Microsoft.PowerShell.Archive -Confirm
-         Import-Module Microsoft.PowerShell.Archive
+        shell: powershell
+        run: |
+          Set-PSRepository PSGallery -InstallationPolicy Trusted
+          Install-Module Microsoft.PowerShell.Archive -Confirm
+          Import-Module Microsoft.PowerShell.Archive
 
       - name: Install GNU make
         run: |
