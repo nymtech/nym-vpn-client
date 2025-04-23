@@ -108,8 +108,8 @@ winfw: create_target_dir
 
 wintun: create_target_dir
 # Download and extract wintun
-	Invoke-WebRequest "$(WIUNTUN_URL)" -OutFile "$(TMP)/wintun.zip"; #\
-	Expand-Archive -Path $(TMP)/wintun.zip -DestinationPath "$(TMP)" -Force; #\
+	Invoke-WebRequest "$(WIUNTUN_URL)" -OutFile "$(TMP)/wintun.zip"
+	Expand-Archive -Path $(TMP)/wintun.zip -DestinationPath "$(TMP)" -Force
 
 # Check digital signature of wintun dll
 	$$sig = Get-AuthenticodeSignature -FilePath "$(WINTUN_BIN_DIR)/$(CPU_ARCH_LOWER)/$(WINTUN_DLL_NAME)"; #\
