@@ -31,37 +31,38 @@ sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
 
 ## Build on Windows
 
-- Build all dependencies: `winfw`, `libwg` and download `wintun`:
+### Build all dependencies
   
-  ```sh
-  make -f Windows.mk RELEASE=1
-  ```
+Run the following command to build `winfw`, `libwg` and download `wintun`:
 
-  This command build binaries for the machine CPU architecture and put them into `target/release`. 
-  If you omit the `RELEASE` flag or set it to `0`, the binaries will be put into `target/debug`.
+```sh
+make -f Windows.mk RELEASE=1
+```
 
-  > [!NOTE]
-  > Note that the `RELEASE` flag only affects the build configuration for `winfw`.
-  > Both libwg and wintun are always provided as release binaries.
+This command build binaries for the machine CPU architecture and put them into `target/release`. 
+If you omit the `RELEASE` flag or set it to `0`, the binaries will be put into `target/debug`.
 
-  For convenience, all build artifacts are also mirrored under `build/` directory in the repo root.
+> [!NOTE] Note that the `RELEASE` flag only affects the build configuration for `winfw`.
+> Both libwg and wintun are always provided as release binaries.*
 
-  If you want to build for different architecture, pass one of the following parameters to `make`:
-  
-  - `CPU_ARCH=amd64` to build for x64
-  - `CPU_ARCH=arm64` to build for ARM64
+For convenience, all build artifacts are also mirrored under `build/` directory in the repo root.
 
-- Build VPN libraries and executables
+If you want to build for different architecture, pass one of the following parameters to `make`:
 
-  ```sh
-  cd nym-vpn-core/
+- `CPU_ARCH=amd64` to build for x64
+- `CPU_ARCH=arm64` to build for ARM64
 
-  # build only the the vpn daemon
-  cargo build -p nym-vpnd --release
+### Build VPN libraries and executables
 
-  # build all 
-  cargo build --release
-  ```
+```sh
+cd nym-vpn-core/
+
+# build only the the vpn daemon
+cargo build -p nym-vpnd --release
+
+# build all 
+cargo build --release
+```
 
 ## Build for Windows from MacOS
 
