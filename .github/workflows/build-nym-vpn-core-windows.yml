@@ -40,13 +40,12 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
-      #- name: Install Powershell modules
-      #  shell: pwsh
-      #  run: |
-      #    Set-PSRepository PSGallery -InstallationPolicy Trusted
-      #    Install-Module Microsoft.PowerShell.Archive -Confirm
-      #    Import-Module Microsoft.PowerShell.Archive
-      #    Set-PSRepository PSGallery -InstallationPolicy Untrusted
+      - name: Install Powershell modules
+       shell: powershell
+       run: |
+         Set-PSRepository PSGallery -InstallationPolicy Trusted
+         Install-Module Microsoft.PowerShell.Archive -Confirm
+         Import-Module Microsoft.PowerShell.Archive
 
       - name: Install GNU make
         run: |
@@ -104,7 +103,7 @@ jobs:
           mv '${{ env.WINFW_PATH }}/winfw.dll' .
 
       - name: Download wintun
-        shell: powershell
+        shell: pwsh
         working-directory: nym-vpn-core
         run: |
           make -f Windows.mk wintun CPU_ARCH=amd64 TARGET_DIR="${{ github.workspace }}/nym-vpn-core"
