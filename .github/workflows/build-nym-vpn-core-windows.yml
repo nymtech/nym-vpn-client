@@ -104,7 +104,7 @@ jobs:
           mv '${{ env.WINFW_PATH }}/winfw.dll' .
 
       - name: Download wintun
-        shell: pwsh
+        shell: powershell
         working-directory: nym-vpn-core
         run: |
           make -f Windows.mk wintun CPU_ARCH=amd64 TARGET_DIR="${{ github.workspace }}/nym-vpn-core"
