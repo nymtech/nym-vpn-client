@@ -7,7 +7,7 @@ on:
   workflow_call:
     outputs:
       RUST_VERSION:
-        value: ${{ jobs.build-linux.outputs.RUST_VERSION }}
+        value: ${{ jobs.build-windows.outputs.RUST_VERSION }}
       UPLOAD_DIR_WINDOWS:
         value: ${{ jobs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
 
