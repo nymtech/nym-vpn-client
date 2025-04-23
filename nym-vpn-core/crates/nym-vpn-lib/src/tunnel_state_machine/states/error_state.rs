@@ -92,23 +92,21 @@ impl ErrorState {
         shared_state: &mut SharedState,
     ) -> Result<()> {
         let allowed_endpoints = resolved_gateway_config
-            .and_then(|resolved_gateway_config| {
-                Some(
-                    resolved_gateway_config
-                        .nym_vpn_api_socket_addrs
-                        .unwrap_or_default()
-                        .into_iter()
-                        .map(|addr| {
-                            AllowedEndpoint::new(
-                                Endpoint::from_socket_address(addr, TransportProtocol::Tcp),
-                                #[cfg(any(target_os = "linux", target_os = "macos"))]
-                                AllowedClients::Root,
-                                #[cfg(target_os = "windows")]
-                                AllowedClients::current_exe(),
-                            )
-                        })
-                        .collect::<Vec<_>>(),
-                )
+            .map(|resolved_gateway_config| {
+                resolved_gateway_config
+                    .nym_vpn_api_socket_addrs
+                    .unwrap_or_default()
+                    .into_iter()
+                    .map(|addr| {
+                        AllowedEndpoint::new(
+                            Endpoint::from_socket_address(addr, TransportProtocol::Tcp),
+                            #[cfg(any(target_os = "linux", target_os = "macos"))]
+                            AllowedClients::Root,
+                            #[cfg(target_os = "windows")]
+                            AllowedClients::current_exe(),
+                        )
+                    })
+                    .collect::<Vec<_>>()
             })
             .unwrap_or_default();
 
