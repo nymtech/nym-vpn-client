@@ -40,16 +40,6 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
-      - name: Unleash the power of Powershell
-        run: powershell.exe -command "Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope CurrentUser"
-
-      - name: Install Powershell modules
-        shell: powershell
-        run: |
-          Set-PSRepository PSGallery -InstallationPolicy Trusted
-          Install-Module Microsoft.PowerShell.Archive -Confirm
-          Import-Module Microsoft.PowerShell.Archive
-
       - name: Install GNU make
         run: |
           winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
@@ -109,7 +99,7 @@ jobs:
         shell: pwsh
         working-directory: nym-vpn-core
         run: |
-          make -f Windows.mk wintun CPU_ARCH=amd64 TARGET_DIR="${{ github.workspace }}/nym-vpn-core"
+          make -f Windows.mk wintun PWSH=1 CPU_ARCH=amd64 TARGET_DIR="${{ github.workspace }}/nym-vpn-core"
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3

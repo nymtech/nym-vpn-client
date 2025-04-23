@@ -5,7 +5,11 @@
 # - RELEASE: 1 for release build, 0 for debug build (default if omitted)
 # - TARGET_DIR: Directory to copy the built DLLs to (default is target/debug or target/release, depending on RELEASE)
 
-SHELL := C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+ifdef PWSH
+	SHELL := C:/Program Files/PowerShell/7/pwsh.exe
+else
+	SHELL := C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+endif
 
 WIUNTUN_URL := https://www.wintun.net/builds/wintun-0.14.1.zip
 WINTUN_BIN_DIR := $(TMP)/wintun/bin
