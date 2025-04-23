@@ -57,6 +57,8 @@ use crate::{
     bandwidth_controller::Error as BandwidthControllerError, GatewayDirectoryError,
     MixnetClientConfig,
 };
+#[cfg(target_os = "android")]
+pub use android_connectivity_adapter::AndroidConnectivityAdapter;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use dns_handler::DnsHandlerHandle;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -393,6 +395,7 @@ pub struct TunnelStateMachine {
 }
 
 impl TunnelStateMachine {
+    #[allow(clippy::too_many_arguments)]
     pub async fn spawn(
         command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
         event_sender: mpsc::UnboundedSender<TunnelEvent>,

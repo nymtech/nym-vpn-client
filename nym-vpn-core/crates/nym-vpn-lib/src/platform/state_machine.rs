@@ -161,6 +161,10 @@ pub(super) async fn start_state_machine(
     let offline_monitor = nym_offline_monitor::spawn_monitor(
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler.inner_handle(),
+        #[cfg(target_os = "android")]
+        crate::tunnel_state_machine::AndroidConnectivityAdapter::new(config.tun_provider.clone()),
+        #[cfg(target_os = "linux")]
+        Some(crate::tunnel_state_machine::TUNNEL_FWMARK),
     )
     .await;
 
