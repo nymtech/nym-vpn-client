@@ -20,7 +20,7 @@ MSVS_DIR := $(ProgramW6432)/Microsoft Visual Studio/2022/Community
 MSVC_PATH := $(MSVS_DIR)/VC/Tools/MSVC
 MSBUILD_PATH := $(MSVS_DIR)/MSBuild/Current/Bin
 
-BUILDTOOLS_DIR := $(ProgramFiles(x86))/Microsoft Visual Studio/2022/BuildTools
+BUILDTOOLS_DIR := ${ProgramFiles(x86)}/Microsoft Visual Studio/2022/BuildTools
 BUILDTOOLS_MSVC_PATH := $(BUILDTOOLS_DIR)/VC/Tools/MSVC
 BUILDTOOLS_MSBUILD_PATH := $(BUILDTOOLS_DIR)/MSBuild/Current/Bin
 
