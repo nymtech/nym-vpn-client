@@ -4,11 +4,14 @@
 # - CPU_ARCH: CPU architecture (amd64 or arm64)
 # - RELEASE: 1 for release build, 0 for debug build (default if omitted)
 # - TARGET_DIR: Directory to copy the built DLLs to (default is target/debug or target/release, depending on RELEASE)
+# - PWSH: Set to 1 to use PowerShell Core (pwsh) instead of Windows PowerShell (powershell)
 
+# Powershell configuration on CI does not support the `Expand-Archive` cmdlet.
+# Therefore prefer pwsh instead. On stock Windows 11 installation Powershell seems to work just fine.
 ifdef PWSH
-	SHELL := C:/Program Files/PowerShell/7/pwsh.exe
+	SHELL := $(ProgramW6432)/PowerShell/7/pwsh.exe
 else
-	SHELL := C:/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+	SHELL := $(windir)/System32/WindowsPowerShell/v1.0/powershell.exe
 endif
 
 WIUNTUN_URL := https://www.wintun.net/builds/wintun-0.14.1.zip
