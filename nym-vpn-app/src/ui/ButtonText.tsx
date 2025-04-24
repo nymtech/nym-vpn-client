@@ -55,7 +55,7 @@ function ButtonText({
       data-disabled={disabled ? 'true' : 'false'}
       data-truncate={truncate ? 'true' : 'false'}
     >
-      <div 
+      <div
         className={clsx(truncate && 'text-nowrap truncate')}
         data-testid={`${testId}-content`}
       >

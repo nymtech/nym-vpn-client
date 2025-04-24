@@ -31,12 +31,23 @@ function Welcome() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col justify-end items-center gap-14 select-none cursor-default" data-testid="welcome-page">
-      <div className="flex flex-col items-center gap-4 px-4 mt-4" data-testid="welcome-header">
+    <PageAnim
+      className="h-full flex flex-col justify-end items-center gap-14 select-none cursor-default"
+      data-testid="welcome-page"
+    >
+      <div
+        className="flex flex-col items-center gap-4 px-4 mt-4"
+        data-testid="welcome-header"
+      >
         <div className="flex flex-col gap-2 text-2xl text-center dark:text-white">
-          <h1 className="truncate" data-testid="welcome-title">{t('title')}</h1>
+          <h1 className="truncate" data-testid="welcome-title">
+            {t('title')}
+          </h1>
         </div>
-        <h2 className="text-center dark:text-bombay w-72" data-testid="welcome-description">
+        <h2
+          className="text-center dark:text-bombay w-72"
+          data-testid="welcome-description"
+        >
           <Trans
             i18nKey="description"
             ns="welcome"
@@ -52,7 +63,10 @@ function Welcome() {
           />
         </h2>
       </div>
-      <div className="flex flex-col items-center gap-4 w-full" data-testid="welcome-content">
+      <div
+        className="flex flex-col items-center gap-4 w-full"
+        data-testid="welcome-content"
+      >
         <SettingsGroup
           className="w-full"
           settings={[
@@ -73,14 +87,14 @@ function Welcome() {
           ]}
           data-testid="welcome-settings-group"
         />
-        <Button 
-          className="mt-1" 
+        <Button
+          className="mt-1"
           onClick={handleContinue}
           data-testid="welcome-continue-button"
         >
           {t('continue-button')}
         </Button>
-        <p 
+        <p
           className="text-xs text-center text-iron dark:text-bombay w-80"
           data-testid="welcome-tos-notice"
         >

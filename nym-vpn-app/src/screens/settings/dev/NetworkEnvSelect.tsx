@@ -36,17 +36,21 @@ function NetworkEnvSelect({ current }: Props) {
 
   return (
     <div className="mt-2" data-testid="network-env-select-container">
-      <h3 
+      <h3
         className="text-lg text-baltic-sea dark:text-white font-medium"
         data-testid="network-env-title"
       >
         Network env
       </h3>
-      <div 
+      <div
         className="flex flex-row flex-nowrap items-center text-sm"
         data-testid="network-env-warning"
       >
-        <MsIcon icon="priority_high" className="text-liquid-lava" data-testid="network-env-warning-icon" />
+        <MsIcon
+          icon="priority_high"
+          className="text-liquid-lava"
+          data-testid="network-env-warning-icon"
+        />
         <p className="text-iron dark:text-bombay truncate">
           This require to restart the daemon to take effect
         </p>
@@ -68,8 +72,8 @@ function NetworkEnvSelect({ current }: Props) {
           data-testid="network-env-select"
         >
           {options.map(({ value, label }) => (
-            <option 
-              key={value} 
+            <option
+              key={value}
               value={value}
               data-testid={`network-env-option-${value}`}
             >

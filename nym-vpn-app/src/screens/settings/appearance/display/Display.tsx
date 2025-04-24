@@ -68,7 +68,10 @@ function Display() {
   }, [t]);
 
   return (
-    <PageAnim className="h-full flex flex-col py-6 gap-6" data-testid="display-page">
+    <PageAnim
+      className="h-full flex flex-col py-6 gap-6"
+      data-testid="display-page"
+    >
       <RadioGroup
         defaultValue={state.themeMode}
         options={options}
@@ -76,7 +79,7 @@ function Display() {
         rootLabel={t('theme-section-title')}
         data-testid="theme-radio-group"
       />
-      <div 
+      <div
         className="mt-3 text-base font-medium cursor-default"
         data-testid="zoom-section-title"
       >

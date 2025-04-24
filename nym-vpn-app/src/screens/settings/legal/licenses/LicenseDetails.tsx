@@ -26,7 +26,7 @@ function LicenseDetails() {
   const { licenses, name, repository, authors, version } = license || {};
 
   const label = (label: string) => (
-    <p 
+    <p
       className="truncate text-iron dark:text-bombay select-none cursor-default"
       data-testid={`license-details-label-${label.toLowerCase()}`}
     >
@@ -35,24 +35,46 @@ function LicenseDetails() {
   );
 
   return (
-    <PageAnim className="h-full flex flex-col" data-testid="license-details-page">
+    <PageAnim
+      className="h-full flex flex-col"
+      data-testid="license-details-page"
+    >
       {license ? (
-        <article className="flex flex-col gap-4" data-testid="license-details-content">
-          <div className="flex flex-row items-center gap-4" data-testid="license-details-name-section">
+        <article
+          className="flex flex-col gap-4"
+          data-testid="license-details-content"
+        >
+          <div
+            className="flex flex-row items-center gap-4"
+            data-testid="license-details-name-section"
+          >
             {label(t('name'))}
-            <p className="truncate font-medium" data-testid="license-details-name-value">{name}</p>
+            <p
+              className="truncate font-medium"
+              data-testid="license-details-name-value"
+            >
+              {name}
+            </p>
           </div>
-          <div className="flex flex-row items-center gap-4" data-testid="license-details-version-section">
+          <div
+            className="flex flex-row items-center gap-4"
+            data-testid="license-details-version-section"
+          >
             {label(t('version'))}
-            <p className="truncate" data-testid="license-details-version-value">{version}</p>
+            <p className="truncate" data-testid="license-details-version-value">
+              {version}
+            </p>
           </div>
-          <div className="flex flex-col gap-2" data-testid="license-details-licenses-section">
+          <div
+            className="flex flex-col gap-2"
+            data-testid="license-details-licenses-section"
+          >
             {label(t('licenses'))}
             {licenses && (
               <ul data-testid="license-details-licenses-list">
                 {licenses.map((license) => (
-                  <li 
-                    className="truncate" 
+                  <li
+                    className="truncate"
                     key={license}
                     data-testid={`license-details-license-item-${license.replace(/\s+/g, '-').toLowerCase()}`}
                   >
@@ -62,7 +84,10 @@ function LicenseDetails() {
               </ul>
             )}
           </div>
-          <div className="flex flex-col gap-2" data-testid="license-details-repository-section">
+          <div
+            className="flex flex-col gap-2"
+            data-testid="license-details-repository-section"
+          >
             {label(t('repository'))}
             {repository && (
               <a
@@ -77,13 +102,16 @@ function LicenseDetails() {
             )}
           </div>
 
-          <div className="flex flex-col gap-2" data-testid="license-details-authors-section">
+          <div
+            className="flex flex-col gap-2"
+            data-testid="license-details-authors-section"
+          >
             {label(t('authors'))}
             {authors && (
               <ul data-testid="license-details-authors-list">
                 {authors.map((author) => (
-                  <li 
-                    className="truncate" 
+                  <li
+                    className="truncate"
                     key={author}
                     data-testid={`license-details-author-item-${author.replace(/\s+/g, '-').toLowerCase().substring(0, 20)}`}
                   >
@@ -93,9 +121,12 @@ function LicenseDetails() {
               </ul>
             )}
           </div>
-          <div className="flex flex-row items-center gap-4" data-testid="license-details-language-section">
+          <div
+            className="flex flex-row items-center gap-4"
+            data-testid="license-details-language-section"
+          >
             {label(t('language'))}
-            <p 
+            <p
               className="italic truncate"
               data-testid="license-details-language-value"
             >
@@ -104,7 +135,7 @@ function LicenseDetails() {
           </div>
         </article>
       ) : (
-        <span 
+        <span
           className="mt-4 pl-4 italic text-iron dark:text-bombay select-none cursor-default"
           data-testid="license-details-no-data"
         >

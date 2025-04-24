@@ -25,7 +25,7 @@ function Slider({
   ...rest
 }: SliderProps) {
   const testId = rest['data-testid'] || 'slider';
-  
+
   return (
     <RxSlider.Root
       step={step}
@@ -45,12 +45,12 @@ function Slider({
       data-max={max}
       data-disabled={disabled ? 'true' : 'false'}
     >
-      <RxSlider.Track 
+      <RxSlider.Track
         className="relative h-1.5 grow rounded-full bg-bombay/60 dark:bg-iron"
         data-testid={`${testId}-track`}
       >
-        <RxSlider.Range 
-          className="absolute h-full rounded-full bg-malachite-moss/50 dark:bg-malachite-moss/60" 
+        <RxSlider.Range
+          className="absolute h-full rounded-full bg-malachite-moss/50 dark:bg-malachite-moss/60"
           data-testid={`${testId}-range`}
         />
       </RxSlider.Track>

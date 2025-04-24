@@ -12,9 +12,17 @@ type LinkProps = {
   'data-testid'?: string;
 };
 
-function Link({ text, url, icon, className, textClassName, ...rest }: LinkProps) {
-  const testId = rest['data-testid'] || `link-${text.replace(/\s+/g, '-').toLowerCase()}`;
-  
+function Link({
+  text,
+  url,
+  icon,
+  className,
+  textClassName,
+  ...rest
+}: LinkProps) {
+  const testId =
+    rest['data-testid'] || `link-${text.replace(/\s+/g, '-').toLowerCase()}`;
+
   return (
     <Button
       as="a"

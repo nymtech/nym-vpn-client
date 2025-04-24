@@ -83,7 +83,10 @@ function Logout() {
       >
         {loading ? (
           <>
-            <div className="flex justify-center w-11/12" data-testid="logout-loading-icon-container">
+            <div
+              className="flex justify-center w-11/12"
+              data-testid="logout-loading-icon-container"
+            >
               <MsIcon
                 icon="pending"
                 className="text-3xl text-baltic-sea dark:text-white"
@@ -91,7 +94,7 @@ function Logout() {
               />
             </div>
 
-            <p 
+            <p
               className="text-center text-iron dark:text-bombay md:text-nowrap max-w-80"
               data-testid="logout-loading-message"
             >
@@ -100,7 +103,10 @@ function Logout() {
           </>
         ) : (
           <>
-            <div className="flex flex-col items-center gap-4 w-11/12" data-testid="logout-dialog-header">
+            <div
+              className="flex flex-col items-center gap-4 w-11/12"
+              data-testid="logout-dialog-header"
+            >
               <MsIcon
                 icon="info"
                 className="text-3xl text-baltic-sea dark:text-white"
@@ -115,7 +121,7 @@ function Logout() {
               </DialogTitle>
             </div>
 
-            <p 
+            <p
               className="text-center text-iron dark:text-bombay md:text-nowrap max-w-80"
               data-testid="logout-dialog-description"
             >
@@ -128,16 +134,16 @@ function Logout() {
               )}
               data-testid="logout-dialog-buttons"
             >
-              <Button 
-                onClick={onClose} 
+              <Button
+                onClick={onClose}
                 className="min-w-32"
                 data-testid="logout-cancel-button"
               >
                 {capFirst(t('cancel', { ns: 'glossary' }))}
               </Button>
-              <Button 
-                onClick={logout} 
-                className="min-w-32" 
+              <Button
+                onClick={logout}
+                className="min-w-32"
                 outline
                 data-testid="logout-confirm-button"
               >

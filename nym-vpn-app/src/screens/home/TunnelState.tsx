@@ -33,7 +33,9 @@ function TunnelState() {
 
   const generalError = (error: AppError) => (
     <>
-      <p data-testid="tunnel-error-key">{error.key ? tE(error.key) : error.message}</p>
+      <p data-testid="tunnel-error-key">
+        {error.key ? tE(error.key) : error.message}
+      </p>
       {error.data && (
         <p className="text-left" data-testid="tunnel-error-data">
           {setToString(error.data)}
@@ -55,17 +57,17 @@ function TunnelState() {
   );
 
   return (
-    <div 
+    <div
       className="h-full min-h-52 flex flex-col justify-center items-center gap-y-2 cursor-default"
       data-testid="tunnel-state-container"
     >
-      <div 
+      <div
         className="flex flex-1 items-end cursor-default select-none"
         data-testid="tunnel-badge-container"
       >
         {showBadge && <ConnectionBadge state={state.state} />}
       </div>
-      <div 
+      <div
         className="w-full flex flex-col flex-1 items-center overflow-hidden"
         data-testid="tunnel-details-container"
       >

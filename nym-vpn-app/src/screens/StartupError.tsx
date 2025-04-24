@@ -38,7 +38,7 @@ function StartupError({
   }, []);
 
   return (
-    <div 
+    <div
       className={clsx([theme === 'dark' && 'dark', 'h-full'])}
       data-testid="startup-error-container"
       data-theme={theme}
@@ -51,32 +51,29 @@ function StartupError({
         ])}
         data-testid="startup-error-content"
       >
-        <div 
+        <div
           className="flex flex-col justify-center items-center gap-2"
           data-testid="startup-error-header"
         >
-          <MsIcon 
-            className="text-2xl font-medium" 
-            icon={'error'} 
+          <MsIcon
+            className="text-2xl font-medium"
+            icon={'error'}
             data-testid="startup-error-icon"
           />
-          <h1 
+          <h1
             className="text-xl font-medium tracking-wider leading-loose"
             data-testid="startup-error-title"
           >
             Problem detected
           </h1>
         </div>
-        <p 
-          className="text-center"
-          data-testid="startup-error-message"
-        >
+        <p className="text-center" data-testid="startup-error-message">
           {error
             ? getErrorText(error?.key)
             : 'Something went wrong while loading the app. Please check the logs.'}
         </p>
         {error?.details && (
-          <div 
+          <div
             className="w-full max-h-32 overflow-auto select-text text-balance break-words"
             data-testid="startup-error-details"
           >

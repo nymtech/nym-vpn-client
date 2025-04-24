@@ -64,7 +64,14 @@ function NetworkModeSelect() {
         label: t('fast-mode.title'),
         desc: t('fast-mode.desc'),
         disabled: state !== 'Disconnected' || loading,
-        icon: (checked) => <span className={iconStyle(checked)} data-testid="network-mode-fast-icon">speed</span>,
+        icon: (checked) => (
+          <span
+            className={iconStyle(checked)}
+            data-testid="network-mode-fast-icon"
+          >
+            speed
+          </span>
+        ),
       },
       {
         key: 'mixnet',
@@ -72,7 +79,12 @@ function NetworkModeSelect() {
         desc: t('privacy-mode.desc'),
         disabled: state !== 'Disconnected' || loading,
         icon: (checked) => (
-          <span className={iconStyle(checked)} data-testid="network-mode-privacy-icon">visibility_off</span>
+          <span
+            className={iconStyle(checked)}
+            data-testid="network-mode-privacy-icon"
+          >
+            visibility_off
+          </span>
         ),
       },
     ];
@@ -107,8 +119,8 @@ function NetworkModeSelect() {
         isOpen={isDialogModesOpen}
         onClose={() => setIsDialogModesOpen(false)}
       />
-      <div 
-        className="select-none" 
+      <div
+        className="select-none"
         onClick={handleDisabledState}
         data-testid="network-mode-radio-group-container"
       >

@@ -25,8 +25,8 @@ const Row = ({
   const navigate = useNavigate();
 
   return (
-    <div 
-      className="flex flex-col justify-center px-4" 
+    <div
+      className="flex flex-col justify-center px-4"
       style={style}
       data-testid={`license-row-${name.replace(/\//g, '-').toLowerCase()}`}
     >
@@ -75,12 +75,12 @@ function LicenseList({ language }: Props) {
   }, [rootFontSize]);
 
   return (
-    <PageAnim 
-      className="h-full flex flex-col" 
+    <PageAnim
+      className="h-full flex flex-col"
       data-testid={`license-list-${language}`}
     >
       {licenses.length === 0 ? (
-        <span 
+        <span
           className="mt-4 pl-4 italic text-iron dark:text-bombay select-none cursor-default"
           data-testid="license-list-empty"
         >

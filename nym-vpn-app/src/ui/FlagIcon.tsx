@@ -272,7 +272,7 @@ export type FlagIconProps = {
 function FlagIcon({ code, alt, className, ...rest }: FlagIconProps) {
   // Generate a default test ID if none is provided
   const testId = rest['data-testid'] || `flag-icon-${code}`;
-  
+
   if (!isAlpha2Code(code)) {
     return (
       <MsIcon
@@ -284,7 +284,7 @@ function FlagIcon({ code, alt, className, ...rest }: FlagIconProps) {
   }
 
   return (
-    <div 
+    <div
       className="w-7 min-w-7 flex justify-center items-center"
       data-testid={`${testId}-container`}
     >

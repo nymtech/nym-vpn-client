@@ -10,7 +10,7 @@ export type SwitchProps = {
 
 function Switch({ checked, onChange, disabled, ...rest }: SwitchProps) {
   const testId = rest['data-testid'] || 'switch';
-  
+
   return (
     <HuSwitch
       checked={checked}

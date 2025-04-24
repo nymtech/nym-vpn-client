@@ -41,8 +41,14 @@ function Dialog({ open, onClose, children, className, ...rest }: DialogProps) {
         ])}
         data-testid={`${testId}-backdrop`}
       />
-      <div className="fixed inset-0 z-50 w-screen overflow-y-auto" data-testid={`${testId}-container`}>
-        <div className="flex min-h-full items-center justify-center p-4 mx-4" data-testid={`${testId}-wrapper`}>
+      <div
+        className="fixed inset-0 z-50 w-screen overflow-y-auto"
+        data-testid={`${testId}-container`}
+      >
+        <div
+          className="flex min-h-full items-center justify-center p-4 mx-4"
+          data-testid={`${testId}-wrapper`}
+        >
           <DialogPanel
             transition
             className={clsx(

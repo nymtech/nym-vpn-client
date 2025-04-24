@@ -34,7 +34,7 @@ function DaemonDot({ status, ...rest }: DaemonDotProps) {
       data-testid={testId}
       data-status={status}
     >
-      <div 
+      <div
         className={clsx(['relative w-2.5 h-2.5 rounded-full', bgColor()])}
         data-testid={`${testId}-indicator`}
       />

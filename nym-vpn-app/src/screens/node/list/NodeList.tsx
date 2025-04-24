@@ -46,14 +46,14 @@ function NodeList({
 
   return (
     <>
-      <Accordion.Root 
-        className="w-full flex flex-col gap-3" 
+      <Accordion.Root
+        className="w-full flex flex-col gap-3"
         type="multiple"
         data-testid="node-list-accordion"
       >
         {nodes.map(({ i18n, isSelected, gateways, country }) => (
-          <Accordion.Item 
-            key={country.code} 
+          <Accordion.Item
+            key={country.code}
             value={country.code}
             data-testid={`country-accordion-item-${country.code}`}
           >
@@ -88,13 +88,18 @@ function NodeList({
                   gwCount={gateways.length}
                 />
               </div>
-              <Accordion.Header className="flex py-2" data-testid={`country-accordion-header-${country.code}`}>
+              <Accordion.Header
+                className="flex py-2"
+                data-testid={`country-accordion-header-${country.code}`}
+              >
                 <Accordion.Trigger asChild>
                   <FoldButton />
                 </Accordion.Trigger>
               </Accordion.Header>
             </div>
-            <Accordion.Content data-testid={`country-accordion-content-${country.code}`}>
+            <Accordion.Content
+              data-testid={`country-accordion-content-${country.code}`}
+            >
               <motion.div
                 initial={{ opacity: 0, translateY: -4 }}
                 animate={{ opacity: 1, translateY: 0 }}
@@ -117,10 +122,7 @@ function NodeList({
           </Accordion.Item>
         ))}
       </Accordion.Root>
-      <div 
-        className={clsx('mt-6')}
-        data-testid="standalone-gateways-container"
-      >
+      <div className={clsx('mt-6')} data-testid="standalone-gateways-container">
         {gateways.length > 0 &&
           gateways.map((gateway) => (
             <motion.div

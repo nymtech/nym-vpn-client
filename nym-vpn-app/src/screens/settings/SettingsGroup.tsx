@@ -24,7 +24,7 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
     <RadioGroup className={clsx([className])} {...rest}>
       {settings.map((setting, index) => {
         const testId = setting['data-testid'];
-        
+
         return (
           <Radio
             key={setting.title}
@@ -54,7 +54,7 @@ function SettingsGroup({ settings, className, ...rest }: Props) {
               className="flex flex-1 items-center justify-between gap-4 overflow-hidden cursor-default"
             >
               {setting.leadingIcon && (
-                <span 
+                <span
                   className="font-icon text-2xl select-none dark:text-white"
                   data-testid={testId ? `${testId}-icon` : undefined}
                 >

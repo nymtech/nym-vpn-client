@@ -110,7 +110,13 @@ function Button({
       data-outline={outline ? 'true' : 'false'}
       data-disabled={disabled ? 'true' : 'false'}
     >
-      {spinner ? <Spinner /> : <div className="truncate" data-testid={`${testId}-text`}>{children}</div>}
+      {spinner ? (
+        <Spinner />
+      ) : (
+        <div className="truncate" data-testid={`${testId}-text`}>
+          {children}
+        </div>
+      )}
     </HuButton>
   );
 }

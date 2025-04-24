@@ -67,10 +67,17 @@ function UpdateDialog({ isOpen, onClose, appUpdate, daemonUpdate }: Props) {
           {t('update-dialog.title')}
         </DialogTitle>
       </div>
-      <p className="text-iron dark:text-bombay md:text-nowrap" data-testid="update-dialog-description">
+      <p
+        className="text-iron dark:text-bombay md:text-nowrap"
+        data-testid="update-dialog-description"
+      >
         {description()} {t('update-dialog.description-2')}
       </p>
-      <Button onClick={handleClose} className="mt-2" data-testid="update-dialog-button">
+      <Button
+        onClick={handleClose}
+        className="mt-2"
+        data-testid="update-dialog-button"
+      >
         <span className="text-lg text-black dark:text-baltic-sea">
           {t('update-dialog.button-update')}
         </span>

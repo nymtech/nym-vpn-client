@@ -20,7 +20,10 @@ function Support() {
   const { t } = useTranslation('settings');
 
   return (
-    <PageAnim className="h-full flex flex-col mt-2 gap-6" data-testid="support-page">
+    <PageAnim
+      className="h-full flex flex-col mt-2 gap-6"
+      data-testid="support-page"
+    >
       <SettingsMenuCard
         title={t('support.faq')}
         onClick={() => {

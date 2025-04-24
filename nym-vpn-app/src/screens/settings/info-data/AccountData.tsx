@@ -70,16 +70,15 @@ function AccountData() {
   return (
     <div className={clsx('mt-3')} data-testid="account-data-container">
       {accountId && (
-        <div 
+        <div
           className={clsx('flex flex-row flex-nowrap gap-1')}
           data-testid="account-id-container"
         >
-          <p 
-            className="text-nowrap"
-            data-testid="account-id-label"
-          >{t('info.account-id')}</p>
-          <ButtonText 
-            onClick={() => copy(accountId)} 
+          <p className="text-nowrap" data-testid="account-id-label">
+            {t('info.account-id')}
+          </p>
+          <ButtonText
+            onClick={() => copy(accountId)}
             truncate
             data-testid="account-id-value"
           >
@@ -88,16 +87,15 @@ function AccountData() {
         </div>
       )}
       {deviceId && (
-        <div 
+        <div
           className={clsx('flex flex-row flex-nowrap gap-1')}
           data-testid="device-id-container"
         >
-          <p 
-            className="text-nowrap"
-            data-testid="device-id-label"
-          >{t('info.device-id')}</p>
-          <ButtonText 
-            onClick={() => copy(deviceId)} 
+          <p className="text-nowrap" data-testid="device-id-label">
+            {t('info.device-id')}
+          </p>
+          <ButtonText
+            onClick={() => copy(deviceId)}
             truncate
             data-testid="device-id-value"
           >

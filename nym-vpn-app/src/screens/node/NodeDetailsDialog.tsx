@@ -40,23 +40,20 @@ function NodeDetailsDialog({ isOpen, onClose, ref }: Props) {
       className="flex flex-col dark:text-white gap-8"
       data-testid="node-details-dialog"
     >
-      <h3 
-        className="text-xl font-medium" 
-        data-testid="node-details-name"
-      >
+      <h3 className="text-xl font-medium" data-testid="node-details-name">
         {gateway?.name}
       </h3>
-      <div 
+      <div
         className="flex flex-row items-center gap-3"
         data-testid="node-details-info-row"
       >
-        <MsIcon 
-          className={clsx(scoreIcon[1], 'text-xl')} 
-          icon={scoreIcon[0]} 
+        <MsIcon
+          className={clsx(scoreIcon[1], 'text-xl')}
+          icon={scoreIcon[0]}
           data-testid="node-details-score-icon"
         />
         <div className="w-[1px] bg-bombay dark:bg-iron self-stretch" />
-        <div 
+        <div
           className="flex flex-row items-center gap-2"
           data-testid="node-details-country-info"
         >
@@ -71,21 +68,18 @@ function NodeDetailsDialog({ isOpen, onClose, ref }: Props) {
           </div>
         </div>
       </div>
-      <div 
+      <div
         className="flex flex-col gap-2"
         data-testid="node-details-id-section"
       >
-        <p 
+        <p
           className="text-sm text-iron dark:text-bombay"
           data-testid="node-details-id-label"
         >
           {t('node-details.id-label')}
         </p>
-        <div 
-          className="flex flex-row"
-          data-testid="node-details-id-container"
-        >
-          <div 
+        <div className="flex flex-row" data-testid="node-details-id-container">
+          <div
             className="font-mono flex-wrap text-wrap break-words overflow-hidden max-w-72"
             data-testid="node-details-id-value"
           >
@@ -100,8 +94,8 @@ function NodeDetailsDialog({ isOpen, onClose, ref }: Props) {
         </div>
       </div>
 
-      <Button 
-        onClick={onClose} 
+      <Button
+        onClick={onClose}
         className="mt-2"
         data-testid="node-details-close-button"
       >

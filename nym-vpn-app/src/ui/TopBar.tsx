@@ -209,7 +209,7 @@ export default function TopBar() {
   const renderTitle = (title?: string | ReactNode) => {
     if (typeof title === 'string') {
       return (
-        <p 
+        <p
           className="truncate justify-self-center tracking-normal"
           data-testid="top-bar-title-text"
         >

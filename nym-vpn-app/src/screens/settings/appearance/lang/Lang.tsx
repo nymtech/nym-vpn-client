@@ -10,14 +10,17 @@ function Lang() {
   const { set } = useLang();
 
   return (
-    <PageAnim className="h-full flex flex-col py-6 gap-6" data-testid="language-page">
-      <ul 
-        className="flex flex-col w-full items-stretch gap-1" 
+    <PageAnim
+      className="h-full flex flex-col py-6 gap-6"
+      data-testid="language-page"
+    >
+      <ul
+        className="flex flex-col w-full items-stretch gap-1"
         data-testid="language-list"
       >
         {languages.map((lang) => (
-          <li 
-            key={lang.code} 
+          <li
+            key={lang.code}
             className="list-none w-full"
             data-testid={`language-item-${lang.code}`}
           >
@@ -32,7 +35,7 @@ function Lang() {
               data-testid={`language-button-${lang.code}`}
               data-selected={i18n.language === lang.code}
             >
-              <div 
+              <div
                 className="flex flex-row items-center m-1 gap-3 p-1 overflow-hidden"
                 data-testid={`language-name-${lang.code}`}
               >

@@ -8,7 +8,12 @@ type Props = {
   'data-testid'?: string;
 };
 
-function PageAnim({ children, className, slideOrigin = 'left', ...rest }: Props) {
+function PageAnim({
+  children,
+  className,
+  slideOrigin = 'left',
+  ...rest
+}: Props) {
   const testId = rest['data-testid'] || 'page-animation';
 
   return (

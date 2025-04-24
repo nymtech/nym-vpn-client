@@ -33,25 +33,40 @@ function ModeDetailsDialog({ isOpen, onClose }: Props) {
           {t('modes-dialog.title')}
         </DialogTitle>
       </div>
-      <div className="flex flex-col gap-2" data-testid="mode-details-fast-section">
+      <div
+        className="flex flex-col gap-2"
+        data-testid="mode-details-fast-section"
+      >
         <div className="flex flex-row items-center text-baltic-sea dark:text-white gap-2">
           <MsIcon icon="speed" data-testid="mode-details-fast-icon" />
           <h4 className="text-lg" data-testid="mode-details-fast-title">
             {t('vpn-modes.fast', { ns: 'common' })}
           </h4>
         </div>
-        <p className="text-iron dark:text-bombay md:text-nowrap" data-testid="mode-details-fast-description">
+        <p
+          className="text-iron dark:text-bombay md:text-nowrap"
+          data-testid="mode-details-fast-description"
+        >
           {t('modes-dialog.fast-description')}
         </p>
       </div>
-      <div className="flex flex-col gap-2" data-testid="mode-details-privacy-section">
+      <div
+        className="flex flex-col gap-2"
+        data-testid="mode-details-privacy-section"
+      >
         <div className="flex flex-row items-center text-baltic-sea dark:text-white gap-2">
-          <MsIcon icon="visibility_off" data-testid="mode-details-privacy-icon" />
+          <MsIcon
+            icon="visibility_off"
+            data-testid="mode-details-privacy-icon"
+          />
           <h4 className="text-lg" data-testid="mode-details-privacy-title">
             {t('vpn-modes.privacy', { ns: 'common' })}
           </h4>
         </div>
-        <p className="text-iron dark:text-bombay md:text-nowrap" data-testid="mode-details-privacy-description">
+        <p
+          className="text-iron dark:text-bombay md:text-nowrap"
+          data-testid="mode-details-privacy-description"
+        >
           {t('modes-dialog.privacy-description')}
         </p>
       </div>
@@ -62,8 +77,8 @@ function ModeDetailsDialog({ isOpen, onClose }: Props) {
         icon
         data-testid="mode-details-learn-more-link"
       />
-      <Button 
-        onClick={onClose} 
+      <Button
+        onClick={onClose}
         className="mt-2"
         data-testid="mode-details-close-button"
       >

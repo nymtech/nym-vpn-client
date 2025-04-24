@@ -33,7 +33,7 @@ const CountryInfo = ({ country, name, gwCount }: CountryInfoProps) => {
         >
           {name}
         </div>
-        <div 
+        <div
           className="text-iron dark:text-bombay text-sm"
           data-testid={`country-server-count-${country.code}`}
         >

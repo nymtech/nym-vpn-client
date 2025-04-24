@@ -75,7 +75,11 @@ function Toast({
       onClick={() => handleOpenChange(false)}
       data-testid={`${testId}-close-button`}
     >
-      <MsIcon icon="close" className="text-3xl" data-testid={`${testId}-close-icon`} />
+      <MsIcon
+        icon="close"
+        className="text-3xl"
+        data-testid={`${testId}-close-icon`}
+      />
     </motion.button>
   );
 

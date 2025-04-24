@@ -31,8 +31,10 @@ function SettingsMenuCard({
   noHoverEffect,
   ...rest
 }: SettingsMenuCardProps) {
-  const testId = rest['data-testid'] || `settings-card-${title.replace(/\s+/g, '-').toLowerCase()}`;
-  
+  const testId =
+    rest['data-testid'] ||
+    `settings-card-${title.replace(/\s+/g, '-').toLowerCase()}`;
+
   return (
     <div
       className={clsx([
@@ -61,9 +63,9 @@ function SettingsMenuCard({
         data-testid={`${testId}-content`}
       >
         {leadingIcon && (
-          <MsIcon 
-            icon={leadingIcon} 
-            className="dark:text-white" 
+          <MsIcon
+            icon={leadingIcon}
+            className="dark:text-white"
             data-testid={`${testId}-leading-icon`}
           />
         )}
@@ -72,18 +74,18 @@ function SettingsMenuCard({
             {leadingComponent}
           </div>
         )}
-        <div 
+        <div
           className="min-w-0 flex flex-col justify-center"
           data-testid={`${testId}-text-container`}
         >
-          <p 
+          <p
             className="truncate text-base text-baltic-sea dark:text-white select-none"
             data-testid={`${testId}-title`}
           >
             {title}
           </p>
           {desc && (
-            <p 
+            <p
               className="truncate text-sm text-iron dark:text-bombay select-none"
               data-testid={`${testId}-description`}
             >
@@ -93,10 +95,7 @@ function SettingsMenuCard({
         </div>
       </div>
       {trailingIcon && (
-        <MsIcon 
-          icon={trailingIcon} 
-          data-testid={`${testId}-trailing-icon`}
-        />
+        <MsIcon icon={trailingIcon} data-testid={`${testId}-trailing-icon`} />
       )}
       {trailingComponent && !trailingIcon && (
         <div data-testid={`${testId}-trailing-component`}>

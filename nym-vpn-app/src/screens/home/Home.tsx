@@ -156,14 +156,26 @@ function Home() {
         <div className="grow" data-testid="home-tunnel-state-container">
           <TunnelState />
         </div>
-        <div className="flex flex-col justify-between gap-y-8 select-none" data-testid="home-controls-container">
+        <div
+          className="flex flex-col justify-between gap-y-8 select-none"
+          data-testid="home-controls-container"
+        >
           <div className="flex flex-col justify-between gap-y-4">
             <NetworkModeSelect />
-            <div className="flex flex-col gap-6" data-testid="home-node-select-section">
-              <div className="mt-3 text-base font-medium cursor-default" data-testid="home-node-select-title">
+            <div
+              className="flex flex-col gap-6"
+              data-testid="home-node-select-section"
+            >
+              <div
+                className="mt-3 text-base font-medium cursor-default"
+                data-testid="home-node-select-title"
+              >
                 {t('select-node-title')}
               </div>
-              <div className="flex flex-col gap-5" data-testid="home-hop-selects-container">
+              <div
+                className="flex flex-col gap-5"
+                data-testid="home-hop-selects-container"
+              >
                 <HopSelect
                   node={entryNode}
                   onClick={() => navigate(routes.entryNodeLocation)}

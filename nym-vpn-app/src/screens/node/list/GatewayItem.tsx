@@ -68,10 +68,13 @@ const GatewayItem = ({
             />
           </div>
           <div className="flex flex-col text-start overflow-hidden">
-            <p className="truncate" data-testid={`gateway-name-${gateway.id.substring(0, 8)}`}>
+            <p
+              className="truncate"
+              data-testid={`gateway-name-${gateway.id.substring(0, 8)}`}
+            >
               {gateway.name}
             </p>
-            <p 
+            <p
               className="text-sm text-iron dark:text-bombay truncate"
               data-testid={`gateway-id-${gateway.id.substring(0, 8)}`}
             >
@@ -92,7 +95,10 @@ const GatewayItem = ({
           onClick={() => onNodeDetails(gateway)}
           data-testid={`gateway-info-button-${gateway.id.substring(0, 8)}`}
         >
-          <MsIcon icon="info" data-testid={`gateway-info-icon-${gateway.id.substring(0, 8)}`} />
+          <MsIcon
+            icon="info"
+            data-testid={`gateway-info-icon-${gateway.id.substring(0, 8)}`}
+          />
         </Button>
       </div>
     </div>

@@ -20,16 +20,15 @@ function InfoData() {
   const InfoView = (
     <>
       {daemonVersion && (
-        <div 
+        <div
           className={clsx('flex flex-row flex-nowrap gap-1')}
           data-testid="daemon-version-container"
         >
-          <p 
-            className="text-nowrap"
-            data-testid="daemon-version-label"
-          >{t('info.daemon-version')}</p>
-          <ButtonText 
-            onClick={() => copy(daemonVersion)} 
+          <p className="text-nowrap" data-testid="daemon-version-label">
+            {t('info.daemon-version')}
+          </p>
+          <ButtonText
+            onClick={() => copy(daemonVersion)}
             truncate
             data-testid="daemon-version-value"
           >
@@ -38,16 +37,15 @@ function InfoData() {
         </div>
       )}
       {networkEnv && networkEnv.length > 0 && (
-        <div 
+        <div
           className={clsx('flex flex-row flex-nowrap gap-1')}
           data-testid="network-name-container"
         >
-          <p 
-            className="text-nowrap"
-            data-testid="network-name-label"
-          >{t('info.network-name')}</p>
-          <ButtonText 
-            onClick={() => copy(networkEnv)} 
+          <p className="text-nowrap" data-testid="network-name-label">
+            {t('info.network-name')}
+          </p>
+          <ButtonText
+            onClick={() => copy(networkEnv)}
             truncate
             data-testid="network-name-value"
           >
@@ -69,14 +67,13 @@ function InfoData() {
         ])}
         data-testid="info-data-container"
       >
-        <div 
+        <div
           className={clsx('flex flex-row flex-nowrap gap-1')}
           data-testid="client-version-container"
         >
-          <p 
-            className="text-nowrap"
-            data-testid="client-version-label"
-          >{t('info.client-version')}</p>
+          <p className="text-nowrap" data-testid="client-version-label">
+            {t('info.client-version')}
+          </p>
           <ButtonText
             onClick={() => copy(version || '', !S_STATE.devMode)}
             onDoubleClick={() => S_STATE.devMode && navigate(routes.dev)}

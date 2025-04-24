@@ -34,7 +34,7 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
         </DialogTitle>
       </div>
 
-      <p 
+      <p
         className="text-center text-iron dark:text-bombay md:text-nowrap max-w-80"
         data-testid="location-details-description"
       >
@@ -48,8 +48,8 @@ function LocationDetailsDialog({ isOpen, onClose }: Props) {
         data-testid="location-details-learn-more-link"
       />
 
-      <Button 
-        onClick={onClose} 
+      <Button
+        onClick={onClose}
         className="mt-2"
         data-testid="location-details-close-button"
       >

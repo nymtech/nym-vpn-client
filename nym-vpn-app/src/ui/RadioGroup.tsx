@@ -53,7 +53,7 @@ function RadioGroup<K extends Key>({
   const checkedIcon = (checked: boolean) => {
     if (checked) {
       return (
-        <span 
+        <span
           className="font-icon text-2xl text-malachite-moss dark:text-malachite"
           data-testid={`${testId}-checked-icon`}
         >
@@ -62,7 +62,7 @@ function RadioGroup<K extends Key>({
       );
     }
     return (
-      <span 
+      <span
         className="font-icon text-2xl text-iron dark:text-bombay"
         data-testid={`${testId}-unchecked-icon`}
       >
@@ -72,7 +72,7 @@ function RadioGroup<K extends Key>({
   };
 
   return (
-    <div 
+    <div
       className="select-none"
       data-testid={testId}
       data-disabled={disabled ? 'true' : 'false'}
@@ -92,13 +92,11 @@ function RadioGroup<K extends Key>({
             {rootLabel}
           </Label>
         )}
-        <div 
-          className="space-y-4"
-          data-testid={`${testId}-options-container`}
-        >
+        <div className="space-y-4" data-testid={`${testId}-options-container`}>
           {options.map((option) => {
-            const optionTestId = option['data-testid'] || `${testId}-option-${String(option.key)}`;
-            
+            const optionTestId =
+              option['data-testid'] || `${testId}-option-${String(option.key)}`;
+
             return (
               <Radio
                 key={option.key}
@@ -131,7 +129,7 @@ function RadioGroup<K extends Key>({
                   return (
                     <>
                       {option.tooltip && (
-                        <div 
+                        <div
                           className="tooltip -mt-8 -ml-2 max-w-[90%]"
                           data-testid={`${optionTestId}-tooltip`}
                         >
@@ -148,7 +146,7 @@ function RadioGroup<K extends Key>({
                       >
                         {radioIcons && checkedIcon(checked)}
                         {option.icon && (
-                          <div 
+                          <div
                             className="w-7 flex justify-center items-center"
                             data-testid={`${optionTestId}-icon-container`}
                           >
@@ -157,7 +155,7 @@ function RadioGroup<K extends Key>({
                               : option.icon}
                           </div>
                         )}
-                        <div 
+                        <div
                           className="min-w-0 flex flex-col justify-center"
                           data-testid={`${optionTestId}-text-container`}
                         >

@@ -93,10 +93,24 @@ function Node({ node }: { node: NodeHop }) {
 
   if (error) {
     return (
-      <PageAnim className="h-full flex flex-col" data-testid="node-error-container">
-        <div className="w-4/5 h-2/3 overflow-auto break-words text-center" data-testid="node-error-message">
-          <p className="text-aphrodisiac font-medium" data-testid="node-error-title">An error occurred</p>
-          <p className="text-base font-mono" data-testid="node-error-details">{`${tE(error.key)}: ${error.message} ${error.data?.details || '-'}`}</p>
+      <PageAnim
+        className="h-full flex flex-col"
+        data-testid="node-error-container"
+      >
+        <div
+          className="w-4/5 h-2/3 overflow-auto break-words text-center"
+          data-testid="node-error-message"
+        >
+          <p
+            className="text-aphrodisiac font-medium"
+            data-testid="node-error-title"
+          >
+            An error occurred
+          </p>
+          <p
+            className="text-base font-mono"
+            data-testid="node-error-details"
+          >{`${tE(error.key)}: ${error.message} ${error.data?.details || '-'}`}</p>
         </div>
       </PageAnim>
     );
@@ -113,8 +127,14 @@ function Node({ node }: { node: NodeHop }) {
         isOpen={isOpen('location-info')}
         onClose={() => close('location-info')}
       />
-      <PageAnim className="h-full flex flex-col" data-testid={`node-container-${node}`}>
-        <div className="w-full max-w-md px-6 mt-6 mb-6" data-testid="node-search-container">
+      <PageAnim
+        className="h-full flex flex-col"
+        data-testid={`node-container-${node}`}
+      >
+        <div
+          className="w-full max-w-md px-6 mt-6 mb-6"
+          data-testid="node-search-container"
+        >
           <TextInput
             value={search}
             onChange={filter}
