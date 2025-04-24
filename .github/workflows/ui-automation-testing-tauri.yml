@@ -1,0 +1,128 @@
+name: Tauri NymVPN Tests
+
+on:
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Run with debug logging'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  build-and-test:
+    name: Build and Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 21
+          cache: 'npm'
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Create dist directory
+        run: mkdir -p dist
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+
+      - name: Install Tauri dependencies (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libgtk-3-dev \
+            libwebkit2gtk-4.0-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf \
+            webkit2gtk-driver \
+            xvfb \
+            protobuf-compiler
+
+      - name: Install Protobuf (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          choco install protoc
+
+      - name: Install cargo-hack from crates.io
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: tauri-driver
+          version: '2.0.4'
+
+      # Build the Tauri app (without code signing)
+      - name: Build Tauri application
+        env:
+          RUST_LOG: info,nym_vpn_app=trace
+        run: npm run tauri build
+
+      - name: Install WebdriverIO dependencies
+        run: npm install @wdio/cli @wdio/local-runner @wdio/mocha-framework @wdio/spec-reporter
+
+      - name: Run WebdriverIO tests (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          CI: true
+          RUST_LOG: info,nym_vpn_app=trace
+        run: xvfb-run npx wdio run wdio.conf.js
+
+      - name: Run WebdriverIO tests (Windows)
+        if: matrix.os == 'windows-latest'
+        env:
+          CI: true
+          RUST_LOG: info,nym_vpn_app=trace
+        run: npx wdio run wdio.conf.js
+
+      - name: Run WebdriverIO tests (macOS)
+        if: matrix.os == 'macos-latest'
+        env:
+          CI: true
+          RUST_LOG: info,nym_vpn_app=trace
+        run: npx wdio run wdio.conf.js
+
+      - name: Upload test screenshots
+        if: failure()
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-screenshots-${{ matrix.os }}
+          path: ./screenshots
+          if-no-files-found: ignore
+
+      - name: Upload test reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ matrix.os }}
+          path: ./reports
+          if-no-files-found: ignore
+
+      - name: Package Linux artifacts
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: nym-vpn-linux
+          path: |
+            src-tauri/target/release/bundle/deb/*.deb
+            src-tauri/target/release/bundle/appimage/*.AppImage
+          if-no-files-found: warn
+
+      - name: Package Windows artifacts
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v3
+        with:
+          name: nym-vpn-windows
+          path: src-tauri/target/release/bundle/msi/*.msi
+          if-no-files-found: warn
