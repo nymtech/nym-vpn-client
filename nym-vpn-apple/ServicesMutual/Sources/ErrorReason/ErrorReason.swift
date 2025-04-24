@@ -22,6 +22,7 @@ public enum ErrorReason: LocalizedError {
     case subscriptionExpired
     case api(String)
     case registrationInProgress
+    case internalError(String)
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -100,6 +101,8 @@ public enum ErrorReason: LocalizedError {
             self = .api(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .registrationInProgress:
             self = .registrationInProgress
+        case .internalError:
+            self = .internalError(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         }
     }
 
@@ -160,6 +163,8 @@ private extension ErrorReason {
             message
         case .registrationInProgress:
             "errorReason.registrattionInProgress".localizedString
+        case let .internalError(message):
+            message
         }
     }
 }
@@ -186,6 +191,7 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case bandwidthExceeded
     case subscriptionExpired
     case api
+    case internalError
     case registrationInProgress
 
     init?(errorReason: ErrorReason) {
@@ -222,6 +228,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .api
         case .registrationInProgress:
             self = .registrationInProgress
+        case .internalError:
+            self = .internalError
         }
     }
 }
