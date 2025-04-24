@@ -16710,6 +16710,28 @@
         }
       }
     },
+    "notifcation.disconnected.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please try reconnecting."
+          }
+        }
+      }
+    },
+    "notifcation.disconnected.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The NymVPN connection has failed."
+          }
+        }
+      }
+    },
     "NymVPN" : {
       "extractionState" : "manual",
       "localizations" : {

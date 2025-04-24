@@ -175,7 +175,8 @@ let package = Package(
             name: "NotificationsManager",
             dependencies: [
                 "AppSettings",
-                "ConnectionManager"
+                "ConnectionManager",
+                .product(name: "Localizations", package: "Localizations")
             ],
             path: "Sources/Services/NotificationsManager"
         ),

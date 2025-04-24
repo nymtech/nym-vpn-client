@@ -170,7 +170,6 @@ private extension SettingsViewModel {
         setupAppSettingsObservers()
         setupCredentialManagerObservers()
         configureSections()
-        setupLangaugeObserver()
     }
 
     func setupAppSettingsObservers() {
@@ -186,17 +185,6 @@ private extension SettingsViewModel {
             .sink { [weak self] newValue in
                 MainActor.assumeIsolated {
                     self?.accountIdentifier = newValue
-                }
-            }
-            .store(in: &cancellables)
-    }
-
-    func setupLangaugeObserver() {
-        localizationManager.$language
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                MainActor.assumeIsolated {
-                    self?.configureSections()
                 }
             }
             .store(in: &cancellables)

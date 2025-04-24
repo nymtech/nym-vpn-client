@@ -21,8 +21,6 @@ struct SettingsFlowCoordinator<Content: View>: View {
         switch link {
         case .appearance:
             AppearanceView(path: $flowState.path)
-        case .language:
-            LanguageView(path: $flowState.path)
         case .displayTheme:
             DisplayThemeView(viewModel: DisplayThemeViewModel(path: $flowState.path, appSettings: AppSettings.shared))
         case .support:

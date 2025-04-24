@@ -355,13 +355,7 @@ private extension CountriesManager {
 
 extension CountriesManager {
     public func localizedCountry(with countryCode: String) -> Country? {
-        let locale: Locale
-        if localizationManager.language.isEmpty {
-            locale = Locale.current
-        } else {
-            locale = Locale(identifier: localizationManager.language)
-        }
-        guard !countryCode.isEmpty, let countryName = locale.localizedString(forRegionCode: countryCode)
+        guard !countryCode.isEmpty, let countryName = Locale.current.localizedString(forRegionCode: countryCode)
         else {
             logger.log(level: .error, "Failed resolving country code for: \(countryCode)")
             return nil

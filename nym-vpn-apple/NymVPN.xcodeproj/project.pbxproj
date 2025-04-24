@@ -16,6 +16,8 @@
 		D9144C5F2CC105B20021A617 /* CountriesManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C5E2CC105B20021A617 /* CountriesManager */; };
 		D9144C612CC10A860021A617 /* CountriesManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C602CC10A860021A617 /* CountriesManager */; };
 		D9144C632CC10AA20021A617 /* Migrations in Frameworks */ = {isa = PBXBuildFile; productRef = D9144C622CC10AA20021A617 /* Migrations */; };
+		D9150AFB2DBAB92C00004C59 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D9150AFA2DBAB92C00004C59 /* Localizable.xcstrings */; };
+		D9150AFC2DBAB92C00004C59 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D9150AFA2DBAB92C00004C59 /* Localizable.xcstrings */; };
 		D916EE672C90F2A700FADEEF /* Migrations in Frameworks */ = {isa = PBXBuildFile; productRef = D916EE662C90F2A700FADEEF /* Migrations */; };
 		D9188A9E2CE12C5F0031E141 /* TunnelActor.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9188A9D2CE12C5F0031E141 /* TunnelActor.swift */; };
 		D91E36A92BF3AA7F00BDE84A /* HelperManager in Frameworks */ = {isa = PBXBuildFile; productRef = D91E36A82BF3AA7F00BDE84A /* HelperManager */; };
@@ -194,6 +196,7 @@
 /* Begin PBXFileReference section */
 		5879C2052C80A37200BAB142 /* TunnelSettingsConversions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelSettingsConversions.swift; sourceTree = "<group>"; };
 		D90F19042BEED69D008D2232 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D9150AFA2DBAB92C00004C59 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		D9188A9D2CE12C5F0031E141 /* TunnelActor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TunnelActor.swift; sourceTree = "<group>"; };
 		D925D5312CCFBEA100C8286E /* PacketTunnelProvider+TunnelStatusListener.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "PacketTunnelProvider+TunnelStatusListener.swift"; sourceTree = "<group>"; };
 		D9264E252B3DA062004594A8 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -383,16 +386,17 @@
 		D967402C2B56CA1A001F6891 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
-				D9DE89442CFE54F7006C4071 /* LaunchLogo */,
-				D96B94DC2C2AB62D00E98B15 /* gatewaysEntryCountries.json */,
-				D96B94DD2C2AB62D00E98B15 /* gatewaysExitCountries.json */,
-				D9CACB062D67B6DB0004F9E0 /* gatewaysVpnCountries.json */,
 				D9CACB092D67B7090004F9E0 /* gatewaysEntry.json */,
+				D96B94DC2C2AB62D00E98B15 /* gatewaysEntryCountries.json */,
 				D9CACB0A2D67B7090004F9E0 /* gatewaysExit.json */,
+				D96B94DD2C2AB62D00E98B15 /* gatewaysExitCountries.json */,
 				D9CACB0B2D67B7090004F9E0 /* gatewaysVpn.json */,
+				D9CACB062D67B6DB0004F9E0 /* gatewaysVpnCountries.json */,
 				D955FA002B73CF6F005BA27D /* Info.plist */,
-				D9F236222C64E64E00CCC433 /* LibLicences.json */,
+				D9DE89442CFE54F7006C4071 /* LaunchLogo */,
 				D9879AF52CFE166400CF1B5D /* LaunchScreen.storyboard */,
+				D9F236222C64E64E00CCC433 /* LibLicences.json */,
+				D9150AFA2DBAB92C00004C59 /* Localizable.xcstrings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -690,6 +694,21 @@
 			knownRegions = (
 				en,
 				Base,
+				ar,
+				"zh-Hans",
+				fr,
+				de,
+				hi,
+				it,
+				ja,
+				fa,
+				"pt-PT",
+				"pt-BR",
+				ru,
+				es,
+				tr,
+				uk,
+				vi,
 			);
 			mainGroup = D99A146D2B357E9900F2728B;
 			packageReferences = (
@@ -728,6 +747,7 @@
 				D9879AF72CFE166400CF1B5D /* LaunchScreen.storyboard in Resources */,
 				D9CACB082D67B6DB0004F9E0 /* gatewaysVpnCountries.json in Resources */,
 				D96B94E02C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
+				D9150AFC2DBAB92C00004C59 /* Localizable.xcstrings in Resources */,
 				D9DE893E2CFE54CD006C4071 /* launchLogo@3x.png in Resources */,
 				D9DE893F2CFE54CD006C4071 /* launchLogo.png in Resources */,
 				D9DE89402CFE54CD006C4071 /* launchLogo@2x.png in Resources */,
@@ -753,6 +773,7 @@
 				D96B94DF2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */,
 				D9BEF2D72BEB63320036C566 /* Assets.xcassets in Resources */,
 				D9CACB072D67B6DB0004F9E0 /* gatewaysVpnCountries.json in Resources */,
+				D9150AFB2DBAB92C00004C59 /* Localizable.xcstrings in Resources */,
 				D9F236252C650A9200CCC433 /* LibLicences.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

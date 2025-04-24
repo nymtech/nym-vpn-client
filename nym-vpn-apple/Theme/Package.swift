@@ -22,8 +22,7 @@ let package = Package(
             resources: [
                 .copy("Resources/Fonts/LabGrotesque-Regular.ttf"),
                 .copy("Resources/Fonts/LabGrotesqueMono-Regular.ttf"),
-                .process("Resources/Colors.xcassets"),
-                .process("Resources/Localizable.xcstrings")
+                .process("Resources/Colors.xcassets")
             ]
         ),
         .testTarget(

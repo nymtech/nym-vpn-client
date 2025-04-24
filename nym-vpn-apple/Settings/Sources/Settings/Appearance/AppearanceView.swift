@@ -1,8 +1,11 @@
 import SwiftUI
+import ExternalLinkManager
 import Theme
 import UIComponents
 
 public struct AppearanceView: View {
+    let externalLinkManager: ExternalLinkManager = .shared
+
     @Binding var path: NavigationPath
 
     public init(path: Binding<NavigationPath>) {
