@@ -1,0 +1,65 @@
+# Node dependencies
+node_modules/
+package-lock.json
+yarn.lock
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# WebDriverIO specific
+errorShots/
+allure-results/
+allure-report/
+mochawesome-report/
+reports/
+screenshots/
+videos/
+logs/
+.tmp/
+
+target/
+**/*.rs.bk
+Cargo.lock
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+*.swp
+*.swo
+.project
+.classpath
+.settings/
+*.iml
+.vs/
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build files
+dist/
+build/
+out/
+
+# Coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+*.bak
