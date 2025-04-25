@@ -63,7 +63,7 @@ function startGeckoDriver() {
     try {
       try {
         execSync('pkill -f geckodriver', { stdio: 'ignore' });
-      } catch {}
+      } catch { }
 
       const geckoDriverPath = getGeckoDriverPath();
       console.log(`Starting geckodriver from: ${geckoDriverPath}`);
@@ -137,58 +137,58 @@ exports.config = {
 
   capabilities: isMacOS
     ? [
-        {
-          maxInstances: 1,
-          browserName: 'firefox',
-          'moz:firefoxOptions': {
-            binary: '/Applications/Firefox.app/Contents/MacOS/firefox',
-            args: [
-              '--start-maximized',
-              '--disable-dev-shm-usage',
-              '--no-sandbox',
-              '--disable-extensions',
-              ...(isHeadless ? ['--headless'] : []),
-            ],
-            prefs: {
-              'security.sandbox.content.level': 0,
-              'browser.cache.disk.enable': false,
-              'browser.cache.memory.enable': false,
-            },
-          },
-          acceptInsecureCerts: true,
-          'webdriver:firefoxOptions': {
-            binary: '/Applications/Firefox.app/Contents/MacOS/firefox',
+      {
+        maxInstances: 1,
+        browserName: 'firefox',
+        'moz:firefoxOptions': {
+          binary: '/Applications/Firefox.app/Contents/MacOS/firefox',
+          args: [
+            '--start-maximized',
+            '--disable-dev-shm-usage',
+            '--no-sandbox',
+            '--disable-extensions',
+            ...(isHeadless ? ['--headless'] : []),
+          ],
+          prefs: {
+            'security.sandbox.content.level': 0,
+            'browser.cache.disk.enable': false,
+            'browser.cache.memory.enable': false,
           },
         },
-      ]
+        acceptInsecureCerts: true,
+        'webdriver:firefoxOptions': {
+          binary: '/Applications/Firefox.app/Contents/MacOS/firefox',
+        },
+      },
+    ]
     : [
-        {
-          maxInstances: 1,
-          'tauri:options': {
-            application: isWindows
-              ? path.join(
-                  mainProjectPath,
-                  'src-tauri',
-                  'target',
-                  'release',
-                  'nym-vpn-app.exe',
-                )
-              : path.join(
-                  mainProjectPath,
-                  'src-tauri',
-                  'target',
-                  'release',
-                  'nym-vpn-app',
-                ),
-            ...(isCI
-              ? {
-                  // TODO - MOCK
-                  args: ['--ci-mode', '--mock-connections'],
-                }
-              : {}),
-          },
+      {
+        maxInstances: 1,
+        'tauri:options': {
+          application: isWindows
+            ? path.join(
+              mainProjectPath,
+              'src-tauri',
+              'target',
+              'release',
+              'nym-vpn-app.exe',
+            )
+            : path.join(
+              mainProjectPath,
+              'src-tauri',
+              'target',
+              'release',
+              'nym-vpn-app',
+            ),
+          ...(isCI
+            ? {
+              // TODO - MOCK
+              args: ['--ci-mode', '--mock-connections'],
+            }
+            : {}),
         },
-      ],
+      },
+    ],
 
   // Connection settings
   hostname: 'localhost',
@@ -248,6 +248,25 @@ exports.config = {
       }
     }
 
+    if (isLinux) {
+      console.log('Building Tauri application for Linux with adjusted library paths...');
+      const buildEnv = {
+        ...process.env,
+        RUST_LOG: 'info,nym_vpn_app=trace',
+
+        RUSTFLAGS: "-C link-args=-Wl,-rpath,/usr/lib/x86_64-linux-gnu"
+      };
+
+      const buildResult = spawnSync('npm', ['run', 'tauri', 'build'], {
+        stdio: 'inherit',
+        env: buildEnv,
+        cwd: path.join(mainProjectPath, 'src-tauri')
+      });
+
+      if (buildResult.status !== 0) {
+        throw new Error('Failed to build Tauri application for Linux');
+      }
+    }
     if (isMacOS) {
       console.log('Starting browser-based dev server...');
       browserProcess = spawn('npm', ['run', 'dev:browser'], {
@@ -393,7 +412,7 @@ exports.config = {
         geckoDriverProcess.kill();
         try {
           execSync('pkill -f geckodriver', { stdio: 'ignore' });
-        } catch (e) {}
+        } catch (e) { }
 
         try {
           const killScriptPath = path.join(
