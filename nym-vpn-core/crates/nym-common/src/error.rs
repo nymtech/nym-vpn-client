@@ -11,6 +11,12 @@ pub trait ErrorExt {
 
     /// Like [Self::display_chain] but with an extra message at the start of the chain
     fn display_chain_with_msg<S: AsRef<str>>(&self, msg: S) -> String;
+
+    /// Print error chain to tracing error log.
+    fn trace_chain(&self);
+
+    /// Like [Self::trace_chain] but with an extra message at the start of the chain
+    fn trace_chain_with_msg<S: AsRef<str>>(&self, msg: S);
 }
 
 impl<E: Error> ErrorExt for E {
@@ -32,6 +38,14 @@ impl<E: Error> ErrorExt for E {
             source = error.source();
         }
         s
+    }
+
+    fn trace_chain(&self) {
+        tracing::error!("{}", self.display_chain());
+    }
+
+    fn trace_chain_with_msg<S: AsRef<str>>(&self, msg: S) {
+        tracing::error!("{}", self.display_chain_with_msg(msg));
     }
 }
 
