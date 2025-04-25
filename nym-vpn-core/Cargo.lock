@@ -5326,6 +5326,7 @@ dependencies = [
  "log-panics",
  "maplit",
  "nym-bin-common",
+ "nym-common",
  "nym-credentials-interface",
  "nym-ipc",
  "nym-offline-monitor",
