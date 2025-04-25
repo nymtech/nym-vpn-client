@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-app"
-version = "1.8.0-strawberry.rc.0"
+version = "1.8.0"
 description = "NymVPN desktop client"
 authors = [
     "Nym Technologies SA",
