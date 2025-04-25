@@ -5,6 +5,6 @@ base_path: "../"
 preserve_hierarchy: true
 
 files:
-  - source: "nym-vpn-apple/Theme/Sources/Theme/Resources/Localizable.xcstrings"
-    translation: "nym-vpn-apple/Theme/Sources/Theme/Resources/Localizable.xcstrings"
+  - source: "nym-vpn-apple/NymVPN/Resources/Localizable.xcstrings"
+    translation: "nym-vpn-apple/NymVPN/Resources/Localizable.xcstrings"
     multilingual: true
