@@ -102,21 +102,17 @@ private extension HomeView {
         Spacer()
             .frame(height: 12)
 
-        NetworkButton(
-            viewModel: viewModel.fastButtonViewModel
-        )
-        .padding(EdgeInsets(top: 0, leading: 16, bottom: 12, trailing: 16))
-        .onTapGesture {
-            viewModel.connectionManager.connectionType = .wireguard
-        }
+        NetworkButton(viewModel: viewModel.fastButtonViewModel)
+            .padding(EdgeInsets(top: 0, leading: 16, bottom: 12, trailing: 16))
+            .onTapGesture {
+                viewModel.connectionManager.connectionType = .wireguard
+            }
 
-        NetworkButton(
-            viewModel: viewModel.anonymousButtonViewModel
-        )
-        .padding(.horizontal, 16)
-        .onTapGesture {
-            viewModel.connectionManager.connectionType = .mixnet5hop
-        }
+        NetworkButton(viewModel: viewModel.anonymousButtonViewModel)
+            .padding(.horizontal, 16)
+            .onTapGesture {
+                viewModel.connectionManager.connectionType = .mixnet5hop
+            }
         Spacer()
             .frame(height: 20)
     }

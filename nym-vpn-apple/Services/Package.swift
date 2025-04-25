@@ -181,7 +181,8 @@ let package = Package(
             name: "NotificationMessages",
             dependencies: [
                 "NymLogger",
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Logging", package: "swift-log"),
+                "Theme"
             ],
             path: "Sources/Services/NotificationMessages"
         ),

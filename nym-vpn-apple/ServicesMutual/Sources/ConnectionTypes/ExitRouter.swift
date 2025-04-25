@@ -20,7 +20,8 @@ extension ExitRouter: GatewayInfoProtocol {
     public var name: String {
         switch self {
         case let .country(country):
-            country.name
+            // Return code, so it could be localized in the UI
+            country.code
         case let .gateway(gateway):
             gateway.moniker ?? gateway.id
         }

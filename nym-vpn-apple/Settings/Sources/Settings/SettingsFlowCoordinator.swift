@@ -19,8 +19,10 @@ struct SettingsFlowCoordinator<Content: View>: View {
     @ViewBuilder
     private func linkDestination(link: SettingLink) -> some View {
         switch link {
-        case .theme:
-            AppearanceView(viewModel: AppearanceViewModel(path: $flowState.path, appSettings: AppSettings.shared))
+        case .appearance:
+            AppearanceView(path: $flowState.path)
+        case .displayTheme:
+            DisplayThemeView(viewModel: DisplayThemeViewModel(path: $flowState.path, appSettings: AppSettings.shared))
         case .support:
             SupportView(viewModel: SupportViewModel(path: $flowState.path))
         case .legal:

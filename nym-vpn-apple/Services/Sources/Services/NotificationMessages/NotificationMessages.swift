@@ -1,13 +1,12 @@
 import Logging
 import UserNotifications
+import Theme
 
 public struct NotificationMessages {
     public static func scheduleDisconnectNotification() async {
-        // TODO: localize the notification content.
-        // TODO: move localizations to separate package
         let content = UNMutableNotificationContent()
-        content.title = "The NymVPN connection has failed."
-        content.body = "Please try reconnecting."
+        content.title = "notifcation.disconnected.title".localizedString
+        content.body = "notifcation.disconnected.subtitle ".localizedString
         content.sound = UNNotificationSound.default
 
         let request = UNNotificationRequest(identifier: "disconnectNotification", content: content, trigger: nil)

@@ -6,7 +6,7 @@ public struct NetworkButton: View {
     @State private var isHovered = false
 
     public init(viewModel: NetworkButtonViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel)
+        _viewModel = StateObject(wrappedValue: viewModel)
     }
 
     public var body: some View {

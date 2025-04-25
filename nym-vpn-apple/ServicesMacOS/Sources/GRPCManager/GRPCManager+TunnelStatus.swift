@@ -75,7 +75,7 @@ extension GRPCManager {
         case .api:
             ErrorReason.api(tunnelStateError.detail)
         case .internal:
-            ErrorReason.internalUnknown
+            ErrorReason.internalError(tunnelStateError.detail)
         case .UNRECOGNIZED:
             ErrorReason.unknown
         }

@@ -7125,8 +7125,9 @@ public func getSystemMessages()throws  -> [SystemMessage] {
  * Fetches the network environment details from the network name and initializes the environment,
  * including exporting to the environment
  */
-public func initEnvironment(networkName: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func initEnvironment(cacheDir: String, networkName: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_initenvironment(
+        FfiConverterString.lower(cacheDir),
         FfiConverterString.lower(networkName),$0
     )
 }
@@ -7135,11 +7136,11 @@ public func initEnvironment(networkName: String)throws  {try rustCallWithError(F
  * Async variant of initEnvironment. Fetches the network environment details from the network name
  * and initializes the environment, including exporting to the environment
  */
-public func initEnvironmentAsync(networkName: String)async throws  {
+public func initEnvironmentAsync(dataDir: String, networkName: String)async throws  {
     return
         try  await uniffiRustCallAsync(
             rustFutureFunc: {
-                uniffi_nym_vpn_lib_fn_func_initenvironmentasync(FfiConverterString.lower(networkName)
+                uniffi_nym_vpn_lib_fn_func_initenvironmentasync(FfiConverterString.lower(dataDir),FfiConverterString.lower(networkName)
                 )
             },
             pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
@@ -7487,10 +7488,10 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_getsystemmessages() != 3453) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_initenvironment() != 50720) {
+    if (uniffi_nym_vpn_lib_checksum_func_initenvironment() != 57150) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_initenvironmentasync() != 45760) {
+    if (uniffi_nym_vpn_lib_checksum_func_initenvironmentasync() != 9416) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_initfallbackmainnetenvironment() != 43903) {

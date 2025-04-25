@@ -21,7 +21,7 @@ public struct SettingsView: View {
 private extension SettingsView {
     @ViewBuilder
     func content() -> some View {
-        VStack {
+        VStack(spacing: 0) {
             navbar()
             ScrollView {
                 credentialOrAddCredentialView()
