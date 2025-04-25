@@ -9,13 +9,13 @@ pub enum ConversionError {
     #[error("No value set for {0}")]
     NoValueSet(&'static str),
 
-    #[error("Failed to decode {0}: {1}")]
+    #[error("Failed to decode {0}")]
     Decode(&'static str, #[source] prost::UnknownEnumValue),
 
-    #[error("Failed to convert time {0}: {1}")]
+    #[error("Failed to convert time {0}")]
     ConvertTime(&'static str, #[source] time::Error),
 
-    #[error("Failed to parse address {0}: {1}")]
+    #[error("Failed to parse address {0}")]
     ParseAddr(&'static str, #[source] std::net::AddrParseError),
 }
 

@@ -23,3 +23,4 @@ thiserror.workspace = true
 tokio-util.workspace = true
 tokio.workspace = true
 tracing.workspace = true
+nym-common.workspace = true

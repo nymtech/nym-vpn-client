@@ -3,19 +3,19 @@
 
 #[derive(thiserror::Error, Debug)]
 pub enum MixnetError {
-    #[error("failed to setup mixnet storage paths: {0}")]
-    FailedToSetupMixnetStoragePaths(#[source] nym_sdk::Error),
+    #[error("Failed to setup mixnet storage paths")]
+    SetupMixnetStoragePaths(#[source] nym_sdk::Error),
 
-    #[error("failed to create mixnet client with default storage: {0}")]
-    FailedToCreateMixnetClientWithDefaultStorage(#[source] nym_sdk::Error),
+    #[error("Failed to create mixnet client with default storage")]
+    CreateMixnetClientWithDefaultStorage(#[source] nym_sdk::Error),
 
-    #[error("failed to build mixnet client: {0}")]
-    FailedToBuildMixnetClient(#[source] nym_sdk::Error),
+    #[error("Failed to build mixnet client")]
+    BuildMixnetClient(#[source] nym_sdk::Error),
 
-    #[error("failed to connect to mixnet: {0}")]
-    FailedToConnectToMixnet(#[source] nym_sdk::Error),
+    #[error("Failed to connect to mixnet")]
+    ConnectToMixnet(#[source] nym_sdk::Error),
 
-    #[error("failed to connect to mixnet entry gateway {gateway_id}: {source}")]
+    #[error("Failed to connect to mixnet entry gateway {gateway_id}")]
     EntryGateway {
         gateway_id: String,
         source: Box<dyn std::error::Error + Send + Sync>,
@@ -24,23 +24,18 @@ pub enum MixnetError {
     #[error("invalid credential")]
     InvalidCredential,
 
-    #[error("failed to serialize message")]
-    FailedToSerializeMessage {
-        #[from]
-        source: bincode::Error,
-    },
+    #[error("Failed to serialize message")]
+    SerializeMessage(#[from] bincode::Error),
 
-    #[error("{0}")]
+    #[error(transparent)]
     ConnectionMonitorError(#[from] nym_connection_monitor::Error),
 
-    #[error("failed to bundle packet: {source}")]
-    FailedToBundlePacket {
-        source: nym_ip_packet_requests::codec::Error,
-    },
+    #[error("Failed to bundle packet")]
+    BundlePacket(#[source] nym_ip_packet_requests::codec::Error),
 
-    #[error("failed to create input message: {source}")]
-    FailedToCreateInputMessage { source: nym_sdk::Error },
+    #[error("Failed to create input message")]
+    CreateInputMessage(#[source] nym_sdk::Error),
 
-    #[error("failed to send input message: {source}")]
-    FailedToSendInputMessage { source: nym_sdk::Error },
+    #[error("Failed to send input message")]
+    SendInputMessage(#[source] nym_sdk::Error),
 }

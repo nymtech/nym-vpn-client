@@ -124,7 +124,7 @@ impl DnsMonitorT for DnsMonitor {
             netsh_input.push_str(&create_netsh_flush_command(index, IpVersion::V6));
 
             if let Err(error) = run_netsh_with_timeout(netsh_input, NETSH_TIMEOUT).await {
-                tracing::error!("{}", error.display_chain_with_msg("Failed to reset DNS"));
+                error.trace_chain_with_msg("Failed to reset DNS");
             }
         }
         Ok(())

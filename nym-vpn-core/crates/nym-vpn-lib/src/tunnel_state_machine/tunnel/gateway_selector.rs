@@ -41,7 +41,7 @@ pub async fn select_gateways(
             let all_gateways = gateway_directory_client
                 .lookup_gateways(GatewayType::Wg)
                 .await
-                .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+                .map_err(GatewayDirectoryError::LookupGateways)?;
             (all_gateways.clone(), all_gateways)
         }
         TunnelType::Mixnet => {
@@ -49,12 +49,12 @@ pub async fn select_gateways(
             let exit_gateways = gateway_directory_client
                 .lookup_gateways(GatewayType::MixnetExit)
                 .await
-                .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+                .map_err(GatewayDirectoryError::LookupGateways)?;
             // Setup the gateway that we will use as the entry point
             let entry_gateways = gateway_directory_client
                 .lookup_gateways(GatewayType::MixnetEntry)
                 .await
-                .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+                .map_err(GatewayDirectoryError::LookupGateways)?;
             (entry_gateways, exit_gateways)
         }
     };
@@ -64,7 +64,7 @@ pub async fn select_gateways(
 
     let exit_gateway = exit_point
         .lookup_gateway(&exit_gateways)
-        .map_err(|source| GatewayDirectoryError::FailedToSelectExitGateway { source })?;
+        .map_err(GatewayDirectoryError::SelectExitGateway)?;
 
     // Exclude the exit gateway from the list of entry gateways for privacy reasons
     entry_gateways.remove_gateway(&exit_gateway);
@@ -83,7 +83,7 @@ pub async fn select_gateways(
                     identity: exit_gateway.identity.to_string(),
                 }
             }
-            _ => GatewayDirectoryError::FailedToSelectEntryGateway { source },
+            _ => GatewayDirectoryError::SelectEntryGateway(source),
         })?;
 
     tracing::info!(

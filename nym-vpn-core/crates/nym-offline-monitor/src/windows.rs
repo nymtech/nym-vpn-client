@@ -105,19 +105,13 @@ impl BroadcastListener {
         let v4_connectivity = get_best_default_route(AddressFamily::Ipv4)
             .map(|route| route.is_some())
             .unwrap_or_else(|error| {
-                tracing::error!(
-                    "{}",
-                    error.display_chain_with_msg("Failed to check initial IPv4 connectivity")
-                );
+                error.trace_chain_with_msg("Failed to check initial IPv4 connectivity");
                 true
             });
         let v6_connectivity = get_best_default_route(AddressFamily::Ipv6)
             .map(|route| route.is_some())
             .unwrap_or_else(|error| {
-                tracing::error!(
-                    "{}",
-                    error.display_chain_with_msg("Failed to check initial IPv6 connectivity")
-                );
+                error.trace_chain_with_msg("Failed to check initial IPv6 connectivity");
                 true
             });
 

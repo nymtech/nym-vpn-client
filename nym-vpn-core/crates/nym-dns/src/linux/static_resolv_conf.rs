@@ -161,11 +161,8 @@ impl DnsWatcher {
                 Some(_) = events.next() => {
                     let mut locked_state = state.lock().await;
                     if let Err(error) = Self::update(locked_state.as_mut()) {
-                        tracing::error!(
-                            "{}",
-                            error.display_chain_with_msg(
-                                "Failed to update DNS state after DNS settings changed"
-                            )
+                        error.trace_chain_with_msg(
+                            "Failed to update DNS state after DNS settings changed"
                         );
                     }
                 }

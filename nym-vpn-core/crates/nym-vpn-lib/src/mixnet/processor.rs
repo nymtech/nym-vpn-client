@@ -300,7 +300,7 @@ fn bundle_packet(
     let mut bundled_packets = BytesMut::new();
     packet_bundler
         .encode(packet, &mut bundled_packets)
-        .map_err(|source| MixnetError::FailedToBundlePacket { source })?;
+        .map_err(MixnetError::BundlePacket)?;
     if bundled_packets.is_empty() {
         Ok(None)
     } else {
@@ -321,12 +321,12 @@ async fn handle_packet(
 
     let input_message = input_message_creator
         .to_input_message(&bundled_packets)
-        .map_err(|source| MixnetError::FailedToCreateInputMessage { source })?;
+        .map_err(MixnetError::CreateInputMessage)?;
 
     mixnet_client_sender
         .send(input_message)
         .await
-        .map_err(|source| MixnetError::FailedToSendInputMessage { source })
+        .map_err(MixnetError::SendInputMessage)
 }
 
 struct ToIprDataRequest {

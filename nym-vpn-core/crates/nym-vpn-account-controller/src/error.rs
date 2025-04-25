@@ -3,20 +3,20 @@
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("failed to setup nym-vpn-api client")]
+    #[error("Failed to setup nym-vpn-api client")]
     SetupVpnApiClient(nym_vpn_api_client::VpnApiClientError),
 
-    #[error("mnemonic store error")]
+    #[error("Mnemonic store error")]
     MnemonicStore {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
-    #[error("key store error")]
+    #[error("Key store error")]
     KeyStore {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
-    #[error("failed to setup account storage paths")]
+    #[error("Failed to setup account storage paths")]
     StoragePaths(#[source] nym_sdk::Error),
 
     #[error(transparent)]
@@ -25,21 +25,21 @@ pub enum Error {
     #[error(transparent)]
     PendingCredentialRequestsStorage(#[from] crate::storage::PendingCredentialRequestsStorageError),
 
-    #[error("failed to setup credential storage")]
+    #[error("Failed to setup credential storage")]
     SetupCredentialStorage(#[source] nym_sdk::Error),
 
-    #[error("failed to setup pending credential requests storage")]
+    #[error("Failed to setup pending credential requests storage")]
     SetupPendingCredentialRequestsStorage(
         #[source] crate::storage::PendingCredentialRequestsStorageError,
     ),
 
-    #[error("failed to remove credential storage: {0}")]
+    #[error("Failed to remove credential storage")]
     RemoveCredentialStorage(std::io::Error),
 
-    #[error("internal error: {0}")]
+    #[error("Internal error: {0}")]
     Internal(String),
 
-    #[error("failed to parse ticket type: {0}")]
+    #[error("Failed to parse ticket type: {0}")]
     ParseTicketType(String),
 }
 

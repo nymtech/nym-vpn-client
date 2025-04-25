@@ -29,18 +29,16 @@ use super::protobuf::error::VpnCommandSendError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ListGatewayError {
-    #[error("failed to create gateway directory client: {source}")]
-    CreateGatewayDirectoryClient {
-        source: nym_vpn_lib::gateway_directory::Error,
-    },
+    #[error("Failed to create gateway directory client")]
+    CreateGatewayDirectoryClient(#[source] nym_vpn_lib::gateway_directory::Error),
 
-    #[error("failed to get gateways ({gw_type}): {source}")]
+    #[error("Failed to get gateways ({gw_type})")]
     GetGateways {
         gw_type: GatewayType,
         source: nym_vpn_lib::gateway_directory::Error,
     },
 
-    #[error("failed to get countries ({gw_type}): {source}")]
+    #[error("Failed to get countries ({gw_type})")]
     GetCountries {
         gw_type: GatewayType,
         source: nym_vpn_lib::gateway_directory::Error,
@@ -311,5 +309,5 @@ fn directory_client(
     directory_config: nym_vpn_lib::gateway_directory::Config,
 ) -> Result<GatewayClient, ListGatewayError> {
     GatewayClient::new(directory_config, user_agent)
-        .map_err(|source| ListGatewayError::CreateGatewayDirectoryClient { source })
+        .map_err(ListGatewayError::CreateGatewayDirectoryClient)
 }

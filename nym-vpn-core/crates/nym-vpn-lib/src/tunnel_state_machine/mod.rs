@@ -33,6 +33,7 @@ use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
+use nym_common::ErrorExt;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -427,7 +428,9 @@ impl TunnelStateMachine {
         account_command_tx
             .register_offline_monitor(offline_watch)
             .await
-            .inspect_err(|err| tracing::error!("Failed to register offline watch: {}", err))
+            .inspect_err(|err| {
+                err.trace_chain_with_msg("Failed to register offline watch");
+            })
             .ok();
 
         let (mixnet_event_sender, mixnet_event_receiver) = mpsc::unbounded_channel();
@@ -652,12 +655,12 @@ impl tunnel::Error {
                 GatewayDirectoryError::SameEntryAndExitGateway { .. } => {
                     Some(ErrorStateReason::SameEntryAndExitGateway)
                 }
-                GatewayDirectoryError::FailedToSelectEntryGateway {
-                    source: nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation { .. },
-                } => Some(ErrorStateReason::InvalidEntryGatewayCountry),
-                GatewayDirectoryError::FailedToSelectExitGateway {
-                    source: nym_gateway_directory::Error::NoMatchingExitGatewayForLocation { .. },
-                } => Some(ErrorStateReason::InvalidExitGatewayCountry),
+                GatewayDirectoryError::SelectEntryGateway(
+                    nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation { .. },
+                ) => Some(ErrorStateReason::InvalidEntryGatewayCountry),
+                GatewayDirectoryError::SelectExitGateway(
+                    nym_gateway_directory::Error::NoMatchingExitGatewayForLocation { .. },
+                ) => Some(ErrorStateReason::InvalidExitGatewayCountry),
                 _ => None,
             },
             Self::BandwidthController(BandwidthControllerError::RegisterWireguard {

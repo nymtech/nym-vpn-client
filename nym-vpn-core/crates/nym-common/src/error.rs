@@ -9,8 +9,14 @@ pub trait ErrorExt {
     /// Creates a string representation of the entire error chain.
     fn display_chain(&self) -> String;
 
-    /// Like [Self::display_chain] but with an extra message at the start of the chain
-    fn display_chain_with_msg(&self, msg: &str) -> String;
+    /// Like [Self::display_chain] but with an extra message at the start of the chain.
+    fn display_chain_with_msg<S: AsRef<str>>(&self, msg: S) -> String;
+
+    /// Print error chain to log using error level.
+    fn trace_chain(&self);
+
+    /// Like [Self::trace_chain] but with an extra message at the start of the chain.
+    fn trace_chain_with_msg<S: AsRef<str>>(&self, msg: S);
 }
 
 impl<E: Error> ErrorExt for E {
@@ -24,14 +30,22 @@ impl<E: Error> ErrorExt for E {
         s
     }
 
-    fn display_chain_with_msg(&self, msg: &str) -> String {
-        let mut s = format!("Error: {msg}\nCaused by: {self}");
+    fn display_chain_with_msg<S: AsRef<str>>(&self, msg: S) -> String {
+        let mut s = format!("Error: {}\nCaused by: {}", msg.as_ref(), self);
         let mut source = self.source();
         while let Some(error) = source {
             write!(&mut s, "\nCaused by: {error}").expect("formatting failed");
             source = error.source();
         }
         s
+    }
+
+    fn trace_chain(&self) {
+        tracing::error!("{}", self.display_chain());
+    }
+
+    fn trace_chain_with_msg<S: AsRef<str>>(&self, msg: S) {
+        tracing::error!("{}", self.display_chain_with_msg(msg));
     }
 }
 

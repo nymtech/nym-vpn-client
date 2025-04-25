@@ -191,6 +191,7 @@ async fn run_service_inner() -> anyhow::Result<()> {
                 network_config.network.as_deref().unwrap_or("mainnet"),
                 err
             );
+
             return Err(err).with_context(|| "Failed to fetch network environment");
         }
         Err(err) => {

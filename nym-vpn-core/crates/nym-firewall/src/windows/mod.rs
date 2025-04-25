@@ -562,10 +562,7 @@ fn consume_and_log_hyperv_err<T>(
 ) -> Option<T> {
     result
         .inspect_err(|error| {
-            tracing::error!(
-                "{}",
-                error.display_chain_with_msg(&format!("{action}. {HYPERV_LEAK_WARNING_MSG}"))
-            );
+            error.trace_chain_with_msg(format!("{action}. {HYPERV_LEAK_WARNING_MSG}"))
         })
         .ok()
 }

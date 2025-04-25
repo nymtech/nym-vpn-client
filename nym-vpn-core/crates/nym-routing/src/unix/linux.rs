@@ -367,7 +367,7 @@ impl RouteManagerImpl {
                 },
                 Some((route_change, _socket)) = self.messages.next() => {
                     if let Err(error) = self.process_netlink_message(route_change) {
-                        tracing::error!("{}", error.display_chain_with_msg("Failed to process netlink message"));
+                        error.trace_chain_with_msg("Failed to process netlink message");
                     }
                 }
             };
@@ -764,10 +764,7 @@ impl RouteManagerImpl {
         self.cleanup_routes().await;
 
         if let Err(error) = self.clear_routing_rules().await {
-            tracing::error!(
-                "{}",
-                error.display_chain_with_msg("Failed to remove routing rules")
-            );
+            error.trace_chain_with_msg("Failed to remove routing rules");
         }
     }
 
