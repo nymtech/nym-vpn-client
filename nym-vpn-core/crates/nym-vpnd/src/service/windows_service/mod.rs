@@ -12,7 +12,6 @@ use std::{
 };
 
 use anyhow::Context;
-use nym_common::ErrorExt;
 use tokio::sync::{broadcast, mpsc, oneshot, Mutex};
 use tokio_util::sync::CancellationToken;
 use tracing_appender::non_blocking::WorkerGuard;
@@ -187,10 +186,11 @@ async fn run_service_inner() -> anyhow::Result<()> {
                 ServiceSpecificExitCode::NetworkFetch as u32,
             ))?;
 
-            err.trace_chain_with_msg(format!(
-                "Failed to fetch network environment for '{}'",
-                network_config.network.as_deref().unwrap_or("mainnet")
-            ));
+            tracing::error!(
+                "Failed to fetch network environment for '{}': {}",
+                network_config.network.as_deref().unwrap_or("mainnet"),
+                err
+            );
 
             return Err(err).with_context(|| "Failed to fetch network environment");
         }
