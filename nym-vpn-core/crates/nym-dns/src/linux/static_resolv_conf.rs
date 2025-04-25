@@ -163,7 +163,7 @@ impl DnsWatcher {
                     if let Err(error) = Self::update(locked_state.as_mut()) {
                         error.trace_chain_with_msg(
                             "Failed to update DNS state after DNS settings changed"
-                        )
+                        );
                     }
                 }
             }

@@ -90,11 +90,7 @@ impl VpnCredentialStorage {
                     tracing::debug!("File not found, skipping: {}", path.display())
                 }
                 Err(err) => {
-                    tracing::error!(
-                        "Failed to remove file {}: {}",
-                        path.display(),
-                        err.display_chain()
-                    );
+                    err.trace_chain_with_msg(format!("Failed to remove file {}", path.display()));
                     return Err(Error::RemoveCredentialStorage(err));
                 }
             }
