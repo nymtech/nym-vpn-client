@@ -145,18 +145,12 @@ impl RouteManagerImpl {
         // NOTE: This isn't race-free, as we're not listening for route changes before initializing
         self.update_best_default_route(interface::Family::V4)
             .unwrap_or_else(|error| {
-                tracing::error!(
-                    "{}",
-                    error.display_chain_with_msg("Failed to get initial default v4 route")
-                );
+                error.trace_chain_with_msg("Failed to get initial default v4 route");
                 false
             });
         self.update_best_default_route(interface::Family::V6)
             .unwrap_or_else(|error| {
-                tracing::error!(
-                    "{}",
-                    error.display_chain_with_msg("Failed to get initial default v6 route")
-                );
+                error.trace_chain_with_msg("Failed to get initial default v6 route");
                 false
             });
 
@@ -406,12 +400,7 @@ impl RouteManagerImpl {
             // ignore all other message types
             Ok(_) => {}
             Err(err) => {
-                tracing::error!(
-                    "{}",
-                    err.display_chain_with_msg(
-                        "Failed to receive a message from the routing table"
-                    )
-                );
+                err.trace_chain_with_msg("Failed to receive a message from the routing table");
             }
         }
     }

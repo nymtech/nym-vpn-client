@@ -325,13 +325,8 @@ pub(crate) mod raw {
                     tracing::trace!("File not found, skipping: {}", path.display())
                 }
                 Err(e) => {
-                    tracing::error!(
-                        "{}",
-                        e.display_chain_with_msg(format!(
-                            "Failed to remove file: {}",
-                            path.display()
-                        ))
-                    );
+                    e.trace_chain_with_msg(format!("Failed to remove file: {}", path.display()));
+
                     return Err(VpnError::InternalError {
                         details: e.to_string(),
                     });

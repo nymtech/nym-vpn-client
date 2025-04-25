@@ -101,13 +101,10 @@ pub async fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
                     tracing::debug!("Corrupted file not found, skipping: {}", file.display());
                 }
                 Err(err) => {
-                    tracing::error!(
-                        "{}",
-                        err.display_chain_with_msg(format!(
-                            "Failed to remove corrupted file {}",
-                            file.display()
-                        ))
-                    );
+                    err.trace_chain_with_msg(format!(
+                        "Failed to remove corrupted file {}",
+                        file.display()
+                    ));
                 }
             }
         }

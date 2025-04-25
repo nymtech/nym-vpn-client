@@ -10,7 +10,6 @@ use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use crate::AuthClient;
-use nym_common::ErrorExt;
 
 pub type MixnetMessageBroadcastSender = broadcast::Sender<Arc<ReconstructedMessage>>;
 pub type MixnetMessageBroadcastReceiver = broadcast::Receiver<Arc<ReconstructedMessage>>;

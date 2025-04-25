@@ -289,7 +289,7 @@ pub fn start_connection_monitor(
     let monitor = ConnectionMonitor::new(connection_event_rx);
     tokio::spawn(async move {
         monitor.run(shutdown_listener).await.inspect_err(|err| {
-            tracing::error!("{}", err.display_chain_with_msg("Connection monitor error"));
+            err.trace_chain_with_msg("Connection monitor error");
         })
     })
 }

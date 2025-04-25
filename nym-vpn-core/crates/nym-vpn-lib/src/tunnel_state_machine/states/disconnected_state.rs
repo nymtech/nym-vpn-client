@@ -20,10 +20,7 @@ impl DisconnectedState {
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
         if let Err(error) = _shared_state.dns_handler.reset().await {
-            log::error!(
-                "{}",
-                error.display_chain_with_msg("Unable to disable filtering resolver")
-            );
+            error.trace_chain_with_msg("Unable to disable filtering resolver");
         }
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         Self::reset_firewall_policy(_shared_state);
@@ -34,10 +31,7 @@ impl DisconnectedState {
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     fn reset_firewall_policy(shared_state: &mut SharedState) {
         if let Err(e) = shared_state.firewall.reset_policy() {
-            tracing::error!(
-                "{}",
-                e.display_chain_with_msg("Failed to reset firewall policy")
-            );
+            e.trace_chain_with_msg("Failed to reset firewall policy");
         }
     }
 }

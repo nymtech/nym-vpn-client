@@ -12,10 +12,7 @@ async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     tracing::debug!("Trying to resolve hostname: {hostname}");
     let resolver = HickoryDnsResolver::default();
     let addrs = resolver.resolve_str(hostname).await.map_err(|err| {
-        tracing::error!(
-            "{}",
-            err.display_chain_with_msg("Failed to resolve gateway hostname")
-        );
+        err.trace_chain_with_msg("Failed to resolve gateway hostname");
         Error::FailedToDnsResolveGateway {
             hostname: hostname.to_string(),
             source: err,

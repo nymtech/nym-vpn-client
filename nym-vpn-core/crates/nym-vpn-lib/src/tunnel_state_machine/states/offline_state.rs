@@ -46,10 +46,7 @@ impl OfflineState {
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         if let Err(e) = Self::set_firewall_policy(_shared_state) {
-            log::error!(
-                "{}",
-                e.display_chain_with_msg("Failed to apply firewall policy for blocked state")
-            );
+            e.trace_chain_with_msg("Failed to apply firewall policy for blocked state");
         }
 
         (
@@ -81,17 +78,14 @@ impl OfflineState {
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     fn reset_firewall_policy(shared_state: &mut SharedState) {
         if let Err(e) = shared_state.firewall.reset_policy() {
-            tracing::error!(
-                "{}",
-                e.display_chain_with_msg("Failed to reset firewall policy")
-            );
+            e.trace_chain_with_msg("Failed to reset firewall policy");
         }
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn reset_dns(shared_state: &mut SharedState) {
         if let Err(error) = shared_state.dns_handler.reset().await {
-            log::error!("{}", error.display_chain_with_msg("Unable to reset DNS"));
+            error.trace_chain_with_msg("Unable to reset DNS");
         }
     }
 
@@ -107,12 +101,7 @@ impl OfflineState {
             .set("lo".to_owned(), system_dns)
             .await
             .inspect_err(|err| {
-                tracing::error!(
-                    "{}",
-                    err.display_chain_with_msg(
-                        "Failed to configure system to use filtering resolver"
-                    )
-                );
+                err.trace_chain_with_msg("Failed to configure system to use filtering resolver");
             })
             .map_err(Error::SetDns)
     }

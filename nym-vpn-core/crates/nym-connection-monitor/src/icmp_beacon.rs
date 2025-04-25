@@ -17,7 +17,7 @@ use nym_sdk::{
 use nym_task::connections::TransmissionLane;
 use pnet_packet::Packet;
 use tokio::task::JoinHandle;
-use tracing::{debug, error, trace};
+use tracing::{debug, trace};
 
 use crate::{
     error::Result,
@@ -143,16 +143,16 @@ impl IcmpConnectionBeacon {
                 _ = ping_interval.tick() => {
                     let cancellable_fut = async {
                         if let Err(err) = self.ping_v4_ipr_tun_device_over_the_mixnet().await {
-                            error!("{}", err.display_chain_with_msg("Failed to send ICMP ping"));
+                            err.trace_chain_with_msg("Failed to send ICMP ping");
                         }
                         if let Err(err) = self.ping_v6_ipr_tun_device_over_the_mixnet().await {
-                            error!("{}", err.display_chain_with_msg("Failed to send ICMPv6 ping"));
+                            err.trace_chain_with_msg("Failed to send ICMPv6 ping");
                         }
                         if let Err(err) = self.ping_v4_some_external_ip_over_the_mixnet().await {
-                            error!("{}", err.display_chain_with_msg("Failed to send ICMP ping"));
+                            err.trace_chain_with_msg("Failed to send ICMP ping");
                         }
                         if let Err(err) = self.ping_v6_some_external_ip_over_the_mixnet().await {
-                            error!("{}", err.display_chain_with_msg("Failed to send ICMPv6 ping"));
+                            err.trace_chain_with_msg("Failed to send ICMPv6 ping");
                         }
                     };
 
@@ -244,10 +244,7 @@ pub fn start_icmp_connection_beacon(
         IcmpConnectionBeacon::new(mixnet_client_sender, our_ips, ipr_address, icmp_identifier);
     tokio::spawn(async move {
         beacon.run(shutdown_listener).await.inspect_err(|err| {
-            error!(
-                "{}",
-                err.display_chain_with_msg("IcmpConnectionBeacon failed")
-            );
+            err.trace_chain_with_msg("IcmpConnectionBeacon failed");
         })
     })
 }

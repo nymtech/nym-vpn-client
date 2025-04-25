@@ -67,22 +67,19 @@ impl RouteHandler {
 
     pub async fn remove_routes(&mut self) {
         if let Err(e) = self.route_manager.clear_routes() {
-            tracing::error!("{}", e.display_chain_with_msg("Failed to remove routes"));
+            e.trace_chain_with_msg("Failed to remove routes");
         }
 
         #[cfg(target_os = "linux")]
         if let Err(e) = self.route_manager.clear_routing_rules().await {
-            tracing::error!(
-                "{}",
-                e.display_chain_with_msg("Failed to remove routing rules")
-            );
+            e.trace_chain_with_msg("Failed to remove routing rules");
         }
     }
 
     #[cfg(target_os = "macos")]
     pub async fn refresh_routes(&mut self) {
         if let Err(e) = self.route_manager.refresh_routes() {
-            tracing::error!("{}", e.display_chain_with_msg("Failed to refresh routes"));
+            e.trace_chain_with_msg("Failed to refresh routes");
         }
     }
 

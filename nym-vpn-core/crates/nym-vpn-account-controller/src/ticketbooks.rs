@@ -220,10 +220,7 @@ impl TryFrom<Vec<BasicTicketbookInformation>> for AvailableTicketbooks {
             .filter_map(|ticketbook| {
                 AvailableTicketbook::try_from(ticketbook)
                     .inspect_err(|err| {
-                        tracing::error!(
-                            "{}",
-                            err.display_chain_with_msg("Failed to parse ticketbook")
-                        )
+                        err.trace_chain_with_msg("Failed to parse ticketbook");
                     })
                     .ok()
             })

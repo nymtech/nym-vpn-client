@@ -63,10 +63,7 @@ fn setup_statistics_recipient(
         .map(nym_gateway_directory::Recipient::try_from_base58_string)
         .transpose()
         .inspect_err(|err| {
-            tracing::error!(
-                "{}",
-                err.display_chain_with_msg("Failed to parse statistics recipient")
-            );
+            err.trace_chain_with_msg("Failed to parse statistics recipient");
         })
         .unwrap_or_default()
         .map(Box::new);

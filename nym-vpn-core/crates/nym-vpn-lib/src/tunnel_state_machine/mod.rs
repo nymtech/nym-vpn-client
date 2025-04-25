@@ -429,10 +429,7 @@ impl TunnelStateMachine {
             .register_offline_monitor(offline_watch)
             .await
             .inspect_err(|err| {
-                tracing::error!(
-                    "{}",
-                    err.display_chain_with_msg("Failed to register offline watch")
-                );
+                err.trace_chain_with_msg("Failed to register offline watch");
             })
             .ok();
 

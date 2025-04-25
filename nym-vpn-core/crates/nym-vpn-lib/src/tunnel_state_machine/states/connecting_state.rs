@@ -209,12 +209,7 @@ impl ConnectingState {
             .firewall
             .apply_policy(policy)
             .inspect_err(|error| {
-                tracing::error!(
-                    "{}",
-                    error.display_chain_with_msg(
-                        "Failed to apply firewall policy for connecting state"
-                    )
-                );
+                error.trace_chain_with_msg("Failed to apply firewall policy for connecting state");
             })
             .map_err(Error::ApplyFirewallPolicy)
     }
@@ -233,11 +228,8 @@ impl ConnectingState {
                 .set("lo".to_owned(), system_dns)
                 .await
                 .inspect_err(|err| {
-                    tracing::error!(
-                        "{}",
-                        err.display_chain_with_msg(
-                            "Failed to configure system to use filtering resolver"
-                        )
+                    err.trace_chain_with_msg(
+                        "Failed to configure system to use filtering resolver",
                     );
                 });
         }
@@ -253,10 +245,7 @@ impl ConnectingState {
                 .reset_before_interface_removal()
                 .await
             {
-                tracing::error!(
-                    "{}",
-                    e.display_chain_with_msg("Failed to reset dns before interface removal")
-                );
+                e.trace_chain_with_msg("Failed to reset dns before interface removal");
             }
         }
 
@@ -326,10 +315,7 @@ impl ConnectingState {
             .set_static_api_addresses(resolved_gateway_config.nym_vpn_api_socket_addrs.to_owned())
             .await
         {
-            tracing::error!(
-                "{}",
-                e.display_chain_with_msg("Failed to set static API addresses")
-            );
+            e.trace_chain_with_msg("Failed to set static API addresses");
             return NextTunnelState::NewState(
                 ErrorState::enter(
                     ErrorStateReason::Internal(

@@ -212,7 +212,7 @@ impl RouteManagerHandle {
                 }
                 RouteManagerCommand::ClearRoutes => {
                     if let Err(e) = internal.delete_applied_routes() {
-                        tracing::error!("{}", e.display_chain_with_msg("Could not clear routes"));
+                        e.trace_chain_with_msg("Could not clear routes");
                     }
                 }
                 RouteManagerCommand::RegisterDefaultRouteChangeCallback(callback, tx) => {

@@ -58,10 +58,7 @@ impl DisconnectingState {
             .reset_before_interface_removal()
             .await
         {
-            tracing::error!(
-                "{}",
-                e.display_chain_with_msg("Failed to reset dns before interface removal")
-            );
+            e.trace_chain_with_msg("Failed to reset dns before interface removal");
         }
 
         // On macOS, configure only the local DNS resolver
@@ -81,10 +78,7 @@ impl DisconnectingState {
             .set_static_api_addresses(None)
             .await
         {
-            tracing::error!(
-                "{}",
-                e.display_chain_with_msg("Failed to unset static API addresses")
-            );
+            e.trace_chain_with_msg("Failed to unset static API addresses");
         }
     }
 }
