@@ -14,6 +14,7 @@ workspace = true
 [dependencies]
 bincode.workspace = true
 futures.workspace = true
+nym-common.workspace = true
 nym-compact-ecash.workspace = true
 nym-credential-proxy-requests.workspace = true
 nym-credential-storage.workspace = true

@@ -3,6 +3,7 @@
 
 use std::fmt;
 
+use nym_common::ErrorExt;
 use nym_credential_storage::models::BasicTicketbookInformation;
 use nym_credentials_interface::TicketType;
 use serde::{Deserialize, Serialize};
@@ -219,7 +220,10 @@ impl TryFrom<Vec<BasicTicketbookInformation>> for AvailableTicketbooks {
             .filter_map(|ticketbook| {
                 AvailableTicketbook::try_from(ticketbook)
                     .inspect_err(|err| {
-                        tracing::error!("Failed to parse ticketbook: {}", err);
+                        tracing::error!(
+                            "{}",
+                            err.display_chain_with_msg("Failed to parse ticketbook")
+                        )
                     })
                     .ok()
             })

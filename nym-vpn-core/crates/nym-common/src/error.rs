@@ -10,7 +10,7 @@ pub trait ErrorExt {
     fn display_chain(&self) -> String;
 
     /// Like [Self::display_chain] but with an extra message at the start of the chain
-    fn display_chain_with_msg(&self, msg: &str) -> String;
+    fn display_chain_with_msg<S: AsRef<str>>(&self, msg: S) -> String;
 }
 
 impl<E: Error> ErrorExt for E {
@@ -24,8 +24,8 @@ impl<E: Error> ErrorExt for E {
         s
     }
 
-    fn display_chain_with_msg(&self, msg: &str) -> String {
-        let mut s = format!("Error: {msg}\nCaused by: {self}");
+    fn display_chain_with_msg<S: AsRef<str>>(&self, msg: S) -> String {
+        let mut s = format!("Error: {}\nCaused by: {}", msg.as_ref(), self);
         let mut source = self.source();
         while let Some(error) = source {
             write!(&mut s, "\nCaused by: {error}").expect("formatting failed");

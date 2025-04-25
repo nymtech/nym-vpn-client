@@ -147,7 +147,10 @@ impl ErrorState {
             .set_tunnel_network_settings(tunnel_network_settings.into_tunnel_network_settings())
             .await
         {
-            tracing::error!("Failed to set tunnel network settings: {}", e);
+            tracing::error!(
+                "{}",
+                e.display_chain_with_msg("Failed to set tunnel network settings")
+            );
         }
     }
 }

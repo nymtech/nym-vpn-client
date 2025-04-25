@@ -62,7 +62,10 @@ fn setup_statistics_recipient(
         .map(nym_gateway_directory::Recipient::try_from_base58_string)
         .transpose()
         .inspect_err(|err| {
-            tracing::error!("Failed to parse statistics recipient: {}", err);
+            tracing::error!(
+                "{}",
+                err.display_chain_with_msg("Failed to parse statistics recipient")
+            );
         })
         .unwrap_or_default()
         .map(Box::new);
@@ -202,7 +205,7 @@ pub(super) struct StateMachineHandle {
 impl StateMachineHandle {
     fn send_command(&self, command: TunnelCommand) {
         if let Err(e) = self.command_sender.send(command) {
-            tracing::error!("Failed to send comamnd: {}", e);
+            tracing::error!("Failed to send tunnel command: {}", e);
         }
     }
 

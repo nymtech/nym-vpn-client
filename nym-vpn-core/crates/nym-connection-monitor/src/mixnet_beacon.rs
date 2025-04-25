@@ -3,6 +3,7 @@
 
 use std::time::Duration;
 
+use nym_common::ErrorExt;
 use nym_sdk::{
     mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient},
     TaskClient,
@@ -54,7 +55,7 @@ impl MixnetConnectionBeacon {
                             let _ping_id = match ping_result {
                                 Ok(id) => id,
                                 Err(err) => {
-                                    error!("Failed to send mixnet self ping: {err}");
+                                    error!("{}", err.display_chain_with_msg("Failed to send mixnet self ping"));
                                     continue;
                                 }
                             };
@@ -91,7 +92,10 @@ pub fn start_mixnet_connection_beacon(
     let beacon = MixnetConnectionBeacon::new(mixnet_client_sender, our_address);
     tokio::spawn(async move {
         beacon.run(shutdown_listener).await.inspect_err(|err| {
-            error!("Mixnet connection beacon error: {err}");
+            error!(
+                "{}",
+                err.display_chain_with_msg("Mixnet connection beacon error")
+            );
         })
     })
 }

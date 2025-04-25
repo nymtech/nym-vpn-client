@@ -187,10 +187,13 @@ async fn run_service_inner() -> anyhow::Result<()> {
             ))?;
 
             tracing::error!(
-                "Failed to fetch network environment for '{}': {}",
-                network_config.network.as_deref().unwrap_or("mainnet"),
-                err
+                "{}",
+                err.display_chain_with_msg(format!(
+                    "Failed to fetch network environment for '{}'",
+                    network_config.network.as_deref().unwrap_or("mainnet")
+                ))
             );
+
             return Err(err).with_context(|| "Failed to fetch network environment");
         }
         Err(err) => {

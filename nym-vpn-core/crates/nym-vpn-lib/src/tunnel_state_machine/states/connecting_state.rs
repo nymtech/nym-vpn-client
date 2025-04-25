@@ -253,7 +253,10 @@ impl ConnectingState {
                 .reset_before_interface_removal()
                 .await
             {
-                tracing::error!("Failed to reset dns before interface removal: {}", e);
+                tracing::error!(
+                    "{}",
+                    e.display_chain_with_msg("Failed to reset dns before interface removal")
+                );
             }
         }
 
@@ -323,7 +326,10 @@ impl ConnectingState {
             .set_static_api_addresses(resolved_gateway_config.nym_vpn_api_socket_addrs.to_owned())
             .await
         {
-            tracing::error!("Failed to set static API addresses: {}", e);
+            tracing::error!(
+                "{}",
+                e.display_chain_with_msg("Failed to set static API addresses")
+            );
             return NextTunnelState::NewState(
                 ErrorState::enter(
                     ErrorStateReason::Internal(

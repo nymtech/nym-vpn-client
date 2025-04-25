@@ -244,7 +244,10 @@ impl TunnelMonitor {
         let (tombstone, reason) = match self.run_inner().await {
             Ok(tombstone) => (tombstone, None),
             Err(e) => {
-                tracing::error!("Tunnel monitor exited with error: {}", e.display_chain());
+                tracing::error!(
+                    "{}",
+                    e.display_chain_with_msg("Tunnel monitor exited with error")
+                );
                 (Tombstone::default(), e.error_state_reason())
             }
         };
@@ -487,7 +490,10 @@ impl TunnelMonitor {
             .wait()
             .await
             .inspect_err(|e| {
-                tracing::error!("Failed to gracefully shutdown the tunnel: {}", e);
+                tracing::error!(
+                    "{}",
+                    e.display_chain_with_msg("Failed to gracefully shutdown the tunnel")
+                )
             })
             .unwrap_or_default();
 
