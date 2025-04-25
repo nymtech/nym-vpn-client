@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_common::ErrorExt;
 use nym_vpn_account_controller::AccountCommandSender;
 use nym_vpn_api_client::types::ScoreThresholds;
 use nym_vpn_network_config::Network;

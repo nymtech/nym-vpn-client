@@ -58,10 +58,7 @@ impl AuthClientMixnetListener {
             .run_until_cancelled(async {
                 while let Some(event) = mixnet_client.next().await {
                     if let Err(err) = self.message_broadcast.send(Arc::new(event)) {
-                        tracing::error!(
-                            "{}",
-                            err.display_chain_with_msg("Failed to broadcast mixnet message")
-                        );
+                        tracing::error!("Failed to broadcast mixnet message: {err}");
                     }
                 }
                 tracing::error!("Mixnet client stream ended unexpectedly");
@@ -125,7 +122,7 @@ impl AuthClientMixnetListenerHandle {
         tokio::select! {
             join_result = &mut self.handle => {
                 if let Err(err) = join_result {
-                    tracing::error!("{}", err.display_chain_with_msg("Error waiting for auth clients mixnet listener to stop"));
+                    tracing::error!("Error waiting for auth clients mixnet listener to stop: {err}");
                 }
             }
             _ = tokio::time::sleep(Duration::from_secs(5)) => {
