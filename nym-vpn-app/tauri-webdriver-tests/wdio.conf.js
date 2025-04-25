@@ -10,6 +10,7 @@ let tauriDriver;
 const isCI = process.env.CI === 'true' || process.env.CI === true;
 const isHeadless =
   process.env.HEADLESS === 'true' || process.env.HEADLESS === true;
+const isDebug = process.env.DEBUG === 'true' || process.env.DEBUG === true;
 const isWindows = process.platform === 'win32';
 const isLinux = process.platform === 'linux';
 const isMacOS = process.platform === 'darwin';
@@ -63,7 +64,7 @@ function startGeckoDriver() {
     try {
       try {
         execSync('pkill -f geckodriver', { stdio: 'ignore' });
-      } catch { }
+      } catch {}
 
       const geckoDriverPath = getGeckoDriverPath();
       console.log(`Starting geckodriver from: ${geckoDriverPath}`);
@@ -137,58 +138,58 @@ exports.config = {
 
   capabilities: isMacOS
     ? [
-      {
-        maxInstances: 1,
-        browserName: 'firefox',
-        'moz:firefoxOptions': {
-          binary: '/Applications/Firefox.app/Contents/MacOS/firefox',
-          args: [
-            '--start-maximized',
-            '--disable-dev-shm-usage',
-            '--no-sandbox',
-            '--disable-extensions',
-            ...(isHeadless ? ['--headless'] : []),
-          ],
-          prefs: {
-            'security.sandbox.content.level': 0,
-            'browser.cache.disk.enable': false,
-            'browser.cache.memory.enable': false,
+        {
+          maxInstances: 1,
+          browserName: 'firefox',
+          'moz:firefoxOptions': {
+            binary: '/Applications/Firefox.app/Contents/MacOS/firefox',
+            args: [
+              '--start-maximized',
+              '--disable-dev-shm-usage',
+              '--no-sandbox',
+              '--disable-extensions',
+              ...(isHeadless ? ['--headless'] : []),
+            ],
+            prefs: {
+              'security.sandbox.content.level': 0,
+              'browser.cache.disk.enable': false,
+              'browser.cache.memory.enable': false,
+            },
+          },
+          acceptInsecureCerts: true,
+          'webdriver:firefoxOptions': {
+            binary: '/Applications/Firefox.app/Contents/MacOS/firefox',
           },
         },
-        acceptInsecureCerts: true,
-        'webdriver:firefoxOptions': {
-          binary: '/Applications/Firefox.app/Contents/MacOS/firefox',
-        },
-      },
-    ]
+      ]
     : [
-      {
-        maxInstances: 1,
-        'tauri:options': {
-          application: isWindows
-            ? path.join(
-              mainProjectPath,
-              'src-tauri',
-              'target',
-              'release',
-              'nym-vpn-app.exe',
-            )
-            : path.join(
-              mainProjectPath,
-              'src-tauri',
-              'target',
-              'release',
-              'nym-vpn-app',
-            ),
-          ...(isCI
-            ? {
-              // TODO - MOCK
-              args: ['--ci-mode', '--mock-connections'],
-            }
-            : {}),
+        {
+          maxInstances: 1,
+          'tauri:options': {
+            application: isWindows
+              ? path.join(
+                  mainProjectPath,
+                  'src-tauri',
+                  'target',
+                  isDebug ? 'debug' : 'release',
+                  'nym-vpn-app.exe',
+                )
+              : path.join(
+                  mainProjectPath,
+                  'src-tauri',
+                  'target',
+                  isDebug ? 'debug' : 'release',
+                  'nym-vpn-app',
+                ),
+            ...(isCI
+              ? {
+                  // MOCK connections in CI
+                  args: ['--ci-mode', '--mock-connections'],
+                }
+              : {}),
+          },
         },
-      },
-    ],
+      ],
 
   // Connection settings
   hostname: 'localhost',
@@ -213,7 +214,7 @@ exports.config = {
   // Hooks
   onPrepare: async function () {
     console.log(
-      `Running in ${isCI ? 'CI' : 'local'} environment on ${process.platform}`,
+      `Running in ${isCI ? 'CI' : 'local'} environment on ${process.platform} (${isDebug ? 'DEBUG' : 'RELEASE'} mode)`,
     );
 
     if (isMacOS && process.getuid && process.getuid() === 0) {
@@ -249,25 +250,31 @@ exports.config = {
     }
 
     if (isLinux) {
-      console.log('Building Tauri application for Linux with adjusted library paths...');
+      console.log(
+        `Building Tauri application for Linux in ${isDebug ? 'DEBUG' : 'RELEASE'} mode...`,
+      );
       const buildEnv = {
         ...process.env,
         RUST_LOG: 'info,nym_vpn_app=trace',
-
-        RUSTFLAGS: "-C link-args=-Wl,-rpath,/usr/lib/x86_64-linux-gnu"
+        RUSTFLAGS: '-C link-args=-Wl,-rpath,/usr/lib/x86_64-linux-gnu',
       };
 
-      const buildResult = spawnSync('npm', ['run', 'tauri', 'build'], {
+      const buildCommand = isDebug
+        ? ['run', 'tauri', '--', 'build', '--debug']
+        : ['run', 'tauri', 'build'];
+
+      const buildResult = spawnSync('npm', buildCommand, {
         stdio: 'inherit',
         env: buildEnv,
-        cwd: path.join(mainProjectPath, 'src-tauri')
+        cwd: mainProjectPath,
       });
 
       if (buildResult.status !== 0) {
-        throw new Error('Failed to build Tauri application for Linux');
+        throw new Error(
+          `Failed to build Tauri application for Linux in ${isDebug ? 'debug' : 'release'} mode`,
+        );
       }
-    }
-    if (isMacOS) {
+    } else if (isMacOS) {
       console.log('Starting browser-based dev server...');
       browserProcess = spawn('npm', ['run', 'dev:browser'], {
         stdio: 'pipe',
@@ -311,7 +318,7 @@ exports.config = {
         });
       });
     } else {
-      // For non-macOS platforms, ensure dependencies are installed before building
+      // For Windows platforms, ensure dependencies are installed before building
       const nodeModulesPath = path.join(mainProjectPath, 'node_modules');
       if (!fs.existsSync(nodeModulesPath)) {
         console.log('Installing dependencies for Tauri build...');
@@ -325,8 +332,16 @@ exports.config = {
         }
       }
 
-      console.log('Building Tauri application...');
-      const buildResult = spawnSync('npm', ['run', 'tauri', 'build'], {
+      console.log(
+        `Building Tauri application for Windows in ${isDebug ? 'DEBUG' : 'RELEASE'} mode...`,
+      );
+
+      // Choose build command based on debug flag
+      const buildCommand = isDebug
+        ? ['run', 'tauri', '--', 'build', '--debug']
+        : ['run', 'tauri', 'build'];
+
+      const buildResult = spawnSync('npm', buildCommand, {
         stdio: 'inherit',
         env: {
           ...process.env,
@@ -336,7 +351,9 @@ exports.config = {
       });
 
       if (buildResult.status !== 0) {
-        throw new Error('Failed to build Tauri application');
+        throw new Error(
+          `Failed to build Tauri application in ${isDebug ? 'debug' : 'release'} mode`,
+        );
       }
     }
   },
@@ -412,7 +429,7 @@ exports.config = {
         geckoDriverProcess.kill();
         try {
           execSync('pkill -f geckodriver', { stdio: 'ignore' });
-        } catch (e) { }
+        } catch (e) {}
 
         try {
           const killScriptPath = path.join(
