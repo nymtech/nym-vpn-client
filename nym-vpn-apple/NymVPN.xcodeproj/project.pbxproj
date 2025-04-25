@@ -360,7 +360,6 @@
 				D90F19042BEED69D008D2232 /* Info.plist */,
 				D9BEF2D62BEB63320036C566 /* Assets.xcassets */,
 				D9BEF2DB2BEB63320036C566 /* NymVPNDaemon.entitlements */,
-				D9BF25962DBBA5EA00A3CE72 /* Localizable.xcstrings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -393,6 +392,7 @@
 				D955FA002B73CF6F005BA27D /* Info.plist */,
 				D9F236222C64E64E00CCC433 /* LibLicences.json */,
 				D9879AF52CFE166400CF1B5D /* LaunchScreen.storyboard */,
+				D9BF25962DBBA5EA00A3CE72 /* Localizable.xcstrings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
