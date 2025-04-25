@@ -222,7 +222,8 @@ async fn run_service_inner() -> anyhow::Result<()> {
         tunnel_event_rx,
         network_env.clone(),
         shutdown_token.child_token(),
-    );
+    )
+    .await?;
 
     let user_agent = crate::util::construct_user_agent();
 

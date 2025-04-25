@@ -30,8 +30,10 @@ use super::{
     error::CommandInterfaceError,
     helpers::{parse_entry_point, parse_exit_point, threshold_into_percent},
 };
-use crate::logging::LogPath;
-use crate::service::{ConnectOptions, VpnServiceCommand};
+use crate::{
+    logging::LogPath,
+    service::{ConnectOptions, VpnServiceCommand},
+};
 
 pub(super) struct CommandInterface {
     // Send commands to the VPN service
@@ -783,7 +785,7 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             .map(|dns| {
                 dns.ip
                     .parse()
-                    .map_err(|err| CommandInterfaceError::FailedToParseDnsIp {
+                    .map_err(|err| CommandInterfaceError::ParseDnsIp {
                         ip: dns.ip.clone(),
                         source: err,
                     })
