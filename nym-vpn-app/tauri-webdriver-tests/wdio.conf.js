@@ -6,6 +6,7 @@ const { spawn, spawnSync, execSync } = require('child_process');
 let browserProcess;
 let geckoDriverProcess;
 let tauriDriver;
+let tauriDevProcess;
 
 const isCI = process.env.CI === 'true' || process.env.CI === true;
 const isHeadless =
@@ -166,24 +167,44 @@ exports.config = {
         {
           maxInstances: 1,
           'tauri:options': {
-            application: isWindows
-              ? path.join(
-                  mainProjectPath,
-                  'src-tauri',
-                  'target',
-                  isDebug ? 'debug' : 'release',
-                  'nym-vpn-app.exe',
-                )
-              : path.join(
-                  mainProjectPath,
-                  'src-tauri',
-                  'target',
-                  isDebug ? 'debug' : 'release',
-                  'nym-vpn-app',
-                ),
+            ...(!isDebug
+              ? {
+                  // For release mode, use the release build
+                  application: isWindows
+                    ? path.join(
+                        mainProjectPath,
+                        'src-tauri',
+                        'target',
+                        'release',
+                        'nym-vpn-app.exe',
+                      )
+                    : path.join(
+                        mainProjectPath,
+                        'src-tauri',
+                        'target',
+                        'release',
+                        'nym-vpn-app',
+                      ),
+                }
+              : {
+                  application: isWindows
+                    ? path.join(
+                        mainProjectPath,
+                        'src-tauri',
+                        'target',
+                        'debug',
+                        'nym-vpn-app.exe',
+                      )
+                    : path.join(
+                        mainProjectPath,
+                        'src-tauri',
+                        'target',
+                        'debug',
+                        'nym-vpn-app',
+                      ),
+                }),
             ...(isCI
               ? {
-                  // MOCK connections in CI
                   args: ['--ci-mode', '--mock-connections'],
                 }
               : {}),
@@ -250,29 +271,38 @@ exports.config = {
     }
 
     if (isLinux) {
-      console.log(
-        `Building Tauri application for Linux in ${isDebug ? 'DEBUG' : 'RELEASE'} mode...`,
-      );
-      const buildEnv = {
-        ...process.env,
-        RUST_LOG: 'info,nym_vpn_app=trace',
-        RUSTFLAGS: '-C link-args=-Wl,-rpath,/usr/lib/x86_64-linux-gnu',
-      };
+      if (isDebug) {
+        console.log('Starting Tauri development server for Linux...');
+        tauriDevProcess = spawn('npm', ['run', 'tauri', 'dev'], {
+          stdio: 'inherit',
+          env: {
+            ...process.env,
+            RUST_LOG: 'info,nym_vpn_app=trace',
+            RUSTFLAGS: '-C link-args=-Wl,-rpath,/usr/lib/x86_64-linux-gnu',
+          },
+          cwd: mainProjectPath,
+          detached: true,
+        });
 
-      const buildCommand = isDebug
-        ? ['run', 'tauri', '--', 'build', '--debug']
-        : ['run', 'tauri', 'build'];
+        console.log('Waiting for Tauri dev server to start...');
+        await new Promise((resolve) => setTimeout(resolve, 15000));
+      } else {
+        console.log('Building Tauri application for Linux in RELEASE mode...');
+        const buildEnv = {
+          ...process.env,
+          RUST_LOG: 'info,nym_vpn_app=trace',
+          RUSTFLAGS: '-C link-args=-Wl,-rpath,/usr/lib/x86_64-linux-gnu',
+        };
 
-      const buildResult = spawnSync('npm', buildCommand, {
-        stdio: 'inherit',
-        env: buildEnv,
-        cwd: mainProjectPath,
-      });
+        const buildResult = spawnSync('npm', ['run', 'tauri', 'build'], {
+          stdio: 'inherit',
+          env: buildEnv,
+          cwd: mainProjectPath,
+        });
 
-      if (buildResult.status !== 0) {
-        throw new Error(
-          `Failed to build Tauri application for Linux in ${isDebug ? 'debug' : 'release'} mode`,
-        );
+        if (buildResult.status !== 0) {
+          throw new Error('Failed to build Tauri application for Linux');
+        }
       }
     } else if (isMacOS) {
       console.log('Starting browser-based dev server...');
@@ -318,58 +348,80 @@ exports.config = {
         });
       });
     } else {
-      // For Windows platforms, ensure dependencies are installed before building
+      // For Windows platforms
       const nodeModulesPath = path.join(mainProjectPath, 'node_modules');
       if (!fs.existsSync(nodeModulesPath)) {
-        console.log('Installing dependencies for Tauri build...');
+        console.log('Installing dependencies for Tauri...');
         const installResult = spawnSync('npm', ['install'], {
           stdio: 'inherit',
           cwd: mainProjectPath,
         });
 
         if (installResult.status !== 0) {
-          throw new Error('Failed to install dependencies for Tauri build');
+          throw new Error('Failed to install dependencies for Tauri');
         }
       }
 
-      console.log(
-        `Building Tauri application for Windows in ${isDebug ? 'DEBUG' : 'RELEASE'} mode...`,
-      );
+      if (isDebug) {
+        console.log('Starting Tauri development server for Windows...');
+        tauriDevProcess = spawn('npm', ['run', 'tauri', 'dev'], {
+          stdio: 'inherit',
+          env: {
+            ...process.env,
+            RUST_LOG: 'info,nym_vpn_app=trace',
+          },
+          cwd: mainProjectPath,
+          detached: true,
+        });
 
-      // Choose build command based on debug flag
-      const buildCommand = isDebug
-        ? ['run', 'tauri', '--', 'build', '--debug']
-        : ['run', 'tauri', 'build'];
-
-      const buildResult = spawnSync('npm', buildCommand, {
-        stdio: 'inherit',
-        env: {
-          ...process.env,
-          RUST_LOG: 'info,nym_vpn_app=trace',
-        },
-        cwd: mainProjectPath,
-      });
-
-      if (buildResult.status !== 0) {
-        throw new Error(
-          `Failed to build Tauri application in ${isDebug ? 'debug' : 'release'} mode`,
+        console.log('Waiting for Tauri dev server to start...');
+        await new Promise((resolve) => setTimeout(resolve, 15000));
+      } else {
+        console.log(
+          'Building Tauri application for Windows in RELEASE mode...',
         );
+        const buildResult = spawnSync('npm', ['run', 'tauri', 'build'], {
+          stdio: 'inherit',
+          env: {
+            ...process.env,
+            RUST_LOG: 'info,nym_vpn_app=trace',
+          },
+          cwd: mainProjectPath,
+        });
+
+        if (buildResult.status !== 0) {
+          throw new Error('Failed to build Tauri application in release mode');
+        }
       }
     }
   },
 
   beforeSession: async function () {
     if (!isMacOS) {
-      console.log('Starting tauri-driver...');
-      const tauriDriverPath = findTauriDriverPath();
+      if (!isDebug) {
+        // In release mode, we need to start tauri-driver to control the app
+        console.log('Starting tauri-driver for release build...');
+        const tauriDriverPath = findTauriDriverPath();
 
-      tauriDriver = spawn(tauriDriverPath, [], {
-        stdio: [null, process.stdout, process.stderr],
-        env: {
-          ...process.env,
-          RUST_LOG: 'info',
-        },
-      });
+        tauriDriver = spawn(tauriDriverPath, [], {
+          stdio: [null, process.stdout, process.stderr],
+          env: {
+            ...process.env,
+            RUST_LOG: 'info',
+          },
+        });
+      } else {
+        console.log('Starting tauri-driver for dev server...');
+        const tauriDriverPath = findTauriDriverPath();
+
+        tauriDriver = spawn(tauriDriverPath, [], {
+          stdio: [null, process.stdout, process.stderr],
+          env: {
+            ...process.env,
+            RUST_LOG: 'info',
+          },
+        });
+      }
 
       return new Promise((resolve) => setTimeout(resolve, 2000));
     }
@@ -451,11 +503,29 @@ exports.config = {
       }
     }
 
-    if (!isMacOS && tauriDriver) {
+    // Clean up tauri processes
+    if (tauriDriver) {
       try {
         tauriDriver.kill();
       } catch (error) {
         console.error('Error killing tauri-driver:', error);
+      }
+    }
+
+    if (tauriDevProcess) {
+      try {
+        tauriDevProcess.kill();
+        if (isLinux || isMacOS) {
+          try {
+            execSync('pkill -f "tauri dev"', { stdio: 'ignore' });
+          } catch (e) {}
+        } else if (isWindows) {
+          try {
+            execSync('taskkill /f /im "tauri.exe"', { stdio: 'ignore' });
+          } catch (e) {}
+        }
+      } catch (error) {
+        console.error('Error killing tauri dev process:', error);
       }
     }
   },
