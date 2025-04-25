@@ -9,13 +9,13 @@ pub trait ErrorExt {
     /// Creates a string representation of the entire error chain.
     fn display_chain(&self) -> String;
 
-    /// Like [Self::display_chain] but with an extra message at the start of the chain
+    /// Like [Self::display_chain] but with an extra message at the start of the chain.
     fn display_chain_with_msg<S: AsRef<str>>(&self, msg: S) -> String;
 
-    /// Print error chain to tracing error log.
+    /// Print error chain to log using error level.
     fn trace_chain(&self);
 
-    /// Like [Self::trace_chain] but with an extra message at the start of the chain
+    /// Like [Self::trace_chain] but with an extra message at the start of the chain.
     fn trace_chain_with_msg<S: AsRef<str>>(&self, msg: S);
 }
 
