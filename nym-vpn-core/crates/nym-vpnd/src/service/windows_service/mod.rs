@@ -12,6 +12,7 @@ use std::{
 };
 
 use anyhow::Context;
+use nym_common::ErrorExt;
 use tokio::sync::{broadcast, mpsc, oneshot, Mutex};
 use tokio_util::sync::CancellationToken;
 use tracing_appender::non_blocking::WorkerGuard;
