@@ -18,7 +18,8 @@
     "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
     "max-devices-reached": "Account device limit exceeded. Please remove a device from your account before connecting.",
     "bandwidth-exceeded": "Monthly bandwidth exceeded. Please upgrade your account plan.",
-    "subscription-expired": "Subscription has expired. Please purchase a plan for your account."
+    "subscription-expired": "Subscription has expired. Please purchase a plan for your account.",
+    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
   },
   "account": {
     "invalid-recovery-phrase": "Invalid access code",

@@ -47,6 +47,8 @@ function useI18nError() {
             return fmtErr(t('tunnel.bandwidth-exceeded'), error.data);
           case 'subscription-expired':
             return fmtErr(t('tunnel.subscription-expired'), error.data);
+          case 'device-time-out-of-sync':
+            return fmtErr(t('tunnel.device-time-out-of-sync'), error.data);
         }
       }
       // no tunnel errors

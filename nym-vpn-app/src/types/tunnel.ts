@@ -90,7 +90,8 @@ export type TunnelError =
       key: 'bandwidth-exceeded';
       data: string | null;
     }
-  | { key: 'subscription-expired'; data: string | null };
+  | { key: 'subscription-expired'; data: string | null }
+  | { key: 'device-time-out-of-sync'; data: string | null };
 
 export type TunnelStateEvent = {
   state: TunnelState;
