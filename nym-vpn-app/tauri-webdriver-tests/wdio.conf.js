@@ -167,25 +167,22 @@ exports.config = {
         {
           maxInstances: 1,
           'tauri:options': {
-            ...(!isDebug
-              ? {
-                  application: isWindows
-                    ? path.join(
-                        mainProjectPath,
-                        'src-tauri',
-                        'target',
-                        'release',
-                        'nym-vpn-app.exe',
-                      )
-                    : path.join(
-                        mainProjectPath,
-                        'src-tauri',
-                        'target',
-                        'release',
-                        'nym-vpn-app',
-                      ),
-                }
-              : {}),
+            // Specify application path for both debug and release modes
+            application: isWindows
+              ? path.join(
+                  mainProjectPath,
+                  'src-tauri',
+                  'target',
+                  isDebug ? 'debug' : 'release',
+                  'nym-vpn-app.exe',
+                )
+              : path.join(
+                  mainProjectPath,
+                  'src-tauri',
+                  'target',
+                  isDebug ? 'debug' : 'release',
+                  'nym-vpn-app',
+                ),
             ...(isCI
               ? {
                   args: ['--ci-mode', '--mock-connections'],
@@ -229,6 +226,23 @@ exports.config = {
       process.exit(1);
     }
 
+    // Clean up any existing processes on Linux
+    if (isLinux) {
+      console.log('Cleaning up any existing webdriver processes...');
+      try {
+        execSync('pkill -f "geckodriver"', { stdio: 'ignore' });
+        execSync('pkill -f "tauri-driver"', { stdio: 'ignore' });
+        execSync('pkill -f "webdriver"', { stdio: 'ignore' });
+        // Kill processes on common WebDriver ports
+        try {
+          execSync('fuser -k 4444/tcp', { stdio: 'ignore' });
+          execSync('fuser -k 4445/tcp', { stdio: 'ignore' });
+        } catch (e) {}
+      } catch (e) {
+        // Ignore errors if processes don't exist
+      }
+    }
+
     // Check if node_modules exists in the main project path
     const nodeModulesPath = path.join(mainProjectPath, 'node_modules');
     if (!fs.existsSync(nodeModulesPath)) {
@@ -255,72 +269,46 @@ exports.config = {
 
     if (isLinux) {
       if (isDebug) {
-        console.log('Starting Tauri development server for Linux...');
-        console.log('Waiting for Tauri dev server to start...');
+        const debugBinaryPath = path.join(
+          mainProjectPath,
+          'src-tauri',
+          'target',
+          'debug',
+          'nym-vpn-app',
+        );
 
-        tauriDevProcess = spawn('npm', ['run', 'tauri', 'dev'], {
-          stdio: 'inherit',
-          env: {
+        if (!fs.existsSync(debugBinaryPath)) {
+          console.log(
+            'Debug binary not found. Compiling the application first...',
+          );
+
+          const buildEnv = {
             ...process.env,
             RUST_LOG: 'info,nym_vpn_app=trace',
             RUSTFLAGS: '-C link-args=-Wl,-rpath,/usr/lib/x86_64-linux-gnu',
-          },
-          cwd: mainProjectPath,
-          detached: true,
-          shell: true,
-        });
+            TAURI_WEBVIEW_DRIVER: 'wry',
+          };
 
-        let isReady = false;
-        const maxWaitTime = 60000;
-        const startTime = Date.now();
+          const buildCmd = isWindows
+            ? 'cargo build'
+            : 'cargo build --no-default-features';
 
-        // We'll wait here for the app to be ready
-        console.log(
-          'Waiting for Tauri dev server to initialize (up to 60 seconds)...',
-        );
-        await new Promise((resolve) => {
-          const checkInterval = setInterval(() => {
-            // Check if we've exceeded maximum wait time
-            if (Date.now() - startTime > maxWaitTime) {
-              clearInterval(checkInterval);
-              console.log(
-                'Timed out waiting for Tauri dev server, continuing anyway...',
-              );
-              resolve();
-            }
+          const buildResult = spawnSync(buildCmd, [], {
+            stdio: 'inherit',
+            env: buildEnv,
+            cwd: path.join(mainProjectPath, 'src-tauri'),
+            shell: true,
+          });
 
-            if (isReady) {
-              clearInterval(checkInterval);
-              resolve();
-            }
-          }, 1000);
-
-          if (tauriDevProcess.stdout) {
-            tauriDevProcess.stdout.on('data', (data) => {
-              const output = data.toString();
-              if (
-                output.includes('Finished `dev`') ||
-                output.includes('Running DevCommand') ||
-                output.includes('Starting webview window')
-              ) {
-                console.log('Detected Tauri dev server is ready');
-                isReady = true;
-              }
-            });
+          if (buildResult.status !== 0) {
+            throw new Error('Failed to build Tauri application for debug mode');
           }
 
-          setTimeout(() => {
-            if (!isReady) {
-              console.log('Minimum wait time reached, continuing...');
-              isReady = true;
-            }
-          }, 25000);
-        });
-
-        console.log('Dev server detected, waiting for app initialization...');
-        await new Promise((resolve) => setTimeout(resolve, 15000));
+          console.log('Debug binary successfully built');
+        } else {
+          console.log('Debug binary found at:', debugBinaryPath);
+        }
       } else {
-        // Original release build code
         console.log('Building Tauri application for Linux in RELEASE mode...');
         const buildEnv = {
           ...process.env,
@@ -381,7 +369,7 @@ exports.config = {
           reject(err);
         });
       });
-    } else {
+    } else if (isWindows) {
       // For Windows platforms
       const nodeModulesPath = path.join(mainProjectPath, 'node_modules');
       if (!fs.existsSync(nodeModulesPath)) {
@@ -397,62 +385,41 @@ exports.config = {
       }
 
       if (isDebug) {
-        console.log('Starting Tauri development server for Windows...');
-        tauriDevProcess = spawn('npm', ['run', 'tauri', 'dev'], {
-          stdio: 'inherit',
-          env: {
+        // For debug mode, check if binary exists
+        const debugBinaryPath = path.join(
+          mainProjectPath,
+          'src-tauri',
+          'target',
+          'debug',
+          'nym-vpn-app.exe',
+        );
+
+        if (!fs.existsSync(debugBinaryPath)) {
+          console.log(
+            'Debug binary not found. Compiling the application first...',
+          );
+
+          const buildEnv = {
             ...process.env,
             RUST_LOG: 'info,nym_vpn_app=trace',
-          },
-          cwd: mainProjectPath,
-          detached: true,
-          shell: true,
-        });
+            TAURI_WEBVIEW_DRIVER: 'wry',
+          };
 
-        console.log('Waiting for Tauri dev server to start...');
-        let isReady = false;
-        const maxWaitTime = 60000;
-        const startTime = Date.now();
+          const buildResult = spawnSync('cargo build', [], {
+            stdio: 'inherit',
+            env: buildEnv,
+            cwd: path.join(mainProjectPath, 'src-tauri'),
+            shell: true,
+          });
 
-        await new Promise((resolve) => {
-          const checkInterval = setInterval(() => {
-            if (Date.now() - startTime > maxWaitTime) {
-              clearInterval(checkInterval);
-              console.log(
-                'Timed out waiting for Tauri dev server, continuing anyway...',
-              );
-              resolve();
-            }
-
-            if (isReady) {
-              clearInterval(checkInterval);
-              resolve();
-            }
-          }, 1000);
-
-          if (tauriDevProcess.stdout) {
-            tauriDevProcess.stdout.on('data', (data) => {
-              const output = data.toString();
-              if (
-                output.includes('Finished `dev`') ||
-                output.includes('Running DevCommand') ||
-                output.includes('Starting webview window')
-              ) {
-                console.log('Detected Tauri dev server is ready');
-                isReady = true;
-              }
-            });
+          if (buildResult.status !== 0) {
+            throw new Error('Failed to build Tauri application for debug mode');
           }
 
-          setTimeout(() => {
-            if (!isReady) {
-              console.log('Minimum wait time reached, continuing...');
-              isReady = true;
-            }
-          }, 25000);
-        });
-
-        await new Promise((resolve) => setTimeout(resolve, 10000));
+          console.log('Debug binary successfully built');
+        } else {
+          console.log('Debug binary found at:', debugBinaryPath);
+        }
       } else {
         console.log(
           'Building Tauri application for Windows in RELEASE mode...',
@@ -479,7 +446,7 @@ exports.config = {
       const waitTime = isDebug ? 5000 : 2000;
 
       if (!isDebug) {
-        // In release mode, we need to start tauri-driver to control the app
+        // In release mode, use the original code
         console.log('Starting tauri-driver for release build...');
         const tauriDriverPath = findTauriDriverPath();
 
@@ -491,14 +458,15 @@ exports.config = {
           },
         });
       } else {
-        console.log('Starting tauri-driver for dev server...');
+        console.log('Starting tauri-driver for debug binary...');
         const tauriDriverPath = findTauriDriverPath();
 
         tauriDriver = spawn(tauriDriverPath, [], {
           stdio: [null, process.stdout, process.stderr],
           env: {
             ...process.env,
-            RUST_LOG: 'info',
+            RUST_LOG: 'debug',
+            TAURI_WEBVIEW_DRIVER: 'wry',
           },
         });
       }
@@ -602,8 +570,6 @@ exports.config = {
         console.error('Error killing tauri-driver:', error);
       }
     }
-
-    // Enhanced cleanup for tauri dev process
     if (tauriDevProcess) {
       try {
         console.log('Cleaning up Tauri dev process...');

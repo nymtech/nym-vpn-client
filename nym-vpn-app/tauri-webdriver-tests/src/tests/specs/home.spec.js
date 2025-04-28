@@ -12,6 +12,9 @@ describe('NymVPN Homepage', () => {
       const connectionStatus = await HomePage.getCurrentConnectionStatus();
       await expect(connectionStatus).toBe('Disconnected');
 
+      await HomePage.checkElementDetails(HomePage.homeConnectionButtonText);
+
+      await HomePage.waitForButtonText();
       const buttonText = await HomePage.homeConnectionButtonText.getText();
       await expect(buttonText).toBe('Connect');
     });
@@ -26,10 +29,16 @@ describe('NymVPN Homepage', () => {
     });
 
     it('should display Switzerland as the default entry and exit location', async () => {
+      await HomePage.waitForCountryText();
+
       const entryLocation = await HomePage.getSelectedEntry();
+      console.log(entryLocation);
       await expect(entryLocation).toBe('Switzerland');
 
       const exitLocation = await HomePage.getSelectedExit();
+
+      await HomePage.checkElementDetails(HomePage.hopSelectCountryNameEntry);
+      console.log(exitLocation);
       await expect(exitLocation).toBe('Switzerland');
     });
   });

@@ -159,12 +159,58 @@ class HomePage extends BasePage {
     );
   }
 
+  async waitForButtonText() {
+    return browser.waitUntil(
+      async () => {
+        const text = await this.homeConnectionButtonText.getText();
+        return text.trim() !== '';
+      },
+      {
+        timeout: 10000,
+        timeoutMsg: 'Expected button text to be non-empty within 10s',
+      },
+    );
+  }
+
+  async waitForCountryText() {
+    return browser.waitUntil(
+      async () => {
+        const entryText = await this.hopSelectCountryNameEntry.getText();
+        const exitText = await this.hopSelectCountryNameExit.getText();
+        return entryText.trim() !== '' && exitText.trim() !== '';
+      },
+      {
+        timeout: 10000,
+        timeoutMsg: 'Expected country names to be non-empty within 10s',
+      },
+    );
+  }
+
   async getCurrentConnectionStatus() {
     return await this.getElementText(this.connectionStatusText);
   }
 
   async openSettings() {
     await this.clickElement(this.topBarRightButton);
+  }
+
+  async checkElementDetails(element) {
+    const isDisplayed = await element.isDisplayed();
+    const text = await element.getText();
+
+    const color = await element.getCSSProperty('color');
+    const display = await element.getCSSProperty('display');
+    const visibility = await element.getCSSProperty('visibility');
+    const opacity = await element.getCSSProperty('opacity');
+
+    console.log(`Element details:
+      - isDisplayed: ${isDisplayed}
+      - text: "${text}"
+      - color: ${JSON.stringify(color)}
+      - display: ${JSON.stringify(display)}
+      - visibility: ${JSON.stringify(visibility)}
+      - opacity: ${JSON.stringify(opacity)}
+    `);
   }
 
   async selectNetworkMode(mode) {
