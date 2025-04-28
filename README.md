@@ -29,7 +29,7 @@ This monorepo contains all of our source code for our NymVPN client apps (iOS / 
 
 <div align="left">
 
-[<img height="40" width="120" src=".github/assets/apk-download-badge">](https://github.com/nymtech/nym-vpn-client/releases?q=android&expanded=true)
+[<img height="40" width="120" src=".github/assets/apk-download-badge.png">](https://github.com/nymtech/nym-vpn-client/releases?q=android&expanded=true)
 [<img height="40" width="120" src=".github/assets/app-store-badge.svg">](https://apps.apple.com/app/id6471254143)
 [<img height="40" width="120"  src=".github/assets/play-badge.png">](https://play.google.com/store/apps/details?id=net.nymtech.nymvpn)
 [<img height="40" width="120"  src=".github/assets/fdroid-badge.png">](https://f-droid.org/packages/net.nymtech.nymvpn/)
