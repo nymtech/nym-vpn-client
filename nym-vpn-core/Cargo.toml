@@ -89,7 +89,7 @@ unreachable = "deny"
 
 [workspace.dependencies]
 android_logger = "0.14.1"
-anyhow = "1.0.97"
+anyhow = "1.0.98"
 async-trait = "0.1.87"
 async-stream = "0.3.6"
 backon = "1.4"
@@ -157,7 +157,7 @@ thiserror = "2.0"
 time = "0.3.41"
 tokio = "1.44"
 tokio-stream = "0.1.17"
-tokio-util = { version = "0.7.13", features = ["codec"] }
+tokio-util = { version = "0.7.15", features = ["codec"] }
 toml = "0.8"
 tonic = "0.12.3"
 tonic-build = "0.12.3"
