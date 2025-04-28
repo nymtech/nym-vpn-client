@@ -336,6 +336,7 @@ where
         // owner. Ideally we should strive for this to be removed.
         // If this fails, we still need to continue with the remaining steps
         let remove_files_result = crate::storage::remove_files_for_account(&self.config.data_dir)
+            .await
             .inspect_err(|err| {
                 tracing::error!("Failed to remove files for account: {err:?}");
             });

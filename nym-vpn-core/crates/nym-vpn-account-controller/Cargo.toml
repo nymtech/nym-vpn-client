@@ -13,6 +13,7 @@ workspace = true
 
 [dependencies]
 bincode.workspace = true
+futures.workspace = true
 nym-compact-ecash.workspace = true
 nym-credential-proxy-requests.workspace = true
 nym-credential-storage.workspace = true
@@ -29,12 +30,17 @@ nym-vpn-store = { workspace = true }
 nym-wg-gateway-client = { workspace = true }
 serde.workspace = true
 si-scale.workspace = true
-sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite", "time"] }
+sqlx = { workspace = true, features = [
+    "runtime-tokio-rustls",
+    "sqlite",
+    "time",
+] }
 strum = { workspace = true, features = ["derive"] }
 thiserror.workspace = true
 time.workspace = true
 tokio-util.workspace = true
-tokio.workspace = true
+tokio-stream.workspace = true
+tokio = { workspace = true, features = ["fs"] }
 tracing.workspace = true
 uuid.workspace = true
 zeroize.workspace = true

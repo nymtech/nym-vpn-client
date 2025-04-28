@@ -5081,6 +5081,7 @@ name = "nym-vpn-account-controller"
 version = "1.9.0-beta"
 dependencies = [
  "bincode",
+ "futures",
  "nym-compact-ecash",
  "nym-credential-proxy-requests",
  "nym-credential-storage",
@@ -5102,6 +5103,7 @@ dependencies = [
  "thiserror 2.0.12",
  "time",
  "tokio",
+ "tokio-stream",
  "tokio-util",
  "tracing",
  "uuid",

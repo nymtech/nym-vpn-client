@@ -80,7 +80,8 @@ impl PendingCredentialRequestsStorage {
 
         // Then we remove the database file
         tracing::debug!("Removing pending credential requests storage file");
-        std::fs::remove_file(&self.database_path)
+        tokio::fs::remove_file(&self.database_path)
+            .await
             .map_err(PendingCredentialRequestsStorageError::RemoveStorage)?;
         tracing::info!("Removed file: {}", self.database_path.display());
 
