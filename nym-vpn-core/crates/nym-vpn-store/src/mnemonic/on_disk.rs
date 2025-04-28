@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
+use std::{fs::Permissions, os::unix::fs::PermissionsExt};
 use std::{
-    fs::{File, OpenOptions, Permissions},
+    fs::{File, OpenOptions},
     path::PathBuf,
 };
 
