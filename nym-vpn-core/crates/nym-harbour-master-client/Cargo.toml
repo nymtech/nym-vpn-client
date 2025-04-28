@@ -9,6 +9,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+async-trait.workspace = true
 chrono.workspace = true
 nym-http-api-client.workspace = true
 serde = { workspace = true, features = ["derive"] }

@@ -156,6 +156,7 @@ impl OnDiskKeys {
     }
 }
 
+#[async_trait::async_trait]
 impl KeyStore for OnDiskKeys {
     type StorageError = OnDiskKeysError;
 

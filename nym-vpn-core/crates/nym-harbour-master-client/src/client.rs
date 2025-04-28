@@ -16,7 +16,7 @@ const PAGINATION_KEY: &str = "size";
 const PAGINATION_SIZE: &str = "500";
 const PAGINATION: (&str, &str) = (PAGINATION_KEY, PAGINATION_SIZE);
 
-#[allow(async_fn_in_trait)]
+#[async_trait::async_trait]
 pub trait HarbourMasterApiClientExt: ApiClient {
     async fn get_gateways_page(
         &self,
