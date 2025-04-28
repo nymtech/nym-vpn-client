@@ -1,11 +1,14 @@
 #!/bin/bash
 echo "Checking for processes using ports 1420 and 4444..."
 
+# STRANGE VS CODE BUG - LINUX - PUTTING THIS HERE TEMPORARILY
+# unset GTK_PATH
+
 kill_processes_on_port() {
     local port=$1
     local pids
     
-    pids=$(lsof -i :${port} -t 2>/dev/null)
+    pids=$(lsof -i :"${port}" -t 2>/dev/null)
     
     if [ -z "$pids" ]; then
         echo "No processes found on port ${port}"
@@ -16,12 +19,12 @@ kill_processes_on_port() {
         echo "Attempting graceful shutdown with SIGTERM..."
         for pid in $pids; do
             echo "Sending SIGTERM to process $pid"
-            kill $pid 2>/dev/null || true
+            kill "$pid" 2>/dev/null || true
         done
         
         sleep 1
         
-        remaining_pids=$(lsof -i :${port} -t 2>/dev/null)
+        remaining_pids=$(lsof -i :"${port}" -t 2>/dev/null)
         
         if [ -n "$remaining_pids" ]; then
             echo "Some processes didn't terminate gracefully, using SIGKILL..."
@@ -31,7 +34,7 @@ kill_processes_on_port() {
             done
         fi
         
-        final_check=$(lsof -i :${port} -t 2>/dev/null)
+        final_check=$(lsof -i :"${port}" -t 2>/dev/null)
         if [ -n "$final_check" ]; then
             echo "WARNING: Could not kill all processes on port ${port}: $final_check"
             return 1
@@ -56,7 +59,7 @@ if [ -n "$gecko_pids" ]; then
     echo "Found additional geckodriver processes: $gecko_pids"
     for pid in $gecko_pids; do
         echo "Killing geckodriver process $pid"
-        kill -9 $pid 2>/dev/null || true
+        kill -9 "$pid" 2>/dev/null || true
     done
 else
     echo "No additional geckodriver processes found"

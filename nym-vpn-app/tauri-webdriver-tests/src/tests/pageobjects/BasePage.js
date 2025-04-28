@@ -12,16 +12,29 @@ const {
 
 class BasePage {
   async open(path = '') {
-    // Modified to use the absolute URL for browser testing
-    // This will work for both macOS and other platforms without platform detection
-    await browser.url(
-      'http://localhost:1420' + (path.startsWith('/') ? path : '/' + path),
-    );
+    const isMacOS = process.platform === 'darwin';
+
+    if (isMacOS) {
+      // On macOS, we use browser testing via localhost
+      await browser.url(
+        'http://localhost:1420' + (path.startsWith('/') ? path : '/' + path),
+      );
+    } else {
+      // For Linux/Windows, we're testing the native app directly
+      // No need to navigate to a URL since we're already connected to the app window
+      console.log(
+        'Connected to native Tauri application, no URL navigation needed',
+      );
+    }
+
     await this.waitForPageLoad();
   }
 
   async waitForPageLoad() {
-    await waitForTauriRerender();
+    // Add longer wait time for debug mode
+    const isDebug = process.env.DEBUG === 'true' || process.env.DEBUG === true;
+    const waitTime = isDebug ? 1000 : 500;
+    await waitForTauriRerender(waitTime);
   }
 
   async clickElement(element, timeout = 5000) {

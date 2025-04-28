@@ -169,7 +169,6 @@ exports.config = {
           'tauri:options': {
             ...(!isDebug
               ? {
-                  // For release mode, use the release build
                   application: isWindows
                     ? path.join(
                         mainProjectPath,
@@ -186,23 +185,7 @@ exports.config = {
                         'nym-vpn-app',
                       ),
                 }
-              : {
-                  application: isWindows
-                    ? path.join(
-                        mainProjectPath,
-                        'src-tauri',
-                        'target',
-                        'debug',
-                        'nym-vpn-app.exe',
-                      )
-                    : path.join(
-                        mainProjectPath,
-                        'src-tauri',
-                        'target',
-                        'debug',
-                        'nym-vpn-app',
-                      ),
-                }),
+              : {}),
             ...(isCI
               ? {
                   args: ['--ci-mode', '--mock-connections'],
@@ -216,11 +199,11 @@ exports.config = {
   hostname: 'localhost',
   port: 4444,
 
-  // Logging and timeouts
+  // Logging and timeouts - increase timeouts for debug mode
   logLevel: 'info',
   bail: isCI ? 1 : 0,
-  waitforTimeout: isCI ? 5000 : 10000,
-  connectionRetryTimeout: 120000,
+  waitforTimeout: isCI ? 5000 : isDebug ? 20000 : 10000,
+  connectionRetryTimeout: isDebug ? 180000 : 120000,
   connectionRetryCount: 3,
 
   // Framework and reporting
@@ -229,7 +212,7 @@ exports.config = {
 
   mochaOpts: {
     ui: 'bdd',
-    timeout: isCI ? 30000 : 60000,
+    timeout: isCI ? 30000 : isDebug ? 120000 : 60000,
   },
 
   // Hooks
@@ -273,6 +256,8 @@ exports.config = {
     if (isLinux) {
       if (isDebug) {
         console.log('Starting Tauri development server for Linux...');
+        console.log('Waiting for Tauri dev server to start...');
+
         tauriDevProcess = spawn('npm', ['run', 'tauri', 'dev'], {
           stdio: 'inherit',
           env: {
@@ -282,11 +267,60 @@ exports.config = {
           },
           cwd: mainProjectPath,
           detached: true,
+          shell: true,
         });
 
-        console.log('Waiting for Tauri dev server to start...');
+        let isReady = false;
+        const maxWaitTime = 60000;
+        const startTime = Date.now();
+
+        // We'll wait here for the app to be ready
+        console.log(
+          'Waiting for Tauri dev server to initialize (up to 60 seconds)...',
+        );
+        await new Promise((resolve) => {
+          const checkInterval = setInterval(() => {
+            // Check if we've exceeded maximum wait time
+            if (Date.now() - startTime > maxWaitTime) {
+              clearInterval(checkInterval);
+              console.log(
+                'Timed out waiting for Tauri dev server, continuing anyway...',
+              );
+              resolve();
+            }
+
+            if (isReady) {
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, 1000);
+
+          if (tauriDevProcess.stdout) {
+            tauriDevProcess.stdout.on('data', (data) => {
+              const output = data.toString();
+              if (
+                output.includes('Finished `dev`') ||
+                output.includes('Running DevCommand') ||
+                output.includes('Starting webview window')
+              ) {
+                console.log('Detected Tauri dev server is ready');
+                isReady = true;
+              }
+            });
+          }
+
+          setTimeout(() => {
+            if (!isReady) {
+              console.log('Minimum wait time reached, continuing...');
+              isReady = true;
+            }
+          }, 25000);
+        });
+
+        console.log('Dev server detected, waiting for app initialization...');
         await new Promise((resolve) => setTimeout(resolve, 15000));
       } else {
+        // Original release build code
         console.log('Building Tauri application for Linux in RELEASE mode...');
         const buildEnv = {
           ...process.env,
@@ -372,10 +406,53 @@ exports.config = {
           },
           cwd: mainProjectPath,
           detached: true,
+          shell: true,
         });
 
         console.log('Waiting for Tauri dev server to start...');
-        await new Promise((resolve) => setTimeout(resolve, 15000));
+        let isReady = false;
+        const maxWaitTime = 60000;
+        const startTime = Date.now();
+
+        await new Promise((resolve) => {
+          const checkInterval = setInterval(() => {
+            if (Date.now() - startTime > maxWaitTime) {
+              clearInterval(checkInterval);
+              console.log(
+                'Timed out waiting for Tauri dev server, continuing anyway...',
+              );
+              resolve();
+            }
+
+            if (isReady) {
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, 1000);
+
+          if (tauriDevProcess.stdout) {
+            tauriDevProcess.stdout.on('data', (data) => {
+              const output = data.toString();
+              if (
+                output.includes('Finished `dev`') ||
+                output.includes('Running DevCommand') ||
+                output.includes('Starting webview window')
+              ) {
+                console.log('Detected Tauri dev server is ready');
+                isReady = true;
+              }
+            });
+          }
+
+          setTimeout(() => {
+            if (!isReady) {
+              console.log('Minimum wait time reached, continuing...');
+              isReady = true;
+            }
+          }, 25000);
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 10000));
       } else {
         console.log(
           'Building Tauri application for Windows in RELEASE mode...',
@@ -398,6 +475,9 @@ exports.config = {
 
   beforeSession: async function () {
     if (!isMacOS) {
+      // For debug mode, we need a longer wait since the app takes longer to compile and start
+      const waitTime = isDebug ? 5000 : 2000;
+
       if (!isDebug) {
         // In release mode, we need to start tauri-driver to control the app
         console.log('Starting tauri-driver for release build...');
@@ -423,7 +503,10 @@ exports.config = {
         });
       }
 
-      return new Promise((resolve) => setTimeout(resolve, 2000));
+      console.log(
+        `Waiting ${waitTime / 1000} seconds for tauri-driver to initialize...`,
+      );
+      return new Promise((resolve) => setTimeout(resolve, waitTime));
     }
   },
 
@@ -445,6 +528,14 @@ exports.config = {
         console.error('Failed to navigate:', error);
         console.error('Continuing despite navigation error...');
       }
+    } else {
+      const waitTime = isDebug ? 15000 : 5000;
+      console.log(
+        `Waiting ${waitTime / 1000} seconds for app to be fully initialized...`,
+      );
+      await browser.pause(waitTime);
+
+      console.log('App initialization waiting period complete.');
     }
   },
 
@@ -512,21 +603,52 @@ exports.config = {
       }
     }
 
+    // Enhanced cleanup for tauri dev process
     if (tauriDevProcess) {
       try {
+        console.log('Cleaning up Tauri dev process...');
+
+        // Attempt to kill the process
         tauriDevProcess.kill();
-        if (isLinux || isMacOS) {
+
+        // Platform-specific additional cleanup
+        if (isLinux) {
+          try {
+            // Try multiple commands to ensure cleanup
+            execSync('pkill -f "tauri dev"', { stdio: 'ignore' });
+            execSync('pkill -f "cargo tauri"', { stdio: 'ignore' });
+            execSync('pkill -f "npm run dev"', { stdio: 'ignore' });
+            execSync('pkill -f "nym-vpn-app"', { stdio: 'ignore' });
+            execSync('pkill -f "vite"', { stdio: 'ignore' });
+          } catch (e) {
+            console.log(
+              'Some cleanup commands may have failed, but continuing...',
+            );
+          }
+        } else if (isMacOS) {
           try {
             execSync('pkill -f "tauri dev"', { stdio: 'ignore' });
+            execSync('pkill -f "nym-vpn-app"', { stdio: 'ignore' });
           } catch (e) {}
         } else if (isWindows) {
           try {
             execSync('taskkill /f /im "tauri.exe"', { stdio: 'ignore' });
+            execSync('taskkill /f /im "nym-vpn-app.exe"', { stdio: 'ignore' });
+            execSync('taskkill /f /im "cargo.exe"', { stdio: 'ignore' });
           } catch (e) {}
         }
       } catch (error) {
-        console.error('Error killing tauri dev process:', error);
+        console.error('Error during Tauri dev process cleanup:', error);
       }
+    }
+
+    // Final attempt to clean up any remaining processes
+    console.log('Final process cleanup...');
+    if (isLinux || isMacOS) {
+      try {
+        execSync('pkill -f "webdriver"', { stdio: 'ignore' });
+        execSync('pkill -f "tauri"', { stdio: 'ignore' });
+      } catch (e) {}
     }
   },
 };
