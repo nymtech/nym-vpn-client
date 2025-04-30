@@ -70,7 +70,7 @@ function startGeckoDriver() {
     try {
       try {
         execSync('pkill -f geckodriver', { stdio: 'ignore' });
-      } catch { }
+      } catch {}
 
       const geckoDriverPath = getGeckoDriverPath();
       console.log(`Starting geckodriver from: ${geckoDriverPath}`);
@@ -125,7 +125,7 @@ function findMsEdgeDriverPath() {
     path.join(os.homedir(), 'Webdriver', 'msedgedriver.exe'),
     'C:\\Program Files\\Microsoft Edge WebDriver\\msedgedriver.exe',
     'C:\\Program Files (x86)\\Microsoft Edge WebDriver\\msedgedriver.exe',
-    path.join(os.homedir(), 'Downloads', 'msedgedriver.exe')
+    path.join(os.homedir(), 'Downloads', 'msedgedriver.exe'),
   ];
 
   for (const location of possibleLocations) {
@@ -138,7 +138,6 @@ function findMsEdgeDriverPath() {
   console.error('Microsoft Edge WebDriver not found.');
   return null;
 }
-
 
 function verifyFirefoxInstallation() {
   if (isMacOS) {
@@ -164,62 +163,61 @@ exports.config = {
 
   capabilities: isMacOS
     ? [
-      {
-        maxInstances: 1,
-        browserName: 'firefox',
-        'moz:firefoxOptions': {
-          binary: '/Applications/Firefox.app/Contents/MacOS/firefox',
-          args: [
-            '--start-maximized',
-            '--disable-extensions',
-            ...(isHeadless ? ['--headless'] : []),
-          ],
-          prefs: {
-            'security.sandbox.content.level': 0,
-            'browser.cache.disk.enable': false,
-            'browser.cache.memory.enable': false,
+        {
+          maxInstances: 1,
+          browserName: 'firefox',
+          'moz:firefoxOptions': {
+            binary: '/Applications/Firefox.app/Contents/MacOS/firefox',
+            args: [
+              '--start-maximized',
+              '--disable-extensions',
+              ...(isHeadless ? ['--headless'] : []),
+            ],
+            prefs: {
+              'security.sandbox.content.level': 0,
+              'browser.cache.disk.enable': false,
+              'browser.cache.memory.enable': false,
+            },
+          },
+          acceptInsecureCerts: true,
+          'webdriver:firefoxOptions': {
+            binary: '/Applications/Firefox.app/Contents/MacOS/firefox',
           },
         },
-        acceptInsecureCerts: true,
-        'webdriver:firefoxOptions': {
-          binary: '/Applications/Firefox.app/Contents/MacOS/firefox',
-        },
-      },
-    ]
+      ]
     : [
-      {
-        maxInstances: 1,
-        'tauri:options': {
-          application: isWindows
-            ? path.join(
-              mainProjectPath,
-              'src-tauri',
-              'target',
-              isDebug ? 'debug' : 'release',
-              isDebug ? 'nym-vpn-app.exe' : 'NymVPN.exe'
-            )
-            : path.join(
-              mainProjectPath,
-              'src-tauri',
-              'target',
-              isDebug ? 'debug' : 'release',
-              'nym-vpn-app',
-            ),
-          ...(isCI
-            ? {
-              args: ['--ci-mode', '--mock-connections'],
-            }
-            : {}),
-          ...(isWindows && {
-            webviewArgs: [
-              `--user-data-dir=${userDataDir}`,
-              '--edge-skip-compat-layer-relaunch',
-            ],
-          }),
+        {
+          maxInstances: 1,
+          'tauri:options': {
+            application: isWindows
+              ? path.join(
+                  mainProjectPath,
+                  'src-tauri',
+                  'target',
+                  isDebug ? 'debug' : 'release',
+                  isDebug ? 'nym-vpn-app.exe' : 'NymVPN.exe',
+                )
+              : path.join(
+                  mainProjectPath,
+                  'src-tauri',
+                  'target',
+                  isDebug ? 'debug' : 'release',
+                  'nym-vpn-app',
+                ),
+            ...(isCI
+              ? {
+                  args: ['--ci-mode', '--mock-connections'],
+                }
+              : {}),
+            ...(isWindows && {
+              webviewArgs: [
+                `--user-data-dir=${userDataDir}`,
+                '--edge-skip-compat-layer-relaunch',
+              ],
+            }),
+          },
         },
-      },
-    ],
-
+      ],
 
   // Connection settings
   hostname: 'localhost',
@@ -244,12 +242,12 @@ exports.config = {
   // Hooks
   onPrepare: async function () {
     console.log(
-      `Running in ${isCI ? 'CI' : 'local'} environment on ${process.platform} (${isDebug ? 'DEBUG' : 'RELEASE'} mode)`
+      `Running in ${isCI ? 'CI' : 'local'} environment on ${process.platform} (${isDebug ? 'DEBUG' : 'RELEASE'} mode)`,
     );
 
     if (isMacOS && process.getuid && process.getuid() === 0) {
       console.error(
-        'ERROR: Running as root user! This will cause problems with Firefox on macOS.'
+        'ERROR: Running as root user! This will cause problems with Firefox on macOS.',
       );
       console.error('Please run without sudo privileges.');
       process.exit(1);
@@ -266,7 +264,7 @@ exports.config = {
         try {
           execSync('fuser -k 4444/tcp', { stdio: 'ignore' });
           execSync('fuser -k 4445/tcp', { stdio: 'ignore' });
-        } catch (e) { }
+        } catch (e) {}
       } catch (e) {
         // Ignore errors if processes don't exist
       }
@@ -275,7 +273,9 @@ exports.config = {
     // Check if node_modules exists in the main project path
     const nodeModulesPath = path.join(mainProjectPath, 'node_modules');
     if (!fs.existsSync(nodeModulesPath)) {
-      console.log('node_modules not found in the main project. Installing dependencies...');
+      console.log(
+        'node_modules not found in the main project. Installing dependencies...',
+      );
       try {
         console.log(`Running npm install in ${mainProjectPath}...`);
         const installResult = spawnSync('npm', ['install'], {
@@ -303,7 +303,9 @@ exports.config = {
         });
 
         if (buildResult.status !== 0) {
-          throw new Error('Failed to build Tauri application for Linux in DEBUG mode');
+          throw new Error(
+            'Failed to build Tauri application for Linux in DEBUG mode',
+          );
         }
         console.log('Debug binary successfully built');
       } else {
@@ -379,15 +381,17 @@ exports.config = {
         'src-tauri',
         'target',
         'release',
-        'NymVPN.exe'
+        'NymVPN.exe',
       );
 
       if (!fs.existsSync(releaseBinaryPath)) {
-        console.log('Building Tauri application for Windows in RELEASE mode...');
+        console.log(
+          'Building Tauri application for Windows in RELEASE mode...',
+        );
         const buildResult = spawnSync('cargo', ['build', '--release'], {
           stdio: 'inherit',
           cwd: path.join(mainProjectPath, 'src-tauri'),
-          shell: true
+          shell: true,
         });
 
         if (buildResult.status !== 0) {
@@ -413,7 +417,9 @@ exports.config = {
           args = ['--native-driver', edgeDriverPath];
           console.log(`Using Edge native driver: ${edgeDriverPath}`);
         } else {
-          console.warn('Edge WebDriver not found, proceeding without --native-driver');
+          console.warn(
+            'Edge WebDriver not found, proceeding without --native-driver',
+          );
         }
       }
 
@@ -494,7 +500,7 @@ exports.config = {
         geckoDriverProcess.kill();
         try {
           execSync('pkill -f geckodriver', { stdio: 'ignore' });
-        } catch (e) { }
+        } catch (e) {}
 
         try {
           const killScriptPath = path.join(
@@ -546,13 +552,13 @@ exports.config = {
           try {
             execSync('pkill -f "tauri dev"', { stdio: 'ignore' });
             execSync('pkill -f "nym-vpn-app"', { stdio: 'ignore' });
-          } catch (e) { }
+          } catch (e) {}
         } else if (isWindows) {
           try {
             execSync('taskkill /f /im "tauri.exe"', { stdio: 'ignore' });
             execSync('taskkill /f /im "nym-vpn-app.exe"', { stdio: 'ignore' });
             execSync('taskkill /f /im "cargo.exe"', { stdio: 'ignore' });
-          } catch (e) { }
+          } catch (e) {}
         }
       } catch (error) {
         console.error('Error during Tauri dev process cleanup:', error);
@@ -565,7 +571,7 @@ exports.config = {
       try {
         execSync('pkill -f "webdriver"', { stdio: 'ignore' });
         execSync('pkill -f "tauri"', { stdio: 'ignore' });
-      } catch (e) { }
+      } catch (e) {}
     }
   },
 };

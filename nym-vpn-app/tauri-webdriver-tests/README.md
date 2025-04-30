@@ -5,7 +5,7 @@ This repository contains the end-to-end UI tests for the NymVPN application usin
 ## Prerequisites
 
 - Node.js (v21+)
-- Rust and Cargo 
+- Rust and Cargo
 - Protocol Buffer Compiler (`protoc`) - **Required for building the Nym VPN client**
 - Tauri Driver - **Required for WebDriver tests**
 - Microsoft Edge WebDriver (for Windows testing)
@@ -15,16 +15,19 @@ This repository contains the end-to-end UI tests for the NymVPN application usin
 ### Installing Protocol Buffer Compiler (protoc)
 
 #### Windows
+
 ```
 choco install protoc
 ```
 
 #### macOS
+
 ```
 brew install protobuf
 ```
 
 #### Linux
+
 ```
 sudo apt-get install protobuf-compiler
 ```
@@ -134,21 +137,25 @@ This project includes GitHub Actions workflows for automated testing on multiple
 ### Common Issues
 
 1. **Protocol Buffer Compiler (protoc) issues**:
+
    - Make sure `protoc` is installed and in your PATH
    - On Windows, you can set the `PROTOC` environment variable to point to the executable
    - Verify installation with `protoc --version`
 
 2. **Tauri-driver issues**:
+
    - Ensure it's installed via `cargo install tauri-driver`
    - Check if it's in your PATH (usually in `~/.cargo/bin/`)
    - The tests will automatically look for tauri-driver in common locations
 
 3. **Microsoft Edge WebDriver issues (Windows)**:
+
    - Make sure `msedgedriver.exe` is in your PATH
    - Download the correct version from Microsoft that matches your Edge browser version
    - Place it in a directory like `C:\Users\YourUsername\Webdriver\`
 
 4. **GeckoDriver issues on macOS**:
+
    - Don't run tests with sudo
    - Ensure Firefox is installed at `/Applications/Firefox.app`
    - Check if GeckoDriver is in PATH or at homebrew locations
