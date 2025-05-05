@@ -110,13 +110,16 @@ impl OnDiskKeys {
         })
     }
 
-    fn remove_keypair_files(&self, paths: &KeyPairPath) -> Result<(), std::io::Error> {
-        std::fs::remove_file(&paths.private_key_path)?;
-        std::fs::remove_file(&paths.public_key_path)
+    async fn remove_keypair_files(&self, paths: &KeyPairPath) -> std::io::Result<()> {
+        for f in [&paths.private_key_path, &paths.public_key_path] {
+            tokio::fs::remove_file(f).await?;
+        }
+        Ok(())
     }
 
-    fn remove_keypair(&self, paths: KeyPairPath) -> Result<(), OnDiskKeysError> {
+    async fn remove_keypair(&self, paths: KeyPairPath) -> Result<(), OnDiskKeysError> {
         self.remove_keypair_files(&paths)
+            .await
             .map_err(|error| OnDiskKeysError::UnableToRemoveKeys { paths, error })
     }
 
@@ -150,9 +153,9 @@ impl OnDiskKeys {
         self.store_keys(&device_keys)
     }
 
-    fn remove_keys(&self) -> Result<(), OnDiskKeysError> {
+    async fn remove_keys(&self) -> Result<(), OnDiskKeysError> {
         let device_paths = self.paths.device_key_pair_path();
-        self.remove_keypair(device_paths)
+        self.remove_keypair(device_paths).await
     }
 }
 
@@ -182,6 +185,6 @@ impl KeyStore for OnDiskKeys {
                 tracing::warn!("Failed to reset keys before removal.");
             })
             .ok();
-        self.remove_keys()
+        self.remove_keys().await
     }
 }

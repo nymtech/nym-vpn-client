@@ -83,7 +83,7 @@ impl VpnCredentialStorage {
         tracing::debug!("Removing credential storage file");
         for path in storage_paths.credential_database_paths() {
             tracing::debug!("Attempting to remove file: {}", path.display());
-            match std::fs::remove_file(&path) {
+            match tokio::fs::remove_file(&path).await {
                 Ok(_) => tracing::info!("Removed file: {}", path.display()),
                 Err(err) if err.kind() == std::io::ErrorKind::NotFound => {
                     tracing::debug!("File not found, skipping: {}", path.display())

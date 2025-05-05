@@ -318,7 +318,7 @@ pub(crate) mod raw {
         let storage_paths = StoragePaths::new_from_dir(&path).map_err(VpnError::internal)?;
         for path in storage_paths.credential_database_paths() {
             tracing::info!("Removing file: {}", path.display());
-            match std::fs::remove_file(&path) {
+            match tokio::fs::remove_file(&path).await {
                 Ok(_) => tracing::trace!("Removed file: {}", path.display()),
                 Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
                     tracing::trace!("File not found, skipping: {}", path.display())
@@ -402,11 +402,11 @@ pub(crate) mod raw {
         remove_credential_storage_raw(&path_buf).await?;
 
         // Then remove the rest of the files, that we own indirectly
-        nym_vpn_account_controller::remove_files_for_account(&path_buf).map_err(|err| {
-            VpnError::Storage {
+        nym_vpn_account_controller::remove_files_for_account(&path_buf)
+            .await
+            .map_err(|err| VpnError::Storage {
                 details: err.to_string(),
-            }
-        })?;
+            })?;
 
         Ok(())
     }

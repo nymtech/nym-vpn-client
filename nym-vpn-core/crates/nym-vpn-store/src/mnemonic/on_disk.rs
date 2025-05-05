@@ -2,9 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
+use std::{fs::Permissions, os::unix::fs::PermissionsExt};
 use std::{
-    fs::{self, File},
+    fs::{File, OpenOptions},
     path::PathBuf,
 };
 
@@ -82,7 +82,7 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
         tracing::trace!("Creating parent directories for: {}", self.path.display());
         if let Some(parent) = self.path.parent() {
             tracing::trace!("Creating parent directory: {}", parent.display());
-            fs::create_dir_all(parent).map_err(|err| {
+            tokio::fs::create_dir_all(parent).await.map_err(|err| {
                 OnDiskMnemonicStorageError::FileCreateError {
                     path: parent.to_path_buf(),
                     source: err,
@@ -93,13 +93,13 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
             {
                 // Set directory permissions to 700 (rwx------)
                 tracing::trace!("Set directory permissions to 700 (rwx------)");
-                let permissions = fs::Permissions::from_mode(0o700);
-                fs::set_permissions(parent, permissions).map_err(|source| {
-                    OnDiskMnemonicStorageError::FileCreateError {
+                let permissions = Permissions::from_mode(0o700);
+                tokio::fs::set_permissions(parent, permissions)
+                    .await
+                    .map_err(|source| OnDiskMnemonicStorageError::FileCreateError {
                         path: parent.to_path_buf(),
                         source,
-                    }
-                })?;
+                    })?;
             }
 
             // TODO: same for windows
@@ -107,7 +107,7 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
 
         // Another layer of defense, only create the file if it doesn't already exist
         tracing::debug!("Only creating the file if it doesn't already exist");
-        let file = std::fs::OpenOptions::new()
+        let file = OpenOptions::new()
             .create_new(true)
             .write(true)
             .open(&self.path)
@@ -122,13 +122,13 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
         #[cfg(unix)]
         {
             // Set directory permissions to 600 (rw------)
-            let permissions = fs::Permissions::from_mode(0o600);
-            fs::set_permissions(self.path.clone(), permissions).map_err(|source| {
-                OnDiskMnemonicStorageError::FileCreateError {
+            let permissions = Permissions::from_mode(0o600);
+            tokio::fs::set_permissions(self.path.clone(), permissions)
+                .await
+                .map_err(|source| OnDiskMnemonicStorageError::FileCreateError {
                     path: self.path.clone(),
                     source,
-                }
-            })?;
+                })?;
         }
 
         // TODO: same for windows
@@ -142,8 +142,9 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
         // Make sure that the file has permissions set to 600 (rw------)
         #[cfg(unix)]
         {
-            let permissions = fs::Permissions::from_mode(0o600);
-            fs::set_permissions(&self.path, permissions)
+            let permissions = Permissions::from_mode(0o600);
+            tokio::fs::set_permissions(&self.path, permissions)
+                .await
                 .map_err(OnDiskMnemonicStorageError::FileOpenError)?;
         }
 
@@ -157,7 +158,9 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
         if !self.path.exists() {
             return Ok(());
         }
-        std::fs::remove_file(&self.path).map_err(OnDiskMnemonicStorageError::RemoveError)
+        tokio::fs::remove_file(&self.path)
+            .await
+            .map_err(OnDiskMnemonicStorageError::RemoveError)
     }
 }
 
