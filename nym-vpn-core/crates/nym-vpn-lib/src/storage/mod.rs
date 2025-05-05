@@ -38,6 +38,7 @@ impl VpnClientOnDiskStorage {
 
 impl nym_vpn_store::VpnStorage for VpnClientOnDiskStorage {}
 
+#[async_trait::async_trait]
 impl KeyStore for VpnClientOnDiskStorage {
     type StorageError = OnDiskKeysError;
 
@@ -62,6 +63,7 @@ impl KeyStore for VpnClientOnDiskStorage {
     }
 }
 
+#[async_trait::async_trait]
 impl MnemonicStorage for VpnClientOnDiskStorage {
     type StorageError = OnDiskMnemonicStorageError;
 

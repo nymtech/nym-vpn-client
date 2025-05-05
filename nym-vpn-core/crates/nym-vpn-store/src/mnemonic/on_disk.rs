@@ -53,6 +53,7 @@ impl OnDiskMnemonicStorage {
     }
 }
 
+#[async_trait::async_trait]
 impl MnemonicStorage for OnDiskMnemonicStorage {
     type StorageError = OnDiskMnemonicStorageError;
 

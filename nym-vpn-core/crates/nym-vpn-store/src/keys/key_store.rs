@@ -5,21 +5,13 @@ use std::error::Error;
 
 use super::DeviceKeys;
 
+#[async_trait::async_trait]
 pub trait KeyStore {
     type StorageError: Error + Send + Sync + 'static;
 
-    #[allow(async_fn_in_trait)]
     async fn load_keys(&self) -> Result<DeviceKeys, Self::StorageError>;
-
-    #[allow(async_fn_in_trait)]
     async fn store_keys(&self, keys: &DeviceKeys) -> Result<(), Self::StorageError>;
-
-    #[allow(async_fn_in_trait)]
     async fn init_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError>;
-
-    #[allow(async_fn_in_trait)]
     async fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError>;
-
-    #[allow(async_fn_in_trait)]
     async fn remove_keys(&self) -> Result<(), Self::StorageError>;
 }
