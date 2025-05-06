@@ -3,19 +3,19 @@
 
 #[derive(Debug, thiserror::Error)]
 pub enum ConversionError {
-    #[error("Generic error: {0}")]
+    #[error("generic error: {0}")]
     Generic(String),
 
-    #[error("No value set for {0}")]
+    #[error("no value set for {0}")]
     NoValueSet(&'static str),
 
-    #[error("Failed to decode {0}")]
+    #[error("failed to decode {0}")]
     Decode(&'static str, #[source] prost::UnknownEnumValue),
 
-    #[error("Failed to convert time {0}")]
+    #[error("failed to convert time {0}")]
     ConvertTime(&'static str, #[source] time::Error),
 
-    #[error("Failed to parse address {0}")]
+    #[error("failed to parse address {0}")]
     ParseAddr(&'static str, #[source] std::net::AddrParseError),
 }
 

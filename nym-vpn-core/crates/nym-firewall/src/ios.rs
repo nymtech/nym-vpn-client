@@ -5,7 +5,7 @@ use super::{FirewallArguments, FirewallPolicy};
 
 /// Stub error type for Firewall errors on Android.
 #[derive(Debug, thiserror::Error)]
-#[error("Unknown iOS Firewall error")]
+#[error("unknown iOS Firewall error")]
 pub struct Error;
 
 /// The Android stub implementation for the firewall.

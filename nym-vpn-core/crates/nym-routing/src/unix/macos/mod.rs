@@ -41,23 +41,23 @@ const BURST_LONGEST_BUFFER_PERIOD: Duration = Duration::from_secs(2);
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Encountered an error when interacting with the routing socket
-    #[error("Error occurred when interfacing with the routing table")]
+    #[error("error occurred when interfacing with the routing table")]
     RoutingTable(#[source] watch::Error),
 
     /// Failed to remove route
-    #[error("Error occurred when deleting a route")]
+    #[error("error occurred when deleting a route")]
     DeleteRoute(#[source] watch::Error),
 
     /// Failed to add route
-    #[error("Error occurred when adding a route")]
+    #[error("error occurred when adding a route")]
     AddRoute(#[source] watch::Error),
 
     /// Failed to fetch link addresses
-    #[error("Failed to fetch link addresses")]
+    #[error("failed to fetch link addresses")]
     FetchLinkAddresses(#[source] std::io::Error),
 
     /// Received message isn't valid
-    #[error("Invalid data")]
+    #[error("invalid data")]
     InvalidData(#[source] data::Error),
 }
 

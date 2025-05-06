@@ -7,23 +7,23 @@ pub enum Error {
     NymSdkError(#[from] nym_sdk::Error),
 
     #[error(
-        "Timeout waiting for mixnet self ping, the entry gateway is not routing our mixnet traffic"
+        "timeout waiting for mixnet self ping, the entry gateway is not routing our mixnet traffic"
     )]
     TimeoutWaitingForMixnetSelfPing,
 
-    #[error("Failed to serialize message")]
+    #[error("failed to serialize message")]
     FailedToSerializeMessage {
         #[from]
         source: bincode::Error,
     },
 
-    #[error("Failed to create icmp echo request packet")]
+    #[error("failed to create icmp echo request packet")]
     IcmpEchoRequestPacketCreationFailure,
 
-    #[error("Failed to create icmp packet")]
+    #[error("failed to create icmp packet")]
     IcmpPacketCreationFailure,
 
-    #[error("Failed to create ipv4 packet")]
+    #[error("failed to create ipv4 packet")]
     Ipv4PacketCreationFailure,
 }
 

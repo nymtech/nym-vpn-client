@@ -30,14 +30,14 @@ const MINIMUM_RAMAINING_BANDWIDTH: u64 = 500 * 1024 * 1024; // 500 MB, the same 
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Failed to lookup gateway ip for {gateway_id}")]
+    #[error("failed to lookup gateway ip for {gateway_id}")]
     LookupGatewayIp {
         gateway_id: String,
         #[source]
         source: nym_gateway_directory::Error,
     },
 
-    #[error("Failed to register wireguard with the gateway for {gateway_id}")]
+    #[error("failed to register wireguard with the gateway for {gateway_id}")]
     RegisterWireguard {
         gateway_id: String,
         authenticator_address: Box<nym_gateway_directory::Recipient>,
@@ -45,7 +45,7 @@ pub enum Error {
         source: nym_wg_gateway_client::Error,
     },
 
-    #[error("Failed to top-up wireguard bandwidth with the gateway: {gateway_id}")]
+    #[error("failed to top-up wireguard bandwidth with the gateway: {gateway_id}")]
     TopUpWireguard {
         gateway_id: String,
         ticketbook_type: TicketType,
@@ -54,10 +54,10 @@ pub enum Error {
         source: nym_wg_gateway_client::Error,
     },
 
-    #[error("Nyxd client error")]
+    #[error("nyxd client error")]
     Nyxd(#[from] CredentialNyxdClientError),
 
-    #[error("Internal error: {reason}")]
+    #[error("internal error: {reason}")]
     Internal { reason: String },
 }
 

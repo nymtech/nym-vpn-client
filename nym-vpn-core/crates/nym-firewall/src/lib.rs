@@ -461,10 +461,10 @@ pub struct BlockingApplication {
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum FirewallPolicyError {
     /// General firewall failure
-    #[error("Failed to set firewall policy")]
+    #[error("failed to set firewall policy")]
     Generic,
     /// An application prevented the firewall policy from being set
     #[cfg(windows)]
-    #[error("An application prevented the firewall policy from being set")]
+    #[error("an application prevented the firewall policy from being set")]
     Locked(Option<BlockingApplication>),
 }

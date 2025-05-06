@@ -18,9 +18,9 @@ use super::Connectivity;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Unable to create listener thread")]
+    #[error("unable to create listener thread")]
     ThreadCreationError(#[from] io::Error),
-    #[error("Failed to start connectivity monitor")]
+    #[error("failed to start connectivity monitor")]
     ConnectivityMonitorError(#[from] nym_routing::Error),
 }
 

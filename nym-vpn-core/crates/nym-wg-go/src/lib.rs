@@ -16,37 +16,37 @@ use zeroize::{Zeroize, ZeroizeOnDrop};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("Failed to convert IP addr into C string")]
+    #[error("failed to convert IP addr into C string")]
     IpAddrToCstr,
 
-    #[error("Failed to convert socket addr into C string")]
+    #[error("failed to convert socket addr into C string")]
     SocketAddrToCstr,
 
-    #[error("Config contains nul byte")]
+    #[error("config contains nul byte")]
     ConfigContainsNulByte,
 
     #[cfg(target_os = "windows")]
-    #[error("Interface name contains nul byte")]
+    #[error("interface name contains nul byte")]
     InterfaceNameContainsNulByte,
 
     #[cfg(target_os = "windows")]
-    #[error("Requested guid contains nul byte")]
+    #[error("requested guid contains nul byte")]
     RequestedGuidContainsNulByte,
 
     #[cfg(target_os = "windows")]
-    #[error("Wintun tunnel type contains nul byte")]
+    #[error("wintun tunnel type contains nul byte")]
     WintunTunnelTypeContainsNulByte,
 
-    #[error("Failed to start the tunnel (code: {})", _0)]
+    #[error("failed to start the tunnel (code: {})", _0)]
     StartTunnel(i32),
 
-    #[error("Failed to open connection through the tunnel (code: {})", _0)]
+    #[error("failed to open connection through the tunnel (code: {})", _0)]
     OpenConnection(i32),
 
-    #[error("Failed to set UAPI config (code: {})", _0)]
+    #[error("failed to set UAPI config (code: {})", _0)]
     SetUapiConfig(i64),
 
-    #[error("Failed to obtain tunnel socket fd")]
+    #[error("failed to obtain tunnel socket fd")]
     ObtainSocketFd,
 }
 

@@ -6,28 +6,28 @@ use nym_gateway_directory::{NodeIdentity, Recipient};
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("Received invalid response from gateway authenticator")]
+    #[error("received invalid response from gateway authenticator")]
     InvalidGatewayAuthResponse,
 
-    #[error("Unknown authenticator version number")]
+    #[error("unknown authenticator version number")]
     UnsupportedAuthenticatorVersion,
 
     #[error(transparent)]
     AuthenticatorClientError(#[from] nym_authenticator_client::Error),
 
-    #[error("Error that should stop auto retrying")]
+    #[error("error that should stop auto retrying")]
     NoRetry {
         #[source]
         source: nym_authenticator_client::Error,
     },
 
-    #[error("Verification failure")]
+    #[error("verification failure")]
     VerificationFailed(#[source] nym_authenticator_requests::Error),
 
-    #[error("Failed to parse entry gateway socket addr")]
+    #[error("failed to parse entry gateway socket addr")]
     FailedToParseEntryGatewaySocketAddr(#[source] std::net::AddrParseError),
 
-    #[error("Failed to get {ticketbook_type} ticket")]
+    #[error("failed to get {ticketbook_type} ticket")]
     GetTicket {
         ticketbook_type: TicketType,
         #[source]
@@ -37,7 +37,7 @@ pub enum Error {
 
 #[derive(Debug, thiserror::Error)]
 pub enum ErrorMessage {
-    #[error("Out of bandwidth for gateway: {gateway_id}")]
+    #[error("out of bandwidth for gateway: {gateway_id}")]
     OutOfBandwidth {
         gateway_id: Box<NodeIdentity>,
         authenticator_address: Box<Recipient>,

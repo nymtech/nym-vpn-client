@@ -5,27 +5,27 @@ use std::path::PathBuf;
 
 #[derive(Debug, thiserror::Error)]
 pub enum KeyStoreError {
-    #[error("Failed to load device keys")]
+    #[error("failed to load device keys")]
     Load {
         path: PathBuf,
         #[source]
         error: Box<dyn std::error::Error>,
     },
 
-    #[error("Failed to create device keys")]
+    #[error("failed to create device keys")]
     Create {
         path: PathBuf,
         #[source]
         error: Box<dyn std::error::Error>,
     },
 
-    #[error("Failed to store device keys")]
+    #[error("failed to store device keys")]
     Store {
         path: PathBuf,
         #[source]
         error: Box<dyn std::error::Error>,
     },
 
-    #[error("Invalid key pair, one is missing: {path}")]
+    #[error("invalid key pair, one is missing: {path}")]
     InvalidKeyPair { path: PathBuf },
 }

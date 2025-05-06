@@ -26,15 +26,15 @@ use tokio::io::{unix::AsyncFd, AsyncWrite, AsyncWriteExt};
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Failed to open routing socket")]
+    #[error("failed to open routing socket")]
     OpenSocket(#[source] io::Error),
-    #[error("Failed to write to routing socket")]
+    #[error("failed to write to routing socket")]
     Write(#[source] io::Error),
-    #[error("Failed to read from routing socket")]
+    #[error("failed to read from routing socket")]
     Read(#[source] io::Error),
-    #[error("Received a message that's too small")]
+    #[error("received a message that's too small")]
     MessageTooSmall(usize),
-    #[error("Failed to receive response to route message")]
+    #[error("failed to receive response to route message")]
     ResponseTimeout,
 }
 

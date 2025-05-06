@@ -90,47 +90,47 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// Errors that can happen in the Linux routing integration
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Failed to open a netlink connection")]
+    #[error("failed to open a netlink connection")]
     Connect(#[source] io::Error),
 
-    #[error("Failed to bind netlink socket")]
+    #[error("failed to bind netlink socket")]
     Bind(#[source] io::Error),
 
-    #[error("Netlink error")]
+    #[error("netlink error")]
     Netlink(#[source] rtnetlink::Error),
 
-    #[error("Route without a valid node")]
+    #[error("route without a valid node")]
     InvalidRoute,
 
-    #[error("Failed to convert route address to IP. Received: {0}")]
+    #[error("failed to convert route address to IP. Received: {0}")]
     ConvertRouteAddrToIp(String),
 
-    #[error("Failed to convert route via to IP. Received: {0}")]
+    #[error("failed to convert route via to IP. Received: {0}")]
     ConvertRouteViaToIp(String),
 
-    #[error("Invalid network prefix")]
+    #[error("invalid network prefix")]
     InvalidNetworkPrefix(#[source] ipnetwork::IpNetworkError),
 
-    #[error("Unknown device index: {0}")]
+    #[error("unknown device index: {0}")]
     UnknownDeviceIndex(u32),
 
-    #[error("Failed to get a route for the given IP address")]
+    #[error("failed to get a route for the given IP address")]
     GetRoute(#[source] rtnetlink::Error),
 
-    #[error("No netlink response for route query")]
+    #[error("no netlink response for route query")]
     NoRoute,
 
-    #[error("Route node was malformed")]
+    #[error("route node was malformed")]
     InvalidRouteNode,
 
-    #[error("No link found")]
+    #[error("no link found")]
     LinkNotFound,
 
     /// Unable to create routing table for tagged connections and packets.
-    #[error("Cannot find a free routing table ID")]
+    #[error("cannot find a free routing table ID")]
     NoFreeRoutingTableId,
 
-    #[error("Shutting down route manager")]
+    #[error("shutting down route manager")]
     Shutdown,
 }
 

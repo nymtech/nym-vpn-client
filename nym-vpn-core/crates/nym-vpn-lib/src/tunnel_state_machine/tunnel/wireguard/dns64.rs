@@ -15,16 +15,16 @@ use crate::wg_config::WgPeer;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Failed to resolve {} (error code: {})", addr, code)]
+    #[error("failed to resolve {} (error code: {})", addr, code)]
     DnsLookup { code: i32, addr: SocketAddr },
 
     #[error("DNS lookup has seemingly succeeded without any results")]
     EmptyDnsLookupResult,
 
-    #[error("Failed to convert port number to string")]
+    #[error("failed to convert port number to string")]
     PortToString,
 
-    #[error("Failed to convert IP address to string")]
+    #[error("failed to convert IP address to string")]
     IpAddressToString,
 }
 

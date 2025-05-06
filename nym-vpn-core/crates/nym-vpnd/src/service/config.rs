@@ -104,7 +104,7 @@ pub fn config_dir() -> PathBuf {
 
 #[derive(thiserror::Error, Debug)]
 pub enum ConfigSetupError {
-    #[error("Failed to parse config file {file}")]
+    #[error("failed to parse config file {file}")]
     Parse {
         file: PathBuf,
         #[source]
@@ -118,17 +118,17 @@ pub enum ConfigSetupError {
         error: std::io::Error,
     },
 
-    #[error("Failed to get parent directory of {file}")]
+    #[error("failed to get parent directory of {file}")]
     GetParentDirectory { file: PathBuf },
 
-    #[error("Failed to create directory {dir}")]
+    #[error("failed to create directory {dir}")]
     CreateDirectory {
         dir: PathBuf,
         #[source]
         error: std::io::Error,
     },
 
-    #[error("Failed to write file {file}")]
+    #[error("failed to write file {file}")]
     WriteFile {
         file: PathBuf,
         error: std::io::Error,

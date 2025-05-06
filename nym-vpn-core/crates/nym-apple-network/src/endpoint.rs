@@ -363,28 +363,28 @@ pub enum FieldName {
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Failed to create endpoint due to invalid data")]
+    #[error("failed to create endpoint due to invalid data")]
     CreateEndpoint,
 
-    #[error("Failed to create unix address")]
+    #[error("failed to create unix address")]
     CreateUnixAddr(#[source] nix::errno::Errno),
 
-    #[error("Failed to decode UTF-8 string")]
+    #[error("failed to decode UTF-8 string")]
     DecodeUtf8(std::str::Utf8Error),
 
-    #[error("Failed to parse IP address")]
+    #[error("failed to parse IP address")]
     ParseIpAddress(std::net::AddrParseError),
 
     #[error("{:?} contains nul byte", _0)]
     FieldContainsNulByte(FieldName),
 
-    #[error("Invalid socket address was returned")]
+    #[error("invalid socket address was returned")]
     InvalidSocketAddr,
 
-    #[error("Failure to convert socket address to rust representation")]
+    #[error("failure to convert socket address to rust representation")]
     ConvertSocketAddr,
 
-    #[error("Unsupported address family: {0}")]
+    #[error("unsupported address family: {0}")]
     UnsupportedAddressFamily(i32),
 }
 

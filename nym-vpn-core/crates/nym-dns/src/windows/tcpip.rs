@@ -17,19 +17,19 @@ use winreg::{
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failure to obtain an interface LUID given an alias.
-    #[error("Failed to obtain LUID for the interface alias")]
+    #[error("failed to obtain LUID for the interface alias")]
     ObtainInterfaceLuid(#[source] io::Error),
 
     /// Failure to obtain an interface GUID.
-    #[error("Failed to obtain GUID for the interface")]
+    #[error("failed to obtain GUID for the interface")]
     ObtainInterfaceGuid(#[source] io::Error),
 
     /// Failure to flush DNS cache.
-    #[error("Failed to flush DNS resolver cache")]
+    #[error("failed to flush DNS resolver cache")]
     FlushResolverCache(#[source] super::dnsapi::Error),
 
     /// Failed to update DNS servers for interface.
-    #[error("Failed to update interface DNS servers")]
+    #[error("failed to update interface DNS servers")]
     SetResolvers(#[source] io::Error),
 }
 

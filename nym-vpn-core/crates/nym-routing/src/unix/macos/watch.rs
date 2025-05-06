@@ -14,25 +14,25 @@ type Result<T> = std::result::Result<T, Error>;
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// Generic routing socket error
-    #[error("Routing socket error")]
+    #[error("routing socket error")]
     RoutingSocket(#[source] routing_socket::Error),
     /// Failed to parse route message
-    #[error("Invalid message")]
+    #[error("invalid message")]
     InvalidMessage(#[source] data::Error),
     /// Failed to send route message
-    #[error("Failed to send routing message")]
+    #[error("failed to send routing message")]
     Send(#[source] routing_socket::Error),
     /// Received unexpected response to route message
-    #[error("Unexpected message type")]
+    #[error("unexpected message type")]
     UnexpectedMessageType(RouteSocketMessage, MessageType),
     /// Route not found
-    #[error("Route not found")]
+    #[error("route not found")]
     RouteNotFound,
     /// No route to destination
-    #[error("Destination unreachable")]
+    #[error("destination unreachable")]
     Unreachable,
     /// Failed to delete route
-    #[error("Failed to delete a route")]
+    #[error("failed to delete a route")]
     Deletion(RouteMessage),
 }
 

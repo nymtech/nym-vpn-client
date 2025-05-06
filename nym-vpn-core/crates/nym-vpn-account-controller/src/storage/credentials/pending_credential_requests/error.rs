@@ -5,21 +5,21 @@ use std::path::PathBuf;
 
 #[derive(Debug, thiserror::Error)]
 pub enum PendingCredentialRequestsStorageError {
-    #[error("Sqlx error")]
+    #[error("sqlx error")]
     Sqlx(#[from] sqlx::Error),
 
-    #[error("Migrate error")]
+    #[error("migrate error")]
     Migrate(#[from] sqlx::migrate::MigrateError),
 
-    #[error("Bincode error")]
+    #[error("bincode error")]
     Bincode(#[from] bincode::Error),
 
-    #[error("File permissions error for {path}")]
+    #[error("file permissions error for {path}")]
     FilePermissions {
         path: PathBuf,
         source: std::io::Error,
     },
 
-    #[error("Failed to remove pending credential request storage")]
+    #[error("failed to remove pending credential request storage")]
     RemoveStorage(#[source] std::io::Error),
 }

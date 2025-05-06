@@ -28,19 +28,19 @@ const WMI_NAMESPACE: &str = "root\\standardcimv2";
 /// Errors occurring while configuring Hyper-V firewall rules
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Failed to initialize the COM library")]
+    #[error("failed to initialize the COM library")]
     InitializeCom(#[source] wmi::WMIError),
-    #[error("Failed to connect to the WMI namespace '{WMI_NAMESPACE}'")]
+    #[error("failed to connect to the WMI namespace '{WMI_NAMESPACE}'")]
     ConnectWmi(#[source] wmi::WMIError),
-    #[error("Failed to obtain Hyper-V rule class")]
+    #[error("failed to obtain Hyper-V rule class")]
     ObtainHyperVClass(#[source] wmi::WMIError),
-    #[error("Failed to create new instance of Hyper-V rule class")]
+    #[error("failed to create new instance of Hyper-V rule class")]
     NewRuleInstance(#[source] windows::core::Error),
-    #[error("Failed to set rule setting: {0}")]
+    #[error("failed to set rule setting: {0}")]
     SetRuleKey(&'static str, #[source] windows::core::Error),
-    #[error(r#"Failed to put the rule "{0}""#)]
+    #[error(r#"failed to put the rule "{0}""#)]
     PutInstance(&'static str, #[source] windows::core::Error),
-    #[error(r#"Failed to delete rule "{0}""#)]
+    #[error(r#"failed to delete rule "{0}""#)]
     DeleteInstance(&'static str, #[source] windows::core::Error),
 }
 

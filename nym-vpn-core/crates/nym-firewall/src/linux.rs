@@ -39,28 +39,28 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Unable to open netlink socket to netfilter.
-    #[error("Unable to open netlink socket to netfilter")]
+    #[error("unable to open netlink socket to netfilter")]
     NetlinkOpenError(#[source] io::Error),
 
     /// Unable to send netlink command to netfilter.
-    #[error("Unable to send netlink command to netfilter")]
+    #[error("unable to send netlink command to netfilter")]
     NetlinkSendError(#[source] io::Error),
 
     /// Error while reading from netlink socket.
-    #[error("Error while reading from netlink socket")]
+    #[error("error while reading from netlink socket")]
     NetlinkRecvError(#[source] io::Error),
 
     /// Error while processing an incoming netlink message.
-    #[error("Error while processing an incoming netlink message")]
+    #[error("error while processing an incoming netlink message")]
     ProcessNetlinkError(#[source] io::Error),
 
     /// Failed to verify that our tables are set. Probably means that
     /// it's the host that does not support nftables properly.
-    #[error("Failed to set firewall rules")]
+    #[error("failed to set firewall rules")]
     NetfilterTableNotSetError,
 
     /// Unable to translate network interface name into index.
-    #[error("Unable to translate network interface name \"{0}\" into index")]
+    #[error("unable to translate network interface name \"{0}\" into index")]
     LookupIfaceIndexError(String, #[source] IfaceIndexLookupError),
 }
 

@@ -15,7 +15,7 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("The route manager returned an error")]
+    #[error("the route manager returned an error")]
     RouteManagerError(#[source] nym_routing::Error),
 }
 

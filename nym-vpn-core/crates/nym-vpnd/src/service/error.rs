@@ -8,50 +8,50 @@ use super::config::ConfigSetupError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum AccountControllerError {
-    #[error("Failed to init account controller: {reason}")]
+    #[error("failed to init account controller: {reason}")]
     Initialization { reason: String },
 }
 
 #[derive(Debug, thiserror::Error)]
 pub enum SetNetworkError {
-    #[error("Failed to read config")]
+    #[error("failed to read config")]
     ReadConfig {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
-    #[error("Failed to write config")]
+    #[error("failed to write config")]
     WriteConfig {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
-    #[error("Failed to set network: {0}")]
+    #[error("failed to set network: {0}")]
     NetworkNotFound(String),
 }
 
 #[derive(Debug, thiserror::Error)]
 pub enum AccountLinksError {
-    #[error("Account management not configured")]
+    #[error("account management not configured")]
     AccountManagementNotConfigured,
 
-    #[error("Failed to parse account management paths")]
+    #[error("failed to parse account management paths")]
     FailedToParseAccountLinks,
 }
 
 #[derive(Clone, Debug, thiserror::Error)]
 pub enum VpnServiceDeleteLogFileError {
-    #[error("Internal error: {0}")]
+    #[error("internal error: {0}")]
     Internal(String),
 }
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Account controller error")]
+    #[error("account controller error")]
     AccountController(#[from] AccountControllerError),
 
-    #[error("Config setup error")]
+    #[error("config setup error")]
     ConfigSetup(#[source] ConfigSetupError),
 
-    #[error("State machine error")]
+    #[error("state machine error")]
     StateMachine(#[source] TunnelStateMachineError),
 }
 

@@ -20,7 +20,7 @@ pub enum Error {
     #[error("systemd-resolved operation failed")]
     SystemdResolvedError(#[from] SystemdDbusError),
 
-    #[error("Failed to resolve interface index with error {0}")]
+    #[error("failed to resolve interface index with error {0}")]
     InterfaceNameError(#[from] IfaceIndexLookupError),
 }
 

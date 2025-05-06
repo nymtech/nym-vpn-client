@@ -38,7 +38,7 @@ const SYNTHETIC_OFFLINE_DURATION: Duration = Duration::from_secs(1);
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Failed to initialize route monitor")]
+    #[error("failed to initialize route monitor")]
     StartRouteMonitor(#[from] nym_routing::Error),
 }
 

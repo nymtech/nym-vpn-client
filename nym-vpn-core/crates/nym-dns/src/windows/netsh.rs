@@ -29,27 +29,27 @@ const NETSH_TIMEOUT: Duration = Duration::from_secs(10);
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failure to obtain an interface LUID given an alias.
-    #[error("Failed to obtain LUID for the interface alias")]
+    #[error("failed to obtain LUID for the interface alias")]
     ObtainInterfaceLuid(#[source] io::Error),
 
     /// Failure to obtain an interface index.
-    #[error("Failed to obtain index of the interface")]
+    #[error("failed to obtain index of the interface")]
     ObtainInterfaceIndex(#[source] io::Error),
 
     /// Failure to spawn netsh subprocess.
-    #[error("Failed to spawn 'netsh'")]
+    #[error("failed to spawn 'netsh'")]
     SpawnNetsh(#[source] io::Error),
 
     /// Failure to spawn netsh subprocess.
-    #[error("Failed to obtain system directory")]
+    #[error("failed to obtain system directory")]
     GetSystemDir(#[source] windows::core::Error),
 
     /// Failure to write to stdin.
-    #[error("Failed to write to stdin for 'netsh'")]
+    #[error("failed to write to stdin for 'netsh'")]
     NetshInput(#[source] io::Error),
 
     /// Failure to wait for netsh result.
-    #[error("Failed to wait for 'netsh'")]
+    #[error("failed to wait for 'netsh'")]
     WaitNetsh(#[source] io::Error),
 
     /// netsh returned a non-zero status.
