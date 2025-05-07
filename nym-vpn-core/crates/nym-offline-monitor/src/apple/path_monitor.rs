@@ -3,7 +3,7 @@
 
 use std::{sync::Arc, time::Duration};
 
-use dispatch2::{DispatchQueue, QueueAttribute};
+use dispatch2::{DispatchQueue, DispatchQueueAttr};
 use tokio::sync::{mpsc, watch, Mutex};
 use tokio_stream::{wrappers::UnboundedReceiverStream, StreamExt};
 use tokio_util::sync::CancellationToken;
@@ -102,7 +102,7 @@ pub async fn spawn_monitor(
 }
 
 fn start_path_monitor(path_tx: mpsc::UnboundedSender<Path>) -> PathMonitor {
-    let queue = DispatchQueue::new("net.nymtech.vpn.offline-monitor", QueueAttribute::Serial);
+    let queue = DispatchQueue::new("net.nymtech.vpn.offline-monitor", DispatchQueueAttr::SERIAL);
 
     let mut path_monitor = PathMonitor::new();
     path_monitor.prohibit_interface_type(InterfaceType::Other);
