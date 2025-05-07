@@ -23,23 +23,23 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Error in systemd-resolved DNS monitor
-    #[error("Error in systemd-resolved DNS monitor")]
+    #[error("error in systemd-resolved DNS monitor")]
     SystemdResolved(#[from] systemd_resolved::Error),
 
     /// Error in NetworkManager DNS monitor
-    #[error("Error in NetworkManager DNS monitor")]
+    #[error("error in NetworkManager DNS monitor")]
     NetworkManager(#[from] network_manager::Error),
 
     /// Error in resolvconf DNS monitor
-    #[error("Error in resolvconf DNS monitor")]
+    #[error("error in resolvconf DNS monitor")]
     Resolvconf(#[from] resolvconf::Error),
 
     /// Error in static /etc/resolv.conf DNS monitor
-    #[error("Error in static /etc/resolv.conf DNS monitor")]
+    #[error("error in static /etc/resolv.conf DNS monitor")]
     StaticResolvConf(#[from] static_resolv_conf::Error),
 
     /// No suitable DNS monitor implementation detected
-    #[error("No suitable DNS monitor implementation detected")]
+    #[error("no suitable DNS monitor implementation detected")]
     NoDnsMonitor,
 }
 

@@ -33,7 +33,7 @@ pub enum Error {
         #[source] crate::storage::PendingCredentialRequestsStorageError,
     ),
 
-    #[error("failed to remove credential storage: {0}")]
+    #[error("failed to remove credential storage")]
     RemoveCredentialStorage(std::io::Error),
 
     #[error("internal error: {0}")]

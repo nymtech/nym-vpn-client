@@ -13,13 +13,13 @@ nix::ioctl_read!(tungetiff, b'T', 210, nix::libc::c_int);
 
 #[derive(thiserror::Error, Debug)]
 pub enum GetTunNameError {
-    #[error("Syscall error")]
+    #[error("syscall error")]
     Syscall(#[source] nix::Error),
 
-    #[error("Failed to copy interface name")]
+    #[error("failed to copy interface name")]
     CopyInterfaceName(#[source] std::ffi::FromBytesUntilNulError),
 
-    #[error("Failed to convert interface name to utf-8")]
+    #[error("failed to convert interface name to utf-8")]
     ConvertInterfaceNameToUtf8(#[source] std::str::Utf8Error),
 }
 

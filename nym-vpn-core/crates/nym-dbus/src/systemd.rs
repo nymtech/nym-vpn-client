@@ -9,10 +9,10 @@ type Result<T> = std::result::Result<T, Error>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Failed to create a DBus connection")]
+    #[error("failed to create a DBus connection")]
     ConnectError(#[source] dbus::Error),
 
-    #[error("Failed to read SystemState property")]
+    #[error("failed to read SystemState property")]
     ReadSystemStateError(#[source] dbus::Error),
 }
 

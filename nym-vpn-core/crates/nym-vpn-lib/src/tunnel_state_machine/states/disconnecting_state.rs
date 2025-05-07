@@ -12,6 +12,7 @@ use crate::tunnel_state_machine::{
     NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState, TunnelCommand,
     TunnelStateHandler,
 };
+use nym_common::ErrorExt;
 
 type WaitHandle = BoxFuture<'static, Tombstone>;
 
@@ -57,7 +58,7 @@ impl DisconnectingState {
             .reset_before_interface_removal()
             .await
         {
-            tracing::error!("Failed to reset dns before interface removal: {}", e);
+            e.trace_chain_with_msg("Failed to reset dns before interface removal");
         }
 
         // On macOS, configure only the local DNS resolver
@@ -77,7 +78,7 @@ impl DisconnectingState {
             .set_static_api_addresses(None)
             .await
         {
-            tracing::error!("Failed to unset static API addresses: {}", e);
+            e.trace_chain_with_msg("Failed to unset static API addresses");
         }
     }
 }

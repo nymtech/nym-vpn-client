@@ -21,7 +21,7 @@ pub enum Error {
     #[error(transparent)]
     VpnApiClientError(#[from] nym_vpn_api_client::VpnApiClientError),
 
-    #[error("failed to resolve gateway hostname: {hostname}: {source}")]
+    #[error("failed to resolve gateway hostname: {hostname}")]
     FailedToDnsResolveGateway {
         hostname: String,
         source: nym_http_api_client::HickoryDnsError,
@@ -30,13 +30,13 @@ pub enum Error {
     #[error("resolved hostname {0} but no IP address found")]
     ResolvedHostnameButNoIp(String),
 
-    #[error("failed to lookup described gateways: {0}")]
+    #[error("failed to lookup described gateways")]
     FailedToLookupDescribedGateways(#[source] nym_validator_client::ValidatorClientError),
 
-    #[error("failed to lookup skimmed gateways: {0}")]
+    #[error("failed to lookup skimmed gateways")]
     FailedToLookupSkimmedGateways(#[source] nym_validator_client::ValidatorClientError),
 
-    #[error("failed to lookup skimmed nodes: {0}")]
+    #[error("failed to lookup skimmed nodes")]
     FailedToLookupSkimmedNodes(#[source] nym_validator_client::ValidatorClientError),
 
     #[error("requested gateway not found in the remote list: {0}")]
@@ -63,7 +63,7 @@ pub enum Error {
         available_countries: Vec<String>,
     },
 
-    #[error("failed to select gateway based on low latency: {source}")]
+    #[error("failed to select gateway based on low latency")]
     FailedToSelectGatewayBasedOnLowLatency {
         source: nym_client_core::error::ClientCoreError,
     },

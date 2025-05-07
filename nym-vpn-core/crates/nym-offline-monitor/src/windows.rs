@@ -18,9 +18,9 @@ use super::Connectivity;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Unable to create listener thread")]
+    #[error("unable to create listener thread")]
     ThreadCreationError(#[from] io::Error),
-    #[error("Failed to start connectivity monitor")]
+    #[error("failed to start connectivity monitor")]
     ConnectivityMonitorError(#[from] nym_routing::Error),
 }
 
@@ -105,19 +105,13 @@ impl BroadcastListener {
         let v4_connectivity = get_best_default_route(AddressFamily::Ipv4)
             .map(|route| route.is_some())
             .unwrap_or_else(|error| {
-                tracing::error!(
-                    "{}",
-                    error.display_chain_with_msg("Failed to check initial IPv4 connectivity")
-                );
+                error.trace_chain_with_msg("Failed to check initial IPv4 connectivity");
                 true
             });
         let v6_connectivity = get_best_default_route(AddressFamily::Ipv6)
             .map(|route| route.is_some())
             .unwrap_or_else(|error| {
-                tracing::error!(
-                    "{}",
-                    error.display_chain_with_msg("Failed to check initial IPv6 connectivity")
-                );
+                error.trace_chain_with_msg("Failed to check initial IPv6 connectivity");
                 true
             });
 

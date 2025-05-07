@@ -30,14 +30,14 @@ const MINIMUM_RAMAINING_BANDWIDTH: u64 = 500 * 1024 * 1024; // 500 MB, the same 
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("failed to lookup gateway ip: {source}")]
+    #[error("failed to lookup gateway ip for {gateway_id}")]
     LookupGatewayIp {
         gateway_id: String,
         #[source]
         source: nym_gateway_directory::Error,
     },
 
-    #[error("failed to register wireguard with the gateway: {source}")]
+    #[error("failed to register wireguard with the gateway for {gateway_id}")]
     RegisterWireguard {
         gateway_id: String,
         authenticator_address: Box<nym_gateway_directory::Recipient>,
@@ -45,7 +45,7 @@ pub enum Error {
         source: nym_wg_gateway_client::Error,
     },
 
-    #[error("failed to top-up wireguard bandwidth with the gateway: {source}")]
+    #[error("failed to top-up wireguard bandwidth with the gateway: {gateway_id}")]
     TopUpWireguard {
         gateway_id: String,
         ticketbook_type: TicketType,
@@ -54,7 +54,7 @@ pub enum Error {
         source: nym_wg_gateway_client::Error,
     },
 
-    #[error("nyxd client error: {0}")]
+    #[error("nyxd client error")]
     Nyxd(#[from] CredentialNyxdClientError),
 
     #[error("internal error: {reason}")]
@@ -65,10 +65,10 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 
 #[derive(Debug, thiserror::Error)]
 pub enum CredentialNyxdClientError {
-    #[error("failed to create nyxd client config: {0}")]
+    #[error("Failed to create nyxd client config")]
     FailedToCreateNyxdClientConfig(nym_validator_client::nyxd::error::NyxdError),
 
-    #[error("failed to connect using nyxd client: {0}")]
+    #[error("Failed to connect using nyxd client")]
     FailedToConnectUsingNyxdClient(nym_validator_client::nyxd::error::NyxdError),
 }
 

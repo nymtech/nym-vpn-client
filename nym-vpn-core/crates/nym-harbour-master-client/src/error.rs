@@ -2,7 +2,7 @@ use crate::client::HarbourMasterApiError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum HarbourMasterError {
-    #[error("api error: {0}")]
+    #[error("API error")]
     HarbourMasterApiError(#[from] HarbourMasterApiError),
 }
 

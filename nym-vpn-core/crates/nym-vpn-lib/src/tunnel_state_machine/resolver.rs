@@ -74,11 +74,11 @@ pub async fn start_resolver() -> Result<ResolverHandle, Error> {
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failed to bind UDP socket
-    #[error("Failed to bind UDP socket")]
+    #[error("failed to bind UDP socket")]
     UdpBindError(#[source] io::Error),
 
     /// Failed to get local address of a bound UDP socket
-    #[error("Failed to get local address of a bound UDP socket")]
+    #[error("failed to get local address of a bound UDP socket")]
     GetSocketAddrError(#[source] io::Error),
 }
 

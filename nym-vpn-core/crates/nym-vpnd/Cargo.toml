@@ -38,6 +38,7 @@ nym-credentials-interface.workspace = true
 nym-task.workspace = true
 nym-validator-client.workspace = true
 nym-windows.workspace = true
+nym-common.workspace = true
 
 # Local crates
 nym-ipc.workspace = true

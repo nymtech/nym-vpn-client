@@ -15,19 +15,19 @@ pub enum Error {
     #[error(transparent)]
     AuthenticatorClientError(#[from] nym_authenticator_client::Error),
 
-    #[error("error that should stop auto retrying: {source}")]
+    #[error("error that should stop auto retrying")]
     NoRetry {
         #[source]
         source: nym_authenticator_client::Error,
     },
 
-    #[error("verification failed: {0}")]
+    #[error("verification failure")]
     VerificationFailed(#[source] nym_authenticator_requests::Error),
 
-    #[error("failed to parse entry gateway socket addr: {0}")]
+    #[error("failed to parse entry gateway socket addr")]
     FailedToParseEntryGatewaySocketAddr(#[source] std::net::AddrParseError),
 
-    #[error("failed to get {ticketbook_type} ticket: {source}")]
+    #[error("failed to get {ticketbook_type} ticket")]
     GetTicket {
         ticketbook_type: TicketType,
         #[source]
@@ -37,7 +37,7 @@ pub enum Error {
 
 #[derive(Debug, thiserror::Error)]
 pub enum ErrorMessage {
-    #[error("out of bandwidth for gateway: `{gateway_id}`")]
+    #[error("out of bandwidth for gateway: {gateway_id}")]
     OutOfBandwidth {
         gateway_id: Box<NodeIdentity>,
         authenticator_address: Box<Recipient>,

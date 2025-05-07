@@ -265,7 +265,7 @@ impl fmt::Display for TransportProtocol {
 /// Returned when `TransportProtocol::from_str` fails to convert a string into a
 /// [`TransportProtocol`] object.
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
-#[error("Not a valid transport protocol")]
+#[error("not a valid transport protocol")]
 pub struct TransportProtocolParseError;
 
 /// Information about a VPN tunnel.

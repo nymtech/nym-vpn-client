@@ -104,38 +104,49 @@ pub fn config_dir() -> PathBuf {
 
 #[derive(thiserror::Error, Debug)]
 pub enum ConfigSetupError {
-    #[error("failed to parse config file {file}: {error}")]
+    #[error("failed to parse config file {file}")]
     Parse {
         file: PathBuf,
+        #[source]
         error: Box<toml::de::Error>,
     },
 
-    #[error("failed to read config file {file}: {error}")]
+    #[error("failed to read config file {file}")]
     ReadConfig {
         file: PathBuf,
+        #[source]
         error: std::io::Error,
     },
 
     #[error("failed to get parent directory of {file}")]
     GetParentDirectory { file: PathBuf },
 
-    #[error("failed to create directory {dir}: {error}")]
-    CreateDirectory { dir: PathBuf, error: std::io::Error },
+    #[error("failed to create directory {dir}")]
+    CreateDirectory {
+        dir: PathBuf,
+        #[source]
+        error: std::io::Error,
+    },
 
-    #[error("failed to write file {file}: {error}")]
+    #[error("failed to write file {file}")]
     WriteFile {
         file: PathBuf,
         error: std::io::Error,
     },
 
     #[cfg(unix)]
-    #[error("failed to set permissions for directory {dir}: {error}")]
-    SetPermissions { dir: PathBuf, error: std::io::Error },
-
-    #[cfg(windows)]
-    #[error("failed to set permissions for directory {dir}: {error}")]
+    #[error("failed to set permissions for directory {dir}")]
     SetPermissions {
         dir: PathBuf,
+        #[source]
+        error: std::io::Error,
+    },
+
+    #[cfg(windows)]
+    #[error("failed to set permissions for directory {dir}")]
+    SetPermissions {
+        dir: PathBuf,
+        #[source]
         error: nym_windows::security::Error,
     },
 }

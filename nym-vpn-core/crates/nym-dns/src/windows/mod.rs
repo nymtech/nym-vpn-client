@@ -16,15 +16,15 @@ mod tcpip;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failed to set DNS config using the iphlpapi module.
-    #[error("Error in iphlpapi module")]
+    #[error("error in iphlpapi module")]
     Iphlpapi(#[from] iphlpapi::Error),
 
     /// Failed to set DNS config using the netsh module.
-    #[error("Error in netsh module")]
+    #[error("error in netsh module")]
     Netsh(#[from] netsh::Error),
 
     /// Failed to set DNS config using the tcpip module.
-    #[error("Error in tcpip module")]
+    #[error("error in tcpip module")]
     Tcpip(#[from] tcpip::Error),
 }
 

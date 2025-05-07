@@ -32,27 +32,27 @@ use windows::{
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failure to obtain an interface LUID given an alias.
-    #[error("Failed to obtain LUID for the interface alias")]
+    #[error("failed to obtain LUID for the interface alias")]
     ObtainInterfaceLuid(#[source] io::Error),
 
     /// Failure to obtain an interface GUID.
-    #[error("Failed to obtain GUID for the interface")]
+    #[error("failed to obtain GUID for the interface")]
     ObtainInterfaceGuid(#[source] io::Error),
 
     /// Failed to set DNS settings on interface.
-    #[error("Failed to set DNS settings on interface")]
+    #[error("failed to set DNS settings on interface")]
     SetInterfaceDnsSettings(#[source] windows::core::Error),
 
     /// Failure to flush DNS cache.
-    #[error("Failed to flush DNS resolver cache")]
+    #[error("failed to flush DNS resolver cache")]
     FlushResolverCache(#[source] super::dnsapi::Error),
 
     /// Failed to load iphlpapi.dll.
-    #[error("Failed to load iphlpapi.dll")]
+    #[error("failed to load iphlpapi.dll")]
     LoadDll(#[source] windows::core::Error),
 
     /// Failed to obtain exported function.
-    #[error("Failed to obtain DNS function")]
+    #[error("failed to obtain DNS function")]
     GetFunction(#[source] windows::core::Error),
 }
 

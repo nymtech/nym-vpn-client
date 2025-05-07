@@ -125,13 +125,13 @@ pub(crate) async fn setup_mixnet_client(
         // We want fresh SURB sender tags on each session
         debug_config.reply_surbs.fresh_sender_tags = true;
 
-        let key_storage_path = StoragePaths::new_from_dir(path)
-            .map_err(MixnetError::FailedToSetupMixnetStoragePaths)?;
+        let key_storage_path =
+            StoragePaths::new_from_dir(path).map_err(MixnetError::SetupMixnetStoragePaths)?;
 
         let storage = key_storage_path
             .initialise_persistent_storage(&debug_config)
             .await
-            .map_err(MixnetError::FailedToCreateMixnetClientWithDefaultStorage)?;
+            .map_err(MixnetError::CreateMixnetClientWithDefaultStorage)?;
 
         let builder = MixnetClientBuilder::new_with_storage(storage)
             .with_user_agent(user_agent)
@@ -147,7 +147,7 @@ pub(crate) async fn setup_mixnet_client(
 
         builder
             .build()
-            .map_err(MixnetError::FailedToBuildMixnetClient)?
+            .map_err(MixnetError::BuildMixnetClient)?
             .connect_to_mixnet()
             .await
             .map_err(map_mixnet_connect_error)?
@@ -167,7 +167,7 @@ pub(crate) async fn setup_mixnet_client(
 
         builder
             .build()
-            .map_err(MixnetError::FailedToBuildMixnetClient)?
+            .map_err(MixnetError::BuildMixnetClient)?
             .connect_to_mixnet()
             .await
             .map_err(map_mixnet_connect_error)?
@@ -189,6 +189,6 @@ fn map_mixnet_connect_error(err: nym_sdk::Error) -> MixnetError {
             gateway_id: gateway_id.to_string(),
             source: Box::new(source),
         },
-        _ => MixnetError::FailedToConnectToMixnet(err),
+        _ => MixnetError::ConnectToMixnet(err),
     }
 }

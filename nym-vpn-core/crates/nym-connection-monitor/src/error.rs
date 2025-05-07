@@ -3,7 +3,7 @@
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("{0}")]
+    #[error(transparent)]
     NymSdkError(#[from] nym_sdk::Error),
 
     #[error(

@@ -67,10 +67,10 @@ type NetworkSettings<'a> = HashMap<String, HashMap<String, Variant<Box<dyn RefAr
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Error while communicating over Dbus")]
+    #[error("error while communicating over Dbus")]
     Dbus(#[from] dbus::Error),
 
-    #[error("Failed to match the returned D-Bus object with expected type")]
+    #[error("failed to match the returned D-Bus object with expected type")]
     MatchDBusTypeError(#[from] dbus::arg::TypeMismatchError),
 
     #[error(
@@ -78,7 +78,7 @@ pub enum Error {
     )]
     SystemdResolvedNotManagingResolvconf(systemd_resolved::Error),
 
-    #[error("Configuration has no device associated to it")]
+    #[error("configuration has no device associated to it")]
     NoDevice,
 
     #[error("NetworkManager is too old: {0}.{1}")]
@@ -87,13 +87,13 @@ pub enum Error {
     #[error("NetworkManager is too new to manage DNS: {0}.{1}")]
     NMTooNewFroDns(u32, u32),
 
-    #[error("Failed to parse NetworkManager version string: {0}")]
+    #[error("failed to parse NetworkManager version string: {0}")]
     ParseNmVersionError(String),
 
-    #[error("Device inactive: {0}")]
+    #[error("device inactive: {0}")]
     DeviceNotReady(u32),
 
-    #[error("Device not found")]
+    #[error("device not found")]
     DeviceNotFound,
 
     #[error("NetworkManager not detected")]
@@ -108,7 +108,7 @@ pub enum Error {
     #[error("NetworkManager is not managing DNS")]
     NetworkManagerNotManagingDns,
 
-    #[error("Failed to get devices from NetworkManager object")]
+    #[error("failed to get devices from NetworkManager object")]
     ObtainDevices,
 }
 

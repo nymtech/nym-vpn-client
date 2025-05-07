@@ -24,13 +24,13 @@ pub enum Error {
     #[error("unknown version number")]
     UnknownVersion,
 
-    #[error("{0}")]
+    #[error(transparent)]
     Bincode(#[from] bincode::Error),
 
     #[error("gateway doesn't support this type of message")]
     UnsupportedMessage,
 
-    #[error("{0}")]
+    #[error(transparent)]
     AuthenticatorRequests(#[from] nym_authenticator_requests::Error),
 }
 

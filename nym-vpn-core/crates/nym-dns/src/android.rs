@@ -6,7 +6,7 @@ use crate::ResolvedDnsConfig;
 
 /// Stub error type for DNS errors on Android.
 #[derive(Debug, thiserror::Error)]
-#[error("Unknown Android DNS error")]
+#[error("unknown Android DNS error")]
 pub struct Error;
 
 pub struct DnsMonitor;

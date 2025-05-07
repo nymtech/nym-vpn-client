@@ -547,35 +547,35 @@ impl From<IpNetwork> for Destination {
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     /// Payload buffer didn't match the reported message size in header
-    #[error("Buffer didn't match reported message size")]
+    #[error("buffer didn't match reported message size")]
     InvalidBuffer(Vec<u8>, AddressFlag),
     /// Buffer too small for specific message type
-    #[error("The buffer is too small for msg \"{message_type}\": expected size >= {expect_min_size}, actual {actual_size}")]
+    #[error("the buffer is too small for msg \"{message_type}\": expected size >= {expect_min_size}, actual {actual_size}")]
     BufferTooSmall {
         message_type: &'static str,
         expect_min_size: usize,
         actual_size: usize,
     },
     /// Unknown route flag
-    #[error("Unknown route flag: {0}")]
+    #[error("unknown route flag: {0}")]
     UnknownRouteFlag(c_int),
     /// Unrecognized address flag
-    #[error("Unrecognized address flag: {0}")]
+    #[error("unrecognized address flag: {0}")]
     UnknownAddressFlag(c_int),
     /// Mismatched socket address type
-    #[error("Unrecognized socket address: expected IPv4 or IPv6")]
+    #[error("unrecognized socket address: expected IPv4 or IPv6")]
     MismatchedSocketAddress(AddressFlag, Box<SockaddrStorage>),
     /// Invalid netmask
-    #[error("Invalid netmask")]
+    #[error("invalid netmask")]
     InvalidNetmask,
     /// Route contains no netmask socket address
-    #[error("Found no route destination")]
+    #[error("found no route destination")]
     NoDestination,
     /// Found no netmask
-    #[error("Found no netmask")]
+    #[error("found no netmask")]
     NoNetmask,
     /// Address message does not contain an interface address
-    #[error("Found no interface address")]
+    #[error("found no interface address")]
     NoInterfaceAddress,
 }
 
