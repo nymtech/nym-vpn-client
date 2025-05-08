@@ -54,17 +54,33 @@ impl AccountCommand {
     pub fn return_no_account(self, error: Error) {
         tracing::debug!("No account found: {error}");
         match self {
-            AccountCommand::SyncAccountState(Some(tx)) => {
-                tx.send(Err(SyncAccountError::NoAccountStored));
+            AccountCommand::SyncAccountState(tx) => {
+                if let Some(tx) = tx {
+                    tx.send(Err(SyncAccountError::NoAccountStored));
+                } else {
+                    tracing::debug!("No account found during background account sync");
+                }
             }
-            AccountCommand::SyncDeviceState(Some(tx)) => {
-                tx.send(Err(SyncDeviceError::NoAccountStored));
+            AccountCommand::SyncDeviceState(tx) => {
+                if let Some(tx) = tx {
+                    tx.send(Err(SyncDeviceError::NoAccountStored));
+                } else {
+                    tracing::debug!("No account found during background device sync");
+                }
             }
-            AccountCommand::RegisterDevice(Some(tx)) => {
-                tx.send(Err(RegisterDeviceError::NoAccountStored));
+            AccountCommand::RegisterDevice(tx) => {
+                if let Some(tx) = tx {
+                    tx.send(Err(RegisterDeviceError::NoAccountStored));
+                } else {
+                    tracing::debug!("No account found during background device registration");
+                }
             }
-            AccountCommand::RequestZkNym(Some(tx)) => {
-                tx.send(Err(RequestZkNymError::NoAccountStored));
+            AccountCommand::RequestZkNym(tx) => {
+                if let Some(tx) = tx {
+                    tx.send(Err(RequestZkNymError::NoAccountStored));
+                } else {
+                    tracing::debug!("No account found during background zk-nym request");
+                }
             }
             _ => {
                 tracing::error!("Command does not support no account: {self}");
@@ -75,14 +91,26 @@ impl AccountCommand {
     pub fn return_no_device(self, error: Error) {
         tracing::debug!("No device found: {error}");
         match self {
-            AccountCommand::SyncDeviceState(Some(tx)) => {
-                tx.send(Err(SyncDeviceError::NoDeviceStored));
+            AccountCommand::SyncDeviceState(tx) => {
+                if let Some(tx) = tx {
+                    tx.send(Err(SyncDeviceError::NoDeviceStored));
+                } else {
+                    tracing::debug!("No device found during background device sync");
+                }
             }
-            AccountCommand::RegisterDevice(Some(tx)) => {
-                tx.send(Err(RegisterDeviceError::NoDeviceStored));
+            AccountCommand::RegisterDevice(tx) => {
+                if let Some(tx) = tx {
+                    tx.send(Err(RegisterDeviceError::NoDeviceStored));
+                } else {
+                    tracing::debug!("No device found during background device registration");
+                }
             }
-            AccountCommand::RequestZkNym(Some(tx)) => {
-                tx.send(Err(RequestZkNymError::NoDeviceStored));
+            AccountCommand::RequestZkNym(tx) => {
+                if let Some(tx) = tx {
+                    tx.send(Err(RequestZkNymError::NoDeviceStored));
+                } else {
+                    tracing::debug!("No device found during background zk-nym request");
+                }
             }
             _ => {
                 tracing::error!("Command does not support no device: {self}");
@@ -93,17 +121,33 @@ impl AccountCommand {
     pub fn return_no_connectivity(self) {
         tracing::debug!("No connectivity");
         match self {
-            AccountCommand::SyncAccountState(Some(tx)) => {
-                tx.send(Err(SyncAccountError::Offline));
+            AccountCommand::SyncAccountState(tx) => {
+                if let Some(tx) = tx {
+                    tx.send(Err(SyncAccountError::Offline));
+                } else {
+                    tracing::debug!("No connectivity during background account sync");
+                }
             }
-            AccountCommand::SyncDeviceState(Some(tx)) => {
-                tx.send(Err(SyncDeviceError::Offline));
+            AccountCommand::SyncDeviceState(tx) => {
+                if let Some(tx) = tx {
+                    tx.send(Err(SyncDeviceError::Offline));
+                } else {
+                    tracing::debug!("No connectivity during background device sync");
+                }
             }
-            AccountCommand::RegisterDevice(Some(tx)) => {
-                tx.send(Err(RegisterDeviceError::Offline));
+            AccountCommand::RegisterDevice(tx) => {
+                if let Some(tx) = tx {
+                    tx.send(Err(RegisterDeviceError::Offline));
+                } else {
+                    tracing::debug!("No connectivity during background device registration");
+                }
             }
-            AccountCommand::RequestZkNym(Some(tx)) => {
-                tx.send(Err(RequestZkNymError::Offline));
+            AccountCommand::RequestZkNym(tx) => {
+                if let Some(tx) = tx {
+                    tx.send(Err(RequestZkNymError::Offline));
+                } else {
+                    tracing::debug!("No connectivity during background zk-nym request");
+                }
             }
             _ => {
                 tracing::error!("Command does not support offline mode: {self}");
