@@ -12,13 +12,11 @@ use crate::tunnel_state_machine::{
     NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState, TunnelCommand,
     TunnelStateHandler,
 };
-use nym_common::ErrorExt;
 
 type WaitHandle = BoxFuture<'static, Tombstone>;
 
 pub struct DisconnectingState {
     after_disconnect: PrivateActionAfterDisconnect,
-    retry_attempt: u32,
     wait_handle: Fuse<WaitHandle>,
 }
 
@@ -34,17 +32,9 @@ impl DisconnectingState {
         }
         monitor_handle.cancel();
 
-        let retry_attempt =
-            if let PrivateActionAfterDisconnect::Reconnect { retry_attempt } = &after_disconnect {
-                *retry_attempt
-            } else {
-                0
-            };
-
         (
             Box::new(Self {
                 after_disconnect: after_disconnect.clone(),
-                retry_attempt,
                 wait_handle: monitor_handle.wait().boxed().fuse(),
             }),
             PrivateTunnelState::Disconnecting { after_disconnect },
@@ -92,8 +82,8 @@ impl TunnelStateHandler for DisconnectingState {
                     PrivateActionAfterDisconnect::Error(reason) => {
                         NextTunnelState::NewState(ErrorState::enter(reason, shared_state).await)
                     },
-                    PrivateActionAfterDisconnect::Reconnect { retry_attempt } => {
-                        NextTunnelState::NewState(ConnectingState::enter(retry_attempt, None, shared_state).await)
+                    PrivateActionAfterDisconnect::Reconnect => {
+                        NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)
                     },
                     PrivateActionAfterDisconnect::Offline { reconnect, retry_attempt, gateways } => {
                         NextTunnelState::NewState(OfflineState::enter(reconnect, retry_attempt, gateways, shared_state).await)
@@ -107,7 +97,7 @@ impl TunnelStateHandler for DisconnectingState {
                             PrivateActionAfterDisconnect::Offline { retry_attempt, gateways,  .. } => {
                                 PrivateActionAfterDisconnect::Offline { reconnect: true, retry_attempt, gateways }
                             }
-                            _ => PrivateActionAfterDisconnect::Reconnect { retry_attempt: self.retry_attempt },
+                            _ => PrivateActionAfterDisconnect::Reconnect,
                         };
                     },
                     TunnelCommand::Disconnect => {

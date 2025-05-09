@@ -275,7 +275,7 @@ impl From<PrivateActionAfterDisconnect> for ActionAfterDisconnect {
     fn from(value: PrivateActionAfterDisconnect) -> Self {
         match value {
             PrivateActionAfterDisconnect::Nothing => Self::Nothing,
-            PrivateActionAfterDisconnect::Reconnect { .. } => Self::Reconnect,
+            PrivateActionAfterDisconnect::Reconnect => Self::Reconnect,
             PrivateActionAfterDisconnect::Offline { .. } => Self::Offline,
             PrivateActionAfterDisconnect::Error(_) => Self::Error,
         }
@@ -288,8 +288,8 @@ enum PrivateActionAfterDisconnect {
     /// Do nothing after disconnect
     Nothing,
 
-    /// Reconnect after disconnect, providing the retry attempt counter
-    Reconnect { retry_attempt: u32 },
+    /// Reconnect after disconnect
+    Reconnect,
 
     /// Enter offline state after disconnect
     Offline {

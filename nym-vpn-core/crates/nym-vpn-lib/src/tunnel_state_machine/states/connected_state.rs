@@ -255,7 +255,7 @@ impl TunnelStateHandler for ConnectedState {
                         } else {
                             shared_state.tunnel_settings = tunnel_settings;
                             NextTunnelState::NewState(DisconnectingState::enter(
-                                PrivateActionAfterDisconnect::Reconnect { retry_attempt: 0 },
+                                PrivateActionAfterDisconnect::Reconnect,
                                 self.monitor_handle,
                                 shared_state
                             ))
@@ -267,7 +267,7 @@ impl TunnelStateHandler for ConnectedState {
                 match monitor_event {
                     TunnelMonitorEvent::Down { error_state_reason, reply_tx } => {
                         let after_disconnect = error_state_reason.map(PrivateActionAfterDisconnect::Error)
-                            .unwrap_or(PrivateActionAfterDisconnect::Reconnect { retry_attempt: 0 });
+                            .unwrap_or(PrivateActionAfterDisconnect::Reconnect);
                         _ = reply_tx.send(());
 
                         NextTunnelState::NewState(DisconnectingState::enter(after_disconnect, self.monitor_handle, shared_state))

@@ -576,7 +576,7 @@ impl TunnelStateHandler for ConnectingState {
 
                             if let Some(monitor_handle) = self.monitor_handle {
                                 NextTunnelState::NewState(DisconnectingState::enter(
-                                    PrivateActionAfterDisconnect::Reconnect { retry_attempt: 0 },
+                                    PrivateActionAfterDisconnect::Reconnect,
                                      monitor_handle,
                                     shared_state,
                                 ))
