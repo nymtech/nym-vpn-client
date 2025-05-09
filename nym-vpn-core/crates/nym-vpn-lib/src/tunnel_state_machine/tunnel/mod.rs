@@ -140,22 +140,23 @@ pub struct MixnetConnectOptions {
 }
 
 pub async fn select_gateways(
-    gateway_config: nym_gateway_directory::Config,
-    resolved_gateway_config: nym_gateway_directory::ResolvedConfig,
+    gateway_directory_client: &GatewayClient,
+    // gateway_config: nym_gateway_directory::Config,
+    // resolved_gateway_config: nym_gateway_directory::ResolvedConfig,
     tunnel_type: TunnelType,
     entry_point: Box<EntryPoint>,
     exit_point: Box<ExitPoint>,
-    user_agent: Option<UserAgent>,
+    // user_agent: Option<UserAgent>,
     cancel_token: CancellationToken,
 ) -> Result<SelectedGateways> {
-    let user_agent =
-        user_agent.unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
-    let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
-        gateway_config,
-        user_agent,
-        resolved_gateway_config.nym_vpn_api_socket_addrs.as_deref(),
-    )
-    .map_err(Error::CreateGatewayClient)?;
+    // let user_agent =
+    //     user_agent.unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
+    // let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
+    //     gateway_config,
+    //     user_agent,
+    //     resolved_gateway_config.nym_vpn_api_socket_addrs.as_deref(),
+    // )
+    // .map_err(Error::CreateGatewayClient)?;
 
     let select_gateways_fut = gateway_selector::select_gateways(
         &gateway_directory_client,
@@ -173,6 +174,7 @@ pub async fn select_gateways(
 pub async fn connect_mixnet(
     options: MixnetConnectOptions,
     network_env: &Network,
+    gateway_directory_client: GatewayClient,
     cancel_token: CancellationToken,
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<ConnectedMixnet> {
@@ -180,18 +182,19 @@ pub async fn connect_mixnet(
     let task_client = task_manager.subscribe_named("mixnet_client_main");
 
     let mut mixnet_client_config = options.mixnet_client_config.clone().unwrap_or_default();
-    let user_agent = options
-        .user_agent
-        .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
-    let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
-        options.gateway_config,
-        user_agent,
-        options
-            .resolved_gateway_config
-            .nym_vpn_api_socket_addrs
-            .as_deref(),
-    )
-    .map_err(Error::CreateGatewayClient)?;
+    // let user_agent = options
+    //     .user_agent
+    //     .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
+    // WIP
+    // let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
+    //     options.gateway_config,
+    //     user_agent,
+    //     options
+    //         .resolved_gateway_config
+    //         .nym_vpn_api_socket_addrs
+    //         .as_deref(),
+    // )
+    // .map_err(Error::CreateGatewayClient)?;
 
     match options.tunnel_type {
         TunnelType::Mixnet => {}
