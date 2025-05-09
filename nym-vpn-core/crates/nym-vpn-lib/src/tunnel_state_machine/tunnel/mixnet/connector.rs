@@ -46,14 +46,14 @@ impl Connector {
     }
 
     pub async fn connect(
-        mut self,
+        self,
         selected_gateways: SelectedGateways,
         cancel_token: CancellationToken,
     ) -> Result<ConnectedTunnel, ConnectorError> {
         let result = Self::connect_inner(
             selected_gateways,
             self.mixnet_client.clone(),
-            &mut self.gateway_directory_client,
+            self.gateway_directory_client.clone(),
             cancel_token.clone(),
         )
         .await;
@@ -79,7 +79,7 @@ impl Connector {
     async fn connect_inner(
         selected_gateways: SelectedGateways,
         mixnet_client: SharedMixnetClient,
-        gateway_directory_client: &mut CachingGatewayClient,
+        gateway_directory_client: CachingGatewayClient,
         cancel_token: CancellationToken,
     ) -> Result<AssignedAddresses> {
         let mixnet_client_address = mixnet_client.nym_address().await;
