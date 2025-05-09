@@ -294,11 +294,13 @@ impl From<TunnelState> for ProtoTunnelState {
     fn from(value: TunnelState) -> ProtoTunnelState {
         let proto_state: ProtoState = match value {
             TunnelState::Disconnected => ProtoState::Disconnected(ProtoDisconnected {}),
-            TunnelState::Connecting { connection_data } => {
-                ProtoState::Connecting(ProtoConnecting {
-                    connection_data: connection_data.map(ProtoConnectionData::from),
-                })
-            }
+            TunnelState::Connecting {
+                retry_attempt,
+                connection_data,
+            } => ProtoState::Connecting(ProtoConnecting {
+                retry_attempt,
+                connection_data: connection_data.map(ProtoConnectionData::from),
+            }),
             TunnelState::Connected { connection_data } => ProtoState::Connected(ProtoConnected {
                 connection_data: Some(ProtoConnectionData::from(connection_data)),
             }),

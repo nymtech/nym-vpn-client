@@ -120,6 +120,7 @@ impl ConnectingState {
                 resolve_config_fut,
             }),
             PrivateTunnelState::Connecting {
+                retry_attempt: 0,
                 connection_data: None,
             },
         )
@@ -488,7 +489,8 @@ impl TunnelStateHandler for ConnectingState {
                 }  => {
                     let next_state = match self.handle_interface_up(tunnel_interface, shared_state).await {
                         Ok(()) => {
-                            NextTunnelState::NewState((self, PrivateTunnelState::Connecting { connection_data: Some(*connection_data) }))
+                            let state = PrivateTunnelState::Connecting { retry_attempt: self.retry_attempt, connection_data: Some(*connection_data) };
+                            NextTunnelState::NewState((self, state))
                         },
                         Err(e) => {
                             if let Some(monitor_handle) = self.monitor_handle {

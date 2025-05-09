@@ -239,9 +239,13 @@ impl From<PrivateTunnelState> for TunnelState {
             PrivateTunnelState::Connected { connection_data } => {
                 Self::Connected { connection_data }
             }
-            PrivateTunnelState::Connecting { connection_data } => {
-                Self::Connecting { connection_data }
-            }
+            PrivateTunnelState::Connecting {
+                retry_attempt,
+                connection_data,
+            } => Self::Connecting {
+                retry_attempt,
+                connection_data,
+            },
             PrivateTunnelState::Disconnecting { after_disconnect } => Self::Disconnecting {
                 after_disconnect: ActionAfterDisconnect::from(after_disconnect),
             },
@@ -256,6 +260,8 @@ impl From<PrivateTunnelState> for TunnelState {
 enum PrivateTunnelState {
     Disconnected,
     Connecting {
+        /// Connection attempt.
+        retry_attempt: u32,
         connection_data: Option<ConnectionData>,
     },
     Connected {

@@ -44,6 +44,7 @@ impl From<CoreTunnelEvent> for TunnelEvent {
 pub enum TunnelState {
     Disconnected,
     Connecting {
+        retry_attempt: u32,
         connection_data: Option<ConnectionData>,
     },
     Connected {
@@ -64,7 +65,11 @@ impl From<CoreTunnelState> for TunnelState {
             CoreTunnelState::Connected { connection_data } => TunnelState::Connected {
                 connection_data: ConnectionData::from(connection_data),
             },
-            CoreTunnelState::Connecting { connection_data } => TunnelState::Connecting {
+            CoreTunnelState::Connecting {
+                retry_attempt,
+                connection_data,
+            } => TunnelState::Connecting {
+                retry_attempt,
                 connection_data: connection_data.map(ConnectionData::from),
             },
             CoreTunnelState::Disconnecting { after_disconnect } => TunnelState::Disconnecting {
