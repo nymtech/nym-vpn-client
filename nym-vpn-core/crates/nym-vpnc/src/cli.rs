@@ -210,7 +210,6 @@ pub struct CliEntry {
     // Auto-select entry gateway by latency
     // #[arg(long, alias = "entry-gateway-low-latency")]
     // pub entry_fastest: bool,
-
     /// Auto-select entry gateway randomly.
     #[arg(long, alias = "entry-gateway-random")]
     pub entry_random: bool,

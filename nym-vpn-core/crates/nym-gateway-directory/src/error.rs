@@ -63,11 +63,10 @@ pub enum Error {
         available_countries: Vec<String>,
     },
 
-    #[error("failed to select gateway based on low latency")]
-    FailedToSelectGatewayBasedOnLowLatency {
-        source: nym_client_core::error::ClientCoreError,
-    },
-
+    // #[error("failed to select gateway based on low latency")]
+    // FailedToSelectGatewayBasedOnLowLatency {
+    //     source: nym_client_core::error::ClientCoreError,
+    // },
     #[error("no matching gateway found after selecting low latency: {requested_identity}")]
     NoMatchingGatewayAfterSelectingLowLatency { requested_identity: String },
 
