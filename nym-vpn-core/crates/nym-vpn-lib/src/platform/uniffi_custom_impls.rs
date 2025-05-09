@@ -505,7 +505,7 @@ impl TryFrom<GatewayMinPerformance> for nym_gateway_directory::GatewayMinPerform
     }
 }
 
-#[derive(uniffi::Record)]
+#[derive(uniffi::Record, Clone)]
 pub struct UserAgent {
     // The name of the application
     // Example: nym-vpnd

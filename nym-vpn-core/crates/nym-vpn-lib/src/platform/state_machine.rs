@@ -8,7 +8,9 @@ use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use nym_gateway_directory::Config as GatewayDirectoryConfig;
+use nym_gateway_directory::{
+    CachingGatewayClient, Config as GatewayDirectoryConfig, GatewayClient,
+};
 
 use super::TunnelEvent as PlatformTunnelEvent;
 use crate::tunnel_state_machine::{
@@ -120,6 +122,11 @@ pub(super) async fn start_state_machine(
         wg_score_thresholds,
     };
 
+    let user_agent = nym_sdk::UserAgent::from(config.user_agent.clone());
+    let gateway_directory_client =
+        GatewayClient::new(gateway_config.clone(), user_agent.clone()).unwrap();
+    let gateway_directory_client = CachingGatewayClient::new(gateway_directory_client);
+
     let nym_config = NymConfig {
         config_path: config.config_path,
         data_path: config.credential_data_path,
@@ -138,7 +145,7 @@ pub(super) async fn start_state_machine(
         entry_point: Box::new(entry_point),
         exit_point: Box::new(exit_point),
         dns: DnsOptions::default(),
-        user_agent: Some(config.user_agent.into()),
+        user_agent: Some(user_agent),
     };
 
     let (command_sender, command_receiver) = mpsc::unbounded_channel();
@@ -176,6 +183,7 @@ pub(super) async fn start_state_machine(
         nym_config,
         tunnel_settings,
         account_controller_tx,
+        gateway_directory_client,
         offline_monitor,
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler,

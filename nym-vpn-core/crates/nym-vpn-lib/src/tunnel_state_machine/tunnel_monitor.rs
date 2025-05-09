@@ -209,6 +209,7 @@ pub struct TunnelMonitor {
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_commands: AccountCommandSender,
+    gateway_directory_client: CachingGatewayClient,
     cancel_token: CancellationToken,
 }
 
@@ -216,6 +217,7 @@ impl TunnelMonitor {
     pub fn start(
         tunnel_parameters: TunnelParameters,
         account_commands: AccountCommandSender,
+        gateway_directory_client: CachingGatewayClient,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
         mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -233,6 +235,7 @@ impl TunnelMonitor {
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
             account_commands,
+            gateway_directory_client,
             cancel_token: cancel_token.clone(),
         };
         let join_handle = tokio::spawn(tunnel_monitor.run());
@@ -323,8 +326,13 @@ impl TunnelMonitor {
         )
         .unwrap();
 
-        let gateway_directory_client = CachingGatewayClient::new(gateway_directory_client);
-        gateway_directory_client.refresh_all().await;
+        self.gateway_directory_client
+            .update_client(gateway_directory_client)
+            .await;
+        self.gateway_directory_client.refresh_all().await;
+
+        // let gateway_directory_client = CachingGatewayClient::new(gateway_directory_client);
+        // gateway_directory_client.refresh_all().await;
 
         let selected_gateways =
             if let Some(selected_gateways) = self.tunnel_parameters.selected_gateways.clone() {
@@ -332,7 +340,7 @@ impl TunnelMonitor {
             } else {
                 // WIP
                 let new_gateways = tunnel::select_gateways(
-                    gateway_directory_client.clone(),
+                    self.gateway_directory_client.clone(),
                     // gateway_config.clone(),
                     // self.tunnel_parameters.resolved_gateway_config.clone(),
                     self.tunnel_parameters.tunnel_settings.tunnel_type,
@@ -396,7 +404,7 @@ impl TunnelMonitor {
         let mut connected_mixnet = tunnel::connect_mixnet(
             connect_options,
             &self.tunnel_parameters.nym_config.network_env,
-            gateway_directory_client,
+            self.gateway_directory_client.clone(),
             self.cancel_token.child_token(),
             #[cfg(unix)]
             Arc::new(connection_fd_callback),
