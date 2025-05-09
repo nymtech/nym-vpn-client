@@ -95,8 +95,8 @@ impl CachingGatewayClientInner {
 
     fn get_stale_gateway_list_types(&self) -> Vec<GatewayType> {
         let mut stale_gw_types = Vec::new();
-        for (gw_type, (_, last_updated)) in &self.cached_gateways {
-            if last_updated.elapsed() >= Self::MAX_CACHE_AGE {
+        for gw_type in GatewayType::iter() {
+            if !self.is_gateways_current(&gw_type) {
                 stale_gw_types.push(gw_type.clone());
             }
         }
@@ -105,8 +105,8 @@ impl CachingGatewayClientInner {
 
     fn get_stale_country_list_types(&self) -> Vec<GatewayType> {
         let mut stale_gw_types = Vec::new();
-        for (gw_type, (_, last_updated)) in &self.cached_countries {
-            if last_updated.elapsed() >= Self::MAX_CACHE_AGE {
+        for gw_type in GatewayType::iter() {
+            if !self.is_countries_current(&gw_type) {
                 stale_gw_types.push(gw_type.clone());
             }
         }
