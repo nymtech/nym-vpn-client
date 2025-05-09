@@ -8,7 +8,7 @@ use tokio::task::JoinHandle;
 
 use nym_authenticator_client::{AuthClientMixnetListener, AuthClientMixnetListenerHandle};
 use nym_credentials_interface::TicketType;
-use nym_gateway_directory::{AuthAddresses, CachingGatewayClient, Gateway, GatewayClient};
+use nym_gateway_directory::{AuthAddresses, CachingGatewayClient, Gateway};
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{ConnectionStatsEvent, EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
@@ -47,7 +47,7 @@ impl Connector {
         }
     }
     pub async fn connect(
-        mut self,
+        self,
         network: &Network,
         enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
@@ -58,7 +58,7 @@ impl Connector {
             &self.task_manager,
             network,
             self.mixnet_client.clone(),
-            &mut self.gateway_directory_client,
+            self.gateway_directory_client.clone(),
             enable_credentials_mode,
             selected_gateways,
             data_path,
@@ -91,7 +91,7 @@ impl Connector {
         task_manager: &TaskManager,
         network: &Network,
         mixnet_client: SharedMixnetClient,
-        gateway_directory_client: &mut CachingGatewayClient,
+        gateway_directory_client: CachingGatewayClient,
         enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
@@ -167,13 +167,13 @@ impl Connector {
             let entry_fut = bw.get_initial_bandwidth(
                 enable_credentials_mode,
                 TicketType::V1WireguardEntry,
-                gateway_directory_client,
+                gateway_directory_client.clone(),
                 &mut wg_entry_gateway_client,
             );
             let exit_fut = bw.get_initial_bandwidth(
                 enable_credentials_mode,
                 TicketType::V1WireguardExit,
-                gateway_directory_client,
+                gateway_directory_client.clone(),
                 &mut wg_exit_gateway_client,
             );
 
@@ -198,7 +198,7 @@ impl Connector {
                 .get_initial_bandwidth(
                     enable_credentials_mode,
                     TicketType::V1WireguardEntry,
-                    gateway_directory_client,
+                    gateway_directory_client.clone(),
                     &mut wg_entry_gateway_client,
                 )
                 .await?;
