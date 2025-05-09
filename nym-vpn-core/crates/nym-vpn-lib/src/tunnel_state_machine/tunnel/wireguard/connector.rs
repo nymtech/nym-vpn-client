@@ -8,7 +8,7 @@ use tokio::task::JoinHandle;
 
 use nym_authenticator_client::{AuthClientMixnetListener, AuthClientMixnetListenerHandle};
 use nym_credentials_interface::TicketType;
-use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient};
+use nym_gateway_directory::{AuthAddresses, CachingGatewayClient, Gateway, GatewayClient};
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{ConnectionStatsEvent, EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
@@ -31,14 +31,14 @@ pub struct ConnectionData {
 pub struct Connector {
     task_manager: TaskManager,
     mixnet_client: SharedMixnetClient,
-    gateway_directory_client: GatewayClient,
+    gateway_directory_client: CachingGatewayClient,
 }
 
 impl Connector {
     pub fn new(
         task_manager: TaskManager,
         mixnet_client: SharedMixnetClient,
-        gateway_directory_client: GatewayClient,
+        gateway_directory_client: CachingGatewayClient,
     ) -> Self {
         Self {
             task_manager,
@@ -47,7 +47,7 @@ impl Connector {
         }
     }
     pub async fn connect(
-        self,
+        mut self,
         network: &Network,
         enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
@@ -58,7 +58,7 @@ impl Connector {
             &self.task_manager,
             network,
             self.mixnet_client.clone(),
-            &self.gateway_directory_client,
+            &mut self.gateway_directory_client,
             enable_credentials_mode,
             selected_gateways,
             data_path,
@@ -91,7 +91,7 @@ impl Connector {
         task_manager: &TaskManager,
         network: &Network,
         mixnet_client: SharedMixnetClient,
-        gateway_directory_client: &GatewayClient,
+        gateway_directory_client: &mut CachingGatewayClient,
         enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,

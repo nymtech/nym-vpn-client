@@ -3,7 +3,7 @@
 
 use std::net::IpAddr;
 
-use nym_gateway_directory::{GatewayClient, IpPacketRouterAddress, Recipient};
+use nym_gateway_directory::{CachingGatewayClient, IpPacketRouterAddress, Recipient};
 use nym_ip_packet_client::IprClientConnect;
 use nym_ip_packet_requests::IpPair;
 use nym_mixnet_client::SharedMixnetClient;
@@ -29,14 +29,14 @@ pub struct AssignedAddresses {
 pub struct Connector {
     task_manager: TaskManager,
     mixnet_client: SharedMixnetClient,
-    gateway_directory_client: GatewayClient,
+    gateway_directory_client: CachingGatewayClient,
 }
 
 impl Connector {
     pub fn new(
         task_manager: TaskManager,
         mixnet_client: SharedMixnetClient,
-        gateway_directory_client: GatewayClient,
+        gateway_directory_client: CachingGatewayClient,
     ) -> Self {
         Self {
             task_manager,
@@ -46,14 +46,14 @@ impl Connector {
     }
 
     pub async fn connect(
-        self,
+        mut self,
         selected_gateways: SelectedGateways,
         cancel_token: CancellationToken,
     ) -> Result<ConnectedTunnel, ConnectorError> {
         let result = Self::connect_inner(
             selected_gateways,
             self.mixnet_client.clone(),
-            &self.gateway_directory_client,
+            &mut self.gateway_directory_client,
             cancel_token.clone(),
         )
         .await;
@@ -79,7 +79,7 @@ impl Connector {
     async fn connect_inner(
         selected_gateways: SelectedGateways,
         mixnet_client: SharedMixnetClient,
-        gateway_directory_client: &GatewayClient,
+        gateway_directory_client: &mut CachingGatewayClient,
         cancel_token: CancellationToken,
     ) -> Result<AssignedAddresses> {
         let mixnet_client_address = mixnet_client.nym_address().await;
