@@ -282,7 +282,6 @@ impl TunnelStateHandler for ConnectedState {
                     NextTunnelState::NewState(DisconnectingState::enter(
                         PrivateActionAfterDisconnect::Offline {
                             reconnect: true,
-                            retry_attempt: 0,
                             gateways: Some(self.selected_gateways)
                         },
                         self.monitor_handle,

@@ -296,9 +296,6 @@ enum PrivateActionAfterDisconnect {
         /// Whether to reconnect the tunnel once back online.
         reconnect: bool,
 
-        /// The last recorded retry attempt passed to connecting state upon reconnect.
-        retry_attempt: u32,
-
         /// The last known gateways passed to connecting state upon reconnect.
         gateways: Option<SelectedGateways>,
     },
@@ -474,7 +471,7 @@ impl TunnelStateMachine {
             .await
             .is_offline()
         {
-            OfflineState::enter(false, 0, None, &mut shared_state).await
+            OfflineState::enter(false, None, &mut shared_state).await
         } else {
             DisconnectedState::enter(&mut shared_state).await
         };

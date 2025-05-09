@@ -25,9 +25,6 @@ pub struct OfflineState {
     /// Whether to connect the tunnel once online
     reconnect: bool,
 
-    /// Last known retry attempt before entering offline state.
-    retry_attempt: u32,
-
     /// Gateways to which the tunnel will reconnect to once online
     selected_gateways: Option<SelectedGateways>,
 }
@@ -35,7 +32,6 @@ pub struct OfflineState {
 impl OfflineState {
     pub async fn enter(
         reconnect: bool,
-        retry_attempt: u32,
         selected_gateways: Option<SelectedGateways>,
         _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
@@ -52,7 +48,6 @@ impl OfflineState {
         (
             Box::new(Self {
                 reconnect,
-                retry_attempt,
                 selected_gateways,
             }),
             PrivateTunnelState::Offline { reconnect },
@@ -150,7 +145,7 @@ impl TunnelStateHandler for OfflineState {
                     Self::reset_dns(shared_state).await;
 
                     NextTunnelState::NewState(ConnectingState::enter(
-                        self.retry_attempt,
+                        0,
                         self.selected_gateways,
                         shared_state
                     ).await)

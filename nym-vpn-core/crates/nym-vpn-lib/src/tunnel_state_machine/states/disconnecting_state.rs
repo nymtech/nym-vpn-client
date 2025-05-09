@@ -85,8 +85,8 @@ impl TunnelStateHandler for DisconnectingState {
                     PrivateActionAfterDisconnect::Reconnect => {
                         NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)
                     },
-                    PrivateActionAfterDisconnect::Offline { reconnect, retry_attempt, gateways } => {
-                        NextTunnelState::NewState(OfflineState::enter(reconnect, retry_attempt, gateways, shared_state).await)
+                    PrivateActionAfterDisconnect::Offline { reconnect, gateways } => {
+                        NextTunnelState::NewState(OfflineState::enter(reconnect, gateways, shared_state).await)
                     }
                 }
             }
@@ -94,16 +94,16 @@ impl TunnelStateHandler for DisconnectingState {
                 match command {
                     TunnelCommand::Connect => {
                         self.after_disconnect = match self.after_disconnect {
-                            PrivateActionAfterDisconnect::Offline { retry_attempt, gateways,  .. } => {
-                                PrivateActionAfterDisconnect::Offline { reconnect: true, retry_attempt, gateways }
+                            PrivateActionAfterDisconnect::Offline { gateways,  .. } => {
+                                PrivateActionAfterDisconnect::Offline { reconnect: true, gateways }
                             }
                             _ => PrivateActionAfterDisconnect::Reconnect,
                         };
                     },
                     TunnelCommand::Disconnect => {
                         self.after_disconnect = match self.after_disconnect {
-                            PrivateActionAfterDisconnect::Offline { retry_attempt, gateways, .. } => {
-                                PrivateActionAfterDisconnect::Offline { reconnect: false,retry_attempt,  gateways }
+                            PrivateActionAfterDisconnect::Offline { gateways, .. } => {
+                                PrivateActionAfterDisconnect::Offline { reconnect: false, gateways }
                             }
                             _ => PrivateActionAfterDisconnect::Nothing
                         };

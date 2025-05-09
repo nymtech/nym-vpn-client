@@ -80,7 +80,7 @@ impl ConnectingState {
                 tracing::debug!("Poking route manager to update default routes");
                 shared_state.route_handler.refresh_routes().await;
             }
-            return OfflineState::enter(true, retry_attempt, selected_gateways, shared_state).await;
+            return OfflineState::enter(true, selected_gateways, shared_state).await;
         }
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -598,14 +598,13 @@ impl TunnelStateHandler for ConnectingState {
                         NextTunnelState::NewState(DisconnectingState::enter(
                             PrivateActionAfterDisconnect::Offline {
                                 reconnect: true,
-                                retry_attempt: self.retry_attempt,
                                 gateways: self.selected_gateways
                             },
                             monitor_handle,
                             shared_state
                         ))
                     } else {
-                        NextTunnelState::NewState(OfflineState::enter(true, self.retry_attempt, self.selected_gateways, shared_state).await)
+                        NextTunnelState::NewState(OfflineState::enter(true,   self.selected_gateways, shared_state).await)
                     }
                 } else {
                     NextTunnelState::SameState(self)

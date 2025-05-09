@@ -67,7 +67,7 @@ impl TunnelStateHandler for DisconnectedState {
             }
             Some(connectivity) = shared_state.offline_monitor.next() => {
                 if connectivity.is_offline() {
-                    NextTunnelState::NewState(OfflineState::enter(false, 0, None, shared_state).await)
+                    NextTunnelState::NewState(OfflineState::enter(false, None, shared_state).await)
                 } else {
                     NextTunnelState::SameState(self)
                 }
