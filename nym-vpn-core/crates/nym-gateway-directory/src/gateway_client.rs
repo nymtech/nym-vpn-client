@@ -183,11 +183,11 @@ impl GatewayClient {
             .map_err(Error::FailedToLookupSkimmedNodes)
     }
 
-    pub async fn lookup_low_latency_entry_gateway(&self) -> Result<Gateway> {
-        debug!("Fetching low latency entry gateway...");
-        let gateways = self.lookup_gateways(GatewayType::MixnetEntry).await?;
-        gateways.random_low_latency_gateway().await
-    }
+    // pub async fn lookup_low_latency_entry_gateway(&self) -> Result<Gateway> {
+    //     debug!("Fetching low latency entry gateway...");
+    //     let gateways = self.lookup_gateways(GatewayType::MixnetEntry).await?;
+    //     gateways.random_low_latency_gateway().await
+    // }
 
     pub async fn lookup_gateway_ip_from_nym_api(&self, gateway_identity: &str) -> Result<IpAddr> {
         debug!("Fetching gateway ip from nym-api...");

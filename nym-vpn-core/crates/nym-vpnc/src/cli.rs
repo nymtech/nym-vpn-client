@@ -207,9 +207,9 @@ pub struct CliEntry {
     #[arg(long, alias = "entry-gateway-country")]
     pub entry_country: Option<String>,
 
-    /// Auto-select entry gateway by latency
-    #[arg(long, alias = "entry-gateway-low-latency")]
-    pub entry_fastest: bool,
+    // Auto-select entry gateway by latency
+    // #[arg(long, alias = "entry-gateway-low-latency")]
+    // pub entry_fastest: bool,
 
     /// Auto-select entry gateway randomly.
     #[arg(long, alias = "entry-gateway-random")]
@@ -318,8 +318,8 @@ pub fn parse_entry_point(args: &ConnectArgs) -> Result<Option<EntryPoint>> {
         Ok(Some(EntryPoint::Location {
             location: entry_gateway_country.clone(),
         }))
-    } else if args.entry.entry_fastest {
-        Ok(Some(EntryPoint::RandomLowLatency))
+    // } else if args.entry.entry_fastest {
+    //     Ok(Some(EntryPoint::RandomLowLatency))
     } else if args.entry.entry_random {
         Ok(Some(EntryPoint::Random))
     } else {

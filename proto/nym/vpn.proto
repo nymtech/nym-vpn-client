@@ -28,7 +28,7 @@ message EntryNode {
   oneof entry_node_enum {
     Gateway gateway = 1;
     Location location = 2;
-    google.protobuf.Empty random_low_latency = 3;
+    // google.protobuf.Empty random_low_latency = 3;
     google.protobuf.Empty random = 4;
   }
 }

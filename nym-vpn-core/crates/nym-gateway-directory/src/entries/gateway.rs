@@ -462,12 +462,12 @@ impl GatewayList {
         self.gateways
     }
 
-    pub(crate) async fn random_low_latency_gateway(&self) -> Result<Gateway> {
-        let mut rng = rand::rngs::OsRng;
-        nym_client_core::init::helpers::choose_gateway_by_latency(&mut rng, &self.gateways, false)
-            .await
-            .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })
-    }
+    // pub(crate) async fn random_low_latency_gateway(&self) -> Result<Gateway> {
+    //     let mut rng = rand::rngs::OsRng;
+    //     nym_client_core::init::helpers::choose_gateway_by_latency(&mut rng, &self.gateways, false)
+    //         .await
+    //         .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })
+    // }
 }
 
 impl IntoIterator for GatewayList {

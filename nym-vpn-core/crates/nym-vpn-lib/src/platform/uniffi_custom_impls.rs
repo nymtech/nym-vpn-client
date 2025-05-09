@@ -537,7 +537,7 @@ impl From<UserAgent> for NymUserAgent {
 pub enum EntryPoint {
     Gateway { identity: NodeIdentity },
     Location { location: String },
-    RandomLowLatency,
+    // RandomLowLatency,
     Random,
 }
 
@@ -546,7 +546,7 @@ impl From<EntryPoint> for GwEntryPoint {
         match value {
             EntryPoint::Gateway { identity } => GwEntryPoint::Gateway { identity },
             EntryPoint::Location { location } => GwEntryPoint::Location { location },
-            EntryPoint::RandomLowLatency => GwEntryPoint::RandomLowLatency,
+            // EntryPoint::RandomLowLatency => GwEntryPoint::RandomLowLatency,
             EntryPoint::Random => GwEntryPoint::Random,
         }
     }

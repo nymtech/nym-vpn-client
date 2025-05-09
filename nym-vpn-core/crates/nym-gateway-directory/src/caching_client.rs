@@ -9,10 +9,11 @@ use std::{
 };
 
 use futures::{stream::FuturesUnordered, StreamExt};
+use nym_sdk::mixnet::NodeIdentity;
 use strum::IntoEnumIterator;
 use tokio::sync::Mutex;
 
-use crate::{error::Result, Country, GatewayClient, GatewayList, GatewayType};
+use crate::{error::Result, Country, Gateway, GatewayClient, GatewayList, GatewayType};
 
 #[derive(Clone)]
 pub struct CachingGatewayClient {
@@ -151,7 +152,22 @@ impl CachingGatewayClientInner {
     }
 
     pub async fn lookup_gateway_ip(&mut self, gateway_identity: &str) -> Result<IpAddr> {
-        // TODO: cache
+        // If we have a populated list of gateways, we should always be able to find the IP there.
+        if let Ok(identity) = NodeIdentity::from_base58_string(gateway_identity) {
+            for (_, (gateways, _)) in self.cached_gateways.iter() {
+                if let Some(ip) = gateways
+                    .node_with_identity(&identity)
+                    .and_then(Gateway::lookup_ip)
+                {
+                    return Ok(ip);
+                }
+            }
+        } else {
+            tracing::warn!("Failed to parse gateway identity: {gateway_identity}");
+        }
+
+        // Fallback
+        tracing::warn!("Using fallback to lookup gateway IP");
         self.gateway_client
             .lookup_gateway_ip(gateway_identity)
             .await
