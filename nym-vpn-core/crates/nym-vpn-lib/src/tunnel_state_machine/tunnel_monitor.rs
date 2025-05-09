@@ -3,6 +3,7 @@
 
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{sockopt::Mark, SetSockOpt};
+use nym_sdk::UserAgent;
 use nym_vpn_network_config::start_background_file_refresh;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::net::Ipv4Addr;
@@ -20,7 +21,7 @@ use std::{os::fd::RawFd, sync::Arc};
 use super::wintun::{self, WintunAdapterConfig};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
-use nym_gateway_directory::{GatewayMinPerformance, ResolvedConfig};
+use nym_gateway_directory::{GatewayClient, GatewayMinPerformance, ResolvedConfig};
 use nym_vpn_account_controller::AccountCommandSender;
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -304,17 +305,35 @@ impl TunnelMonitor {
             }
         }
 
+        let user_agent = self
+            .tunnel_parameters
+            .tunnel_settings
+            .user_agent
+            .clone()
+            .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
+        let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
+            gateway_config.clone(),
+            user_agent,
+            self.tunnel_parameters
+                .resolved_gateway_config
+                .nym_vpn_api_socket_addrs
+                .as_deref(),
+        )
+        .unwrap();
+
         let selected_gateways =
             if let Some(selected_gateways) = self.tunnel_parameters.selected_gateways.clone() {
                 selected_gateways
             } else {
+                // WIP
                 let new_gateways = tunnel::select_gateways(
-                    gateway_config.clone(),
-                    self.tunnel_parameters.resolved_gateway_config.clone(),
+                    &gateway_directory_client,
+                    // gateway_config.clone(),
+                    // self.tunnel_parameters.resolved_gateway_config.clone(),
                     self.tunnel_parameters.tunnel_settings.tunnel_type,
                     self.tunnel_parameters.tunnel_settings.entry_point.clone(),
                     self.tunnel_parameters.tunnel_settings.exit_point.clone(),
-                    self.tunnel_parameters.tunnel_settings.user_agent.clone(),
+                    // self.tunnel_parameters.tunnel_settings.user_agent.clone(),
                     self.cancel_token.child_token(),
                 )
                 .await?;
@@ -372,6 +391,7 @@ impl TunnelMonitor {
         let mut connected_mixnet = tunnel::connect_mixnet(
             connect_options,
             &self.tunnel_parameters.nym_config.network_env,
+            gateway_directory_client,
             self.cancel_token.child_token(),
             #[cfg(unix)]
             Arc::new(connection_fd_callback),
