@@ -406,7 +406,6 @@ where
         loop {
             tokio::select! {
                 Some(command) = self.vpn_command_rx.recv() => {
-                    tracing::debug!("Received command: {command}");
                     self.handle_service_command_timed(command).await;
                 }
                 Some(event) = self.event_receiver.recv() => {
