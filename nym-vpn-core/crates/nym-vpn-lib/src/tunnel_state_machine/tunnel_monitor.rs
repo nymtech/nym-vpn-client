@@ -21,7 +21,9 @@ use std::{os::fd::RawFd, sync::Arc};
 use super::wintun::{self, WintunAdapterConfig};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
-use nym_gateway_directory::{GatewayClient, GatewayMinPerformance, ResolvedConfig};
+use nym_gateway_directory::{
+    CachingGatewayClient, GatewayClient, GatewayMinPerformance, ResolvedConfig,
+};
 use nym_vpn_account_controller::AccountCommandSender;
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -320,6 +322,8 @@ impl TunnelMonitor {
                 .as_deref(),
         )
         .unwrap();
+
+        let gateway_directy_client = CachingGatewayClient::new(gateway_directory_client);
 
         let selected_gateways =
             if let Some(selected_gateways) = self.tunnel_parameters.selected_gateways.clone() {

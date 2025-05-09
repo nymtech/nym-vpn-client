@@ -13,7 +13,9 @@ use std::{error::Error as StdError, fmt, path::PathBuf, time::Duration};
 use std::{os::fd::RawFd, sync::Arc};
 
 pub use gateway_selector::SelectedGateways;
-use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayClient, Recipient};
+use nym_gateway_directory::{
+    CachingGatewayClient, EntryPoint, ExitPoint, Recipient,
+};
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
@@ -34,7 +36,7 @@ pub(crate) const TASK_MANAGER_SHUTDOWN_TIMER_SECS: u64 = 10;
 
 pub struct ConnectedMixnet {
     task_manager: TaskManager,
-    gateway_directory_client: GatewayClient,
+    gateway_directory_client: CachingGatewayClient,
     selected_gateways: SelectedGateways,
     data_path: Option<PathBuf>,
     mixnet_client: SharedMixnetClient,
@@ -140,7 +142,7 @@ pub struct MixnetConnectOptions {
 }
 
 pub async fn select_gateways(
-    gateway_directory_client: &GatewayClient,
+    gateway_directory_client: &mut CachingGatewayClient,
     // gateway_config: nym_gateway_directory::Config,
     // resolved_gateway_config: nym_gateway_directory::ResolvedConfig,
     tunnel_type: TunnelType,
@@ -159,7 +161,7 @@ pub async fn select_gateways(
     // .map_err(Error::CreateGatewayClient)?;
 
     let select_gateways_fut = gateway_selector::select_gateways(
-        &gateway_directory_client,
+        gateway_directory_client,
         tunnel_type,
         entry_point,
         exit_point,
@@ -174,7 +176,7 @@ pub async fn select_gateways(
 pub async fn connect_mixnet(
     options: MixnetConnectOptions,
     network_env: &Network,
-    gateway_directory_client: GatewayClient,
+    gateway_directory_client: CachingGatewayClient,
     cancel_token: CancellationToken,
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<ConnectedMixnet> {

@@ -3,6 +3,7 @@
 
 use std::{
     collections::HashMap,
+    net::IpAddr,
     time::{Duration, Instant},
 };
 
@@ -116,5 +117,12 @@ impl CachingGatewayClient {
         } else {
             refreshed_countries
         }
+    }
+
+    pub async fn lookup_gateway_ip(&mut self, gateway_identity: &str) -> Result<IpAddr> {
+        // TODO: cache
+        self.gateway_client
+            .lookup_gateway_ip(gateway_identity)
+            .await
     }
 }
