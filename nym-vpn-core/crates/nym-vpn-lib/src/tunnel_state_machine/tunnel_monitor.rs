@@ -331,9 +331,6 @@ impl TunnelMonitor {
             .await;
         self.gateway_directory_client.refresh_all().await;
 
-        // let gateway_directory_client = CachingGatewayClient::new(gateway_directory_client);
-        // gateway_directory_client.refresh_all().await;
-
         let selected_gateways =
             if let Some(selected_gateways) = self.tunnel_parameters.selected_gateways.clone() {
                 selected_gateways
