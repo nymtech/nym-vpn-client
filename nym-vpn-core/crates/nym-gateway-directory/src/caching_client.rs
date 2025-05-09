@@ -4,17 +4,56 @@
 use std::{
     collections::HashMap,
     net::IpAddr,
+    sync::Arc,
     time::{Duration, Instant},
 };
 
 use futures::{stream::FuturesUnordered, StreamExt};
 use strum::IntoEnumIterator;
+use tokio::sync::Mutex;
 
 use crate::{error::Result, Country, GatewayClient, GatewayList, GatewayType};
 
+#[derive(Clone)]
+pub struct CachingGatewayClient {
+    inner: Arc<Mutex<CachingGatewayClientInner>>,
+}
+
+impl CachingGatewayClient {
+    pub fn new(gateway_client: GatewayClient) -> Self {
+        CachingGatewayClient {
+            inner: Arc::new(Mutex::new(CachingGatewayClientInner {
+                gateway_client,
+                cached_gateways: Default::default(),
+                cached_countries: Default::default(),
+            })),
+        }
+    }
+
+    pub async fn refresh_all(&self) {
+        self.inner.lock().await.refresh_all().await
+    }
+
+    pub async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList> {
+        self.inner.lock().await.lookup_gateways(gw_type).await
+    }
+
+    pub async fn lookup_countries(&self, gw_type: GatewayType) -> Result<Vec<Country>> {
+        self.inner.lock().await.lookup_countries(gw_type).await
+    }
+
+    pub async fn lookup_gateway_ip(&self, gateway_identity: &str) -> Result<IpAddr> {
+        self.inner
+            .lock()
+            .await
+            .lookup_gateway_ip(gateway_identity)
+            .await
+    }
+}
+
 /// A caching client that wraps around the `GatewayClient` and caches the results of
 /// `lookup_gateways` and `lookup_countries` calls.
-pub struct CachingGatewayClient {
+struct CachingGatewayClientInner {
     // The underlying client that actually does the work
     gateway_client: GatewayClient,
 
@@ -25,17 +64,9 @@ pub struct CachingGatewayClient {
     cached_countries: HashMap<GatewayType, (Vec<Country>, Instant)>,
 }
 
-impl CachingGatewayClient {
+impl CachingGatewayClientInner {
     /// The maximum age of the cache before it is considered stale.
     const MAX_CACHE_AGE: Duration = Duration::from_secs(5 * 60);
-
-    pub fn new(gateway_client: GatewayClient) -> Self {
-        CachingGatewayClient {
-            gateway_client,
-            cached_gateways: Default::default(),
-            cached_countries: Default::default(),
-        }
-    }
 
     pub async fn refresh_all(&mut self) {
         let mut tasks = FuturesUnordered::new();

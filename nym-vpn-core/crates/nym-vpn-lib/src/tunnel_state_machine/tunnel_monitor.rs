@@ -323,7 +323,7 @@ impl TunnelMonitor {
         )
         .unwrap();
 
-        let gateway_directy_client = CachingGatewayClient::new(gateway_directory_client);
+        let gateway_directory_client = CachingGatewayClient::new(gateway_directory_client);
 
         let selected_gateways =
             if let Some(selected_gateways) = self.tunnel_parameters.selected_gateways.clone() {
@@ -331,7 +331,7 @@ impl TunnelMonitor {
             } else {
                 // WIP
                 let new_gateways = tunnel::select_gateways(
-                    &gateway_directory_client,
+                    gateway_directory_client.clone(),
                     // gateway_config.clone(),
                     // self.tunnel_parameters.resolved_gateway_config.clone(),
                     self.tunnel_parameters.tunnel_settings.tunnel_type,

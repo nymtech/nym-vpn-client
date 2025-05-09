@@ -13,9 +13,7 @@ use std::{error::Error as StdError, fmt, path::PathBuf, time::Duration};
 use std::{os::fd::RawFd, sync::Arc};
 
 pub use gateway_selector::SelectedGateways;
-use nym_gateway_directory::{
-    CachingGatewayClient, EntryPoint, ExitPoint, Recipient,
-};
+use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint, Recipient};
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
@@ -142,7 +140,7 @@ pub struct MixnetConnectOptions {
 }
 
 pub async fn select_gateways(
-    gateway_directory_client: &mut CachingGatewayClient,
+    gateway_directory_client: CachingGatewayClient,
     // gateway_config: nym_gateway_directory::Config,
     // resolved_gateway_config: nym_gateway_directory::ResolvedConfig,
     tunnel_type: TunnelType,
