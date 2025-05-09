@@ -93,8 +93,7 @@ pub(crate) async fn setup_mixnet_client(
     if two_hop_mode {
         // for mobile platforms, in two hop mode, we do less frequent cover traffic, to preserve
         // battery
-        #[cfg(any(target_os = "android", target_os = "ios"))]
-        {
+        if cfg!(any(target_os = "android", target_os = "ios")) {
             debug_config.cover_traffic.loop_cover_traffic_average_delay =
                 MOBILE_LOOP_COVER_STREAM_AVERAGE_DELAY;
         }
