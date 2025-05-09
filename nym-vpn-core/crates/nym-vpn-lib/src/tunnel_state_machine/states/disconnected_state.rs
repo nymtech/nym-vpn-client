@@ -16,14 +16,22 @@ pub struct DisconnectedState;
 
 impl DisconnectedState {
     pub async fn enter(
-        _shared_state: &mut SharedState,
+        shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
-        if let Err(error) = _shared_state.dns_handler.reset().await {
-            error.trace_chain_with_msg("Unable to disable filtering resolver");
+        if let Err(error) = shared_state.dns_handler.reset().await {
+            error.trace_chain_with_msg("Failed to disable filtering resolver");
         }
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        Self::reset_firewall_policy(_shared_state);
+        Self::reset_firewall_policy(shared_state);
+
+        if let Err(e) = shared_state
+            .account_command_tx
+            .set_static_api_addresses(None)
+            .await
+        {
+            e.trace_chain_with_msg("Failed to unset static API addresses");
+        }
 
         (Box::new(Self), PrivateTunnelState::Disconnected)
     }

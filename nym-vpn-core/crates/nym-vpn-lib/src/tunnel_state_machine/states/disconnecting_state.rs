@@ -72,14 +72,6 @@ impl DisconnectingState {
         #[cfg(windows)]
         tombstone.wg_instances.clear();
         tombstone.tun_devices.clear();
-
-        if let Err(e) = shared_state
-            .account_command_tx
-            .set_static_api_addresses(None)
-            .await
-        {
-            e.trace_chain_with_msg("Failed to unset static API addresses");
-        }
     }
 }
 
