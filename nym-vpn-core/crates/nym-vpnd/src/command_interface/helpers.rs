@@ -30,10 +30,10 @@ pub(super) fn parse_entry_point(
             })?;
             EntryPoint::Gateway { identity }
         }
-        nym_vpn_proto::entry_node::EntryNodeEnum::RandomLowLatency(_) => {
-            tracing::debug!("Connecting to low latency entry node");
-            EntryPoint::RandomLowLatency
-        }
+        // nym_vpn_proto::entry_node::EntryNodeEnum::RandomLowLatency(_) => {
+        //     tracing::debug!("Connecting to low latency entry node");
+        //     EntryPoint::RandomLowLatency
+        // }
         nym_vpn_proto::entry_node::EntryNodeEnum::Random(_) => {
             tracing::debug!("Connecting to random entry node");
             EntryPoint::Random
