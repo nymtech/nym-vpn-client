@@ -122,17 +122,14 @@ pub(super) async fn start_state_machine(
         wg_score_thresholds,
     };
 
-    let user_agent = nym_sdk::UserAgent::from(config.user_agent.clone());
-    let gateway_directory_client =
-        GatewayClient::new(gateway_config.clone(), user_agent.clone()).unwrap();
-    let gateway_directory_client = CachingGatewayClient::new(gateway_directory_client);
-
     let nym_config = NymConfig {
         config_path: config.config_path,
         data_path: config.credential_data_path,
-        gateway_config,
+        gateway_config: gateway_config.clone(),
         network_env,
     };
+
+    let user_agent = nym_sdk::UserAgent::from(config.user_agent.clone());
 
     let tunnel_settings = TunnelSettings {
         tunnel_type,
@@ -145,7 +142,7 @@ pub(super) async fn start_state_machine(
         entry_point: Box::new(entry_point),
         exit_point: Box::new(exit_point),
         dns: DnsOptions::default(),
-        user_agent: Some(user_agent),
+        user_agent: Some(user_agent.clone()),
     };
 
     let (command_sender, command_receiver) = mpsc::unbounded_channel();
@@ -175,6 +172,10 @@ pub(super) async fn start_state_machine(
         Some(crate::tunnel_state_machine::TUNNEL_FWMARK),
     )
     .await;
+
+    let gateway_directory_client = GatewayClient::new(gateway_config, user_agent).unwrap();
+    let gateway_directory_client =
+        CachingGatewayClient::new(gateway_directory_client, Some(offline_monitor.clone()));
 
     let shutdown_token = CancellationToken::new();
     let state_machine_handle = TunnelStateMachine::spawn(

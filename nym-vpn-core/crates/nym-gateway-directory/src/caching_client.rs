@@ -9,11 +9,12 @@ use std::{
 };
 
 use futures::{stream::FuturesUnordered, FutureExt, StreamExt};
+use nym_offline_monitor::ConnectivityHandle;
 use nym_sdk::mixnet::NodeIdentity;
 use strum::IntoEnumIterator;
 use tokio::sync::Mutex;
 
-use crate::{error::Result, Country, Gateway, GatewayClient, GatewayList, GatewayType};
+use crate::{error::Result, Country, Error, Gateway, GatewayClient, GatewayList, GatewayType};
 
 #[derive(Clone)]
 pub struct CachingGatewayClient {
@@ -21,10 +22,14 @@ pub struct CachingGatewayClient {
 }
 
 impl CachingGatewayClient {
-    pub fn new(gateway_client: GatewayClient) -> Self {
-        CachingGatewayClient {
+    pub fn new(
+        gateway_client: GatewayClient,
+        connectivity_handle: Option<ConnectivityHandle>,
+    ) -> Self {
+        Self {
             inner: Arc::new(Mutex::new(CachingGatewayClientInner {
                 gateway_client,
+                connectivity_handle,
                 cached_gateways: Default::default(),
                 cached_countries: Default::default(),
             })),
@@ -66,6 +71,9 @@ struct CachingGatewayClientInner {
     // The underlying client that actually does the work
     gateway_client: GatewayClient,
 
+    // The connectivity handle to check if we are online
+    connectivity_handle: Option<ConnectivityHandle>,
+
     // The cached gateways and their last updated time
     cached_gateways: HashMap<GatewayType, (GatewayList, Instant)>,
 
@@ -81,6 +89,15 @@ enum LookupResult {
 impl CachingGatewayClientInner {
     /// The maximum age of the cache before it is considered stale.
     const MAX_CACHE_AGE: Duration = Duration::from_secs(5 * 60);
+
+    async fn check_offline(&self) -> bool {
+        if let Some(connectivity_handle) = &self.connectivity_handle {
+            if connectivity_handle.connectivity().await.is_offline() {
+                return true;
+            }
+        }
+        false
+    }
 
     pub async fn refresh_all(&mut self) {
         tracing::info!("Refreshing all gateways and countries");
@@ -118,6 +135,11 @@ impl CachingGatewayClientInner {
     }
 
     async fn refresh(&mut self, gw_list_types: Vec<GatewayType>, country_types: Vec<GatewayType>) {
+        if self.check_offline().await {
+            tracing::warn!("Not refreshing gateways and countries because we are not connected");
+            return;
+        }
+
         tracing::info!(
             "Refreshing gateway lists: {gw_list_types:?}, country lists: {country_types:?}"
         );
@@ -203,6 +225,10 @@ impl CachingGatewayClientInner {
     }
 
     async fn force_refresh_countries(&mut self, gw_type: GatewayType) -> Result<Vec<Country>> {
+        if self.check_offline().await {
+            tracing::warn!("Not refreshing countries because we are not connected");
+            return Err(Error::Offline);
+        }
         let refreshed_countries = self
             .gateway_client
             .lookup_countries(gw_type.clone())
@@ -224,6 +250,10 @@ impl CachingGatewayClientInner {
     }
 
     async fn force_refresh_gateways(&mut self, gw_type: GatewayType) -> Result<GatewayList> {
+        if self.check_offline().await {
+            tracing::warn!("Not refreshing countries because we are not connected");
+            return Err(Error::Offline);
+        }
         let refreshed_gateways = self.gateway_client.lookup_gateways(gw_type.clone()).await?;
         self.cached_gateways.insert(
             gw_type.clone(),

@@ -4088,6 +4088,7 @@ dependencies = [
  "nym-client-core",
  "nym-common",
  "nym-http-api-client",
+ "nym-offline-monitor",
  "nym-sdk",
  "nym-topology",
  "nym-validator-client",

@@ -84,6 +84,9 @@ pub enum Error {
 
     #[error("the provided gateway information is malformed")]
     MalformedGateway,
+
+    #[error("no connectivity")]
+    Offline,
 }
 
 // Result type based on our error type
