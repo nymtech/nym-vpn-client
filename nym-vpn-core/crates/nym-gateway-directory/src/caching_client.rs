@@ -125,6 +125,7 @@ impl CachingGatewayClientInner {
 
         for gw_type in country_types {
             let client = self.gateway_client.clone();
+            tracing::info!("pushing");
             tasks.push(
                 async move {
                     let res = client.lookup_countries(gw_type.clone()).await;
@@ -135,6 +136,7 @@ impl CachingGatewayClientInner {
         }
         for gw_type in gw_list_types {
             let client = self.gateway_client.clone();
+            tracing::info!("pushing");
             tasks.push(
                 async move {
                     let res = client.lookup_gateways(gw_type.clone()).await;
@@ -144,6 +146,7 @@ impl CachingGatewayClientInner {
             );
         }
 
+        tracing::info!("Waiting for tasks to finish");
         while let Some((gw_type, res)) = tasks.next().await {
             match res {
                 LookupResult::Gateways(r) => match r {

@@ -22,7 +22,7 @@ use nym_vpn_api_client::{
     NetworkCompatibility,
 };
 use nym_vpn_lib::{
-    gateway_directory::{self, EntryPoint, ExitPoint},
+    gateway_directory::{self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
@@ -316,9 +316,13 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let nym_config = NymConfig {
             config_path: Some(config_dir),
             data_path: Some(network_data_dir.clone()),
-            gateway_config,
+            gateway_config: gateway_config.clone(),
             network_env: network_env.clone(),
         };
+
+        let gateway_directory_client =
+            GatewayClient::new(gateway_config, user_agent.clone()).unwrap();
+        let gateway_directory_client = CachingGatewayClient::new(gateway_directory_client);
 
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,
@@ -326,6 +330,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             nym_config,
             tunnel_settings,
             account_command_tx.clone(),
+            gateway_directory_client,
             offline_monitor,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             route_handler,
