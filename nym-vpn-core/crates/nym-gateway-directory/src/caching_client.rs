@@ -31,6 +31,10 @@ impl CachingGatewayClient {
         }
     }
 
+    pub async fn update_client(&self, new_client: GatewayClient) {
+        self.inner.lock().await.gateway_client = new_client;
+    }
+
     pub async fn refresh_all(&self) {
         self.inner.lock().await.refresh_all().await
     }
