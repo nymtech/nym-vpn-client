@@ -21,7 +21,7 @@ use crate::{
     logging::LogPath,
     service::{
         AccountLinksError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
-        VpnServiceDeleteLogFileError, GATEWAY_CLIENT,
+        VpnServiceDeleteLogFileError, GATEWAY_DIRECTORY_CLIENT,
     },
 };
 
@@ -126,7 +126,7 @@ impl CommandInterfaceConnectionHandler {
         user_agent: nym_vpn_lib::UserAgent,
         directory_config: nym_vpn_lib::gateway_directory::Config,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
-        let gateways = match GATEWAY_CLIENT.get().cloned() {
+        let gateways = match GATEWAY_DIRECTORY_CLIENT.get().cloned() {
             Some(gw_client) => gw_client.lookup_gateways(gw_type.clone()).await,
             None => {
                 directory_client(user_agent, directory_config)?
@@ -145,7 +145,7 @@ impl CommandInterfaceConnectionHandler {
         user_agent: nym_vpn_lib::UserAgent,
         directory_config: nym_vpn_lib::gateway_directory::Config,
     ) -> Result<Vec<gateway::Country>, ListGatewayError> {
-        let gateways = match GATEWAY_CLIENT.get().cloned() {
+        let gateways = match GATEWAY_DIRECTORY_CLIENT.get().cloned() {
             Some(gw_client) => gw_client.lookup_countries(gw_type.clone()).await,
             None => {
                 directory_client(user_agent, directory_config)?

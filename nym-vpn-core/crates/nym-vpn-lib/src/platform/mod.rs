@@ -84,7 +84,7 @@ lazy_static! {
     static ref ACCOUNT_CONTROLLER_HANDLE: Mutex<Option<AccountControllerHandle>> = Mutex::new(None);
     static ref NETWORK_ENVIRONMENT: Mutex<Option<nym_vpn_network_config::Network>> =
         Mutex::new(None);
-    static ref GATEWAY_CLIENT: Mutex<Option<CachingGatewayClient>> = Mutex::new(None);
+    static ref GATEWAY_DIRECTORY_CLIENT: Mutex<Option<CachingGatewayClient>> = Mutex::new(None);
 }
 
 /// Fetches the network environment details from the network name and initializes the environment,
@@ -369,7 +369,7 @@ async fn create_gateway_client(user_agent: UserAgent) -> Result<GatewayClient, V
 async fn init_static_gateway_client(
     user_agent: UserAgent,
 ) -> Result<CachingGatewayClient, VpnError> {
-    let mut guard = GATEWAY_CLIENT.lock().await;
+    let mut guard = GATEWAY_DIRECTORY_CLIENT.lock().await;
     match guard.as_ref() {
         Some(gw_client) => Ok(gw_client.clone()),
         None => {

@@ -51,7 +51,7 @@ use super::{
 use crate::{config::GlobalConfigFile, logging::LogPath};
 
 // Lazy initialized static instance of CachingGatewayClient, using OnceLock
-pub static GATEWAY_CLIENT: OnceLock<CachingGatewayClient> = OnceLock::new();
+pub static GATEWAY_DIRECTORY_CLIENT: OnceLock<CachingGatewayClient> = OnceLock::new();
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -354,7 +354,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             CachingGatewayClient::new(gateway_directory_client, Some(offline_monitor.clone()));
         gateway_directory_client.refresh_all().await;
 
-        if GATEWAY_CLIENT
+        if GATEWAY_DIRECTORY_CLIENT
             .set(gateway_directory_client.clone())
             .is_err()
         {
