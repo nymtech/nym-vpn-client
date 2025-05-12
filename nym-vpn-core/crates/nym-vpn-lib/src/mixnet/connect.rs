@@ -15,6 +15,7 @@ use nym_vpn_store::mnemonic::MnemonicStorage as _;
 use super::MixnetError;
 use crate::{storage::VpnClientOnDiskStorage, MixnetClientConfig};
 
+const VPN_AVERAGE_PACKET_DELAY: Duration = Duration::from_millis(15);
 const MOBILE_LOOP_COVER_STREAM_AVERAGE_DELAY: Duration = Duration::from_secs(10);
 
 #[allow(unused)]
@@ -90,6 +91,7 @@ pub(crate) async fn setup_mixnet_client(
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<SharedMixnetClient, MixnetError> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
+    debug_config.traffic.average_packet_delay = VPN_AVERAGE_PACKET_DELAY;
     if two_hop_mode {
         // for mobile platforms, in two hop mode, we do less frequent cover traffic, to preserve
         // battery
