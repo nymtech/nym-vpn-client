@@ -72,6 +72,7 @@ function NetworkModeSelect() {
             speed
           </span>
         ),
+        descWrap: true,
       },
       {
         key: 'mixnet',
@@ -86,6 +87,7 @@ function NetworkModeSelect() {
             visibility_off
           </span>
         ),
+        descWrap: true,
       },
     ];
   }, [loading, state, t]);
