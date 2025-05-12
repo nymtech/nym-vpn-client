@@ -5014,6 +5014,7 @@ dependencies = [
  "nym-crypto",
  "nym-http-api-client",
  "nym-validator-client",
+ "reqwest 0.12.15",
  "serde",
  "serde_json",
  "sha2 0.10.9",

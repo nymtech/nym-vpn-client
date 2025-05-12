@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::ops::Deref;
+use std::{ops::Deref, time::Duration};
 
 use nym_vpn_api_client::{response::NymVpnAccountStatusResponse, types::VpnApiAccount};
 use nym_vpn_lib_types::{StoreAccountError, VpnApiErrorResponse};
@@ -18,6 +18,7 @@ impl AccountControllerVpnApiClient {
         nym_vpn_api_client::VpnApiClient::new(
             config.network_env.vpn_api_url(),
             config.user_agent.clone(),
+            Some(Duration::from_millis(1)),
         )
         .map_err(Error::SetupVpnApiClient)
         .map(AccountControllerVpnApiClient::from)

@@ -109,8 +109,14 @@ async fn update_state(
                 .promote_account_registered(AccountRegistered::NotRegistered)
                 .await;
             return Err(VpnApiErrorResponse::try_from(err)
+                // .map
                 .map(SyncAccountError::SyncAccountEndpointFailure)
                 .unwrap_or_else(SyncAccountError::unexpected_response));
+                // .unwrap_or_else(|err| {
+                //     tracing::error!("Failed to sync account state: {err:?}");
+                //     err
+                // }));
+            // return Err(SyncAccountError::from(err))
         }
     };
 

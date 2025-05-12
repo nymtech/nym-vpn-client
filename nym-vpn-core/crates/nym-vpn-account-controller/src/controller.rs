@@ -762,6 +762,7 @@ where
             self.vpn_api_client.current_url().clone(),
             self.config.user_agent.clone(),
             static_api_addresses.as_deref(),
+            Some(Duration::from_millis(10)),
         )
         .map(|new_vpn_api_client| {
             self.vpn_api_client
@@ -986,6 +987,8 @@ where
                         tracing::info!("Timed sync of account and device state");
                         self.get_command_sender().background_sync_account_state();
                         self.get_command_sender().background_sync_device_state();
+                    // } else {
+                    //     tracing::info!("Not syncing account and device state as we are offline");
                     }
                 }
                 // On a timer to check if we need to request more zk-nyms

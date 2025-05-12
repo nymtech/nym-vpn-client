@@ -1,7 +1,9 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt::Debug;
+use std::{error::Error, fmt::Debug};
+
+use nym_vpn_api_client::VpnApiClientError;
 
 use super::VpnApiErrorResponse;
 
@@ -23,8 +25,47 @@ pub enum SyncAccountError {
     Internal(String),
 }
 
+impl From<VpnApiClientError> for SyncAccountError {
+    fn from(err: VpnApiClientError) -> Self {
+        let err = match VpnApiErrorResponse::try_from(err) {
+            Ok(vpn_api_error_response) => {
+                return SyncAccountError::SyncAccountEndpointFailure(vpn_api_error_response);
+            }
+            Err(e) => e
+        };
+
+        if let Some(source) = err.source() {
+            if let Some(source) = source.source() {
+                // source.downcast_ref
+            }
+        }
+
+        todo!();
+    }
+}
+
 impl SyncAccountError {
-    pub fn unexpected_response(err: impl Debug) -> Self {
+    pub fn unexpected_response(err: impl Debug + std::fmt::Display + std::error::Error) -> Self {
+        println!("Unexpected response: {err}");
+        println!("Unexpected response: {err:?}");
+        println!("Unexpected response: {}", err.source().unwrap());
+        println!("Unexpected response: {:?}", err.source().unwrap());
+        println!(
+            "Unexpected response: {}",
+            err.source().unwrap().source().unwrap()
+        );
+        println!(
+            "Unexpected response: {:?}",
+            err.source().unwrap().source().unwrap()
+        );
+        println!(
+            "Unexpected response: {}",
+            err.source().unwrap().source().unwrap().source().unwrap()
+        );
+        println!(
+            "Unexpected response: {:?}",
+            err.source().unwrap().source().unwrap().source().unwrap()
+        );
         SyncAccountError::UnexpectedResponse(format!("{err:?}"))
     }
 

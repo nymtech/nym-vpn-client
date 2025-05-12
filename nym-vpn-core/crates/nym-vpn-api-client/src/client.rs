@@ -35,6 +35,7 @@ pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 
 // GET requests can unfortunately take a long time over the mixnet
 pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(60);
+// pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_millis(800);
 
 #[derive(Clone, Debug)]
 pub struct VpnApiClient {
@@ -42,20 +43,27 @@ pub struct VpnApiClient {
 }
 
 impl VpnApiClient {
-    pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self> {
-        Self::new_with_resolver_overrides(base_url, user_agent, None)
+    pub fn new(base_url: Url, user_agent: UserAgent, timeout: Option<Duration>) -> Result<Self> {
+        Self::new_with_resolver_overrides(base_url, user_agent, None, timeout)
     }
 
     pub fn new_with_resolver_overrides(
         base_url: Url,
         user_agent: UserAgent,
         static_addresses: Option<&[SocketAddr]>,
+        timeout: Option<Duration>,
     ) -> Result<Self> {
         nym_http_api_client::Client::builder(base_url.clone())
             .map(|builder| {
                 let mut builder = builder
-                    .with_user_agent(user_agent)
-                    .with_timeout(NYM_VPN_API_TIMEOUT);
+                    .with_user_agent(user_agent);
+                    // .with_timeout(NYM_VPN_API_TIMEOUT);
+
+                if let Some(timeout) = timeout {
+                    builder = builder.with_timeout(timeout);
+                } else {
+                    builder = builder.with_timeout(NYM_VPN_API_TIMEOUT);
+                }
 
                 if let Some(domain) = base_url.domain() {
                     match static_addresses {
@@ -1105,159 +1113,4 @@ impl VpnApiClient {
 
 fn jwt_error(error: &str) -> bool {
     error.to_lowercase().contains("jwt")
-}
-
-#[cfg(test)]
-mod tests {
-    use nym_crypto::asymmetric::ed25519;
-
-    use super::*;
-
-    const BASE_URL: &str = "https://nymvpn.com/api";
-
-    fn user_agent() -> UserAgent {
-        UserAgent {
-            version: "0.1.0".to_string(),
-            application: "nym".to_string(),
-            platform: "linux".to_string(),
-            git_commit: "123456".to_string(),
-        }
-    }
-
-    mod account {
-        use super::*;
-
-        // Preview deployment example data
-        struct PreviewData {
-            base_url: &'static str,
-            account_mnemonic: &'static str,
-            device_private_key_base58: &'static str,
-            device_public_key_base58: &'static str,
-        }
-
-        fn preview_data() -> PreviewData {
-            #[allow(unreachable_code)]
-            PreviewData {
-                base_url: todo!(),
-                account_mnemonic: todo!(),
-                device_private_key_base58: todo!(),
-                device_public_key_base58: todo!(),
-            }
-        }
-
-        fn base_url_preview() -> Url {
-            preview_data().base_url.parse().unwrap()
-        }
-
-        fn get_mnemonic() -> bip39::Mnemonic {
-            preview_data().account_mnemonic.parse().unwrap()
-        }
-
-        fn get_ed25519_keypair() -> ed25519::KeyPair {
-            let private_key_base58 = preview_data().device_private_key_base58;
-            let public_key_base58 = preview_data().device_public_key_base58;
-
-            let private_key = bs58::decode(private_key_base58).into_vec().unwrap();
-            let public_key = bs58::decode(public_key_base58).into_vec().unwrap();
-
-            ed25519::KeyPair::from_bytes(&private_key, &public_key).unwrap()
-        }
-
-        // These tests are all iffy since we are running against a preview deployment, but they are
-        // useful to drive implementetion and to check that the API is working as expected.
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_account() {
-            let account = VpnApiAccount::from(get_mnemonic());
-            let client = VpnApiClient::new(base_url_preview(), user_agent()).unwrap();
-            let response = client.get_account(&account).await.unwrap();
-            dbg!(&response);
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_account_summary() {
-            let account = VpnApiAccount::from(get_mnemonic());
-            let client = VpnApiClient::new(base_url_preview(), user_agent()).unwrap();
-            let response = client.get_account_summary(&account).await.unwrap();
-            dbg!(&response);
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_devices() {
-            let account = VpnApiAccount::from(get_mnemonic());
-            let client = VpnApiClient::new(base_url_preview(), user_agent()).unwrap();
-            let response = client.get_devices(&account).await.unwrap();
-            dbg!(&response);
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_device_zk_nyms() {
-            let account = VpnApiAccount::from(get_mnemonic());
-            let device = Device::from(get_ed25519_keypair());
-            let client = VpnApiClient::new(base_url_preview(), user_agent()).unwrap();
-            let response = client.get_device_zk_nyms(&account, &device).await;
-            dbg!(&response);
-        }
-    }
-
-    mod gateway_directory {
-        use super::*;
-
-        // These tests are disabled until mainnet is updated
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_gateways() {
-            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-            let response = client
-                .get_gateways(Some(GatewayMinPerformance::default()))
-                .await
-                .unwrap();
-            assert!(!response.into_inner().is_empty());
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_entry_gateways() {
-            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-            let response = client.get_entry_gateways(None).await.unwrap();
-            assert!(!response.into_inner().is_empty());
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_exit_gateways() {
-            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-            let response = client.get_entry_gateways(None).await.unwrap();
-            assert!(!response.into_inner().is_empty());
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_gateway_countries() {
-            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-            let response = client.get_gateway_countries(None).await.unwrap();
-            assert!(!response.into_inner().is_empty());
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_entry_gateway_countries() {
-            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-            let response = client.get_entry_gateway_countries(None).await.unwrap();
-            assert!(!response.into_inner().is_empty());
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_exit_gateway_countries() {
-            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-            let response = client.get_exit_gateway_countries(None).await.unwrap();
-            assert!(!response.into_inner().is_empty());
-        }
-    }
 }

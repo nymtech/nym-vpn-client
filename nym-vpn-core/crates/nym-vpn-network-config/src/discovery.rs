@@ -230,7 +230,7 @@ pub(crate) async fn fetch_nym_vpn_network_details(
     nym_vpn_api_url: &Url,
 ) -> anyhow::Result<NymWellknownDiscoveryItem> {
     tracing::debug!("Fetching nym vpn network details");
-    VpnApiClient::new(nym_vpn_api_url.clone(), empty_user_agent())?
+    VpnApiClient::new(nym_vpn_api_url.clone(), empty_user_agent(), None)?
         .get_wellknown_current_env()
         .await
         .with_context(|| "Discovery endpoint returned error response".to_owned())
