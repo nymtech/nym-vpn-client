@@ -335,15 +335,11 @@ impl TunnelMonitor {
             if let Some(selected_gateways) = self.tunnel_parameters.selected_gateways.clone() {
                 selected_gateways
             } else {
-                // WIP
                 let new_gateways = tunnel::select_gateways(
                     self.gateway_directory_client.clone(),
-                    // gateway_config.clone(),
-                    // self.tunnel_parameters.resolved_gateway_config.clone(),
                     self.tunnel_parameters.tunnel_settings.tunnel_type,
                     self.tunnel_parameters.tunnel_settings.entry_point.clone(),
                     self.tunnel_parameters.tunnel_settings.exit_point.clone(),
-                    // self.tunnel_parameters.tunnel_settings.user_agent.clone(),
                     self.cancel_token.child_token(),
                 )
                 .await?;

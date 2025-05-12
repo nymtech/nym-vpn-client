@@ -200,12 +200,6 @@ impl GatewayClient {
             .map_err(Error::FailedToLookupSkimmedNodes)
     }
 
-    // pub async fn lookup_low_latency_entry_gateway(&self) -> Result<Gateway> {
-    //     debug!("Fetching low latency entry gateway...");
-    //     let gateways = self.lookup_gateways(GatewayType::MixnetEntry).await?;
-    //     gateways.random_low_latency_gateway().await
-    // }
-
     pub async fn lookup_gateway_ip_from_nym_api(&self, gateway_identity: &str) -> Result<IpAddr> {
         debug!("Fetching gateway ip from nym-api...");
         let mut ips = self
@@ -339,32 +333,32 @@ impl GatewayClient {
         }
     }
 
-    // pub async fn lookup_all_gateways(&self) -> Result<GatewayList> {
-    //     if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
-    //         debug!("Fetching all gateways from nym-vpn-api...");
-    //         let gateways: Vec<_> = nym_vpn_api_client
-    //             .get_gateways(self.min_gateway_performance)
-    //             .await?
-    //             .into_iter()
-    //             .filter_map(|gw| {
-    //                 Gateway::try_from(gw)
-    //                     .inspect_err(|err| error!("Failed to parse gateway: {err}"))
-    //                     .ok()
-    //                     .map(|mut gw| {
-    //                         gw.update_to_new_thresholds(
-    //                             self.mix_score_thresholds,
-    //                             self.wg_score_thresholds,
-    //                         );
-    //                         gw
-    //                     })
-    //             })
-    //             .collect();
-    //         Ok(GatewayList::new(gateways))
-    //     } else {
-    //         warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
-    //         self.lookup_all_gateways_from_nym_api().await
-    //     }
-    // }
+    pub async fn lookup_all_gateways(&self) -> Result<GatewayList> {
+        if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {
+            debug!("Fetching all gateways from nym-vpn-api...");
+            let gateways: Vec<_> = nym_vpn_api_client
+                .get_gateways(self.min_gateway_performance)
+                .await?
+                .into_iter()
+                .filter_map(|gw| {
+                    Gateway::try_from(gw)
+                        .inspect_err(|err| error!("Failed to parse gateway: {err}"))
+                        .ok()
+                        .map(|mut gw| {
+                            gw.update_to_new_thresholds(
+                                self.mix_score_thresholds,
+                                self.wg_score_thresholds,
+                            );
+                            gw
+                        })
+                })
+                .collect();
+            Ok(GatewayList::new(gateways))
+        } else {
+            warn!("OPERATING IN FALLBACK MODE WITHOUT NYM-VPN-API!");
+            self.lookup_all_gateways_from_nym_api().await
+        }
+    }
 
     pub async fn lookup_gateways(&self, gw_type: GatewayType) -> Result<GatewayList> {
         if let Some(nym_vpn_api_client) = &self.nym_vpn_api_client {

@@ -179,20 +179,6 @@ pub struct ConnectArgs {
     /// Enable credentials mode.
     #[arg(long)]
     pub enable_credentials_mode: bool,
-    // An integer between 0 and 100 representing the minimum mixnode performance required to
-    // consider a mixnode for routing traffic.
-    // #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100), hide = true)]
-    // pub min_mixnode_performance: Option<u8>,
-
-    // An integer between 0 and 100 representing the minimum gateway performance required to
-    // consider a gateway for routing traffic.
-    // #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
-    // pub min_gateway_mixnet_performance: Option<u8>,
-
-    // An integer between 0 and 100 representing the minimum gateway performance required to
-    // consider a gateway for routing traffic.
-    // #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
-    // pub min_gateway_vpn_performance: Option<u8>,
 }
 
 #[derive(Args)]
@@ -206,9 +192,6 @@ pub struct CliEntry {
     #[arg(long, alias = "entry-gateway-country")]
     pub entry_country: Option<String>,
 
-    // Auto-select entry gateway by latency
-    // #[arg(long, alias = "entry-gateway-low-latency")]
-    // pub entry_fastest: bool,
     /// Auto-select entry gateway randomly.
     #[arg(long, alias = "entry-gateway-random")]
     pub entry_random: bool,
@@ -260,29 +243,10 @@ pub struct ListGatewaysArgs {
     /// Display additional information about the gateways.
     #[arg(long, short)]
     pub verbose: bool,
-    // An integer between 0 and 100 representing the minimum gateway performance required to
-    // consider a gateway for routing traffic.
-    // #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
-    // pub min_mixnet_performance: Option<u8>,
-
-    // An integer between 0 and 100 representing the minimum gateway performance required to
-    // consider a gateway for routing traffic.
-    // #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
-    // pub min_vpn_performance: Option<u8>,
 }
 
 #[derive(Args)]
-pub struct ListCountriesArgs {
-    // An integer between 0 and 100 representing the minimum gateway performance required to
-    // consider a gateway for routing traffic.
-    // #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
-    // pub min_mixnet_performance: Option<u8>,
-
-    // An integer between 0 and 100 representing the minimum gateway performance required to
-    // consider a gateway for routing traffic.
-    // #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
-    // pub min_vpn_performance: Option<u8>,
-}
+pub struct ListCountriesArgs {}
 
 #[derive(Args)]
 pub struct ResetDeviceIdentityArgs {
@@ -315,8 +279,6 @@ pub fn parse_entry_point(args: &ConnectArgs) -> Result<Option<EntryPoint>> {
         Ok(Some(EntryPoint::Location {
             location: entry_gateway_country.clone(),
         }))
-    // } else if args.entry.entry_fastest {
-    //     Ok(Some(EntryPoint::RandomLowLatency))
     } else if args.entry.entry_random {
         Ok(Some(EntryPoint::Random))
     } else {

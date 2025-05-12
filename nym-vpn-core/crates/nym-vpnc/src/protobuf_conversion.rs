@@ -7,7 +7,6 @@ pub fn into_entry_point(entry: EntryPoint) -> nym_vpn_proto::EntryNode {
     match entry {
         EntryPoint::Gateway { identity } => nym_vpn_proto::EntryNode::from(&identity),
         EntryPoint::Location { location } => nym_vpn_proto::EntryNode::new_from_location(&location),
-        // EntryPoint::RandomLowLatency => nym_vpn_proto::EntryNode::new_random_low_latency(),
         EntryPoint::Random => nym_vpn_proto::EntryNode::new_random(),
     }
 }
