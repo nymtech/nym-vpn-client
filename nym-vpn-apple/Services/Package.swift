@@ -173,7 +173,8 @@ let package = Package(
             name: "NotificationsManager",
             dependencies: [
                 "AppSettings",
-                "ConnectionManager"
+                "ConnectionManager",
+                "NotificationMessages"
             ],
             path: "Sources/Services/NotificationsManager"
         ),
