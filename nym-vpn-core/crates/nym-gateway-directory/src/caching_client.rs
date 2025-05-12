@@ -14,7 +14,9 @@ use nym_sdk::mixnet::NodeIdentity;
 use strum::IntoEnumIterator;
 use tokio::sync::Mutex;
 
-use crate::{error::Result, Country, Error, Gateway, GatewayClient, GatewayList, GatewayType};
+use crate::{
+    error::Result, Config, Country, Error, Gateway, GatewayClient, GatewayList, GatewayType,
+};
 
 #[derive(Clone)]
 pub struct CachingGatewayClient {
@@ -36,8 +38,28 @@ impl CachingGatewayClient {
         }
     }
 
+    pub async fn new_from_existing(existing_client: &CachingGatewayClient) -> Self {
+        let inner = existing_client.inner.lock().await;
+        Self {
+            inner: Arc::new(Mutex::new(CachingGatewayClientInner {
+                gateway_client: inner.gateway_client.clone(),
+                connectivity_handle: inner.connectivity_handle.clone(),
+                cached_gateways: inner.cached_gateways.clone(),
+                cached_countries: inner.cached_countries.clone(),
+            })),
+        }
+    }
+
     pub async fn update_client(&self, new_client: GatewayClient) {
         self.inner.lock().await.gateway_client = new_client;
+    }
+
+    pub async fn set_connectivity_handle(&self, connectivity_handle: ConnectivityHandle) {
+        self.inner.lock().await.connectivity_handle = Some(connectivity_handle);
+    }
+
+    pub async fn get_config(&self) -> Config {
+        self.inner.lock().await.gateway_client.get_config()
     }
 
     pub async fn refresh_all(&self) {

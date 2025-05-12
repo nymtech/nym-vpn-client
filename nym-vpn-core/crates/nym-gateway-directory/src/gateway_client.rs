@@ -111,6 +111,7 @@ impl ResolvedConfig {
 pub struct GatewayClient {
     api_client: NymApiClient,
     nym_vpn_api_client: Option<nym_vpn_api_client::VpnApiClient>,
+    nyxd_url: Url,
     min_gateway_performance: Option<GatewayMinPerformance>,
     mix_score_thresholds: Option<ScoreThresholds>,
     wg_score_thresholds: Option<ScoreThresholds>,
@@ -141,10 +142,26 @@ impl GatewayClient {
         Ok(GatewayClient {
             api_client,
             nym_vpn_api_client,
+            nyxd_url: config.nyxd_url,
             min_gateway_performance: config.min_gateway_performance,
             mix_score_thresholds: config.mix_score_thresholds,
             wg_score_thresholds: config.wg_score_thresholds,
         })
+    }
+
+    /// Return the config of this instance.
+    pub fn get_config(&self) -> Config {
+        Config {
+            api_url: self.api_client.api_url().clone(),
+            nym_vpn_api_url: self
+                .nym_vpn_api_client
+                .as_ref()
+                .map(|client| client.current_url().clone()),
+            nyxd_url: self.nyxd_url.clone(),
+            min_gateway_performance: self.min_gateway_performance,
+            mix_score_thresholds: self.mix_score_thresholds,
+            wg_score_thresholds: self.wg_score_thresholds,
+        }
     }
 
     pub fn mixnet_min_performance(&self) -> Option<Percent> {
