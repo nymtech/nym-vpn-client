@@ -59,6 +59,7 @@ use std::{env, path::PathBuf, sync::Arc};
 
 use account::AccountControllerHandle;
 use lazy_static::lazy_static;
+use nym_gateway_directory::CachingGatewayClient;
 use nym_vpn_api_client::types::ScoreThresholds;
 use tokio::{runtime::Runtime, sync::Mutex};
 
@@ -72,8 +73,8 @@ use crate::{
 };
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
-    AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayInfo, GatewayMinPerformance,
-    GatewayType, Location, NetworkEnvironment, SystemMessage, UserAgent,
+    AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayInfo, GatewayType, Location,
+    NetworkEnvironment, SystemMessage, UserAgent,
 };
 use uniffi_lib_types::TunnelEvent;
 
@@ -83,6 +84,7 @@ lazy_static! {
     static ref ACCOUNT_CONTROLLER_HANDLE: Mutex<Option<AccountControllerHandle>> = Mutex::new(None);
     static ref NETWORK_ENVIRONMENT: Mutex<Option<nym_vpn_network_config::Network>> =
         Mutex::new(None);
+    static ref GATEWAY_CLIENT: Mutex<Option<CachingGatewayClient>> = Mutex::new(None);
 }
 
 /// Fetches the network environment details from the network name and initializes the environment,
@@ -278,12 +280,8 @@ pub fn getAccountState() -> Result<AccountStateSummary, VpnError> {
 pub fn getGatewayCountries(
     gw_type: GatewayType,
     user_agent: UserAgent,
-    // min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<Location>, VpnError> {
-    RUNTIME.block_on(get_gateway_countries(
-        gw_type, user_agent,
-        // min_gateway_performance,
-    ))
+    RUNTIME.block_on(get_gateway_countries(gw_type, user_agent))
 }
 
 async fn get_account_id() -> Result<String, VpnError> {
@@ -295,37 +293,9 @@ async fn get_account_id() -> Result<String, VpnError> {
 async fn get_gateway_countries(
     gw_type: GatewayType,
     user_agent: UserAgent,
-    // min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<Location>, VpnError> {
-    let network_env = environment::current_environment_details().await?;
-    let nyxd_url = network_env.nyxd_url();
-    let api_url = network_env.api_url();
-    let nym_vpn_api_url = Some(network_env.vpn_api_url());
-    // let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
-    let mix_score_thresholds =
-        network_env
-            .system_configuration
-            .as_ref()
-            .map(|sc| ScoreThresholds {
-                high: sc.mix_thresholds.high,
-                medium: sc.mix_thresholds.medium,
-                low: sc.mix_thresholds.low,
-            });
-    let wg_score_thresholds = network_env.system_configuration.map(|sc| ScoreThresholds {
-        high: sc.wg_thresholds.high,
-        medium: sc.wg_thresholds.medium,
-        low: sc.wg_thresholds.low,
-    });
-    let directory_config = nym_gateway_directory::Config {
-        nyxd_url,
-        api_url,
-        nym_vpn_api_url,
-        min_gateway_performance: None,
-        mix_score_thresholds,
-        wg_score_thresholds,
-    };
-    GatewayClient::new(directory_config, user_agent.into())
-        .map_err(VpnError::internal)?
+    let gateway_client = init_static_gateway_client(user_agent).await?;
+    gateway_client
         .lookup_countries(gw_type.into())
         .await
         .map(|countries| countries.into_iter().map(Location::from).collect())
@@ -340,21 +310,36 @@ async fn get_gateway_countries(
 pub fn getGateways(
     gw_type: GatewayType,
     user_agent: UserAgent,
-    min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<GatewayInfo>, VpnError> {
-    RUNTIME.block_on(get_gateways(gw_type, user_agent, min_gateway_performance))
+    RUNTIME.block_on(get_gateways(gw_type, user_agent))
 }
 
 async fn get_gateways(
     gw_type: GatewayType,
     user_agent: UserAgent,
-    min_gateway_performance: Option<GatewayMinPerformance>,
 ) -> Result<Vec<GatewayInfo>, VpnError> {
-    let network_env = environment::current_environment_details().await?;
+    let gateway_client = init_static_gateway_client(user_agent).await?;
+    gateway_client
+        .lookup_gateways(gw_type.into())
+        .await
+        .map(|gateways| {
+            gateways
+                .into_inner()
+                .into_iter()
+                .map(GatewayInfo::from)
+                .collect()
+        })
+        .map_err(|err| VpnError::NetworkConnectionError {
+            details: err.to_string(),
+        })
+}
+
+async fn create_gateway_client(user_agent: UserAgent) -> Result<GatewayClient, VpnError> {
+    let network_env = environment::current_environment_details().await.unwrap();
     let nyxd_url = network_env.nyxd_url();
     let api_url = network_env.api_url();
     let nym_vpn_api_url = Some(network_env.vpn_api_url());
-    let min_gateway_performance = min_gateway_performance.map(|p| p.try_into()).transpose()?;
+
     let mix_score_thresholds =
         network_env
             .system_configuration
@@ -369,28 +354,31 @@ async fn get_gateways(
         medium: sc.wg_thresholds.medium,
         low: sc.wg_thresholds.low,
     });
+
     let directory_config = nym_gateway_directory::Config {
         nyxd_url,
         api_url,
         nym_vpn_api_url,
-        min_gateway_performance,
+        min_gateway_performance: None,
         mix_score_thresholds,
         wg_score_thresholds,
     };
-    GatewayClient::new(directory_config, user_agent.into())
-        .map_err(VpnError::internal)?
-        .lookup_gateways(gw_type.into())
-        .await
-        .map(|gateways| {
-            gateways
-                .into_inner()
-                .into_iter()
-                .map(GatewayInfo::from)
-                .collect()
-        })
-        .map_err(|err| VpnError::NetworkConnectionError {
-            details: err.to_string(),
-        })
+    GatewayClient::new(directory_config, user_agent.into()).map_err(VpnError::internal)
+}
+
+async fn init_static_gateway_client(
+    user_agent: UserAgent,
+) -> Result<CachingGatewayClient, VpnError> {
+    let mut guard = GATEWAY_CLIENT.lock().await;
+    match guard.as_ref() {
+        Some(gw_client) => Ok(gw_client.clone()),
+        None => {
+            let gw_client = create_gateway_client(user_agent).await?;
+            let gw_client = CachingGatewayClient::new(gw_client, None);
+            *guard = Some(gw_client.clone());
+            Ok(gw_client)
+        }
+    }
 }
 
 /// Start the VPN by first establishing that the account is ready to connect, including requesting
