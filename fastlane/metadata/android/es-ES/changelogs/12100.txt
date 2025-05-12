@@ -1,0 +1,5 @@
+Novedades:
+- Detalles de selección del gateway
+- Optimización del uso de datos
+- Corrección de la sincronización de mosaicos
+- Otras correcciones de errores y mejoras

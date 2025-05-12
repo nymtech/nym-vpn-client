@@ -234,7 +234,7 @@
 	<string name="log_out_title">Are you sure you want to log out?</string>
 	<string name="log_out_body">You will need your recovery phrase to log in again.</string>
 	<string name="cancel">Cancel</string>
-	<string name="subscription_expired_error">Subscription has expired. Please purchase a plan for your account.</string>
+	<string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
 	<string name="remove_device">Remove a device from your account and try again.</string>
     <string name="gateway_score">Gateway score</string>
 	<string name="info">Info</string>
