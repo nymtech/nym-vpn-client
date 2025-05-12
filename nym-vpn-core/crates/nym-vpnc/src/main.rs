@@ -136,15 +136,6 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
         disable_background_cover_traffic: connect_args.disable_background_cover_traffic,
         enable_credentials_mode: connect_args.enable_credentials_mode,
         user_agent: Some(user_agent),
-        // min_mixnode_performance: connect_args
-        //     .min_mixnode_performance
-        //     .map(nym_vpn_proto::Threshold::from),
-        // min_gateway_mixnet_performance: connect_args
-        //     .min_gateway_mixnet_performance
-        //     .map(nym_vpn_proto::Threshold::from),
-        // min_gateway_vpn_performance: connect_args
-        //     .min_gateway_vpn_performance
-        //     .map(nym_vpn_proto::Threshold::from),
     });
 
     let response = client.vpn_connect(request).await?.into_inner();
@@ -488,12 +479,6 @@ async fn list_gateways(
     let request = tonic::Request::new(ListGatewaysRequest {
         kind: into_gateway_type(gw_type.clone()) as i32,
         user_agent: Some(user_agent),
-        // min_mixnet_performance: list_args
-        //     .min_mixnet_performance
-        //     .map(nym_vpn_proto::Threshold::from),
-        // min_vpn_performance: list_args
-        //     .min_vpn_performance
-        //     .map(nym_vpn_proto::Threshold::from),
     });
     let response = client.list_gateways(request).await?.into_inner();
     if opts.verbose {
@@ -524,12 +509,6 @@ async fn list_countries(
     let request = tonic::Request::new(ListCountriesRequest {
         kind: into_gateway_type(gw_type.clone()) as i32,
         user_agent: Some(user_agent),
-        // min_mixnet_performance: list_args
-        //     .min_mixnet_performance
-        //     .map(nym_vpn_proto::Threshold::from),
-        // min_vpn_performance: list_args
-        //     .min_vpn_performance
-        //     .map(nym_vpn_proto::Threshold::from),
     });
 
     let response = client.list_countries(request).await?.into_inner();

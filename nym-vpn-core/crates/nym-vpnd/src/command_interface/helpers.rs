@@ -29,10 +29,6 @@ pub(super) fn parse_entry_point(
             })?;
             EntryPoint::Gateway { identity }
         }
-        // nym_vpn_proto::entry_node::EntryNodeEnum::RandomLowLatency(_) => {
-        //     tracing::debug!("Connecting to low latency entry node");
-        //     EntryPoint::RandomLowLatency
-        // }
         nym_vpn_proto::entry_node::EntryNodeEnum::Random(_) => {
             tracing::debug!("Connecting to random entry node");
             EntryPoint::Random
@@ -81,7 +77,3 @@ pub(super) fn parse_exit_point(
         }
     })
 }
-
-// pub(super) fn threshold_into_percent(threshold: nym_vpn_proto::Threshold) -> Percent {
-//     Percent::from_percentage_value(threshold.min_performance.clamp(0, 100) as u64).unwrap()
-// }
