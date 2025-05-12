@@ -136,7 +136,8 @@ impl From<SyncAccountError> for ProtoSyncAccountError {
             SyncAccountError::SyncAccountEndpointFailure(vpn_api_endpoint_failure) => {
                 ProtoSyncAccountError {
                     error_detail: Some(crate::sync_account_error::ErrorDetail::ErrorResponse(
-                        vpn_api_endpoint_failure.into(),
+                        // vpn_api_endpoint_failure.into(),
+                        todo!()
                     )),
                 }
             }

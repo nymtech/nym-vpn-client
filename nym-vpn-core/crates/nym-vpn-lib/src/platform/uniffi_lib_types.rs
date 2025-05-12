@@ -21,6 +21,7 @@ use nym_vpn_lib_types::{
     SyncDeviceError as CoreSyncDeviceError, TunnelConnectionData as CoreTunnelConnectionData,
     TunnelEvent as CoreTunnelEvent, TunnelState as CoreTunnelState,
     VpnApiErrorResponse as CoreVpnApiErrorResponse,
+    VpnApiErrorResponseTop as CoreVpnApiErrorResponseTop,
     WireguardConnectionData as CoreWireguardConnectionData, WireguardNode as CoreWireguardNode,
 };
 use time::OffsetDateTime;
@@ -271,7 +272,7 @@ pub enum SyncAccountError {
     #[error("no account stored")]
     NoAccountStored,
     #[error("vpn api endpoint failure: {0}")]
-    ErrorResponse(VpnApiErrorResponse),
+    ErrorResponse(VpnApiErrorResponseTop),
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
     #[error("no connectivity")]
@@ -451,6 +452,26 @@ impl From<CoreForgetAccountError> for ForgetAccountError {
             CoreForgetAccountError::RemoveAccountFiles(err) => Self::RemoveAccountFiles(err),
             CoreForgetAccountError::InitDeviceKeys(err) => Self::InitDeviceKeys(err),
             CoreForgetAccountError::Internal(err) => Self::Internal(err),
+        }
+    }
+}
+
+#[derive(uniffi::Enum, thiserror::Error, Debug, Clone, PartialEq, Eq)]
+pub enum VpnApiErrorResponseTop {
+    #[error("timeout")]
+    Timeout,
+    #[error("status code: {0}")]
+    StatusCode(u16),
+    #[error(transparent)]
+    Response(#[from] VpnApiErrorResponse),
+}
+
+impl From<CoreVpnApiErrorResponseTop> for VpnApiErrorResponseTop {
+    fn from(value: CoreVpnApiErrorResponseTop) -> Self {
+        match value {
+            CoreVpnApiErrorResponseTop::Timeout => Self::Timeout,
+            CoreVpnApiErrorResponseTop::StatusCode(code) => Self::StatusCode(code),
+            CoreVpnApiErrorResponseTop::Response(response) => Self::Response(response.into()),
         }
     }
 }

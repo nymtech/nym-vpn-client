@@ -3,7 +3,10 @@
 
 use std::fmt;
 
-use crate::{RequestZkNymError, RequestZkNymErrorReason, VpnApiErrorResponse};
+use crate::{
+    account::VpnApiErrorResponseTop, RequestZkNymError, RequestZkNymErrorReason,
+    VpnApiErrorResponse,
+};
 
 use super::{
     account::{
@@ -267,6 +270,16 @@ impl From<RequestZkNymErrorReason> for ClientErrorReason {
             RequestZkNymErrorReason::VpnApi(e) => e.into(),
             RequestZkNymErrorReason::UnexpectedVpnApiResponse(message) => Self::Api(Some(message)),
             reason => Self::Internal(Some(reason.to_string())),
+        }
+    }
+}
+
+impl From<VpnApiErrorResponseTop> for ClientErrorReason {
+    fn from(error: VpnApiErrorResponseTop) -> Self {
+        match error {
+            VpnApiErrorResponseTop::Response(e) => e.into(),
+            VpnApiErrorResponseTop::StatusCode(_) => Self::Api(Some(error.to_string())),
+            VpnApiErrorResponseTop::Timeout => Self::Api(Some(error.to_string())),
         }
     }
 }

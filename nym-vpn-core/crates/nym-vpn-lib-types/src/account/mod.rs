@@ -102,6 +102,32 @@ pub enum VpnApiErrorResponseTop {
     Response(#[from] VpnApiErrorResponse),
 }
 
+impl VpnApiErrorResponseTop {
+    pub fn message(&self) -> String {
+        match self {
+            VpnApiErrorResponseTop::Response(err) => err.message.clone(),
+            VpnApiErrorResponseTop::StatusCode(_) => self.to_string(),
+            VpnApiErrorResponseTop::Timeout => self.to_string(),
+        }
+    }
+
+    pub fn message_id(&self) -> Option<String> {
+        if let VpnApiErrorResponseTop::Response(err) = self {
+            err.message_id.clone()
+        } else {
+            None
+        }
+    }
+
+    pub fn code_reference_id(&self) -> Option<String> {
+        if let VpnApiErrorResponseTop::Response(err) = self {
+            err.code_reference_id.clone()
+        } else {
+            None
+        }
+    }
+}
+
 impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiErrorResponseTop {
     type Error = nym_vpn_api_client::VpnApiClientError;
 

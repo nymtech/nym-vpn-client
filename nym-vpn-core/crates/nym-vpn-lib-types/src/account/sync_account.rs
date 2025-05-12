@@ -5,7 +5,7 @@ use std::{error::Error, fmt::Debug};
 
 use nym_vpn_api_client::VpnApiClientError;
 
-use super::VpnApiErrorResponse;
+use super::{VpnApiErrorResponse, VpnApiErrorResponseTop};
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq, Clone)]
 pub enum SyncAccountError {
@@ -13,7 +13,7 @@ pub enum SyncAccountError {
     NoAccountStored,
 
     #[error(transparent)]
-    SyncAccountEndpointFailure(VpnApiErrorResponse),
+    SyncAccountEndpointFailure(VpnApiErrorResponseTop),
 
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
@@ -25,24 +25,24 @@ pub enum SyncAccountError {
     Internal(String),
 }
 
-impl From<VpnApiClientError> for SyncAccountError {
-    fn from(err: VpnApiClientError) -> Self {
-        let err = match VpnApiErrorResponse::try_from(err) {
-            Ok(vpn_api_error_response) => {
-                return SyncAccountError::SyncAccountEndpointFailure(vpn_api_error_response);
-            }
-            Err(e) => e
-        };
-
-        if let Some(source) = err.source() {
-            if let Some(source) = source.source() {
-                // source.downcast_ref
-            }
-        }
-
-        todo!();
-    }
-}
+// impl From<VpnApiClientError> for SyncAccountError {
+//     fn from(err: VpnApiClientError) -> Self {
+//         let err = match VpnApiErrorResponse::try_from(err) {
+//             Ok(vpn_api_error_response) => {
+//                 return SyncAccountError::SyncAccountEndpointFailure(vpn_api_error_response);
+//             }
+//             Err(e) => e,
+//         };
+//
+//         if let Some(source) = err.source() {
+//             if let Some(source) = source.source() {
+//                 // source.downcast_ref
+//             }
+//         }
+//
+//         todo!();
+//     }
+// }
 
 impl SyncAccountError {
     pub fn unexpected_response(err: impl Debug + std::fmt::Display + std::error::Error) -> Self {
@@ -76,7 +76,7 @@ impl SyncAccountError {
     pub fn message(&self) -> String {
         match self {
             SyncAccountError::NoAccountStored => self.to_string(),
-            SyncAccountError::SyncAccountEndpointFailure(failure) => failure.message.clone(),
+            SyncAccountError::SyncAccountEndpointFailure(failure) => failure.message(),
             SyncAccountError::UnexpectedResponse(response) => response.to_string(),
             SyncAccountError::Offline => self.to_string(),
             SyncAccountError::Internal(_) => self.to_string(),
@@ -85,7 +85,7 @@ impl SyncAccountError {
 
     pub fn message_id(&self) -> Option<String> {
         match self {
-            SyncAccountError::SyncAccountEndpointFailure(failure) => failure.message_id.clone(),
+            SyncAccountError::SyncAccountEndpointFailure(failure) => failure.message_id().clone(),
             SyncAccountError::NoAccountStored
             | SyncAccountError::UnexpectedResponse(_)
             | SyncAccountError::Offline
@@ -96,7 +96,7 @@ impl SyncAccountError {
     pub fn code_reference_id(&self) -> Option<String> {
         match self {
             SyncAccountError::SyncAccountEndpointFailure(failure) => {
-                failure.code_reference_id.clone()
+                failure.code_reference_id().clone()
             }
             SyncAccountError::NoAccountStored
             | SyncAccountError::UnexpectedResponse(_)

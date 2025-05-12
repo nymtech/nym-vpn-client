@@ -47,7 +47,8 @@ impl TryFrom<ProtoSyncAccountError> for SyncAccountError {
         Ok(match error_detail {
             crate::sync_account_error::ErrorDetail::NoAccountStored(_) => Self::NoAccountStored,
             crate::sync_account_error::ErrorDetail::ErrorResponse(vpn_api_endpoint_failure) => {
-                Self::SyncAccountEndpointFailure(vpn_api_endpoint_failure.into())
+                todo!();
+                // Self::SyncAccountEndpointFailure(vpn_api_endpoint_failure.into())
             }
             crate::sync_account_error::ErrorDetail::UnexpectedResponse(err) => {
                 Self::UnexpectedResponse(err)
