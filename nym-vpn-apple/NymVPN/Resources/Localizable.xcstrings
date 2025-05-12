@@ -16687,7 +16687,7 @@
         }
       }
     },
-    "notifcation.disconnected.subtitle" : {
+    "notification.disconnected.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -16698,7 +16698,7 @@
         }
       }
     },
-    "notifcation.disconnected.title" : {
+    "notification.disconnected.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
