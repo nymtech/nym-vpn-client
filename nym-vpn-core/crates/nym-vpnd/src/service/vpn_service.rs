@@ -1,7 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, path::PathBuf, sync::Arc, time::Instant};
+use std::{
+    net::IpAddr,
+    path::PathBuf,
+    sync::{Arc, OnceLock},
+    time::Instant,
+};
 
 use bip39::Mnemonic;
 use serde::{Deserialize, Serialize};
@@ -44,6 +49,9 @@ use super::{
     },
 };
 use crate::{config::GlobalConfigFile, logging::LogPath};
+
+// Lazy initialized static instance of CachingGatewayClient, using OnceLock
+pub static GATEWAY_CLIENT: OnceLock<CachingGatewayClient> = OnceLock::new();
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -325,6 +333,13 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let gateway_directory_client =
             CachingGatewayClient::new(gateway_directory_client, Some(offline_monitor.clone()));
         gateway_directory_client.refresh_all().await;
+
+        if GATEWAY_CLIENT
+            .set(gateway_directory_client.clone())
+            .is_err()
+        {
+            tracing::error!("Failed to set global gateway client");
+        }
 
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,
