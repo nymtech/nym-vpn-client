@@ -90,6 +90,7 @@ pub(crate) async fn setup_mixnet_client(
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<SharedMixnetClient, MixnetError> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
+    debug_config.traffic.average_packet_delay = Duration::from_millis(15);
     if two_hop_mode {
         // for mobile platforms, in two hop mode, we do less frequent cover traffic, to preserve
         // battery
