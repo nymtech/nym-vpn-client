@@ -23,7 +23,7 @@ use nym_vpn_account_controller::{
 };
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
-    types::Percent,
+    types::{Percent, ScoreThresholds},
     NetworkCompatibility,
 };
 use nym_vpn_lib::{
@@ -313,13 +313,33 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let tunnel_settings = TunnelSettings::default();
         let nyxd_url = network_env.nyxd_url();
         let api_url = network_env.api_url();
+
+        let mix_score_thresholds =
+            network_env
+                .system_configuration
+                .as_ref()
+                .map(|sc| ScoreThresholds {
+                    high: sc.mix_thresholds.high,
+                    medium: sc.mix_thresholds.medium,
+                    low: sc.mix_thresholds.low,
+                });
+        let wg_score_thresholds =
+            network_env
+                .system_configuration
+                .as_ref()
+                .map(|sc| ScoreThresholds {
+                    high: sc.wg_thresholds.high,
+                    medium: sc.wg_thresholds.medium,
+                    low: sc.wg_thresholds.low,
+                });
+
         let gateway_config = gateway_directory::Config {
             nyxd_url,
             api_url,
             nym_vpn_api_url: Some(network_env.vpn_api_url()),
             min_gateway_performance: None,
-            mix_score_thresholds: None,
-            wg_score_thresholds: None,
+            mix_score_thresholds,
+            wg_score_thresholds,
         };
         let nym_config = NymConfig {
             config_path: Some(config_dir),

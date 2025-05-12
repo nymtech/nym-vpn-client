@@ -179,21 +179,20 @@ pub struct ConnectArgs {
     /// Enable credentials mode.
     #[arg(long)]
     pub enable_credentials_mode: bool,
+    // An integer between 0 and 100 representing the minimum mixnode performance required to
+    // consider a mixnode for routing traffic.
+    // #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100), hide = true)]
+    // pub min_mixnode_performance: Option<u8>,
 
-    /// An integer between 0 and 100 representing the minimum mixnode performance required to
-    /// consider a mixnode for routing traffic.
-    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100), hide = true)]
-    pub min_mixnode_performance: Option<u8>,
+    // An integer between 0 and 100 representing the minimum gateway performance required to
+    // consider a gateway for routing traffic.
+    // #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    // pub min_gateway_mixnet_performance: Option<u8>,
 
-    /// An integer between 0 and 100 representing the minimum gateway performance required to
-    /// consider a gateway for routing traffic.
-    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
-    pub min_gateway_mixnet_performance: Option<u8>,
-
-    /// An integer between 0 and 100 representing the minimum gateway performance required to
-    /// consider a gateway for routing traffic.
-    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
-    pub min_gateway_vpn_performance: Option<u8>,
+    // An integer between 0 and 100 representing the minimum gateway performance required to
+    // consider a gateway for routing traffic.
+    // #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    // pub min_gateway_vpn_performance: Option<u8>,
 }
 
 #[derive(Args)]
@@ -261,29 +260,28 @@ pub struct ListGatewaysArgs {
     /// Display additional information about the gateways.
     #[arg(long, short)]
     pub verbose: bool,
+    // An integer between 0 and 100 representing the minimum gateway performance required to
+    // consider a gateway for routing traffic.
+    // #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    // pub min_mixnet_performance: Option<u8>,
 
-    /// An integer between 0 and 100 representing the minimum gateway performance required to
-    /// consider a gateway for routing traffic.
-    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
-    pub min_mixnet_performance: Option<u8>,
-
-    /// An integer between 0 and 100 representing the minimum gateway performance required to
-    /// consider a gateway for routing traffic.
-    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
-    pub min_vpn_performance: Option<u8>,
+    // An integer between 0 and 100 representing the minimum gateway performance required to
+    // consider a gateway for routing traffic.
+    // #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    // pub min_vpn_performance: Option<u8>,
 }
 
 #[derive(Args)]
 pub struct ListCountriesArgs {
-    /// An integer between 0 and 100 representing the minimum gateway performance required to
-    /// consider a gateway for routing traffic.
-    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
-    pub min_mixnet_performance: Option<u8>,
+    // An integer between 0 and 100 representing the minimum gateway performance required to
+    // consider a gateway for routing traffic.
+    // #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    // pub min_mixnet_performance: Option<u8>,
 
-    /// An integer between 0 and 100 representing the minimum gateway performance required to
-    /// consider a gateway for routing traffic.
-    #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
-    pub min_vpn_performance: Option<u8>,
+    // An integer between 0 and 100 representing the minimum gateway performance required to
+    // consider a gateway for routing traffic.
+    // #[arg(long, value_parser = clap::value_parser!(u8).range(0..=100))]
+    // pub min_vpn_performance: Option<u8>,
 }
 
 #[derive(Args)]
