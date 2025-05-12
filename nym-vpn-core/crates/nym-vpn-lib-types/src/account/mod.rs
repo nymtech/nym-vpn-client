@@ -90,6 +90,37 @@ impl From<RequestZkNymVec> for AccountCommandError {
     }
 }
 
+#[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
+pub enum VpnApiErrorResponseTop {
+    #[error("timeout")]
+    Timeout,
+
+    #[error("status code: {0}")]
+    StatusCode(u16),
+
+    #[error(transparent)]
+    Response(#[from] VpnApiErrorResponse),
+}
+
+impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiErrorResponseTop {
+    type Error = nym_vpn_api_client::VpnApiClientError;
+
+    fn try_from(err: nym_vpn_api_client::VpnApiClientError) -> Result<Self, Self::Error> {
+        let err = match VpnApiErrorResponse::try_from(err) {
+            Ok(err) => return Ok(Self::Response(err)),
+            Err(err) => err,
+        };
+
+        if nym_vpn_api_client::response::error_is_reqwest_timeout(&err) {
+            return Ok(Self::Timeout);
+        }
+
+        nym_vpn_api_client::response::extract_error_response_status_code(&err)
+            .map(Self::StatusCode)
+            .ok_or(err)
+    }
+}
+
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
 #[error("{message}, message_id: {message_id:?}, code_reference_id: {code_reference_id:?}")]
 pub struct VpnApiErrorResponse {
