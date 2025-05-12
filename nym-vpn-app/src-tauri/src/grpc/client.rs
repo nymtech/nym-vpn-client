@@ -267,9 +267,9 @@ impl GrpcClient {
             enable_credentials_mode: credentials_mode,
             dns,
             user_agent: Some(self.user_agent.clone()),
-            min_mixnode_performance: None,
-            min_gateway_mixnet_performance: None,
-            min_gateway_vpn_performance: None,
+            // min_mixnode_performance: None,
+            // min_gateway_mixnet_performance: None,
+            // min_gateway_vpn_performance: None,
         });
         let response = vpnd
             .vpn_connect(request)
@@ -425,8 +425,8 @@ impl GrpcClient {
         let request = Request::new(ListGatewaysRequest {
             kind: nym_vpn_proto::GatewayType::from(gw_type) as i32,
             user_agent: Some(self.user_agent.clone()),
-            min_mixnet_performance: None,
-            min_vpn_performance: None,
+            // min_mixnet_performance: None,
+            // min_vpn_performance: None,
         });
         let response = vpnd.list_gateways(request).await.map_err(|e| {
             error!("grpc: {}", e);

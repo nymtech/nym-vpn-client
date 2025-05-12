@@ -236,9 +236,9 @@ message ConnectRequest {
   bool enable_credentials_mode = 8;
   UserAgent user_agent = 12;
   // Optional thresholds
-  Threshold min_mixnode_performance = 9;
-  Threshold min_gateway_mixnet_performance = 10;
-  Threshold min_gateway_vpn_performance = 11;
+  // Threshold min_mixnode_performance = 9;
+  // Threshold min_gateway_mixnet_performance = 10;
+  // Threshold min_gateway_vpn_performance = 11;
 }
 
 message ConnectResponse {
@@ -309,8 +309,8 @@ message ListGatewaysRequest {
   GatewayType kind = 1;
   UserAgent user_agent = 4;
   // Optional thresholds
-  Threshold min_mixnet_performance = 2;
-  Threshold min_vpn_performance = 3;
+  // Threshold min_mixnet_performance = 2;
+  // Threshold min_vpn_performance = 3;
 }
 
 message ListGatewaysResponse {
@@ -321,8 +321,8 @@ message ListCountriesRequest {
   GatewayType kind = 1;
   UserAgent user_agent = 4;
   // Optional thresholds
-  Threshold min_mixnet_performance = 2;
-  Threshold min_vpn_performance = 3;
+  // Threshold min_mixnet_performance = 2;
+  // Threshold min_vpn_performance = 3;
 }
 
 message ListCountriesResponse {
