@@ -12,7 +12,7 @@ use crate::tunnel_state_machine::{
     NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
 };
 
-pub struct DisconnectedState {}
+pub struct DisconnectedState;
 
 impl DisconnectedState {
     pub async fn enter(
@@ -28,7 +28,7 @@ impl DisconnectedState {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         Self::reset_firewall_policy(_shared_state);
 
-        (Box::new(Self {}), PrivateTunnelState::Disconnected)
+        (Box::new(Self), PrivateTunnelState::Disconnected)
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

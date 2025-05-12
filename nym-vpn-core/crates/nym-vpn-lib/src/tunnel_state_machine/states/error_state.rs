@@ -40,7 +40,7 @@ const BLOCKING_INTERFACE_ADDRS: [IpAddr; 2] = [
     )),
 ];
 
-pub struct ErrorState {}
+pub struct ErrorState;
 
 impl ErrorState {
     pub async fn enter(
@@ -67,7 +67,7 @@ impl ErrorState {
             );
         }
 
-        (Box::new(Self {}), PrivateTunnelState::Error(reason))
+        (Box::new(Self), PrivateTunnelState::Error(reason))
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
