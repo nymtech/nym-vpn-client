@@ -448,7 +448,7 @@ check_system_deps() {
       user_prompt choice "$prompt"
 
       if [ "$choice" = "y" ] || [ "$choice" = "Y" ]; then
-        sudo apt install libfuse2
+        sudo apt install -y libfuse2
         log "   ${B_GRN}Installed$RS libfuse2"
       else
         log "   ${B_YLW}⚠$RS libfuse2 is required for the app to work, install it with:
@@ -499,7 +499,7 @@ install_app_appimage() {
 install_app_deb() {
   log "  ${B_GRN}Installing$RS $app_deb"
   _pushd "$temp_dir"
-  sudo apt install "./$app_deb"
+  sudo apt install -y "./$app_deb"
   _popd
 }
 
@@ -518,7 +518,7 @@ install_vpnd_raw() {
 install_vpnd_deb() {
   log "  ${B_GRN}Installing$RS $vpnd_deb"
   _pushd "$temp_dir"
-  sudo apt install "./$vpnd_deb"
+  sudo apt install -y "./$vpnd_deb"
   _popd
 }
 
@@ -616,6 +616,11 @@ _install() {
     fi
     post_install
   else
+    # can't install app package only
+    if [ "$_app" = 0 ] && [ "$_vpnd" = 1 ]; then
+      log "${B_YLW}⚠$RS can't install app package only (vpnd is required)"
+      exit 1
+    fi
     [[ "$_vpnd" == 0 ]] && download_vpnd_deb
     [[ "$_app" == 0 ]] && download_app_deb
     # as nym-vpnd is a dependency for the app, install it first
@@ -678,13 +683,28 @@ _uninstall_raw() {
 }
 
 _uninstall_deb() {
-  if [ "$_app" == 0 ]; then
-    log "  ${B_GRN}Removing$RS nymp-vpn-app"
-    sudo apt remove nym-vpn-app
+  # packages to remove
+  u_app=1
+  u_vpnd=1
+  _app_ls=$(dpkg -l | grep nym-vpn-app || true)
+  _vpnd_ls=$(dpkg -l | grep nym-vpnd || true)
+  if [ "$_app" = 0 ] && [[ "$_app_ls" == *"ii"* ]]; then
+    u_app=0
   fi
-  if [ "$_vpnd" == 0 ]; then
+  if [ "$_vpnd" = 0 ] && [[ "$_vpnd_ls" == *"ii"* ]]; then
+    u_vpnd=0
+  fi
+  if [ $u_app = 1 ] && [ $u_vpnd = 1 ]; then
+    log "  ${B_YLW}⚠$RS no installed packages found"
+    return 0
+  fi
+  if [ $u_app = 0 ]; then
+    log "  ${B_GRN}Removing$RS nymp-vpn-app"
+    sudo apt remove -y nym-vpn-app
+  fi
+  if [ $u_vpnd = 0 ]; then
     log "  ${B_GRN}Removing$RS nymp-vpnd"
-    sudo apt remove nym-vpnd
+    sudo apt remove -y nym-vpnd
   fi
 }
 
