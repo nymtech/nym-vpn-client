@@ -16,6 +16,6 @@ public extension String {
             return self
         }
 
-        return NSLocalizedString(self, bundle: mainAppBundle, comment: "")
+        return mainAppBundle.localizedString(forKey: self)
     }
 }
