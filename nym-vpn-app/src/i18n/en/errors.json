@@ -31,7 +31,7 @@
     "exit": "Failed to fetch the available exit node countries",
     "fast-mode": "Failed to fetch the available countries"
   },
-  "no-bandwidth": "Out of bandwidth",
+  "no-bandwidth": "No data allowance remaining",
   "entry-gateway-down": "Entry gateway is down",
   "exit-gateway-down": {
     "ipv4": "Exit gateway is down (IPv4)",

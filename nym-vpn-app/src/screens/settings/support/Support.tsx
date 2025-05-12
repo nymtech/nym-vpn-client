@@ -34,7 +34,7 @@ function Support() {
         data-testid="support-faq-button"
       />
       <SettingsMenuCard
-        title={t('support.get-in-touch')}
+        title={t('support.contact')}
         onClick={() => {
           openUrl(ContactSupportUrl);
         }}
