@@ -29,5 +29,6 @@
     "invalid-recovery-phrase": "Code d'accès invalide",
     "storage": "Erreur de stockage backend",
     "is-connected": "Impossible d'effectuer cette action lorsque connecté au VPN"
-  }
+  },
+  "no-bandwidth": "Aucune allocation de données restante"
 }

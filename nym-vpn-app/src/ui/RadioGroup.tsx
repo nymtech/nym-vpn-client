@@ -19,6 +19,7 @@ export type RadioGroupOption<K extends Key> = {
   // custom style applied to the container of the option
   className?: string;
   tooltip?: string;
+  descWrap?: boolean;
   'data-testid'?: string;
 };
 
@@ -171,7 +172,10 @@ function RadioGroup<K extends Key>({
                           {option.desc && (
                             <Description
                               as="span"
-                              className="truncate text-sm text-iron dark:text-bombay"
+                              className={clsx(
+                                'text-sm text-iron dark:text-bombay',
+                                !option.descWrap && 'truncate',
+                              )}
                               data-testid={`${optionTestId}-description`}
                             >
                               <span>{option.desc}</span>
