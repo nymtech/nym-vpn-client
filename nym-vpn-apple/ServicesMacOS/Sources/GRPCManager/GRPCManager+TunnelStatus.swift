@@ -78,6 +78,8 @@ extension GRPCManager {
             ErrorReason.internalError(tunnelStateError.detail)
         case .UNRECOGNIZED:
             ErrorReason.unknown
+        case .deviceTimeOutOfSync:
+            ErrorReason.deviceTimeOutOfSync
         }
     }
 }

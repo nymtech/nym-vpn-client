@@ -23,6 +23,7 @@ public enum ErrorReason: LocalizedError {
     case api(String)
     case registrationInProgress
     case internalError(String)
+    case deviceTimeOutOfSync
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -54,6 +55,8 @@ public enum ErrorReason: LocalizedError {
             self = .subscriptionExpired
         case let .api(message):
             self = .api(message ?? Self.somethingWentWrong)
+        case .deviceTimeOutOfSync:
+            self = .deviceTimeOutOfSync
         }
     }
 #endif
@@ -101,6 +104,8 @@ public enum ErrorReason: LocalizedError {
             self = .registrationInProgress
         case .internalError:
             self = .internalError(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .deviceTimeOutOfSync:
+            self = .deviceTimeOutOfSync
         }
     }
 
@@ -163,6 +168,8 @@ private extension ErrorReason {
             "errorReason.registrattionInProgress".localizedString
         case let .internalError(message):
             message
+        case .deviceTimeOutOfSync:
+            "errorReason.deviceTimeOutOfSync".localizedString
         }
     }
 }
@@ -191,6 +198,7 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case api
     case internalError
     case registrationInProgress
+    case deviceTimeOutOfSync
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -228,6 +236,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .registrationInProgress
         case .internalError:
             self = .internalError
+        case .deviceTimeOutOfSync:
+            self = .deviceTimeOutOfSync
         }
     }
 }
