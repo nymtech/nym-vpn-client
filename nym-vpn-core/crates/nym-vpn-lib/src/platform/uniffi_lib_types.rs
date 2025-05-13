@@ -21,7 +21,7 @@ use nym_vpn_lib_types::{
     SyncDeviceError as CoreSyncDeviceError, TunnelConnectionData as CoreTunnelConnectionData,
     TunnelEvent as CoreTunnelEvent, TunnelState as CoreTunnelState,
     VpnApiErrorResponse as CoreVpnApiErrorResponse,
-    VpnApiErrorResponseTop as CoreVpnApiErrorResponseTop,
+    VpnApiError as CoreVpnApiErrorResponseTop,
     WireguardConnectionData as CoreWireguardConnectionData, WireguardNode as CoreWireguardNode,
 };
 use time::OffsetDateTime;

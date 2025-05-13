@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
-use nym_vpn_lib_types::{SyncAccountError, VpnApiErrorResponse, VpnApiErrorResponseTop};
+use nym_vpn_lib_types::{SyncAccountError, VpnApiErrorResponse, VpnApiError};
 use tracing::Level;
 
 use crate::{
@@ -108,7 +108,7 @@ async fn update_state(
             account_state
                 .promote_account_registered(AccountRegistered::NotRegistered)
                 .await;
-            return Err(VpnApiErrorResponseTop::try_from(err)
+            return Err(VpnApiError::try_from(err)
                 // .map
                 .map(SyncAccountError::SyncAccountEndpointFailure)
                 .unwrap_or_else(SyncAccountError::unexpected_response));

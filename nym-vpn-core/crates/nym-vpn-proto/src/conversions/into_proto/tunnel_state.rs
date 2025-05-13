@@ -4,7 +4,7 @@
 use nym_vpn_lib_types::{
     ActionAfterDisconnect, ClientErrorReason, ConnectionData, ForgetAccountError, Gateway,
     MixnetConnectionData, RegisterDeviceError, StoreAccountError, SyncAccountError,
-    SyncDeviceError, TunnelConnectionData, TunnelState, VpnApiErrorResponse,
+    SyncDeviceError, TunnelConnectionData, TunnelState, VpnApiError, VpnApiErrorResponse,
     WireguardConnectionData, WireguardNode,
 };
 
@@ -25,7 +25,7 @@ use crate::{
     RegisterDeviceError as ProtoRegisterDeviceError, StoreAccountError as ProtoStoreAccountError,
     SyncAccountError as ProtoSyncAccountError, SyncDeviceError as ProtoSyncDeviceError,
     TunnelConnectionData as ProtoTunnelConnectionData, TunnelState as ProtoTunnelState,
-    VpnApiErrorResponse as ProtoVpnApiErrorResponse,
+    VpnApiError as ProtoVpnApiError, VpnApiErrorResponse as ProtoVpnApiErrorResponse,
     WireguardConnectionData as ProtoWireguardConnectionData, WireguardNode as ProtoWireguardNode,
 };
 
@@ -133,14 +133,11 @@ impl From<SyncAccountError> for ProtoSyncAccountError {
                     true,
                 )),
             },
-            SyncAccountError::SyncAccountEndpointFailure(vpn_api_endpoint_failure) => {
-                ProtoSyncAccountError {
-                    error_detail: Some(crate::sync_account_error::ErrorDetail::ErrorResponse(
-                        // vpn_api_endpoint_failure.into(),
-                        todo!()
-                    )),
-                }
-            }
+            SyncAccountError::SyncAccountEndpointFailure(vpn_api_error) => ProtoSyncAccountError {
+                error_detail: Some(crate::sync_account_error::ErrorDetail::VpnApiError(
+                    vpn_api_error.into(),
+                )),
+            },
             SyncAccountError::UnexpectedResponse(err) => ProtoSyncAccountError {
                 error_detail: Some(crate::sync_account_error::ErrorDetail::UnexpectedResponse(
                     err,
@@ -266,6 +263,23 @@ impl From<ForgetAccountError> for ProtoForgetAccountError {
             ForgetAccountError::Internal(err) => Self {
                 error_detail: Some(crate::forget_account_error::ErrorDetail::Internal(err)),
             },
+        }
+    }
+}
+
+impl From<VpnApiError> for ProtoVpnApiError {
+    fn from(value: VpnApiError) -> Self {
+        let error_detail = match value {
+            VpnApiError::Timeout => crate::vpn_api_error::ErrorDetail::Timeout(true),
+            VpnApiError::StatusCode(code) => {
+                crate::vpn_api_error::ErrorDetail::StatusCode(code.into())
+            }
+            VpnApiError::Response(vpn_api_error_response) => {
+                crate::vpn_api_error::ErrorDetail::Response(vpn_api_error_response.into())
+            }
+        };
+        Self {
+            error_detail: Some(error_detail),
         }
     }
 }

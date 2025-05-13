@@ -91,7 +91,7 @@ impl From<RequestZkNymVec> for AccountCommandError {
 }
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
-pub enum VpnApiErrorResponseTop {
+pub enum VpnApiError {
     #[error("timeout")]
     Timeout,
 
@@ -102,17 +102,17 @@ pub enum VpnApiErrorResponseTop {
     Response(#[from] VpnApiErrorResponse),
 }
 
-impl VpnApiErrorResponseTop {
+impl VpnApiError {
     pub fn message(&self) -> String {
         match self {
-            VpnApiErrorResponseTop::Response(err) => err.message.clone(),
-            VpnApiErrorResponseTop::StatusCode(_) => self.to_string(),
-            VpnApiErrorResponseTop::Timeout => self.to_string(),
+            VpnApiError::Response(err) => err.message.clone(),
+            VpnApiError::StatusCode(_) => self.to_string(),
+            VpnApiError::Timeout => self.to_string(),
         }
     }
 
     pub fn message_id(&self) -> Option<String> {
-        if let VpnApiErrorResponseTop::Response(err) = self {
+        if let VpnApiError::Response(err) = self {
             err.message_id.clone()
         } else {
             None
@@ -120,7 +120,7 @@ impl VpnApiErrorResponseTop {
     }
 
     pub fn code_reference_id(&self) -> Option<String> {
-        if let VpnApiErrorResponseTop::Response(err) = self {
+        if let VpnApiError::Response(err) = self {
             err.code_reference_id.clone()
         } else {
             None
@@ -128,7 +128,7 @@ impl VpnApiErrorResponseTop {
     }
 }
 
-impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiErrorResponseTop {
+impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
     type Error = nym_vpn_api_client::VpnApiClientError;
 
     fn try_from(err: nym_vpn_api_client::VpnApiClientError) -> Result<Self, Self::Error> {

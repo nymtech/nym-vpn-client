@@ -17,7 +17,7 @@ message StoreAccountError {
 message SyncAccountError {
   oneof error_detail {
     bool no_account_stored = 1;
-    VpnApiErrorResponse error_response = 2;
+    VpnApiError vpn_api_error = 2;
     string unexpected_response = 3;
     bool offline = 5;
     string internal = 4;
@@ -62,6 +62,14 @@ message ForgetAccountError {
 
 message DeleteLogFileError {
   string message = 1;
+}
+
+message VpnApiError {
+  oneof error_detail {
+    bool timeout = 1;
+    uint32 status_code = 2;
+    VpnApiErrorResponse response = 3;
+  }
 }
 
 message VpnApiErrorResponse {
