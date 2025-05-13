@@ -5353,6 +5353,17 @@
         }
       }
     },
+    "errorReason.deviceTimeOutOfSync" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        }
+      }
+    },
     "errorReason.dns" : {
       "extractionState" : "manual",
       "localizations" : {
