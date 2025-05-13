@@ -5,15 +5,15 @@ use std::{error::Error, fmt::Debug};
 
 use nym_vpn_api_client::VpnApiClientError;
 
-use super::{VpnApiErrorResponse, VpnApiError};
+use super::{VpnApiError, VpnApiErrorResponse};
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq, Clone)]
 pub enum SyncAccountError {
     #[error("no account stored")]
     NoAccountStored,
 
-    #[error(transparent)]
-    SyncAccountEndpointFailure(VpnApiError),
+    #[error("sync account: {0}")]
+    SyncAccountEndpointFailure(#[from] VpnApiError),
 
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
