@@ -3,9 +3,99 @@
   "strings" : {
     "%@: %@" : {
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "new",
+            "value" : "%1$@: %2$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$@"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@: %2$@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@: %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
             "value" : "%1$@: %2$@"
           }
         }
@@ -16,14 +106,14 @@
       "localizations" : {
         "ar" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "fast"
+            "state" : "new",
+            "value" : "Fast (WireGuard*)"
           }
         },
         "de" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "fast"
+            "state" : "new",
+            "value" : "Fast (WireGuard*)"
           }
         },
         "en" : {
@@ -35,19 +125,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "fast"
+            "value" : "Rápido (WireGuard*)"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Fast (WireGuard*)"
+            "state" : "translated",
+            "value" : "سریع (*WireGuard)"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rapide (WireGuard*)"
+            "state" : "new",
+            "value" : "Fast (WireGuard*)"
           }
         },
         "hi" : {
@@ -58,20 +148,20 @@
         },
         "it" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "fast"
+            "state" : "new",
+            "value" : "Fast (WireGuard*)"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "fast"
+            "value" : "高速 (WireGuard*)"
           }
         },
         "pt" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rápido (WireGuard*)"
+            "state" : "new",
+            "value" : "Fast (WireGuard*)"
           }
         },
         "pt-BR" : {
@@ -83,13 +173,13 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "fast"
+            "value" : "Быстрый (WireGuard*)"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "fast"
+            "value" : "Hızlı (WireGuard*)"
           }
         },
         "uk" : {
@@ -107,7 +197,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "快速模式 (WireGuard*)"
+            "value" : "快速 (WireGuard*)"
           }
         }
       }
@@ -141,14 +231,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Best for browsing, streaming, sharing"
+            "state" : "translated",
+            "value" : "ایده‌آل برای وب‌گردی، پخش زنده و اشتراک‌گذاری"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pour la navigation ou le streaming"
+            "state" : "new",
+            "value" : "Best for browsing, streaming, sharing"
           }
         },
         "hi" : {
@@ -178,7 +268,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Melhor para pesquisar, transmitir, compartilhar"
+            "value" : "Melhor para a navegação, streaming, compartilhamento"
           }
         },
         "ru" : {
@@ -242,14 +332,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Best for payments, emails, messages"
+            "state" : "translated",
+            "value" : "ایده‌آل برای پرداخت‌ها، ایمیل‌ها و پیام‌ها"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pour les paiements, emails et messages"
+            "state" : "new",
+            "value" : "Best for payments, emails, messages"
           }
         },
         "hi" : {
@@ -343,14 +433,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous (mixnet)"
+            "state" : "translated",
+            "value" : "ِمیکس‌نتِ ناشناس"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anonyme (mixnet)"
+            "state" : "new",
+            "value" : "Anonymous (mixnet)"
           }
         },
         "hi" : {
@@ -368,7 +458,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "匿名(mixnet)"
+            "value" : "匿名（(mixnet)）"
           }
         },
         "pt" : {
@@ -444,14 +534,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get Access Code"
+            "state" : "translated",
+            "value" : "کد دسترسی دریافت کنید"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Générer un code d'accès"
+            "state" : "new",
+            "value" : "Get Access Code"
           }
         },
         "hi" : {
@@ -487,7 +577,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Получить код доступа"
+            "value" : "Получите код доступа"
           }
         },
         "tr" : {
@@ -545,14 +635,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Credential"
+            "state" : "translated",
+            "value" : "گواهی‌اتصالِ‌ناشناس"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Identifiant"
+            "state" : "new",
+            "value" : "Credential"
           }
         },
         "hi" : {
@@ -582,7 +672,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Credencial"
+            "value" : "Credenciais"
           }
         },
         "ru" : {
@@ -594,7 +684,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Giriş Bilgileri"
+            "value" : "Kimlik Bilgileri"
           }
         },
         "uk" : {
@@ -606,7 +696,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Thông tin đăng nhập"
+            "value" : "Thông tin xác thực"
           }
         },
         "zh-Hans" : {
@@ -646,14 +736,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add new credential"
+            "state" : "translated",
+            "value" : "افزودن گواهی‌اتصالِ‌ناشناس جدید"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ajouter un identifiant"
+            "state" : "new",
+            "value" : "Add new credential"
           }
         },
         "hi" : {
@@ -683,19 +773,19 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Adicionar nova credencial"
+            "value" : "Adicionar novas credenciais"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Добавить новые учетные данные"
+            "value" : "Добавьте новые учетные данные"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Yeni giriş bilgisi ekle"
+            "value" : "Yeni kimlik bilgisi ekle"
           }
         },
         "uk" : {
@@ -707,7 +797,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Thêm thông tin đăng nhập mới"
+            "value" : "Thêm thông tin xác thực mới"
           }
         },
         "zh-Hans" : {
@@ -747,14 +837,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "days left"
+            "state" : "translated",
+            "value" : "روز باقی مانده"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "jours restants"
+            "state" : "new",
+            "value" : "days left"
           }
         },
         "hi" : {
@@ -790,7 +880,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "дней осталось"
+            "value" : "осталось дней"
           }
         },
         "tr" : {
@@ -848,14 +938,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "out of"
+            "state" : "translated",
+            "value" : "روز باقی مانده"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "plus de"
+            "state" : "new",
+            "value" : "out of"
           }
         },
         "hi" : {
@@ -949,14 +1039,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Soon to expire?"
+            "state" : "translated",
+            "value" : "به زودی منقضی می‌شود؟"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bientôt expiré ?"
+            "state" : "new",
+            "value" : "Soon to expire?"
           }
         },
         "hi" : {
@@ -986,19 +1076,19 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Em breve para expirar?"
+            "value" : "Em breve irá expirar?"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Скоро истечет?"
+            "value" : "Скоро закончится?"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Yakında süresi dolacak mı?"
+            "value" : "Süresi yakında dolacak mı?"
           }
         },
         "uk" : {
@@ -1024,10 +1114,100 @@
     "addCredentials.error.cannotCreateCache" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cannot create cache"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cannot create cache"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cannot create cache"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No se puede crear la caché"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "نمی‌توان cache را ایجاد کرد"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cannot create cache"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cannot create cache"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cannot create cache"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "キャッシュを作成できません。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cannot create cache"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Não é possível criar cache"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не удается создать кэш"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Önbellek oluşturulamıyor"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Не вдається створити кеш"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Không thể tạo bộ nhớ đệm"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法创建缓存"
           }
         }
       }
@@ -1061,14 +1241,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Cannot create credentials database"
+            "state" : "translated",
+            "value" : "نمی‌توان پایگاه داده گواهی‌اتصال‌ِناشناس را ایجاد کرد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de créer la base de données avec les identifiants"
+            "state" : "new",
+            "value" : "Cannot create credentials database"
           }
         },
         "hi" : {
@@ -1098,7 +1278,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Impossível criar banco de dados de credenciais"
+            "value" : "Não é possível criar um banco de dados de credenciais"
           }
         },
         "ru" : {
@@ -1110,7 +1290,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Giriş bilgileri veritabanı oluşturulamadı"
+            "value" : "Kimlik bilgileri veritabanı oluşturulamadı"
           }
         },
         "uk" : {
@@ -1122,7 +1302,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Không thể tạo cơ sở dữ liệu thông tin đăng nhập"
+            "value" : "Không thể tạo cơ sở dữ liệu thông tin xác thực"
           }
         },
         "zh-Hans" : {
@@ -1162,14 +1342,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Credential has no expiry date"
+            "state" : "translated",
+            "value" : "گواهی‌اتصال‌ِناشناس تاریخ انقضایی ندارد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "L'identifiant n'a pas de date d'expiration"
+            "state" : "new",
+            "value" : "Credential has no expiry date"
           }
         },
         "hi" : {
@@ -1187,7 +1367,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "認証情報に有効期限がありません"
+            "value" : "認証情報には有効期限がありません"
           }
         },
         "pt" : {
@@ -1205,13 +1385,13 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Учетные данные не имеют даты истечения"
+            "value" : "Учетные данные не имеют срока действия"
           }
         },
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Giriş bilgisinin geçerlilik süresi yok"
+            "value" : "Kimlik bilgisinin geçerlilik süresi yok"
           }
         },
         "uk" : {
@@ -1223,7 +1403,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Thông tin đăng nhập không có ngày hết hạn"
+            "value" : "Thông tin xác thực không có ngày hết hạn"
           }
         },
         "zh-Hans" : {
@@ -1263,14 +1443,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Please enter your anonymous Access Code."
+            "state" : "translated",
+            "value" : "لطفاً کد دسترسی‌ِناشناس خود را وارد کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Saisissez votre code d'accès anonyme."
+            "state" : "new",
+            "value" : "Please enter your anonymous Access Code."
           }
         },
         "hi" : {
@@ -1364,14 +1544,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Next"
+            "state" : "translated",
+            "value" : "بعدی"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Suivant"
+            "state" : "new",
+            "value" : "Next"
           }
         },
         "hi" : {
@@ -1389,7 +1569,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "次のページ"
+            "value" : "次へ"
           }
         },
         "pt" : {
@@ -1413,7 +1593,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sonra"
+            "value" : "Devam edin"
           }
         },
         "uk" : {
@@ -1465,14 +1645,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "New to NymVPN?"
+            "state" : "translated",
+            "value" : "در NymVPN تازه واردید؟"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pas encore utilisateur ?"
+            "state" : "new",
+            "value" : "New to NymVPN?"
           }
         },
         "hi" : {
@@ -1566,14 +1746,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "24-word-access-code\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough..."
+            "state" : "translated",
+            "value" : "کد دسترسی ۲۴ کلمه‌ای\n\nبرای مثال: smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Code d'accès de 24 mots, par ex. smoke artefact velvet skull pop palace tortoise damage rough..."
+            "state" : "new",
+            "value" : "24-word-access-code\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "hi" : {
@@ -1603,7 +1783,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Código de acesso 24-palavra\n\nex.:  smoke artefact velvet skull pop palace tortoise damage rough…"
+            "value" : "Código de acesso 24-palavras\n\nex.: smoke artefact velvet skull pop palace tortoise damage rough…"
           }
         },
         "ru" : {
@@ -1667,14 +1847,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "QR code scanner"
+            "state" : "translated",
+            "value" : "اسکنر کد QR"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scanneur de code QR"
+            "state" : "new",
+            "value" : "QR code scanner"
           }
         },
         "hi" : {
@@ -1710,7 +1890,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Сканер QR-кодов"
+            "value" : "QR-сканер"
           }
         },
         "tr" : {
@@ -1768,14 +1948,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Camera not available. Check permissions."
+            "state" : "translated",
+            "value" : "دوربین در دسترس نیست. مجوزها را بررسی کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "La caméra n'est pas disponible. Vérifiez les permissions."
+            "state" : "new",
+            "value" : "Camera not available. Check permissions."
           }
         },
         "hi" : {
@@ -1793,7 +1973,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "カメラが利用できません。アクセス許可を確認してください。"
+            "value" : "カメラは利用できません。権限を確認してください。"
           }
         },
         "pt" : {
@@ -1805,7 +1985,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Câmara não disponível. Verificar permissões."
+            "value" : "Câmera não esta disponível. Cheque as permissões do aplicativo."
           }
         },
         "ru" : {
@@ -1869,14 +2049,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open Settings"
+            "state" : "translated",
+            "value" : "تنظیمات را باز کنید"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ouvrir les Réglages"
+            "state" : "new",
+            "value" : "Open Settings"
           }
         },
         "hi" : {
@@ -1970,14 +2150,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Scan NymVPN credential QR code"
+            "state" : "translated",
+            "value" : "اسکن کیو آر کد گواهی‌اتصالِ‌ناشناس NymVPN"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Scanner le code d'accès QR"
+            "state" : "new",
+            "value" : "Scan NymVPN credential QR code"
           }
         },
         "hi" : {
@@ -2019,7 +2199,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN giriş bilgidi QR kodunu tara"
+            "value" : "NymVPN kimlik bilgisi QR kodunu tara"
           }
         },
         "uk" : {
@@ -2031,7 +2211,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Quét mã QR thông tin đăng nhập NymVPN"
+            "value" : "Quét mã QR thông tin xác thực NymVPN"
           }
         },
         "zh-Hans" : {
@@ -2071,14 +2251,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to NymVPN"
+            "state" : "translated",
+            "value" : "خوش آمدید به NymVPN"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bienvenue !"
+            "state" : "new",
+            "value" : "Welcome to NymVPN"
           }
         },
         "hi" : {
@@ -2172,14 +2352,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Access Code"
+            "state" : "translated",
+            "value" : "کد دسترسی"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Code d'accès"
+            "state" : "new",
+            "value" : "Access Code"
           }
         },
         "hi" : {
@@ -2273,14 +2453,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "App"
+            "state" : "translated",
+            "value" : "برنامه"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "app"
+            "state" : "new",
+            "value" : "App"
           }
         },
         "hi" : {
@@ -2310,7 +2490,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aplicativo"
+            "value" : "App"
           }
         },
         "ru" : {
@@ -2374,14 +2554,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Auto connect at app startup"
+            "state" : "translated",
+            "value" : "اتصال خودکار در زمان راه‌اندازی برنامه"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connection automatique au démarrage"
+            "state" : "new",
+            "value" : "Auto connect at app startup"
           }
         },
         "hi" : {
@@ -2399,7 +2579,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "アプリの起動時に自動接続"
+            "value" : "アプリ起動時に自動で接続"
           }
         },
         "pt" : {
@@ -2475,14 +2655,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Auto-connect"
+            "state" : "translated",
+            "value" : "اتصال خودکار"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connection automatique"
+            "state" : "new",
+            "value" : "Auto-connect"
           }
         },
         "hi" : {
@@ -2576,14 +2756,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use device theme"
+            "state" : "translated",
+            "value" : "استفاده از تم دستگاه"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Utiliser l'apparence de l'appareil"
+            "state" : "new",
+            "value" : "Use device theme"
           }
         },
         "hi" : {
@@ -2601,7 +2781,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "デバイステーマを使用"
+            "value" : "デバイスのテーマを使用"
           }
         },
         "pt" : {
@@ -2677,14 +2857,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Automatic"
+            "state" : "translated",
+            "value" : "خودکار"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Automatique"
+            "state" : "new",
+            "value" : "Automatic"
           }
         },
         "hi" : {
@@ -2778,14 +2958,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Cancel"
+            "state" : "translated",
+            "value" : "انصراف"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Annuler"
+            "state" : "new",
+            "value" : "Cancel"
           }
         },
         "hi" : {
@@ -2874,19 +3054,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Consulta las preguntas frecuentes"
+            "value" : "Consulta las preguntas frecuentes (FAQ)"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Check the FAQ"
+            "state" : "translated",
+            "value" : "بررسی سوالات متداول"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Consulter la FAQ"
+            "state" : "new",
+            "value" : "Check the FAQ"
           }
         },
         "hi" : {
@@ -2904,7 +3084,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "よくある質問"
+            "value" : "FAQをチェック"
           }
         },
         "pt" : {
@@ -2980,14 +3160,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Close"
+            "state" : "translated",
+            "value" : "بستن"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fermer"
+            "state" : "new",
+            "value" : "Close"
           }
         },
         "hi" : {
@@ -3005,7 +3185,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "終了"
+            "value" : "閉じる"
           }
         },
         "pt" : {
@@ -3081,14 +3261,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connect"
+            "state" : "translated",
+            "value" : "اتصال"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connecter"
+            "state" : "new",
+            "value" : "Connect"
           }
         },
         "hi" : {
@@ -3106,7 +3286,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "接続"
+            "value" : "接続する"
           }
         },
         "pt" : {
@@ -3136,7 +3316,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Підключитись"
+            "value" : "Підключіться"
           }
         },
         "vi" : {
@@ -3182,14 +3362,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connected"
+            "state" : "translated",
+            "value" : "متصل"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connecté"
+            "state" : "new",
+            "value" : "Connected"
           }
         },
         "hi" : {
@@ -3207,7 +3387,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "接続されています"
+            "value" : "接続済み"
           }
         },
         "pt" : {
@@ -3283,14 +3463,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connecting..."
+            "state" : "translated",
+            "value" : "در حال اتصال..."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connexion..."
+            "state" : "new",
+            "value" : "Connecting..."
           }
         },
         "hi" : {
@@ -3384,14 +3564,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connection time"
+            "state" : "translated",
+            "value" : "زمان سپری شده اتصال"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Temps de connexion"
+            "state" : "new",
+            "value" : "Connection time"
           }
         },
         "hi" : {
@@ -3485,14 +3665,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connect to"
+            "state" : "translated",
+            "value" : "اتصال به"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Se connecter à"
+            "state" : "new",
+            "value" : "Connect to"
           }
         },
         "hi" : {
@@ -3522,7 +3702,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Conectar ao"
+            "value" : "Conectar à"
           }
         },
         "ru" : {
@@ -3586,14 +3766,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authorization denied. Please try again."
+            "state" : "translated",
+            "value" : "دسترسی رد شد. لطفاً دوباره تلاش کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autorisation refusée. Merci de réessayer."
+            "state" : "new",
+            "value" : "Authorization denied. Please try again."
           }
         },
         "hi" : {
@@ -3687,14 +3867,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Dark theme"
+            "state" : "translated",
+            "value" : "تم شب"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apparence sombre"
+            "state" : "new",
+            "value" : "Dark theme"
           }
         },
         "hi" : {
@@ -3754,7 +3934,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "深色主题"
+            "value" : "黑夜模式"
           }
         }
       }
@@ -3788,14 +3968,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Disconnect"
+            "state" : "translated",
+            "value" : "قطع ارتباط"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Déconnecter"
+            "state" : "new",
+            "value" : "Disconnect"
           }
         },
         "hi" : {
@@ -3813,7 +3993,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "接続解除"
+            "value" : "切断"
           }
         },
         "pt" : {
@@ -3889,14 +4069,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Disconnected"
+            "state" : "translated",
+            "value" : "ارتباط قطع شده"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Déconnecté"
+            "state" : "new",
+            "value" : "Disconnected"
           }
         },
         "hi" : {
@@ -3914,7 +4094,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "接続解除しました"
+            "value" : "切断されました"
           }
         },
         "pt" : {
@@ -3990,14 +4170,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Disconnecting..."
+            "state" : "translated",
+            "value" : "در حال قطع ارتباط..."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Déconnexion..."
+            "state" : "new",
+            "value" : "Disconnecting..."
           }
         },
         "hi" : {
@@ -4015,7 +4195,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "接続解除中..."
+            "value" : "切断中..."
           }
         },
         "pt" : {
@@ -4086,19 +4266,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Selector de gateway de entrada"
+            "value" : "Selecciona gateway de entrada"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry location selector"
+            "state" : "translated",
+            "value" : "انتخاب مکان ورودی"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choix de passerelle d'entrée"
+            "state" : "new",
+            "value" : "Entry location selector"
           }
         },
         "hi" : {
@@ -4116,7 +4296,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "エントリーロケーションの選択"
+            "value" : "エントリー地点選択"
           }
         },
         "pt" : {
@@ -4192,8 +4372,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Error"
+            "state" : "translated",
+            "value" : "خطا"
           }
         },
         "fr" : {
@@ -4228,8 +4408,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Error"
+            "state" : "translated",
+            "value" : "Erro"
           }
         },
         "ru" : {
@@ -4258,8 +4438,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Error"
+            "state" : "translated",
+            "value" : "错误"
           }
         }
       }
@@ -4293,14 +4473,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong with the Gateway Directory"
+            "state" : "translated",
+            "value" : "یک چیزی در دایرکتوری گیت‌وی اشتباه است"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erreur avec l'annuaire des passerelles"
+            "state" : "new",
+            "value" : "Something went wrong with the Gateway Directory"
           }
         },
         "hi" : {
@@ -4394,14 +4574,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to create log file"
+            "state" : "translated",
+            "value" : "ایجاد فایل گزارش با خطا مواجه شد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de créer le journal"
+            "state" : "new",
+            "value" : "Failed to create log file"
           }
         },
         "hi" : {
@@ -4495,14 +4675,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No mnemonic stored"
+            "state" : "translated",
+            "value" : "هیچ نمونیکی ذخیره نشده است"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pas de code d'accès enregistré"
+            "state" : "new",
+            "value" : "No mnemonic stored"
           }
         },
         "hi" : {
@@ -4544,7 +4724,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Mnemonik kaydedilmedi"
+            "value" : "Kurtarma kelimesi kaydedilmedi"
           }
         },
         "uk" : {
@@ -4562,7 +4742,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无存储助记符"
+            "value" : "未存储助记词"
           }
         }
       }
@@ -4596,14 +4776,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Timeout"
+            "state" : "translated",
+            "value" : "اتمام مهلت"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Délai d'attente dépassé"
+            "state" : "new",
+            "value" : "Timeout"
           }
         },
         "hi" : {
@@ -4697,14 +4877,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong"
+            "state" : "translated",
+            "value" : "مشکلی پیش آمده"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un problème est survenu "
+            "state" : "new",
+            "value" : "Something went wrong"
           }
         },
         "hi" : {
@@ -4722,7 +4902,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "エラーが発生しました"
+            "value" : "何らかのエラーが発生しました"
           }
         },
         "pt" : {
@@ -4734,7 +4914,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ocorreu algo de errado"
+            "value" : "Algo deu errado"
           }
         },
         "ru" : {
@@ -4798,14 +4978,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong. Unrecognized error"
+            "state" : "translated",
+            "value" : "اشتباهی پیش آمده. خطای ناشناخته"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un problème est survenu. Erreur inconnue."
+            "state" : "new",
+            "value" : "Something went wrong. Unrecognized error"
           }
         },
         "hi" : {
@@ -4899,14 +5079,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account not registered. Please try again."
+            "state" : "translated",
+            "value" : "حساب ثبت‌نام نشده است. لطفاً دوباره تلاش کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compte non enregistré. Merci de réessayer."
+            "state" : "new",
+            "value" : "Account not registered. Please try again."
           }
         },
         "hi" : {
@@ -5000,14 +5180,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bad bandwidth increase"
+            "state" : "translated",
+            "value" : "افزایش غیر عادی مصرف ترافیک"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erreur de bande passante"
+            "state" : "new",
+            "value" : "Bad bandwidth increase"
           }
         },
         "hi" : {
@@ -5025,7 +5205,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "帯域幅が不正です。"
+            "value" : "不正な帯域幅です。"
           }
         },
         "pt" : {
@@ -5101,14 +5281,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Monthly bandwidth exceeded. Please upgrade your account plan."
+            "state" : "translated",
+            "value" : "بسته ماهانه شما به اتمام رسیده. لطفاَ بسته جدید بخرید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "La bande passante mensuelle est dépassée. Veuillez mettre à jour votre abonnement de compte."
+            "state" : "new",
+            "value" : "Monthly bandwidth exceeded. Please upgrade your account plan."
           }
         },
         "hi" : {
@@ -5126,7 +5306,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "月間の帯域幅を超えています。アカウントプランをアップグレードしてください。"
+            "value" : "月間の帯域幅を超えています。アカウントのプランをアップグレードしてください。"
           }
         },
         "pt" : {
@@ -5202,14 +5382,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to configure DNS"
+            "state" : "translated",
+            "value" : "پیکربندی DNS با شکست مواجه شد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de configurer le DNS"
+            "state" : "new",
+            "value" : "Failed to configure DNS"
           }
         },
         "hi" : {
@@ -5303,14 +5483,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Duplicate tunnel file descriptor"
+            "state" : "translated",
+            "value" : "کپی گرفتن از فایل دسکریپتور تونل"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erreur de description du fichier du tunnel"
+            "state" : "new",
+            "value" : "Duplicate tunnel file descriptor"
           }
         },
         "hi" : {
@@ -5328,7 +5508,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "トンネルファイル記述子を複製"
+            "value" : "トンネルファイル記述子の重複"
           }
         },
         "pt" : {
@@ -5404,14 +5584,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to establish wireguard connection"
+            "state" : "translated",
+            "value" : "ایجاد اتصال Wireguard شکست خورد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erreur de connexion WireGuard"
+            "state" : "new",
+            "value" : "Failed to establish wireguard connection"
           }
         },
         "hi" : {
@@ -5505,14 +5685,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to configure firewall"
+            "state" : "translated",
+            "value" : "پیکربندی فایروال با شکست مواجه شد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erreur de configuration du pare-feu"
+            "state" : "new",
+            "value" : "Failed to configure firewall"
           }
         },
         "hi" : {
@@ -5606,14 +5786,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Internal unknown tunnel failure"
+            "state" : "translated",
+            "value" : "خرابی داخلی ناشناخته تونل"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erreur du tunnel"
+            "state" : "new",
+            "value" : "Internal unknown tunnel failure"
           }
         },
         "hi" : {
@@ -5707,14 +5887,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Invalid entry gateway country"
+            "state" : "translated",
+            "value" : "کشور گیت‌وی ورودی نامعتبر"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passerelle d'entrée incorrecte"
+            "state" : "new",
+            "value" : "Invalid entry gateway country"
           }
         },
         "hi" : {
@@ -5808,14 +5988,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Invalid exit gateway country"
+            "state" : "translated",
+            "value" : "کشور گیت‌وی خروجی نامعتبر"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pays de la passerelle de sortie invalide"
+            "state" : "new",
+            "value" : "Invalid exit gateway country"
           }
         },
         "hi" : {
@@ -5909,14 +6089,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account device limit exceeded. Please remove a device from your account before connecting."
+            "state" : "translated",
+            "value" : "تعداد دستگاه های متصل به حساب کاربری شما از حداکثر مجاز عبور کرده. لطفاً قبل از اتصال، یکی از دستگاه‌ها را از حساب کاربری خود حذف کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "La limite d’appareil du compte client a été dépassée. Veuillez retirer un appareil de votre compte avant de vous connecter."
+            "state" : "new",
+            "value" : "Account device limit exceeded. Please remove a device from your account before connecting."
           }
         },
         "hi" : {
@@ -5946,7 +6126,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "O limite de dispositivos da conta excedido. Remova um dispositivo da sua conta antes de conectar."
+            "value" : "Limite de dispositivos da conta excedido. Remova um dispositivo da sua conta antes de se conectar."
           }
         },
         "ru" : {
@@ -6010,14 +6190,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No account stored. Please add a mnemonic."
+            "state" : "translated",
+            "value" : "هیچ حسابی ذخیره نشده است. لطفاً یک نمونیک اضافه کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pas de compte enregistré. Ajoutez votre code d'accès."
+            "state" : "new",
+            "value" : "No account stored. Please add a mnemonic."
           }
         },
         "hi" : {
@@ -6111,14 +6291,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Device not registered. Please try again."
+            "state" : "translated",
+            "value" : "دستگاه ثبت نشده است. لطفاً دوباره تلاش کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "L'appareil n'est pas enregistré. Merci de réessayer."
+            "state" : "new",
+            "value" : "Device not registered. Please try again."
           }
         },
         "hi" : {
@@ -6212,14 +6392,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Offline"
+            "state" : "translated",
+            "value" : "آفلاین"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Hors ligne"
+            "state" : "new",
+            "value" : "Offline"
           }
         },
         "hi" : {
@@ -6313,14 +6493,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Registration in progress. Please try again."
+            "state" : "translated",
+            "value" : "در حال ثبت نام هستید. لطفا دوباره تلاش کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inscription en cours. Merci de réessayer."
+            "state" : "new",
+            "value" : "Registration in progress. Please try again."
           }
         },
         "hi" : {
@@ -6338,7 +6518,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登録中です。もう一度お試しください。"
+            "value" : "登録中です。もう一度やり直してください。"
           }
         },
         "pt" : {
@@ -6356,7 +6536,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Регистрация в процессе. Пожалуйста, попробуйте снова."
+            "value" : "Регистрация в процессе. Пожалуйста, попробуйте еще раз."
           }
         },
         "tr" : {
@@ -6374,7 +6554,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đang tiến hành đăng ký. Vui lòng thử lại sau."
+            "value" : "Đang tiến hành đăng ký. Vui lòng thử lại."
           }
         },
         "zh-Hans" : {
@@ -6414,8 +6594,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Registration in progress. Please try again."
+            "state" : "translated",
+            "value" : "در حال ثبت نام هستید. لطفا دوباره تلاش کنید."
           }
         },
         "fr" : {
@@ -6439,7 +6619,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登録処理中です。もう一度やり直してください。"
+            "value" : "登録中です。もう一度やり直してください。"
           }
         },
         "pt" : {
@@ -6475,13 +6655,13 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đang tiến hành đăng ký. Vui lòng thử lại sau."
+            "value" : "Đang tiến hành đăng ký. Vui lòng thử lại."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Registration in progress. Please try again."
+            "state" : "translated",
+            "value" : "正在注册。请重试。"
           }
         }
       }
@@ -6515,14 +6695,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to resolve API domains. Please try again."
+            "state" : "translated",
+            "value" : "ناموفق در یافتن دامنه‌های API. لطفا دوباره تلاش کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erreur de résolution des domaines DNS. Merci de réessayer."
+            "state" : "new",
+            "value" : "Failed to resolve API domains. Please try again."
           }
         },
         "hi" : {
@@ -6616,14 +6796,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to configure routing"
+            "state" : "translated",
+            "value" : "تنظیم مسیریابی با خطا مواجه شد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de configurer le routage"
+            "state" : "new",
+            "value" : "Failed to configure routing"
           }
         },
         "hi" : {
@@ -6641,7 +6821,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ルーティングの設定に失敗しました"
+            "value" : "DNS設定に失敗しました"
           }
         },
         "pt" : {
@@ -6717,14 +6897,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For privacy, NymVPN won't use the same gateway for entry and exit. Reconnect or choose different locations."
+            "state" : "translated",
+            "value" : "به منظور حفظ حریم شخصی NymVPN از گیت‌وی ورودی و خروجی یکسان استفاده نخواهد کرد. دوباره وصل شوید یا مکان دیگری را انتخاب کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pour des raisons de sécurité, NymVPN ne peut utiliser la même passerelle pour l'entrée et la sortie. Reconnectez-vous ou choisissez d'autres passerelles."
+            "state" : "new",
+            "value" : "For privacy, NymVPN won't use the same gateway for entry and exit. Reconnect or choose different locations."
           }
         },
         "hi" : {
@@ -6754,7 +6934,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Para privacidade, a NymVPN não usará o mesmo gateway para entrada e saída. Reconecte ou escolha locais diferentes."
+            "value" : "Para fins de privacidade, o NymVPN não usará o mesmo gateway para entrada e saída. Reconecte-se ou escolha locais diferentes."
           }
         },
         "ru" : {
@@ -6818,14 +6998,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to start local dns proxy. Please try again."
+            "state" : "translated",
+            "value" : "راه‌اندازی local DNS proxy ناموفق بود. لطفاَ دوباره تلاش کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de démarrer le proxy DNS local. Merci de réessayer."
+            "state" : "new",
+            "value" : "Failed to start local dns proxy. Please try again."
           }
         },
         "hi" : {
@@ -6879,7 +7059,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Không thể khởi động proxy DNS cục bộ. Vui lòng thử lại."
+            "value" : "Không thể khởi động proxy dns cục bộ. Vui lòng thử lại."
           }
         },
         "zh-Hans" : {
@@ -6919,14 +7099,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Subscription has expired. Please purchase a plan for your account."
+            "state" : "translated",
+            "value" : "اشتراک شما منقضی شده است. لطفاً برای حساب کاربری خود یک طرح خریداری کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "L'abonnement a expiré. Veuillez acheter un plan pour votre compte."
+            "state" : "new",
+            "value" : "Subscription has expired. Please purchase a plan for your account."
           }
         },
         "hi" : {
@@ -6944,7 +7124,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "サブスクリプションの有効期限が切れました。アカウントのプランを購入してください。"
+            "value" : "サブスクリプションの有効期限が切れています。アカウントのプランを購入してください。"
           }
         },
         "pt" : {
@@ -6962,7 +7142,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Срок действия подписки истёк. Пожалуйста, приобретите план для вашего аккаунта."
+            "value" : "Срок подписки истёк. Пожалуйста, приобретите новый план для вашего аккаунта."
           }
         },
         "tr" : {
@@ -7020,14 +7200,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to configure tunnel device"
+            "state" : "translated",
+            "value" : "تنظیم تونل دستگاه با خطا مواجه شد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de configurer le tunnel (« tunnel device »)"
+            "state" : "new",
+            "value" : "Failed to configure tunnel device"
           }
         },
         "hi" : {
@@ -7121,14 +7301,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to configure packet tunnel provider"
+            "state" : "translated",
+            "value" : "عدم موفقیت در پیکربندی و اتصال به ارائه‌دهنده بسته تونل"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de configurer le fournisseur de tunnel"
+            "state" : "new",
+            "value" : "Failed to configure packet tunnel provider"
           }
         },
         "hi" : {
@@ -7222,14 +7402,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Unknown reason. Please try again."
+            "state" : "translated",
+            "value" : "دلیل ناشناخته. لطفاً دوباره تلاش کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erreur inconnue. Merci de réessayer."
+            "state" : "new",
+            "value" : "Unknown reason. Please try again."
           }
         },
         "hi" : {
@@ -7259,7 +7439,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Razão desconhecida. Por favor tente novamente."
+            "value" : "Motivo desconhecido. Tente novamente."
           }
         },
         "ru" : {
@@ -7323,14 +7503,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Unknown tunnel state. Please try again."
+            "state" : "translated",
+            "value" : "وضعیت تونل نامشخص است. لطفاً دوباره تلاش کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "État du tunnel inconnu. Merci de réessayer."
+            "state" : "new",
+            "value" : "Unknown tunnel state. Please try again."
           }
         },
         "hi" : {
@@ -7372,7 +7552,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Unknown tunnel state. Please try again."
+            "value" : "Bilinmeyen tünel durumu. Lütfen tekrar deneyin."
           }
         },
         "uk" : {
@@ -7424,14 +7604,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Establishing connection"
+            "state" : "translated",
+            "value" : "در حال راه‌اندازی اتصال"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connexion en cours"
+            "state" : "new",
+            "value" : "Establishing connection"
           }
         },
         "hi" : {
@@ -7449,7 +7629,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "接続中"
+            "value" : "接続を確立中"
           }
         },
         "pt" : {
@@ -7525,14 +7705,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Lowest ping"
+            "state" : "translated",
+            "value" : "پایین‌ترین پینگ"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Latence la plus faible"
+            "state" : "new",
+            "value" : "Lowest ping"
           }
         },
         "hi" : {
@@ -7550,7 +7730,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "最も低いping"
+            "value" : "最も低い ping"
           }
         },
         "pt" : {
@@ -7626,14 +7806,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Help us improve NymVPN"
+            "state" : "translated",
+            "value" : "ما را در بهبود NymVPN یاری کنید"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aidez-nous à améliorer NymVPN"
+            "state" : "new",
+            "value" : "Help us improve NymVPN"
           }
         },
         "hi" : {
@@ -7727,14 +7907,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Turn on error reporting"
+            "state" : "translated",
+            "value" : "گزارش خطا را فعال کنید"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Activer les rapports d'erreurs"
+            "state" : "new",
+            "value" : "Turn on error reporting"
           }
         },
         "hi" : {
@@ -7752,7 +7932,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "エラー報告をオンにする"
+            "value" : "エラー報告を有効にする"
           }
         },
         "pt" : {
@@ -7828,14 +8008,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open a GitHub issue"
+            "state" : "translated",
+            "value" : "مطرح کردن مشکل در GitHub"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Créer un ticket GitHub"
+            "state" : "new",
+            "value" : "Open a GitHub issue"
           }
         },
         "hi" : {
@@ -7929,14 +8109,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Send us feedback"
+            "state" : "translated",
+            "value" : "ارسال بازخورد برای ما"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Envoyer un commentaire"
+            "state" : "new",
+            "value" : "Send us feedback"
           }
         },
         "hi" : {
@@ -7966,7 +8146,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Envie-nos seu feedback"
+            "value" : "Enviar feedback"
           }
         },
         "ru" : {
@@ -8030,14 +8210,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry"
+            "state" : "translated",
+            "value" : "ورودی"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passerelle d'entrée"
+            "state" : "new",
+            "value" : "Entry"
           }
         },
         "hi" : {
@@ -8131,14 +8311,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Random"
+            "state" : "translated",
+            "value" : "تصادفی"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aléatoire"
+            "state" : "new",
+            "value" : "Random"
           }
         },
         "hi" : {
@@ -8232,14 +8412,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Random low latency"
+            "state" : "translated",
+            "value" : "تصادفی با تاخیر پایین"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Faible latence (aléatoire)"
+            "state" : "new",
+            "value" : "Random low latency"
           }
         },
         "hi" : {
@@ -8333,14 +8513,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "servers"
+            "state" : "translated",
+            "value" : "سرورها"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "serveurs"
+            "state" : "new",
+            "value" : "servers"
           }
         },
         "hi" : {
@@ -8429,19 +8609,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Algo salió mal: No se pueden obtener países"
+            "value" : "Algo salió mal: No se puede obtener la lista de países"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong: Cannot fetch countries"
+            "state" : "translated",
+            "value" : "خطایی رخ داده است: نمی‌توان کشورها را بارگذاری کرد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un problème est survenu. Impossible de récupérer la liste des lieux."
+            "state" : "new",
+            "value" : "Something went wrong: Cannot fetch countries"
           }
         },
         "hi" : {
@@ -8471,7 +8651,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Algo deu errado: Não é possível buscar países"
+            "value" : "Algo deu errado: Não é possível carregar países pré-agrupados"
           }
         },
         "ru" : {
@@ -8535,14 +8715,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong: Cannot parse pre-bundled countries"
+            "state" : "translated",
+            "value" : "خطایی رخ داده است: امکان تجزیه داده‌های کشورهای از پیش بسته‌بندی شده وجود ندارد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de récupérer les emplacements"
+            "state" : "new",
+            "value" : "Something went wrong: Cannot parse pre-bundled countries"
           }
         },
         "hi" : {
@@ -8560,7 +8740,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "問題が発生しました: 事前にバンドルされた国を解析できません"
+            "value" : "問題が発生しました: 事前にバンドルされた国を読み込むことができません"
           }
         },
         "pt" : {
@@ -8584,7 +8764,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bir hata oluştu: Önceden entegre edilmiş ülkeler çözümlenemiyor"
+            "value" : "Bir hata oluştu: Önceden entegre edilmiş ülkeler alınamıyor"
           }
         },
         "uk" : {
@@ -8636,14 +8816,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong: Invalid url"
+            "state" : "translated",
+            "value" : "خطایی رخ داده است: Url نامعتبر"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Un problème est survenu : adresse invalide"
+            "state" : "new",
+            "value" : "Something went wrong: Invalid url"
           }
         },
         "hi" : {
@@ -8737,14 +8917,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to fetch environment"
+            "state" : "translated",
+            "value" : "عدم موفقیت در دسترسی به محیط اجرا"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de récupérer l'environnement"
+            "state" : "new",
+            "value" : "Failed to fetch environment"
           }
         },
         "hi" : {
@@ -8762,7 +8942,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "環境の取得に失敗しました"
+            "value" : "環境の取得に失敗"
           }
         },
         "pt" : {
@@ -8833,19 +9013,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Algo salió mal: no se pueden analizar los países preintegrados"
+            "value" : "Algo salió mal: no se pueden cargar los países preintegrados"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong: Cannot load pre-bundled countries"
+            "state" : "translated",
+            "value" : "خطایی رخ داده است: امکان تجزیه داده‌های کشورهای از پیش بسته‌بندی شده وجود ندارد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Impossible de charger les emplacements"
+            "state" : "new",
+            "value" : "Something went wrong: Cannot load pre-bundled countries"
           }
         },
         "hi" : {
@@ -8939,14 +9119,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong. Please try again."
+            "state" : "translated",
+            "value" : "خطایی رخ داده است. لطفا دوباره سعی کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Une erreur est survenue. Merci de réessayer."
+            "state" : "new",
+            "value" : "Something went wrong. Please try again."
           }
         },
         "hi" : {
@@ -9040,14 +9220,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Close"
+            "state" : "translated",
+            "value" : "بستن"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fermer"
+            "state" : "new",
+            "value" : "Close"
           }
         },
         "hi" : {
@@ -9065,7 +9245,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "閉じる"
+            "value" : "終了"
           }
         },
         "pt" : {
@@ -9077,7 +9257,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "fechar"
+            "value" : "Fechar"
           }
         },
         "ru" : {
@@ -9141,14 +9321,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Identity key:"
+            "state" : "translated",
+            "value" : "کلید شناسایی هویت:"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Identifiant du serveur"
+            "state" : "new",
+            "value" : "Identity key:"
           }
         },
         "hi" : {
@@ -9166,7 +9346,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "認証キー"
+            "value" : "IDキー:"
           }
         },
         "pt" : {
@@ -9242,14 +9422,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authorize"
+            "state" : "translated",
+            "value" : "اجازه دادن"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autoriser"
+            "state" : "new",
+            "value" : "Authorize"
           }
         },
         "hi" : {
@@ -9343,8 +9523,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Back to main screen"
+            "state" : "translated",
+            "value" : "بازگشت به صفحه اصلی"
           }
         },
         "fr" : {
@@ -9379,8 +9559,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Back to main screen"
+            "state" : "translated",
+            "value" : "Voltar para a tela principal"
           }
         },
         "ru" : {
@@ -9409,8 +9589,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Back to main screen"
+            "state" : "translated",
+            "value" : "回到主屏幕"
           }
         }
       }
@@ -9444,14 +9624,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "ادامه"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continuer"
+            "state" : "new",
+            "value" : "Continue"
           }
         },
         "hi" : {
@@ -9469,7 +9649,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "続行"
+            "value" : "次"
           }
         },
         "pt" : {
@@ -9545,14 +9725,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copy commands"
+            "state" : "translated",
+            "value" : "کپی دستورات"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copier la commande"
+            "state" : "new",
+            "value" : "Copy commands"
           }
         },
         "hi" : {
@@ -9646,14 +9826,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Successfully copied to clipboard!"
+            "state" : "translated",
+            "value" : "با موفقیت به کلیپ بورد کپی شد!"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Copié dans le presse-papier !"
+            "state" : "new",
+            "value" : "Successfully copied to clipboard!"
           }
         },
         "hi" : {
@@ -9671,7 +9851,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "クリップボードにコピーしました"
+            "value" : "クリップボードにコピーしました！"
           }
         },
         "pt" : {
@@ -9747,8 +9927,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon migration required"
+            "state" : "translated",
+            "value" : "دیمون مهاجرت شود"
           }
         },
         "fr" : {
@@ -9783,8 +9963,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon migration required"
+            "state" : "translated",
+            "value" : "Migração do daemon necessária"
           }
         },
         "ru" : {
@@ -9813,8 +9993,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon migration required"
+            "state" : "translated",
+            "value" : "需要迁移守护进程"
           }
         }
       }
@@ -9825,19 +10005,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "es" : {
@@ -9848,14 +10028,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "state" : "translated",
+            "value" : "NymVPN یک سرویس پس‌زمینه (دیمون) را اجرا می‌کند \nتا اتصال شما را امن نگه دارد. این سرویس رمزنگاری و مسیریابی را مدیریت می‌کند و فعالیت شما را حتی زمانی که اپلیکیشن بسته است، محافظت می‌کند.\n\nبرای نصب دیمون، مراحل زیر را دنبال کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "hi" : {
@@ -9867,7 +10047,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "ja" : {
@@ -9879,13 +10059,13 @@
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "state" : "translated",
+            "value" : "O NymVPN usa um serviço em segundo plano (daemon) \n para manter sua conexão segura. O daemon lida com a criptografia e o roteamento, protegendo sua atividade mesmo quando o aplicativo está fechado.\n\nSiga os passos abaixo para instalar o daemon."
           }
         },
         "ru" : {
@@ -9914,8 +10094,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "state" : "translated",
+            "value" : "NymVPN 使用后台服务（守护程序）保障您的连接安全。\n\n守护程序处理加密和网络路由，即使应用未打开，确保您的在线活动全天候受到保护。\n\n按照以下步骤安装守护程序。"
           }
         }
       }
@@ -9949,8 +10129,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "1. Open system settings using button below"
+            "state" : "translated",
+            "value" : "۱. تنظیمات سیستم را با استفاده از کلید زیر باز کنید"
           }
         },
         "fr" : {
@@ -10015,8 +10195,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "1. Open system settings using button below"
+            "state" : "translated",
+            "value" : "1. 使用下面的按钮打开系统设置"
           }
         }
       }
@@ -10050,8 +10230,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open system settings"
+            "state" : "translated",
+            "value" : "ورود به تنظیمات دستگاه"
           }
         },
         "fr" : {
@@ -10111,13 +10291,13 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Xem các cài đặt hệ thống"
+            "value" : "Mở cài đặt hệ thống"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open system settings"
+            "state" : "translated",
+            "value" : "打开系统设置"
           }
         }
       }
@@ -10151,14 +10331,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Install daemon"
+            "state" : "translated",
+            "value" : "نصب دیمون"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installer le daemon"
+            "state" : "new",
+            "value" : "Install daemon"
           }
         },
         "hi" : {
@@ -10206,7 +10386,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Встановити демон"
+            "value" : "Встановити daemon"
           }
         },
         "vi" : {
@@ -10252,14 +10432,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Register & authorize"
+            "state" : "translated",
+            "value" : "ثبت نام و اجازه دادن"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installer et autoriser"
+            "state" : "new",
+            "value" : "Register & authorize"
           }
         },
         "hi" : {
@@ -10277,7 +10457,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "登録 & 認証"
+            "value" : "登録と承認"
           }
         },
         "pt" : {
@@ -10289,13 +10469,13 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Registrar e autorizar"
+            "value" : "Registrar & autorizar"
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Зарегистрироваться и авторизоваться"
+            "value" : "Зарегистрируйтесь и авторизуйтесь"
           }
         },
         "tr" : {
@@ -10353,8 +10533,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "2. Navigate to the “Allow in the Background” section, find NymVPN in the app list, and turn on the switch."
+            "state" : "translated",
+            "value" : "۲. به بخش \"اجازه برای پس‌زمینه\" بروید، NymVPN را در فهرست برنامه‌ها پیدا کرده و آن را فعال کنید."
           }
         },
         "fr" : {
@@ -10389,14 +10569,14 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "2. Navigate to the “Allow in the Background” section, find NymVPN in the app list, and turn on the switch."
+            "state" : "translated",
+            "value" : "2. Navegue até a seção “Permitir em segundo plano”, encontre o NymVPN na lista de aplicativos e ative a opção."
           }
         },
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "2. Перейдите в раздел «Разрешить в фоне», найдите NymVPN в списке приложений и включите переключатель."
+            "value" : "2. Перейдите в раздел «Разрешить в фоновом режиме», найдите NymVPN в списке приложений и включите переключатель."
           }
         },
         "tr" : {
@@ -10414,13 +10594,13 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "2. Chuyển đến phần “Cho phép trong nền”, tìm NymVPN trong danh sách ứng dụng và bật cho phép."
+            "value" : "2. Chuyển đến phần “Cho phép trong nền”, tìm NymVPN trong danh sách ứng dụng và bật cho phép."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "2. Navigate to the “Allow in the Background” section, find NymVPN in the app list, and turn on the switch."
+            "state" : "translated",
+            "value" : "2. 导航到“后台允许”部分，在应用列表中找到NymVPN，并打开开关。"
           }
         }
       }
@@ -10454,14 +10634,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authorize daemon"
+            "state" : "translated",
+            "value" : "اجازه دادن به دیمون"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Autoriser le daemon"
+            "state" : "new",
+            "value" : "Authorize daemon"
           }
         },
         "hi" : {
@@ -10479,7 +10659,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "デーモンを許可する"
+            "value" : "デーモンを認証する"
           }
         },
         "pt" : {
@@ -10509,7 +10689,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Авторизувати демон"
+            "value" : "Авторизувати daemon"
           }
         },
         "vi" : {
@@ -10555,14 +10735,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "current"
+            "state" : "translated",
+            "value" : "نسخه فعلی"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "actuelle"
+            "state" : "new",
+            "value" : "current"
           }
         },
         "hi" : {
@@ -10656,14 +10836,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Register daemon"
+            "state" : "translated",
+            "value" : "ثبت دیمون"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installer le daemon"
+            "state" : "new",
+            "value" : "Register daemon"
           }
         },
         "hi" : {
@@ -10681,7 +10861,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "デーモンを許可"
+            "value" : "デーモンを登録"
           }
         },
         "pt" : {
@@ -10711,7 +10891,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Зареєструвати демон"
+            "value" : "Зареєструвати daemon"
           }
         },
         "vi" : {
@@ -10757,14 +10937,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon is running"
+            "state" : "translated",
+            "value" : "دیمون در حال اجراست"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le daemon est actif"
+            "state" : "new",
+            "value" : "Daemon is running"
           }
         },
         "hi" : {
@@ -10782,7 +10962,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "デーモンが実行されています"
+            "value" : "デーモンが実行中です"
           }
         },
         "pt" : {
@@ -10858,14 +11038,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "required"
+            "state" : "translated",
+            "value" : "لازم است"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "requis"
+            "state" : "new",
+            "value" : "required"
           }
         },
         "hi" : {
@@ -10883,7 +11063,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "必須"
+            "value" : "必須項目"
           }
         },
         "pt" : {
@@ -10895,7 +11075,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Obrigatório"
+            "value" : "obrigatório"
           }
         },
         "ru" : {
@@ -10959,8 +11139,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Due to migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required.\nPlease execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
+            "state" : "translated",
+            "value" : "به دلیل جابه‌جایی از SMJOBBless به SMAPPservice، حذف دستی دیمون قدیمی ضروری است.\nلطفاً دستورات زیر را در ترمینال اجرا کنید:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nپس از اجرای این دستورات، مک خود را دوباره راه‌اندازی کنید."
           }
         },
         "fr" : {
@@ -10984,7 +11164,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "SMJOBBlessからSMAPPserviceへの移行のため、レガシーデーモンを手動で除去する必要があります。 以下のターミナルコマンドを実行してください。\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nこれらのコマンドを実行した後、Macを再起動してください。"
+            "value" : "SMJOBBlessからSMAPPserviceへの移行のため、レガシーデーモンを手動で除去する必要があります。 以下のターミナルコマンドを実行してください。\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper list \n\n sudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper\nsfltool resetbtm\n\nこれらのコマンドを実行した後、Macを再起動してください。"
           }
         },
         "pt" : {
@@ -10995,8 +11175,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Due to migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required.\nPlease execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
+            "state" : "translated",
+            "value" : "Devido à migração do SMJOBBless para o SMAPPservice, a remoção manual do daemon herdado é necessária. Por favor execute os seguintes comandos do Terminal:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nDepois de executar estes comandos, reinicie seu Mac."
           }
         },
         "ru" : {
@@ -11025,8 +11205,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Due to migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required.\nPlease execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
+            "state" : "translated",
+            "value" : "由于我们已从 SMJOBBless 迁移到 SMAPPservice，您需要手动删除旧守护程序。请执行以下终端指令：\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\n执行这些指令后，重新启动 Mac。"
           }
         }
       }
@@ -11060,14 +11240,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Verifying version"
+            "state" : "translated",
+            "value" : "در حال تأیید نسخه"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vérification de la version"
+            "state" : "new",
+            "value" : "Verifying version"
           }
         },
         "hi" : {
@@ -11085,7 +11265,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "バージョンを確認中"
+            "value" : "バージョンを確認中です"
           }
         },
         "pt" : {
@@ -11161,14 +11341,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Version OK"
+            "state" : "translated",
+            "value" : "نسخه اکی می‌باشد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Version à jour"
+            "state" : "new",
+            "value" : "Version OK"
           }
         },
         "hi" : {
@@ -11210,7 +11390,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sürüm TAMAM"
+            "value" : "Sürüm DOĞRU"
           }
         },
         "uk" : {
@@ -11262,14 +11442,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon version mismatch:"
+            "state" : "translated",
+            "value" : "عدم مطابقت نسخه دیمون:"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inadéquation de la version du daemon"
+            "state" : "new",
+            "value" : "Daemon version mismatch:"
           }
         },
         "hi" : {
@@ -11363,14 +11543,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Waiting for daemon start"
+            "state" : "translated",
+            "value" : "در حال انتظار برای شروع دیمون"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "En attente du démarrage du daemon"
+            "state" : "new",
+            "value" : "Waiting for daemon start"
           }
         },
         "hi" : {
@@ -11388,7 +11568,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "デーモンの開始まで待機中"
+            "value" : "デーモンの開始を待機中"
           }
         },
         "pt" : {
@@ -11464,8 +11644,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You can resume using NymVPN after returning to the main screen."
+            "state" : "translated",
+            "value" : "شما می‌توانید پس از بازگشت به صفحه اصلی، استفاده از NymVPN را از سر بگیرید."
           }
         },
         "fr" : {
@@ -11500,8 +11680,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You can resume using NymVPN after returning to the main screen."
+            "state" : "translated",
+            "value" : "Você pode voltar a usar o NymVPN após retornar à tela principal."
           }
         },
         "ru" : {
@@ -11530,8 +11710,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You can resume using NymVPN after returning to the main screen."
+            "state" : "translated",
+            "value" : "返回主屏幕后，您可以继续使用 NymVPN。"
           }
         }
       }
@@ -11565,8 +11745,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon successfully installed"
+            "state" : "translated",
+            "value" : "دیمون با موفقیت نصب شد"
           }
         },
         "fr" : {
@@ -11601,8 +11781,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon successfully installed"
+            "state" : "translated",
+            "value" : "Daemon instalado com sucesso"
           }
         },
         "ru" : {
@@ -11631,8 +11811,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon successfully installed"
+            "state" : "translated",
+            "value" : "守护进程已成功安装"
           }
         }
       }
@@ -11666,8 +11846,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN automatically detects changes and informs you about a successful installation. If nothing happens, contact our "
+            "state" : "translated",
+            "value" : "NymVPN به طور خودکار تغییرات را تشخیص می‌دهد و شما را از نصب موفق مطلع می‌کند. اگر نکرد، با ما تماس بگیرید "
           }
         },
         "fr" : {
@@ -11702,8 +11882,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN automatically detects changes and informs you about a successful installation. If nothing happens, contact our "
+            "state" : "translated",
+            "value" : "O NymVPN detecta automaticamente as mudanças e informa você sobre uma instalação bem-sucedida. Se nada acontecer, entre em contato com nosso "
           }
         },
         "ru" : {
@@ -11727,13 +11907,13 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN tự động phát hiện các thay đổi và thông báo cho bạn về một lần cài đặt thành công. Nếu không có gì xảy ra, hãy liên hệ với "
+            "value" : "NymVPN tự động phát hiện các thay đổi và thông báo cho bạn khi cài đặt thành công. Nếu không có gì xảy ra, hãy liên hệ với "
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN automatically detects changes and informs you about a successful installation. If nothing happens, contact our "
+            "state" : "translated",
+            "value" : "NymVPN 自动检测更改并通知您成功安装。如果没有任何反应，请联系我们"
           }
         }
       }
@@ -11767,8 +11947,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support team."
+            "state" : "translated",
+            "value" : "تیم پشتیبانی."
           }
         },
         "fr" : {
@@ -11833,8 +12013,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support team."
+            "state" : "translated",
+            "value" : "技术支持"
           }
         }
       }
@@ -11868,14 +12048,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Update"
+            "state" : "translated",
+            "value" : "به‌روزرسانی"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mise à jour"
+            "state" : "new",
+            "value" : "Update"
           }
         },
         "hi" : {
@@ -11911,7 +12091,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Обновить"
+            "value" : "Обновиться"
           }
         },
         "tr" : {
@@ -11969,14 +12149,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Updating…"
+            "state" : "translated",
+            "value" : "درحال به روز رسانی…"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mise à jour..."
+            "state" : "new",
+            "value" : "Updating…"
           }
         },
         "hi" : {
@@ -12006,7 +12186,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atualizando..."
+            "value" : "Atualizando…"
           }
         },
         "ru" : {
@@ -12070,14 +12250,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Verifying…"
+            "state" : "translated",
+            "value" : "در حال تأیید…"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vérification..."
+            "state" : "new",
+            "value" : "Verifying…"
           }
         },
         "hi" : {
@@ -12107,7 +12287,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Verificando..."
+            "value" : "Verificando…"
           }
         },
         "ru" : {
@@ -12171,14 +12351,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Starting daemon"
+            "state" : "translated",
+            "value" : "در حال شروع دیمون"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Démarrage du daemon"
+            "state" : "new",
+            "value" : "Starting daemon"
           }
         },
         "hi" : {
@@ -12196,7 +12376,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "デーモンを起動しています"
+            "value" : "デーモンを起動中"
           }
         },
         "pt" : {
@@ -12232,7 +12412,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đang khởi động tiến trình nền"
+            "value" : "Đang khởi động daemon"
           }
         },
         "zh-Hans" : {
@@ -12272,14 +12452,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Successfully uninstalled NymVPN helper"
+            "state" : "translated",
+            "value" : "NymVPN helper با موفقیت حذف شد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Daemon NymVPN installé"
+            "state" : "new",
+            "value" : "Successfully uninstalled NymVPN helper"
           }
         },
         "hi" : {
@@ -12309,7 +12489,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN helper desinstalado com sucesso"
+            "value" : "Ajuda NymVPN desinstalada com sucesso"
           }
         },
         "ru" : {
@@ -12373,14 +12553,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Uninstall NymVPN helper"
+            "state" : "translated",
+            "value" : "حذف نصب NymVPN helper"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Désinstaller le helper"
+            "state" : "new",
+            "value" : "Uninstall NymVPN helper"
           }
         },
         "hi" : {
@@ -12398,7 +12578,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPNヘルパーをアンインストール"
+            "value" : "NymVPN プログラムのアンインストール\n"
           }
         },
         "pt" : {
@@ -12474,14 +12654,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your device has no internet connection"
+            "state" : "translated",
+            "value" : "دستگاه شما به اینترنت متصل نیست"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre appareil n'est pas connecté à internet"
+            "state" : "new",
+            "value" : "Your device has no internet connection"
           }
         },
         "hi" : {
@@ -12575,14 +12755,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Will connect once device goes online"
+            "state" : "translated",
+            "value" : "زمانی که دستگاه آنلاین شد متصل خواهد شد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "La connexion sera rétablie une fois connecté à internet"
+            "state" : "new",
+            "value" : "Will connect once device goes online"
           }
         },
         "hi" : {
@@ -12676,14 +12856,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry"
+            "state" : "translated",
+            "value" : "ورودی"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Entrée"
+            "state" : "new",
+            "value" : "Entry"
           }
         },
         "hi" : {
@@ -12777,14 +12957,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit"
+            "state" : "translated",
+            "value" : "خروج"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sortie"
+            "state" : "new",
+            "value" : "Exit"
           }
         },
         "hi" : {
@@ -12820,7 +13000,7 @@
         "ru" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Выход"
+            "value" : "Выйти"
           }
         },
         "tr" : {
@@ -12878,14 +13058,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Installing and authorizing daemon..."
+            "state" : "translated",
+            "value" : "در حال نصب و مجوزدهی به دیمون..."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Installation du daemon en cours..."
+            "state" : "new",
+            "value" : "Installing and authorizing daemon..."
           }
         },
         "hi" : {
@@ -12939,7 +13119,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Đang cài đặt và cấp quyền cho tiến trình nền..."
+            "value" : "Đang cài đặt và cấp quyền cho daemon..."
           }
         },
         "zh-Hans" : {
@@ -12979,14 +13159,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Preparing…"
+            "state" : "translated",
+            "value" : "در حال آماده‌سازی…"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Préparation..."
+            "state" : "new",
+            "value" : "Preparing…"
           }
         },
         "hi" : {
@@ -13075,19 +13255,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Error: Error al instalar y autorizar el daemon"
+            "value" : "Error: Fallo al instalar y autorizar el daemon"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Error: Failed to install and authorize daemon"
+            "state" : "translated",
+            "value" : "خطا: نصب و اجازه دادن به دیمون ناموفق بود"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Erreur : impossible d'installer et d'autoriser le daemon"
+            "state" : "new",
+            "value" : "Error: Failed to install and authorize daemon"
           }
         },
         "hi" : {
@@ -13181,14 +13361,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "It appears you are not connected to the internet. Please check your internet connection and try to connect."
+            "state" : "translated",
+            "value" : "به نظر می‌رسد شما به اینترنت متصل نیستید. لطفاً اینترنت خود را بررسی کرده و دوباره متصل شوید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous n'êtes pas connecté à internet. Merci de vérifier votre connexion à internet et de réessayer."
+            "state" : "new",
+            "value" : "It appears you are not connected to the internet. Please check your internet connection and try to connect."
           }
         },
         "hi" : {
@@ -13206,7 +13386,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "インターネットに接続されていないようです。インターネット接続を確認して、接続してみてください。"
+            "value" : "インターネットに接続されていないようです。インターネット接続を確認し、接続を試してください。"
           }
         },
         "pt" : {
@@ -13242,7 +13422,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Có vẻ như bạn chưa kết nối internet. Vui lòng kiểm tra kết nối mạng của bạn và thử kết nối lại."
+            "value" : "Có vẻ như bạn chưa kết nối internet. Vui lòng kiểm tra kết nối mạng của bạn và thử lại."
           }
         },
         "zh-Hans" : {
@@ -13282,14 +13462,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No internet connection"
+            "state" : "translated",
+            "value" : "اینترنت وجود ندارد"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pas de connection à internet"
+            "state" : "new",
+            "value" : "No internet connection"
           }
         },
         "hi" : {
@@ -13319,7 +13499,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sem conexão com a internet"
+            "value" : "Sem conexão com a Internet"
           }
         },
         "ru" : {
@@ -13383,14 +13563,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Update"
+            "state" : "translated",
+            "value" : "به‌روزرسانی"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mise à jour"
+            "state" : "new",
+            "value" : "Update"
           }
         },
         "hi" : {
@@ -13484,14 +13664,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your app is no longer supported. Please download the latest version to continue using NymVPN."
+            "state" : "translated",
+            "value" : "این نسخه از برنامه دیگر پشتیبانی نمی‌شود. لطفا برای استفاده مجدد به آخرین نسخه به‌روزرسانی کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre application n'est plus à jour. Merci de télécharger la dernière version pour continuer à utiliser NymVPN."
+            "state" : "new",
+            "value" : "Your app is no longer supported. Please download the latest version to continue using NymVPN."
           }
         },
         "hi" : {
@@ -13585,14 +13765,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Update required"
+            "state" : "translated",
+            "value" : "به‌روزرسانی لازم است"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mise à jour requise"
+            "state" : "new",
+            "value" : "Update required"
           }
         },
         "hi" : {
@@ -13686,14 +13866,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Initializing client..."
+            "state" : "translated",
+            "value" : "درحال راه‌اندازی کلاینت..."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Démarrage du client"
+            "state" : "new",
+            "value" : "Initializing client..."
           }
         },
         "hi" : {
@@ -13711,7 +13891,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "クライアントを初期化中…..."
+            "value" : "クライアントを初期化中…"
           }
         },
         "pt" : {
@@ -13723,7 +13903,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Iniciando cliente…"
+            "value" : "Iniciando cliente..."
           }
         },
         "ru" : {
@@ -13787,14 +13967,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Join us on Discord"
+            "state" : "translated",
+            "value" : "به ما در Discord پیوندید"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nous joindre sur Discord"
+            "state" : "new",
+            "value" : "Join us on Discord"
           }
         },
         "hi" : {
@@ -13888,14 +14068,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Join us on Matrix"
+            "state" : "translated",
+            "value" : "به ما در Matrix بپیوندید"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nous joindre sur Matrix"
+            "state" : "new",
+            "value" : "Join us on Matrix"
           }
         },
         "hi" : {
@@ -13989,14 +14169,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit"
+            "state" : "translated",
+            "value" : "خروج"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Passerelle de sortie"
+            "state" : "new",
+            "value" : "Exit"
           }
         },
         "hi" : {
@@ -14026,7 +14206,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Saída"
+            "value" : "Saida"
           }
         },
         "ru" : {
@@ -14056,7 +14236,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "出口"
+            "value" : "退出"
           }
         }
       }
@@ -14090,14 +14270,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Legal"
+            "state" : "translated",
+            "value" : "قانونی"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Juridique"
+            "state" : "new",
+            "value" : "Legal"
           }
         },
         "hi" : {
@@ -14127,7 +14307,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Informações Legais"
+            "value" : "Legal"
           }
         },
         "ru" : {
@@ -14191,14 +14371,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Licence"
+            "state" : "translated",
+            "value" : "مجوز"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "License"
+            "state" : "new",
+            "value" : "Licence"
           }
         },
         "hi" : {
@@ -14292,14 +14472,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Licences"
+            "state" : "translated",
+            "value" : "مجوزها"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Licenses"
+            "state" : "new",
+            "value" : "Licences"
           }
         },
         "hi" : {
@@ -14393,14 +14573,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Privacy statement"
+            "state" : "translated",
+            "value" : "بیانیه حریم خصوصی"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Politique de confidentialité"
+            "state" : "new",
+            "value" : "Privacy statement"
           }
         },
         "hi" : {
@@ -14494,14 +14674,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Terms of use"
+            "state" : "translated",
+            "value" : "شرایط استفاده از"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Conditions générales"
+            "state" : "new",
+            "value" : "Terms of use"
           }
         },
         "hi" : {
@@ -14595,14 +14775,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Light theme"
+            "state" : "translated",
+            "value" : "تم روشن"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apparence claire"
+            "state" : "new",
+            "value" : "Light theme"
           }
         },
         "hi" : {
@@ -14696,14 +14876,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "We infer server locations based on their IP addresses, but the actual locations may vary slightly."
+            "state" : "translated",
+            "value" : "ما موقعیت مکانی سرورها را بر اساس آدرس‌ IP آنها تشخیص می‌دهیم، اما ممکن است مکان حقیقی اندکی تفاوت داشته باشد."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "L'emplacement des passerelles est déterminé à partir de leur adresse IP. L'emplacement réel peut être différent."
+            "state" : "new",
+            "value" : "We infer server locations based on their IP addresses, but the actual locations may vary slightly."
           }
         },
         "hi" : {
@@ -14797,14 +14977,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Read more"
+            "state" : "translated",
+            "value" : "بیشتر بخوانید"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "En savoir plus"
+            "state" : "new",
+            "value" : "Read more"
           }
         },
         "hi" : {
@@ -14834,7 +15014,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Leia mais"
+            "value" : "Ler mais"
           }
         },
         "ru" : {
@@ -14846,7 +15026,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Devamını Oku"
+            "value" : "Devamını Okuyun"
           }
         },
         "uk" : {
@@ -14898,14 +15078,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Details on server locations"
+            "state" : "translated",
+            "value" : "جزئیات مربوط به مکان‌های سرورها"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Détails sur l'emplacement des passerelles"
+            "state" : "new",
+            "value" : "Details on server locations"
           }
         },
         "hi" : {
@@ -14999,14 +15179,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Logs (stored locally)"
+            "state" : "translated",
+            "value" : "گزارش‌ها (ذخیره در حافظه دستگاه)"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Journaux"
+            "state" : "new",
+            "value" : "Logs (stored locally)"
           }
         },
         "hi" : {
@@ -15100,14 +15280,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Delete"
+            "state" : "translated",
+            "value" : "حذف"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Effacer"
+            "state" : "new",
+            "value" : "Delete"
           }
         },
         "hi" : {
@@ -15201,14 +15381,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Are you sure you want to delete all logs?"
+            "state" : "translated",
+            "value" : "آیا از حذف تمام گزارشها مطمئن هستید؟"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Êtes-vous sûr de vouloir effacer les journaux ?"
+            "state" : "new",
+            "value" : "Are you sure you want to delete all logs?"
           }
         },
         "hi" : {
@@ -15226,7 +15406,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "すべてのログを削除してもよろしいですか？"
+            "value" : "すべてのログを削除してもよろしいですか?"
           }
         },
         "pt" : {
@@ -15302,14 +15482,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Export"
+            "state" : "translated",
+            "value" : "صادر کردن"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Exporter"
+            "state" : "new",
+            "value" : "Export"
           }
         },
         "hi" : {
@@ -15327,7 +15507,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "出力"
+            "value" : "エクスポート"
           }
         },
         "pt" : {
@@ -15403,14 +15583,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Displaying the last 1000 lines. Please export to see the full log."
+            "state" : "translated",
+            "value" : "نمایش ۱۰۰۰ خط آخر. لطفاً برای دیدن گزارش کامل، آن را صادر کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Affichage des 1000 dernières lignes. Merci d'exporter le fichier pour avoir accès à l'intégralité des journaux."
+            "state" : "new",
+            "value" : "Displaying the last 1000 lines. Please export to see the full log."
           }
         },
         "hi" : {
@@ -15504,14 +15684,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No"
+            "state" : "translated",
+            "value" : "خیر"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Non"
+            "state" : "new",
+            "value" : "No"
           }
         },
         "hi" : {
@@ -15605,14 +15785,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No logs available"
+            "state" : "translated",
+            "value" : "هیچ گزارشی در دسترس نیست"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun journal disponible"
+            "state" : "new",
+            "value" : "No logs available"
           }
         },
         "hi" : {
@@ -15630,7 +15810,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "利用可能なログがありません"
+            "value" : "ログがありません"
           }
         },
         "pt" : {
@@ -15642,7 +15822,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sem logs disponiveis"
+            "value" : "Sem logs disponíveis"
           }
         },
         "ru" : {
@@ -15706,14 +15886,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You will not be able to retrieve them"
+            "state" : "translated",
+            "value" : "شما قادر به بازیابی آنها نخواهید بود"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous ne pourrez pas les récupérer"
+            "state" : "new",
+            "value" : "You will not be able to retrieve them"
           }
         },
         "hi" : {
@@ -15807,14 +15987,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Yes"
+            "state" : "translated",
+            "value" : "بله"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Oui"
+            "state" : "new",
+            "value" : "Yes"
           }
         },
         "hi" : {
@@ -15908,14 +16088,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open NymVPN..."
+            "state" : "translated",
+            "value" : "باز کردن NymVPN..."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ouvrir NymVPN..."
+            "state" : "new",
+            "value" : "Open NymVPN..."
           }
         },
         "hi" : {
@@ -15933,7 +16113,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPNを開いています..."
+            "value" : "NymVPNを開く..."
           }
         },
         "pt" : {
@@ -16009,14 +16189,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages."
+            "state" : "translated",
+            "value" : "مسیریابی اتصال از طریق ۵ سرور با میکس‌نت‌ِناشناس، از ایمنی حریم خصوصی خود در بالاترین حد لذت ببرید. بهترین گزینه برای مدیریت امن پرداخت‌ها، ایمیل‌ها و پیام‌ها."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bénéficiez d'une confidentialité maximale via les 5 passerelles du mixnet. Parfait transmettre vos instructions de paiement, vos emails et vos messages."
+            "state" : "new",
+            "value" : "Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages."
           }
         },
         "hi" : {
@@ -16034,7 +16214,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "5つのサーバーを通じてMixnet経由で接続をルーティングすることで、最高レベルのプライバシーを実現します。支払い、メール、メッセージの安全な取り扱いに最適です。"
+            "value" : "5つのサーバーを通じてmixnet経由で接続をルーティングすることで、最高レベルのプライバシーをお楽しみいただけます。安全に支払い、メール、メッセージ処理を行うのに最適です。"
           }
         },
         "pt" : {
@@ -16110,14 +16290,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue reading"
+            "state" : "translated",
+            "value" : "ادامه مطلب"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "En savoir plus"
+            "state" : "new",
+            "value" : "Continue reading"
           }
         },
         "hi" : {
@@ -16211,14 +16391,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing."
+            "state" : "translated",
+            "value" : "تجربه بالاترین سرعت با اتصال دو سروره. این حالت از AmneziaWG استفاده میکند، نسخه‌ای از WireGuard که برای دور زدن فیلترینگ طراحی شده است، ایده‌آل برای وب‌گردی با سرعت زیاد، تماشای آنلاین و اشتراک گذاری فایل."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bénéficiez d'une vitesse maximale avec le mode VPN (via 2 passerelles). Ce mode repose sur AmneziaWG, une version résistante à la censure du protocole WireGuard. Parfait pour la navigation, le streaming et les téléchargements."
+            "state" : "new",
+            "value" : "Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing."
           }
         },
         "hi" : {
@@ -16307,19 +16487,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Seleccione el modo"
+            "value" : "Selecciona el modo"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Mode selection"
+            "state" : "translated",
+            "value" : "انتخاب حالت"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choix du mode"
+            "state" : "new",
+            "value" : "Mode selection"
           }
         },
         "hi" : {
@@ -16337,7 +16517,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "モードの選択"
+            "value" : "モード選択"
           }
         },
         "pt" : {
@@ -16413,14 +16593,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No"
+            "state" : "translated",
+            "value" : "خیر"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Non"
+            "state" : "new",
+            "value" : "No"
           }
         },
         "hi" : {
@@ -16514,14 +16694,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No internet"
+            "state" : "translated",
+            "value" : "عدم اتصال به اینترنت"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pas d'accès à internet"
+            "state" : "new",
+            "value" : "No internet"
           }
         },
         "hi" : {
@@ -16551,7 +16731,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sem internet"
+            "value" : "Sem Internet"
           }
         },
         "ru" : {
@@ -16581,7 +16761,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "无网络"
+            "value" : "无互联网连接"
           }
         }
       }
@@ -16615,14 +16795,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No internet"
+            "state" : "translated",
+            "value" : "عدم اتصال به اینترنت"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pas d'accès à internet"
+            "state" : "new",
+            "value" : "No internet"
           }
         },
         "hi" : {
@@ -16652,7 +16832,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sem internet"
+            "value" : "Sem Internet"
           }
         },
         "ru" : {
@@ -16690,9 +16870,99 @@
     "notification.disconnected.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Please try reconnecting."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Please try reconnecting."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "Please try reconnecting."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Please try reconnecting."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Please try reconnecting."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Please try reconnecting."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Please try reconnecting."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Please try reconnecting."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再接続してください。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Please try reconnecting."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Please try reconnecting."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Please try reconnecting."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Please try reconnecting."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Please try reconnecting."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Please try reconnecting."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "Please try reconnecting."
           }
         }
@@ -16701,9 +16971,99 @@
     "notification.disconnected.title" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The NymVPN connection has failed."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The NymVPN connection has failed."
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "The NymVPN connection has failed."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The NymVPN connection has failed."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The NymVPN connection has failed."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The NymVPN connection has failed."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The NymVPN connection has failed."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The NymVPN connection has failed."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "NymVPNへの接続に失敗しました。"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The NymVPN connection has failed."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The NymVPN connection has failed."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The NymVPN connection has failed."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The NymVPN connection has failed."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The NymVPN connection has failed."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "The NymVPN connection has failed."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "The NymVPN connection has failed."
           }
         }
@@ -16738,19 +17098,19 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "NymVPN"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "NymVPN"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "NymVPN"
           }
         },
@@ -16763,7 +17123,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN"
+            "value" : "NynmVPN"
           }
         },
         "pt" : {
@@ -16793,7 +17153,7 @@
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No internet"
+            "value" : "NymVPN"
           }
         },
         "vi" : {
@@ -16839,14 +17199,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Ok"
+            "state" : "translated",
+            "value" : "تائید"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compris"
+            "state" : "new",
+            "value" : "Ok"
           }
         },
         "hi" : {
@@ -16940,14 +17300,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Close Window"
+            "state" : "translated",
+            "value" : "بستن پنجره"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fermer la fenêtre"
+            "state" : "new",
+            "value" : "Close Window"
           }
         },
         "hi" : {
@@ -16989,7 +17349,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Window'u Kapat"
+            "value" : "Pencereyi Kapat"
           }
         },
         "uk" : {
@@ -17041,14 +17401,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Quit NymVPN"
+            "state" : "translated",
+            "value" : "خروج از NymVPN"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Quitter NymVPN"
+            "state" : "new",
+            "value" : "Quit NymVPN"
           }
         },
         "hi" : {
@@ -17066,7 +17426,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPNを終了"
+            "value" : "NymVPN を終了"
           }
         },
         "pt" : {
@@ -17142,14 +17502,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Do you want to quit NymVPN completely, or just close this window?"
+            "state" : "translated",
+            "value" : "آیا می‌خواهید به طور کامل از NymVPN خارج شوید یا فقط این پنجره را ببندید؟"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Voulez-vous quitter NymVPN complètement, ou simplement fermer cette fenêtre ?"
+            "state" : "new",
+            "value" : "Do you want to quit NymVPN completely, or just close this window?"
           }
         },
         "hi" : {
@@ -17167,7 +17527,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPNを完全に終了しますか、またはこのウィンドウを閉じますか？"
+            "value" : "NymVPNを完全に終了しますか、それともこのウィンドウを閉じますか？"
           }
         },
         "pt" : {
@@ -17243,14 +17603,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Quit"
+            "state" : "translated",
+            "value" : "خروج"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Quitter"
+            "state" : "new",
+            "value" : "Quit"
           }
         },
         "hi" : {
@@ -17344,14 +17704,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Quitting will stop all tasks and remove NymVPN from the menu bar."
+            "state" : "translated",
+            "value" : "خروج از برنامه به تمامی کارها پایان می‌دهد و NymVPN را از نوار منو حذف می‌کند."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Quitter arrêtera toutes les tâches et supprimera NymVPN de la barre de menus."
+            "state" : "new",
+            "value" : "Quitting will stop all tasks and remove NymVPN from the menu bar."
           }
         },
         "hi" : {
@@ -17369,7 +17729,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "終了すると、すべてのタスクが停止し、メニューバーからNymVPNを削除します。"
+            "value" : "終了すると、すべてのタスクが停止し、メニューバーから NymVPN を削除します。"
           }
         },
         "pt" : {
@@ -17445,14 +17805,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Search"
+            "state" : "translated",
+            "value" : "جستجو"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Recherche"
+            "state" : "new",
+            "value" : "Search"
           }
         },
         "hi" : {
@@ -17546,14 +17906,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Contact us for help"
+            "state" : "translated",
+            "value" : "برای کمک گرفتن با ما تماس بگیرید"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Contactez-nous"
+            "state" : "new",
+            "value" : "Contact us for help"
           }
         },
         "hi" : {
@@ -17571,7 +17931,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "お問い合わせ"
+            "value" : "お問い合わせはこちら"
           }
         },
         "pt" : {
@@ -17647,14 +18007,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "how to run a gateway"
+            "state" : "translated",
+            "value" : "چگونه یک گیت‌وی را اجرا کنیم"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "comment mettre en place une passerelle"
+            "state" : "new",
+            "value" : "how to run a gateway"
           }
         },
         "hi" : {
@@ -17748,14 +18108,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No results found."
+            "state" : "translated",
+            "value" : "نتیجه‌ای پیدا نشد."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aucun résultat trouvé. Veuillez essayer une autre recherche."
+            "state" : "new",
+            "value" : "No results found."
           }
         },
         "hi" : {
@@ -17849,14 +18209,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Try another location or check the server name."
+            "state" : "translated",
+            "value" : "مکان دیگری را امتحان کنید یا نام سرور را بررسی کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choisissez un autre emplacement ou vérifier le nom du serveur."
+            "state" : "new",
+            "value" : "Try another location or check the server name."
           }
         },
         "hi" : {
@@ -17950,14 +18310,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "or learn"
+            "state" : "translated",
+            "value" : "یا اطلاعات بیشتری کسب کنید"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "ou apprenez"
+            "state" : "new",
+            "value" : "or learn"
           }
         },
         "hi" : {
@@ -18051,14 +18411,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Search location or server"
+            "state" : "translated",
+            "value" : "جستجوی مکان یا سرور"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cherchez un emplacement ou un serveur"
+            "state" : "new",
+            "value" : "Search location or server"
           }
         },
         "hi" : {
@@ -18152,14 +18512,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Selected"
+            "state" : "translated",
+            "value" : "انتخاب شده"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sélectionné"
+            "state" : "new",
+            "value" : "Selected"
           }
         },
         "hi" : {
@@ -18177,7 +18537,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "選択中"
+            "value" : "選択済み"
           }
         },
         "pt" : {
@@ -18253,14 +18613,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select mode"
+            "state" : "translated",
+            "value" : "انتخاب حالت"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choix du mode"
+            "state" : "new",
+            "value" : "Select mode"
           }
         },
         "hi" : {
@@ -18290,7 +18650,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Modo de seleção"
+            "value" : "Selecione o modo"
           }
         },
         "ru" : {
@@ -18354,14 +18714,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Settings"
+            "state" : "translated",
+            "value" : "تنظیمات"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Réglages"
+            "state" : "new",
+            "value" : "Settings"
           }
         },
         "hi" : {
@@ -18455,14 +18815,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account"
+            "state" : "translated",
+            "value" : "حساب کاربری"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Compte"
+            "state" : "new",
+            "value" : "Account"
           }
         },
         "hi" : {
@@ -18556,14 +18916,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account ID"
+            "state" : "translated",
+            "value" : "شناسه حساب کاربری"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "ID du compte client"
+            "state" : "new",
+            "value" : "Account ID"
           }
         },
         "hi" : {
@@ -18605,7 +18965,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Hesap Kimliği"
+            "value" : "Hesap Kimlik No (ID)"
           }
         },
         "uk" : {
@@ -18657,13 +19017,13 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "(via Sentry)"
+            "state" : "translated",
+            "value" : "(توسط پاسدار)"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "(via Sentry)"
           }
         },
@@ -18758,14 +19118,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous error reports"
+            "state" : "translated",
+            "value" : "گزارش خطا به صورت ناشناس"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Rapports d'erreurs anonymes"
+            "state" : "new",
+            "value" : "Anonymous error reports"
           }
         },
         "hi" : {
@@ -18783,7 +19143,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "匿名エラーレポート"
+            "value" : "匿名のエラーレポート"
           }
         },
         "pt" : {
@@ -18859,14 +19219,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Appearance"
+            "state" : "translated",
+            "value" : "نمای ظاهری"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Apparence"
+            "state" : "new",
+            "value" : "Appearance"
           }
         },
         "hi" : {
@@ -18896,7 +19256,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Aparência:"
+            "value" : "Aparência"
           }
         },
         "ru" : {
@@ -18960,14 +19320,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "App mode"
+            "state" : "translated",
+            "value" : "حالت برنامه"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Mode application"
+            "state" : "new",
+            "value" : "App mode"
           }
         },
         "hi" : {
@@ -19061,14 +19421,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Menubar & Dock"
+            "state" : "translated",
+            "value" : "نوار منو و داک"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Barre des Menus et Dock"
+            "state" : "new",
+            "value" : "Menubar & Dock"
           }
         },
         "hi" : {
@@ -19128,7 +19488,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Menubar & Dock"
+            "value" : "菜单栏&停靠栏"
           }
         }
       }
@@ -19162,14 +19522,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Dock only"
+            "state" : "translated",
+            "value" : "فقط داک"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dock seulement"
+            "state" : "new",
+            "value" : "Dock only"
           }
         },
         "hi" : {
@@ -19199,7 +19559,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Apenas dock"
+            "value" : "Somente dock"
           }
         },
         "ru" : {
@@ -19263,14 +19623,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Menubar only"
+            "state" : "translated",
+            "value" : "فقط نوار منو"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Barre de menu uniquement"
+            "state" : "new",
+            "value" : "Menubar only"
           }
         },
         "hi" : {
@@ -19364,8 +19724,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Chat on Telegram"
+            "state" : "translated",
+            "value" : "با ما در تلگرام چت کنید"
           }
         },
         "fr" : {
@@ -19465,8 +19825,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copied to Clipboard!"
+            "state" : "translated",
+            "value" : "کپی شده به کلیپ‌بورد!"
           }
         },
         "fr" : {
@@ -19501,8 +19861,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copied to Clipboard!"
+            "state" : "translated",
+            "value" : "Copiado para área de transferência!"
           }
         },
         "ru" : {
@@ -19531,8 +19891,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copied to Clipboard!"
+            "state" : "translated",
+            "value" : "已复制到剪贴板！"
           }
         }
       }
@@ -19566,14 +19926,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Device ID: "
+            "state" : "translated",
+            "value" : "شناسه دستگاه: "
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Identifiant de l'appareil"
+            "state" : "new",
+            "value" : "Device ID: "
           }
         },
         "hi" : {
@@ -19603,7 +19963,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ID do dispositivo: "
+            "value" : "ID do dispositivo:"
           }
         },
         "ru" : {
@@ -19615,7 +19975,7 @@
         "tr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Cihaz Kimliği: "
+            "value" : "Cihaz Kimlik No (ID)"
           }
         },
         "uk" : {
@@ -19641,10 +20001,100 @@
     "settings.displayTheme" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Display theme"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Display theme"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Display theme"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tema"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "تم نمایش"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Display theme"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Display theme"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Display theme"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ディスプレイテーマ"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Display theme"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Exibir tema"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Выбор темы"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Panel teması"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Тема"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Giao diện hiển thị"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "显示主题"
           }
         }
       }
@@ -19673,19 +20123,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Ponte en contacto"
+            "value" : "Contacta"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get in touch"
+            "state" : "translated",
+            "value" : "با ما در ارتباط باشید"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nous contacter"
+            "state" : "new",
+            "value" : "Get in touch"
           }
         },
         "hi" : {
@@ -19715,7 +20165,7 @@
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Entrar em contato"
+            "value" : "Entre em contato"
           }
         },
         "ru" : {
@@ -19779,8 +20229,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Always on to protect your data"
+            "state" : "translated",
+            "value" : "همیشه فعال برای محافظت از داده‌های شما"
           }
         },
         "fr" : {
@@ -19804,7 +20254,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "常にデータを保護する"
+            "value" : "常にオンにしてデータを保護する"
           }
         },
         "pt" : {
@@ -19815,8 +20265,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Always on to protect your data"
+            "state" : "translated",
+            "value" : "Sempre ativo para proteger seus dados"
           }
         },
         "ru" : {
@@ -19845,8 +20295,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Always on to protect your data"
+            "state" : "translated",
+            "value" : "始终开启以保护您的数据"
           }
         }
       }
@@ -19880,7 +20330,7 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Killswitch"
           }
         },
@@ -19955,10 +20405,100 @@
     "settings.language" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Language"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Language"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Language"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idioma"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "زبان"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Language"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Language"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Language"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "言語"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Language"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Idioma"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Язык"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dil"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Мова"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ngôn ngữ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言"
           }
         }
       }
@@ -19992,14 +20532,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connect device"
+            "state" : "translated",
+            "value" : "اتصال دستگاه"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Connecter l'appareil"
+            "state" : "new",
+            "value" : "Connect device"
           }
         },
         "hi" : {
@@ -20017,7 +20557,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "デバイスを接続"
+            "value" : "デバイスに接続してください"
           }
         },
         "pt" : {
@@ -20093,14 +20633,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Logout"
+            "state" : "translated",
+            "value" : "خروج"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Dissocier l'appareil"
+            "state" : "new",
+            "value" : "Logout"
           }
         },
         "hi" : {
@@ -20189,19 +20729,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Necesitará su código de acceso anónimo para iniciar sesión de nuevo."
+            "value" : "Necesitarás tu código de acceso anónimo para iniciar sesión de nuevo."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You will need your anonymous Access Code to log in again."
+            "state" : "translated",
+            "value" : "برای ورود مجدد به حساب کاربری خود به کد دسترسیِ ناشناس نیاز خواهید داشت."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Vous aurez besoin de votre code d'accès anonyme pour vous reconnecter."
+            "state" : "new",
+            "value" : "You will need your anonymous Access Code to log in again."
           }
         },
         "hi" : {
@@ -20295,14 +20835,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Are you sure you want to logout?"
+            "state" : "translated",
+            "value" : "آیا مطمئنید که می‌خواهید از حساب کاربری خارج شوید؟"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Êtes-vous sûr de vouloir dissocier l'appareil ?"
+            "state" : "new",
+            "value" : "Are you sure you want to logout?"
           }
         },
         "hi" : {
@@ -20320,7 +20860,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本当にログアウトしてよろしいですか？"
+            "value" : "ログアウトしてもよろしいですか？"
           }
         },
         "pt" : {
@@ -20391,19 +20931,19 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "El perfil de NymVPN se eliminará de tu dispositivo.\n\nSi está conectado: al eliminar el perfil de la VPN se desconectará de la VPN."
+            "value" : "El perfil de NymVPN se eliminará de tu dispositivo.\n\nSi estás conectado: al eliminar el perfil de la VPN se desconectará de la VPN."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN profile will be deleted from your device.\n\nIf connected: deleting VPN profile will disconnect you from VPN."
+            "state" : "translated",
+            "value" : "پروفایل NymVPN از دستگاه شما حذف خواهد شد.\n\nاگر متصل هستید: حذف پروفایل وی‌پی‌ان، شما را از وی‌پی‌ان قطع می کند."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Le profil NymVPN sera supprimé de votre appareil. Vous serez déconnecté."
+            "state" : "new",
+            "value" : "NymVPN profile will be deleted from your device.\n\nIf connected: deleting VPN profile will disconnect you from VPN."
           }
         },
         "hi" : {
@@ -20497,14 +21037,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Reset VPN profile?"
+            "state" : "translated",
+            "value" : "آیا می‌خواهید پروفایل وی‌پی‌ان را دوباره ست کنید؟"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Réinitialiser le profil VPN ?"
+            "state" : "new",
+            "value" : "Reset VPN profile?"
           }
         },
         "hi" : {
@@ -20598,14 +21138,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Reset VPN profile"
+            "state" : "translated",
+            "value" : "پروفایل وی‌پی‌ان را دوباره تنظیم کن"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Réinitialiser le profil VPN"
+            "state" : "new",
+            "value" : "Reset VPN profile"
           }
         },
         "hi" : {
@@ -20623,7 +21163,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "VPN プロファイルをリセット"
+            "value" : "VPN プロファイルをリセットしますか？"
           }
         },
         "pt" : {
@@ -20699,14 +21239,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support & feedback"
+            "state" : "translated",
+            "value" : "پشتیبانی و پشنهادات"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Support et retours"
+            "state" : "new",
+            "value" : "Support & feedback"
           }
         },
         "hi" : {
@@ -20800,14 +21340,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Stop"
+            "state" : "translated",
+            "value" : "توقف"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Arrêt"
+            "state" : "new",
+            "value" : "Stop"
           }
         },
         "hi" : {
@@ -20896,18 +21436,18 @@
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "tunel"
+            "value" : "túnel"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "tunnel"
+            "state" : "translated",
+            "value" : "تونل"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "tunnel"
           }
         },
@@ -21002,13 +21542,13 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Version"
+            "state" : "translated",
+            "value" : "نسخه"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Version"
           }
         },
@@ -21103,14 +21643,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "By continuing, you agree to NymVPN's [Terms of use](https://nym.com/vpn-terms) and acknowledge NymVPN's [Privacy policy](https://nym.com/vpn-privacy-statement)."
+            "state" : "translated",
+            "value" : "با ادامه دادن، شما با [شرایط استفاده از](https://nym.com/vpn-terms) NymVPN موافقت کرده و [سیاست حفظ حریم خصوصی](https://nym.com/vpn-privacy-statement) NymVPN را تایید می‌کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "En cliquant « Continuer », vous accepter les [Conditions générales](https://nym.com/vpn-terms) de NymVPN et avez pris connaissance de la [Politique de confidentialité](https://nym.com/vpn-privacy-statement)."
+            "state" : "new",
+            "value" : "By continuing, you agree to NymVPN's [Terms of use](https://nym.com/vpn-terms) and acknowledge NymVPN's [Privacy policy](https://nym.com/vpn-privacy-statement)."
           }
         },
         "hi" : {
@@ -21204,14 +21744,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "ادامه"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Continuer"
+            "state" : "new",
+            "value" : "Continue"
           }
         },
         "hi" : {
@@ -21229,7 +21769,7 @@
         "ja" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "続ける"
+            "value" : "次"
           }
         },
         "pt" : {
@@ -21305,14 +21845,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
+            "state" : "translated",
+            "value" : "این نرم‌افزار در مرحله آزمایشی است. برای ناشناسی کامل (فعلا!) به آن اتکاء نکنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "NymVPN est un logiciel expérimental. Il ne garantit pas une anonymité forte."
+            "state" : "new",
+            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
           }
         },
         "hi" : {
@@ -21406,13 +21946,13 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Sentry"
+            "state" : "translated",
+            "value" : "پاسدار"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "new",
             "value" : "Sentry"
           }
         },
@@ -21507,14 +22047,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Help us refine our app! Your feedback is crucial for identifying and resolving issues. Opt-in for anonymous error monitoring (via"
+            "state" : "translated",
+            "value" : "به ما کمک کنید تا اپلیکیشن خود را بهبود ببخشیم! بازخورد شما در شناسایی و حل مشکلات حیاتی است. برای همکاری با نظارت ما بر خطاهای ناشناس اقدام کنید (از طریق"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aidez-nous à améliorer NymVPN ! Vos retours sont très utiles. Vous pouvez activer les rapports d'erreurs anonymes (via"
+            "state" : "new",
+            "value" : "Help us refine our app! Your feedback is crucial for identifying and resolving issues. Opt-in for anonymous error monitoring (via"
           }
         },
         "hi" : {
@@ -21608,14 +22148,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : ") and analytics at will—you can opt out anytime.\nThanks for your support!"
+            "state" : "translated",
+            "value" : ") و تجزیه تحلیل و می‌توانید هر موقع از این مشارکت انصراف دهید. ممنون از حمایتتان!"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "). Merci de votre soutien !"
+            "state" : "new",
+            "value" : ") and analytics at will—you can opt out anytime.\nThanks for your support!"
           }
         },
         "hi" : {
@@ -21709,14 +22249,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome\nto NymVPN"
+            "state" : "translated",
+            "value" : "به NymVPN خوش آمدید"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bienvenue !"
+            "state" : "new",
+            "value" : "Welcome\nto NymVPN"
           }
         },
         "hi" : {
@@ -21770,7 +22310,7 @@
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Chào mừng đến với NymVPN"
+            "value" : "Chào mừng \nđến với NymVPN"
           }
         },
         "zh-Hans" : {
@@ -21810,14 +22350,14 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Yes"
+            "state" : "translated",
+            "value" : "بله"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Oui"
+            "state" : "new",
+            "value" : "Yes"
           }
         },
         "hi" : {
