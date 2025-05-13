@@ -5270,18 +5270,18 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Monthly bandwidth exceeded. Please upgrade your account plan."
+            "value" : "No data allowance remaining. Please upgrade your account plan."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Se ha superado el ancho de banda mensual. Actualiza el plan de tu cuenta."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "بسته ماهانه شما به اتمام رسیده. لطفاَ بسته جدید بخرید."
           }
         },
@@ -5293,7 +5293,7 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "मासिक बैंडविड्थ सीमा पार कर गई है। कृपया अपना खाता योजना अपडेट करें।"
           }
         },
@@ -5305,7 +5305,7 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "月間の帯域幅を超えています。アカウントのプランをアップグレードしてください。"
           }
         },
@@ -5317,37 +5317,37 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Largura de banda mensal excedida. Por favor, faça o upgrade do seu plano."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Превышен месячный лимит трафика. Пожалуйста, обновите ваш тарифный план."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Aylık bant genişliği limiti aşıldı. Lütfen hesap planınızı yükseltin."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Перевищено місячний ліміт трафіку. Будь ласка, оновіть свій тарифний план."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Đã vượt quá băng thông hàng tháng. Vui lòng nâng cấp gói tài khoản của bạn."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "已超出每月带宽。请升级您的账户计划。"
           }
         }
@@ -6987,18 +6987,18 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Failed to start local dns proxy. Please try again."
+            "value" : "Failed to start local DNS proxy. Please try again."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Error al iniciar el proxy dns local. Por favor, inténtalo de nuevo."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "راه‌اندازی local DNS proxy ناموفق بود. لطفاَ دوباره تلاش کنید."
           }
         },
@@ -7010,7 +7010,7 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "स्थानीय DNS प्रॉक्सी शुरू करने में विफल। कृपया दोबारा प्रयास करें।"
           }
         },
@@ -7022,7 +7022,7 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "dnsプロキシを開始できませんでした。もう一度やり直してください。"
           }
         },
@@ -7034,37 +7034,37 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Falha ao iniciar o proxy de dns locais. Por favor, tente novamente."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Не удалось запустить локальный DNS прокси. Пожалуйста, попробуйте снова."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Yerel DNS aracı sunucusu başlatılamadı. Lütfen tekrar deneyin."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Не вдалося запустити локальний dns-проксі. Будь ласка, спробуйте ще раз."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Không thể khởi động proxy dns cục bộ. Vui lòng thử lại."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "启动本地dns代理失败。请重试。"
           }
         }
@@ -10005,19 +10005,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "es" : {
@@ -10035,7 +10035,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "hi" : {
@@ -10047,7 +10047,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "ja" : {
@@ -10059,7 +10059,7 @@
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt-BR" : {
@@ -20117,18 +20117,18 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Get in touch"
+            "value" : "Contact support"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Contacta"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "با ما در ارتباط باشید"
           }
         },
@@ -20140,7 +20140,7 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "संपर्क करें"
           }
         },
@@ -20152,7 +20152,7 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "お問い合わせ"
           }
         },
@@ -20164,37 +20164,37 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Entre em contato"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Связаться с нами"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "İletişime geçin"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Зв'яжіться з нами"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Liên hệ"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "联系我们"
           }
         }
