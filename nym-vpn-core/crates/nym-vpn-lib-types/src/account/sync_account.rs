@@ -25,25 +25,6 @@ pub enum SyncAccountError {
     Internal(String),
 }
 
-// impl From<VpnApiClientError> for SyncAccountError {
-//     fn from(err: VpnApiClientError) -> Self {
-//         let err = match VpnApiErrorResponse::try_from(err) {
-//             Ok(vpn_api_error_response) => {
-//                 return SyncAccountError::SyncAccountEndpointFailure(vpn_api_error_response);
-//             }
-//             Err(e) => e,
-//         };
-//
-//         if let Some(source) = err.source() {
-//             if let Some(source) = source.source() {
-//                 // source.downcast_ref
-//             }
-//         }
-//
-//         todo!();
-//     }
-// }
-
 impl SyncAccountError {
     pub fn unexpected_response(err: impl Debug + std::fmt::Display + std::error::Error) -> Self {
         println!("Unexpected response: {err}");

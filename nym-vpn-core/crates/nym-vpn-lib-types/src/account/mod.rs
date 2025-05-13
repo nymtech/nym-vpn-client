@@ -20,10 +20,10 @@ pub enum AccountCommandError {
     #[error("storage error: {0}")]
     Storage(String),
 
-    #[error("vpn api error: {0}")]
-    VpnApi(#[from] VpnApiErrorResponse),
+    #[error("vpn-api error: {0}")]
+    VpnApi(#[from] VpnApiError),
 
-    #[error("unexpected vpn api response: {0}")]
+    #[error("unexpected vpn-api response: {0}")]
     UnexpectedVpnApiResponse(String),
 
     #[error("no account stored")]
