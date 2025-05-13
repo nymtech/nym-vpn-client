@@ -962,10 +962,7 @@ where
         let mut command_finish_timer = tokio::time::interval(Duration::from_millis(500));
 
         // Timer to periodically sync the remote account state.
-        // Call tick() once to start the timer immediately. We don't want the first sync to happen
-        // immediately, so we wait for the first tick to happen.
         let mut sync_account_state_timer = tokio::time::interval(Self::ACCOUNT_UPDATE_INTERVAL);
-        sync_account_state_timer.tick().await;
 
         // Timer to periodically check if we need to request more zk-nyms
         let mut update_zk_nym_timer =
