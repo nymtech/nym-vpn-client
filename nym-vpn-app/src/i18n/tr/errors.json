@@ -1,41 +1,44 @@
 {
+  "unknown": "Tanımlanamayan hata",
+  "internal": "Dahili hata",
   "daemon": {
     "not-connected": "Daemon'a bağlı değil",
     "internal": "Daemon dahili hata",
     "invalid-network": "Geçersiz ağ"
   },
-  "countries-request": {
-    "entry": "Kullanılabilir entry node ülke bilgileri alınamadı",
-    "exit": "Kullanılabilir exit node ülke bilgileri alınamadı",
-    "fast-mode": "Mevcut ülkelerin bilgisine ulaşılamadı"
-  },
-  "unknown": "Tanımlanamayan hata",
-  "internal": "Dahili hata",
   "grpc": "Dahili gRPC hatası",
-  "account": {
-    "invalid-recovery-phrase": "Geçersiz erişim kodu",
-    "storage": "Depolama arka ucu hatası",
-    "maximum-registered-devices": "Cihaz kaydı başarısız oldu: Kayıtlı cihaz sayısı maksimum sınırına ulaştı",
-    "is-connected": "Bağlantı varken işlem yapılamıyor",
-    "update-device": "Cihaz güncellemesi başarısız oldu",
-    "register-device": "Cihaz kaydı başarısız oldu",
-    "not-stored": "Hesap erişim kodu kaydedilmedi",
-    "no-device-stored": "Cihaz anahtarları saklanmamış",
-    "update": "Hesap güncellemesi başarısız oldu"
-  },
-  "zknym": {
-    "request-failed": "zk-nym talebi başarısız oldu"
-  },
   "tunnel": {
     "internal": "Dahili hata",
+    "api": "API hatası",
     "firewall": "Güvenlik duvarı hatası",
     "routing": "Yönlendirme hatası",
     "dns": "DNS hatası",
-    "tun-device": "Cihaz hatası",
-    "provider": "Sağlayıcı hatası",
+    "same-entry-exit-gw": "Aynı giriş ve çıkış node'u ile bağlanılamaz. Lütfen giriş veya çıkış node'unun konumunu değiştirin.",
     "invalid-entry-gw-country": "Geçersiz giriş node'u ülkesi, lütfen giriş node'u konumunu değiştirin",
     "invalid-exit-gw-country": "Geçersiz çıkış node'u ülkesi, lütfen çıkış node'u konumunu değiştirin",
-    "bad-bandwidth-increase": "Bant genişliği artışı hatası",
-    "same-entry-exit-gw": "Aynı giriş ve çıkış node'u ile bağlanılamaz. Lütfen giriş veya çıkış node'unun konumunu değiştirin."
+    "max-devices-reached": "Hesap cihaz limitiniz aşıldı. Bağlanmadan önce hesabınızdan bir cihazı kaldırın.",
+    "bandwidth-exceeded": "Aylık bant genişliği limiti aşıldı. Lütfen hesap planınızı yükseltin.",
+    "subscription-expired": "Aboneliğinizin süresi doldu. Lütfen hesabınız için bir plan satın alın.",
+    "device-time-out-of-sync": "Cihaz saatiniz senkronize edilmemiş. Lütfen cihazınızın saatini internet ile senkronize edin."
+  },
+  "account": {
+    "invalid-recovery-phrase": "Geçersiz erişim kodu",
+    "storage": "Depolama arka ucu hatası",
+    "is-connected": "Bağlantı varken işlem yapılamıyor"
+  },
+  "countries-request": {
+    "entry": "Kullanılabilir giriş node ülke bilgileri alınamadı",
+    "exit": "Kullanılabilir çıkış node ülke bilgileri alınamadı",
+    "fast-mode": "Mevcut ülkelerin bilgisine ulaşılamadı"
+  },
+  "no-bandwidth": "No data allowance remaining",
+  "entry-gateway-down": "Entry gateway kapalı",
+  "exit-gateway-down": {
+    "ipv4": "Exit gateway kapalı (IPv4)",
+    "ipv6": "Exit gateway kapalı (IPv6)"
+  },
+  "exit-gateway-routing": {
+    "ipv4": "Exit gateway yönlendirme hatası (IPv4)",
+    "ipv6": "Exit gateway yönlendirme hatası (IPv6)"
   }
 }

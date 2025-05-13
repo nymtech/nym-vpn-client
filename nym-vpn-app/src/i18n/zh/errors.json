@@ -1,0 +1,44 @@
+{
+  "unknown": "未知错误",
+  "internal": "内部错误",
+  "daemon": {
+    "not-connected": "未连接到守护进程",
+    "internal": "守护进程内部错误",
+    "invalid-network": "网络无效"
+  },
+  "grpc": "内部gRPC错误",
+  "tunnel": {
+    "internal": "内部错误",
+    "api": "API 错误",
+    "firewall": "防火墙错误",
+    "routing": "路由错误",
+    "dns": "DNS 错误",
+    "same-entry-exit-gw": "无法使用相同的进出节点连接。请更改进出节点位置。",
+    "invalid-entry-gw-country": "进入节点国家无效，请更改条目节点位置",
+    "invalid-exit-gw-country": "退出节点国家无效，请更改退出节点位置",
+    "max-devices-reached": "超过账户限制。请在连接之前从您的账户中删除设备。",
+    "bandwidth-exceeded": "超过月带宽。请升级您的帐户计划。",
+    "subscription-expired": "订阅已过期。请为您的帐户购买计划。",
+    "device-time-out-of-sync": "设备时间不同步。请将您的设备时间与互联网同步。"
+  },
+  "account": {
+    "invalid-recovery-phrase": "访问代码无效",
+    "storage": "存储后端错误",
+    "is-connected": "连接时无法继续"
+  },
+  "countries-request": {
+    "entry": "获取可用的条目节点国家失败",
+    "exit": "获取可用的退出节点国家失败",
+    "fast-mode": "获取可用国家失败"
+  },
+  "no-bandwidth": "No data allowance remaining",
+  "entry-gateway-down": "入口网关已关闭",
+  "exit-gateway-down": {
+    "ipv4": "退出网关已经关闭 (IPv4)",
+    "ipv6": "退出网关已经关闭 (IPv6)"
+  },
+  "exit-gateway-routing": {
+    "ipv4": "退出网关路由错误 (IPv4)",
+    "ipv6": "退出网关路由错误 (IPv6)"
+  }
+}

@@ -2,15 +2,43 @@
   "unknown": "Unbekannter Fehler",
   "internal": "Interner Fehler",
   "daemon": {
-    "not-connected": "Nicht mit dem Dienst verbunden"
+    "not-connected": "Nicht mit dem Dienst verbunden",
+    "internal": "Daemon internal error",
+    "invalid-network": "Invalid network"
   },
   "grpc": "Interner gRPC Fehler",
+  "tunnel": {
+    "internal": "Internal error",
+    "api": "API error",
+    "firewall": "Firewall error",
+    "routing": "Routing error",
+    "dns": "DNS error",
+    "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
+    "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
+    "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
+    "max-devices-reached": "Account device limit exceeded. Please remove a device from your account before connecting.",
+    "bandwidth-exceeded": "Monthly bandwidth exceeded. Please upgrade your account plan.",
+    "subscription-expired": "Subscription has expired. Please purchase a plan for your account.",
+    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+  },
+  "account": {
+    "invalid-recovery-phrase": "ungültiger Wiederherstellungsphrase",
+    "storage": "Storage backend error",
+    "is-connected": "Unable to proceed while connected"
+  },
   "countries-request": {
     "entry": "Fehler beim Abrufen der verfügbaren Eintrittsländer",
     "exit": "Fehler beim Abrufen der verfügbaren Austrittsländer",
     "fast-mode": "Fehler beim Abrufen der verfügbaren Länder"
   },
-  "account": {
-    "invalid-recovery-phrase": "ungültiger Wiederherstellungsphrase"
+  "no-bandwidth": "No data allowance remaining",
+  "entry-gateway-down": "Entry gateway is down",
+  "exit-gateway-down": {
+    "ipv4": "Exit gateway is down (IPv4)",
+    "ipv6": "Exit gateway is down (IPv6)"
+  },
+  "exit-gateway-routing": {
+    "ipv4": "Exit gateway routing error (IPv4)",
+    "ipv6": "Exit gateway routing error (IPv6)"
   }
 }

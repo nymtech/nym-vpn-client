@@ -4,14 +4,19 @@
   "status": {
     "connected": "Connesso",
     "disconnected": "Disconnesso",
+    "connecting": "Connessione in corso",
     "disconnecting": "Disconnessione",
-    "connecting": "Connessione in corso"
+    "error": "Error",
+    "offline": "No internet"
   },
+  "offline-message": "Your device has no internet connection",
+  "offline-reconnect-message": "Will connect once the device goes online",
   "last-hop": "Ultimo hop",
   "first-hop": "Primo hop",
-  "last-node-select": {
-    "label": "Ultimo hop"
-  },
+  "connecting-message": "In connessione",
+  "connection-time": "Tempo di connessione",
+  "select-mode-label": "Seleziona modalità",
+  "select-node-title": "Connettiti a",
   "privacy-mode": {
     "title": "Anonimo",
     "desc": "Migliore per pagamenti, email, messaggi"
@@ -20,16 +25,29 @@
     "title": "Veloce",
     "desc": "Ideale per la navigazione, lo streaming e la condivisione"
   },
-  "select-mode-label": "Seleziona modalità",
-  "connecting-message": "In connessione",
-  "connection-time": "Tempo di connessione",
-  "select-node-title": "Connettiti a",
+  "last-node-select": {
+    "label": "Ultimo hop",
+    "text": "Quick connect ({{country}})"
+  },
+  "snackbar-disabled-message": {
+    "connected": "Disabilità quando connesso al VPN",
+    "connecting": "Disabled while connecting to VPN",
+    "disconnecting": "Disabled while disconnecting from VPN",
+    "offline": "Disabled when there is no internet connection",
+    "error": "Disabled when there is an error"
+  },
   "modes-dialog": {
     "title": "Selezione modalità",
     "privacy-description": "Goditi il massimo livello di privacy mandando la tua connessione attraverso 5 server sulla mixnet. Perfetto per gestire in modo sicuro pagamenti, e-mail e messaggi.",
+    "fast-description": "Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing.",
     "link": "Continua a leggere"
   },
-  "snackbar-disabled-message": {
-    "connected": "Disabilità quando connesso al VPN"
+  "update-dialog": {
+    "title": "Update required!",
+    "description-1-app": "Your app is no longer supported.",
+    "description-1-daemon": "Your daemon is no longer supported.",
+    "description-1-other": "Your app and daemon are no longer supported.",
+    "description-2": "Please update to the latest version to continue using NymVPN.",
+    "button-update": "Update"
   }
 }

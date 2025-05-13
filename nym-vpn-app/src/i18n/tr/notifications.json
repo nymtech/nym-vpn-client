@@ -1,14 +1,16 @@
 {
   "vpn-tunnel-state": {
     "connected": "VPN tüneli bağlandı",
-    "disconnected": "NymVPN bağlantısı kesildi. Gizliliğinizi korumak için lütfen yeniden bağlanın.",
-    "error": "VPN tüneli başarısız oldu: bir hata oluştu",
-    "offline": "PC çevrimdışı. Lütfen internet bağlantınızı kontrol edin."
+    "disconnected": "VPN tüneli bağlantısı kesildi",
+    "error": "VPN tünel bağlantısı hatası: bir sorun oluştu",
+    "offline": "Bilgisayar çevrimdışı"
   },
   "logout": {
     "success": "Oturum kapatma başarılı",
-    "error": "Çıkış yaparken bir hata oluştu"
+    "error": "Çıkış yaparken bir hata oluştu",
+    "from-state": "VPN tünel durumu nedeniyle çıkış yapılamıyor: {{state}}"
   },
-  "daemon-not-compat": "Daemon sürümü, uygulama sürümüyle uyumlu değil! Daemon sürümü: {{version}}, beklenen: {{required}}. Lütfen uygulamayı veya daemon'u güncelleyin.",
-  "copied-to-clipboard": "Panoya kopyalandı"
+  "copied-to-clipboard": "Panoya kopyalandı",
+  "daemon-no-compat": "Daemon sürümü, uygulama sürümüyle uyumsuz! Daemon sürümü: {{version}}, beklenen: {{required}}. Lütfen uygulamayı veya daemon'u güncelleyin.",
+  "daemon-not-connected": "Daemon bağlantısı yok, lütfen destek ekibimizle iletişime geçin."
 }

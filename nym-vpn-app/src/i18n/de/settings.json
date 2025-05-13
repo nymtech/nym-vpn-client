@@ -1,9 +1,4 @@
 {
-  "logs": {
-    "title": "Logs",
-    "desc": "Kopier oder lösch die Logfiles"
-  },
-  "login-button": "Zum Verbinden Zugangsdaten hinzufügen",
   "auto-connect": {
     "title": "Automatisch verbinden",
     "desc": "Beim Start der App automatisch verbinden"
@@ -12,9 +7,15 @@
     "title": "Anonymisierte Fehlerprotokolle",
     "desc": "aktiviert nach Neustart der App"
   },
+  "notifications": {
+    "title": "Bildschirmbenachrichtigungen"
+  },
+  "monitoring-alert": "Du musst die App neu starten damit die Änderungen aktiv werden.",
   "support": {
     "title": "Support",
     "faq": "Lies die FAQs",
+    "contact": "Contact support",
+    "telegram": "Chat on Telegram",
     "github": "Problem auf GitHub melden",
     "matrix": "Tritt unserem Matrix Chat bei",
     "discord": "Tritt unserem Discord Channel bei"
@@ -28,16 +29,34 @@
     "licenses-js": "Lizenzen (JS)",
     "emptyData": "Keine Lizenzdaten verfügbar"
   },
-  "notifications": {
-    "title": "Bildschirmbenachrichtigungen"
+  "logs": {
+    "title": "Logs",
+    "desc": "Kopier oder lösch die Logfiles",
+    "app": "App logs",
+    "daemon": "Daemon logs"
   },
-  "monitoring-alert": "Du musst die App neu starten damit die Änderungen aktiv werden.",
   "faq": "FAQ",
   "display-theme": "Anzeigemodus",
+  "logout-confirmation": {
+    "title": "Are you sure?",
+    "description": "You will need your access code to reconnect your device.",
+    "logging-out": "Logging out…"
+  },
   "quit": "NymVPN beenden",
+  "login-button": "Zum Verbinden Zugangsdaten hinzufügen",
   "info": {
-    "network-name": "Netzwerk",
     "client-version": "Client Version",
-    "daemon-version": "Dienst Version"
+    "daemon-version": "Dienst Version",
+    "network-name": "Netzwerk",
+    "account-id": "Account ID",
+    "device-id": "Device ID"
+  },
+  "autostart": {
+    "title": "Autostart",
+    "desc": "Launch NymVPN when system starts"
+  },
+  "killswitch": {
+    "title": "Killswitch",
+    "desc": "Disconnect if the internet drops"
   }
 }

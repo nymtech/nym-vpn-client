@@ -1,19 +1,44 @@
 {
-  "countries-request": {
-    "fast-mode": "تعذر الحصول على الدول المتاحة",
-    "entry": "تعذر الحصول على الدول المتاحة لنقاط الدخول",
-    "exit": "تعذر الحصول على الدول المتاحة لنقاط الخروج"
-  },
-  "daemon": {
-    "internal": "خطأ داخلي بالوحدة الخلفية(الديمن)",
-    "not-connected": "غير متصل بالخادم الخلفي (الديمن)",
-    "invalid-network": "شبكة غير صالحة"
-  },
   "unknown": "خطأ غير معروف",
   "internal": "خطأ داخلي",
+  "daemon": {
+    "not-connected": "غير متصل بالخادم الخلفي (الديمن)",
+    "internal": "خطأ داخلي بالوحدة الخلفية(الديمن)",
+    "invalid-network": "شبكة غير صالحة"
+  },
   "grpc": "خطأ داخلي في خدمة gRPC",
+  "tunnel": {
+    "internal": "Internal error",
+    "api": "API error",
+    "firewall": "Firewall error",
+    "routing": "Routing error",
+    "dns": "DNS error",
+    "same-entry-exit-gw": "Cannot connect with the same entry and exit node. Please change either the entry or exit node location.",
+    "invalid-entry-gw-country": "Invalid entry node country, please change the entry node location",
+    "invalid-exit-gw-country": "Invalid exit node country, please change the exit node location",
+    "max-devices-reached": "Account device limit exceeded. Please remove a device from your account before connecting.",
+    "bandwidth-exceeded": "Monthly bandwidth exceeded. Please upgrade your account plan.",
+    "subscription-expired": "Subscription has expired. Please purchase a plan for your account.",
+    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+  },
   "account": {
     "invalid-recovery-phrase": "عبارة الاسترداد غير صحيحة",
-    "storage": "خطأ في تخزين البيانات"
+    "storage": "خطأ في تخزين البيانات",
+    "is-connected": "Unable to proceed while connected"
+  },
+  "countries-request": {
+    "entry": "تعذر الحصول على الدول المتاحة لنقاط الدخول",
+    "exit": "تعذر الحصول على الدول المتاحة لنقاط الخروج",
+    "fast-mode": "تعذر الحصول على الدول المتاحة"
+  },
+  "no-bandwidth": "No data allowance remaining",
+  "entry-gateway-down": "Entry gateway is down",
+  "exit-gateway-down": {
+    "ipv4": "Exit gateway is down (IPv4)",
+    "ipv6": "Exit gateway is down (IPv6)"
+  },
+  "exit-gateway-routing": {
+    "ipv4": "Exit gateway routing error (IPv4)",
+    "ipv6": "Exit gateway routing error (IPv6)"
   }
 }

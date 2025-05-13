@@ -1,15 +1,24 @@
 {
-  "display-theme": "Tema",
-  "support": {
-    "title": "Supporto",
-    "faq": "Controlla le FAQ",
-    "github": "Apri una issue GitHub",
-    "matrix": "Unisciti a noi su Matrix",
-    "discord": "Unisciti a noi su Discord"
-  },
   "auto-connect": {
     "title": "Auto-connect",
     "desc": "Connessione automatica all'avvio dell'app"
+  },
+  "error-monitoring": {
+    "title": "Report degli errori anonimo",
+    "desc": "si applica al riavvio dell'app"
+  },
+  "notifications": {
+    "title": "Notifiche desktop"
+  },
+  "monitoring-alert": "Devi riavviare l'app per applicare la modifica.",
+  "support": {
+    "title": "Supporto",
+    "faq": "Controlla le FAQ",
+    "contact": "Contact support",
+    "telegram": "Chat on Telegram",
+    "github": "Apri una issue GitHub",
+    "matrix": "Unisciti a noi su Matrix",
+    "discord": "Unisciti a noi su Discord"
   },
   "legal": {
     "title": "Legale",
@@ -20,27 +29,34 @@
     "licenses-js": "Licenze (JS)",
     "emptyData": "Dati sulla licenza non disponibili"
   },
-  "login-button": "Aggiungi le credenziali per connetterti",
   "logs": {
     "title": "Logs",
-    "desc": "Copia o elimina i log"
+    "desc": "Copia o elimina i log",
+    "app": "App logs",
+    "daemon": "Daemon logs"
   },
-  "error-monitoring": {
-    "title": "Report degli errori anonimo",
-    "desc": "si applica al riavvio dell'app"
-  },
-  "info": {
-    "daemon-version": "Versione del daemon",
-    "client-version": "Versione del cliente",
-    "network-name": "Rete"
-  },
-  "notifications": {
-    "title": "Notifiche desktop"
-  },
-  "monitoring-alert": "Devi riavviare l'app per applicare la modifica.",
   "faq": "FAQ",
-  "quit": "Chiudi NymVPN",
+  "display-theme": "Tema",
   "logout-confirmation": {
-    "description": "Avrai bisogno della tua frase di recupero per riaccedere."
+    "title": "Are you sure?",
+    "description": "Avrai bisogno della tua frase di recupero per riaccedere.",
+    "logging-out": "Logging out…"
+  },
+  "quit": "Chiudi NymVPN",
+  "login-button": "Aggiungi le credenziali per connetterti",
+  "info": {
+    "client-version": "Versione del cliente",
+    "daemon-version": "Versione del daemon",
+    "network-name": "Rete",
+    "account-id": "Account ID",
+    "device-id": "Device ID"
+  },
+  "autostart": {
+    "title": "Autostart",
+    "desc": "Launch NymVPN when system starts"
+  },
+  "killswitch": {
+    "title": "Killswitch",
+    "desc": "Disconnect if the internet drops"
   }
 }

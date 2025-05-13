@@ -1,6 +1,4 @@
 {
-  "display-theme": "Ekran modu",
-  "login-button": "Cihazı bağla",
   "auto-connect": {
     "title": "Otomatik bağlan",
     "desc": "Uygulama başlangıcında otomatik bağlan"
@@ -9,13 +7,18 @@
     "title": "Anonim hata raporları",
     "desc": "uygulama yeniden başlatıldığında geçerlidir"
   },
+  "notifications": {
+    "title": "Bilgisayar masaüstü bildirimleri"
+  },
+  "monitoring-alert": "Değişikliğin etkili olması için uygulamayı yeniden başlatmalısınız.",
   "support": {
     "title": "Destek & Geri Bildirim",
     "faq": "SSS'i kontrol edin",
+    "contact": "Contact support",
+    "telegram": "Telegram'da sohbet et",
     "github": "GitHub hata raporu açın",
     "matrix": "Matrix'te bize katılın",
-    "discord": "Discord'da bize katılın",
-    "get-in-touch": "İletişime geçin"
+    "discord": "Discord'da bize katılın"
   },
   "legal": {
     "title": "Hukuki",
@@ -26,25 +29,34 @@
     "licenses-js": "Lisanslar (JS)",
     "emptyData": "Lisans verisi bulunmamaktadır"
   },
-  "monitoring-alert": "Değişikliğin etkili olması için uygulamayı yeniden başlatmalısınız.",
-  "faq": "SSS",
-  "quit": "NymVPN'yi kapat",
-  "notifications": {
-    "title": "Bilgisayar masaüstü bildirimleri"
-  },
   "logs": {
     "title": "Günlükler",
-    "desc": "Logları kopyala veya sil"
+    "desc": "Logları kopyala veya sil",
+    "app": "Uygulama günlükleri",
+    "daemon": "Daemon günlükleri"
   },
-  "info": {
-    "daemon-version": "Daemon sürümü",
-    "client-version": "Uygulama sürümü",
-    "network-name": "Ağ",
-    "device-id": "Cihaz Kimliği",
-    "account-id": "Hesap Kimliği"
-  },
+  "faq": "SSS",
+  "display-theme": "Ekran modu",
   "logout-confirmation": {
     "title": "Emin misiniz?",
-    "description": "Cihazınızı yeniden bağlamak için erişim koduna ihtiyacınız olacak."
+    "description": "Cihazınızı yeniden bağlamak için erişim koduna ihtiyacınız olacak.",
+    "logging-out": "Oturum kapatılıyor…"
+  },
+  "quit": "NymVPN'yi kapat",
+  "login-button": "Cihazı bağla",
+  "info": {
+    "client-version": "Uygulama sürümü",
+    "daemon-version": "Daemon sürümü",
+    "network-name": "Ağ",
+    "account-id": "Hesap Kimliği",
+    "device-id": "Cihaz Kimliği"
+  },
+  "autostart": {
+    "title": "Otomatik Başlat",
+    "desc": "Sistem başlatıldığında NymVPN'i başlatın"
+  },
+  "killswitch": {
+    "title": "Killswitch",
+    "desc": "İnternet kesilirse bağlantıyı kesin"
   }
 }

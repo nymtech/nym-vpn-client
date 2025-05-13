@@ -1,29 +1,44 @@
 {
   "unknown": "不明なエラー",
   "internal": "内部エラー",
-  "grpc": "内部gRPCエラー",
-  "countries-request": {
-    "entry": "利用可能なエントリーノードの国を取得できませんでした",
-    "exit": "利用可能な出口ノードの国を取得できませんでした",
-    "fast-mode": "利用可能な国を取得できませんでした"
-  },
   "daemon": {
     "not-connected": "デーモンに接続されていません",
     "internal": "デーモン内部エラー",
     "invalid-network": "無効なネットワーク"
   },
+  "grpc": "内部gRPCエラー",
+  "tunnel": {
+    "internal": "内部エラー",
+    "api": "APIエラー",
+    "firewall": "ファイアウォールエラー",
+    "routing": "ルーティングエラー",
+    "dns": "DNS エラー",
+    "same-entry-exit-gw": "同じエントリーと出口には接続できません。エントリーと出口の場所を変更してください。",
+    "invalid-entry-gw-country": "無効なエントリーノードの国です。エントリーノードの場所を変更してください。",
+    "invalid-exit-gw-country": "無効な出口ノードの国です。出口ノードの場所を変更してください",
+    "max-devices-reached": "アカウントデバイスの上限を超えました。接続する前にアカウントからデバイスを削除してください。",
+    "bandwidth-exceeded": "月間の帯域幅を超えています。アカウントのプランをアップグレードしてください。",
+    "subscription-expired": "サブスクリプションの有効期限が切れています。アカウントのプランを購入してください。",
+    "device-time-out-of-sync": "デバイスの時刻が同期していません。デバイスの時刻をインターネットと同期してください。"
+  },
   "account": {
     "invalid-recovery-phrase": "無効なアクセスコード",
     "storage": "ストレージバックエンドエラー",
-    "is-connected": "接続中は操作を進めることができません",
-    "maximum-registered-devices": "デバイスの登録に失敗しました：登録可能なデバイス数の上限に達しました",
-    "register-device": "デバイスの登録に失敗しました",
-    "update-device": "デバイスのアップデートに失敗しました",
-    "not-stored": "アカウントのアクセスコードが保存されていません",
-    "no-device-stored": "デバイスキーが保存されていません",
-    "update": "アカウントアップデートに失敗"
+    "is-connected": "接続中は操作を進めることができません"
   },
-  "zknym": {
-    "request-failed": "zk-nymのリクエストに失敗しました"
+  "countries-request": {
+    "entry": "利用可能なエントリーノードの国を取得できませんでした",
+    "exit": "利用可能な出口ノードの国を取得できませんでした",
+    "fast-mode": "利用可能な国を取得できませんでした"
+  },
+  "no-bandwidth": "データ使用量が残っていません",
+  "entry-gateway-down": "エントリーgatewayがダウンしています",
+  "exit-gateway-down": {
+    "ipv4": "出口gatewayがダウンしています (IPv4)",
+    "ipv6": "出口gatewayがダウンしています (IPv6)"
+  },
+  "exit-gateway-routing": {
+    "ipv4": "gatewayルーティングエラー(IPv4) を終了します。",
+    "ipv6": "gatewayルーティングエラー(IPv6) を終了します"
   }
 }

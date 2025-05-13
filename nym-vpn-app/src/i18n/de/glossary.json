@@ -1,6 +1,13 @@
 {
-  "via": "über",
+  "account": "account",
+  "cancel": "cancel",
   "left": "verbleibend",
+  "login": "login",
+  "logout": "logout",
   "ok": "okay",
-  "selected": "ausgewählt"
+  "selected": "ausgewählt",
+  "via": "über",
+  "stop": "stop",
+  "server_one": "server",
+  "server_other": "servers"
 }

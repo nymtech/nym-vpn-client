@@ -1,10 +1,13 @@
 {
+  "account": "حساب",
+  "cancel": "ألغاء",
   "left": "المُتبقي",
+  "login": "سجيل الدخول",
+  "logout": "تسجيل الخروج",
   "ok": "أوكي",
   "selected": "محدد",
   "via": "عبر",
-  "account": "حساب",
-  "cancel": "ألغاء",
-  "login": "سجيل الدخول",
-  "logout": "تسجيل الخروج"
+  "stop": "stop",
+  "server_one": "server",
+  "server_other": "servers"
 }

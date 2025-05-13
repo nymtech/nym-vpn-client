@@ -1,0 +1,20 @@
+{
+  "loading": "Đang tải…",
+  "none-found": "Không tìm thấy kết quả nào. Vui lòng thử tìm kiếm khác",
+  "list-loading": "Danh sách vị trí đang tải…",
+  "selected": "Đã chọn",
+  "search-country": "Tìm kiếm vị trí",
+  "input-label": "Tìm kiếm",
+  "location-details": {
+    "title": "Chi tiết về vị trí máy chủ",
+    "description": "Chúng tôi suy luận vị trí máy chủ dựa trên địa chỉ IP, nhưng vị trí thực tế có thể chênh lệch đôi chút.",
+    "link": "Đọc thêm"
+  },
+  "location-not-available": {
+    "entry": "Vị trí vào đã chọn không khả dụng, đã chuyển sang {{location}}",
+    "exit": "Vị trí thoát đã chọn không khả dụng, đã chuyển sang {{location}}"
+  },
+  "node-details": {
+    "id-label": "Khóa xác thực:"
+  }
+}

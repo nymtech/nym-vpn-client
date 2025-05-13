@@ -1,0 +1,7 @@
+{
+  "connection-progress": {
+    "Initializing": "初始化客户端…",
+    "InitDone": "Nym VPN 客户端已初始化",
+    "Canceling": "正在取消···"
+  }
+}

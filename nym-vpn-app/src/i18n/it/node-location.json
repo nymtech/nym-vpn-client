@@ -1,8 +1,20 @@
 {
+  "loading": "Loading…",
+  "none-found": "No results found. Please try another search",
+  "list-loading": "The location list is loading…",
   "selected": "Selezionato",
+  "search-country": "Search location",
   "input-label": "Cerca",
   "location-details": {
     "title": "Dettagli sulla posizione dei server",
-    "description": "L'ubicazione dei server viene dedotta in base ai loro indirizzi IP, ma l'ubicazione effettiva può variare leggermente."
+    "description": "L'ubicazione dei server viene dedotta in base ai loro indirizzi IP, ma l'ubicazione effettiva può variare leggermente.",
+    "link": "Read more"
+  },
+  "location-not-available": {
+    "entry": "Selected entry location not available, switched to {{location}}",
+    "exit": "Selected exit location not available, switched to {{location}}"
+  },
+  "node-details": {
+    "id-label": "Identity key:"
   }
 }

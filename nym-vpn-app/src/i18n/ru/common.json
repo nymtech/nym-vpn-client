@@ -1,27 +1,27 @@
 {
-  "settings": "Настройки",
-  "connect": "Подключиться",
-  "disconnect": "Отключиться",
-  "fastest": "Быстрейший",
-  "logs": "Логи",
-  "feedback": "Обратная связь",
-  "support": "Поддержка",
-  "sentry": "Sentry",
-  "legal": "Юридические аспекты",
-  "first-hop-selection": "Локация входа",
   "vpn-modes": {
     "privacy": "Анонимный",
     "fast": "Быстрый"
   },
+  "connect": "Подключиться",
+  "disconnect": "Отключиться",
+  "first-hop-selection": "Локация входа",
+  "last-hop-selection": "Локация выхода",
+  "settings": "Настройки",
+  "display-theme": "Интерфейс",
+  "notifications": "Уведомления",
+  "logs": "Логи",
+  "feedback": "Обратная связь",
+  "legal": "Юридические аспекты",
+  "support": "Поддержка",
+  "fastest": "Быстрейший",
+  "sentry": "Sentry",
   "tos": "Условия использования",
   "privacy-statement": "Заявление о конфиденциальности",
-  "last-hop-selection": "Локация выхода",
-  "display-theme": "Интерфейс",
   "ui-mode": {
     "dark": "Тёмный режим",
     "light": "Светлый режим"
   },
-  "notifications": "Уведомления",
-  "language": "Язык",
-  "appearance": "Внешний вид"
+  "appearance": "Внешний вид",
+  "language": "Язык"
 }
