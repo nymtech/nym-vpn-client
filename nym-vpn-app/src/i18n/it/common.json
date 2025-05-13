@@ -1,22 +1,27 @@
 {
-  "connect": "Connetti",
-  "disconnect": "Disconnetti",
-  "settings": "Impostazioni",
   "vpn-modes": {
     "privacy": "Anonimo",
     "fast": "Veloce"
   },
-  "feedback": "Feedsback",
-  "support": "Supporto",
-  "legal": "Legale",
-  "logs": "Logs",
-  "sentry": "Sentinella",
-  "fastest": "Più veloce",
+  "connect": "Connetti",
+  "disconnect": "Disconnetti",
   "first-hop-selection": "Selezione del primo hop",
+  "last-hop-selection": "Selezione dell'ultimo hop",
+  "settings": "Impostazioni",
+  "display-theme": "Display",
+  "notifications": "Notifiche",
+  "logs": "Logs",
+  "feedback": "Feedsback",
+  "legal": "Legale",
+  "support": "Supporto",
+  "fastest": "Più veloce",
+  "sentry": "Sentinella",
   "tos": "Termini di utilizzo",
   "privacy-statement": "Privacy policy",
-  "last-hop-selection": "Selezione dell'ultimo hop",
+  "ui-mode": {
+    "dark": "Dark mode",
+    "light": "Light mode"
+  },
   "appearance": "Aspetto",
-  "language": "Lingua",
-  "notifications": "Notifiche"
+  "language": "Lingua"
 }

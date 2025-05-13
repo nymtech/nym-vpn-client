@@ -1,10 +1,10 @@
 {
+  "theme-section-title": "تم",
+  "zoom-section-title": "سطح زوم",
   "options": {
+    "system": "خودکار",
     "light": "طرح روشن",
-    "dark": "طرح تاریک",
-    "system": "خودکار"
+    "dark": "طرح تاریک"
   },
-  "system-desc": "استفاده از طرح دستگاه",
-  "theme-section-title": "طرح",
-  "zoom-section-title": "سطح بزرگ‌نمایی"
+  "system-desc": "استفاده از طرح دستگاه"
 }

@@ -1,9 +1,4 @@
 {
-  "countries-request": {
-    "entry": "Fallo al obtener los países disponibles del gateway de entrada",
-    "exit": "Fallo al obtener los países disponibles del gateway de salida",
-    "fast-mode": "Fallo al buscar los países disponibles"
-  },
   "unknown": "Error desconocido",
   "internal": "Error interno",
   "daemon": {
@@ -12,18 +7,38 @@
     "invalid-network": "Red inválida"
   },
   "grpc": "Error interno gRPC",
+  "tunnel": {
+    "internal": "Error interno",
+    "api": "Error de API",
+    "firewall": "Error del firewall",
+    "routing": "Error al enrutar",
+    "dns": "Error de DNS",
+    "same-entry-exit-gw": "No se puede conectar con el mismo nodo de entrada y salida. Por favor, cambia la ubicación del nodo de entrada o de salida.",
+    "invalid-entry-gw-country": "El país del nodo de entrada no es válido, por favor cambia la ubicación del nodo de entrada",
+    "invalid-exit-gw-country": "El país del nodo de salida no es válido. Por favor, cambia la ubicación del nodo de salida",
+    "max-devices-reached": "Límite de dispositivos excedido. Elimina un dispositivo de tu cuenta antes de conectarte.",
+    "bandwidth-exceeded": "Se ha superado el ancho de banda mensual. Actualiza el plan de tu cuenta.",
+    "subscription-expired": "La suscripción ha caducado. Por favor, compra un plan para tu cuenta.",
+    "device-time-out-of-sync": "El tiempo del dispositivo no está sincronizado. Por favor, sincroniza el tiempo de tu dispositivo con el internet."
+  },
   "account": {
     "invalid-recovery-phrase": "Código de acceso inválido",
     "storage": "Error de backend de almacenamiento",
-    "is-connected": "No se puede continuar mientras está conectado",
-    "no-device-stored": "No hay claves de dispositivo almacenadas",
-    "update": "Error al actualizar la cuenta",
-    "update-device": "Error al actualizar el dispositivo",
-    "register-device": "Fallo en el registro del dispositivo",
-    "maximum-registered-devices": "Fallo en el registro de dispositivos: se ha alcanzado el número máximo de dispositivos registrados",
-    "not-stored": "No se ha guardado el código de acceso de la cuenta"
+    "is-connected": "No se puede continuar mientras está conectado"
   },
-  "zknym": {
-    "request-failed": "Fallo en la solicitud del zk-nym"
+  "countries-request": {
+    "entry": "Fallo al obtener los países disponibles del gateway de entrada",
+    "exit": "Fallo al obtener los países disponibles del gateway de salida",
+    "fast-mode": "Fallo al buscar los países disponibles"
+  },
+  "no-bandwidth": "No data allowance remaining",
+  "entry-gateway-down": "El gateway de entrada está caído",
+  "exit-gateway-down": {
+    "ipv4": "El gateway de salida está caído (IPv4)",
+    "ipv6": "El gateway de salida está caído (IPv6)"
+  },
+  "exit-gateway-routing": {
+    "ipv4": "Error de ruteo del gateway de salida (IPv4)",
+    "ipv6": "Error de ruteo del gateway de salida (IPv6)"
   }
 }

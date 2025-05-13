@@ -1,27 +1,27 @@
 {
-  "settings": "أعدادات",
-  "connect": "اتصل",
-  "disconnect": "ألغاء الاتصال",
-  "fastest": "الأسرع",
-  "logs": "سجلات الأداء",
-  "feedback": "ملاحظات",
-  "support": "دعم",
   "vpn-modes": {
     "privacy": "مجهول",
     "fast": "سريع"
   },
-  "appearance": "المظهر",
-  "language": "اللغة",
+  "connect": "اتصل",
+  "disconnect": "ألغاء الاتصال",
   "first-hop-selection": "موقع الدخول",
   "last-hop-selection": "موقع الخروج",
+  "settings": "أعدادات",
   "display-theme": "عرض",
+  "notifications": "التنبيهات",
+  "logs": "سجلات الأداء",
+  "feedback": "ملاحظات",
+  "legal": "قانوني",
+  "support": "دعم",
+  "fastest": "الأسرع",
+  "sentry": "سينتاري",
   "tos": "شروط الاستخدام",
   "privacy-statement": "بيان الخصوصية",
   "ui-mode": {
     "dark": "نمط داكن",
     "light": "نمط فاتح"
   },
-  "sentry": "سينتاري",
-  "legal": "قانوني",
-  "notifications": "التنبيهات"
+  "appearance": "المظهر",
+  "language": "اللغة"
 }

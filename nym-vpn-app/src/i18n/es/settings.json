@@ -7,44 +7,56 @@
     "title": "Informes de errores anónimos",
     "desc": "se aplica al reiniciar la aplicación"
   },
+  "notifications": {
+    "title": "Notificaciones de escritorio"
+  },
+  "monitoring-alert": "Debes reiniciar la aplicación para que el cambio surta efecto.",
   "support": {
     "title": "Soporte y comentarios",
     "faq": "Consulta las preguntas frecuentes",
+    "contact": "Contact support",
+    "telegram": "Chat en Telegram",
     "github": "Abrir un ticket en GitHub",
     "matrix": "Únete en Matrix",
-    "discord": "Únete en Discord",
-    "get-in-touch": "Ponte en contacto"
+    "discord": "Únete en Discord"
   },
   "legal": {
     "title": "Legal",
     "policy": "Declaración de privacidad",
     "tos": "Términos de uso",
-    "emptyData": "No hay datos de licencia disponible",
     "license": "Licencia",
     "licenses-rust": "Licencia (Rust)",
-    "licenses-js": "Licencia (JS)"
-  },
-  "display-theme": "Tema",
-  "login-button": "Conectar dispositivo",
-  "monitoring-alert": "Debes reiniciar la aplicación para que el cambio surta efecto.",
-  "faq": "FAQ",
-  "quit": "Cerrar NymVPN",
-  "notifications": {
-    "title": "Notificaciones de escritorio"
+    "licenses-js": "Licencia (JS)",
+    "emptyData": "No hay datos de licencia disponible"
   },
   "logs": {
-    "title": "Registros",
-    "desc": "Copiar o borrar logs"
+    "title": "Registros (almacenados localmente)",
+    "desc": "Copiar o borrar logs",
+    "app": "Registros de la app",
+    "daemon": "Registros del demonio"
   },
+  "faq": "Preguntas Frecuentes",
+  "display-theme": "Tema",
+  "logout-confirmation": {
+    "title": "¿Estás seguro?",
+    "description": "Necesitarás tu código de acceso para volver a conectar tu dispositivo.",
+    "logging-out": "Cerrando sesión…"
+  },
+  "quit": "Cerrar NymVPN",
+  "login-button": "Conectar dispositivo",
   "info": {
+    "client-version": "Versión de la aplicación",
     "daemon-version": "Versión Demonio",
     "network-name": "Red",
-    "client-version": "Versión de la aplicación",
     "account-id": "ID de la cuenta",
     "device-id": "ID del dispositivo"
   },
-  "logout-confirmation": {
-    "title": "¿Estás seguro?",
-    "description": "Necesitarás tu código de acceso para volver a conectar tu dispositivo."
+  "autostart": {
+    "title": "Inicio automático",
+    "desc": "Iniciar NymVPN al iniciar el sistema"
+  },
+  "killswitch": {
+    "title": "Killswitch",
+    "desc": "Killswitch"
   }
 }

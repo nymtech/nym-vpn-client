@@ -1,0 +1,7 @@
+{
+  "connection-progress": {
+    "Initializing": "Đang khởi tạo máy khách NymVPN…",
+    "InitDone": "Đã khởi tạo máy khách Nym VPN",
+    "Canceling": "Đang hủy…"
+  }
+}

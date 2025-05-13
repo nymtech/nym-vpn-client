@@ -1,17 +1,20 @@
 {
-  "selected": "Seçildi",
-  "search-country": "Ülke ara",
-  "input-label": "Ara",
   "loading": "Yükleniyor..",
-  "none-found": "Sonuç bulunamadı",
+  "none-found": "Eşleşen sonuç bulunamadı. Lütfen farklı bir arama yapın.",
   "list-loading": "Ülke listesi yükleniyor…",
+  "selected": "Seçildi",
+  "search-country": "Konum ara",
+  "input-label": "Ara",
   "location-details": {
-    "description": "Sunucu konumlarını IP adreslerine dayanarak tahmin ediyoruz, ancak gerçek konumlar biraz farklı olabilir.",
     "title": "Sunucu konumları hakkında detaylar",
-    "link": "Detaylı bilgi"
+    "description": "Sunucu konumlarını IP adreslerine dayanarak tahmin ediyoruz, ancak gerçek konumlar biraz farklı olabilir.",
+    "link": "Daha fazla bilgi için"
   },
   "location-not-available": {
     "entry": "Seçilen giriş konumu kullanılamıyor, {{location}} konumuna geçildi",
     "exit": "Seçilen çıkış konumu mevcut değil, {{location}} konumuna geçildi"
+  },
+  "node-details": {
+    "id-label": "Kimlik anahtarı:"
   }
 }

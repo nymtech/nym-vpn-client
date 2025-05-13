@@ -1,11 +1,13 @@
 {
-  "via": "vía",
-  "left": "quedan",
-  "ok": "Ok",
-  "selected": "seleccionado",
   "account": "cuenta",
   "cancel": "cancelar",
+  "left": "quedan",
   "login": "iniciar sesión",
   "logout": "cerrar sesión",
-  "stop": "para"
+  "ok": "Ok",
+  "selected": "seleccionado",
+  "via": "vía",
+  "stop": "detener",
+  "server_one": "servidor",
+  "server_other": "servidores"
 }

@@ -1,17 +1,20 @@
 {
+  "loading": "Laden...",
+  "none-found": "Kein Ergebnis gefunden. Bitte erneut versuchen",
+  "list-loading": "Die Standortliste wird geladen…",
   "selected": "Ausgewählt",
+  "search-country": "Standortsuche",
   "input-label": "Suche",
   "location-details": {
     "title": "Details zum Serverstandort",
     "description": "Wir leiten den Serverstandort von der IP-Addresse ab. Der reale Standort kann leicht abweichen.",
     "link": "Mehr lesen"
   },
-  "loading": "Laden...",
-  "none-found": "Kein Ergebnis gefunden. Bitte erneut versuchen",
-  "list-loading": "Die Standortliste wird geladen…",
-  "search-country": "Standortsuche",
   "location-not-available": {
     "entry": "Ausgewählte Eintrittsregion nicht verfügbar, gewechselt zu {{location}}",
     "exit": "Ausgewählte Austrittsregion nicht verfügbar, gewechselt zu {{location}}"
+  },
+  "node-details": {
+    "id-label": "Identity key:"
   }
 }

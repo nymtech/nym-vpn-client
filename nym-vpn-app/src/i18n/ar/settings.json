@@ -1,27 +1,4 @@
 {
-  "legal": {
-    "licenses-rust": "التراخيص (Rust)",
-    "policy": "بيان الخصوصية",
-    "tos": "شروط الاستخدام",
-    "title": "قانوني",
-    "emptyData": "لا توجد بيانات ترخيص متاحة",
-    "licenses-js": "التراخيص (JS)",
-    "license": "الترخيص"
-  },
-  "faq": "الأسئلة الشائعة",
-  "display-theme": "نمط العرض",
-  "support": {
-    "title": "الدعم",
-    "faq": "تحقق من الأسئلة الشائعة",
-    "github": "إرسال مشكلة إلى GitHub",
-    "discord": "انضم إلينا على Discord",
-    "matrix": "انضم إلينا على Matrix"
-  },
-  "logs": {
-    "title": "السجلات",
-    "desc": "نسخ أو مسح السجلات"
-  },
-  "quit": "اغلاق NymVPN",
   "auto-connect": {
     "title": "اتصال تلقائي",
     "desc": "الاتصال التلقائي عند تشغيل التطبيق"
@@ -34,14 +11,52 @@
     "title": "إشعارات سطح المكتب"
   },
   "monitoring-alert": "يجب أن تعيد تشغيل التطبيق لتصبح التغييرات سارية المفعول.",
+  "support": {
+    "title": "الدعم",
+    "faq": "تحقق من الأسئلة الشائعة",
+    "contact": "Contact support",
+    "telegram": "Chat on Telegram",
+    "github": "إرسال مشكلة إلى GitHub",
+    "matrix": "انضم إلينا على Matrix",
+    "discord": "انضم إلينا على Discord"
+  },
+  "legal": {
+    "title": "قانوني",
+    "policy": "بيان الخصوصية",
+    "tos": "شروط الاستخدام",
+    "license": "الترخيص",
+    "licenses-rust": "التراخيص (Rust)",
+    "licenses-js": "التراخيص (JS)",
+    "emptyData": "لا توجد بيانات ترخيص متاحة"
+  },
+  "logs": {
+    "title": "السجلات",
+    "desc": "نسخ أو مسح السجلات",
+    "app": "App logs",
+    "daemon": "Daemon logs"
+  },
+  "faq": "الأسئلة الشائعة",
+  "display-theme": "نمط العرض",
+  "logout-confirmation": {
+    "title": "هل أنت متأكد؟",
+    "description": "يمكنك استخدام عبارة الاسترداد لتسجيل الدخول مرة أخرى.",
+    "logging-out": "Logging out…"
+  },
+  "quit": "اغلاق NymVPN",
+  "login-button": "تسجيل الدخول",
   "info": {
     "client-version": "نسخة العميل",
     "daemon-version": "نسخة الديمن",
-    "network-name": "الشبكة"
+    "network-name": "الشبكة",
+    "account-id": "Account ID",
+    "device-id": "Device ID"
   },
-  "login-button": "تسجيل الدخول",
-  "logout-confirmation": {
-    "title": "هل أنت متأكد؟",
-    "description": "يمكنك استخدام عبارة الاسترداد لتسجيل الدخول مرة أخرى."
+  "autostart": {
+    "title": "Autostart",
+    "desc": "Launch NymVPN when system starts"
+  },
+  "killswitch": {
+    "title": "Killswitch",
+    "desc": "Disconnect if the internet drops"
   }
 }

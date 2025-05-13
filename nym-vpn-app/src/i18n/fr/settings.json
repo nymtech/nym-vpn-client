@@ -7,12 +7,16 @@
     "title": "Rapports d'erreur anonymes",
     "desc": "s'applique au redémarrage de l'application"
   },
+  "notifications": {
+    "title": "Notifications sur le bureau"
+  },
+  "monitoring-alert": "Redémarrez l'application pour que le changement s'applique.",
   "support": {
     "title": "Support et commentaire",
     "faq": "Consulter la FAQ",
-    "github": "Créer un ticket GitHub",
     "contact": "Contacter le support",
     "telegram": "Discuter sur Telegram",
+    "github": "Créer un ticket GitHub",
     "matrix": "Rejoignez-nous sur Matrix",
     "discord": "Rejoignez-nous sur Discord"
   },
@@ -20,23 +24,26 @@
     "title": "Juridique",
     "policy": "Déclaration sur la protection des données",
     "tos": "Conditions d'utilisation",
-    "emptyData": "Pas de licence disponible",
     "license": "Licence",
     "licenses-rust": "Licences (Rust)",
-    "licenses-js": "Licences (JavaScript)"
-  },
-  "display-theme": "Affichage",
-  "login-button": "Connecter cet appareil",
-  "monitoring-alert": "Redémarrez l'application pour que le changement s'applique.",
-  "faq": "F.A.Q.",
-  "quit": "Quitter NymVPN",
-  "notifications": {
-    "title": "Notifications sur le bureau"
+    "licenses-js": "Licences (JavaScript)",
+    "emptyData": "Pas de licence disponible"
   },
   "logs": {
     "title": "Journaux",
-    "desc": "Copier ou supprimer les journaux"
+    "desc": "Copier ou supprimer les journaux",
+    "app": "Journaux des applications",
+    "daemon": "Journaux des démons"
   },
+  "faq": "F.A.Q.",
+  "display-theme": "Affichage",
+  "logout-confirmation": {
+    "title": "Etes-vous sûr ?",
+    "description": "Vous aurez besoin de votre code d'accès pour reconnecter votre appareil.",
+    "logging-out": "Déconnexion…"
+  },
+  "quit": "Quitter NymVPN",
+  "login-button": "Connecter cet appareil",
   "info": {
     "client-version": "Version de l'app",
     "daemon-version": "Version du daemon",
@@ -44,13 +51,12 @@
     "account-id": "ID du compte",
     "device-id": "ID de l'appareil"
   },
-  "logout-confirmation": {
-    "title": "Etes-vous sûr ?",
-    "description": "Vous aurez besoin de votre code d'accès pour reconnecter votre appareil.",
-    "logging-out": "Déconnexion…"
-  },
   "autostart": {
     "title": "Autostart",
     "desc": "Lancer NymVPN au démarrage du système"
+  },
+  "killswitch": {
+    "title": "Killswitch",
+    "desc": "Disconnect if the internet drops"
   }
 }

@@ -1,0 +1,62 @@
+{
+  "auto-connect": {
+    "title": "Conexão automática",
+    "desc": "Conectar automaticamente na inicialização do aplicativo"
+  },
+  "error-monitoring": {
+    "title": "Relatórios de erros anônimos",
+    "desc": "aplica-se ao reiniciar o aplicativo"
+  },
+  "notifications": {
+    "title": "Notificações na área de trabalho"
+  },
+  "monitoring-alert": "Você deve reiniciar o aplicativo para que a alteração tenha efeito.",
+  "support": {
+    "title": "Suporte e feedback",
+    "faq": "Verifique as perguntas frequentes",
+    "contact": "Contact support",
+    "telegram": "Chat no Telegram",
+    "github": "Abrir uma issue no GitHub",
+    "matrix": "Junte-se a nós no Matrix",
+    "discord": "Junte-se a nós no Discord"
+  },
+  "legal": {
+    "title": "Informações Legais",
+    "policy": "Declaração de privacidade",
+    "tos": "Termos de uso",
+    "license": "Licença",
+    "licenses-rust": "Licenças (rust)",
+    "licenses-js": "Licenças (JS)",
+    "emptyData": "Sem dados de licença disponíveis"
+  },
+  "logs": {
+    "title": "Logs (armazenados localmente)",
+    "desc": "Copiar ou excluir logs",
+    "app": "Logs do aplicativo",
+    "daemon": "Logs do daemon"
+  },
+  "faq": "Perguntas frequentes (FAQ)",
+  "display-theme": "Modo de exibição",
+  "logout-confirmation": {
+    "title": "Você tem certeza?",
+    "description": "Você precisará do seu código de acesso para reconectar seu dispositivo.",
+    "logging-out": "Desconectando…"
+  },
+  "quit": "Sair do NymVPN",
+  "login-button": "Conectar dispositivo",
+  "info": {
+    "client-version": "Versão do app",
+    "daemon-version": "Versão do daemon",
+    "network-name": "Rede",
+    "account-id": "ID da conta",
+    "device-id": "ID do dispositivo"
+  },
+  "autostart": {
+    "title": "início automático",
+    "desc": "Iniciar o NymVPN quando o sistema iniciar"
+  },
+  "killswitch": {
+    "title": "Killswitch",
+    "desc": "Desconectar se a internet cair"
+  }
+}
