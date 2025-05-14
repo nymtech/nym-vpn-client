@@ -84,7 +84,7 @@ impl fmt::Display for TunnelState {
                             data.entry.endpoint,
                             data.exit.endpoint,
                             connection_data.entry_gateway.id,
-                            connection_data.exit_gateway.id, 
+                            connection_data.exit_gateway.id,
                             retry_attempt
                         )
                     }
