@@ -13,26 +13,18 @@ use nym_vpn_network_config::Network;
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
 
 use super::MixnetError;
-use crate::{storage::VpnClientOnDiskStorage, MixnetClientConfig};
+use crate::{MixnetClientConfig, storage::VpnClientOnDiskStorage};
 
 const VPN_AVERAGE_PACKET_DELAY: Duration = Duration::from_millis(15);
 const MOBILE_LOOP_COVER_STREAM_AVERAGE_DELAY: Duration = Duration::from_secs(10);
 
 #[allow(unused)]
 fn true_to_enabled(val: bool) -> &'static str {
-    if val {
-        "enabled"
-    } else {
-        "disabled"
-    }
+    if val { "enabled" } else { "disabled" }
 }
 
 fn true_to_disabled(val: bool) -> &'static str {
-    if val {
-        "disabled"
-    } else {
-        "enabled"
-    }
+    if val { "disabled" } else { "enabled" }
 }
 
 fn apply_mixnet_client_config(

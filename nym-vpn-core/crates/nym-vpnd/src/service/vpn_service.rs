@@ -10,7 +10,7 @@ use std::{
 
 use bip39::Mnemonic;
 use serde::{Deserialize, Serialize};
-use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
@@ -22,17 +22,17 @@ use nym_vpn_account_controller::{
     AvailableTicketbooks, SharedAccountState,
 };
 use nym_vpn_api_client::{
+    NetworkCompatibility,
     response::{NymVpnDevice, NymVpnUsage},
     types::{Percent, ScoreThresholds},
-    NetworkCompatibility,
 };
 use nym_vpn_lib::{
+    MixnetClientConfig, Recipient, UserAgent,
     gateway_directory::{self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
     },
-    MixnetClientConfig, Recipient, UserAgent,
 };
 use nym_vpn_lib_types::{
     AccountCommandError, ForgetAccountError, StoreAccountError, TunnelEvent, TunnelState,
@@ -42,7 +42,7 @@ use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMe
 use zeroize::Zeroizing;
 
 use super::{
-    config::{NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
+    config::{DEFAULT_CONFIG_FILE, NetworkEnvironments, NymVpnServiceConfig},
     error::{
         AccountControllerError, AccountLinksError, Error, Result, SetNetworkError,
         VpnServiceDeleteLogFileError,

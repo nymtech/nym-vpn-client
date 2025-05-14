@@ -9,7 +9,7 @@ use nym_vpn_api_client::{
     types::{DeviceStatus, VpnApiAccount, VpnApiTimeSynced},
 };
 use nym_vpn_lib_types::{AccountCommandError, ForgetAccountError, StoreAccountError, VpnApiError};
-use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
+use nym_vpn_store::{VpnStorage, mnemonic::Mnemonic};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
     task::JoinError,
@@ -17,13 +17,13 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use crate::{
+    AccountCommandSender, AccountControllerConfig, AvailableTicketbooks,
     commands::{AccountCommand, AccountCommandHandler, AccountCommandResult},
     connectivity::OfflineWatch,
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
     storage::{AccountStorage, SharedVpnCredentialStorage, VpnCredentialStorage},
     vpn_api_client::AccountControllerVpnApiClient,
-    AccountCommandSender, AccountControllerConfig, AvailableTicketbooks,
 };
 
 pub struct AccountController<S>
@@ -1014,7 +1014,7 @@ mod init {
 
     use nym_vpn_store::VpnStorage;
 
-    use crate::{shared_state::MnemonicState, Error, SharedAccountState};
+    use crate::{Error, SharedAccountState, shared_state::MnemonicState};
 
     use super::{
         AccountControllerConfig, AccountStorage, SharedVpnCredentialStorage, VpnCredentialStorage,

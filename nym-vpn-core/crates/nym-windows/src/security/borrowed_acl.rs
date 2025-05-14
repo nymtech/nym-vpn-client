@@ -4,11 +4,11 @@
 use std::marker::PhantomData;
 
 use windows::{
-    core::Result,
     Win32::Security::{
-        Authorization::{GetExplicitEntriesFromAclW, EXPLICIT_ACCESS_W},
         ACL,
+        Authorization::{EXPLICIT_ACCESS_W, GetExplicitEntriesFromAclW},
     },
+    core::Result,
 };
 
 use super::AclEntryList;

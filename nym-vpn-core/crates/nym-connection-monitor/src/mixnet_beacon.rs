@@ -5,8 +5,8 @@ use std::time::Duration;
 
 use nym_common::ErrorExt;
 use nym_sdk::{
-    mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient},
     TaskClient,
+    mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient},
 };
 use nym_task::connections::TransmissionLane;
 use tokio::task::JoinHandle;

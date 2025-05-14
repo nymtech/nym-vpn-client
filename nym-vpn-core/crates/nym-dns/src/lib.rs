@@ -215,7 +215,7 @@ trait DnsMonitorT: Sized {
     ) -> Result<Self, Self::Error>;
 
     async fn set(&mut self, interface: &str, servers: ResolvedDnsConfig)
-        -> Result<(), Self::Error>;
+    -> Result<(), Self::Error>;
 
     async fn reset(&mut self) -> Result<(), Self::Error>;
 

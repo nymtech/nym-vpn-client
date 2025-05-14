@@ -5,11 +5,11 @@ use std::fmt;
 
 use nym_compact_ecash::scheme::keygen::KeyPairUser;
 use nym_validator_client::{
-    nyxd::bip32::DerivationPath, signing::signer::OfflineSigner as _, DirectSecp256k1HdWallet,
+    DirectSecp256k1HdWallet, nyxd::bip32::DerivationPath, signing::signer::OfflineSigner as _,
 };
 use time::{Duration, OffsetDateTime};
 
-use crate::{error::Result, jwt::Jwt, VpnApiClientError};
+use crate::{VpnApiClientError, error::Result, jwt::Jwt};
 
 const MAX_ACCEPTABLE_SKEW_SECONDS: i64 = 60;
 const SKEW_SECONDS_CONSIDERED_SAME: i64 = 2;

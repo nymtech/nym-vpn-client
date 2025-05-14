@@ -16,9 +16,9 @@ use nym_vpn_store::mnemonic::Mnemonic;
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
-    commands::{tasks::request_zknym::RequestZkNymSummary, AccountCommand, ReturnSender},
-    shared_state::{AccountRegistered, DeviceState, SharedAccountState},
     AvailableTicketbooks,
+    commands::{AccountCommand, ReturnSender, tasks::request_zknym::RequestZkNymSummary},
+    shared_state::{AccountRegistered, DeviceState, SharedAccountState},
 };
 
 #[derive(Clone)]

@@ -7,18 +7,18 @@ use nym_vpn_lib_types::{
 };
 
 use crate::{
+    MixnetEvent as ProtoMixnetEvent, TunnelEvent as ProtoTunnelEvent,
     conversions::ConversionError,
     mixnet_event::{
+        BandwidthEvent as ProtoBandwidthEvent, ConnectionEvent as ProtoConnectionEvent,
+        ConnectionStatisticsEvent as ProtoConnectionStatisticsEvent, Event as ProtoMixnetEventEnum,
+        SphinxPacketRates as ProtoSphinxPacketRates,
         bandwidth_event::{
             Event as ProtoBanwidthEventEnum, NoBandwidth as ProtoNoBandwidth,
             RemainingBandwidth as ProtoRemainingBandwidth,
         },
-        BandwidthEvent as ProtoBandwidthEvent, ConnectionEvent as ProtoConnectionEvent,
-        ConnectionStatisticsEvent as ProtoConnectionStatisticsEvent, Event as ProtoMixnetEventEnum,
-        SphinxPacketRates as ProtoSphinxPacketRates,
     },
     tunnel_event::Event as ProtoTunnelEventEnum,
-    MixnetEvent as ProtoMixnetEvent, TunnelEvent as ProtoTunnelEvent,
 };
 
 impl TryFrom<ProtoTunnelEvent> for TunnelEvent {

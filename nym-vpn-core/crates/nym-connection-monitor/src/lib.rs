@@ -19,7 +19,7 @@ mod sync_self_ping;
 pub mod packet_helpers;
 pub use error::Error;
 pub use icmp_beacon::{
-    is_icmp_beacon_reply, is_icmp_v6_beacon_reply, IcmpBeaconReply, Icmpv6BeaconReply,
+    IcmpBeaconReply, Icmpv6BeaconReply, is_icmp_beacon_reply, is_icmp_v6_beacon_reply,
 };
 pub use monitor::{ConnectionMonitorStatus, ConnectionStatusEvent};
 pub use sync_self_ping::self_ping_and_wait;

@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib::{
-    gateway_directory::{EntryPoint, ExitPoint},
     NodeIdentity, Recipient,
+    gateway_directory::{EntryPoint, ExitPoint},
 };
 
 // For the future: these functions should be moved to the nym-vpn-proto crate

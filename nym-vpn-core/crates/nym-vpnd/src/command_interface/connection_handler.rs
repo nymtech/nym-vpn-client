@@ -6,8 +6,8 @@ use zeroize::Zeroizing;
 
 use nym_vpn_account_controller::{AccountStateSummary, AvailableTicketbooks};
 use nym_vpn_api_client::{
-    response::{NymVpnDevice, NymVpnUsage},
     NetworkCompatibility,
+    response::{NymVpnDevice, NymVpnUsage},
 };
 use nym_vpn_lib::gateway_directory::{EntryPoint, ExitPoint, GatewayClient, GatewayType};
 use nym_vpn_lib_types::{
@@ -20,8 +20,8 @@ use nym_vpnd_types::gateway;
 use crate::{
     logging::LogPath,
     service::{
-        AccountLinksError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
-        VpnServiceDeleteLogFileError, GATEWAY_DIRECTORY_CLIENT,
+        AccountLinksError, ConnectArgs, ConnectOptions, GATEWAY_DIRECTORY_CLIENT, SetNetworkError,
+        VpnServiceCommand, VpnServiceDeleteLogFileError,
     },
 };
 

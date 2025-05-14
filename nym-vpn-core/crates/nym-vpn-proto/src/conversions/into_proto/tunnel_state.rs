@@ -9,6 +9,14 @@ use nym_vpn_lib_types::{
 };
 
 use crate::{
+    Address as ProtoAddress, ConnectionData as ProtoConnectionData,
+    ForgetAccountError as ProtoForgetAccountError, Gateway as ProtoGateway,
+    MixnetConnectionData as ProtoMixnetConnectionData,
+    RegisterDeviceError as ProtoRegisterDeviceError, StoreAccountError as ProtoStoreAccountError,
+    SyncAccountError as ProtoSyncAccountError, SyncDeviceError as ProtoSyncDeviceError,
+    TunnelConnectionData as ProtoTunnelConnectionData, TunnelState as ProtoTunnelState,
+    VpnApiError as ProtoVpnApiError, VpnApiErrorResponse as ProtoVpnApiErrorResponse,
+    WireguardConnectionData as ProtoWireguardConnectionData, WireguardNode as ProtoWireguardNode,
     tunnel_connection_data::{
         Mixnet as ProtoMixnetConnectionDataVariant, State as ProtoTunnelConnectionDataState,
         Wireguard as ProtoWireguardConnectionDataVariant,
@@ -19,14 +27,6 @@ use crate::{
         Disconnecting as ProtoDisconnecting, Error as ProtoError, ErrorStateReason,
         Offline as ProtoOffline, State as ProtoState,
     },
-    Address as ProtoAddress, ConnectionData as ProtoConnectionData,
-    ForgetAccountError as ProtoForgetAccountError, Gateway as ProtoGateway,
-    MixnetConnectionData as ProtoMixnetConnectionData,
-    RegisterDeviceError as ProtoRegisterDeviceError, StoreAccountError as ProtoStoreAccountError,
-    SyncAccountError as ProtoSyncAccountError, SyncDeviceError as ProtoSyncDeviceError,
-    TunnelConnectionData as ProtoTunnelConnectionData, TunnelState as ProtoTunnelState,
-    VpnApiError as ProtoVpnApiError, VpnApiErrorResponse as ProtoVpnApiErrorResponse,
-    WireguardConnectionData as ProtoWireguardConnectionData, WireguardNode as ProtoWireguardNode,
 };
 
 impl From<ActionAfterDisconnect> for ProtoActionAfterDisconnect {

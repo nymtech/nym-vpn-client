@@ -9,11 +9,11 @@ use nym_vpn_lib_types::{
 };
 
 use crate::{
-    conversions::ConversionError, ForgetAccountError as ProtoForgetAccountError,
-    RegisterDeviceError as ProtoRegisterDeviceError, RequestZkNymError as ProtoRequestZkNymError,
-    RequestZkNymSuccess as ProtoRequestZkNymSuccess, StoreAccountError as ProtoStoreAccountError,
-    SyncAccountError as ProtoSyncAccountError, SyncDeviceError as ProtoSyncDeviceError,
-    VpnApiError as ProtoVpnApiError, VpnApiErrorResponse as ProtoVpnApiErrorResponse,
+    ForgetAccountError as ProtoForgetAccountError, RegisterDeviceError as ProtoRegisterDeviceError,
+    RequestZkNymError as ProtoRequestZkNymError, RequestZkNymSuccess as ProtoRequestZkNymSuccess,
+    StoreAccountError as ProtoStoreAccountError, SyncAccountError as ProtoSyncAccountError,
+    SyncDeviceError as ProtoSyncDeviceError, VpnApiError as ProtoVpnApiError,
+    VpnApiErrorResponse as ProtoVpnApiErrorResponse, conversions::ConversionError,
 };
 
 impl TryFrom<ProtoStoreAccountError> for StoreAccountError {

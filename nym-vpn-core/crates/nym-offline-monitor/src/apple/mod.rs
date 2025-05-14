@@ -10,7 +10,7 @@ mod macos;
 mod ios;
 
 #[cfg(target_os = "macos")]
-pub use macos::{spawn_monitor, ConnectivityHandle};
+pub use macos::{ConnectivityHandle, spawn_monitor};
 
 #[cfg(target_os = "ios")]
-pub use ios::{spawn_monitor, ConnectivityHandle};
+pub use ios::{ConnectivityHandle, spawn_monitor};

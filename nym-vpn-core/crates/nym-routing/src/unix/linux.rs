@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    imp::{CallbackMessage, RouteManagerCommand},
     NetNode, Node, RequiredRoute, Route,
+    imp::{CallbackMessage, RouteManagerCommand},
 };
 use netlink_sys::AsyncSocket;
 use nym_common::ErrorExt;
@@ -15,26 +15,26 @@ use std::{
     num::NonZeroI32,
 };
 
-use futures::{future::FutureExt, StreamExt, TryStream, TryStreamExt};
+use futures::{StreamExt, TryStream, TryStreamExt, future::FutureExt};
 use ipnetwork::IpNetwork;
 use libc::RT_TABLE_COMPAT;
 use netlink_packet_core::{
-    NetlinkMessage, NetlinkPayload, NLM_F_ACK, NLM_F_CREATE, NLM_F_DUMP, NLM_F_REPLACE,
-    NLM_F_REQUEST,
+    NLM_F_ACK, NLM_F_CREATE, NLM_F_DUMP, NLM_F_REPLACE, NLM_F_REQUEST, NetlinkMessage,
+    NetlinkPayload,
 };
 use netlink_packet_route::{
+    AddressFamily, RouteNetlinkMessage,
     link::{LinkAttribute, LinkLayerType, LinkMessage},
     route::{
         RouteAddress, RouteAttribute, RouteFlag, RouteHeader, RouteMessage, RouteMetric,
         RouteProtocol, RouteScope, RouteType, RouteVia,
     },
     rule::{RuleAction, RuleAttribute, RuleFlag, RuleHeader, RuleMessage},
-    AddressFamily, RouteNetlinkMessage,
 };
 use netlink_sys::SocketAddr;
 use rtnetlink::{
-    constants::{RTMGRP_IPV4_ROUTE, RTMGRP_IPV6_ROUTE, RTMGRP_LINK, RTMGRP_NOTIFY},
     Handle, IpVersion,
+    constants::{RTMGRP_IPV4_ROUTE, RTMGRP_IPV6_ROUTE, RTMGRP_LINK, RTMGRP_NOTIFY},
 };
 use std::sync::LazyLock;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
@@ -797,7 +797,9 @@ impl RouteManagerImpl {
                         }
                         (None, Some(address)) => attempted_ip = address,
                         (None, None) => {
-                            tracing::error!("Route contains an invalid node which lacks both a device and an address");
+                            tracing::error!(
+                                "Route contains an invalid node which lacks both a device and an address"
+                            );
                             return Err(Error::InvalidRouteNode);
                         }
                     }
@@ -906,11 +908,7 @@ fn route_via_to_ip(via: RouteVia) -> Result<IpAddr> {
 
 fn compat_table_id(id: u32) -> u8 {
     // RT_TABLE_COMPAT must be combined with nla Table(id)
-    if id > 255 {
-        RT_TABLE_COMPAT
-    } else {
-        id as u8
-    }
+    if id > 255 { RT_TABLE_COMPAT } else { id as u8 }
 }
 
 fn get_ip_version(addr: &IpAddr) -> IpVersion {

@@ -2,15 +2,15 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 
 use bytes::Bytes;
 use nym_connection_monitor::{
-    is_icmp_beacon_reply, is_icmp_v6_beacon_reply,
+    ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply, is_icmp_beacon_reply,
+    is_icmp_v6_beacon_reply,
     packet_helpers::{
         create_icmpv4_echo_request, create_icmpv6_echo_request, wrap_icmp_in_ipv4,
         wrap_icmp_in_ipv6,
     },
-    ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply,
 };
 use nym_gateway_directory::IpPacketRouterAddress;
-use nym_ip_packet_requests::{codec::MultiIpPacketCodec, v8::request::IpPacketRequest, IpPair};
+use nym_ip_packet_requests::{IpPair, codec::MultiIpPacketCodec, v8::request::IpPacketRequest};
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{InputMessage, Recipient};
 use nym_task::connections::TransmissionLane;

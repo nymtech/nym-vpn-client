@@ -11,15 +11,15 @@ use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::FirewallPolicy;
 
-#[cfg(target_os = "macos")]
-use crate::tunnel_state_machine::{states::ErrorState, ErrorStateReason};
-use crate::tunnel_state_machine::{
-    states::{ConnectingState, DisconnectedState},
-    tunnel::SelectedGateways,
-    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
-};
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use crate::tunnel_state_machine::{Error, Result};
+#[cfg(target_os = "macos")]
+use crate::tunnel_state_machine::{ErrorStateReason, states::ErrorState};
+use crate::tunnel_state_machine::{
+    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
+    states::{ConnectingState, DisconnectedState},
+    tunnel::SelectedGateways,
+};
 
 pub struct OfflineState {
     /// Whether to connect the tunnel once online

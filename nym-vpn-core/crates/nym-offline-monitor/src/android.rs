@@ -4,7 +4,7 @@
 
 use std::{sync::Arc, time::Duration};
 
-use tokio::sync::{watch, Mutex};
+use tokio::sync::{Mutex, watch};
 use tokio_util::sync::CancellationToken;
 
 use super::Connectivity;

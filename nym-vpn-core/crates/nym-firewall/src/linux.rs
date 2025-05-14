@@ -4,8 +4,9 @@
 
 use ipnetwork::IpNetwork;
 use nftnl::{
+    Batch, Chain, FinalizedBatch, ProtoFamily, Rule, Table,
     expr::{self, IcmpCode, Payload, RejectionType, Verdict},
-    nft_expr, table, Batch, Chain, FinalizedBatch, ProtoFamily, Rule, Table,
+    nft_expr, table,
 };
 use std::{
     env,
@@ -18,14 +19,15 @@ use std::{
 use nym_common::linux::IfaceIndexLookupError;
 
 use super::{
+    FirewallArguments, FirewallPolicy,
     net::{
-        AllowedEndpoint, AllowedTunnelTraffic, Endpoint, TransportProtocol, TunnelMetadata,
-        ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS,
+        ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS, AllowedEndpoint, AllowedTunnelTraffic,
+        Endpoint, TransportProtocol, TunnelMetadata,
     },
-    split_tunnel, FirewallArguments, FirewallPolicy,
+    split_tunnel,
 };
 
-use crate::{AllowedClients, TunnelInterface, DNS_TCP_PORTS, DNS_UDP_PORTS};
+use crate::{AllowedClients, DNS_TCP_PORTS, DNS_UDP_PORTS, TunnelInterface};
 
 /// Priority for rules that tag split tunneling packets. Equals NF_IP_PRI_MANGLE.
 const MANGLE_CHAIN_PRIORITY: i32 = libc::NF_IP_PRI_MANGLE;

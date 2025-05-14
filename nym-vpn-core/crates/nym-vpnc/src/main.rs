@@ -7,7 +7,7 @@ mod config;
 mod protobuf_conversion;
 mod vpnd_client;
 
-use anyhow::{bail, Context, Result};
+use anyhow::{Context, Result, bail};
 use clap::Parser;
 use cli::Internal;
 use itertools::Itertools;

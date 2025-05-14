@@ -41,7 +41,9 @@ pub async fn check_device_time_sync(
         .ok_or(Error::Cancelled)??;
 
     if device_time.is_not_synced() {
-        tracing::error!("Device time is not synced with the vpn-api. Please sync your device time and try again.");
+        tracing::error!(
+            "Device time is not synced with the vpn-api. Please sync your device time and try again."
+        );
         return Err(Error::DeviceTimeOutOfSync);
     }
 

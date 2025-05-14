@@ -4,7 +4,7 @@
 use std::fmt;
 
 use crate::{
-    account::VpnApiError, RequestZkNymError, RequestZkNymErrorReason, VpnApiErrorResponse,
+    RequestZkNymError, RequestZkNymErrorReason, VpnApiErrorResponse, account::VpnApiError,
 };
 
 use super::{

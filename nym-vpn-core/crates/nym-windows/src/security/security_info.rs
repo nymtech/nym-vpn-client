@@ -4,16 +4,17 @@
 use std::ffi::OsStr;
 
 use windows::{
-    core::{Result, HSTRING},
     Win32::Security::{
+        ATTRIBUTE_SECURITY_INFORMATION,
         Authorization::{
-            GetNamedSecurityInfoW, SetNamedSecurityInfoW, SE_FILE_OBJECT, SE_OBJECT_TYPE,
-            SE_SERVICE,
+            GetNamedSecurityInfoW, SE_FILE_OBJECT, SE_OBJECT_TYPE, SE_SERVICE,
+            SetNamedSecurityInfoW,
         },
-        ATTRIBUTE_SECURITY_INFORMATION, DACL_SECURITY_INFORMATION, GROUP_SECURITY_INFORMATION,
-        OBJECT_SECURITY_INFORMATION, OWNER_SECURITY_INFORMATION,
-        PROTECTED_DACL_SECURITY_INFORMATION, PSECURITY_DESCRIPTOR, PSID,
+        DACL_SECURITY_INFORMATION, GROUP_SECURITY_INFORMATION, OBJECT_SECURITY_INFORMATION,
+        OWNER_SECURITY_INFORMATION, PROTECTED_DACL_SECURITY_INFORMATION, PSECURITY_DESCRIPTOR,
+        PSID,
     },
+    core::{HSTRING, Result},
 };
 
 use super::{Acl, RelativeSecurityDescriptor, Sid};
@@ -123,9 +124,9 @@ mod tests {
 
     use super::*;
     use crate::security::{
-        explicit_access::{AccessMode, AceFlags},
         Acl, ExplicitAccess, FileAccessRights, Sid, Trustee, TrusteeSpecificInfo, TrusteeType,
         WellKnownSid,
+        explicit_access::{AccessMode, AceFlags},
     };
 
     #[test]

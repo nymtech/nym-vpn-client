@@ -4,24 +4,24 @@
 use std::result::Result;
 
 use bytes::{Bytes, BytesMut};
-use futures::{channel::mpsc, StreamExt};
+use futures::{StreamExt, channel::mpsc};
 use nym_connection_monitor::{ConnectionMonitorTask, ConnectionStatusEvent};
 use nym_gateway_directory::IpPacketRouterAddress;
 use nym_ip_packet_requests::{
+    IpPair,
     codec::{IprPacket, MultiIpPacketCodec},
     v8::request::IpPacketRequest,
-    IpPair,
 };
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{
     InputMessage, MixnetClientSender, MixnetMessageSender, MixnetMessageSinkTranslator, Recipient,
 };
-use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
+use nym_task::{TaskClient, TaskManager, connections::TransmissionLane};
 use tokio::{sync::oneshot, task::JoinHandle};
 use tokio_util::{codec::Encoder, sync::CancellationToken};
 use tun::{AsyncDevice, Device};
 
-use super::{backpressure::MixnetBackpressureMonitor, MixnetError};
+use super::{MixnetError, backpressure::MixnetBackpressureMonitor};
 
 #[derive(Debug)]
 pub(crate) struct MixnetProcessorConfig {

@@ -4,7 +4,7 @@
 use std::path::{Path, PathBuf};
 
 use nym_crypto::asymmetric::ed25519;
-use nym_pemstore::{traits::PemStorableKeyPair, KeyPairPath};
+use nym_pemstore::{KeyPairPath, traits::PemStorableKeyPair};
 use rand::SeedableRng as _;
 
 use crate::keys::{DeviceKeys, KeyStore};

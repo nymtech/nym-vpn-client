@@ -17,8 +17,8 @@ use nym_vpn_api_client::{
 use tokio::sync::oneshot;
 
 use crate::{
-    commands::tasks::request_zknym::RequestZkNymSummary, shared_state::DeviceState,
-    AvailableTicketbooks, Error,
+    AvailableTicketbooks, Error, commands::tasks::request_zknym::RequestZkNymSummary,
+    shared_state::DeviceState,
 };
 
 #[derive(Debug, strum::Display)]

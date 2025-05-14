@@ -2,25 +2,25 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use windows::{
-    core::{Result, HRESULT, PWSTR},
     Win32::{
-        Foundation::{LocalFree, ERROR_INSUFFICIENT_BUFFER, HLOCAL},
+        Foundation::{ERROR_INSUFFICIENT_BUFFER, HLOCAL, LocalFree},
         Security::{
             Authentication::Identity::{
-                LsaClose, LsaFreeMemory, LsaOpenPolicy, LsaQueryInformationPolicy,
-                PolicyAccountDomainInformation, LSA_HANDLE, LSA_OBJECT_ATTRIBUTES,
-                POLICY_ACCOUNT_DOMAIN_INFO, POLICY_VIEW_LOCAL_INFORMATION,
+                LSA_HANDLE, LSA_OBJECT_ATTRIBUTES, LsaClose, LsaFreeMemory, LsaOpenPolicy,
+                LsaQueryInformationPolicy, POLICY_ACCOUNT_DOMAIN_INFO,
+                POLICY_VIEW_LOCAL_INFORMATION, PolicyAccountDomainInformation,
             },
             Authorization::ConvertSidToStringSidW,
             CopySid, CreateWellKnownSid, EqualSid, FreeSid, GetLengthSid, GetTokenInformation,
-            IsWellKnownSid, LookupAccountSidW, TokenUser, PSID, SECURITY_MAX_SID_SIZE,
-            SID_NAME_USE, TOKEN_QUERY, TOKEN_USER, WELL_KNOWN_SID_TYPE,
+            IsWellKnownSid, LookupAccountSidW, PSID, SECURITY_MAX_SID_SIZE, SID_NAME_USE,
+            TOKEN_QUERY, TOKEN_USER, TokenUser, WELL_KNOWN_SID_TYPE,
         },
         System::{
-            Memory::{LocalAlloc, LPTR},
+            Memory::{LPTR, LocalAlloc},
             Threading::{GetCurrentProcess, OpenProcessToken},
         },
     },
+    core::{HRESULT, PWSTR, Result},
 };
 
 #[derive(Debug)]

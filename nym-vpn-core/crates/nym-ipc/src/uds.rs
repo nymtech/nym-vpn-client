@@ -12,7 +12,7 @@ use std::{
 
 use hyper_util::rt::TokioIo;
 use tokio::net::{UnixListener, UnixStream};
-use tokio_stream::{wrappers::UnixListenerStream, Stream};
+use tokio_stream::{Stream, wrappers::UnixListenerStream};
 
 pub struct Uds {
     socket_path: PathBuf,
