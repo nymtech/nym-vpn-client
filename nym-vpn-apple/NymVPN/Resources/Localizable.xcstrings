@@ -5258,13 +5258,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Monthly bandwidth exceeded. Please upgrade your account plan."
+            "value" : "No data allowance remaining. Please upgrade your account plan."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Monthly bandwidth exceeded. Please upgrade your account plan."
+            "value" : "No data allowance remaining. Please upgrade your account plan."
           }
         },
         "en" : {
@@ -5275,80 +5275,80 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Se ha superado el ancho de banda mensual. Actualiza el plan de tu cuenta."
+            "state" : "translated",
+            "value" : "No quedan datos. Por favor, actualiza el plan de tu cuenta."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "بسته ماهانه شما به اتمام رسیده. لطفاَ بسته جدید بخرید."
+            "state" : "new",
+            "value" : "No data allowance remaining. Please upgrade your account plan."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Monthly bandwidth exceeded. Please upgrade your account plan."
+            "value" : "No data allowance remaining. Please upgrade your account plan."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "मासिक बैंडविड्थ सीमा पार कर गई है। कृपया अपना खाता योजना अपडेट करें।"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Monthly bandwidth exceeded. Please upgrade your account plan."
+            "value" : "No data allowance remaining. Please upgrade your account plan."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "月間の帯域幅を超えています。アカウントのプランをアップグレードしてください。"
+            "state" : "new",
+            "value" : "No data allowance remaining. Please upgrade your account plan."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Monthly bandwidth exceeded. Please upgrade your account plan."
+            "value" : "No data allowance remaining. Please upgrade your account plan."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Largura de banda mensal excedida. Por favor, faça o upgrade do seu plano."
+            "state" : "new",
+            "value" : "No data allowance remaining. Please upgrade your account plan."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Превышен месячный лимит трафика. Пожалуйста, обновите ваш тарифный план."
+            "state" : "new",
+            "value" : "No data allowance remaining. Please upgrade your account plan."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Aylık bant genişliği limiti aşıldı. Lütfen hesap planınızı yükseltin."
+            "state" : "new",
+            "value" : "No data allowance remaining. Please upgrade your account plan."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Перевищено місячний ліміт трафіку. Будь ласка, оновіть свій тарифний план."
+            "state" : "new",
+            "value" : "No data allowance remaining. Please upgrade your account plan."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Đã vượt quá băng thông hàng tháng. Vui lòng nâng cấp gói tài khoản của bạn."
+            "state" : "new",
+            "value" : "No data allowance remaining. Please upgrade your account plan."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "已超出每月带宽。请升级您的账户计划。"
+            "state" : "new",
+            "value" : "No data allowance remaining. Please upgrade your account plan."
           }
         }
       }
@@ -5356,9 +5356,99 @@
     "errorReason.deviceTimeOutOfSync" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
           }
         }
@@ -6986,13 +7076,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Failed to start local dns proxy. Please try again."
+            "value" : "Failed to start local DNS proxy. Please try again."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Failed to start local dns proxy. Please try again."
+            "value" : "Failed to start local DNS proxy. Please try again."
           }
         },
         "en" : {
@@ -7003,80 +7093,80 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Error al iniciar el proxy dns local. Por favor, inténtalo de nuevo."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "راه‌اندازی local DNS proxy ناموفق بود. لطفاَ دوباره تلاش کنید."
+            "state" : "new",
+            "value" : "Failed to start local DNS proxy. Please try again."
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Failed to start local dns proxy. Please try again."
+            "value" : "Failed to start local DNS proxy. Please try again."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "स्थानीय DNS प्रॉक्सी शुरू करने में विफल। कृपया दोबारा प्रयास करें।"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Failed to start local dns proxy. Please try again."
+            "value" : "Failed to start local DNS proxy. Please try again."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "dnsプロキシを開始できませんでした。もう一度やり直してください。"
+            "state" : "new",
+            "value" : "Failed to start local DNS proxy. Please try again."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Failed to start local dns proxy. Please try again."
+            "value" : "Failed to start local DNS proxy. Please try again."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Falha ao iniciar o proxy de dns locais. Por favor, tente novamente."
+            "state" : "new",
+            "value" : "Failed to start local DNS proxy. Please try again."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Не удалось запустить локальный DNS прокси. Пожалуйста, попробуйте снова."
+            "state" : "new",
+            "value" : "Failed to start local DNS proxy. Please try again."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Yerel DNS aracı sunucusu başlatılamadı. Lütfen tekrar deneyin."
+            "state" : "new",
+            "value" : "Failed to start local DNS proxy. Please try again."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Не вдалося запустити локальний dns-проксі. Будь ласка, спробуйте ще раз."
+            "state" : "new",
+            "value" : "Failed to start local DNS proxy. Please try again."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Không thể khởi động proxy dns cục bộ. Vui lòng thử lại."
+            "state" : "new",
+            "value" : "Failed to start local DNS proxy. Please try again."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "启动本地dns代理失败。请重试。"
+            "state" : "new",
+            "value" : "Failed to start local DNS proxy. Please try again."
           }
         }
       }
@@ -10016,19 +10106,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "es" : {
@@ -10046,7 +10136,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "hi" : {
@@ -10058,7 +10148,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "ja" : {
@@ -10070,7 +10160,7 @@
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt-BR" : {
@@ -16901,8 +16991,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Please try reconnecting."
+            "state" : "translated",
+            "value" : "Por favor intenta volver a conectar."
           }
         },
         "fa" : {
@@ -17002,8 +17092,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "The NymVPN connection has failed."
+            "state" : "translated",
+            "value" : "La conexión de NymVPN ha fallado."
           }
         },
         "fa" : {
@@ -20116,13 +20206,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Get in touch"
+            "value" : "Contact support"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Get in touch"
+            "value" : "Contact support"
           }
         },
         "en" : {
@@ -20133,80 +20223,80 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Contacta"
+            "state" : "translated",
+            "value" : "Contactar con soporte"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "با ما در ارتباط باشید"
+            "state" : "new",
+            "value" : "Contact support"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Get in touch"
+            "value" : "Contact support"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "संपर्क करें"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Get in touch"
+            "value" : "Contact support"
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "お問い合わせ"
+            "state" : "new",
+            "value" : "Contact support"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Get in touch"
+            "value" : "Contact support"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Entre em contato"
+            "state" : "new",
+            "value" : "Contact support"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Связаться с нами"
+            "state" : "new",
+            "value" : "Contact support"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "İletişime geçin"
+            "state" : "new",
+            "value" : "Contact support"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Зв'яжіться з нами"
+            "state" : "new",
+            "value" : "Contact support"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Liên hệ"
+            "state" : "new",
+            "value" : "Contact support"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "联系我们"
+            "state" : "new",
+            "value" : "Contact support"
           }
         }
       }
