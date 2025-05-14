@@ -69,10 +69,10 @@ impl Discovery {
         let discovery = client.get_wellknown_discovery(network_name).await?;
 
         tracing::debug!("Discovery response: {:#?}", discovery);
-
-        if discovery.network_name != network_name {
-            anyhow::bail!("Network name mismatch between requested and fetched discovery")
-        }
+        anyhow::ensure!(
+            discovery.network_name == network_name,
+            "Network name mismatch between requested and fetched discovery"
+        );
 
         tracing::debug!("Fetched nym network discovery: {:#?}", discovery);
         discovery.try_into()
@@ -152,10 +152,11 @@ impl Discovery {
                 .build::<anyhow::Error>()?
                 .get_network_details()
                 .await?;
+        anyhow::ensure!(
+            network_details.network.network_name == self.network_name,
+            "Network name mismatch between requested and fetched network details"
+        );
 
-        if network_details.network.network_name != self.network_name {
-            anyhow::bail!("Network name mismatch between requested and fetched network details")
-        }
         // resolve_nym_network_details(&mut network_details.network);
         Ok(NymNetwork {
             network: network_details.network,
