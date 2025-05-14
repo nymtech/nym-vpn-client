@@ -237,7 +237,7 @@
     <string name="bypass_lan">लैन बाईपास</string>
     <string name="bandwidth_error">मासिक बैंडविड्थ सीमा पार हो गई है। कृपया अपने खाते की योजना को अपडेट करें।</string>
     <string name="max_devices_error">खाता डिवाइस सीमा से अधिक हो गई है। कृपया कनेक्ट करने से पहले अपने खाते से एक डिवाइस हटा दें।</string>
-    <string name="pricing_url">nym.com/pricing</string>
+    <string name="pricing_url">https://nym.com/pricing</string>
     <string name="account_id">खाता ID:</string>
     <string name="developer">डेवलपर</string>
     <string name="get_help">मदद् लें</string>

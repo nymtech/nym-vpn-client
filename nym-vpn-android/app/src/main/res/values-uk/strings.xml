@@ -188,7 +188,7 @@
     <string name="welcome_to_nym">Ласкаво просимо до NymVPN</string>
     <string name="get_access_code">Отримати код доступу</string>
     <string name="access_code">24-слівний код доступу</string>
-    <string name="support_and_feedback"><![CDATA[Підтримка та зворотний зв'язок]]></string>
+    <string name="support_and_feedback"><![CDATA[Підтримка та зворотний зв\'язок]]></string>
     <string name="get_in_touch">Зв\'яжіться з нами</string>
     <string name="same_entry_exit_message">Для забезпечення конфіденційності NymVPN не використовує один і той самий шлюз для входу і виходу. Повторно підключіться або виберіть інші місця.</string>
     <string name="device_id">Ідентифікатор пристрою:</string>
@@ -237,7 +237,7 @@
     <string name="bypass_lan">Обхідна локальна мережа</string>
     <string name="bandwidth_error">Перевищено місячний ліміт трафіку. Будь ласка, оновіть свій тарифний план.</string>
     <string name="max_devices_error">Перевищено ліміт пристроїв в акаунті. Будь ласка, видаліть пристрій з акаунта перед підключенням.</string>
-    <string name="pricing_url">nym.com/pricing</string>
+    <string name="pricing_url">https://nym.com/pricing</string>
     <string name="account_id">Ідентифікатор облікового запису:</string>
     <string name="developer">Розробник</string>
     <string name="get_help">Зверніться по допомогу</string>

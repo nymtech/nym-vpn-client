@@ -239,7 +239,7 @@
     <string name="bypass_lan">Saltar LAN</string>
     <string name="bandwidth_error">Se ha superado el ancho de banda mensual. Actualiza el plan de tu cuenta.</string>
     <string name="max_devices_error">Se ha superado el límite de dispositivo de cuenta. Elimina un dispositivo de tu cuenta antes de conectarte.</string>
-    <string name="pricing_url">nym.com/pricing</string>
+    <string name="pricing_url">https://nym.com/pricing</string>
     <string name="account_id">ID de la cuenta:</string>
     <string name="developer">Desarrollador</string>
     <string name="get_help">Obtener ayuda</string>

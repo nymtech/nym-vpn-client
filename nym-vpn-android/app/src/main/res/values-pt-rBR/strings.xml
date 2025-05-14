@@ -239,7 +239,7 @@
     <string name="bypass_lan">Bypass LAN</string>
     <string name="bandwidth_error">Largura de banda mensal excedida. Por favor, atualize seu plano de conta.</string>
     <string name="max_devices_error">Limite de dispositivos da conta excedido. Por favor, remova um dispositivo da sua conta antes de conectar.</string>
-    <string name="pricing_url">nym.com/pricing</string>
+    <string name="pricing_url">https://nym.com/pricing</string>
     <string name="account_id">ID da conta</string>
     <string name="developer">Desenvolvedor</string>
     <string name="get_help">Obtenha ajuda</string>
