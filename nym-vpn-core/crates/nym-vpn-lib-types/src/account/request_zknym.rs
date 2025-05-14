@@ -3,7 +3,7 @@
 
 use std::fmt::Debug;
 
-use super::{VpnApiError, VpnApiErrorResponse};
+use super::VpnApiError;
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
 pub enum RequestZkNymError {

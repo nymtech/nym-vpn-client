@@ -3,7 +3,7 @@
 
 use std::fmt::Debug;
 
-use super::{VpnApiError, VpnApiErrorResponse};
+use super::VpnApiError;
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq, Clone)]
 pub enum SyncDeviceError {

@@ -1,11 +1,9 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{error::Error, fmt::Debug};
+use std::fmt::Debug;
 
-use nym_vpn_api_client::VpnApiClientError;
-
-use super::{VpnApiError, VpnApiErrorResponse};
+use super::VpnApiError;
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq, Clone)]
 pub enum SyncAccountError {

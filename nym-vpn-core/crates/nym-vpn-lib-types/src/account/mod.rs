@@ -171,12 +171,10 @@ impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
         }
 
         match nym_vpn_api_client::response::extract_error_response_status_code(&err) {
-            Some(code) => {
-                return Ok(Self::StatusCode {
-                    code,
-                    source: Arc::new(err),
-                })
-            }
+            Some(code) => Ok(Self::StatusCode {
+                code,
+                source: Arc::new(err),
+            }),
             None => Err(err),
         }
     }

@@ -3,7 +3,7 @@
 
 use std::fmt::Debug;
 
-use super::{VpnApiError, VpnApiErrorResponse};
+use super::VpnApiError;
 
 #[derive(Debug, thiserror::Error, Clone, PartialEq, Eq)]
 pub enum RegisterDeviceError {

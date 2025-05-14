@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
-use nym_vpn_lib_types::{SyncAccountError, VpnApiError, VpnApiErrorResponse};
+use nym_vpn_lib_types::{SyncAccountError, VpnApiError};
 use tracing::Level;
 
 use crate::{

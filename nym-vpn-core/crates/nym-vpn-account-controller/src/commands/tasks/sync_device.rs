@@ -7,7 +7,7 @@ use nym_vpn_api_client::{
     response::NymVpnDevicesResponse,
     types::{Device, VpnApiAccount},
 };
-use nym_vpn_lib_types::{SyncDeviceError, VpnApiError, VpnApiErrorResponse};
+use nym_vpn_lib_types::{SyncDeviceError, VpnApiError};
 use tracing::Level;
 
 use crate::{

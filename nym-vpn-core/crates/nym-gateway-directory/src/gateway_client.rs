@@ -133,7 +133,6 @@ impl GatewayClient {
                     url,
                     user_agent.clone(),
                     static_nym_api_ip_addresses,
-                    None,
                 )
             })
             .transpose()?;

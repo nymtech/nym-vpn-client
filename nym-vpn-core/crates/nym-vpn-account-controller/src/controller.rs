@@ -8,9 +8,7 @@ use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::{DeviceStatus, VpnApiAccount, VpnApiTimeSynced},
 };
-use nym_vpn_lib_types::{
-    AccountCommandError, ForgetAccountError, StoreAccountError, VpnApiError, VpnApiErrorResponse,
-};
+use nym_vpn_lib_types::{AccountCommandError, ForgetAccountError, StoreAccountError, VpnApiError};
 use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
@@ -762,7 +760,6 @@ where
             self.vpn_api_client.current_url().clone(),
             self.config.user_agent.clone(),
             static_api_addresses.as_deref(),
-            Some(Duration::from_millis(10)),
         )
         .map(|new_vpn_api_client| {
             self.vpn_api_client

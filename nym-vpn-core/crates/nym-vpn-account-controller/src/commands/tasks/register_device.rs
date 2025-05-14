@@ -6,7 +6,7 @@ use nym_vpn_api_client::{
     types::{Device, VpnApiAccount},
     VpnApiClient,
 };
-use nym_vpn_lib_types::{RegisterDeviceError, VpnApiError, VpnApiErrorResponse};
+use nym_vpn_lib_types::{RegisterDeviceError, VpnApiError};
 
 use crate::{
     commands::AccountCommandResult,

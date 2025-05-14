@@ -339,7 +339,7 @@ pub(crate) mod raw {
     async fn create_vpn_api_client() -> Result<VpnApiClient, VpnError> {
         let network_env = environment::current_environment_details().await?;
         let user_agent = crate::util::construct_user_agent();
-        let vpn_api_client = VpnApiClient::new(network_env.vpn_api_url(), user_agent, None)
+        let vpn_api_client = VpnApiClient::new(network_env.vpn_api_url(), user_agent)
             .map_err(VpnError::internal)?;
         Ok(vpn_api_client)
     }

@@ -35,7 +35,6 @@ pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
 
 // GET requests can unfortunately take a long time over the mixnet
 pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_secs(60);
-// pub(crate) const NYM_VPN_API_TIMEOUT: Duration = Duration::from_millis(800);
 
 #[derive(Clone, Debug)]
 pub struct VpnApiClient {
@@ -43,27 +42,20 @@ pub struct VpnApiClient {
 }
 
 impl VpnApiClient {
-    pub fn new(base_url: Url, user_agent: UserAgent, timeout: Option<Duration>) -> Result<Self> {
-        Self::new_with_resolver_overrides(base_url, user_agent, None, timeout)
+    pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self> {
+        Self::new_with_resolver_overrides(base_url, user_agent, None)
     }
 
     pub fn new_with_resolver_overrides(
         base_url: Url,
         user_agent: UserAgent,
         static_addresses: Option<&[SocketAddr]>,
-        timeout: Option<Duration>,
     ) -> Result<Self> {
         nym_http_api_client::Client::builder(base_url.clone())
             .map(|builder| {
                 let mut builder = builder
-                    .with_user_agent(user_agent);
-                    // .with_timeout(NYM_VPN_API_TIMEOUT);
-
-                if let Some(timeout) = timeout {
-                    builder = builder.with_timeout(timeout);
-                } else {
-                    builder = builder.with_timeout(NYM_VPN_API_TIMEOUT);
-                }
+                    .with_user_agent(user_agent)
+                    .with_timeout(NYM_VPN_API_TIMEOUT);
 
                 if let Some(domain) = base_url.domain() {
                     match static_addresses {
