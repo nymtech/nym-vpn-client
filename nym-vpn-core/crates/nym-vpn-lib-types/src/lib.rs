@@ -17,7 +17,7 @@ pub use account::{
     sync_account::SyncAccountError,
     sync_device::SyncDeviceError,
     ticketbooks::AvailableTickets,
-    AccountCommandError, VpnApiErrorResponse,
+    AccountCommandError, VpnApiError, VpnApiErrorResponse,
 };
 pub use connection_data::{
     ConnectionData, Gateway, MixnetConnectionData, NymAddress, TunnelConnectionData,

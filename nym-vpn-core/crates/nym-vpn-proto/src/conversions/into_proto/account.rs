@@ -20,28 +20,28 @@ impl From<RequestZkNymErrorReason> for ProtoRequestZkNymError {
     fn from(error: RequestZkNymErrorReason) -> Self {
         let outcome = match error {
             RequestZkNymErrorReason::NoAccountStored => {
-                Some(crate::request_zk_nym_error::Outcome::NoAccountStored(true))
+                crate::request_zk_nym_error::Outcome::NoAccountStored(true)
             }
             RequestZkNymErrorReason::NoDeviceStored => {
-                Some(crate::request_zk_nym_error::Outcome::NoDeviceStored(true))
+                crate::request_zk_nym_error::Outcome::NoDeviceStored(true)
             }
-            RequestZkNymErrorReason::VpnApi(vpn_api_endpoint_failure) => Some(
-                crate::request_zk_nym_error::Outcome::VpnApi(vpn_api_endpoint_failure.into()),
-            ),
+            RequestZkNymErrorReason::VpnApi(vpn_api_endpoint_failure) => {
+                crate::request_zk_nym_error::Outcome::VpnApi(vpn_api_endpoint_failure.into())
+            }
             RequestZkNymErrorReason::UnexpectedVpnApiResponse(err) => {
-                Some(crate::request_zk_nym_error::Outcome::UnexpectedVpnApiResponse(err))
+                crate::request_zk_nym_error::Outcome::UnexpectedVpnApiResponse(err)
             }
             RequestZkNymErrorReason::Storage(err) => {
-                Some(crate::request_zk_nym_error::Outcome::Storage(err))
+                crate::request_zk_nym_error::Outcome::Storage(err)
             }
-            RequestZkNymErrorReason::Offline => {
-                Some(crate::request_zk_nym_error::Outcome::Offline(true))
-            }
+            RequestZkNymErrorReason::Offline => crate::request_zk_nym_error::Outcome::Offline(true),
             RequestZkNymErrorReason::Internal(err) => {
-                Some(crate::request_zk_nym_error::Outcome::Internal(err))
+                crate::request_zk_nym_error::Outcome::Internal(err)
             }
         };
-        Self { outcome }
+        Self {
+            outcome: Some(outcome),
+        }
     }
 }
 

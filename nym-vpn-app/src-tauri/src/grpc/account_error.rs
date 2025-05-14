@@ -1,8 +1,26 @@
 use crate::error::{BackendError, ErrorKey};
 use nym_vpn_proto::forget_account_error::ErrorDetail as ForgetError;
 use nym_vpn_proto::store_account_error::ErrorDetail as StoreError;
-use nym_vpn_proto::{ForgetAccountError, StoreAccountError, VpnApiErrorResponse};
+use nym_vpn_proto::vpn_api_error::ErrorDetail as VpnApiErrorDetail;
+use nym_vpn_proto::{ForgetAccountError, StoreAccountError, VpnApiError, VpnApiErrorResponse};
 use tracing::error;
+
+impl From<VpnApiError> for BackendError {
+    fn from(error: VpnApiError) -> Self {
+        let Some(detail) = error.error_detail else {
+            error!("missing error detail in VpnApiError");
+            return BackendError::internal("nym-vpn-api returned error", None);
+        };
+        match detail {
+            VpnApiErrorDetail::Timeout(_) => BackendError::internal("nym-vpn-api timeout", None),
+            VpnApiErrorDetail::StatusCode(code) => BackendError::internal_with_detail(
+                "nym-vpn-api error",
+                format!("nym-vpn-api returned: {code}"),
+            ),
+            VpnApiErrorDetail::Response(response) => BackendError::from(response),
+        }
+    }
+}
 
 impl From<VpnApiErrorResponse> for BackendError {
     fn from(error: VpnApiErrorResponse) -> Self {
@@ -36,7 +54,7 @@ impl From<StoreAccountError> for BackendError {
                 "storage error",
                 format!("storage error: {}", data),
             ),
-            StoreError::ErrorResponse(error) => error.into(),
+            StoreError::VpnApi(error) => error.into(),
             StoreError::UnexpectedResponse(data) => BackendError::internal_with_detail(
                 "unexpected response",
                 format!("unexpected response: {}", data),
@@ -69,7 +87,7 @@ impl From<ForgetAccountError> for BackendError {
                     "registration not in progress".to_string(),
                 ),
             },
-            ForgetError::ErrorResponse(error) => error.into(),
+            ForgetError::VpnApi(error) => error.into(),
             ForgetError::UnexpectedResponse(data) => BackendError::internal_with_detail(
                 "unexpected response",
                 format!("unexpected response: {}", data),

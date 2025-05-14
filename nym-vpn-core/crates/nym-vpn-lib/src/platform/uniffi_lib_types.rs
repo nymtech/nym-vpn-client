@@ -20,7 +20,7 @@ use nym_vpn_lib_types::{
     StoreAccountError as CoreStoreAccountError, SyncAccountError as CoreSyncAccountError,
     SyncDeviceError as CoreSyncDeviceError, TunnelConnectionData as CoreTunnelConnectionData,
     TunnelEvent as CoreTunnelEvent, TunnelState as CoreTunnelState,
-    VpnApiErrorResponse as CoreVpnApiErrorResponse,
+    VpnApiError as CoreVpnApiErrorResponseTop, VpnApiErrorResponse as CoreVpnApiErrorResponse,
     WireguardConnectionData as CoreWireguardConnectionData, WireguardNode as CoreWireguardNode,
 };
 use time::OffsetDateTime;
@@ -243,7 +243,7 @@ pub enum StoreAccountError {
     #[error("storage: {0}")]
     Storage(String),
     #[error("vpn api endpoint failure: {0}")]
-    GetAccountEndpointFailure(VpnApiErrorResponse),
+    GetAccountEndpointFailure(VpnApiError),
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
     #[error("internal error: {0}")]
@@ -271,7 +271,7 @@ pub enum SyncAccountError {
     #[error("no account stored")]
     NoAccountStored,
     #[error("vpn api endpoint failure: {0}")]
-    ErrorResponse(VpnApiErrorResponse),
+    ErrorResponse(VpnApiError),
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
     #[error("no connectivity")]
@@ -303,7 +303,7 @@ pub enum SyncDeviceError {
     #[error("no device stored")]
     NoDeviceStored,
     #[error("vpn api endpoint failure: {0}")]
-    ErrorResponse(VpnApiErrorResponse),
+    ErrorResponse(VpnApiError),
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
     #[error("no connectivity")]
@@ -334,7 +334,7 @@ pub enum RegisterDeviceError {
     #[error("no device stored")]
     NoDeviceStored,
     #[error("vpn api endpoint failure: {0}")]
-    ErrorResponse(VpnApiErrorResponse),
+    ErrorResponse(VpnApiError),
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
     #[error("no connectivity")]
@@ -378,7 +378,7 @@ pub enum RequestZkNymError {
     #[error("no device stored")]
     NoDeviceStored,
     #[error(transparent)]
-    VpnApi(VpnApiErrorResponse),
+    VpnApi(VpnApiError),
     #[error("nym-vpn-api: unexpected error response: {0}")]
     UnexpectedVpnApiResponse(String),
     #[error("storage error: {0}")]
@@ -416,7 +416,7 @@ pub enum ForgetAccountError {
     #[error("registration is in progress")]
     RegistrationInProgress,
     #[error("failed to remove device from nym vpn api: {0}")]
-    UpdateDeviceErrorResponse(VpnApiErrorResponse),
+    UpdateDeviceErrorResponse(VpnApiError),
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
     #[error("failed to remove account: {0}")]
@@ -451,6 +451,26 @@ impl From<CoreForgetAccountError> for ForgetAccountError {
             CoreForgetAccountError::RemoveAccountFiles(err) => Self::RemoveAccountFiles(err),
             CoreForgetAccountError::InitDeviceKeys(err) => Self::InitDeviceKeys(err),
             CoreForgetAccountError::Internal(err) => Self::Internal(err),
+        }
+    }
+}
+
+#[derive(uniffi::Enum, thiserror::Error, Debug, Clone, PartialEq, Eq)]
+pub enum VpnApiError {
+    #[error("timeout")]
+    Timeout,
+    #[error("status code: {0}")]
+    StatusCode(u16),
+    #[error(transparent)]
+    Response(#[from] VpnApiErrorResponse),
+}
+
+impl From<CoreVpnApiErrorResponseTop> for VpnApiError {
+    fn from(value: CoreVpnApiErrorResponseTop) -> Self {
+        match value {
+            CoreVpnApiErrorResponseTop::Timeout(..) => Self::Timeout,
+            CoreVpnApiErrorResponseTop::StatusCode { code, .. } => Self::StatusCode(code),
+            CoreVpnApiErrorResponseTop::Response(response) => Self::Response(response.into()),
         }
     }
 }

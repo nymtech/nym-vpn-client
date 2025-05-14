@@ -1,9 +1,11 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::Arc;
+
 use nym_vpn_lib_types::{
     ForgetAccountError, RegisterDeviceError, RequestZkNymErrorReason, RequestZkNymSuccess,
-    StoreAccountError, SyncAccountError, SyncDeviceError, VpnApiErrorResponse,
+    StoreAccountError, SyncAccountError, SyncDeviceError, VpnApiError, VpnApiErrorResponse,
 };
 
 use crate::{
@@ -11,7 +13,7 @@ use crate::{
     RegisterDeviceError as ProtoRegisterDeviceError, RequestZkNymError as ProtoRequestZkNymError,
     RequestZkNymSuccess as ProtoRequestZkNymSuccess, StoreAccountError as ProtoStoreAccountError,
     SyncAccountError as ProtoSyncAccountError, SyncDeviceError as ProtoSyncDeviceError,
-    VpnApiErrorResponse as ProtoVpnApiErrorResponse,
+    VpnApiError as ProtoVpnApiError, VpnApiErrorResponse as ProtoVpnApiErrorResponse,
 };
 
 impl TryFrom<ProtoStoreAccountError> for StoreAccountError {
@@ -26,8 +28,8 @@ impl TryFrom<ProtoStoreAccountError> for StoreAccountError {
                 Self::InvalidMnemonic(message)
             }
             crate::store_account_error::ErrorDetail::StorageError(err) => Self::Storage(err),
-            crate::store_account_error::ErrorDetail::ErrorResponse(vpn_api_endpoint_failure) => {
-                Self::GetAccountEndpointFailure(vpn_api_endpoint_failure.into())
+            crate::store_account_error::ErrorDetail::VpnApi(vpn_api) => {
+                Self::GetAccountEndpointFailure(vpn_api.try_into()?)
             }
             crate::store_account_error::ErrorDetail::UnexpectedResponse(err) => {
                 Self::UnexpectedResponse(err)
@@ -46,8 +48,8 @@ impl TryFrom<ProtoSyncAccountError> for SyncAccountError {
             .ok_or(ConversionError::NoValueSet("SyncAccountError.error_detail"))?;
         Ok(match error_detail {
             crate::sync_account_error::ErrorDetail::NoAccountStored(_) => Self::NoAccountStored,
-            crate::sync_account_error::ErrorDetail::ErrorResponse(vpn_api_endpoint_failure) => {
-                Self::SyncAccountEndpointFailure(vpn_api_endpoint_failure.into())
+            crate::sync_account_error::ErrorDetail::VpnApi(vpn_api) => {
+                Self::SyncAccountEndpointFailure(vpn_api.try_into()?)
             }
             crate::sync_account_error::ErrorDetail::UnexpectedResponse(err) => {
                 Self::UnexpectedResponse(err)
@@ -68,8 +70,8 @@ impl TryFrom<ProtoSyncDeviceError> for SyncDeviceError {
         Ok(match error_detail {
             crate::sync_device_error::ErrorDetail::NoAccountStored(_) => Self::NoAccountStored,
             crate::sync_device_error::ErrorDetail::NoDeviceStored(_) => Self::NoDeviceStored,
-            crate::sync_device_error::ErrorDetail::ErrorResponse(vpn_api_endpoint_failure) => {
-                Self::SyncDeviceEndpointFailure(vpn_api_endpoint_failure.into())
+            crate::sync_device_error::ErrorDetail::VpnApi(vpn_api) => {
+                Self::SyncDeviceEndpointFailure(vpn_api.try_into()?)
             }
             crate::sync_device_error::ErrorDetail::UnexpectedResponse(err) => {
                 Self::UnexpectedResponse(err)
@@ -90,8 +92,8 @@ impl TryFrom<ProtoRegisterDeviceError> for RegisterDeviceError {
         Ok(match error_detail {
             crate::register_device_error::ErrorDetail::NoAccountStored(_) => Self::NoAccountStored,
             crate::register_device_error::ErrorDetail::NoDeviceStored(_) => Self::NoDeviceStored,
-            crate::register_device_error::ErrorDetail::ErrorResponse(vpn_api_endpoint_failure) => {
-                Self::RegisterDeviceEndpointFailure(vpn_api_endpoint_failure.into())
+            crate::register_device_error::ErrorDetail::VpnApi(vpn_api) => {
+                Self::RegisterDeviceEndpointFailure(vpn_api.try_into()?)
             }
             crate::register_device_error::ErrorDetail::UnexpectedResponse(err) => {
                 Self::UnexpectedResponse(err)
@@ -119,8 +121,8 @@ impl TryFrom<ProtoRequestZkNymError> for RequestZkNymErrorReason {
         Ok(match error_outcome {
             crate::request_zk_nym_error::Outcome::NoAccountStored(_) => Self::NoAccountStored,
             crate::request_zk_nym_error::Outcome::NoDeviceStored(_) => Self::NoDeviceStored,
-            crate::request_zk_nym_error::Outcome::VpnApi(vpn_api_endpoint_failure) => {
-                Self::VpnApi(vpn_api_endpoint_failure.into())
+            crate::request_zk_nym_error::Outcome::VpnApi(vpn_api) => {
+                Self::VpnApi(vpn_api.try_into()?)
             }
             crate::request_zk_nym_error::Outcome::UnexpectedVpnApiResponse(message) => {
                 Self::UnexpectedVpnApiResponse(message)
@@ -143,8 +145,8 @@ impl TryFrom<ProtoForgetAccountError> for ForgetAccountError {
             crate::forget_account_error::ErrorDetail::RegistrationInProgress(_) => {
                 Self::RegistrationInProgress
             }
-            crate::forget_account_error::ErrorDetail::ErrorResponse(vpn_api_endpoint_failure) => {
-                Self::UpdateDeviceErrorResponse(vpn_api_endpoint_failure.into())
+            crate::forget_account_error::ErrorDetail::VpnApi(vpn_api) => {
+                Self::UpdateDeviceErrorResponse(vpn_api.try_into()?)
             }
             crate::forget_account_error::ErrorDetail::UnexpectedResponse(err) => {
                 Self::UnexpectedResponse(err)
@@ -165,6 +167,31 @@ impl TryFrom<ProtoForgetAccountError> for ForgetAccountError {
                 Self::InitDeviceKeys(err)
             }
             crate::forget_account_error::ErrorDetail::Internal(err) => Self::Internal(err),
+        })
+    }
+}
+
+// We don't pass the source error across grpc, so on the recipient it will be empty. That's OK.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[error("(empty)")]
+struct EmptyError;
+
+impl TryFrom<ProtoVpnApiError> for VpnApiError {
+    type Error = ConversionError;
+
+    fn try_from(value: ProtoVpnApiError) -> Result<Self, Self::Error> {
+        let error_detail = value
+            .error_detail
+            .ok_or(ConversionError::NoValueSet("VpnApiError.error_detail"))?;
+        Ok(match error_detail {
+            crate::vpn_api_error::ErrorDetail::Timeout(_) => Self::Timeout(Arc::new(EmptyError)),
+            crate::vpn_api_error::ErrorDetail::StatusCode(code) => Self::StatusCode {
+                code: code.try_into().map_err(ConversionError::generic)?,
+                source: Arc::new(EmptyError),
+            },
+            crate::vpn_api_error::ErrorDetail::Response(vpn_api_error_response) => {
+                Self::Response(vpn_api_error_response.into())
+            }
         })
     }
 }

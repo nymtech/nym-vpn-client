@@ -8,7 +8,7 @@ message StoreAccountError {
   oneof error_detail {
     string invalid_mnemonic = 5;
     string storage_error = 1;
-    VpnApiErrorResponse error_response = 2;
+    VpnApiError vpn_api = 2;
     string unexpected_response = 3;
     string internal = 4;
   }
@@ -17,7 +17,7 @@ message StoreAccountError {
 message SyncAccountError {
   oneof error_detail {
     bool no_account_stored = 1;
-    VpnApiErrorResponse error_response = 2;
+    VpnApiError vpn_api = 2;
     string unexpected_response = 3;
     bool offline = 5;
     string internal = 4;
@@ -28,7 +28,7 @@ message SyncDeviceError {
   oneof error_detail {
     bool no_account_stored = 1;
     bool no_device_stored = 2;
-    VpnApiErrorResponse error_response = 3;
+    VpnApiError vpn_api = 3;
     string unexpected_response = 4;
     bool offline = 6;
     string internal = 5;
@@ -39,7 +39,7 @@ message RegisterDeviceError {
   oneof error_detail {
     bool no_account_stored = 1;
     bool no_device_stored = 2;
-    VpnApiErrorResponse error_response = 3;
+    VpnApiError vpn_api = 3;
     string unexpected_response = 4;
     bool offline = 6;
     string internal = 5;
@@ -49,7 +49,7 @@ message RegisterDeviceError {
 message ForgetAccountError {
   oneof error_detail {
     bool registration_in_progress = 1;
-    VpnApiErrorResponse error_response = 2;
+    VpnApiError vpn_api = 2;
     string unexpected_response = 3;
     string remove_account = 4;
     string remove_device_keys = 5;
@@ -62,6 +62,14 @@ message ForgetAccountError {
 
 message DeleteLogFileError {
   string message = 1;
+}
+
+message VpnApiError {
+  oneof error_detail {
+    bool timeout = 1;
+    uint32 status_code = 2;
+    VpnApiErrorResponse response = 3;
+  }
 }
 
 message VpnApiErrorResponse {
@@ -78,7 +86,7 @@ message RequestZkNymError {
   oneof outcome {
     bool no_account_stored = 1;
     bool no_device_stored = 2;
-    VpnApiErrorResponse vpn_api = 3;
+    VpnApiError vpn_api = 3;
     string unexpected_vpn_api_response = 4;
     string storage = 5;
     bool offline = 7;

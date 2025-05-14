@@ -29,7 +29,7 @@ pub enum VpnError {
     #[error("vpn-api error: {details}")]
     VpnApi {
         #[from]
-        details: super::uniffi_lib_types::VpnApiErrorResponse,
+        details: super::uniffi_lib_types::VpnApiError,
     },
 
     #[error("unexpected response from nym-vpn-api: {details}")]

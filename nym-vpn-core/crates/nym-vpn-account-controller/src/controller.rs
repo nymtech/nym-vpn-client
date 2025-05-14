@@ -8,9 +8,7 @@ use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::{DeviceStatus, VpnApiAccount, VpnApiTimeSynced},
 };
-use nym_vpn_lib_types::{
-    AccountCommandError, ForgetAccountError, StoreAccountError, VpnApiErrorResponse,
-};
+use nym_vpn_lib_types::{AccountCommandError, ForgetAccountError, StoreAccountError, VpnApiError};
 use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
@@ -256,7 +254,7 @@ where
             .update_device(&account, &device, DeviceStatus::DeleteMe)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(ForgetAccountError::UpdateDeviceErrorResponse)
                     .unwrap_or_else(ForgetAccountError::unexpected_response)
                     .into()
@@ -439,7 +437,7 @@ where
             .get_usage(&account)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::internal)
             })?;
@@ -511,7 +509,7 @@ where
             .get_devices(&account)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::internal)
             })?;
@@ -545,7 +543,7 @@ where
             .get_active_devices(&account)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::internal)
             })?;
@@ -611,7 +609,7 @@ where
             .get_device_zk_nyms(&account, &device)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::internal)
             })?;
@@ -649,7 +647,7 @@ where
             .get_zk_nyms_available_for_download(&account, &device)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::internal)
             })?;
@@ -688,7 +686,7 @@ where
             .get_zk_nym_by_id(&account, &device, id)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::internal)
             })?;
@@ -729,7 +727,7 @@ where
             .confirm_zk_nym_download_by_id(&account, &device, &id)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::internal)
             })?;
@@ -792,7 +790,7 @@ where
             .get_remote_time()
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::unexpected_response)
             })

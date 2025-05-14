@@ -3,15 +3,15 @@
 
 use std::fmt::Debug;
 
-use super::VpnApiErrorResponse;
+use super::VpnApiError;
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq, Clone)]
 pub enum SyncAccountError {
     #[error("no account stored")]
     NoAccountStored,
 
-    #[error(transparent)]
-    SyncAccountEndpointFailure(VpnApiErrorResponse),
+    #[error("sync account: {0}")]
+    SyncAccountEndpointFailure(#[from] VpnApiError),
 
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
@@ -35,7 +35,7 @@ impl SyncAccountError {
     pub fn message(&self) -> String {
         match self {
             SyncAccountError::NoAccountStored => self.to_string(),
-            SyncAccountError::SyncAccountEndpointFailure(failure) => failure.message.clone(),
+            SyncAccountError::SyncAccountEndpointFailure(failure) => failure.message(),
             SyncAccountError::UnexpectedResponse(response) => response.to_string(),
             SyncAccountError::Offline => self.to_string(),
             SyncAccountError::Internal(_) => self.to_string(),
@@ -44,7 +44,7 @@ impl SyncAccountError {
 
     pub fn message_id(&self) -> Option<String> {
         match self {
-            SyncAccountError::SyncAccountEndpointFailure(failure) => failure.message_id.clone(),
+            SyncAccountError::SyncAccountEndpointFailure(failure) => failure.message_id(),
             SyncAccountError::NoAccountStored
             | SyncAccountError::UnexpectedResponse(_)
             | SyncAccountError::Offline
@@ -54,9 +54,7 @@ impl SyncAccountError {
 
     pub fn code_reference_id(&self) -> Option<String> {
         match self {
-            SyncAccountError::SyncAccountEndpointFailure(failure) => {
-                failure.code_reference_id.clone()
-            }
+            SyncAccountError::SyncAccountEndpointFailure(failure) => failure.code_reference_id(),
             SyncAccountError::NoAccountStored
             | SyncAccountError::UnexpectedResponse(_)
             | SyncAccountError::Offline

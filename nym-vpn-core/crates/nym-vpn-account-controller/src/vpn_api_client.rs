@@ -4,7 +4,7 @@
 use std::ops::Deref;
 
 use nym_vpn_api_client::{response::NymVpnAccountStatusResponse, types::VpnApiAccount};
-use nym_vpn_lib_types::{StoreAccountError, VpnApiErrorResponse};
+use nym_vpn_lib_types::{StoreAccountError, VpnApiError};
 
 use crate::{AccountControllerConfig, Error};
 
@@ -36,7 +36,7 @@ impl AccountControllerVpnApiClient {
         account: &VpnApiAccount,
     ) -> Result<(), StoreAccountError> {
         let response = self.inner.get_account(account).await.map_err(|e| {
-            VpnApiErrorResponse::try_from(e)
+            VpnApiError::try_from(e)
                 .map(StoreAccountError::GetAccountEndpointFailure)
                 .unwrap_or_else(StoreAccountError::unexpected_response)
         });
