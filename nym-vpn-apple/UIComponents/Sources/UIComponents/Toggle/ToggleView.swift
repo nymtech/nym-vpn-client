@@ -29,6 +29,12 @@ struct ToggleView: View {
             .accessibilityAction {
                 action()
             }
+            .accessibilityValue(viewModel.accessibilityValue())
+#if os(iOS)
+            .accessibilityAddTraits([.isToggle])
+#elseif os(macOS)
+            .accessibilityAddTraits([.isButton])
+#endif
     }
 }
 

@@ -1,4 +1,5 @@
 import Foundation
+import Theme
 
 public final class SettingsListItemViewModel: Hashable {
     public enum Accessory: Hashable {
@@ -18,6 +19,28 @@ public final class SettingsListItemViewModel: Hashable {
                 "copy"
             case .toggle, .empty:
                 nil
+            }
+        }
+
+        var accessibilityHint: String {
+            switch self {
+            case .toggle:
+                "accessibility.doubleTap.toggle".localizedString
+            case .externalLink:
+                "accessibility.doubleTap.externalLink".localizedString
+            case .copy:
+                "accessibility.doubleTap.copy".localizedString
+            case .arrow, .empty:
+                ""
+            }
+        }
+
+        var accessibilityValue: String {
+            switch self {
+            case let .toggle(viewModel: viewModel):
+                viewModel.accessibilityValue()
+            case .arrow, .externalLink, .copy, .empty:
+                ""
             }
         }
     }
