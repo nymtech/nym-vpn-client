@@ -256,7 +256,7 @@ where
             .update_device(&account, &device, DeviceStatus::DeleteMe)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(ForgetAccountError::UpdateDeviceErrorResponse)
                     .unwrap_or_else(ForgetAccountError::unexpected_response)
                     .into()

@@ -27,26 +27,26 @@ pub enum SyncAccountError {
 
 impl SyncAccountError {
     pub fn unexpected_response(err: impl Debug + std::fmt::Display + std::error::Error) -> Self {
-        println!("Unexpected response: {err}");
-        println!("Unexpected response: {err:?}");
-        println!("Unexpected response: {}", err.source().unwrap());
-        println!("Unexpected response: {:?}", err.source().unwrap());
-        println!(
-            "Unexpected response: {}",
-            err.source().unwrap().source().unwrap()
-        );
-        println!(
-            "Unexpected response: {:?}",
-            err.source().unwrap().source().unwrap()
-        );
-        println!(
-            "Unexpected response: {}",
-            err.source().unwrap().source().unwrap().source().unwrap()
-        );
-        println!(
-            "Unexpected response: {:?}",
-            err.source().unwrap().source().unwrap().source().unwrap()
-        );
+        // println!("Unexpected response: {err}");
+        // println!("Unexpected response: {err:?}");
+        // println!("Unexpected response: {}", err.source().unwrap());
+        // println!("Unexpected response: {:?}", err.source().unwrap());
+        // println!(
+        //     "Unexpected response: {}",
+        //     err.source().unwrap().source().unwrap()
+        // );
+        // println!(
+        //     "Unexpected response: {:?}",
+        //     err.source().unwrap().source().unwrap()
+        // );
+        // println!(
+        //     "Unexpected response: {}",
+        //     err.source().unwrap().source().unwrap().source().unwrap()
+        // );
+        // println!(
+        //     "Unexpected response: {:?}",
+        //     err.source().unwrap().source().unwrap().source().unwrap()
+        // );
         SyncAccountError::UnexpectedResponse(format!("{err:?}"))
     }
 
@@ -66,7 +66,7 @@ impl SyncAccountError {
 
     pub fn message_id(&self) -> Option<String> {
         match self {
-            SyncAccountError::SyncAccountEndpointFailure(failure) => failure.message_id().clone(),
+            SyncAccountError::SyncAccountEndpointFailure(failure) => failure.message_id(),
             SyncAccountError::NoAccountStored
             | SyncAccountError::UnexpectedResponse(_)
             | SyncAccountError::Offline
@@ -76,9 +76,7 @@ impl SyncAccountError {
 
     pub fn code_reference_id(&self) -> Option<String> {
         match self {
-            SyncAccountError::SyncAccountEndpointFailure(failure) => {
-                failure.code_reference_id().clone()
-            }
+            SyncAccountError::SyncAccountEndpointFailure(failure) => failure.code_reference_id(),
             SyncAccountError::NoAccountStored
             | SyncAccountError::UnexpectedResponse(_)
             | SyncAccountError::Offline

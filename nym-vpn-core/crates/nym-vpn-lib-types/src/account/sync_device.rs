@@ -3,7 +3,7 @@
 
 use std::fmt::Debug;
 
-use super::VpnApiErrorResponse;
+use super::{VpnApiError, VpnApiErrorResponse};
 
 #[derive(Debug, thiserror::Error, PartialEq, Eq, Clone)]
 pub enum SyncDeviceError {
@@ -13,8 +13,8 @@ pub enum SyncDeviceError {
     #[error("no device stored")]
     NoDeviceStored,
 
-    #[error("vpn api endpoint failure: {0}")]
-    SyncDeviceEndpointFailure(VpnApiErrorResponse),
+    #[error("sync device: {0}")]
+    SyncDeviceEndpointFailure(#[from] VpnApiError),
 
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
@@ -39,7 +39,7 @@ impl SyncDeviceError {
         match self {
             SyncDeviceError::NoAccountStored => self.to_string(),
             SyncDeviceError::NoDeviceStored => self.to_string(),
-            SyncDeviceError::SyncDeviceEndpointFailure(failure) => failure.message.clone(),
+            SyncDeviceError::SyncDeviceEndpointFailure(failure) => failure.message(),
             SyncDeviceError::UnexpectedResponse(response) => response.to_string(),
             SyncDeviceError::Offline => self.to_string(),
             SyncDeviceError::Internal(_) => self.to_string(),
@@ -48,7 +48,7 @@ impl SyncDeviceError {
 
     pub fn message_id(&self) -> Option<String> {
         match self {
-            SyncDeviceError::SyncDeviceEndpointFailure(failure) => failure.message_id.clone(),
+            SyncDeviceError::SyncDeviceEndpointFailure(failure) => failure.message_id(),
             SyncDeviceError::NoAccountStored
             | SyncDeviceError::NoDeviceStored
             | SyncDeviceError::UnexpectedResponse(_)
@@ -59,9 +59,7 @@ impl SyncDeviceError {
 
     pub fn code_reference_id(&self) -> Option<String> {
         match self {
-            SyncDeviceError::SyncDeviceEndpointFailure(failure) => {
-                failure.code_reference_id.clone()
-            }
+            SyncDeviceError::SyncDeviceEndpointFailure(failure) => failure.code_reference_id(),
             SyncDeviceError::NoAccountStored
             | SyncDeviceError::NoDeviceStored
             | SyncDeviceError::UnexpectedResponse(_)

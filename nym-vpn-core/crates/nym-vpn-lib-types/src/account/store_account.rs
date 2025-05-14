@@ -3,7 +3,7 @@
 
 use std::fmt::Debug;
 
-use super::VpnApiErrorResponse;
+use super::{VpnApiError, VpnApiErrorResponse};
 
 #[derive(Debug, thiserror::Error, Clone, PartialEq, Eq)]
 pub enum StoreAccountError {
@@ -13,8 +13,8 @@ pub enum StoreAccountError {
     #[error("storage: {0}")]
     Storage(String),
 
-    #[error("vpn api endpoint failure: {0}")]
-    GetAccountEndpointFailure(VpnApiErrorResponse),
+    #[error("get account: {0}")]
+    GetAccountEndpointFailure(VpnApiError),
 
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
@@ -40,7 +40,7 @@ impl StoreAccountError {
         match self {
             StoreAccountError::InvalidMnemonic(message) => message.clone(),
             StoreAccountError::Storage(message) => message.clone(),
-            StoreAccountError::GetAccountEndpointFailure(failure) => failure.message.clone(),
+            StoreAccountError::GetAccountEndpointFailure(failure) => failure.message(),
             StoreAccountError::UnexpectedResponse(response) => response.clone(),
             StoreAccountError::Internal(message) => message.clone(),
         }
@@ -48,7 +48,7 @@ impl StoreAccountError {
 
     pub fn message_id(&self) -> Option<String> {
         if let StoreAccountError::GetAccountEndpointFailure(failure) = self {
-            failure.message_id.clone()
+            failure.message_id()
         } else {
             None
         }
@@ -56,7 +56,7 @@ impl StoreAccountError {
 
     pub fn code_reference_id(&self) -> Option<String> {
         if let StoreAccountError::GetAccountEndpointFailure(failure) = self {
-            failure.code_reference_id.clone()
+            failure.code_reference_id()
         } else {
             None
         }

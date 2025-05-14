@@ -3,7 +3,7 @@
 
 use std::fmt::Debug;
 
-use super::VpnApiErrorResponse;
+use super::{VpnApiError, VpnApiErrorResponse};
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
 pub enum RequestZkNymError {
@@ -14,7 +14,7 @@ pub enum RequestZkNymError {
     NoDeviceStored,
 
     #[error(transparent)]
-    GetZkNymsAvailableForDownloadEndpointFailure { response: VpnApiErrorResponse },
+    GetZkNymsAvailableForDownloadEndpointFailure { response: VpnApiError },
 
     #[error("failed to create ecash keypair: {0}")]
     CreateEcashKeyPair(String),
@@ -25,7 +25,7 @@ pub enum RequestZkNymError {
     #[error("{response}, {ticket_type}")]
     RequestZkNymEndpointFailure {
         ticket_type: String,
-        response: VpnApiErrorResponse,
+        response: VpnApiError,
     },
 
     #[error("response contains invalid ticketbook type: {0}")]
@@ -35,7 +35,7 @@ pub enum RequestZkNymError {
     TicketTypeMismatch,
 
     #[error(transparent)]
-    PollZkNymEndpointFailure { response: VpnApiErrorResponse },
+    PollZkNymEndpointFailure { response: VpnApiError },
 
     #[error("polling task failed")]
     PollingTaskError,
@@ -58,7 +58,7 @@ pub enum RequestZkNymError {
     #[error("{response}")]
     GetPartialVerificationKeysEndpointFailure {
         epoch_id: u64,
-        response: VpnApiErrorResponse,
+        response: VpnApiError,
     },
 
     #[error("no master verification key in storage")]
@@ -86,10 +86,7 @@ pub enum RequestZkNymError {
     AggregateWallets(String),
 
     #[error("{response}")]
-    ConfirmZkNymDownloadEndpointFailure {
-        id: ZkNymId,
-        response: VpnApiErrorResponse,
-    },
+    ConfirmZkNymDownloadEndpointFailure { id: ZkNymId, response: VpnApiError },
 
     #[error("missing pending request: {0}")]
     MissingPendingRequest(ZkNymId),
@@ -119,7 +116,7 @@ impl RequestZkNymError {
         RequestZkNymError::UnexpectedErrorResponse(format!("{message:?}"))
     }
 
-    pub fn vpn_api_error(&self) -> Option<VpnApiErrorResponse> {
+    pub fn vpn_api_error(&self) -> Option<VpnApiError> {
         match self {
             RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure { response }
             | RequestZkNymError::RequestZkNymEndpointFailure {
@@ -139,16 +136,15 @@ impl RequestZkNymError {
     }
 
     pub fn message(&self) -> Option<String> {
-        self.vpn_api_error().map(|err| err.message.clone())
+        self.vpn_api_error().map(|err| err.message())
     }
 
     pub fn message_id(&self) -> Option<String> {
-        self.vpn_api_error().and_then(|err| err.message_id.clone())
+        self.vpn_api_error().and_then(|err| err.message_id())
     }
 
     pub fn code_reference_id(&self) -> Option<String> {
-        self.vpn_api_error()
-            .and_then(|err| err.code_reference_id.clone())
+        self.vpn_api_error().and_then(|err| err.code_reference_id())
     }
 
     pub fn ticket_type(&self) -> Option<String> {
@@ -176,7 +172,7 @@ pub enum RequestZkNymErrorReason {
     NoDeviceStored,
 
     #[error(transparent)]
-    VpnApi(VpnApiErrorResponse),
+    VpnApi(VpnApiError),
 
     #[error("nym-vpn-api: unexpected error response: {0}")]
     UnexpectedVpnApiResponse(String),

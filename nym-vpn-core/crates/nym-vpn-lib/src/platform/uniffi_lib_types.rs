@@ -243,7 +243,7 @@ pub enum StoreAccountError {
     #[error("storage: {0}")]
     Storage(String),
     #[error("vpn api endpoint failure: {0}")]
-    GetAccountEndpointFailure(VpnApiErrorResponse),
+    GetAccountEndpointFailure(VpnApiError),
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
     #[error("internal error: {0}")]
@@ -303,7 +303,7 @@ pub enum SyncDeviceError {
     #[error("no device stored")]
     NoDeviceStored,
     #[error("vpn api endpoint failure: {0}")]
-    ErrorResponse(VpnApiErrorResponse),
+    ErrorResponse(VpnApiError),
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
     #[error("no connectivity")]
@@ -334,7 +334,7 @@ pub enum RegisterDeviceError {
     #[error("no device stored")]
     NoDeviceStored,
     #[error("vpn api endpoint failure: {0}")]
-    ErrorResponse(VpnApiErrorResponse),
+    ErrorResponse(VpnApiError),
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
     #[error("no connectivity")]
@@ -378,7 +378,7 @@ pub enum RequestZkNymError {
     #[error("no device stored")]
     NoDeviceStored,
     #[error(transparent)]
-    VpnApi(VpnApiErrorResponse),
+    VpnApi(VpnApiError),
     #[error("nym-vpn-api: unexpected error response: {0}")]
     UnexpectedVpnApiResponse(String),
     #[error("storage error: {0}")]
@@ -416,7 +416,7 @@ pub enum ForgetAccountError {
     #[error("registration is in progress")]
     RegistrationInProgress,
     #[error("failed to remove device from nym vpn api: {0}")]
-    UpdateDeviceErrorResponse(VpnApiErrorResponse),
+    UpdateDeviceErrorResponse(VpnApiError),
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
     #[error("failed to remove account: {0}")]

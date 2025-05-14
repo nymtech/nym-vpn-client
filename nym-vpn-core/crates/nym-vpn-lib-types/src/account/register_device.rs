@@ -3,7 +3,7 @@
 
 use std::fmt::Debug;
 
-use super::VpnApiErrorResponse;
+use super::{VpnApiError, VpnApiErrorResponse};
 
 #[derive(Debug, thiserror::Error, Clone, PartialEq, Eq)]
 pub enum RegisterDeviceError {
@@ -13,8 +13,8 @@ pub enum RegisterDeviceError {
     #[error("no device stored")]
     NoDeviceStored,
 
-    #[error("failed to register device: {0}")]
-    RegisterDeviceEndpointFailure(VpnApiErrorResponse),
+    #[error("register device: {0}")]
+    RegisterDeviceEndpointFailure(VpnApiError),
 
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),
@@ -39,7 +39,7 @@ impl RegisterDeviceError {
         match self {
             RegisterDeviceError::NoAccountStored => self.to_string(),
             RegisterDeviceError::NoDeviceStored => self.to_string(),
-            RegisterDeviceError::RegisterDeviceEndpointFailure(failure) => failure.message.clone(),
+            RegisterDeviceError::RegisterDeviceEndpointFailure(failure) => failure.message(),
             RegisterDeviceError::UnexpectedResponse(message) => message.clone(),
             RegisterDeviceError::Offline => self.to_string(),
             RegisterDeviceError::Internal(_) => self.to_string(),
@@ -48,9 +48,7 @@ impl RegisterDeviceError {
 
     pub fn message_id(&self) -> Option<String> {
         match self {
-            RegisterDeviceError::RegisterDeviceEndpointFailure(failure) => {
-                failure.message_id.clone()
-            }
+            RegisterDeviceError::RegisterDeviceEndpointFailure(failure) => failure.message_id(),
             RegisterDeviceError::NoAccountStored
             | RegisterDeviceError::NoDeviceStored
             | RegisterDeviceError::UnexpectedResponse(_)
@@ -62,7 +60,7 @@ impl RegisterDeviceError {
     pub fn code_reference_id(&self) -> Option<String> {
         match self {
             RegisterDeviceError::RegisterDeviceEndpointFailure(failure) => {
-                failure.code_reference_id.clone()
+                failure.code_reference_id()
             }
             RegisterDeviceError::NoAccountStored
             | RegisterDeviceError::NoDeviceStored
