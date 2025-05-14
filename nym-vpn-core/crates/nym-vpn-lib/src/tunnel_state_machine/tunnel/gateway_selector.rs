@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_gateway_directory::{EntryPoint, ExitPoint, Gateway, GatewayClient, GatewayType};
+use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint, Gateway, GatewayType};
 
 use crate::{tunnel_state_machine::TunnelType, GatewayDirectoryError};
 
@@ -12,7 +12,7 @@ pub struct SelectedGateways {
 }
 
 pub async fn select_gateways(
-    gateway_directory_client: &GatewayClient,
+    gateway_directory_client: CachingGatewayClient,
     tunnel_type: TunnelType,
     entry_point: Box<EntryPoint>,
     exit_point: Box<ExitPoint>,

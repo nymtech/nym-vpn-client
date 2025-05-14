@@ -6,7 +6,7 @@ use nym_vpn_api_client::NetworkCompatibility;
 use nym_vpn_network_config::Network;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
 
-use nym_vpn_api_client::types::{GatewayMinPerformance, ScoreThresholds};
+use nym_vpn_api_client::types::ScoreThresholds;
 use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
     conversions::ConversionError, get_account_state_response::AccountStateSummary,
@@ -28,7 +28,7 @@ use zeroize::Zeroizing;
 use super::{
     connection_handler::CommandInterfaceConnectionHandler,
     error::CommandInterfaceError,
-    helpers::{parse_entry_point, parse_exit_point, threshold_into_percent},
+    helpers::{parse_entry_point, parse_exit_point},
 };
 use crate::{
     logging::LogPath,
@@ -262,7 +262,6 @@ impl NymVpnd for CommandInterface {
         let request = request.into_inner();
 
         let gw_type = nym_vpn_proto::GatewayType::try_from(request.kind)
-            // .and_then(crate::command_interface::protobuf::gateway::into_gateway_type)
             // TODO: do this conversion in one step instead
             .map_err(|err| ConversionError::Generic(err.to_string()))
             .and_then(nym_vpn_lib::gateway_directory::GatewayType::try_from)
@@ -277,13 +276,6 @@ impl NymVpnd for CommandInterface {
             .map(nym_vpn_lib::UserAgent::from)
             .unwrap_or_else(crate::util::construct_user_agent);
 
-        let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
-        let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
-
-        let min_gateway_performance = Some(GatewayMinPerformance {
-            mixnet_min_performance: min_mixnet_performance,
-            vpn_min_performance: min_vpn_performance,
-        });
         let mix_score_thresholds =
             self.network_env
                 .system_configuration
@@ -306,7 +298,7 @@ impl NymVpnd for CommandInterface {
             nyxd_url: self.network_env.nyxd_url(),
             api_url: self.network_env.api_url(),
             nym_vpn_api_url: Some(self.network_env.vpn_api_url()),
-            min_gateway_performance,
+            min_gateway_performance: None,
             mix_score_thresholds,
             wg_score_thresholds,
         };
@@ -356,13 +348,6 @@ impl NymVpnd for CommandInterface {
             .map(nym_vpn_lib::UserAgent::from)
             .unwrap_or_else(crate::util::construct_user_agent);
 
-        let min_mixnet_performance = request.min_mixnet_performance.map(threshold_into_percent);
-        let min_vpn_performance = request.min_vpn_performance.map(threshold_into_percent);
-
-        let min_gateway_performance = Some(GatewayMinPerformance {
-            mixnet_min_performance: min_mixnet_performance,
-            vpn_min_performance: min_vpn_performance,
-        });
         let mix_score_thresholds =
             self.network_env
                 .system_configuration
@@ -385,7 +370,7 @@ impl NymVpnd for CommandInterface {
             nyxd_url: self.network_env.nyxd_url(),
             api_url: self.network_env.api_url(),
             nym_vpn_api_url: Some(self.network_env.vpn_api_url()),
-            min_gateway_performance,
+            min_gateway_performance: None,
             mix_score_thresholds,
             wg_score_thresholds,
         };
@@ -792,14 +777,6 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             })
             .transpose()?;
 
-        let min_mixnode_performance = request.min_mixnode_performance.map(threshold_into_percent);
-        let min_gateway_mixnet_performance = request
-            .min_gateway_mixnet_performance
-            .map(threshold_into_percent);
-        let min_gateway_vpn_performance = request
-            .min_gateway_vpn_performance
-            .map(threshold_into_percent);
-
         let disable_background_cover_traffic = if request.enable_two_hop {
             // If two-hop is enabled, we always disable background cover traffic
             true
@@ -819,9 +796,9 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             disable_poisson_rate: request.disable_poisson_rate,
             disable_background_cover_traffic,
             enable_credentials_mode: request.enable_credentials_mode,
-            min_mixnode_performance,
-            min_gateway_mixnet_performance,
-            min_gateway_vpn_performance,
+            min_mixnode_performance: None,
+            min_gateway_mixnet_performance: None,
+            min_gateway_vpn_performance: None,
             user_agent,
         })
     }

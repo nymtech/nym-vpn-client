@@ -3,12 +3,9 @@
 
 use nym_common::ErrorExt;
 use nym_vpn_account_controller::AccountCommandSender;
-use nym_vpn_api_client::types::ScoreThresholds;
 use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
-
-use nym_gateway_directory::Config as GatewayDirectoryConfig;
 
 use super::TunnelEvent as PlatformTunnelEvent;
 use crate::tunnel_state_machine::{
@@ -90,42 +87,21 @@ pub(super) async fn start_state_machine(
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
 
-    let api_url = network_env.api_url();
-    let nyxd_url = network_env.nyxd_url();
-    let nym_vpn_api_url = Some(network_env.vpn_api_url());
-    let mix_score_thresholds =
-        network_env
-            .system_configuration
-            .as_ref()
-            .map(|sc| ScoreThresholds {
-                high: sc.mix_thresholds.high,
-                medium: sc.mix_thresholds.medium,
-                low: sc.mix_thresholds.low,
-            });
-    let wg_score_thresholds = network_env
-        .system_configuration
-        .as_ref()
-        .map(|sc| ScoreThresholds {
-            high: sc.wg_thresholds.high,
-            medium: sc.wg_thresholds.medium,
-            low: sc.wg_thresholds.low,
-        });
-
-    let gateway_config = GatewayDirectoryConfig {
-        nyxd_url,
-        api_url,
-        nym_vpn_api_url,
-        min_gateway_performance: None,
-        mix_score_thresholds,
-        wg_score_thresholds,
-    };
+    // Bootstrap the state machines gateway client with the static gateway client, so that we can
+    // use the existing cached directory data.
+    let static_gw_client = super::init_static_gateway_client(config.user_agent.clone()).await?;
+    let gateway_directory_client =
+        nym_gateway_directory::CachingGatewayClient::new_from_existing(&static_gw_client).await;
+    let gateway_config = gateway_directory_client.get_config().await;
 
     let nym_config = NymConfig {
         config_path: config.config_path,
         data_path: config.credential_data_path,
-        gateway_config,
+        gateway_config: gateway_config.clone(),
         network_env,
     };
+
+    let user_agent = nym_sdk::UserAgent::from(config.user_agent.clone());
 
     let tunnel_settings = TunnelSettings {
         tunnel_type,
@@ -138,7 +114,7 @@ pub(super) async fn start_state_machine(
         entry_point: Box::new(entry_point),
         exit_point: Box::new(exit_point),
         dns: DnsOptions::default(),
-        user_agent: Some(config.user_agent.into()),
+        user_agent: Some(user_agent.clone()),
     };
 
     let (command_sender, command_receiver) = mpsc::unbounded_channel();
@@ -169,6 +145,10 @@ pub(super) async fn start_state_machine(
     )
     .await;
 
+    gateway_directory_client
+        .set_connectivity_handle(offline_monitor.clone())
+        .await;
+
     let shutdown_token = CancellationToken::new();
     let state_machine_handle = TunnelStateMachine::spawn(
         command_receiver,
@@ -176,6 +156,7 @@ pub(super) async fn start_state_machine(
         nym_config,
         tunnel_settings,
         account_controller_tx,
+        gateway_directory_client,
         offline_monitor,
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler,

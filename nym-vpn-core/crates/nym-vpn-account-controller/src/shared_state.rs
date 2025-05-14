@@ -26,6 +26,7 @@ pub enum ReadyToRegisterDevice {
     AccountNotRegistered,
     AccountNotActive,
     NoActiveSubscription,
+    DeviceStateNotSynced,
     DeviceAlreadyRegistered,
     MaxDevicesReached(u64),
 }
@@ -40,6 +41,7 @@ impl fmt::Display for ReadyToRegisterDevice {
             ReadyToRegisterDevice::AccountNotRegistered => write!(f, "account not registered"),
             ReadyToRegisterDevice::AccountNotActive => write!(f, "account not active"),
             ReadyToRegisterDevice::NoActiveSubscription => write!(f, "no active subscription"),
+            ReadyToRegisterDevice::DeviceStateNotSynced => write!(f, "device state not synced"),
             ReadyToRegisterDevice::DeviceAlreadyRegistered => {
                 write!(f, "device already registered")
             }
@@ -385,7 +387,7 @@ impl AccountStateSummary {
             Some(DeviceState::Inactive) => {}
             Some(DeviceState::Active) => return ReadyToRegisterDevice::DeviceAlreadyRegistered,
             Some(DeviceState::DeleteMe) => {}
-            None => {}
+            None => return ReadyToRegisterDevice::DeviceStateNotSynced,
         }
 
         match self.register_device_result {

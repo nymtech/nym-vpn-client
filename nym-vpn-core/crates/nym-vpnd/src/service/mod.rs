@@ -12,4 +12,6 @@ pub use config::{
     DEFAULT_GLOBAL_CONFIG_FILE, DEFAULT_LOG_FILE, DEFAULT_OLD_LOG_FILE,
 };
 pub use error::{AccountLinksError, SetNetworkError, VpnServiceDeleteLogFileError};
-pub use vpn_service::{ConnectArgs, ConnectOptions, NymVpnService, VpnServiceCommand};
+pub use vpn_service::{
+    ConnectArgs, ConnectOptions, NymVpnService, VpnServiceCommand, GATEWAY_DIRECTORY_CLIENT,
+};

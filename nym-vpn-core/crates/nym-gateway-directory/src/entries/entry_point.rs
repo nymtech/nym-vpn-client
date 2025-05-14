@@ -18,9 +18,6 @@ pub enum EntryPoint {
     Gateway { identity: NodeIdentity },
     // Select a random entry gateway in a specific location.
     Location { location: String },
-    // Select a random entry gateway but increasey probability of selecting a low latency gateway
-    // as determined by ping times.
-    RandomLowLatency,
     // Select an entry gateway at random.
     Random,
 }
@@ -30,7 +27,6 @@ impl Display for EntryPoint {
         match self {
             EntryPoint::Gateway { identity } => write!(f, "Gateway: {}", identity),
             EntryPoint::Location { location } => write!(f, "Location: {}", location),
-            EntryPoint::RandomLowLatency => write!(f, "Random low latency"),
             EntryPoint::Random => write!(f, "Random"),
         }
     }
@@ -70,10 +66,6 @@ impl EntryPoint {
                         requested_location: location.clone(),
                         available_countries: gateways.all_iso_codes(),
                     })
-            }
-            EntryPoint::RandomLowLatency => {
-                debug!("Selecting a random low latency gateway");
-                gateways.random_low_latency_gateway().await
             }
             EntryPoint::Random => {
                 debug!("Selecting a random gateway");

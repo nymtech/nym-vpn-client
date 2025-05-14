@@ -3,6 +3,7 @@
 
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{sockopt::Mark, SetSockOpt};
+use nym_sdk::UserAgent;
 use nym_vpn_network_config::start_background_file_refresh;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::net::Ipv4Addr;
@@ -20,7 +21,9 @@ use std::{os::fd::RawFd, sync::Arc};
 use super::wintun::{self, WintunAdapterConfig};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
-use nym_gateway_directory::{GatewayMinPerformance, ResolvedConfig};
+use nym_gateway_directory::{
+    CachingGatewayClient, GatewayClient, GatewayMinPerformance, ResolvedConfig,
+};
 use nym_vpn_account_controller::AccountCommandSender;
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -206,6 +209,7 @@ pub struct TunnelMonitor {
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_commands: AccountCommandSender,
+    gateway_directory_client: CachingGatewayClient,
     cancel_token: CancellationToken,
 }
 
@@ -213,6 +217,7 @@ impl TunnelMonitor {
     pub fn start(
         tunnel_parameters: TunnelParameters,
         account_commands: AccountCommandSender,
+        gateway_directory_client: CachingGatewayClient,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
         mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -230,6 +235,7 @@ impl TunnelMonitor {
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
             account_commands,
+            gateway_directory_client,
             cancel_token: cancel_token.clone(),
         };
         let join_handle = tokio::spawn(tunnel_monitor.run());
@@ -304,17 +310,36 @@ impl TunnelMonitor {
             }
         }
 
+        let user_agent = self
+            .tunnel_parameters
+            .tunnel_settings
+            .user_agent
+            .clone()
+            .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
+        let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
+            gateway_config.clone(),
+            user_agent,
+            self.tunnel_parameters
+                .resolved_gateway_config
+                .nym_vpn_api_socket_addrs
+                .as_deref(),
+        )
+        .unwrap();
+
+        self.gateway_directory_client
+            .update_client(gateway_directory_client)
+            .await;
+        self.gateway_directory_client.refresh_all().await;
+
         let selected_gateways =
             if let Some(selected_gateways) = self.tunnel_parameters.selected_gateways.clone() {
                 selected_gateways
             } else {
                 let new_gateways = tunnel::select_gateways(
-                    gateway_config.clone(),
-                    self.tunnel_parameters.resolved_gateway_config.clone(),
+                    self.gateway_directory_client.clone(),
                     self.tunnel_parameters.tunnel_settings.tunnel_type,
                     self.tunnel_parameters.tunnel_settings.entry_point.clone(),
                     self.tunnel_parameters.tunnel_settings.exit_point.clone(),
-                    self.tunnel_parameters.tunnel_settings.user_agent.clone(),
                     self.cancel_token.child_token(),
                 )
                 .await?;
@@ -372,6 +397,7 @@ impl TunnelMonitor {
         let mut connected_mixnet = tunnel::connect_mixnet(
             connect_options,
             &self.tunnel_parameters.nym_config.network_env,
+            self.gateway_directory_client.clone(),
             self.cancel_token.child_token(),
             #[cfg(unix)]
             Arc::new(connection_fd_callback),

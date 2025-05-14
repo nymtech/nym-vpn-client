@@ -7,7 +7,7 @@ use nym_vpn_network_config::Network;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 
 use nym_credentials_interface::TicketType;
-use nym_gateway_directory::GatewayClient;
+use nym_gateway_directory::CachingGatewayClient;
 use nym_sdk::{
     mixnet::{ConnectionStatsEvent, CredentialStorage as Storage},
     TaskClient,
@@ -195,7 +195,7 @@ impl<St: Storage> BandwidthController<St> {
         &self,
         enable_credentials_mode: bool,
         ticketbook_type: TicketType,
-        gateway_client: &GatewayClient,
+        gateway_client: CachingGatewayClient,
         wg_gateway_client: &mut WgGatewayClient,
     ) -> Result<GatewayData>
     where

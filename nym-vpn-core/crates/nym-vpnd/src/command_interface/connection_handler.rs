@@ -21,7 +21,7 @@ use crate::{
     logging::LogPath,
     service::{
         AccountLinksError, ConnectArgs, ConnectOptions, SetNetworkError, VpnServiceCommand,
-        VpnServiceDeleteLogFileError,
+        VpnServiceDeleteLogFileError, GATEWAY_DIRECTORY_CLIENT,
     },
 };
 
@@ -126,10 +126,15 @@ impl CommandInterfaceConnectionHandler {
         user_agent: nym_vpn_lib::UserAgent,
         directory_config: nym_vpn_lib::gateway_directory::Config,
     ) -> Result<Vec<gateway::Gateway>, ListGatewayError> {
-        let gateways = directory_client(user_agent, directory_config)?
-            .lookup_gateways(gw_type.clone())
-            .await
-            .map_err(|source| ListGatewayError::GetGateways { gw_type, source })?;
+        let gateways = match GATEWAY_DIRECTORY_CLIENT.get().cloned() {
+            Some(gw_client) => gw_client.lookup_gateways(gw_type.clone()).await,
+            None => {
+                directory_client(user_agent, directory_config)?
+                    .lookup_gateways(gw_type.clone())
+                    .await
+            }
+        }
+        .map_err(|source| ListGatewayError::GetGateways { gw_type, source })?;
 
         Ok(gateways.into_iter().map(gateway::Gateway::from).collect())
     }
@@ -140,10 +145,15 @@ impl CommandInterfaceConnectionHandler {
         user_agent: nym_vpn_lib::UserAgent,
         directory_config: nym_vpn_lib::gateway_directory::Config,
     ) -> Result<Vec<gateway::Country>, ListGatewayError> {
-        let gateways = directory_client(user_agent, directory_config)?
-            .lookup_countries(gw_type.clone())
-            .await
-            .map_err(|source| ListGatewayError::GetCountries { gw_type, source })?;
+        let gateways = match GATEWAY_DIRECTORY_CLIENT.get().cloned() {
+            Some(gw_client) => gw_client.lookup_countries(gw_type.clone()).await,
+            None => {
+                directory_client(user_agent, directory_config)?
+                    .lookup_countries(gw_type.clone())
+                    .await
+            }
+        }
+        .map_err(|source| ListGatewayError::GetCountries { gw_type, source })?;
 
         Ok(gateways.into_iter().map(gateway::Country::from).collect())
     }
@@ -308,6 +318,7 @@ fn directory_client(
     user_agent: nym_vpn_lib::UserAgent,
     directory_config: nym_vpn_lib::gateway_directory::Config,
 ) -> Result<GatewayClient, ListGatewayError> {
+    tracing::warn!("Using fallback directory client");
     GatewayClient::new(directory_config, user_agent)
         .map_err(ListGatewayError::CreateGatewayDirectoryClient)
 }

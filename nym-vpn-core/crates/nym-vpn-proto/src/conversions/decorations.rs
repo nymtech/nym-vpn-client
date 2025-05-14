@@ -20,12 +20,6 @@ impl crate::EntryNode {
         }
     }
 
-    pub fn new_random_low_latency() -> Self {
-        Self {
-            entry_node_enum: Some(crate::entry_node::EntryNodeEnum::RandomLowLatency(())),
-        }
-    }
-
     pub fn new_from_gateway(identity: &nym_sdk::mixnet::NodeIdentity) -> Self {
         identity.into()
     }

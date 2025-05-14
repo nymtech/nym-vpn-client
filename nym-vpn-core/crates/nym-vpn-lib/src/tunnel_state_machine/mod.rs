@@ -38,7 +38,9 @@ use nym_common::ErrorExt;
 use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
-use nym_gateway_directory::{Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, Recipient};
+use nym_gateway_directory::{
+    CachingGatewayClient, Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, Recipient,
+};
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
     ActionAfterDisconnect, ClientErrorReason, ConnectionData, ErrorStateReason, MixnetEvent,
@@ -372,6 +374,7 @@ pub struct SharedState {
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_command_tx: AccountCommandSender,
+    gateway_directory: CachingGatewayClient,
 }
 
 #[derive(Debug, Clone)]
@@ -403,6 +406,7 @@ impl TunnelStateMachine {
         nym_config: NymConfig,
         tunnel_settings: TunnelSettings,
         account_command_tx: AccountCommandSender,
+        gateway_directory: CachingGatewayClient,
         offline_monitor: ConnectivityHandle,
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
@@ -461,6 +465,7 @@ impl TunnelStateMachine {
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
             account_command_tx,
+            gateway_directory,
         };
 
         let (current_state_handler, _) = if shared_state

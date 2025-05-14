@@ -13,7 +13,7 @@ use std::{error::Error as StdError, fmt, path::PathBuf, time::Duration};
 use std::{os::fd::RawFd, sync::Arc};
 
 pub use gateway_selector::SelectedGateways;
-use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayClient, Recipient};
+use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint, Recipient};
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
@@ -34,7 +34,7 @@ pub(crate) const TASK_MANAGER_SHUTDOWN_TIMER_SECS: u64 = 10;
 
 pub struct ConnectedMixnet {
     task_manager: TaskManager,
-    gateway_directory_client: GatewayClient,
+    gateway_directory_client: CachingGatewayClient,
     selected_gateways: SelectedGateways,
     data_path: Option<PathBuf>,
     mixnet_client: SharedMixnetClient,
@@ -140,25 +140,14 @@ pub struct MixnetConnectOptions {
 }
 
 pub async fn select_gateways(
-    gateway_config: nym_gateway_directory::Config,
-    resolved_gateway_config: nym_gateway_directory::ResolvedConfig,
+    gateway_directory_client: CachingGatewayClient,
     tunnel_type: TunnelType,
     entry_point: Box<EntryPoint>,
     exit_point: Box<ExitPoint>,
-    user_agent: Option<UserAgent>,
     cancel_token: CancellationToken,
 ) -> Result<SelectedGateways> {
-    let user_agent =
-        user_agent.unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
-    let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
-        gateway_config,
-        user_agent,
-        resolved_gateway_config.nym_vpn_api_socket_addrs.as_deref(),
-    )
-    .map_err(Error::CreateGatewayClient)?;
-
     let select_gateways_fut = gateway_selector::select_gateways(
-        &gateway_directory_client,
+        gateway_directory_client,
         tunnel_type,
         entry_point,
         exit_point,
@@ -173,25 +162,13 @@ pub async fn select_gateways(
 pub async fn connect_mixnet(
     options: MixnetConnectOptions,
     network_env: &Network,
+    gateway_directory_client: CachingGatewayClient,
     cancel_token: CancellationToken,
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<ConnectedMixnet> {
     let task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMER_SECS);
     let task_client = task_manager.subscribe_named("mixnet_client_main");
-
     let mut mixnet_client_config = options.mixnet_client_config.clone().unwrap_or_default();
-    let user_agent = options
-        .user_agent
-        .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
-    let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
-        options.gateway_config,
-        user_agent,
-        options
-            .resolved_gateway_config
-            .nym_vpn_api_socket_addrs
-            .as_deref(),
-    )
-    .map_err(Error::CreateGatewayClient)?;
 
     match options.tunnel_type {
         TunnelType::Mixnet => {}

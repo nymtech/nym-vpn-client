@@ -1,7 +1,12 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, path::PathBuf, sync::Arc, time::Instant};
+use std::{
+    net::IpAddr,
+    path::PathBuf,
+    sync::{Arc, OnceLock},
+    time::Instant,
+};
 
 use bip39::Mnemonic;
 use serde::{Deserialize, Serialize};
@@ -18,11 +23,11 @@ use nym_vpn_account_controller::{
 };
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
-    types::Percent,
+    types::{Percent, ScoreThresholds},
     NetworkCompatibility,
 };
 use nym_vpn_lib::{
-    gateway_directory::{self, EntryPoint, ExitPoint},
+    gateway_directory::{self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
@@ -44,6 +49,9 @@ use super::{
     },
 };
 use crate::{config::GlobalConfigFile, logging::LogPath};
+
+// Lazy initialized static instance of CachingGatewayClient, using OnceLock
+pub static GATEWAY_DIRECTORY_CLIENT: OnceLock<CachingGatewayClient> = OnceLock::new();
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -305,20 +313,53 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let tunnel_settings = TunnelSettings::default();
         let nyxd_url = network_env.nyxd_url();
         let api_url = network_env.api_url();
+
+        let mix_score_thresholds =
+            network_env
+                .system_configuration
+                .as_ref()
+                .map(|sc| ScoreThresholds {
+                    high: sc.mix_thresholds.high,
+                    medium: sc.mix_thresholds.medium,
+                    low: sc.mix_thresholds.low,
+                });
+        let wg_score_thresholds =
+            network_env
+                .system_configuration
+                .as_ref()
+                .map(|sc| ScoreThresholds {
+                    high: sc.wg_thresholds.high,
+                    medium: sc.wg_thresholds.medium,
+                    low: sc.wg_thresholds.low,
+                });
+
         let gateway_config = gateway_directory::Config {
             nyxd_url,
             api_url,
             nym_vpn_api_url: Some(network_env.vpn_api_url()),
             min_gateway_performance: None,
-            mix_score_thresholds: None,
-            wg_score_thresholds: None,
+            mix_score_thresholds,
+            wg_score_thresholds,
         };
         let nym_config = NymConfig {
             config_path: Some(config_dir),
             data_path: Some(network_data_dir.clone()),
-            gateway_config,
+            gateway_config: gateway_config.clone(),
             network_env: network_env.clone(),
         };
+
+        let gateway_directory_client =
+            GatewayClient::new(gateway_config, user_agent.clone()).unwrap();
+        let gateway_directory_client =
+            CachingGatewayClient::new(gateway_directory_client, Some(offline_monitor.clone()));
+        gateway_directory_client.refresh_all().await;
+
+        if GATEWAY_DIRECTORY_CLIENT
+            .set(gateway_directory_client.clone())
+            .is_err()
+        {
+            tracing::error!("Failed to set global gateway client");
+        }
 
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,
@@ -326,6 +367,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             nym_config,
             tunnel_settings,
             account_command_tx.clone(),
+            gateway_directory_client,
             offline_monitor,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             route_handler,
