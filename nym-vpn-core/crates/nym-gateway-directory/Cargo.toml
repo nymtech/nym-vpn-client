@@ -13,7 +13,7 @@ futures.workspace = true
 itertools.workspace = true
 nym-client-core.workspace = true
 nym-common.workspace = true
-nym-http-api-client.workspace = true
+nym-http-api-client = { workspace = true, features = ["bincode"] }
 nym-offline-monitor.workspace = true
 nym-sdk.workspace = true
 nym-topology.workspace = true

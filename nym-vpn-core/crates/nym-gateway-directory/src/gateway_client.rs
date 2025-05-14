@@ -127,7 +127,8 @@ impl GatewayClient {
         user_agent: UserAgent,
         static_nym_api_ip_addresses: Option<&[SocketAddr]>,
     ) -> Result<Self> {
-        let api_client = NymApiClient::new_with_user_agent(config.api_url, user_agent.clone());
+        let api_client = NymApiClient::new_with_user_agent(config.api_url, user_agent.clone())
+            .with_bincode(true);
         let nym_vpn_api_client = config
             .nym_vpn_api_url
             .map(|url| {

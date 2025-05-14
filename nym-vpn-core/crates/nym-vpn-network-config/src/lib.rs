@@ -95,11 +95,11 @@ impl Network {
             .first()
             .and_then(|v| v.api_url())
             .ok_or(anyhow::anyhow!("No endpoints found"))?;
-        let network_name = discovery::fetch_nym_network_details(&nym_api_url)
+        let network_name = discovery::fetch_nym_network_details(nym_api_url)
             .map(|resp| resp.map(|d| d.network.network_name));
 
         let nym_vpn_api_url = self.nym_vpn_network.nym_vpn_api_url.clone();
-        let vpn_network_name = discovery::fetch_nym_vpn_network_details(&nym_vpn_api_url)
+        let vpn_network_name = discovery::fetch_nym_vpn_network_details(nym_vpn_api_url)
             .map(|resp| resp.map(|d| d.network_name));
 
         let (network_name, vpn_network_name) = join!(network_name, vpn_network_name);
