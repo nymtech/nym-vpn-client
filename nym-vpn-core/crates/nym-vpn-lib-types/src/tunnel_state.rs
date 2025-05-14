@@ -217,6 +217,7 @@ pub enum ErrorStateReason {
 }
 
 impl ErrorStateReason {
+    /// Returns true if block reason indicates that filtering resolver cannot be configured.
     #[cfg(target_os = "macos")]
     pub fn prevents_filtering_resolver(&self) -> bool {
         matches!(self, ErrorStateReason::SetDns)

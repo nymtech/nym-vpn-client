@@ -50,7 +50,7 @@ impl TunnelStateHandler for DisconnectingState {
         command_rx: &'async_trait mut mpsc::UnboundedReceiver<TunnelCommand>,
         shared_state: &'async_trait mut SharedState,
     ) -> NextTunnelState {
-        // TBD: revisit
+        // Precautionary escape hatch, even though this is unlikely to ever evaluate to true
         if self.tunnel_wait_handle.is_terminated() {
             return NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await);
         }
@@ -95,10 +95,10 @@ impl TunnelStateHandler for DisconnectingState {
                 NextTunnelState::SameState(self)
             }
             _ = shutdown_token.cancelled() => {
-                // Wait for tunnel to exit anyway because it's unsafe to drop the task manager.
                 let tombstone = if self.tunnel_wait_handle.is_terminated() {
                     None
                 } else {
+                    // Wait for tunnel to exit anyway because it's unsafe to drop the task manager.
                     Some(self.tunnel_wait_handle.await)
                 };
 
