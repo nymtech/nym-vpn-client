@@ -25,9 +25,6 @@ pub struct OfflineState {
     /// Whether to connect the tunnel once online
     reconnect: bool,
 
-    /// Last known retry attempt before entering offline state.
-    retry_attempt: u32,
-
     /// Gateways to which the tunnel will reconnect to once online
     selected_gateways: Option<SelectedGateways>,
 }
@@ -35,13 +32,12 @@ pub struct OfflineState {
 impl OfflineState {
     pub async fn enter(
         reconnect: bool,
-        retry_attempt: u32,
         selected_gateways: Option<SelectedGateways>,
         _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
         if Self::set_local_dns_resolver(_shared_state).await.is_err() {
-            return Box::pin(ErrorState::enter(ErrorStateReason::Dns, _shared_state)).await;
+            return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, _shared_state)).await;
         }
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -52,7 +48,6 @@ impl OfflineState {
         (
             Box::new(Self {
                 reconnect,
-                retry_attempt,
                 selected_gateways,
             }),
             PrivateTunnelState::Offline { reconnect },
@@ -142,23 +137,20 @@ impl TunnelStateHandler for OfflineState {
                     }
                 }
             }
-            Some(connectivity) = shared_state.offline_monitor.next() => {
+            Some(connectivity) = shared_state.connectivity_handle.next() => {
+                // See: https://github.com/rust-lang/rust-clippy/issues/14799
+                #[allow(clippy::collapsible_else_if)]
                 if connectivity.is_offline() {
                     NextTunnelState::SameState(self)
-                } else if self.reconnect {
-                    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-                    Self::reset_dns(shared_state).await;
-
-                    NextTunnelState::NewState(ConnectingState::enter(
-                        self.retry_attempt,
-                        self.selected_gateways,
-                        shared_state
-                    ).await)
                 } else {
                     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                     Self::reset_dns(shared_state).await;
 
-                    NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
+                    if self.reconnect {
+                        NextTunnelState::NewState(ConnectingState::enter(0, self.selected_gateways, shared_state).await)
+                    } else {
+                        NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
+                    }
                 }
             }
             _ = shutdown_token.cancelled() => {

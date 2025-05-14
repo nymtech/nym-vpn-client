@@ -418,7 +418,18 @@ impl ResolverImpl {
 
     /// This function is called when a DNS query is sent to the local resolver
     async fn lookup<R: ResponseHandler>(&self, message: &Request, mut response_handler: R) {
-        tracing::info!("Lookup for: {:?}", message);
+        tracing::debug!(
+            "Lookup for: {}, client: {}/{}",
+            message
+                .queries()
+                .iter()
+                .map(|r| format!("{} {}", r.query_type(), r.name()))
+                .collect::<Vec<_>>()
+                .join(","),
+            message.src(),
+            message.protocol(),
+        );
+
         let Some(tx_ref) = self.tx.upgrade() else {
             return;
         };

@@ -44,9 +44,9 @@ type ResolveConfigFuture = BoxFuture<'static, Result<ResolvedConfig>>;
 
 pub struct ConnectingState {
     retry_attempt: u32,
-    monitor_handle: Option<TunnelMonitorHandle>,
-    monitor_event_sender: Option<TunnelMonitorEventSender>,
-    monitor_event_receiver: TunnelMonitorEventReceiver,
+    tunnel_monitor_handle: Option<TunnelMonitorHandle>,
+    tunnel_monitor_event_sender: Option<TunnelMonitorEventSender>,
+    tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
     selected_gateways: Option<SelectedGateways>,
     resolved_gateway_config: Option<ResolvedConfig>,
     resolve_config_fut: Fuse<ResolveConfigFuture>,
@@ -69,7 +69,7 @@ impl ConnectingState {
         }
 
         if shared_state
-            .offline_monitor
+            .connectivity_handle
             .connectivity()
             .await
             .is_offline()
@@ -80,7 +80,7 @@ impl ConnectingState {
                 tracing::debug!("Poking route manager to update default routes");
                 shared_state.route_handler.refresh_routes().await;
             }
-            return OfflineState::enter(true, retry_attempt, selected_gateways, shared_state).await;
+            return OfflineState::enter(true, selected_gateways, shared_state).await;
         }
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -111,15 +111,16 @@ impl ConnectingState {
 
         (
             Box::new(Self {
-                monitor_handle: None,
-                monitor_event_sender: Some(monitor_event_sender),
-                monitor_event_receiver,
+                tunnel_monitor_handle: None,
+                tunnel_monitor_event_sender: Some(monitor_event_sender),
+                tunnel_monitor_event_receiver: monitor_event_receiver,
                 retry_attempt,
                 selected_gateways,
                 resolved_gateway_config: None,
                 resolve_config_fut,
             }),
             PrivateTunnelState::Connecting {
+                retry_attempt: 0,
                 connection_data: None,
             },
         )
@@ -215,7 +216,6 @@ impl ConnectingState {
 
     #[cfg(target_os = "macos")]
     async fn set_local_dns_resolver(shared_state: &mut SharedState) -> Result<()> {
-        #[cfg(target_os = "macos")]
         if *LOCAL_DNS_RESOLVER {
             // Set system DNS to our local DNS resolver
             let system_dns = DnsConfig::default().resolve(
@@ -236,24 +236,32 @@ impl ConnectingState {
         Ok(())
     }
 
-    async fn handle_tunnel_close(mut tombstone: Tombstone, _shared_state: &mut SharedState) {
-        #[cfg(any(target_os = "linux", target_os = "windows"))]
-        {
-            if let Err(e) = _shared_state
-                .dns_handler
-                .reset_before_interface_removal()
-                .await
-            {
-                e.trace_chain_with_msg("Failed to reset dns before interface removal");
-            }
-        }
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    async fn reset_routes(shared_state: &mut SharedState) {
+        shared_state.route_handler.remove_routes().await
+    }
 
+    async fn disconnect(
+        after_disconnect: PrivateActionAfterDisconnect,
+        tunnel_monitor_handle: TunnelMonitorHandle,
+        shared_state: &mut SharedState,
+    ) -> NextTunnelState {
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        Self::reset_routes(shared_state).await;
+
+        NextTunnelState::NewState(DisconnectingState::enter(
+            after_disconnect,
+            tunnel_monitor_handle,
+            shared_state,
+        ))
+    }
+
+    async fn handle_tunnel_close(tombstone: Tombstone, _shared_state: &mut SharedState) {
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         _shared_state.route_handler.remove_routes().await;
 
-        #[cfg(windows)]
-        tombstone.wg_instances.clear();
-        tombstone.tun_devices.clear();
+        // drop tombstone to close tunnel devices
+        let _ = tombstone;
     }
 
     async fn handle_resolved_gateway_config(
@@ -326,7 +334,7 @@ impl ConnectingState {
             );
         }
 
-        let Some(monitor_event_sender) = self.monitor_event_sender.take() else {
+        let Some(tunnel_monitor_event_sender) = self.tunnel_monitor_event_sender.take() else {
             return NextTunnelState::NewState(
                 ErrorState::enter(
                     ErrorStateReason::Internal(
@@ -345,11 +353,11 @@ impl ConnectingState {
             selected_gateways: self.selected_gateways.clone(),
             retry_attempt: self.retry_attempt,
         };
-        let monitor_handle = TunnelMonitor::start(
+        let tunnel_monitor_handle = TunnelMonitor::start(
             tunnel_parameters,
             shared_state.account_command_tx.clone(),
             shared_state.gateway_directory.clone(),
-            monitor_event_sender,
+            tunnel_monitor_event_sender,
             shared_state.mixnet_event_sender.clone(),
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             shared_state.route_handler.clone(),
@@ -357,7 +365,7 @@ impl ConnectingState {
             shared_state.tun_provider.clone(),
         );
 
-        self.monitor_handle = Some(monitor_handle);
+        self.tunnel_monitor_handle = Some(tunnel_monitor_handle);
         self.resolved_gateway_config = Some(resolved_gateway_config);
 
         NextTunnelState::SameState(self)
@@ -439,7 +447,7 @@ impl TunnelStateHandler for ConnectingState {
             resolved_gateway_config = &mut self.resolve_config_fut => {
                 self.handle_resolved_gateway_config(resolved_gateway_config, shared_state).await
             }
-            Some(monitor_event) = self.monitor_event_receiver.recv() => {
+            Some(monitor_event) = self.tunnel_monitor_event_receiver.recv() => {
             match monitor_event {
                 TunnelMonitorEvent::InitializingClient => {
                     NextTunnelState::SameState(self)
@@ -464,11 +472,11 @@ impl TunnelStateHandler for ConnectingState {
                             NextTunnelState::SameState(self)
                         }
                         Err(e) => {
-                            if let Some(monitor_handle) = self.monitor_handle {
+                            if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
                                 NextTunnelState::NewState(DisconnectingState::enter(
                                     // todo: fix that expect()
                                     PrivateActionAfterDisconnect::Error(e.error_state_reason().expect("failed to obtain error state reason")),
-                                    monitor_handle,
+                                    tunnel_monitor_handle,
                                     shared_state
                                 ))
                             } else {
@@ -488,14 +496,15 @@ impl TunnelStateHandler for ConnectingState {
                 }  => {
                     let next_state = match self.handle_interface_up(tunnel_interface, shared_state).await {
                         Ok(()) => {
-                            NextTunnelState::NewState((self, PrivateTunnelState::Connecting { connection_data: Some(*connection_data) }))
+                            let state = PrivateTunnelState::Connecting { retry_attempt: self.retry_attempt, connection_data: Some(*connection_data) };
+                            NextTunnelState::NewState((self, state))
                         },
                         Err(e) => {
-                            if let Some(monitor_handle) = self.monitor_handle {
+                            if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
                                 NextTunnelState::NewState(DisconnectingState::enter(
                                     // todo: fix that expect()
                                     PrivateActionAfterDisconnect::Error(e.error_state_reason().expect("failed to obtain error state reason")),
-                                    monitor_handle,
+                                    tunnel_monitor_handle,
                                     shared_state
                                 ))
                             } else {
@@ -516,8 +525,8 @@ impl TunnelStateHandler for ConnectingState {
                         *connection_data,
                         self.selected_gateways.expect("selected gateways must be set"),
                         self.resolved_gateway_config.expect("resolved gateway config must be set!"),
-                        self.monitor_handle.expect("monitor handle must be set!"),
-                        self.monitor_event_receiver,
+                        self.tunnel_monitor_handle.expect("monitor handle must be set!"),
+                        self.tunnel_monitor_event_receiver,
                         shared_state,
                     ).await)
                 }
@@ -528,12 +537,12 @@ impl TunnelStateHandler for ConnectingState {
                     if let Some(error_state_reason) = error_state_reason {
                         NextTunnelState::NewState(DisconnectingState::enter(
                             PrivateActionAfterDisconnect::Error(error_state_reason),
-                            self.monitor_handle.expect("monitor handle must be set!"),
+                            self.tunnel_monitor_handle.expect("monitor handle must be set!"),
                             shared_state
                         ))
                     } else {
-                        if let Some(monitor_handle) = self.monitor_handle {
-                            let tombstone = monitor_handle.wait().await;
+                        if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
+                            let tombstone = tunnel_monitor_handle.wait().await;
                             Self::handle_tunnel_close(tombstone, shared_state).await;
                         }
 
@@ -555,14 +564,12 @@ impl TunnelStateHandler for ConnectingState {
                 match command {
                     TunnelCommand::Connect => NextTunnelState::SameState(self),
                     TunnelCommand::Disconnect => {
-                        if let Some(monitor_handle ) = self.monitor_handle {
-                            NextTunnelState::NewState(DisconnectingState::enter(
-                                PrivateActionAfterDisconnect::Nothing,
-                                monitor_handle,
-                                shared_state,
-                            ))
+                        if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
+                            Self::disconnect(PrivateActionAfterDisconnect::Nothing, tunnel_monitor_handle, shared_state).await
                         } else {
-                            NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
+                            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                            Self::reset_routes(shared_state).await;
+                            NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
                         }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
@@ -574,12 +581,8 @@ impl TunnelStateHandler for ConnectingState {
 
                             shared_state.tunnel_settings = tunnel_settings;
 
-                            if let Some(monitor_handle) = self.monitor_handle {
-                                NextTunnelState::NewState(DisconnectingState::enter(
-                                    PrivateActionAfterDisconnect::Reconnect { retry_attempt: 0 },
-                                     monitor_handle,
-                                    shared_state,
-                                ))
+                            if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
+                                Self::disconnect(PrivateActionAfterDisconnect::Reconnect, tunnel_monitor_handle, shared_state).await
                             } else {
                                 let next_gateways = if gateways_changed {
                                     None
@@ -592,34 +595,27 @@ impl TunnelStateHandler for ConnectingState {
                     }
                 }
             }
-            Some(connectivity) = shared_state.offline_monitor.next() => {
+            Some(connectivity) = shared_state.connectivity_handle.next() => {
                 if connectivity.is_offline() {
-                    if let Some(monitor_handle) = self.monitor_handle {
-                        NextTunnelState::NewState(DisconnectingState::enter(
-                            PrivateActionAfterDisconnect::Offline {
-                                reconnect: true,
-                                retry_attempt: self.retry_attempt,
-                                gateways: self.selected_gateways
-                            },
-                            monitor_handle,
-                            shared_state
-                        ))
+                    if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
+                        Self::disconnect(PrivateActionAfterDisconnect::Offline {
+                            reconnect: true,
+                            gateways: self.selected_gateways
+                        }, tunnel_monitor_handle, shared_state).await
                     } else {
-                        NextTunnelState::NewState(OfflineState::enter(true, self.retry_attempt, self.selected_gateways, shared_state).await)
+                        NextTunnelState::NewState(OfflineState::enter(true, self.selected_gateways, shared_state).await)
                     }
                 } else {
                     NextTunnelState::SameState(self)
                 }
             }
             _ = shutdown_token.cancelled() => {
-                if let Some(monitor_handle) = self.monitor_handle {
-                    NextTunnelState::NewState(DisconnectingState::enter(
-                        PrivateActionAfterDisconnect::Nothing,
-                        monitor_handle,
-                        shared_state,
-                    ))
+                if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
+                    Self::disconnect(PrivateActionAfterDisconnect::Nothing, tunnel_monitor_handle, shared_state).await
                 } else {
-                    NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
+                    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                    Self::reset_routes(shared_state).await;
+                    NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
                 }
             }
         }

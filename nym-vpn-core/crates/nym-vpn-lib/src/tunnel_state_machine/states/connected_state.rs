@@ -1,9 +1,12 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_vpn_lib_types::ErrorStateReason;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(any(target_os = "linux", target_os = "windows"))]
+use nym_common::ErrorExt;
 #[cfg(target_os = "macos")]
 use nym_dns::DnsConfig;
 #[cfg(target_os = "macos")]
@@ -15,7 +18,7 @@ use nym_gateway_directory::ResolvedConfig;
 use nym_vpn_lib_types::TunnelConnectionData;
 
 use crate::tunnel_state_machine::{
-    states::DisconnectingState,
+    states::{ConnectingState, DisconnectingState},
     tunnel::SelectedGateways,
     tunnel_monitor::{TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorHandle},
     ConnectionData, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState,
@@ -24,13 +27,15 @@ use crate::tunnel_state_machine::{
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use crate::tunnel_state_machine::{Error, Result};
 
+use super::ErrorState;
+
 /// Default websocket port used as a fallback
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 const DEFAULT_WS_PORT: u16 = 80;
 
 pub struct ConnectedState {
-    monitor_handle: TunnelMonitorHandle,
-    monitor_event_receiver: TunnelMonitorEventReceiver,
+    tunnel_monitor_handle: TunnelMonitorHandle,
+    tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
     selected_gateways: SelectedGateways,
     #[cfg_attr(any(target_os = "android", target_os = "ios"), allow(unused))]
     tunnel_interface: TunnelInterface,
@@ -44,13 +49,13 @@ impl ConnectedState {
         connection_data: ConnectionData,
         selected_gateways: SelectedGateways,
         resolved_gateway_config: ResolvedConfig,
-        monitor_handle: TunnelMonitorHandle,
-        monitor_event_receiver: TunnelMonitorEventReceiver,
+        tunnel_monitor_handle: TunnelMonitorHandle,
+        tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
         _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         let connected_state = Self {
-            monitor_handle,
-            monitor_event_receiver,
+            tunnel_monitor_handle,
+            tunnel_monitor_event_receiver,
             selected_gateways,
             tunnel_interface,
             resolved_gateway_config,
@@ -66,7 +71,7 @@ impl ConnectedState {
                     e.error_state_reason()
                         .expect("failed to obtain error state reason"),
                 ),
-                connected_state.monitor_handle,
+                connected_state.tunnel_monitor_handle,
                 _shared_state,
             );
         } else if let Err(e) = connected_state.set_dns(_shared_state).await {
@@ -75,7 +80,7 @@ impl ConnectedState {
                     e.error_state_reason()
                         .expect("failed to obtain error state reason"),
                 ),
-                connected_state.monitor_handle,
+                connected_state.tunnel_monitor_handle,
                 _shared_state,
             );
         }
@@ -182,10 +187,14 @@ impl ConnectedState {
             53,
         );
 
-        let tunnel_metadata = match &self.tunnel_interface {
-            TunnelInterface::One(interface) => interface,
-            TunnelInterface::Two { exit, .. } => exit,
-        };
+        let tunnel_metadata = self.tunnel_interface.exit_tunnel_metadata();
+
+        #[cfg(any(target_os = "linux", target_os = "windows"))]
+        shared_state
+            .dns_handler
+            .set(tunnel_metadata.interface.clone(), dns_config)
+            .await
+            .map_err(Error::SetDns)?;
 
         // On macOS, configure only the local DNS resolver
         #[cfg(target_os = "macos")]
@@ -219,14 +228,71 @@ impl ConnectedState {
                 .map_err(Error::SetDns)?;
         }
 
-        #[cfg(any(target_os = "linux", target_os = "windows"))]
-        shared_state
-            .dns_handler
-            .set(tunnel_metadata.interface.clone(), dns_config)
-            .await
-            .map_err(Error::SetDns)?;
-
         Ok(())
+    }
+
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    async fn reset_dns(shared_state: &mut SharedState) {
+        #[cfg(any(target_os = "linux", target_os = "windows"))]
+        if let Err(error) = shared_state
+            .dns_handler
+            .reset_before_interface_removal()
+            .await
+        {
+            error.trace_chain_with_msg("Failed to reset DNS");
+        }
+
+        // On macOS, configure only the local DNS resolver
+        #[cfg(target_os = "macos")]
+        shared_state.filtering_resolver.disable_forward().await;
+    }
+
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    async fn reset_routes(shared_state: &mut SharedState) {
+        shared_state.route_handler.remove_routes().await
+    }
+
+    async fn disconnect(
+        self,
+        after_disconnect: PrivateActionAfterDisconnect,
+        shared_state: &mut SharedState,
+    ) -> NextTunnelState {
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        {
+            Self::reset_dns(shared_state).await;
+            Self::reset_routes(shared_state).await;
+        }
+
+        NextTunnelState::NewState(DisconnectingState::enter(
+            after_disconnect,
+            self.tunnel_monitor_handle,
+            shared_state,
+        ))
+    }
+
+    async fn handle_tunnel_down(
+        self,
+        error_state_reason: Option<ErrorStateReason>,
+        shared_state: &mut SharedState,
+    ) -> NextTunnelState {
+        if error_state_reason.is_none() {
+            tracing::info!("Tunnel closed. Reconnecting.");
+        }
+
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+        {
+            Self::reset_dns(shared_state).await;
+            Self::reset_routes(shared_state).await;
+        }
+
+        match error_state_reason {
+            Some(block_reason) => {
+                NextTunnelState::NewState(ErrorState::enter(block_reason, shared_state).await)
+            }
+            None => NextTunnelState::NewState(
+                ConnectingState::enter(0, Some(self.selected_gateways), shared_state).await,
+            ),
+        }
     }
 }
 
@@ -241,63 +307,46 @@ impl TunnelStateHandler for ConnectedState {
         tokio::select! {
             Some(command) = command_rx.recv() => {
                 match command {
-                    TunnelCommand::Connect => NextTunnelState::SameState(self),
+                    TunnelCommand::Connect => {
+                        self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
+                    },
                     TunnelCommand::Disconnect => {
-                        NextTunnelState::NewState(DisconnectingState::enter(
-                            PrivateActionAfterDisconnect::Nothing,
-                            self.monitor_handle,
-                            shared_state
-                        ))
+                        self.disconnect(PrivateActionAfterDisconnect::Nothing, shared_state).await
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
                         if shared_state.tunnel_settings == tunnel_settings {
                             NextTunnelState::SameState(self)
                         } else {
                             shared_state.tunnel_settings = tunnel_settings;
-                            NextTunnelState::NewState(DisconnectingState::enter(
-                                PrivateActionAfterDisconnect::Reconnect { retry_attempt: 0 },
-                                self.monitor_handle,
-                                shared_state
-                            ))
+                            self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
                         }
                     }
                 }
             }
-            Some(monitor_event) = self.monitor_event_receiver.recv() => {
+            Some(monitor_event) = self.tunnel_monitor_event_receiver.recv() => {
                 match monitor_event {
                     TunnelMonitorEvent::Down { error_state_reason, reply_tx } => {
-                        let after_disconnect = error_state_reason.map(PrivateActionAfterDisconnect::Error)
-                            .unwrap_or(PrivateActionAfterDisconnect::Reconnect { retry_attempt: 0 });
                         _ = reply_tx.send(());
-
-                        NextTunnelState::NewState(DisconnectingState::enter(after_disconnect, self.monitor_handle, shared_state))
+                        self.handle_tunnel_down(error_state_reason, shared_state).await
                     }
                     _ => {
                         NextTunnelState::SameState(self)
                     }
                 }
             }
-            Some(connectivity) = shared_state.offline_monitor.next() => {
+            Some(connectivity) = shared_state.connectivity_handle.next() => {
                 if connectivity.is_offline() {
-                    NextTunnelState::NewState(DisconnectingState::enter(
-                        PrivateActionAfterDisconnect::Offline {
-                            reconnect: true,
-                            retry_attempt: 0,
-                            gateways: Some(self.selected_gateways)
-                        },
-                        self.monitor_handle,
-                        shared_state
-                    ))
+                    let after_disconnect = PrivateActionAfterDisconnect::Offline {
+                        reconnect: true,
+                        gateways: Some(self.selected_gateways.clone())
+                    };
+                    self.disconnect(after_disconnect, shared_state).await
                 } else {
                     NextTunnelState::SameState(self)
                 }
             }
             _ = shutdown_token.cancelled() => {
-                NextTunnelState::NewState(DisconnectingState::enter(
-                    PrivateActionAfterDisconnect::Nothing,
-                    self.monitor_handle,
-                    shared_state
-                ))
+                self.disconnect(PrivateActionAfterDisconnect::Nothing, shared_state).await
             }
         }
     }

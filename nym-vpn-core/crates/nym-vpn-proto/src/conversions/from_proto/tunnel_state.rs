@@ -11,7 +11,6 @@ use nym_vpn_lib_types::{
     NymAddress, TunnelConnectionData, TunnelState, WireguardConnectionData, WireguardNode,
 };
 
-use crate::tunnel_state::ErrorStateReason;
 use crate::{
     conversions::ConversionError,
     tunnel_connection_data::{
@@ -21,8 +20,8 @@ use crate::{
     tunnel_state::{
         ActionAfterDisconnect as ProtoActionAfterDisconnect, Connected as ProtoConnected,
         Connecting as ProtoConnecting, Disconnected as ProtoDisconnected,
-        Disconnecting as ProtoDisconnecting, Error as ProtoError, Offline as ProtoOffline,
-        State as ProtoState,
+        Disconnecting as ProtoDisconnecting, Error as ProtoError, ErrorStateReason,
+        Offline as ProtoOffline, State as ProtoState,
     },
     Address as ProtoAddress, ConnectionData as ProtoConnectionData, Gateway as ProtoGateway,
     MixnetConnectionData as ProtoMixnetConnectionData,
@@ -82,10 +81,16 @@ impl TryFrom<ProtoTunnelState> for TunnelState {
                     after_disconnect: ActionAfterDisconnect::from(proto_after_disconnect),
                 }
             }
-            ProtoState::Connecting(ProtoConnecting { connection_data }) => {
+            ProtoState::Connecting(ProtoConnecting {
+                retry_attempt,
+                connection_data,
+            }) => {
                 let connection_data = connection_data.map(ConnectionData::try_from).transpose()?;
 
-                Self::Connecting { connection_data }
+                Self::Connecting {
+                    retry_attempt,
+                    connection_data,
+                }
             }
             ProtoState::Connected(ProtoConnected { connection_data }) => {
                 let connection_data = connection_data

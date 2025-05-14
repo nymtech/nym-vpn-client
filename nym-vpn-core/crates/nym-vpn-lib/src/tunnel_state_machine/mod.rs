@@ -239,9 +239,13 @@ impl From<PrivateTunnelState> for TunnelState {
             PrivateTunnelState::Connected { connection_data } => {
                 Self::Connected { connection_data }
             }
-            PrivateTunnelState::Connecting { connection_data } => {
-                Self::Connecting { connection_data }
-            }
+            PrivateTunnelState::Connecting {
+                retry_attempt,
+                connection_data,
+            } => Self::Connecting {
+                retry_attempt,
+                connection_data,
+            },
             PrivateTunnelState::Disconnecting { after_disconnect } => Self::Disconnecting {
                 after_disconnect: ActionAfterDisconnect::from(after_disconnect),
             },
@@ -256,6 +260,8 @@ impl From<PrivateTunnelState> for TunnelState {
 enum PrivateTunnelState {
     Disconnected,
     Connecting {
+        /// Connection attempt.
+        retry_attempt: u32,
         connection_data: Option<ConnectionData>,
     },
     Connected {
@@ -275,7 +281,7 @@ impl From<PrivateActionAfterDisconnect> for ActionAfterDisconnect {
     fn from(value: PrivateActionAfterDisconnect) -> Self {
         match value {
             PrivateActionAfterDisconnect::Nothing => Self::Nothing,
-            PrivateActionAfterDisconnect::Reconnect { .. } => Self::Reconnect,
+            PrivateActionAfterDisconnect::Reconnect => Self::Reconnect,
             PrivateActionAfterDisconnect::Offline { .. } => Self::Offline,
             PrivateActionAfterDisconnect::Error(_) => Self::Error,
         }
@@ -288,16 +294,13 @@ enum PrivateActionAfterDisconnect {
     /// Do nothing after disconnect
     Nothing,
 
-    /// Reconnect after disconnect, providing the retry attempt counter
-    Reconnect { retry_attempt: u32 },
+    /// Reconnect after disconnect
+    Reconnect,
 
     /// Enter offline state after disconnect
     Offline {
         /// Whether to reconnect the tunnel once back online.
         reconnect: bool,
-
-        /// The last recorded retry attempt passed to connecting state upon reconnect.
-        retry_attempt: u32,
 
         /// The last known gateways passed to connecting state upon reconnect.
         gateways: Option<SelectedGateways>,
@@ -315,6 +318,16 @@ pub enum TunnelInterface {
         entry: TunnelMetadata,
         exit: TunnelMetadata,
     },
+}
+
+impl TunnelInterface {
+    /// Returns exit tunnel metadata
+    pub fn exit_tunnel_metadata(&self) -> &TunnelMetadata {
+        match self {
+            Self::One(metadata) => metadata,
+            Self::Two { exit, .. } => exit,
+        }
+    }
 }
 
 /// Describes tunnel interface configuration.
@@ -362,7 +375,7 @@ pub struct SharedState {
     firewall: Firewall,
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     dns_handler: DnsHandlerHandle,
-    offline_monitor: nym_offline_monitor::ConnectivityHandle,
+    connectivity_handle: nym_offline_monitor::ConnectivityHandle,
     /// Filtering resolver handle
     #[cfg(target_os = "macos")]
     filtering_resolver: resolver::ResolverHandle,
@@ -407,7 +420,7 @@ impl TunnelStateMachine {
         tunnel_settings: TunnelSettings,
         account_command_tx: AccountCommandSender,
         gateway_directory: CachingGatewayClient,
-        offline_monitor: ConnectivityHandle,
+        connectivity_handle: ConnectivityHandle,
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
@@ -428,7 +441,7 @@ impl TunnelStateMachine {
         )
         .map_err(Error::CreateDnsHandler)?;
 
-        let offline_watch = offline_monitor.clone();
+        let offline_watch = connectivity_handle.clone();
         account_command_tx
             .register_offline_monitor(offline_watch)
             .await
@@ -456,7 +469,7 @@ impl TunnelStateMachine {
             firewall,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             dns_handler,
-            offline_monitor,
+            connectivity_handle,
             #[cfg(target_os = "macos")]
             filtering_resolver,
             nym_config,
@@ -469,14 +482,14 @@ impl TunnelStateMachine {
         };
 
         let (current_state_handler, _) = if shared_state
-            .offline_monitor
+            .connectivity_handle
             .connectivity()
             .await
             .is_offline()
         {
-            OfflineState::enter(false, 0, None, &mut shared_state).await
+            OfflineState::enter(false, None, &mut shared_state).await
         } else {
-            DisconnectedState::enter(&mut shared_state).await
+            DisconnectedState::enter(None, &mut shared_state).await
         };
 
         let tunnel_state_machine = Self {
@@ -625,7 +638,7 @@ impl Error {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateRouteHandler(_) | Self::AddRoutes(_) => ErrorStateReason::Routing,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::Dns,
+            Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::SetDns,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateFirewall(_) | Self::ApplyFirewallPolicy(_) => ErrorStateReason::Firewall,
             Self::CreateTunDevice(_) => ErrorStateReason::TunDevice,

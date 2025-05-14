@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::future::{BoxFuture, Fuse, FutureExt};
+use futures::future::{BoxFuture, Fuse, FusedFuture, FutureExt};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -12,74 +12,33 @@ use crate::tunnel_state_machine::{
     NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState, TunnelCommand,
     TunnelStateHandler,
 };
-use nym_common::ErrorExt;
 
 type WaitHandle = BoxFuture<'static, Tombstone>;
 
 pub struct DisconnectingState {
     after_disconnect: PrivateActionAfterDisconnect,
-    retry_attempt: u32,
-    wait_handle: Fuse<WaitHandle>,
+    tunnel_wait_handle: Fuse<WaitHandle>,
 }
 
 impl DisconnectingState {
     pub fn enter(
         after_disconnect: PrivateActionAfterDisconnect,
-        monitor_handle: TunnelMonitorHandle,
+        tunnel_monitor_handle: TunnelMonitorHandle,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         // It's safe to abort status listener as it's stateless.
         if let Some(status_listener_handle) = shared_state.status_listener_handle.take() {
             status_listener_handle.abort();
         }
-        monitor_handle.cancel();
-
-        let retry_attempt =
-            if let PrivateActionAfterDisconnect::Reconnect { retry_attempt } = &after_disconnect {
-                *retry_attempt
-            } else {
-                0
-            };
+        tunnel_monitor_handle.cancel();
 
         (
             Box::new(Self {
                 after_disconnect: after_disconnect.clone(),
-                retry_attempt,
-                wait_handle: monitor_handle.wait().boxed().fuse(),
+                tunnel_wait_handle: tunnel_monitor_handle.wait().boxed().fuse(),
             }),
             PrivateTunnelState::Disconnecting { after_disconnect },
         )
-    }
-
-    async fn handle_tunnel_close(mut tombstone: Tombstone, shared_state: &mut SharedState) {
-        #[cfg(any(target_os = "linux", target_os = "windows"))]
-        if let Err(e) = shared_state
-            .dns_handler
-            .reset_before_interface_removal()
-            .await
-        {
-            e.trace_chain_with_msg("Failed to reset dns before interface removal");
-        }
-
-        // On macOS, configure only the local DNS resolver
-        #[cfg(target_os = "macos")]
-        shared_state.filtering_resolver.disable_forward().await;
-
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        shared_state.route_handler.remove_routes().await;
-
-        tracing::info!("Closing {} tunnel device(s).", tombstone.tun_devices.len());
-        #[cfg(windows)]
-        tombstone.wg_instances.clear();
-        tombstone.tun_devices.clear();
-
-        if let Err(e) = shared_state
-            .account_command_tx
-            .set_static_api_addresses(None)
-            .await
-        {
-            e.trace_chain_with_msg("Failed to unset static API addresses");
-        }
     }
 }
 
@@ -91,20 +50,23 @@ impl TunnelStateHandler for DisconnectingState {
         command_rx: &'async_trait mut mpsc::UnboundedReceiver<TunnelCommand>,
         shared_state: &'async_trait mut SharedState,
     ) -> NextTunnelState {
-        tokio::select! {
-            result = (&mut self.wait_handle) => {
-                Self::handle_tunnel_close(result, shared_state).await;
+        // Precautionary escape hatch, even though this is unlikely to ever evaluate to true
+        if self.tunnel_wait_handle.is_terminated() {
+            return NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await);
+        }
 
+        tokio::select! {
+            tombstone = (&mut self.tunnel_wait_handle) => {
                 match self.after_disconnect {
-                    PrivateActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter(shared_state).await),
+                    PrivateActionAfterDisconnect::Nothing => NextTunnelState::NewState(DisconnectedState::enter(Some(tombstone), shared_state).await),
                     PrivateActionAfterDisconnect::Error(reason) => {
                         NextTunnelState::NewState(ErrorState::enter(reason, shared_state).await)
                     },
-                    PrivateActionAfterDisconnect::Reconnect { retry_attempt } => {
-                        NextTunnelState::NewState(ConnectingState::enter(retry_attempt, None, shared_state).await)
+                    PrivateActionAfterDisconnect::Reconnect => {
+                        NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)
                     },
-                    PrivateActionAfterDisconnect::Offline { reconnect, retry_attempt, gateways } => {
-                        NextTunnelState::NewState(OfflineState::enter(reconnect, retry_attempt, gateways, shared_state).await)
+                    PrivateActionAfterDisconnect::Offline { reconnect, gateways } => {
+                        NextTunnelState::NewState(OfflineState::enter(reconnect, gateways, shared_state).await)
                     }
                 }
             }
@@ -112,16 +74,16 @@ impl TunnelStateHandler for DisconnectingState {
                 match command {
                     TunnelCommand::Connect => {
                         self.after_disconnect = match self.after_disconnect {
-                            PrivateActionAfterDisconnect::Offline { retry_attempt, gateways,  .. } => {
-                                PrivateActionAfterDisconnect::Offline { reconnect: true, retry_attempt, gateways }
+                            PrivateActionAfterDisconnect::Offline { gateways,  .. } => {
+                                PrivateActionAfterDisconnect::Offline { reconnect: true, gateways }
                             }
-                            _ => PrivateActionAfterDisconnect::Reconnect { retry_attempt: self.retry_attempt },
+                            _ => PrivateActionAfterDisconnect::Reconnect,
                         };
                     },
                     TunnelCommand::Disconnect => {
                         self.after_disconnect = match self.after_disconnect {
-                            PrivateActionAfterDisconnect::Offline { retry_attempt, gateways, .. } => {
-                                PrivateActionAfterDisconnect::Offline { reconnect: false,retry_attempt,  gateways }
+                            PrivateActionAfterDisconnect::Offline { gateways, .. } => {
+                                PrivateActionAfterDisconnect::Offline { reconnect: false, gateways }
                             }
                             _ => PrivateActionAfterDisconnect::Nothing
                         };
@@ -133,11 +95,14 @@ impl TunnelStateHandler for DisconnectingState {
                 NextTunnelState::SameState(self)
             }
             _ = shutdown_token.cancelled() => {
-                // Wait for tunnel to exit anyway because it's unsafe to drop the task manager.
-                let result = self.wait_handle.await;
-                Self::handle_tunnel_close(result, shared_state).await;
+                let tombstone = if self.tunnel_wait_handle.is_terminated() {
+                    None
+                } else {
+                    // Wait for tunnel to exit anyway because it's unsafe to drop the task manager.
+                    Some(self.tunnel_wait_handle.await)
+                };
 
-                NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
+                NextTunnelState::NewState(DisconnectedState::enter(tombstone, shared_state).await)
             }
         }
     }
