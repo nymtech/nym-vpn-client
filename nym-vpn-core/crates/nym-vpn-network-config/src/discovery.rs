@@ -146,18 +146,14 @@ impl Discovery {
 
     pub async fn fetch_nym_network_details(&self) -> anyhow::Result<NymNetwork> {
         tracing::debug!("Fetching nym network details");
-        // Spawn the root task
-        let network_details =
-            NymApiClient::builder::<Url, anyhow::Error>(self.nym_api_url.clone())?
-                .build::<anyhow::Error>()?
-                .get_network_details()
-                .await?;
+        let client = NymApiClient::new(self.nym_api_url.clone(), None);
+        let network_details = client.get_network_details().await?;
+
         anyhow::ensure!(
             network_details.network.network_name == self.network_name,
             "Network name mismatch between requested and fetched network details"
         );
 
-        // resolve_nym_network_details(&mut network_details.network);
         Ok(NymNetwork {
             network: network_details.network,
         })
@@ -217,21 +213,22 @@ fn empty_user_agent() -> UserAgent {
 }
 
 pub(crate) async fn fetch_nym_network_details(
-    nym_api_url: &Url,
+    nym_api_url: Url,
 ) -> anyhow::Result<NymNetworkDetailsResponse> {
     tracing::debug!("Fetching nym network details");
-    NymApiClient::builder::<Url, anyhow::Error>(nym_api_url.clone())?
-        .build::<anyhow::Error>()?
+    let client = NymApiClient::new(nym_api_url, None);
+
+    client
         .get_network_details()
         .await
         .with_context(|| "Discovery endpoint returned error response".to_owned())
 }
 
 pub(crate) async fn fetch_nym_vpn_network_details(
-    nym_vpn_api_url: &Url,
+    nym_vpn_api_url: Url,
 ) -> anyhow::Result<NymWellknownDiscoveryItem> {
     tracing::debug!("Fetching nym vpn network details");
-    VpnApiClient::new(nym_vpn_api_url.clone(), empty_user_agent())?
+    VpnApiClient::new(nym_vpn_api_url, empty_user_agent())?
         .get_wellknown_current_env()
         .await
         .with_context(|| "Discovery endpoint returned error response".to_owned())
