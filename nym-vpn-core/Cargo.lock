@@ -578,6 +578,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "bindgen"
+version = "0.71.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5f58bf3d7db68cfbac37cfc485a8d711e87e064c3d0fe0435b92f7a407f9d6b3"
+dependencies = [
+ "bitflags 2.9.0",
+ "cexpr",
+ "clang-sys",
+ "itertools 0.13.0",
+ "log",
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "regex",
+ "rustc-hash 2.1.1",
+ "shlex",
+ "syn 2.0.101",
+]
+
+[[package]]
 name = "bip32"
 version = "0.5.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -838,9 +858,9 @@ dependencies = [
 
 [[package]]
 name = "cbindgen"
-version = "0.27.0"
+version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3fce8dd7fcfcbf3a0a87d8f515194b49d6135acab73e18bd380d1d93bb1a15eb"
+checksum = "eadd868a2ce9ca38de7eeafdcec9c7065ef89b42b32f0839278d55f35c54d1ff"
 dependencies = [
  "heck 0.4.1",
  "indexmap 2.9.0",
@@ -5883,7 +5903,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be769465445e8c1474e9c5dac2018218498557af32d9ed057325ec9a41ae81bf"
 dependencies = [
  "heck 0.5.0",
- "itertools 0.13.0",
+ "itertools 0.14.0",
  "log",
  "multimap",
  "once_cell",
@@ -5903,7 +5923,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
 dependencies = [
  "anyhow",
- "itertools 0.13.0",
+ "itertools 0.14.0",
  "proc-macro2",
  "quote",
  "syn 2.0.101",
@@ -6373,11 +6393,11 @@ dependencies = [
 
 [[package]]
 name = "rust2go"
-version = "0.3.17"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cedb3ca308113535deaf2e0cce0fe93bb53d5f4b1e571a13c701e5bca5b1c3ed"
+checksum = "b72d44674ddf3acb250c3cf3a608e928c6a0aa176f0f8fa9f83e7778ae713519"
 dependencies = [
- "bindgen",
+ "bindgen 0.71.1",
  "rust2go-cli",
  "rust2go-convert",
  "rust2go-macro",
@@ -6386,21 +6406,21 @@ dependencies = [
 
 [[package]]
 name = "rust2go-cli"
-version = "0.3.10"
+version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d64d615f7bbfe41a95bfb28d3e7d37881c98e2bc9239abe1ffa280ab2ebbdb6f"
+checksum = "5f5b73395abf8ad750730351b7bcb5b8fc637dadf3d900f55dc59953a5b15bf6"
 dependencies = [
  "cbindgen",
  "clap",
- "itertools 0.13.0",
+ "itertools 0.14.0",
  "rust2go-common",
 ]
 
 [[package]]
 name = "rust2go-common"
-version = "0.3.12"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e6cbc4f2ec83801d291d9285112d664ced769c3c141ae800bda677452d57ff3"
+checksum = "04274cfe9552d6893cf9cb17652de327c3b0f4f912b5372a904d9d97da9204c5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6415,9 +6435,9 @@ checksum = "b4c9b9dcfbeec346b228b700861dc2b43f32ab6679b6440db3eedc459ef024be"
 
 [[package]]
 name = "rust2go-macro"
-version = "0.3.10"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae4424d0b8a209333ede9b90e1d2c581413871ad23b7cec8a73d649599c295ec"
+checksum = "9f195b1658c4984e70f0aef27b49a1d2b98e106a1418542017dfc9d11636e7c4"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -7943,7 +7963,7 @@ version = "0.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "528bdd1f0e27b5dd9a4ededf154e824b0532731e4af73bb531de46276e0aab1e"
 dependencies = [
- "bindgen",
+ "bindgen 0.70.1",
  "cc",
  "cfg-if",
  "once_cell",
