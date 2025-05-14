@@ -140,20 +140,15 @@ impl TunnelStateHandler for OfflineState {
             Some(connectivity) = shared_state.connectivity_handle.next() => {
                 if connectivity.is_offline() {
                     NextTunnelState::SameState(self)
-                } else if self.reconnect {
-                    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-                    Self::reset_dns(shared_state).await;
-
-                    NextTunnelState::NewState(ConnectingState::enter(
-                        0,
-                        self.selected_gateways,
-                        shared_state
-                    ).await)
                 } else {
                     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                     Self::reset_dns(shared_state).await;
 
-                    NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
+                    if self.reconnect {
+                        NextTunnelState::NewState(ConnectingState::enter(0, self.selected_gateways, shared_state).await)
+                    } else {
+                        NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
+                    }
                 }
             }
             _ = shutdown_token.cancelled() => {

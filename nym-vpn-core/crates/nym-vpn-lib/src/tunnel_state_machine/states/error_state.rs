@@ -151,6 +151,9 @@ impl TunnelStateHandler for ErrorState {
             Some(command) = command_rx.recv() => {
                 match command {
                     TunnelCommand::Connect => {
+                        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                        Self::reset_dns(shared_state).await;
+
                         if shared_state.connectivity_handle.connectivity().await.is_offline() {
                             NextTunnelState::NewState(OfflineState::enter(true, None, shared_state).await)
                         } else {
@@ -158,6 +161,9 @@ impl TunnelStateHandler for ErrorState {
                         }
                     },
                     TunnelCommand::Disconnect => {
+                        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                        Self::reset_dns(shared_state).await;
+
                         if shared_state.connectivity_handle.connectivity().await.is_offline() {
                             NextTunnelState::NewState(OfflineState::enter(false, None, shared_state).await)
                         } else {
@@ -173,8 +179,8 @@ impl TunnelStateHandler for ErrorState {
             _ = shutdown_token.cancelled() => {
                 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                 {
-                    Self::reset_firewall_policy(shared_state);
                     Self::reset_dns(shared_state).await;
+                    Self::reset_firewall_policy(shared_state);
                 }
                 NextTunnelState::Finished
             }
