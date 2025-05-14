@@ -308,7 +308,9 @@ impl TunnelStateHandler for ConnectedState {
         tokio::select! {
             Some(command) = command_rx.recv() => {
                 match command {
-                    TunnelCommand::Connect => NextTunnelState::SameState(self),
+                    TunnelCommand::Connect => {
+                        self.disconnect(PrivateActionAfterDisconnect::Reconnect, shared_state).await
+                    },
                     TunnelCommand::Disconnect => {
                         self.disconnect(PrivateActionAfterDisconnect::Nothing, shared_state).await
                     },
