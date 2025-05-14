@@ -41,6 +41,18 @@ extension ToggleViewModel {
     }
 }
 
+// MARK: - Accessibility -
+extension ToggleViewModel {
+    func accessibilityValue() -> String {
+        let value = isOn ? "general.on".localizedString : "general.off".localizedString
+        if isDisabled {
+            return "\(value) \("accessibility.dimmed".localizedString)"
+        } else {
+            return value
+        }
+    }
+}
+
 private extension ToggleViewModel {
     func configure(with isOn: Bool) {
         offset.negate()

@@ -7,7 +7,7 @@ let package = Package(
     name: "Settings",
     defaultLocalization: "en",
     platforms: [
-        .iOS(.v16),
+        .iOS(.v17),
         .macOS(.v13)
     ],
     products: [
