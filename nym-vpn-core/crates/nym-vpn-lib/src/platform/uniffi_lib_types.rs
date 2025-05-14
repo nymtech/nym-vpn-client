@@ -469,7 +469,7 @@ impl From<CoreVpnApiErrorResponseTop> for VpnApiError {
     fn from(value: CoreVpnApiErrorResponseTop) -> Self {
         match value {
             CoreVpnApiErrorResponseTop::Timeout(..) => Self::Timeout,
-            CoreVpnApiErrorResponseTop::StatusCode(code) => Self::StatusCode(code),
+            CoreVpnApiErrorResponseTop::StatusCode { code, .. } => Self::StatusCode(code),
             CoreVpnApiErrorResponseTop::Response(response) => Self::Response(response.into()),
         }
     }

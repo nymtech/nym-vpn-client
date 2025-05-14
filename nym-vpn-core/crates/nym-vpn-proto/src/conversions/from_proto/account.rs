@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::Arc;
+
 use nym_vpn_lib_types::{
     ForgetAccountError, RegisterDeviceError, RequestZkNymErrorReason, RequestZkNymSuccess,
     StoreAccountError, SyncAccountError, SyncDeviceError, VpnApiError, VpnApiErrorResponse,
@@ -169,6 +171,10 @@ impl TryFrom<ProtoForgetAccountError> for ForgetAccountError {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+#[error("empty")]
+struct EmptyError;
+
 impl TryFrom<ProtoVpnApiError> for VpnApiError {
     type Error = ConversionError;
 
@@ -177,10 +183,11 @@ impl TryFrom<ProtoVpnApiError> for VpnApiError {
             .error_detail
             .ok_or(ConversionError::NoValueSet("VpnApiError.error_detail"))?;
         Ok(match error_detail {
-            crate::vpn_api_error::ErrorDetail::Timeout(_) => Self::Timeout("".to_string().into()),
-            crate::vpn_api_error::ErrorDetail::StatusCode(code) => {
-                Self::StatusCode(code.try_into().map_err(ConversionError::generic)?)
-            }
+            crate::vpn_api_error::ErrorDetail::Timeout(_) => Self::Timeout(Arc::new(EmptyError)),
+            crate::vpn_api_error::ErrorDetail::StatusCode(code) => Self::StatusCode {
+                code: code.try_into().map_err(ConversionError::generic)?,
+                source: Arc::new(EmptyError),
+            },
             crate::vpn_api_error::ErrorDetail::Response(vpn_api_error_response) => {
                 Self::Response(vpn_api_error_response.into())
             }

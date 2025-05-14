@@ -90,33 +90,52 @@ impl From<RequestZkNymVec> for AccountCommandError {
     }
 }
 
-#[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
+#[derive(Clone, Debug, thiserror::Error)]
 pub enum VpnApiError {
     #[error("timeout")]
-    Timeout(#[source] StringError),
+    Timeout(#[source] Arc<dyn std::error::Error + Send + Sync>),
 
-    #[error("status code: {0}")]
-    StatusCode(u16),
+    #[error("status code: {code}")]
+    StatusCode {
+        code: u16,
+        source: Arc<dyn std::error::Error + Send + Sync>,
+    },
 
     #[error(transparent)]
     Response(#[from] VpnApiErrorResponse),
 }
 
-#[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
-#[error("{0}")]
-pub struct StringError(String);
+// We want to keep the source error for logging, while at the same time it needs to be PartialEq
+// and Eq. This is a workaround to make it work.
 
-impl From<String> for StringError {
-    fn from(value: String) -> Self {
-        StringError(value)
+impl PartialEq for VpnApiError {
+    fn eq(&self, other: &Self) -> bool {
+        use VpnApiError::*;
+        match (self, other) {
+            (Timeout(a), Timeout(b)) => a.to_string() == b.to_string(),
+            (
+                StatusCode {
+                    code: a,
+                    source: a_source,
+                },
+                StatusCode {
+                    code: b,
+                    source: b_source,
+                },
+            ) => a == b && a_source.to_string() == b_source.to_string(),
+            (Response(err), Response(other_err)) => err == other_err,
+            _ => false,
+        }
     }
 }
+
+impl Eq for VpnApiError {}
 
 impl VpnApiError {
     pub fn message(&self) -> String {
         match self {
             VpnApiError::Response(err) => err.message.clone(),
-            VpnApiError::StatusCode(_) => self.to_string(),
+            VpnApiError::StatusCode { .. } => self.to_string(),
             VpnApiError::Timeout(_) => self.to_string(),
         }
     }
@@ -148,12 +167,18 @@ impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
         };
 
         if nym_vpn_api_client::response::error_is_reqwest_timeout(&err) {
-            return Ok(Self::Timeout(err.to_string().into()));
+            return Ok(Self::Timeout(Arc::new(err)));
         }
 
-        nym_vpn_api_client::response::extract_error_response_status_code(&err)
-            .map(Self::StatusCode)
-            .ok_or(err)
+        match nym_vpn_api_client::response::extract_error_response_status_code(&err) {
+            Some(code) => {
+                return Ok(Self::StatusCode {
+                    code,
+                    source: Arc::new(err),
+                })
+            }
+            None => Err(err),
+        }
     }
 }
 
