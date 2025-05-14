@@ -177,7 +177,7 @@ impl TryFrom<ProtoVpnApiError> for VpnApiError {
             .error_detail
             .ok_or(ConversionError::NoValueSet("VpnApiError.error_detail"))?;
         Ok(match error_detail {
-            crate::vpn_api_error::ErrorDetail::Timeout(_) => Self::Timeout,
+            crate::vpn_api_error::ErrorDetail::Timeout(_) => Self::Timeout("".to_string().into()),
             crate::vpn_api_error::ErrorDetail::StatusCode(code) => {
                 Self::StatusCode(code.try_into().map_err(ConversionError::generic)?)
             }

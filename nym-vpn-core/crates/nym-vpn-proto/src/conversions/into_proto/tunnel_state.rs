@@ -270,7 +270,7 @@ impl From<ForgetAccountError> for ProtoForgetAccountError {
 impl From<VpnApiError> for ProtoVpnApiError {
     fn from(value: VpnApiError) -> Self {
         let error_detail = match value {
-            VpnApiError::Timeout => crate::vpn_api_error::ErrorDetail::Timeout(true),
+            VpnApiError::Timeout(..) => crate::vpn_api_error::ErrorDetail::Timeout(true),
             VpnApiError::StatusCode(code) => {
                 crate::vpn_api_error::ErrorDetail::StatusCode(code.into())
             }

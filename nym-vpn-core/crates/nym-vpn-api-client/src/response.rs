@@ -571,6 +571,18 @@ where
     }
 }
 
+// pub fn extract_reqwest_timeout<E>(err: &E) -> Option<reqwest::Error>
+// where
+//     E: std::error::Error + 'static,
+// {
+//     if let Some(reqwest_error) = extract_reqwest_error(err) {
+//         if reqwest_error.is_timeout() {
+//             return Some(reqwest_error.clone());
+//         }
+//     }
+//     None
+// }
+
 pub fn extract_error_response<E>(err: &E) -> Option<NymErrorResponse>
 where
     E: std::error::Error + 'static,

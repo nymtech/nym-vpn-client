@@ -279,7 +279,7 @@ impl From<VpnApiError> for ClientErrorReason {
         match error {
             VpnApiError::Response(e) => e.into(),
             VpnApiError::StatusCode(_) => Self::Api(Some(error.to_string())),
-            VpnApiError::Timeout => Self::Api(Some(error.to_string())),
+            VpnApiError::Timeout(..) => Self::Api(Some(error.to_string())),
         }
     }
 }

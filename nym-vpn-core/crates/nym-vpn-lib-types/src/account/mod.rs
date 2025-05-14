@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::fmt::Debug;
+use std::{fmt::Debug, sync::Arc};
 
 pub mod forget_account;
 pub mod register_device;
@@ -93,7 +93,7 @@ impl From<RequestZkNymVec> for AccountCommandError {
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
 pub enum VpnApiError {
     #[error("timeout")]
-    Timeout,
+    Timeout(#[source] StringError),
 
     #[error("status code: {0}")]
     StatusCode(u16),
@@ -102,12 +102,22 @@ pub enum VpnApiError {
     Response(#[from] VpnApiErrorResponse),
 }
 
+#[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
+#[error("{0}")]
+pub struct StringError(String);
+
+impl From<String> for StringError {
+    fn from(value: String) -> Self {
+        StringError(value)
+    }
+}
+
 impl VpnApiError {
     pub fn message(&self) -> String {
         match self {
             VpnApiError::Response(err) => err.message.clone(),
             VpnApiError::StatusCode(_) => self.to_string(),
-            VpnApiError::Timeout => self.to_string(),
+            VpnApiError::Timeout(_) => self.to_string(),
         }
     }
 
@@ -138,7 +148,7 @@ impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
         };
 
         if nym_vpn_api_client::response::error_is_reqwest_timeout(&err) {
-            return Ok(Self::Timeout);
+            return Ok(Self::Timeout(err.to_string().into()));
         }
 
         nym_vpn_api_client::response::extract_error_response_status_code(&err)
