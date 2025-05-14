@@ -160,13 +160,11 @@ impl From<SyncDeviceError> for ProtoSyncDeviceError {
             SyncDeviceError::NoDeviceStored => ProtoSyncDeviceError {
                 error_detail: Some(crate::sync_device_error::ErrorDetail::NoDeviceStored(true)),
             },
-            SyncDeviceError::SyncDeviceEndpointFailure(vpn_api) => {
-                ProtoSyncDeviceError {
-                    error_detail: Some(crate::sync_device_error::ErrorDetail::VpnApi(
-                        vpn_api.into(),
-                    )),
-                }
-            }
+            SyncDeviceError::SyncDeviceEndpointFailure(vpn_api) => ProtoSyncDeviceError {
+                error_detail: Some(crate::sync_device_error::ErrorDetail::VpnApi(
+                    vpn_api.into(),
+                )),
+            },
             SyncDeviceError::UnexpectedResponse(err) => ProtoSyncDeviceError {
                 error_detail: Some(crate::sync_device_error::ErrorDetail::UnexpectedResponse(
                     err,
