@@ -50,9 +50,6 @@ const networkCompat: NetworkCompat = {
   tauri: true,
   core: true,
 };
-const env = {
-  DEV_MODE: true,
-};
 
 export function mockTauriIPC() {
   mockWindows('main');
@@ -206,10 +203,6 @@ export function mockTauriIPC() {
 
     if (cmd === 'network_compat') {
       return new Promise<NetworkCompat>((resolve) => resolve(networkCompat));
-    }
-
-    if (cmd === 'env') {
-      return new Promise((resolve) => resolve(env));
     }
 
     if (cmd === 'get_credentials_mode') {

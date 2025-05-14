@@ -19,7 +19,6 @@ use clap::Parser;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;
 use commands::dev as cmd_dev;
-use commands::env as cmd_env;
 use commands::fs as cmd_fs;
 use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
@@ -234,7 +233,6 @@ async fn main() -> Result<()> {
             cmd_daemon::vpnd_log_dir,
             cmd_fs::log_dir,
             startup::startup_error,
-            cmd_env::env,
         ])
         // keep the app running in the background on window close request
         .on_window_event(|win, event| {

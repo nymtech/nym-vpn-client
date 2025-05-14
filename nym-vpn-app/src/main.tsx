@@ -34,6 +34,7 @@ import 'dayjs/locale/tr';
 import 'dayjs/locale/uk';
 import 'dayjs/locale/zh-cn';
 
+const devMode = window._APP.devMode;
 const ErrorWindowLabel = 'error';
 
 if (!import.meta.env.DEV) {
@@ -81,10 +82,8 @@ async function setSplashTheme(window: WebviewWindow) {
     await setSplashTheme(window);
   }
 
-  const env = await invoke<Record<string, unknown>>('env');
-  if (env.DEV_MODE === true) {
+  if (devMode) {
     console.info('dev mode enabled');
-    S_STATE.devMode = true;
   }
 
   S_STATE.vpnd =
