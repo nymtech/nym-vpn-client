@@ -185,10 +185,7 @@ impl ConnectedState {
             53,
         );
 
-        let tunnel_metadata = match &self.tunnel_interface {
-            TunnelInterface::One(interface) => interface,
-            TunnelInterface::Two { exit, .. } => exit,
-        };
+        let tunnel_metadata = self.tunnel_interface.exit_tunnel_metadata();
 
         #[cfg(any(target_os = "linux", target_os = "windows"))]
         shared_state

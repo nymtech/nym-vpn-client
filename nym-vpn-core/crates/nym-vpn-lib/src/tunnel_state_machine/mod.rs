@@ -320,6 +320,16 @@ pub enum TunnelInterface {
     },
 }
 
+impl TunnelInterface {
+    /// Returns exit tunnel metadata
+    pub fn exit_tunnel_metadata(&self) -> &TunnelMetadata {
+        match self {
+            Self::One(metadata) => metadata,
+            Self::Two { exit, .. } => exit,
+        }
+    }
+}
+
 /// Describes tunnel interface configuration.
 #[derive(Debug, Clone)]
 #[cfg_attr(any(target_os = "ios", target_os = "android"), allow(unused))]
