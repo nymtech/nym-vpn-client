@@ -237,7 +237,7 @@
     <string name="bypass_lan">LAN をバイパス</string>
     <string name="bandwidth_error">月間の帯域幅を超えています。アカウントのプランをアップグレードしてください。</string>
     <string name="max_devices_error">アカウントデバイスの上限を超えています。接続する前にアカウントからデバイスを削除してください</string>
-    <string name="pricing_url">nym.com/pricing</string>
+    <string name="pricing_url">https://nym.com/pricing</string>
     <string name="account_id">アカウントID:</string>
     <string name="developer">開発者向け</string>
     <string name="get_help">ヘルプ</string>

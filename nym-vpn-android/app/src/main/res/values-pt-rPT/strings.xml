@@ -239,11 +239,11 @@
     <string name="bypass_lan">Ignorar LAN</string>
     <string name="bandwidth_error">Largura de banda mensal excedida. Atualize o seu plano de conta.</string>
     <string name="max_devices_error">Limite de dispositivos da conta excedido. Retire um dispositivo da sua conta antes de estabelecer a ligação.</string>
-    <string name="pricing_url">nym.com/pricing</string>
+    <string name="pricing_url">https://nym.com/pricing</string>
     <string name="account_id">ID da conta:</string>
     <string name="developer">Programador</string>
     <string name="get_help">Obter ajuda</string>
     <string name="telegram_url">https://nym.com/go/telegram</string>
     <string name="join_telegram">Junte-se a nós no Telegram</string>
-    <string name="device_time_out_of_sync">Device time ouf of sync</string>
+    <string name="device_time_out_of_sync">Device time out of sync</string>
 </resources>

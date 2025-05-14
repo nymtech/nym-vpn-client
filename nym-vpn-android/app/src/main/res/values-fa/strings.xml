@@ -239,7 +239,7 @@
     <string name="bypass_lan">عبور از شبکه محلی LAN</string>
     <string name="bandwidth_error">بسته ماهانه شما به اتمام رسیده. لطفاَ بسته جدید بخرید.</string>
     <string name="max_devices_error">تعداد دستگاه های متصل به حساب کاربری شما از حداکثر مجاز عبور کرده. لطفاً قبل از اتصال، یکی از دستگاههای متصل را از حساب کاربری خود حذف کنید.</string>
-    <string name="pricing_url">nym.com/pricing</string>
+    <string name="pricing_url">https://nym.com/pricing</string>
     <string name="account_id">شناسه حساب کاربری:</string>
     <string name="developer">توسعه‌دهنده</string>
     <string name="get_help">کمک گرفتن</string>

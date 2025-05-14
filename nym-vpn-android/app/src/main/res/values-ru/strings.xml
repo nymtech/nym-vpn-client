@@ -239,7 +239,7 @@
     <string name="bypass_lan">Обход LAN</string>
     <string name="bandwidth_error">Превышен месячный лимит трафика. Пожалуйста, обновите план вашего аккаунта.</string>
     <string name="max_devices_error">Превышен лимит устройств для аккаунта. Пожалуйста, удалите одно из устройств из аккаунта перед подключением.</string>
-    <string name="pricing_url">nym.com/pricing</string>
+    <string name="pricing_url">https://nym.com/pricing</string>
     <string name="account_id">ID аккаунта:</string>
     <string name="developer">Разработчик</string>
     <string name="get_help">Получить помощь</string>
