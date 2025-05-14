@@ -410,7 +410,7 @@ impl TunnelStateMachine {
         tunnel_settings: TunnelSettings,
         account_command_tx: AccountCommandSender,
         gateway_directory: CachingGatewayClient,
-        offline_monitor: ConnectivityHandle,
+        connectivity_handle: ConnectivityHandle,
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
@@ -431,7 +431,7 @@ impl TunnelStateMachine {
         )
         .map_err(Error::CreateDnsHandler)?;
 
-        let offline_watch = offline_monitor.clone();
+        let offline_watch = connectivity_handle.clone();
         account_command_tx
             .register_offline_monitor(offline_watch)
             .await
@@ -459,7 +459,7 @@ impl TunnelStateMachine {
             firewall,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             dns_handler,
-            connectivity_handle: offline_monitor,
+            connectivity_handle,
             #[cfg(target_os = "macos")]
             filtering_resolver,
             nym_config,
