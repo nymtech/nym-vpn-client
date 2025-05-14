@@ -140,16 +140,16 @@ impl DnsMonitorHolder {
     ) -> Result<()> {
         use self::DnsMonitorHolder::*;
         match self {
-            Resolvconf(ref mut resolvconf) => resolvconf.set_dns(interface, servers)?,
-            StaticResolvConf(ref mut static_resolv_conf) => {
+            Resolvconf(resolvconf) => resolvconf.set_dns(interface, servers)?,
+            StaticResolvConf(static_resolv_conf) => {
                 static_resolv_conf.set_dns(servers.to_vec()).await?
             }
-            SystemdResolved(ref mut systemd_resolved) => {
+            SystemdResolved(systemd_resolved) => {
                 systemd_resolved
                     .set_dns(route_manager.clone(), interface, servers)
                     .await?
             }
-            NetworkManager(ref mut network_manager) => {
+            NetworkManager(network_manager) => {
                 network_manager.set_dns(interface, servers)?
             }
         }
@@ -159,10 +159,10 @@ impl DnsMonitorHolder {
     async fn reset(&mut self) -> Result<()> {
         use self::DnsMonitorHolder::*;
         match self {
-            Resolvconf(ref mut resolvconf) => resolvconf.reset()?,
-            StaticResolvConf(ref mut static_resolv_conf) => static_resolv_conf.reset().await?,
-            SystemdResolved(ref mut systemd_resolved) => systemd_resolved.reset().await?,
-            NetworkManager(ref mut network_manager) => network_manager.reset()?,
+            Resolvconf(resolvconf) => resolvconf.reset()?,
+            StaticResolvConf(static_resolv_conf) => static_resolv_conf.reset().await?,
+            SystemdResolved(systemd_resolved) => systemd_resolved.reset().await?,
+            NetworkManager(network_manager) => network_manager.reset()?,
         }
         Ok(())
     }

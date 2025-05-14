@@ -391,8 +391,11 @@ impl TunnelMonitor {
             #[cfg(target_os = "android")]
             tun_provider.bypass(_fd);
             #[cfg(target_os = "linux")]
-            if let Err(err) = Mark.set(unsafe { &BorrowedFd::borrow_raw(_fd) }, &TUNNEL_FWMARK) {
-                tracing::error!("Could not fwmark mixnet fd: {err}");
+            {
+                let borrowed_fd = unsafe { &BorrowedFd::borrow_raw(_fd) };
+                if let Err(err) = Mark.set(borrowed_fd, &TUNNEL_FWMARK) {
+                    tracing::error!("Could not fwmark mixnet fd: {err}");
+                }
             }
         };
         let mut connected_mixnet = tunnel::connect_mixnet(
