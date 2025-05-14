@@ -37,7 +37,7 @@ impl OfflineState {
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
         if Self::set_local_dns_resolver(_shared_state).await.is_err() {
-            return Box::pin(ErrorState::enter(ErrorStateReason::Dns, _shared_state)).await;
+            return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, _shared_state)).await;
         }
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -153,7 +153,7 @@ impl TunnelStateHandler for OfflineState {
                     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                     Self::reset_dns(shared_state).await;
 
-                    NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
+                    NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
                 }
             }
             _ = shutdown_token.cancelled() => {

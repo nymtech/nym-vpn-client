@@ -160,7 +160,7 @@ pub enum ErrorStateReason {
     Routing,
 
     /// Failure to configure dns.
-    Dns,
+    SetDns,
 
     /// Failure to configure tunnel device.
     TunDevice,
@@ -216,6 +216,13 @@ pub enum ErrorStateReason {
     Internal(String),
 }
 
+impl ErrorStateReason {
+    #[cfg(target_os = "macos")]
+    pub fn prevents_filtering_resolver(&self) -> bool {
+        matches!(self, ErrorStateReason::SetDns)
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum ClientErrorReason {
     Firewall,
@@ -262,7 +269,7 @@ impl From<ErrorStateReason> for ClientErrorReason {
             ErrorStateReason::Routing => Self::Routing,
             ErrorStateReason::ResolveGatewayAddrs => Self::Dns(Some(value.to_string())),
             ErrorStateReason::StartLocalDnsResolver => Self::Dns(Some(value.to_string())),
-            ErrorStateReason::Dns => Self::Dns(Some(value.to_string())),
+            ErrorStateReason::SetDns => Self::Dns(Some(value.to_string())),
             ErrorStateReason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
         }
     }

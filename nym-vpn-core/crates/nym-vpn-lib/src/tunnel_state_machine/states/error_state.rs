@@ -53,10 +53,11 @@ impl ErrorState {
         _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
-        if !Self::prevents_filtering_resolver(&reason)
-            && Self::set_local_dns_resolver(_shared_state).await.is_err()
-        {
-            return Box::pin(Self::enter(ErrorStateReason::Dns, _shared_state)).await;
+        if !reason.prevents_filtering_resolver() {
+            // Set system DNS to our local DNS resolver
+            if Self::set_local_dns_resolver(_shared_state).await.is_err() {
+                return Box::pin(Self::enter(ErrorStateReason::SetDns, _shared_state)).await;
+            }
         }
 
         #[cfg(target_os = "ios")]
@@ -119,11 +120,6 @@ impl ErrorState {
             .map_err(Error::SetDns)
     }
 
-    #[cfg(target_os = "macos")]
-    fn prevents_filtering_resolver(reason: &ErrorStateReason) -> bool {
-        matches!(reason, ErrorStateReason::Dns)
-    }
-
     /// Configure tunnel with network settings blocking all traffic
     #[cfg(target_os = "ios")]
     async fn set_blocking_network_settings(tun_provider: Arc<dyn OSTunProvider>) {
@@ -165,7 +161,7 @@ impl TunnelStateHandler for ErrorState {
                         if shared_state.offline_monitor.connectivity().await.is_offline() {
                             NextTunnelState::NewState(OfflineState::enter(false, None, shared_state).await)
                         } else {
-                            NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
+                            NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
                         }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {

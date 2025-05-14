@@ -9,6 +9,7 @@ use nym_common::ErrorExt;
 
 use crate::tunnel_state_machine::{
     states::{ConnectingState, OfflineState},
+    tunnel::Tombstone,
     NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
 };
 
@@ -16,12 +17,12 @@ pub struct DisconnectedState;
 
 impl DisconnectedState {
     pub async fn enter(
+        tombstone: Option<Tombstone>,
         shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
-        if let Err(error) = shared_state.dns_handler.reset().await {
-            error.trace_chain_with_msg("Failed to disable filtering resolver");
-        }
+        Self::reset_dns(shared_state).await;
+
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         Self::reset_firewall_policy(shared_state);
 
@@ -33,6 +34,9 @@ impl DisconnectedState {
             e.trace_chain_with_msg("Failed to unset static API addresses");
         }
 
+        // Drop tombstone to close tunnel devices.
+        let _ = tombstone;
+
         (Box::new(Self), PrivateTunnelState::Disconnected)
     }
 
@@ -40,6 +44,12 @@ impl DisconnectedState {
     fn reset_firewall_policy(shared_state: &mut SharedState) {
         if let Err(e) = shared_state.firewall.reset_policy() {
             e.trace_chain_with_msg("Failed to reset firewall policy");
+        }
+    }
+
+    async fn reset_dns(shared_state: &mut SharedState) {
+        if let Err(error) = shared_state.dns_handler.reset().await {
+            error.trace_chain_with_msg("Failed to reset DNS");
         }
     }
 }
@@ -73,6 +83,7 @@ impl TunnelStateHandler for DisconnectedState {
                 }
             }
             _ = shutdown_token.cancelled() => {
+                Self::reset_dns(shared_state).await;
                 NextTunnelState::Finished
             }
         }

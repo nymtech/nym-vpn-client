@@ -479,7 +479,7 @@ impl TunnelStateMachine {
         {
             OfflineState::enter(false, None, &mut shared_state).await
         } else {
-            DisconnectedState::enter(&mut shared_state).await
+            DisconnectedState::enter(None, &mut shared_state).await
         };
 
         let tunnel_state_machine = Self {
@@ -628,7 +628,7 @@ impl Error {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateRouteHandler(_) | Self::AddRoutes(_) => ErrorStateReason::Routing,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::Dns,
+            Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::SetDns,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateFirewall(_) | Self::ApplyFirewallPolicy(_) => ErrorStateReason::Firewall,
             Self::CreateTunDevice(_) => ErrorStateReason::TunDevice,
