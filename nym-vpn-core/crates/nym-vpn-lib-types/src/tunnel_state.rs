@@ -71,7 +71,8 @@ impl fmt::Display for TunnelState {
                         write!(
                             f,
                             "Connecting mixnet tunnel to {} → {} (entry: {} → exit: {}), attempt {}",
-                            data.entry_ip, data.exit_ip,
+                            data.entry_ip,
+                            data.exit_ip,
                             data.nym_address.gateway_id(),
                             data.exit_ipr.gateway_id(),
                             retry_attempt

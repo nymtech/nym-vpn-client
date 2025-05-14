@@ -3,12 +3,13 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::{
+    Error, InterfaceAndGateway, Result,
     default_route_monitor::{DefaultRouteMonitor, EventType as RouteMonitorEventType},
-    get_best_default_route, Error, InterfaceAndGateway, Result,
+    get_best_default_route,
 };
 use crate::NetNode;
 use ipnetwork::IpNetwork;
-use nym_windows::net::{try_socketaddr_from_inet_sockaddr, AddressFamily};
+use nym_windows::net::{AddressFamily, try_socketaddr_from_inet_sockaddr};
 use std::{
     collections::HashMap,
     io,
@@ -17,28 +18,28 @@ use std::{
 };
 use widestring::{WideCStr, WideCString};
 use windows::{
-    core::HSTRING,
     Win32::{
         Foundation::{
-            ERROR_BUFFER_OVERFLOW, ERROR_NOT_FOUND, ERROR_NO_DATA, ERROR_OBJECT_ALREADY_EXISTS,
+            ERROR_BUFFER_OVERFLOW, ERROR_NO_DATA, ERROR_NOT_FOUND, ERROR_OBJECT_ALREADY_EXISTS,
             ERROR_SUCCESS,
         },
         NetworkManagement::{
             IpHelper::{
                 ConvertInterfaceAliasToLuid, CreateIpForwardEntry2, DeleteIpForwardEntry2,
-                GetAdaptersAddresses, InitializeIpForwardEntry, SetIpForwardEntry2,
                 GAA_FLAG_INCLUDE_GATEWAYS, GAA_FLAG_SKIP_ANYCAST, GAA_FLAG_SKIP_DNS_SERVER,
                 GAA_FLAG_SKIP_FRIENDLY_NAME, GAA_FLAG_SKIP_MULTICAST, GET_ADAPTERS_ADDRESSES_FLAGS,
-                IP_ADAPTER_ADDRESSES_LH, IP_ADAPTER_GATEWAY_ADDRESS_LH, IP_ADAPTER_IPV4_ENABLED,
-                IP_ADAPTER_IPV6_ENABLED, IP_ADDRESS_PREFIX, MIB_IPFORWARD_ROW2,
+                GetAdaptersAddresses, IP_ADAPTER_ADDRESSES_LH, IP_ADAPTER_GATEWAY_ADDRESS_LH,
+                IP_ADAPTER_IPV4_ENABLED, IP_ADAPTER_IPV6_ENABLED, IP_ADDRESS_PREFIX,
+                InitializeIpForwardEntry, MIB_IPFORWARD_ROW2, SetIpForwardEntry2,
             },
             Ndis::NET_LUID_LH,
         },
         Networking::WinSock::{
-            NlroManual, ADDRESS_FAMILY, AF_INET, AF_INET6, MIB_IPPROTO_NETMGMT, SOCKADDR_IN,
+            ADDRESS_FAMILY, AF_INET, AF_INET6, MIB_IPPROTO_NETMGMT, NlroManual, SOCKADDR_IN,
             SOCKADDR_IN6, SOCKADDR_INET, SOCKET_ADDRESS,
         },
     },
+    core::HSTRING,
 };
 
 type Network = IpNetwork;

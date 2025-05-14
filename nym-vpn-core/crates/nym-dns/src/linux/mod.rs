@@ -149,9 +149,7 @@ impl DnsMonitorHolder {
                     .set_dns(route_manager.clone(), interface, servers)
                     .await?
             }
-            NetworkManager(network_manager) => {
-                network_manager.set_dns(interface, servers)?
-            }
+            NetworkManager(network_manager) => network_manager.set_dns(interface, servers)?,
         }
         Ok(())
     }
