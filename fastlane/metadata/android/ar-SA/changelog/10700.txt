@@ -1,0 +1,5 @@
+What's new:
+- In app language selector
+- More languages
+- Improved status synchronization
+- Various bug fixes and improvements

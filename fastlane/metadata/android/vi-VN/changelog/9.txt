@@ -1,0 +1,4 @@
+Có gì mới:
+- Sửa lỗi hoạt ảnh điều hướng
+- Sửa các lỗi trên màn hình đăng nhập thông tin
+- Sửa lỗi API danh sách quốc gia và tính năng tìm kiếm

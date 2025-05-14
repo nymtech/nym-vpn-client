@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<string name="vpn_notification_title">NymVPN</string>
+	<string name="channel_name">Kênh NymVPN</string>
+	<string name="channel_description">Kênh thông báo liên quan đến VPN.</string>
+	<string name="vpn_notification_text">Đang chạy</string>
+	<string name="failed">Không thành công</string>
+</resources>

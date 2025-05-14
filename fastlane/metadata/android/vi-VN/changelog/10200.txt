@@ -1,0 +1,5 @@
+Có gì mới:
+- Sửa lỗi đồng bộ trạng thái kết nối
+- Cải thiện thông báo lỗi
+- Thêm quy trình xử lý khi bị từ chối quyền
+- Xóa nhật ký debug khỏi bản phát hành

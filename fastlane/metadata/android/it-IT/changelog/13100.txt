@@ -1,0 +1,2 @@
+What's new:
+- Improved connection reliability

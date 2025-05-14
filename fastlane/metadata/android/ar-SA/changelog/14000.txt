@@ -1,0 +1,12 @@
+What's new:
+
+Enhancements:
+- Update color pairs and styles
+- Update Settings / Support & feedback menu
+
+Bugs:
+- Fix when reopening a minimized app, Connect leads to the login screen
+- Fix forSyncAccount error
+- Fixes for connection drops and instability
+- Fixes for app crashing during speed tests in mixnet mode
+- [Android 12] Fix for disconnection/freeze after 1 or 2 hours

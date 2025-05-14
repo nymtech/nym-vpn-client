@@ -1,0 +1,2 @@
+Yenilikler:
+- API değişiklikleri için düzeltme

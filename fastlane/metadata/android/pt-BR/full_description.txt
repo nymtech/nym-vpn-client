@@ -1,49 +1,49 @@
 Baixe a VPN mais segura da Nym e proteja sua atividade online.
-Com o nosso aplicativo, você pode ocultar seu endereço IP, criptografar seu tráfego e manter sua identidade online protegida.
 
-Muitas entidades na internet podem espionar sua atividade e capturar seus dados. Governos, big techs, corretores de dados, provedores de internet e anunciantes tentam monitorar sua navegação. Escândalos recentes de vazamento de dados mostraram que nem mesmo as empresas tradicionais de VPN são confiáveis.
+Muitas entidades na internet podem espionar sua atividade e capturar seus dados.
+Governos, big techs, corretores de dados, provedores de internet e anunciantes tentam monitorar sua navegação. Escândalos recentes de vazamento de dados mostraram que nem mesmo as empresas tradicionais de VPN são confiáveis.
 
 Nossa VPN foi criada para garantir privacidade real, eliminando qualquer possibilidade de registro ou rastreamento da sua atividade.
 
-NymVPN é um novo tipo de VPN, projetada para impedir qualquer monitoramento ou registro de dados — até por nós.
-Ela funciona em uma rede descentralizada, sem partes confiáveis, componentes centralizados ou pontos únicos de falha. Tudo ocorre de forma distribuída, impossibilitando a criação de registros centralizados.
+NymVPN é um novo tipo de VPN, projetada para impedir qualquer monitoramento ou registro de dados — até por nós. Nossa VPN opera em uma rede descentralizada, sem partes confiáveis, componentes centralizados ou pontos únicos de falha. Todas as funcionalidades do NymVPN são executadas de forma descentralizada e distribuída, e não há possibilidade de ativar o registro centralizado.
 
-NossoaVPN criptografa dados e protege metadados contra análise de tráfego usando uma Mixnet descentralizada. Isso significa que não há como a Nym registrar sua atividade, e sem registros, ninguém pode acessá-la.
+Nossa VPN criptografa dados e protege metadados contra análise de tráfego usando uma Mixnet descentralizada. Isso significa que não há como a Nym registrar sua atividade, e sem registros, ninguém pode acessá-la.
+
 O que é uma Mixnet? Uma Mixnet é uma rede de nós que:
 1. Recebe o tráfego criptografado
 2. Mistura os pacotes de tráfego
-3. Redireciona os pacotes
-Esse processo acontece até 5 vezes (5-hops), tornando impossível rastrear sua atividade online.
+3. Redirecionam o tráfego
+Esse processo acontece até 5 vezes (5-saltos), tornando impossível rastrear sua atividade online.
 
-Por que escolher a NymVPN?
+É por isso que você deve escolher nossa VPN descentralizada, segura e privada
 
 Privacidade
 Nossa dVPN foi criada para garantir sua privacidade. Não armazenamos registros (no-logs policy) nem rastreamos sua atividade. Mesmo que tentassem roubar seus dados, não haveria nada para capturar.
 
 Resistência à censura
-Nosso aplicativo mantém sua navegação anônima. Ele criptografa seu tráfego, IP, localização e qualquer outro dado que possa ser monitorado. Você também conta com recursos como o killswitch para segurança adicional.
+Nosso aplicativo VPN torna sua atividade ‘online’ completamente anônima. Ele criptografa seu tráfego, IP, localização e qualquer outro dado que possa ser monitorado. Você também conta com recursos como o killswitch para segurança adicional.
 
 Velocidade
-A rede cresce continuamente com novos nós se juntando ao Mixnet. Além disso, usamos algoritmos criptográficos modernos e protocolos inovadores, como Sphinx e Loopix, para garantir conexões rápidas.
+Nossa rede VPN cresce continuamente com novos nós se juntando à Mixnet. Além disso, usamos algoritmos criptográficos modernos e protocolos inovadores, como Sphinx e Loopix, para garantir conexões rápidas.
 
 Localização à sua escolha
 Com o NymVPN, você pode se conectar a diversos locais ao redor do mundo.
 Baixe o app → Escolha a localização → Conecte-se
 
 Pagamentos com criptomoedas
-Aceitamos criptomoedas para oferecer mais privacidade e liberdade de pagamento.
+Você está procurando uma VPN que aceite pagamentos criptomoedas? Aqui estamos. Estamos felizes em aceitar pagamentos com criptomoedas.
 
 Sem anúncios
-Não exibimos anúncios, pois nosso compromisso é proteger sua privacidade.
+Desfrute de sua VPN sem anúncios. Não exibimos anúncios, pois nosso compromisso é proteger sua privacidade.
 
 Uso ilimitado
-Desfrute da internet sem restrições. O NymVPN não limita seu tráfego.
+O NymVPN não limita seu tráfego.
 
-Recursos da NymVPN
-- 5-hop Mixnet: Tráfego criptografado e enviado por 5 mixnodes, tornando impossível rastrear sua atividade.
-- 2-hop dVPN: Opção com menos hops para maior velocidade.
-- Sem registros centralizados: Nenhum log de atividade é armazenado.
-- Garantia de reembolso: Se não estiver satisfeito, entre em contato pelo e-mail support@nymvpn.com.
-- Split tunneling: Escolha quais aplicativos usam a VPN e quais acessam a internet diretamente.
-- Ocultação de IP: O dVPN esconde todas as informações vinculadas a você, incluindo seu endereço IP.
-- Killswitch: Se a conexão cair, o killswitch bloqueia o acesso à internet para manter seus dados seguros.
+Nossos recursos mais queridos da VPN:
+- 5-hop Mixnet: seu tráfego de Internet será criptografado e enviado para mixnodes que o misturarão com outros pacotes de tráfego 5 vezes, impossibilitando que alguém rastreie sua atividade online.
+— dVPN com 2 saltos: neste caso, seu tráfego é criptografado e enviado para 2 mixodes que vão misturá-lo. O número reduzido de saltos resulta em maior velocidade.
+- Sem registros centralizados: não armazenamos nenhum registro de atividade, o que impossibilita que qualquer pessoa tenha acesso à sua atividade na Internet por nosso intermédio.
+- Garantia de devolução do dinheiro: se você não estiver satisfeito com o produto, oferecemos uma política de garantia de devolução do dinheiro. Se não estiver satisfeito com algo, envie-nos um email para support@nymvpn.com. Estamos sempre procurando melhorar.
+- Tunelamento dividido: você pode escolher facilmente quais dos seus aplicativos acessarão a Internet por meio da VPN e quais acessarão a Internet diretamente.
+- Ocultar IP: nossa dVPN ocultará todas as informações relacionadas a você, inclusive seu endereço IP.
+- Hide IP: our dVPN will hide all information about you, including your IP address.
