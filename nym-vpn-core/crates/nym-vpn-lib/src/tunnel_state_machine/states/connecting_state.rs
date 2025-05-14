@@ -236,6 +236,7 @@ impl ConnectingState {
         Ok(())
     }
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn reset_routes(shared_state: &mut SharedState) {
         shared_state.route_handler.remove_routes().await
     }
@@ -566,6 +567,7 @@ impl TunnelStateHandler for ConnectingState {
                         if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
                             Self::disconnect(PrivateActionAfterDisconnect::Nothing, tunnel_monitor_handle, shared_state).await
                         } else {
+                            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                             Self::reset_routes(shared_state).await;
                             NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
                         }
@@ -611,6 +613,7 @@ impl TunnelStateHandler for ConnectingState {
                 if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
                     Self::disconnect(PrivateActionAfterDisconnect::Nothing, tunnel_monitor_handle, shared_state).await
                 } else {
+                    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                     Self::reset_routes(shared_state).await;
                     NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
                 }

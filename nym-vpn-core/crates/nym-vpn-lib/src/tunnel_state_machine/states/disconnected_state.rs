@@ -4,7 +4,6 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_common::ErrorExt;
 
 use crate::tunnel_state_machine::{
@@ -47,6 +46,7 @@ impl DisconnectedState {
         }
     }
 
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn reset_dns(shared_state: &mut SharedState) {
         if let Err(error) = shared_state.dns_handler.reset().await {
             error.trace_chain_with_msg("Failed to reset DNS");
@@ -83,6 +83,7 @@ impl TunnelStateHandler for DisconnectedState {
                 }
             }
             _ = shutdown_token.cancelled() => {
+                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                 Self::reset_dns(shared_state).await;
                 NextTunnelState::Finished
             }
