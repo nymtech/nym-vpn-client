@@ -12,12 +12,7 @@ import App from './App';
 import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
 import initSentry from './sentry';
-import {
-  StartupError as TStartupError,
-  ThemeMode,
-  VpnMode,
-  VpndStatus,
-} from './types';
+import { ThemeMode, VpnMode, VpndStatus } from './types';
 import { StartupError } from './screens';
 import { init } from './log';
 import { DefaultVpnMode } from './constants';
@@ -35,6 +30,7 @@ import 'dayjs/locale/uk';
 import 'dayjs/locale/zh-cn';
 
 const devMode = window._APP.devMode;
+const startupError = window._APP.startupError;
 const ErrorWindowLabel = 'error';
 
 if (!import.meta.env.DEV) {
@@ -93,8 +89,7 @@ async function setSplashTheme(window: WebviewWindow) {
     (await kvGet<boolean>('welcome-screen-seen')) || false;
 
   // check for unrecoverable errors
-  const error = await invoke<TStartupError | undefined>('startup_error');
-  if (error) {
+  if (startupError) {
     console.info('get unrecoverable error');
     if (window.label !== ErrorWindowLabel) {
       // the index.html entry point is called by all webview windows rendering it
@@ -106,7 +101,7 @@ async function setSplashTheme(window: WebviewWindow) {
 
     ReactDOM.createRoot(document.getElementById('root')!).render(
       <React.StrictMode>
-        <StartupError error={error} theme={theme} />
+        <StartupError error={startupError} theme={theme} />
       </React.StrictMode>,
     );
     return;

@@ -4,7 +4,7 @@
 use std::time::Duration;
 
 use crate::cli::{db_command, Commands};
-use crate::startup_error::ErrorKey;
+use crate::startup_error::{ErrorKey, StartupError};
 use crate::window::AppWindow;
 use crate::{
     cli::Cli,
@@ -125,11 +125,16 @@ async fn main() -> Result<()> {
             app.manage(cli.clone());
 
             info!("Creating k/v embedded db");
-            let Ok(db) = Db::new().inspect_err(|e| {
-                startup_error::set_error(ErrorKey::from(e), Some(&e.to_string()));
-            }) else {
-                startup_error::create_window(app.handle())?;
-                return Ok(());
+            let db = match Db::new() {
+                Ok(db) => db,
+                Err(e) => {
+                    error!("failed to open the embedded db: {e}");
+                    startup_error::create_window(
+                        app.handle(),
+                        StartupError::new(ErrorKey::from(&e), Some(e.to_string())),
+                    )?;
+                    return Ok(());
+                }
             };
             app.manage(db.clone());
 
@@ -232,7 +237,6 @@ async fn main() -> Result<()> {
             cmd_daemon::network_compat,
             cmd_daemon::vpnd_log_dir,
             cmd_fs::log_dir,
-            startup::startup_error,
         ])
         // keep the app running in the background on window close request
         .on_window_event(|win, event| {

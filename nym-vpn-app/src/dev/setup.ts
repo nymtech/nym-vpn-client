@@ -68,10 +68,6 @@ export function mockTauriIPC() {
       return new Promise<VpndStatus>((resolve) => resolve(daemon));
     }
 
-    if (cmd === 'startup_error') {
-      return null;
-    }
-
     if (cmd === 'connect') {
       await emit(TunnelStateEvent, { state: { connecting: null } });
       return new Promise<null>((resolve) =>

@@ -6,6 +6,5 @@ pub mod dev;
 pub mod fs;
 pub mod gateway;
 pub mod log;
-pub mod startup;
 pub mod tunnel;
 pub mod window;
