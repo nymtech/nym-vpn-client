@@ -5,6 +5,8 @@ use nym_vpn_lib_types::ErrorStateReason;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
+#[cfg(any(target_os = "linux", target_os = "windows"))]
+use nym_common::ErrorExt;
 #[cfg(target_os = "macos")]
 use nym_dns::DnsConfig;
 #[cfg(target_os = "macos")]
