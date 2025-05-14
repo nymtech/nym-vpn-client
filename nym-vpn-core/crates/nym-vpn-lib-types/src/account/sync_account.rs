@@ -26,27 +26,7 @@ pub enum SyncAccountError {
 }
 
 impl SyncAccountError {
-    pub fn unexpected_response(err: impl Debug + std::fmt::Display + std::error::Error) -> Self {
-        // println!("Unexpected response: {err}");
-        // println!("Unexpected response: {err:?}");
-        // println!("Unexpected response: {}", err.source().unwrap());
-        // println!("Unexpected response: {:?}", err.source().unwrap());
-        // println!(
-        //     "Unexpected response: {}",
-        //     err.source().unwrap().source().unwrap()
-        // );
-        // println!(
-        //     "Unexpected response: {:?}",
-        //     err.source().unwrap().source().unwrap()
-        // );
-        // println!(
-        //     "Unexpected response: {}",
-        //     err.source().unwrap().source().unwrap().source().unwrap()
-        // );
-        // println!(
-        //     "Unexpected response: {:?}",
-        //     err.source().unwrap().source().unwrap().source().unwrap()
-        // );
+    pub fn unexpected_response(err: impl Debug) -> Self {
         SyncAccountError::UnexpectedResponse(format!("{err:?}"))
     }
 
