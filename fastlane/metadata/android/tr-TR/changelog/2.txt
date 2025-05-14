@@ -1,0 +1,3 @@
+Yenilikler:
+- Proguard düzeltildi
+- Kullanıcı arayüzü güncellendi

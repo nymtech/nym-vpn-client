@@ -1,0 +1,5 @@
+Yenilikler:
+- Dosya tanımlayıcısı hatası düzeltmesi
+- v5 Nym API hatası düzeltmesi
+- IPv6/IPv4 VPN durma sorunları düzeltmesi
+- Diğer hata düzeltmeleri

@@ -1,0 +1,3 @@
+Quais as novidades:
+- Adição da credencial para conectar
+- Adição de armazenamento criptografado para credenciais

@@ -1,0 +1,5 @@
+Có gì mới:
+- Sửa lỗi mô tả tập tin
+- Sửa lỗi API v5 của Nym
+- Sửa lỗi dừng vpn ipv6/ipv4
+- Sửa các lỗi khác

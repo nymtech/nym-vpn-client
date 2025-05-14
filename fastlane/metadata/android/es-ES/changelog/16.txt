@@ -1,0 +1,5 @@
+Novedades:
+- Mejoras en la interfaz
+- Mejoras de caché
+- Añadida integración del harbour master
+- Mejora en la sincronización del estado de los accesos rápidos
