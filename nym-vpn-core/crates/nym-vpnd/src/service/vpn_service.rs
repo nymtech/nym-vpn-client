@@ -351,7 +351,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let gateway_directory_client =
             GatewayClient::new(gateway_config, user_agent.clone()).unwrap();
         let gateway_directory_client =
-            CachingGatewayClient::new(gateway_directory_client, Some(offline_monitor.clone()));
+            CachingGatewayClient::new(gateway_directory_client, Some(connectivity_handle.clone()));
         gateway_directory_client.refresh_all().await;
 
         if GATEWAY_DIRECTORY_CLIENT

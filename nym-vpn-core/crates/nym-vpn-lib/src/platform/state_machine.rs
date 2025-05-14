@@ -146,7 +146,7 @@ pub(super) async fn start_state_machine(
     .await;
 
     gateway_directory_client
-        .set_connectivity_handle(offline_monitor.clone())
+        .set_connectivity_handle(connectivity_handle.clone())
         .await;
 
     let shutdown_token = CancellationToken::new();
