@@ -137,7 +137,7 @@ impl TunnelStateHandler for OfflineState {
                     }
                 }
             }
-            Some(connectivity) = shared_state.offline_monitor.next() => {
+            Some(connectivity) = shared_state.connectivity_handle.next() => {
                 if connectivity.is_offline() {
                     NextTunnelState::SameState(self)
                 } else if self.reconnect {

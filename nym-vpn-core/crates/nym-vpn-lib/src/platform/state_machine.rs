@@ -135,7 +135,7 @@ pub(super) async fn start_state_machine(
         .await
         .map_err(crate::tunnel_state_machine::Error::CreateRouteHandler)?;
 
-    let offline_monitor = nym_offline_monitor::spawn_monitor(
+    let connectivity_handle = nym_offline_monitor::spawn_monitor(
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler.inner_handle(),
         #[cfg(target_os = "android")]
@@ -157,7 +157,7 @@ pub(super) async fn start_state_machine(
         tunnel_settings,
         account_controller_tx,
         gateway_directory_client,
-        offline_monitor,
+        connectivity_handle,
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler,
         #[cfg(any(target_os = "ios", target_os = "android"))]

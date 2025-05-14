@@ -333,7 +333,7 @@ impl TunnelStateHandler for ConnectedState {
                     }
                 }
             }
-            Some(connectivity) = shared_state.offline_monitor.next() => {
+            Some(connectivity) = shared_state.connectivity_handle.next() => {
                 if connectivity.is_offline() {
                     let after_disconnect = PrivateActionAfterDisconnect::Offline {
                         reconnect: true,

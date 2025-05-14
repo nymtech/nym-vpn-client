@@ -365,7 +365,7 @@ pub struct SharedState {
     firewall: Firewall,
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     dns_handler: DnsHandlerHandle,
-    offline_monitor: nym_offline_monitor::ConnectivityHandle,
+    connectivity_handle: nym_offline_monitor::ConnectivityHandle,
     /// Filtering resolver handle
     #[cfg(target_os = "macos")]
     filtering_resolver: resolver::ResolverHandle,
@@ -459,7 +459,7 @@ impl TunnelStateMachine {
             firewall,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             dns_handler,
-            offline_monitor,
+            connectivity_handle: offline_monitor,
             #[cfg(target_os = "macos")]
             filtering_resolver,
             nym_config,
@@ -472,7 +472,7 @@ impl TunnelStateMachine {
         };
 
         let (current_state_handler, _) = if shared_state
-            .offline_monitor
+            .connectivity_handle
             .connectivity()
             .await
             .is_offline()

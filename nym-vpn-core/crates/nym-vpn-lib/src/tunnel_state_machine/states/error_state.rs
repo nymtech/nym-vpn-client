@@ -151,14 +151,14 @@ impl TunnelStateHandler for ErrorState {
             Some(command) = command_rx.recv() => {
                 match command {
                     TunnelCommand::Connect => {
-                        if shared_state.offline_monitor.connectivity().await.is_offline() {
+                        if shared_state.connectivity_handle.connectivity().await.is_offline() {
                             NextTunnelState::NewState(OfflineState::enter(true, None, shared_state).await)
                         } else {
                             NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)
                         }
                     },
                     TunnelCommand::Disconnect => {
-                        if shared_state.offline_monitor.connectivity().await.is_offline() {
+                        if shared_state.connectivity_handle.connectivity().await.is_offline() {
                             NextTunnelState::NewState(OfflineState::enter(false, None, shared_state).await)
                         } else {
                             NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)

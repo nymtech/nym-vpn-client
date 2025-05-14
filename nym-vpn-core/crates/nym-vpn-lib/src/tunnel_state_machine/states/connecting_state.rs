@@ -69,7 +69,7 @@ impl ConnectingState {
         }
 
         if shared_state
-            .offline_monitor
+            .connectivity_handle
             .connectivity()
             .await
             .is_offline()
@@ -593,7 +593,7 @@ impl TunnelStateHandler for ConnectingState {
                     }
                 }
             }
-            Some(connectivity) = shared_state.offline_monitor.next() => {
+            Some(connectivity) = shared_state.connectivity_handle.next() => {
                 if connectivity.is_offline() {
                     if let Some(tunnel_monitor_handle) = self.tunnel_monitor_handle {
                         Self::disconnect(PrivateActionAfterDisconnect::Offline {
