@@ -4,9 +4,8 @@
 
 use std::{
     sync::{
-        Arc, OnceLock,
         atomic::{AtomicUsize, Ordering},
-        mpsc,
+        mpsc, Arc, OnceLock,
     },
     time::{Duration, Instant},
 };
@@ -94,7 +93,7 @@ impl DnsApi {
 }
 
 #[link(name = "dnsapi")]
-extern "system" {
+unsafe extern "system" {
     // Flushes the DNS resolver cache
-    pub fn DnsFlushResolverCache() -> BOOL;
+    pub unsafe fn DnsFlushResolverCache() -> BOOL;
 }
