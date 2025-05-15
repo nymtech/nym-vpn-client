@@ -76,7 +76,7 @@ generate-uniffi-ios: ## Generate uniffi for ios
 
 generate-uniffi-android: ## Generate uniffi for android
 	cargo run --bin uniffi-bindgen generate \
-		--library $(CURDIR)/target/armv7-linux-androideabi/release/libnym_vpn_lib.so \
+		--library $(CURDIR)/target/aarch64-linux-android/release/libnym_vpn_lib.so \
 		--language kotlin --out-dir crates/nym-vpn-lib/uniffi -n
 	mv crates/nym-vpn-lib/uniffi/nym_vpn_lib/nym_vpn_lib.kt crates/nym-vpn-lib/uniffi
 	rm -rf crates/nym-vpn-lib/uniffi/nym_vpn_lib/
