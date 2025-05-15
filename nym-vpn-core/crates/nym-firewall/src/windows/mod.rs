@@ -12,12 +12,12 @@ use std::{ffi::CStr, net::IpAddr, ptr, sync::LazyLock};
 
 use nym_common::ErrorExt;
 use widestring::WideCString;
-use windows::Win32::Globalization::{MultiByteToWideChar, CP_ACP, MULTI_BYTE_TO_WIDE_CHAR_FLAGS};
+use windows::Win32::Globalization::{CP_ACP, MULTI_BYTE_TO_WIDE_CHAR_FLAGS, MultiByteToWideChar};
 
 use self::winfw::*;
 use super::{
-    net::{AllowedEndpoint, AllowedTunnelTraffic},
     FirewallArguments, FirewallPolicy, InitialFirewallState,
+    net::{AllowedEndpoint, AllowedTunnelTraffic},
 };
 use crate::FirewallPolicyError;
 
@@ -558,7 +558,7 @@ fn with_wmi_if_enabled(f: impl FnOnce(&wmi::WMIConnection)) {
 
 #[allow(non_snake_case)]
 mod winfw {
-    use super::{widestring_ip, AllowedEndpoint, AllowedTunnelTraffic, Error, WideCString};
+    use super::{AllowedEndpoint, AllowedTunnelTraffic, Error, WideCString, widestring_ip};
     use crate::net::TransportProtocol;
     use std::{
         ffi::{c_char, c_void},
