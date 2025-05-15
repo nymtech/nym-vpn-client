@@ -21,6 +21,9 @@ public enum ErrorReason: LocalizedError {
     case bandwidthExceeded
     case subscriptionExpired
     case api(String)
+    case apiTimeout
+    case apiStatusCode(String)
+    case apiResponse(String)
     case registrationInProgress
     case internalError(String)
     case deviceTimeOutOfSync
@@ -106,6 +109,12 @@ public enum ErrorReason: LocalizedError {
             self = .internalError(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .deviceTimeOutOfSync:
             self = .deviceTimeOutOfSync
+        case .apiTimeout:
+            self = .apiTimeout
+        case .apiStatusCode:
+            self = .apiStatusCode(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .apiResponse:
+            self = .apiResponse(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         }
     }
 
@@ -170,6 +179,12 @@ private extension ErrorReason {
             message
         case .deviceTimeOutOfSync:
             "errorReason.deviceTimeOutOfSync".localizedString
+        case .apiTimeout:
+            "errorReason.apiTimeout".localizedString
+        case let .apiStatusCode(code):
+            code
+        case let .apiResponse(message):
+            message
         }
     }
 }
@@ -196,6 +211,9 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case bandwidthExceeded
     case subscriptionExpired
     case api
+    case apiTimeout
+    case apiStatusCode
+    case apiResponse
     case internalError
     case registrationInProgress
     case deviceTimeOutOfSync
@@ -238,6 +256,12 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .internalError
         case .deviceTimeOutOfSync:
             self = .deviceTimeOutOfSync
+        case .apiTimeout:
+            self = .apiTimeout
+        case .apiStatusCode:
+            self = .apiStatusCode
+        case .apiResponse:
+            self = .apiResponse
         }
     }
 }

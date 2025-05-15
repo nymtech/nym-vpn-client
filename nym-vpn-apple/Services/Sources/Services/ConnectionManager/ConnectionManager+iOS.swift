@@ -36,6 +36,14 @@ extension ConnectionManager {
                     self?.updateTimeConnected()
                 }
             }
+
+        tunnelRetryAttemptCancellable = tunnel.$retryAttempt
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] attempt in
+                MainActor.assumeIsolated {
+                    self?.connectionRetryAttempt = attempt
+                }
+            }
     }
 }
 

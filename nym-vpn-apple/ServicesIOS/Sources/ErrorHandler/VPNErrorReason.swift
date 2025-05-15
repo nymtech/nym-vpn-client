@@ -51,7 +51,14 @@ public enum VPNErrorReason: LocalizedError {
         case .NoDeviceIdentity:
             self = .noDeviceIdentity
         case let .VpnApi(details: vpnApiErrorResponse):
-            self = .vpnApi(details: vpnApiErrorResponse.message)
+            switch vpnApiErrorResponse {
+            case .timeout:
+                self = .vpnApiTimeout
+            case let .statusCode(code):
+                self = .vpnApi(details: String(code))
+            case let .response(errorResponse):
+                self = .vpnApi(details: errorResponse.message)
+            }
         case .VpnApiTimeout:
             self = .vpnApiTimeout
         case let .InvalidMnemonic(details: details):
@@ -66,7 +73,15 @@ public enum VPNErrorReason: LocalizedError {
             case let .storage(message), let .unexpectedResponse(message):
                 messageString = message
             case let .getAccountEndpointFailure(vpnApiErrorResponse):
-                messageString = vpnApiErrorResponse.message
+                switch vpnApiErrorResponse {
+                case .timeout:
+                    self = .vpnApiTimeout
+                case let .statusCode(code):
+                    self = .vpnApi(details: String(code))
+                case let .response(errorResponse):
+                    self = .vpnApi(details: errorResponse.message)
+                }
+                return
             case let .invalidMnemonic(message):
                 messageString = message
             case let .internal(message):
@@ -80,7 +95,15 @@ public enum VPNErrorReason: LocalizedError {
                 self = .noAccountStored
                 return
             case let .errorResponse(vpnApiErrorResponse):
-                messageString = vpnApiErrorResponse.message
+                switch vpnApiErrorResponse {
+                case .timeout:
+                    self = .vpnApiTimeout
+                case let .statusCode(code):
+                    self = .vpnApi(details: String(code))
+                case let .response(errorResponse):
+                    self = .vpnApi(details: errorResponse.message)
+                }
+                return
             case let .unexpectedResponse(message), let .internal(message):
                 messageString = message
             case .offline:
@@ -97,7 +120,15 @@ public enum VPNErrorReason: LocalizedError {
                 self = .noDeviceIdentity
                 return
             case let .errorResponse(vpnApiErrorResponse):
-                messageString = vpnApiErrorResponse.message
+                switch vpnApiErrorResponse {
+                case .timeout:
+                    self = .vpnApiTimeout
+                case let .statusCode(code):
+                    self = .vpnApi(details: String(code))
+                case let .response(errorResponse):
+                    self = .vpnApi(details: errorResponse.message)
+                }
+                return
             case let .unexpectedResponse(message), let .internal(message):
                 messageString = message
             case .offline:
@@ -115,7 +146,15 @@ public enum VPNErrorReason: LocalizedError {
                 self = .noDeviceIdentity
                 return
             case let .errorResponse(vpnApiErrorResponse):
-                messageString = vpnApiErrorResponse.message
+                switch vpnApiErrorResponse {
+                case .timeout:
+                    self = .vpnApiTimeout
+                case let .statusCode(code):
+                    self = .vpnApi(details: String(code))
+                case let .response(errorResponse):
+                    self = .vpnApi(details: errorResponse.message)
+                }
+                return
             case let .unexpectedResponse(message):
                 messageString = message
             case let .internal(message):
@@ -135,7 +174,15 @@ public enum VPNErrorReason: LocalizedError {
                 self = .noDeviceIdentity
                 return
             case let .vpnApi(vpnApiErrorResponse):
-                messageString = vpnApiErrorResponse.message
+                switch vpnApiErrorResponse {
+                case .timeout:
+                    self = .vpnApiTimeout
+                case let .statusCode(code):
+                    self = .vpnApi(details: String(code))
+                case let .response(errorResponse):
+                    self = .vpnApi(details: errorResponse.message)
+                }
+                return
             case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
                 messageString = message
             case .offline:
@@ -151,7 +198,14 @@ public enum VPNErrorReason: LocalizedError {
                 case .noDeviceStored:
                     return "errorReason.noDeviceStored".localizedString
                 case let .vpnApi(vpnApiErrorResponse):
-                    return vpnApiErrorResponse.message
+                    switch vpnApiErrorResponse {
+                    case .timeout:
+                        return VPNErrorReason.vpnApiTimeout.description
+                    case let .statusCode(code):
+                        return String(code)
+                    case let .response(errorResponse):
+                        return errorResponse.message
+                    }
                 case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
                     return message
                 case .offline:
@@ -167,8 +221,16 @@ public enum VPNErrorReason: LocalizedError {
             switch details {
             case .registrationInProgress:
                 messageString = "errorReason.registrationInProgress".localizedString
-            case let .updateDeviceErrorResponse(details):
-                messageString = details.message
+            case let .updateDeviceErrorResponse(vpnApiErrorResponse):
+                switch vpnApiErrorResponse {
+                case .timeout:
+                    self = .vpnApiTimeout
+                case let .statusCode(code):
+                    self = .vpnApi(details: String(code))
+                case let .response(errorResponse):
+                    self = .vpnApi(details: errorResponse.message)
+                }
+                return
             case let .unexpectedResponse(message),
                 let .removeAccount(message), let .removeDeviceKeys(message),
                 let .resetCredentialStorage(message), let .removeAccountFiles(message),

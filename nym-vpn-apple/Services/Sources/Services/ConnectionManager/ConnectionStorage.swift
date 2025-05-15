@@ -88,8 +88,6 @@ private extension ConnectionStorage {
                 let existingCountry = existingCountry(with: gateway.countryCode, nodeType: entryGatewayType)
                 return .country(existingCountry)
             }
-        case .randomLowLatency:
-            return .randomLowLatency
         case .random:
             return .random
         }

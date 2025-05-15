@@ -293,8 +293,7 @@ private extension CountriesManager {
 
             let entryLocations = try getGatewayCountries(
                 gwType: .mixnetEntry,
-                userAgent: userAgent,
-                minGatewayPerformance: nil
+                userAgent: userAgent
             )
             logger.info("Fetched \(entryLocations.count) entry countries")
             let newEntryCountries = entryLocations.compactMap {
@@ -304,8 +303,7 @@ private extension CountriesManager {
 
             let exitLocations = try getGatewayCountries(
                 gwType: .mixnetExit,
-                userAgent: userAgent,
-                minGatewayPerformance: nil
+                userAgent: userAgent
             )
             logger.info("Fetched \(exitLocations.count) exit countries")
             let newExitCountries = exitLocations.compactMap {
@@ -315,8 +313,7 @@ private extension CountriesManager {
 
             let newVpnLocations = try getGatewayCountries(
                 gwType: .wg,
-                userAgent: userAgent,
-                minGatewayPerformance: nil
+                userAgent: userAgent
             )
             logger.info("Fetched \(newVpnLocations.count) vpn countries")
             let newVpnCountries = newVpnLocations.compactMap {

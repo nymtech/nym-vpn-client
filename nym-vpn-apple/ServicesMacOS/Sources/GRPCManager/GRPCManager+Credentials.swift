@@ -12,16 +12,25 @@ extension GRPCManager {
 
             call.response.whenComplete { result in
                 switch result {
-                case .success(let response):
+                case let .success(response):
                     if response.hasError, let errorDetail = response.error.errorDetail {
                         switch errorDetail {
-                        case let .errorResponse(apiErrorResponse):
-                            continuation.resume(throwing: ErrorReason.api(apiErrorResponse.message))
                         case let .internal(message),
                             let .invalidMnemonic(message),
                             let .storageError(message),
                             let .unexpectedResponse(message):
                             continuation.resume(throwing: GeneralNymError.library(message: message))
+                        case let .vpnApi(apiError):
+                            switch apiError.errorDetail {
+                            case .timeout:
+                                continuation.resume(throwing: ErrorReason.apiTimeout)
+                            case let .statusCode(code):
+                                continuation.resume(throwing: ErrorReason.api(String(code)))
+                            case let .response(errorResponse):
+                                continuation.resume(throwing: ErrorReason.apiResponse(errorResponse.message))
+                            case .none:
+                                continuation.resume(throwing: ErrorReason.unknown)
+                            }
                         }
                         break
                     }
@@ -44,8 +53,8 @@ extension GRPCManager {
                 case .success(let response):
                     if response.hasError, let errorDetail = response.error.errorDetail {
                         switch errorDetail {
-                        case let .errorResponse(apiErrorResponse):
-                            continuation.resume(throwing: ErrorReason.api(apiErrorResponse.message))
+//                        case let .errorResponse(apiErrorResponse):
+//                            continuation.resume(throwing: ErrorReason.api(apiErrorResponse.message))
                         case .registrationInProgress(_):
                             continuation.resume(throwing: ErrorReason.registrationInProgress)
                         case let .unexpectedResponse(message),
@@ -56,6 +65,17 @@ extension GRPCManager {
                             let .initDeviceKeys(message),
                             let .internal(message):
                             continuation.resume(throwing: GeneralNymError.library(message: message))
+                        case let .vpnApi(apiError):
+                            switch apiError.errorDetail {
+                            case .timeout:
+                                continuation.resume(throwing: ErrorReason.apiTimeout)
+                            case let .statusCode(code):
+                                continuation.resume(throwing: ErrorReason.api(String(code)))
+                            case let .response(errorResponse):
+                                continuation.resume(throwing: ErrorReason.apiResponse(errorResponse.message))
+                            case .none:
+                                continuation.resume(throwing: ErrorReason.unknown)
+                            }
                         }
                     } else {
                         continuation.resume()

@@ -59,8 +59,6 @@ private extension GRPCManager {
             var gateway = Nym_Vpn_Gateway()
             gateway.id = node.id
             entryNode.gateway = gateway
-        case .randomLowLatency:
-            entryNode.randomLowLatency = Google_Protobuf_Empty()
         case .random:
             entryNode.random = Google_Protobuf_Empty()
         }
