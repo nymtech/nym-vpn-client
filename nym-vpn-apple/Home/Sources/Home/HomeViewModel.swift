@@ -48,6 +48,7 @@ public class HomeViewModel: HomeFlowState {
     @ObservedObject var connectionManager: ConnectionManager
     var cancellables = Set<AnyCancellable>()
     var tunnelStatusUpdateCancellable: AnyCancellable?
+    var tunnelRetryAttemptCancellable: AnyCancellable?
     var lastTunnelStatus = TunnelStatus.disconnected
     var lastError: Error?
 

@@ -27,6 +27,7 @@ public final class ConnectionManager: ObservableObject {
 
     var cancellables = Set<AnyCancellable>()
     var tunnelStatusUpdateCancellable: AnyCancellable?
+    var tunnelRetryAttemptCancellable: AnyCancellable?
 
     // TODO: remove this once iOS tunnel supports tunnel reconnection
     public var isReconnecting = false
