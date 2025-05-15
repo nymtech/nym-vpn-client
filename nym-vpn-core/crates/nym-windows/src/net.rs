@@ -13,7 +13,6 @@ use std::{
 };
 
 use windows::{
-    core::{GUID, HSTRING},
     Win32::{
         Foundation::{ERROR_NOT_FOUND, HANDLE},
         NetworkManagement::{
@@ -22,18 +21,19 @@ use windows::{
                 ConvertInterfaceLuidToGuid, ConvertInterfaceLuidToIndex, CreateIpForwardEntry2,
                 CreateUnicastIpAddressEntry, FreeMibTable, GetIpInterfaceEntry,
                 GetUnicastIpAddressEntry, GetUnicastIpAddressTable, InitializeIpForwardEntry,
-                InitializeUnicastIpAddressEntry, MibAddInstance, NotifyIpInterfaceChange,
-                SetIpInterfaceEntry, MIB_IPINTERFACE_ROW, MIB_NOTIFICATION_TYPE,
-                MIB_UNICASTIPADDRESS_ROW, MIB_UNICASTIPADDRESS_TABLE,
+                InitializeUnicastIpAddressEntry, MIB_IPINTERFACE_ROW, MIB_NOTIFICATION_TYPE,
+                MIB_UNICASTIPADDRESS_ROW, MIB_UNICASTIPADDRESS_TABLE, MibAddInstance,
+                NotifyIpInterfaceChange, SetIpInterfaceEntry,
             },
             Ndis::{IF_MAX_STRING_SIZE, NET_LUID_LH},
         },
         Networking::WinSock::{
-            IpDadStateDeprecated, IpDadStateDuplicate, IpDadStateInvalid, IpDadStatePreferred,
-            IpDadStateTentative, NlroManual, ADDRESS_FAMILY, AF_INET, AF_INET6, AF_UNSPEC,
-            IN6_ADDR, IN_ADDR, MIB_IPPROTO_NT_STATIC, NL_DAD_STATE, SOCKADDR_INET,
+            ADDRESS_FAMILY, AF_INET, AF_INET6, AF_UNSPEC, IN_ADDR, IN6_ADDR, IpDadStateDeprecated,
+            IpDadStateDuplicate, IpDadStateInvalid, IpDadStatePreferred, IpDadStateTentative,
+            MIB_IPPROTO_NT_STATIC, NL_DAD_STATE, NlroManual, SOCKADDR_INET,
         },
     },
+    core::{GUID, HSTRING},
 };
 
 /// Result type for this module.
@@ -165,11 +165,11 @@ unsafe extern "system" fn inner_callback(
     row: *const MIB_IPINTERFACE_ROW,
     notify_type: MIB_NOTIFICATION_TYPE,
 ) {
-    let context = &mut *(context as *mut IpNotifierHandle<'_>);
+    let context = unsafe { &mut *(context as *mut IpNotifierHandle<'_>) };
     context
         .callback
         .lock()
-        .expect("NotifyIpInterfaceChange mutex poisoned")(&*row, notify_type);
+        .expect("NotifyIpInterfaceChange mutex poisoned")(unsafe { &*row }, notify_type);
 }
 
 /// Registers a callback function that is invoked when an interface is added, removed,

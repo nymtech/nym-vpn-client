@@ -3,23 +3,23 @@
 
 use std::{
     sync::{
-        atomic::{AtomicU32, Ordering},
         Arc,
+        atomic::{AtomicU32, Ordering},
     },
     time::Duration,
 };
 
 use nym_credentials_interface::TicketType;
 use nym_vpn_api_client::{
-    types::{Device, VpnApiAccount},
     VpnApiClient,
+    types::{Device, VpnApiAccount},
 };
 use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiError};
 use tokio::task::JoinSet;
 
 use crate::{
-    commands::AccountCommandResult, connectivity::OfflineWatch, shared_state::RequestZkNymResult,
-    storage::VpnCredentialStorage, SharedAccountState,
+    SharedAccountState, commands::AccountCommandResult, connectivity::OfflineWatch,
+    shared_state::RequestZkNymResult, storage::VpnCredentialStorage,
 };
 
 use super::{cached_data::CachedData, request::RequestZkNymTask};

@@ -4,11 +4,11 @@
 use std::fmt;
 
 use windows::{
-    core::Result,
     Win32::Security::{
         Authorization::{GetTrusteeFormW, GetTrusteeTypeW, TRUSTEE_W},
         PSID,
     },
+    core::Result,
 };
 
 use super::{Sid, TrusteeForm, TrusteeType};

@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(target_os = "linux")]
-use nix::sys::socket::{sockopt::Mark, SetSockOpt};
+use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use nym_sdk::UserAgent;
 use nym_vpn_network_config::start_background_file_refresh;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
@@ -39,14 +39,14 @@ use nym_ip_packet_requests::IpPair;
 use super::route_handler::RouteHandler;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use super::tun_name;
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use super::{route_handler::RoutingConfig, tun_ipv6};
 use super::{
+    Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
     tunnel::{
         self, AnyTunnelHandle, ConnectedMixnet, MixnetConnectOptions, SelectedGateways, Tombstone,
     },
-    Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
 };
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use super::{route_handler::RoutingConfig, tun_ipv6};
 use nym_common::ErrorExt;
 use nym_vpn_lib_types::{
     ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData, MixnetEvent, NymAddress,
@@ -65,7 +65,7 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 use crate::tunnel_provider::ios::OSTunProvider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
-use crate::tunnel_state_machine::{account, WireguardMultihopMode};
+use crate::tunnel_state_machine::{WireguardMultihopMode, account};
 
 /// Default MTU for mixnet tun device.
 const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
@@ -305,8 +305,9 @@ impl TunnelMonitor {
             }
             Err(e) => {
                 tracing::error!(
-                    "Invalid gateway performance values. Will carry on with initial values. Error: {}"
-                , e);
+                    "Invalid gateway performance values. Will carry on with initial values. Error: {}",
+                    e
+                );
             }
         }
 
@@ -390,8 +391,11 @@ impl TunnelMonitor {
             #[cfg(target_os = "android")]
             tun_provider.bypass(_fd);
             #[cfg(target_os = "linux")]
-            if let Err(err) = Mark.set(unsafe { &BorrowedFd::borrow_raw(_fd) }, &TUNNEL_FWMARK) {
-                tracing::error!("Could not fwmark mixnet fd: {err}");
+            {
+                let borrowed_fd = unsafe { &BorrowedFd::borrow_raw(_fd) };
+                if let Err(err) = Mark.set(borrowed_fd, &TUNNEL_FWMARK) {
+                    tracing::error!("Could not fwmark mixnet fd: {err}");
+                }
             }
         };
         let mut connected_mixnet = tunnel::connect_mixnet(

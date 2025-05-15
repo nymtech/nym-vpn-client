@@ -20,7 +20,7 @@ use std::{
 
 use futures::future::{Fuse, FutureExt};
 use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
-use tokio::sync::{watch, Mutex};
+use tokio::sync::{Mutex, watch};
 use tokio_util::sync::CancellationToken;
 
 use crate::Connectivity;

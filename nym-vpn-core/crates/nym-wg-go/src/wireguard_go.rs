@@ -4,7 +4,7 @@
 #[cfg(unix)]
 use std::os::fd::{IntoRawFd, OwnedFd, RawFd};
 use std::{
-    ffi::{c_char, c_void, CStr, CString},
+    ffi::{CStr, CString, c_char, c_void},
     fmt,
 };
 
@@ -14,8 +14,8 @@ use nym_windows::net::AddressFamily;
 use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 
 use super::{
-    uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
-    Result,
+    Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey, Result,
+    uapi::UapiConfigBuilder,
 };
 #[cfg(feature = "amnezia")]
 use crate::amnezia::AmneziaConfig;
@@ -260,10 +260,10 @@ impl Drop for Tunnel {
     }
 }
 
-extern "C" {
+unsafe extern "C" {
     /// Start the tunnel.
     #[cfg(not(windows))]
-    fn wgTurnOn(
+    unsafe fn wgTurnOn(
         #[cfg(any(target_os = "linux", target_os = "macos"))] mtu: i32,
         settings: *const c_char,
         fd: RawFd,
@@ -273,7 +273,7 @@ extern "C" {
 
     /// Start the tunnel.
     #[cfg(windows)]
-    fn wgTurnOn(
+    unsafe fn wgTurnOn(
         interface_name: *const c_char,
         requested_guid: *const c_char,
         wintun_tunnel_type: *const c_char,
@@ -286,29 +286,29 @@ extern "C" {
     ) -> i32;
 
     /// Pass a handle that was created by wgTurnOn to stop the wireguard tunnel.
-    fn wgTurnOff(handle: i32);
+    unsafe fn wgTurnOff(handle: i32);
 
     /// Returns the config of the WireGuard interface.
     #[allow(unused)]
-    fn wgGetConfig(handle: i32) -> *mut c_char;
+    unsafe fn wgGetConfig(handle: i32) -> *mut c_char;
 
     /// Sets the config of the WireGuard interface.
-    fn wgSetConfig(handle: i32, settings: *const c_char) -> i32;
+    unsafe fn wgSetConfig(handle: i32, settings: *const c_char) -> i32;
 
     /// Frees a pointer allocated by the go runtime - useful to free return value of wgGetConfig
     #[allow(unused)]
-    fn wgFreePtr(ptr: *mut c_void);
+    unsafe fn wgFreePtr(ptr: *mut c_void);
 
     /// Re-attach wireguard-go to the tunnel interface.
     #[cfg(target_os = "ios")]
-    fn wgBumpSockets(handle: i32);
+    unsafe fn wgBumpSockets(handle: i32);
 
     /// Re-bind tunnel socket to the new interface.
     ///
     /// - `family` - address family
     /// - `interface_index` - index of network interface to which the tunnel socket should be bound to. Pass 0 to bind to blackhole.
     #[cfg(windows)]
-    fn wgRebindTunnelSocket(address_family: u16, interface_index: u32);
+    unsafe fn wgRebindTunnelSocket(address_family: u16, interface_index: u32);
 }
 
 /// Callback used by libwg to pass wireguard-go logs.
@@ -322,7 +322,7 @@ pub unsafe extern "system" fn wg_logger_callback(
     _ctx: *mut c_void,
 ) {
     if !msg.is_null() {
-        let str = CStr::from_ptr(msg).to_string_lossy();
+        let str = unsafe { CStr::from_ptr(msg).to_string_lossy() };
         let trimmed_str = str.trim_end();
         tracing::debug!("{}", trimmed_str);
     }

@@ -8,7 +8,7 @@ use crate::{
         AccountUsage as ProtoAccountUsage, AccountUsages as ProtoAccountUsages,
     },
     get_devices_response::{
-        device::DeviceStatus as ProtoDeviceStatus, Device as ProtoDevice, Devices as ProtoDevices,
+        Device as ProtoDevice, Devices as ProtoDevices, device::DeviceStatus as ProtoDeviceStatus,
     },
 };
 

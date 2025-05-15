@@ -3,11 +3,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use windows::{
-    core::{BSTR, PCWSTR},
     Win32::System::{
         Variant::VARIANT,
         Wmi::{IWbemClassObject, WBEM_E_NOT_FOUND, WBEM_FLAG_RETURN_WBEM_COMPLETE},
     },
+    core::{BSTR, PCWSTR},
 };
 use wmi::result_enumerator::IWbemClassWrapper;
 

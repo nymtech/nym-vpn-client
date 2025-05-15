@@ -32,7 +32,7 @@ async fn set_ctrlc_handler(shutdown_token: CancellationToken) -> io::Result<()> 
 
 #[cfg(unix)]
 async fn set_termination_handler(shutdown_token: CancellationToken) -> io::Result<()> {
-    use tokio::signal::unix::{signal, SignalKind};
+    use tokio::signal::unix::{SignalKind, signal};
 
     let mut sigterm = signal(SignalKind::terminate())?;
     let mut sigquit = signal(SignalKind::quit())?;

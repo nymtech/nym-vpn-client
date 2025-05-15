@@ -19,28 +19,28 @@ use std::{
 };
 
 use futures::{
+    SinkExt, StreamExt,
     channel::{mpsc, oneshot},
     future::Either,
-    SinkExt, StreamExt,
 };
 
 use hickory_server::{
+    ServerFuture,
     authority::{
         EmptyLookup, LookupObject, MessageRequest, MessageResponse, MessageResponseBuilder,
     },
     proto::{
-        op::{header::MessageType, op_code::OpCode, Header, LowerQuery, ResponseCode},
-        rr::{domain::Name, rdata, record_data::RData, LowerName, Record, RecordType},
         ProtoErrorKind,
+        op::{Header, LowerQuery, ResponseCode, header::MessageType, op_code::OpCode},
+        rr::{LowerName, Record, RecordType, domain::Name, rdata, record_data::RData},
     },
     resolver::{
+        ResolveError, TokioResolver,
         config::{NameServerConfigGroup, ResolverConfig},
         lookup::Lookup,
         name_server::TokioConnectionProvider,
-        ResolveError, TokioResolver,
     },
     server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
-    ServerFuture,
 };
 
 /// Types of records that are spoofed for captive portal domains.
@@ -539,9 +539,9 @@ impl LookupObject for ForwardLookup {
 mod test {
     use super::*;
     use hickory_server::resolver::{
+        TokioResolver,
         config::{NameServerConfigGroup, ResolverConfig},
         name_server::TokioConnectionProvider,
-        TokioResolver,
     };
     use std::{mem, net::UdpSocket, time::Duration};
 

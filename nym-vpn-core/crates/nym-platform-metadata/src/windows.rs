@@ -5,12 +5,12 @@
 use std::mem::{self, MaybeUninit};
 
 use windows::{
-    core::{s, w},
     Win32::System::{
         LibraryLoader::{GetModuleHandleW, GetProcAddress},
         SystemInformation::OSVERSIONINFOEXW,
         SystemServices::VER_NT_WORKSTATION,
     },
+    core::{s, w},
 };
 
 #[allow(non_camel_case_types)]

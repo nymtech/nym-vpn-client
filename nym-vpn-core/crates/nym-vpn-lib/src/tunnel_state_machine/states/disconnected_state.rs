@@ -7,9 +7,9 @@ use tokio_util::sync::CancellationToken;
 use nym_common::ErrorExt;
 
 use crate::tunnel_state_machine::{
+    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
     states::{ConnectingState, OfflineState},
     tunnel::Tombstone,
-    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
 };
 
 pub struct DisconnectedState;

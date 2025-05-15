@@ -88,10 +88,18 @@ impl fmt::Display for ConnectionEvent {
             Self::EntryGatewayDown => {
                 "Entry gateway appears down - it's not routing our mixnet traffic"
             }
-            Self::ExitGatewayDownIpv4 => "Exit gateway (or ipr) appears down - it's not responding to IPv4 traffic",
-            Self::ExitGatewayDownIpv6 => "Exit gateway (or ipr) appears down - it's not responding to IPv6 traffic",
-            Self::ExitGatewayRoutingErrorIpv4 => "Exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv4 traffic",
-            Self::ExitGatewayRoutingErrorIpv6 => "Exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv6 traffic",
+            Self::ExitGatewayDownIpv4 => {
+                "Exit gateway (or ipr) appears down - it's not responding to IPv4 traffic"
+            }
+            Self::ExitGatewayDownIpv6 => {
+                "Exit gateway (or ipr) appears down - it's not responding to IPv6 traffic"
+            }
+            Self::ExitGatewayRoutingErrorIpv4 => {
+                "Exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv4 traffic"
+            }
+            Self::ExitGatewayRoutingErrorIpv6 => {
+                "Exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv6 traffic"
+            }
         };
 
         f.write_str(s)

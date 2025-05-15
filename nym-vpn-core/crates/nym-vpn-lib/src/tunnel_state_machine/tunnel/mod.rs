@@ -265,7 +265,9 @@ pub enum Error {
     #[error("failed to connect to ip packet router: {}", _0)]
     ConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
 
-    #[error("wireguard authentication is not possible due to one of the gateways not running the authenticator process: {0}")]
+    #[error(
+        "wireguard authentication is not possible due to one of the gateways not running the authenticator process: {0}"
+    )]
     AuthenticationNotPossible(String),
 
     #[error("failed to find authenticator address")]

@@ -14,11 +14,11 @@ use libc::{c_int, sysctlbyname};
 use pfctl::{DropAction, FilterRuleAction, Ip, RedirectRule, Uid};
 
 use super::{
+    DNS_TCP_PORTS, DNS_UDP_PORTS, FirewallArguments, FirewallPolicy,
     net::{
-        AllowedEndpoint, AllowedTunnelTraffic, TransportProtocol, TunnelInterface, TunnelMetadata,
-        ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS,
+        ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS, AllowedEndpoint, AllowedTunnelTraffic,
+        TransportProtocol, TunnelInterface, TunnelMetadata,
     },
-    FirewallArguments, FirewallPolicy, DNS_TCP_PORTS, DNS_UDP_PORTS,
 };
 
 pub use pfctl::Error;
@@ -496,7 +496,9 @@ impl Firewall {
                             enable_forwarding();
 
                             if !allowed_entry_tunnel_traffic.all() {
-                                tracing::warn!("Split tunneling does not respect the 'allowed tunnel traffic' setting");
+                                tracing::warn!(
+                                    "Split tunneling does not respect the 'allowed tunnel traffic' setting"
+                                );
                             }
                             rules.extend(self.get_split_tunnel_rules(
                                 exit_tunnel.interface.as_str(),

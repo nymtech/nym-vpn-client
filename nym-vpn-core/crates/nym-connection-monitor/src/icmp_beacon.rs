@@ -9,10 +9,10 @@ use std::{
 use bytes::Bytes;
 use nym_common::ErrorExt;
 use nym_config::defaults::mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6};
-use nym_ip_packet_requests::{codec::MultiIpPacketCodec, IpPair};
+use nym_ip_packet_requests::{IpPair, codec::MultiIpPacketCodec};
 use nym_sdk::{
-    mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient},
     TaskClient,
+    mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient},
 };
 use nym_task::connections::TransmissionLane;
 use pnet_packet::Packet;

@@ -5,7 +5,7 @@
 
 use std::time::Duration;
 
-use super::{error::VpnError, RUNTIME};
+use super::{RUNTIME, error::VpnError};
 
 /// Call that blocks until the account state has been updated/synced. This is useful when you want
 /// to wait for the account state to be updated before proceeding with other operations.

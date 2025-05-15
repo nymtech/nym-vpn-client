@@ -2,7 +2,7 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{debounce::BurstGuard, Gateway, MacAddress, NetNode, RequiredRoute, Route};
+use crate::{Gateway, MacAddress, NetNode, RequiredRoute, Route, debounce::BurstGuard};
 
 use futures::{
     future::FutureExt,

@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use nym_vpn_api_client::types::{Device, VpnApiAccount};
-use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
+use nym_vpn_store::{VpnStorage, mnemonic::Mnemonic};
 
 use crate::error::Error;
 

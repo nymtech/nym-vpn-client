@@ -12,11 +12,12 @@ use std::{
 };
 
 use anyhow::Context;
-use tokio::sync::{broadcast, mpsc, oneshot, Mutex};
+use tokio::sync::{Mutex, broadcast, mpsc, oneshot};
 use tokio_util::sync::CancellationToken;
 use tracing_appender::non_blocking::WorkerGuard;
 use windows::Win32::Foundation::ERROR_SERVICE_DOES_NOT_EXIST;
 use windows_service::{
+    Error as ServiceError,
     service::{
         ServiceAccess, ServiceAction, ServiceActionType, ServiceControl, ServiceDependency,
         ServiceErrorControl, ServiceExitCode, ServiceFailureActions, ServiceFailureResetPeriod,
@@ -25,7 +26,6 @@ use windows_service::{
     service_control_handler::{self, ServiceControlHandlerResult},
     service_dispatcher,
     service_manager::{ServiceManager, ServiceManagerAccess},
-    Error as ServiceError,
 };
 
 use crate::{

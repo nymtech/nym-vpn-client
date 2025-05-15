@@ -13,19 +13,19 @@ use nym_vpn_lib_types::{
 use tokio::task::{JoinError, JoinSet};
 
 use crate::{
+    SharedAccountState,
     commands::{
+        AccountCommand, AccountCommandResult, Command, RunningCommands,
         tasks::{
             register_device::RegisterDeviceCommandHandler,
             request_zknym::{RequestZkNymSummary, WaitingRequestZkNymCommandHandler},
             sync_account::WaitingSyncAccountCommandHandler,
             sync_device::WaitingSyncDeviceCommandHandler,
         },
-        AccountCommand, AccountCommandResult, Command, RunningCommands,
     },
     connectivity::OfflineWatch,
     shared_state::DeviceState,
     storage::VpnCredentialStorage,
-    SharedAccountState,
 };
 
 pub(crate) struct AccountCommandHandler {

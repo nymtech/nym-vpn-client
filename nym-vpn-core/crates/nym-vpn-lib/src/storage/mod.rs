@@ -5,10 +5,10 @@ use std::path::Path;
 
 use nym_vpn_store::{
     keys::{
-        persistence::{DeviceKeysPaths, OnDiskKeysError},
         DeviceKeys, KeyStore,
+        persistence::{DeviceKeysPaths, OnDiskKeysError},
     },
-    mnemonic::{on_disk::OnDiskMnemonicStorageError, Mnemonic, MnemonicStorage},
+    mnemonic::{Mnemonic, MnemonicStorage, on_disk::OnDiskMnemonicStorageError},
 };
 
 mod helpers;

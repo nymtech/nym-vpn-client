@@ -6,11 +6,11 @@ use crate::{DnsMonitorT, ResolvedDnsConfig};
 use nym_common::ErrorExt;
 use nym_windows::net::{guid_from_luid, luid_from_alias};
 use std::{io, net::IpAddr};
-use windows::{core::GUID, Win32::System::Com::StringFromGUID2};
+use windows::{Win32::System::Com::StringFromGUID2, core::GUID};
 use winreg::{
+    RegKey,
     enums::{HKEY_LOCAL_MACHINE, KEY_SET_VALUE},
     transaction::Transaction,
-    RegKey,
 };
 
 /// Errors that can happen when configuring DNS on Windows.
