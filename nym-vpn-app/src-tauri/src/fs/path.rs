@@ -1,5 +1,5 @@
-use crate::fs::util::check_dir;
 use crate::APP_DIR;
+use crate::fs::util::check_dir;
 use once_cell::sync::Lazy;
 use std::path::PathBuf;
 use tracing::{debug, error, info};

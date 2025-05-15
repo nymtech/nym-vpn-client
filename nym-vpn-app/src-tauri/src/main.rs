@@ -3,7 +3,7 @@
 
 use std::time::Duration;
 
-use crate::cli::{db_command, Commands};
+use crate::cli::{Commands, db_command};
 use crate::startup_error::{ErrorKey, StartupError};
 use crate::window::AppWindow;
 use crate::{
@@ -14,7 +14,7 @@ use crate::{
 };
 
 use crate::fs::path::APP_CONFIG_DIR;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use clap::Parser;
 use commands::daemon as cmd_daemon;
 use commands::db as cmd_db;

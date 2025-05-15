@@ -3,7 +3,7 @@ use ts_rs::TS;
 
 use nym_vpn_proto as p;
 use p::mixnet_event::{
-    bandwidth_event::Event as BandwidthEventEvent, BandwidthEvent, ConnectionEvent, Event,
+    BandwidthEvent, ConnectionEvent, Event, bandwidth_event::Event as BandwidthEventEvent,
 };
 use tracing::{error, instrument};
 

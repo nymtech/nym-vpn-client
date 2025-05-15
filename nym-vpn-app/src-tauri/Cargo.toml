@@ -10,7 +10,7 @@ authors = [
 license = "GPL-3.0-only"
 documentation = "https://nymtech.net"
 repository = "https://github.com/nymtech/nym-vpn-client"
-edition = "2021"
+edition = "2024"
 
 [build-dependencies]
 tauri-build = { version = "2.0.0", features = [] }
