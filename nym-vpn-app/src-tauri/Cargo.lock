@@ -2959,7 +2959,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.9.0-dev"
+version = "1.9.0-tomato-umbu-rc"
 dependencies = [
  "anyhow",
  "build-info",

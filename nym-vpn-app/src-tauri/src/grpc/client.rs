@@ -1,16 +1,15 @@
 use std::env::consts::{ARCH, OS};
 use std::path::PathBuf;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use nym_vpn_proto::{
-    nym_vpnd_client::NymVpndClient, tunnel_event::Event, ConnectRequest, Dns,
-    GetAccountLinksRequest, ListGatewaysRequest, Location, SetNetworkRequest, StoreAccountRequest,
-    UserAgent,
+    ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest, Location, SetNetworkRequest,
+    StoreAccountRequest, UserAgent, nym_vpnd_client::NymVpndClient, tunnel_event::Event,
 };
 use tauri::{AppHandle, Manager, PackageInfo};
 use tokio::sync::mpsc;
 use tonic::transport::Endpoint as TonicEndpoint;
-use tonic::{transport::Channel, Request};
+use tonic::{Request, transport::Channel};
 use tracing::{debug, error, info, instrument, trace, warn};
 
 pub use super::account_links::AccountLinks;

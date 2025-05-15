@@ -1,5 +1,5 @@
-use anyhow::{anyhow, Result};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use anyhow::{Result, anyhow};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_json::Value;
 use sled::IVec;
 use std::{

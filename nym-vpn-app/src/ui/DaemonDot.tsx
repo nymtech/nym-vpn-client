@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { DaemonStatus } from '../types';
-import { S_STATE } from '../static';
+
+const devMode = window._APP.devMode;
 
 type DaemonDotProps = {
   status: DaemonStatus;
@@ -19,7 +20,7 @@ function DaemonDot({ status, ...rest }: DaemonDotProps) {
     }
   };
 
-  if (!S_STATE.devMode && status === 'ok') {
+  if (!devMode && status === 'ok') {
     return null;
   }
 

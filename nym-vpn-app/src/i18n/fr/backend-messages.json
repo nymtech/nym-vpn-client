@@ -3,5 +3,7 @@
     "Initializing": "Démarrage du client NymVPN…",
     "InitDone": "Client NymVPN initialisé",
     "Canceling": "Annulation…"
-  }
+  },
+  "connection-attempt_one": "Nouvelle tentative de connexion… {{count}}",
+  "connection-attempt_other": "Nouvelle tentative de connexion… {{count}}"
 }
