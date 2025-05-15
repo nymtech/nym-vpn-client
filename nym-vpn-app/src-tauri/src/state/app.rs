@@ -80,7 +80,9 @@ impl AppState {
     #[instrument(skip(self))]
     pub fn set_vpnd_status(&mut self, info: &VpndInfo) {
         let Some(ver_req) = VPND_COMPAT_REQ else {
-            warn!("env variable `VPND_COMPAT_REQ` is not set, skipping vpnd version compatibility check");
+            warn!(
+                "env variable `VPND_COMPAT_REQ` is not set, skipping vpnd version compatibility check"
+            );
             self.vpnd_status = VpndStatus::Ok(None);
             return;
         };
@@ -172,7 +174,11 @@ fn check_network_compat(network: &str, local: &str) -> Result<bool> {
 fn log_compat(local: &str, network: &str, is_compat: Option<bool>, comp_name: &str) {
     match is_compat {
         None => warn!("failed to check {comp_name} version compatibility, skipping"),
-        Some(true) => info!("{comp_name} version is compatible with the network, local version: [{local}], network version: [{network}]"),
-        Some(false) => warn!("{comp_name} version is not compatible with the network, local version: [{local}], network version: [{network}]")
+        Some(true) => info!(
+            "{comp_name} version is compatible with the network, local version: [{local}], network version: [{network}]"
+        ),
+        Some(false) => warn!(
+            "{comp_name} version is not compatible with the network, local version: [{local}], network version: [{network}]"
+        ),
     }
 }

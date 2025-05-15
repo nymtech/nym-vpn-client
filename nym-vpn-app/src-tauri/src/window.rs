@@ -1,7 +1,7 @@
 use crate::db::{Db, Key};
 use crate::env::DEV_MODE;
 use crate::{APP_NAME, MAIN_WINDOW_LABEL};
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 use tauri::window::Color;
 use tauri::{
