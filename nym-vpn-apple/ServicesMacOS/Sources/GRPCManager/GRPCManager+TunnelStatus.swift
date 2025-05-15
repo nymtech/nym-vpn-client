@@ -32,6 +32,7 @@ extension GRPCManager {
             tunnelStatus = .connected
         case let .connecting(details):
             connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)
+            connectionRetryAttempt = Int(details.retryAttempt)
             tunnelStatus = .connecting
         case .disconnected:
             tunnelStatus = .disconnected

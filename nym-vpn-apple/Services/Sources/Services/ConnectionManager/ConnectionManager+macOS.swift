@@ -1,4 +1,5 @@
 #if os(macOS)
+import Foundation
 import TunnelMixnet
 import NotificationMessages
 
@@ -77,6 +78,15 @@ extension ConnectionManager {
             }
         }
         .store(in: &cancellables)
+
+        grpcManager.$connectionRetryAttempt
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] attempt in
+                MainActor.assumeIsolated {
+                    self?.connectionRetryAttempt = attempt
+                }
+            }
+            .store(in: &cancellables)
     }
 }
 

@@ -307,7 +307,11 @@ extension HomeViewModel {
             if let lastError {
                 statusInfoState = .error(message: lastError.localizedDescription)
             } else {
-                statusInfoState = StatusInfoState(tunnelStatus: newStatus, isOnline: networkMonitor.isAvailable)
+                statusInfoState = StatusInfoState(
+                    tunnelStatus: newStatus,
+                    isOnline: networkMonitor.isAvailable,
+                    retryAttempt: connectionManager.connectionRetryAttempt
+                )
             }
 
             if newStatus == .connected {

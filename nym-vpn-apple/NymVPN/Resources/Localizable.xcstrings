@@ -12713,6 +12713,17 @@
         }
       }
     },
+    "home.connectingRetryAttempt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Attempt"
+          }
+        }
+      }
+    },
     "home.deviceNoInternet" : {
       "extractionState" : "manual",
       "localizations" : {

@@ -36,6 +36,7 @@ public final class ConnectionManager: ObservableObject {
 
     @Published public var connectedDate: Date?
     @Published public var connectedDateString: String?
+    @Published public var connectionRetryAttempt: Int?
     @Published public var lastError: Error?
 
     @Published public var connectionType: ConnectionType {
@@ -59,7 +60,6 @@ public final class ConnectionManager: ObservableObject {
     @Published public var currentTunnelStatus: TunnelStatus = .disconnected {
         didSet {
             updateTunnelStatusIfReconnecting()
-//            updateTunnelStatusIfDisconnecting() 
         }
     }
 #elseif os(macOS)

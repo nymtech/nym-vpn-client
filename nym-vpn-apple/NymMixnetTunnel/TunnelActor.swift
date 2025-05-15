@@ -53,7 +53,6 @@ actor TunnelActor {
                 tunnelProvider?.reasserting = false
             }
             canReassert = true
-            logger.info("🛤️ connected entry gw: \(connectionData.entryGateway), exit gw: \(connectionData.exitGateway)")
         case .error:
             if canReassert {
                 // todo: remove once we properly handle error state
