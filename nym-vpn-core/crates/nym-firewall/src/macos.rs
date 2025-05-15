@@ -6,6 +6,7 @@ use std::{
     env, io,
     net::{IpAddr, Ipv4Addr, SocketAddr},
     ptr,
+    str::FromStr,
     sync::LazyLock,
 };
 
@@ -33,9 +34,9 @@ const ANCHOR_NAME: &str = "nym";
 /// the local DNS resoler to work around Apple's captive portals check. Exactly how this is done is
 /// documented elsewhere.
 pub static LOCAL_DNS_RESOLVER: LazyLock<bool> = LazyLock::new(|| {
-    use nym_platform_metadata::MacosVersion;
-    let version = MacosVersion::new().expect("Could not detect macOS version");
-    let v = |s| MacosVersion::from_raw_version(s).unwrap();
+    use nym_platform_metadata::AppleVersion;
+    let version = AppleVersion::current();
+    let v = |s| AppleVersion::from_str(s).unwrap();
 
     // Apple services tried to perform DNS lookups on the physical interface on some macOS
     // versions, so we added redirect rules to always redirect DNS to our local DNS resolver.
@@ -73,9 +74,9 @@ pub static LOCAL_DNS_RESOLVER: LazyLock<bool> = LazyLock::new(|| {
 /// on macOS versions that are unaffected by this naughty bug, but keep it were it is necessary for
 /// Apple services to function properly together with a VPN.
 pub static NAT_WORKAROUND: LazyLock<bool> = LazyLock::new(|| {
-    use nym_platform_metadata::MacosVersion;
-    let version = MacosVersion::new().expect("Could not detect macOS version");
-    let v = |s| MacosVersion::from_raw_version(s).unwrap();
+    use nym_platform_metadata::AppleVersion;
+    let version = AppleVersion::current();
+    let v = |s| AppleVersion::from_str(s).unwrap();
     let apply_workaround = v("14.6") <= version && version < v("15.1");
     if apply_workaround {
         tracing::debug!("Using NAT redirect workaround");

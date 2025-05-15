@@ -6,8 +6,8 @@
 #[path = "linux.rs"]
 mod imp;
 
-#[cfg(target_os = "macos")]
-#[path = "macos.rs"]
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+#[path = "apple.rs"]
 mod imp;
 
 #[cfg(windows)]
@@ -18,9 +18,8 @@ mod imp;
 #[path = "android.rs"]
 mod imp;
 
-#[cfg(target_os = "macos")]
-pub use self::imp::MacosVersion;
+#[cfg(any(target_os = "macos", target_os = "ios"))]
+pub use imp::AppleVersion;
 #[cfg(windows)]
-pub use self::imp::WindowsVersion;
-#[cfg(not(target_os = "ios"))]
-pub use self::imp::{extra_metadata, short_version, version};
+pub use imp::WindowsVersion;
+pub use imp::{extra_metadata, short_version, version};

@@ -17,7 +17,7 @@ use windows::{
 type RTL_OSVERSIONINFOEXW = OSVERSIONINFOEXW;
 
 pub fn version() -> String {
-    let (major, build) = WindowsVersion::new()
+    let (major, build) = WindowsVersion::current()
         .map(|version_info| {
             (
                 version_info.windows_version_string(),
@@ -30,7 +30,7 @@ pub fn version() -> String {
 }
 
 pub fn short_version() -> String {
-    let version_string = WindowsVersion::new()
+    let version_string = WindowsVersion::current()
         .map(|version| version.windows_version_string())
         .unwrap_or("N/A".into());
     format!("Windows {}", version_string)
@@ -45,7 +45,7 @@ pub struct WindowsVersion {
 }
 
 impl WindowsVersion {
-    pub fn new() -> Result<WindowsVersion, windows::core::Error> {
+    pub fn current() -> Result<WindowsVersion, windows::core::Error> {
         let ntdll = unsafe { GetModuleHandleW(w!("ntdll"))? };
         let function_address = unsafe { GetProcAddress(ntdll, s!("RtlGetVersion")) }
             .ok_or_else(windows::core::Error::from_win32)?;
@@ -116,6 +116,6 @@ mod test {
     use super::*;
     #[test]
     fn test_windows_version() {
-        WindowsVersion::new().unwrap();
+        WindowsVersion::current().unwrap();
     }
 }
