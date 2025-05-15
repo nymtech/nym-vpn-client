@@ -5,8 +5,8 @@
 use dbus::{
     arg::{self, RefArg},
     blocking::{
-        stdintf::org_freedesktop_dbus::{Properties, PropertiesPropertiesChanged},
         Proxy, SyncConnection,
+        stdintf::org_freedesktop_dbus::{Properties, PropertiesPropertiesChanged},
     },
     message::{MatchRule, SignalArgs},
 };

@@ -19,28 +19,28 @@ use std::{
 };
 
 use futures::{
+    SinkExt, StreamExt,
     channel::{mpsc, oneshot},
     future::Either,
-    SinkExt, StreamExt,
 };
 
 use hickory_server::{
+    ServerFuture,
     authority::{
         EmptyLookup, LookupObject, MessageRequest, MessageResponse, MessageResponseBuilder,
     },
     proto::{
-        op::{header::MessageType, op_code::OpCode, Header, LowerQuery, ResponseCode},
-        rr::{domain::Name, rdata, record_data::RData, LowerName, Record, RecordType},
         ProtoErrorKind,
+        op::{Header, LowerQuery, ResponseCode, header::MessageType, op_code::OpCode},
+        rr::{LowerName, Record, RecordType, domain::Name, rdata, record_data::RData},
     },
     resolver::{
+        ResolveError, TokioResolver,
         config::{NameServerConfigGroup, ResolverConfig},
         lookup::Lookup,
         name_server::TokioConnectionProvider,
-        ResolveError, TokioResolver,
     },
     server::{Request, RequestHandler, ResponseHandler, ResponseInfo},
-    ServerFuture,
 };
 
 /// Types of records that are spoofed for captive portal domains.
@@ -418,7 +418,18 @@ impl ResolverImpl {
 
     /// This function is called when a DNS query is sent to the local resolver
     async fn lookup<R: ResponseHandler>(&self, message: &Request, mut response_handler: R) {
-        tracing::info!("Lookup for: {:?}", message);
+        tracing::debug!(
+            "Lookup for: {}, client: {}/{}",
+            message
+                .queries()
+                .iter()
+                .map(|r| format!("{} {}", r.query_type(), r.name()))
+                .collect::<Vec<_>>()
+                .join(","),
+            message.src(),
+            message.protocol(),
+        );
+
         let Some(tx_ref) = self.tx.upgrade() else {
             return;
         };
@@ -528,9 +539,9 @@ impl LookupObject for ForwardLookup {
 mod test {
     use super::*;
     use hickory_server::resolver::{
+        TokioResolver,
         config::{NameServerConfigGroup, ResolverConfig},
         name_server::TokioConnectionProvider,
-        TokioResolver,
     };
     use std::{mem, net::UdpSocket, time::Duration};
 

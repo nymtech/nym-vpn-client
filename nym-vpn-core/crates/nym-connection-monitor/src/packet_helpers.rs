@@ -5,15 +5,15 @@ use std::net::{Ipv4Addr, Ipv6Addr};
 
 use bytes::Bytes;
 use pnet_packet::{
+    Packet,
     icmp::{
+        IcmpPacket,
         echo_reply::EchoReplyPacket,
         echo_request::{EchoRequestPacket, MutableEchoRequestPacket},
-        IcmpPacket,
     },
     icmpv6,
     ipv4::{Ipv4Packet, MutableIpv4Packet},
     ipv6::{Ipv6Packet, MutableIpv6Packet},
-    Packet,
 };
 
 use crate::error::{Error, Result};

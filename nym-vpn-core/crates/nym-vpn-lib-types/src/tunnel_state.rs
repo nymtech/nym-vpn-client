@@ -4,7 +4,7 @@
 use std::fmt;
 
 use crate::{
-    account::VpnApiError, RequestZkNymError, RequestZkNymErrorReason, VpnApiErrorResponse,
+    RequestZkNymError, RequestZkNymErrorReason, VpnApiErrorResponse, account::VpnApiError,
 };
 
 use super::{
@@ -36,6 +36,7 @@ pub enum TunnelState {
 
     /// Tunnel connection is being established.
     Connecting {
+        retry_attempt: u32,
         connection_data: Option<ConnectionData>,
     },
 
@@ -61,30 +62,35 @@ impl fmt::Display for TunnelState {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             Self::Disconnected => f.write_str("Disconnected"),
-            Self::Connecting { connection_data } => match connection_data {
+            Self::Connecting {
+                retry_attempt,
+                connection_data,
+            } => match connection_data {
                 Some(connection_data) => match connection_data.tunnel {
                     TunnelConnectionData::Mixnet(ref data) => {
                         write!(
                             f,
-                            "Connecting mixnet tunnel to {} → {} (entry: {} → exit: {})",
+                            "Connecting mixnet tunnel to {} → {} (entry: {} → exit: {}), attempt {}",
                             data.entry_ip,
                             data.exit_ip,
                             data.nym_address.gateway_id(),
                             data.exit_ipr.gateway_id(),
+                            retry_attempt
                         )
                     }
                     TunnelConnectionData::Wireguard(ref data) => {
                         write!(
                             f,
-                            "Connecting wireguard tunnel to {} → {} (entry: {} → exit: {})",
+                            "Connecting wireguard tunnel to {} → {} (entry: {} → exit: {}), attempt {}",
                             data.entry.endpoint,
                             data.exit.endpoint,
                             connection_data.entry_gateway.id,
                             connection_data.exit_gateway.id,
+                            retry_attempt
                         )
                     }
                 },
-                None => f.write_str("Connecting"),
+                None => write!(f, "Connecting, attempt {}", retry_attempt),
             },
             Self::Connected { connection_data } => match connection_data.tunnel {
                 TunnelConnectionData::Mixnet(ref data) => {
@@ -155,7 +161,7 @@ pub enum ErrorStateReason {
     Routing,
 
     /// Failure to configure dns.
-    Dns,
+    SetDns,
 
     /// Failure to configure tunnel device.
     TunDevice,
@@ -211,6 +217,14 @@ pub enum ErrorStateReason {
     Internal(String),
 }
 
+impl ErrorStateReason {
+    /// Returns true if block reason indicates that filtering resolver cannot be configured.
+    #[cfg(target_os = "macos")]
+    pub fn prevents_filtering_resolver(&self) -> bool {
+        matches!(self, ErrorStateReason::SetDns)
+    }
+}
+
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub enum ClientErrorReason {
     Firewall,
@@ -257,7 +271,7 @@ impl From<ErrorStateReason> for ClientErrorReason {
             ErrorStateReason::Routing => Self::Routing,
             ErrorStateReason::ResolveGatewayAddrs => Self::Dns(Some(value.to_string())),
             ErrorStateReason::StartLocalDnsResolver => Self::Dns(Some(value.to_string())),
-            ErrorStateReason::Dns => Self::Dns(Some(value.to_string())),
+            ErrorStateReason::SetDns => Self::Dns(Some(value.to_string())),
             ErrorStateReason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
         }
     }

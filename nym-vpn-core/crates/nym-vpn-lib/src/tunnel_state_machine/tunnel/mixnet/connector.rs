@@ -13,7 +13,7 @@ use tokio_util::sync::CancellationToken;
 
 use super::connected_tunnel::ConnectedTunnel;
 use crate::tunnel_state_machine::tunnel::{
-    self, gateway_selector::SelectedGateways, AnyConnector, ConnectorError, Error, Result,
+    self, AnyConnector, ConnectorError, Error, Result, gateway_selector::SelectedGateways,
 };
 
 /// Struct holding addresses assigned by mixnet upon connect.

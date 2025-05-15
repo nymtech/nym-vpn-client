@@ -1,5 +1,5 @@
 use crate::db::{Db, Key};
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use clap::{Parser, Subcommand, ValueEnum};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
@@ -29,7 +29,7 @@ const CONSOLE_FLAGS: [&str; 8] = [
 pub fn attach_console() {
     if std::env::args().any(|arg| CONSOLE_FLAGS.contains(&arg.as_str())) {
         {
-            use windows::Win32::System::Console::{AttachConsole, ATTACH_PARENT_PROCESS};
+            use windows::Win32::System::Console::{ATTACH_PARENT_PROCESS, AttachConsole};
             let _ = unsafe { AttachConsole(ATTACH_PARENT_PROCESS) };
             println!();
         }

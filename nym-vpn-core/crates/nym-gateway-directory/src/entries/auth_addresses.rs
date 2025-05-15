@@ -5,7 +5,7 @@ use std::fmt::Display;
 
 use nym_sdk::mixnet::Recipient;
 
-use crate::{error::Result, Error};
+use crate::{Error, error::Result};
 
 // optional, until we remove the wireguard feature flag
 #[derive(Debug, Copy, Clone)]

@@ -237,7 +237,7 @@
     <string name="bypass_lan">绕过局域网</string>
     <string name="bandwidth_error">月度带宽已超出限额。请升级您的账户套餐。</string>
     <string name="max_devices_error">账户设备数量已超出限制，请在连接前从账户中移除一个设备。</string>
-    <string name="pricing_url">nym.com/pricing</string>
+    <string name="pricing_url">https://nym.com/pricing</string>
     <string name="account_id">账户 ID:</string>
     <string name="developer">开发者</string>
     <string name="get_help">获取帮助</string>

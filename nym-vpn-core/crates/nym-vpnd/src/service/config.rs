@@ -8,7 +8,7 @@ use std::path::Path;
 use std::{fmt, fs, path::PathBuf};
 
 use nym_vpn_lib::gateway_directory;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 
 #[cfg(not(windows))]
 const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
@@ -280,8 +280,8 @@ pub(super) fn create_data_dir(
 #[cfg(windows)]
 fn set_data_dir_permissions(data_dir: impl AsRef<Path>) -> nym_windows::security::Result<()> {
     use nym_windows::security::{
-        set_named_security_info, AccessMode, AceFlags, Acl, ExplicitAccess, FileAccessRights,
-        SecurityInfo, SecurityObjectType, Sid, Trustee, TrusteeType, WellKnownSid,
+        AccessMode, AceFlags, Acl, ExplicitAccess, FileAccessRights, SecurityInfo,
+        SecurityObjectType, Sid, Trustee, TrusteeType, WellKnownSid, set_named_security_info,
     };
 
     let administrators_sid = Sid::well_known(WellKnownSid::BuiltinAdministrators)?;

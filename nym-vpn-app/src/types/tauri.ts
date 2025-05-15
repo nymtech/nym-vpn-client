@@ -6,8 +6,6 @@ export type BackendError = {
   data: Record<string, string> | null;
 };
 
-export type StartupError = { key: StartupErrorKey; details: string | null };
-
 export type Cli = {
   nosplash: boolean;
 };
@@ -51,8 +49,6 @@ export type ErrorKey =
   | 'get-mixnet-exit-countries-query'
   | 'get-wg-countries-query'
   | 'invalid-network-name';
-
-export type StartupErrorKey = 'StartupOpenDb' | 'StartupOpenDbLocked';
 
 type VpndOk = { ok: DaemonInfo | null };
 type VpndNonCompat = {

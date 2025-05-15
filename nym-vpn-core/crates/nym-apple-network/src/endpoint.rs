@@ -3,7 +3,7 @@
 
 use core::fmt;
 use std::{
-    ffi::{c_char, CStr, CString},
+    ffi::{CStr, CString, c_char},
     net::{SocketAddr, SocketAddrV4, SocketAddrV6},
     path::PathBuf,
     ptr::NonNull,
@@ -164,21 +164,27 @@ impl Address {
         let raw_address_family = i32::from(unsafe { (*sockaddr.as_ptr()).sa_family });
 
         match AddressFamily::from_i32(raw_address_family) {
-            Some(AddressFamily::Inet) => SockaddrIn::from_raw(sockaddr.as_ptr(), None)
-                .ok_or(Error::ConvertSocketAddr)
-                .map(|sin| Address::SocketAddr(SocketAddr::V4(SocketAddrV4::from(sin)))),
-            Some(AddressFamily::Inet6) => SockaddrIn6::from_raw(sockaddr.as_ptr(), None)
-                .ok_or(Error::ConvertSocketAddr)
-                .map(|sin6| Address::SocketAddr(SocketAddr::V6(SocketAddrV6::from(sin6)))),
-            Some(AddressFamily::Unix) => UnixAddr::from_raw(sockaddr.as_ptr(), None)
-                .ok_or(Error::ConvertSocketAddr)
-                .map(|unix_addr| {
-                    unix_addr
-                        .path()
-                        .map(|path| path.to_owned())
-                        .unwrap_or_default()
-                })
-                .map(Address::Unix),
+            Some(AddressFamily::Inet) => unsafe {
+                SockaddrIn::from_raw(sockaddr.as_ptr(), None)
+                    .ok_or(Error::ConvertSocketAddr)
+                    .map(|sin| Address::SocketAddr(SocketAddr::V4(SocketAddrV4::from(sin))))
+            },
+            Some(AddressFamily::Inet6) => unsafe {
+                SockaddrIn6::from_raw(sockaddr.as_ptr(), None)
+                    .ok_or(Error::ConvertSocketAddr)
+                    .map(|sin6| Address::SocketAddr(SocketAddr::V6(SocketAddrV6::from(sin6))))
+            },
+            Some(AddressFamily::Unix) => unsafe {
+                UnixAddr::from_raw(sockaddr.as_ptr(), None)
+                    .ok_or(Error::ConvertSocketAddr)
+                    .map(|unix_addr| {
+                        unix_addr
+                            .path()
+                            .map(|path| path.to_owned())
+                            .unwrap_or_default()
+                    })
+                    .map(Address::Unix)
+            },
             _ => Err(Error::UnsupportedAddressFamily(raw_address_family)),
         }
     }

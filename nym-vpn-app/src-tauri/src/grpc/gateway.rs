@@ -1,5 +1,5 @@
 use crate::country::Country;
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use nym_vpn_proto as p;
 use serde::{Deserialize, Serialize};
 use std::fmt;

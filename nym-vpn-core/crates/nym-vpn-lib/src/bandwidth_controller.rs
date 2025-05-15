@@ -4,20 +4,20 @@
 use std::time::Duration;
 
 use nym_vpn_network_config::Network;
-use tokio_stream::{wrappers::IntervalStream, StreamExt};
+use tokio_stream::{StreamExt, wrappers::IntervalStream};
 
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::CachingGatewayClient;
 use nym_sdk::{
-    mixnet::{ConnectionStatsEvent, CredentialStorage as Storage},
     TaskClient,
+    mixnet::{ConnectionStatsEvent, CredentialStorage as Storage},
 };
 use nym_validator_client::{
-    nyxd::{Config as NyxdClientConfig, NyxdClient},
     QueryHttpRpcNyxdClient,
+    nyxd::{Config as NyxdClientConfig, NyxdClient},
 };
 use nym_wg_gateway_client::{
-    ErrorMessage, GatewayData, WgGatewayClient, WgGatewayLightClient, TICKETS_TO_SPEND,
+    ErrorMessage, GatewayData, TICKETS_TO_SPEND, WgGatewayClient, WgGatewayLightClient,
 };
 use nym_wireguard_types::DEFAULT_PEER_TIMEOUT_CHECK;
 
@@ -411,10 +411,12 @@ mod tests {
 
         // simulate 128 MB/s depletion rate, so we would be depleted in the next 5 seconds after the function call (too fast)
         let consumed = current_period.as_secs() * BW_128MB;
-        assert!(depletion_rate
-            .update_dynamic_check_interval(current_period, BW_1GB - consumed)
-            .unwrap()
-            .is_none());
+        assert!(
+            depletion_rate
+                .update_dynamic_check_interval(current_period, BW_1GB - consumed)
+                .unwrap()
+                .is_none()
+        );
     }
 
     #[test]

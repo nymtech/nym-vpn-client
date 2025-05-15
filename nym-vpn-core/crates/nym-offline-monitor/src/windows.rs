@@ -4,11 +4,11 @@
 
 use std::{io, sync::Arc, time::Duration};
 
-use tokio::sync::{watch, Mutex};
+use tokio::sync::{Mutex, watch};
 use tokio_util::sync::CancellationToken;
 
 use nym_common::ErrorExt;
-use nym_routing::{get_best_default_route, CallbackHandle, EventType, RouteManagerHandle};
+use nym_routing::{CallbackHandle, EventType, RouteManagerHandle, get_best_default_route};
 use nym_windows::{
     net::AddressFamily,
     window::{PowerManagementEvent, PowerManagementListener},
@@ -210,11 +210,7 @@ impl SystemState {
 
 // If `offline` is true, return "Offline". Otherwise, return "Connected".
 fn is_offline_str(offline: bool) -> &'static str {
-    if offline {
-        "Offline"
-    } else {
-        "Connected"
-    }
+    if offline { "Offline" } else { "Connected" }
 }
 
 pub type ConnectivityHandle = BroadcastListener;

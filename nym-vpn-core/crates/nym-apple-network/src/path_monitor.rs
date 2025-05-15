@@ -3,7 +3,7 @@
 
 use std::ptr::NonNull;
 
-use super::{path::Path, rc::Retained, sys, InterfaceType};
+use super::{InterfaceType, path::Path, rc::Retained, sys};
 
 /// An observer that you use to monitor and react to network changes.
 #[repr(transparent)]

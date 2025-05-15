@@ -2,7 +2,7 @@ use tauri::window::Color;
 use tauri::{AppHandle, Manager};
 use tracing::{debug, error, instrument};
 
-use crate::{error::BackendError, MAIN_WINDOW_LABEL};
+use crate::{MAIN_WINDOW_LABEL, error::BackendError};
 
 #[instrument(skip_all)]
 #[tauri::command]

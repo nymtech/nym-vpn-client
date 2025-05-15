@@ -27,7 +27,7 @@ use nym_credentials_interface::{
 use nym_sdk::mixnet::{CredentialStorage, StoragePaths};
 use time::Date;
 
-use crate::{error::Error, AvailableTicketbooks};
+use crate::{AvailableTicketbooks, error::Error};
 
 pub type SharedVpnCredentialStorage = Arc<tokio::sync::Mutex<VpnCredentialStorage>>;
 

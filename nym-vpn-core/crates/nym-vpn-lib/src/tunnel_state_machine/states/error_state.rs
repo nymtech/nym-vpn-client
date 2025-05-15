@@ -28,13 +28,13 @@ use nym_firewall::FirewallPolicy;
 use crate::tunnel_provider::{ios::OSTunProvider, tunnel_settings::TunnelSettings};
 #[cfg(target_os = "ios")]
 use crate::tunnel_state_machine::tunnel::wireguard::two_hop_config::MIN_IPV6_MTU;
-use crate::tunnel_state_machine::{
-    states::{ConnectingState, DisconnectedState, OfflineState},
-    ErrorStateReason, NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand,
-    TunnelStateHandler,
-};
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use crate::tunnel_state_machine::{Error, Result};
+use crate::tunnel_state_machine::{
+    ErrorStateReason, NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand,
+    TunnelStateHandler,
+    states::{ConnectingState, DisconnectedState, OfflineState},
+};
 
 /// Interface addresses used as placeholders when in error state.
 #[cfg(target_os = "ios")]
@@ -53,10 +53,11 @@ impl ErrorState {
         _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
-        if !Self::prevents_filtering_resolver(&reason)
-            && Self::set_local_dns_resolver(_shared_state).await.is_err()
-        {
-            return Box::pin(Self::enter(ErrorStateReason::Dns, _shared_state)).await;
+        if !reason.prevents_filtering_resolver() {
+            // Set system DNS to our local DNS resolver
+            if Self::set_local_dns_resolver(_shared_state).await.is_err() {
+                return Box::pin(Self::enter(ErrorStateReason::SetDns, _shared_state)).await;
+            }
         }
 
         #[cfg(target_os = "ios")]
@@ -119,11 +120,6 @@ impl ErrorState {
             .map_err(Error::SetDns)
     }
 
-    #[cfg(target_os = "macos")]
-    fn prevents_filtering_resolver(reason: &ErrorStateReason) -> bool {
-        matches!(reason, ErrorStateReason::Dns)
-    }
-
     /// Configure tunnel with network settings blocking all traffic
     #[cfg(target_os = "ios")]
     async fn set_blocking_network_settings(tun_provider: Arc<dyn OSTunProvider>) {
@@ -155,17 +151,23 @@ impl TunnelStateHandler for ErrorState {
             Some(command) = command_rx.recv() => {
                 match command {
                     TunnelCommand::Connect => {
-                        if shared_state.offline_monitor.connectivity().await.is_offline() {
-                            NextTunnelState::NewState(OfflineState::enter(true,  0, None, shared_state).await)
+                        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                        Self::reset_dns(shared_state).await;
+
+                        if shared_state.connectivity_handle.connectivity().await.is_offline() {
+                            NextTunnelState::NewState(OfflineState::enter(true, None, shared_state).await)
                         } else {
                             NextTunnelState::NewState(ConnectingState::enter(0, None, shared_state).await)
                         }
                     },
                     TunnelCommand::Disconnect => {
-                        if shared_state.offline_monitor.connectivity().await.is_offline() {
-                            NextTunnelState::NewState(OfflineState::enter(false,  0, None, shared_state).await)
+                        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                        Self::reset_dns(shared_state).await;
+
+                        if shared_state.connectivity_handle.connectivity().await.is_offline() {
+                            NextTunnelState::NewState(OfflineState::enter(false, None, shared_state).await)
                         } else {
-                            NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
+                            NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
                         }
                     },
                     TunnelCommand::SetTunnelSettings(tunnel_settings) => {
@@ -177,8 +179,8 @@ impl TunnelStateHandler for ErrorState {
             _ = shutdown_token.cancelled() => {
                 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                 {
-                    Self::reset_firewall_policy(shared_state);
                     Self::reset_dns(shared_state).await;
+                    Self::reset_firewall_policy(shared_state);
                 }
                 NextTunnelState::Finished
             }

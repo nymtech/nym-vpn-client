@@ -4,26 +4,37 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_common::ErrorExt;
 
 use crate::tunnel_state_machine::{
-    states::{ConnectingState, OfflineState},
     NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
+    states::{ConnectingState, OfflineState},
+    tunnel::Tombstone,
 };
 
 pub struct DisconnectedState;
 
 impl DisconnectedState {
     pub async fn enter(
-        _shared_state: &mut SharedState,
+        tombstone: Option<Tombstone>,
+        shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
-        if let Err(error) = _shared_state.dns_handler.reset().await {
-            error.trace_chain_with_msg("Unable to disable filtering resolver");
-        }
+        Self::reset_dns(shared_state).await;
+
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        Self::reset_firewall_policy(_shared_state);
+        Self::reset_firewall_policy(shared_state);
+
+        if let Err(e) = shared_state
+            .account_command_tx
+            .set_static_api_addresses(None)
+            .await
+        {
+            e.trace_chain_with_msg("Failed to unset static API addresses");
+        }
+
+        // Drop tombstone to close tunnel devices.
+        let _ = tombstone;
 
         (Box::new(Self), PrivateTunnelState::Disconnected)
     }
@@ -32,6 +43,13 @@ impl DisconnectedState {
     fn reset_firewall_policy(shared_state: &mut SharedState) {
         if let Err(e) = shared_state.firewall.reset_policy() {
             e.trace_chain_with_msg("Failed to reset firewall policy");
+        }
+    }
+
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    async fn reset_dns(shared_state: &mut SharedState) {
+        if let Err(error) = shared_state.dns_handler.reset().await {
+            error.trace_chain_with_msg("Failed to reset DNS");
         }
     }
 }
@@ -57,14 +75,16 @@ impl TunnelStateHandler for DisconnectedState {
                     }
                 }
             }
-            Some(connectivity) = shared_state.offline_monitor.next() => {
+            Some(connectivity) = shared_state.connectivity_handle.next() => {
                 if connectivity.is_offline() {
-                    NextTunnelState::NewState(OfflineState::enter(false, 0, None, shared_state).await)
+                    NextTunnelState::NewState(OfflineState::enter(false, None, shared_state).await)
                 } else {
                     NextTunnelState::SameState(self)
                 }
             }
             _ = shutdown_token.cancelled() => {
+                #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+                Self::reset_dns(shared_state).await;
                 NextTunnelState::Finished
             }
         }

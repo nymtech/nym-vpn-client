@@ -6,8 +6,8 @@ use std::os::fd::RawFd;
 use std::sync::Arc;
 
 use nym_sdk::mixnet::{
-    ed25519, ClientStatsEvents, ClientStatsSender, LaneQueueLengths, MixnetClient,
-    MixnetClientSender, MixnetMessageSender, Recipient,
+    ClientStatsEvents, ClientStatsSender, LaneQueueLengths, MixnetClient, MixnetClientSender,
+    MixnetMessageSender, Recipient, ed25519,
 };
 
 #[derive(Clone)]

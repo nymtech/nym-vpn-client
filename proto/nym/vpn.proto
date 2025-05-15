@@ -389,7 +389,8 @@ message TunnelState {
 
   message Disconnected {}
   message Connecting {
-    optional ConnectionData connection_data = 1;
+    uint32 retry_attempt = 1;
+    optional ConnectionData connection_data = 2;
   }
   message Connected {
     ConnectionData connection_data = 1;

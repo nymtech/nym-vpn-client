@@ -26,12 +26,12 @@ pub use nym_connection_monitor as connection_monitor;
 pub use nym_gateway_directory as gateway_directory;
 pub use nym_ip_packet_requests::IpPair;
 pub use nym_sdk::{
-    mixnet::{NodeIdentity, Recipient, StoragePaths},
     UserAgent,
+    mixnet::{NodeIdentity, Recipient, StoragePaths},
 };
 pub use nym_task::{
-    event::{SentStatus, TaskStatus},
     StatusReceiver,
+    event::{SentStatus, TaskStatus},
 };
 pub use nym_wg_gateway_client as wg_gateway_client;
 

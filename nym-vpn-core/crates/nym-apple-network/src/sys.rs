@@ -11,9 +11,9 @@ use std::ffi::{c_char, c_int};
 use dispatch2::DispatchQueue;
 use nix::sys::socket::sockaddr;
 use objc2::{
+    Message,
     encode::{Encoding, RefEncode},
     runtime::{Bool, NSObjectProtocol},
-    Message,
 };
 
 macro_rules! create_opaque_type {

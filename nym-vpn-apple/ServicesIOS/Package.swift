@@ -7,7 +7,7 @@ let package = Package(
     name: "ServicesIOS",
     defaultLocalization: "en",
     platforms: [
-        .iOS(.v16)
+        .iOS(.v17)
     ],
     products: [
         .library(name: "Extensions", targets: ["Extensions"]),

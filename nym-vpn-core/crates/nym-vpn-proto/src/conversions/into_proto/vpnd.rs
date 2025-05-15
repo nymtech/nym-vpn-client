@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpnd_types::gateway::Score;
-use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
 impl From<nym_vpnd_types::gateway::Location> for crate::Location {
     fn from(location: nym_vpnd_types::gateway::Location) -> Self {

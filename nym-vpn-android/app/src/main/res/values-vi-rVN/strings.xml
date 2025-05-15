@@ -238,7 +238,7 @@ không phải Ví Nym.</string>
     <string name="bypass_lan">Bỏ qua LAN</string>
     <string name="bandwidth_error">Đã vượt quá băng thông hàng tháng. Vui lòng nâng cấp gói tài khoản của bạn.</string>
     <string name="max_devices_error">Đã vượt quá giới hạn thiết bị của tài khoản. Vui lòng xóa một thiết bị khỏi tài khoản của bạn trước khi kết nối.</string>
-    <string name="pricing_url">nym.com/pricing</string>
+    <string name="pricing_url">https://nym.com/pricing</string>
     <string name="account_id">ID tài khoản:</string>
     <string name="developer">Nhà phát triển</string>
     <string name="get_help">Trợ giúp</string>

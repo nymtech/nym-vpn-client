@@ -15,6 +15,7 @@ import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
 import UpdateDialog from './UpdateDialog';
 
+const devMode = window._APP.devMode;
 let compatChecked = false;
 
 function Home() {
@@ -69,7 +70,7 @@ function Home() {
   };
 
   useEffect(() => {
-    if (S_STATE.devMode || compatChecked) {
+    if (devMode || compatChecked) {
       return;
     }
     if (

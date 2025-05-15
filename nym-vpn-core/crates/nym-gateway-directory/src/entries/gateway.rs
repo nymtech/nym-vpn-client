@@ -9,9 +9,9 @@ use rand::seq::IteratorRandom;
 use std::{fmt, net::IpAddr};
 use tracing::error;
 
-use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
+use crate::{AuthAddress, Country, Error, IpPacketRouterAddress, error::Result};
 
-use super::score::{Score, HIGH_SCORE_THRESHOLD, LOW_SCORE_THRESHOLD, MEDIUM_SCORE_THRESHOLD};
+use super::score::{HIGH_SCORE_THRESHOLD, LOW_SCORE_THRESHOLD, MEDIUM_SCORE_THRESHOLD, Score};
 
 pub type NymNode = Gateway;
 

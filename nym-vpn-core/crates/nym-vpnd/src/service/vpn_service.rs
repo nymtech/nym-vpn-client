@@ -10,7 +10,7 @@ use std::{
 
 use bip39::Mnemonic;
 use serde::{Deserialize, Serialize};
-use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
@@ -22,17 +22,17 @@ use nym_vpn_account_controller::{
     AvailableTicketbooks, SharedAccountState,
 };
 use nym_vpn_api_client::{
+    NetworkCompatibility,
     response::{NymVpnDevice, NymVpnUsage},
     types::{Percent, ScoreThresholds},
-    NetworkCompatibility,
 };
 use nym_vpn_lib::{
+    MixnetClientConfig, Recipient, UserAgent,
     gateway_directory::{self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
     },
-    MixnetClientConfig, Recipient, UserAgent,
 };
 use nym_vpn_lib_types::{
     AccountCommandError, ForgetAccountError, StoreAccountError, TunnelEvent, TunnelState,
@@ -42,7 +42,7 @@ use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMe
 use zeroize::Zeroizing;
 
 use super::{
-    config::{NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
+    config::{DEFAULT_CONFIG_FILE, NetworkEnvironments, NymVpnServiceConfig},
     error::{
         AccountControllerError, AccountLinksError, Error, Result, SetNetworkError,
         VpnServiceDeleteLogFileError,
@@ -280,7 +280,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             .map_err(nym_vpn_lib::tunnel_state_machine::Error::CreateRouteHandler)
             .map_err(Error::StateMachine)?;
 
-        let offline_monitor = nym_offline_monitor::spawn_monitor(
+        let connectivity_handle = nym_offline_monitor::spawn_monitor(
             route_handler.inner_handle(),
             #[cfg(target_os = "linux")]
             Some(nym_vpn_lib::tunnel_state_machine::TUNNEL_FWMARK),
@@ -290,7 +290,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let account_controller = AccountController::new(
             account_controller_config,
             Arc::clone(&storage),
-            Some(offline_monitor.clone()),
+            Some(connectivity_handle.clone()),
             shutdown_token.child_token(),
         )
         .await
@@ -351,7 +351,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let gateway_directory_client =
             GatewayClient::new(gateway_config, user_agent.clone()).unwrap();
         let gateway_directory_client =
-            CachingGatewayClient::new(gateway_directory_client, Some(offline_monitor.clone()));
+            CachingGatewayClient::new(gateway_directory_client, Some(connectivity_handle.clone()));
         gateway_directory_client.refresh_all().await;
 
         if GATEWAY_DIRECTORY_CLIENT
@@ -368,7 +368,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             tunnel_settings,
             account_command_tx.clone(),
             gateway_directory_client,
-            offline_monitor,
+            connectivity_handle,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             route_handler,
             shutdown_token.child_token(),
@@ -406,7 +406,6 @@ where
         loop {
             tokio::select! {
                 Some(command) = self.vpn_command_rx.recv() => {
-                    tracing::debug!("Received command: {command}");
                     self.handle_service_command_timed(command).await;
                 }
                 Some(event) = self.event_receiver.recv() => {

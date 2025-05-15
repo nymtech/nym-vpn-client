@@ -16,9 +16,9 @@ use nym_credentials::{EpochVerificationKey, IssuedTicketBook};
 use nym_credentials_interface::{PublicKeyUser, RequestInfo, TicketType};
 use nym_ecash_time::EcashTime;
 use nym_vpn_api_client::{
+    VpnApiClient,
     response::{NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymStatus, StatusOk},
     types::{Device, VpnApiAccount},
-    VpnApiClient,
 };
 use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiError};
 use time::Date;
@@ -28,7 +28,7 @@ use crate::{
     storage::{PendingCredentialRequest, VpnCredentialStorage},
 };
 
-use super::{cached_data::CachedData, ZkNymId};
+use super::{ZkNymId, cached_data::CachedData};
 
 const ZK_NYM_POLLING_TIMEOUT: Duration = Duration::from_secs(60);
 const ZK_NYM_POLLING_INTERVAL: Duration = Duration::from_secs(5);
@@ -342,7 +342,7 @@ impl RequestZkNymTask {
             .is_none()
         {
             tracing::info!(
-            "Inserting expiration date signatures for epoch {epoch_id} and date: {expiration_date}"
+                "Inserting expiration date signatures for epoch {epoch_id} and date: {expiration_date}"
             );
             guard
                 .insert_expiration_date_signatures(

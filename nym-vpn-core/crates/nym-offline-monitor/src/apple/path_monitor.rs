@@ -4,8 +4,8 @@
 use std::{sync::Arc, time::Duration};
 
 use dispatch2::{DispatchQueue, DispatchQueueAttr};
-use tokio::sync::{mpsc, watch, Mutex};
-use tokio_stream::{wrappers::UnboundedReceiverStream, StreamExt};
+use tokio::sync::{Mutex, mpsc, watch};
+use tokio_stream::{StreamExt, wrappers::UnboundedReceiverStream};
 use tokio_util::sync::CancellationToken;
 
 use nym_apple_network::{InterfaceType, Path, PathMonitor, PathStatus};

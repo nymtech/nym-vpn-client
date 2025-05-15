@@ -8,7 +8,7 @@ use std::fmt;
 
 use time::OffsetDateTime;
 
-use super::{util::or_not_set, ConversionError};
+use super::{ConversionError, util::or_not_set};
 
 pub struct InfoResponse {
     pub version: String,
