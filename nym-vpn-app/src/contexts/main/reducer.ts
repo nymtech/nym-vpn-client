@@ -169,6 +169,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
           : dayjs(),
         tunnelError: null,
         error: null,
+        retryAttempt: 0,
       };
     case 'set-tunnel-disconnected':
       return {
@@ -178,6 +179,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
         progressMessages: [],
         tunnelConnectedAt: null,
         tunnelError: null,
+        retryAttempt: 0,
       };
     case 'set-tunnel-connecting':
       return {
