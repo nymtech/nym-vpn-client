@@ -25,7 +25,6 @@ use commands::log as cmd_log;
 use commands::window as cmd_window;
 use commands::*;
 use state::app::AppState;
-use sysinfo::System;
 use tauri::Manager;
 use tauri_plugin_window_state::StateFlags;
 use tokio::sync::Mutex;
@@ -73,13 +72,7 @@ async fn main() -> Result<()> {
         return Ok(());
     }
     let _guard = log::setup_tracing(&cli).await?;
-    match System::long_os_version() {
-        Some(os) => info!(
-            "OS: {os} {}",
-            System::kernel_version().unwrap_or_else(|| "unknown".to_string())
-        ),
-        None => info!("OS: {} {}", std::env::consts::OS, std::env::consts::ARCH),
-    }
+    info!("os: {}", misc::os_info());
     trace!("cli args: {:#?}", cli);
 
     #[cfg(any(target_os = "linux", target_os = "openbsd"))]
