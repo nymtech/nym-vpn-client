@@ -8,11 +8,9 @@ extension HomeViewModel {
         updateStatusInfoState(with: .unknown)
     }
 
-    func updateStatusInfoState(with newState: StatusInfoState) {
-        Task { @MainActor in
-            guard newState != statusInfoState else { return }
-            statusInfoState = newState
-        }
+    @MainActor func updateStatusInfoState(with newState: StatusInfoState) {
+        guard newState != statusInfoState else { return }
+        statusInfoState = newState
     }
 
     @MainActor func navigateToAddCredetialsIfNeeded(error: Error?) {

@@ -48,6 +48,7 @@ public class HomeViewModel: HomeFlowState {
     @ObservedObject var connectionManager: ConnectionManager
     var cancellables = Set<AnyCancellable>()
     var tunnelStatusUpdateCancellable: AnyCancellable?
+    var tunnelRetryAttemptCancellable: AnyCancellable?
     var lastTunnelStatus = TunnelStatus.disconnected
     var lastError: Error?
 
@@ -307,7 +308,11 @@ extension HomeViewModel {
             if let lastError {
                 statusInfoState = .error(message: lastError.localizedDescription)
             } else {
-                statusInfoState = StatusInfoState(tunnelStatus: newStatus, isOnline: networkMonitor.isAvailable)
+                statusInfoState = StatusInfoState(
+                    tunnelStatus: newStatus,
+                    isOnline: networkMonitor.isAvailable,
+                    retryAttempt: connectionManager.connectionRetryAttempt
+                )
             }
 
             if newStatus == .connected {

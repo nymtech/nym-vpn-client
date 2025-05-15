@@ -14,9 +14,9 @@ extension GatewayManager {
         )
         Task {
             do {
-                let entryNodes = try getGateways(gwType: .mixnetEntry, userAgent: userAgent, minGatewayPerformance: nil)
-                let exitNodes = try getGateways(gwType: .mixnetExit, userAgent: userAgent, minGatewayPerformance: nil)
-                let vpnNodes = try getGateways(gwType: .wg, userAgent: userAgent, minGatewayPerformance: nil)
+                let entryNodes = try getGateways(gwType: .mixnetEntry, userAgent: userAgent)
+                let exitNodes = try getGateways(gwType: .mixnetExit, userAgent: userAgent)
+                let vpnNodes = try getGateways(gwType: .wg, userAgent: userAgent)
 
                 let entryGateways = entryNodes.map { GatewayNode(with: $0) }
                 let exitGateways = exitNodes.map { GatewayNode(with: $0) }
