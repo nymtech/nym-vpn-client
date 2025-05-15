@@ -5,7 +5,7 @@ import TunnelStatus
 
 public enum StatusInfoState: Equatable {
     case initialising
-    case connecting
+    case connecting(retryAttempt: Int?)
     case connectionTime
     case error(message: String)
     case noInternet
@@ -13,12 +13,12 @@ public enum StatusInfoState: Equatable {
     case unknown
     case installingDaemon
 
-    public init(tunnelStatus: TunnelStatus, isOnline: Bool) {
+    public init(tunnelStatus: TunnelStatus, isOnline: Bool, retryAttempt: Int?) {
         switch tunnelStatus {
         case .connected:
             self = .connectionTime
         case .connecting, .reasserting, .restarting:
-            self = .connecting
+            self = .connecting(retryAttempt: retryAttempt)
         case .disconnected, .disconnecting, .unknown:
             self = isOnline ? .unknown : .noInternet
         case .offline:
@@ -38,8 +38,12 @@ public enum StatusInfoState: Equatable {
         switch self {
         case .initialising:
             "initializingClient".localizedString
-        case .connecting:
-            "establishingConnection".localizedString
+        case let .connecting(retryAttempt):
+            if let retryAttempt {
+                "\("establishingConnection".localizedString). \("home.connectingRetryAttempt".localizedString): \(retryAttempt)"
+            } else {
+                "establishingConnection".localizedString
+            }
         case .connectionTime:
             "connectionTime".localizedString
         case let .error(message):
@@ -54,10 +58,6 @@ public enum StatusInfoState: Equatable {
         case .installingDaemon:
             "home.installDaemon".localizedString
         }
-    }
-
-    var isConnecting: Bool {
-        self == .connecting
     }
 
     var textColor: Color {

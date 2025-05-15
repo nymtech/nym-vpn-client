@@ -13,7 +13,19 @@ extension PacketTunnelProvider {
         case .status:
             guard let tunnelState = await tunnelActor.tunnelState else { return nil }
             do {
-                return try JSONEncoder().encode(TunnelStatus(from: tunnelState))
+                let retryAttempt: Int?
+                switch tunnelState {
+                case let .connecting(retryAttempt: attempt, connectionData: _):
+                    retryAttempt = Int(attempt)
+                default:
+                    retryAttempt = nil
+                }
+
+                let statusResponse = TunnelStatusResponse(
+                    status: TunnelStatus(from: tunnelState),
+                    retryAttempt: retryAttempt
+                )
+                return try JSONEncoder().encode(statusResponse)
             } catch {
                 logger.error("AppMessage: \(error.localizedDescription)")
                 return nil

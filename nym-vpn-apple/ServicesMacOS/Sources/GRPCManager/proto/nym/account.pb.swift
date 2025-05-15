@@ -44,12 +44,12 @@ struct Nym_Vpn_StoreAccountError: Sendable {
     set {errorDetail = .storageError(newValue)}
   }
 
-  var errorResponse: Nym_Vpn_VpnApiErrorResponse {
+  var vpnApi: Nym_Vpn_VpnApiError {
     get {
-      if case .errorResponse(let v)? = errorDetail {return v}
-      return Nym_Vpn_VpnApiErrorResponse()
+      if case .vpnApi(let v)? = errorDetail {return v}
+      return Nym_Vpn_VpnApiError()
     }
-    set {errorDetail = .errorResponse(newValue)}
+    set {errorDetail = .vpnApi(newValue)}
   }
 
   var unexpectedResponse: String {
@@ -73,7 +73,7 @@ struct Nym_Vpn_StoreAccountError: Sendable {
   enum OneOf_ErrorDetail: Equatable, Sendable {
     case invalidMnemonic(String)
     case storageError(String)
-    case errorResponse(Nym_Vpn_VpnApiErrorResponse)
+    case vpnApi(Nym_Vpn_VpnApiError)
     case unexpectedResponse(String)
     case `internal`(String)
 
@@ -97,12 +97,12 @@ struct Nym_Vpn_SyncAccountError: Sendable {
     set {errorDetail = .noAccountStored(newValue)}
   }
 
-  var errorResponse: Nym_Vpn_VpnApiErrorResponse {
+  var vpnApi: Nym_Vpn_VpnApiError {
     get {
-      if case .errorResponse(let v)? = errorDetail {return v}
-      return Nym_Vpn_VpnApiErrorResponse()
+      if case .vpnApi(let v)? = errorDetail {return v}
+      return Nym_Vpn_VpnApiError()
     }
-    set {errorDetail = .errorResponse(newValue)}
+    set {errorDetail = .vpnApi(newValue)}
   }
 
   var unexpectedResponse: String {
@@ -133,7 +133,7 @@ struct Nym_Vpn_SyncAccountError: Sendable {
 
   enum OneOf_ErrorDetail: Equatable, Sendable {
     case noAccountStored(Bool)
-    case errorResponse(Nym_Vpn_VpnApiErrorResponse)
+    case vpnApi(Nym_Vpn_VpnApiError)
     case unexpectedResponse(String)
     case offline(Bool)
     case `internal`(String)
@@ -166,12 +166,12 @@ struct Nym_Vpn_SyncDeviceError: Sendable {
     set {errorDetail = .noDeviceStored(newValue)}
   }
 
-  var errorResponse: Nym_Vpn_VpnApiErrorResponse {
+  var vpnApi: Nym_Vpn_VpnApiError {
     get {
-      if case .errorResponse(let v)? = errorDetail {return v}
-      return Nym_Vpn_VpnApiErrorResponse()
+      if case .vpnApi(let v)? = errorDetail {return v}
+      return Nym_Vpn_VpnApiError()
     }
-    set {errorDetail = .errorResponse(newValue)}
+    set {errorDetail = .vpnApi(newValue)}
   }
 
   var unexpectedResponse: String {
@@ -203,7 +203,7 @@ struct Nym_Vpn_SyncDeviceError: Sendable {
   enum OneOf_ErrorDetail: Equatable, Sendable {
     case noAccountStored(Bool)
     case noDeviceStored(Bool)
-    case errorResponse(Nym_Vpn_VpnApiErrorResponse)
+    case vpnApi(Nym_Vpn_VpnApiError)
     case unexpectedResponse(String)
     case offline(Bool)
     case `internal`(String)
@@ -236,12 +236,12 @@ struct Nym_Vpn_RegisterDeviceError: Sendable {
     set {errorDetail = .noDeviceStored(newValue)}
   }
 
-  var errorResponse: Nym_Vpn_VpnApiErrorResponse {
+  var vpnApi: Nym_Vpn_VpnApiError {
     get {
-      if case .errorResponse(let v)? = errorDetail {return v}
-      return Nym_Vpn_VpnApiErrorResponse()
+      if case .vpnApi(let v)? = errorDetail {return v}
+      return Nym_Vpn_VpnApiError()
     }
-    set {errorDetail = .errorResponse(newValue)}
+    set {errorDetail = .vpnApi(newValue)}
   }
 
   var unexpectedResponse: String {
@@ -273,7 +273,7 @@ struct Nym_Vpn_RegisterDeviceError: Sendable {
   enum OneOf_ErrorDetail: Equatable, Sendable {
     case noAccountStored(Bool)
     case noDeviceStored(Bool)
-    case errorResponse(Nym_Vpn_VpnApiErrorResponse)
+    case vpnApi(Nym_Vpn_VpnApiError)
     case unexpectedResponse(String)
     case offline(Bool)
     case `internal`(String)
@@ -298,12 +298,12 @@ struct Nym_Vpn_ForgetAccountError: Sendable {
     set {errorDetail = .registrationInProgress(newValue)}
   }
 
-  var errorResponse: Nym_Vpn_VpnApiErrorResponse {
+  var vpnApi: Nym_Vpn_VpnApiError {
     get {
-      if case .errorResponse(let v)? = errorDetail {return v}
-      return Nym_Vpn_VpnApiErrorResponse()
+      if case .vpnApi(let v)? = errorDetail {return v}
+      return Nym_Vpn_VpnApiError()
     }
-    set {errorDetail = .errorResponse(newValue)}
+    set {errorDetail = .vpnApi(newValue)}
   }
 
   var unexpectedResponse: String {
@@ -366,7 +366,7 @@ struct Nym_Vpn_ForgetAccountError: Sendable {
 
   enum OneOf_ErrorDetail: Equatable, Sendable {
     case registrationInProgress(Bool)
-    case errorResponse(Nym_Vpn_VpnApiErrorResponse)
+    case vpnApi(Nym_Vpn_VpnApiError)
     case unexpectedResponse(String)
     case removeAccount(String)
     case removeDeviceKeys(String)
@@ -388,6 +388,49 @@ struct Nym_Vpn_DeleteLogFileError: Sendable {
   var message: String = String()
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  init() {}
+}
+
+struct Nym_Vpn_VpnApiError: Sendable {
+  // SwiftProtobuf.Message conformance is added in an extension below. See the
+  // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
+  // methods supported on all messages.
+
+  var errorDetail: Nym_Vpn_VpnApiError.OneOf_ErrorDetail? = nil
+
+  var timeout: Bool {
+    get {
+      if case .timeout(let v)? = errorDetail {return v}
+      return false
+    }
+    set {errorDetail = .timeout(newValue)}
+  }
+
+  var statusCode: UInt32 {
+    get {
+      if case .statusCode(let v)? = errorDetail {return v}
+      return 0
+    }
+    set {errorDetail = .statusCode(newValue)}
+  }
+
+  var response: Nym_Vpn_VpnApiErrorResponse {
+    get {
+      if case .response(let v)? = errorDetail {return v}
+      return Nym_Vpn_VpnApiErrorResponse()
+    }
+    set {errorDetail = .response(newValue)}
+  }
+
+  var unknownFields = SwiftProtobuf.UnknownStorage()
+
+  enum OneOf_ErrorDetail: Equatable, Sendable {
+    case timeout(Bool)
+    case statusCode(UInt32)
+    case response(Nym_Vpn_VpnApiErrorResponse)
+
+  }
 
   init() {}
 }
@@ -460,10 +503,10 @@ struct Nym_Vpn_RequestZkNymError: Sendable {
     set {outcome = .noDeviceStored(newValue)}
   }
 
-  var vpnApi: Nym_Vpn_VpnApiErrorResponse {
+  var vpnApi: Nym_Vpn_VpnApiError {
     get {
       if case .vpnApi(let v)? = outcome {return v}
-      return Nym_Vpn_VpnApiErrorResponse()
+      return Nym_Vpn_VpnApiError()
     }
     set {outcome = .vpnApi(newValue)}
   }
@@ -505,7 +548,7 @@ struct Nym_Vpn_RequestZkNymError: Sendable {
   enum OneOf_Outcome: Equatable, Sendable {
     case noAccountStored(Bool)
     case noDeviceStored(Bool)
-    case vpnApi(Nym_Vpn_VpnApiErrorResponse)
+    case vpnApi(Nym_Vpn_VpnApiError)
     case unexpectedVpnApiResponse(String)
     case storage(String)
     case offline(Bool)
@@ -1491,7 +1534,7 @@ extension Nym_Vpn_StoreAccountError: SwiftProtobuf.Message, SwiftProtobuf._Messa
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     5: .standard(proto: "invalid_mnemonic"),
     1: .standard(proto: "storage_error"),
-    2: .standard(proto: "error_response"),
+    2: .standard(proto: "vpn_api"),
     3: .standard(proto: "unexpected_response"),
     4: .same(proto: "internal"),
   ]
@@ -1511,16 +1554,16 @@ extension Nym_Vpn_StoreAccountError: SwiftProtobuf.Message, SwiftProtobuf._Messa
         }
       }()
       case 2: try {
-        var v: Nym_Vpn_VpnApiErrorResponse?
+        var v: Nym_Vpn_VpnApiError?
         var hadOneofValue = false
         if let current = self.errorDetail {
           hadOneofValue = true
-          if case .errorResponse(let m) = current {v = m}
+          if case .vpnApi(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .errorResponse(v)
+          self.errorDetail = .vpnApi(v)
         }
       }()
       case 3: try {
@@ -1562,8 +1605,8 @@ extension Nym_Vpn_StoreAccountError: SwiftProtobuf.Message, SwiftProtobuf._Messa
       guard case .storageError(let v)? = self.errorDetail else { preconditionFailure() }
       try visitor.visitSingularStringField(value: v, fieldNumber: 1)
     }()
-    case .errorResponse?: try {
-      guard case .errorResponse(let v)? = self.errorDetail else { preconditionFailure() }
+    case .vpnApi?: try {
+      guard case .vpnApi(let v)? = self.errorDetail else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }()
     case .unexpectedResponse?: try {
@@ -1594,7 +1637,7 @@ extension Nym_Vpn_SyncAccountError: SwiftProtobuf.Message, SwiftProtobuf._Messag
   static let protoMessageName: String = _protobuf_package + ".SyncAccountError"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "no_account_stored"),
-    2: .standard(proto: "error_response"),
+    2: .standard(proto: "vpn_api"),
     3: .standard(proto: "unexpected_response"),
     5: .same(proto: "offline"),
     4: .same(proto: "internal"),
@@ -1615,16 +1658,16 @@ extension Nym_Vpn_SyncAccountError: SwiftProtobuf.Message, SwiftProtobuf._Messag
         }
       }()
       case 2: try {
-        var v: Nym_Vpn_VpnApiErrorResponse?
+        var v: Nym_Vpn_VpnApiError?
         var hadOneofValue = false
         if let current = self.errorDetail {
           hadOneofValue = true
-          if case .errorResponse(let m) = current {v = m}
+          if case .vpnApi(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .errorResponse(v)
+          self.errorDetail = .vpnApi(v)
         }
       }()
       case 3: try {
@@ -1666,8 +1709,8 @@ extension Nym_Vpn_SyncAccountError: SwiftProtobuf.Message, SwiftProtobuf._Messag
       guard case .noAccountStored(let v)? = self.errorDetail else { preconditionFailure() }
       try visitor.visitSingularBoolField(value: v, fieldNumber: 1)
     }()
-    case .errorResponse?: try {
-      guard case .errorResponse(let v)? = self.errorDetail else { preconditionFailure() }
+    case .vpnApi?: try {
+      guard case .vpnApi(let v)? = self.errorDetail else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }()
     case .unexpectedResponse?: try {
@@ -1699,7 +1742,7 @@ extension Nym_Vpn_SyncDeviceError: SwiftProtobuf.Message, SwiftProtobuf._Message
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "no_account_stored"),
     2: .standard(proto: "no_device_stored"),
-    3: .standard(proto: "error_response"),
+    3: .standard(proto: "vpn_api"),
     4: .standard(proto: "unexpected_response"),
     6: .same(proto: "offline"),
     5: .same(proto: "internal"),
@@ -1728,16 +1771,16 @@ extension Nym_Vpn_SyncDeviceError: SwiftProtobuf.Message, SwiftProtobuf._Message
         }
       }()
       case 3: try {
-        var v: Nym_Vpn_VpnApiErrorResponse?
+        var v: Nym_Vpn_VpnApiError?
         var hadOneofValue = false
         if let current = self.errorDetail {
           hadOneofValue = true
-          if case .errorResponse(let m) = current {v = m}
+          if case .vpnApi(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .errorResponse(v)
+          self.errorDetail = .vpnApi(v)
         }
       }()
       case 4: try {
@@ -1783,8 +1826,8 @@ extension Nym_Vpn_SyncDeviceError: SwiftProtobuf.Message, SwiftProtobuf._Message
       guard case .noDeviceStored(let v)? = self.errorDetail else { preconditionFailure() }
       try visitor.visitSingularBoolField(value: v, fieldNumber: 2)
     }()
-    case .errorResponse?: try {
-      guard case .errorResponse(let v)? = self.errorDetail else { preconditionFailure() }
+    case .vpnApi?: try {
+      guard case .vpnApi(let v)? = self.errorDetail else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
     case .unexpectedResponse?: try {
@@ -1816,7 +1859,7 @@ extension Nym_Vpn_RegisterDeviceError: SwiftProtobuf.Message, SwiftProtobuf._Mes
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "no_account_stored"),
     2: .standard(proto: "no_device_stored"),
-    3: .standard(proto: "error_response"),
+    3: .standard(proto: "vpn_api"),
     4: .standard(proto: "unexpected_response"),
     6: .same(proto: "offline"),
     5: .same(proto: "internal"),
@@ -1845,16 +1888,16 @@ extension Nym_Vpn_RegisterDeviceError: SwiftProtobuf.Message, SwiftProtobuf._Mes
         }
       }()
       case 3: try {
-        var v: Nym_Vpn_VpnApiErrorResponse?
+        var v: Nym_Vpn_VpnApiError?
         var hadOneofValue = false
         if let current = self.errorDetail {
           hadOneofValue = true
-          if case .errorResponse(let m) = current {v = m}
+          if case .vpnApi(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .errorResponse(v)
+          self.errorDetail = .vpnApi(v)
         }
       }()
       case 4: try {
@@ -1900,8 +1943,8 @@ extension Nym_Vpn_RegisterDeviceError: SwiftProtobuf.Message, SwiftProtobuf._Mes
       guard case .noDeviceStored(let v)? = self.errorDetail else { preconditionFailure() }
       try visitor.visitSingularBoolField(value: v, fieldNumber: 2)
     }()
-    case .errorResponse?: try {
-      guard case .errorResponse(let v)? = self.errorDetail else { preconditionFailure() }
+    case .vpnApi?: try {
+      guard case .vpnApi(let v)? = self.errorDetail else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
     case .unexpectedResponse?: try {
@@ -1932,7 +1975,7 @@ extension Nym_Vpn_ForgetAccountError: SwiftProtobuf.Message, SwiftProtobuf._Mess
   static let protoMessageName: String = _protobuf_package + ".ForgetAccountError"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .standard(proto: "registration_in_progress"),
-    2: .standard(proto: "error_response"),
+    2: .standard(proto: "vpn_api"),
     3: .standard(proto: "unexpected_response"),
     4: .standard(proto: "remove_account"),
     5: .standard(proto: "remove_device_keys"),
@@ -1957,16 +2000,16 @@ extension Nym_Vpn_ForgetAccountError: SwiftProtobuf.Message, SwiftProtobuf._Mess
         }
       }()
       case 2: try {
-        var v: Nym_Vpn_VpnApiErrorResponse?
+        var v: Nym_Vpn_VpnApiError?
         var hadOneofValue = false
         if let current = self.errorDetail {
           hadOneofValue = true
-          if case .errorResponse(let m) = current {v = m}
+          if case .vpnApi(let m) = current {v = m}
         }
         try decoder.decodeSingularMessageField(value: &v)
         if let v = v {
           if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.errorDetail = .errorResponse(v)
+          self.errorDetail = .vpnApi(v)
         }
       }()
       case 3: try {
@@ -2040,8 +2083,8 @@ extension Nym_Vpn_ForgetAccountError: SwiftProtobuf.Message, SwiftProtobuf._Mess
       guard case .registrationInProgress(let v)? = self.errorDetail else { preconditionFailure() }
       try visitor.visitSingularBoolField(value: v, fieldNumber: 1)
     }()
-    case .errorResponse?: try {
-      guard case .errorResponse(let v)? = self.errorDetail else { preconditionFailure() }
+    case .vpnApi?: try {
+      guard case .vpnApi(let v)? = self.errorDetail else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     }()
     case .unexpectedResponse?: try {
@@ -2111,6 +2154,84 @@ extension Nym_Vpn_DeleteLogFileError: SwiftProtobuf.Message, SwiftProtobuf._Mess
 
   static func ==(lhs: Nym_Vpn_DeleteLogFileError, rhs: Nym_Vpn_DeleteLogFileError) -> Bool {
     if lhs.message != rhs.message {return false}
+    if lhs.unknownFields != rhs.unknownFields {return false}
+    return true
+  }
+}
+
+extension Nym_Vpn_VpnApiError: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
+  static let protoMessageName: String = _protobuf_package + ".VpnApiError"
+  static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
+    1: .same(proto: "timeout"),
+    2: .standard(proto: "status_code"),
+    3: .same(proto: "response"),
+  ]
+
+  mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try {
+        var v: Bool?
+        try decoder.decodeSingularBoolField(value: &v)
+        if let v = v {
+          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
+          self.errorDetail = .timeout(v)
+        }
+      }()
+      case 2: try {
+        var v: UInt32?
+        try decoder.decodeSingularUInt32Field(value: &v)
+        if let v = v {
+          if self.errorDetail != nil {try decoder.handleConflictingOneOf()}
+          self.errorDetail = .statusCode(v)
+        }
+      }()
+      case 3: try {
+        var v: Nym_Vpn_VpnApiErrorResponse?
+        var hadOneofValue = false
+        if let current = self.errorDetail {
+          hadOneofValue = true
+          if case .response(let m) = current {v = m}
+        }
+        try decoder.decodeSingularMessageField(value: &v)
+        if let v = v {
+          if hadOneofValue {try decoder.handleConflictingOneOf()}
+          self.errorDetail = .response(v)
+        }
+      }()
+      default: break
+      }
+    }
+  }
+
+  func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    switch self.errorDetail {
+    case .timeout?: try {
+      guard case .timeout(let v)? = self.errorDetail else { preconditionFailure() }
+      try visitor.visitSingularBoolField(value: v, fieldNumber: 1)
+    }()
+    case .statusCode?: try {
+      guard case .statusCode(let v)? = self.errorDetail else { preconditionFailure() }
+      try visitor.visitSingularUInt32Field(value: v, fieldNumber: 2)
+    }()
+    case .response?: try {
+      guard case .response(let v)? = self.errorDetail else { preconditionFailure() }
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    }()
+    case nil: break
+    }
+    try unknownFields.traverse(visitor: &visitor)
+  }
+
+  static func ==(lhs: Nym_Vpn_VpnApiError, rhs: Nym_Vpn_VpnApiError) -> Bool {
+    if lhs.errorDetail != rhs.errorDetail {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -2231,7 +2352,7 @@ extension Nym_Vpn_RequestZkNymError: SwiftProtobuf.Message, SwiftProtobuf._Messa
         }
       }()
       case 3: try {
-        var v: Nym_Vpn_VpnApiErrorResponse?
+        var v: Nym_Vpn_VpnApiError?
         var hadOneofValue = false
         if let current = self.outcome {
           hadOneofValue = true

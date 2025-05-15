@@ -7,6 +7,7 @@ public final class Tunnel: NSObject, ObservableObject {
     public var name: String
     public var tunnel: NETunnelProviderManager
     @Published public var status: TunnelStatus
+    @Published public var retryAttempt: Int?
 
     private var logger: Logger
     private var isPolling = false
@@ -24,6 +25,7 @@ public final class Tunnel: NSObject, ObservableObject {
     }
 
     func connect(recursionCount: UInt = 0, lastError: Error? = nil) async throws {
+        startPollingTunnelStatus()
         if recursionCount >= 8 {
             logger.log(level: .error, "Connecting failed after 8 attempts. Last error: \(String(describing: lastError))")
             if let lastError {
@@ -86,7 +88,6 @@ public final class Tunnel: NSObject, ObservableObject {
                 throw error
             }
         }
-        startPollingTunnelStatus()
     }
 
     func disconnect() {
@@ -129,11 +130,12 @@ private extension Tunnel {
         guard let session = tunnel.connection as? NETunnelProviderSession,
               let message = try? TunnelProviderMessage.status.encode(),
               let response = try? await session.sendProviderMessageAsync(message),
-              let newTunnelStatus = try? JSONDecoder().decode(TunnelStatus.self, from: response)
+              let decodedResponse = try? JSONDecoder().decode(TunnelStatusResponse.self, from: response)
         else {
             return
         }
-        guard isPolling, status != newTunnelStatus else { return }
-        status = newTunnelStatus
+        retryAttempt = decodedResponse.retryAttempt
+        guard isPolling, status != decodedResponse.status else { return }
+        status = decodedResponse.status
     }
 }

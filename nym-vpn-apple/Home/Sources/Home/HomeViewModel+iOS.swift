@@ -2,6 +2,7 @@
 import Foundation
 import Combine
 import Tunnels
+import UIComponents
 
 extension HomeViewModel {
     func setupNetworkMonitorObservers() {
@@ -34,6 +35,22 @@ extension HomeViewModel {
             .sink { [weak self] status in
                 MainActor.assumeIsolated {
                     self?.updateUI(with: status)
+                }
+            }
+
+        tunnelRetryAttemptCancellable = tunnel.$retryAttempt
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] attempt in
+                MainActor.assumeIsolated {
+                    guard let self else { return }
+                    self.updateStatusInfoState(
+                        with: StatusInfoState(
+                            tunnelStatus: tunnel.status,
+                            isOnline: self.networkMonitor.isAvailable,
+                            retryAttempt: attempt
+                        )
+                    )
                 }
             }
     }

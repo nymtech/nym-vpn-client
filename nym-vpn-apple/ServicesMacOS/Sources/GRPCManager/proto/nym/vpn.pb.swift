@@ -188,14 +188,6 @@ struct Nym_Vpn_EntryNode: Sendable {
     set {entryNodeEnum = .location(newValue)}
   }
 
-  var randomLowLatency: SwiftProtobuf.Google_Protobuf_Empty {
-    get {
-      if case .randomLowLatency(let v)? = entryNodeEnum {return v}
-      return SwiftProtobuf.Google_Protobuf_Empty()
-    }
-    set {entryNodeEnum = .randomLowLatency(newValue)}
-  }
-
   var random: SwiftProtobuf.Google_Protobuf_Empty {
     get {
       if case .random(let v)? = entryNodeEnum {return v}
@@ -209,7 +201,6 @@ struct Nym_Vpn_EntryNode: Sendable {
   enum OneOf_EntryNodeEnum: Equatable, Sendable {
     case gateway(Nym_Vpn_Gateway)
     case location(Nym_Vpn_Location)
-    case randomLowLatency(SwiftProtobuf.Google_Protobuf_Empty)
     case random(SwiftProtobuf.Google_Protobuf_Empty)
 
   }
@@ -980,105 +971,65 @@ struct Nym_Vpn_ConnectRequestError: Sendable {
   init() {}
 }
 
-struct Nym_Vpn_ConnectRequest: @unchecked Sendable {
+struct Nym_Vpn_ConnectRequest: Sendable {
   // SwiftProtobuf.Message conformance is added in an extension below. See the
   // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
   // methods supported on all messages.
 
   var entry: Nym_Vpn_EntryNode {
-    get {return _storage._entry ?? Nym_Vpn_EntryNode()}
-    set {_uniqueStorage()._entry = newValue}
+    get {return _entry ?? Nym_Vpn_EntryNode()}
+    set {_entry = newValue}
   }
   /// Returns true if `entry` has been explicitly set.
-  var hasEntry: Bool {return _storage._entry != nil}
+  var hasEntry: Bool {return self._entry != nil}
   /// Clears the value of `entry`. Subsequent reads from it will return its default value.
-  mutating func clearEntry() {_uniqueStorage()._entry = nil}
+  mutating func clearEntry() {self._entry = nil}
 
   var exit: Nym_Vpn_ExitNode {
-    get {return _storage._exit ?? Nym_Vpn_ExitNode()}
-    set {_uniqueStorage()._exit = newValue}
+    get {return _exit ?? Nym_Vpn_ExitNode()}
+    set {_exit = newValue}
   }
   /// Returns true if `exit` has been explicitly set.
-  var hasExit: Bool {return _storage._exit != nil}
+  var hasExit: Bool {return self._exit != nil}
   /// Clears the value of `exit`. Subsequent reads from it will return its default value.
-  mutating func clearExit() {_uniqueStorage()._exit = nil}
+  mutating func clearExit() {self._exit = nil}
 
   var dns: Nym_Vpn_Dns {
-    get {return _storage._dns ?? Nym_Vpn_Dns()}
-    set {_uniqueStorage()._dns = newValue}
+    get {return _dns ?? Nym_Vpn_Dns()}
+    set {_dns = newValue}
   }
   /// Returns true if `dns` has been explicitly set.
-  var hasDns: Bool {return _storage._dns != nil}
+  var hasDns: Bool {return self._dns != nil}
   /// Clears the value of `dns`. Subsequent reads from it will return its default value.
-  mutating func clearDns() {_uniqueStorage()._dns = nil}
+  mutating func clearDns() {self._dns = nil}
 
-  var enableTwoHop: Bool {
-    get {return _storage._enableTwoHop}
-    set {_uniqueStorage()._enableTwoHop = newValue}
-  }
+  var enableTwoHop: Bool = false
 
-  var netstack: Bool {
-    get {return _storage._netstack}
-    set {_uniqueStorage()._netstack = newValue}
-  }
+  var netstack: Bool = false
 
-  var disablePoissonRate: Bool {
-    get {return _storage._disablePoissonRate}
-    set {_uniqueStorage()._disablePoissonRate = newValue}
-  }
+  var disablePoissonRate: Bool = false
 
-  var disableBackgroundCoverTraffic: Bool {
-    get {return _storage._disableBackgroundCoverTraffic}
-    set {_uniqueStorage()._disableBackgroundCoverTraffic = newValue}
-  }
+  var disableBackgroundCoverTraffic: Bool = false
 
-  var enableCredentialsMode: Bool {
-    get {return _storage._enableCredentialsMode}
-    set {_uniqueStorage()._enableCredentialsMode = newValue}
-  }
+  var enableCredentialsMode: Bool = false
 
   var userAgent: Nym_Vpn_UserAgent {
-    get {return _storage._userAgent ?? Nym_Vpn_UserAgent()}
-    set {_uniqueStorage()._userAgent = newValue}
+    get {return _userAgent ?? Nym_Vpn_UserAgent()}
+    set {_userAgent = newValue}
   }
   /// Returns true if `userAgent` has been explicitly set.
-  var hasUserAgent: Bool {return _storage._userAgent != nil}
+  var hasUserAgent: Bool {return self._userAgent != nil}
   /// Clears the value of `userAgent`. Subsequent reads from it will return its default value.
-  mutating func clearUserAgent() {_uniqueStorage()._userAgent = nil}
-
-  /// Optional thresholds
-  var minMixnodePerformance: Nym_Vpn_Threshold {
-    get {return _storage._minMixnodePerformance ?? Nym_Vpn_Threshold()}
-    set {_uniqueStorage()._minMixnodePerformance = newValue}
-  }
-  /// Returns true if `minMixnodePerformance` has been explicitly set.
-  var hasMinMixnodePerformance: Bool {return _storage._minMixnodePerformance != nil}
-  /// Clears the value of `minMixnodePerformance`. Subsequent reads from it will return its default value.
-  mutating func clearMinMixnodePerformance() {_uniqueStorage()._minMixnodePerformance = nil}
-
-  var minGatewayMixnetPerformance: Nym_Vpn_Threshold {
-    get {return _storage._minGatewayMixnetPerformance ?? Nym_Vpn_Threshold()}
-    set {_uniqueStorage()._minGatewayMixnetPerformance = newValue}
-  }
-  /// Returns true if `minGatewayMixnetPerformance` has been explicitly set.
-  var hasMinGatewayMixnetPerformance: Bool {return _storage._minGatewayMixnetPerformance != nil}
-  /// Clears the value of `minGatewayMixnetPerformance`. Subsequent reads from it will return its default value.
-  mutating func clearMinGatewayMixnetPerformance() {_uniqueStorage()._minGatewayMixnetPerformance = nil}
-
-  var minGatewayVpnPerformance: Nym_Vpn_Threshold {
-    get {return _storage._minGatewayVpnPerformance ?? Nym_Vpn_Threshold()}
-    set {_uniqueStorage()._minGatewayVpnPerformance = newValue}
-  }
-  /// Returns true if `minGatewayVpnPerformance` has been explicitly set.
-  var hasMinGatewayVpnPerformance: Bool {return _storage._minGatewayVpnPerformance != nil}
-  /// Clears the value of `minGatewayVpnPerformance`. Subsequent reads from it will return its default value.
-  mutating func clearMinGatewayVpnPerformance() {_uniqueStorage()._minGatewayVpnPerformance = nil}
+  mutating func clearUserAgent() {self._userAgent = nil}
 
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
-  fileprivate var _storage = _StorageClass.defaultInstance
+  fileprivate var _entry: Nym_Vpn_EntryNode? = nil
+  fileprivate var _exit: Nym_Vpn_ExitNode? = nil
+  fileprivate var _dns: Nym_Vpn_Dns? = nil
+  fileprivate var _userAgent: Nym_Vpn_UserAgent? = nil
 }
 
 struct Nym_Vpn_ConnectResponse: Sendable {
@@ -1320,32 +1271,11 @@ struct Nym_Vpn_ListGatewaysRequest: Sendable {
   /// Clears the value of `userAgent`. Subsequent reads from it will return its default value.
   mutating func clearUserAgent() {self._userAgent = nil}
 
-  /// Optional thresholds
-  var minMixnetPerformance: Nym_Vpn_Threshold {
-    get {return _minMixnetPerformance ?? Nym_Vpn_Threshold()}
-    set {_minMixnetPerformance = newValue}
-  }
-  /// Returns true if `minMixnetPerformance` has been explicitly set.
-  var hasMinMixnetPerformance: Bool {return self._minMixnetPerformance != nil}
-  /// Clears the value of `minMixnetPerformance`. Subsequent reads from it will return its default value.
-  mutating func clearMinMixnetPerformance() {self._minMixnetPerformance = nil}
-
-  var minVpnPerformance: Nym_Vpn_Threshold {
-    get {return _minVpnPerformance ?? Nym_Vpn_Threshold()}
-    set {_minVpnPerformance = newValue}
-  }
-  /// Returns true if `minVpnPerformance` has been explicitly set.
-  var hasMinVpnPerformance: Bool {return self._minVpnPerformance != nil}
-  /// Clears the value of `minVpnPerformance`. Subsequent reads from it will return its default value.
-  mutating func clearMinVpnPerformance() {self._minVpnPerformance = nil}
-
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
   fileprivate var _userAgent: Nym_Vpn_UserAgent? = nil
-  fileprivate var _minMixnetPerformance: Nym_Vpn_Threshold? = nil
-  fileprivate var _minVpnPerformance: Nym_Vpn_Threshold? = nil
 }
 
 struct Nym_Vpn_ListGatewaysResponse: Sendable {
@@ -1376,32 +1306,11 @@ struct Nym_Vpn_ListCountriesRequest: Sendable {
   /// Clears the value of `userAgent`. Subsequent reads from it will return its default value.
   mutating func clearUserAgent() {self._userAgent = nil}
 
-  /// Optional thresholds
-  var minMixnetPerformance: Nym_Vpn_Threshold {
-    get {return _minMixnetPerformance ?? Nym_Vpn_Threshold()}
-    set {_minMixnetPerformance = newValue}
-  }
-  /// Returns true if `minMixnetPerformance` has been explicitly set.
-  var hasMinMixnetPerformance: Bool {return self._minMixnetPerformance != nil}
-  /// Clears the value of `minMixnetPerformance`. Subsequent reads from it will return its default value.
-  mutating func clearMinMixnetPerformance() {self._minMixnetPerformance = nil}
-
-  var minVpnPerformance: Nym_Vpn_Threshold {
-    get {return _minVpnPerformance ?? Nym_Vpn_Threshold()}
-    set {_minVpnPerformance = newValue}
-  }
-  /// Returns true if `minVpnPerformance` has been explicitly set.
-  var hasMinVpnPerformance: Bool {return self._minVpnPerformance != nil}
-  /// Clears the value of `minVpnPerformance`. Subsequent reads from it will return its default value.
-  mutating func clearMinVpnPerformance() {self._minVpnPerformance = nil}
-
   var unknownFields = SwiftProtobuf.UnknownStorage()
 
   init() {}
 
   fileprivate var _userAgent: Nym_Vpn_UserAgent? = nil
-  fileprivate var _minMixnetPerformance: Nym_Vpn_Threshold? = nil
-  fileprivate var _minVpnPerformance: Nym_Vpn_Threshold? = nil
 }
 
 struct Nym_Vpn_ListCountriesResponse: Sendable {
@@ -1840,6 +1749,8 @@ struct Nym_Vpn_TunnelState: Sendable {
     // SwiftProtobuf.Message conformance is added in an extension below. See the
     // `Message` and `Message+*Additions` files in the SwiftProtobuf library for
     // methods supported on all messages.
+
+    var retryAttempt: UInt32 = 0
 
     var connectionData: Nym_Vpn_ConnectionData {
       get {return _connectionData ?? Nym_Vpn_ConnectionData()}
@@ -2399,7 +2310,6 @@ extension Nym_Vpn_EntryNode: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "gateway"),
     2: .same(proto: "location"),
-    3: .standard(proto: "random_low_latency"),
     4: .same(proto: "random"),
   ]
 
@@ -2435,19 +2345,6 @@ extension Nym_Vpn_EntryNode: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
           self.entryNodeEnum = .location(v)
         }
       }()
-      case 3: try {
-        var v: SwiftProtobuf.Google_Protobuf_Empty?
-        var hadOneofValue = false
-        if let current = self.entryNodeEnum {
-          hadOneofValue = true
-          if case .randomLowLatency(let m) = current {v = m}
-        }
-        try decoder.decodeSingularMessageField(value: &v)
-        if let v = v {
-          if hadOneofValue {try decoder.handleConflictingOneOf()}
-          self.entryNodeEnum = .randomLowLatency(v)
-        }
-      }()
       case 4: try {
         var v: SwiftProtobuf.Google_Protobuf_Empty?
         var hadOneofValue = false
@@ -2479,10 +2376,6 @@ extension Nym_Vpn_EntryNode: SwiftProtobuf.Message, SwiftProtobuf._MessageImplem
     case .location?: try {
       guard case .location(let v)? = self.entryNodeEnum else { preconditionFailure() }
       try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    }()
-    case .randomLowLatency?: try {
-      guard case .randomLowLatency(let v)? = self.entryNodeEnum else { preconditionFailure() }
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
     }()
     case .random?: try {
       guard case .random(let v)? = self.entryNodeEnum else { preconditionFailure() }
@@ -3791,153 +3684,73 @@ extension Nym_Vpn_ConnectRequest: SwiftProtobuf.Message, SwiftProtobuf._MessageI
     7: .standard(proto: "disable_background_cover_traffic"),
     8: .standard(proto: "enable_credentials_mode"),
     12: .standard(proto: "user_agent"),
-    9: .standard(proto: "min_mixnode_performance"),
-    10: .standard(proto: "min_gateway_mixnet_performance"),
-    11: .standard(proto: "min_gateway_vpn_performance"),
   ]
 
-  fileprivate class _StorageClass {
-    var _entry: Nym_Vpn_EntryNode? = nil
-    var _exit: Nym_Vpn_ExitNode? = nil
-    var _dns: Nym_Vpn_Dns? = nil
-    var _enableTwoHop: Bool = false
-    var _netstack: Bool = false
-    var _disablePoissonRate: Bool = false
-    var _disableBackgroundCoverTraffic: Bool = false
-    var _enableCredentialsMode: Bool = false
-    var _userAgent: Nym_Vpn_UserAgent? = nil
-    var _minMixnodePerformance: Nym_Vpn_Threshold? = nil
-    var _minGatewayMixnetPerformance: Nym_Vpn_Threshold? = nil
-    var _minGatewayVpnPerformance: Nym_Vpn_Threshold? = nil
-
-    #if swift(>=5.10)
-      // This property is used as the initial default value for new instances of the type.
-      // The type itself is protecting the reference to its storage via CoW semantics.
-      // This will force a copy to be made of this reference when the first mutation occurs;
-      // hence, it is safe to mark this as `nonisolated(unsafe)`.
-      static nonisolated(unsafe) let defaultInstance = _StorageClass()
-    #else
-      static let defaultInstance = _StorageClass()
-    #endif
-
-    private init() {}
-
-    init(copying source: _StorageClass) {
-      _entry = source._entry
-      _exit = source._exit
-      _dns = source._dns
-      _enableTwoHop = source._enableTwoHop
-      _netstack = source._netstack
-      _disablePoissonRate = source._disablePoissonRate
-      _disableBackgroundCoverTraffic = source._disableBackgroundCoverTraffic
-      _enableCredentialsMode = source._enableCredentialsMode
-      _userAgent = source._userAgent
-      _minMixnodePerformance = source._minMixnodePerformance
-      _minGatewayMixnetPerformance = source._minGatewayMixnetPerformance
-      _minGatewayVpnPerformance = source._minGatewayVpnPerformance
-    }
-  }
-
-  fileprivate mutating func _uniqueStorage() -> _StorageClass {
-    if !isKnownUniquelyReferenced(&_storage) {
-      _storage = _StorageClass(copying: _storage)
-    }
-    return _storage
-  }
-
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
-    _ = _uniqueStorage()
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      while let fieldNumber = try decoder.nextFieldNumber() {
-        // The use of inline closures is to circumvent an issue where the compiler
-        // allocates stack space for every case branch when no optimizations are
-        // enabled. https://github.com/apple/swift-protobuf/issues/1034
-        switch fieldNumber {
-        case 1: try { try decoder.decodeSingularMessageField(value: &_storage._entry) }()
-        case 2: try { try decoder.decodeSingularMessageField(value: &_storage._exit) }()
-        case 3: try { try decoder.decodeSingularMessageField(value: &_storage._dns) }()
-        case 5: try { try decoder.decodeSingularBoolField(value: &_storage._enableTwoHop) }()
-        case 6: try { try decoder.decodeSingularBoolField(value: &_storage._disablePoissonRate) }()
-        case 7: try { try decoder.decodeSingularBoolField(value: &_storage._disableBackgroundCoverTraffic) }()
-        case 8: try { try decoder.decodeSingularBoolField(value: &_storage._enableCredentialsMode) }()
-        case 9: try { try decoder.decodeSingularMessageField(value: &_storage._minMixnodePerformance) }()
-        case 10: try { try decoder.decodeSingularMessageField(value: &_storage._minGatewayMixnetPerformance) }()
-        case 11: try { try decoder.decodeSingularMessageField(value: &_storage._minGatewayVpnPerformance) }()
-        case 12: try { try decoder.decodeSingularMessageField(value: &_storage._userAgent) }()
-        case 13: try { try decoder.decodeSingularBoolField(value: &_storage._netstack) }()
-        default: break
-        }
+    while let fieldNumber = try decoder.nextFieldNumber() {
+      // The use of inline closures is to circumvent an issue where the compiler
+      // allocates stack space for every case branch when no optimizations are
+      // enabled. https://github.com/apple/swift-protobuf/issues/1034
+      switch fieldNumber {
+      case 1: try { try decoder.decodeSingularMessageField(value: &self._entry) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._exit) }()
+      case 3: try { try decoder.decodeSingularMessageField(value: &self._dns) }()
+      case 5: try { try decoder.decodeSingularBoolField(value: &self.enableTwoHop) }()
+      case 6: try { try decoder.decodeSingularBoolField(value: &self.disablePoissonRate) }()
+      case 7: try { try decoder.decodeSingularBoolField(value: &self.disableBackgroundCoverTraffic) }()
+      case 8: try { try decoder.decodeSingularBoolField(value: &self.enableCredentialsMode) }()
+      case 12: try { try decoder.decodeSingularMessageField(value: &self._userAgent) }()
+      case 13: try { try decoder.decodeSingularBoolField(value: &self.netstack) }()
+      default: break
       }
     }
   }
 
   func traverse<V: SwiftProtobuf.Visitor>(visitor: inout V) throws {
-    try withExtendedLifetime(_storage) { (_storage: _StorageClass) in
-      // The use of inline closures is to circumvent an issue where the compiler
-      // allocates stack space for every if/case branch local when no optimizations
-      // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
-      // https://github.com/apple/swift-protobuf/issues/1182
-      try { if let v = _storage._entry {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
-      } }()
-      try { if let v = _storage._exit {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-      } }()
-      try { if let v = _storage._dns {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-      } }()
-      if _storage._enableTwoHop != false {
-        try visitor.visitSingularBoolField(value: _storage._enableTwoHop, fieldNumber: 5)
-      }
-      if _storage._disablePoissonRate != false {
-        try visitor.visitSingularBoolField(value: _storage._disablePoissonRate, fieldNumber: 6)
-      }
-      if _storage._disableBackgroundCoverTraffic != false {
-        try visitor.visitSingularBoolField(value: _storage._disableBackgroundCoverTraffic, fieldNumber: 7)
-      }
-      if _storage._enableCredentialsMode != false {
-        try visitor.visitSingularBoolField(value: _storage._enableCredentialsMode, fieldNumber: 8)
-      }
-      try { if let v = _storage._minMixnodePerformance {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 9)
-      } }()
-      try { if let v = _storage._minGatewayMixnetPerformance {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 10)
-      } }()
-      try { if let v = _storage._minGatewayVpnPerformance {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 11)
-      } }()
-      try { if let v = _storage._userAgent {
-        try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
-      } }()
-      if _storage._netstack != false {
-        try visitor.visitSingularBoolField(value: _storage._netstack, fieldNumber: 13)
-      }
+    // The use of inline closures is to circumvent an issue where the compiler
+    // allocates stack space for every if/case branch local when no optimizations
+    // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
+    // https://github.com/apple/swift-protobuf/issues/1182
+    try { if let v = self._entry {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+    } }()
+    try { if let v = self._exit {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
+    } }()
+    try { if let v = self._dns {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
+    } }()
+    if self.enableTwoHop != false {
+      try visitor.visitSingularBoolField(value: self.enableTwoHop, fieldNumber: 5)
+    }
+    if self.disablePoissonRate != false {
+      try visitor.visitSingularBoolField(value: self.disablePoissonRate, fieldNumber: 6)
+    }
+    if self.disableBackgroundCoverTraffic != false {
+      try visitor.visitSingularBoolField(value: self.disableBackgroundCoverTraffic, fieldNumber: 7)
+    }
+    if self.enableCredentialsMode != false {
+      try visitor.visitSingularBoolField(value: self.enableCredentialsMode, fieldNumber: 8)
+    }
+    try { if let v = self._userAgent {
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 12)
+    } }()
+    if self.netstack != false {
+      try visitor.visitSingularBoolField(value: self.netstack, fieldNumber: 13)
     }
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Nym_Vpn_ConnectRequest, rhs: Nym_Vpn_ConnectRequest) -> Bool {
-    if lhs._storage !== rhs._storage {
-      let storagesAreEqual: Bool = withExtendedLifetime((lhs._storage, rhs._storage)) { (_args: (_StorageClass, _StorageClass)) in
-        let _storage = _args.0
-        let rhs_storage = _args.1
-        if _storage._entry != rhs_storage._entry {return false}
-        if _storage._exit != rhs_storage._exit {return false}
-        if _storage._dns != rhs_storage._dns {return false}
-        if _storage._enableTwoHop != rhs_storage._enableTwoHop {return false}
-        if _storage._netstack != rhs_storage._netstack {return false}
-        if _storage._disablePoissonRate != rhs_storage._disablePoissonRate {return false}
-        if _storage._disableBackgroundCoverTraffic != rhs_storage._disableBackgroundCoverTraffic {return false}
-        if _storage._enableCredentialsMode != rhs_storage._enableCredentialsMode {return false}
-        if _storage._userAgent != rhs_storage._userAgent {return false}
-        if _storage._minMixnodePerformance != rhs_storage._minMixnodePerformance {return false}
-        if _storage._minGatewayMixnetPerformance != rhs_storage._minGatewayMixnetPerformance {return false}
-        if _storage._minGatewayVpnPerformance != rhs_storage._minGatewayVpnPerformance {return false}
-        return true
-      }
-      if !storagesAreEqual {return false}
-    }
+    if lhs._entry != rhs._entry {return false}
+    if lhs._exit != rhs._exit {return false}
+    if lhs._dns != rhs._dns {return false}
+    if lhs.enableTwoHop != rhs.enableTwoHop {return false}
+    if lhs.netstack != rhs.netstack {return false}
+    if lhs.disablePoissonRate != rhs.disablePoissonRate {return false}
+    if lhs.disableBackgroundCoverTraffic != rhs.disableBackgroundCoverTraffic {return false}
+    if lhs.enableCredentialsMode != rhs.enableCredentialsMode {return false}
+    if lhs._userAgent != rhs._userAgent {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4378,8 +4191,6 @@ extension Nym_Vpn_ListGatewaysRequest: SwiftProtobuf.Message, SwiftProtobuf._Mes
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "kind"),
     4: .standard(proto: "user_agent"),
-    2: .standard(proto: "min_mixnet_performance"),
-    3: .standard(proto: "min_vpn_performance"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -4389,8 +4200,6 @@ extension Nym_Vpn_ListGatewaysRequest: SwiftProtobuf.Message, SwiftProtobuf._Mes
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularEnumField(value: &self.kind) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._minMixnetPerformance) }()
-      case 3: try { try decoder.decodeSingularMessageField(value: &self._minVpnPerformance) }()
       case 4: try { try decoder.decodeSingularMessageField(value: &self._userAgent) }()
       default: break
       }
@@ -4405,12 +4214,6 @@ extension Nym_Vpn_ListGatewaysRequest: SwiftProtobuf.Message, SwiftProtobuf._Mes
     if self.kind != .unspecified {
       try visitor.visitSingularEnumField(value: self.kind, fieldNumber: 1)
     }
-    try { if let v = self._minMixnetPerformance {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
-    try { if let v = self._minVpnPerformance {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    } }()
     try { if let v = self._userAgent {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     } }()
@@ -4420,8 +4223,6 @@ extension Nym_Vpn_ListGatewaysRequest: SwiftProtobuf.Message, SwiftProtobuf._Mes
   static func ==(lhs: Nym_Vpn_ListGatewaysRequest, rhs: Nym_Vpn_ListGatewaysRequest) -> Bool {
     if lhs.kind != rhs.kind {return false}
     if lhs._userAgent != rhs._userAgent {return false}
-    if lhs._minMixnetPerformance != rhs._minMixnetPerformance {return false}
-    if lhs._minVpnPerformance != rhs._minVpnPerformance {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -4464,8 +4265,6 @@ extension Nym_Vpn_ListCountriesRequest: SwiftProtobuf.Message, SwiftProtobuf._Me
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
     1: .same(proto: "kind"),
     4: .standard(proto: "user_agent"),
-    2: .standard(proto: "min_mixnet_performance"),
-    3: .standard(proto: "min_vpn_performance"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -4475,8 +4274,6 @@ extension Nym_Vpn_ListCountriesRequest: SwiftProtobuf.Message, SwiftProtobuf._Me
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
       case 1: try { try decoder.decodeSingularEnumField(value: &self.kind) }()
-      case 2: try { try decoder.decodeSingularMessageField(value: &self._minMixnetPerformance) }()
-      case 3: try { try decoder.decodeSingularMessageField(value: &self._minVpnPerformance) }()
       case 4: try { try decoder.decodeSingularMessageField(value: &self._userAgent) }()
       default: break
       }
@@ -4491,12 +4288,6 @@ extension Nym_Vpn_ListCountriesRequest: SwiftProtobuf.Message, SwiftProtobuf._Me
     if self.kind != .unspecified {
       try visitor.visitSingularEnumField(value: self.kind, fieldNumber: 1)
     }
-    try { if let v = self._minMixnetPerformance {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
-    } }()
-    try { if let v = self._minVpnPerformance {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 3)
-    } }()
     try { if let v = self._userAgent {
       try visitor.visitSingularMessageField(value: v, fieldNumber: 4)
     } }()
@@ -4506,8 +4297,6 @@ extension Nym_Vpn_ListCountriesRequest: SwiftProtobuf.Message, SwiftProtobuf._Me
   static func ==(lhs: Nym_Vpn_ListCountriesRequest, rhs: Nym_Vpn_ListCountriesRequest) -> Bool {
     if lhs.kind != rhs.kind {return false}
     if lhs._userAgent != rhs._userAgent {return false}
-    if lhs._minMixnetPerformance != rhs._minMixnetPerformance {return false}
-    if lhs._minVpnPerformance != rhs._minVpnPerformance {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
   }
@@ -5121,7 +4910,8 @@ extension Nym_Vpn_TunnelState.Disconnected: SwiftProtobuf.Message, SwiftProtobuf
 extension Nym_Vpn_TunnelState.Connecting: SwiftProtobuf.Message, SwiftProtobuf._MessageImplementationBase, SwiftProtobuf._ProtoNameProviding {
   static let protoMessageName: String = Nym_Vpn_TunnelState.protoMessageName + ".Connecting"
   static let _protobuf_nameMap: SwiftProtobuf._NameMap = [
-    1: .standard(proto: "connection_data"),
+    1: .standard(proto: "retry_attempt"),
+    2: .standard(proto: "connection_data"),
   ]
 
   mutating func decodeMessage<D: SwiftProtobuf.Decoder>(decoder: inout D) throws {
@@ -5130,7 +4920,8 @@ extension Nym_Vpn_TunnelState.Connecting: SwiftProtobuf.Message, SwiftProtobuf._
       // allocates stack space for every case branch when no optimizations are
       // enabled. https://github.com/apple/swift-protobuf/issues/1034
       switch fieldNumber {
-      case 1: try { try decoder.decodeSingularMessageField(value: &self._connectionData) }()
+      case 1: try { try decoder.decodeSingularUInt32Field(value: &self.retryAttempt) }()
+      case 2: try { try decoder.decodeSingularMessageField(value: &self._connectionData) }()
       default: break
       }
     }
@@ -5141,13 +4932,17 @@ extension Nym_Vpn_TunnelState.Connecting: SwiftProtobuf.Message, SwiftProtobuf._
     // allocates stack space for every if/case branch local when no optimizations
     // are enabled. https://github.com/apple/swift-protobuf/issues/1034 and
     // https://github.com/apple/swift-protobuf/issues/1182
+    if self.retryAttempt != 0 {
+      try visitor.visitSingularUInt32Field(value: self.retryAttempt, fieldNumber: 1)
+    }
     try { if let v = self._connectionData {
-      try visitor.visitSingularMessageField(value: v, fieldNumber: 1)
+      try visitor.visitSingularMessageField(value: v, fieldNumber: 2)
     } }()
     try unknownFields.traverse(visitor: &visitor)
   }
 
   static func ==(lhs: Nym_Vpn_TunnelState.Connecting, rhs: Nym_Vpn_TunnelState.Connecting) -> Bool {
+    if lhs.retryAttempt != rhs.retryAttempt {return false}
     if lhs._connectionData != rhs._connectionData {return false}
     if lhs.unknownFields != rhs.unknownFields {return false}
     return true
