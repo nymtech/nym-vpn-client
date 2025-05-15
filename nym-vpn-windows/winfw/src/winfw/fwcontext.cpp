@@ -403,7 +403,6 @@ bool FwContext::applyPolicyConnected
 	const std::vector<WinFwAllowedEndpoint>& relays,
 	const std::optional<std::wstring>&  entryTunnelIfaceAlias ,
 	const std::optional<std::wstring>& exitTunnelIfaceAlias,
-	const std::optional<std::vector<WinFwAllowedEndpoint>>& allowedEndpoints,
 	const std::vector<wfp::IpAddress>& tunnelDnsServers,
 	const std::vector<wfp::IpAddress>& nonTunnelDnsServers
 )
@@ -413,11 +412,6 @@ bool FwContext::applyPolicyConnected
 	AppendNetBlockedRules(ruleset);
 	AppendSettingsRules(ruleset, settings);
 	AppendRelayRules(ruleset, relays);
-
-	if (allowedEndpoints.has_value())
-	{
-		AppendAllowedEndpointRules(ruleset, allowedEndpoints.value());
-	}
 
 	if (exitTunnelIfaceAlias.has_value())
 	{

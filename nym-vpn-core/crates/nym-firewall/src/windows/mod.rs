@@ -12,12 +12,12 @@ use std::{ffi::CStr, net::IpAddr, ptr, sync::LazyLock};
 
 use nym_common::ErrorExt;
 use widestring::WideCString;
-use windows::Win32::Globalization::{CP_ACP, MULTI_BYTE_TO_WIDE_CHAR_FLAGS, MultiByteToWideChar};
+use windows::Win32::Globalization::{MultiByteToWideChar, CP_ACP, MULTI_BYTE_TO_WIDE_CHAR_FLAGS};
 
 use self::winfw::*;
 use super::{
-    FirewallArguments, FirewallPolicy, InitialFirewallState,
     net::{AllowedEndpoint, AllowedTunnelTraffic},
+    FirewallArguments, FirewallPolicy, InitialFirewallState,
 };
 use crate::FirewallPolicyError;
 
@@ -183,16 +183,9 @@ impl Firewall {
                 tunnel,
                 allow_lan,
                 dns_config,
-                allowed_endpoints,
             } => {
                 let cfg = &WinFwSettings::new(allow_lan);
-                self.set_connected_state(
-                    &peer_endpoints,
-                    cfg,
-                    &tunnel,
-                    &dns_config,
-                    &allowed_endpoints,
-                )
+                self.set_connected_state(&peer_endpoints, cfg, &tunnel, &dns_config)
             }
             FirewallPolicy::Blocked {
                 allow_lan,
@@ -331,7 +324,6 @@ impl Firewall {
         winfw_settings: &WinFwSettings,
         tunnel_interface: &TunnelInterface,
         dns_config: &ResolvedDnsConfig,
-        allowed_endpoints: &[AllowedEndpoint],
     ) -> Result<(), Error> {
         tracing::trace!("Applying 'connected' firewall policy");
 
@@ -379,19 +371,6 @@ impl Firewall {
             .map(|ip| ip.as_ptr())
             .collect();
 
-        let winfw_allowed_endpoint_containers = allowed_endpoints
-            .iter()
-            .cloned()
-            .map(AllowedEndpointBridge::from)
-            .collect::<Vec<_>>();
-        let winfw_allowed_endpoints = winfw_allowed_endpoint_containers
-            .iter()
-            .map(|ep| ep.as_endpoint())
-            .collect::<Vec<_>>();
-
-        // todo: verify that this is correct way to pass array of pointers.
-        let allowed_endpoint_refs = winfw_allowed_endpoints.iter().collect::<Vec<_>>();
-
         unsafe {
             WinFw_ApplyPolicyConnected(
                 winfw_settings,
@@ -409,8 +388,6 @@ impl Firewall {
                 tunnel_dns_servers_refs.len(),
                 non_tunnel_dns_servers_refs.as_ptr(),
                 non_tunnel_dns_servers_refs.len(),
-                allowed_endpoint_refs.as_ptr() as _,
-                allowed_endpoint_refs.len(),
             )
             .into_result()
             .map_err(Error::ApplyingConnectedPolicy)
@@ -581,7 +558,7 @@ fn with_wmi_if_enabled(f: impl FnOnce(&wmi::WMIConnection)) {
 
 #[allow(non_snake_case)]
 mod winfw {
-    use super::{AllowedEndpoint, AllowedTunnelTraffic, Error, WideCString, widestring_ip};
+    use super::{widestring_ip, AllowedEndpoint, AllowedTunnelTraffic, Error, WideCString};
     use crate::net::TransportProtocol;
     use std::{
         ffi::{c_char, c_void},
@@ -871,8 +848,6 @@ mod winfw {
             numTunnelDnsServers: usize,
             nonTunnelDnsServers: *const *const libc::wchar_t,
             numNonTunnelDnsServers: usize,
-            allowedEndpoints: *const *const WinFwAllowedEndpoint<'_>,
-            numAllowedEndpoints: usize,
         ) -> WinFwPolicyStatus;
 
         #[link_name = "WinFw_ApplyPolicyBlocked"]
