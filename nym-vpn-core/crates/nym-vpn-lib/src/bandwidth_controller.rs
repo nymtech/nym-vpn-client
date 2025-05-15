@@ -6,6 +6,7 @@ use std::time::Duration;
 use nym_vpn_network_config::Network;
 use tokio_stream::{wrappers::IntervalStream, StreamExt};
 
+use nym_common::ErrorExt;
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::CachingGatewayClient;
 use nym_sdk::{
@@ -282,7 +283,6 @@ impl<St: Storage> BandwidthController<St> {
             }
             ret = wg_gateway_client.query_bandwidth() => {
                 match ret {
-                    Err(e) => tracing::warn!("Error querying remaining bandwidth {:?}", e),
                     Ok(Some(remaining_bandwidth)) => {
                         match current_depletion_rate
                             .update_dynamic_check_interval(current_period, remaining_bandwidth as u64)
@@ -320,6 +320,9 @@ impl<St: Storage> BandwidthController<St> {
                     }
                     Ok(None) => {
                         tracing::info!("Empty query for {} gateway bandwidth check. This is normal, as long as it is not repeating for the same gateway", if entry {"entry".to_string()} else {"exit".to_string()});
+                    }
+                    Err(e) => {
+                        tracing::warn!("{}", e.display_chain_with_msg("error querying remaining bandwidth"));
                     }
                 }
             }
