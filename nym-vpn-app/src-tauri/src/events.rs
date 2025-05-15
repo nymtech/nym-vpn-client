@@ -4,6 +4,7 @@ use tracing::{debug, trace};
 use ts_rs::TS;
 
 use crate::error::{BackendError, ErrorKey};
+use crate::grpc::tunnel::ConnectingState;
 use crate::grpc::{client::VpndStatus, events::MixnetEvent, tunnel::TunnelState};
 
 pub const EVENT_VPND_STATUS: &str = "vpnd-status";
@@ -88,7 +89,7 @@ impl AppHandleEventEmitter for tauri::AppHandle {
         debug!("sending event [{}]: Connecting", EVENT_TUNNEL_STATE);
         self.emit(
             EVENT_TUNNEL_STATE,
-            TunnelStateEvent::new(&TunnelState::Connecting(None), None),
+            TunnelStateEvent::new(&TunnelState::Connecting(ConnectingState::default()), None),
         )
         .ok();
     }

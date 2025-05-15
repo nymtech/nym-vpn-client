@@ -1,8 +1,9 @@
 import { BackendError, ErrorKey } from './tauri';
 
 export type TunnelConnected = { connected: Tunnel };
+export type ConnectingState = { tunnel: Tunnel | null; retryAttempt: number };
 export type TunnelConnecting = {
-  connecting: Tunnel | null;
+  connecting: ConnectingState;
 };
 export type TunnelDisconnecting = { disconnecting: TunnelAction | null };
 export type TunnelStateError = { error: TunnelError };

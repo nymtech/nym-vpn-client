@@ -1,7 +1,7 @@
 use crate::db::{Db, Key};
 use crate::error::ErrorKey;
 use crate::grpc::client::{GrpcClient, NodeConnect, VpndError};
-use crate::grpc::tunnel::TunnelState;
+use crate::grpc::tunnel::{ConnectingState, TunnelState};
 use crate::{
     error::BackendError,
     events::{AppHandleEventEmitter, ConnectProgressMsg},
@@ -40,7 +40,7 @@ pub async fn connect(
 
         // manually switch to "Connecting" state
         debug!("update connection state [Connecting]");
-        app_state.tunnel = TunnelState::Connecting(None);
+        app_state.tunnel = TunnelState::Connecting(ConnectingState::default());
     }
 
     app.emit_connecting();
@@ -86,7 +86,7 @@ pub async fn connect(
         )
         .await
     {
-        Ok(_) => Ok(TunnelState::Connecting(None)),
+        Ok(_) => Ok(TunnelState::Connecting(ConnectingState::default())),
         Err(vpnd_err) => {
             warn!("grpc vpn_connect: {}", vpnd_err);
             debug!("update connection state [Disconnected]");
