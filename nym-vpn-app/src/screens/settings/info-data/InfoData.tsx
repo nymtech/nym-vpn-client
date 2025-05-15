@@ -4,9 +4,10 @@ import { useTranslation } from 'react-i18next';
 import { useMainState } from '../../../contexts';
 import { useClipboard } from '../../../hooks';
 import { routes } from '../../../router';
-import { S_STATE } from '../../../static';
 import { ButtonText } from '../../../ui';
 import AccountData from './AccountData';
+
+const devMode = window._APP.devMode;
 
 function InfoData() {
   const { version, daemonStatus, daemonVersion, networkEnv, account } =
@@ -75,8 +76,8 @@ function InfoData() {
             {t('info.client-version')}
           </p>
           <ButtonText
-            onClick={() => copy(version || '', !S_STATE.devMode)}
-            onDoubleClick={() => S_STATE.devMode && navigate(routes.dev)}
+            onClick={() => copy(version || '', !devMode)}
+            onDoubleClick={() => devMode && navigate(routes.dev)}
             truncate
             data-testid="client-version-value"
           >

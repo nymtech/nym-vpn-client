@@ -2,44 +2,35 @@ use crate::db::DbError;
 use crate::{ERROR_WINDOW_LABEL, MAIN_WINDOW_LABEL};
 
 use anyhow::Result;
-use once_cell::sync::OnceCell;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 use tracing::{error, info, instrument, warn};
 use ts_rs::TS;
 
-pub static STARTUP_ERROR: OnceCell<StartupError> = OnceCell::new();
 const WIN_TITLE: &str = "NymVPN - Startup error";
 
-#[derive(Debug, Serialize, Deserialize, TS, Clone)]
+#[derive(Debug, Serialize, Deserialize, TS, Clone, strum::AsRefStr)]
 #[ts(export, export_to = "StartupErrorKey.ts")]
+#[serde(rename_all = "kebab-case")]
+#[strum(serialize_all = "kebab-case")]
 pub enum ErrorKey {
     /// At startup, failed to open the embedded db, generic
-    StartupOpenDb,
+    StartupDbOpen,
     /// At startup, failed to open the embedded db because it is already locked
-    StartupOpenDbLocked,
+    StartupDbLocked,
 }
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
 #[ts(export)]
 pub struct StartupError {
     pub key: ErrorKey,
-    pub details: Option<String>,
+    pub detail: Option<String>,
 }
 
 impl StartupError {
-    pub fn new(key: ErrorKey, details: Option<String>) -> Self {
-        Self { key, details }
+    pub fn new(key: ErrorKey, detail: Option<String>) -> Self {
+        Self { key, detail }
     }
-}
-
-pub fn set_error(key: ErrorKey, details: Option<&str>) {
-    STARTUP_ERROR
-        .set(StartupError::new(key, details.map(String::from)))
-        .inspect_err(|_| {
-            warn!("failed to set startup error: already set");
-        })
-        .ok();
 }
 
 struct WinSizes {
@@ -52,7 +43,7 @@ struct WinSizes {
 // NOTE: the error window is created here but frontend is
 // responsible for showing it
 #[instrument(skip(app))]
-pub fn create_window(app: &AppHandle) -> Result<()> {
+pub fn create_window(app: &AppHandle, error: StartupError) -> Result<()> {
     info!("hide the main window");
     let main_win = app.get_webview_window(MAIN_WINDOW_LABEL).unwrap();
     main_win
@@ -72,6 +63,14 @@ pub fn create_window(app: &AppHandle) -> Result<()> {
         min: (260.0, 280.0),
         max: (900.0, 920.0),
     };
+    let init_script = format!(
+        "
+        window._APP = {{}};
+        window._APP.startupError = {{  key: '{}', detail: '{}' }}
+        ",
+        error.key.as_ref(),
+        error.detail.unwrap_or(String::from("internal error"))
+    );
     let window = tauri::WebviewWindowBuilder::new(
         app,
         ERROR_WINDOW_LABEL,
@@ -87,6 +86,7 @@ pub fn create_window(app: &AppHandle) -> Result<()> {
     .inner_size(sizes.inner.0, sizes.inner.1)
     .min_inner_size(sizes.min.0, sizes.min.1)
     .max_inner_size(sizes.max.0, sizes.max.1)
+    .initialization_script(init_script)
     .build()
     .inspect_err(|e| {
         error!("failed to build the error window: {e}");
@@ -105,8 +105,8 @@ pub fn create_window(app: &AppHandle) -> Result<()> {
 impl From<&DbError> for ErrorKey {
     fn from(value: &DbError) -> Self {
         match value {
-            DbError::Locked(_) => ErrorKey::StartupOpenDbLocked,
-            _ => ErrorKey::StartupOpenDb,
+            DbError::Locked(_) => ErrorKey::StartupDbLocked,
+            _ => ErrorKey::StartupDbOpen,
         }
     }
 }
