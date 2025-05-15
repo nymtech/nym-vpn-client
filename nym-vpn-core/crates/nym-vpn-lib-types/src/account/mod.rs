@@ -166,13 +166,15 @@ impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
             Err(err) => err,
         };
 
-        if nym_vpn_api_client::response::error_is_reqwest_timeout(&err) {
-            return Ok(Self::Timeout(Arc::new(err)));
+        if let Some(http_err) = err.http_client_error() {
+            if http_err.is_timeout() {
+                return Ok(Self::Timeout(Arc::new(err)));
+            }
         }
 
-        match nym_vpn_api_client::response::extract_error_response_status_code(&err) {
+        match err.http_client_error().and_then(|err| err.status_code()) {
             Some(code) => Ok(Self::StatusCode {
-                code,
+                code: code.into(),
                 source: Arc::new(err),
             }),
             None => Err(err),
