@@ -10,8 +10,6 @@ extension EntryGateway {
             return .location(location: country.code)
         case let .lowLatencyCountry(country):
             return .location(location: country.code)
-        case .randomLowLatency:
-            return .randomLowLatency
         case let .gateway(gateway):
             return .gateway(identity: gateway.id)
         case .random:

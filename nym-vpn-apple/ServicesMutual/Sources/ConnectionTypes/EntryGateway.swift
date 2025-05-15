@@ -6,14 +6,13 @@ public enum EntryGateway: Codable, Equatable {
     case country(Country)
     case lowLatencyCountry(Country)
     case gateway(GatewayNode)
-    case randomLowLatency
     case random
 
     public var isQuickest: Bool {
         switch self {
         case .country, .random, .gateway:
             false
-        case .randomLowLatency, .lowLatencyCountry:
+        case .lowLatencyCountry:
             true
         }
     }
@@ -22,7 +21,7 @@ public enum EntryGateway: Codable, Equatable {
         switch self {
         case .country:
             true
-        case .lowLatencyCountry, .randomLowLatency, .random, .gateway:
+        case .lowLatencyCountry, .random, .gateway:
             false
         }
     }
@@ -34,8 +33,6 @@ extension EntryGateway: GatewayInfoProtocol {
         switch self {
         case let .country(country), let .lowLatencyCountry(country):
             country.code
-        case .randomLowLatency:
-            "gateway.randomLowLatency".localizedString
         case .random:
             "gateway.random".localizedString
         case let .gateway(gateway):
@@ -49,14 +46,14 @@ extension EntryGateway: GatewayInfoProtocol {
             country.code
         case let .gateway(gateway):
             gateway.countryCode
-        case .randomLowLatency, .random:
+        case .random:
             nil
         }
     }
 
     public var isGateway: Bool {
         switch self {
-        case .country, .lowLatencyCountry, .randomLowLatency, .random:
+        case .country, .lowLatencyCountry, .random:
             false
         case .gateway:
             true
@@ -67,7 +64,7 @@ extension EntryGateway: GatewayInfoProtocol {
         switch self {
         case let .gateway(gateway):
             gateway.id
-        case .country, .lowLatencyCountry, .randomLowLatency, .random:
+        case .country, .lowLatencyCountry, .random:
             nil
         }
     }

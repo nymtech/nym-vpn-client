@@ -3751,7 +3751,6 @@ public enum EntryPoint {
     )
     case location(location: String
     )
-    case randomLowLatency
     case random
 }
 
@@ -3769,9 +3768,7 @@ public struct FfiConverterTypeEntryPoint: FfiConverterRustBuffer {
         case 2: return .location(location: try FfiConverterString.read(from: &buf)
         )
         
-        case 3: return .randomLowLatency
-        
-        case 4: return .random
+        case 3: return .random
         
         default: throw UniffiInternalError.unexpectedEnumCase
         }
@@ -3791,12 +3788,8 @@ public struct FfiConverterTypeEntryPoint: FfiConverterRustBuffer {
             FfiConverterString.write(location, into: &buf)
             
         
-        case .randomLowLatency:
-            writeInt(&buf, Int32(3))
-        
-        
         case .random:
-            writeInt(&buf, Int32(4))
+            writeInt(&buf, Int32(3))
         
         }
     }
@@ -4089,7 +4082,7 @@ extension FlagValue: Equatable, Hashable {}
 public enum ForgetAccountError {
     
     case registrationInProgress
-    case updateDeviceErrorResponse(VpnApiErrorResponse
+    case updateDeviceErrorResponse(VpnApiError
     )
     case unexpectedResponse(String
     )
@@ -4117,7 +4110,7 @@ public struct FfiConverterTypeForgetAccountError: FfiConverterRustBuffer {
         
         case 1: return .registrationInProgress
         
-        case 2: return .updateDeviceErrorResponse(try FfiConverterTypeVpnApiErrorResponse.read(from: &buf)
+        case 2: return .updateDeviceErrorResponse(try FfiConverterTypeVpnApiError.read(from: &buf)
         )
         
         case 3: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
@@ -4155,7 +4148,7 @@ public struct FfiConverterTypeForgetAccountError: FfiConverterRustBuffer {
         
         case let .updateDeviceErrorResponse(v1):
             writeInt(&buf, Int32(2))
-            FfiConverterTypeVpnApiErrorResponse.write(v1, into: &buf)
+            FfiConverterTypeVpnApiError.write(v1, into: &buf)
             
         
         case let .unexpectedResponse(v1):
@@ -4538,7 +4531,7 @@ public enum RegisterDeviceError {
     
     case noAccountStored
     case noDeviceStored
-    case errorResponse(VpnApiErrorResponse
+    case errorResponse(VpnApiError
     )
     case unexpectedResponse(String
     )
@@ -4559,7 +4552,7 @@ public struct FfiConverterTypeRegisterDeviceError: FfiConverterRustBuffer {
         
         case 2: return .noDeviceStored
         
-        case 3: return .errorResponse(try FfiConverterTypeVpnApiErrorResponse.read(from: &buf)
+        case 3: return .errorResponse(try FfiConverterTypeVpnApiError.read(from: &buf)
         )
         
         case 4: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
@@ -4588,7 +4581,7 @@ public struct FfiConverterTypeRegisterDeviceError: FfiConverterRustBuffer {
         
         case let .errorResponse(v1):
             writeInt(&buf, Int32(3))
-            FfiConverterTypeVpnApiErrorResponse.write(v1, into: &buf)
+            FfiConverterTypeVpnApiError.write(v1, into: &buf)
             
         
         case let .unexpectedResponse(v1):
@@ -4696,7 +4689,7 @@ public enum RequestZkNymError {
     
     case noAccountStored
     case noDeviceStored
-    case vpnApi(VpnApiErrorResponse
+    case vpnApi(VpnApiError
     )
     case unexpectedVpnApiResponse(String
     )
@@ -4719,7 +4712,7 @@ public struct FfiConverterTypeRequestZkNymError: FfiConverterRustBuffer {
         
         case 2: return .noDeviceStored
         
-        case 3: return .vpnApi(try FfiConverterTypeVpnApiErrorResponse.read(from: &buf)
+        case 3: return .vpnApi(try FfiConverterTypeVpnApiError.read(from: &buf)
         )
         
         case 4: return .unexpectedVpnApiResponse(try FfiConverterString.read(from: &buf)
@@ -4751,7 +4744,7 @@ public struct FfiConverterTypeRequestZkNymError: FfiConverterRustBuffer {
         
         case let .vpnApi(v1):
             writeInt(&buf, Int32(3))
-            FfiConverterTypeVpnApiErrorResponse.write(v1, into: &buf)
+            FfiConverterTypeVpnApiError.write(v1, into: &buf)
             
         
         case let .unexpectedVpnApiResponse(v1):
@@ -4938,7 +4931,7 @@ public enum StoreAccountError {
     )
     case storage(String
     )
-    case getAccountEndpointFailure(VpnApiErrorResponse
+    case getAccountEndpointFailure(VpnApiError
     )
     case unexpectedResponse(String
     )
@@ -4960,7 +4953,7 @@ public struct FfiConverterTypeStoreAccountError: FfiConverterRustBuffer {
         case 2: return .storage(try FfiConverterString.read(from: &buf)
         )
         
-        case 3: return .getAccountEndpointFailure(try FfiConverterTypeVpnApiErrorResponse.read(from: &buf)
+        case 3: return .getAccountEndpointFailure(try FfiConverterTypeVpnApiError.read(from: &buf)
         )
         
         case 4: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
@@ -4989,7 +4982,7 @@ public struct FfiConverterTypeStoreAccountError: FfiConverterRustBuffer {
         
         case let .getAccountEndpointFailure(v1):
             writeInt(&buf, Int32(3))
-            FfiConverterTypeVpnApiErrorResponse.write(v1, into: &buf)
+            FfiConverterTypeVpnApiError.write(v1, into: &buf)
             
         
         case let .unexpectedResponse(v1):
@@ -5095,7 +5088,7 @@ extension SubscriptionState: Equatable, Hashable {}
 public enum SyncAccountError {
     
     case noAccountStored
-    case errorResponse(VpnApiErrorResponse
+    case errorResponse(VpnApiError
     )
     case unexpectedResponse(String
     )
@@ -5114,7 +5107,7 @@ public struct FfiConverterTypeSyncAccountError: FfiConverterRustBuffer {
         
         case 1: return .noAccountStored
         
-        case 2: return .errorResponse(try FfiConverterTypeVpnApiErrorResponse.read(from: &buf)
+        case 2: return .errorResponse(try FfiConverterTypeVpnApiError.read(from: &buf)
         )
         
         case 3: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
@@ -5139,7 +5132,7 @@ public struct FfiConverterTypeSyncAccountError: FfiConverterRustBuffer {
         
         case let .errorResponse(v1):
             writeInt(&buf, Int32(2))
-            FfiConverterTypeVpnApiErrorResponse.write(v1, into: &buf)
+            FfiConverterTypeVpnApiError.write(v1, into: &buf)
             
         
         case let .unexpectedResponse(v1):
@@ -5181,7 +5174,7 @@ public enum SyncDeviceError {
     
     case noAccountStored
     case noDeviceStored
-    case errorResponse(VpnApiErrorResponse
+    case errorResponse(VpnApiError
     )
     case unexpectedResponse(String
     )
@@ -5202,7 +5195,7 @@ public struct FfiConverterTypeSyncDeviceError: FfiConverterRustBuffer {
         
         case 2: return .noDeviceStored
         
-        case 3: return .errorResponse(try FfiConverterTypeVpnApiErrorResponse.read(from: &buf)
+        case 3: return .errorResponse(try FfiConverterTypeVpnApiError.read(from: &buf)
         )
         
         case 4: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
@@ -5231,7 +5224,7 @@ public struct FfiConverterTypeSyncDeviceError: FfiConverterRustBuffer {
         
         case let .errorResponse(v1):
             writeInt(&buf, Int32(3))
-            FfiConverterTypeVpnApiErrorResponse.write(v1, into: &buf)
+            FfiConverterTypeVpnApiError.write(v1, into: &buf)
             
         
         case let .unexpectedResponse(v1):
@@ -5394,7 +5387,7 @@ extension TunnelEvent: Equatable, Hashable {}
 public enum TunnelState {
     
     case disconnected
-    case connecting(connectionData: ConnectionData?
+    case connecting(retryAttempt: UInt32, connectionData: ConnectionData?
     )
     case connected(connectionData: ConnectionData
     )
@@ -5416,7 +5409,7 @@ public struct FfiConverterTypeTunnelState: FfiConverterRustBuffer {
         
         case 1: return .disconnected
         
-        case 2: return .connecting(connectionData: try FfiConverterOptionTypeConnectionData.read(from: &buf)
+        case 2: return .connecting(retryAttempt: try FfiConverterUInt32.read(from: &buf), connectionData: try FfiConverterOptionTypeConnectionData.read(from: &buf)
         )
         
         case 3: return .connected(connectionData: try FfiConverterTypeConnectionData.read(from: &buf)
@@ -5443,8 +5436,9 @@ public struct FfiConverterTypeTunnelState: FfiConverterRustBuffer {
             writeInt(&buf, Int32(1))
         
         
-        case let .connecting(connectionData):
+        case let .connecting(retryAttempt,connectionData):
             writeInt(&buf, Int32(2))
+            FfiConverterUInt32.write(retryAttempt, into: &buf)
             FfiConverterOptionTypeConnectionData.write(connectionData, into: &buf)
             
         
@@ -5486,6 +5480,74 @@ extension TunnelState: Equatable, Hashable {}
 
 
 
+// Note that we don't yet support `indirect` for enums.
+// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
+
+public enum VpnApiError {
+    
+    case timeout
+    case statusCode(UInt16
+    )
+    case response(VpnApiErrorResponse
+    )
+}
+
+
+public struct FfiConverterTypeVpnApiError: FfiConverterRustBuffer {
+    typealias SwiftType = VpnApiError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> VpnApiError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+        
+        case 1: return .timeout
+        
+        case 2: return .statusCode(try FfiConverterUInt16.read(from: &buf)
+        )
+        
+        case 3: return .response(try FfiConverterTypeVpnApiErrorResponse.read(from: &buf)
+        )
+        
+        default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: VpnApiError, into buf: inout [UInt8]) {
+        switch value {
+        
+        
+        case .timeout:
+            writeInt(&buf, Int32(1))
+        
+        
+        case let .statusCode(v1):
+            writeInt(&buf, Int32(2))
+            FfiConverterUInt16.write(v1, into: &buf)
+            
+        
+        case let .response(v1):
+            writeInt(&buf, Int32(3))
+            FfiConverterTypeVpnApiErrorResponse.write(v1, into: &buf)
+            
+        }
+    }
+}
+
+
+public func FfiConverterTypeVpnApiError_lift(_ buf: RustBuffer) throws -> VpnApiError {
+    return try FfiConverterTypeVpnApiError.lift(buf)
+}
+
+public func FfiConverterTypeVpnApiError_lower(_ value: VpnApiError) -> RustBuffer {
+    return FfiConverterTypeVpnApiError.lower(value)
+}
+
+
+
+extension VpnApiError: Equatable, Hashable {}
+
+
+
 
 public enum VpnError {
 
@@ -5502,7 +5564,7 @@ public enum VpnError {
     case NoAccountStored
     case AccountNotRegistered
     case NoDeviceIdentity
-    case VpnApi(details: VpnApiErrorResponse
+    case VpnApi(details: VpnApiError
     )
     case UnexpectedVpnApiResponse(details: String
     )
@@ -5556,7 +5618,7 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         case 6: return .AccountNotRegistered
         case 7: return .NoDeviceIdentity
         case 8: return .VpnApi(
-            details: try FfiConverterTypeVpnApiErrorResponse.read(from: &buf)
+            details: try FfiConverterTypeVpnApiError.read(from: &buf)
             )
         case 9: return .UnexpectedVpnApiResponse(
             details: try FfiConverterString.read(from: &buf)
@@ -5639,7 +5701,7 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         
         case let .VpnApi(details):
             writeInt(&buf, Int32(8))
-            FfiConverterTypeVpnApiErrorResponse.write(details, into: &buf)
+            FfiConverterTypeVpnApiError.write(details, into: &buf)
             
         
         case let .UnexpectedVpnApiResponse(details):
@@ -5873,27 +5935,6 @@ fileprivate struct FfiConverterOptionTypeFeatureFlags: FfiConverterRustBuffer {
         switch try readInt(&buf) as Int8 {
         case 0: return nil
         case 1: return try FfiConverterTypeFeatureFlags.read(from: &buf)
-        default: throw UniffiInternalError.unexpectedOptionalTag
-        }
-    }
-}
-
-fileprivate struct FfiConverterOptionTypeGatewayMinPerformance: FfiConverterRustBuffer {
-    typealias SwiftType = GatewayMinPerformance?
-
-    public static func write(_ value: SwiftType, into buf: inout [UInt8]) {
-        guard let value = value else {
-            writeInt(&buf, Int8(0))
-            return
-        }
-        writeInt(&buf, Int8(1))
-        FfiConverterTypeGatewayMinPerformance.write(value, into: &buf)
-    }
-
-    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SwiftType {
-        switch try readInt(&buf) as Int8 {
-        case 0: return nil
-        case 1: return try FfiConverterTypeGatewayMinPerformance.read(from: &buf)
         default: throw UniffiInternalError.unexpectedOptionalTag
         }
     }
@@ -7128,24 +7169,22 @@ public func getDeviceIdentityRaw(path: String)throws  -> String {
 /**
  * Get the list of countries that have gateways available of the given type.
  */
-public func getGatewayCountries(gwType: GatewayType, userAgent: UserAgent, minGatewayPerformance: GatewayMinPerformance?)throws  -> [Location] {
+public func getGatewayCountries(gwType: GatewayType, userAgent: UserAgent)throws  -> [Location] {
     return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
         FfiConverterTypeGatewayType.lower(gwType),
-        FfiConverterTypeUserAgent.lower(userAgent),
-        FfiConverterOptionTypeGatewayMinPerformance.lower(minGatewayPerformance),$0
+        FfiConverterTypeUserAgent.lower(userAgent),$0
     )
 })
 }
 /**
  * Get the list of gateways available of the given type.
  */
-public func getGateways(gwType: GatewayType, userAgent: UserAgent, minGatewayPerformance: GatewayMinPerformance?)throws  -> [GatewayInfo] {
+public func getGateways(gwType: GatewayType, userAgent: UserAgent)throws  -> [GatewayInfo] {
     return try  FfiConverterSequenceTypeGatewayInfo.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_getgateways(
         FfiConverterTypeGatewayType.lower(gwType),
-        FfiConverterTypeUserAgent.lower(userAgent),
-        FfiConverterOptionTypeGatewayMinPerformance.lower(minGatewayPerformance),$0
+        FfiConverterTypeUserAgent.lower(userAgent),$0
     )
 })
 }
@@ -7523,10 +7562,10 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_getdeviceidentityraw() != 1193) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 35020) {
+    if (uniffi_nym_vpn_lib_checksum_func_getgatewaycountries() != 260) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_getgateways() != 39408) {
+    if (uniffi_nym_vpn_lib_checksum_func_getgateways() != 59770) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_getnetworkcompatibilityversions() != 4608) {
