@@ -3,13 +3,12 @@ import clsx from 'clsx';
 import { exit } from '@tauri-apps/plugin-process';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { Button, MsIcon } from '../ui';
-import { StartupErrorKey, StartupError as TStartupError } from '../types';
 
-function getErrorText(key: StartupErrorKey) {
+function getErrorText(key: StartupError['key']) {
   switch (key) {
-    case 'StartupOpenDb':
+    case 'startup-db-open':
       return 'Failed to open the application database.';
-    case 'StartupOpenDbLocked':
+    case 'startup-db-locked':
       return 'The application is likely already running. Multiple instances cannot be opened simultaneously.';
     default:
       return 'Unknown error';
@@ -22,7 +21,7 @@ function StartupError({
   error,
   theme,
 }: {
-  error: TStartupError;
+  error: StartupError;
   theme: 'light' | 'dark' | null;
 }) {
   useEffect(() => {
@@ -72,13 +71,13 @@ function StartupError({
             ? getErrorText(error?.key)
             : 'Something went wrong while loading the app. Please check the logs.'}
         </p>
-        {error?.details && (
+        {error?.detail && (
           <div
             className="w-full max-h-32 overflow-auto select-text text-balance break-words"
             data-testid="startup-error-details"
           >
             <p className="text-aphrodisiac text-center cursor-auto">
-              {error.details}
+              {error.detail}
             </p>
           </div>
         )}
