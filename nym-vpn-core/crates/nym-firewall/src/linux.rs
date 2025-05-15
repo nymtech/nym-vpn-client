@@ -674,15 +674,11 @@ impl<'a> PolicyBatch<'a> {
                 peer_endpoints,
                 tunnel,
                 allow_lan,
-                allowed_endpoints,
                 dns_config,
             } => {
                 peer_endpoints
                     .iter()
                     .for_each(|endpoint| self.add_allow_tunnel_endpoint_rules(endpoint, fwmark));
-                allowed_endpoints
-                    .iter()
-                    .for_each(|endpoint| self.add_allow_endpoint_rules(endpoint));
 
                 for server in dns_config.tunnel_config() {
                     self.add_allow_tunnel_dns_rule(
