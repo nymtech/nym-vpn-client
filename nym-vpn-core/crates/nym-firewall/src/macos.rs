@@ -356,19 +356,19 @@ impl Firewall {
     fn get_nat_rules(&mut self, policy: &FirewallPolicy) -> Result<Vec<pfctl::NatRule>> {
         let (FirewallPolicy::Connected {
             peer_endpoints,
-            allowed_endpoints,
             tunnel,
             ..
         }
         | FirewallPolicy::Connecting {
             peer_endpoints,
-            allowed_endpoints,
             tunnel: Some(tunnel),
             ..
         }) = policy
         else {
             return Ok(vec![]);
         };
+
+        let allowed_endpoints = policy.allowed_endpoints();
 
         let mut rules = vec![];
 
@@ -532,7 +532,6 @@ impl Firewall {
                 tunnel,
                 allow_lan,
                 dns_config,
-                allowed_endpoints,
                 redirect_interface,
                 dns_redirect_port: _,
             } => {
@@ -556,10 +555,6 @@ impl Firewall {
 
                 for peer_endpoint in peer_endpoints {
                     rules.push(self.get_allow_relay_rule(peer_endpoint)?);
-                }
-
-                for allowed_endpoint in allowed_endpoints {
-                    rules.push(self.get_allowed_endpoint_rule(allowed_endpoint)?);
                 }
 
                 // Important to block DNS *before* we allow the tunnel and allow LAN. So DNS
