@@ -1,9 +1,9 @@
 use crate::fs::path::APP_LOG_DIR;
-use crate::{env, Cli};
+use crate::{Cli, env};
 use std::io::{self, IsTerminal};
 use std::{fs, path::PathBuf};
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use tracing::{debug, info};
 use tracing_appender::{non_blocking::WorkerGuard, rolling};
 use tracing_subscriber::filter::LevelFilter;

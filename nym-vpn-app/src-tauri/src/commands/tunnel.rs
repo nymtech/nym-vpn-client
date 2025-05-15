@@ -5,7 +5,7 @@ use crate::grpc::tunnel::TunnelState;
 use crate::{
     error::BackendError,
     events::{AppHandleEventEmitter, ConnectProgressMsg},
-    state::{app::VpnMode, SharedAppState},
+    state::{SharedAppState, app::VpnMode},
 };
 use tauri::State;
 use tracing::{debug, error, info, instrument, warn};
