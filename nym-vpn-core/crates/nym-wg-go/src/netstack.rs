@@ -4,7 +4,7 @@
 #[cfg(target_os = "android")]
 use std::os::fd::RawFd;
 use std::{
-    ffi::{c_char, c_void, CStr, CString},
+    ffi::{CStr, CString, c_char, c_void},
     fmt,
     net::{IpAddr, SocketAddr},
 };
@@ -13,8 +13,8 @@ use std::{
 use nym_windows::net::AddressFamily;
 
 use super::{
-    uapi::UapiConfigBuilder, Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey,
-    Result,
+    Error, LoggingCallback, PeerConfig, PeerEndpointUpdate, PrivateKey, Result,
+    uapi::UapiConfigBuilder,
 };
 #[cfg(feature = "amnezia")]
 use crate::amnezia::AmneziaConfig;
@@ -267,9 +267,9 @@ fn to_comma_separated_addrs(ip_addrs: &[IpAddr]) -> String {
         .join(",")
 }
 
-extern "C" {
+unsafe extern "C" {
     /// Start the netstack tunnel.
-    fn wgNetTurnOn(
+    unsafe fn wgNetTurnOn(
         local_addresses: *const c_char,
         dns_addresses: *const c_char,
         mtu: i32,
@@ -279,17 +279,17 @@ extern "C" {
     ) -> i32;
 
     /// Pass a handle that was created by wgNetTurnOn to stop the wireguard tunnel.
-    fn wgNetTurnOff(net_tunnel_handle: i32);
+    unsafe fn wgNetTurnOff(net_tunnel_handle: i32);
 
     /// Sets the config of the WireGuard interface.
-    fn wgNetSetConfig(net_tunnel_handle: i32, settings: *const c_char) -> i64;
+    unsafe fn wgNetSetConfig(net_tunnel_handle: i32, settings: *const c_char) -> i64;
 
     /// Returns the config of the WireGuard interface.
     #[allow(unused)]
-    fn wgNetGetConfig(net_tunnel_handle: i32) -> *const c_char;
+    unsafe fn wgNetGetConfig(net_tunnel_handle: i32) -> *const c_char;
 
     /// Open connection through the tunnel.
-    fn wgNetOpenConnectionThroughTunnel(
+    unsafe fn wgNetOpenConnectionThroughTunnel(
         entry_tunnel_handle: i32,
         listen_port: u16,
         client_port: u16,
@@ -299,26 +299,26 @@ extern "C" {
     ) -> i32;
 
     /// Close connection through the tunnel.
-    fn wgNetCloseConnectionThroughTunnel(handle: i32);
+    unsafe fn wgNetCloseConnectionThroughTunnel(handle: i32);
 
     /// Returns tunnel IPv4 socket.
     #[cfg(target_os = "android")]
-    fn wgNetGetSocketV4(net_tunnel_handle: i32) -> i32;
+    unsafe fn wgNetGetSocketV4(net_tunnel_handle: i32) -> i32;
 
     /// Returns tunnel IPv6 socket.
     #[cfg(target_os = "android")]
-    fn wgNetGetSocketV6(net_tunnel_handle: i32) -> i32;
+    unsafe fn wgNetGetSocketV6(net_tunnel_handle: i32) -> i32;
 
     /// Re-attach wireguard-go to the tunnel interface.
     #[cfg(target_os = "ios")]
-    fn wgNetBumpSockets(handle: i32);
+    unsafe fn wgNetBumpSockets(handle: i32);
 
     /// Re-bind tunnel socket to the new interface.
     ///
     /// - `family` - address family
     /// - `interface_index` - index of network interface to which the tunnel socket should be bound to. Pass 0 to bind to blackhole.
     #[cfg(windows)]
-    fn wgNetRebindTunnelSocket(address_family: u16, interface_index: u32);
+    unsafe fn wgNetRebindTunnelSocket(address_family: u16, interface_index: u32);
 }
 
 /// Callback used by libwg to pass netstack logs.
@@ -332,7 +332,7 @@ pub unsafe extern "system" fn wg_netstack_logger_callback(
     _ctx: *mut c_void,
 ) {
     if !msg.is_null() {
-        let str = CStr::from_ptr(msg).to_string_lossy();
+        let str = unsafe { CStr::from_ptr(msg).to_string_lossy() };
         let trimmed_str = str.trim_end();
         tracing::debug!("{}", trimmed_str);
     }

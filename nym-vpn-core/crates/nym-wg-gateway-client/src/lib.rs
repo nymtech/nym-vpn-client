@@ -24,7 +24,7 @@ use nym_pemstore::KeyPairPath;
 use nym_sdk::mixnet::{ClientStatsEvents, CredentialStorage};
 use nym_validator_client::QueryHttpRpcNyxdClient;
 use nym_wg_go::PublicKey;
-use rand::{rngs::OsRng, CryptoRng, RngCore};
+use rand::{CryptoRng, RngCore, rngs::OsRng};
 use tracing::{debug, error, info, trace, warn};
 
 use crate::error::Result;
@@ -124,7 +124,9 @@ impl WgGatewayLightClient {
             remaining_pretty
         );
         if available_bandwidth < 1024 * 1024 {
-            warn!("Remaining bandwidth is under 1 MB. The wireguard mode will get suspended after that until tomorrow, UTC time. The client might shutdown with timeout soon");
+            warn!(
+                "Remaining bandwidth is under 1 MB. The wireguard mode will get suspended after that until tomorrow, UTC time. The client might shutdown with timeout soon"
+            );
         }
         Ok(Some(available_bandwidth))
     }
@@ -172,7 +174,7 @@ impl WgGatewayLightClient {
                 credential,
             })),
             AuthenticatorVersion::V2 | AuthenticatorVersion::UNKNOWN => {
-                return Err(Error::UnsupportedAuthenticatorVersion)
+                return Err(Error::UnsupportedAuthenticatorVersion);
             }
         };
         let response = self.send(top_up_message).await?;
@@ -387,8 +389,7 @@ impl WgGatewayClient {
 
                 trace!(
                     "received \"pending-registration\" msg from {}: {:?}",
-                    &gateway_host,
-                    &pending_registration_response
+                    &gateway_host, &pending_registration_response
                 );
 
                 let credential = if enable_credentials_mode {
@@ -449,13 +450,12 @@ impl WgGatewayClient {
                         }))
                     }
                     AuthenticatorVersion::UNKNOWN => {
-                        return Err(Error::UnsupportedAuthenticatorVersion)
+                        return Err(Error::UnsupportedAuthenticatorVersion);
                     }
                 };
                 trace!(
                     "sending final msg to {}: {:?}",
-                    &gateway_host,
-                    &finalized_message
+                    &gateway_host, &finalized_message
                 );
 
                 let response = self.light_client().send(finalized_message).await?;
@@ -470,8 +470,7 @@ impl WgGatewayClient {
 
         trace!(
             "received \"registered\" msg from {}: {:?}",
-            &gateway_host,
-            &registered_data
+            &gateway_host, &registered_data
         );
 
         let gateway_data = GatewayData {

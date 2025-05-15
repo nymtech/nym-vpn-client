@@ -57,8 +57,8 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
 use crate::{
-    bandwidth_controller::Error as BandwidthControllerError, GatewayDirectoryError,
-    MixnetClientConfig,
+    GatewayDirectoryError, MixnetClientConfig,
+    bandwidth_controller::Error as BandwidthControllerError,
 };
 #[cfg(target_os = "android")]
 pub use android_connectivity_adapter::AndroidConnectivityAdapter;

@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{stream::BoxStream, StreamExt};
+use futures::{StreamExt, stream::BoxStream};
 use nym_vpn_api_client::NetworkCompatibility;
 use nym_vpn_network_config::Network;
 use tokio::sync::{broadcast, mpsc::UnboundedSender};
@@ -9,9 +9,7 @@ use tokio::sync::{broadcast, mpsc::UnboundedSender};
 use nym_vpn_api_client::types::ScoreThresholds;
 use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
-    conversions::ConversionError, get_account_state_response::AccountStateSummary,
-    get_account_usage_response::AccountUsages, get_devices_response::Devices,
-    nym_vpnd_server::NymVpnd, AccountManagement, AvailableTickets, ConfirmZkNymDownloadedRequest,
+    AccountManagement, AvailableTickets, ConfirmZkNymDownloadedRequest,
     ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse, DeleteLogFileResponse,
     DisconnectResponse, ForgetAccountResponse, GetAccountIdentityResponse, GetAccountLinksRequest,
     GetAccountStateResponse, GetAccountUsageResponse, GetDeviceIdentityResponse,
@@ -22,6 +20,9 @@ use nym_vpn_proto::{
     ListGatewaysResponse, RefreshAccountStateResponse, RegisterDeviceResponse,
     RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
     SetNetworkRequest, SetNetworkResponse, StoreAccountRequest, StoreAccountResponse, TunnelState,
+    conversions::ConversionError, get_account_state_response::AccountStateSummary,
+    get_account_usage_response::AccountUsages, get_devices_response::Devices,
+    nym_vpnd_server::NymVpnd,
 };
 use zeroize::Zeroizing;
 

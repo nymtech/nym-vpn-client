@@ -2,18 +2,18 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use windows::{
-    core::Result,
     Win32::{
-        Foundation::{LocalFree, HLOCAL},
+        Foundation::{HLOCAL, LocalFree},
         Security::{
-            InitializeSecurityDescriptor, SetSecurityDescriptorDacl, SetSecurityDescriptorGroup,
-            SetSecurityDescriptorOwner, PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR,
+            InitializeSecurityDescriptor, PSECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR,
+            SetSecurityDescriptorDacl, SetSecurityDescriptorGroup, SetSecurityDescriptorOwner,
         },
         System::{
-            Memory::{LocalAlloc, LPTR},
+            Memory::{LPTR, LocalAlloc},
             SystemServices::SECURITY_DESCRIPTOR_REVISION,
         },
     },
+    core::Result,
 };
 
 use super::{Acl, Sid};

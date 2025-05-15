@@ -18,7 +18,7 @@ pub mod debounce;
 mod imp;
 
 #[cfg(target_os = "windows")]
-pub use imp::{get_best_default_route, Callback, CallbackHandle, EventType, InterfaceAndGateway};
+pub use imp::{Callback, CallbackHandle, EventType, InterfaceAndGateway, get_best_default_route};
 
 #[cfg(not(target_os = "windows"))]
 #[path = "unix/mod.rs"]
@@ -28,7 +28,7 @@ mod imp;
 use netlink_packet_route::route::RouteHeader;
 
 #[cfg(target_os = "macos")]
-pub use imp::{imp::RouteError, DefaultRouteEvent, PlatformError};
+pub use imp::{DefaultRouteEvent, PlatformError, imp::RouteError};
 
 pub use imp::{Error, RouteManagerHandle};
 

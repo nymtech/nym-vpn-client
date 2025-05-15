@@ -3,7 +3,7 @@
 
 use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint, Gateway, GatewayType};
 
-use crate::{tunnel_state_machine::TunnelType, GatewayDirectoryError};
+use crate::{GatewayDirectoryError, tunnel_state_machine::TunnelType};
 
 #[derive(Debug, Clone)]
 pub struct SelectedGateways {

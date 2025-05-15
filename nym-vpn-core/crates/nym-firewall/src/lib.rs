@@ -294,14 +294,14 @@ impl fmt::Display for FirewallPolicy {
                 let dns_str = "none".to_owned();
 
                 write!(
-                f,
-                "Connected to {} over {}, {} LAN. Allowing endpoints: {}. Allowing non-tunnel DNS: {}",
-                display_peer_endpoints(peer_endpoints),
-                display_tunnel_interface(tunnel),
-                if *allow_lan { "Allowing" } else { "Blocking" },
-                display_allowed_endpoints(allowed_endpoints),
-                dns_str
-            )
+                    f,
+                    "Connected to {} over {}, {} LAN. Allowing endpoints: {}. Allowing non-tunnel DNS: {}",
+                    display_peer_endpoints(peer_endpoints),
+                    display_tunnel_interface(tunnel),
+                    if *allow_lan { "Allowing" } else { "Blocking" },
+                    display_allowed_endpoints(allowed_endpoints),
+                    dns_str
+                )
             }
             FirewallPolicy::Blocked {
                 allow_lan,

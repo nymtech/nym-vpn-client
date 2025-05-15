@@ -3,9 +3,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::{Error, Result};
-use nym_windows::net::{get_ip_interface_entry, try_socketaddr_from_inet_sockaddr, AddressFamily};
+use nym_windows::net::{AddressFamily, get_ip_interface_entry, try_socketaddr_from_inet_sockaddr};
 use std::{net::SocketAddr, slice};
-use widestring::{widecstr, WideCStr};
+use widestring::{WideCStr, widecstr};
 use windows::Win32::{
     NetworkManagement::{
         IpHelper::{

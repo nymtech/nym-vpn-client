@@ -15,7 +15,7 @@ use nym_sdk::UserAgent as NymUserAgent;
 use time::OffsetDateTime;
 use url::Url;
 
-use crate::{platform::error::VpnError, NodeIdentity, Recipient, UniffiCustomTypeConverter};
+use crate::{NodeIdentity, Recipient, UniffiCustomTypeConverter, platform::error::VpnError};
 
 uniffi::custom_type!(Ipv4Addr, String);
 uniffi::custom_type!(Ipv6Addr, String);

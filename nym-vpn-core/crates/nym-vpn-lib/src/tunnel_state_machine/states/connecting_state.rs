@@ -5,8 +5,8 @@
 use std::net::SocketAddr;
 
 use futures::{
-    future::{BoxFuture, Fuse},
     FutureExt,
+    future::{BoxFuture, Fuse},
 };
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -26,14 +26,14 @@ use nym_gateway_directory::Gateway;
 use nym_gateway_directory::ResolvedConfig;
 
 use crate::tunnel_state_machine::{
+    Error, ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState,
+    Result, SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
     states::{ConnectedState, DisconnectedState, DisconnectingState, ErrorState, OfflineState},
     tunnel::{SelectedGateways, Tombstone},
     tunnel_monitor::{
         TunnelMonitor, TunnelMonitorEvent, TunnelMonitorEventReceiver, TunnelMonitorEventSender,
         TunnelMonitorHandle, TunnelParameters,
     },
-    Error, ErrorStateReason, NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState,
-    Result, SharedState, TunnelCommand, TunnelInterface, TunnelStateHandler,
 };
 
 /// Default websocket port used as a fallback
@@ -316,7 +316,9 @@ impl ConnectingState {
                 .as_ref()
                 .is_some_and(|x| x.is_empty())
         {
-            tracing::warn!("nym_vpn_api_socket_addrs is empty which may result into firewall blocking the API requests.");
+            tracing::warn!(
+                "nym_vpn_api_socket_addrs is empty which may result into firewall blocking the API requests."
+            );
         } else if let Err(e) = shared_state
             .account_command_tx
             .set_static_api_addresses(resolved_gateway_config.nym_vpn_api_socket_addrs.to_owned())

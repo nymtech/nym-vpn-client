@@ -14,9 +14,9 @@ mod rc;
 mod sys;
 
 pub use endpoint::{
-    nw_endpoint_type_t, Address, AddressEndpoint, BonjourServiceEndpoint, Endpoint, HostEndpoint,
-    UnknownEndpoint, UrlEndpoint,
+    Address, AddressEndpoint, BonjourServiceEndpoint, Endpoint, HostEndpoint, UnknownEndpoint,
+    UrlEndpoint, nw_endpoint_type_t,
 };
-pub use interface::{nw_interface_type_t, Interface, InterfaceType};
-pub use path::{nw_path_status_t, Path, PathStatus};
+pub use interface::{Interface, InterfaceType, nw_interface_type_t};
+pub use path::{Path, PathStatus, nw_path_status_t};
 pub use path_monitor::PathMonitor;

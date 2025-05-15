@@ -2,7 +2,7 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use dbus::blocking::{stdintf::org_freedesktop_dbus::Properties, Proxy, SyncConnection};
+use dbus::blocking::{Proxy, SyncConnection, stdintf::org_freedesktop_dbus::Properties};
 use std::{sync::Arc, time::Duration};
 
 type Result<T> = std::result::Result<T, Error>;

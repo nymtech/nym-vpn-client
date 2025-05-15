@@ -7,7 +7,7 @@ use super::systemd_resolved;
 pub use dbus::arg::{RefArg, Variant};
 use dbus::{
     arg,
-    blocking::{stdintf::org_freedesktop_dbus::Properties, Proxy, SyncConnection},
+    blocking::{Proxy, SyncConnection, stdintf::org_freedesktop_dbus::Properties},
     message::MatchRule,
 };
 use std::{
@@ -17,8 +17,8 @@ use std::{
     net::IpAddr,
     path::Path,
     sync::{
-        atomic::{AtomicU32, Ordering},
         Arc,
+        atomic::{AtomicU32, Ordering},
     },
     time::{Duration, Instant},
 };
@@ -74,7 +74,7 @@ pub enum Error {
     MatchDBusTypeError(#[from] dbus::arg::TypeMismatchError),
 
     #[error(
-        "NM is configured to manage DNS via systemd-resolved but systemd-resolved is not managing /etc/resolv.conf: {0}",
+        "NM is configured to manage DNS via systemd-resolved but systemd-resolved is not managing /etc/resolv.conf: {0}"
     )]
     SystemdResolvedNotManagingResolvconf(systemd_resolved::Error),
 
@@ -432,7 +432,9 @@ impl NetworkManager {
         };
 
         if !verify_etc_resolv_conf_contents() {
-            tracing::debug!("/etc/resolv.conf differs from reference resolv.conf, therefore NM is not managing DNS");
+            tracing::debug!(
+                "/etc/resolv.conf differs from reference resolv.conf, therefore NM is not managing DNS"
+            );
             return Err(Error::NetworkManagerNotManagingDns);
         }
 

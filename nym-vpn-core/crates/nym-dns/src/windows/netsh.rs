@@ -185,7 +185,9 @@ fn create_netsh_set_command(interface_index: u32, server: &IpAddr) -> String {
     // validate=no
 
     let interface_type = if server.is_ipv4() { "ipv4" } else { "ipv6" };
-    format!("interface {interface_type} set dnsservers name={interface_index} source=static address={server} validate=no\r\n")
+    format!(
+        "interface {interface_type} set dnsservers name={interface_index} source=static address={server} validate=no\r\n"
+    )
 }
 
 fn create_netsh_add_command(interface_index: u32, server: &IpAddr) -> String {
@@ -193,7 +195,9 @@ fn create_netsh_add_command(interface_index: u32, server: &IpAddr) -> String {
     // netsh interface ipv4 add dnsservers name="Mullvad" address=10.64.0.2 validate=no
 
     let interface_type = if server.is_ipv4() { "ipv4" } else { "ipv6" };
-    format!("interface {interface_type} add dnsservers name={interface_index} address={server} validate=no\r\n")
+    format!(
+        "interface {interface_type} add dnsservers name={interface_index} address={server} validate=no\r\n"
+    )
 }
 
 fn create_netsh_flush_command(interface_index: u32, ip_version: IpVersion) -> String {
@@ -205,7 +209,9 @@ fn create_netsh_flush_command(interface_index: u32, ip_version: IpVersion) -> St
         IpVersion::V6 => "ipv6",
     };
 
-    format!("interface {interface_type} set dnsservers name={interface_index} source=static address=none validate=no\r\n")
+    format!(
+        "interface {interface_type} set dnsservers name={interface_index} source=static address=none validate=no\r\n"
+    )
 }
 
 fn get_system_dir() -> windows::core::Result<PathBuf> {

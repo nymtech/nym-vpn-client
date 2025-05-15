@@ -406,7 +406,7 @@ impl AccountStateSummary {
         match self.account_registered {
             Some(AccountRegistered::Registered) => {}
             Some(AccountRegistered::NotRegistered) => {
-                return ReadyToRegisterDevice::AccountNotRegistered
+                return ReadyToRegisterDevice::AccountNotRegistered;
             }
             None => return ReadyToRegisterDevice::AccountNotSynced,
         }
@@ -447,7 +447,7 @@ impl AccountStateSummary {
         match self.account_registered {
             Some(AccountRegistered::Registered) => {}
             Some(AccountRegistered::NotRegistered) => {
-                return ReadyToRequestZkNym::AccountNotRegistered
+                return ReadyToRequestZkNym::AccountNotRegistered;
             }
             None => return ReadyToRequestZkNym::AccountNotSynced,
         }

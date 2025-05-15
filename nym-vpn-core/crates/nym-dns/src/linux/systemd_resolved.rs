@@ -5,8 +5,8 @@
 use std::net::IpAddr;
 
 use nym_common::{
-    linux::{iface_index, IfaceIndexLookupError},
     ErrorExt,
+    linux::{IfaceIndexLookupError, iface_index},
 };
 use nym_dbus::systemd_resolved::{AsyncHandle, SystemdResolved as DbusInterface};
 use nym_routing::RouteManagerHandle;

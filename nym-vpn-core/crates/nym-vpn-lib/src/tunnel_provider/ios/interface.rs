@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    ffi::{c_char, c_ulong, CStr},
+    ffi::{CStr, c_char, c_ulong},
     io,
     os::fd::{BorrowedFd, OwnedFd},
 };
 
-use nix::libc::{self, sockaddr, sockaddr_ctl, socklen_t, AF_SYSTEM};
+use nix::libc::{self, AF_SYSTEM, sockaddr, sockaddr_ctl, socklen_t};
 
 const UTUN_CTL_NAME: &CStr = c"com.apple.net.utun_control";
 const CTLIOCGINFO: c_ulong = 0xc0644e03;

@@ -15,7 +15,7 @@ use nym_authenticator_client::AuthClientMixnetListenerHandle;
 use tokio::sync::mpsc;
 use tokio::task::{JoinError, JoinHandle};
 #[cfg(target_os = "ios")]
-use tokio_stream::{wrappers::UnboundedReceiverStream, StreamExt};
+use tokio_stream::{StreamExt, wrappers::UnboundedReceiverStream};
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 
@@ -31,12 +31,12 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 use crate::tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution;
 use crate::{
     tunnel_state_machine::tunnel::{
+        Error, Result, Tombstone,
         wireguard::{
             connector::ConnectionData,
             fd::DupFd,
-            two_hop_config::{TwoHopConfig, ENTRY_MTU, EXIT_MTU},
+            two_hop_config::{ENTRY_MTU, EXIT_MTU, TwoHopConfig},
         },
-        Error, Result, Tombstone,
     },
     wg_config::WgNodeConfig,
 };

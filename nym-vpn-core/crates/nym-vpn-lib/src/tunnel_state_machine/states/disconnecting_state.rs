@@ -6,11 +6,11 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 use crate::tunnel_state_machine::{
+    NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState, TunnelCommand,
+    TunnelStateHandler,
     states::{ConnectingState, DisconnectedState, ErrorState, OfflineState},
     tunnel::Tombstone,
     tunnel_monitor::TunnelMonitorHandle,
-    NextTunnelState, PrivateActionAfterDisconnect, PrivateTunnelState, SharedState, TunnelCommand,
-    TunnelStateHandler,
 };
 
 type WaitHandle = BoxFuture<'static, Tombstone>;

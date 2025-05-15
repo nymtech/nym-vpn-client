@@ -4,7 +4,7 @@
 use std::marker::PhantomData;
 
 use windows::Win32::{
-    Foundation::{LocalFree, HLOCAL},
+    Foundation::{HLOCAL, LocalFree},
     Security::Authorization::EXPLICIT_ACCESS_W,
 };
 

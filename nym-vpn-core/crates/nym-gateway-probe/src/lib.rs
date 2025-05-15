@@ -10,7 +10,7 @@ use std::{os::fd::RawFd, sync::Arc};
 
 use crate::types::Entry;
 use anyhow::{anyhow, bail};
-use base64::{engine::general_purpose, Engine as _};
+use base64::{Engine as _, engine::general_purpose};
 use bytes::BytesMut;
 use clap::Args;
 use futures::StreamExt;
@@ -20,8 +20,8 @@ use nym_authenticator_client::{
 use nym_authenticator_requests::{v2, v3, v4, v5};
 use nym_client_core::config::ForgetMe;
 use nym_config::defaults::{
-    mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6},
     NymNetworkDetails,
+    mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6},
 };
 use nym_connection_monitor::self_ping_and_wait;
 use nym_credentials_interface::TicketType;
@@ -32,11 +32,11 @@ use nym_gateway_directory::{
 };
 use nym_ip_packet_client::IprClientConnect;
 use nym_ip_packet_requests::{
+    IpPair,
     codec::MultiIpPacketCodec,
     v8::response::{
         ControlResponse, DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData,
     },
-    IpPair,
 };
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, ReconstructedMessage};
@@ -51,8 +51,8 @@ use crate::{
 };
 
 use netstack::{
-    ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo},
     NetstackRequest,
+    ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo},
 };
 
 mod error;
@@ -646,7 +646,9 @@ async fn send_icmp_pings(
     let ipr_tun_ip_v6 = NYM_TUN_DEVICE_ADDRESS_V6;
     let external_ip_v6 = Ipv6Addr::new(0x2001, 0x4860, 0x4860, 0, 0, 0, 0, 0x8888);
 
-    info!("Sending ICMP echo requests to: {ipr_tun_ip_v4}, {ipr_tun_ip_v6}, {external_ip_v4}, {external_ip_v6}");
+    info!(
+        "Sending ICMP echo requests to: {ipr_tun_ip_v4}, {ipr_tun_ip_v6}, {external_ip_v4}, {external_ip_v6}"
+    );
 
     // send ipv4 pings
     for ii in 0..10 {

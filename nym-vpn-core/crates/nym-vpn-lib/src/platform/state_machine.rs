@@ -14,7 +14,7 @@ use crate::tunnel_state_machine::{
 };
 use nym_vpn_lib_types::TunnelType;
 
-use super::{error::VpnError, VPNConfig, STATE_MACHINE_HANDLE};
+use super::{STATE_MACHINE_HANDLE, VPNConfig, error::VpnError};
 
 pub(super) async fn init_state_machine(
     config: VPNConfig,

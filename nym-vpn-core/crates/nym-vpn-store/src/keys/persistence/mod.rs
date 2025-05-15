@@ -5,6 +5,6 @@ mod ephemeral;
 mod on_disk;
 
 pub use on_disk::{
-    DeviceKeysPaths, OnDiskKeys, OnDiskKeysError, DEFAULT_PRIVATE_DEVICE_KEY_FILENAME,
-    DEFAULT_PUBLIC_DEVICE_KEY_FILENAME,
+    DEFAULT_PRIVATE_DEVICE_KEY_FILENAME, DEFAULT_PUBLIC_DEVICE_KEY_FILENAME, DeviceKeysPaths,
+    OnDiskKeys, OnDiskKeysError,
 };

@@ -12,6 +12,10 @@ use nym_vpn_lib_types::{
 };
 
 use crate::{
+    Address as ProtoAddress, ConnectionData as ProtoConnectionData, Gateway as ProtoGateway,
+    MixnetConnectionData as ProtoMixnetConnectionData,
+    TunnelConnectionData as ProtoTunnelConnectionData, TunnelState as ProtoTunnelState,
+    WireguardConnectionData as ProtoWireguardConnectionData, WireguardNode as ProtoWireguardNode,
     conversions::ConversionError,
     tunnel_connection_data::{
         Mixnet as ProtoMixnetConnectionDataVariant, State as ProtoTunnelConnectionDataState,
@@ -23,10 +27,6 @@ use crate::{
         Disconnecting as ProtoDisconnecting, Error as ProtoError, ErrorStateReason,
         Offline as ProtoOffline, State as ProtoState,
     },
-    Address as ProtoAddress, ConnectionData as ProtoConnectionData, Gateway as ProtoGateway,
-    MixnetConnectionData as ProtoMixnetConnectionData,
-    TunnelConnectionData as ProtoTunnelConnectionData, TunnelState as ProtoTunnelState,
-    WireguardConnectionData as ProtoWireguardConnectionData, WireguardNode as ProtoWireguardNode,
 };
 
 impl From<ProtoActionAfterDisconnect> for ActionAfterDisconnect {

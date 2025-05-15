@@ -18,7 +18,7 @@ impl TryFrom<crate::GatewayType> for nym_gateway_directory::GatewayType {
             crate::GatewayType::Unspecified => {
                 return Err(ConversionError::Generic(
                     "gateway type unspecified".to_string(),
-                ))
+                ));
             }
             crate::GatewayType::MixnetEntry => GatewayType::MixnetEntry,
             crate::GatewayType::MixnetExit => GatewayType::MixnetExit,

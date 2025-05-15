@@ -1,6 +1,6 @@
 use tracing::debug;
 
-use crate::{error::Result, responses::Gateway, Client, HarbourMasterApiClientExt};
+use crate::{Client, HarbourMasterApiClientExt, error::Result, responses::Gateway};
 
 const HARBOUR_MASTER: &str = "https://harbourmaster.nymtech.net";
 

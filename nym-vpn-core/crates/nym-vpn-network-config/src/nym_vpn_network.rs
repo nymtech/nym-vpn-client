@@ -3,7 +3,7 @@
 
 use std::env;
 
-use nym_config::defaults::{var_names, NymNetworkDetails};
+use nym_config::defaults::{NymNetworkDetails, var_names};
 use url::Url;
 
 use crate::{AccountManagement, ParsedAccountLinks, SystemMessages};
@@ -32,7 +32,8 @@ impl NymVpnNetwork {
         }
     }
     pub(super) fn export_to_env(&self) {
-        env::set_var(var_names::NYM_VPN_API, self.nym_vpn_api_url.to_string());
+        // todo: prefer dependency injection to env variable.
+        unsafe { env::set_var(var_names::NYM_VPN_API, self.nym_vpn_api_url.to_string()) };
     }
 
     pub fn try_into_parsed_links(

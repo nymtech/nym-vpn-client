@@ -19,7 +19,7 @@ use super::connected_tunnel::ConnectedTunnel;
 use crate::{
     bandwidth_controller::BandwidthController,
     tunnel_state_machine::tunnel::{
-        self, gateway_selector::SelectedGateways, AnyConnector, ConnectorError, Error, Result,
+        self, AnyConnector, ConnectorError, Error, Result, gateway_selector::SelectedGateways,
     },
 };
 

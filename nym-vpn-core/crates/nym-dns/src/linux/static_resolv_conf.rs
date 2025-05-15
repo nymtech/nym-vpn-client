@@ -8,7 +8,7 @@ use futures::StreamExt;
 use inotify::{Inotify, WatchMask};
 use resolv_conf::{Config, ScopedIp};
 use tokio::sync::Mutex;
-use triggered::{trigger, Listener, Trigger};
+use triggered::{Listener, Trigger, trigger};
 
 use nym_common::ErrorExt;
 
