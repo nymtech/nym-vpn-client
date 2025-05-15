@@ -16,6 +16,13 @@ function TunnelState() {
   const isError = state.tunnelError || state.error;
   const isOffline =
     state.state === 'Offline' || state.state === 'OfflineAutoReconnect';
+  const showRetryAttempt =
+    state.state === 'Connecting' && !state.error && state.retryAttempt > 0;
+  const showProgressMsg =
+    loading &&
+    state.progressMessages.length > 0 &&
+    !state.error &&
+    !showRetryAttempt;
 
   const { t } = useTranslation('home');
   const { tE } = useI18nError();
@@ -71,9 +78,7 @@ function TunnelState() {
         className="w-full flex flex-col flex-1 items-center overflow-hidden"
         data-testid="tunnel-details-container"
       >
-        {loading &&
-          state.progressMessages.length > 0 &&
-          !state.error &&
+        {showProgressMsg &&
           InfoMessage(
             t(
               `connection-progress.${
@@ -83,6 +88,13 @@ function TunnelState() {
                 ns: 'backendMessages',
               },
             ),
+          )}
+        {showRetryAttempt &&
+          InfoMessage(
+            t('connection-attempt', {
+              ns: 'backendMessages',
+              count: state.retryAttempt,
+            }),
           )}
         {isOffline &&
           !isError &&

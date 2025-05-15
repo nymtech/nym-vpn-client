@@ -26,7 +26,10 @@ export function tunnelUpdate(state: TunnelStateIpc, dispatch: StateDispatch) {
     console.log('tunnel [connecting]');
     dispatch({
       type: 'set-tunnel-connecting',
-      tunnel: state.connecting,
+      payload: {
+        tunnel: state.connecting.tunnel,
+        retryAttempt: state.connecting.retryAttempt,
+      },
     });
     return;
   }

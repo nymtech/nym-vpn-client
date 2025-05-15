@@ -39,6 +39,7 @@ export type AppState = {
   state: TunnelState;
   tunnel?: Tunnel | null;
   tunnelError?: TunnelError | null;
+  retryAttempt: number;
   daemonStatus: DaemonStatus;
   daemonVersion?: string;
   networkEnv: NetworkEnv;

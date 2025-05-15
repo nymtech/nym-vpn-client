@@ -63,6 +63,14 @@ pub struct Tunnel {
     pub data: TunnelData,
 }
 
+#[derive(Serialize, Clone, PartialEq, Debug, TS, Default)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub struct ConnectingState {
+    pub tunnel: Option<Tunnel>,
+    pub retry_attempt: u32,
+}
+
 #[derive(Default, Debug, Clone, Serialize, PartialEq, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
@@ -70,7 +78,7 @@ pub enum TunnelState {
     #[default]
     Disconnected,
     Connected(Tunnel),
-    Connecting(Option<Tunnel>),
+    Connecting(ConnectingState),
     Disconnecting(Option<TunnelAction>),
     Error(TunnelError),
     Offline {
@@ -84,7 +92,10 @@ impl TunnelState {
             State::Disconnected(_empty) => TunnelState::Disconnected,
             State::Connecting(c) => {
                 let tunnel = c.connection_data.map(Tunnel::try_from).transpose()?;
-                TunnelState::Connecting(tunnel)
+                TunnelState::Connecting(ConnectingState {
+                    tunnel,
+                    retry_attempt: c.retry_attempt,
+                })
             }
             State::Connected(c) => {
                 let tunnel = c

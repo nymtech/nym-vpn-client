@@ -39,7 +39,10 @@ export type StateAction =
   | { type: 'set-version'; version: string }
   | { type: 'set-tunnel-connected'; tunnel: Tunnel }
   | { type: 'set-tunnel-disconnected' }
-  | { type: 'set-tunnel-connecting'; tunnel: Tunnel | null }
+  | {
+      type: 'set-tunnel-connecting';
+      payload: { tunnel: Tunnel | null; retryAttempt: number };
+    }
   | { type: 'set-tunnel-disconnecting'; action: TunnelAction | null }
   | { type: 'set-tunnel-offline'; reconnect: boolean | null }
   | { type: 'set-tunnel-inerror'; error: TunnelError }
@@ -84,6 +87,7 @@ export const initialState: AppState = {
   codeDepsRust: [],
   codeDepsJs: [],
   account: false,
+  retryAttempt: 0,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -165,6 +169,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
           : dayjs(),
         tunnelError: null,
         error: null,
+        retryAttempt: 0,
       };
     case 'set-tunnel-disconnected':
       return {
@@ -174,12 +179,14 @@ export function reducer(state: AppState, action: StateAction): AppState {
         progressMessages: [],
         tunnelConnectedAt: null,
         tunnelError: null,
+        retryAttempt: 0,
       };
     case 'set-tunnel-connecting':
       return {
         ...state,
         state: 'Connecting',
-        tunnel: action.tunnel,
+        tunnel: action.payload.tunnel,
+        retryAttempt: action.payload.retryAttempt || 0,
         tunnelError: null,
       };
     case 'set-tunnel-disconnecting':
