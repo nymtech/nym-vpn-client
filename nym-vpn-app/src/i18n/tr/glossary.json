@@ -1,11 +1,13 @@
 {
-  "via": "aracılığıyla",
-  "left": "kaldı",
-  "ok": "tamam",
-  "selected": "seçildi",
   "account": "hesap",
   "cancel": "iptal et",
+  "left": "kaldı",
   "login": "giriş yap",
   "logout": "çıkış yap",
-  "stop": "Durdur"
+  "ok": "tamam",
+  "selected": "seçildi",
+  "via": "aracılığıyla",
+  "stop": "Durdur",
+  "server_one": "sunucu",
+  "server_other": "sunucular"
 }

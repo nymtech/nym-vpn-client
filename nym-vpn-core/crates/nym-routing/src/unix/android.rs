@@ -7,7 +7,7 @@ use tokio::sync::mpsc;
 
 /// Stub error type for routing errors on Android.
 #[derive(Debug, thiserror::Error)]
-#[error("Failed to send shutdown result")]
+#[error("failed to send shutdown result")]
 pub struct Error;
 
 /// Stub route manager for Android

@@ -1,0 +1,20 @@
+{
+  "loading": "Carregando…",
+  "none-found": "Nenhum resultado encontrado. Por favor, tente outra pesquisa",
+  "list-loading": "A lista de localização está carregando…",
+  "selected": "Selecionado",
+  "search-country": "Buscar localização",
+  "input-label": "Pesquisar",
+  "location-details": {
+    "title": "Detalhes sobre os locais dos servidores",
+    "description": "Inferimos a localização dos servidores com base em seus endereços IP, mas a localização real pode variar um pouco.",
+    "link": "Leia mais"
+  },
+  "location-not-available": {
+    "entry": "O local da entrada selecionada não está disponível, trocado para {{location}}",
+    "exit": "Local de saída selecionado não disponível, alternado para {{location}}"
+  },
+  "node-details": {
+    "id-label": "Chave de identificação:"
+  }
+}

@@ -30,8 +30,10 @@ jobs:
           components: rustfmt, clippy
           targets: aarch64-linux-android
 
-      - name: Install cargo ndk
-        run: cargo install cargo-ndk
+      - name: Install cargo-ndk
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-ndk
 
       - name: Setup NDK
         uses: nttld/setup-ndk@v1

@@ -9,9 +9,20 @@ type LinkProps = {
   icon?: boolean | string;
   className?: string;
   textClassName?: string;
+  'data-testid'?: string;
 };
 
-function Link({ text, url, icon, className, textClassName }: LinkProps) {
+function Link({
+  text,
+  url,
+  icon,
+  className,
+  textClassName,
+  ...rest
+}: LinkProps) {
+  const testId =
+    rest['data-testid'] || `link-${text.replace(/\s+/g, '-').toLowerCase()}`;
+
   return (
     <Button
       as="a"
@@ -21,6 +32,8 @@ function Link({ text, url, icon, className, textClassName }: LinkProps) {
         className && className,
       ])}
       onClick={() => openUrl(url)}
+      data-testid={testId}
+      data-url={url}
     >
       {({ hover }) => (
         <>
@@ -30,6 +43,7 @@ function Link({ text, url, icon, className, textClassName }: LinkProps) {
               'decoration-2 underline-offset-4',
               textClassName && textClassName,
             ])}
+            data-testid={`${testId}-text`}
           >
             {text}
           </span>
@@ -37,6 +51,7 @@ function Link({ text, url, icon, className, textClassName }: LinkProps) {
             <MsIcon
               className="no-underline! hover:no-underline!"
               icon={typeof icon === 'string' ? icon : 'open_in_new'}
+              data-testid={`${testId}-icon`}
             />
           )}
         </>

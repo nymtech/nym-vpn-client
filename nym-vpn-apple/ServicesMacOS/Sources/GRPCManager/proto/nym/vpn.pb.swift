@@ -1722,6 +1722,7 @@ struct Nym_Vpn_TunnelState: Sendable {
     case subscriptionExpired // = 7
     case dns // = 8
     case api // = 9
+    case deviceTimeOutOfSync // = 11
     case `internal` // = 10
     case UNRECOGNIZED(Int)
 
@@ -1742,6 +1743,7 @@ struct Nym_Vpn_TunnelState: Sendable {
       case 8: self = .dns
       case 9: self = .api
       case 10: self = .internal
+      case 11: self = .deviceTimeOutOfSync
       default: self = .UNRECOGNIZED(rawValue)
       }
     }
@@ -1759,6 +1761,7 @@ struct Nym_Vpn_TunnelState: Sendable {
       case .dns: return 8
       case .api: return 9
       case .internal: return 10
+      case .deviceTimeOutOfSync: return 11
       case .UNRECOGNIZED(let i): return i
       }
     }
@@ -1775,6 +1778,7 @@ struct Nym_Vpn_TunnelState: Sendable {
       .subscriptionExpired,
       .dns,
       .api,
+      .deviceTimeOutOfSync,
       .internal,
     ]
 
@@ -5082,6 +5086,7 @@ extension Nym_Vpn_TunnelState.ErrorStateReason: SwiftProtobuf._ProtoNameProvidin
     8: .same(proto: "DNS"),
     9: .same(proto: "API"),
     10: .same(proto: "INTERNAL"),
+    11: .same(proto: "DEVICE_TIME_OUT_OF_SYNC"),
   ]
 }
 

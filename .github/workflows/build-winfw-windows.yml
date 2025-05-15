@@ -35,6 +35,11 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
+      - name: Install GNU make
+        run: |
+          winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
+          echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
+
       # This step is prone to compiler error that are simply blanks, this action auto retries a few times in case of error
       - name: Build/Move winfw
         uses: nick-fields/retry@v3
@@ -44,7 +49,13 @@ jobs:
           max_attempts: 3
           retry_on: error
           command: |
-            .\build-windows-modules.ps1 -BuildConfiguration ${{ env.CPP_BUILD_MODES }} -Platform x64
+            cd nym-vpn-core
+            if ('${{ env.CPP_BUILD_MODES }}' -eq "Release") {
+              $RELEASE = 1
+            } else {
+              $RELEASE = 0
+            }
+            make -f Windows.mk winfw CPU_ARCH=amd64 RELEASE=$RELEASE
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

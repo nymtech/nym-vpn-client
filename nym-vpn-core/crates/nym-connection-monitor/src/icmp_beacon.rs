@@ -7,16 +7,17 @@ use std::{
 };
 
 use bytes::Bytes;
+use nym_common::ErrorExt;
 use nym_config::defaults::mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6};
-use nym_ip_packet_requests::{codec::MultiIpPacketCodec, IpPair};
+use nym_ip_packet_requests::{IpPair, codec::MultiIpPacketCodec};
 use nym_sdk::{
-    mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient},
     TaskClient,
+    mixnet::{InputMessage, MixnetClientSender, MixnetMessageSender, Recipient},
 };
 use nym_task::connections::TransmissionLane;
 use pnet_packet::Packet;
 use tokio::task::JoinHandle;
-use tracing::{debug, error, trace};
+use tracing::{debug, trace};
 
 use crate::{
     error::Result,
@@ -142,16 +143,16 @@ impl IcmpConnectionBeacon {
                 _ = ping_interval.tick() => {
                     let cancellable_fut = async {
                         if let Err(err) = self.ping_v4_ipr_tun_device_over_the_mixnet().await {
-                            error!("Failed to send ICMP ping: {err}");
+                            err.trace_chain_with_msg("Failed to send ICMP ping");
                         }
                         if let Err(err) = self.ping_v6_ipr_tun_device_over_the_mixnet().await {
-                            error!("Failed to send ICMPv6 ping: {err}");
+                            err.trace_chain_with_msg("Failed to send ICMPv6 ping");
                         }
                         if let Err(err) = self.ping_v4_some_external_ip_over_the_mixnet().await {
-                            error!("Failed to send ICMP ping: {err}");
+                            err.trace_chain_with_msg("Failed to send ICMP ping");
                         }
                         if let Err(err) = self.ping_v6_some_external_ip_over_the_mixnet().await {
-                            error!("Failed to send ICMPv6 ping: {err}");
+                            err.trace_chain_with_msg("Failed to send ICMPv6 ping");
                         }
                     };
 
@@ -243,7 +244,7 @@ pub fn start_icmp_connection_beacon(
         IcmpConnectionBeacon::new(mixnet_client_sender, our_ips, ipr_address, icmp_identifier);
     tokio::spawn(async move {
         beacon.run(shutdown_listener).await.inspect_err(|err| {
-            error!("Icmp connection beacon error: {err}");
+            err.trace_chain_with_msg("IcmpConnectionBeacon failed");
         })
     })
 }

@@ -10,6 +10,7 @@ mod tunnel_event;
 mod tunnel_state;
 
 pub use account::{
+    AccountCommandError, VpnApiError, VpnApiErrorResponse,
     forget_account::ForgetAccountError,
     register_device::RegisterDeviceError,
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
@@ -17,7 +18,6 @@ pub use account::{
     sync_account::SyncAccountError,
     sync_device::SyncDeviceError,
     ticketbooks::AvailableTickets,
-    AccountCommandError, VpnApiErrorResponse,
 };
 pub use connection_data::{
     ConnectionData, Gateway, MixnetConnectionData, NymAddress, TunnelConnectionData,

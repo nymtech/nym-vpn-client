@@ -20,6 +20,7 @@ export type ToastProps = {
   action?: React.ReactNode;
   type?: 'error' | 'warn' | 'info';
   clickAway?: boolean;
+  'data-testid'?: string;
 };
 
 function Toast({
@@ -32,6 +33,7 @@ function Toast({
   close,
   type = 'info',
   clickAway = false,
+  ...rest
 }: ToastProps) {
   const [open, setOpen] = useState(() => {
     if (openCtrl !== undefined) {
@@ -60,6 +62,8 @@ function Toast({
     }
   };
 
+  const testId = rest['data-testid'] || 'toast';
+
   const CloseButton = () => (
     <motion.button
       key="snackbar-close-button"
@@ -69,15 +73,20 @@ function Toast({
       transition={{ duration: 0.15 }}
       className="w-6 ml-4 focus:outline-hidden text-black dark:text-white cursor-default"
       onClick={() => handleOpenChange(false)}
+      data-testid={`${testId}-close-button`}
     >
-      <MsIcon icon="close" className="text-3xl" />
+      <MsIcon
+        icon="close"
+        className="text-3xl"
+        data-testid={`${testId}-close-icon`}
+      />
     </motion.button>
   );
 
   return (
     <AnimatePresence>
       {open && (
-        <div ref={ref}>
+        <div ref={ref} data-testid={`${testId}-container`}>
           <Root
             onOpenChange={handleOpenChange}
             duration={duration}
@@ -99,9 +108,13 @@ function Toast({
               exit={{ opacity: 0, y: -4 }}
               transition={{ duration: 0.1, ease: 'easeOut' }}
               layout
+              data-testid={testId}
+              data-type={type}
+              data-duration={duration}
+              data-open={open ? 'true' : 'false'}
             >
-              {title && <div>{title}</div>}
-              <div>{message}</div>
+              {title && <div data-testid={`${testId}-title`}>{title}</div>}
+              <div data-testid={`${testId}-message`}>{message}</div>
               {close && <CloseButton />}
             </motion.ul>
           </Root>

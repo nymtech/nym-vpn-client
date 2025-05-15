@@ -1,0 +1,4 @@
+Quais as novidades:
+- Melhorias na UI
+- Adicionado o corte de credenciais
+- Correção temporária para erros de conexão

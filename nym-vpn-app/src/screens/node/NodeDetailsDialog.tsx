@@ -38,37 +38,67 @@ function NodeDetailsDialog({ isOpen, onClose, ref }: Props) {
       open={isOpen}
       onClose={onClose}
       className="flex flex-col dark:text-white gap-8"
+      data-testid="node-details-dialog"
     >
-      <h3 className="text-xl font-medium">{gateway?.name}</h3>
-      <div className="flex flex-row items-center gap-3">
-        <MsIcon className={clsx(scoreIcon[1], 'text-xl')} icon={scoreIcon[0]} />
+      <h3 className="text-xl font-medium" data-testid="node-details-name">
+        {gateway?.name}
+      </h3>
+      <div
+        className="flex flex-row items-center gap-3"
+        data-testid="node-details-info-row"
+      >
+        <MsIcon
+          className={clsx(scoreIcon[1], 'text-xl')}
+          icon={scoreIcon[0]}
+          data-testid="node-details-score-icon"
+        />
         <div className="w-[1px] bg-bombay dark:bg-iron self-stretch" />
-        <div className="flex flex-row items-center gap-2">
+        <div
+          className="flex flex-row items-center gap-2"
+          data-testid="node-details-country-info"
+        >
           <FlagIcon
             code={country.code.toLowerCase() as countryCode}
             alt={country.code}
             className="h-6"
+            data-testid="node-details-country-flag"
           />
-          <div>{getCountryName(country.code) || country.name}</div>
+          <div data-testid="node-details-country-name">
+            {getCountryName(country.code) || country.name}
+          </div>
         </div>
       </div>
-      <div className="flex flex-col gap-2">
-        <p className="text-sm text-iron dark:text-bombay">
+      <div
+        className="flex flex-col gap-2"
+        data-testid="node-details-id-section"
+      >
+        <p
+          className="text-sm text-iron dark:text-bombay"
+          data-testid="node-details-id-label"
+        >
           {t('node-details.id-label')}
         </p>
-        <div className="flex flex-row">
-          <div className="font-mono flex-wrap text-wrap break-words overflow-hidden max-w-72">
+        <div className="flex flex-row" data-testid="node-details-id-container">
+          <div
+            className="font-mono flex-wrap text-wrap break-words overflow-hidden max-w-72"
+            data-testid="node-details-id-value"
+          >
             {gateway.id}
           </div>
           <ButtonIcon
             icon="content_copy"
             onClick={() => copy(gateway.id, false)}
             clickFeedback
+            data-testid="node-details-copy-button"
           />
         </div>
       </div>
 
-      <Button onClick={onClose} className="mt-2">
+      <Button
+        onClick={onClose}
+        className="mt-2"
+        data-testid="node-details-close-button"
+      >
         <span className="text-lg text-black dark:text-baltic-sea">
           {capFirst(t('ok', { ns: 'glossary' }))}
         </span>

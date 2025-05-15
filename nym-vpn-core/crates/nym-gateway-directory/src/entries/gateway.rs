@@ -9,9 +9,9 @@ use rand::seq::IteratorRandom;
 use std::{fmt, net::IpAddr};
 use tracing::error;
 
-use crate::{error::Result, AuthAddress, Country, Error, IpPacketRouterAddress};
+use crate::{AuthAddress, Country, Error, IpPacketRouterAddress, error::Result};
 
-use super::score::{Score, HIGH_SCORE_THRESHOLD, LOW_SCORE_THRESHOLD, MEDIUM_SCORE_THRESHOLD};
+use super::score::{HIGH_SCORE_THRESHOLD, LOW_SCORE_THRESHOLD, MEDIUM_SCORE_THRESHOLD, Score};
 
 pub type NymNode = Gateway;
 
@@ -461,13 +461,6 @@ impl GatewayList {
     pub fn into_inner(self) -> Vec<Gateway> {
         self.gateways
     }
-
-    pub(crate) async fn random_low_latency_gateway(&self) -> Result<Gateway> {
-        let mut rng = rand::rngs::OsRng;
-        nym_client_core::init::helpers::choose_gateway_by_latency(&mut rng, &self.gateways, false)
-            .await
-            .map_err(|err| Error::FailedToSelectGatewayBasedOnLowLatency { source: err })
-    }
 }
 
 impl IntoIterator for GatewayList {
@@ -504,7 +497,7 @@ impl nym_client_core::init::helpers::ConnectableGateway for Gateway {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq, strum::EnumIter)]
 pub enum GatewayType {
     MixnetEntry,
     MixnetExit,

@@ -73,11 +73,22 @@ function Login() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col justify-end items-center gap-6 select-none cursor-default">
+    <PageAnim
+      className="h-full flex flex-col justify-end items-center gap-6 select-none cursor-default"
+      data-testid="login-page"
+    >
       <div className="grow w-full" />
       <div className="flex flex-col items-center gap-4 px-4">
-        <h1 className="text-2xl dark:text-white">{t('welcome')}</h1>
-        <h2 className="text-center text-iron dark:text-bombay w-11/12">
+        <h1
+          className="text-2xl dark:text-white"
+          data-testid="login-welcome-text"
+        >
+          {t('welcome')}
+        </h1>
+        <h2
+          className="text-center text-iron dark:text-bombay w-11/12"
+          data-testid="login-description"
+        >
           {t('description')}
         </h2>
       </div>
@@ -92,6 +103,7 @@ function Login() {
             label={t('input-label')}
             placeholder={t('input-placeholder')}
             className="sentry-ignore"
+            data-testid="login-mnemonic-input"
           />
           {error ? (
             <motion.div
@@ -102,6 +114,7 @@ function Login() {
                 'text-aphrodisiac overflow-y-scroll max-h-16 mt-3 mb-3 break-words',
                 'select-text',
               ])}
+              data-testid="login-error-message"
             >
               {error.error}
               {error.details && `: ${error.details}`}
@@ -120,14 +133,26 @@ function Login() {
                 'opacity-50 disabled:opacity-50 hover:opacity-50',
             )}
             spinner={loading}
+            data-testid="login-submit-button"
           >
             {t('login-button')}
           </Button>
-          <div className="flex flex-row justify-center items-center gap-2">
-            <span className="dark:text-white truncate">
+          <div
+            className="flex flex-row justify-center items-center gap-2"
+            data-testid="login-create-account-section"
+          >
+            <span
+              className="dark:text-white truncate"
+              data-testid="login-create-account-text"
+            >
               {t('create-account.text')}
             </span>
-            <Link text={t('create-account.link')} url={NymVpnPricingUrl} icon />
+            <Link
+              text={t('create-account.link')}
+              url={NymVpnPricingUrl}
+              icon
+              data-testid="login-create-account-link"
+            />
           </div>
         </div>
       </div>

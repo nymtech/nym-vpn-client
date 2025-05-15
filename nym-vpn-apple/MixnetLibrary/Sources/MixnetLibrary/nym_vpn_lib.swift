@@ -3834,6 +3834,7 @@ public enum ErrorStateReason {
     )
     case api(String?
     )
+    case deviceTimeOutOfSync
     case `internal`(String?
     )
 }
@@ -3868,7 +3869,9 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
         case 10: return .api(try FfiConverterOptionString.read(from: &buf)
         )
         
-        case 11: return .`internal`(try FfiConverterOptionString.read(from: &buf)
+        case 11: return .deviceTimeOutOfSync
+        
+        case 12: return .`internal`(try FfiConverterOptionString.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -3921,8 +3924,12 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
             FfiConverterOptionString.write(v1, into: &buf)
             
         
-        case let .`internal`(v1):
+        case .deviceTimeOutOfSync:
             writeInt(&buf, Int32(11))
+        
+        
+        case let .`internal`(v1):
+            writeInt(&buf, Int32(12))
             FfiConverterOptionString.write(v1, into: &buf)
             
         }
@@ -4096,6 +4103,8 @@ public enum ForgetAccountError {
     )
     case initDeviceKeys(String
     )
+    case `internal`(String
+    )
 }
 
 
@@ -4127,6 +4136,9 @@ public struct FfiConverterTypeForgetAccountError: FfiConverterRustBuffer {
         )
         
         case 8: return .initDeviceKeys(try FfiConverterString.read(from: &buf)
+        )
+        
+        case 9: return .`internal`(try FfiConverterString.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -4173,6 +4185,11 @@ public struct FfiConverterTypeForgetAccountError: FfiConverterRustBuffer {
         
         case let .initDeviceKeys(v1):
             writeInt(&buf, Int32(8))
+            FfiConverterString.write(v1, into: &buf)
+            
+        
+        case let .`internal`(v1):
+            writeInt(&buf, Int32(9))
             FfiConverterString.write(v1, into: &buf)
             
         }
@@ -4917,11 +4934,15 @@ extension Score: Equatable, Hashable {}
 
 public enum StoreAccountError {
     
+    case invalidMnemonic(String
+    )
     case storage(String
     )
     case getAccountEndpointFailure(VpnApiErrorResponse
     )
     case unexpectedResponse(String
+    )
+    case `internal`(String
     )
 }
 
@@ -4933,13 +4954,19 @@ public struct FfiConverterTypeStoreAccountError: FfiConverterRustBuffer {
         let variant: Int32 = try readInt(&buf)
         switch variant {
         
-        case 1: return .storage(try FfiConverterString.read(from: &buf)
+        case 1: return .invalidMnemonic(try FfiConverterString.read(from: &buf)
         )
         
-        case 2: return .getAccountEndpointFailure(try FfiConverterTypeVpnApiErrorResponse.read(from: &buf)
+        case 2: return .storage(try FfiConverterString.read(from: &buf)
         )
         
-        case 3: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
+        case 3: return .getAccountEndpointFailure(try FfiConverterTypeVpnApiErrorResponse.read(from: &buf)
+        )
+        
+        case 4: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
+        )
+        
+        case 5: return .`internal`(try FfiConverterString.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -4950,18 +4977,28 @@ public struct FfiConverterTypeStoreAccountError: FfiConverterRustBuffer {
         switch value {
         
         
-        case let .storage(v1):
+        case let .invalidMnemonic(v1):
             writeInt(&buf, Int32(1))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .getAccountEndpointFailure(v1):
+        case let .storage(v1):
             writeInt(&buf, Int32(2))
+            FfiConverterString.write(v1, into: &buf)
+            
+        
+        case let .getAccountEndpointFailure(v1):
+            writeInt(&buf, Int32(3))
             FfiConverterTypeVpnApiErrorResponse.write(v1, into: &buf)
             
         
         case let .unexpectedResponse(v1):
-            writeInt(&buf, Int32(3))
+            writeInt(&buf, Int32(4))
+            FfiConverterString.write(v1, into: &buf)
+            
+        
+        case let .`internal`(v1):
+            writeInt(&buf, Int32(5))
             FfiConverterString.write(v1, into: &buf)
             
         }
@@ -5467,6 +5504,8 @@ public enum VpnError {
     case NoDeviceIdentity
     case VpnApi(details: VpnApiErrorResponse
     )
+    case UnexpectedVpnApiResponse(details: String
+    )
     case VpnApiTimeout
     case InvalidMnemonic(details: String
     )
@@ -5519,36 +5558,39 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
         case 8: return .VpnApi(
             details: try FfiConverterTypeVpnApiErrorResponse.read(from: &buf)
             )
-        case 9: return .VpnApiTimeout
-        case 10: return .InvalidMnemonic(
+        case 9: return .UnexpectedVpnApiResponse(
             details: try FfiConverterString.read(from: &buf)
             )
-        case 11: return .InvalidAccountStoragePath(
+        case 10: return .VpnApiTimeout
+        case 11: return .InvalidMnemonic(
             details: try FfiConverterString.read(from: &buf)
             )
-        case 12: return .UnregisterDevice(
+        case 12: return .InvalidAccountStoragePath(
             details: try FfiConverterString.read(from: &buf)
             )
-        case 13: return .StoreAccount(
+        case 13: return .UnregisterDevice(
+            details: try FfiConverterString.read(from: &buf)
+            )
+        case 14: return .StoreAccount(
             details: try FfiConverterTypeStoreAccountError.read(from: &buf)
             )
-        case 14: return .SyncAccount(
+        case 15: return .SyncAccount(
             details: try FfiConverterTypeSyncAccountError.read(from: &buf)
             )
-        case 15: return .SyncDevice(
+        case 16: return .SyncDevice(
             details: try FfiConverterTypeSyncDeviceError.read(from: &buf)
             )
-        case 16: return .RegisterDevice(
+        case 17: return .RegisterDevice(
             details: try FfiConverterTypeRegisterDeviceError.read(from: &buf)
             )
-        case 17: return .RequestZkNym(
+        case 18: return .RequestZkNym(
             details: try FfiConverterTypeRequestZkNymError.read(from: &buf)
             )
-        case 18: return .RequestZkNymBundle(
+        case 19: return .RequestZkNymBundle(
             successes: try FfiConverterSequenceTypeRequestZkNymSuccess.read(from: &buf), 
             failed: try FfiConverterSequenceTypeRequestZkNymError.read(from: &buf)
             )
-        case 19: return .ForgetAccount(
+        case 20: return .ForgetAccount(
             details: try FfiConverterTypeForgetAccountError.read(from: &buf)
             )
 
@@ -5600,58 +5642,63 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             FfiConverterTypeVpnApiErrorResponse.write(details, into: &buf)
             
         
-        case .VpnApiTimeout:
+        case let .UnexpectedVpnApiResponse(details):
             writeInt(&buf, Int32(9))
-        
-        
-        case let .InvalidMnemonic(details):
-            writeInt(&buf, Int32(10))
             FfiConverterString.write(details, into: &buf)
             
         
-        case let .InvalidAccountStoragePath(details):
+        case .VpnApiTimeout:
+            writeInt(&buf, Int32(10))
+        
+        
+        case let .InvalidMnemonic(details):
             writeInt(&buf, Int32(11))
             FfiConverterString.write(details, into: &buf)
             
         
-        case let .UnregisterDevice(details):
+        case let .InvalidAccountStoragePath(details):
             writeInt(&buf, Int32(12))
             FfiConverterString.write(details, into: &buf)
             
         
-        case let .StoreAccount(details):
+        case let .UnregisterDevice(details):
             writeInt(&buf, Int32(13))
+            FfiConverterString.write(details, into: &buf)
+            
+        
+        case let .StoreAccount(details):
+            writeInt(&buf, Int32(14))
             FfiConverterTypeStoreAccountError.write(details, into: &buf)
             
         
         case let .SyncAccount(details):
-            writeInt(&buf, Int32(14))
+            writeInt(&buf, Int32(15))
             FfiConverterTypeSyncAccountError.write(details, into: &buf)
             
         
         case let .SyncDevice(details):
-            writeInt(&buf, Int32(15))
+            writeInt(&buf, Int32(16))
             FfiConverterTypeSyncDeviceError.write(details, into: &buf)
             
         
         case let .RegisterDevice(details):
-            writeInt(&buf, Int32(16))
+            writeInt(&buf, Int32(17))
             FfiConverterTypeRegisterDeviceError.write(details, into: &buf)
             
         
         case let .RequestZkNym(details):
-            writeInt(&buf, Int32(17))
+            writeInt(&buf, Int32(18))
             FfiConverterTypeRequestZkNymError.write(details, into: &buf)
             
         
         case let .RequestZkNymBundle(successes,failed):
-            writeInt(&buf, Int32(18))
+            writeInt(&buf, Int32(19))
             FfiConverterSequenceTypeRequestZkNymSuccess.write(successes, into: &buf)
             FfiConverterSequenceTypeRequestZkNymError.write(failed, into: &buf)
             
         
         case let .ForgetAccount(details):
-            writeInt(&buf, Int32(19))
+            writeInt(&buf, Int32(20))
             FfiConverterTypeForgetAccountError.write(details, into: &buf)
             
         }
@@ -7125,8 +7172,9 @@ public func getSystemMessages()throws  -> [SystemMessage] {
  * Fetches the network environment details from the network name and initializes the environment,
  * including exporting to the environment
  */
-public func initEnvironment(networkName: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func initEnvironment(cacheDir: String, networkName: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
     uniffi_nym_vpn_lib_fn_func_initenvironment(
+        FfiConverterString.lower(cacheDir),
         FfiConverterString.lower(networkName),$0
     )
 }
@@ -7135,11 +7183,11 @@ public func initEnvironment(networkName: String)throws  {try rustCallWithError(F
  * Async variant of initEnvironment. Fetches the network environment details from the network name
  * and initializes the environment, including exporting to the environment
  */
-public func initEnvironmentAsync(networkName: String)async throws  {
+public func initEnvironmentAsync(dataDir: String, networkName: String)async throws  {
     return
         try  await uniffiRustCallAsync(
             rustFutureFunc: {
-                uniffi_nym_vpn_lib_fn_func_initenvironmentasync(FfiConverterString.lower(networkName)
+                uniffi_nym_vpn_lib_fn_func_initenvironmentasync(FfiConverterString.lower(dataDir),FfiConverterString.lower(networkName)
                 )
             },
             pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
@@ -7487,10 +7535,10 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_getsystemmessages() != 3453) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_initenvironment() != 50720) {
+    if (uniffi_nym_vpn_lib_checksum_func_initenvironment() != 57150) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_initenvironmentasync() != 45760) {
+    if (uniffi_nym_vpn_lib_checksum_func_initenvironmentasync() != 9416) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_initfallbackmainnetenvironment() != 43903) {

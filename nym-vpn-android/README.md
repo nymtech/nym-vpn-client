@@ -63,7 +63,7 @@ git clone https://github.com/nymtech/nym-vpn-client
 
 ```sh
 cd nym-vpn-client/nym-vpn-core
-cargo ndk -t armeabi-v7a build -p nym-vpn-lib --release
+cargo ndk -t arm64-v8a build -p nym-vpn-lib --release
 make generate-uniffi-android
 cp crates/nym-vpn-lib/uniffi/nym_vpn_lib.kt ../nym-vpn-android/core/src/main/java/net/nymtech/vpn/nym_vpn_lib 
 ```

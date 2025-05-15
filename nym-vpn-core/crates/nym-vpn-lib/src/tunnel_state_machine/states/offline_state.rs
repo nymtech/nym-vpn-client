@@ -11,22 +11,19 @@ use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::FirewallPolicy;
 
-#[cfg(target_os = "macos")]
-use crate::tunnel_state_machine::{states::ErrorState, ErrorStateReason};
-use crate::tunnel_state_machine::{
-    states::{ConnectingState, DisconnectedState},
-    tunnel::SelectedGateways,
-    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
-};
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use crate::tunnel_state_machine::{Error, Result};
+#[cfg(target_os = "macos")]
+use crate::tunnel_state_machine::{ErrorStateReason, states::ErrorState};
+use crate::tunnel_state_machine::{
+    NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
+    states::{ConnectingState, DisconnectedState},
+    tunnel::SelectedGateways,
+};
 
 pub struct OfflineState {
     /// Whether to connect the tunnel once online
     reconnect: bool,
-
-    /// Last known retry attempt before entering offline state.
-    retry_attempt: u32,
 
     /// Gateways to which the tunnel will reconnect to once online
     selected_gateways: Option<SelectedGateways>,
@@ -35,27 +32,22 @@ pub struct OfflineState {
 impl OfflineState {
     pub async fn enter(
         reconnect: bool,
-        retry_attempt: u32,
         selected_gateways: Option<SelectedGateways>,
         _shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         #[cfg(target_os = "macos")]
         if Self::set_local_dns_resolver(_shared_state).await.is_err() {
-            return Box::pin(ErrorState::enter(ErrorStateReason::Dns, _shared_state)).await;
+            return Box::pin(ErrorState::enter(ErrorStateReason::SetDns, _shared_state)).await;
         }
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         if let Err(e) = Self::set_firewall_policy(_shared_state) {
-            log::error!(
-                "{}",
-                e.display_chain_with_msg("Failed to apply firewall policy for blocked state")
-            );
+            e.trace_chain_with_msg("Failed to apply firewall policy for blocked state");
         }
 
         (
             Box::new(Self {
                 reconnect,
-                retry_attempt,
                 selected_gateways,
             }),
             PrivateTunnelState::Offline { reconnect },
@@ -81,17 +73,14 @@ impl OfflineState {
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     fn reset_firewall_policy(shared_state: &mut SharedState) {
         if let Err(e) = shared_state.firewall.reset_policy() {
-            tracing::error!(
-                "{}",
-                e.display_chain_with_msg("Failed to reset firewall policy")
-            );
+            e.trace_chain_with_msg("Failed to reset firewall policy");
         }
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn reset_dns(shared_state: &mut SharedState) {
         if let Err(error) = shared_state.dns_handler.reset().await {
-            log::error!("{}", error.display_chain_with_msg("Unable to reset DNS"));
+            error.trace_chain_with_msg("Unable to reset DNS");
         }
     }
 
@@ -107,12 +96,7 @@ impl OfflineState {
             .set("lo".to_owned(), system_dns)
             .await
             .inspect_err(|err| {
-                tracing::error!(
-                    "{}",
-                    err.display_chain_with_msg(
-                        "Failed to configure system to use filtering resolver"
-                    )
-                );
+                err.trace_chain_with_msg("Failed to configure system to use filtering resolver");
             })
             .map_err(Error::SetDns)
     }
@@ -153,23 +137,20 @@ impl TunnelStateHandler for OfflineState {
                     }
                 }
             }
-            Some(connectivity) = shared_state.offline_monitor.next() => {
+            Some(connectivity) = shared_state.connectivity_handle.next() => {
+                // See: https://github.com/rust-lang/rust-clippy/issues/14799
+                #[allow(clippy::collapsible_else_if)]
                 if connectivity.is_offline() {
                     NextTunnelState::SameState(self)
-                } else if self.reconnect {
-                    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-                    Self::reset_dns(shared_state).await;
-
-                    NextTunnelState::NewState(ConnectingState::enter(
-                        self.retry_attempt,
-                        self.selected_gateways,
-                        shared_state
-                    ).await)
                 } else {
                     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                     Self::reset_dns(shared_state).await;
 
-                    NextTunnelState::NewState(DisconnectedState::enter(shared_state).await)
+                    if self.reconnect {
+                        NextTunnelState::NewState(ConnectingState::enter(0, self.selected_gateways, shared_state).await)
+                    } else {
+                        NextTunnelState::NewState(DisconnectedState::enter(None, shared_state).await)
+                    }
                 }
             }
             _ = shutdown_token.cancelled() => {

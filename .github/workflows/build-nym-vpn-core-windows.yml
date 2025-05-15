@@ -7,7 +7,7 @@ on:
   workflow_call:
     outputs:
       RUST_VERSION:
-        value: ${{ jobs.build-linux.outputs.RUST_VERSION }}
+        value: ${{ jobs.build-windows.outputs.RUST_VERSION }}
       UPLOAD_DIR_WINDOWS:
         value: ${{ jobs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
 
@@ -40,6 +40,11 @@ jobs:
       - name: Setup MSBuild.exe
         uses: microsoft/setup-msbuild@v2
 
+      - name: Install GNU make
+        run: |
+          winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
+          echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
+
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
@@ -58,8 +63,9 @@ jobs:
           subcommand: workspace.package.version --entry nym-vpn-core
 
       - name: Install cargo-edit
-        shell: bash
-        run: cargo install --locked cargo-edit || true
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
 
       - name: Append timestamp if it's a dev version
         shell: bash
@@ -83,14 +89,18 @@ jobs:
           name: ${{ env.WINFW_LIB_NAME }}.dll
           path: ${{ env.WINFW_PATH }}/
 
-      - name: Download/Unzip/Move wintun.zip, winpcap.zip also move libwg and winfw lib
+      - name: Move libwg and winfw lib
         shell: bash
+        working-directory: nym-vpn-core
         run: |
-          curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
-          unzip ${GITHUB_WORKSPACE}/wintun.zip
-          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll nym-vpn-core/
-          mv '${{ env.LIBS_PATH }}/libwg.dll' nym-vpn-core/
-          mv '${{ env.WINFW_PATH }}/winfw.dll' nym-vpn-core/
+          mv '${{ env.LIBS_PATH }}/libwg.dll' .
+          mv '${{ env.WINFW_PATH }}/winfw.dll' .
+
+      - name: Download wintun
+        shell: pwsh
+        working-directory: nym-vpn-core
+        run: |
+          make -f Windows.mk wintun PWSH=1 CPU_ARCH=amd64 TARGET_DIR="${{ github.workspace }}/nym-vpn-core"
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3

@@ -5,11 +5,11 @@ use std::fmt;
 
 use nym_compact_ecash::scheme::keygen::KeyPairUser;
 use nym_validator_client::{
-    nyxd::bip32::DerivationPath, signing::signer::OfflineSigner as _, DirectSecp256k1HdWallet,
+    DirectSecp256k1HdWallet, nyxd::bip32::DerivationPath, signing::signer::OfflineSigner as _,
 };
 use time::{Duration, OffsetDateTime};
 
-use crate::{error::Result, jwt::Jwt, VpnApiClientError};
+use crate::{VpnApiClientError, error::Result, jwt::Jwt};
 
 const MAX_ACCEPTABLE_SKEW_SECONDS: i64 = 60;
 const SKEW_SECONDS_CONSIDERED_SAME: i64 = 2;
@@ -110,6 +110,16 @@ impl VpnApiTime {
         self.local_time_ahead_skew().abs().whole_seconds() < MAX_ACCEPTABLE_SKEW_SECONDS
     }
 
+    pub fn is_synced(&self) -> VpnApiTimeSynced {
+        if self.is_almost_same() {
+            VpnApiTimeSynced::AlmostSame
+        } else if self.is_acceptable_synced() {
+            VpnApiTimeSynced::AcceptableSynced
+        } else {
+            VpnApiTimeSynced::NotSynced
+        }
+    }
+
     pub fn estimate_remote_now(&self) -> OffsetDateTime {
         tracing::debug!(
             "Estimating remote now using (local time ahead) skew: {}",
@@ -133,6 +143,26 @@ impl fmt::Display for VpnApiTime {
             self.estimated_remote_time,
             self.local_time_ahead_skew(),
         )
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum VpnApiTimeSynced {
+    AlmostSame,
+    AcceptableSynced,
+    NotSynced,
+}
+
+impl VpnApiTimeSynced {
+    pub fn is_synced(&self) -> bool {
+        matches!(
+            self,
+            VpnApiTimeSynced::AlmostSame | VpnApiTimeSynced::AcceptableSynced
+        )
+    }
+
+    pub fn is_not_synced(&self) -> bool {
+        !self.is_synced()
     }
 }
 

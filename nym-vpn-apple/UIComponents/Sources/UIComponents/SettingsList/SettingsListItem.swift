@@ -46,6 +46,11 @@ public struct SettingsListItem: View {
         .onHover { newValue in
             isHovered = newValue
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(viewModel.title) \(viewModel.subtitle ?? "")")
+        .accessibilityValue(viewModel.accessory.accessibilityValue)
+        .accessibilityHint(viewModel.accessory.accessibilityHint)
+        .accessibilityAddTraits([.isButton])
     }
 }
 

@@ -1,22 +1,27 @@
 import SwiftUI
-import AppSettings
-import Device
+import ExternalLinkManager
 import Theme
 import UIComponents
 
 public struct AppearanceView: View {
-    @ObservedObject private var viewModel: AppearanceViewModel
-    @State private var isHovered = false
-    @State private var hoveredId: Int?
+    let externalLinkManager: ExternalLinkManager = .shared
 
-    public init(viewModel: AppearanceViewModel) {
-        self.viewModel = viewModel
+    @Binding var path: NavigationPath
+
+    public init(path: Binding<NavigationPath>) {
+        _path = path
     }
 
     public var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             navbar()
-            themeOptions()
+            Spacer()
+                .frame(height: 24)
+            language()
+                .frame(maxWidth: MagicNumbers.maxWidth)
+            Spacer()
+                .frame(height: 24)
+            theme()
                 .frame(maxWidth: MagicNumbers.maxWidth)
             Spacer()
         }
@@ -30,35 +35,42 @@ public struct AppearanceView: View {
     }
 }
 
-private extension AppearanceView {
+extension AppearanceView {
     @ViewBuilder
     func navbar() -> some View {
         CustomNavBar(
-            title: viewModel.title,
-            leftButton: CustomNavBarButton(type: .back, action: { viewModel.navigateBack() })
+            title: "settings.appearance".localizedString,
+            leftButton: CustomNavBarButton(type: .back, action: { navigateBack() })
         )
     }
 
     @ViewBuilder
-    func themeOptions() -> some View {
-        ForEach(viewModel.themes, id: \.self) { appearance in
-            SettingButton(
-                viewModel:
-                    SettingButtonViewModel(
-                        title: viewModel.appearanceTitle(for: appearance),
-                        subtitle: viewModel.appearanceSubtitle(for: appearance),
-                        isSelected: viewModel.currentAppearance == appearance
-                    ),
-                isHovered: appearance.rawValue == hoveredId ? $isHovered : Binding.constant(false)
+    func language() -> some View {
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.language".localizedString,
+                imageName: "language",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: {
+                    navigateToLanguage()
+                }
             )
-            .onHover { newValue in
-                isHovered = newValue
-                hoveredId = appearance.rawValue
-            }
-            .onTapGesture {
-                viewModel.updateAppearance(with: appearance)
-            }
-            .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
-        }
+        )
+    }
+
+    @ViewBuilder
+    func theme() -> some View {
+        SettingsListItem(
+            viewModel: SettingsListItemViewModel(
+                accessory: .arrow,
+                title: "settings.displayTheme".localizedString,
+                imageName: "displayTheme",
+                position: SettingsListItemPosition(isFirst: true, isLast: true),
+                action: {
+                    navigateToDisplayTheme()
+                }
+            )
+        )
     }
 }

@@ -23,7 +23,6 @@ fun EntryPoint.asString(): String {
 		is EntryPoint.Gateway -> entry.identity
 		is EntryPoint.Location -> entry.location.lowercase()
 		EntryPoint.Random -> "random"
-		EntryPoint.RandomLowLatency -> "randomlowlatency"
 	}
 }
 
@@ -38,7 +37,6 @@ fun ExitPoint.asString(): String {
 fun String.asEntryPoint(): EntryPoint {
 	return when {
 		this == "random" -> EntryPoint.Random
-		this == "randomlowlatency" -> EntryPoint.RandomLowLatency
 		length == 2 -> EntryPoint.Location(this.uppercase())
 		Base58.isValidBase58(this, 32) -> EntryPoint.Gateway(this)
 		else -> EntryPoint.Random

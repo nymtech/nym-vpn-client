@@ -55,60 +55,24 @@ jobs:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # - name: Install build tools
-      #   shell: cmd
-      #   run: |
-      #     winget install --disable-interactivity --id=Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
-      #     if %ERRORLEVEL% EQU -1978335189 (
-      #       exit /b 0
-      #     )
-
-      - name: Update path with vctools
-        shell: pwsh
-        run: |
-          $buildtoolspath = "$Env:ProgramFiles (x86)/Microsoft Visual Studio/2022/BuildTools"
-          $msbuildpath = "$buildtoolspath/MSBuild/Current/Bin"
-          echo "Add msbuild dir to path: $msbuildpath"
-          Add-Content $env:GITHUB_PATH "$msbuildpath"
-
-          $msvctoolspath = "$buildtoolspath/VC/Tools/MSVC"
-          $contents = Get-ChildItem $msvctoolspath | Select-Object -First 1
-          $subdir = $contents[0].Name
-          $vctoolsdir = "$msvctoolspath/$subdir/bin/Hostx64/x64"
-          echo "Add vctools dir to path: $vctoolsdir"
-          Add-Content $env:GITHUB_PATH "$vctoolsdir"
-
       - name: Setup msys2
         uses: msys2/setup-msys2@v2
+        id: msys2
         with:
           update: false
           msystem: MINGW64
           install: mingw-w64-x86_64-clang
 
-      - name: Build wireguard
-        shell: msys2 {0}
+      - name: Install GNU make
+        run: |
+          winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
+          echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
+
+      - name: Build Windows dependencies
         env:
-          MSYS2_PATH_TYPE: inherit
-        run: |
-          ./wireguard/build-wireguard-go.sh
-
-      - name: Download wintun.zip
-        shell: bash
-        run: |
-          curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
-          unzip ${GITHUB_WORKSPACE}/wintun.zip
-          mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll ${GITHUB_WORKSPACE}/build/lib/
-
-      - name: Build winfw.dll
-        shell: pwsh
-        run: |
-          .\build-windows-modules.ps1 -BuildConfiguration Debug -Platform x64
-
-      - name: Move winfw.dll to build directory
-        shell: bash
-        run: |
-          mkdir -p ${GITHUB_WORKSPACE}/build/winfw/x64-Debug || true
-          mv ${GITHUB_WORKSPACE}/nym-vpn-windows/winfw/bin/x64-Debug/winfw.{dll,lib} ${GITHUB_WORKSPACE}/build/winfw/x64-Debug
+          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+        working-directory: nym-vpn-core
+        run: make -f Windows.mk winfw libwg CPU_ARCH=amd64
 
       - name: rustfmt check
         working-directory: nym-vpn-core

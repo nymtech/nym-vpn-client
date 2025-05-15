@@ -81,6 +81,7 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.MaxDevicesReached -> context.getString(R.string.max_devices_error)
 		ErrorStateReason.Firewall, ErrorStateReason.Routing -> context.getString(R.string.unexpected_error) + " ${error.javaClass.simpleName}"
 		ErrorStateReason.SubscriptionExpired -> context.getString(R.string.subscription_expired_error)
+		ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.device_time_out_of_sync)
 	}
 }
 

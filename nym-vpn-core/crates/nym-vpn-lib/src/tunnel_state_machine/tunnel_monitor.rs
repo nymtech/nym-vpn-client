@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(target_os = "linux")]
-use nix::sys::socket::{sockopt::Mark, SetSockOpt};
+use nix::sys::socket::{SetSockOpt, sockopt::Mark};
+use nym_sdk::UserAgent;
 use nym_vpn_network_config::start_background_file_refresh;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::net::Ipv4Addr;
@@ -20,7 +21,9 @@ use std::{os::fd::RawFd, sync::Arc};
 use super::wintun::{self, WintunAdapterConfig};
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
-use nym_gateway_directory::{GatewayMinPerformance, ResolvedConfig};
+use nym_gateway_directory::{
+    CachingGatewayClient, GatewayClient, GatewayMinPerformance, ResolvedConfig,
+};
 use nym_vpn_account_controller::AccountCommandSender;
 use time::OffsetDateTime;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -36,14 +39,14 @@ use nym_ip_packet_requests::IpPair;
 use super::route_handler::RouteHandler;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use super::tun_name;
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use super::{route_handler::RoutingConfig, tun_ipv6};
 use super::{
+    Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
     tunnel::{
         self, AnyTunnelHandle, ConnectedMixnet, MixnetConnectOptions, SelectedGateways, Tombstone,
     },
-    Error, NymConfig, Result, TunnelInterface, TunnelMetadata, TunnelSettings,
 };
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use super::{route_handler::RoutingConfig, tun_ipv6};
 use nym_common::ErrorExt;
 use nym_vpn_lib_types::{
     ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData, MixnetEvent, NymAddress,
@@ -62,7 +65,7 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 use crate::tunnel_provider::ios::OSTunProvider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
-use crate::tunnel_state_machine::{account, WireguardMultihopMode};
+use crate::tunnel_state_machine::{WireguardMultihopMode, account};
 
 /// Default MTU for mixnet tun device.
 const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
@@ -205,14 +208,16 @@ pub struct TunnelMonitor {
     tun_provider: Arc<dyn OSTunProvider>,
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
-    account_controller_tx: AccountCommandSender,
+    account_commands: AccountCommandSender,
+    gateway_directory_client: CachingGatewayClient,
     cancel_token: CancellationToken,
 }
 
 impl TunnelMonitor {
     pub fn start(
         tunnel_parameters: TunnelParameters,
-        account_controller_tx: AccountCommandSender,
+        account_commands: AccountCommandSender,
+        gateway_directory_client: CachingGatewayClient,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
         mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -229,7 +234,8 @@ impl TunnelMonitor {
             route_handler,
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
-            account_controller_tx,
+            account_commands,
+            gateway_directory_client,
             cancel_token: cancel_token.clone(),
         };
         let join_handle = tokio::spawn(tunnel_monitor.run());
@@ -244,7 +250,7 @@ impl TunnelMonitor {
         let (tombstone, reason) = match self.run_inner().await {
             Ok(tombstone) => (tombstone, None),
             Err(e) => {
-                tracing::error!("Tunnel monitor exited with error: {}", e.display_chain());
+                e.trace_chain_with_msg("Tunnel monitor exited with error");
                 (Tombstone::default(), e.error_state_reason())
             }
         };
@@ -299,22 +305,42 @@ impl TunnelMonitor {
             }
             Err(e) => {
                 tracing::error!(
-                    "Invalid gateway performance values. Will carry on with initial values. Error: {}"
-                , e);
+                    "Invalid gateway performance values. Will carry on with initial values. Error: {}",
+                    e
+                );
             }
         }
+
+        let user_agent = self
+            .tunnel_parameters
+            .tunnel_settings
+            .user_agent
+            .clone()
+            .unwrap_or(UserAgent::from(nym_bin_common::bin_info_local_vergen!()));
+        let gateway_directory_client = GatewayClient::new_with_resolver_overrides(
+            gateway_config.clone(),
+            user_agent,
+            self.tunnel_parameters
+                .resolved_gateway_config
+                .nym_vpn_api_socket_addrs
+                .as_deref(),
+        )
+        .unwrap();
+
+        self.gateway_directory_client
+            .update_client(gateway_directory_client)
+            .await;
+        self.gateway_directory_client.refresh_all().await;
 
         let selected_gateways =
             if let Some(selected_gateways) = self.tunnel_parameters.selected_gateways.clone() {
                 selected_gateways
             } else {
                 let new_gateways = tunnel::select_gateways(
-                    gateway_config.clone(),
-                    self.tunnel_parameters.resolved_gateway_config.clone(),
+                    self.gateway_directory_client.clone(),
                     self.tunnel_parameters.tunnel_settings.tunnel_type,
                     self.tunnel_parameters.tunnel_settings.entry_point.clone(),
                     self.tunnel_parameters.tunnel_settings.exit_point.clone(),
-                    self.tunnel_parameters.tunnel_settings.user_agent.clone(),
                     self.cancel_token.child_token(),
                 )
                 .await?;
@@ -365,13 +391,17 @@ impl TunnelMonitor {
             #[cfg(target_os = "android")]
             tun_provider.bypass(_fd);
             #[cfg(target_os = "linux")]
-            if let Err(err) = Mark.set(unsafe { &BorrowedFd::borrow_raw(_fd) }, &TUNNEL_FWMARK) {
-                tracing::error!("Could not fwmark mixnet fd: {err}");
+            {
+                let borrowed_fd = unsafe { &BorrowedFd::borrow_raw(_fd) };
+                if let Err(err) = Mark.set(borrowed_fd, &TUNNEL_FWMARK) {
+                    tracing::error!("Could not fwmark mixnet fd: {err}");
+                }
             }
         };
         let mut connected_mixnet = tunnel::connect_mixnet(
             connect_options,
             &self.tunnel_parameters.nym_config.network_env,
+            self.gateway_directory_client.clone(),
             self.cancel_token.child_token(),
             #[cfg(unix)]
             Arc::new(connection_fd_callback),
@@ -487,7 +517,7 @@ impl TunnelMonitor {
             .wait()
             .await
             .inspect_err(|e| {
-                tracing::error!("Failed to gracefully shutdown the tunnel: {}", e);
+                e.trace_chain_with_msg("Failed to gracefully shutdown the tunnel");
             })
             .unwrap_or_default();
 
@@ -515,10 +545,14 @@ impl TunnelMonitor {
     }
 
     async fn setup_account(&mut self) -> Result<()> {
+        // Check that the device time is synced as a precondition to continuing
+        account::check_device_time_sync(self.account_commands.clone(), self.cancel_token.clone())
+            .await?;
+
         // Check if we have ticketbooks already stored, then we can sidestep the account and device
         // sync
         let is_already_tickets_stored = self
-            .account_controller_tx
+            .account_commands
             .get_available_tickets()
             .await
             .map_err(|err| {
@@ -530,27 +564,24 @@ impl TunnelMonitor {
             // If we have tickets stored, trigger sync and register in the background while we
             // proceed anyway.
             self.send_event(TunnelMonitorEvent::SyncingAccount);
-            self.account_controller_tx.background_sync_account_state();
-            self.account_controller_tx.background_sync_device_state();
+            self.account_commands.background_sync_account_state();
+            self.account_commands.background_sync_device_state();
         } else {
             // If we don't have ticket stored, go through the steps one by one, syncing and
             // registering and getting credentials.
             self.send_event(TunnelMonitorEvent::SyncingAccount);
             account::wait_for_account_sync(
-                self.account_controller_tx.clone(),
+                self.account_commands.clone(),
                 self.cancel_token.clone(),
             )
             .await?;
 
-            account::wait_for_device_sync(
-                self.account_controller_tx.clone(),
-                self.cancel_token.clone(),
-            )
-            .await?;
+            account::wait_for_device_sync(self.account_commands.clone(), self.cancel_token.clone())
+                .await?;
 
             self.send_event(TunnelMonitorEvent::RegisteringDevice);
             account::wait_for_device_register(
-                self.account_controller_tx.clone(),
+                self.account_commands.clone(),
                 self.cancel_token.clone(),
             )
             .await?;
@@ -563,7 +594,7 @@ impl TunnelMonitor {
         {
             self.send_event(TunnelMonitorEvent::RequestingZkNyms);
             account::wait_for_credentials_ready(
-                self.account_controller_tx.clone(),
+                self.account_commands.clone(),
                 self.cancel_token.clone(),
             )
             .await?;

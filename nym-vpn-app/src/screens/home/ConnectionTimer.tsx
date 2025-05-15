@@ -33,11 +33,18 @@ function ConnectionTimer() {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.1, ease: 'easeOut' }}
       className="flex flex-col items-center gap-2 cursor-default select-none"
+      data-testid="connection-timer"
     >
-      <p className="text-base text-iron dark:text-bombay">
+      <p
+        className="text-base text-iron dark:text-bombay"
+        data-testid="connection-time-label"
+      >
         {t('connection-time')}
       </p>
-      <p className="text-base text-baltic-sea dark:text-white">
+      <p
+        className="text-base text-baltic-sea dark:text-white"
+        data-testid="connection-time-value"
+      >
         {connectionTime}
       </p>
     </motion.div>

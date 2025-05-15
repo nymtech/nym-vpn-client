@@ -4,14 +4,14 @@
 use std::marker::PhantomData;
 
 use windows::{
-    core::Result,
     Win32::{
-        Foundation::{LocalFree, BOOL, HLOCAL},
+        Foundation::{BOOL, HLOCAL, LocalFree},
         Security::{
             GetSecurityDescriptorControl, GetSecurityDescriptorDacl, PSECURITY_DESCRIPTOR,
-            SECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL, SE_SELF_RELATIVE,
+            SE_SELF_RELATIVE, SECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL,
         },
     },
+    core::Result,
 };
 
 use super::BorrowedAcl;

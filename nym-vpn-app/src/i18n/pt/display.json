@@ -1,0 +1,10 @@
+{
+  "theme-section-title": "Tema",
+  "zoom-section-title": "Nível de ampliação",
+  "options": {
+    "system": "Automático",
+    "light": "Tema claro",
+    "dark": "Tema escuro"
+  },
+  "system-desc": "Usar tema do dispositivo"
+}

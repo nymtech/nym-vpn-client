@@ -8,7 +8,7 @@ use tokio::task::JoinHandle;
 
 use nym_authenticator_client::{AuthClientMixnetListener, AuthClientMixnetListenerHandle};
 use nym_credentials_interface::TicketType;
-use nym_gateway_directory::{AuthAddresses, Gateway, GatewayClient};
+use nym_gateway_directory::{AuthAddresses, CachingGatewayClient, Gateway};
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{ConnectionStatsEvent, EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
@@ -19,7 +19,7 @@ use super::connected_tunnel::ConnectedTunnel;
 use crate::{
     bandwidth_controller::BandwidthController,
     tunnel_state_machine::tunnel::{
-        self, gateway_selector::SelectedGateways, AnyConnector, ConnectorError, Error, Result,
+        self, AnyConnector, ConnectorError, Error, Result, gateway_selector::SelectedGateways,
     },
 };
 
@@ -31,14 +31,14 @@ pub struct ConnectionData {
 pub struct Connector {
     task_manager: TaskManager,
     mixnet_client: SharedMixnetClient,
-    gateway_directory_client: GatewayClient,
+    gateway_directory_client: CachingGatewayClient,
 }
 
 impl Connector {
     pub fn new(
         task_manager: TaskManager,
         mixnet_client: SharedMixnetClient,
-        gateway_directory_client: GatewayClient,
+        gateway_directory_client: CachingGatewayClient,
     ) -> Self {
         Self {
             task_manager,
@@ -58,7 +58,7 @@ impl Connector {
             &self.task_manager,
             network,
             self.mixnet_client.clone(),
-            &self.gateway_directory_client,
+            self.gateway_directory_client.clone(),
             enable_credentials_mode,
             selected_gateways,
             data_path,
@@ -91,7 +91,7 @@ impl Connector {
         task_manager: &TaskManager,
         network: &Network,
         mixnet_client: SharedMixnetClient,
-        gateway_directory_client: &GatewayClient,
+        gateway_directory_client: CachingGatewayClient,
         enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
@@ -167,13 +167,13 @@ impl Connector {
             let entry_fut = bw.get_initial_bandwidth(
                 enable_credentials_mode,
                 TicketType::V1WireguardEntry,
-                gateway_directory_client,
+                gateway_directory_client.clone(),
                 &mut wg_entry_gateway_client,
             );
             let exit_fut = bw.get_initial_bandwidth(
                 enable_credentials_mode,
                 TicketType::V1WireguardExit,
-                gateway_directory_client,
+                gateway_directory_client.clone(),
                 &mut wg_exit_gateway_client,
             );
 
@@ -198,7 +198,7 @@ impl Connector {
                 .get_initial_bandwidth(
                     enable_credentials_mode,
                     TicketType::V1WireguardEntry,
-                    gateway_directory_client,
+                    gateway_directory_client.clone(),
                     &mut wg_entry_gateway_client,
                 )
                 .await?;

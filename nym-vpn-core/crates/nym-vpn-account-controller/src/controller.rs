@@ -6,12 +6,10 @@ use std::{net::SocketAddr, sync::Arc, time::Duration};
 use nym_offline_monitor::{Connectivity, ConnectivityHandle};
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
-    types::{DeviceStatus, VpnApiAccount},
+    types::{DeviceStatus, VpnApiAccount, VpnApiTimeSynced},
 };
-use nym_vpn_lib_types::{
-    AccountCommandError, ForgetAccountError, StoreAccountError, VpnApiErrorResponse,
-};
-use nym_vpn_store::{mnemonic::Mnemonic, VpnStorage};
+use nym_vpn_lib_types::{AccountCommandError, ForgetAccountError, StoreAccountError, VpnApiError};
+use nym_vpn_store::{VpnStorage, mnemonic::Mnemonic};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
     task::JoinError,
@@ -19,13 +17,13 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use crate::{
+    AccountCommandSender, AccountControllerConfig, AvailableTicketbooks,
     commands::{AccountCommand, AccountCommandHandler, AccountCommandResult},
     connectivity::OfflineWatch,
     error::Error,
     shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
     storage::{AccountStorage, SharedVpnCredentialStorage, VpnCredentialStorage},
     vpn_api_client::AccountControllerVpnApiClient,
-    AccountCommandSender, AccountControllerConfig, AvailableTicketbooks,
 };
 
 pub struct AccountController<S>
@@ -76,7 +74,7 @@ where
     pub async fn new(
         config: AccountControllerConfig,
         storage: Arc<tokio::sync::Mutex<S>>,
-        initial_connectivity: Option<Connectivity>,
+        connectivity_handle: Option<ConnectivityHandle>,
         cancel_token: CancellationToken,
     ) -> Result<Self, Error> {
         tracing::info!(
@@ -97,11 +95,21 @@ where
         // The channels used to communicate with the controller
         let command_channel = tokio::sync::mpsc::unbounded_channel();
 
+        let initial_state = if let Some(connectivity_handle) = connectivity_handle.as_ref() {
+            connectivity_handle.connectivity().await
+        } else {
+            // Since the offline monitor is only started later, together with the state machine. Assume
+            // online.
+            // TODO: the whole mobile API should be refactored to start the state machine on init.
+            Connectivity::PresumeOnline
+        };
+
         // The offline watch is used to keep track of the current connectivity state, since we
         // don't want to do certain operations when we are offline
         let offline_watch = OfflineWatch::new(
+            connectivity_handle,
             AccountCommandSender::new(command_channel.0.clone(), account_state.clone()),
-            initial_connectivity.unwrap_or(Connectivity::new_presume_offline()),
+            initial_state,
         );
 
         // Keep track of the commands that are currently running
@@ -246,7 +254,7 @@ where
             .update_device(&account, &device, DeviceStatus::DeleteMe)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(ForgetAccountError::UpdateDeviceErrorResponse)
                     .unwrap_or_else(ForgetAccountError::unexpected_response)
                     .into()
@@ -326,6 +334,7 @@ where
         // owner. Ideally we should strive for this to be removed.
         // If this fails, we still need to continue with the remaining steps
         let remove_files_result = crate::storage::remove_files_for_account(&self.config.data_dir)
+            .await
             .inspect_err(|err| {
                 tracing::error!("Failed to remove files for account: {err:?}");
             });
@@ -428,7 +437,7 @@ where
             .get_usage(&account)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::internal)
             })?;
@@ -500,7 +509,7 @@ where
             .get_devices(&account)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::internal)
             })?;
@@ -534,7 +543,7 @@ where
             .get_active_devices(&account)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::internal)
             })?;
@@ -600,7 +609,7 @@ where
             .get_device_zk_nyms(&account, &device)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::internal)
             })?;
@@ -638,7 +647,7 @@ where
             .get_zk_nyms_available_for_download(&account, &device)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::internal)
             })?;
@@ -677,7 +686,7 @@ where
             .get_zk_nym_by_id(&account, &device, id)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::internal)
             })?;
@@ -718,7 +727,7 @@ where
             .confirm_zk_nym_download_by_id(&account, &device, &id)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(AccountCommandError::from)
                     .unwrap_or_else(AccountCommandError::internal)
             })?;
@@ -769,6 +778,23 @@ where
             .register_offline_monitor(offline_monitor)
             .await;
         Ok(())
+    }
+
+    async fn handle_check_device_time_sync(&self) -> Result<VpnApiTimeSynced, AccountCommandError> {
+        if self.offline_watch.is_offline() {
+            tracing::error!("Unable to check remote time as we are offline");
+            return Err(AccountCommandError::Offline);
+        }
+
+        self.vpn_api_client
+            .get_remote_time()
+            .await
+            .map_err(|err| {
+                VpnApiError::try_from(err)
+                    .map(AccountCommandError::from)
+                    .unwrap_or_else(AccountCommandError::unexpected_response)
+            })
+            .map(|vpn_api_time| vpn_api_time.is_synced())
     }
 
     async fn handle_command(&mut self, command: AccountCommand) {
@@ -840,6 +866,9 @@ where
             }
             AccountCommand::RegisterOfflineMonitor(result_tx, offline_monitor) => {
                 result_tx.send(self.handle_register_offline_monitor(offline_monitor).await);
+            }
+            AccountCommand::CheckDeviceTimeSync(result_tx) => {
+                result_tx.send(self.handle_check_device_time_sync().await);
             }
         };
     }
@@ -931,10 +960,7 @@ where
         let mut command_finish_timer = tokio::time::interval(Duration::from_millis(500));
 
         // Timer to periodically sync the remote account state.
-        // Call tick() once to start the timer immediately. We don't want the first sync to happen
-        // immediately, so we wait for the first tick to happen.
         let mut sync_account_state_timer = tokio::time::interval(Self::ACCOUNT_UPDATE_INTERVAL);
-        sync_account_state_timer.tick().await;
 
         // Timer to periodically check if we need to request more zk-nyms
         let mut update_zk_nym_timer =
@@ -988,7 +1014,7 @@ mod init {
 
     use nym_vpn_store::VpnStorage;
 
-    use crate::{shared_state::MnemonicState, Error, SharedAccountState};
+    use crate::{Error, SharedAccountState, shared_state::MnemonicState};
 
     use super::{
         AccountControllerConfig, AccountStorage, SharedVpnCredentialStorage, VpnCredentialStorage,

@@ -20,7 +20,10 @@ function Support() {
   const { t } = useTranslation('settings');
 
   return (
-    <PageAnim className="h-full flex flex-col mt-2 gap-6">
+    <PageAnim
+      className="h-full flex flex-col mt-2 gap-6"
+      data-testid="support-page"
+    >
       <SettingsMenuCard
         title={t('support.faq')}
         onClick={() => {
@@ -28,14 +31,16 @@ function Support() {
         }}
         leadingIcon="help"
         trailingIcon="open_in_new"
+        data-testid="support-faq-button"
       />
       <SettingsMenuCard
-        title={t('support.get-in-touch')}
+        title={t('support.contact')}
         onClick={() => {
           openUrl(ContactSupportUrl);
         }}
         leadingIcon="send"
         trailingIcon="open_in_new"
+        data-testid="support-contact-button"
       />
       <SettingsMenuCard
         title={t('support.telegram')}
@@ -46,6 +51,7 @@ function Support() {
           <TelegramIcon className="w-6 h-6 fill-baltic-sea dark:fill-white" />
         }
         trailingIcon="open_in_new"
+        data-testid="support-telegram-button"
       />
       <SettingsMenuCard
         title={t('support.matrix')}
@@ -56,6 +62,7 @@ function Support() {
           <ElementIcon className="w-6 h-6 fill-baltic-sea dark:fill-white" />
         }
         trailingIcon="open_in_new"
+        data-testid="support-matrix-button"
       />
       <SettingsMenuCard
         title={t('support.discord')}
@@ -66,6 +73,7 @@ function Support() {
           <DiscordIcon className="w-6 h-6 fill-baltic-sea dark:fill-white" />
         }
         trailingIcon="open_in_new"
+        data-testid="support-discord-button"
       />
       <SettingsMenuCard
         title={t('support.github')}
@@ -76,6 +84,7 @@ function Support() {
           <GitHubIcon className="w-6 h-7 fill-baltic-sea dark:fill-white" />
         }
         trailingIcon="open_in_new"
+        data-testid="support-github-button"
       />
     </PageAnim>
   );

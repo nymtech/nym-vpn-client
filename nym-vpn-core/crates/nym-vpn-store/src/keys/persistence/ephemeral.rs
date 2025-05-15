@@ -17,6 +17,7 @@ pub enum EphemeralKeysError {
     UnableToLoadKeys,
 }
 
+#[async_trait::async_trait]
 impl KeyStore for InMemEphemeralKeys {
     type StorageError = EphemeralKeysError;
 

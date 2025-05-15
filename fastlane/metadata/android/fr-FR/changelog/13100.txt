@@ -1,0 +1,2 @@
+Quoi de neuf :
+- Amélioration de la fiabilité des connexions

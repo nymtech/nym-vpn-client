@@ -5,9 +5,12 @@ export type SwitchProps = {
   checked: boolean;
   onChange: (value: boolean) => void;
   disabled?: boolean;
+  'data-testid'?: string;
 };
 
-function Switch({ checked, onChange, disabled }: SwitchProps) {
+function Switch({ checked, onChange, disabled, ...rest }: SwitchProps) {
+  const testId = rest['data-testid'] || 'switch';
+
   return (
     <HuSwitch
       checked={checked}
@@ -17,6 +20,9 @@ function Switch({ checked, onChange, disabled }: SwitchProps) {
         'relative inline-flex h-7 w-11 min-w-11 items-center rounded-full cursor-default',
       ])}
       disabled={disabled}
+      data-testid={testId}
+      data-checked={checked ? 'true' : 'false'}
+      data-disabled={disabled ? 'true' : 'false'}
     >
       <span
         className={clsx([
@@ -26,6 +32,7 @@ function Switch({ checked, onChange, disabled }: SwitchProps) {
             : 'bg-iron dark:bg-bombay h-4 w-4',
           'inline-block transform rounded-full transition',
         ])}
+        data-testid={`${testId}-thumb`}
       />
     </HuSwitch>
   );

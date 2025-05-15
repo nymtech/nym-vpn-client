@@ -1,0 +1,4 @@
+Quais as novidades:
+- Adição da tela de logs
+- Melhoraria na exibição de status da VPN
+- Adição do Sentry

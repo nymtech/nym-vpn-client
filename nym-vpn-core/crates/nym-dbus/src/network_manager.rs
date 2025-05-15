@@ -7,7 +7,7 @@ use super::systemd_resolved;
 pub use dbus::arg::{RefArg, Variant};
 use dbus::{
     arg,
-    blocking::{stdintf::org_freedesktop_dbus::Properties, Proxy, SyncConnection},
+    blocking::{Proxy, SyncConnection, stdintf::org_freedesktop_dbus::Properties},
     message::MatchRule,
 };
 use std::{
@@ -17,8 +17,8 @@ use std::{
     net::IpAddr,
     path::Path,
     sync::{
-        atomic::{AtomicU32, Ordering},
         Arc,
+        atomic::{AtomicU32, Ordering},
     },
     time::{Duration, Instant},
 };
@@ -67,18 +67,18 @@ type NetworkSettings<'a> = HashMap<String, HashMap<String, Variant<Box<dyn RefAr
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Error while communicating over Dbus")]
+    #[error("error while communicating over Dbus")]
     Dbus(#[from] dbus::Error),
 
-    #[error("Failed to match the returned D-Bus object with expected type")]
+    #[error("failed to match the returned D-Bus object with expected type")]
     MatchDBusTypeError(#[from] dbus::arg::TypeMismatchError),
 
     #[error(
-        "NM is configured to manage DNS via systemd-resolved but systemd-resolved is not managing /etc/resolv.conf: {0}",
+        "NM is configured to manage DNS via systemd-resolved but systemd-resolved is not managing /etc/resolv.conf: {0}"
     )]
     SystemdResolvedNotManagingResolvconf(systemd_resolved::Error),
 
-    #[error("Configuration has no device associated to it")]
+    #[error("configuration has no device associated to it")]
     NoDevice,
 
     #[error("NetworkManager is too old: {0}.{1}")]
@@ -87,13 +87,13 @@ pub enum Error {
     #[error("NetworkManager is too new to manage DNS: {0}.{1}")]
     NMTooNewFroDns(u32, u32),
 
-    #[error("Failed to parse NetworkManager version string: {0}")]
+    #[error("failed to parse NetworkManager version string: {0}")]
     ParseNmVersionError(String),
 
-    #[error("Device inactive: {0}")]
+    #[error("device inactive: {0}")]
     DeviceNotReady(u32),
 
-    #[error("Device not found")]
+    #[error("device not found")]
     DeviceNotFound,
 
     #[error("NetworkManager not detected")]
@@ -108,7 +108,7 @@ pub enum Error {
     #[error("NetworkManager is not managing DNS")]
     NetworkManagerNotManagingDns,
 
-    #[error("Failed to get devices from NetworkManager object")]
+    #[error("failed to get devices from NetworkManager object")]
     ObtainDevices,
 }
 
@@ -432,7 +432,9 @@ impl NetworkManager {
         };
 
         if !verify_etc_resolv_conf_contents() {
-            tracing::debug!("/etc/resolv.conf differs from reference resolv.conf, therefore NM is not managing DNS");
+            tracing::debug!(
+                "/etc/resolv.conf differs from reference resolv.conf, therefore NM is not managing DNS"
+            );
             return Err(Error::NetworkManagerNotManagingDns);
         }
 

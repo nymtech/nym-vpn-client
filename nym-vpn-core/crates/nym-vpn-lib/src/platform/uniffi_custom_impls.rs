@@ -15,7 +15,7 @@ use nym_sdk::UserAgent as NymUserAgent;
 use time::OffsetDateTime;
 use url::Url;
 
-use crate::{platform::error::VpnError, NodeIdentity, Recipient, UniffiCustomTypeConverter};
+use crate::{NodeIdentity, Recipient, UniffiCustomTypeConverter, platform::error::VpnError};
 
 uniffi::custom_type!(Ipv4Addr, String);
 uniffi::custom_type!(Ipv6Addr, String);
@@ -505,7 +505,7 @@ impl TryFrom<GatewayMinPerformance> for nym_gateway_directory::GatewayMinPerform
     }
 }
 
-#[derive(uniffi::Record)]
+#[derive(uniffi::Record, Clone)]
 pub struct UserAgent {
     // The name of the application
     // Example: nym-vpnd
@@ -537,7 +537,6 @@ impl From<UserAgent> for NymUserAgent {
 pub enum EntryPoint {
     Gateway { identity: NodeIdentity },
     Location { location: String },
-    RandomLowLatency,
     Random,
 }
 
@@ -546,7 +545,6 @@ impl From<EntryPoint> for GwEntryPoint {
         match value {
             EntryPoint::Gateway { identity } => GwEntryPoint::Gateway { identity },
             EntryPoint::Location { location } => GwEntryPoint::Location { location },
-            EntryPoint::RandomLowLatency => GwEntryPoint::RandomLowLatency,
             EntryPoint::Random => GwEntryPoint::Random,
         }
     }

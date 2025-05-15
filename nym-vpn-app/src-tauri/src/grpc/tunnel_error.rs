@@ -19,6 +19,7 @@ pub enum TunnelError {
     MaxDevicesReached(Option<String>),
     BandwidthExceeded(Option<String>),
     SubscriptionExpired(Option<String>),
+    DeviceTimeOutOfSync(Option<String>),
 }
 
 impl From<ProtoTunnelError> for TunnelError {
@@ -41,6 +42,7 @@ impl From<ProtoTunnelError> for TunnelError {
             ErrorStateReason::BandwidthExceeded => TunnelError::BandwidthExceeded(error.detail),
             ErrorStateReason::SubscriptionExpired => TunnelError::SubscriptionExpired(error.detail),
             ErrorStateReason::Api => TunnelError::Api(error.detail),
+            ErrorStateReason::DeviceTimeOutOfSync => TunnelError::DeviceTimeOutOfSync(error.detail),
         }
     }
 }

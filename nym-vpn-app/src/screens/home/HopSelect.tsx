@@ -33,13 +33,18 @@ export default function HopSelect({
   };
 
   const SelectedCountry = (country: Country) => (
-    <div className="flex flex-row items-center gap-3 overflow-hidden">
+    <div
+      className="flex flex-row items-center gap-3 overflow-hidden"
+      data-testid={`hop-select-country-${nodeHop}`}
+    >
       <FlagIcon
         code={country.code.toLowerCase() as countryCode}
         alt={country.code}
+        data-testid={`hop-select-flag-${nodeHop}`}
       />
       <div
         className={clsx(['text-base truncate', disabled && 'cursor-default'])}
+        data-testid={`hop-select-country-name-${nodeHop}`}
       >
         {getCountryName(country.code) || country.name}
       </div>
@@ -47,13 +52,18 @@ export default function HopSelect({
   );
 
   const SelectedGateway = (gateway: Gateway) => (
-    <div className="flex flex-row items-center gap-3 overflow-hidden">
+    <div
+      className="flex flex-row items-center gap-3 overflow-hidden"
+      data-testid={`hop-select-gateway-${nodeHop}`}
+    >
       <FlagIcon
         code={gateway.country.code.toLowerCase() as countryCode}
         alt={gateway.country.code}
+        data-testid={`hop-select-gateway-flag-${nodeHop}`}
       />
       <div
         className={clsx(['text-base truncate', disabled && 'cursor-default'])}
+        data-testid={`hop-select-gateway-name-${nodeHop}`}
       >
         {gateway.name}
       </div>
@@ -76,6 +86,9 @@ export default function HopSelect({
       onKeyDown={handleClick}
       role="presentation"
       onClick={handleClick}
+      data-testid={`hop-select-${nodeHop}`}
+      data-disabled={disabled}
+      data-locked={locked}
     >
       <div
         className={clsx([
@@ -83,11 +96,16 @@ export default function HopSelect({
           'bg-faded-lavender dark:bg-ash text-xs',
           disabled && 'cursor-default',
         ])}
+        data-testid={`hop-select-label-${nodeHop}`}
       >
         {nodeHop === 'entry' ? t('first-hop') : t('last-hop')}
       </div>
       {isGateway(node) ? SelectedGateway(node) : SelectedCountry(node)}
-      <MsIcon icon="arrow_right" className="pointer-events-none" />
+      <MsIcon
+        icon="arrow_right"
+        className="pointer-events-none"
+        data-testid={`hop-select-arrow-${nodeHop}`}
+      />
     </div>
   );
 }

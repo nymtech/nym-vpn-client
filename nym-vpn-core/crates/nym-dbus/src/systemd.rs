@@ -2,17 +2,17 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use dbus::blocking::{stdintf::org_freedesktop_dbus::Properties, Proxy, SyncConnection};
+use dbus::blocking::{Proxy, SyncConnection, stdintf::org_freedesktop_dbus::Properties};
 use std::{sync::Arc, time::Duration};
 
 type Result<T> = std::result::Result<T, Error>;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Failed to create a DBus connection")]
+    #[error("failed to create a DBus connection")]
     ConnectError(#[source] dbus::Error),
 
-    #[error("Failed to read SystemState property")]
+    #[error("failed to read SystemState property")]
     ReadSystemStateError(#[source] dbus::Error),
 }
 

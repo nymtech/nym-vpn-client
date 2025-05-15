@@ -10,10 +10,20 @@ function Lang() {
   const { set } = useLang();
 
   return (
-    <PageAnim className="h-full flex flex-col py-6 gap-6">
-      <ul className="flex flex-col w-full items-stretch gap-1">
+    <PageAnim
+      className="h-full flex flex-col py-6 gap-6"
+      data-testid="language-page"
+    >
+      <ul
+        className="flex flex-col w-full items-stretch gap-1"
+        data-testid="language-list"
+      >
         {languages.map((lang) => (
-          <li key={lang.code} className="list-none w-full">
+          <li
+            key={lang.code}
+            className="list-none w-full"
+            data-testid={`language-item-${lang.code}`}
+          >
             <Button
               role="presentation"
               className={clsx([
@@ -22,8 +32,13 @@ function Lang() {
                 'rounded-lg px-3 py-1 transition duration-75 cursor-default',
               ])}
               onClick={() => set(lang.code)}
+              data-testid={`language-button-${lang.code}`}
+              data-selected={i18n.language === lang.code}
             >
-              <div className="flex flex-row items-center m-1 gap-3 p-1 overflow-hidden">
+              <div
+                className="flex flex-row items-center m-1 gap-3 p-1 overflow-hidden"
+                data-testid={`language-name-${lang.code}`}
+              >
                 {lang.name}
               </div>
               <div
@@ -31,6 +46,7 @@ function Lang() {
                   'pr-4 ml-2 flex items-center font-medium text-xs',
                   'text-iron dark:text-bombay',
                 ])}
+                data-testid={`language-selected-indicator-${lang.code}`}
               >
                 {i18n.language === lang.code &&
                   t('selected', { ns: 'glossary' })}

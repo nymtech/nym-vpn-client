@@ -12,6 +12,7 @@ license.workspace = true
 workspace = true
 
 [dependencies]
+async-trait.workspace = true
 bip39.workspace = true
 nym-crypto = { workspace = true, features = ["rand", "asymmetric"] }
 nym-pemstore.workspace = true

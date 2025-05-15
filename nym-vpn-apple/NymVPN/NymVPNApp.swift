@@ -21,12 +21,19 @@ struct NymVPNApp: App {
 
     @AppStorage(AppSettingKey.currentAppearance.rawValue)
     private var appearance: AppSetting.Appearance = .automatic
+
+    @Environment(\.scenePhase)
+    private var scenePhase
+
     @ObservedObject private var appSettings = AppSettings.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
     @ObservedObject private var countriesManager = CountriesManager.shared
+
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var welcomeViewModel = WelcomeViewModel()
+
     @State private var splashScreenDidDisplay = false
+    @State private var isSecureScreenVisible = false
 
     init() {
         setup()
@@ -45,6 +52,15 @@ struct NymVPNApp: App {
                         .transition(.slide)
                 }
             }
+            .onChange(of: scenePhase) { _, newPhase in
+                configureSecureScreen(with: newPhase)
+            }
+            .overlay {
+                if isSecureScreenVisible {
+                    LogoView()
+                }
+            }
+            .animation(.easeIn, value: isSecureScreenVisible)
             .preferredColorScheme(appearance.colorScheme)
             .onAppear {
                 configureScreenSize()
@@ -84,5 +100,16 @@ private extension NymVPNApp {
             return
         }
         appSettings.isSmallScreen = true
+    }
+
+    func configureSecureScreen(with newPhase: ScenePhase) {
+        switch newPhase {
+        case .background, .inactive:
+            isSecureScreenVisible = true
+        case .active:
+            isSecureScreenVisible = false
+        @unknown default:
+            break
+        }
     }
 }

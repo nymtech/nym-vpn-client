@@ -2,28 +2,28 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_account_controller::{
+    AccountStateSummary,
     shared_state::{
         AccountRegistered, AccountState, AccountSummary, DeviceState, DeviceSummary, FairUsage,
         MnemonicState, RegisterDeviceResult, RequestZkNymResult, SubscriptionState,
     },
-    AccountStateSummary,
 };
 
 use crate::{
+    RegisterDeviceError as ProtoRegisterDeviceError,
+    RegisterDeviceResult as ProtoRegisterDeviceResult, RequestZkNymError as ProtoRequestZkNymError,
+    RequestZkNymResult as ProtoRequestZkNymResult, RequestZkNymSuccess as ProtoRequestZkNymSuccess,
     get_account_state_response::{
+        AccountStateSummary as ProtoAccountStateSummary,
         account_state_summary::{
+            AccountRegistered as ProtoAccountRegistered, AccountSummary as ProtoAccountSummary,
+            DeviceState as ProtoDeviceState, MnemonicState as ProtoMnemonicState,
             account_summary::{
                 AccountState as ProtoAccountState, DeviceSummary as ProtoDeviceSummary,
                 FairUsageState as ProtoFairUsageState, SubscriptionState as ProtoSubscriptionState,
             },
-            AccountRegistered as ProtoAccountRegistered, AccountSummary as ProtoAccountSummary,
-            DeviceState as ProtoDeviceState, MnemonicState as ProtoMnemonicState,
         },
-        AccountStateSummary as ProtoAccountStateSummary,
     },
-    RegisterDeviceError as ProtoRegisterDeviceError,
-    RegisterDeviceResult as ProtoRegisterDeviceResult, RequestZkNymError as ProtoRequestZkNymError,
-    RequestZkNymResult as ProtoRequestZkNymResult, RequestZkNymSuccess as ProtoRequestZkNymSuccess,
 };
 
 impl From<MnemonicState> for ProtoMnemonicState {

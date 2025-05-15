@@ -1,0 +1,3 @@
+Quais as novidades:
+- Bypass recurso LAN
+- Correções de erros e melhorias.

@@ -5,13 +5,12 @@
 #[cfg(target_os = "linux")]
 use crate::Route;
 #[cfg(target_os = "macos")]
-pub use crate::{imp::imp::DefaultRoute, Gateway};
+pub use crate::{Gateway, imp::imp::DefaultRoute};
 
 use super::RequiredRoute;
 
 use std::{collections::HashSet, sync::Arc};
-use tokio::sync::mpsc;
-use tokio::sync::oneshot;
+use tokio::sync::{mpsc, oneshot};
 
 #[cfg(target_os = "linux")]
 use std::net::IpAddr;
@@ -37,13 +36,13 @@ pub use imp::Error as PlatformError;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Route manager thread may have panicked
-    #[error("The channel sender was dropped")]
+    #[error("the channel sender was dropped")]
     ManagerChannelDown,
     /// Platform specific error occurred
-    #[error("Internal route manager error")]
+    #[error("internal route manager error")]
     PlatformError(#[from] imp::Error),
     /// Attempt to use route manager that has been dropped
-    #[error("Cannot send message to route manager since it is down")]
+    #[error("cannot send message to route manager since it is down")]
     RouteManagerDown,
 }
 

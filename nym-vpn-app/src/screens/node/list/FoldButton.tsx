@@ -16,12 +16,15 @@ const FoldButton = (props: FoldButtonProps) => (
       'hover:text-baltic-sea dark:hover:text-white',
       'focus:outline-none',
     )}
+    data-testid="fold-button"
+    data-fold-state={props['data-state']}
     {...props}
   >
     <MsIcon
       icon={
         props['data-state'] === 'open' ? 'arrow_drop_up' : 'arrow_drop_down'
       }
+      data-testid="fold-button-icon"
     />
   </Button>
 );

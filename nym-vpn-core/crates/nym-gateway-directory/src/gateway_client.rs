@@ -7,19 +7,19 @@ use std::{
 };
 
 use nym_sdk::UserAgent;
-use nym_validator_client::{models::NymNodeDescription, nym_nodes::SkimmedNode, NymApiClient};
+use nym_validator_client::{NymApiClient, models::NymNodeDescription, nym_nodes::SkimmedNode};
 use nym_vpn_api_client::types::{GatewayMinPerformance, Percent, ScoreThresholds};
 use rand::{prelude::SliceRandom, thread_rng};
 use tracing::{debug, error, warn};
 use url::Url;
 
 use crate::{
+    Error, NymNode,
     entries::{
         country::Country,
         gateway::{Gateway, GatewayList, GatewayType, NymNodeList},
     },
     error::Result,
-    Error, NymNode,
 };
 
 #[derive(Clone, Debug)]
@@ -107,9 +107,11 @@ impl ResolvedConfig {
     }
 }
 
+#[derive(Clone)]
 pub struct GatewayClient {
     api_client: NymApiClient,
     nym_vpn_api_client: Option<nym_vpn_api_client::VpnApiClient>,
+    nyxd_url: Url,
     min_gateway_performance: Option<GatewayMinPerformance>,
     mix_score_thresholds: Option<ScoreThresholds>,
     wg_score_thresholds: Option<ScoreThresholds>,
@@ -140,10 +142,26 @@ impl GatewayClient {
         Ok(GatewayClient {
             api_client,
             nym_vpn_api_client,
+            nyxd_url: config.nyxd_url,
             min_gateway_performance: config.min_gateway_performance,
             mix_score_thresholds: config.mix_score_thresholds,
             wg_score_thresholds: config.wg_score_thresholds,
         })
+    }
+
+    /// Return the config of this instance.
+    pub fn get_config(&self) -> Config {
+        Config {
+            api_url: self.api_client.api_url().clone(),
+            nym_vpn_api_url: self
+                .nym_vpn_api_client
+                .as_ref()
+                .map(|client| client.current_url().clone()),
+            nyxd_url: self.nyxd_url.clone(),
+            min_gateway_performance: self.min_gateway_performance,
+            mix_score_thresholds: self.mix_score_thresholds,
+            wg_score_thresholds: self.wg_score_thresholds,
+        }
     }
 
     pub fn mixnet_min_performance(&self) -> Option<Percent> {
@@ -180,12 +198,6 @@ impl GatewayClient {
             .get_all_basic_nodes()
             .await
             .map_err(Error::FailedToLookupSkimmedNodes)
-    }
-
-    pub async fn lookup_low_latency_entry_gateway(&self) -> Result<Gateway> {
-        debug!("Fetching low latency entry gateway...");
-        let gateways = self.lookup_gateways(GatewayType::MixnetEntry).await?;
-        gateways.random_low_latency_gateway().await
     }
 
     pub async fn lookup_gateway_ip_from_nym_api(&self, gateway_identity: &str) -> Result<IpAddr> {

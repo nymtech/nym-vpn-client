@@ -35,17 +35,27 @@ function NetworkEnvSelect({ current }: Props) {
   };
 
   return (
-    <div className="mt-2">
-      <h3 className="text-lg text-baltic-sea dark:text-white font-medium">
+    <div className="mt-2" data-testid="network-env-select-container">
+      <h3
+        className="text-lg text-baltic-sea dark:text-white font-medium"
+        data-testid="network-env-title"
+      >
         Network env
       </h3>
-      <div className="flex flex-row flex-nowrap items-center text-sm">
-        <MsIcon icon="priority_high" className="text-liquid-lava" />
+      <div
+        className="flex flex-row flex-nowrap items-center text-sm"
+        data-testid="network-env-warning"
+      >
+        <MsIcon
+          icon="priority_high"
+          className="text-liquid-lava"
+          data-testid="network-env-warning-icon"
+        />
         <p className="text-iron dark:text-bombay truncate">
           This require to restart the daemon to take effect
         </p>
       </div>
-      <div className="relative">
+      <div className="relative" data-testid="network-env-select-wrapper">
         <Select
           className={clsx(
             'mt-3 block w-full appearance-none rounded-lg border-none',
@@ -59,9 +69,14 @@ function NetworkEnvSelect({ current }: Props) {
           onChange={(e) => {
             handleOnSelect(e.target.value as NetworkEnv);
           }}
+          data-testid="network-env-select"
         >
           {options.map(({ value, label }) => (
-            <option key={value} value={value}>
+            <option
+              key={value}
+              value={value}
+              data-testid={`network-env-option-${value}`}
+            >
               {label}
             </option>
           ))}
@@ -69,6 +84,7 @@ function NetworkEnvSelect({ current }: Props) {
         <MsIcon
           icon="keyboard_arrow_down"
           className="absolute right-2 top-1/2 transform -translate-y-1/2 text-black/50 dark:text-white/60"
+          data-testid="network-env-select-arrow"
         />
       </div>
 
@@ -81,6 +97,7 @@ function NetworkEnvSelect({ current }: Props) {
             'text-aphrodisiac overflow-y-scroll max-h-16 mt-3 break-words',
             'select-none',
           ])}
+          data-testid="network-env-error"
         >
           {error}
         </motion.div>

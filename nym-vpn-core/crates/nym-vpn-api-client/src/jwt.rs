@@ -4,7 +4,7 @@
 use std::fmt;
 
 use nym_crypto::asymmetric::ed25519;
-use nym_validator_client::{signing::signer::OfflineSigner, DirectSecp256k1HdWallet};
+use nym_validator_client::{DirectSecp256k1HdWallet, signing::signer::OfflineSigner};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sha2::{Digest, Sha256};

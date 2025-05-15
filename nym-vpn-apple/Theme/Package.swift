@@ -7,7 +7,7 @@ let package = Package(
     name: "Theme",
     defaultLocalization: "en",
     platforms: [
-        .iOS(.v16),
+        .iOS(.v17),
         .macOS(.v13)
     ],
     products: [
@@ -22,8 +22,7 @@ let package = Package(
             resources: [
                 .copy("Resources/Fonts/LabGrotesque-Regular.ttf"),
                 .copy("Resources/Fonts/LabGrotesqueMono-Regular.ttf"),
-                .process("Resources/Colors.xcassets"),
-                .process("Resources/Localizable.xcstrings")
+                .process("Resources/Colors.xcassets")
             ]
         ),
         .testTarget(

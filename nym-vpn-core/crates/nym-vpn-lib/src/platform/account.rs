@@ -3,9 +3,9 @@
 
 use std::{path::PathBuf, str::FromStr, sync::Arc, time::Duration};
 
-use nym_offline_monitor::Connectivity;
+use nym_common::ErrorExt;
 use nym_vpn_account_controller::{
-    shared_state::DeviceState, AccountCommandSender, SharedAccountState,
+    AccountCommandSender, SharedAccountState, shared_state::DeviceState,
 };
 use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
 use nym_vpn_network_config::Network;
@@ -18,7 +18,7 @@ use tokio_util::sync::CancellationToken;
 
 use super::uniffi_custom_impls::AccountStateSummary;
 
-use super::{error::VpnError, ACCOUNT_CONTROLLER_HANDLE};
+use super::{ACCOUNT_CONTROLLER_HANDLE, error::VpnError};
 
 pub(super) async fn init_account_controller(
     data_dir: PathBuf,
@@ -65,11 +65,6 @@ async fn start_account_controller(
     let user_agent = crate::util::construct_user_agent();
     let shutdown_token = CancellationToken::new();
 
-    // Since the offline monitor is only started later, together with the state machine. Assume
-    // online.
-    // TODO: the whole mobile API should be refactored to start the state machine on init.
-    let initial_connectivity = Connectivity::PresumeOnline;
-
     let account_controller_config = nym_vpn_account_controller::AccountControllerConfig {
         data_dir,
         user_agent,
@@ -80,7 +75,7 @@ async fn start_account_controller(
     let account_controller = nym_vpn_account_controller::AccountController::new(
         account_controller_config,
         Arc::clone(&storage),
-        Some(initial_connectivity),
+        None,
         shutdown_token.child_token(),
     )
     .await
@@ -151,8 +146,8 @@ pub(super) async fn get_command_sender() -> Result<AccountCommandSender, VpnErro
     }
 }
 
-pub(super) async fn wait_for_update_account(
-) -> Result<Option<NymVpnAccountSummaryResponse>, VpnError> {
+pub(super) async fn wait_for_update_account()
+-> Result<Option<NymVpnAccountSummaryResponse>, VpnError> {
     get_command_sender()
         .await?
         .ensure_update_account()
@@ -270,9 +265,9 @@ pub(crate) mod raw {
 
     use nym_sdk::mixnet::StoragePaths;
     use nym_vpn_api_client::{
+        VpnApiClient,
         response::NymVpnAccountResponse,
         types::{Device, DeviceStatus},
-        VpnApiClient,
     };
 
     use crate::{platform::environment, storage::VpnClientOnDiskStorage};
@@ -324,13 +319,14 @@ pub(crate) mod raw {
         let storage_paths = StoragePaths::new_from_dir(&path).map_err(VpnError::internal)?;
         for path in storage_paths.credential_database_paths() {
             tracing::info!("Removing file: {}", path.display());
-            match std::fs::remove_file(&path) {
+            match tokio::fs::remove_file(&path).await {
                 Ok(_) => tracing::trace!("Removed file: {}", path.display()),
                 Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
                     tracing::trace!("File not found, skipping: {}", path.display())
                 }
                 Err(e) => {
-                    tracing::error!("Failed to remove file {}: {e}", path.display());
+                    e.trace_chain_with_msg(format!("Failed to remove file: {}", path.display()));
+
                     return Err(VpnError::InternalError {
                         details: e.to_string(),
                     });
@@ -408,11 +404,11 @@ pub(crate) mod raw {
         remove_credential_storage_raw(&path_buf).await?;
 
         // Then remove the rest of the files, that we own indirectly
-        nym_vpn_account_controller::remove_files_for_account(&path_buf).map_err(|err| {
-            VpnError::Storage {
+        nym_vpn_account_controller::remove_files_for_account(&path_buf)
+            .await
+            .map_err(|err| VpnError::Storage {
                 details: err.to_string(),
-            }
-        })?;
+            })?;
 
         Ok(())
     }

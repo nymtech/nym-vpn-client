@@ -57,6 +57,7 @@ export default function TopBar() {
           'w-24 h-6',
           uiTheme === 'dark' ? 'fill-white' : 'fill-ash',
         )}
+        data-testid="top-bar-logo"
       />
     );
   }, [os, uiTheme]);
@@ -208,7 +209,10 @@ export default function TopBar() {
   const renderTitle = (title?: string | ReactNode) => {
     if (typeof title === 'string') {
       return (
-        <p className="truncate justify-self-center tracking-normal">
+        <p
+          className="truncate justify-self-center tracking-normal"
+          data-testid="top-bar-title-text"
+        >
           {currentNavLocation.title}
         </p>
       );
@@ -216,7 +220,7 @@ export default function TopBar() {
     if (isValidElement(title)) {
       return title;
     }
-    return <div></div>;
+    return <div data-testid="top-bar-title-empty"></div>;
   };
 
   return (
@@ -238,16 +242,21 @@ export default function TopBar() {
           ? 'dark:bg-ash bg-faded-lavender'
           : 'dark:bg-charcoal bg-white',
       ])}
+      data-testid="top-bar"
+      data-route={location.pathname}
+      data-no-background={currentNavLocation.noBackground ? 'true' : 'false'}
     >
       {currentNavLocation.leftIcon ? (
         <motion.div
           initial={{ translateX: -4, opacity: 0.6 }}
           animate={{ translateX: 0, opacity: 1 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
+          data-testid="top-bar-left-button-container"
         >
           <button
             className="w-6 mx-4 focus:outline-hidden cursor-default"
             onClick={currentNavLocation.handleLeftNav}
+            data-testid="top-bar-left-button"
           >
             <MsIcon
               icon={currentNavLocation.leftIcon}
@@ -255,22 +264,27 @@ export default function TopBar() {
                 'dark:text-bombay transition duration-150',
                 'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black dark:hover:text-white',
               ])}
+              data-testid="top-bar-left-icon"
             />
           </button>
         </motion.div>
       ) : (
-        <div className="w-6 mx-4" />
+        <div className="w-6 mx-4" data-testid="top-bar-left-spacer" />
       )}
-      {renderTitle(currentNavLocation.title)}
+      <div data-testid="top-bar-title-container">
+        {renderTitle(currentNavLocation.title)}
+      </div>
       {currentNavLocation.rightIcon ? (
         <motion.div
           initial={{ translateX: 4, opacity: 0.6 }}
           animate={{ translateX: 0, opacity: 1 }}
           transition={{ duration: 0.15, ease: 'easeOut' }}
+          data-testid="top-bar-right-button-container"
         >
           <button
             className="w-6 mx-4 focus:outline-hidden cursor-default"
             onClick={currentNavLocation.handleRightNav}
+            data-testid="top-bar-right-button"
           >
             <MsIcon
               icon={currentNavLocation.rightIcon}
@@ -279,11 +293,12 @@ export default function TopBar() {
                 'opacity-90 dark:opacity-100 hover:opacity-100 hover:text-black dark:hover:text-white',
                 currentNavLocation.rightIconClassName,
               ])}
+              data-testid="top-bar-right-icon"
             />
           </button>
         </motion.div>
       ) : (
-        <div className="w-6 mx-4" />
+        <div className="w-6 mx-4" data-testid="top-bar-right-spacer" />
       )}
     </motion.nav>
   );

@@ -1,16 +1,15 @@
 use std::env::consts::{ARCH, OS};
 use std::path::PathBuf;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use nym_vpn_proto::{
-    nym_vpnd_client::NymVpndClient, tunnel_event::Event, ConnectRequest, Dns,
-    GetAccountLinksRequest, ListGatewaysRequest, Location, SetNetworkRequest, StoreAccountRequest,
-    UserAgent,
+    ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest, Location, SetNetworkRequest,
+    StoreAccountRequest, UserAgent, nym_vpnd_client::NymVpndClient, tunnel_event::Event,
 };
 use tauri::{AppHandle, Manager, PackageInfo};
 use tokio::sync::mpsc;
 use tonic::transport::Endpoint as TonicEndpoint;
-use tonic::{transport::Channel, Request};
+use tonic::{Request, transport::Channel};
 use tracing::{debug, error, info, instrument, trace, warn};
 
 pub use super::account_links::AccountLinks;
@@ -267,9 +266,6 @@ impl GrpcClient {
             enable_credentials_mode: credentials_mode,
             dns,
             user_agent: Some(self.user_agent.clone()),
-            min_mixnode_performance: None,
-            min_gateway_mixnet_performance: None,
-            min_gateway_vpn_performance: None,
         });
         let response = vpnd
             .vpn_connect(request)
@@ -425,8 +421,6 @@ impl GrpcClient {
         let request = Request::new(ListGatewaysRequest {
             kind: nym_vpn_proto::GatewayType::from(gw_type) as i32,
             user_agent: Some(self.user_agent.clone()),
-            min_mixnet_performance: None,
-            min_vpn_performance: None,
         });
         let response = vpnd.list_gateways(request).await.map_err(|e| {
             error!("grpc: {}", e);

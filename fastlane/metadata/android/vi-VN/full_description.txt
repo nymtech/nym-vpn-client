@@ -1,0 +1,49 @@
+Tải về VPN bảo mật nhất từ Nym và bảo vệ an toàn cho hoạt động trực tuyến của bạn. Với ứng dụng VPN của chúng tôi, bạn có thể ẩn địa chỉ IP, mã hóa lưu lượng truy cập, che giấu danh tính trực tuyến và còn nhiều hơn thế nữa.
+
+Nhiều thực thể trên internet có thể theo dõi hoạt động và thu thập dữ liệu của bạn.
+Chính phủ, các công ty công nghệ lớn, nhà môi giới dữ liệu, nhà cung cấp dịch vụ internet và các nhà quảng cáo đều có thể giám sát hoạt động trực tuyến của bạn. Những bê bối rò rỉ dữ liệu gần đây đã cho thấy rằng chúng ta thậm chí không thể tin tưởng vào các công ty VPN truyền thống.
+
+VPN của chúng tôi được tạo ra để làm cho hoạt động internet của bạn trở nên riêng tư và một phần quan trọng của điều này là không cho phép việc ghi lại hay theo dõi hoạt động.
+
+NymVPN là một loại VPN mới được thiết kế với mục đích không ai có thể giám sát hay ghi lại hoạt động trực tuyến của bạn, kể cả chúng tôi. VPN của chúng tôi hoạt động trên một mạng lưới phi tập trung, không có bên thứ ba, không có thành phần tập trung hay điểm lỗi đơn lẻ. Tất cả chức năng của NymVPN đều được thực hiện một cách phi tập trung và phân tán, và không có khả năng bật ghi lại nhật ký tập trung.
+
+VPN của chúng tôi mã hóa dữ liệu và che giấu siêu dữ liệu khỏi phân tích lưu lượng thông qua một Mixnet phi tập trung. Nói một cách đơn giản: không có cách nào để Nym ghi lại hoạt động của bạn, vì vậy không ai có thể truy cập nó.
+
+Nhưng Mixnet là gì? Mixnet là một mạng lưới các node thực hiện:
+1. Nhận lưu lượng được mã hóa
+2. Trộn lưu lượng
+3. Chuyển tiếp lưu lượng
+Quy trình này có thể được thực hiện đến 5 lần (5 bước nhảy) và khiến việc giám sát hay theo dõi hoạt động trực tuyến của bạn trở nên bất khả thi.
+
+Đây là lý do tại sao bạn nên chọn VPN phi tập trung, an toàn và riêng tư của chúng tôi
+
+Quyền riêng tư
+VPN phi tập trung của chúng tôi được xây dựng với quyền riêng tư là trọng tâm. Chúng tôi không lưu nhật ký (chính sách không lưu nhật ký) và cũng không theo dõi hoạt động của bạn. Ngay cả khi ai đó muốn đánh cắp dữ liệu của bạn từ chúng tôi, thì cũng không có gì để lấy.
+
+Chống kiểm duyệt
+Ứng dụng VPN của chúng tôi giúp hoạt động trực tuyến của bạn hoàn toàn ẩn danh. Chúng tôi mã hóa lưu lượng truy cập, địa chỉ IP, vị trí và mọi thứ mà kẻ xấu có thể giám sát. Bạn tuyệt đối an toàn nhờ vào các tính năng như killswitch.
+
+Tốc độ
+Tốc độ của mạng VPN của chúng tôi tăng lên từng phút nhờ vào việc ngày càng có nhiều node tham gia vào mạng lưới Mixnet. Ngoài ra, chúng tôi sử dụng các thuật toán mã hóa hiện đại và giao thức tiên tiến như Sphinx và Loopix để giúp kết nối của bạn nhanh nhất có thể.
+
+Chọn vị trí
+Với NymVPN, bạn có thể chọn kết nối từ hàng trăm địa điểm trên toàn cầu.
+Tải ứng dụng → Chọn vị trí → Kết nối
+
+Thanh toán bằng tiền điện tử
+Bạn đang tìm một VPN chấp nhận thanh toán bằng tiền điện tử? Chính là chúng tôi. Chúng tôi sẵn sàng chấp nhận thanh toán bằng tiền mã hóa.
+
+Không quảng cáo
+Tận hưởng VPN của bạn mà không có quảng cáo. Mục tiêu chính của chúng tôi là bảo vệ quyền riêng tư của bạn, vì vậy bạn sẽ không thấy quảng cáo nào trong ứng dụng VPN của chúng tôi.
+
+Sử dụng không giới hạn
+Tận hưởng internet bao lâu tùy thích, NymVPN sẽ không bao giờ giới hạn lưu lượng của bạn.
+
+Các tính năng được yêu thích nhất của VPN chúng tôi:
+- Mixnet 5 bước nhảy: lưu lượng internet của bạn sẽ được mã hóa và gửi đến các mixnode, nơi nó được trộn với các gói lưu lượng khác 5 lần, khiến việc theo dõi hoạt động trực tuyến của bạn trở nên bất khả thi.
+- dVPN 2 bước nhảy: trong trường hợp này, lưu lượng của bạn được mã hóa và gửi qua 2 mixnode để trộn. Số bước nhảy ít hơn đồng nghĩa với tốc độ cao hơn.
+Không ghi nhật ký tập trung: chúng tôi không lưu bất kỳ nhật ký hoạt động nào, điều này khiến không ai – kể cả chúng tôi – có thể truy cập hoạt động internet của bạn.
+- Đảm bảo hoàn tiền: nếu bạn không hài lòng với sản phẩm, chúng tôi có chính sách hoàn tiền. Nếu có vấn đề, hãy gửi email cho chúng tôi qua support@nymvpn.com, chúng tôi luôn không ngừng cải thiện.
+- Split tunneling: bạn có thể dễ dàng chọn ứng dụng nào sẽ truy cập internet qua VPN và ứng dụng nào sẽ truy cập trực tiếp.
+- Ẩn IP: VPN phi tập trung của chúng tôi sẽ ẩn tất cả thông tin liên quan đến bạn bao gồm địa chỉ IP.
+- Killswitch: VPN của chúng tôi được xây dựng để đảm bảo quyền riêng tư và bảo mật, vì vậy nếu kết nối VPN của bạn bị ngắt, killswitch sẽ chặn truy cập internet để giữ bạn và dữ liệu của bạn luôn an toàn

@@ -68,19 +68,37 @@ function AccountData() {
   };
 
   return (
-    <div className={clsx('mt-3')}>
+    <div className={clsx('mt-3')} data-testid="account-data-container">
       {accountId && (
-        <div className={clsx('flex flex-row flex-nowrap gap-1')}>
-          <p className="text-nowrap">{t('info.account-id')}</p>
-          <ButtonText onClick={() => copy(accountId)} truncate>
+        <div
+          className={clsx('flex flex-row flex-nowrap gap-1')}
+          data-testid="account-id-container"
+        >
+          <p className="text-nowrap" data-testid="account-id-label">
+            {t('info.account-id')}
+          </p>
+          <ButtonText
+            onClick={() => copy(accountId)}
+            truncate
+            data-testid="account-id-value"
+          >
             {truncateId(accountId)}
           </ButtonText>
         </div>
       )}
       {deviceId && (
-        <div className={clsx('flex flex-row flex-nowrap gap-1')}>
-          <p className="text-nowrap">{t('info.device-id')}</p>
-          <ButtonText onClick={() => copy(deviceId)} truncate>
+        <div
+          className={clsx('flex flex-row flex-nowrap gap-1')}
+          data-testid="device-id-container"
+        >
+          <p className="text-nowrap" data-testid="device-id-label">
+            {t('info.device-id')}
+          </p>
+          <ButtonText
+            onClick={() => copy(deviceId)}
+            truncate
+            data-testid="device-id-value"
+          >
             {truncateId(deviceId)}
           </ButtonText>
         </div>

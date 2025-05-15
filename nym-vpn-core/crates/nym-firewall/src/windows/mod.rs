@@ -12,12 +12,12 @@ use std::{ffi::CStr, net::IpAddr, ptr, sync::LazyLock};
 
 use nym_common::ErrorExt;
 use widestring::WideCString;
-use windows::Win32::Globalization::{MultiByteToWideChar, CP_ACP, MULTI_BYTE_TO_WIDE_CHAR_FLAGS};
+use windows::Win32::Globalization::{CP_ACP, MULTI_BYTE_TO_WIDE_CHAR_FLAGS, MultiByteToWideChar};
 
 use self::winfw::*;
 use super::{
-    net::{AllowedEndpoint, AllowedTunnelTraffic},
     FirewallArguments, FirewallPolicy, InitialFirewallState,
+    net::{AllowedEndpoint, AllowedTunnelTraffic},
 };
 use crate::FirewallPolicyError;
 
@@ -57,27 +57,27 @@ static BLOCK_HYPERV: LazyLock<bool> = LazyLock::new(|| {
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failure to initialize windows firewall module
-    #[error("Failed to initialize windows firewall module")]
+    #[error("failed to initialize windows firewall module")]
     Initialization,
 
     /// Failure to deinitialize windows firewall module
-    #[error("Failed to deinitialize windows firewall module")]
+    #[error("failed to deinitialize windows firewall module")]
     Deinitialization,
 
     /// Failure to apply a firewall _connecting_ policy
-    #[error("Failed to apply connecting firewall policy")]
+    #[error("failed to apply connecting firewall policy")]
     ApplyingConnectingPolicy(#[source] FirewallPolicyError),
 
     /// Failure to apply a firewall _connected_ policy
-    #[error("Failed to apply connected firewall policy")]
+    #[error("failed to apply connected firewall policy")]
     ApplyingConnectedPolicy(#[source] FirewallPolicyError),
 
     /// Failure to apply firewall _blocked_ policy
-    #[error("Failed to apply blocked firewall policy")]
+    #[error("failed to apply blocked firewall policy")]
     ApplyingBlockedPolicy(#[source] FirewallPolicyError),
 
     /// Failure to reset firewall policies
-    #[error("Failed to reset firewall policies")]
+    #[error("failed to reset firewall policies")]
     ResettingPolicy(#[source] FirewallPolicyError),
 }
 
@@ -562,10 +562,7 @@ fn consume_and_log_hyperv_err<T>(
 ) -> Option<T> {
     result
         .inspect_err(|error| {
-            tracing::error!(
-                "{}",
-                error.display_chain_with_msg(&format!("{action}. {HYPERV_LEAK_WARNING_MSG}"))
-            );
+            error.trace_chain_with_msg(format!("{action}. {HYPERV_LEAK_WARNING_MSG}"))
         })
         .ok()
 }
@@ -584,7 +581,7 @@ fn with_wmi_if_enabled(f: impl FnOnce(&wmi::WMIConnection)) {
 
 #[allow(non_snake_case)]
 mod winfw {
-    use super::{widestring_ip, AllowedEndpoint, AllowedTunnelTraffic, Error, WideCString};
+    use super::{AllowedEndpoint, AllowedTunnelTraffic, Error, WideCString, widestring_ip};
     use crate::net::TransportProtocol;
     use std::{
         ffi::{c_char, c_void},
@@ -827,16 +824,16 @@ mod winfw {
         }
     }
 
-    extern "system" {
+    unsafe extern "system" {
         #[link_name = "WinFw_Initialize"]
-        pub fn WinFw_Initialize(
+        pub unsafe fn WinFw_Initialize(
             timeout: libc::c_uint,
             sink: Option<LogSink>,
             sink_context: *const u8,
         ) -> InitializationResult;
 
         #[link_name = "WinFw_InitializeBlocked"]
-        pub fn WinFw_InitializeBlocked(
+        pub unsafe fn WinFw_InitializeBlocked(
             timeout: libc::c_uint,
             settings: &WinFwSettings,
             allowedEndpoints: *const *const WinFwAllowedEndpoint<'_>,
@@ -849,7 +846,7 @@ mod winfw {
         pub fn WinFw_Deinitialize(cleanupPolicy: WinFwCleanupPolicy) -> DeinitializationResult;
 
         #[link_name = "WinFw_ApplyPolicyConnecting"]
-        pub fn WinFw_ApplyPolicyConnecting(
+        pub unsafe fn WinFw_ApplyPolicyConnecting(
             settings: &WinFwSettings,
             relays: *const *const WinFwAllowedEndpoint,
             numRelays: usize,
@@ -864,7 +861,7 @@ mod winfw {
         ) -> WinFwPolicyStatus;
 
         #[link_name = "WinFw_ApplyPolicyConnected"]
-        pub fn WinFw_ApplyPolicyConnected(
+        pub unsafe fn WinFw_ApplyPolicyConnected(
             settings: &WinFwSettings,
             relays: *const *const WinFwAllowedEndpoint,
             numRelays: usize,
@@ -879,13 +876,13 @@ mod winfw {
         ) -> WinFwPolicyStatus;
 
         #[link_name = "WinFw_ApplyPolicyBlocked"]
-        pub fn WinFw_ApplyPolicyBlocked(
+        pub unsafe fn WinFw_ApplyPolicyBlocked(
             settings: &WinFwSettings,
             allowedEndpoints: *const *const WinFwAllowedEndpoint<'_>,
             numAllowedEndpoints: usize,
         ) -> WinFwPolicyStatus;
 
         #[link_name = "WinFw_Reset"]
-        pub fn WinFw_Reset() -> WinFwPolicyStatus;
+        pub unsafe fn WinFw_Reset() -> WinFwPolicyStatus;
     }
 }

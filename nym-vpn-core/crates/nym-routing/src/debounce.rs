@@ -5,7 +5,7 @@
 #![allow(dead_code)]
 
 use std::{
-    sync::mpsc::{channel, RecvTimeoutError, Sender},
+    sync::mpsc::{RecvTimeoutError, Sender, channel},
     time::{Duration, Instant},
 };
 

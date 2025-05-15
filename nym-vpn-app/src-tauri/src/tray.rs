@@ -5,15 +5,15 @@ use tauri::menu::MenuEvent;
 use tauri::tray::TrayIconEvent;
 use tauri::tray::{MouseButton, MouseButtonState};
 use tauri::tray::{TrayIcon, TrayIconBuilder};
-use tauri::{include_image, Manager};
-use tauri::{menu::MenuBuilder, AppHandle};
+use tauri::{AppHandle, menu::MenuBuilder};
+use tauri::{Manager, include_image};
 use tracing::{debug, error, info, instrument, trace, warn};
 
-use crate::grpc::tunnel::TunnelState;
 #[cfg(not(target_os = "linux"))]
 use crate::APP_NAME;
+use crate::grpc::tunnel::TunnelState;
 use crate::{
-    grpc::client::GrpcClient, state::SharedAppState, window::AppWindow, MAIN_WINDOW_LABEL,
+    MAIN_WINDOW_LABEL, grpc::client::GrpcClient, state::SharedAppState, window::AppWindow,
 };
 
 pub const TRAY_ICON_ID: &str = "main";

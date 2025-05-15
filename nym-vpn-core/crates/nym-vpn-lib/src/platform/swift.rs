@@ -5,7 +5,7 @@ use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
 use tracing_oslog::OsLogger;
 use tracing_subscriber::{
-    filter::LevelFilter, fmt::Layer, layer::SubscriberExt, util::SubscriberInitExt, Registry,
+    Registry, filter::LevelFilter, fmt::Layer, layer::SubscriberExt, util::SubscriberInitExt,
 };
 
 pub fn init_logs(level: String, path: Option<PathBuf>) {

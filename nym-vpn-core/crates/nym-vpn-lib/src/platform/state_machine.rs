@@ -1,13 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_common::ErrorExt;
 use nym_vpn_account_controller::AccountCommandSender;
-use nym_vpn_api_client::types::ScoreThresholds;
 use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
-
-use nym_gateway_directory::Config as GatewayDirectoryConfig;
 
 use super::TunnelEvent as PlatformTunnelEvent;
 use crate::tunnel_state_machine::{
@@ -16,7 +14,7 @@ use crate::tunnel_state_machine::{
 };
 use nym_vpn_lib_types::TunnelType;
 
-use super::{error::VpnError, VPNConfig, STATE_MACHINE_HANDLE};
+use super::{STATE_MACHINE_HANDLE, VPNConfig, error::VpnError};
 
 pub(super) async fn init_state_machine(
     config: VPNConfig,
@@ -62,7 +60,7 @@ fn setup_statistics_recipient(
         .map(nym_gateway_directory::Recipient::try_from_base58_string)
         .transpose()
         .inspect_err(|err| {
-            tracing::error!("Failed to parse statistics recipient: {}", err);
+            err.trace_chain_with_msg("Failed to parse statistics recipient");
         })
         .unwrap_or_default()
         .map(Box::new);
@@ -89,42 +87,21 @@ pub(super) async fn start_state_machine(
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
 
-    let api_url = network_env.api_url();
-    let nyxd_url = network_env.nyxd_url();
-    let nym_vpn_api_url = Some(network_env.vpn_api_url());
-    let mix_score_thresholds =
-        network_env
-            .system_configuration
-            .as_ref()
-            .map(|sc| ScoreThresholds {
-                high: sc.mix_thresholds.high,
-                medium: sc.mix_thresholds.medium,
-                low: sc.mix_thresholds.low,
-            });
-    let wg_score_thresholds = network_env
-        .system_configuration
-        .as_ref()
-        .map(|sc| ScoreThresholds {
-            high: sc.wg_thresholds.high,
-            medium: sc.wg_thresholds.medium,
-            low: sc.wg_thresholds.low,
-        });
-
-    let gateway_config = GatewayDirectoryConfig {
-        nyxd_url,
-        api_url,
-        nym_vpn_api_url,
-        min_gateway_performance: None,
-        mix_score_thresholds,
-        wg_score_thresholds,
-    };
+    // Bootstrap the state machines gateway client with the static gateway client, so that we can
+    // use the existing cached directory data.
+    let static_gw_client = super::init_static_gateway_client(config.user_agent.clone()).await?;
+    let gateway_directory_client =
+        nym_gateway_directory::CachingGatewayClient::new_from_existing(&static_gw_client).await;
+    let gateway_config = gateway_directory_client.get_config().await;
 
     let nym_config = NymConfig {
         config_path: config.config_path,
         data_path: config.credential_data_path,
-        gateway_config,
+        gateway_config: gateway_config.clone(),
         network_env,
     };
+
+    let user_agent = nym_sdk::UserAgent::from(config.user_agent.clone());
 
     let tunnel_settings = TunnelSettings {
         tunnel_type,
@@ -137,7 +114,7 @@ pub(super) async fn start_state_machine(
         entry_point: Box::new(entry_point),
         exit_point: Box::new(exit_point),
         dns: DnsOptions::default(),
-        user_agent: Some(config.user_agent.into()),
+        user_agent: Some(user_agent.clone()),
     };
 
     let (command_sender, command_receiver) = mpsc::unbounded_channel();
@@ -153,6 +130,25 @@ pub(super) async fn start_state_machine(
         }
     });
 
+    #[cfg(not(any(target_os = "android", target_os = "ios")))]
+    let route_handler = crate::tunnel_state_machine::RouteHandler::new()
+        .await
+        .map_err(crate::tunnel_state_machine::Error::CreateRouteHandler)?;
+
+    let connectivity_handle = nym_offline_monitor::spawn_monitor(
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        route_handler.inner_handle(),
+        #[cfg(target_os = "android")]
+        crate::tunnel_state_machine::AndroidConnectivityAdapter::new(config.tun_provider.clone()),
+        #[cfg(target_os = "linux")]
+        Some(crate::tunnel_state_machine::TUNNEL_FWMARK),
+    )
+    .await;
+
+    gateway_directory_client
+        .set_connectivity_handle(connectivity_handle.clone())
+        .await;
+
     let shutdown_token = CancellationToken::new();
     let state_machine_handle = TunnelStateMachine::spawn(
         command_receiver,
@@ -160,6 +156,10 @@ pub(super) async fn start_state_machine(
         nym_config,
         tunnel_settings,
         account_controller_tx,
+        gateway_directory_client,
+        connectivity_handle,
+        #[cfg(not(any(target_os = "android", target_os = "ios")))]
+        route_handler,
         #[cfg(any(target_os = "ios", target_os = "android"))]
         config.tun_provider,
         shutdown_token.child_token(),
@@ -184,7 +184,7 @@ pub(super) struct StateMachineHandle {
 impl StateMachineHandle {
     fn send_command(&self, command: TunnelCommand) {
         if let Err(e) = self.command_sender.send(command) {
-            tracing::error!("Failed to send comamnd: {}", e);
+            tracing::error!("Failed to send tunnel command: {}", e);
         }
     }
 

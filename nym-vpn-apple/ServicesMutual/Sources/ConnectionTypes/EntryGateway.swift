@@ -30,9 +30,10 @@ public enum EntryGateway: Codable, Equatable {
 
 extension EntryGateway: GatewayInfoProtocol {
     public var name: String {
+        // Remove name usage from country, due to dynamic localizations
         switch self {
         case let .country(country), let .lowLatencyCountry(country):
-            country.name
+            country.code
         case .randomLowLatency:
             "gateway.randomLowLatency".localizedString
         case .random:

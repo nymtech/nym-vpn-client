@@ -1,4 +1,6 @@
 {
+  "theme-section-title": "Theme",
+  "zoom-section-title": "Zoom level",
   "options": {
     "system": "Automatico",
     "light": "Tema chiaro",

@@ -15,6 +15,7 @@ import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
 import UpdateDialog from './UpdateDialog';
 
+const devMode = window._APP.devMode;
 let compatChecked = false;
 
 function Home() {
@@ -69,7 +70,7 @@ function Home() {
   };
 
   useEffect(() => {
-    if (S_STATE.devMode || compatChecked) {
+    if (devMode || compatChecked) {
       return;
     }
     if (
@@ -151,18 +152,31 @@ function Home() {
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.2, ease: 'easeOut' }}
         className="h-full flex flex-col"
+        data-testid="home-container"
       >
-        <div className="grow">
+        <div className="grow" data-testid="home-tunnel-state-container">
           <TunnelState />
         </div>
-        <div className="flex flex-col justify-between gap-y-8 select-none">
+        <div
+          className="flex flex-col justify-between gap-y-8 select-none"
+          data-testid="home-controls-container"
+        >
           <div className="flex flex-col justify-between gap-y-4">
             <NetworkModeSelect />
-            <div className="flex flex-col gap-6">
-              <div className="mt-3 text-base font-medium cursor-default">
+            <div
+              className="flex flex-col gap-6"
+              data-testid="home-node-select-section"
+            >
+              <div
+                className="mt-3 text-base font-medium cursor-default"
+                data-testid="home-node-select-title"
+              >
                 {t('select-node-title')}
               </div>
-              <div className="flex flex-col gap-5">
+              <div
+                className="flex flex-col gap-5"
+                data-testid="home-hop-selects-container"
+              >
                 <HopSelect
                   node={entryNode}
                   onClick={() => navigate(routes.entryNodeLocation)}
@@ -186,6 +200,8 @@ function Home() {
             disabled={loading || daemonStatus === 'down' || state === 'Offline'}
             spinner={loading}
             className={clsx(['h-14', loading && 'data-disabled:opacity-80'])}
+            data-testid="home-connection-button"
+            data-state={state}
           >
             {getButtonText()}
           </Button>

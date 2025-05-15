@@ -6,7 +6,8 @@ use std::{
     time::{Duration, Instant},
 };
 
-use futures::{channel::mpsc, StreamExt};
+use futures::{StreamExt, channel::mpsc};
+use nym_common::ErrorExt;
 use nym_sdk::TaskClient;
 use tokio::task::JoinHandle;
 
@@ -207,7 +208,9 @@ fn report_connectivity(connectivity: &ConnectivityState, task_client: &mut TaskC
             ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv4,
         ));
     } else {
-        tracing::error!("Unexpected connectivity state - exit gateway ipv4 connectivity is ok, but routing is not?");
+        tracing::error!(
+            "Unexpected connectivity state - exit gateway ipv4 connectivity is ok, but routing is not?"
+        );
     }
 
     if connectivity.exit_routing.ipv6 == ConnectivityStatus::Ok {
@@ -222,7 +225,9 @@ fn report_connectivity(connectivity: &ConnectivityState, task_client: &mut TaskC
             ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv6,
         ));
     } else {
-        tracing::error!("Unexpected connectivity state - exit gateway ipv6 connectivity is ok, but routing is not?");
+        tracing::error!(
+            "Unexpected connectivity state - exit gateway ipv6 connectivity is ok, but routing is not?"
+        );
     }
 }
 
@@ -259,10 +264,16 @@ impl fmt::Display for ConnectionMonitorStatus {
                 )
             }
             ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv4 => {
-                write!(f, "exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv4 traffic")
+                write!(
+                    f,
+                    "exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv4 traffic"
+                )
             }
             ConnectionMonitorStatus::ExitGatewayRoutingErrorIpv6 => {
-                write!(f, "exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv6 traffic")
+                write!(
+                    f,
+                    "exit gateway (or ipr) appears to be having issues routing and forwarding our external IPv6 traffic"
+                )
             }
             ConnectionMonitorStatus::ConnectedIpv4 => {
                 write!(f, "connected with ipv4")
@@ -288,7 +299,7 @@ pub fn start_connection_monitor(
     let monitor = ConnectionMonitor::new(connection_event_rx);
     tokio::spawn(async move {
         monitor.run(shutdown_listener).await.inspect_err(|err| {
-            tracing::error!("Connection monitor error: {err}");
+            err.trace_chain_with_msg("Connection monitor error");
         })
     })
 }

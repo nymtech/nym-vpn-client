@@ -5,10 +5,10 @@ use std::path::Path;
 
 use nym_vpn_store::{
     keys::{
-        persistence::{DeviceKeysPaths, OnDiskKeysError},
         DeviceKeys, KeyStore,
+        persistence::{DeviceKeysPaths, OnDiskKeysError},
     },
-    mnemonic::{on_disk::OnDiskMnemonicStorageError, Mnemonic, MnemonicStorage},
+    mnemonic::{Mnemonic, MnemonicStorage, on_disk::OnDiskMnemonicStorageError},
 };
 
 mod helpers;
@@ -38,6 +38,7 @@ impl VpnClientOnDiskStorage {
 
 impl nym_vpn_store::VpnStorage for VpnClientOnDiskStorage {}
 
+#[async_trait::async_trait]
 impl KeyStore for VpnClientOnDiskStorage {
     type StorageError = OnDiskKeysError;
 
@@ -62,6 +63,7 @@ impl KeyStore for VpnClientOnDiskStorage {
     }
 }
 
+#[async_trait::async_trait]
 impl MnemonicStorage for VpnClientOnDiskStorage {
     type StorageError = OnDiskMnemonicStorageError;
 

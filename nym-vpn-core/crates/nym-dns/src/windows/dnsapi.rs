@@ -4,8 +4,9 @@
 
 use std::{
     sync::{
+        Arc, OnceLock,
         atomic::{AtomicUsize, Ordering},
-        mpsc, Arc, OnceLock,
+        mpsc,
     },
     time::{Duration, Instant},
 };
@@ -20,15 +21,15 @@ const MAX_CONCURRENT_FLUSHES: usize = 5;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failed to flush the DNS cache.
-    #[error("Call to flush DNS cache failed")]
+    #[error("call to flush DNS cache failed")]
     FlushCache,
 
     /// Too many flush attempts in progress.
-    #[error("Too many flush attempts in progress")]
+    #[error("too many flush attempts in progress")]
     TooManyFlushAttempts,
 
     /// Flushing the DNS cache timed out.
-    #[error("Timeout while flushing DNS cache")]
+    #[error("timeout while flushing DNS cache")]
     Timeout,
 }
 
@@ -93,7 +94,7 @@ impl DnsApi {
 }
 
 #[link(name = "dnsapi")]
-extern "system" {
+unsafe extern "system" {
     // Flushes the DNS resolver cache
-    pub fn DnsFlushResolverCache() -> BOOL;
+    pub unsafe fn DnsFlushResolverCache() -> BOOL;
 }

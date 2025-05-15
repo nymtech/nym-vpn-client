@@ -29,8 +29,8 @@ use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 use crate::tunnel_state_machine::tunnel::wireguard::fd::DupFd;
 use crate::{
     tunnel_state_machine::tunnel::{
-        wireguard::{connector::ConnectionData, two_hop_config::TwoHopConfig},
         Error, Result, Tombstone,
+        wireguard::{connector::ConnectionData, two_hop_config::TwoHopConfig},
     },
     wg_config::WgNodeConfig,
 };

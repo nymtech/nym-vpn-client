@@ -23,23 +23,23 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Error in systemd-resolved DNS monitor
-    #[error("Error in systemd-resolved DNS monitor")]
+    #[error("error in systemd-resolved DNS monitor")]
     SystemdResolved(#[from] systemd_resolved::Error),
 
     /// Error in NetworkManager DNS monitor
-    #[error("Error in NetworkManager DNS monitor")]
+    #[error("error in NetworkManager DNS monitor")]
     NetworkManager(#[from] network_manager::Error),
 
     /// Error in resolvconf DNS monitor
-    #[error("Error in resolvconf DNS monitor")]
+    #[error("error in resolvconf DNS monitor")]
     Resolvconf(#[from] resolvconf::Error),
 
     /// Error in static /etc/resolv.conf DNS monitor
-    #[error("Error in static /etc/resolv.conf DNS monitor")]
+    #[error("error in static /etc/resolv.conf DNS monitor")]
     StaticResolvConf(#[from] static_resolv_conf::Error),
 
     /// No suitable DNS monitor implementation detected
-    #[error("No suitable DNS monitor implementation detected")]
+    #[error("no suitable DNS monitor implementation detected")]
     NoDnsMonitor,
 }
 
@@ -140,18 +140,16 @@ impl DnsMonitorHolder {
     ) -> Result<()> {
         use self::DnsMonitorHolder::*;
         match self {
-            Resolvconf(ref mut resolvconf) => resolvconf.set_dns(interface, servers)?,
-            StaticResolvConf(ref mut static_resolv_conf) => {
+            Resolvconf(resolvconf) => resolvconf.set_dns(interface, servers)?,
+            StaticResolvConf(static_resolv_conf) => {
                 static_resolv_conf.set_dns(servers.to_vec()).await?
             }
-            SystemdResolved(ref mut systemd_resolved) => {
+            SystemdResolved(systemd_resolved) => {
                 systemd_resolved
                     .set_dns(route_manager.clone(), interface, servers)
                     .await?
             }
-            NetworkManager(ref mut network_manager) => {
-                network_manager.set_dns(interface, servers)?
-            }
+            NetworkManager(network_manager) => network_manager.set_dns(interface, servers)?,
         }
         Ok(())
     }
@@ -159,10 +157,10 @@ impl DnsMonitorHolder {
     async fn reset(&mut self) -> Result<()> {
         use self::DnsMonitorHolder::*;
         match self {
-            Resolvconf(ref mut resolvconf) => resolvconf.reset()?,
-            StaticResolvConf(ref mut static_resolv_conf) => static_resolv_conf.reset().await?,
-            SystemdResolved(ref mut systemd_resolved) => systemd_resolved.reset().await?,
-            NetworkManager(ref mut network_manager) => network_manager.reset()?,
+            Resolvconf(resolvconf) => resolvconf.reset()?,
+            StaticResolvConf(static_resolv_conf) => static_resolv_conf.reset().await?,
+            SystemdResolved(systemd_resolved) => systemd_resolved.reset().await?,
+            NetworkManager(network_manager) => network_manager.reset()?,
         }
         Ok(())
     }

@@ -8,7 +8,7 @@ use std::path::Path;
 use std::{fmt, fs, path::PathBuf};
 
 use nym_vpn_lib::gateway_directory;
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 
 #[cfg(not(windows))]
 const DEFAULT_DATA_DIR: &str = "/var/lib/nym-vpnd";
@@ -18,6 +18,7 @@ const DEFAULT_LOG_DIR: &str = "/var/log/nym-vpnd";
 const DEFAULT_CONFIG_DIR: &str = "/etc/nym";
 pub const DEFAULT_CONFIG_FILE: &str = "nym-vpnd.toml";
 pub const DEFAULT_LOG_FILE: &str = "nym-vpnd.log";
+pub const DEFAULT_OLD_LOG_FILE: &str = "nym-vpnd.old.log";
 
 pub const DEFAULT_GLOBAL_CONFIG_FILE: &str = "config.toml";
 
@@ -103,38 +104,49 @@ pub fn config_dir() -> PathBuf {
 
 #[derive(thiserror::Error, Debug)]
 pub enum ConfigSetupError {
-    #[error("failed to parse config file {file}: {error}")]
+    #[error("failed to parse config file {file}")]
     Parse {
         file: PathBuf,
+        #[source]
         error: Box<toml::de::Error>,
     },
 
-    #[error("failed to read config file {file}: {error}")]
+    #[error("failed to read config file {file}")]
     ReadConfig {
         file: PathBuf,
+        #[source]
         error: std::io::Error,
     },
 
     #[error("failed to get parent directory of {file}")]
     GetParentDirectory { file: PathBuf },
 
-    #[error("failed to create directory {dir}: {error}")]
-    CreateDirectory { dir: PathBuf, error: std::io::Error },
+    #[error("failed to create directory {dir}")]
+    CreateDirectory {
+        dir: PathBuf,
+        #[source]
+        error: std::io::Error,
+    },
 
-    #[error("failed to write file {file}: {error}")]
+    #[error("failed to write file {file}")]
     WriteFile {
         file: PathBuf,
         error: std::io::Error,
     },
 
     #[cfg(unix)]
-    #[error("failed to set permissions for directory {dir}: {error}")]
-    SetPermissions { dir: PathBuf, error: std::io::Error },
-
-    #[cfg(windows)]
-    #[error("failed to set permissions for directory {dir}: {error}")]
+    #[error("failed to set permissions for directory {dir}")]
     SetPermissions {
         dir: PathBuf,
+        #[source]
+        error: std::io::Error,
+    },
+
+    #[cfg(windows)]
+    #[error("failed to set permissions for directory {dir}")]
+    SetPermissions {
+        dir: PathBuf,
+        #[source]
         error: nym_windows::security::Error,
     },
 }
@@ -268,8 +280,8 @@ pub(super) fn create_data_dir(
 #[cfg(windows)]
 fn set_data_dir_permissions(data_dir: impl AsRef<Path>) -> nym_windows::security::Result<()> {
     use nym_windows::security::{
-        set_named_security_info, AccessMode, AceFlags, Acl, ExplicitAccess, FileAccessRights,
-        SecurityInfo, SecurityObjectType, Sid, Trustee, TrusteeType, WellKnownSid,
+        AccessMode, AceFlags, Acl, ExplicitAccess, FileAccessRights, SecurityInfo,
+        SecurityObjectType, Sid, Trustee, TrusteeType, WellKnownSid, set_named_security_info,
     };
 
     let administrators_sid = Sid::well_known(WellKnownSid::BuiltinAdministrators)?;

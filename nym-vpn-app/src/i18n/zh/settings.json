@@ -1,0 +1,62 @@
+{
+  "auto-connect": {
+    "title": "自动连接",
+    "desc": "应用启动时自动连接"
+  },
+  "error-monitoring": {
+    "title": "匿名错误报告",
+    "desc": "重启时响应"
+  },
+  "notifications": {
+    "title": "桌面通知"
+  },
+  "monitoring-alert": "您必须重新启动应用才能使更改生效。",
+  "support": {
+    "title": "支持&反馈",
+    "faq": "查看常见问题",
+    "contact": "Contact support",
+    "telegram": "在 Telegram 上聊天",
+    "github": "打开 GitHub 问题",
+    "matrix": "加入Matrix",
+    "discord": "加入Discord"
+  },
+  "legal": {
+    "title": "法律条款",
+    "policy": "隐私声明",
+    "tos": "使用条款",
+    "license": "许可证",
+    "licenses-rust": "许可证(Rust)",
+    "licenses-js": "许可证(JS)",
+    "emptyData": "没有可用的许可数据"
+  },
+  "logs": {
+    "title": "日志（本地存储）",
+    "desc": "复制或删除日志",
+    "app": "App日志",
+    "daemon": "守护进程日志"
+  },
+  "faq": "FAQ-常见问题",
+  "display-theme": "显示模式",
+  "logout-confirmation": {
+    "title": "您确定吗？",
+    "description": "您将需要您的访问代码来重新连接您的设备。",
+    "logging-out": "正在登出…"
+  },
+  "quit": "退出 NymVPN",
+  "login-button": "连接设备",
+  "info": {
+    "client-version": "App 版本                                  ",
+    "daemon-version": "守护进程版本",
+    "network-name": "网络",
+    "account-id": "账号ID",
+    "device-id": "设备 ID"
+  },
+  "autostart": {
+    "title": "自动启动",
+    "desc": "系统启动时启动 NymVPN"
+  },
+  "killswitch": {
+    "title": "Killswitch",
+    "desc": "如果互联网断开，断开连接"
+  }
+}

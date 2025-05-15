@@ -24,6 +24,7 @@ function Notifications() {
           'list-none flex-col gap-2.5 outline-none',
           'cursor-default select-none',
         )}
+        data-testid="notifications-viewport"
       />
       <Toast
         open={!!current}
@@ -33,6 +34,7 @@ function Notifications() {
         duration={current?.duration}
         type={current?.type}
         clickAway={current?.clickAway}
+        data-testid="notifications-toast"
       />
     </>
   );

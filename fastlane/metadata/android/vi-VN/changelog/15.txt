@@ -1,0 +1,3 @@
+Có gì mới:
+- Thêm kiểm tra thông tin đăng nhập
+- Thêm lưu trữ được mã hóa cho thông tin đăng nhập

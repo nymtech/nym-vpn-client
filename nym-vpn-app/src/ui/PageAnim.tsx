@@ -5,9 +5,17 @@ type Props = {
   children: React.ReactNode;
   className?: string;
   slideOrigin?: 'left' | 'right';
+  'data-testid'?: string;
 };
 
-function PageAnim({ children, className, slideOrigin = 'left' }: Props) {
+function PageAnim({
+  children,
+  className,
+  slideOrigin = 'left',
+  ...rest
+}: Props) {
+  const testId = rest['data-testid'] || 'page-animation';
+
   return (
     <motion.div
       initial={{
@@ -20,6 +28,8 @@ function PageAnim({ children, className, slideOrigin = 'left' }: Props) {
         transition: { duration: 0.15, ease: 'easeOut' },
       }}
       className={clsx([className])}
+      data-testid={testId}
+      data-slide-origin={slideOrigin}
     >
       {children}
     </motion.div>

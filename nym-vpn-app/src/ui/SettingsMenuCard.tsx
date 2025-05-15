@@ -14,6 +14,7 @@ export type SettingsMenuCardProps = {
   className?: string;
   style?: CSSProperties;
   noHoverEffect?: boolean;
+  'data-testid'?: string;
 };
 
 function SettingsMenuCard({
@@ -28,7 +29,12 @@ function SettingsMenuCard({
   className,
   style,
   noHoverEffect,
+  ...rest
 }: SettingsMenuCardProps) {
+  const testId =
+    rest['data-testid'] ||
+    `settings-card-${title.replace(/\s+/g, '-').toLowerCase()}`;
+
   return (
     <div
       className={clsx([
@@ -47,27 +53,55 @@ function SettingsMenuCard({
       role="button"
       tabIndex={disabled ? -1 : 0}
       style={style}
+      data-testid={testId}
+      data-disabled={disabled ? 'true' : 'false'}
     >
       <div
         className={clsx(
           'overflow-hidden flex flex-row items-center justify-between gap-4',
         )}
+        data-testid={`${testId}-content`}
       >
         {leadingIcon && (
-          <MsIcon icon={leadingIcon} className="dark:text-white" />
+          <MsIcon
+            icon={leadingIcon}
+            className="dark:text-white"
+            data-testid={`${testId}-leading-icon`}
+          />
         )}
-        {leadingComponent && !leadingIcon && leadingComponent}
-        <div className="min-w-0 flex flex-col justify-center">
-          <p className="truncate text-base text-baltic-sea dark:text-white select-none">
+        {leadingComponent && !leadingIcon && (
+          <div data-testid={`${testId}-leading-component`}>
+            {leadingComponent}
+          </div>
+        )}
+        <div
+          className="min-w-0 flex flex-col justify-center"
+          data-testid={`${testId}-text-container`}
+        >
+          <p
+            className="truncate text-base text-baltic-sea dark:text-white select-none"
+            data-testid={`${testId}-title`}
+          >
             {title}
           </p>
-          <p className="truncate text-sm text-iron dark:text-bombay select-none">
-            {desc}
-          </p>
+          {desc && (
+            <p
+              className="truncate text-sm text-iron dark:text-bombay select-none"
+              data-testid={`${testId}-description`}
+            >
+              {desc}
+            </p>
+          )}
         </div>
       </div>
-      {trailingIcon && <MsIcon icon={trailingIcon} />}
-      {trailingComponent && !trailingIcon && trailingComponent}
+      {trailingIcon && (
+        <MsIcon icon={trailingIcon} data-testid={`${testId}-trailing-icon`} />
+      )}
+      {trailingComponent && !trailingIcon && (
+        <div data-testid={`${testId}-trailing-component`}>
+          {trailingComponent}
+        </div>
+      )}
     </div>
   );
 }

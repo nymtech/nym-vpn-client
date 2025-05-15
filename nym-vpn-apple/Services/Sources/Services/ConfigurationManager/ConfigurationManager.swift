@@ -188,7 +188,7 @@ private extension ConfigurationManager {
 #if os(iOS)
     func setEnvVariables() async throws {
         try await Task {
-            try initEnvironment(networkName: currentEnv.rawValue)
+            try initEnvironment(cacheDir: credentialsManager.cacheFolderURL().path(), networkName: currentEnv.rawValue)
         }.value
     }
 

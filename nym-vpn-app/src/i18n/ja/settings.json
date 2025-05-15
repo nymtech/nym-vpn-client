@@ -10,32 +10,40 @@
   "notifications": {
     "title": "デスクトップ通知"
   },
+  "monitoring-alert": "変更を反映させるには、アプリを再起動する必要があります。",
   "support": {
     "title": "サポート&フィードバック",
     "faq": "FAQをチェック",
+    "contact": "お問い合わせ",
+    "telegram": "Telegramでチャット",
     "github": "Githubでissueを作成",
     "matrix": "Matrixに参加",
-    "discord": "Discordに参加",
-    "get-in-touch": "お問い合わせ"
+    "discord": "Discordに参加"
   },
   "legal": {
     "title": "法務情報",
     "policy": "プライバシーポリシー",
     "tos": "利用規約",
     "license": "ライセンス",
-    "licenses-js": "ライセンス（JS）",
     "licenses-rust": "ライセンス（Rust）",
+    "licenses-js": "ライセンス（JS）",
     "emptyData": "ライセンスデータが利用できません"
   },
   "logs": {
-    "title": "ログ",
-    "desc": "ログをコピーまたは削除する"
+    "title": "ログ (ローカルに保存)",
+    "desc": "ログをコピーまたは削除する",
+    "app": "アプリのログ",
+    "daemon": "デーモンログ"
   },
   "faq": "よくある質問",
   "display-theme": "ディスプレイモード",
+  "logout-confirmation": {
+    "title": "実行しますか？",
+    "description": "デバイスを再接続するにはアクセスコードが必要です。",
+    "logging-out": "ログアウトしています..."
+  },
   "quit": "NymVPNを終了する",
   "login-button": "デバイスの接続",
-  "monitoring-alert": "変更を反映させるには、アプリを再起動する必要があります。",
   "info": {
     "client-version": "Appバージョン",
     "daemon-version": "デーモンバージョン",
@@ -43,8 +51,12 @@
     "account-id": "アカウントID",
     "device-id": "デバイスID"
   },
-  "logout-confirmation": {
-    "title": "実行しますか？",
-    "description": "デバイスを再接続するにはアクセスコードが必要です。"
+  "autostart": {
+    "title": "自動起動",
+    "desc": "システム起動時にNymVPNを起動"
+  },
+  "killswitch": {
+    "title": "キルスイッチ",
+    "desc": "インターネットが切断された場合は切断します"
   }
 }

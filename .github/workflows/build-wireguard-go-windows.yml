@@ -30,38 +30,24 @@ jobs:
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      # trying to install latest 17.12.1 version fails on CI
-      # - name: Install build tools
-      #   shell: cmd
-      #   run: |
-      #     winget install --disable-interactivity --id=Microsoft.VisualStudio.2022.BuildTools --override "--wait --passive --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
-      #     if %ERRORLEVEL% EQU -1978335189 (
-      #       exit /b 0
-      #     )
-
-      - name: Update path with vctools
-        shell: pwsh
-        run: |
-          $path = "$Env:ProgramFiles (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC"
-          $contents = Get-ChildItem $path | Select-Object -First 1
-          $subdir = $contents[0].Name
-          $vctoolsdir = "$path/$subdir/bin/Hostx64/x64"
-          echo "Add vctools dir to path: $vctoolsdir"
-          Add-Content $env:GITHUB_PATH "$vctoolsdir"
-
       - name: Setup msys2
         uses: msys2/setup-msys2@v2
+        id: msys2
         with:
           update: false
           msystem: MINGW64
           install: mingw-w64-x86_64-clang
 
-      - name: Build wireguard
-        shell: msys2 {0}
-        env:
-          MSYS2_PATH_TYPE: inherit
+      - name: Install GNU make
         run: |
-          ./wireguard/build-wireguard-go.sh
+          winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
+          echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
+
+      - name: Build wireguard
+        env:
+          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
+        working-directory: nym-vpn-core
+        run: make -f Windows.mk libwg CPU_ARCH=amd64
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

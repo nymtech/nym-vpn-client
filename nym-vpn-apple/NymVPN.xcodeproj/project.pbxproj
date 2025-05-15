@@ -77,6 +77,8 @@
 		D9BEF2E12BEB660D0036C566 /* GRPCManager in Frameworks */ = {isa = PBXBuildFile; productRef = D9BEF2E02BEB660D0036C566 /* GRPCManager */; };
 		D9BEF2E32BEB8D7E0036C566 /* Constants in Frameworks */ = {isa = PBXBuildFile; productRef = D9BEF2E22BEB8D7E0036C566 /* Constants */; };
 		D9BEF2E52BEBA4010036C566 /* AppSettings in Frameworks */ = {isa = PBXBuildFile; productRef = D9BEF2E42BEBA4010036C566 /* AppSettings */; };
+		D9BF25972DBBA5EA00A3CE72 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D9BF25962DBBA5EA00A3CE72 /* Localizable.xcstrings */; };
+		D9BF25982DBBA5F100A3CE72 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = D9BF25962DBBA5EA00A3CE72 /* Localizable.xcstrings */; };
 		D9BF292B2D5A23F500CDFC9A /* HelperInstall in Frameworks */ = {isa = PBXBuildFile; productRef = D9BF292A2D5A23F500CDFC9A /* HelperInstall */; };
 		D9CA18992D9AB96500FA8FAC /* QuitAppModal.swift in Sources */ = {isa = PBXBuildFile; fileRef = D9CA18982D9AB95C00FA8FAC /* QuitAppModal.swift */; };
 		D9CACB072D67B6DB0004F9E0 /* gatewaysVpnCountries.json in Resources */ = {isa = PBXBuildFile; fileRef = D9CACB062D67B6DB0004F9E0 /* gatewaysVpnCountries.json */; };
@@ -218,6 +220,7 @@
 		D9BEF2D62BEB63320036C566 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D9BEF2D92BEB63320036C566 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		D9BEF2DB2BEB63320036C566 /* NymVPNDaemon.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NymVPNDaemon.entitlements; sourceTree = "<group>"; };
+		D9BF25962DBBA5EA00A3CE72 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		D9CA18982D9AB95C00FA8FAC /* QuitAppModal.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuitAppModal.swift; sourceTree = "<group>"; };
 		D9CACB062D67B6DB0004F9E0 /* gatewaysVpnCountries.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatewaysVpnCountries.json; sourceTree = "<group>"; };
 		D9CACB092D67B7090004F9E0 /* gatewaysEntry.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = gatewaysEntry.json; sourceTree = "<group>"; };
@@ -389,6 +392,7 @@
 				D955FA002B73CF6F005BA27D /* Info.plist */,
 				D9F236222C64E64E00CCC433 /* LibLicences.json */,
 				D9879AF52CFE166400CF1B5D /* LaunchScreen.storyboard */,
+				D9BF25962DBBA5EA00A3CE72 /* Localizable.xcstrings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -684,6 +688,21 @@
 			knownRegions = (
 				en,
 				Base,
+				ru,
+				fr,
+				ar,
+				"zh-Hans",
+				de,
+				hi,
+				it,
+				ja,
+				fa,
+				"pt-BR",
+				"pt-PT",
+				es,
+				tr,
+				uk,
+				vi,
 			);
 			mainGroup = D99A146D2B357E9900F2728B;
 			packageReferences = (
@@ -722,6 +741,7 @@
 				D9879AF72CFE166400CF1B5D /* LaunchScreen.storyboard in Resources */,
 				D9CACB082D67B6DB0004F9E0 /* gatewaysVpnCountries.json in Resources */,
 				D96B94E02C2AB62D00E98B15 /* gatewaysExitCountries.json in Resources */,
+				D9BF25982DBBA5F100A3CE72 /* Localizable.xcstrings in Resources */,
 				D9DE893E2CFE54CD006C4071 /* launchLogo@3x.png in Resources */,
 				D9DE893F2CFE54CD006C4071 /* launchLogo.png in Resources */,
 				D9DE89402CFE54CD006C4071 /* launchLogo@2x.png in Resources */,
@@ -747,6 +767,7 @@
 				D96B94DF2C2AB62D00E98B15 /* gatewaysEntryCountries.json in Resources */,
 				D9BEF2D72BEB63320036C566 /* Assets.xcassets in Resources */,
 				D9CACB072D67B6DB0004F9E0 /* gatewaysVpnCountries.json in Resources */,
+				D9BF25972DBBA5EA00A3CE72 /* Localizable.xcstrings in Resources */,
 				D9F236252C650A9200CCC433 /* LibLicences.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -881,14 +902,14 @@
 				CODE_SIGN_ENTITLEMENTS = NymMixnetTunnel/NymMixnetTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 371;
+				CURRENT_PROJECT_VERSION = 378;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = NymMixnetTunnel/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NymMixnetTunnel;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -917,14 +938,14 @@
 				CODE_SIGN_ENTITLEMENTS = NymMixnetTunnel/NymMixnetTunnel.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 371;
+				CURRENT_PROJECT_VERSION = 378;
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = NymMixnetTunnel/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = NymMixnetTunnel;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1076,7 +1097,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 371;
+				CURRENT_PROJECT_VERSION = 378;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_PREVIEWS = YES;
@@ -1116,7 +1137,7 @@
 				CODE_SIGN_ENTITLEMENTS = NymVPN/NymVPN.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 371;
+				CURRENT_PROJECT_VERSION = 378;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
 				ENABLE_PREVIEWS = YES;
@@ -1155,7 +1176,7 @@
 				CODE_SIGN_IDENTITY = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 83;
+				CURRENT_PROJECT_VERSION = 90;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
 				DEVELOPMENT_TEAM = VW5DZLFHM5;
@@ -1192,7 +1213,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Developer ID Application";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 83;
+				CURRENT_PROJECT_VERSION = 90;
 				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_ASSET_PATHS = "\"NymVPNDaemon/Preview Content\"";
 				DEVELOPMENT_TEAM = "";

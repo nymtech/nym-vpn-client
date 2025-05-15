@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use windows::{
-    core::Result,
     Win32::{
-        Foundation::{LocalFree, HLOCAL},
-        Security::{Authorization::SetEntriesInAclW, ACL},
+        Foundation::{HLOCAL, LocalFree},
+        Security::{ACL, Authorization::SetEntriesInAclW},
     },
+    core::Result,
 };
 
 use super::ExplicitAccess;

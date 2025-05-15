@@ -4,8 +4,9 @@
 
 use ipnetwork::IpNetwork;
 use nftnl::{
+    Batch, Chain, FinalizedBatch, ProtoFamily, Rule, Table,
     expr::{self, IcmpCode, Payload, RejectionType, Verdict},
-    nft_expr, table, Batch, Chain, FinalizedBatch, ProtoFamily, Rule, Table,
+    nft_expr, table,
 };
 use std::{
     env,
@@ -18,14 +19,15 @@ use std::{
 use nym_common::linux::IfaceIndexLookupError;
 
 use super::{
+    FirewallArguments, FirewallPolicy,
     net::{
-        AllowedEndpoint, AllowedTunnelTraffic, Endpoint, TransportProtocol, TunnelMetadata,
-        ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS,
+        ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS, AllowedEndpoint, AllowedTunnelTraffic,
+        Endpoint, TransportProtocol, TunnelMetadata,
     },
-    split_tunnel, FirewallArguments, FirewallPolicy,
+    split_tunnel,
 };
 
-use crate::{AllowedClients, TunnelInterface, DNS_TCP_PORTS, DNS_UDP_PORTS};
+use crate::{AllowedClients, DNS_TCP_PORTS, DNS_UDP_PORTS, TunnelInterface};
 
 /// Priority for rules that tag split tunneling packets. Equals NF_IP_PRI_MANGLE.
 const MANGLE_CHAIN_PRIORITY: i32 = libc::NF_IP_PRI_MANGLE;
@@ -39,28 +41,28 @@ pub type Result<T> = std::result::Result<T, Error>;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Unable to open netlink socket to netfilter.
-    #[error("Unable to open netlink socket to netfilter")]
+    #[error("unable to open netlink socket to netfilter")]
     NetlinkOpenError(#[source] io::Error),
 
     /// Unable to send netlink command to netfilter.
-    #[error("Unable to send netlink command to netfilter")]
+    #[error("unable to send netlink command to netfilter")]
     NetlinkSendError(#[source] io::Error),
 
     /// Error while reading from netlink socket.
-    #[error("Error while reading from netlink socket")]
+    #[error("error while reading from netlink socket")]
     NetlinkRecvError(#[source] io::Error),
 
     /// Error while processing an incoming netlink message.
-    #[error("Error while processing an incoming netlink message")]
+    #[error("error while processing an incoming netlink message")]
     ProcessNetlinkError(#[source] io::Error),
 
     /// Failed to verify that our tables are set. Probably means that
     /// it's the host that does not support nftables properly.
-    #[error("Failed to set firewall rules")]
+    #[error("failed to set firewall rules")]
     NetfilterTableNotSetError,
 
     /// Unable to translate network interface name into index.
-    #[error("Unable to translate network interface name \"{0}\" into index")]
+    #[error("unable to translate network interface name \"{0}\" into index")]
     LookupIfaceIndexError(String, #[source] IfaceIndexLookupError),
 }
 

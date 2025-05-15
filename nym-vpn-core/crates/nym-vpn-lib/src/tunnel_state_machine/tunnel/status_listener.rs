@@ -1,6 +1,9 @@
+// Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
 use std::time::Duration;
 
-use futures::{stream::StreamExt, FutureExt};
+use futures::{FutureExt, stream::StreamExt};
 use nym_statistics_common::clients::packet_statistics::MixnetBandwidthStatisticsEvent;
 use tokio::{sync::mpsc, task::JoinHandle};
 

@@ -35,7 +35,7 @@
     },
     "linux": {
       "deb": {
-        "depends": ["nym-vpnd (>= 1.8.0~beta)"],
+        "depends": ["nym-vpnd (>= 1.9.0~beta)"],
         "desktopTemplate": "./bundle/deb/main.desktop"
       }
     }

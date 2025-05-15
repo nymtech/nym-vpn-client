@@ -5,8 +5,8 @@
 use std::net::IpAddr;
 
 use nym_common::{
-    linux::{iface_index, IfaceIndexLookupError},
     ErrorExt,
+    linux::{IfaceIndexLookupError, iface_index},
 };
 use nym_dbus::systemd_resolved::{AsyncHandle, SystemdResolved as DbusInterface};
 use nym_routing::RouteManagerHandle;
@@ -20,7 +20,7 @@ pub enum Error {
     #[error("systemd-resolved operation failed")]
     SystemdResolvedError(#[from] SystemdDbusError),
 
-    #[error("Failed to resolve interface index with error {0}")]
+    #[error("failed to resolve interface index with error {0}")]
     InterfaceNameError(#[from] IfaceIndexLookupError),
 }
 
@@ -51,7 +51,7 @@ impl SystemdResolved {
         self.tunnel_index = tunnel_index;
 
         if let Err(error) = self.dbus_interface.disable_dot(self.tunnel_index).await {
-            tracing::error!("Failed to disable DoT: {}", error.display_chain());
+            error.trace_chain_with_msg("Failed to disable DoT");
         }
 
         if let Err(error) = self
@@ -59,7 +59,7 @@ impl SystemdResolved {
             .set_domains(tunnel_index, &[(".", true)])
             .await
         {
-            tracing::error!("Failed to set search domains: {}", error.display_chain());
+            error.trace_chain_with_msg("Failed to set search domains");
         }
 
         let _ = self
@@ -76,7 +76,7 @@ impl SystemdResolved {
             .set_domains(self.tunnel_index, &[])
             .await
         {
-            tracing::error!("Failed to set search domains: {}", error.display_chain());
+            error.trace_chain_with_msg("Failed to set search domains");
         }
 
         let _ = self

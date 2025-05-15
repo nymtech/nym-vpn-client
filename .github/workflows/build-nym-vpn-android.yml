@@ -116,9 +116,15 @@ jobs:
           toolchain: 1.85 # If this changes, we need a PR to Fdroid to update pipeline for reproducibility
           targets: aarch64-linux-android
 
-      - name: Install cargo deps
-        run: |
-          cargo install cargo-ndk cargo-license --locked
+      - name: Install cargo-ndk
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-ndk
+
+      - name: Install cargo-license
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-license
 
       - name: Install deps
         run: |

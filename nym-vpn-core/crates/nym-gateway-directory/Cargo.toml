@@ -9,15 +9,19 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+futures.workspace = true
 itertools.workspace = true
 nym-client-core.workspace = true
+nym-common.workspace = true
 nym-http-api-client.workspace = true
+nym-offline-monitor.workspace = true
 nym-sdk.workspace = true
 nym-topology.workspace = true
 nym-validator-client.workspace = true
 nym-vpn-api-client = { workspace = true }
 rand.workspace = true
 serde.workspace = true
+strum.workspace = true
 thiserror.workspace = true
 tokio.workspace = true
 tracing.workspace = true

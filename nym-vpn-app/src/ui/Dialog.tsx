@@ -12,12 +12,14 @@ export type DialogProps = {
   onClose: () => void;
   children?: ReactNode;
   className?: string;
+  'data-testid'?: string;
 };
 
-function Dialog({ open, onClose, children, className }: DialogProps) {
+function Dialog({ open, onClose, children, className, ...rest }: DialogProps) {
   // manually injecting the theme is required as dialogs are rendered
   // outside the main app container (using a portal)
   const { uiTheme } = useMainState();
+  const testId = rest['data-testid'] || 'dialog';
 
   return (
     <HuDialog
@@ -28,15 +30,25 @@ function Dialog({ open, onClose, children, className }: DialogProps) {
       ])}
       open={open}
       onClose={onClose}
+      data-testid={testId}
+      data-open={open ? 'true' : 'false'}
+      data-theme={uiTheme}
     >
       <DialogBackdrop
         transition
         className={clsx([
           'fixed inset-0 bg-black/30 duration-200 ease-out data-closed:opacity-0',
         ])}
+        data-testid={`${testId}-backdrop`}
       />
-      <div className="fixed inset-0 z-50 w-screen overflow-y-auto">
-        <div className="flex min-h-full items-center justify-center p-4 mx-4">
+      <div
+        className="fixed inset-0 z-50 w-screen overflow-y-auto"
+        data-testid={`${testId}-container`}
+      >
+        <div
+          className="flex min-h-full items-center justify-center p-4 mx-4"
+          data-testid={`${testId}-wrapper`}
+        >
           <DialogPanel
             transition
             className={clsx(
@@ -47,6 +59,7 @@ function Dialog({ open, onClose, children, className }: DialogProps) {
               ],
               className,
             )}
+            data-testid={`${testId}-panel`}
           >
             {children}
           </DialogPanel>

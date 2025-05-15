@@ -4,7 +4,7 @@
 
 use std::io;
 use windows::Win32::{
-    Foundation::{CloseHandle, DuplicateHandle, DUPLICATE_SAME_ACCESS, HANDLE},
+    Foundation::{CloseHandle, DUPLICATE_SAME_ACCESS, DuplicateHandle, HANDLE},
     System::Threading::{CreateEventW, GetCurrentProcess, SetEvent},
 };
 

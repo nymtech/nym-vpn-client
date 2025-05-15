@@ -27,17 +27,20 @@ use std::{
     path::PathBuf,
 };
 
+use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::AccountCommandSender;
 use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
+use nym_common::ErrorExt;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::{
-    Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, Recipient, ResolvedConfig,
+    CachingGatewayClient, Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, Recipient,
+    ResolvedConfig,
 };
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
@@ -55,13 +58,17 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
 use crate::{
-    bandwidth_controller::Error as BandwidthControllerError, GatewayDirectoryError,
-    MixnetClientConfig,
+    GatewayDirectoryError, MixnetClientConfig,
+    bandwidth_controller::Error as BandwidthControllerError,
 };
+#[cfg(target_os = "android")]
+pub use android_connectivity_adapter::AndroidConnectivityAdapter;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use dns_handler::DnsHandlerHandle;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use route_handler::RouteHandler;
+pub use route_handler::RouteHandler;
+#[cfg(target_os = "linux")]
+pub use route_handler::TUNNEL_FWMARK;
 use states::{DisconnectedState, OfflineState};
 
 #[async_trait::async_trait]
@@ -233,9 +240,13 @@ impl From<PrivateTunnelState> for TunnelState {
             PrivateTunnelState::Connected { connection_data } => {
                 Self::Connected { connection_data }
             }
-            PrivateTunnelState::Connecting { connection_data } => {
-                Self::Connecting { connection_data }
-            }
+            PrivateTunnelState::Connecting {
+                retry_attempt,
+                connection_data,
+            } => Self::Connecting {
+                retry_attempt,
+                connection_data,
+            },
             PrivateTunnelState::Disconnecting { after_disconnect } => Self::Disconnecting {
                 after_disconnect: ActionAfterDisconnect::from(after_disconnect),
             },
@@ -250,6 +261,8 @@ impl From<PrivateTunnelState> for TunnelState {
 enum PrivateTunnelState {
     Disconnected,
     Connecting {
+        /// Connection attempt.
+        retry_attempt: u32,
         connection_data: Option<ConnectionData>,
     },
     Connected {
@@ -269,7 +282,7 @@ impl From<PrivateActionAfterDisconnect> for ActionAfterDisconnect {
     fn from(value: PrivateActionAfterDisconnect) -> Self {
         match value {
             PrivateActionAfterDisconnect::Nothing => Self::Nothing,
-            PrivateActionAfterDisconnect::Reconnect { .. } => Self::Reconnect,
+            PrivateActionAfterDisconnect::Reconnect => Self::Reconnect,
             PrivateActionAfterDisconnect::Offline { .. } => Self::Offline,
             PrivateActionAfterDisconnect::Error(_) => Self::Error,
         }
@@ -282,16 +295,13 @@ enum PrivateActionAfterDisconnect {
     /// Do nothing after disconnect
     Nothing,
 
-    /// Reconnect after disconnect, providing the retry attempt counter
-    Reconnect { retry_attempt: u32 },
+    /// Reconnect after disconnect
+    Reconnect,
 
     /// Enter offline state after disconnect
     Offline {
         /// Whether to reconnect the tunnel once back online.
         reconnect: bool,
-
-        /// The last recorded retry attempt passed to connecting state upon reconnect.
-        retry_attempt: u32,
 
         /// The last known gateways passed to connecting state upon reconnect.
         gateways: Option<SelectedGateways>,
@@ -309,6 +319,16 @@ pub enum TunnelInterface {
         entry: TunnelMetadata,
         exit: TunnelMetadata,
     },
+}
+
+impl TunnelInterface {
+    /// Returns exit tunnel metadata
+    pub fn exit_tunnel_metadata(&self) -> &TunnelMetadata {
+        match self {
+            Self::One(metadata) => metadata,
+            Self::Two { exit, .. } => exit,
+        }
+    }
 }
 
 /// Describes tunnel interface configuration.
@@ -356,7 +376,7 @@ pub struct SharedState {
     firewall: Firewall,
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     dns_handler: DnsHandlerHandle,
-    offline_monitor: nym_offline_monitor::ConnectivityHandle,
+    connectivity_handle: nym_offline_monitor::ConnectivityHandle,
     /// Filtering resolver handle
     #[cfg(target_os = "macos")]
     filtering_resolver: resolver::ResolverHandle,
@@ -369,6 +389,7 @@ pub struct SharedState {
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_command_tx: AccountCommandSender,
     resolved_gateway_config: Option<ResolvedConfig>,
+    gateway_directory: CachingGatewayClient,
 }
 
 #[derive(Debug, Clone)]
@@ -393,12 +414,16 @@ pub struct TunnelStateMachine {
 }
 
 impl TunnelStateMachine {
+    #[allow(clippy::too_many_arguments)]
     pub async fn spawn(
         command_receiver: mpsc::UnboundedReceiver<TunnelCommand>,
         event_sender: mpsc::UnboundedSender<TunnelEvent>,
         nym_config: NymConfig,
         tunnel_settings: TunnelSettings,
         account_command_tx: AccountCommandSender,
+        gateway_directory: CachingGatewayClient,
+        connectivity_handle: ConnectivityHandle,
+        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
         #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
         shutdown_token: CancellationToken,
@@ -407,11 +432,6 @@ impl TunnelStateMachine {
         let filtering_resolver = resolver::start_resolver()
             .await
             .map_err(Error::StartLocalDnsResolver)?;
-
-        #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-        let route_handler = RouteHandler::new()
-            .await
-            .map_err(Error::CreateRouteHandler)?;
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let dns_handler_shutdown_token = CancellationToken::new();
@@ -423,21 +443,13 @@ impl TunnelStateMachine {
         )
         .map_err(Error::CreateDnsHandler)?;
 
-        let offline_monitor = nym_offline_monitor::spawn_monitor(
-            #[cfg(not(any(target_os = "android", target_os = "ios")))]
-            route_handler.inner_handle(),
-            #[cfg(target_os = "android")]
-            android_connectivity_adapter::AndroidConnectivityAdapter::new(tun_provider.clone()),
-            #[cfg(target_os = "linux")]
-            Some(route_handler::TUNNEL_FWMARK),
-        )
-        .await;
-
-        let offline_watch = offline_monitor.clone();
+        let offline_watch = connectivity_handle.clone();
         account_command_tx
             .register_offline_monitor(offline_watch)
             .await
-            .inspect_err(|err| tracing::error!("Failed to register offline watch: {}", err))
+            .inspect_err(|err| {
+                err.trace_chain_with_msg("Failed to register offline watch");
+            })
             .ok();
 
         let (mixnet_event_sender, mixnet_event_receiver) = mpsc::unbounded_channel();
@@ -459,7 +471,7 @@ impl TunnelStateMachine {
             firewall,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             dns_handler,
-            offline_monitor,
+            connectivity_handle,
             #[cfg(target_os = "macos")]
             filtering_resolver,
             nym_config,
@@ -469,17 +481,18 @@ impl TunnelStateMachine {
             tun_provider,
             account_command_tx,
             resolved_gateway_config: None,
+            gateway_directory,
         };
 
         let (current_state_handler, _) = if shared_state
-            .offline_monitor
+            .connectivity_handle
             .connectivity()
             .await
             .is_offline()
         {
-            OfflineState::enter(false, 0, None, &mut shared_state).await
+            OfflineState::enter(false, None, &mut shared_state).await
         } else {
-            DisconnectedState::enter(&mut shared_state).await
+            DisconnectedState::enter(None, &mut shared_state).await
         };
 
         let tunnel_state_machine = Self {
@@ -617,6 +630,9 @@ pub enum Error {
 
     #[error(transparent)]
     Account(#[from] account::Error),
+
+    #[error("device time not synced")]
+    DeviceTimeOutOfSync,
 }
 
 impl Error {
@@ -625,7 +641,7 @@ impl Error {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateRouteHandler(_) | Self::AddRoutes(_) => ErrorStateReason::Routing,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-            Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::Dns,
+            Self::CreateDnsHandler(_) | Self::SetDns(_) => ErrorStateReason::SetDns,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::CreateFirewall(_) | Self::ApplyFirewallPolicy(_) => ErrorStateReason::Firewall,
             Self::CreateTunDevice(_) => ErrorStateReason::TunDevice,
@@ -648,6 +664,7 @@ impl Error {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::GetRouteHandle(e) => ErrorStateReason::Internal(e.to_string()),
             Self::Account(err) => err.error_state_reason()?,
+            Self::DeviceTimeOutOfSync => ErrorStateReason::DeviceTimeOutOfSync,
         })
     }
 }
@@ -659,12 +676,12 @@ impl tunnel::Error {
                 GatewayDirectoryError::SameEntryAndExitGateway { .. } => {
                     Some(ErrorStateReason::SameEntryAndExitGateway)
                 }
-                GatewayDirectoryError::FailedToSelectEntryGateway {
-                    source: nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation { .. },
-                } => Some(ErrorStateReason::InvalidEntryGatewayCountry),
-                GatewayDirectoryError::FailedToSelectExitGateway {
-                    source: nym_gateway_directory::Error::NoMatchingExitGatewayForLocation { .. },
-                } => Some(ErrorStateReason::InvalidExitGatewayCountry),
+                GatewayDirectoryError::SelectEntryGateway(
+                    nym_gateway_directory::Error::NoMatchingEntryGatewayForLocation { .. },
+                ) => Some(ErrorStateReason::InvalidEntryGatewayCountry),
+                GatewayDirectoryError::SelectExitGateway(
+                    nym_gateway_directory::Error::NoMatchingExitGatewayForLocation { .. },
+                ) => Some(ErrorStateReason::InvalidExitGatewayCountry),
                 _ => None,
             },
             Self::BandwidthController(BandwidthControllerError::RegisterWireguard {
@@ -702,6 +719,8 @@ impl account::Error {
             Self::SyncDevice(e) => Some(e.into()),
             Self::RegisterDevice(e) => Some(e.into()),
             Self::RequestZkNym(e) => Some(e.into()),
+            Self::Command(e) => Some(ErrorStateReason::Internal(e.to_string())),
+            Self::DeviceTimeOutOfSync => Some(ErrorStateReason::DeviceTimeOutOfSync),
             Self::Cancelled => None,
         }
     }

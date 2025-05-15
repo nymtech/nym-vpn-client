@@ -2,25 +2,25 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use windows::{
-    core::{Result, HRESULT, PWSTR},
     Win32::{
-        Foundation::{LocalFree, ERROR_INSUFFICIENT_BUFFER, HLOCAL},
+        Foundation::{ERROR_INSUFFICIENT_BUFFER, HLOCAL, LocalFree},
         Security::{
             Authentication::Identity::{
-                LsaClose, LsaFreeMemory, LsaOpenPolicy, LsaQueryInformationPolicy,
-                PolicyAccountDomainInformation, LSA_HANDLE, LSA_OBJECT_ATTRIBUTES,
-                POLICY_ACCOUNT_DOMAIN_INFO, POLICY_VIEW_LOCAL_INFORMATION,
+                LSA_HANDLE, LSA_OBJECT_ATTRIBUTES, LsaClose, LsaFreeMemory, LsaOpenPolicy,
+                LsaQueryInformationPolicy, POLICY_ACCOUNT_DOMAIN_INFO,
+                POLICY_VIEW_LOCAL_INFORMATION, PolicyAccountDomainInformation,
             },
             Authorization::ConvertSidToStringSidW,
             CopySid, CreateWellKnownSid, EqualSid, FreeSid, GetLengthSid, GetTokenInformation,
-            IsWellKnownSid, LookupAccountSidW, TokenUser, PSID, SECURITY_MAX_SID_SIZE,
-            SID_NAME_USE, TOKEN_QUERY, TOKEN_USER, WELL_KNOWN_SID_TYPE,
+            IsWellKnownSid, LookupAccountSidW, PSID, SECURITY_MAX_SID_SIZE, SID_NAME_USE,
+            TOKEN_QUERY, TOKEN_USER, TokenUser, WELL_KNOWN_SID_TYPE,
         },
         System::{
-            Memory::{LocalAlloc, LPTR},
+            Memory::{LPTR, LocalAlloc},
             Threading::{GetCurrentProcess, OpenProcessToken},
         },
     },
+    core::{HRESULT, PWSTR, Result},
 };
 
 #[derive(Debug)]
@@ -90,9 +90,9 @@ pub struct Sid {
 impl Sid {
     /// Create new SID copying data from raw pointer.
     pub(crate) unsafe fn copy_from(psid: PSID) -> Result<Self> {
-        let sid_len = GetLengthSid(psid);
+        let sid_len = unsafe { GetLengthSid(psid) };
         let sid_len_sz = usize::try_from(sid_len).expect("sid length is too large");
-        let buffer = LocalAlloc(LPTR, sid_len_sz)?;
+        let buffer = unsafe { LocalAlloc(LPTR, sid_len_sz)? };
         let dest_sid = PSID(buffer.0 as *mut _);
 
         unsafe { CopySid(sid_len, dest_sid, psid)? };

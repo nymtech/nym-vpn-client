@@ -6,30 +6,30 @@ use crate::{DnsMonitorT, ResolvedDnsConfig};
 use nym_common::ErrorExt;
 use nym_windows::net::{guid_from_luid, luid_from_alias};
 use std::{io, net::IpAddr};
-use windows::{core::GUID, Win32::System::Com::StringFromGUID2};
+use windows::{Win32::System::Com::StringFromGUID2, core::GUID};
 use winreg::{
+    RegKey,
     enums::{HKEY_LOCAL_MACHINE, KEY_SET_VALUE},
     transaction::Transaction,
-    RegKey,
 };
 
 /// Errors that can happen when configuring DNS on Windows.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Failure to obtain an interface LUID given an alias.
-    #[error("Failed to obtain LUID for the interface alias")]
+    #[error("failed to obtain LUID for the interface alias")]
     ObtainInterfaceLuid(#[source] io::Error),
 
     /// Failure to obtain an interface GUID.
-    #[error("Failed to obtain GUID for the interface")]
+    #[error("failed to obtain GUID for the interface")]
     ObtainInterfaceGuid(#[source] io::Error),
 
     /// Failure to flush DNS cache.
-    #[error("Failed to flush DNS resolver cache")]
+    #[error("failed to flush DNS resolver cache")]
     FlushResolverCache(#[source] super::dnsapi::Error),
 
     /// Failed to update DNS servers for interface.
-    #[error("Failed to update interface DNS servers")]
+    #[error("failed to update interface DNS servers")]
     SetResolvers(#[source] io::Error),
 }
 

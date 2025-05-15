@@ -1,11 +1,16 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, path::PathBuf, sync::Arc, time::Instant};
+use std::{
+    net::IpAddr,
+    path::PathBuf,
+    sync::{Arc, OnceLock},
+    time::Instant,
+};
 
 use bip39::Mnemonic;
 use serde::{Deserialize, Serialize};
-use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
@@ -17,17 +22,17 @@ use nym_vpn_account_controller::{
     AvailableTicketbooks, SharedAccountState,
 };
 use nym_vpn_api_client::{
-    response::{NymVpnDevice, NymVpnUsage},
-    types::Percent,
     NetworkCompatibility,
+    response::{NymVpnDevice, NymVpnUsage},
+    types::{Percent, ScoreThresholds},
 };
 use nym_vpn_lib::{
-    gateway_directory::{self, EntryPoint, ExitPoint},
+    MixnetClientConfig, Recipient, UserAgent,
+    gateway_directory::{self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
     },
-    MixnetClientConfig, Recipient, UserAgent,
 };
 use nym_vpn_lib_types::{
     AccountCommandError, ForgetAccountError, StoreAccountError, TunnelEvent, TunnelState,
@@ -37,13 +42,16 @@ use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMe
 use zeroize::Zeroizing;
 
 use super::{
-    config::{NetworkEnvironments, NymVpnServiceConfig, DEFAULT_CONFIG_FILE},
+    config::{DEFAULT_CONFIG_FILE, NetworkEnvironments, NymVpnServiceConfig},
     error::{
         AccountControllerError, AccountLinksError, Error, Result, SetNetworkError,
         VpnServiceDeleteLogFileError,
     },
 };
 use crate::{config::GlobalConfigFile, logging::LogPath};
+
+// Lazy initialized static instance of CachingGatewayClient, using OnceLock
+pub static GATEWAY_DIRECTORY_CLIENT: OnceLock<CachingGatewayClient> = OnceLock::new();
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -267,10 +275,22 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             network_env: network_env.clone(),
         };
 
+        let route_handler = nym_vpn_lib::tunnel_state_machine::RouteHandler::new()
+            .await
+            .map_err(nym_vpn_lib::tunnel_state_machine::Error::CreateRouteHandler)
+            .map_err(Error::StateMachine)?;
+
+        let connectivity_handle = nym_offline_monitor::spawn_monitor(
+            route_handler.inner_handle(),
+            #[cfg(target_os = "linux")]
+            Some(nym_vpn_lib::tunnel_state_machine::TUNNEL_FWMARK),
+        )
+        .await;
+
         let account_controller = AccountController::new(
             account_controller_config,
             Arc::clone(&storage),
-            None,
+            Some(connectivity_handle.clone()),
             shutdown_token.child_token(),
         )
         .await
@@ -293,20 +313,53 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let tunnel_settings = TunnelSettings::default();
         let nyxd_url = network_env.nyxd_url();
         let api_url = network_env.api_url();
+
+        let mix_score_thresholds =
+            network_env
+                .system_configuration
+                .as_ref()
+                .map(|sc| ScoreThresholds {
+                    high: sc.mix_thresholds.high,
+                    medium: sc.mix_thresholds.medium,
+                    low: sc.mix_thresholds.low,
+                });
+        let wg_score_thresholds =
+            network_env
+                .system_configuration
+                .as_ref()
+                .map(|sc| ScoreThresholds {
+                    high: sc.wg_thresholds.high,
+                    medium: sc.wg_thresholds.medium,
+                    low: sc.wg_thresholds.low,
+                });
+
         let gateway_config = gateway_directory::Config {
             nyxd_url,
             api_url,
             nym_vpn_api_url: Some(network_env.vpn_api_url()),
             min_gateway_performance: None,
-            mix_score_thresholds: None,
-            wg_score_thresholds: None,
+            mix_score_thresholds,
+            wg_score_thresholds,
         };
         let nym_config = NymConfig {
             config_path: Some(config_dir),
             data_path: Some(network_data_dir.clone()),
-            gateway_config,
+            gateway_config: gateway_config.clone(),
             network_env: network_env.clone(),
         };
+
+        let gateway_directory_client =
+            GatewayClient::new(gateway_config, user_agent.clone()).unwrap();
+        let gateway_directory_client =
+            CachingGatewayClient::new(gateway_directory_client, Some(connectivity_handle.clone()));
+        gateway_directory_client.refresh_all().await;
+
+        if GATEWAY_DIRECTORY_CLIENT
+            .set(gateway_directory_client.clone())
+            .is_err()
+        {
+            tracing::error!("Failed to set global gateway client");
+        }
 
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,
@@ -314,6 +367,10 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             nym_config,
             tunnel_settings,
             account_command_tx.clone(),
+            gateway_directory_client,
+            connectivity_handle,
+            #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+            route_handler,
             shutdown_token.child_token(),
         )
         .await
@@ -349,7 +406,6 @@ where
         loop {
             tokio::select! {
                 Some(command) = self.vpn_command_rx.recv() => {
-                    tracing::debug!("Received command: {command}");
                     self.handle_service_command_timed(command).await;
                 }
                 Some(event) = self.event_receiver.recv() => {

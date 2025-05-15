@@ -7,7 +7,7 @@ use super::uniffi_custom_impls::{
     AccountLinks, NetworkCompatibility, NetworkEnvironment, SystemMessage,
 };
 
-use super::{error::VpnError, NETWORK_ENVIRONMENT};
+use super::{NETWORK_ENVIRONMENT, error::VpnError};
 
 pub(crate) async fn init_environment(
     cache_dir: String,
@@ -50,8 +50,8 @@ pub(crate) async fn current_environment() -> Result<NetworkEnvironment, VpnError
         .map(NetworkEnvironment::from)
 }
 
-pub(super) async fn current_environment_details(
-) -> Result<nym_vpn_network_config::Network, VpnError> {
+pub(super) async fn current_environment_details()
+-> Result<nym_vpn_network_config::Network, VpnError> {
     NETWORK_ENVIRONMENT
         .lock()
         .await

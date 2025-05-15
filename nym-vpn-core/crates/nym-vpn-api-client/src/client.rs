@@ -5,8 +5,8 @@ use std::{fmt, net::SocketAddr, time::Duration};
 
 use backon::Retryable;
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
-use nym_http_api_client::{ApiClient, HttpClientError, Params, PathSegments, UserAgent, NO_PARAMS};
-use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use nym_http_api_client::{ApiClient, HttpClientError, NO_PARAMS, Params, PathSegments, UserAgent};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use time::OffsetDateTime;
 use url::Url;
 
@@ -25,7 +25,10 @@ use crate::{
         NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
-    types::{Device, DeviceStatus, GatewayMinPerformance, GatewayType, VpnApiAccount, VpnApiTime},
+    types::{
+        Device, DeviceStatus, GatewayMinPerformance, GatewayType, VpnApiAccount, VpnApiTime,
+        VpnApiTimeSynced,
+    },
 };
 
 pub(crate) const DEVICE_AUTHORIZATION_HEADER: &str = "x-device-authorization";
@@ -94,28 +97,39 @@ impl VpnApiClient {
         self.inner.current_url()
     }
 
-    fn use_remote_time(remote_time: VpnApiTime) -> bool {
-        if remote_time.is_almost_same() {
-            tracing::debug!("{remote_time}");
-            false
-        } else if remote_time.is_acceptable_synced() {
-            tracing::info!("{remote_time}");
-            false
-        } else {
-            tracing::warn!(
-                "The time skew between the local and remote time is too large, we'll use remote instead for JWT ({remote_time})."
-            );
-            true
-        }
-    }
-
-    async fn sync_with_remote_time(&self) -> Result<Option<VpnApiTime>> {
+    pub async fn get_remote_time(&self) -> Result<VpnApiTime> {
         let time_before = OffsetDateTime::now_utc();
         let remote_timestamp = self.get_health().await?.timestamp_utc;
         let time_after = OffsetDateTime::now_utc();
 
-        let remote_time =
-            VpnApiTime::from_remote_timestamp(time_before, remote_timestamp, time_after);
+        Ok(VpnApiTime::from_remote_timestamp(
+            time_before,
+            remote_timestamp,
+            time_after,
+        ))
+    }
+
+    fn use_remote_time(remote_time: VpnApiTime) -> bool {
+        match remote_time.is_synced() {
+            VpnApiTimeSynced::AlmostSame => {
+                tracing::debug!("{remote_time}");
+                false
+            }
+            VpnApiTimeSynced::AcceptableSynced => {
+                tracing::info!("{remote_time}");
+                false
+            }
+            VpnApiTimeSynced::NotSynced => {
+                tracing::warn!(
+                    "The time skew between the local and remote time is too large, we'll use remote instead for JWT ({remote_time})."
+                );
+                true
+            }
+        }
+    }
+
+    async fn sync_with_remote_time(&self) -> Result<Option<VpnApiTime>> {
+        let remote_time = self.get_remote_time().await?;
 
         if Self::use_remote_time(remote_time) {
             Ok(Some(remote_time))
@@ -166,7 +180,9 @@ impl VpnApiClient {
             Err(err) => {
                 if let HttpClientError::EndpointFailure { status: _, error } = &err {
                     if jwt_error(&error.to_string()) {
-                        tracing::warn!("Encountered possible JWT error: {error}. Retrying query with remote time");
+                        tracing::warn!(
+                            "Encountered possible JWT error: {error}. Retrying query with remote time"
+                        );
                         if let Ok(Some(jwt)) =
                             self.sync_with_remote_time().await.inspect_err(|err| {
                                 tracing::error!(
@@ -314,7 +330,9 @@ impl VpnApiClient {
             Err(err) => {
                 if let HttpClientError::EndpointFailure { status: _, error } = &err {
                     if jwt_error(&error.to_string()) {
-                        tracing::warn!("Encountered possible JWT error: {error}. Retrying query with remote time");
+                        tracing::warn!(
+                            "Encountered possible JWT error: {error}. Retrying query with remote time"
+                        );
                         if let Ok(Some(jwt)) =
                             self.sync_with_remote_time().await.inspect_err(|err| {
                                 tracing::error!(
@@ -380,7 +398,9 @@ impl VpnApiClient {
             Err(err) => {
                 if let HttpClientError::EndpointFailure { status: _, error } = &err {
                     if jwt_error(&error.to_string()) {
-                        tracing::warn!("Encountered possible JWT error: {error}. Retrying query with remote time");
+                        tracing::warn!(
+                            "Encountered possible JWT error: {error}. Retrying query with remote time"
+                        );
                         if let Ok(Some(jwt)) =
                             self.sync_with_remote_time().await.inspect_err(|err| {
                                 tracing::error!(
@@ -451,7 +471,9 @@ impl VpnApiClient {
             Err(err) => {
                 if let HttpClientError::EndpointFailure { status: _, error } = &err {
                     if jwt_error(&error.to_string()) {
-                        tracing::warn!("Encountered possible JWT error: {error}. Retrying query with remote time");
+                        tracing::warn!(
+                            "Encountered possible JWT error: {error}. Retrying query with remote time"
+                        );
                         if let Ok(Some(jwt)) =
                             self.sync_with_remote_time().await.inspect_err(|err| {
                                 tracing::error!(
@@ -1091,159 +1113,4 @@ impl VpnApiClient {
 
 fn jwt_error(error: &str) -> bool {
     error.to_lowercase().contains("jwt")
-}
-
-#[cfg(test)]
-mod tests {
-    use nym_crypto::asymmetric::ed25519;
-
-    use super::*;
-
-    const BASE_URL: &str = "https://nymvpn.com/api";
-
-    fn user_agent() -> UserAgent {
-        UserAgent {
-            version: "0.1.0".to_string(),
-            application: "nym".to_string(),
-            platform: "linux".to_string(),
-            git_commit: "123456".to_string(),
-        }
-    }
-
-    mod account {
-        use super::*;
-
-        // Preview deployment example data
-        struct PreviewData {
-            base_url: &'static str,
-            account_mnemonic: &'static str,
-            device_private_key_base58: &'static str,
-            device_public_key_base58: &'static str,
-        }
-
-        fn preview_data() -> PreviewData {
-            #[allow(unreachable_code)]
-            PreviewData {
-                base_url: todo!(),
-                account_mnemonic: todo!(),
-                device_private_key_base58: todo!(),
-                device_public_key_base58: todo!(),
-            }
-        }
-
-        fn base_url_preview() -> Url {
-            preview_data().base_url.parse().unwrap()
-        }
-
-        fn get_mnemonic() -> bip39::Mnemonic {
-            preview_data().account_mnemonic.parse().unwrap()
-        }
-
-        fn get_ed25519_keypair() -> ed25519::KeyPair {
-            let private_key_base58 = preview_data().device_private_key_base58;
-            let public_key_base58 = preview_data().device_public_key_base58;
-
-            let private_key = bs58::decode(private_key_base58).into_vec().unwrap();
-            let public_key = bs58::decode(public_key_base58).into_vec().unwrap();
-
-            ed25519::KeyPair::from_bytes(&private_key, &public_key).unwrap()
-        }
-
-        // These tests are all iffy since we are running against a preview deployment, but they are
-        // useful to drive implementetion and to check that the API is working as expected.
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_account() {
-            let account = VpnApiAccount::from(get_mnemonic());
-            let client = VpnApiClient::new(base_url_preview(), user_agent()).unwrap();
-            let response = client.get_account(&account).await.unwrap();
-            dbg!(&response);
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_account_summary() {
-            let account = VpnApiAccount::from(get_mnemonic());
-            let client = VpnApiClient::new(base_url_preview(), user_agent()).unwrap();
-            let response = client.get_account_summary(&account).await.unwrap();
-            dbg!(&response);
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_devices() {
-            let account = VpnApiAccount::from(get_mnemonic());
-            let client = VpnApiClient::new(base_url_preview(), user_agent()).unwrap();
-            let response = client.get_devices(&account).await.unwrap();
-            dbg!(&response);
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_device_zk_nyms() {
-            let account = VpnApiAccount::from(get_mnemonic());
-            let device = Device::from(get_ed25519_keypair());
-            let client = VpnApiClient::new(base_url_preview(), user_agent()).unwrap();
-            let response = client.get_device_zk_nyms(&account, &device).await;
-            dbg!(&response);
-        }
-    }
-
-    mod gateway_directory {
-        use super::*;
-
-        // These tests are disabled until mainnet is updated
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_gateways() {
-            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-            let response = client
-                .get_gateways(Some(GatewayMinPerformance::default()))
-                .await
-                .unwrap();
-            assert!(!response.into_inner().is_empty());
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_entry_gateways() {
-            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-            let response = client.get_entry_gateways(None).await.unwrap();
-            assert!(!response.into_inner().is_empty());
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_exit_gateways() {
-            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-            let response = client.get_entry_gateways(None).await.unwrap();
-            assert!(!response.into_inner().is_empty());
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_gateway_countries() {
-            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-            let response = client.get_gateway_countries(None).await.unwrap();
-            assert!(!response.into_inner().is_empty());
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_entry_gateway_countries() {
-            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-            let response = client.get_entry_gateway_countries(None).await.unwrap();
-            assert!(!response.into_inner().is_empty());
-        }
-
-        #[ignore]
-        #[tokio::test]
-        async fn get_exit_gateway_countries() {
-            let client = VpnApiClient::new(BASE_URL.parse().unwrap(), user_agent()).unwrap();
-            let response = client.get_exit_gateway_countries(None).await.unwrap();
-            assert!(!response.into_inner().is_empty());
-        }
-    }
 }

@@ -57,9 +57,15 @@ jobs:
           echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
           echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
 
-      - name: Install cargo deps
-        run: |
-          cargo install --locked cargo-ndk cargo-license
+      - name: Install cargo-ndk
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-ndk
+
+      - name: Install cargo-license
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-license
 
       - name: Get workspace version
         id: workspace-version
@@ -68,7 +74,9 @@ jobs:
           subcommand: workspace.package.version --entry nym-vpn-core
 
       - name: Install cargo-edit
-        run: cargo install --locked cargo-edit
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-edit
 
       - name: Append timestamp if it's a dev version
         run: ./scripts/append-timestamp-to-version.sh nym-vpn-core/Cargo.toml ${{ steps.workspace-version.outputs.metadata }}

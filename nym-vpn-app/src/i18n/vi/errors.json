@@ -1,0 +1,44 @@
+{
+  "unknown": "Lỗi không xác định",
+  "internal": "Lỗi nội bộ",
+  "daemon": {
+    "not-connected": "Không kết nối với daemon",
+    "internal": "Lỗi nội bộ của daemon",
+    "invalid-network": "Mạng không hợp lệ"
+  },
+  "grpc": "Lỗi gRPC nội bộ",
+  "tunnel": {
+    "internal": "Lỗi nội bộ",
+    "api": "Lỗi API",
+    "firewall": "Lỗi tường lửa",
+    "routing": "Lỗi định tuyến",
+    "dns": "Lỗi DNS",
+    "same-entry-exit-gw": "Không thể kết nối với cùng một node vào và thoát. Vui lòng thay đổi vị trí node vào hoặc node thoát.",
+    "invalid-entry-gw-country": "Vị trí node vào không hợp lệ, vui lòng thay đổi vị trí node vào",
+    "invalid-exit-gw-country": "Vị trí node thoát không hợp lệ, vui lòng thay đổi vị trí node thoát",
+    "max-devices-reached": "Đã vượt quá giới hạn thiết bị của tài khoản. Vui lòng xóa một thiết bị khỏi tài khoản của bạn trước khi kết nối.",
+    "bandwidth-exceeded": "Đã vượt quá băng thông hàng tháng. Vui lòng nâng cấp gói tài khoản của bạn.",
+    "subscription-expired": "Gói đăng ký của bạn đã hết hạn. Vui lòng mua một gói dịch vụ mới cho tài khoản của bạn.",
+    "device-time-out-of-sync": "Thời gian thiết bị không đồng bộ. Vui lòng đồng bộ hóa thời gian của thiết bị với internet."
+  },
+  "account": {
+    "invalid-recovery-phrase": "Mã truy cập không hợp lệ",
+    "storage": "Lỗi hệ thống lưu trữ",
+    "is-connected": "Không thể xử lý khi đã kết nối"
+  },
+  "countries-request": {
+    "entry": "Không thể tìm thấy các quốc gia có node vào khả dụng",
+    "exit": "Không thể tìm thấy các quốc gia có node thoát khả dụng",
+    "fast-mode": "Không thể tìm thấy các quốc gia khả dụng"
+  },
+  "no-bandwidth": "No data allowance remaining",
+  "entry-gateway-down": "Cổng vào đã ngừng hoạt động",
+  "exit-gateway-down": {
+    "ipv4": "Cổng thoát đã ngừng hoạt động (IPv4)",
+    "ipv6": "Cổng thoát đã ngừng hoạt động (IPv6)"
+  },
+  "exit-gateway-routing": {
+    "ipv4": "Lỗi định tuyến cổng thoát (IPv4)",
+    "ipv6": "Lỗi định tuyến cổng thoát (IPv6)"
+  }
+}

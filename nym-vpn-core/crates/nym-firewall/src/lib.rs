@@ -294,14 +294,14 @@ impl fmt::Display for FirewallPolicy {
                 let dns_str = "none".to_owned();
 
                 write!(
-                f,
-                "Connected to {} over {}, {} LAN. Allowing endpoints: {}. Allowing non-tunnel DNS: {}",
-                display_peer_endpoints(peer_endpoints),
-                display_tunnel_interface(tunnel),
-                if *allow_lan { "Allowing" } else { "Blocking" },
-                display_allowed_endpoints(allowed_endpoints),
-                dns_str
-            )
+                    f,
+                    "Connected to {} over {}, {} LAN. Allowing endpoints: {}. Allowing non-tunnel DNS: {}",
+                    display_peer_endpoints(peer_endpoints),
+                    display_tunnel_interface(tunnel),
+                    if *allow_lan { "Allowing" } else { "Blocking" },
+                    display_allowed_endpoints(allowed_endpoints),
+                    dns_str
+                )
             }
             FirewallPolicy::Blocked {
                 allow_lan,
@@ -461,10 +461,10 @@ pub struct BlockingApplication {
 #[derive(thiserror::Error, Debug, Clone)]
 pub enum FirewallPolicyError {
     /// General firewall failure
-    #[error("Failed to set firewall policy")]
+    #[error("failed to set firewall policy")]
     Generic,
     /// An application prevented the firewall policy from being set
     #[cfg(windows)]
-    #[error("An application prevented the firewall policy from being set")]
+    #[error("an application prevented the firewall policy from being set")]
     Locked(Option<BlockingApplication>),
 }

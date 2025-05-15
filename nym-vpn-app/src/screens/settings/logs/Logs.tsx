@@ -29,18 +29,20 @@ function Logs() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col mt-2 gap-6">
+    <PageAnim className="h-full flex flex-col mt-2 gap-6" data-testid="logs-page">
       <SettingsMenuCard
         title={t('logs.app')}
         leadingIcon="sort"
         onClick={handleAppLogs}
         trailingIcon="open_in_new"
+        data-testid="app-logs-button"
       />
       <SettingsMenuCard
         title={t('logs.daemon')}
         leadingIcon="sort"
         onClick={handleDaemonLogs}
         trailingIcon="open_in_new"
+        data-testid="daemon-logs-button"
       />
     </PageAnim>
   );

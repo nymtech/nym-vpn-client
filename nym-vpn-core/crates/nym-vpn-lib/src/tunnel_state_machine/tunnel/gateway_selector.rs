@@ -1,9 +1,9 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_gateway_directory::{EntryPoint, ExitPoint, Gateway, GatewayClient, GatewayType};
+use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint, Gateway, GatewayType};
 
-use crate::{tunnel_state_machine::TunnelType, GatewayDirectoryError};
+use crate::{GatewayDirectoryError, tunnel_state_machine::TunnelType};
 
 #[derive(Debug, Clone)]
 pub struct SelectedGateways {
@@ -12,7 +12,7 @@ pub struct SelectedGateways {
 }
 
 pub async fn select_gateways(
-    gateway_directory_client: &GatewayClient,
+    gateway_directory_client: CachingGatewayClient,
     tunnel_type: TunnelType,
     entry_point: Box<EntryPoint>,
     exit_point: Box<ExitPoint>,
@@ -41,7 +41,7 @@ pub async fn select_gateways(
             let all_gateways = gateway_directory_client
                 .lookup_gateways(GatewayType::Wg)
                 .await
-                .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+                .map_err(GatewayDirectoryError::LookupGateways)?;
             (all_gateways.clone(), all_gateways)
         }
         TunnelType::Mixnet => {
@@ -49,12 +49,12 @@ pub async fn select_gateways(
             let exit_gateways = gateway_directory_client
                 .lookup_gateways(GatewayType::MixnetExit)
                 .await
-                .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+                .map_err(GatewayDirectoryError::LookupGateways)?;
             // Setup the gateway that we will use as the entry point
             let entry_gateways = gateway_directory_client
                 .lookup_gateways(GatewayType::MixnetEntry)
                 .await
-                .map_err(|source| GatewayDirectoryError::FailedToLookupGateways { source })?;
+                .map_err(GatewayDirectoryError::LookupGateways)?;
             (entry_gateways, exit_gateways)
         }
     };
@@ -64,7 +64,7 @@ pub async fn select_gateways(
 
     let exit_gateway = exit_point
         .lookup_gateway(&exit_gateways)
-        .map_err(|source| GatewayDirectoryError::FailedToSelectExitGateway { source })?;
+        .map_err(GatewayDirectoryError::SelectExitGateway)?;
 
     // Exclude the exit gateway from the list of entry gateways for privacy reasons
     entry_gateways.remove_gateway(&exit_gateway);
@@ -83,7 +83,7 @@ pub async fn select_gateways(
                     identity: exit_gateway.identity.to_string(),
                 }
             }
-            _ => GatewayDirectoryError::FailedToSelectEntryGateway { source },
+            _ => GatewayDirectoryError::SelectEntryGateway(source),
         })?;
 
     tracing::info!(

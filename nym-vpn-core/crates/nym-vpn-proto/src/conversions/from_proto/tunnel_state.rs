@@ -11,8 +11,11 @@ use nym_vpn_lib_types::{
     NymAddress, TunnelConnectionData, TunnelState, WireguardConnectionData, WireguardNode,
 };
 
-use crate::tunnel_state::ErrorStateReason;
 use crate::{
+    Address as ProtoAddress, ConnectionData as ProtoConnectionData, Gateway as ProtoGateway,
+    MixnetConnectionData as ProtoMixnetConnectionData,
+    TunnelConnectionData as ProtoTunnelConnectionData, TunnelState as ProtoTunnelState,
+    WireguardConnectionData as ProtoWireguardConnectionData, WireguardNode as ProtoWireguardNode,
     conversions::ConversionError,
     tunnel_connection_data::{
         Mixnet as ProtoMixnetConnectionDataVariant, State as ProtoTunnelConnectionDataState,
@@ -21,13 +24,9 @@ use crate::{
     tunnel_state::{
         ActionAfterDisconnect as ProtoActionAfterDisconnect, Connected as ProtoConnected,
         Connecting as ProtoConnecting, Disconnected as ProtoDisconnected,
-        Disconnecting as ProtoDisconnecting, Error as ProtoError, Offline as ProtoOffline,
-        State as ProtoState,
+        Disconnecting as ProtoDisconnecting, Error as ProtoError, ErrorStateReason,
+        Offline as ProtoOffline, State as ProtoState,
     },
-    Address as ProtoAddress, ConnectionData as ProtoConnectionData, Gateway as ProtoGateway,
-    MixnetConnectionData as ProtoMixnetConnectionData,
-    TunnelConnectionData as ProtoTunnelConnectionData, TunnelState as ProtoTunnelState,
-    WireguardConnectionData as ProtoWireguardConnectionData, WireguardNode as ProtoWireguardNode,
 };
 
 impl From<ProtoActionAfterDisconnect> for ActionAfterDisconnect {
@@ -58,6 +57,7 @@ impl From<ProtoError> for ClientErrorReason {
             ErrorStateReason::SubscriptionExpired => ClientErrorReason::SubscriptionExpired,
             ErrorStateReason::Dns => ClientErrorReason::Dns(value.detail),
             ErrorStateReason::Api => ClientErrorReason::Api(value.detail),
+            ErrorStateReason::DeviceTimeOutOfSync => ClientErrorReason::DeviceTimeOutOfSync,
             ErrorStateReason::Internal => ClientErrorReason::Internal(value.detail),
         }
     }
@@ -81,10 +81,16 @@ impl TryFrom<ProtoTunnelState> for TunnelState {
                     after_disconnect: ActionAfterDisconnect::from(proto_after_disconnect),
                 }
             }
-            ProtoState::Connecting(ProtoConnecting { connection_data }) => {
+            ProtoState::Connecting(ProtoConnecting {
+                retry_attempt,
+                connection_data,
+            }) => {
                 let connection_data = connection_data.map(ConnectionData::try_from).transpose()?;
 
-                Self::Connecting { connection_data }
+                Self::Connecting {
+                    retry_attempt,
+                    connection_data,
+                }
             }
             ProtoState::Connected(ProtoConnected { connection_data }) => {
                 let connection_data = connection_data

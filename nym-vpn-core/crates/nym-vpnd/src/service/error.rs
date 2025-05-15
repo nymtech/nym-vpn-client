@@ -45,13 +45,13 @@ pub enum VpnServiceDeleteLogFileError {
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("account error: {0}")]
+    #[error("account controller error")]
     AccountController(#[from] AccountControllerError),
 
-    #[error("config setup error: {0}")]
+    #[error("config setup error")]
     ConfigSetup(#[source] ConfigSetupError),
 
-    #[error("state machine error: {0}")]
+    #[error("state machine error")]
     StateMachine(#[source] TunnelStateMachineError),
 }
 

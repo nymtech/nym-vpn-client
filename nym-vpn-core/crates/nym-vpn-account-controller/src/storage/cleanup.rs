@@ -2,10 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    fs, io,
+    io,
     path::{Path, PathBuf},
 };
 
+use futures::StreamExt;
+use tokio_stream::wrappers::ReadDirStream;
+
+use nym_common::ErrorExt;
 use nym_sdk::mixnet::StoragePaths;
 use nym_vpn_store::keys::persistence::{
     DEFAULT_PRIVATE_DEVICE_KEY_FILENAME, DEFAULT_PUBLIC_DEVICE_KEY_FILENAME,
@@ -24,7 +28,7 @@ use crate::Error;
 // TODO: implement functionality where the owning code of these files delete them instead. To
 // protect us against the names drifting out of sync.
 
-pub fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
+pub async fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
     // Files specific to the VPN client
     let device_key = [
         DEFAULT_PRIVATE_DEVICE_KEY_FILENAME,
@@ -65,12 +69,16 @@ pub fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
 
     for file_path in files_to_remove {
         tracing::info!("Removing file: {}", file_path.display());
-        match fs::remove_file(&file_path) {
+        match tokio::fs::remove_file(&file_path).await {
             Ok(_) => tracing::info!("Removed file: {}", file_path.display()),
             Err(err) if err.kind() == io::ErrorKind::NotFound => {
                 tracing::debug!("File not found, skipping: {}", file_path.display());
             }
-            Err(err) => tracing::error!("Failed to remove file {}: {err}", file_path.display()),
+            Err(err) => tracing::error!(
+                "Failed to remove file {}: {}",
+                file_path.display(),
+                err.display_chain()
+            ),
         }
     }
 
@@ -78,63 +86,73 @@ pub fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
     // filename as the original file, but appended with `_1234567890.corrupted`. Make sure to
     // delete all of these as well.
 
-    let corrupted_files = get_list_of_corrupted_files(data_dir).inspect_err(|err| {
-        tracing::error!("Failed to get list of corrupted files: {err}");
-    });
+    let corrupted_files = get_list_of_corrupted_files(data_dir)
+        .await
+        .inspect_err(|err| {
+            tracing::error!("Failed to get list of corrupted files: {err}");
+        });
 
     if let Ok(corrupted_files) = corrupted_files {
         for file in corrupted_files {
             tracing::info!("Removing corrupted file: {}", file.display());
-            match fs::remove_file(&file) {
+            match tokio::fs::remove_file(&file).await {
                 Ok(_) => tracing::info!("Removed corrupted file: {}", file.display()),
                 Err(err) if err.kind() == io::ErrorKind::NotFound => {
                     tracing::debug!("Corrupted file not found, skipping: {}", file.display());
                 }
                 Err(err) => {
-                    tracing::error!("Failed to remove corrupted file {}: {err}", file.display())
+                    err.trace_chain_with_msg(format!(
+                        "Failed to remove corrupted file {}",
+                        file.display()
+                    ));
                 }
             }
         }
     }
 
     // Warn if there are any files left in the data directory
-    let remaining_files = fs::read_dir(data_dir)
-        .map_err(Error::internal)?
-        .filter_map(|file| file.ok())
-        .map(|file| file.path());
-    for file in remaining_files {
-        tracing::info!("File left in data directory: {}", file.display());
+    let mut dir_stream = ReadDirStream::new(
+        tokio::fs::read_dir(data_dir)
+            .await
+            .map_err(Error::internal)?,
+    );
+
+    while let Some(entry_result) = dir_stream.next().await {
+        if let Ok(entry) = entry_result {
+            tracing::info!("File left in data directory: {}", entry.path().display());
+        }
     }
 
     Ok(())
 }
 
-fn get_list_of_corrupted_files(data_dir: &Path) -> Result<Vec<PathBuf>, Error> {
+async fn get_list_of_corrupted_files(data_dir: &Path) -> Result<Vec<PathBuf>, Error> {
     let base_name = StoragePaths::new_from_dir(data_dir)
         .map_err(Error::StoragePaths)?
         .reply_surb_database_path;
 
-    if let Some(starts_with) = base_name.file_name().and_then(|bn| bn.to_str()) {
-        // Delete files of the form `base_name._[0-9]*.corrupted`
-        let corrupted_files = fs::read_dir(data_dir)
-            .map_err(Error::internal)?
-            .filter_map(|file| file.ok())
-            .filter(|file| {
-                file.file_name()
-                    .to_str()
-                    .map(|name| name.starts_with(starts_with))
-                    .unwrap_or(false)
-            })
-            .filter(|file| {
-                file.file_name()
-                    .to_str()
-                    .map(|name| name.ends_with(".corrupted"))
-                    .unwrap_or(false)
-            })
-            .map(|file| file.path())
-            .collect();
-        Ok(corrupted_files)
-    } else {
-        Ok(vec![])
+    let Some(starts_with) = base_name.file_name().and_then(|bn| bn.to_str()) else {
+        return Ok(vec![]);
+    };
+
+    let mut dir_stream = ReadDirStream::new(
+        tokio::fs::read_dir(data_dir)
+            .await
+            .map_err(Error::internal)?,
+    );
+
+    // Delete files of the form `base_name._[0-9]*.corrupted`
+    let mut corrupted_files = vec![];
+    while let Some(entry_result) = dir_stream.next().await {
+        if let Ok(entry) = entry_result {
+            if entry
+                .file_name()
+                .to_str()
+                .is_some_and(|s| s.starts_with(starts_with) || s.ends_with(".corrupted"))
+            {
+                corrupted_files.push(entry.path());
+            }
+        }
     }
+    Ok(corrupted_files)
 }

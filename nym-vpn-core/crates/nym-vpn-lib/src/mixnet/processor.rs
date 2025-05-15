@@ -4,24 +4,24 @@
 use std::result::Result;
 
 use bytes::{Bytes, BytesMut};
-use futures::{channel::mpsc, StreamExt};
+use futures::{StreamExt, channel::mpsc};
 use nym_connection_monitor::{ConnectionMonitorTask, ConnectionStatusEvent};
 use nym_gateway_directory::IpPacketRouterAddress;
 use nym_ip_packet_requests::{
+    IpPair,
     codec::{IprPacket, MultiIpPacketCodec},
     v8::request::IpPacketRequest,
-    IpPair,
 };
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{
     InputMessage, MixnetClientSender, MixnetMessageSender, MixnetMessageSinkTranslator, Recipient,
 };
-use nym_task::{connections::TransmissionLane, TaskClient, TaskManager};
+use nym_task::{TaskClient, TaskManager, connections::TransmissionLane};
 use tokio::{sync::oneshot, task::JoinHandle};
 use tokio_util::{codec::Encoder, sync::CancellationToken};
 use tun::{AsyncDevice, Device};
 
-use super::{backpressure::MixnetBackpressureMonitor, MixnetError};
+use super::{MixnetError, backpressure::MixnetBackpressureMonitor};
 
 #[derive(Debug)]
 pub(crate) struct MixnetProcessorConfig {
@@ -300,7 +300,7 @@ fn bundle_packet(
     let mut bundled_packets = BytesMut::new();
     packet_bundler
         .encode(packet, &mut bundled_packets)
-        .map_err(|source| MixnetError::FailedToBundlePacket { source })?;
+        .map_err(MixnetError::BundlePacket)?;
     if bundled_packets.is_empty() {
         Ok(None)
     } else {
@@ -321,12 +321,12 @@ async fn handle_packet(
 
     let input_message = input_message_creator
         .to_input_message(&bundled_packets)
-        .map_err(|source| MixnetError::FailedToCreateInputMessage { source })?;
+        .map_err(MixnetError::CreateInputMessage)?;
 
     mixnet_client_sender
         .send(input_message)
         .await
-        .map_err(|source| MixnetError::FailedToSendInputMessage { source })
+        .map_err(MixnetError::SendInputMessage)
 }
 
 struct ToIprDataRequest {

@@ -104,7 +104,9 @@ jobs:
           components: rustfmt, clippy
 
       - name: Install cargo-license
-        run: cargo install --locked cargo-license
+        uses: baptiste0928/cargo-install@v3
+        with:
+          crate: cargo-license
 
       - name: Install Node
         uses: actions/setup-node@v4
@@ -173,7 +175,6 @@ jobs:
 
       - name: Get nym-vpn-core artifact url (latest dev)
         if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && inputs.dev_mode }}
-        shell: pwsh
         run: |
           $latest = Invoke-WebRequest -Uri "${{ env.VPN_CORE_BUILDS_URL }}/develop" | Select-String -Pattern '<a href="(\d+)/"' -AllMatches | ForEach-Object {$_.Matches} | ForEach-Object {$_.Groups[1].Value} | Sort-Object -Descending | Select-Object -First 1
           $latest_url = "${{ env.VPN_CORE_BUILDS_URL }}/develop/$latest"

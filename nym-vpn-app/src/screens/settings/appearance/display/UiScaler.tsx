@@ -33,8 +33,12 @@ function UiScaler() {
         'bg-white dark:bg-charcoal',
         'px-6 py-5 rounded-lg',
       ])}
+      data-testid="ui-scaler-container"
     >
-      <p className="text-base text-baltic-sea dark:text-white flex-nowrap select-none">
+      <p
+        className="text-base text-baltic-sea dark:text-white flex-nowrap select-none"
+        data-testid="ui-scaler-value"
+      >
         {slideValue}
       </p>
       <Slider
@@ -44,6 +48,7 @@ function UiScaler() {
         max={20}
         onChange={handleChange}
         onCommit={handleFinalChange}
+        data-testid="ui-scaler-slider"
       />
     </div>
   );

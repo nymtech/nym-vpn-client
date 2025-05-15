@@ -1,10 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_api_client::types::Percent;
 use nym_vpn_lib::{
-    gateway_directory::{EntryPoint, ExitPoint},
     NodeIdentity, Recipient,
+    gateway_directory::{EntryPoint, ExitPoint},
 };
 
 // For the future: these functions should be moved to the nym-vpn-proto crate
@@ -29,10 +28,6 @@ pub(super) fn parse_entry_point(
                 tonic::Status::invalid_argument("Invalid gateway id")
             })?;
             EntryPoint::Gateway { identity }
-        }
-        nym_vpn_proto::entry_node::EntryNodeEnum::RandomLowLatency(_) => {
-            tracing::debug!("Connecting to low latency entry node");
-            EntryPoint::RandomLowLatency
         }
         nym_vpn_proto::entry_node::EntryNodeEnum::Random(_) => {
             tracing::debug!("Connecting to random entry node");
@@ -81,8 +76,4 @@ pub(super) fn parse_exit_point(
             ExitPoint::Random
         }
     })
-}
-
-pub(super) fn threshold_into_percent(threshold: nym_vpn_proto::Threshold) -> Percent {
-    Percent::from_percentage_value(threshold.min_performance.clamp(0, 100) as u64).unwrap()
 }

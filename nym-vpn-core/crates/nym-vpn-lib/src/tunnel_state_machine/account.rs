@@ -13,6 +13,12 @@ pub enum Error {
     Cancelled,
 
     #[error(transparent)]
+    Command(#[from] nym_vpn_lib_types::AccountCommandError),
+
+    #[error("device time not synced")]
+    DeviceTimeOutOfSync,
+
+    #[error(transparent)]
     SyncAccount(#[from] SyncAccountError),
 
     #[error(transparent)]
@@ -23,6 +29,25 @@ pub enum Error {
 
     #[error(transparent)]
     RequestZkNym(#[from] RequestZkNymError),
+}
+
+pub async fn check_device_time_sync(
+    account_controller_tx: AccountCommandSender,
+    cancel_token: CancellationToken,
+) -> Result<(), Error> {
+    let device_time = cancel_token
+        .run_until_cancelled(account_controller_tx.check_device_time_sync())
+        .await
+        .ok_or(Error::Cancelled)??;
+
+    if device_time.is_not_synced() {
+        tracing::error!(
+            "Device time is not synced with the vpn-api. Please sync your device time and try again."
+        );
+        return Err(Error::DeviceTimeOutOfSync);
+    }
+
+    Ok(())
 }
 
 pub async fn wait_for_account_sync(

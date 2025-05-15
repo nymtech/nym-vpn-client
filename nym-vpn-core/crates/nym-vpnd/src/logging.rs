@@ -1,17 +1,16 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::PathBuf;
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 
-use tokio::sync::{mpsc, Mutex};
+use tokio::sync::{Mutex, mpsc};
 use tokio_util::sync::CancellationToken;
 use tracing::Level;
 use tracing_appender::{non_blocking::WorkerGuard, rolling::RollingFileAppender};
 #[cfg(target_os = "macos")]
 use tracing_oslog::OsLogger;
 use tracing_subscriber::{
-    fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt, EnvFilter, Layer,
+    EnvFilter, Layer, fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt,
 };
 
 use crate::service;
@@ -39,6 +38,60 @@ static INFO_CRATES: &[&str; 12] = &[
 
 static WARN_CRATES: &[&str; 1] = &["hickory_server"];
 
+#[derive(Clone, Debug)]
+pub(crate) struct FileAppender {
+    inner: Arc<Mutex<Option<RollingFileAppender>>>,
+    log_dir: PathBuf,
+    log_file: String,
+}
+
+impl FileAppender {
+    pub(crate) fn new() -> Self {
+        let log_dir = service::log_dir();
+        let log_file = service::DEFAULT_LOG_FILE.to_string();
+
+        let mut log_file_path = log_dir.clone();
+        log_file_path.push(&log_file);
+        let mut old_log_file_path = log_dir.clone();
+        old_log_file_path.push(service::DEFAULT_OLD_LOG_FILE);
+
+        if std::fs::exists(&log_file_path).unwrap_or(false)
+            && std::fs::rename(&log_file_path, &old_log_file_path).is_err()
+        {
+            tracing::warn!(
+                "Log rotation could not be performed, we're going to just append to the same file"
+            );
+        }
+
+        let inner = Arc::new(Mutex::new(Some(tracing_appender::rolling::never(
+            log_dir.clone(),
+            &log_file,
+        ))));
+        Self {
+            inner,
+            log_dir,
+            log_file,
+        }
+    }
+
+    pub(crate) async fn refresh(&mut self) {
+        let mut file_path = self.log_dir.clone();
+        file_path.push(&self.log_file);
+        let mut file_lock = self.inner.lock().await;
+        // drop the file appeneder, so that we can remove the file in the next step
+        let _ = file_lock.take();
+        if let Err(err) = tokio::fs::remove_file(file_path).await {
+            tracing::warn!("Could not remove log file: {err}");
+            return;
+        }
+        // re-create the empty file
+        *file_lock = Some(tracing_appender::rolling::never(
+            &self.log_dir,
+            &self.log_file,
+        ));
+    }
+}
+
 pub(crate) struct LogFileRemover {
     tunnel_event_rx: mpsc::Receiver<()>,
     logging_setup: LoggingSetup,
@@ -51,8 +104,6 @@ impl LogFileRemover {
         logging_setup: LoggingSetup,
         shutdown_token: CancellationToken,
     ) -> Self {
-        let mut file_path = service::log_dir();
-        file_path.push(service::DEFAULT_LOG_FILE);
         Self {
             tunnel_event_rx,
             logging_setup,
@@ -60,7 +111,7 @@ impl LogFileRemover {
         }
     }
 
-    pub(crate) async fn run(mut self) {
+    pub(crate) async fn run(mut self) -> WorkerGuard {
         loop {
             tokio::select! {
                 Some(_) = self.tunnel_event_rx.recv() => {
@@ -77,43 +128,30 @@ impl LogFileRemover {
                 }
             }
         }
+        self.logging_setup.worker_guard
     }
 
     pub(crate) async fn handle_delete_log_file(&mut self) {
-        let mut file_path = service::log_dir();
-        file_path.push(service::DEFAULT_LOG_FILE);
-        let mut file_lock = self.logging_setup.file_appender.lock().await;
-        // drop the file appeneder, so that we can remove the file in the next step
-        let _ = file_lock.take();
-        if let Err(err) = tokio::fs::remove_file(file_path).await {
-            tracing::warn!("Could not remove log file: {err}");
-            return;
-        }
-        // re-create the empty file
-        *file_lock = Some(tracing_appender::rolling::never(
-            service::log_dir(),
-            service::DEFAULT_LOG_FILE,
-        ));
+        self.logging_setup.file_appender.refresh().await
     }
 }
 
 pub struct LoggingSetup {
-    _worker_guard: WorkerGuard,
-    file_appender: Arc<Mutex<Option<RollingFileAppender>>>,
+    worker_guard: WorkerGuard,
+    file_appender: FileAppender,
     pub log_path: LogPath,
 }
 
 impl LoggingSetup {
-    pub fn new(
-        _worker_guard: WorkerGuard,
-        file_appender: Arc<Mutex<Option<RollingFileAppender>>>,
-        log_dir: PathBuf,
-        log_file: &str,
-    ) -> Self {
+    pub fn new(worker_guard: WorkerGuard, file_appender: FileAppender) -> Self {
+        let log_path = LogPath::new(
+            file_appender.log_dir.clone(),
+            file_appender.log_file.to_string(),
+        );
         Self {
-            _worker_guard,
+            worker_guard,
             file_appender,
-            log_path: LogPath::new(log_dir, log_file),
+            log_path,
         }
     }
 }
@@ -125,10 +163,10 @@ pub struct LogPath {
 }
 
 impl LogPath {
-    pub fn new(log_dir: PathBuf, log_file: &str) -> Self {
+    pub fn new(log_dir: PathBuf, log_file: String) -> Self {
         Self {
             dir: log_dir,
-            filename: log_file.to_string(),
+            filename: log_file,
         }
     }
 }
@@ -141,13 +179,12 @@ impl Default for LogPath {
         }
     }
 }
-
 struct FileManager {
-    file_appender: Arc<Mutex<Option<RollingFileAppender>>>,
+    file_appender: FileAppender,
 }
 
 impl FileManager {
-    pub fn new(file_appender: Arc<Mutex<Option<RollingFileAppender>>>) -> Self {
+    pub fn new(file_appender: FileAppender) -> Self {
         Self { file_appender }
     }
 }
@@ -156,6 +193,7 @@ impl std::io::Write for FileManager {
     fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
         Ok(self
             .file_appender
+            .inner
             .blocking_lock()
             .as_mut()
             .map(|writer| writer.write(buf))
@@ -165,6 +203,7 @@ impl std::io::Write for FileManager {
 
     fn flush(&mut self) -> std::io::Result<()> {
         self.file_appender
+            .inner
             .blocking_lock()
             .as_mut()
             .map(|writer| writer.flush())
@@ -201,12 +240,7 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
 
     // Create file logger but only when running as a service on windows or macos
     let worker_guard = if options.enable_file_log {
-        let log_dir = service::log_dir();
-        let log_file = service::DEFAULT_LOG_FILE;
-        let file_appender = Arc::new(Mutex::new(Some(tracing_appender::rolling::never(
-            log_dir.clone(),
-            log_file,
-        ))));
+        let file_appender = FileAppender::new();
         let file_manager = FileManager::new(file_appender.clone());
         let (file_writer, worker_guard) = tracing_appender::non_blocking(file_manager);
         let file_layer = tracing_subscriber::fmt::layer()
@@ -215,12 +249,7 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
             .with_writer(file_writer)
             .with_ansi(false);
         layers.push(file_layer.boxed());
-        Some(LoggingSetup::new(
-            worker_guard,
-            file_appender,
-            log_dir,
-            log_file,
-        ))
+        Some(LoggingSetup::new(worker_guard, file_appender))
     } else {
         None
     };

@@ -11,6 +11,7 @@ export type ButtonTextProps = {
   textClassName?: string;
   truncate?: boolean;
   colors?: 'rain';
+  'data-testid'?: string;
 };
 
 function ButtonText({
@@ -21,6 +22,7 @@ function ButtonText({
   className,
   truncate,
   colors = 'rain',
+  ...rest
 }: ButtonTextProps) {
   const getColors = () => {
     switch (colors) {
@@ -32,6 +34,8 @@ function ButtonText({
         ];
     }
   };
+
+  const testId = rest['data-testid'] || 'button-text';
 
   return (
     <HuButton
@@ -47,8 +51,16 @@ function ButtonText({
       onClick={onClick}
       onDoubleClick={onDoubleClick}
       disabled={disabled}
+      data-testid={testId}
+      data-disabled={disabled ? 'true' : 'false'}
+      data-truncate={truncate ? 'true' : 'false'}
     >
-      <div className={clsx(truncate && 'text-nowrap truncate')}>{children}</div>
+      <div
+        className={clsx(truncate && 'text-nowrap truncate')}
+        data-testid={`${testId}-content`}
+      >
+        {children}
+      </div>
     </HuButton>
   );
 }

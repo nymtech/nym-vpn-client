@@ -6,10 +6,14 @@ pub enum Error {
     #[error("failed to get version from message")]
     NoVersionInMessage,
 
-    #[error("received response with version v{received}, the client is too new and can only understand v{expected}")]
+    #[error(
+        "received response with version v{received}, the client is too new and can only understand v{expected}"
+    )]
     ReceivedResponseWithOldVersion { expected: u8, received: u8 },
 
-    #[error("received response with version v{received}, the client is too old and can only understand v{expected}")]
+    #[error(
+        "received response with version v{received}, the client is too old and can only understand v{expected}"
+    )]
     ReceivedResponseWithNewVersion { expected: u8, received: u8 },
 
     #[error("failed to send mixnet message")]
@@ -24,13 +28,13 @@ pub enum Error {
     #[error("unknown version number")]
     UnknownVersion,
 
-    #[error("{0}")]
+    #[error(transparent)]
     Bincode(#[from] bincode::Error),
 
     #[error("gateway doesn't support this type of message")]
     UnsupportedMessage,
 
-    #[error("{0}")]
+    #[error(transparent)]
     AuthenticatorRequests(#[from] nym_authenticator_requests::Error),
 }
 

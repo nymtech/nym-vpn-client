@@ -3,7 +3,7 @@
 
 use std::ptr::NonNull;
 
-use super::{path::Path, rc::Retained, sys, InterfaceType};
+use super::{InterfaceType, path::Path, rc::Retained, sys};
 
 /// An observer that you use to monitor and react to network changes.
 #[repr(transparent)]
@@ -95,13 +95,13 @@ impl Drop for PathMonitor {
 #[cfg(test)]
 mod tests {
     use crate::{Endpoint, PathMonitor};
-    use dispatch2::{DispatchQueue, QueueAttribute};
+    use dispatch2::{DispatchQueue, DispatchQueueAttr};
 
     use std::sync::mpsc;
 
     #[test]
     fn test_create_path_monitor() {
-        let queue = DispatchQueue::new("net.nymtech.test", QueueAttribute::Serial);
+        let queue = DispatchQueue::new("net.nymtech.test", DispatchQueueAttr::SERIAL);
         let (tx, rx) = mpsc::channel();
 
         let mut path_monitor = PathMonitor::new();

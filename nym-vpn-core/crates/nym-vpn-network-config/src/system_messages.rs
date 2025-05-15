@@ -6,7 +6,7 @@ use std::{collections::HashMap, fmt};
 use anyhow::Context;
 use nym_sdk::mixnet::Recipient;
 use serde::{Deserialize, Serialize};
-use time::{format_description::well_known::Rfc3339, OffsetDateTime};
+use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
 use nym_vpn_api_client::response::{SystemConfigurationResponse, SystemMessageResponse};
 

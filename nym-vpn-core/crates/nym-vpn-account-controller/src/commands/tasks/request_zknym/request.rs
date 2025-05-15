@@ -16,11 +16,11 @@ use nym_credentials::{EpochVerificationKey, IssuedTicketBook};
 use nym_credentials_interface::{PublicKeyUser, RequestInfo, TicketType};
 use nym_ecash_time::EcashTime;
 use nym_vpn_api_client::{
+    VpnApiClient,
     response::{NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymStatus, StatusOk},
     types::{Device, VpnApiAccount},
-    VpnApiClient,
 };
-use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiErrorResponse};
+use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiError};
 use time::Date;
 
 use crate::{
@@ -28,7 +28,7 @@ use crate::{
     storage::{PendingCredentialRequest, VpnCredentialStorage},
 };
 
-use super::{cached_data::CachedData, ZkNymId};
+use super::{ZkNymId, cached_data::CachedData};
 
 const ZK_NYM_POLLING_TIMEOUT: Duration = Duration::from_secs(60);
 const ZK_NYM_POLLING_INTERVAL: Duration = Duration::from_secs(5);
@@ -167,7 +167,7 @@ impl RequestZkNymTask {
             )
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(|response| RequestZkNymError::RequestZkNymEndpointFailure {
                         response,
                         ticket_type: request.ticketbook_type.to_string(),
@@ -239,7 +239,7 @@ impl RequestZkNymTask {
                     }
                 }
                 Err(error) => {
-                    return Err(VpnApiErrorResponse::try_from(error)
+                    return Err(VpnApiError::try_from(error)
                         .map(|response| RequestZkNymError::PollZkNymEndpointFailure { response })
                         .unwrap_or_else(RequestZkNymError::unexpected_response));
                 }
@@ -342,7 +342,7 @@ impl RequestZkNymTask {
             .is_none()
         {
             tracing::info!(
-            "Inserting expiration date signatures for epoch {epoch_id} and date: {expiration_date}"
+                "Inserting expiration date signatures for epoch {epoch_id} and date: {expiration_date}"
             );
             guard
                 .insert_expiration_date_signatures(
@@ -593,7 +593,7 @@ impl RequestZkNymTask {
             .confirm_zk_nym_download_by_id(&self.account, &self.device, id)
             .await
             .map_err(|err| {
-                VpnApiErrorResponse::try_from(err)
+                VpnApiError::try_from(err)
                     .map(
                         |response| RequestZkNymError::ConfirmZkNymDownloadEndpointFailure {
                             response,

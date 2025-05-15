@@ -69,12 +69,12 @@ default-members = [
 # nym-wireguard-types = { path = "../../nym/common/wireguard-types" }
 
 [workspace.package]
-version = "1.9.0-beta"
+version = "2.0.0-beta"
 authors = ["Nym Technologies SA"]
 repository = "https://github.com/nymtech/nym-vpn-client"
 homepage = "https://nymtech.net"
 documentation = "https://nymtech.net"
-edition = "2021"
+edition = "2024"
 license = "GPL-3.0-only"
 
 [workspace.lints.clippy]
@@ -90,14 +90,15 @@ unreachable = "deny"
 [workspace.dependencies]
 android_logger = "0.14.1"
 anyhow = "1.0.97"
-async-trait = "0.1.87"
 async-stream = "0.3.6"
+async-trait = "0.1.87"
 backon = "1.4"
 base64 = "0.22"
 base64-url = "3.0.0"
 bincode = "1.3.3"
 bip39 = "2.1"
 bitflags = "2"
+block2 = "0.6.1"
 bs58 = "0.5.1"
 bytes = "1.10"
 chrono = "0.4.40"
@@ -105,6 +106,7 @@ clap = "4.5"
 dbus = "0.9"
 debounced = "0.2"
 dirs = "5.0.1"
+dispatch2 = "0.3.0"
 duct = "0.13"
 eventlog = "0.3.0"
 futures = "0.3.31"
@@ -116,7 +118,6 @@ http = "1.3.1"
 hyper-util = "0.1.11"
 inotify = "0.11"
 ipnetwork = "0.20"
-rs-release = "0.1.7"
 itertools = "0.13.0"
 lazy_static = "1.5.0"
 libc = "0.2"
@@ -129,6 +130,8 @@ netlink-packet-route = "0.19.0"
 netlink-sys = "0.8.7"
 nftnl = "0.7.0"
 nix = "0.29"
+objc2 = "0.6.1"
+objc2-foundation = "0.3.1"
 once_cell = "1.21"
 pfctl = "0.6"
 pnet_packet = "0.35.0"
@@ -138,8 +141,9 @@ rand = "0.8.5"
 rand_chacha = "0.3.1"
 reqwest = { version = "0.12", default-features = false }
 resolv-conf = "0.7"
+rs-release = "0.1.7"
 rtnetlink = "0.14.1"
-rust2go = "0.3.16"
+rust2go = "0.4.1"
 semver = "1.0"
 serde = "1.0"
 serde_json = "1.0"
@@ -181,13 +185,6 @@ wmi = "0.14"
 x25519-dalek = "2.0"
 zeroize = "1.6.0"
 
-# Switch these to the latest version once objc2 v0.6.1 released
-# https://github.com/madsmtm/objc2/milestone/7
-block2 = { git = "https://github.com/madsmtm/objc2", rev = "91a74f332f3db66378f457ad954f26c2d72277ca" }
-dispatch2 = { git = "https://github.com/madsmtm/objc2", rev = "91a74f332f3db66378f457ad954f26c2d72277ca" }
-objc2 = { git = "https://github.com/madsmtm/objc2", rev = "91a74f332f3db66378f457ad954f26c2d72277ca" }
-objc2-foundation = { git = "https://github.com/madsmtm/objc2", rev = "91a74f332f3db66378f457ad954f26c2d72277ca" }
-
 nym-apple-network = { path = "crates/nym-apple-network" }
 nym-authenticator-client = { path = "crates/nym-authenticator-client" }
 nym-common = { path = "crates/nym-common" }
@@ -214,28 +211,28 @@ nym-wg-gateway-client = { path = "crates/nym-wg-gateway-client" }
 nym-wg-go = { path = "crates/nym-wg-go" }
 nym-windows = { path = "crates/nym-windows" }
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-task = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "release/2025.6-chuckles" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-task = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "release/2025.8-tourist-patched" }

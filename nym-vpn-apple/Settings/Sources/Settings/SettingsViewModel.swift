@@ -127,8 +127,8 @@ private extension SettingsViewModel {
     }
 #endif
 
-    @MainActor func navigateToTheme() {
-        path.append(SettingLink.theme)
+    @MainActor func navigateToAppearance() {
+        path.append(SettingLink.appearance)
     }
 
     @MainActor func navigateToLogs() {
@@ -192,7 +192,7 @@ private extension SettingsViewModel {
             contentsOf: [
                 feedbackSection(),
                 killswitchSection(),
-                themeSection(),
+                appearanceSection(),
                 legalSection()
             ]
         )
@@ -231,7 +231,7 @@ private extension SettingsViewModel {
         )
     }
 
-    func themeSection() -> SettingsSection {
+    func appearanceSection() -> SettingsSection {
         var viewModels = [
             SettingsListItemViewModel(
                 accessory: .arrow,
@@ -239,7 +239,7 @@ private extension SettingsViewModel {
                 imageName: "appearance",
                 action: { [weak self] in
                     Task { @MainActor in
-                        self?.navigateToTheme()
+                        self?.navigateToAppearance()
                     }
                 }
             )

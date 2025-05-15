@@ -1,0 +1,5 @@
+Quais as novidades:
+- Melhorias na UI
+- Melhorias de cache
+- Integração de harbour master adicionada
+- Sincronização rápida do bloco foi melhorada

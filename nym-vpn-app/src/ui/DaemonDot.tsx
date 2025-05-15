@@ -1,12 +1,14 @@
 import clsx from 'clsx';
 import { DaemonStatus } from '../types';
-import { S_STATE } from '../static';
+
+const devMode = window._APP.devMode;
 
 type DaemonDotProps = {
   status: DaemonStatus;
+  'data-testid'?: string;
 };
 
-function DaemonDot({ status }: DaemonDotProps) {
+function DaemonDot({ status, ...rest }: DaemonDotProps) {
   const bgColor = () => {
     switch (status) {
       case 'ok':
@@ -18,9 +20,11 @@ function DaemonDot({ status }: DaemonDotProps) {
     }
   };
 
-  if (!S_STATE.devMode && status === 'ok') {
+  if (!devMode && status === 'ok') {
     return null;
   }
+
+  const testId = rest['data-testid'] || 'daemon-dot';
 
   return (
     <div
@@ -28,8 +32,13 @@ function DaemonDot({ status }: DaemonDotProps) {
         'absolute z-30 left-1 top-1 pointer-events-none select-none',
         status === 'ok' ? 'animate-pulse' : 'animate-pulse-fast',
       ])}
+      data-testid={testId}
+      data-status={status}
     >
-      <div className={clsx(['relative w-2.5 h-2.5 rounded-full', bgColor()])} />
+      <div
+        className={clsx(['relative w-2.5 h-2.5 rounded-full', bgColor()])}
+        data-testid={`${testId}-indicator`}
+      />
     </div>
   );
 }

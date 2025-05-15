@@ -3,14 +3,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use std::{
-    ffi::{c_char, CStr},
+    ffi::{CStr, c_char},
     mem,
 };
 use windows::Win32::{
     Foundation::{CloseHandle, ERROR_NO_MORE_FILES, HANDLE},
     System::Diagnostics::ToolHelp::{
-        CreateToolhelp32Snapshot, Module32First, Module32Next, Process32FirstW, Process32NextW,
-        CREATE_TOOLHELP_SNAPSHOT_FLAGS, MODULEENTRY32, PROCESSENTRY32W,
+        CREATE_TOOLHELP_SNAPSHOT_FLAGS, CreateToolhelp32Snapshot, MODULEENTRY32, Module32First,
+        Module32Next, PROCESSENTRY32W, Process32FirstW, Process32NextW,
     },
 };
 

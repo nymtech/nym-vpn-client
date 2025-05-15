@@ -43,10 +43,13 @@ const GatewayItem = ({
         'flex flex-row justify-between items-center select-none',
         'hover:bg-mercury hover:dark:bg-mine-shaft',
       )}
+      data-testid={`gateway-item-${gateway.id.substring(0, 8)}`}
+      data-selected={isSelected ? isSelected : 'none'}
     >
       <Button
         className="flex items-center overflow-hidden w-full pr-2 focus:outline-none"
         onClick={handleSelect}
+        data-testid={`gateway-select-button-${gateway.id.substring(0, 8)}`}
       >
         <div
           className={clsx(
@@ -54,17 +57,27 @@ const GatewayItem = ({
             isSelected === node && 'bg-malachite',
             isSelected && isSelected !== node && 'bg-iron',
           )}
+          data-testid={`gateway-selection-indicator-${gateway.id.substring(0, 8)}`}
         />
         <div className="flex flex-row items-center p-2 gap-4 overflow-hidden">
           <div className="flex">
             <MsIcon
               className={clsx(scoreIcon[1], 'text-xl')}
               icon={scoreIcon[0]}
+              data-testid={`gateway-score-icon-${gateway.id.substring(0, 8)}`}
             />
           </div>
           <div className="flex flex-col text-start overflow-hidden">
-            <p className="truncate">{gateway.name}</p>
-            <p className="text-sm text-iron dark:text-bombay truncate">
+            <p
+              className="truncate"
+              data-testid={`gateway-name-${gateway.id.substring(0, 8)}`}
+            >
+              {gateway.name}
+            </p>
+            <p
+              className="text-sm text-iron dark:text-bombay truncate"
+              data-testid={`gateway-id-${gateway.id.substring(0, 8)}`}
+            >
               {truncateId(gateway.id)}
             </p>
           </div>
@@ -80,8 +93,12 @@ const GatewayItem = ({
             'focus:outline-none',
           )}
           onClick={() => onNodeDetails(gateway)}
+          data-testid={`gateway-info-button-${gateway.id.substring(0, 8)}`}
         >
-          <MsIcon icon="info" />
+          <MsIcon
+            icon="info"
+            data-testid={`gateway-info-icon-${gateway.id.substring(0, 8)}`}
+          />
         </Button>
       </div>
     </div>

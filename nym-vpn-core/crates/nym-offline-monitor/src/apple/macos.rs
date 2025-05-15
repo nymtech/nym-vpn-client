@@ -20,7 +20,7 @@ use std::{
 
 use futures::future::{Fuse, FutureExt};
 use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
-use tokio::sync::{watch, Mutex};
+use tokio::sync::{Mutex, watch};
 use tokio_util::sync::CancellationToken;
 
 use crate::Connectivity;
@@ -38,7 +38,7 @@ const SYNTHETIC_OFFLINE_DURATION: Duration = Duration::from_secs(1);
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Failed to initialize route monitor")]
+    #[error("failed to initialize route monitor")]
     StartRouteMonitor(#[from] nym_routing::Error),
 }
 

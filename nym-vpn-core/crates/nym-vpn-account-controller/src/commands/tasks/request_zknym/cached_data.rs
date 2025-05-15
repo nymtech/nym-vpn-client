@@ -5,7 +5,7 @@ use std::{collections::HashMap, sync::Arc};
 
 use nym_credential_proxy_requests::api::v1::ticketbook::models::PartialVerificationKeysResponse;
 use nym_vpn_api_client::VpnApiClient;
-use nym_vpn_lib_types::{RequestZkNymError, VpnApiErrorResponse};
+use nym_vpn_lib_types::{RequestZkNymError, VpnApiError};
 
 use crate::connectivity::OfflineWatch;
 
@@ -56,7 +56,7 @@ impl CachedData {
                 .get_directory_zk_nyms_ticketbook_partial_verification_keys()
                 .await
                 .map_err(|err| {
-                    VpnApiErrorResponse::try_from(err)
+                    VpnApiError::try_from(err)
                         .map(|source| {
                             RequestZkNymError::GetPartialVerificationKeysEndpointFailure {
                                 response: source,

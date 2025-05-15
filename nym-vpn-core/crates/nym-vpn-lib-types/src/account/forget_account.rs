@@ -3,15 +3,15 @@
 
 use std::fmt::Debug;
 
-use super::VpnApiErrorResponse;
+use super::VpnApiError;
 
 #[derive(Debug, thiserror::Error, Clone, PartialEq, Eq)]
 pub enum ForgetAccountError {
     #[error("registration is in progress")]
     RegistrationInProgress,
 
-    #[error("failed to remove device from nym vpn api: {0}")]
-    UpdateDeviceErrorResponse(VpnApiErrorResponse),
+    #[error("update device on vpn-api: {0}")]
+    UpdateDeviceErrorResponse(VpnApiError),
 
     #[error("unexpected response: {0}")]
     UnexpectedResponse(String),

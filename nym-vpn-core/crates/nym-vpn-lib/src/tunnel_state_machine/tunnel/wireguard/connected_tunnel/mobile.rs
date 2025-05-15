@@ -8,14 +8,14 @@ use std::time::Duration;
 use std::{error::Error as StdError, net::IpAddr};
 
 #[cfg(target_os = "ios")]
-use dispatch2::{DispatchQueue, QueueAttribute};
+use dispatch2::{DispatchQueue, DispatchQueueAttr};
 
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
 #[cfg(target_os = "ios")]
 use tokio::sync::mpsc;
 use tokio::task::{JoinError, JoinHandle};
 #[cfg(target_os = "ios")]
-use tokio_stream::{wrappers::UnboundedReceiverStream, StreamExt};
+use tokio_stream::{StreamExt, wrappers::UnboundedReceiverStream};
 use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 
@@ -31,12 +31,12 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 use crate::tunnel_state_machine::tunnel::wireguard::dns64::Dns64Resolution;
 use crate::{
     tunnel_state_machine::tunnel::{
+        Error, Result, Tombstone,
         wireguard::{
             connector::ConnectionData,
             fd::DupFd,
-            two_hop_config::{TwoHopConfig, ENTRY_MTU, EXIT_MTU},
+            two_hop_config::{ENTRY_MTU, EXIT_MTU, TwoHopConfig},
         },
-        Error, Result, Tombstone,
     },
     wg_config::WgNodeConfig,
 };
@@ -158,8 +158,10 @@ impl ConnectedTunnel {
                     DEFAULT_PATH_DEBOUNCE,
                 );
 
-                let queue =
-                    DispatchQueue::new("net.nymtech.vpn.wg-path-monitor", QueueAttribute::Serial);
+                let queue = DispatchQueue::new(
+                    "net.nymtech.vpn.wg-path-monitor",
+                    DispatchQueueAttr::SERIAL,
+                );
                 let mut path_monitor = PathMonitor::new();
                 path_monitor.set_dispatch_queue(&queue);
                 path_monitor.set_update_handler(move |network_path| {

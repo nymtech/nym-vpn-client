@@ -24,11 +24,26 @@ struct ToggleView: View {
                     .animation(.default, value: viewModel.strokeColor)
             }
             .onTapGesture {
-                guard !viewModel.isDisabled else { return }
-                withAnimation {
-                    viewModel.onTap()
-                }
+                action()
             }
+            .accessibilityAction {
+                action()
+            }
+            .accessibilityValue(viewModel.accessibilityValue())
+#if os(iOS)
+            .accessibilityAddTraits([.isToggle])
+#elseif os(macOS)
+            .accessibilityAddTraits([.isButton])
+#endif
+    }
+}
+
+private extension ToggleView {
+    func action() {
+        guard !viewModel.isDisabled else { return }
+        withAnimation {
+            viewModel.onTap()
+        }
     }
 }
 

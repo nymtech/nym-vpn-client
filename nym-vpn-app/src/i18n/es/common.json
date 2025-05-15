@@ -1,9 +1,15 @@
 {
+  "vpn-modes": {
+    "privacy": "Anónimo",
+    "fast": "Rápido"
+  },
   "connect": "Conectar",
   "disconnect": "Desconectar",
   "first-hop-selection": "Gateway de entrada",
   "last-hop-selection": "Gateway de salida",
   "settings": "Configuración",
+  "display-theme": "Mostrar",
+  "notifications": "Notificaciones",
   "logs": "Registros",
   "feedback": "Retroalimentación",
   "legal": "Legal",
@@ -12,16 +18,10 @@
   "sentry": "Sentry",
   "tos": "Términos de uso",
   "privacy-statement": "Declaración de privacidad",
-  "vpn-modes": {
-    "privacy": "Anónimo",
-    "fast": "Rápido"
-  },
-  "display-theme": "Mostrar",
   "ui-mode": {
     "dark": "Modo oscuro",
     "light": "Modo claro"
   },
-  "notifications": "Notificaciones",
-  "language": "Idioma",
-  "appearance": "Apariencia"
+  "appearance": "Apariencia",
+  "language": "Idioma"
 }

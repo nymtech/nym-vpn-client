@@ -2,16 +2,16 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_api_client::{
+    VpnApiClient,
     response::NymVpnDevice,
     types::{Device, VpnApiAccount},
-    VpnApiClient,
 };
-use nym_vpn_lib_types::{RegisterDeviceError, VpnApiErrorResponse};
+use nym_vpn_lib_types::{RegisterDeviceError, VpnApiError};
 
 use crate::{
+    SharedAccountState,
     commands::AccountCommandResult,
     shared_state::{DeviceState, RegisterDeviceResult},
-    SharedAccountState,
 };
 
 pub(crate) struct RegisterDeviceCommandHandler {
@@ -101,7 +101,7 @@ pub(crate) async fn register_device(
         .register_device(account, device)
         .await
         .map_err(|err| {
-            VpnApiErrorResponse::try_from(err)
+            VpnApiError::try_from(err)
                 .map(RegisterDeviceError::RegisterDeviceEndpointFailure)
                 .unwrap_or_else(RegisterDeviceError::unexpected_response)
         })?;

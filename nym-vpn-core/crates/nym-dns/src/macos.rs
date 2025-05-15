@@ -6,7 +6,7 @@ use std::{
     collections::{BTreeSet, HashMap},
     fmt, mem,
     net::{IpAddr, SocketAddr},
-    sync::{mpsc as sync_mpsc, Arc, RwLock},
+    sync::{Arc, RwLock, mpsc as sync_mpsc},
     thread,
     time::Duration,
 };
@@ -18,7 +18,7 @@ use system_configuration::{
         dictionary::{CFDictionary, CFMutableDictionary},
         number::CFNumber,
         propertylist::CFPropertyList,
-        runloop::{kCFRunLoopCommonModes, CFRunLoop},
+        runloop::{CFRunLoop, kCFRunLoopCommonModes},
         string::CFString,
     },
     dynamic_store::{SCDynamicStore, SCDynamicStoreBuilder, SCDynamicStoreCallBackContext},
@@ -40,23 +40,23 @@ const DNS_PORT: u16 = 53;
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     /// Error while setting DNS servers
-    #[error("Error while setting DNS servers")]
+    #[error("error while setting DNS servers")]
     SettingDnsFailed,
 
     /// Failed to initialize dynamic store
-    #[error("Failed to initialize dynamic store")]
+    #[error("failed to initialize dynamic store")]
     DynamicStoreInitError,
 
     /// Failed to obtain name for interface
-    #[error("Failed to obtain interface name")]
+    #[error("failed to obtain interface name")]
     GetInterfaceNameError,
 
     /// Failed to load interface config
-    #[error("Failed to load interface config at path {0}")]
+    #[error("failed to load interface config at path {0}")]
     LoadInterfaceConfigError(String),
 
     /// Failed to load DNS config
-    #[error("Failed to load DNS config at path {0}")]
+    #[error("failed to load DNS config at path {0}")]
     LoadDnsConfigError(String),
 }
 

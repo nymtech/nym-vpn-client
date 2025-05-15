@@ -24,6 +24,7 @@ public enum VPNErrorReason: LocalizedError {
     case requestZkNymBundle(successes: [String], failed: [String])
     case forgetAccount(details: String)
     case offline
+    case unexpectedVpnApiResponse(details: String)
     case unkownTunnelState
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -66,6 +67,10 @@ public enum VPNErrorReason: LocalizedError {
                 messageString = message
             case let .getAccountEndpointFailure(vpnApiErrorResponse):
                 messageString = vpnApiErrorResponse.message
+            case let .invalidMnemonic(message):
+                messageString = message
+            case let .internal(message):
+                messageString = message
             }
             self = .storeAccount(details: messageString)
         case let .SyncAccount(details: details):
@@ -169,8 +174,12 @@ public enum VPNErrorReason: LocalizedError {
                 let .resetCredentialStorage(message), let .removeAccountFiles(message),
                 let .initDeviceKeys(message):
                 messageString = message
+            case let .internal(message):
+                messageString = message
             }
             self = .forgetAccount(details: messageString)
+        case let .UnexpectedVpnApiResponse(details: details):
+            self = .unexpectedVpnApiResponse(details: details)
         }
     }
 
@@ -240,6 +249,8 @@ public enum VPNErrorReason: LocalizedError {
             self = .offline
         case .unkownTunnelState:
             self = .unkownTunnelState
+        case .unexpectedVpnApiResponse:
+            self = .unexpectedVpnApiResponse(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         }
     }
 
@@ -323,6 +334,8 @@ extension VPNErrorReason {
             "errorReason.unknownTunnelState".localizedString
         case .offline:
             "errorReason.offline".localizedString
+        case let .unexpectedVpnApiResponse(details: details):
+            details
         }
     }
 
@@ -365,6 +378,7 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
     case forgetAccount
     case offline
     case unkownTunnelState
+    case unexpectedVpnApiResponse
 
     init?(vpnErrorReason: VPNErrorReason) {
         switch vpnErrorReason {
@@ -410,6 +424,8 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
             self = .unkownTunnelState
         case .offline:
             self = .offline
+        case .unexpectedVpnApiResponse:
+            self = .unexpectedVpnApiResponse
         }
     }
 }

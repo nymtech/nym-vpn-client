@@ -116,11 +116,13 @@ private extension GatewaysView {
                 Text("search.noResults".localizedString)
                     .foregroundStyle(NymColor.primary)
                     .textStyle(.Body.Large.regular)
+                    .padding(.horizontal, 8)
                 Spacer()
                     .frame(height: 16)
                 Text("search.noResultsSubtitle".localizedString)
                     .foregroundStyle(NymColor.gray1)
                     .textStyle(.Body.Large.regular)
+                    .padding(.horizontal, 8)
                 Spacer()
                     .frame(height: 4)
 
@@ -135,7 +137,7 @@ private extension GatewaysView {
     func contactUsForHelpLinkView() -> some View {
         if let newSupportRequestURL = URL(string: Constants.newSupportRequest.rawValue),
            let operatorURL = URL(string: Constants.operatorDocs.rawValue) {
-            HStack(spacing: 0) {
+            HStack(alignment: .top, spacing: 0) {
                 Link(destination: newSupportRequestURL) {
                     Text("search.contactUsForHelp".localizedString)
                         .underline()
@@ -154,6 +156,7 @@ private extension GatewaysView {
                         .textStyle(.Body.Large.regular)
                 }
             }
+            .padding(.horizontal, 8)
         }
     }
 

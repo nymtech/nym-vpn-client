@@ -1,27 +1,27 @@
 {
-  "settings": "Ayarlar",
-  "disconnect": "Bağlantıyı kes",
-  "connect": "Bağlan",
-  "fastest": "En hızlı",
-  "logs": "Günlükler",
-  "feedback": "Geri bildirim",
-  "support": "Destek",
-  "sentry": "Gözcü",
-  "legal": "Hukuki",
-  "display-theme": "Panel",
-  "ui-mode": {
-    "dark": "Karanlık mod",
-    "light": "Aydınlık mod"
-  },
-  "first-hop-selection": "Giriş lokasyonu",
-  "last-hop-selection": "Çıkış lokasyonu",
-  "tos": "Kullanım şartları",
-  "privacy-statement": "Gizlilik politikası",
   "vpn-modes": {
     "privacy": "Anonim",
     "fast": "Hızlı"
   },
+  "connect": "Bağlan",
+  "disconnect": "Bağlantıyı kes",
+  "first-hop-selection": "Giriş",
+  "last-hop-selection": "Çıkış",
+  "settings": "Ayarlar",
+  "display-theme": "Panel",
   "notifications": "Bildirimler",
-  "language": "Dil",
-  "appearance": "Görünüm"
+  "logs": "Günlükler",
+  "feedback": "Geri bildirim",
+  "legal": "Hukuki",
+  "support": "Destek",
+  "fastest": "En hızlı",
+  "sentry": "Sentry",
+  "tos": "Kullanım şartları",
+  "privacy-statement": "Gizlilik politikası",
+  "ui-mode": {
+    "dark": "Koyu tema",
+    "light": "Açık tema"
+  },
+  "appearance": "Görünüm",
+  "language": "Dil"
 }

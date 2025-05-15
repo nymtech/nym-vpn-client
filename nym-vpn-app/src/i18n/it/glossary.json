@@ -1,4 +1,13 @@
 {
+  "account": "account",
+  "cancel": "cancel",
+  "left": "rimasti",
+  "login": "login",
+  "logout": "logout",
+  "ok": "ok",
+  "selected": "selected",
   "via": "via",
-  "left": "rimasti"
+  "stop": "stop",
+  "server_one": "server",
+  "server_other": "servers"
 }

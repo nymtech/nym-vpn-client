@@ -1,20 +1,20 @@
 {
-  "selected": "Sélectionné",
-  "search-country": "Rechercher un pays",
-  "input-label": "Recherche",
   "loading": "Chargement...",
   "none-found": "Pas de résultats, essayez une autre recherche",
   "list-loading": "Chargement de la liste des pays…",
-  "location-not-available": {
-    "entry": "Le lieu d'entrée sélectionné n'est pas disponible, il a été remplacé par {{location}}",
-    "exit": "L'emplacement de sortie sélectionné n'est pas disponible, il a été remplacé par {{location}}"
-  },
+  "selected": "Sélectionné",
+  "search-country": "Rechercher un pays",
+  "input-label": "Recherche",
   "location-details": {
     "title": "Détails sur l'emplacement des serveurs",
     "description": "Nous déduisons l'emplacement des serveurs sur la base de leurs adresses IP, mais l'emplacement réel peut varier légèrement.",
     "link": "En savoir plus"
   },
+  "location-not-available": {
+    "entry": "Le lieu d'entrée sélectionné n'est pas disponible, il a été remplacé par {{location}}",
+    "exit": "L'emplacement de sortie sélectionné n'est pas disponible, il a été remplacé par {{location}}"
+  },
   "node-details": {
-    "id-label": "Identity key:"
+    "id-label": "Clé d'identité :"
   }
 }

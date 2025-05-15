@@ -8,7 +8,7 @@ use nym_config::defaults::NymNetworkDetails;
 
 use crate::MAX_FILE_AGE;
 
-use super::{discovery::Discovery, NETWORKS_SUBDIR};
+use super::{NETWORKS_SUBDIR, discovery::Discovery};
 
 #[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
 pub struct NymNetwork {

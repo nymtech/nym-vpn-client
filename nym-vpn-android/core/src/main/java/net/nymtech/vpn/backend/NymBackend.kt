@@ -31,7 +31,6 @@ import nym_vpn_lib.AccountLinks
 import nym_vpn_lib.AccountStateSummary
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.ConnectivityObserver
-import nym_vpn_lib.GatewayMinPerformance
 import nym_vpn_lib.GatewayType
 import nym_vpn_lib.SystemMessage
 import nym_vpn_lib.TunnelEvent
@@ -264,7 +263,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	override suspend fun getGateways(type: GatewayType, userAgent: UserAgent): List<NymGateway> {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			nym_vpn_lib.getGateways(type, userAgent, GatewayMinPerformance(0u, 0u)).map(NymGateway::from)
+			nym_vpn_lib.getGateways(type, userAgent).map(NymGateway::from)
 		}
 	}
 

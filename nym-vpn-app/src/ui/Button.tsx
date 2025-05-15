@@ -11,6 +11,7 @@ export type ButtonProps = {
   outline?: boolean;
   className?: string;
   spinner?: boolean;
+  'data-testid'?: string;
 };
 
 function Spinner() {
@@ -23,6 +24,7 @@ function Spinner() {
         os !== 'linux' && 'border-4',
         'border:white dark:border-[#252426] border-b-transparent dark:border-b-transparent',
       ])}
+      data-testid="button-spinner"
     ></span>
   );
 }
@@ -35,6 +37,7 @@ function Button({
   outline,
   className,
   spinner,
+  ...rest
 }: ButtonProps) {
   const getColorStyle = () => {
     switch (color) {
@@ -85,6 +88,7 @@ function Button({
   };
 
   const colorStyle = outline ? getOutlineColorStyle() : getColorStyle();
+  const testId = rest['data-testid'] || 'button';
 
   return (
     <HuButton
@@ -101,8 +105,18 @@ function Button({
       ])}
       onClick={onClick}
       disabled={disabled}
+      data-testid={testId}
+      data-color={color}
+      data-outline={outline ? 'true' : 'false'}
+      data-disabled={disabled ? 'true' : 'false'}
     >
-      {spinner ? Spinner() : <div className="truncate">{children}</div>}
+      {spinner ? (
+        <Spinner />
+      ) : (
+        <div className="truncate" data-testid={`${testId}-text`}>
+          {children}
+        </div>
+      )}
     </HuButton>
   );
 }

@@ -234,7 +234,7 @@
 	<string name="log_out_title">Are you sure you want to log out?</string>
 	<string name="log_out_body">You will need your recovery phrase to log in again.</string>
 	<string name="cancel">Cancel</string>
-	<string name="subscription_expired_error">Subscription has expired. Please purchase a plan for your account.</string>
+	<string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
 	<string name="remove_device">Remove a device from your account and try again.</string>
     <string name="gateway_score">Gateway score</string>
 	<string name="info">Info</string>
@@ -253,10 +253,11 @@
     <string name="bypass_lan">Bypass LAN</string>
 	<string name="bandwidth_error">Monthly bandwidth exceeded. Please upgrade your account plan.</string>
 	<string name="max_devices_error">Account device limit exceeded. Please remove a device from your account before connecting.</string>
-    <string name="pricing_url">nym.com/pricing</string>
+    <string name="pricing_url">https://nym.com/pricing</string>
 	<string name="account_id">Account ID:</string>
 	<string name="developer">Developer</string>
 	<string name="get_help">Get help</string>
 	<string name="telegram_url">https://nym.com/go/telegram</string>
 	<string name="join_telegram">Join us on Telegram</string>
+	<string name="device_time_out_of_sync">Device time out of sync</string>
 </resources>

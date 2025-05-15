@@ -64,7 +64,15 @@ function NetworkModeSelect() {
         label: t('fast-mode.title'),
         desc: t('fast-mode.desc'),
         disabled: state !== 'Disconnected' || loading,
-        icon: (checked) => <span className={iconStyle(checked)}>speed</span>,
+        icon: (checked) => (
+          <span
+            className={iconStyle(checked)}
+            data-testid="network-mode-fast-icon"
+          >
+            speed
+          </span>
+        ),
+        descWrap: true,
       },
       {
         key: 'mixnet',
@@ -72,24 +80,32 @@ function NetworkModeSelect() {
         desc: t('privacy-mode.desc'),
         disabled: state !== 'Disconnected' || loading,
         icon: (checked) => (
-          <span className={iconStyle(checked)}>visibility_off</span>
+          <span
+            className={iconStyle(checked)}
+            data-testid="network-mode-privacy-icon"
+          >
+            visibility_off
+          </span>
         ),
+        descWrap: true,
       },
     ];
   }, [loading, state, t]);
 
   return (
-    <div>
+    <div data-testid="network-mode-select-container">
       <div
         className={clsx([
           'flex flex-row items-center justify-between',
           'font-medium text-base text-baltic-sea dark:text-white mb-5 cursor-default',
         ])}
+        data-testid="network-mode-label-container"
       >
-        <label>{t('select-mode-label')}</label>
+        <label data-testid="network-mode-label">{t('select-mode-label')}</label>
         <Button
           className="w-6 focus:outline-hidden cursor-default"
           onClick={() => setIsDialogModesOpen(true)}
+          data-testid="network-mode-info-button"
         >
           <MsIcon
             icon="info"
@@ -105,7 +121,11 @@ function NetworkModeSelect() {
         isOpen={isDialogModesOpen}
         onClose={() => setIsDialogModesOpen(false)}
       />
-      <div className="select-none" onClick={handleDisabledState}>
+      <div
+        className="select-none"
+        onClick={handleDisabledState}
+        data-testid="network-mode-radio-group-container"
+      >
         <RadioGroup
           key={`_${S_STATE.vpnModeInit}`}
           defaultValue={vpnMode}
@@ -113,6 +133,7 @@ function NetworkModeSelect() {
           onChange={handleNetworkModeChange}
           radioIcons={false}
           disabled={daemonStatus === 'down'}
+          data-testid="network-mode-radio-group"
         />
       </div>
     </div>

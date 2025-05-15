@@ -22,6 +22,8 @@ public enum ErrorReason: LocalizedError {
     case subscriptionExpired
     case api(String)
     case registrationInProgress
+    case internalError(String)
+    case deviceTimeOutOfSync
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -29,7 +31,6 @@ public enum ErrorReason: LocalizedError {
     public static let domain = "ErrorHandler.ErrorReason"
 
 #if os(iOS)
-    // swiftlint:disable:next function_body_length
     public init(with errorStateReason: ErrorStateReason) {
         switch errorStateReason {
         case .firewall:
@@ -54,11 +55,12 @@ public enum ErrorReason: LocalizedError {
             self = .subscriptionExpired
         case let .api(message):
             self = .api(message ?? Self.somethingWentWrong)
+        case .deviceTimeOutOfSync:
+            self = .deviceTimeOutOfSync
         }
     }
 #endif
 
-    // swiftlint:disable:next function_body_length
     public init?(nsError: NSError) {
         guard nsError.domain == ErrorReason.domain,
               let errorReason = ErrorReasonCode(rawValue: nsError.code)
@@ -100,6 +102,10 @@ public enum ErrorReason: LocalizedError {
             self = .api(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .registrationInProgress:
             self = .registrationInProgress
+        case .internalError:
+            self = .internalError(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .deviceTimeOutOfSync:
+            self = .deviceTimeOutOfSync
         }
     }
 
@@ -160,6 +166,10 @@ private extension ErrorReason {
             message
         case .registrationInProgress:
             "errorReason.registrattionInProgress".localizedString
+        case let .internalError(message):
+            message
+        case .deviceTimeOutOfSync:
+            "errorReason.deviceTimeOutOfSync".localizedString
         }
     }
 }
@@ -186,7 +196,9 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case bandwidthExceeded
     case subscriptionExpired
     case api
+    case internalError
     case registrationInProgress
+    case deviceTimeOutOfSync
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -222,6 +234,10 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .api
         case .registrationInProgress:
             self = .registrationInProgress
+        case .internalError:
+            self = .internalError
+        case .deviceTimeOutOfSync:
+            self = .deviceTimeOutOfSync
         }
     }
 }

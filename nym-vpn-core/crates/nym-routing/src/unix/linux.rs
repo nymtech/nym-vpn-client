@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use crate::{
-    imp::{CallbackMessage, RouteManagerCommand},
     NetNode, Node, RequiredRoute, Route,
+    imp::{CallbackMessage, RouteManagerCommand},
 };
 use netlink_sys::AsyncSocket;
 use nym_common::ErrorExt;
@@ -15,26 +15,26 @@ use std::{
     num::NonZeroI32,
 };
 
-use futures::{future::FutureExt, StreamExt, TryStream, TryStreamExt};
+use futures::{StreamExt, TryStream, TryStreamExt, future::FutureExt};
 use ipnetwork::IpNetwork;
 use libc::RT_TABLE_COMPAT;
 use netlink_packet_core::{
-    NetlinkMessage, NetlinkPayload, NLM_F_ACK, NLM_F_CREATE, NLM_F_DUMP, NLM_F_REPLACE,
-    NLM_F_REQUEST,
+    NLM_F_ACK, NLM_F_CREATE, NLM_F_DUMP, NLM_F_REPLACE, NLM_F_REQUEST, NetlinkMessage,
+    NetlinkPayload,
 };
 use netlink_packet_route::{
+    AddressFamily, RouteNetlinkMessage,
     link::{LinkAttribute, LinkLayerType, LinkMessage},
     route::{
         RouteAddress, RouteAttribute, RouteFlag, RouteHeader, RouteMessage, RouteMetric,
         RouteProtocol, RouteScope, RouteType, RouteVia,
     },
     rule::{RuleAction, RuleAttribute, RuleFlag, RuleHeader, RuleMessage},
-    AddressFamily, RouteNetlinkMessage,
 };
 use netlink_sys::SocketAddr;
 use rtnetlink::{
-    constants::{RTMGRP_IPV4_ROUTE, RTMGRP_IPV6_ROUTE, RTMGRP_LINK, RTMGRP_NOTIFY},
     Handle, IpVersion,
+    constants::{RTMGRP_IPV4_ROUTE, RTMGRP_IPV6_ROUTE, RTMGRP_LINK, RTMGRP_NOTIFY},
 };
 use std::sync::LazyLock;
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
@@ -90,47 +90,47 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// Errors that can happen in the Linux routing integration
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error("Failed to open a netlink connection")]
+    #[error("failed to open a netlink connection")]
     Connect(#[source] io::Error),
 
-    #[error("Failed to bind netlink socket")]
+    #[error("failed to bind netlink socket")]
     Bind(#[source] io::Error),
 
-    #[error("Netlink error")]
+    #[error("netlink error")]
     Netlink(#[source] rtnetlink::Error),
 
-    #[error("Route without a valid node")]
+    #[error("route without a valid node")]
     InvalidRoute,
 
-    #[error("Failed to convert route address to IP. Received: {0}")]
+    #[error("failed to convert route address to IP. Received: {0}")]
     ConvertRouteAddrToIp(String),
 
-    #[error("Failed to convert route via to IP. Received: {0}")]
+    #[error("failed to convert route via to IP. Received: {0}")]
     ConvertRouteViaToIp(String),
 
-    #[error("Invalid network prefix")]
+    #[error("invalid network prefix")]
     InvalidNetworkPrefix(#[source] ipnetwork::IpNetworkError),
 
-    #[error("Unknown device index: {0}")]
+    #[error("unknown device index: {0}")]
     UnknownDeviceIndex(u32),
 
-    #[error("Failed to get a route for the given IP address")]
+    #[error("failed to get a route for the given IP address")]
     GetRoute(#[source] rtnetlink::Error),
 
-    #[error("No netlink response for route query")]
+    #[error("no netlink response for route query")]
     NoRoute,
 
-    #[error("Route node was malformed")]
+    #[error("route node was malformed")]
     InvalidRouteNode,
 
-    #[error("No link found")]
+    #[error("no link found")]
     LinkNotFound,
 
     /// Unable to create routing table for tagged connections and packets.
-    #[error("Cannot find a free routing table ID")]
+    #[error("cannot find a free routing table ID")]
     NoFreeRoutingTableId,
 
-    #[error("Shutting down route manager")]
+    #[error("shutting down route manager")]
     Shutdown,
 }
 
@@ -367,7 +367,7 @@ impl RouteManagerImpl {
                 },
                 Some((route_change, _socket)) = self.messages.next() => {
                     if let Err(error) = self.process_netlink_message(route_change) {
-                        tracing::error!("{}", error.display_chain_with_msg("Failed to process netlink message"));
+                        error.trace_chain_with_msg("Failed to process netlink message");
                     }
                 }
             };
@@ -764,10 +764,7 @@ impl RouteManagerImpl {
         self.cleanup_routes().await;
 
         if let Err(error) = self.clear_routing_rules().await {
-            tracing::error!(
-                "{}",
-                error.display_chain_with_msg("Failed to remove routing rules")
-            );
+            error.trace_chain_with_msg("Failed to remove routing rules");
         }
     }
 
@@ -800,7 +797,9 @@ impl RouteManagerImpl {
                         }
                         (None, Some(address)) => attempted_ip = address,
                         (None, None) => {
-                            tracing::error!("Route contains an invalid node which lacks both a device and an address");
+                            tracing::error!(
+                                "Route contains an invalid node which lacks both a device and an address"
+                            );
                             return Err(Error::InvalidRouteNode);
                         }
                     }
@@ -909,11 +908,7 @@ fn route_via_to_ip(via: RouteVia) -> Result<IpAddr> {
 
 fn compat_table_id(id: u32) -> u8 {
     // RT_TABLE_COMPAT must be combined with nla Table(id)
-    if id > 255 {
-        RT_TABLE_COMPAT
-    } else {
-        id as u8
-    }
+    if id > 255 { RT_TABLE_COMPAT } else { id as u8 }
 }
 
 fn get_ip_version(addr: &IpAddr) -> IpVersion {

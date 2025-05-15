@@ -1,0 +1,27 @@
+{
+  "vpn-modes": {
+    "privacy": "Ẩn danh",
+    "fast": "Nhanh"
+  },
+  "connect": "Kết nối",
+  "disconnect": "Ngắt kết nối",
+  "first-hop-selection": "Vào",
+  "last-hop-selection": "Thoát",
+  "settings": "Cài đặt",
+  "display-theme": "Hiển thị",
+  "notifications": "Thông báo",
+  "logs": "Nhật Ký",
+  "feedback": "Phản hồi",
+  "legal": "Pháp lý",
+  "support": "Hỗ trợ",
+  "fastest": "Nhanh nhất",
+  "sentry": "Sentry",
+  "tos": "Điều khoản sử dụng",
+  "privacy-statement": "Tuyên bố về quyền riêng tư",
+  "ui-mode": {
+    "dark": "Chế độ tối",
+    "light": "Chế độ sáng"
+  },
+  "appearance": "Giao diện",
+  "language": "Ngôn ngữ"
+}

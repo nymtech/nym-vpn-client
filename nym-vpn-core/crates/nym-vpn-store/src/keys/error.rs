@@ -8,18 +8,21 @@ pub enum KeyStoreError {
     #[error("failed to load device keys")]
     Load {
         path: PathBuf,
+        #[source]
         error: Box<dyn std::error::Error>,
     },
 
     #[error("failed to create device keys")]
     Create {
         path: PathBuf,
+        #[source]
         error: Box<dyn std::error::Error>,
     },
 
     #[error("failed to store device keys")]
     Store {
         path: PathBuf,
+        #[source]
         error: Box<dyn std::error::Error>,
     },
 

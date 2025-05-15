@@ -33,8 +33,14 @@ function TunnelState() {
 
   const generalError = (error: AppError) => (
     <>
-      <p>{error.key ? tE(error.key) : error.message}</p>
-      {error.data && <p className="text-left">{setToString(error.data)}</p>}
+      <p data-testid="tunnel-error-key">
+        {error.key ? tE(error.key) : error.message}
+      </p>
+      {error.data && (
+        <p className="text-left" data-testid="tunnel-error-data">
+          {setToString(error.data)}
+        </p>
+      )}
     </>
   );
 
@@ -44,17 +50,27 @@ function TunnelState() {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.1, ease: 'easeOut' }}
       className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default select-none"
+      data-testid="tunnel-info-message"
     >
       <p className="text-base text-iron dark:text-bombay">{message}</p>
     </motion.div>
   );
 
   return (
-    <div className="h-full min-h-52 flex flex-col justify-center items-center gap-y-2 cursor-default">
-      <div className="flex flex-1 items-end cursor-default select-none">
+    <div
+      className="h-full min-h-52 flex flex-col justify-center items-center gap-y-2 cursor-default"
+      data-testid="tunnel-state-container"
+    >
+      <div
+        className="flex flex-1 items-end cursor-default select-none"
+        data-testid="tunnel-badge-container"
+      >
         {showBadge && <ConnectionBadge state={state.state} />}
       </div>
-      <div className="w-full flex flex-col flex-1 items-center overflow-hidden">
+      <div
+        className="w-full flex flex-col flex-1 items-center overflow-hidden"
+        data-testid="tunnel-details-container"
+      >
         {loading &&
           state.progressMessages.length > 0 &&
           !state.error &&
@@ -85,9 +101,10 @@ function TunnelState() {
             animate={{ opacity: 1, scale: 1, translateX: 0 }}
             transition={{ duration: 0.2, ease: 'easeOut' }}
             className="w-4/5 h-2/3 overflow-auto break-words text-center cursor-default text-aphrodisiac"
+            data-testid="tunnel-error-container"
           >
             {state.tunnelError ? (
-              <p>{tE(state.tunnelError)}</p>
+              <p data-testid="tunnel-specific-error">{tE(state.tunnelError)}</p>
             ) : (
               state.error && generalError(state.error)
             )}

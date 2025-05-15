@@ -25,7 +25,11 @@ const Row = ({
   const navigate = useNavigate();
 
   return (
-    <div className="flex flex-col justify-center px-4" style={style}>
+    <div
+      className="flex flex-col justify-center px-4"
+      style={style}
+      data-testid={`license-row-${name.replace(/\//g, '-').toLowerCase()}`}
+    >
       <SettingsMenuCard
         className="min-h-12 py-3!"
         key={name}
@@ -35,6 +39,7 @@ const Row = ({
           navigate(routes.licenseDetails, { state: { license, language } })
         }
         trailingIcon="arrow_right"
+        data-testid={`license-card-${name.replace(/\//g, '-').toLowerCase()}`}
       />
     </div>
   );
@@ -70,13 +75,19 @@ function LicenseList({ language }: Props) {
   }, [rootFontSize]);
 
   return (
-    <PageAnim className="h-full flex flex-col">
+    <PageAnim
+      className="h-full flex flex-col"
+      data-testid={`license-list-${language}`}
+    >
       {licenses.length === 0 ? (
-        <span className="mt-4 pl-4 italic text-iron dark:text-bombay select-none cursor-default">
+        <span
+          className="mt-4 pl-4 italic text-iron dark:text-bombay select-none cursor-default"
+          data-testid="license-list-empty"
+        >
           {t('legal.emptyData')}
         </span>
       ) : (
-        <div className="h-full py-2">
+        <div className="h-full py-2" data-testid="license-list-container">
           <AutoSizer disableWidth>
             {({ height }) => (
               <List
@@ -85,6 +96,7 @@ function LicenseList({ language }: Props) {
                 itemCount={licenses.length}
                 width="100%"
                 itemSize={itemSize}
+                data-testid="license-virtualized-list"
               >
                 {({ index, style }) => (
                   <Row

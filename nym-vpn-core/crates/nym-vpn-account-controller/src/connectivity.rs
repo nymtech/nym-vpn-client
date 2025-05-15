@@ -20,9 +20,13 @@ pub(super) struct OfflineWatch {
 }
 
 impl OfflineWatch {
-    pub(super) fn new(command_sender: AccountCommandSender, initial_state: Connectivity) -> Self {
+    pub(super) fn new(
+        handle: Option<ConnectivityHandle>,
+        command_sender: AccountCommandSender,
+        initial_state: Connectivity,
+    ) -> Self {
         Self {
-            handle: None,
+            handle,
             command_sender,
             last_state: initial_state,
         }

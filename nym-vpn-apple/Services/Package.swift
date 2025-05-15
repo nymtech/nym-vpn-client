@@ -7,7 +7,7 @@ let package = Package(
     name: "Services",
     defaultLocalization: "en",
     platforms: [
-        .iOS(.v16),
+        .iOS(.v17),
         .macOS(.v13)
     ],
     products: [
@@ -173,7 +173,8 @@ let package = Package(
             name: "NotificationsManager",
             dependencies: [
                 "AppSettings",
-                "ConnectionManager"
+                "ConnectionManager",
+                "NotificationMessages"
             ],
             path: "Sources/Services/NotificationsManager"
         ),
@@ -181,7 +182,8 @@ let package = Package(
             name: "NotificationMessages",
             dependencies: [
                 "NymLogger",
-                .product(name: "Logging", package: "swift-log")
+                .product(name: "Logging", package: "swift-log"),
+                "Theme"
             ],
             path: "Sources/Services/NotificationMessages"
         ),

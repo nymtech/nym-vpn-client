@@ -13,7 +13,6 @@ use std::{
 };
 
 use windows::{
-    core::{GUID, HSTRING},
     Win32::{
         Foundation::{ERROR_NOT_FOUND, HANDLE},
         NetworkManagement::{
@@ -22,18 +21,19 @@ use windows::{
                 ConvertInterfaceLuidToGuid, ConvertInterfaceLuidToIndex, CreateIpForwardEntry2,
                 CreateUnicastIpAddressEntry, FreeMibTable, GetIpInterfaceEntry,
                 GetUnicastIpAddressEntry, GetUnicastIpAddressTable, InitializeIpForwardEntry,
-                InitializeUnicastIpAddressEntry, MibAddInstance, NotifyIpInterfaceChange,
-                SetIpInterfaceEntry, MIB_IPINTERFACE_ROW, MIB_NOTIFICATION_TYPE,
-                MIB_UNICASTIPADDRESS_ROW, MIB_UNICASTIPADDRESS_TABLE,
+                InitializeUnicastIpAddressEntry, MIB_IPINTERFACE_ROW, MIB_NOTIFICATION_TYPE,
+                MIB_UNICASTIPADDRESS_ROW, MIB_UNICASTIPADDRESS_TABLE, MibAddInstance,
+                NotifyIpInterfaceChange, SetIpInterfaceEntry,
             },
             Ndis::{IF_MAX_STRING_SIZE, NET_LUID_LH},
         },
         Networking::WinSock::{
-            IpDadStateDeprecated, IpDadStateDuplicate, IpDadStateInvalid, IpDadStatePreferred,
-            IpDadStateTentative, NlroManual, ADDRESS_FAMILY, AF_INET, AF_INET6, AF_UNSPEC,
-            IN6_ADDR, IN_ADDR, MIB_IPPROTO_NT_STATIC, NL_DAD_STATE, SOCKADDR_INET,
+            ADDRESS_FAMILY, AF_INET, AF_INET6, AF_UNSPEC, IN_ADDR, IN6_ADDR, IpDadStateDeprecated,
+            IpDadStateDuplicate, IpDadStateInvalid, IpDadStatePreferred, IpDadStateTentative,
+            MIB_IPPROTO_NT_STATIC, NL_DAD_STATE, NlroManual, SOCKADDR_INET,
         },
     },
+    core::{GUID, HSTRING},
 };
 
 /// Result type for this module.
@@ -47,46 +47,46 @@ const DAD_CHECK_INTERVAL: Duration = Duration::from_millis(100);
 pub enum Error {
     /// Error returned from `ConvertInterfaceAliasToLuid`
     #[cfg(windows)]
-    #[error("Cannot find LUID for virtual adapter")]
+    #[error("cannot find LUID for virtual adapter")]
     NoDeviceLuid(#[source] io::Error),
 
     /// Error returned from `GetUnicastIpAddressTable`/`GetUnicastIpAddressEntry`
     #[cfg(windows)]
-    #[error("Failed to obtain unicast IP address table")]
+    #[error("failed to obtain unicast IP address table")]
     ObtainUnicastAddress(#[source] windows::core::Error),
 
     /// `GetUnicastIpAddressTable` contained no addresses for the interface
     #[cfg(windows)]
-    #[error("Found no addresses for the given adapter")]
+    #[error("found no addresses for the given adapter")]
     NoUnicastAddress,
 
     /// Error returned from `CreateUnicastIpAddressEntry`
     #[cfg(windows)]
-    #[error("Failed to create unicast IP address")]
+    #[error("failed to create unicast IP address")]
     CreateUnicastEntry(#[source] windows::core::Error),
 
     /// Error returned from `CreateIpForwardEntry2`
     #[cfg(windows)]
-    #[error("Failed to create IP forwarding entry")]
+    #[error("failed to create IP forwarding entry")]
     CreateForwardEntry(#[source] windows::core::Error),
 
     /// Unexpected DAD state returned for a unicast address
     #[cfg(windows)]
-    #[error("Unexpected DAD state")]
+    #[error("unexpected DAD state")]
     DadStateError(#[source] DadStateError),
 
     /// DAD check failed.
     #[cfg(windows)]
-    #[error("Timed out waiting on tunnel device")]
+    #[error("timed out waiting on tunnel device")]
     DeviceReadyTimeout,
 
     /// Unicast DAD check fail.
     #[cfg(windows)]
-    #[error("Unicast channel sender was unexpectedly dropped")]
+    #[error("unicast channel sender was unexpectedly dropped")]
     UnicastSenderDropped,
 
     /// Unknown address family
-    #[error("Unknown address family: {0}")]
+    #[error("unknown address family: {0}")]
     UnknownAddressFamily(u16),
 }
 
@@ -94,19 +94,19 @@ pub enum Error {
 #[derive(thiserror::Error, Debug)]
 pub enum DadStateError {
     /// Invalid DAD state.
-    #[error("Invalid DAD state")]
+    #[error("invalid DAD state")]
     Invalid,
 
     /// Duplicate unicast address.
-    #[error("A duplicate IP address was detected")]
+    #[error("a duplicate IP address was detected")]
     Duplicate,
 
     /// Deprecated unicast address.
-    #[error("The IP address has been deprecated")]
+    #[error("the IP address has been deprecated")]
     Deprecated,
 
     /// Unknown DAD state constant.
-    #[error("Unknown DAD state: {0}")]
+    #[error("unknown DAD state: {0}")]
     Unknown(i32),
 }
 
@@ -165,11 +165,11 @@ unsafe extern "system" fn inner_callback(
     row: *const MIB_IPINTERFACE_ROW,
     notify_type: MIB_NOTIFICATION_TYPE,
 ) {
-    let context = &mut *(context as *mut IpNotifierHandle<'_>);
+    let context = unsafe { &mut *(context as *mut IpNotifierHandle<'_>) };
     context
         .callback
         .lock()
-        .expect("NotifyIpInterfaceChange mutex poisoned")(&*row, notify_type);
+        .expect("NotifyIpInterfaceChange mutex poisoned")(unsafe { &*row }, notify_type);
 }
 
 /// Registers a callback function that is invoked when an interface is added, removed,

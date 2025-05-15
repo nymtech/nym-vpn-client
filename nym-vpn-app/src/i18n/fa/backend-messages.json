@@ -1,6 +1,7 @@
 {
   "connection-progress": {
-    "Initializing": "در حال آماده‌سازی مشترک NymVPN …",
-    "InitDone": "مشترک NymVPN راه‌اندازی شد"
+    "Initializing": "در حال آماده‌سازی کلاینت Nym VPN…",
+    "InitDone": "کلاینت Nym VPN راه‌اندازی شد",
+    "Canceling": "درحال لغو کردن…"
   }
 }

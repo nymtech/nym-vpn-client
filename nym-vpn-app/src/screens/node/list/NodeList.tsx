@@ -46,15 +46,24 @@ function NodeList({
 
   return (
     <>
-      <Accordion.Root className="w-full flex flex-col gap-3" type="multiple">
+      <Accordion.Root
+        className="w-full flex flex-col gap-3"
+        type="multiple"
+        data-testid="node-list-accordion"
+      >
         {nodes.map(({ i18n, isSelected, gateways, country }) => (
-          <Accordion.Item key={country.code} value={country.code}>
+          <Accordion.Item
+            key={country.code}
+            value={country.code}
+            data-testid={`country-accordion-item-${country.code}`}
+          >
             <div
               className={clsx(
                 'flex flex-row justify-between',
                 ' bg-white dark:bg-charcoal',
                 'hover:bg-white/60 dark:hover:bg-charcoal/85',
               )}
+              data-testid={`country-header-${country.code}`}
             >
               <div
                 className={clsx(
@@ -63,12 +72,15 @@ function NodeList({
                     'bg-malachite',
                   isSelected && isSelected !== node && 'bg-iron',
                 )}
+                data-testid={`country-selection-indicator-${country.code}`}
+                data-selected={isSelected ? isSelected : 'none'}
               />
               <div
                 className={clsx('grow overflow-hidden truncate py-2')}
                 onClick={() =>
                   handleCountrySelect(country, isSelected, gateways.length)
                 }
+                data-testid={`country-select-area-${country.code}`}
               >
                 <CountryInfo
                   country={country}
@@ -76,18 +88,24 @@ function NodeList({
                   gwCount={gateways.length}
                 />
               </div>
-              <Accordion.Header className="flex py-2">
+              <Accordion.Header
+                className="flex py-2"
+                data-testid={`country-accordion-header-${country.code}`}
+              >
                 <Accordion.Trigger asChild>
                   <FoldButton />
                 </Accordion.Trigger>
               </Accordion.Header>
             </div>
-            <Accordion.Content>
+            <Accordion.Content
+              data-testid={`country-accordion-content-${country.code}`}
+            >
               <motion.div
                 initial={{ opacity: 0, translateY: -4 }}
                 animate={{ opacity: 1, translateY: 0 }}
                 transition={{ duration: 0.1, ease: 'easeIn' }}
                 className="flex flex-col gap-2"
+                data-testid={`country-gateways-container-${country.code}`}
               >
                 {gateways.map((gateway) => (
                   <GatewayItem
@@ -104,7 +122,7 @@ function NodeList({
           </Accordion.Item>
         ))}
       </Accordion.Root>
-      <div className={clsx('mt-6')}>
+      <div className={clsx('mt-6')} data-testid="standalone-gateways-container">
         {gateways.length > 0 &&
           gateways.map((gateway) => (
             <motion.div
@@ -113,6 +131,7 @@ function NodeList({
               animate={{ opacity: 1, translateX: 0 }}
               transition={{ duration: 0.1, ease: 'easeOut' }}
               className="flex flex-col gap-2"
+              data-testid={`standalone-gateway-${gateway.id.substring(0, 8)}`}
             >
               <GatewayItem
                 node={node}

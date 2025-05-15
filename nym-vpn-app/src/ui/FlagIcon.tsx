@@ -266,20 +266,28 @@ export type FlagIconProps = {
   // two-letter country code (ISO 3166-1 alpha-2)
   code: countryCode;
   alt: string;
+  'data-testid'?: string;
 };
 
-function FlagIcon({ code, alt, className }: FlagIconProps) {
+function FlagIcon({ code, alt, className, ...rest }: FlagIconProps) {
+  // Generate a default test ID if none is provided
+  const testId = rest['data-testid'] || `flag-icon-${code}`;
+
   if (!isAlpha2Code(code)) {
     return (
       <MsIcon
         icon="broken_image"
         className={clsx(['h-7 w-7 min-w-7', className && className])}
+        data-testid={`${testId}-broken`}
       />
     );
   }
 
   return (
-    <div className="w-7 min-w-7 flex justify-center items-center">
+    <div
+      className="w-7 min-w-7 flex justify-center items-center"
+      data-testid={`${testId}-container`}
+    >
       <img
         src={`./flags/${code}.svg`}
         className={clsx([
@@ -287,6 +295,8 @@ function FlagIcon({ code, alt, className }: FlagIconProps) {
           className && className,
         ])}
         alt={alt}
+        data-testid={testId}
+        data-country-code={code}
       />
     </div>
   );

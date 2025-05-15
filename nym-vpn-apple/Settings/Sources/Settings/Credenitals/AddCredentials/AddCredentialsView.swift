@@ -112,9 +112,9 @@ private extension AddCredentialsView {
 // #endif
         }
         .padding(.vertical, 16)
-
+#if os(macOS)
         createAccount()
-
+#endif
         Spacer()
             .frame(height: viewModel.appSettings.isSmallScreen ? 24 : 40)
     }
