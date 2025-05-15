@@ -546,31 +546,6 @@ impl fmt::Display for StatusOk {
     }
 }
 
-pub fn extract_reqwest_error<E>(err: &E) -> Option<&reqwest::Error>
-where
-    E: std::error::Error + 'static,
-{
-    let mut source = err.source();
-    while let Some(err) = source {
-        if let Some(status) = err.downcast_ref::<reqwest::Error>() {
-            return Some(status);
-        }
-        source = err.source();
-    }
-    None
-}
-
-pub fn error_is_reqwest_timeout<E>(err: &E) -> bool
-where
-    E: std::error::Error + 'static,
-{
-    if let Some(reqwest_error) = extract_reqwest_error(err) {
-        reqwest_error.is_timeout()
-    } else {
-        false
-    }
-}
-
 pub fn extract_error_response<E>(err: &E) -> Option<NymErrorResponse>
 where
     E: std::error::Error + 'static,
@@ -594,39 +569,6 @@ where
 {
     match err {
         nym_http_api_client::HttpClientError::EndpointFailure { error, .. } => Some(error.clone()),
-        _ => None,
-    }
-}
-
-pub fn extract_error_response_status_code<E>(err: &E) -> Option<u16>
-where
-    E: std::error::Error + 'static,
-{
-    let mut source = err.source();
-    while let Some(err) = source {
-        if let Some(status) = err
-            .downcast_ref::<nym_http_api_client::HttpClientError<NymErrorResponse>>()
-            .and_then(extract_error_response_status_code_inner::<NymErrorResponse>)
-        {
-            return Some(status);
-        }
-        source = err.source();
-    }
-    None
-}
-
-fn extract_error_response_status_code_inner<E>(
-    err: &nym_http_api_client::HttpClientError<E>,
-) -> Option<u16>
-where
-    E: Clone + std::fmt::Display,
-{
-    match err {
-        nym_http_api_client::HttpClientError::EndpointFailure { status, .. } => {
-            Some(status.as_u16())
-        }
-        nym_http_api_client::HttpClientError::RequestFailure { status } => Some(status.as_u16()),
-        nym_http_api_client::HttpClientError::EmptyResponse { status } => Some(status.as_u16()),
         _ => None,
     }
 }
