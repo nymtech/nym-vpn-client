@@ -66,7 +66,7 @@ pub fn create_window(app: &AppHandle, error: StartupError) -> Result<()> {
     let init_script = format!(
         "
         window._APP = {{}};
-        window._APP.startupError = {{  key: '{}', detail: '{}' }}
+        window._APP.startupError = {{  key: '{}', detail: '{}' }};
         ",
         error.key.as_ref(),
         error.detail.unwrap_or(String::from("internal error"))

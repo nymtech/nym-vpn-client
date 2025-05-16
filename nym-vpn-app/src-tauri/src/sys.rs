@@ -1,5 +1,7 @@
-use std::{env, process::Command};
+use std::env;
 
+#[cfg(any(target_os = "linux", target_os = "openbsd"))]
+use std::process::Command;
 use sysinfo::System;
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
 use tracing::{error, info, warn};
@@ -77,7 +79,7 @@ impl OsInfo {
 }
 
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
-pub fn gpu_info() -> GpuType {
+fn gpu_info() -> GpuType {
     use tracing::debug;
 
     let Ok(output) = Command::new("lspci").arg("-nn").output().inspect_err(|e| {
