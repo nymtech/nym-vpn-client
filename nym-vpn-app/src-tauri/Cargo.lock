@@ -2879,6 +2879,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ntapi"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e8a3895c6391c39d7fe7ebc444a87eb2991b2a0bc718fdabd071eec617fc68e4"
+dependencies = [
+ "winapi",
+]
+
+[[package]]
 name = "nu-ansi-term"
 version = "0.46.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2945,7 +2954,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "2.0.0-beta"
+version = "1.10.0-beta"
 dependencies = [
  "async-stream",
  "hyper-util",
@@ -2977,6 +2986,7 @@ dependencies = [
  "serde_json",
  "sled",
  "strum",
+ "sysinfo",
  "tauri",
  "tauri-build",
  "tauri-plugin-autostart",
@@ -3004,7 +3014,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "2.0.0-beta"
+version = "1.10.0-beta"
 dependencies = [
  "prost",
  "prost-types",
@@ -3014,7 +3024,7 @@ dependencies = [
 
 [[package]]
 name = "nym-windows"
-version = "2.0.0-beta"
+version = "1.10.0-beta"
 dependencies = [
  "bitflags 2.9.0",
  "futures",
@@ -3162,6 +3172,16 @@ dependencies = [
  "block2 0.6.1",
  "libc",
  "objc2 0.6.1",
+ "objc2-core-foundation",
+]
+
+[[package]]
+name = "objc2-io-kit"
+version = "0.3.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "71c1c64d6120e51cd86033f67176b1cb66780c2efe34dec55176f77befd93c0a"
+dependencies = [
+ "libc",
  "objc2-core-foundation",
 ]
 
@@ -4842,6 +4862,20 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8eab9a99a024a169fe8a903cf9d4a3b3601109bcc13bd9e3c6fff259138626c4"
 dependencies = [
  "libc",
+]
+
+[[package]]
+name = "sysinfo"
+version = "0.35.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "79251336d17c72d9762b8b54be4befe38d2db56fbbc0241396d70f173c39d47a"
+dependencies = [
+ "libc",
+ "memchr",
+ "ntapi",
+ "objc2-core-foundation",
+ "objc2-io-kit",
+ "windows 0.61.1",
 ]
 
 [[package]]
