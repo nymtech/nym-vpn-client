@@ -405,17 +405,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
-name = "atty"
-version = "0.2.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d9b39be18770d11421cdb1b9947a45dd3f37e93092cbf377614828a319d5fee8"
-dependencies = [
- "hermit-abi",
- "libc",
- "winapi",
-]
-
-[[package]]
 name = "autocfg"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1850,19 +1839,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c7f84e12ccf0a7ddc17a6c41c93326024c42920d7ee630d04950e6926645c0fe"
 
 [[package]]
-name = "env_logger"
-version = "0.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "44533bbbb3bb3c1fa17d9f2e4e38bbbaf8396ba82193c4cb1b6445d711445d36"
-dependencies = [
- "atty",
- "humantime 1.3.0",
- "log",
- "regex",
- "termcolor",
-]
-
-[[package]]
 name = "equivalent"
 version = "1.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2309,7 +2285,7 @@ dependencies = [
  "log",
  "pest",
  "pest_derive",
- "quick-error 2.0.1",
+ "quick-error",
  "serde",
  "serde_json",
 ]
@@ -2368,15 +2344,6 @@ name = "heck"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
-
-[[package]]
-name = "hermit-abi"
-version = "0.1.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62b467343b94ba476dcb2500d242dadbb39557df889310ac77c5d99100aaac33"
-dependencies = [
- "libc",
-]
 
 [[package]]
 name = "hex"
@@ -2578,15 +2545,6 @@ checksum = "df3b46402a9d5adb4c86a0cf463f42e19994e3ee891101b1841f30a545cb49a9"
 
 [[package]]
 name = "humantime"
-version = "1.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df004cfca50ef23c36850aaaa59ad52cc70d0e90243c3c7737a4dd32dc7a3c4f"
-dependencies = [
- "quick-error 1.2.3",
-]
-
-[[package]]
-name = "humantime"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9b112acc8b3adf4b107a8ec20977da0273a8c386765a3ec0229bd500a1443f9f"
@@ -2597,7 +2555,7 @@ version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "57a3db5ea5923d99402c94e9feb261dc5ee9b4efa158b0315f788cf549cc200c"
 dependencies = [
- "humantime 2.2.0",
+ "humantime",
  "serde",
 ]
 
@@ -3494,7 +3452,7 @@ dependencies = [
 [[package]]
 name = "nym-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bs58",
  "cosmrs",
@@ -3561,7 +3519,7 @@ dependencies = [
 [[package]]
 name = "nym-authenticator-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -3582,7 +3540,7 @@ dependencies = [
 [[package]]
 name = "nym-bandwidth-controller"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bip39",
  "log",
@@ -3604,11 +3562,10 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "const-str",
  "log",
- "pretty_env_logger",
  "schemars",
  "serde",
  "tracing",
@@ -3620,7 +3577,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core"
 version = "1.1.15"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -3679,13 +3636,14 @@ dependencies = [
 [[package]]
 name = "nym-client-core-config-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "humantime-serde",
  "nym-config",
  "nym-pemstore",
  "nym-sphinx-addressing",
  "nym-sphinx-params",
+ "nym-statistics-common",
  "serde",
  "thiserror 2.0.12",
  "url",
@@ -3694,7 +3652,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-gateways-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "async-trait",
  "cosmrs",
@@ -3713,7 +3671,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-surb-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "async-trait",
  "dashmap",
@@ -3730,7 +3688,7 @@ dependencies = [
 [[package]]
 name = "nym-coconut-dkg-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3753,7 +3711,7 @@ dependencies = [
 [[package]]
 name = "nym-compact-ecash"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bincode",
  "bls12_381",
@@ -3776,7 +3734,7 @@ dependencies = [
 [[package]]
 name = "nym-config"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "dirs",
  "handlebars",
@@ -3809,7 +3767,7 @@ dependencies = [
 [[package]]
 name = "nym-contracts-common"
 version = "0.5.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -3824,7 +3782,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-proxy-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "async-trait",
  "nym-credentials",
@@ -3843,7 +3801,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "async-trait",
  "bincode",
@@ -3861,7 +3819,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "log",
  "nym-bandwidth-controller",
@@ -3880,7 +3838,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bincode",
  "bls12_381",
@@ -3903,7 +3861,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials-interface"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bls12_381",
  "nym-compact-ecash",
@@ -3920,7 +3878,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "aead",
  "aes",
@@ -3983,7 +3941,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -3997,7 +3955,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-time"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "nym-compact-ecash",
  "time",
@@ -4006,7 +3964,7 @@ dependencies = [
 [[package]]
 name = "nym-exit-policy"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "serde",
  "serde_json",
@@ -4038,7 +3996,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "futures",
  "getrandom 0.2.16",
@@ -4140,7 +4098,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bs58",
  "futures",
@@ -4151,6 +4109,7 @@ dependencies = [
  "nym-pemstore",
  "nym-serde-helpers",
  "nym-sphinx",
+ "nym-statistics-common",
  "nym-task",
  "rand 0.8.5",
  "serde",
@@ -4169,7 +4128,7 @@ dependencies = [
 [[package]]
 name = "nym-group-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -4194,7 +4153,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "async-trait",
  "bincode",
@@ -4218,7 +4177,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bincode",
  "serde",
@@ -4228,7 +4187,7 @@ dependencies = [
 [[package]]
 name = "nym-id"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "nym-credential-storage",
  "nym-credentials",
@@ -4257,7 +4216,7 @@ dependencies = [
 [[package]]
 name = "nym-ip-packet-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bincode",
  "bytes",
@@ -4298,7 +4257,7 @@ dependencies = [
 [[package]]
 name = "nym-metrics"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "dashmap",
  "lazy_static",
@@ -4309,7 +4268,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "dashmap",
  "futures",
@@ -4330,7 +4289,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-contract-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -4352,7 +4311,7 @@ dependencies = [
 [[package]]
 name = "nym-multisig-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4368,7 +4327,7 @@ dependencies = [
 [[package]]
 name = "nym-network-defaults"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "cargo_metadata 0.18.1",
  "dotenvy",
@@ -4383,11 +4342,11 @@ dependencies = [
 [[package]]
 name = "nym-node-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "async-trait",
  "celes",
- "humantime 2.2.0",
+ "humantime",
  "humantime-serde",
  "nym-bin-common",
  "nym-crypto",
@@ -4406,7 +4365,7 @@ dependencies = [
 [[package]]
 name = "nym-nonexhaustive-delayqueue"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -4436,7 +4395,7 @@ dependencies = [
 [[package]]
 name = "nym-ordered-buffer"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "log",
  "thiserror 2.0.12",
@@ -4445,7 +4404,7 @@ dependencies = [
 [[package]]
 name = "nym-outfox"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "blake3",
  "chacha20",
@@ -4463,7 +4422,7 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "pem",
  "tracing",
@@ -4505,7 +4464,7 @@ dependencies = [
 [[package]]
 name = "nym-sdk"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4559,7 +4518,7 @@ dependencies = [
 [[package]]
 name = "nym-serde-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -4571,7 +4530,7 @@ dependencies = [
 [[package]]
 name = "nym-service-provider-requests-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "serde",
  "thiserror 2.0.12",
@@ -4580,7 +4539,7 @@ dependencies = [
 [[package]]
 name = "nym-service-providers-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "async-trait",
  "log",
@@ -4594,7 +4553,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-client-core"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "anyhow",
  "dirs",
@@ -4627,7 +4586,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-proxy-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bytes",
  "futures",
@@ -4642,7 +4601,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bincode",
  "log",
@@ -4658,7 +4617,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "nym-crypto",
  "nym-metrics",
@@ -4684,7 +4643,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-acknowledgements"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -4701,7 +4660,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-addressing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4712,7 +4671,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-anonymous-replies"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bs58",
  "nym-crypto",
@@ -4731,7 +4690,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-chunking"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "dashmap",
  "log",
@@ -4749,7 +4708,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-cover"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -4767,7 +4726,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-forwarding"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "nym-outfox",
  "nym-sphinx-addressing",
@@ -4779,7 +4738,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-framing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "bytes",
  "nym-sphinx-acknowledgements",
@@ -4795,7 +4754,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-params"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4806,7 +4765,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-routing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -4816,7 +4775,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "nym-outfox",
  "sphinx-packet",
@@ -4826,7 +4785,7 @@ dependencies = [
 [[package]]
 name = "nym-statistics-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "futures",
  "log",
@@ -4839,6 +4798,7 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "si-scale",
+ "strum",
  "sysinfo",
  "thiserror 2.0.12",
  "time",
@@ -4849,7 +4809,7 @@ dependencies = [
 [[package]]
 name = "nym-task"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "cfg-if",
  "futures",
@@ -4866,7 +4826,7 @@ dependencies = [
 [[package]]
 name = "nym-ticketbooks-merkle"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "nym-credentials-interface",
  "nym-serde-helpers",
@@ -4881,7 +4841,7 @@ dependencies = [
 [[package]]
 name = "nym-topology"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "async-trait",
  "nym-api-requests",
@@ -4902,7 +4862,7 @@ dependencies = [
 [[package]]
 name = "nym-validator-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -4951,7 +4911,7 @@ dependencies = [
 [[package]]
 name = "nym-vesting-contract-common"
 version = "0.7.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -5304,7 +5264,7 @@ dependencies = [
 [[package]]
 name = "nym-wireguard-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "base64 0.22.1",
  "log",
@@ -5796,16 +5756,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pretty_env_logger"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "926d36b9553851b8b0005f1275891b392ee4d2d833852c417ed025477350fb9d"
-dependencies = [
- "env_logger",
- "log",
-]
-
-[[package]]
 name = "prettyplease"
 version = "0.2.32"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5857,9 +5807,9 @@ dependencies = [
 
 [[package]]
 name = "prometheus"
-version = "0.13.4"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d33c28a30771f7f96db69893f78b857f7450d7e0237e9c8fc6427a81bae7ed1"
+checksum = "3ca5326d8d0b950a9acd87e6a3f94745394f62e4dae1b1ee22b2bc0c394af43a"
 dependencies = [
  "cfg-if",
  "fnv",
@@ -5867,7 +5817,7 @@ dependencies = [
  "memchr",
  "parking_lot",
  "protobuf",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -5924,15 +5874,23 @@ dependencies = [
 
 [[package]]
 name = "protobuf"
-version = "2.28.0"
+version = "3.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "106dd99e98437432fed6519dedecfade6a06a73bb7b2a1e019fdd2bee5778d94"
+checksum = "d65a1d4ddae7d8b5de68153b48f6aa3bba8cb002b243dbdbc55a5afbc98f99f4"
+dependencies = [
+ "once_cell",
+ "protobuf-support",
+ "thiserror 1.0.69",
+]
 
 [[package]]
-name = "quick-error"
-version = "1.2.3"
+name = "protobuf-support"
+version = "3.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
+checksum = "3e36c2f31e0a47f9280fb347ef5e461ffcd2c52dd520d8e216b52f93b0b0d7d6"
+dependencies = [
+ "thiserror 1.0.69",
+]
 
 [[package]]
 name = "quick-error"
@@ -7518,15 +7476,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "termcolor"
-version = "1.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755"
-dependencies = [
- "winapi-util",
-]
-
-[[package]]
 name = "terminal_size"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8496,7 +8445,7 @@ dependencies = [
 [[package]]
 name = "wasm-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=release%2F2025.8-tourist-patched#57cd4896d9077265795913724dc2d83c95447ec9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.10-brie#f47650d6c830d695b9a38f848129485a4c29ba79"
 dependencies = [
  "futures",
  "getrandom 0.2.16",
