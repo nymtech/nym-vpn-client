@@ -122,7 +122,13 @@ async fn run_inner_async(
     network_env: Network,
     logging_setup: Option<LoggingSetup>,
 ) -> anyhow::Result<Option<WorkerGuard>> {
-    network_env.check_consistency().await?;
+    match network_env.check_consistency().await {
+        // This is probably because of network unavailability, so consistency can't be double checked,
+        // but we shouldn't fail just because of that
+        Err(e) => tracing::warn!("Could not check consistency: {e:?}"),
+        Ok(false) => return Err(anyhow::anyhow!("Inconsistent network")),
+        Ok(true) => {}
+    }
 
     let log_path = logging_setup
         .as_ref()
