@@ -107,10 +107,16 @@ private extension HomeView {
             .onTapGesture {
                 viewModel.connectionManager.connectionType = .wireguard
             }
+            .accessibilityAction {
+                viewModel.connectionManager.connectionType = .wireguard
+            }
 
         NetworkButton(viewModel: viewModel.anonymousButtonViewModel)
             .padding(.horizontal, 16)
             .onTapGesture {
+                viewModel.connectionManager.connectionType = .mixnet5hop
+            }
+            .accessibilityAction {
                 viewModel.connectionManager.connectionType = .mixnet5hop
             }
         Spacer()
@@ -154,6 +160,9 @@ private extension HomeView {
         .onTapGesture {
             viewModel.navigateToEntryGateways()
         }
+        .accessibilityAction {
+            viewModel.navigateToEntryGateways()
+        }
         Spacer()
             .frame(height: 20)
     }
@@ -172,6 +181,9 @@ private extension HomeView {
         .onTapGesture {
             viewModel.navigateToExitGateways()
         }
+        .accessibilityAction {
+            viewModel.navigateToEntryGateways()
+        }
     }
 
     @ViewBuilder
@@ -182,7 +194,13 @@ private extension HomeView {
             .onTapGesture {
                 viewModel.connectDisconnect()
             }
+            .accessibilityAction {
+                viewModel.connectDisconnect()
+            }
         Spacer()
             .frame(height: viewModel.appSettings.isSmallScreen || Device.isMacOS ? 24 : 8)
     }
 }
+
+
+
