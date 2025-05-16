@@ -12,6 +12,9 @@ license.workspace = true
 default = ["network-manager"]
 network-manager = ["nym-dbus"]
 
+[target.'cfg(any(target_os = "macos", target_os = "ios"))'.dependencies]
+objc2-foundation = { workspace = true, features = ["NSProcessInfo"] }
+
 [target.'cfg(target_os = "linux")'.dependencies]
 rs-release.workspace = true
 nym-dbus = { workspace = true, optional = true }
