@@ -144,8 +144,6 @@ pub enum FirewallPolicy {
         /// Servers that are allowed to respond to DNS requests.
         #[cfg(not(target_os = "android"))]
         dns_config: ResolvedDnsConfig,
-        /// Hosts that should be reachable outside of tunnel when connected.
-        allowed_endpoints: Vec<AllowedEndpoint>,
         /// Interface to redirect (VPN tunnel) traffic to
         #[cfg(target_os = "macos")]
         redirect_interface: Option<String>,
@@ -285,7 +283,6 @@ impl fmt::Display for FirewallPolicy {
                 allow_lan,
                 #[cfg(not(target_os = "android"))]
                 dns_config,
-                allowed_endpoints,
                 ..
             } => {
                 #[cfg(not(target_os = "android"))]
@@ -295,11 +292,10 @@ impl fmt::Display for FirewallPolicy {
 
                 write!(
                     f,
-                    "Connected to {} over {}, {} LAN. Allowing endpoints: {}. Allowing non-tunnel DNS: {}",
+                    "Connected to {} over {}, {} LAN. Allowing non-tunnel DNS: {}",
                     display_peer_endpoints(peer_endpoints),
                     display_tunnel_interface(tunnel),
                     if *allow_lan { "Allowing" } else { "Blocking" },
-                    display_allowed_endpoints(allowed_endpoints),
                     dns_str
                 )
             }

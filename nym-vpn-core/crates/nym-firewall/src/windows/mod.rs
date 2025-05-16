@@ -183,16 +183,9 @@ impl Firewall {
                 tunnel,
                 allow_lan,
                 dns_config,
-                allowed_endpoints,
             } => {
                 let cfg = &WinFwSettings::new(allow_lan);
-                self.set_connected_state(
-                    &peer_endpoints,
-                    cfg,
-                    &tunnel,
-                    &dns_config,
-                    &allowed_endpoints,
-                )
+                self.set_connected_state(&peer_endpoints, cfg, &tunnel, &dns_config)
             }
             FirewallPolicy::Blocked {
                 allow_lan,
@@ -331,7 +324,6 @@ impl Firewall {
         winfw_settings: &WinFwSettings,
         tunnel_interface: &TunnelInterface,
         dns_config: &ResolvedDnsConfig,
-        allowed_endpoints: &[AllowedEndpoint],
     ) -> Result<(), Error> {
         tracing::trace!("Applying 'connected' firewall policy");
 
@@ -379,19 +371,6 @@ impl Firewall {
             .map(|ip| ip.as_ptr())
             .collect();
 
-        let winfw_allowed_endpoint_containers = allowed_endpoints
-            .iter()
-            .cloned()
-            .map(AllowedEndpointBridge::from)
-            .collect::<Vec<_>>();
-        let winfw_allowed_endpoints = winfw_allowed_endpoint_containers
-            .iter()
-            .map(|ep| ep.as_endpoint())
-            .collect::<Vec<_>>();
-
-        // todo: verify that this is correct way to pass array of pointers.
-        let allowed_endpoint_refs = winfw_allowed_endpoints.iter().collect::<Vec<_>>();
-
         unsafe {
             WinFw_ApplyPolicyConnected(
                 winfw_settings,
@@ -409,8 +388,6 @@ impl Firewall {
                 tunnel_dns_servers_refs.len(),
                 non_tunnel_dns_servers_refs.as_ptr(),
                 non_tunnel_dns_servers_refs.len(),
-                allowed_endpoint_refs.as_ptr() as _,
-                allowed_endpoint_refs.len(),
             )
             .into_result()
             .map_err(Error::ApplyingConnectedPolicy)
@@ -871,8 +848,6 @@ mod winfw {
             numTunnelDnsServers: usize,
             nonTunnelDnsServers: *const *const libc::wchar_t,
             numNonTunnelDnsServers: usize,
-            allowedEndpoints: *const *const WinFwAllowedEndpoint<'_>,
-            numAllowedEndpoints: usize,
         ) -> WinFwPolicyStatus;
 
         #[link_name = "WinFw_ApplyPolicyBlocked"]

@@ -13,7 +13,6 @@ use nym_dns::DnsConfig;
 use nym_firewall::LOCAL_DNS_RESOLVER;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::{AllowedClients, AllowedEndpoint, Endpoint, FirewallPolicy, TransportProtocol};
-use nym_gateway_directory::ResolvedConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_vpn_lib_types::TunnelConnectionData;
 
@@ -39,8 +38,6 @@ pub struct ConnectedState {
     selected_gateways: SelectedGateways,
     #[cfg_attr(any(target_os = "android", target_os = "ios"), allow(unused))]
     tunnel_interface: TunnelInterface,
-    #[cfg_attr(any(target_os = "android", target_os = "ios"), allow(unused))]
-    resolved_gateway_config: ResolvedConfig,
 }
 
 impl ConnectedState {
@@ -48,7 +45,6 @@ impl ConnectedState {
         tunnel_interface: TunnelInterface,
         connection_data: ConnectionData,
         selected_gateways: SelectedGateways,
-        resolved_gateway_config: ResolvedConfig,
         tunnel_monitor_handle: TunnelMonitorHandle,
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
         _shared_state: &mut SharedState,
@@ -58,7 +54,6 @@ impl ConnectedState {
             tunnel_monitor_event_receiver,
             selected_gateways,
             tunnel_interface,
-            resolved_gateway_config,
         };
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -144,27 +139,11 @@ impl ConnectedState {
             53,
         );
 
-        let allowed_endpoints = self
-            .resolved_gateway_config
-            .all_socket_addrs()
-            .into_iter()
-            .map(|addr| {
-                AllowedEndpoint::new(
-                    Endpoint::from_socket_address(addr, TransportProtocol::Tcp),
-                    #[cfg(any(target_os = "linux", target_os = "macos"))]
-                    AllowedClients::Root,
-                    #[cfg(target_os = "windows")]
-                    AllowedClients::current_exe(),
-                )
-            })
-            .collect();
-
         let policy = FirewallPolicy::Connected {
             peer_endpoints,
             tunnel: nym_firewall::TunnelInterface::from(self.tunnel_interface.clone()),
             // todo: fetch this from config
             allow_lan: true,
-            allowed_endpoints,
             dns_config,
             // todo: split tunneling
             #[cfg(target_os = "macos")]

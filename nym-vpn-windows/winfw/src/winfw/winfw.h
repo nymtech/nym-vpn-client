@@ -204,9 +204,7 @@ WinFw_ApplyPolicyConnected(
 	const wchar_t* tunnelDnsServers[],
 	size_t numTunnelDnsServers,
 	const wchar_t* nonTunnelDnsServers[],
-	size_t numNonTunnelDnsServers,
-	const WinFwAllowedEndpoint* allowedEndpoints[],
-	size_t numAllowedEndpoints
+	size_t numNonTunnelDnsServers
 );
 
 //

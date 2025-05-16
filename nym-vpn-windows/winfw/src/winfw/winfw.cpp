@@ -452,9 +452,7 @@ WinFw_ApplyPolicyConnected(
 	const wchar_t* tunnelDnsServers[],
 	size_t numTunnelDnsServers,
 	const wchar_t* nonTunnelDnsServers[],
-	size_t numNonTunnelDnsServers,
-	const WinFwAllowedEndpoint* allowedEndpoints[],
-	size_t numAllowedEndpoints
+	size_t numNonTunnelDnsServers
 )
 {
 	if (nullptr == g_fwContext)
@@ -487,14 +485,10 @@ WinFw_ApplyPolicyConnected(
 		auto relayVector = MakeVector(relays, numRelays);
 		auto entryTunnelIfaceAliasOptStr = MakeOptionalStr(entryTunnelIfaceAlias);
 		auto exitTunnelIfaceAliasOptStr = MakeOptionalStr(exitTunnelIfaceAlias);
-		auto allowedEndpointOptVector = MakeOptionalVector(allowedEndpoints, numAllowedEndpoints);
 		auto nonTunnelDnsServerVector = MakeIpAddressVector(nonTunnelDnsServers, numNonTunnelDnsServers);
 		auto tunnelDnsServersVector = MakeIpAddressVector(tunnelDnsServers, numTunnelDnsServers);
 
 		LogAllowedEndpoints("Relays", relayVector);
-		if (allowedEndpointOptVector.has_value()) {
-			LogAllowedEndpoints("Allowed endpoints", allowedEndpointOptVector.value());
-		}
 		LogInterface("Entry tunnel interface", entryTunnelIfaceAliasOptStr);
 		LogInterface("Exit tunnel interface", exitTunnelIfaceAliasOptStr);
 		LogDnsServers("Non-tunnel DNS servers", nonTunnelDnsServerVector);
@@ -505,7 +499,6 @@ WinFw_ApplyPolicyConnected(
 			relayVector,
 			entryTunnelIfaceAliasOptStr,
 			exitTunnelIfaceAliasOptStr,
-			allowedEndpointOptVector,
 			tunnelDnsServersVector,
 			nonTunnelDnsServerVector
 		) ? WINFW_POLICY_STATUS_SUCCESS : WINFW_POLICY_STATUS_GENERAL_FAILURE;
