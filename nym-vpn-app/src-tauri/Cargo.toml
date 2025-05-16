@@ -45,6 +45,7 @@ tower = "0.5.2"
 rust_iso3166 = "0.1"
 dirs = "6.0"
 semver = "1.0"
+sysinfo = "0.35.1"
 
 # nym deps
 nym-vpn-proto = { path = "../../nym-vpn-core/crates/nym-vpn-proto" }

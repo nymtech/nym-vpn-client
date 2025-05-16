@@ -72,6 +72,7 @@ async fn main() -> Result<()> {
         return Ok(());
     }
     let _guard = log::setup_tracing(&cli).await?;
+    info!("os: {}", misc::os_info());
     trace!("cli args: {:#?}", cli);
 
     #[cfg(any(target_os = "linux", target_os = "openbsd"))]

@@ -1,3 +1,4 @@
+use sysinfo::System;
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
 use tracing::{info, warn};
 
@@ -22,5 +23,16 @@ pub fn linux_check() {
                 std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
             }
         }
+    }
+}
+
+pub fn os_info() -> String {
+    match System::long_os_version() {
+        Some(os) => format!(
+            "{os} {} {}",
+            System::kernel_version().unwrap_or_else(|| "unknown".to_string()),
+            std::env::consts::ARCH
+        ),
+        None => format!("{} {}", std::env::consts::OS, std::env::consts::ARCH),
     }
 }
