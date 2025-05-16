@@ -11,6 +11,8 @@ public final class NetworkButtonViewModel: ObservableObject {
     private let connectionManager: ConnectionManager
     private var cancellables = Set<AnyCancellable>()
 
+    var accessibilityLabel = ""
+
     public init(
         type: ConnectionType,
         appSettings: AppSettings = AppSettings.shared,
@@ -61,7 +63,8 @@ public final class NetworkButtonViewModel: ObservableObject {
     }
 
     func updateUI(isSelected: Bool) {
-        self.selectionImageColor = isSelected ? NymColor.action : NymColor.gray1
-        self.selectionStrokeColor = isSelected ? NymColor.action : .clear
+        selectionImageColor = isSelected ? NymColor.action : NymColor.gray1
+        selectionStrokeColor = isSelected ? NymColor.action : .clear
+        accessibilityLabel = isSelected ? "selected".localizedString : ""
     }
 }

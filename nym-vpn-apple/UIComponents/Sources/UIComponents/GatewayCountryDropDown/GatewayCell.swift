@@ -40,15 +40,16 @@ public struct GatewayCell: View {
                 serverDetails()
                 Spacer()
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(server.moniker ?? server.id)")
+            .accessibilityValue(isSelected() ? "selected".localizedString : "")
+            .accessibilityAddTraits([.isButton])
             .contentShape(Rectangle())
             .onTapGesture {
-                switch hopType {
-                case .entry:
-                    connectionManager.entryGateway = .gateway(server)
-                case .exit:
-                    connectionManager.exitRouter = .gateway(server)
-                }
-                path = .init()
+                tapAction()
+            }
+            .accessibilityAction {
+                tapAction()
             }
 
             Spacer()
@@ -57,10 +58,10 @@ public struct GatewayCell: View {
             infoButton()
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    serverInfoModalServer = server
-                    withAnimation {
-                        isServerModalDisplayed.toggle()
-                    }
+                    infoButtonTapAction()
+                }
+                .accessibilityAction {
+                    infoButtonTapAction()
                 }
         }
         .background(isHovered ? NymColor.backgroundHover : NymColor.background)
@@ -70,7 +71,26 @@ public struct GatewayCell: View {
     }
 }
 
-extension GatewayCell {
+private extension GatewayCell {
+    func tapAction() {
+        switch hopType {
+        case .entry:
+            connectionManager.entryGateway = .gateway(server)
+        case .exit:
+            connectionManager.exitRouter = .gateway(server)
+        }
+        path = .init()
+    }
+
+    func infoButtonTapAction() {
+        serverInfoModalServer = server
+        withAnimation {
+            isServerModalDisplayed.toggle()
+        }
+    }
+}
+
+private extension GatewayCell {
     func isSelected() -> Bool {
         switch hopType {
         case .entry:

@@ -32,6 +32,7 @@ public struct CustomNavBar: View {
             } else {
                 Image("logoText", bundle: .module)
                     .frame(width: 110, height: 16)
+                    .accessibilityLabel("NymVPN".localizedString)
             }
             Spacer()
             rightButton
