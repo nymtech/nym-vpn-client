@@ -133,11 +133,7 @@ impl VpnApiClientError {
     where
         T: std::fmt::Display + std::fmt::Debug + 'static,
     {
-        if let Some(source) = self.source() {
-            if let Some(err) = source.downcast_ref::<HttpClientError<T>>() {
-                return Some(err);
-            }
-        }
-        None
+        self.source()
+            .and_then(|source| source.downcast_ref::<HttpClientError<T>>())
     }
 }
