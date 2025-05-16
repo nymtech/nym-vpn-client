@@ -28,6 +28,9 @@ public struct HopButton: View {
                     .padding(16)
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(viewModel.hopType.hopLocalizedTitle) \(viewModel.name)")
+        .accessibilityAddTraits([.isButton])
         .onHover { newValue in
             isHovered = newValue
         }

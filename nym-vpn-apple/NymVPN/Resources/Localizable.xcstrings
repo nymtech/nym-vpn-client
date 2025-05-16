@@ -8550,6 +8550,17 @@
         }
       }
     },
+    "gatewaySelector.expandServers" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expand servers"
+          }
+        }
+      }
+    },
     "gatewaySelector.servers" : {
       "extractionState" : "manual",
       "localizations" : {

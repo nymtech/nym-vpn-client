@@ -78,22 +78,29 @@ private extension GatewayCountryDropDown {
                 }
                 Spacer()
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("\(country.name) \(servers.count) \("servers".localizedString)")
+            .accessibilityValue(isCountrySelected() ? "selected".localizedString : "")
+            .accessibilityAddTraits([.isButton])
             .contentShape(Rectangle())
             .onTapGesture {
-                switch hopType {
-                case .entry:
-                    connectionManager.entryGateway = .country(country)
-                case .exit:
-                    connectionManager.exitRouter = .country(country)
-                }
-                path = .init()
+                countryTapAction()
+            }
+            .accessibilityAction {
+                countryTapAction()
             }
             HStack(spacing: 0) {
                 lineSeparator()
                 arrowDropDown()
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("gatewaySelector.expandServers".localizedString)
+            .accessibilityAddTraits([.isButton])
             .contentShape(Rectangle())
             .onTapGesture {
+                isExpanded.toggle()
+            }
+            .accessibilityAction {
                 isExpanded.toggle()
             }
         }
@@ -158,5 +165,15 @@ private extension GatewayCountryDropDown {
         case .exit:
             return servers.first { $0.id == connectionManager.exitRouter.gatewayId }
         }
+    }
+
+    func countryTapAction() {
+        switch hopType {
+        case .entry:
+            connectionManager.entryGateway = .country(country)
+        case .exit:
+            connectionManager.exitRouter = .country(country)
+        }
+        path = .init()
     }
 }

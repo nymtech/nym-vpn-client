@@ -40,5 +40,9 @@ public struct NetworkButton: View {
             isHovered = newValue
         }
         .animation(.default, value: viewModel.selectionStrokeColor)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(viewModel.title) \(viewModel.subtitle)")
+        .accessibilityValue(viewModel.accessibilityLabel)
+        .accessibilityAddTraits([.isButton])
     }
 }
