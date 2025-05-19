@@ -129,7 +129,7 @@ enum Resolver {
     Blocking,
 
     /// Forward DNS queries to a configured server
-    Forwarding(TokioResolver),
+    Forwarding(Box<TokioResolver>),
 }
 
 impl From<Config> for Resolver {
@@ -151,7 +151,7 @@ impl From<Config> for Resolver {
                 )
                 .build();
 
-                Resolver::Forwarding(resolver)
+                Resolver::Forwarding(Box::new(resolver))
             }
         }
     }
@@ -166,7 +166,7 @@ impl Resolver {
         let lookup = match self {
             Resolver::Blocking => Either::Left(async move { Self::resolve_blocked(query) }),
             Resolver::Forwarding(resolver) => {
-                Either::Right(Self::resolve_forward(resolver.clone(), query))
+                Either::Right(Self::resolve_forward(resolver.as_ref().clone(), query))
             }
         };
 
