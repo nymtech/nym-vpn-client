@@ -170,7 +170,7 @@ tracing = "0.1"
 tracing-appender = "0.2.3"
 tracing-oslog = "0.2.0"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-triggered = "0.1.1"
+triggered = "0.1.3"
 tun = { version = "0.6.1", features = ["async"] }
 uniffi = { version = "0.27.3", features = ["cli"] }
 url = "2.5"
