@@ -53,9 +53,7 @@ extension GRPCManager {
                 case .success(let response):
                     if response.hasError, let errorDetail = response.error.errorDetail {
                         switch errorDetail {
-//                        case let .errorResponse(apiErrorResponse):
-//                            continuation.resume(throwing: ErrorReason.api(apiErrorResponse.message))
-                        case .registrationInProgress(_):
+                        case .registrationInProgress:
                             continuation.resume(throwing: ErrorReason.registrationInProgress)
                         case let .unexpectedResponse(message),
                             let .removeAccount(message),

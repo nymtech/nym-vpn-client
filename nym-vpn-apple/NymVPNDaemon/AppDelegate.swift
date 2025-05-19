@@ -5,21 +5,38 @@ import AppSettings
 class AppDelegate: NSObject, NSApplicationDelegate {
     private let appSettings = AppSettings.shared
 
+    // set by your SwiftUI “quitApp(from:)” before calling .terminate()
     var shouldTerminate = false
-    var terminationType: TerminationType?
+
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        configureActivationPolicy(appSettings.appMode)
+    }
+
+    func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
+        switch appSettings.appMode {
+        case .dockOnly:
+            true
+        case .both, .menubarOnly:
+            false
+        }
+    }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        quit(sender)
+        shouldTerminate ? .terminateNow : .terminateCancel
+    }
+
+    func configureActivationPolicy(_ mode: AppSetting.AppMode) {
+        switch mode {
+        case .menubarOnly:
+            NSApp.setActivationPolicy(.accessory)
+        case .dockOnly, .both:
+            NSApp.setActivationPolicy(.regular)
+        }
     }
 }
 
 private extension AppDelegate {
     func quit(_ app: NSApplication) -> NSApplication.TerminateReply {
-        // Dock icon
-        if terminationType == nil {
-            return .terminateNow
-        }
-
         // App or menubar
         guard !shouldTerminate, shouldKeepMenuBarItemRunningOnQuit()
         else {
