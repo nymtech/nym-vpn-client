@@ -43,7 +43,7 @@ impl AppWindow {
         format!(
             "
             window._APP = {{}};
-            window._APP.devMode = {}
+            window._APP.devMode = {};
             ",
             *DEV_MODE
         )

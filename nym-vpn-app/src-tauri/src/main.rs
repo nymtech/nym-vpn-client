@@ -41,9 +41,9 @@ mod events;
 mod fs;
 mod grpc;
 mod log;
-mod misc;
 mod startup_error;
 mod state;
+mod sys;
 mod tray;
 mod window;
 
@@ -72,11 +72,16 @@ async fn main() -> Result<()> {
         return Ok(());
     }
     let _guard = log::setup_tracing(&cli).await?;
-    info!("os: {}", misc::os_info());
     trace!("cli args: {:#?}", cli);
 
-    #[cfg(any(target_os = "linux", target_os = "openbsd"))]
-    misc::linux_check();
+    let os = sys::OsInfo::new();
+    info!("os: {}", os);
+    #[cfg(target_os = "linux")]
+    {
+        info!("display server: {}", os.display_server.as_ref());
+        info!("gpu: {}", os.gpu.as_ref());
+        os.linux_check();
+    }
 
     #[cfg(windows)]
     if cli.console {
