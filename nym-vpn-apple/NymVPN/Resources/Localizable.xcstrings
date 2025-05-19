@@ -35,13 +35,13 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@: %2$@"
+            "state" : "translated",
+            "value" : "%1$@ : %2$@"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%1$@: %2$@"
           }
         },
@@ -136,14 +136,14 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Fast (WireGuard*)"
+            "state" : "translated",
+            "value" : "Rapide (WireGuard*)"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "fast"
+            "value" : "तेज़ (WireGuard*)"
           }
         },
         "it" : {
@@ -237,8 +237,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Best for browsing, streaming, sharing"
+            "state" : "translated",
+            "value" : "Pour la navigation ou le streaming"
           }
         },
         "hi" : {
@@ -338,8 +338,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Best for payments, emails, messages"
+            "state" : "translated",
+            "value" : "Pour les paiements, emails et messages"
           }
         },
         "hi" : {
@@ -439,8 +439,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous (mixnet)"
+            "state" : "translated",
+            "value" : "Anonyme (mixnet)"
           }
         },
         "hi" : {
@@ -508,9 +508,99 @@
     "accessibility.dimmed" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Dimmed"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Dimmed"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "Dimmed"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Dimmed"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Dimmed"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atténué"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "डिम्म्ड"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Dimmed"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Dimmed"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Dimmed"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atenuado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Dimmed"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Devre dışı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Недоступно"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Dimmed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "Dimmed"
           }
         }
@@ -519,9 +609,99 @@
     "accessibility.doubleTap.copy" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to copy"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to copy"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "Double-tap to copy"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toca dos veces para copiar"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to copy"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appuyez deux fois pour copier"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "कॉपी करने के लिए डबल-टैप करें"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to copy"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to copy"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to copy"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toque duas vezes para copiar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to copy"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kopyalamak için çift dokunun"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Двічі натисніть, щоб скопіювати"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to copy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "Double-tap to copy"
           }
         }
@@ -530,9 +710,99 @@
     "accessibility.doubleTap.externalLink" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to open external link"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to open external link"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "Double-tap to open external link"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doble toque para abrir el enlace externo"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to open external link"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appuyez deux fois pour ouvrir le lien externe"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "बाहरी लिंक खोलने के लिए दो बार टैप करें"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to open external link"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to open external link"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to open external link"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toque duas vezes para abrir o link externo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to open external link"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dış bağlantıyı açmak için çift dokunun"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Двічі торкніться, щоб відкрити зовнішнє посилання"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to open external link"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "Double-tap to open external link"
           }
         }
@@ -541,9 +811,99 @@
     "accessibility.doubleTap.toggle" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to toggle"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to toggle"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "Double-tap to toggle"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Doble toque para alternar"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to toggle"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Appuyez deux fois pour basculer"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "डबल टैप करें टॉगल करने के लिए"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to toggle"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to toggle"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to toggle"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toque duas vezes para alternar"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to toggle"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Açmak veya kapatmak için çift dokunun"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Подвійний тап для перемикання"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Double-tap to toggle"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "Double-tap to toggle"
           }
         }
@@ -584,8 +944,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get Access Code"
+            "state" : "translated",
+            "value" : "Générer un code d'accès"
           }
         },
         "hi" : {
@@ -685,8 +1045,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Credential"
+            "state" : "translated",
+            "value" : "Identifiant"
           }
         },
         "hi" : {
@@ -786,8 +1146,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Add new credential"
+            "state" : "translated",
+            "value" : "Ajouter un identifiant"
           }
         },
         "hi" : {
@@ -887,8 +1247,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "days left"
+            "state" : "translated",
+            "value" : "jours restants"
           }
         },
         "hi" : {
@@ -988,8 +1348,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "out of"
+            "state" : "translated",
+            "value" : "plus de"
           }
         },
         "hi" : {
@@ -1089,8 +1449,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Soon to expire?"
+            "state" : "translated",
+            "value" : "Bientôt expiré ?"
           }
         },
         "hi" : {
@@ -1190,14 +1550,14 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Cannot create cache"
+            "state" : "translated",
+            "value" : "Impossible de créer le cache"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Cannot create cache"
+            "state" : "translated",
+            "value" : "Cache नहीं बना सके"
           }
         },
         "it" : {
@@ -1291,8 +1651,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Cannot create credentials database"
+            "state" : "translated",
+            "value" : "Impossible de créer la base de données avec les identifiants"
           }
         },
         "hi" : {
@@ -1392,8 +1752,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Credential has no expiry date"
+            "state" : "translated",
+            "value" : "L'identifiant n'a pas de date d'expiration"
           }
         },
         "hi" : {
@@ -1493,8 +1853,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Please enter your anonymous Access Code."
+            "state" : "translated",
+            "value" : "Saisissez votre code d'accès anonyme."
           }
         },
         "hi" : {
@@ -1594,8 +1954,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Next"
+            "state" : "translated",
+            "value" : "Suivant"
           }
         },
         "hi" : {
@@ -1695,8 +2055,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "New to NymVPN?"
+            "state" : "translated",
+            "value" : "Pas encore utilisateur ?"
           }
         },
         "hi" : {
@@ -1796,8 +2156,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "24-word-access-code\n\ne.g. smoke artefact velvet skull pop palace tortoise damage rough..."
+            "state" : "translated",
+            "value" : "Code d'accès de 24 mots\n\nPar ex. smoke artefact velvet skull pop palace tortoise damage rough..."
           }
         },
         "hi" : {
@@ -1897,8 +2257,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "QR code scanner"
+            "state" : "translated",
+            "value" : "Scanner de code QR"
           }
         },
         "hi" : {
@@ -1998,8 +2358,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Camera not available. Check permissions."
+            "state" : "translated",
+            "value" : "La caméra n'est pas disponible. Vérifiez les permissions."
           }
         },
         "hi" : {
@@ -2099,8 +2459,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open Settings"
+            "state" : "translated",
+            "value" : "Ouvrir les réglages"
           }
         },
         "hi" : {
@@ -2200,8 +2560,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Scan NymVPN credential QR code"
+            "state" : "translated",
+            "value" : "Scanner le code d'accès QR"
           }
         },
         "hi" : {
@@ -2301,8 +2661,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to NymVPN"
+            "state" : "translated",
+            "value" : "Bienvenue !"
           }
         },
         "hi" : {
@@ -2402,8 +2762,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Access Code"
+            "state" : "translated",
+            "value" : "Code d'accès"
           }
         },
         "hi" : {
@@ -2503,7 +2863,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "App"
           }
         },
@@ -2604,8 +2964,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Auto connect at app startup"
+            "state" : "translated",
+            "value" : "Connexion automatique au démarrage"
           }
         },
         "hi" : {
@@ -2705,8 +3065,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Auto-connect"
+            "state" : "translated",
+            "value" : "Connexion automatique"
           }
         },
         "hi" : {
@@ -2806,8 +3166,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Use device theme"
+            "state" : "translated",
+            "value" : "Utiliser l'apparence de l'appareil"
           }
         },
         "hi" : {
@@ -2907,8 +3267,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Automatic"
+            "state" : "translated",
+            "value" : "Automatique"
           }
         },
         "hi" : {
@@ -3008,8 +3368,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Cancel"
+            "state" : "translated",
+            "value" : "Annuler"
           }
         },
         "hi" : {
@@ -3109,8 +3469,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Check the FAQ"
+            "state" : "translated",
+            "value" : "Consulter la FAQ"
           }
         },
         "hi" : {
@@ -3210,8 +3570,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Close"
+            "state" : "translated",
+            "value" : "Fermer"
           }
         },
         "hi" : {
@@ -3311,8 +3671,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connect"
+            "state" : "translated",
+            "value" : "Connecter"
           }
         },
         "hi" : {
@@ -3412,8 +3772,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connected"
+            "state" : "translated",
+            "value" : "Connecté"
           }
         },
         "hi" : {
@@ -3513,8 +3873,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connecting..."
+            "state" : "translated",
+            "value" : "Connexion..."
           }
         },
         "hi" : {
@@ -3614,8 +3974,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connection time"
+            "state" : "translated",
+            "value" : "Temps de connexion"
           }
         },
         "hi" : {
@@ -3715,8 +4075,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connect to"
+            "state" : "translated",
+            "value" : "Se connecter à"
           }
         },
         "hi" : {
@@ -3816,8 +4176,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authorization denied. Please try again."
+            "state" : "translated",
+            "value" : "Autorisation refusée. Merci de réessayer."
           }
         },
         "hi" : {
@@ -3917,8 +4277,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Dark theme"
+            "state" : "translated",
+            "value" : "Apparence sombre"
           }
         },
         "hi" : {
@@ -4018,8 +4378,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Disconnect"
+            "state" : "translated",
+            "value" : "Déconnecter"
           }
         },
         "hi" : {
@@ -4119,8 +4479,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Disconnected"
+            "state" : "translated",
+            "value" : "Déconnecté"
           }
         },
         "hi" : {
@@ -4220,8 +4580,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Disconnecting..."
+            "state" : "translated",
+            "value" : "Déconnexion..."
           }
         },
         "hi" : {
@@ -4321,8 +4681,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry location selector"
+            "state" : "translated",
+            "value" : "Choix de passerelle d'entrée"
           }
         },
         "hi" : {
@@ -4422,8 +4782,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Error"
+            "state" : "translated",
+            "value" : "Erreur"
           }
         },
         "hi" : {
@@ -4523,8 +4883,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong with the Gateway Directory"
+            "state" : "translated",
+            "value" : "Erreur avec l'annuaire des passerelles"
           }
         },
         "hi" : {
@@ -4624,8 +4984,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to create log file"
+            "state" : "translated",
+            "value" : "Impossible de créer le journal"
           }
         },
         "hi" : {
@@ -4725,8 +5085,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No mnemonic stored"
+            "state" : "translated",
+            "value" : "Pas de code d'accès enregistré"
           }
         },
         "hi" : {
@@ -4826,8 +5186,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Timeout"
+            "state" : "translated",
+            "value" : "Délai d'attente dépassé"
           }
         },
         "hi" : {
@@ -4927,8 +5287,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong"
+            "state" : "translated",
+            "value" : "Un problème est survenu "
           }
         },
         "hi" : {
@@ -5028,8 +5388,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong. Unrecognized error"
+            "state" : "translated",
+            "value" : "Un problème est survenu. Erreur inconnue."
           }
         },
         "hi" : {
@@ -5129,8 +5489,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account not registered. Please try again."
+            "state" : "translated",
+            "value" : "Compte non enregistré. Merci de réessayer."
           }
         },
         "hi" : {
@@ -5198,9 +5558,99 @@
     "errorReason.apiStatusCode" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API failed with code:"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API failed with code:"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "VPN API failed with code:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API failed with code:"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API failed with code:"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "L'API VPN a échoué avec le code d'erreur :"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API failed with code:"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API failed with code:"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API failed with code:"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API failed with code:"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A API VPN falhou com o código:"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API failed with code:"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VPN API şu kodla hata verdi:"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VPN API не вдалося з кодом:"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API failed with code:"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "VPN API failed with code:"
           }
         }
@@ -5209,9 +5659,99 @@
     "errorReason.apiTimeout" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API timeout"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API timeout"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "VPN API timeout"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API timeout"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API timeout"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expiration de l'API VPN :"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API timeout"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API timeout"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API timeout"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API timeout"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tempo limite da API da VPN"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API timeout"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "VPN API zaman aşımına uğradı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Таймаут VPN API"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "VPN API timeout"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "VPN API timeout"
           }
         }
@@ -5252,8 +5792,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Bad bandwidth increase"
+            "state" : "translated",
+            "value" : "Erreur de forfait de données"
           }
         },
         "hi" : {
@@ -5353,8 +5893,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No data allowance remaining. Please upgrade your account plan."
+            "state" : "translated",
+            "value" : "La forfait de données mensuel a été dépassé. Veuillez mettre à niveau l'abonnement de votre compte."
           }
         },
         "hi" : {
@@ -5383,26 +5923,26 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No data allowance remaining. Please upgrade your account plan."
+            "state" : "translated",
+            "value" : "Sem dados restantes. Por favor, faça o upgrade do seu plano."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No data allowance remaining. Please upgrade your account plan."
+            "state" : "translated",
+            "value" : "Превышен месячный лимит трафика. Пожалуйста, обновите ваш тарифный план."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No data allowance remaining. Please upgrade your account plan."
+            "state" : "translated",
+            "value" : "Veri kotanız doldu. Devam etmek için lütfen hesap planınızı yükseltin."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No data allowance remaining. Please upgrade your account plan."
+            "state" : "translated",
+            "value" : "Не залишилося лімітів даних. Будь ласка, оновіть свій тарифний план."
           }
         },
         "vi" : {
@@ -5442,8 +5982,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+            "state" : "translated",
+            "value" : "\"El tiempo del dispositivo no está sincronizado. Por favor, sincroniza el tiempo de tu dispositivo con el internet.\""
           }
         },
         "fa" : {
@@ -5454,14 +5994,14 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+            "state" : "translated",
+            "value" : "L'horloge de l'appareil n'est pas synchronisée. Veuillez synchroniser l'heure sur une horloge réseau."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+            "state" : "translated",
+            "value" : "\"डिवाइस का समय समन्वय में नहीं है। कृपया अपने डिवाइस के समय को इंटरनेट के साथ समन्वयित करें।\""
           }
         },
         "it" : {
@@ -5484,26 +6024,26 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+            "state" : "translated",
+            "value" : "\"O tempo do dispositivo está fora de sincronia. Por favor, sincronize o horário do seu dispositivo com a internet.\""
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+            "state" : "translated",
+            "value" : "\"Время на устройстве не синхронизировано. Пожалуйста, синхронизируйте время на вашем устройстве с интернетом.\""
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+            "state" : "translated",
+            "value" : "\"Cihaz saatiniz senkronize edilmemiş. Lütfen cihazınızın saatini internet ile senkronize edin.\""
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+            "state" : "translated",
+            "value" : "\"Час пристрою не синхронізований. Будь ласка, синхронізуйте час вашого пристрою з інтернетом.\""
           }
         },
         "vi" : {
@@ -5555,8 +6095,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to configure DNS"
+            "state" : "translated",
+            "value" : "Impossible de configurer le DNS"
           }
         },
         "hi" : {
@@ -5656,8 +6196,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Duplicate tunnel file descriptor"
+            "state" : "translated",
+            "value" : "Erreur de description du fichier du tunnel"
           }
         },
         "hi" : {
@@ -5757,8 +6297,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to establish wireguard connection"
+            "state" : "translated",
+            "value" : "Erreur de connexion WireGuard"
           }
         },
         "hi" : {
@@ -5858,8 +6398,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to configure firewall"
+            "state" : "translated",
+            "value" : "Erreur de configuration du pare-feu"
           }
         },
         "hi" : {
@@ -5959,8 +6499,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Internal unknown tunnel failure"
+            "state" : "translated",
+            "value" : "Erreur du tunnel"
           }
         },
         "hi" : {
@@ -6060,8 +6600,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Invalid entry gateway country"
+            "state" : "translated",
+            "value" : "Passerelle d'entrée incorrecte"
           }
         },
         "hi" : {
@@ -6161,8 +6701,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Invalid exit gateway country"
+            "state" : "translated",
+            "value" : "Passerelle de sortie incorrecte"
           }
         },
         "hi" : {
@@ -6262,8 +6802,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account device limit exceeded. Please remove a device from your account before connecting."
+            "state" : "translated",
+            "value" : "Le nombre maximum d'appareils a été atteint. Veuillez supprimer un appareil de votre compte et réessayer."
           }
         },
         "hi" : {
@@ -6363,8 +6903,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No account stored. Please add a mnemonic."
+            "state" : "translated",
+            "value" : "Pas de compte enregistré. Ajoutez votre code d'accès."
           }
         },
         "hi" : {
@@ -6464,8 +7004,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Device not registered. Please try again."
+            "state" : "translated",
+            "value" : "L'appareil n'est pas enregistré. Merci de réessayer."
           }
         },
         "hi" : {
@@ -6565,8 +7105,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Offline"
+            "state" : "translated",
+            "value" : "Hors ligne"
           }
         },
         "hi" : {
@@ -6666,8 +7206,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Registration in progress. Please try again."
+            "state" : "translated",
+            "value" : "Inscription en cours. Merci de réessayer."
           }
         },
         "hi" : {
@@ -6767,8 +7307,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Registration in progress. Please try again."
+            "state" : "translated",
+            "value" : "Inscription en cours. Merci de réessayer."
           }
         },
         "hi" : {
@@ -6868,8 +7408,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to resolve API domains. Please try again."
+            "state" : "translated",
+            "value" : "Erreur de résolution des domaines DNS. Merci de réessayer."
           }
         },
         "hi" : {
@@ -6969,8 +7509,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to configure routing"
+            "state" : "translated",
+            "value" : "Impossible de configurer le routage"
           }
         },
         "hi" : {
@@ -7070,8 +7610,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For privacy, NymVPN won't use the same gateway for entry and exit. Reconnect or choose different locations."
+            "state" : "translated",
+            "value" : "Pour des raisons de sécurité, NymVPN ne peut utiliser la même passerelle pour l'entrée et la sortie. Reconnectez-vous ou choisissez d'autres passerelles."
           }
         },
         "hi" : {
@@ -7171,8 +7711,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to start local DNS proxy. Please try again."
+            "state" : "translated",
+            "value" : "Impossible de démarrer le proxy DNS local. Merci de réessayer."
           }
         },
         "hi" : {
@@ -7201,26 +7741,26 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to start local DNS proxy. Please try again."
+            "state" : "translated",
+            "value" : "Falha ao iniciar o proxy de DNS locais. Por favor, tente novamente."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to start local DNS proxy. Please try again."
+            "state" : "translated",
+            "value" : "Не удалось запустить локальный DNS прокси. Пожалуйста, попробуйте снова."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to start local DNS proxy. Please try again."
+            "state" : "translated",
+            "value" : "Yerel DNS aracı sunucusu başlatılamadı. Lütfen tekrar deneyin."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to start local DNS proxy. Please try again."
+            "state" : "translated",
+            "value" : "Не вдалося запустити локальний dns-проксі. Будь ласка, спробуйте ще раз."
           }
         },
         "vi" : {
@@ -7272,8 +7812,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Subscription has expired. Please purchase a plan for your account."
+            "state" : "translated",
+            "value" : "Votre abonnement a expiré. Veuillez souscrire à un nouvel abonnement dans votre compte."
           }
         },
         "hi" : {
@@ -7373,8 +7913,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to configure tunnel device"
+            "state" : "translated",
+            "value" : "Impossible de configurer le tunnel (« tunnel device »)"
           }
         },
         "hi" : {
@@ -7474,8 +8014,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to configure packet tunnel provider"
+            "state" : "translated",
+            "value" : "Impossible de configurer le fournisseur de tunnel"
           }
         },
         "hi" : {
@@ -7575,8 +8115,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Unknown reason. Please try again."
+            "state" : "translated",
+            "value" : "Erreur inconnue. Merci de réessayer."
           }
         },
         "hi" : {
@@ -7676,8 +8216,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Unknown tunnel state. Please try again."
+            "state" : "translated",
+            "value" : "Erreur inconnue. Merci de réessayer."
           }
         },
         "hi" : {
@@ -7777,8 +8317,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Establishing connection"
+            "state" : "translated",
+            "value" : "Connexion en cours"
           }
         },
         "hi" : {
@@ -7878,8 +8418,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Lowest ping"
+            "state" : "translated",
+            "value" : "Latence la plus faible"
           }
         },
         "hi" : {
@@ -7979,8 +8519,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Help us improve NymVPN"
+            "state" : "translated",
+            "value" : "Aidez-nous à améliorer NymVPN"
           }
         },
         "hi" : {
@@ -8080,8 +8620,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Turn on error reporting"
+            "state" : "translated",
+            "value" : "Activer les rapports d'erreurs"
           }
         },
         "hi" : {
@@ -8181,8 +8721,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open a GitHub issue"
+            "state" : "translated",
+            "value" : "Créer un ticket GitHub"
           }
         },
         "hi" : {
@@ -8282,8 +8822,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Send us feedback"
+            "state" : "translated",
+            "value" : "Envoyer un commentaire"
           }
         },
         "hi" : {
@@ -8383,8 +8923,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry"
+            "state" : "translated",
+            "value" : "Entrée"
           }
         },
         "hi" : {
@@ -8484,8 +9024,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Random"
+            "state" : "translated",
+            "value" : "Aléatoire"
           }
         },
         "hi" : {
@@ -8553,9 +9093,99 @@
     "gatewaySelector.expandServers" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Expand servers"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Expand servers"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "Expand servers"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Expand servers"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Expand servers"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Expand servers"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Expand servers"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Expand servers"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Expand servers"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Expand servers"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Expandir servidores"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Expand servers"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sunucu seçeneklerini artır"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Expand servers"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Expand servers"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "Expand servers"
           }
         }
@@ -8596,8 +9226,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "servers"
+            "state" : "translated",
+            "value" : "serveurs"
           }
         },
         "hi" : {
@@ -8665,9 +9295,99 @@
     "general.off" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Off"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Off"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "Off"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apagar"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Off"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Désactivé"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ऑफ"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Off"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Off"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Off"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Desligado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Off"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Kapalı"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Вимкнено"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Off"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "Off"
           }
         }
@@ -8676,9 +9396,99 @@
     "general.on" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "On"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Activé"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ऑन"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ligado"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Açık"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Увімкнено"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "On"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "On"
           }
         }
@@ -8719,8 +9529,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong: Cannot fetch countries"
+            "state" : "translated",
+            "value" : "Un problème est survenu. Impossible de récupérer la liste des emplacements."
           }
         },
         "hi" : {
@@ -8820,8 +9630,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong: Cannot parse pre-bundled countries"
+            "state" : "translated",
+            "value" : "Un problème est survenu. Impossible de charger la liste des emplacements."
           }
         },
         "hi" : {
@@ -8921,8 +9731,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong: Invalid url"
+            "state" : "translated",
+            "value" : "Un problème est survenu. Adresse URL invalide."
           }
         },
         "hi" : {
@@ -9022,8 +9832,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to fetch environment"
+            "state" : "translated",
+            "value" : "Impossible de récupérer l'environnement"
           }
         },
         "hi" : {
@@ -9123,8 +9933,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong: Cannot load pre-bundled countries"
+            "state" : "translated",
+            "value" : "Un problème est survenu. Impossible de charger les emplacements."
           }
         },
         "hi" : {
@@ -9224,8 +10034,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Something went wrong. Please try again."
+            "state" : "translated",
+            "value" : "Une erreur est survenue. Merci de réessayer."
           }
         },
         "hi" : {
@@ -9325,8 +10135,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Close"
+            "state" : "translated",
+            "value" : "Fermer"
           }
         },
         "hi" : {
@@ -9426,8 +10236,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Identity key:"
+            "state" : "translated",
+            "value" : "Identifiant du serveur"
           }
         },
         "hi" : {
@@ -9527,8 +10337,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authorize"
+            "state" : "translated",
+            "value" : "Autoriser"
           }
         },
         "hi" : {
@@ -9628,8 +10438,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Back to main screen"
+            "state" : "translated",
+            "value" : "Revenir à l'écran principal"
           }
         },
         "hi" : {
@@ -9729,8 +10539,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "Continuer"
           }
         },
         "hi" : {
@@ -9830,8 +10640,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copy commands"
+            "state" : "translated",
+            "value" : "Copier la commande"
           }
         },
         "hi" : {
@@ -9931,8 +10741,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Successfully copied to clipboard!"
+            "state" : "translated",
+            "value" : "Copié dans le presse-papier !"
           }
         },
         "hi" : {
@@ -10032,8 +10842,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon migration required"
+            "state" : "translated",
+            "value" : "Migration du daemon requise"
           }
         },
         "hi" : {
@@ -10104,19 +10914,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "es" : {
@@ -10133,8 +10943,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "state" : "translated",
+            "value" : "NymVPN utilise un « daemon » (service en arrière-plan)  pour sécuriser votre connexion. Ce daemon gère le chiffrement et le routage, notamment lorsque l'application NymVPN est fermée, afin que vos activités soient toujours protégées.\n\nSuivez les étapes ci-dessous pour installer le daemon."
           }
         },
         "hi" : {
@@ -10146,7 +10956,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "ja" : {
@@ -10158,7 +10968,7 @@
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt-BR" : {
@@ -10234,8 +11044,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "1. Open system settings using button below"
+            "state" : "translated",
+            "value" : "1. Ouvrez les paramètres du système en utilisant le bouton ci-dessous"
           }
         },
         "hi" : {
@@ -10335,8 +11145,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open system settings"
+            "state" : "translated",
+            "value" : "Ouvrir les paramètres système"
           }
         },
         "hi" : {
@@ -10436,8 +11246,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Install daemon"
+            "state" : "translated",
+            "value" : "Installer le daemon"
           }
         },
         "hi" : {
@@ -10537,8 +11347,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Register & authorize"
+            "state" : "translated",
+            "value" : "Installer et autoriser"
           }
         },
         "hi" : {
@@ -10638,8 +11448,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "2. Navigate to the “Allow in the Background” section, find NymVPN in the app list, and turn on the switch."
+            "state" : "translated",
+            "value" : "2. Accédez à la section « Autoriser en arrière-plan », trouvez NymVPN dans la liste des applications et activez l'interrupteur"
           }
         },
         "hi" : {
@@ -10739,8 +11549,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Authorize daemon"
+            "state" : "translated",
+            "value" : "Autoriser le daemon"
           }
         },
         "hi" : {
@@ -10840,8 +11650,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "current"
+            "state" : "translated",
+            "value" : "actuelle"
           }
         },
         "hi" : {
@@ -10941,8 +11751,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Register daemon"
+            "state" : "translated",
+            "value" : "Installer le daemon"
           }
         },
         "hi" : {
@@ -11042,8 +11852,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon is running"
+            "state" : "translated",
+            "value" : "Le daemon est actif"
           }
         },
         "hi" : {
@@ -11143,8 +11953,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "required"
+            "state" : "translated",
+            "value" : "requis"
           }
         },
         "hi" : {
@@ -11244,8 +12054,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Due to migration from SMJOBBless to SMAPPservice, manual removal of the legacy daemon is required.\nPlease execute the following Terminal commands:\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAfter running these commands, restart your Mac."
+            "state" : "translated",
+            "value" : "En raison de la migration de SMJOBBless vers SMAPPservice, il est nécessaire de supprimer l'ancien daemon. Merci de copier et d'exécuter les commandes suivantes dans le Terminal :\n\nsudo launchctl unload /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/LaunchDaemons/net.nymtech.vpn.helper.plist\nsudo rm /Library/PrivilegedHelperTools/net.nymtech.vpn.helper\nsfltool resetbtm\n\nAprès avoir exécuté ces commandes, merci de redémarrer votre Mac."
           }
         },
         "hi" : {
@@ -11345,8 +12155,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Verifying version"
+            "state" : "translated",
+            "value" : "Vérification de la version"
           }
         },
         "hi" : {
@@ -11446,8 +12256,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Version OK"
+            "state" : "translated",
+            "value" : "Version à jour"
           }
         },
         "hi" : {
@@ -11547,8 +12357,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon version mismatch:"
+            "state" : "translated",
+            "value" : "Inadéquation de la version du daemon"
           }
         },
         "hi" : {
@@ -11648,8 +12458,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Waiting for daemon start"
+            "state" : "translated",
+            "value" : "En attente du démarrage du daemon"
           }
         },
         "hi" : {
@@ -11749,8 +12559,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You can resume using NymVPN after returning to the main screen."
+            "state" : "translated",
+            "value" : "Vous pouvez reprendre l'utilisation de NymVPN après être retourné à l'écran principal."
           }
         },
         "hi" : {
@@ -11850,8 +12660,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Daemon successfully installed"
+            "state" : "translated",
+            "value" : "Daemon installé"
           }
         },
         "hi" : {
@@ -11951,8 +12761,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN automatically detects changes and informs you about a successful installation. If nothing happens, contact our "
+            "state" : "translated",
+            "value" : "NymVPN détecte automatiquement les changements et vous informe d'une installation réussie. Si rien ne se passe, contactez notre "
           }
         },
         "hi" : {
@@ -12052,8 +12862,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support team."
+            "state" : "translated",
+            "value" : "équipe Support."
           }
         },
         "hi" : {
@@ -12153,8 +12963,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Update"
+            "state" : "translated",
+            "value" : "Mise à jour"
           }
         },
         "hi" : {
@@ -12254,8 +13064,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Updating…"
+            "state" : "translated",
+            "value" : "Mise à jour..."
           }
         },
         "hi" : {
@@ -12355,8 +13165,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Verifying…"
+            "state" : "translated",
+            "value" : "Vérification..."
           }
         },
         "hi" : {
@@ -12456,8 +13266,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Starting daemon"
+            "state" : "translated",
+            "value" : "Démarrage du daemon"
           }
         },
         "hi" : {
@@ -12557,8 +13367,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Successfully uninstalled NymVPN helper"
+            "state" : "translated",
+            "value" : "Daemon NymVPN installé"
           }
         },
         "hi" : {
@@ -12658,8 +13468,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Uninstall NymVPN helper"
+            "state" : "translated",
+            "value" : "Désinstaller le helper"
           }
         },
         "hi" : {
@@ -12727,9 +13537,99 @@
     "home.connectingRetryAttempt" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Attempt"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Attempt"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "Attempt"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Attempt"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Attempt"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tentative"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Attempt"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Attempt"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Attempt"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Attempt"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tentativa"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Attempt"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deneme"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Спроба"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Attempt"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "Attempt"
           }
         }
@@ -12770,8 +13670,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your device has no internet connection"
+            "state" : "translated",
+            "value" : "Votre appareil n'est pas connecté à internet"
           }
         },
         "hi" : {
@@ -12871,8 +13771,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Will connect once device goes online"
+            "state" : "translated",
+            "value" : "La connexion sera rétablie une fois connecté à internet"
           }
         },
         "hi" : {
@@ -12972,8 +13872,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Entry"
+            "state" : "translated",
+            "value" : "Entrée"
           }
         },
         "hi" : {
@@ -13073,8 +13973,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit"
+            "state" : "translated",
+            "value" : "Sortie"
           }
         },
         "hi" : {
@@ -13174,8 +14074,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Installing and authorizing daemon..."
+            "state" : "translated",
+            "value" : "Installation du daemon en cours..."
           }
         },
         "hi" : {
@@ -13275,8 +14175,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Preparing…"
+            "state" : "translated",
+            "value" : "Préparation..."
           }
         },
         "hi" : {
@@ -13376,8 +14276,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Error: Failed to install and authorize daemon"
+            "state" : "translated",
+            "value" : "Erreur : impossible d'installer et d'autoriser le daemon"
           }
         },
         "hi" : {
@@ -13477,8 +14377,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "It appears you are not connected to the internet. Please check your internet connection and try to connect."
+            "state" : "translated",
+            "value" : "Vous n'êtes pas connecté à internet. Merci de vérifier votre connexion à internet et de réessayer."
           }
         },
         "hi" : {
@@ -13578,8 +14478,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No internet connection"
+            "state" : "translated",
+            "value" : "Pas de connexion à internet"
           }
         },
         "hi" : {
@@ -13679,8 +14579,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Update"
+            "state" : "translated",
+            "value" : "Mise à jour"
           }
         },
         "hi" : {
@@ -13780,8 +14680,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your app is no longer supported. Please download the latest version to continue using NymVPN."
+            "state" : "translated",
+            "value" : "Votre application n'est plus à jour. Merci de télécharger la dernière version pour continuer à utiliser NymVPN."
           }
         },
         "hi" : {
@@ -13881,8 +14781,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Update required"
+            "state" : "translated",
+            "value" : "Mise à jour requise"
           }
         },
         "hi" : {
@@ -13982,8 +14882,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Initializing client..."
+            "state" : "translated",
+            "value" : "Démarrage du client"
           }
         },
         "hi" : {
@@ -14083,8 +14983,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Join us on Discord"
+            "state" : "translated",
+            "value" : "Rejoignez-nous sur Discord"
           }
         },
         "hi" : {
@@ -14184,8 +15084,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Join us on Matrix"
+            "state" : "translated",
+            "value" : "Rejoignez-nous sur Matrix"
           }
         },
         "hi" : {
@@ -14285,8 +15185,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Exit"
+            "state" : "translated",
+            "value" : "Passerelle de sortie"
           }
         },
         "hi" : {
@@ -14386,8 +15286,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Legal"
+            "state" : "translated",
+            "value" : "Juridique"
           }
         },
         "hi" : {
@@ -14487,8 +15387,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Licence"
+            "state" : "translated",
+            "value" : "License"
           }
         },
         "hi" : {
@@ -14588,7 +15488,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Licences"
           }
         },
@@ -14689,8 +15589,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Privacy statement"
+            "state" : "translated",
+            "value" : "Politique de confidentialité"
           }
         },
         "hi" : {
@@ -14790,8 +15690,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Terms of use"
+            "state" : "translated",
+            "value" : "Conditions générales"
           }
         },
         "hi" : {
@@ -14891,8 +15791,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Light theme"
+            "state" : "translated",
+            "value" : "Apparence claire"
           }
         },
         "hi" : {
@@ -14992,8 +15892,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "We infer server locations based on their IP addresses, but the actual locations may vary slightly."
+            "state" : "translated",
+            "value" : "L'emplacement des passerelles est déterminé à partir de leur adresse IP. L'emplacement réel peut être différent."
           }
         },
         "hi" : {
@@ -15093,8 +15993,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Read more"
+            "state" : "translated",
+            "value" : "En savoir plus"
           }
         },
         "hi" : {
@@ -15194,8 +16094,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Details on server locations"
+            "state" : "translated",
+            "value" : "Détails sur l'emplacement des passerelles"
           }
         },
         "hi" : {
@@ -15295,8 +16195,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Logs (stored locally)"
+            "state" : "translated",
+            "value" : "Journaux"
           }
         },
         "hi" : {
@@ -15396,8 +16296,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Delete"
+            "state" : "translated",
+            "value" : "Effacer"
           }
         },
         "hi" : {
@@ -15497,14 +16397,14 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Are you sure you want to delete all logs?"
+            "state" : "translated",
+            "value" : "Êtes-vous sûr de vouloir effacer les journaux ?"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "क्या आप निश्चित हैं कि आप सभी लॉग्स हटाना चाहते हैं?"
+            "value" : "क्या आप निश्चित हैं कि आप सभी लॉग्स हटाना चाहते हैं?i"
           }
         },
         "it" : {
@@ -15598,8 +16498,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Export"
+            "state" : "translated",
+            "value" : "Exporter"
           }
         },
         "hi" : {
@@ -15699,8 +16599,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Displaying the last 1000 lines. Please export to see the full log."
+            "state" : "translated",
+            "value" : "Affichage des 1000 dernières lignes. Merci d'exporter le fichier pour avoir accès à l'intégralité des journaux."
           }
         },
         "hi" : {
@@ -15800,8 +16700,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No"
+            "state" : "translated",
+            "value" : "Non"
           }
         },
         "hi" : {
@@ -15901,8 +16801,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No logs available"
+            "state" : "translated",
+            "value" : "Aucun journal disponible"
           }
         },
         "hi" : {
@@ -16002,8 +16902,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You will not be able to retrieve them"
+            "state" : "translated",
+            "value" : "Vous ne pourrez pas les récupérer"
           }
         },
         "hi" : {
@@ -16103,8 +17003,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Yes"
+            "state" : "translated",
+            "value" : "Oui"
           }
         },
         "hi" : {
@@ -16204,8 +17104,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open NymVPN..."
+            "state" : "translated",
+            "value" : "Ouvrir NymVPN..."
           }
         },
         "hi" : {
@@ -16305,8 +17205,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enjoy maximum-level privacy by routing your connection through 5 servers via mixnet. Perfect for securely handling payments, emails, and messages."
+            "state" : "translated",
+            "value" : "Bénéficiez d'une confidentialité maximale via les 5 passerelles du mixnet. Parfait transmettre vos instructions de paiement, vos emails et vos messages."
           }
         },
         "hi" : {
@@ -16406,8 +17306,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue reading"
+            "state" : "translated",
+            "value" : "En savoir plus"
           }
         },
         "hi" : {
@@ -16507,8 +17407,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Experience maximum speed with 2-server connectivity. This mode leverages AmneziaWG, a censorship-resistant version of WireGuard, ideal for fast browsing, streaming, and file sharing."
+            "state" : "translated",
+            "value" : "Bénéficiez d'une vitesse maximale avec le mode VPN (via 2 passerelles). Ce mode repose sur AmneziaWG, une version résistante à la censure du protocole WireGuard. Parfait pour la navigation, le streaming et les téléchargements."
           }
         },
         "hi" : {
@@ -16608,8 +17508,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Mode selection"
+            "state" : "translated",
+            "value" : "Choix du mode"
           }
         },
         "hi" : {
@@ -16709,8 +17609,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No"
+            "state" : "translated",
+            "value" : "Non"
           }
         },
         "hi" : {
@@ -16810,8 +17710,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No internet"
+            "state" : "translated",
+            "value" : "Pas d'accès à internet"
           }
         },
         "hi" : {
@@ -16911,8 +17811,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No internet"
+            "state" : "translated",
+            "value" : "Pas d'accès à internet"
           }
         },
         "hi" : {
@@ -17012,14 +17912,14 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Please try reconnecting."
+            "state" : "translated",
+            "value" : "Veuillez essayer de vous reconnecter."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Please try reconnecting."
+            "state" : "translated",
+            "value" : "फिर से कनेक्ट करने का प्रयास करें"
           }
         },
         "it" : {
@@ -17042,26 +17942,26 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Please try reconnecting."
+            "state" : "translated",
+            "value" : "Por favor, tente reconectar."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Please try reconnecting."
+            "state" : "translated",
+            "value" : "Попробуйте переподключиться."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Please try reconnecting."
+            "state" : "translated",
+            "value" : "Yeniden bağlanmayı deneyin."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Please try reconnecting."
+            "state" : "translated",
+            "value" : "Спробуйте відновити підключення."
           }
         },
         "vi" : {
@@ -17113,14 +18013,14 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "The NymVPN connection has failed."
+            "state" : "translated",
+            "value" : "La connexion NymVPN a échoué."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "The NymVPN connection has failed."
+            "state" : "translated",
+            "value" : "NymVPN कनेक्शन विफल हो गया है।"
           }
         },
         "it" : {
@@ -17143,26 +18043,26 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "The NymVPN connection has failed."
+            "state" : "translated",
+            "value" : "A conexão do NymVPN falhou."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "The NymVPN connection has failed."
+            "state" : "translated",
+            "value" : "Подключение к NymVPN не удалось."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "The NymVPN connection has failed."
+            "state" : "translated",
+            "value" : "NymVPN bağlantısı kesildi."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "The NymVPN connection has failed."
+            "state" : "translated",
+            "value" : "Помилка підключення NymVPN."
           }
         },
         "vi" : {
@@ -17214,13 +18114,13 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "NymVPN"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "NymVPN"
           }
         },
@@ -17315,8 +18215,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Ok"
+            "state" : "translated",
+            "value" : "OK"
           }
         },
         "hi" : {
@@ -17416,8 +18316,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Close Window"
+            "state" : "translated",
+            "value" : "Fermer la fenêtre"
           }
         },
         "hi" : {
@@ -17517,8 +18417,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Quit NymVPN"
+            "state" : "translated",
+            "value" : "Quitter NymVPN"
           }
         },
         "hi" : {
@@ -17618,8 +18518,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Do you want to quit NymVPN completely, or just close this window?"
+            "state" : "translated",
+            "value" : "Voulez-vous quitter NymVPN, ou simplement fermer cette fenêtre ?"
           }
         },
         "hi" : {
@@ -17719,8 +18619,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Quit"
+            "state" : "translated",
+            "value" : "Quitter"
           }
         },
         "hi" : {
@@ -17820,8 +18720,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Quitting will stop all tasks and remove NymVPN from the menu bar."
+            "state" : "translated",
+            "value" : "Quitter arrêtera toutes les tâches et retirera NymVPN de la barre de menu."
           }
         },
         "hi" : {
@@ -17921,8 +18821,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Search"
+            "state" : "translated",
+            "value" : "Recherche"
           }
         },
         "hi" : {
@@ -18022,8 +18922,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Contact us for help"
+            "state" : "translated",
+            "value" : "Contactez-nous"
           }
         },
         "hi" : {
@@ -18123,8 +19023,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "how to run a gateway"
+            "state" : "translated",
+            "value" : "comment mettre en place une passerelle"
           }
         },
         "hi" : {
@@ -18224,8 +19124,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No results found."
+            "state" : "translated",
+            "value" : "Aucun résultat trouvé. Veuillez essayer une autre recherche."
           }
         },
         "hi" : {
@@ -18325,8 +19225,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Try another location or check the server name."
+            "state" : "translated",
+            "value" : "Choisissez un autre emplacement ou vérifiez le nom du serveur."
           }
         },
         "hi" : {
@@ -18426,8 +19326,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "or learn"
+            "state" : "translated",
+            "value" : "ou apprenez"
           }
         },
         "hi" : {
@@ -18527,8 +19427,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Search location or server"
+            "state" : "translated",
+            "value" : "Chercher un emplacement ou un serveur"
           }
         },
         "hi" : {
@@ -18628,8 +19528,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Selected"
+            "state" : "translated",
+            "value" : "Sélectionné"
           }
         },
         "hi" : {
@@ -18729,8 +19629,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select mode"
+            "state" : "translated",
+            "value" : "Choix du mode"
           }
         },
         "hi" : {
@@ -18830,8 +19730,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Settings"
+            "state" : "translated",
+            "value" : "Réglages"
           }
         },
         "hi" : {
@@ -18931,8 +19831,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account"
+            "state" : "translated",
+            "value" : "Compte"
           }
         },
         "hi" : {
@@ -19032,8 +19932,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account ID"
+            "state" : "translated",
+            "value" : "Identifiant du compte"
           }
         },
         "hi" : {
@@ -19133,7 +20033,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "(via Sentry)"
           }
         },
@@ -19234,8 +20134,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous error reports"
+            "state" : "translated",
+            "value" : "Rapports d'erreurs anonymes"
           }
         },
         "hi" : {
@@ -19335,8 +20235,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Appearance"
+            "state" : "translated",
+            "value" : "Apparence"
           }
         },
         "hi" : {
@@ -19436,8 +20336,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "App mode"
+            "state" : "translated",
+            "value" : "Mode de l'application"
           }
         },
         "hi" : {
@@ -19537,8 +20437,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Menubar & Dock"
+            "state" : "translated",
+            "value" : "Barre des menus et Dock"
           }
         },
         "hi" : {
@@ -19638,8 +20538,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Dock only"
+            "state" : "translated",
+            "value" : "Dock uniquement"
           }
         },
         "hi" : {
@@ -19739,8 +20639,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Menubar only"
+            "state" : "translated",
+            "value" : "Barre des menus uniquement"
           }
         },
         "hi" : {
@@ -19840,8 +20740,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Chat on Telegram"
+            "state" : "translated",
+            "value" : "Nous joindre sur Telegram"
           }
         },
         "hi" : {
@@ -19941,8 +20841,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Copied to Clipboard!"
+            "state" : "translated",
+            "value" : "Copié dans le presse-papier !"
           }
         },
         "hi" : {
@@ -20042,8 +20942,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Device ID: "
+            "state" : "translated",
+            "value" : "Identifiant de l'appareil"
           }
         },
         "hi" : {
@@ -20143,14 +21043,14 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Display theme"
+            "state" : "translated",
+            "value" : "Apparence d'affichage"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Display theme"
+            "state" : "translated",
+            "value" : "डिस्प्ले थीम"
           }
         },
         "it" : {
@@ -20244,8 +21144,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Contact support"
+            "state" : "translated",
+            "value" : "Contacter le support"
           }
         },
         "hi" : {
@@ -20274,26 +21174,26 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Contact support"
+            "state" : "translated",
+            "value" : "Entre em contato com o suporte"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Contact support"
+            "state" : "translated",
+            "value" : "Связаться с поддержкой"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Contact support"
+            "state" : "translated",
+            "value" : "Bizimle iletişime geçin"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Contact support"
+            "state" : "translated",
+            "value" : "Звернутись до служби підтримки"
           }
         },
         "vi" : {
@@ -20345,8 +21245,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Always on to protect your data"
+            "state" : "translated",
+            "value" : "Toujours actif pour protéger vos données"
           }
         },
         "hi" : {
@@ -20446,8 +21346,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Killswitch"
+            "state" : "translated",
+            "value" : "Arrêt d'urgence"
           }
         },
         "hi" : {
@@ -20547,14 +21447,14 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Language"
+            "state" : "translated",
+            "value" : "Langue"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Language"
+            "state" : "translated",
+            "value" : "भाषा"
           }
         },
         "it" : {
@@ -20648,8 +21548,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Connect device"
+            "state" : "translated",
+            "value" : "Connecter l'appareil"
           }
         },
         "hi" : {
@@ -20749,8 +21649,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Logout"
+            "state" : "translated",
+            "value" : "Dissocier l'appareil"
           }
         },
         "hi" : {
@@ -20850,8 +21750,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You will need your anonymous Access Code to log in again."
+            "state" : "translated",
+            "value" : "Vous aurez besoin de votre code d'accès anonyme pour vous reconnecter."
           }
         },
         "hi" : {
@@ -20951,8 +21851,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Are you sure you want to logout?"
+            "state" : "translated",
+            "value" : "Êtes-vous sûr de vouloir dissocier l'appareil ?"
           }
         },
         "hi" : {
@@ -21052,8 +21952,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "NymVPN profile will be deleted from your device.\n\nIf connected: deleting VPN profile will disconnect you from VPN."
+            "state" : "translated",
+            "value" : "Le profil NymVPN sera supprimé de votre appareil. Vous serez déconnecté."
           }
         },
         "hi" : {
@@ -21153,8 +22053,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Reset VPN profile?"
+            "state" : "translated",
+            "value" : "Réinitialiser le profil VPN ?"
           }
         },
         "hi" : {
@@ -21254,8 +22154,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Reset VPN profile"
+            "state" : "translated",
+            "value" : "Réinitialiser le profil VPN"
           }
         },
         "hi" : {
@@ -21355,8 +22255,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Support & feedback"
+            "state" : "translated",
+            "value" : "Support et retours utilisateurs"
           }
         },
         "hi" : {
@@ -21456,8 +22356,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Stop"
+            "state" : "translated",
+            "value" : "Arrêt"
           }
         },
         "hi" : {
@@ -21557,7 +22457,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "tunnel"
           }
         },
@@ -21658,7 +22558,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Version"
           }
         },
@@ -21759,8 +22659,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "By continuing, you agree to NymVPN's [Terms of use](https://nym.com/vpn-terms) and acknowledge NymVPN's [Privacy policy](https://nym.com/vpn-privacy-statement)."
+            "state" : "translated",
+            "value" : "En cliquant « Continuer », vous accepter les [Conditions générales](https://nym.com/vpn-terms) de NymVPN et avez pris connaissance de la [Politique de confidentialité](https://nym.com/vpn-privacy-statement)."
           }
         },
         "hi" : {
@@ -21860,8 +22760,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "Continuer"
           }
         },
         "hi" : {
@@ -21961,8 +22861,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "This is experimental software. Do not rely on it for strong anonymity (yet)."
+            "state" : "translated",
+            "value" : "NymVPN est un logiciel expérimental. Il ne garantit pas (encore) une anonymité forte."
           }
         },
         "hi" : {
@@ -22062,7 +22962,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Sentry"
           }
         },
@@ -22163,8 +23063,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Help us refine our app! Your feedback is crucial for identifying and resolving issues. Opt-in for anonymous error monitoring (via"
+            "state" : "translated",
+            "value" : "Aidez-nous à améliorer NymVPN ! Vos retours sont très utiles. Vous pouvez activer les rapports d'erreurs anonymes (via"
           }
         },
         "hi" : {
@@ -22264,8 +23164,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : ") and analytics at will—you can opt out anytime.\nThanks for your support!"
+            "state" : "translated",
+            "value" : ") et les rapports d'analyse. Vous pouvez changer vos préférences à tout moment. Merci de votre soutien !"
           }
         },
         "hi" : {
@@ -22365,8 +23265,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome\nto NymVPN"
+            "state" : "translated",
+            "value" : "Bienvenue !"
           }
         },
         "hi" : {
@@ -22466,8 +23366,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Yes"
+            "state" : "translated",
+            "value" : "Oui"
           }
         },
         "hi" : {
