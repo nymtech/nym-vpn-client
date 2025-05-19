@@ -41,9 +41,9 @@ pub enum MixnetEvent {
 impl fmt::Display for MixnetEvent {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Self::Bandwidth(event) => write!(f, "{}", event),
-            Self::Connection(event) => write!(f, "{}", event),
-            Self::ConnectionStatistics(event) => write!(f, "{}", event),
+            Self::Bandwidth(event) => write!(f, "{event}"),
+            Self::Connection(event) => write!(f, "{event}"),
+            Self::ConnectionStatistics(event) => write!(f, "{event}"),
         }
     }
 }

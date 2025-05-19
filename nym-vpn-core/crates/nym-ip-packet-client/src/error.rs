@@ -5,8 +5,8 @@ use crate::current::response::ConnectFailureReason;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error(transparent)]
-    SdkError(#[from] nym_sdk::Error),
+    #[error("nym sdk")]
+    SdkError(#[source] Box<nym_sdk::Error>),
 
     #[error("received response with version v{received}, the client is too new and can only understand v{expected}")]
     ReceivedResponseWithOldVersion { expected: u8, received: u8 },

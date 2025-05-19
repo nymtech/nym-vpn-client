@@ -8,7 +8,7 @@ pub(crate) fn construct_user_agent() -> nym_sdk::UserAgent {
     let name = sysinfo::System::name().unwrap_or("unknown".to_string());
     let os_long = sysinfo::System::long_os_version().unwrap_or("unknown".to_string());
     let arch = sysinfo::System::cpu_arch();
-    let platform = format!("{}; {}; {}", name, os_long, arch);
+    let platform = format!("{name}; {os_long}; {arch}");
     nym_sdk::UserAgent {
         application: bin_info.binary_name.to_string(),
         version: bin_info.build_version.to_string(),

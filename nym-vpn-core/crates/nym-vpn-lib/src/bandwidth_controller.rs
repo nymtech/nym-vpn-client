@@ -34,7 +34,7 @@ pub enum Error {
     LookupGatewayIp {
         gateway_id: String,
         #[source]
-        source: nym_gateway_directory::Error,
+        source: Box<nym_gateway_directory::Error>,
     },
 
     #[error("failed to register wireguard with the gateway for {gateway_id}")]
@@ -42,7 +42,7 @@ pub enum Error {
         gateway_id: String,
         authenticator_address: Box<nym_gateway_directory::Recipient>,
         #[source]
-        source: nym_wg_gateway_client::Error,
+        source: Box<nym_wg_gateway_client::Error>,
     },
 
     #[error("failed to top-up wireguard bandwidth with the gateway: {gateway_id}")]
@@ -51,7 +51,7 @@ pub enum Error {
         ticketbook_type: TicketType,
         authenticator_address: Box<nym_gateway_directory::Recipient>,
         #[source]
-        source: nym_wg_gateway_client::Error,
+        source: Box<nym_wg_gateway_client::Error>,
     },
 
     #[error("nyxd client error")]
@@ -211,7 +211,7 @@ impl<St: Storage> BandwidthController<St> {
             .await
             .map_err(|source| Error::LookupGatewayIp {
                 gateway_id: gateway_id.to_base58_string(),
-                source,
+                source: Box::new(source),
             })?;
         let wg_gateway_data = wg_gateway_client
             .register_wireguard(
@@ -224,7 +224,7 @@ impl<St: Storage> BandwidthController<St> {
             .map_err(|source| Error::RegisterWireguard {
                 gateway_id: gateway_id.to_base58_string(),
                 authenticator_address: Box::new(authenticator_address),
-                source,
+                source: Box::new(source),
             })?;
         tracing::debug!("Received wireguard gateway data: {wg_gateway_data:?}");
 
@@ -248,7 +248,7 @@ impl<St: Storage> BandwidthController<St> {
                     gateway_id: gateway_id.to_string(),
                     ticketbook_type,
                     authenticator_address: Box::new(authenticator_address),
-                    source,
+                    source: Box::new(source),
                 })?;
         wg_gateway_client.send_stats_event(
             ConnectionStatsEvent::TicketSpent {

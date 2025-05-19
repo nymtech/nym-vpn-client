@@ -21,17 +21,17 @@ fn main() {
         "x86_64" => "x64",
         "aarch64" => "ARM64",
         other => {
-            panic!("Unknown architecture: {}", other);
+            panic!("Unknown architecture: {other}");
         }
     };
     let cpp_profile = match profile.as_str() {
         "release" => "Release",
         "debug" => "Debug",
         other => {
-            panic!("Unknown profile: {}", other);
+            panic!("Unknown profile: {other}");
         }
     };
-    let link_search_dir = build_dir.join(format!("{}-{}", cpp_arch, cpp_profile));
+    let link_search_dir = build_dir.join(format!("{cpp_arch}-{cpp_profile}"));
 
     println!("cargo::rustc-link-search={}", link_search_dir.display());
     println!("cargo:rustc-link-lib=dylib=winfw");

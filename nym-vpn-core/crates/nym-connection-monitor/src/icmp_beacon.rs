@@ -26,6 +26,7 @@ use crate::{
         create_icmpv4_echo_request, create_icmpv6_echo_request, is_icmp_echo_reply,
         is_icmp_v6_echo_reply, wrap_icmp_in_ipv4, wrap_icmp_in_ipv6,
     },
+    Error,
 };
 
 const ICMP_BEACON_PING_INTERVAL: Duration = Duration::from_millis(1000);
@@ -84,7 +85,7 @@ impl IcmpConnectionBeacon {
         self.mixnet_client_sender
             .send(mixnet_message)
             .await
-            .map_err(|err| err.into())
+            .map_err(|err| Error::NymSdkError(Box::new(err)))
     }
 
     async fn send_icmp_v6_ping(&mut self, destination: Ipv6Addr) -> Result<()> {
@@ -110,7 +111,7 @@ impl IcmpConnectionBeacon {
         self.mixnet_client_sender
             .send(mixnet_message)
             .await
-            .map_err(|err| err.into())
+            .map_err(|err| Error::NymSdkError(Box::new(err)))
     }
 
     async fn ping_v4_ipr_tun_device_over_the_mixnet(&mut self) -> Result<()> {

@@ -79,14 +79,14 @@ impl Jwt {
 
         let header_base64 = base64_url::encode(&json!(header.clone()).to_string());
         let payload_base64 = base64_url::encode(&json!(payload.clone()).to_string());
-        let message = format!("{}.{}", header_base64, payload_base64).into_bytes();
+        let message = format!("{header_base64}.{payload_base64}").into_bytes();
 
         let signature = wallet.sign_raw(address, message).unwrap(); // TODO: result
         let signature_bytes = signature.to_bytes().to_vec();
 
         let signature_base64 = base64_url::encode(&signature_bytes);
 
-        let jwt = format!("{}.{}.{}", header_base64, payload_base64, signature_base64);
+        let jwt = format!("{header_base64}.{payload_base64}.{signature_base64}");
 
         Jwt {
             header,
@@ -119,7 +119,7 @@ impl Jwt {
 
         let header_base64 = base64_url::encode(&json!(header.clone()).to_string());
         let payload_base64 = base64_url::encode(&json!(payload.clone()).to_string());
-        let message = format!("{}.{}", header_base64, payload_base64).into_bytes();
+        let message = format!("{header_base64}.{payload_base64}").into_bytes();
         let to_sign = Sha256::digest(&message);
 
         let signature = key_pair.private_key().sign(to_sign);
@@ -127,7 +127,7 @@ impl Jwt {
 
         let signature_base64 = base64_url::encode(&signature_bytes);
 
-        let jwt = format!("{}.{}.{}", header_base64, payload_base64, signature_base64);
+        let jwt = format!("{header_base64}.{payload_base64}.{signature_base64}");
 
         Jwt {
             header,

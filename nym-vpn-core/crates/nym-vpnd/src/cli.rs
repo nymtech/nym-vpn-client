@@ -65,10 +65,10 @@ pub struct Command {
 fn check_path(path: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(path);
     if !path.exists() {
-        return Err(format!("Path {:?} does not exist", path));
+        return Err(format!("Path {path:?} does not exist"));
     }
     if !path.is_file() {
-        return Err(format!("Path {:?} is not a file", path));
+        return Err(format!("Path {path:?} is not a file"));
     }
     Ok(path)
 }

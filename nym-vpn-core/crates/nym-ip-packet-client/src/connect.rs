@@ -106,7 +106,8 @@ impl IprClientConnect {
                 request,
                 surbs,
             ))
-            .await?;
+            .await
+            .map_err(|err| Error::SdkError(Box::new(err)))?;
 
         Ok(request_id)
     }

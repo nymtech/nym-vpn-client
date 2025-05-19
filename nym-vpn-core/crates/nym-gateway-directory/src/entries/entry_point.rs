@@ -25,8 +25,8 @@ pub enum EntryPoint {
 impl Display for EntryPoint {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            EntryPoint::Gateway { identity } => write!(f, "Gateway: {}", identity),
-            EntryPoint::Location { location } => write!(f, "Location: {}", location),
+            EntryPoint::Gateway { identity } => write!(f, "Gateway: {identity}"),
+            EntryPoint::Location { location } => write!(f, "Location: {location}"),
             EntryPoint::Random => write!(f, "Random"),
         }
     }

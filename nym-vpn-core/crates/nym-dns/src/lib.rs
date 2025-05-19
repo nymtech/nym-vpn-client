@@ -131,7 +131,7 @@ impl ResolvedDnsConfig {
             if i > 0 {
                 f.write_str(", ")?;
             }
-            write!(f, "{}", addr)?;
+            write!(f, "{addr}")?;
         }
         f.write_str("}")
     }

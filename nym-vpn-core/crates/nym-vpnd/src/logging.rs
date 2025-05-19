@@ -220,14 +220,14 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
 
     for crate_name in INFO_CRATES {
         env_filter = env_filter.add_directive(
-            format!("{}=info", crate_name)
+            format!("{crate_name}=info")
                 .parse()
                 .expect("failed to parse directive"),
         );
     }
     for crate_name in WARN_CRATES {
         env_filter = env_filter.add_directive(
-            format!("{}=warn", crate_name)
+            format!("{crate_name}=warn")
                 .parse()
                 .expect("failed to parse directive"),
         );

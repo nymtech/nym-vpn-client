@@ -623,7 +623,7 @@ pub enum Error {
     SetDns(#[source] dns_handler::Error),
 
     #[error("tunnel error: {}", _0)]
-    Tunnel(#[from] tunnel::Error),
+    Tunnel(#[from] Box<tunnel::Error>),
 
     #[error(transparent)]
     Account(#[from] account::Error),
@@ -669,7 +669,7 @@ impl Error {
 impl tunnel::Error {
     fn error_state_reason(self) -> Option<ErrorStateReason> {
         match self {
-            Self::SelectGateways(e) => match e {
+            Self::SelectGateways(e) => match *e {
                 GatewayDirectoryError::SameEntryAndExitGateway { .. } => {
                     Some(ErrorStateReason::SameEntryAndExitGateway)
                 }
@@ -682,13 +682,22 @@ impl tunnel::Error {
                 _ => None,
             },
             Self::BandwidthController(BandwidthControllerError::RegisterWireguard {
-                source: WgGatewayClientError::NoRetry { .. },
+                source,
                 ..
-            })
-            | Self::BandwidthController(BandwidthControllerError::TopUpWireguard {
-                source: WgGatewayClientError::NoRetry { .. },
-                ..
-            }) => Some(ErrorStateReason::BadBandwidthIncrease),
+            }) => match *source {
+                WgGatewayClientError::NoRetry { .. } => {
+                    Some(ErrorStateReason::BadBandwidthIncrease)
+                }
+                _ => None,
+            },
+            Self::BandwidthController(BandwidthControllerError::TopUpWireguard {
+                source, ..
+            }) => match *source {
+                WgGatewayClientError::NoRetry { .. } => {
+                    Some(ErrorStateReason::BadBandwidthIncrease)
+                }
+                _ => None,
+            },
             Self::DupFd(_) => Some(ErrorStateReason::DuplicateTunFd),
             Self::AuthenticationNotPossible(_)
             | Self::AuthenticatorAddressNotFound

@@ -52,7 +52,8 @@ pub async fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
         .map(|file| data_dir.join(file));
 
     // Files specific to the mixnet client
-    let storage_paths = StoragePaths::new_from_dir(data_dir).map_err(Error::StoragePaths)?;
+    let storage_paths =
+        StoragePaths::new_from_dir(data_dir).map_err(|err| Error::StoragePaths(Box::new(err)))?;
     let mixnet_paths = storage_paths
         .reply_surb_database_paths()
         .into_iter()
@@ -128,7 +129,7 @@ pub async fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
 
 async fn get_list_of_corrupted_files(data_dir: &Path) -> Result<Vec<PathBuf>, Error> {
     let base_name = StoragePaths::new_from_dir(data_dir)
-        .map_err(Error::StoragePaths)?
+        .map_err(|err| Error::StoragePaths(Box::new(err)))?
         .reply_surb_database_path;
 
     let Some(starts_with) = base_name.file_name().and_then(|bn| bn.to_str()) else {

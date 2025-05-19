@@ -821,7 +821,7 @@ impl RouteManagerImpl {
         let mut links = self.handle.link().get().execute();
         let target_device = LinkAttribute::IfName(device);
         while let Some(msg) = links.try_next().await.map_err(|_| Error::LinkNotFound)? {
-            let found = msg.attributes.iter().any(|e| *e == target_device);
+            let found = msg.attributes.contains(&target_device);
             if found {
                 if let Some(LinkAttribute::Mtu(mtu)) = msg
                     .attributes
