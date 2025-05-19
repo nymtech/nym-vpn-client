@@ -39,7 +39,7 @@ impl fmt::Display for FeatureFlags {
             itertools::join(
                 self.flags
                     .iter()
-                    .map(|(key, value)| { format!("{}: {}", key, value) }),
+                    .map(|(key, value)| { format!("{key}: {value}") }),
                 ", "
             )
         )
@@ -49,7 +49,7 @@ impl fmt::Display for FeatureFlags {
 impl fmt::Display for FlagValue {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            FlagValue::Value(value) => write!(f, "{}", value),
+            FlagValue::Value(value) => write!(f, "{value}"),
             FlagValue::Group(group) => {
                 write!(
                     f,
@@ -57,7 +57,7 @@ impl fmt::Display for FlagValue {
                     itertools::join(
                         group
                             .iter()
-                            .map(|(key, value)| { format!("{}: {}", key, value) }),
+                            .map(|(key, value)| { format!("{key}: {value}") }),
                         ", "
                     )
                 )

@@ -23,7 +23,7 @@ impl NymNetwork {
     fn path(config_dir: &Path, network_name: &str) -> PathBuf {
         config_dir
             .join(NETWORKS_SUBDIR)
-            .join(format!("{}.json", network_name))
+            .join(format!("{network_name}.json"))
     }
 
     pub(super) fn path_is_stale(config_dir: &Path, network_name: &str) -> anyhow::Result<bool> {
@@ -50,7 +50,7 @@ impl NymNetwork {
         // Create parent directories if they don't exist
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)
-                .with_context(|| format!("Failed to create parent directories for {:?}", path))?;
+                .with_context(|| format!("Failed to create parent directories for {path:?}"))?;
         }
 
         let file = std::fs::OpenOptions::new()
@@ -58,10 +58,10 @@ impl NymNetwork {
             .create(true)
             .truncate(true)
             .open(&path)
-            .with_context(|| format!("Failed to open network details file at {:?}", path))?;
+            .with_context(|| format!("Failed to open network details file at {path:?}"))?;
 
         serde_json::to_writer_pretty(&file, network)
-            .with_context(|| format!("Failed to write network details file at {:?}", path))?;
+            .with_context(|| format!("Failed to write network details file at {path:?}"))?;
 
         Ok(())
     }

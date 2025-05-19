@@ -308,7 +308,7 @@ impl NymVpnd for CommandInterface {
             .handle_list_gateways(gw_type, user_agent, directory_config)
             .await
             .map_err(|err| {
-                let msg = format!("Failed to list gateways: {:?}", err);
+                let msg = format!("Failed to list gateways: {err:?}");
                 tracing::error!(msg);
                 tonic::Status::internal(msg)
             })?;
@@ -380,7 +380,7 @@ impl NymVpnd for CommandInterface {
             .handle_list_countries(gw_type, user_agent, directory_config)
             .await
             .map_err(|err| {
-                let msg = format!("Failed to list entry countries: {:?}", err);
+                let msg = format!("Failed to list entry countries: {err:?}");
                 tracing::error!(msg);
                 tonic::Status::internal(msg)
             })?;

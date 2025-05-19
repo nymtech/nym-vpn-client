@@ -10,7 +10,7 @@ async fn main() -> anyhow::Result<()> {
     match run::run().await {
         Ok(ref result) => {
             let json = serde_json::to_string_pretty(result)?;
-            println!("{}", json);
+            println!("{json}");
         }
         Err(err) => {
             eprintln!("An error occurred: {err}");

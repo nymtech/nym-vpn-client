@@ -100,7 +100,7 @@ impl RegisteredNetworks {
 
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)
-                .with_context(|| format!("Failed to create parent directories for {:?}", path))?;
+                .with_context(|| format!("Failed to create parent directories for {path:?}"))?;
         }
 
         let file = std::fs::OpenOptions::new()
@@ -108,10 +108,10 @@ impl RegisteredNetworks {
             .create(true)
             .truncate(true)
             .open(&path)
-            .with_context(|| format!("Failed to open envs file: {:?}", path))?;
+            .with_context(|| format!("Failed to open envs file: {path:?}"))?;
 
         serde_json::to_writer_pretty(&file, &self)
-            .with_context(|| format!("Failed to write envs file: {:?}", path))?;
+            .with_context(|| format!("Failed to write envs file: {path:?}"))?;
 
         Ok(())
     }

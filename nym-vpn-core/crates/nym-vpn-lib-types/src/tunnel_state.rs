@@ -90,7 +90,7 @@ impl fmt::Display for TunnelState {
                         )
                     }
                 },
-                None => write!(f, "Connecting, attempt {}", retry_attempt),
+                None => write!(f, "Connecting, attempt {retry_attempt}"),
             },
             Self::Connected { connection_data } => match connection_data.tunnel {
                 TunnelConnectionData::Mixnet(ref data) => {
@@ -123,7 +123,7 @@ impl fmt::Display for TunnelState {
                 }
             },
             Self::Error(reason) => {
-                write!(f, "Error state: {:?}", reason)
+                write!(f, "Error state: {reason:?}")
             }
             Self::Offline { reconnect } => {
                 if *reconnect {

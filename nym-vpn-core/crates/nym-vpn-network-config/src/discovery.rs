@@ -46,7 +46,7 @@ impl Discovery {
     fn path(config_dir: &Path, network_name: &str) -> PathBuf {
         config_dir
             .join(NETWORKS_SUBDIR)
-            .join(format!("{}_{}", network_name, DISCOVERY_FILE))
+            .join(format!("{network_name}_{DISCOVERY_FILE}"))
     }
 
     pub(super) fn path_is_stale(config_dir: &Path, network_name: &str) -> anyhow::Result<bool> {
@@ -94,7 +94,7 @@ impl Discovery {
         // Create parent directories if they don't exist
         if let Some(parent) = path.parent() {
             std::fs::create_dir_all(parent)
-                .with_context(|| format!("Failed to create parent directories for {:?}", path))?;
+                .with_context(|| format!("Failed to create parent directories for {path:?}"))?;
         }
 
         let file = std::fs::OpenOptions::new()
@@ -102,10 +102,10 @@ impl Discovery {
             .create(true)
             .truncate(true)
             .open(&path)
-            .with_context(|| format!("Failed to open discovery file at {:?}", path))?;
+            .with_context(|| format!("Failed to open discovery file at {path:?}"))?;
 
         serde_json::to_writer_pretty(&file, self)
-            .with_context(|| format!("Failed to write discovery file at {:?}", path))?;
+            .with_context(|| format!("Failed to write discovery file at {path:?}"))?;
 
         Ok(())
     }

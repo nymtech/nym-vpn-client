@@ -20,6 +20,7 @@ use tokio::task::JoinHandle;
 use tracing::{debug, trace};
 
 use crate::{
+    Error,
     error::Result,
     nym_ip_packet_requests_current::request::IpPacketRequest,
     packet_helpers::{
@@ -84,7 +85,7 @@ impl IcmpConnectionBeacon {
         self.mixnet_client_sender
             .send(mixnet_message)
             .await
-            .map_err(|err| err.into())
+            .map_err(|err| Error::NymSdkError(Box::new(err)))
     }
 
     async fn send_icmp_v6_ping(&mut self, destination: Ipv6Addr) -> Result<()> {
@@ -110,7 +111,7 @@ impl IcmpConnectionBeacon {
         self.mixnet_client_sender
             .send(mixnet_message)
             .await
-            .map_err(|err| err.into())
+            .map_err(|err| Error::NymSdkError(Box::new(err)))
     }
 
     async fn ping_v4_ipr_tun_device_over_the_mixnet(&mut self) -> Result<()> {
