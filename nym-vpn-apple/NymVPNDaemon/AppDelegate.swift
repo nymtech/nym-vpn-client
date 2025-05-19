@@ -44,17 +44,17 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 andEventID: AEEventID(kAEQuitApplication)
             )
     }
+}
 
-    @objc private func handleQuitEvent(
+private extension AppDelegate {
+    @objc func handleQuitEvent(
         _ event: NSAppleEventDescriptor,
         withReplyEvent replyEvent: NSAppleEventDescriptor
     ) {
         shouldTerminate = true
         NSApplication.shared.terminate(self)
     }
-}
 
-private extension AppDelegate {
     func quit(_ app: NSApplication) -> NSApplication.TerminateReply {
         // App or menubar
         guard !shouldTerminate, shouldKeepMenuBarItemRunningOnQuit()
