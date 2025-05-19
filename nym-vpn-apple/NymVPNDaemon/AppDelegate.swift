@@ -1,11 +1,12 @@
 import Foundation
 import Cocoa
 import AppSettings
+import Logging
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     private let appSettings = AppSettings.shared
+    lazy var logger = Logger(label: "AppDelegate 🍓")
 
-    // set by your SwiftUI “quitApp(from:)” before calling .terminate()
     var shouldTerminate = false
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -32,6 +33,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         case .dockOnly, .both:
             NSApp.setActivationPolicy(.regular)
         }
+    }
+
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        NSAppleEventManager.shared()
+            .setEventHandler(
+                self,
+                andSelector: #selector(handleQuitEvent(_:withReplyEvent:)),
+                forEventClass: AEEventClass(kCoreEventClass),
+                andEventID: AEEventID(kAEQuitApplication)
+            )
+    }
+
+    @objc private func handleQuitEvent(
+        _ event: NSAppleEventDescriptor,
+        withReplyEvent replyEvent: NSAppleEventDescriptor
+    ) {
+        shouldTerminate = true
+        NSApplication.shared.terminate(self)
     }
 }
 
