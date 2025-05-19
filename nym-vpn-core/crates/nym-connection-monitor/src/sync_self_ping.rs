@@ -38,7 +38,8 @@ async fn send_self_pings(
                 .as_mut()
                 .unwrap()
                 .send(input_message)
-                .await?;
+                .await
+                .map_err(|err| Error::NymSdkError(Box::new(err)))?;
             Ok::<u64, Error>(request_id)
         })
         .collect::<Vec<_>>()

@@ -3,8 +3,8 @@
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
-    #[error(transparent)]
-    NymSdkError(#[from] nym_sdk::Error),
+    #[error("nym sdk")]
+    NymSdkError(#[source] Box<nym_sdk::Error>),
 
     #[error(
         "timeout waiting for mixnet self ping, the entry gateway is not routing our mixnet traffic"
