@@ -17,7 +17,7 @@ pub enum Error {
     ReceivedResponseWithNewVersion { expected: u8, received: u8 },
 
     #[error("failed to send mixnet message")]
-    SendMixnetMessage(#[source] nym_sdk::Error),
+    SendMixnetMessage(#[source] Box<nym_sdk::Error>),
 
     #[error("timeout waiting for connect response from exit gateway (authenticator)")]
     TimeoutWaitingForConnectResponse,

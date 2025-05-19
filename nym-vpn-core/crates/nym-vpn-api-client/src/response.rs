@@ -103,7 +103,7 @@ impl fmt::Display for NymVpnDevicesResponse {
             "{}",
             self.items
                 .iter()
-                .format_with(", ", |item, f| f(&format_args!("{:?}", item)))
+                .format_with(", ", |item, f| f(&format_args!("{item:?}")))
         )
     }
 }
@@ -499,10 +499,10 @@ impl fmt::Display for NymErrorResponse {
             Some(format!("message: {}", self.message)),
             self.message_id
                 .as_deref()
-                .map(|x| format!("message_id: {}", x)),
+                .map(|x| format!("message_id: {x}")),
             self.code_reference_id
                 .as_deref()
-                .map(|x| format!("code_reference_id: {}", x)),
+                .map(|x| format!("code_reference_id: {x}")),
             Some(format!("status: {}", self.status)),
         ]
         .iter()

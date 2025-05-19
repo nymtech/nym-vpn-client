@@ -153,14 +153,16 @@ impl NymVpnd for CommandInterface {
             .clone()
             .and_then(|e| e.entry_node_enum)
             .map(parse_entry_point)
-            .transpose()?;
+            .transpose()
+            .map_err(|err| *err)?;
 
         let exit = connect_request
             .exit
             .clone()
             .and_then(|e| e.exit_node_enum)
             .map(parse_exit_point)
-            .transpose()?;
+            .transpose()
+            .map_err(|err| *err)?;
 
         let options = ConnectOptions::try_from(connect_request).map_err(|err| {
             tracing::error!("Failed to parse connect options: {:?}", err);
@@ -308,7 +310,7 @@ impl NymVpnd for CommandInterface {
             .handle_list_gateways(gw_type, user_agent, directory_config)
             .await
             .map_err(|err| {
-                let msg = format!("Failed to list gateways: {:?}", err);
+                let msg = format!("Failed to list gateways: {err:?}");
                 tracing::error!(msg);
                 tonic::Status::internal(msg)
             })?;
@@ -380,7 +382,7 @@ impl NymVpnd for CommandInterface {
             .handle_list_countries(gw_type, user_agent, directory_config)
             .await
             .map_err(|err| {
-                let msg = format!("Failed to list entry countries: {:?}", err);
+                let msg = format!("Failed to list entry countries: {err:?}");
                 tracing::error!(msg);
                 tonic::Status::internal(msg)
             })?;

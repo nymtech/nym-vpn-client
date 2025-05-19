@@ -1109,7 +1109,7 @@ impl AuthClient {
         self.mixnet_sender
             .send(input_message)
             .await
-            .map_err(Error::SendMixnetMessage)?;
+            .map_err(|e| Error::SendMixnetMessage(Box::new(e)))?;
 
         Ok(request_id)
     }

@@ -149,72 +149,72 @@ impl Connector {
         };
 
         let shutdown = task_manager.subscribe_named("bandwidth_controller");
-        let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =
-            data_path.as_ref()
-        {
-            let paths = StoragePaths::new_from_dir(data_path).map_err(Error::SetupStoragePaths)?;
-            let storage = paths
-                .persistent_credential_storage()
-                .await
-                .map_err(Error::SetupStoragePaths)?;
-            let bw = BandwidthController::new(
-                storage,
-                network,
-                wg_entry_gateway_client.light_client(),
-                wg_exit_gateway_client.light_client(),
-                shutdown,
-            )?;
-            let entry_fut = bw.get_initial_bandwidth(
-                enable_credentials_mode,
-                TicketType::V1WireguardEntry,
-                gateway_directory_client.clone(),
-                &mut wg_entry_gateway_client,
-            );
-            let exit_fut = bw.get_initial_bandwidth(
-                enable_credentials_mode,
-                TicketType::V1WireguardExit,
-                gateway_directory_client.clone(),
-                &mut wg_exit_gateway_client,
-            );
-
-            let (entry, exit) = cancel_token
-                .run_until_cancelled(async { tokio::try_join!(entry_fut, exit_fut) })
-                .await
-                .ok_or(tunnel::Error::Cancelled)??;
-
-            let bandwidth_controller_handle = tokio::spawn(bw.run());
-
-            (ConnectionData { entry, exit }, bandwidth_controller_handle)
-        } else {
-            let storage = EphemeralCredentialStorage::default();
-            let bw = BandwidthController::new(
-                storage,
-                network,
-                wg_entry_gateway_client.light_client(),
-                wg_exit_gateway_client.light_client(),
-                shutdown,
-            )?;
-            let entry = bw
-                .get_initial_bandwidth(
+        let (connection_data, bandwidth_controller_handle) =
+            if let Some(data_path) = data_path.as_ref() {
+                let paths = StoragePaths::new_from_dir(data_path)
+                    .map_err(|err| Error::SetupStoragePaths(Box::new(err)))?;
+                let storage = paths
+                    .persistent_credential_storage()
+                    .await
+                    .map_err(|err| Error::SetupStoragePaths(Box::new(err)))?;
+                let bw = BandwidthController::new(
+                    storage,
+                    network,
+                    wg_entry_gateway_client.light_client(),
+                    wg_exit_gateway_client.light_client(),
+                    shutdown,
+                )?;
+                let entry_fut = bw.get_initial_bandwidth(
                     enable_credentials_mode,
                     TicketType::V1WireguardEntry,
                     gateway_directory_client.clone(),
                     &mut wg_entry_gateway_client,
-                )
-                .await?;
-            let exit = bw
-                .get_initial_bandwidth(
+                );
+                let exit_fut = bw.get_initial_bandwidth(
                     enable_credentials_mode,
                     TicketType::V1WireguardExit,
-                    gateway_directory_client,
+                    gateway_directory_client.clone(),
                     &mut wg_exit_gateway_client,
-                )
-                .await?;
+                );
 
-            let bandwidth_controller_handle = tokio::spawn(bw.run());
+                let (entry, exit) = cancel_token
+                    .run_until_cancelled(async { tokio::try_join!(entry_fut, exit_fut) })
+                    .await
+                    .ok_or(tunnel::Error::Cancelled)??;
 
-            (ConnectionData { entry, exit }, bandwidth_controller_handle)
-        };
+                let bandwidth_controller_handle = tokio::spawn(bw.run());
+
+                (ConnectionData { entry, exit }, bandwidth_controller_handle)
+            } else {
+                let storage = EphemeralCredentialStorage::default();
+                let bw = BandwidthController::new(
+                    storage,
+                    network,
+                    wg_entry_gateway_client.light_client(),
+                    wg_exit_gateway_client.light_client(),
+                    shutdown,
+                )?;
+                let entry = bw
+                    .get_initial_bandwidth(
+                        enable_credentials_mode,
+                        TicketType::V1WireguardEntry,
+                        gateway_directory_client.clone(),
+                        &mut wg_entry_gateway_client,
+                    )
+                    .await?;
+                let exit = bw
+                    .get_initial_bandwidth(
+                        enable_credentials_mode,
+                        TicketType::V1WireguardExit,
+                        gateway_directory_client,
+                        &mut wg_exit_gateway_client,
+                    )
+                    .await?;
+
+                let bandwidth_controller_handle = tokio::spawn(bw.run());
+
+                (ConnectionData { entry, exit }, bandwidth_controller_handle)
+            };
 
         if let Some(exit_country_code) = selected_gateways.exit.two_letter_iso_country_code() {
             auth_client.send_stats_event(

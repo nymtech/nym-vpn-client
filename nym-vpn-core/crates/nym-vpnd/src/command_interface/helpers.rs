@@ -10,7 +10,7 @@ use nym_vpn_lib::{
 
 pub(super) fn parse_entry_point(
     entry: nym_vpn_proto::entry_node::EntryNodeEnum,
-) -> Result<EntryPoint, tonic::Status> {
+) -> Result<EntryPoint, Box<tonic::Status>> {
     Ok(match entry {
         nym_vpn_proto::entry_node::EntryNodeEnum::Location(location) => {
             tracing::debug!(
@@ -38,7 +38,7 @@ pub(super) fn parse_entry_point(
 
 pub(super) fn parse_exit_point(
     exit: nym_vpn_proto::exit_node::ExitNodeEnum,
-) -> Result<ExitPoint, tonic::Status> {
+) -> Result<ExitPoint, Box<tonic::Status>> {
     Ok(match exit {
         nym_vpn_proto::exit_node::ExitNodeEnum::Address(address) => {
             tracing::debug!(

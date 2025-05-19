@@ -4,16 +4,16 @@
 #[derive(thiserror::Error, Debug)]
 pub enum MixnetError {
     #[error("failed to setup mixnet storage paths")]
-    SetupMixnetStoragePaths(#[source] nym_sdk::Error),
+    SetupMixnetStoragePaths(#[source] Box<nym_sdk::Error>),
 
     #[error("failed to create mixnet client with default storage")]
-    CreateMixnetClientWithDefaultStorage(#[source] nym_sdk::Error),
+    CreateMixnetClientWithDefaultStorage(#[source] Box<nym_sdk::Error>),
 
     #[error("failed to build mixnet client")]
-    BuildMixnetClient(#[source] nym_sdk::Error),
+    BuildMixnetClient(#[source] Box<nym_sdk::Error>),
 
     #[error("failed to connect to mixnet")]
-    ConnectToMixnet(#[source] nym_sdk::Error),
+    ConnectToMixnet(#[source] Box<nym_sdk::Error>),
 
     #[error("failed to connect to mixnet entry gateway {gateway_id}")]
     EntryGateway {
@@ -34,8 +34,8 @@ pub enum MixnetError {
     BundlePacket(#[source] nym_ip_packet_requests::codec::Error),
 
     #[error("failed to create input message")]
-    CreateInputMessage(#[source] nym_sdk::Error),
+    CreateInputMessage(#[source] Box<nym_sdk::Error>),
 
     #[error("failed to send input message")]
-    SendInputMessage(#[source] nym_sdk::Error),
+    SendInputMessage(#[source] Box<nym_sdk::Error>),
 }

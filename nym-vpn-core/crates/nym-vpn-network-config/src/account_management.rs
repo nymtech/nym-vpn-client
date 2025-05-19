@@ -96,7 +96,7 @@ impl fmt::Display for ParsedAccountLinks {
         writeln!(f, "sign_up: {}", self.sign_up)?;
         write!(f, "sign_in: {}", self.sign_in)?;
         if let Some(account) = &self.account {
-            write!(f, "\naccount: {}", account)?;
+            write!(f, "\naccount: {account}")?;
         }
 
         Ok(())
