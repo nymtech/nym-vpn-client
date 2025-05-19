@@ -8,7 +8,6 @@ import ConfigurationManager
 import Constants
 import CountriesManager
 import GatewayManager
-import GRPCManager
 import Home
 import HelperManager
 import NotificationsManager
@@ -22,10 +21,10 @@ import UIComponents
 
 @main
 struct NymVPNDaemonApp: App {
+    // Must be first, to bootstrap logging
+    private let nymLogger = NymLogger()
     private let autoUpdater = AutoUpdater.shared
-    private let logFileManager = LogFileManager(logFileType: .app)
     private let windowId = "NymVPN"
-    private let grpcManager = GRPCManager.shared
 
     @Environment(\.openWindow)
     private var openWindow
@@ -93,7 +92,7 @@ struct NymVPNDaemonApp: App {
             .environmentObject(appSettings)
             .environmentObject(connectionManager)
             .environmentObject(countriesManager)
-            .environmentObject(logFileManager)
+            .environmentObject(nymLogger.logFileManager)
         }
         .onChange(of: appSettings.appMode) { newMode in
             configureApp(for: newMode)
@@ -131,9 +130,7 @@ struct NymVPNDaemonApp: App {
 
 private extension NymVPNDaemonApp {
     func setup() {
-        LoggingSystem.bootstrap { label in
-            FileLogHandler(label: label, logFileManager: logFileManager)
-        }
+        Logger(label: "APP").info("SETUP")
         ThemeConfiguration.setup()
         Task {
             // Things dependant on environment beeing set.

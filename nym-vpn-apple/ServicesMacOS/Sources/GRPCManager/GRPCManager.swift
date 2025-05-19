@@ -55,7 +55,9 @@ public final class GRPCManager: ObservableObject {
     }
 
     public var requiresUpdate: Bool {
-        daemonVersion.compare(AppVersionProvider.libVersion, options: .numeric) == .orderedAscending
+        let required = daemonVersion.semVerCore
+        let current  = AppVersionProvider.libVersion.semVerCore
+        return required.compare(current, options: .numeric) == .orderedAscending
     }
 
     private init() {
@@ -77,6 +79,9 @@ public final class GRPCManager: ObservableObject {
 
     func setup() {
         setupListenToTunnelStateChangesObserver()
+        Task {
+            try? await version()
+        }
     }
 
     // MARK: - Connection -
@@ -100,5 +105,14 @@ public final class GRPCManager: ObservableObject {
         } catch {
             print("Error waiting for call status: \(error)")
         }
+    }
+}
+
+private extension String {
+    /// Keep only the first three "."-separated segments (e.g. "1.9.0-beta")
+    var semVerCore: String {
+        let parts = self.split(separator: ".")
+        guard parts.count >= 3 else { return self }
+        return parts[0...2].joined(separator: ".")
     }
 }

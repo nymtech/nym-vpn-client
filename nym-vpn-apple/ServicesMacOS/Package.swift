@@ -19,7 +19,8 @@ let package = Package(
         .package(name: "Theme", path: "../Theme"),
         .package(url: "https://github.com/grpc/grpc-swift.git", exact: "1.24.2"),
         .package(url: "https://github.com/keefertaylor/Base58Swift", from: "2.1.7"),
-        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.4")
+        .package(url: "https://github.com/sparkle-project/Sparkle", from: "2.6.4"),
+        .package(url: "https://github.com/apple/swift-log", from: "1.5.4")
     ],
     targets: [
         .target(
@@ -46,6 +47,7 @@ let package = Package(
             name: "HelperManager",
             dependencies: [
                 "GRPCManager",
+                .product(name: "Logging", package: "swift-log"),
                 .product(name: "Theme", package: "Theme")
             ],
             path: "Sources/HelperManager"

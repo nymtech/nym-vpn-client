@@ -27,10 +27,13 @@ public struct HelperInstallView: View {
                 .ignoresSafeArea()
         }
         .overlay {
-            succesfullyInstaledModal()
+            succesfullyInstalledModal()
         }
         .overlay {
             migrationModal()
+        }
+        .onAppear {
+            viewModel.registerDaemonIfNeeded()
         }
         // Copy to clipboard success message
         .snackbar(
@@ -116,7 +119,7 @@ extension HelperInstallView {
     }
 
     @ViewBuilder
-    func succesfullyInstaledModal() -> some View {
+    func succesfullyInstalledModal() -> some View {
         if viewModel.isSuccessModalDisplayed {
             ActionDialogView(
                 viewModel: ActionDialogViewModel(

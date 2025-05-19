@@ -14,10 +14,8 @@ let package = Package(
         .library(name: "AppSettings", targets: ["AppSettings"]),
         .library(name: "ConnectionManager", targets: ["ConnectionManager"]),
         .library(name: "ConfigurationManager", targets: ["ConfigurationManager"]),
-        .library(name: "Constants", targets: ["Constants"]),
         .library(name: "CountriesManager", targets: ["CountriesManager"]),
         .library(name: "CredentialsManager", targets: ["CredentialsManager"]),
-        .library(name: "DarwinNotificationCenter", targets: ["DarwinNotificationCenter"]),
         .library(name: "Device", targets: ["Device"]),
         .library(name: "ExternalLinkManager", targets: ["ExternalLinkManager"]),
         .library(name: "GatewayManager", targets: ["GatewayManager"]),
@@ -26,7 +24,6 @@ let package = Package(
         .library(name: "NetworkMonitor", targets: ["NetworkMonitor"]),
         .library(name: "NotificationsManager", targets: ["NotificationsManager"]),
         .library(name: "NotificationMessages", targets: ["NotificationMessages"]),
-        .library(name: "NymLogger", targets: ["NymLogger"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
         .library(name: "SystemMessageManager", targets: ["SystemMessageManager"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
@@ -45,7 +42,7 @@ let package = Package(
         .target(
             name: "AppSettings",
             dependencies: [
-                "Constants",
+                .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual")
             ],
             path: "Sources/Services/AppSettings"
@@ -54,11 +51,11 @@ let package = Package(
             name: "ConfigurationManager",
             dependencies: [
                 "AppSettings",
-                "Constants",
+                .product(name: "Constants", package: "ServicesMutual"),
                 "Device",
                 "CredentialsManager",
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                "NymLogger",
+                .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
             ],
             path: "Sources/Services/ConfigurationManager"
@@ -76,22 +73,15 @@ let package = Package(
             path: "Sources/Services/ConnectionManager"
         ),
         .target(
-            name: "Constants",
-            dependencies: [
-                "Theme"
-            ],
-            path: "Sources/Services/Constants"
-        ),
-        .target(
             name: "CountriesManager",
             dependencies: [
                 "AppSettings",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 "ConfigurationManager",
-                "Constants",
+                .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "GRPCManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
                 .product(name: "HelperManager", package: "ServicesMacOS", condition: .when(platforms: [.macOS])),
-                "NymLogger",
+                .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS]))
             ],
             path: "Sources/Services/CountriesManager"
@@ -100,7 +90,7 @@ let package = Package(
             name: "CredentialsManager",
             dependencies: [
                 "AppSettings",
-                "Constants",
+                .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ErrorReason", package: "ServicesMutual"),
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
@@ -111,13 +101,6 @@ let package = Package(
             path: "Sources/Services/CredentialsManager"
         ),
         .target(
-            name: "DarwinNotificationCenter",
-            dependencies: [
-                "Constants"
-            ],
-            path: "Sources/Services/DarwinNotificationCenter"
-        ),
-        .target(
             name: "Device",
             dependencies: [],
             path: "Sources/Services/Device"
@@ -125,7 +108,7 @@ let package = Package(
         .target(
             name: "ExternalLinkManager",
             dependencies: [
-                "Constants"
+                .product(name: "Constants", package: "ServicesMutual"),
             ],
             path: "Sources/Services/ExternalLinkManager"
         ),
@@ -133,7 +116,7 @@ let package = Package(
             name: "GatewayManager",
             dependencies: [
                 "AppSettings",
-                "Constants",
+                .product(name: "Constants", package: "ServicesMutual"),
                 "ConfigurationManager",
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
@@ -146,8 +129,8 @@ let package = Package(
         .target(
             name: "Keychain",
             dependencies: [
-                "Constants",
-                "NymLogger"
+                .product(name: "Constants", package: "ServicesMutual"),
+                .product(name: "NymLogger", package: "ServicesMutual"),
             ],
             path: "Sources/Services/Keychain"
         ),
@@ -181,20 +164,11 @@ let package = Package(
         .target(
             name: "NotificationMessages",
             dependencies: [
-                "NymLogger",
+                .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "Logging", package: "swift-log"),
                 "Theme"
             ],
             path: "Sources/Services/NotificationMessages"
-        ),
-        .target(
-            name: "NymLogger",
-            dependencies: [
-                "Constants",
-                "DarwinNotificationCenter",
-                .product(name: "Logging", package: "swift-log")
-            ],
-            path: "Sources/Services/NymLogger"
         ),
         .target(
             name: "SentryManager",
@@ -217,9 +191,9 @@ let package = Package(
         .target(
             name: "Tunnels",
             dependencies: [
-                "Constants",
+                .product(name: "Constants", package: "ServicesMutual"),
                 "Keychain",
-                "NymLogger",
+                .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "ErrorReason", package: "ServicesMutual"),
                 .product(name: "ErrorHandler", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
@@ -238,7 +212,7 @@ let package = Package(
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "MixnetLibrary", package: "MixnetLibrary", condition: .when(platforms: [.iOS])),
                 .product(name: "ConnectionTypes", package: "ServicesMutual"),
-                "NymLogger",
+                .product(name: "NymLogger", package: "ServicesMutual"),
                 "Tunnels"
             ],
             path: "Sources/Services/TunnelMixnet"

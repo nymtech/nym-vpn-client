@@ -10,6 +10,9 @@ public final class LogFileManager: ObservableObject {
     private var fileHandle: FileHandle?
     private var notificationObservation: Cancellable?
 
+    private let maxFileSize: UInt64 = 5 * 1024 * 1024  // 5 MB
+    private let maxFileAge: TimeInterval = 7 * 24 * 60 * 60  // 1 week
+
     public init(logFileType: LogFileType) {
         self.logFileType = logFileType
 
@@ -29,11 +32,10 @@ public final class LogFileManager: ObservableObject {
         switch logFileType {
         case .app:
             logsDirectory = try? fileManager
-                .url(for: .libraryDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
+                .url(for: .applicationSupportDirectory, in: .userDomainMask, appropriateFor: nil, create: true)
         case .daemon:
             return URL(fileURLWithPath: "/var/log/nym-vpnd/nym-vpnd.log")
         }
-
 #elseif os(iOS)
         logsDirectory = fileManager
             .containerURL(
@@ -48,9 +50,7 @@ public final class LogFileManager: ObservableObject {
 
         try? fileManager.createDirectory(at: logsDirectory, withIntermediateDirectories: true, attributes: nil)
         let fileName = "\(logFileType.rawValue)\(Constants.logFileName.rawValue)"
-        let logFileURL = logsDirectory.appendingPathComponent(fileName)
-
-        return logFileURL
+        return logsDirectory.appendingPathComponent(fileName)
     }
 
     public func write(_ string: String) {
@@ -95,9 +95,11 @@ private extension LogFileManager {
         dispatchPrecondition(condition: .onQueue(ioQueue))
 
         guard let logFileURL = LogFileManager.logFileURL(logFileType: self.logFileType) else { return }
+        deleteIfNeeded(at: logFileURL)
 
-        if !FileManager.default.fileExists(atPath: logFileURL.path(percentEncoded: false)) {
-            FileManager.default.createFile(
+        let fileManager = FileManager.default
+        if !fileManager.fileExists(atPath: logFileURL.path(percentEncoded: false)) {
+            fileManager.createFile(
                 atPath: logFileURL.path(percentEncoded: false),
                 contents: nil,
                 attributes: nil
@@ -107,6 +109,23 @@ private extension LogFileManager {
         if self.fileHandle == nil {
             self.fileHandle = try? FileHandle(forWritingTo: logFileURL)
             _ = try? self.fileHandle?.seekToEnd()
+        }
+    }
+
+    /// Delete the log file if it exceeds size or age thresholds
+    func deleteIfNeeded(at url: URL) {
+        let fileManager = FileManager.default
+        do {
+            let attrs = try fileManager.attributesOfItem(atPath: url.path(percentEncoded: false))
+            let fileSize = attrs[.size] as? UInt64 ?? 0
+            let modDate = attrs[.modificationDate] as? Date ?? Date.distantPast
+            let age = Date().timeIntervalSince(modDate)
+
+            if fileSize >= maxFileSize || age >= maxFileAge {
+                try fileManager.removeItem(at: url)
+            }
+        } catch {
+            print("Log deletion error: \(error)")
         }
     }
 }
