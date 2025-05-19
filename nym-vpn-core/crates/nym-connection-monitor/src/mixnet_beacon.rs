@@ -12,7 +12,7 @@ use nym_task::connections::TransmissionLane;
 use tokio::task::JoinHandle;
 use tracing::{debug, trace};
 
-use crate::{error::Result, nym_ip_packet_requests_current::request::IpPacketRequest};
+use crate::{error::Result, nym_ip_packet_requests_current::request::IpPacketRequest, Error};
 
 const MIXNET_SELF_PING_INTERVAL: Duration = Duration::from_millis(1000);
 
@@ -32,7 +32,10 @@ impl MixnetConnectionBeacon {
     async fn send_mixnet_self_ping(&self) -> Result<u64> {
         trace!("Sending mixnet self ping");
         let (input_message, request_id) = create_self_ping(self.our_address);
-        self.mixnet_client_sender.send(input_message).await?;
+        self.mixnet_client_sender
+            .send(input_message)
+            .await
+            .map_err(|err| Error::NymSdkError(Box::new(err)))?;
         Ok(request_id)
     }
 

@@ -90,7 +90,7 @@ impl Connector {
             .ok_or(tunnel::Error::Cancelled)?
             .map_err(|source| Error::LookupGatewayIp {
                 gateway_id: gateway_used,
-                source,
+                source: Box::new(source),
             })?;
 
         let exit_mix_addresses = selected_gateways
@@ -104,7 +104,7 @@ impl Connector {
             .ok_or(tunnel::Error::Cancelled)?
             .map_err(|source| Error::LookupGatewayIp {
                 gateway_id: gateway_used,
-                source,
+                source: Box::new(source),
             })?;
 
         let mut ipr_client = IprClientConnect::new(mixnet_client.clone(), cancel_token).await;

@@ -275,7 +275,7 @@ impl TunnelMonitor {
             self.cancel_token
                 .run_until_cancelled(tokio::time::sleep(delay))
                 .await
-                .ok_or(Error::Tunnel(tunnel::Error::Cancelled))?;
+                .ok_or(Error::Tunnel(Box::new(tunnel::Error::Cancelled)))?;
         }
 
         self.send_event(TunnelMonitorEvent::InitializingClient);
@@ -342,7 +342,8 @@ impl TunnelMonitor {
                     self.tunnel_parameters.tunnel_settings.exit_point.clone(),
                     self.cancel_token.child_token(),
                 )
-                .await?;
+                .await
+                .map_err(Box::new)?;
 
                 let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
                 self.send_event(TunnelMonitorEvent::SelectedGateways {
@@ -402,7 +403,8 @@ impl TunnelMonitor {
             #[cfg(unix)]
             Arc::new(connection_fd_callback),
         )
-        .await?;
+        .await
+        .map_err(Box::new)?;
 
         // Route mixnet client outside the tunnel.
         #[cfg(target_os = "android")]
@@ -605,7 +607,8 @@ impl TunnelMonitor {
     ) -> Result<StartTunnelResult> {
         let connected_tunnel = connected_mixnet
             .connect_mixnet_tunnel(self.cancel_token.clone())
-            .await?;
+            .await
+            .map_err(Box::new)?;
         let assigned_addresses = connected_tunnel.assigned_addresses();
 
         let mtu: u16 = self
@@ -708,7 +711,8 @@ impl TunnelMonitor {
                     .enable_credentials_mode,
                 self.cancel_token.clone(),
             )
-            .await?;
+            .await
+            .map_err(Box::new)?;
         let conn_data = connected_tunnel.connection_data();
 
         let exit_tun = Self::create_wireguard_device(
@@ -760,7 +764,12 @@ impl TunnelMonitor {
             ipv6_gateway: Some(conn_data.entry.private_ipv6),
         };
 
-        let tunnel_handle = AnyTunnelHandle::from(connected_tunnel.run(tunnel_options).await?);
+        let tunnel_handle = AnyTunnelHandle::from(
+            connected_tunnel
+                .run(tunnel_options)
+                .await
+                .map_err(Box::new)?,
+        );
 
         Ok(StartTunnelResult {
             tunnel_interface: TunnelInterface::One(tunnel_metadata),
@@ -782,7 +791,8 @@ impl TunnelMonitor {
                     .enable_credentials_mode,
                 self.cancel_token.clone(),
             )
-            .await?;
+            .await
+            .map_err(Box::new)?;
         let conn_data = connected_tunnel.connection_data();
         let entry_gateway_address = conn_data.entry.endpoint.ip();
 
@@ -826,7 +836,8 @@ impl TunnelMonitor {
                 self.route_handler.clone(),
                 tunnel_options,
             )
-            .await?;
+            .await
+            .map_err(Box::new)?;
 
         let wintun_exit_interface = tunnel_handle
             .exit_wintun_interface()
@@ -866,7 +877,8 @@ impl TunnelMonitor {
                     .enable_credentials_mode,
                 self.cancel_token.clone(),
             )
-            .await?;
+            .await
+            .map_err(Box::new)?;
         let conn_data = connected_tunnel.connection_data();
 
         let entry_tun = Self::create_wireguard_device(
@@ -945,7 +957,12 @@ impl TunnelMonitor {
             dns: dns_config.tunnel_config().to_vec(),
         });
 
-        let tunnel_handle = AnyTunnelHandle::from(connected_tunnel.run(tunnel_options).await?);
+        let tunnel_handle = AnyTunnelHandle::from(
+            connected_tunnel
+                .run(tunnel_options)
+                .await
+                .map_err(Box::new)?,
+        );
 
         Ok(StartTunnelResult {
             tunnel_interface: TunnelInterface::Two {
@@ -970,7 +987,8 @@ impl TunnelMonitor {
                     .enable_credentials_mode,
                 self.cancel_token.clone(),
             )
-            .await?;
+            .await
+            .map_err(Box::new)?;
         let conn_data = connected_tunnel.connection_data();
 
         let entry_gateway_address = conn_data.entry.endpoint.ip();
@@ -1034,7 +1052,8 @@ impl TunnelMonitor {
                 self.route_handler.clone(),
                 tunnel_options,
             )
-            .await?;
+            .await
+            .map_err(Box::new)?;
 
         let wintun_entry_interface = tunnel_handle
             .entry_wintun_interface()
@@ -1090,7 +1109,8 @@ impl TunnelMonitor {
                     .enable_credentials_mode,
                 self.cancel_token.clone(),
             )
-            .await?;
+            .await
+            .map_err(Box::new)?;
 
         let conn_data = connected_tunnel.connection_data();
 
@@ -1143,7 +1163,8 @@ impl TunnelMonitor {
                 #[cfg(target_os = "android")]
                 self.tun_provider.clone(),
             )
-            .await?;
+            .await
+            .map_err(Box::new)?;
 
         Ok(StartTunnelResult {
             tunnel_conn_data,

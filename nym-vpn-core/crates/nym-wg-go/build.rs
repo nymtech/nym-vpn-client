@@ -39,7 +39,7 @@ fn main() {
         "android" => "",
         "linux" | "macos" | "ios" => "=static",
         "windows" => "=dylib",
-        _ => panic!("Unsupported platform: {}", target_os),
+        _ => panic!("Unsupported platform: {target_os}"),
     };
-    println!("cargo:rustc-link-lib{}={}wg", link_type, lib_prefix);
+    println!("cargo:rustc-link-lib{link_type}={lib_prefix}wg");
 }

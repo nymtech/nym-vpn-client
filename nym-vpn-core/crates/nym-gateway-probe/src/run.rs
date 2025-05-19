@@ -19,7 +19,7 @@ fn pretty_build_info_static() -> &'static str {
 fn validate_node_identity(s: &str) -> Result<NodeIdentity, String> {
     match s.parse() {
         Ok(cg) => Ok(cg),
-        Err(_) => Err(format!("failed to parse country group: {}", s)),
+        Err(_) => Err(format!("failed to parse country group: {s}")),
     }
 }
 

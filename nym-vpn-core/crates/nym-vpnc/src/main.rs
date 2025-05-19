@@ -107,7 +107,7 @@ fn construct_user_agent(daemon_info: InfoResponse) -> UserAgent {
     let name = System::name().unwrap_or("unknown".to_string());
     let os_long = System::long_os_version().unwrap_or("unknown".to_string());
     let arch = System::cpu_arch();
-    let platform = format!("{}; {}; {}", name, os_long, arch);
+    let platform = format!("{name}; {os_long}; {arch}");
 
     let git_commit = format!("{} ({})", bin_info.commit_sha, daemon_info.git_commit);
     UserAgent {
@@ -141,7 +141,7 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
     let response = client.vpn_connect(request).await?.into_inner();
 
     if opts.verbose {
-        println!("{:#?}", response);
+        println!("{response:#?}");
     }
 
     if response.success {
@@ -177,7 +177,7 @@ async fn wait_until_connected() -> Result<()> {
     let mut stream = client.listen_to_tunnel_state(()).await?.into_inner();
     while let Some(new_state) = stream.message().await? {
         let new_state = TunnelState::try_from(new_state)?;
-        println!("{}", new_state);
+        println!("{new_state}");
 
         match new_state {
             TunnelState::Connected { .. } => {
@@ -204,7 +204,7 @@ async fn disconnect(opts: CliOptions, wait: bool) -> Result<()> {
     let response = client.vpn_disconnect(()).await?.into_inner();
 
     if opts.verbose {
-        println!("{:#?}", response);
+        println!("{response:#?}");
     }
 
     if response.success {
@@ -226,7 +226,7 @@ async fn wait_until_disconnected() -> Result<()> {
     let mut stream = client.listen_to_tunnel_state(()).await?.into_inner();
     while let Some(new_state) = stream.message().await? {
         let new_state = TunnelState::try_from(new_state)?;
-        println!("{}", new_state);
+        println!("{new_state}");
 
         match new_state {
             TunnelState::Disconnected | TunnelState::Offline { .. } => {
@@ -248,11 +248,11 @@ async fn status(listen: bool) -> Result<()> {
         let mut stream = client.listen_to_tunnel_state(()).await?.into_inner();
         while let Some(new_state) = stream.message().await? {
             let tunnel_state = TunnelState::try_from(new_state)?;
-            println!("{}", tunnel_state);
+            println!("{tunnel_state}");
         }
     } else {
         let tunnel_state = TunnelState::try_from(client.get_tunnel_state(()).await?.into_inner())?;
-        println!("{}", tunnel_state);
+        println!("{tunnel_state}");
     }
 
     Ok(())
@@ -273,21 +273,21 @@ async fn set_network(args: &cli::SetNetworkArgs) -> Result<()> {
         network: args.network.clone(),
     });
     let response = client.set_network(request).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
 async fn get_system_messages() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.get_system_messages(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
 async fn get_feature_flags() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.get_feature_flags(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
@@ -299,7 +299,7 @@ async fn store_account(opts: CliOptions, store_args: &cli::StoreAccountArgs) -> 
     });
     let response = client.store_account(request).await?.into_inner();
     if opts.verbose {
-        println!("{:#?}", response);
+        println!("{response:#?}");
     }
 
     if let Some(err) = response
@@ -318,35 +318,35 @@ async fn store_account(opts: CliOptions, store_args: &cli::StoreAccountArgs) -> 
 async fn refresh_account_state() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.refresh_account_state(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
 async fn is_account_stored() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.is_account_stored(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
 async fn get_account_usage() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.get_account_usage(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
 async fn forget_account() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.forget_account(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
 async fn get_account_id() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.get_account_identity(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
@@ -357,7 +357,7 @@ async fn get_account_links(opts: CliOptions, args: &cli::GetAccountLinksArgs) ->
     });
     let response = client.get_account_links(request).await?.into_inner();
     if opts.verbose {
-        println!("{:#?}", response);
+        println!("{response:#?}");
     }
 
     let links = ParsedAccountLinks::try_from(response)
@@ -370,7 +370,7 @@ async fn get_account_links(opts: CliOptions, args: &cli::GetAccountLinksArgs) ->
 async fn get_account_state() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.get_account_state(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
@@ -380,49 +380,49 @@ async fn reset_device_identity(args: &cli::ResetDeviceIdentityArgs) -> Result<()
         seed: args.seed.as_ref().map(|seed| seed.clone().into_bytes()),
     });
     let response = client.reset_device_identity(request).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
 async fn get_device_id() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.get_device_identity(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
 async fn register_device() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.register_device(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
 async fn get_devices() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.get_devices(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
 async fn get_active_devices() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.get_active_devices(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
 async fn request_zk_nym() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.request_zk_nym(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
 async fn get_device_zk_nym() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.get_device_zk_nyms(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
@@ -432,7 +432,7 @@ async fn get_zk_nyms_available_for_download() -> Result<()> {
         .get_zk_nyms_available_for_download(())
         .await?
         .into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
@@ -442,7 +442,7 @@ async fn get_zk_nym_by_id(args: cli::GetZkNymByIdArgs) -> Result<()> {
         id: args.id.clone(),
     });
     let response = client.get_zk_nym_by_id(request).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
@@ -455,14 +455,14 @@ async fn confirm_zk_nym_downloaded(args: cli::ConfirmZkNymDownloadedArgs) -> Res
         .confirm_zk_nym_downloaded(request)
         .await?
         .into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
 async fn get_available_tickets() -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
     let response = client.get_available_tickets(()).await?.into_inner();
-    println!("{:#?}", response);
+    println!("{response:#?}");
     Ok(())
 }
 
@@ -482,7 +482,7 @@ async fn list_gateways(
     });
     let response = client.list_gateways(request).await?.into_inner();
     if opts.verbose {
-        println!("{:#?}", response);
+        println!("{response:#?}");
     }
     println!("Gateways available for: {gw_type}");
     println!("Total gateways: {}", response.gateways.len());
@@ -513,7 +513,7 @@ async fn list_countries(
 
     let response = client.list_countries(request).await?.into_inner();
     if opts.verbose {
-        println!("{:#?}", response);
+        println!("{response:#?}");
     }
 
     let countries = response

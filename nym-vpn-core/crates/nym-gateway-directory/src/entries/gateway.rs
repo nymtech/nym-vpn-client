@@ -83,14 +83,14 @@ impl Gateway {
 
     pub fn clients_address_no_tls(&self) -> Option<String> {
         match (&self.host, &self.clients_ws_port) {
-            (Some(host), Some(port)) => Some(format!("ws://{}:{}", host, port)),
+            (Some(host), Some(port)) => Some(format!("ws://{host}:{port}")),
             _ => None,
         }
     }
 
     pub fn clients_address_tls(&self) -> Option<String> {
         match (&self.host, &self.clients_wss_port) {
-            (Some(host), Some(port)) => Some(format!("wss://{}:{}", host, port)),
+            (Some(host), Some(port)) => Some(format!("wss://{host}:{port}")),
             _ => None,
         }
     }
