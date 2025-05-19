@@ -15,7 +15,7 @@ fn default_envs() {
 
     let networks_literal = networks
         .iter()
-        .map(|s| format!("\"{}\"", s))
+        .map(|s| format!("\"{s}\""))
         .collect::<Vec<String>>()
         .join(", ");
 
@@ -33,7 +33,6 @@ fn default_envs() {
             }}
         }}
         "#,
-        networks_literal = networks_literal,
     );
 
     let out_dir = std::env::var("OUT_DIR").unwrap();

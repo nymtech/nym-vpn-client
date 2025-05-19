@@ -17,7 +17,7 @@ pub enum Error {
     },
 
     #[error("failed to setup account storage paths")]
-    StoragePaths(#[source] nym_sdk::Error),
+    StoragePaths(#[source] Box<nym_sdk::Error>),
 
     #[error(transparent)]
     CredentialStorage(#[from] nym_credential_storage::error::StorageError),
@@ -26,7 +26,7 @@ pub enum Error {
     PendingCredentialRequestsStorage(#[from] crate::storage::PendingCredentialRequestsStorageError),
 
     #[error("failed to setup credential storage")]
-    SetupCredentialStorage(#[source] nym_sdk::Error),
+    SetupCredentialStorage(#[source] Box<nym_sdk::Error>),
 
     #[error("failed to setup pending credential requests storage")]
     SetupPendingCredentialRequestsStorage(

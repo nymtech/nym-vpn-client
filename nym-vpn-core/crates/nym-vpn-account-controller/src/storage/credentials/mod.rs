@@ -40,12 +40,12 @@ pub(crate) struct VpnCredentialStorage {
 
 impl VpnCredentialStorage {
     pub(crate) async fn setup_from_path<P: AsRef<Path>>(data_dir: P) -> Result<Self, Error> {
-        let storage_paths =
-            StoragePaths::new_from_dir(data_dir.as_ref()).map_err(Error::StoragePaths)?;
+        let storage_paths = StoragePaths::new_from_dir(data_dir.as_ref())
+            .map_err(|err| Error::StoragePaths(Box::new(err)))?;
         let storage = storage_paths
             .persistent_credential_storage()
             .await
-            .map_err(Error::SetupCredentialStorage)?;
+            .map_err(|err| Error::SetupCredentialStorage(Box::new(err)))?;
 
         let pending_requests = PendingCredentialRequestsStorage::init(
             data_dir.as_ref().join("pending_credential_requests.db"),
@@ -78,8 +78,8 @@ impl VpnCredentialStorage {
         tokio::time::sleep(std::time::Duration::from_secs(1)).await;
 
         // Then we remove the credential database file
-        let storage_paths =
-            StoragePaths::new_from_dir(&self.data_dir).map_err(Error::StoragePaths)?;
+        let storage_paths = StoragePaths::new_from_dir(&self.data_dir)
+            .map_err(|err| Error::StoragePaths(Box::new(err)))?;
 
         tracing::debug!("Removing credential storage file");
         for path in storage_paths.credential_database_paths() {
@@ -101,7 +101,7 @@ impl VpnCredentialStorage {
         self.credential_storage = storage_paths
             .persistent_credential_storage()
             .await
-            .map_err(Error::SetupCredentialStorage)?;
+            .map_err(|err| Error::SetupCredentialStorage(Box::new(err)))?;
 
         tracing::info!("Credential storage reset completed");
 

@@ -156,7 +156,7 @@ pub async fn select_gateways(
         .run_until_cancelled(select_gateways_fut)
         .await
         .ok_or(Error::Cancelled)?
-        .map_err(Error::SelectGateways)
+        .map_err(|err| Error::SelectGateways(Box::new(err)))
 }
 
 pub async fn connect_mixnet(
@@ -247,7 +247,7 @@ pub enum Error {
     CreateGatewayClient(#[source] nym_gateway_directory::Error),
 
     #[error("failed to select gateways: {}", _0)]
-    SelectGateways(#[source] GatewayDirectoryError),
+    SelectGateways(#[source] Box<GatewayDirectoryError>),
 
     #[error("start mixnet client timeout")]
     StartMixnetClientTimeout,
@@ -259,7 +259,7 @@ pub enum Error {
     LookupGatewayIp {
         gateway_id: String,
         #[source]
-        source: nym_gateway_directory::Error,
+        source: Box<nym_gateway_directory::Error>,
     },
 
     #[error("failed to connect to ip packet router: {}", _0)]
@@ -274,7 +274,7 @@ pub enum Error {
     AuthenticatorAddressNotFound,
 
     #[error("failed to setup storage paths: {0}")]
-    SetupStoragePaths(#[source] nym_sdk::Error),
+    SetupStoragePaths(#[source] Box<nym_sdk::Error>),
 
     #[error("bandwidth controller error: {0}")]
     BandwidthController(#[from] crate::bandwidth_controller::Error),

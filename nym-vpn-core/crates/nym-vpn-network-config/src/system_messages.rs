@@ -53,7 +53,7 @@ impl fmt::Display for SystemMessages {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         writeln!(f, "{{[")?;
         for message in self {
-            writeln!(f, "   {},", message)?;
+            writeln!(f, "   {message},")?;
         }
         write!(f, "]}}")
     }
@@ -76,7 +76,7 @@ impl fmt::Display for Properties {
         write!(
             f,
             "{{ {} }}",
-            itertools::join(self.0.iter().map(|(k, v)| format!("{}: {}", k, v)), ", ")
+            itertools::join(self.0.iter().map(|(k, v)| format!("{k}: {v}")), ", ")
         )
     }
 }

@@ -494,7 +494,7 @@ impl fmt::Display for AccountStateSummary {
 
 fn debug_or_unknown(state: Option<&impl fmt::Debug>) -> String {
     state
-        .map(|s| format!("{:?}", s))
+        .map(|s| format!("{s:?}"))
         .unwrap_or_else(|| "Unknown".to_string())
 }
 

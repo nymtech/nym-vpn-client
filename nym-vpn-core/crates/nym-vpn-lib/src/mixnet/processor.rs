@@ -321,12 +321,12 @@ async fn handle_packet(
 
     let input_message = input_message_creator
         .to_input_message(&bundled_packets)
-        .map_err(MixnetError::CreateInputMessage)?;
+        .map_err(|err| MixnetError::CreateInputMessage(Box::new(err)))?;
 
     mixnet_client_sender
         .send(input_message)
         .await
-        .map_err(MixnetError::SendInputMessage)
+        .map_err(|err| MixnetError::SendInputMessage(Box::new(err)))
 }
 
 struct ToIprDataRequest {
