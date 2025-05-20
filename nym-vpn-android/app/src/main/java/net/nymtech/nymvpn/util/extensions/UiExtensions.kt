@@ -15,7 +15,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.ui.Route
-import nym_vpn_lib.ErrorStateReason
+import nym_vpn_lib.ErrorStateReasongit ad
 import nym_vpn_lib.VpnException
 import kotlin.reflect.KClass
 import net.nymtech.nymvpn.R
@@ -25,6 +25,7 @@ import nym_vpn_lib.EntryPoint
 import nym_vpn_lib.ExitPoint
 import nym_vpn_lib.GatewayType
 import nym_vpn_lib.Score
+import timber.log.Timber
 import java.util.*
 
 fun Dp.scaledHeight(): Dp {
@@ -40,9 +41,15 @@ fun TextUnit.scaled(): TextUnit {
 }
 
 fun NavController.navigateAndForget(route: Route) {
-	navigate(route) {
-		popUpTo(graph.startDestinationId) { inclusive = true }
-		launchSingleTop = true
+	if (currentBackStackEntry?.isCurrentRoute(route::class) == true) return
+	try {
+		navigate(route) {
+			popUpTo(graph.findStartDestination().id) { inclusive = true }
+			launchSingleTop = true
+		}
+	} catch (e: Exception) {
+		Timber.e("Navigation failed: ${e.message}")
+		goFromRoot(Route.Main())
 	}
 }
 
@@ -55,17 +62,28 @@ fun <T : Route> NavBackStackEntry?.isCurrentRoute(cls: KClass<T>): Boolean {
 
 fun NavController.goFromRoot(route: Route) {
 	if (currentBackStackEntry?.isCurrentRoute(route::class) == true) return
-	this.navigate(route) {
-		// Pop up to the start destination of the graph to
-		// avoid building up a large stack of destinations
-		// on the back stack as users select items
-		popUpTo(graph.findStartDestination().id) {
-			saveState = true
+	try {
+		this.navigate(route) {
+			// Pop up to the start destination of the graph to
+			// avoid building up a large stack of destinations
+			// on the back stack as users select items
+			popUpTo(graph.findStartDestination().id) { saveState = true }
+			// Avoid multiple copies of the same destination when
+			// reSelecting the same item
+			launchSingleTop = true
+			restoreState = true
 		}
-		// Avoid multiple copies of the same destination when
-		// reselecting the same item
-		launchSingleTop = true
-		restoreState = true
+	} catch (e: Exception) {
+		Timber.e("Failed to goFromRoot: ${e.message}")
+		navigate(Route.Splash)
+	}
+}
+
+fun NavController.safePopBackStack() {
+	if (this.previousBackStackEntry != null) {
+		this.popBackStack()
+	} else {
+		this.goFromRoot(Route.Main())
 	}
 }
 
