@@ -114,4 +114,3 @@ the displayed version and hash are correct
 - https://nym.com/download/windows
 
 If not, it needs to be fixed in the nym-dot-com repo.
-
