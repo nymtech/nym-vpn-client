@@ -49,17 +49,22 @@
         </p>
     </description>
     <releases>
-        <release version="1.8.0" date="2024-04-25">
+        <release version="1.9.0" date="2025-05-20">
+            <url type="details">
+                https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-app-v1.9.0
+            </url>
+        </release>
+        <release version="1.8.0" date="2025-04-25">
             <url type="details">
                 https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-app-v1.8.0
             </url>
         </release>
-        <release version="1.7.0" date="2024-04-10">
+        <release version="1.7.0" date="2025-04-10">
             <url type="details">
                 https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-app-v1.7.0
             </url>
         </release>
-        <release version="1.6.0" date="2024-03-26">
+        <release version="1.6.0" date="2025-03-26">
             <url type="details">
                 https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-app-v1.6.0
             </url>
