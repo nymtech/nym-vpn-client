@@ -3,5 +3,7 @@
     "Initializing": "Initializing Nym VPN client…",
     "InitDone": "Nym VPN client initialized",
     "Canceling": "Canceling…"
-  }
+  },
+  "connection-attempt_one": "retrying… attempt {{count}}",
+  "connection-attempt_other": "retrying… attempts {{count}}"
 }

@@ -31,7 +31,7 @@
     "exit": "Kullanılabilir çıkış node ülke bilgileri alınamadı",
     "fast-mode": "Mevcut ülkelerin bilgisine ulaşılamadı"
   },
-  "no-bandwidth": "No data allowance remaining",
+  "no-bandwidth": "Kalan veri kotası yok",
   "entry-gateway-down": "Entry gateway kapalı",
   "exit-gateway-down": {
     "ipv4": "Exit gateway kapalı (IPv4)",
