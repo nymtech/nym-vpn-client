@@ -4,12 +4,15 @@ import ServiceManagement
 import AppVersionProvider
 import GRPCManager
 import Shell
+import Logging
+import NymLogger
 
 // Any changes made to Info.plist & Launchd.plist - are used to create daemon in nym-vpnd.
 
 public final class HelperManager: ObservableObject {
     private let grpcManager: GRPCManager
     private let daemon = SMAppService.daemon(plistName: "net.nymtech.vpn.helper.plist")
+    private let logger = Logger(label: "🚜 HelperManager")
 
     private var cancellables = Set<AnyCancellable>()
     private var pollingTask: Task<Void, Never>?
@@ -49,15 +52,31 @@ public final class HelperManager: ObservableObject {
         let legacyStatus = SMAppService.statusForLegacyPlist(at: url)
         return legacyStatus == .enabled || legacyStatus == .requiresApproval
     }
+
+    public func registerDaemonIfNeeded() {
+        do {
+            switch daemon.status {
+            case .notRegistered, .notFound:
+                try daemon.register()
+            default:
+                break
+            }
+        } catch {
+            logger.error("Failed to register daemon: \(error)")
+        }
+    }
 }
 
 // MARK: - Private -
 private extension HelperManager {
     func setup() {
-        updateDaemonState()
-        setupGrpcManagerObservers()
-        registerDaemonIfNeeded()
-        try? updateDaemonIfNeeded()
+        Task {
+            try? await grpcManager.version()
+            updateDaemonState()
+            setupGrpcManagerObservers()
+            registerDaemonIfNeeded()
+            try? updateDaemonIfNeeded()
+        }
     }
 
     func setupGrpcManagerObservers() {
@@ -109,17 +128,7 @@ private extension HelperManager {
 
         guard newState != daemonState else { return }
         daemonState = newState
-    }
-
-    func registerDaemonIfNeeded() {
-        do {
-            switch daemon.status {
-            case .notRegistered, .notFound:
-                try? daemon.register()
-            default:
-                break
-            }
-        }
+        logger.info("State changed to: \(newState)")
     }
 
     func updateDaemonIfNeeded() throws {
@@ -127,8 +136,16 @@ private extension HelperManager {
         daemonState = .updating
         Task {
             do {
+                logger.info("Update if needed...")
+                logger.info("daemonState: \(daemonState)")
+                logger.info("Req. v: \(AppVersionProvider.libVersion)")
+                logger.info("Cur. v: \(grpcManager.daemonVersion)")
+
+                logger.info("Uninstalling...")
                 try await uninstall()
+                logger.info("Registering...")
                 try daemon.register()
+                logger.info("Updated")
                 try await Task.sleep(for: .seconds(3))
                 Task { @MainActor [weak self] in
                     self?.daemonState = .running

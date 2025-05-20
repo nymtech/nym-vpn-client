@@ -8,7 +8,6 @@ import ConfigurationManager
 import Constants
 import CountriesManager
 import GatewayManager
-import GRPCManager
 import Home
 import HelperManager
 import NotificationsManager
@@ -22,10 +21,10 @@ import UIComponents
 
 @main
 struct NymVPNDaemonApp: App {
+    // Must be first, to bootstrap logging
+    private let nymLogger = NymLogger()
     private let autoUpdater = AutoUpdater.shared
-    private let logFileManager = LogFileManager(logFileType: .app)
     private let windowId = "NymVPN"
-    private let grpcManager = GRPCManager.shared
 
     @Environment(\.openWindow)
     private var openWindow
@@ -51,12 +50,7 @@ struct NymVPNDaemonApp: App {
     @State private var isQuitModalDisplayed = false
 
     init() {
-        switch AppSettings.shared.appMode {
-        case .both, .menubarOnly:
-            isMenuBarVisible = true
-        case .dockOnly:
-            isMenuBarVisible = false
-        }
+        isMenuBarVisible = AppSettings.shared.appMode == .menubarOnly || AppSettings.shared.appMode == .both
         setup()
     }
 
@@ -74,12 +68,9 @@ struct NymVPNDaemonApp: App {
                 }
             }
             .frame(minWidth: MagicNumbers.macMinWidth.rawValue, minHeight: MagicNumbers.macMinHeight.rawValue)
-            .onAppear {
-                configureApp(for: appSettings.appMode)
-            }
             .onDisappear {
                 if autoUpdater.didPrepareForQuit {
-                    quitApp(from: .app)
+                    quitApp()
                 }
             }
             .alert(alertTitle, isPresented: $isDisplayingAlert) {
@@ -93,10 +84,11 @@ struct NymVPNDaemonApp: App {
             .environmentObject(appSettings)
             .environmentObject(connectionManager)
             .environmentObject(countriesManager)
-            .environmentObject(logFileManager)
+            .environmentObject(nymLogger.logFileManager)
         }
         .onChange(of: appSettings.appMode) { newMode in
-            configureApp(for: newMode)
+            appDelegate.configureActivationPolicy(newMode)
+            configureApp(for: AppSettings.shared.appMode)
         }
         .windowResizability(.contentMinSize)
         .defaultSize(width: MagicNumbers.macMinWidth.rawValue, height: MagicNumbers.macMinHeight.rawValue)
@@ -131,9 +123,7 @@ struct NymVPNDaemonApp: App {
 
 private extension NymVPNDaemonApp {
     func setup() {
-        LoggingSystem.bootstrap { label in
-            FileLogHandler(label: label, logFileManager: logFileManager)
-        }
+        Logger(label: "APP").info("SETUP")
         ThemeConfiguration.setup()
         Task {
             // Things dependant on environment beeing set.
@@ -157,7 +147,7 @@ private extension NymVPNDaemonApp {
                 closeAction: {
                     closeWindow()
                 }, quitAction: {
-                    quitApp(from: .app)
+                    quitApp()
                 }
             )
             .transition(.opacity)
@@ -171,13 +161,10 @@ private extension NymVPNDaemonApp {
     func configureApp(for mode: AppSetting.AppMode) {
         switch mode {
         case .menubarOnly:
-            NSApp.setActivationPolicy(.accessory)
             isMenuBarVisible = true
         case .dockOnly:
-            NSApp.setActivationPolicy(.regular)
             isMenuBarVisible = false
         case .both:
-            NSApp.setActivationPolicy(.regular)
             isMenuBarVisible = true
         }
     }
@@ -223,8 +210,7 @@ private extension NymVPNDaemonApp {
         }
     }
 
-    func quitApp(from terminationType: TerminationType) {
-        appDelegate.terminationType = terminationType
+    func quitApp() {
         appDelegate.shouldTerminate = true
         NSApplication.shared.terminate(self)
     }
@@ -239,7 +225,7 @@ private extension NymVPNDaemonApp {
         .keyboardShortcut("o")
         Divider()
         Button("quit.NymVPN".localizedString) {
-            quitApp(from: .menubar)
+            quitApp()
         }
     }
 
@@ -259,11 +245,21 @@ private extension NymVPNDaemonApp {
 
     @ViewBuilder
     func connectionDetails() -> some View {
-        if connectionManager.currentTunnelStatus == .connected,
-           let connectedDateString = connectionManager.connectedDateString {
-            Text("\("connectionTime".localizedString): \(connectedDateString)")
-            Text("\("home.entryHop".localizedString): \(connectionManager.entryGateway.name)")
-            Text("\("home.exitHop".localizedString): \(connectionManager.exitRouter.name)")
+        let entryName = connectionManager.entryGateway.name
+        let entry = countriesManager.country(with: entryName)?.name ?? entryName
+
+        let exitName = connectionManager.exitRouter.name
+        let exit = countriesManager.country(with: exitName)?.name ?? exitName
+
+        let statusButtonConfig = StatusButtonConfig(
+            tunnelStatus: connectionManager.currentTunnelStatus,
+            hasInternet: true
+        )
+
+        if connectionManager.currentTunnelStatus == .connected {
+            Text("\(statusButtonConfig.rawValue.localizedString)")
+            Text("\("home.entryHop".localizedString): \(entry)")
+            Text("\("home.exitHop".localizedString): \(exit)")
             Divider()
         }
     }

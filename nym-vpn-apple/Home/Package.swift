@@ -34,7 +34,7 @@ let package = Package(
                 .product(name: "Settings", package: "Settings"),
                 .product(name: "CountriesManager", package: "Services"),
                 .product(name: "CountriesManagerTypes", package: "ServicesMutual"),
-                .product(name: "Constants", package: "Services"),
+                .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ConfigurationManager", package: "Services"),
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "Device", package: "Services"),

@@ -70,6 +70,10 @@ import UIComponents
 
         setup()
     }
+
+    func registerDaemonIfNeeded() {
+        helperManager.registerDaemonIfNeeded()
+    }
 }
 
 @MainActor extension HelperInstallViewModel {

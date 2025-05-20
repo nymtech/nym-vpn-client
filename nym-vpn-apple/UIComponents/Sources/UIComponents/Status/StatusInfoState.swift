@@ -39,7 +39,7 @@ public enum StatusInfoState: Equatable {
         case .initialising:
             "initializingClient".localizedString
         case let .connecting(retryAttempt):
-            if let retryAttempt {
+            if let retryAttempt, retryAttempt > 0 {
                 "\("establishingConnection".localizedString). \("home.connectingRetryAttempt".localizedString): \(retryAttempt)"
             } else {
                 "establishingConnection".localizedString
