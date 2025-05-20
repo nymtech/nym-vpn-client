@@ -3,5 +3,7 @@
     "Initializing": "NymVPN क्लाइंट शुरू हो रहा है…",
     "InitDone": "NymVPN क्लाइंट शुरू हो गया है",
     "Canceling": "कैंसल हो रहा है…"
-  }
+  },
+  "connection-attempt_one": "retrying… attempt {{count}}",
+  "connection-attempt_other": "retrying… attempts {{count}}"
 }

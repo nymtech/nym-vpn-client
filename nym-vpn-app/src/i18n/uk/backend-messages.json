@@ -3,5 +3,7 @@
     "Initializing": "Ініціалізація клієнта Nym VPN…",
     "InitDone": "Клієнт Nym VPN ініціалізовано",
     "Canceling": "Скасування…"
-  }
+  },
+  "connection-attempt_one": "перезапуск... спроба {{count}}",
+  "connection-attempt_other": "повторна спроба… спроб {{count}}"
 }
