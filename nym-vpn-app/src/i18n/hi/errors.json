@@ -19,7 +19,7 @@
     "max-devices-reached": "खाता उपकरण सीमा पार हो गई। कृपया कनेक्ट करने से पहले अपने खाते से एक उपकरण हटाएं।",
     "bandwidth-exceeded": "मासिक बैंडविड्थ सीमा पार कर गई है। कृपया अपना खाता योजना अपडेट करें।",
     "subscription-expired": "सब्सक्रिप्शन समाप्त हो गई है। कृपया अपने खाते के लिए एक प्लान खरीदें।",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+    "device-time-out-of-sync": "डिवाइस का समय असंगत है। कृपया अपने डिवाइस के समय को इंटरनेट के साथ समन्वयित करें।"
   },
   "account": {
     "invalid-recovery-phrase": "अमान्य रिकवरी फ्रेज़",
@@ -31,7 +31,7 @@
     "exit": "उपलब्ध निकासी नोड देशों को खोजने में विफल",
     "fast-mode": "उपलब्ध देश खोजने में विफल"
   },
-  "no-bandwidth": "No data allowance remaining",
+  "no-bandwidth": "कोई डेटा अनुमति शेष नहीं है",
   "entry-gateway-down": "गेटवे डाउन है",
   "exit-gateway-down": {
     "ipv4": "गेटवे से बाहर निकलना बंद है (IPv4)",

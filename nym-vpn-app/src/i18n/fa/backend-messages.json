@@ -3,5 +3,7 @@
     "Initializing": "در حال آماده‌سازی کلاینت Nym VPN…",
     "InitDone": "کلاینت Nym VPN راه‌اندازی شد",
     "Canceling": "درحال لغو کردن…"
-  }
+  },
+  "connection-attempt_one": "retrying… attempt {{count}}",
+  "connection-attempt_other": "retrying… attempts {{count}}"
 }

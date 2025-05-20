@@ -31,7 +31,7 @@
     "exit": "Falha ao buscar os países de saída do nó disponíveis",
     "fast-mode": "Falha ao buscar os países disponíveis"
   },
-  "no-bandwidth": "No data allowance remaining",
+  "no-bandwidth": "Sem permissão de dados restante",
   "entry-gateway-down": "O gateway da entrada está offline",
   "exit-gateway-down": {
     "ipv4": "O gateway de saída está offline (IPv4)",
