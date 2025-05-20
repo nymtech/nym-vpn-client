@@ -13,23 +13,42 @@ extension PacketTunnelProvider {
         case .status:
             guard let tunnelState = await tunnelActor.tunnelState else { return nil }
             do {
-                let retryAttempt: Int?
+                var retryAttempt: Int?
+                var afterDisconnectAction: AfterDisconnectAction?
+
                 switch tunnelState {
                 case let .connecting(retryAttempt: attempt, connectionData: _):
                     retryAttempt = Int(attempt)
+                case let .disconnecting(afterDisconnect: action):
+                    afterDisconnectAction = AfterDisconnectAction.convert(from: action)
                 default:
                     retryAttempt = nil
+                    afterDisconnectAction = nil
                 }
 
                 let statusResponse = TunnelStatusResponse(
                     status: TunnelStatus(from: tunnelState),
-                    retryAttempt: retryAttempt
+                    retryAttempt: retryAttempt,
+                    afterDisconnectAction: afterDisconnectAction
                 )
                 return try JSONEncoder().encode(statusResponse)
             } catch {
                 logger.error("AppMessage: \(error.localizedDescription)")
                 return nil
             }
+        }
+    }
+}
+
+private extension AfterDisconnectAction {
+    static func convert(from action: ActionAfterDisconnect) -> AfterDisconnectAction? {
+        switch action {
+        case .nothing, .error:
+            nil
+        case .reconnect:
+            .reconnect
+        case .offline:
+            .offline
         }
     }
 }

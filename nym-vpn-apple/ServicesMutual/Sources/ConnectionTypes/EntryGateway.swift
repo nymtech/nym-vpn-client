@@ -28,8 +28,8 @@ public enum EntryGateway: Codable, Equatable {
 }
 
 extension EntryGateway: GatewayInfoProtocol {
+    // Returns moniker or country code
     public var name: String {
-        // Remove name usage from country, due to dynamic localizations
         switch self {
         case let .country(country), let .lowLatencyCountry(country):
             country.code

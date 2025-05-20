@@ -17,6 +17,10 @@ public final class AutoUpdater: NSObject {
     public var updater: SPUUpdater {
         updaterController.updater
     }
+
+    public init(didPrepareForQuit: Bool = false) {
+        self.didPrepareForQuit = didPrepareForQuit
+    }
 }
 
 extension AutoUpdater: SPUUpdaterDelegate {
