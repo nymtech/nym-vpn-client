@@ -5,5 +5,5 @@
     "Canceling": "Canceling…"
   },
   "connection-attempt_one": "retrying… attempt {{count}}",
-  "connection-attempt_other": "retrying… attempts {{count}}"
+  "connection-attempt_other": "retrying… attempt {{count}}"
 }
