@@ -32,6 +32,7 @@ rtnetlink.workspace = true
 [target.'cfg(target_os = "macos")'.dependencies]
 bitflags.workspace = true
 libc.workspace = true
+naptime.workspace = true
 nix = { workspace = true, features = ["socket", "fs", "net"] }
 system-configuration.workspace = true
 

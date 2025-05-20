@@ -76,13 +76,6 @@ impl RouteHandler {
         }
     }
 
-    #[cfg(target_os = "macos")]
-    pub async fn refresh_routes(&mut self) {
-        if let Err(e) = self.route_manager.refresh_routes() {
-            e.trace_chain_with_msg("Failed to refresh routes");
-        }
-    }
-
     #[cfg(windows)]
     pub async fn add_default_route_listener(
         &mut self,

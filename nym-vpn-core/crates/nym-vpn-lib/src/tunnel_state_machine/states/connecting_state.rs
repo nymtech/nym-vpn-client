@@ -74,12 +74,6 @@ impl ConnectingState {
             .await
             .is_offline()
         {
-            // FIXME: Temporary: Nudge route manager to update the default interface
-            #[cfg(target_os = "macos")]
-            {
-                tracing::debug!("Poking route manager to update default routes");
-                shared_state.route_handler.refresh_routes().await;
-            }
             return OfflineState::enter(true, selected_gateways, shared_state).await;
         }
 

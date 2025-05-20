@@ -2,14 +2,6 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Gateway, MacAddress, NetNode, RequiredRoute, Route, debounce::BurstGuard};
-
-use futures::{
-    future::FutureExt,
-    stream::{FusedStream, StreamExt},
-};
-use ipnetwork::IpNetwork;
-use nym_common::ErrorExt;
 use std::{
     collections::{BTreeMap, HashSet},
     net::{IpAddr, SocketAddr},
@@ -17,17 +9,27 @@ use std::{
     sync::Weak,
     time::Duration,
 };
+
+use futures::{
+    future::FutureExt,
+    stream::{FusedStream, StreamExt},
+};
+use ipnetwork::IpNetwork;
+use nym_common::ErrorExt;
 use tokio::sync::mpsc;
-use watch::RoutingTable;
+use wake::OSWakeObserver;
 
 use super::{DefaultRouteEvent, RouteManagerCommand};
+use crate::{Gateway, MacAddress, NetNode, RequiredRoute, Route, debounce::BurstGuard};
 use data::{Destination, RouteDestination, RouteMessage, RouteSocketMessage};
+use watch::RoutingTable;
 
 pub use interface::DefaultRoute;
 
 mod data;
 mod interface;
 mod routing_socket;
+mod wake;
 mod watch;
 
 pub use watch::Error as RouteError;
@@ -59,6 +61,10 @@ pub enum Error {
     /// Received message isn't valid
     #[error("invalid data")]
     InvalidData(#[source] data::Error),
+
+    /// Failed to register observer for computer wake events
+    #[error("failed to register wake event observer")]
+    RegisterWakeObserver(#[source] std::io::Error),
 }
 
 /// Convenience macro to get the current default route. Macro because I don't want to borrow `self`
@@ -99,6 +105,8 @@ pub struct RouteManagerImpl {
     unhandled_default_route_changes: bool,
     primary_interface_monitor: interface::PrimaryInterfaceMonitor,
     interface_change_rx: mpsc::UnboundedReceiver<interface::InterfaceEvent>,
+    _os_wake_observer: OSWakeObserver,
+    os_wake_rx: mpsc::UnboundedReceiver<()>,
 }
 
 impl RouteManagerImpl {
@@ -122,6 +130,10 @@ impl RouteManagerImpl {
             },
         );
 
+        let (os_wake_tx, os_wake_rx) = mpsc::unbounded_channel();
+        let _os_wake_observer =
+            OSWakeObserver::register(os_wake_tx).map_err(Error::RegisterWakeObserver)?;
+
         Ok(Self {
             routing_table,
             non_tunnel_routes: HashSet::new(),
@@ -137,6 +149,8 @@ impl RouteManagerImpl {
             unhandled_default_route_changes: false,
             primary_interface_monitor,
             interface_change_rx,
+            _os_wake_observer,
+            os_wake_rx,
         })
     }
 
@@ -181,6 +195,15 @@ impl RouteManagerImpl {
 
                 _event = self.interface_change_rx.recv() => {
                     self.update_trigger.trigger();
+                }
+
+                _  = self.os_wake_rx.recv() => {
+                    // Nudge route manager to update the default interface on wake
+                    tracing::info!("Refreshing routes on wake");
+
+                    if let Err(error) = self.refresh_routes().await {
+                        tracing::error!("Failed to refresh routes: {error}");
+                    }
                 }
 
                 command = manage_rx.recv() => {
