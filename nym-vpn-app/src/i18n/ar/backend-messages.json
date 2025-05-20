@@ -3,5 +3,7 @@
     "Initializing": "تجري عملية تهيئة عميل Nym VPN…",
     "InitDone": "تم تهيئة عميل Nym VPN",
     "Canceling": "Canceling…"
-  }
+  },
+  "connection-attempt_one": "retrying… attempt {{count}}",
+  "connection-attempt_other": "retrying… attempts {{count}}"
 }

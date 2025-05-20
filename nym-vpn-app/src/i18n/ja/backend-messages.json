@@ -3,5 +3,7 @@
     "Initializing": "NymVPN クライアントを初期化中…",
     "InitDone": "NymVPNクライアントが初期化されました",
     "Canceling": "キャンセル中…"
-  }
+  },
+  "connection-attempt_one": "retrying… attempt {{count}}",
+  "connection-attempt_other": "retrying… attempts {{count}}"
 }
