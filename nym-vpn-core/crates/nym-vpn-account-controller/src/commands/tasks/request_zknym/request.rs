@@ -477,16 +477,24 @@ impl RequestZkNymTask {
         }
 
         tracing::debug!("Inserting issued zk-nym ticketbook");
-        let storage = self.credential_storage.lock().await;
-        if !storage
-            .contains_issued_ticketbook(&issued_ticketbook)
+        match self
+            .credential_storage
+            .lock()
             .await
-            .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?
+            .insert_issued_ticketbook(&issued_ticketbook)
+            .await
         {
-            storage
-                .insert_issued_ticketbook(&issued_ticketbook)
-                .await
-                .map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?;
+            // this is a temporary solution, until we get better cred store access to check for already imported ticketbooks
+            Err(crate::error::Error::CredentialStorage(
+                nym_credential_storage::error::StorageError::InternalDatabaseError(
+                    sqlx::Error::Database(err),
+                ),
+            )) => {
+                if err.kind() == sqlx::error::ErrorKind::UniqueViolation {
+                    tracing::warn!("Already imported zk-nym ticketbook");
+                }
+            }
+            ret => ret.map_err(|err| RequestZkNymError::CredentialStorage(err.to_string()))?,
         }
 
         Ok(())
