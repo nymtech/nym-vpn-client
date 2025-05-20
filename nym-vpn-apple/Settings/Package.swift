@@ -31,7 +31,7 @@ let package = Package(
             dependencies: [
                 .product(name: "AppSettings", package: "Services"),
                 .product(name: "AppVersionProvider", package: "ServicesMutual"),
-                .product(name: "Constants", package: "Services"),
+                .product(name: "Constants", package: "ServicesMutual"),
                 .product(name: "ConnectionManager", package: "Services"),
                 .product(name: "CredentialsManager", package: "Services"),
                 .product(name: "ConfigurationManager", package: "Services"),
@@ -41,7 +41,7 @@ let package = Package(
                 .product(name: "ImpactGenerator", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "KeyboardManager", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "SentryManager", package: "Services"),
-                .product(name: "NymLogger", package: "Services"),
+                .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "Theme", package: "Theme"),
                 .product(name: "UIComponents", package: "UIComponents"),
                 .product(name: "AcknowList", package: "AcknowList")

@@ -8,6 +8,7 @@ public final class Tunnel: NSObject, ObservableObject {
     public var tunnel: NETunnelProviderManager
     @Published public var status: TunnelStatus
     @Published public var retryAttempt: Int?
+    @Published public var afterDisconnectAction: AfterDisconnectAction?
 
     private var logger: Logger
     private var isPolling = false
@@ -135,6 +136,8 @@ private extension Tunnel {
             return
         }
         retryAttempt = decodedResponse.retryAttempt
+        afterDisconnectAction = decodedResponse.afterDisconnectAction
+
         guard isPolling, status != decodedResponse.status else { return }
         status = decodedResponse.status
     }

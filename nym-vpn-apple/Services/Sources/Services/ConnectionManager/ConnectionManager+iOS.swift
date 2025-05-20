@@ -32,6 +32,14 @@ extension ConnectionManager {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] status in
                 MainActor.assumeIsolated {
+                    if status == .disconnecting, let afterDisconnectAction = self?.afterDisconnectAction {
+                        switch afterDisconnectAction {
+                        case .offline:
+                            self?.currentTunnelStatus = .offline
+                        case .reconnect:
+                            self?.currentTunnelStatus = .connecting
+                        }
+                    }
                     self?.currentTunnelStatus = status
                     self?.updateTimeConnected()
                 }
@@ -42,6 +50,14 @@ extension ConnectionManager {
             .sink { [weak self] attempt in
                 MainActor.assumeIsolated {
                     self?.connectionRetryAttempt = attempt
+                }
+            }
+
+        tunnelAfterRetryCancellable = tunnel.$afterDisconnectAction
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] action in
+                MainActor.assumeIsolated {
+                    self?.afterDisconnectAction = action
                 }
             }
     }

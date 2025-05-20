@@ -201,6 +201,3 @@ private extension HomeView {
             .frame(height: viewModel.appSettings.isSmallScreen || Device.isMacOS ? 24 : 8)
     }
 }
-
-
-

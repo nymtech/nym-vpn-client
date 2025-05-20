@@ -13,14 +13,18 @@ let package = Package(
     products: [
         .library(name: "AppVersionProvider", targets: ["AppVersionProvider"]),
         .library(name: "ConnectionTypes", targets: ["ConnectionTypes"]),
+        .library(name: "Constants", targets: ["Constants"]),
         .library(name: "CountriesManagerTypes", targets: ["CountriesManagerTypes"]),
+        .library(name: "DarwinNotificationCenter", targets: ["DarwinNotificationCenter"]),
         .library(name: "ErrorReason", targets: ["ErrorReason"]),
+        .library(name: "NymLogger", targets: ["NymLogger"]),
         .library(name: "SystemMessageModels", targets: ["SystemMessageModels"]),
         .library(name: "TunnelStatus", targets: ["TunnelStatus"])
     ],
     dependencies: [
         .package(name: "MixnetLibrary", path: "../MixnetLibrary"),
-        .package(name: "Theme", path: "../Theme")
+        .package(name: "Theme", path: "../Theme"),
+        .package(url: "https://github.com/apple/swift-log", from: "1.5.4")
     ],
     targets: [
         .target(
@@ -37,10 +41,24 @@ let package = Package(
             path: "Sources/ConnectionTypes"
         ),
         .target(
+            name: "Constants",
+            dependencies: [
+                "Theme"
+            ],
+            path: "Sources/Constants"
+        ),
+        .target(
             name: "CountriesManagerTypes",
             dependencies: [
             ],
             path: "Sources/CountriesManagerTypes"
+        ),
+        .target(
+            name: "DarwinNotificationCenter",
+            dependencies: [
+                "Constants"
+            ],
+            path: "Sources/DarwinNotificationCenter"
         ),
         .target(
             name: "ErrorReason",
@@ -49,6 +67,15 @@ let package = Package(
                 "Theme"
             ],
             path: "Sources/ErrorReason"
+        ),
+        .target(
+            name: "NymLogger",
+            dependencies: [
+                "Constants",
+                "DarwinNotificationCenter",
+                .product(name: "Logging", package: "swift-log")
+            ],
+            path: "Sources/NymLogger"
         ),
         .target(
             name: "SystemMessageModels",
