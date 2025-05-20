@@ -63,6 +63,7 @@ import net.nymtech.nymvpn.ui.screens.hop.components.GatewayDetailsModal
 import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.ui.theme.iconSize
 import net.nymtech.nymvpn.util.extensions.getScoreIcon
+import net.nymtech.nymvpn.util.extensions.safePopBackStack
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import net.nymtech.nymvpn.util.extensions.scoreSorted
@@ -241,7 +242,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 					selectedKey = selectedKey,
 					onSelectionChange = { id ->
 						viewModel.onSelected(id, gatewayLocation)
-						navController.popBackStack()
+						navController.safePopBackStack()
 					},
 					onGatewayDetails = { gateway ->
 						selectedGateway = gateway
@@ -264,7 +265,7 @@ fun HopScreen(gatewayLocation: GatewayLocation, appViewModel: AppViewModel, appU
 							SelectionItem(
 								onClick = {
 									viewModel.onSelected(gateway.identity, gatewayLocation)
-									navController.popBackStack()
+									navController.safePopBackStack()
 								},
 								leading = {
 									val (icon, description) = gateway.getScoreIcon(gatewayType)

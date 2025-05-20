@@ -13,6 +13,7 @@ import com.journeyapps.barcodescanner.CompoundBarcodeView
 import net.nymtech.nymvpn.ui.Route
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.util.extensions.navigateAndForget
+import net.nymtech.nymvpn.util.extensions.safePopBackStack
 
 @Composable
 fun ScannerScreen(viewModel: ScannerViewModel = hiltViewModel()) {
@@ -23,7 +24,7 @@ fun ScannerScreen(viewModel: ScannerViewModel = hiltViewModel()) {
 
 	LaunchedEffect(success.value) {
 		if (success.value == true) navController.navigateAndForget(Route.Main())
-		if (success.value == false) navController.popBackStack()
+		if (success.value == false) navController.safePopBackStack()
 	}
 
 	val barcodeView = remember {

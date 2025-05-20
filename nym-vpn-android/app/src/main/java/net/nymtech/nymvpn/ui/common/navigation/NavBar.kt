@@ -35,6 +35,7 @@ import net.nymtech.nymvpn.ui.screens.hop.components.ServerDetailsModalBody
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
+import net.nymtech.nymvpn.util.extensions.safePopBackStack
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,20 +70,20 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.popBackStack()
+						navController.safePopBackStack()
 					}
 				},
 			)
 			currentRoute.startsWith(Route.EntryLocation::class.qualifiedName!!) -> NavBarState(
 				show = true,
 				title = { NavTitle(stringResource(R.string.entry)) },
-				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) { navController.popBackStack() } },
+				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) { navController.safePopBackStack() } },
 				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showLocationTooltip = true } },
 			)
 			currentRoute.startsWith(Route.ExitLocation::class.qualifiedName!!) -> NavBarState(
 				show = true,
 				title = { NavTitle(stringResource(R.string.exit)) },
-				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) { navController.popBackStack() } },
+				leading = { NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) { navController.safePopBackStack() } },
 				trailing = { NavIcon(Icons.Outlined.Info, stringResource(R.string.info)) { showLocationTooltip = true } },
 			)
 			currentRoute.startsWith(Route.Logs::class.qualifiedName!!) -> NavBarState(
@@ -90,7 +91,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.popBackStack()
+						navController.safePopBackStack()
 					}
 				},
 			)
@@ -99,7 +100,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.popBackStack()
+						navController.safePopBackStack()
 					}
 				},
 			)
@@ -108,7 +109,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.popBackStack()
+						navController.safePopBackStack()
 					}
 				},
 			)
@@ -118,7 +119,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.popBackStack()
+						navController.safePopBackStack()
 					}
 				},
 			)
@@ -127,7 +128,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.popBackStack()
+						navController.safePopBackStack()
 					}
 				},
 			)
@@ -136,7 +137,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.popBackStack()
+						navController.safePopBackStack()
 					}
 				},
 			)
@@ -145,7 +146,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.popBackStack()
+						navController.safePopBackStack()
 					}
 				},
 			)
@@ -154,7 +155,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.popBackStack()
+						navController.safePopBackStack()
 					}
 				},
 			)
@@ -164,7 +165,7 @@ fun NavBar(navController: NavController, modifier: Modifier = Modifier) {
 				show = true,
 				leading = {
 					NavIcon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back)) {
-						navController.popBackStack()
+						navController.safePopBackStack()
 					}
 				},
 			)
