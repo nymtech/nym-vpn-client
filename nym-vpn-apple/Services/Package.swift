@@ -108,7 +108,7 @@ let package = Package(
         .target(
             name: "ExternalLinkManager",
             dependencies: [
-                .product(name: "Constants", package: "ServicesMutual"),
+                .product(name: "Constants", package: "ServicesMutual")
             ],
             path: "Sources/Services/ExternalLinkManager"
         ),
@@ -130,7 +130,7 @@ let package = Package(
             name: "Keychain",
             dependencies: [
                 .product(name: "Constants", package: "ServicesMutual"),
-                .product(name: "NymLogger", package: "ServicesMutual"),
+                .product(name: "NymLogger", package: "ServicesMutual")
             ],
             path: "Sources/Services/Keychain"
         ),

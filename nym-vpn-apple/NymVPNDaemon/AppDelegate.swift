@@ -5,7 +5,6 @@ import Logging
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     private let appSettings = AppSettings.shared
-    lazy var logger = Logger(label: "AppDelegate 🍓")
 
     var shouldTerminate = false
 

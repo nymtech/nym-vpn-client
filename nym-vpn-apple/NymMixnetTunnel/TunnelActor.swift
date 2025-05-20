@@ -48,7 +48,7 @@ actor TunnelActor {
             if canReassert {
                 tunnelProvider?.reasserting = true
             }
-        case let .connected(connectionData):
+        case .connected:
             if canReassert {
                 tunnelProvider?.reasserting = false
             }
