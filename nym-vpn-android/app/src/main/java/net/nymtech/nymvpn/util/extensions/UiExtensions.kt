@@ -15,7 +15,7 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.ui.Route
-import nym_vpn_lib.ErrorStateReasongit ad
+import nym_vpn_lib.ErrorStateReason
 import nym_vpn_lib.VpnException
 import kotlin.reflect.KClass
 import net.nymtech.nymvpn.R
