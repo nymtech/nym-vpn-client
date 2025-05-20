@@ -115,7 +115,3 @@ the displayed version and hash are correct
 
 If not, it needs to be fixed in the nym-dot-com repo.
 
-#### Readme badges
-
-The badges in the [README](../../README.md) should be updated to reflect the new release \
-Update the version in the badge URLs for Linux and Windows
