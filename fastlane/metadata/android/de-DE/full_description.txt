@@ -10,8 +10,8 @@ NymVPN ist ein neuartiges VPN das so konzipiert wurde, dass es selbst uns unmög
 Unser VPN verschlüsselt die Daten, versteckt die Metadaten und verhindert durch ein dezentrales Mixnet eine Analyse des Traffic. Simply put: there is no way for Nym to log your activity, therefore no one can access it.
 
 Aber was genau ist ein Mixnet? Ein Mixnet ist ein Netzwerk welches:
-1. 1) Verschlüsselten Traffic sendet
-2. 2) Den Traffic mixt
+1. 1. 1) Verschlüsselten Traffic sendet
+2. 2. 2) Den Traffic mixt
 3. Redirect the traffic
 Dieser Prozess wird bis zu 5 mal wiederholt (5-Hop Modus) was es unmöglich macht die Onlineaktivitäten zu überwachen.
 

@@ -220,7 +220,7 @@
     <string name="log_out_title">Вы уверены, что хотите выйти?</string>
     <string name="log_out_body">Для повторного входа вам понадобится ваша фраза восстановления.</string>
     <string name="cancel">Отмена</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
+    <string name="subscription_expired_error">Подписка на этот аккаунт истекла. Обновите подписку, чтобы продолжить использование.</string>
     <string name="remove_device">Удалите устройство из вашего аккаунта и попробуйте снова.</string>
     <string name="gateway_score">Оценка шлюза</string>
     <string name="info">Информация</string>
@@ -245,5 +245,5 @@
     <string name="get_help">Получить помощь</string>
     <string name="telegram_url">https://nym.com/go/telegram</string>
     <string name="join_telegram">Присоединяйтесь к нам в Telegram</string>
-    <string name="device_time_out_of_sync">Время устройства не синхронизировано</string>
+    <string name="device_time_out_of_sync">Время на устройстве не синхронизировано</string>
 </resources>
