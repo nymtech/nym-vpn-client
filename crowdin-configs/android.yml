@@ -31,7 +31,9 @@ files:
     languages_mapping: *android-code
 
   - source: "/fastlane/metadata/android/en-US/*.txt"
-    translation: "/fastlane/metadata/android/%locale%/%original_file_name%"
+    translation: "/fastlane/metadata/android/%android_code%/%original_file_name%"
+    languages_mapping: *android-code
 
   - source: "/fastlane/metadata/android/en-US/changelogs/*.txt"
-    translation: "/fastlane/metadata/android/%locale%/changelog/%original_file_name%"
+    translation: "/fastlane/metadata/android/%android_code%/changelog/%original_file_name%"
+    languages_mapping: *android-code
