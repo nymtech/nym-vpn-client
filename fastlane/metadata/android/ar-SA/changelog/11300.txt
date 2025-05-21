@@ -1,3 +1,0 @@
-What's new:
-- Bug fixes
-- Stability improvements
