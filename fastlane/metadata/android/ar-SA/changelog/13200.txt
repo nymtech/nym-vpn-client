@@ -1,3 +1,0 @@
-What's new:
-- Bypass LAN feature
-- Bug fixes and improvements
