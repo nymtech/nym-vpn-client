@@ -483,14 +483,8 @@ impl TunnelMonitor {
             .map(|config_dir| {
                 start_background_file_refresh(
                     config_dir.to_path_buf(),
-                    self.tunnel_parameters
-                        .nym_config
-                        .network_env
-                        .nym_network
-                        .network
-                        .network_name
-                        .clone(),
-                    self.cancel_token.child_token(),
+                    self.tunnel_parameters.nym_config.network_env.clone(),
+                    self.cancel_token.clone(),
                 )
             });
 
