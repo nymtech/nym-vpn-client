@@ -1,0 +1,3 @@
+Quais as novidades:
+- Melhorar a tela de logs
+- Correção de erros

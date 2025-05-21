@@ -1,0 +1,5 @@
+Có gì mới:
+- Cải thiện giao diện người dùng
+- Cải thiện bộ nhớ đệm
+- Đã thêm tích hợp với harbour master
+- Cải thiện đồng bộ ô trạng thái nhanh

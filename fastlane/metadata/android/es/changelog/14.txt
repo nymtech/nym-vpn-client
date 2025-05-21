@@ -1,0 +1,4 @@
+Novedades:
+- Mejoras de la interfaz
+- Pantalla de selección analíticas
+- Varias correcciones de errores y mejoras

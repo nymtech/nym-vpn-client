@@ -1,0 +1,5 @@
+Có gì mới:
+- Cải thiện tốc độ chế độ hai bước nhảy với WireGuard
+- Cải thiện hiệu suất ứng dụng
+- Cải thiện giao diện người dùng
+- Sửa nhiều lỗi khác nhau

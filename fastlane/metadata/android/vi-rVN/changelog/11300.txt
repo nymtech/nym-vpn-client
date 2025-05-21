@@ -1,0 +1,3 @@
+Có gì mới:
+- Sửa lỗi
+- Cải thiện tính ổn định

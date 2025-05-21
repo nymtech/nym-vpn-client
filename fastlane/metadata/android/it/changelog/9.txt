@@ -1,0 +1,4 @@
+What's new:
+- Fixes navigation animation bug
+- Fixes credential screen bugs
+- Fixes country list API and search

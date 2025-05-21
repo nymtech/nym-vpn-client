@@ -218,7 +218,7 @@
     <string name="log_out_title">Ви впевнені, що хочете вийти з системи?</string>
     <string name="log_out_body">Для повторного входу вам знадобиться фраза відновлення.</string>
     <string name="cancel">Скасувати</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
+    <string name="subscription_expired_error">Підписка для цього облікового запису закінчилася. Оновіть свою підписку, щоб продовжити використання.</string>
     <string name="remove_device">Видаліть пристрій зі свого акаунта і спробуйте ще раз.</string>
     <string name="gateway_score">Оцінка шлюзу</string>
     <string name="info">Інформація</string>

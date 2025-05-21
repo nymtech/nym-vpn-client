@@ -1,0 +1,12 @@
+Novedades:
+
+Mejoras:
+- Actualizadas combinaciones de colores y estilos
+- Actualizaciones en configuración / Menú de soporte y comentarios
+
+Errores:
+- Arreglar al reabrir una aplicación minimizada, Conectar lleva a la pantalla de inicio de sesión
+- Corrección del error de sincronización de cuentas
+- Arreglos para caídas de conexión e inestabilidad
+- Arreglos para el bloqueo de aplicaciones durante las pruebas de velocidad en modo mixnet
+- [Android 12] Corrección de desconexión/congelamiento después de 1 o 2 horas

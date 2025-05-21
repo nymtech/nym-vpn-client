@@ -218,7 +218,7 @@
     <string name="log_out_title">Çıkış yapmak istediğinizden emin misiniz?</string>
     <string name="log_out_body">Tekrar giriş yapabilmek için kurtarma cümlenize ihtiyacınız olacak.</string>
     <string name="cancel">Iptal et</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
+    <string name="subscription_expired_error">Bu hesabın aboneliği sona erdi. Kullanıma devam etmek için aboneliğinizi yükseltin.</string>
     <string name="remove_device">Hesabınızdan bir cihazı kaldırın ve tekrar deneyin.</string>
     <string name="gateway_score">Gateway skoru</string>
     <string name="info">Bilgi</string>

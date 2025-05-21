@@ -1,0 +1,5 @@
+Có gì mới:
+- Thời gian hết hạn thông tin đăng nhập
+- Quét mã QR cho thông tin đăng nhập
+- Liên kết kill switch
+- Mở rộng giao diện người dùng

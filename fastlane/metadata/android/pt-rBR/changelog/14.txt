@@ -1,0 +1,4 @@
+Quais as novidades:
+- Melhorias da UI
+- Tela de seleção do Analytics
+- Vários aprimoramentos e melhorias
