@@ -9,11 +9,8 @@ use std::{
 
 use anyhow::Context;
 use itertools::Itertools;
-use nym_vpn_api_client::BootstrapVpnApiClient;
 
-use crate::discovery::Discovery;
-
-use super::{MAX_FILE_AGE, NETWORKS_SUBDIR};
+use super::NETWORKS_SUBDIR;
 
 // TODO: integrate with nym-vpn-api-client
 
@@ -57,31 +54,6 @@ impl RegisteredNetworks {
         config_dir.join(NETWORKS_SUBDIR).join(ENVS_FILE)
     }
 
-    fn path_is_stale(config_dir: &Path) -> anyhow::Result<bool> {
-        if let Some(age) = crate::util::get_age_of_file(&Self::path(config_dir))? {
-            Ok(age > MAX_FILE_AGE)
-        } else {
-            Ok(true)
-        }
-    }
-
-    async fn fetch() -> anyhow::Result<Self> {
-        tracing::debug!("Fetching registered networks");
-        // allow panic because a broken bootstrap url means everything will fail anyways.
-        #[allow(clippy::expect_used)]
-        let default_url = Discovery::DEFAULT_VPN_API_URL
-            .parse()
-            .expect("Failed to parse NYM VPN API URL");
-
-        // Spawn the root task
-        let inner = BootstrapVpnApiClient::new(default_url)?
-            .get_wellknown_envs()
-            .await?;
-        tracing::debug!("Envs response: {:#?}", inner);
-
-        Ok(Self { inner })
-    }
-
     fn read_from_file(config_dir: &Path) -> anyhow::Result<Self> {
         let path = Self::path(config_dir);
         tracing::debug!(
@@ -116,14 +88,6 @@ impl RegisteredNetworks {
         Ok(())
     }
 
-    pub(super) async fn try_update_file(config_dir: &Path) -> anyhow::Result<()> {
-        if Self::path_is_stale(config_dir)? {
-            Self::fetch().await?.write_to_file(config_dir)?;
-        }
-
-        Ok(())
-    }
-
     pub(super) async fn ensure_exists(config_dir: &Path) -> anyhow::Result<Self> {
         if !tokio::fs::try_exists(Self::path(config_dir)).await? {
             Self::default()
@@ -131,18 +95,6 @@ impl RegisteredNetworks {
                 .inspect_err(|err| tracing::warn!("Failed to write default envs file: {err}"))
                 .ok();
         }
-
-        // Download the file if it doesn't exists, or if the file is too old, refresh it.
-        // TODO: in the future, we should only refresh the discovery file when the tunnel is up.
-        // Probably in a background task.
-
-        Self::try_update_file(config_dir)
-            .await
-            .inspect_err(|err| {
-                tracing::warn!("Failed to update envs file: {err}");
-                tracing::warn!("Attempting to read envs file instead");
-            })
-            .ok();
 
         Self::read_from_file(config_dir)
     }
