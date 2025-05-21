@@ -1,4 +1,0 @@
-What's new:
-- UI improvements
-- Add credential trimming
-- Temp fix for connection errors
