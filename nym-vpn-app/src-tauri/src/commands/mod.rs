@@ -7,4 +7,5 @@ pub mod fs;
 pub mod gateway;
 pub mod log;
 pub mod tunnel;
+pub mod updater;
 pub mod window;
