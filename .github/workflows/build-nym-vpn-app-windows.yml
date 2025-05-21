@@ -20,6 +20,11 @@ on:
         required: false
         type: boolean
         default: false
+      updater_bundle:
+        description: "Generate the updater bundle and its signature"
+        required: false
+        type: boolean
+        default: false
   workflow_call:
     inputs:
       # set to true when it is a 'dev' build
@@ -308,7 +313,7 @@ jobs:
             }
           }' tauri.conf.json
 
-      - name: Build tauri app ${{ inputs.sign && '(signed)' }}
+      - name: Build tauri app ${{ inputs.sign && '(signed)' || '(not-signed)' }} ${{ inputs.updater_bundle && '(with updater bundle)' || '(no updater bundle)' }}
         working-directory: nym-vpn-app/src-tauri
         shell: bash
         env:
@@ -320,15 +325,14 @@ jobs:
           WINDOWS_CERTIFICATE: ${{ !inputs.sign && secrets.WINDOWS_SIGNING_PFX_BASE64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ !inputs.sign && secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
           DEV_MODE: ${{ inputs.dev_mode == true }}
+          CI: true
         run: |
-          if [ "${{ env.CARGO_TARGET }}" = "release" ]; then
-            npm run tauri build
+          if ${{ inputs.updater_bundle }}; then
+            npm run tauri build -- --config updater.conf.json
           else
-            npm run tauri build -- --debug
+            npm run tauri build
           fi
-          ls -la target/release/ || true
-          ls -la target/release/bundle || true
-          ls -la target/release/bundle/* || true
+          ls -la target/release/bundle/nsis/* || true
 
       - name: Move things around to prepare for upload
         shell: bash
@@ -341,8 +345,8 @@ jobs:
           rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
           mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr '${{ env.SETUP_EXE }}' ${{ env.UPLOAD_DIR_WINDOWS }}/
-          #cp -vpr '${{ env.WINDOWS_BUILT_NAME }}'     ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}
-          #cp -vpr '${{ env.WINDOWS_BUILT_NAME }}.sig' ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}.sig
+          cp -vpr '${{ env.WINDOWS_BUILT_NAME }}'     ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}
+          cp -vpr '${{ env.WINDOWS_BUILT_NAME }}.sig' ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}.sig
 
       - name: Upload artifact windows
         uses: actions/upload-artifact@v4

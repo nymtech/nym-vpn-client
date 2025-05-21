@@ -113,13 +113,8 @@ jobs:
           # RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
           DEV_MODE: ${{ inputs.dev_mode == true }}
         run: |
-          if [ "${{ env.CARGO_TARGET }}" = "release" ]; then
-            npm run tauri build
-          else
-            npm run tauri build -- --debug
-          fi
+          npm run tauri build
           ls -la target/release/ || true
-          ls -la target/release/bundle || true
           ls -la target/release/bundle/* || true
 
       - name: Rename deb file from NymVPN to nym-vpn-app

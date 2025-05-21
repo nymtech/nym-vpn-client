@@ -8,8 +8,13 @@ on:
         description: "Tag name for release"
         required: false
         default: nym-vpn-app-nightly
+      stable_release:
+        description: "Stable release: will be signed, updater bundle will be generated and updater JSON data updated (Windows only)"
+        required: false
+        type: boolean
+        default: false
       pre_release:
-        description: "Pre-release"
+        description: "Label this release as \"Pre-release\""
         required: false
         type: boolean
         default: false
@@ -26,11 +31,6 @@ on:
         description: "direct nym-vpn-core artifact URL for Windows, to get the daemon"
         required: false
         type: string
-      windows_sign:
-        description: "Sign this release for Windows using SSL.com. Signing is billed per signature so be 100% sure you want a signed release (should be the case for stable rel only)"
-        required: false
-        type: boolean
-        default: false
   push:
     tags:
       - nym-vpn-app-v[0-9]+.[0-9]+.[0-9]+*
@@ -47,7 +47,8 @@ jobs:
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
       core_release_tag: ${{ inputs.core_release_tag }}
       core_artifact_url: ${{ inputs.core_artifact_url }}
-      sign: ${{ inputs.windows_sign == true }}
+      sign: ${{ inputs.stable_release == true }}
+      updater_bundle: ${{ inputs.stable_release == true }}
     secrets: inherit
 
   generate-build-info-nym-vpn-app:
