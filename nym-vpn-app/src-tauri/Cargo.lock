@@ -3009,6 +3009,7 @@ dependencies = [
  "tracing-appender",
  "tracing-subscriber",
  "ts-rs",
+ "url",
  "windows 0.60.0",
 ]
 

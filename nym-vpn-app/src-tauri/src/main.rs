@@ -14,6 +14,7 @@ use crate::{
 };
 
 use crate::fs::path::APP_CONFIG_DIR;
+use crate::state::updater as updater_state;
 use anyhow::{Result, anyhow};
 use clap::Parser;
 use commands::daemon as cmd_daemon;
@@ -22,6 +23,7 @@ use commands::dev as cmd_dev;
 use commands::fs as cmd_fs;
 use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
+use commands::updater as cmd_updater;
 use commands::window as cmd_window;
 use commands::*;
 use state::app::AppState;
@@ -45,6 +47,7 @@ mod startup_error;
 mod state;
 mod sys;
 mod tray;
+mod updater;
 mod window;
 
 pub const APP_NAME: &str = "NymVPN";
@@ -123,10 +126,18 @@ async fn main() -> Result<()> {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .setup(move |app| {
             info!("app setup");
+
+            app.manage(updater_state::PendingUpdate(Mutex::new(None)));
+            // TODO #[cfg(windows)]
+            app.handle()
+                .plugin(tauri_plugin_updater::Builder::new().build())
+                .inspect_err(|e| {
+                    error!("failed to setup updater plugin: {e}");
+                })
+                .ok();
 
             app.manage(cli.clone());
 
@@ -243,6 +254,8 @@ async fn main() -> Result<()> {
             cmd_daemon::network_compat,
             cmd_daemon::vpnd_log_dir,
             cmd_fs::log_dir,
+            cmd_updater::fetch_update,
+            cmd_updater::install_update,
         ])
         // keep the app running in the background on window close request
         .on_window_event(|win, event| {
