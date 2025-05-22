@@ -535,6 +535,8 @@ impl TunnelMonitor {
             }
         }
 
+        tracing::debug!("Done. Exiting");
+
         Ok(tun_devices)
     }
 
