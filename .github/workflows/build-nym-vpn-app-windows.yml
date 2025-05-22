@@ -313,7 +313,7 @@ jobs:
             }
           }' tauri.conf.json
 
-      - name: Build tauri app ${{ inputs.sign && '(signed)' || '(not-signed)' }} ${{ inputs.updater_bundle && '(with updater bundle)' || '(no updater bundle)' }}
+      - name: Build tauri app
         working-directory: nym-vpn-app/src-tauri
         shell: bash
         env:
@@ -327,7 +327,9 @@ jobs:
           DEV_MODE: ${{ inputs.dev_mode == true }}
           CI: true
         run: |
-          if ${{ inputs.updater_bundle }}; then
+          echo "signing: ${{ inputs.sign }}"
+          echo "generate updater bundle: ${{ inputs.updater_bundle }}"
+          if [ "${{ inputs.updater_bundle }}" = true ]; then
             npm run tauri build -- --config updater.conf.json
           else
             npm run tauri build
@@ -335,18 +337,16 @@ jobs:
           ls -la target/release/bundle/nsis/* || true
 
       - name: Move things around to prepare for upload
+        working-directory: nym-vpn-app/src-tauri
         shell: bash
         env:
-          WINDOWS_BUILT_NAME: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/NymVPN_${{ steps.package-version.outputs.metadata }}_x64-setup.nsis.zip
-          WINDOWS_UPDATER_NAME: updater_windows_x64.nsis.zip
-          SETUP_EXE: ${{ env.TAURI_SRC }}/target/release/bundle/nsis/NymVPN_${{ steps.package-version.outputs.metadata }}_x64-setup.exe
+          NSIS_DIR: target/release/bundle/nsis
         run: |
           echo "moving binaries into ${{ env.UPLOAD_DIR_WINDOWS }}"
           rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
           mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
-          cp -vpr '${{ env.SETUP_EXE }}' ${{ env.UPLOAD_DIR_WINDOWS }}/
-          cp -vpr '${{ env.WINDOWS_BUILT_NAME }}'     ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}
-          cp -vpr '${{ env.WINDOWS_BUILT_NAME }}.sig' ${{ env.UPLOAD_DIR_WINDOWS }}/${WINDOWS_UPDATER_NAME}.sig
+          cp -vp '${{ env.NSIS_DIR }}/NymVPN_*_x64-setup.exe' ${{ env.UPLOAD_DIR_WINDOWS }}/
+          cp -vp '${{ env.NSIS_DIR }}/NymVPN_*_x64-setup.exe.sig' ${{ env.UPLOAD_DIR_WINDOWS }}/ || true
 
       - name: Upload artifact windows
         uses: actions/upload-artifact@v4
