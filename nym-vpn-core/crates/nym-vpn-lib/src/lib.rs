@@ -18,6 +18,7 @@ mod wg_config;
 use std::{net::IpAddr, sync::LazyLock};
 
 use hickory_resolver::config::NameServerConfigGroup;
+use itertools::Itertools;
 
 // Re-export some our nym dependencies
 pub use nym_authenticator_client::Error as AuthenticatorClientError;
@@ -51,10 +52,13 @@ static DEFAULT_DNS_SERVERS_CONFIG: LazyLock<NameServerConfigGroup> = LazyLock::n
 });
 
 pub static DEFAULT_DNS_SERVERS: LazyLock<Vec<IpAddr>> = LazyLock::new(|| {
-    DEFAULT_DNS_SERVERS_CONFIG
+    let ips = DEFAULT_DNS_SERVERS_CONFIG
         .iter()
         .map(|ns| ns.socket_addr.ip())
-        .collect()
+        .unique()
+        .collect();
+    println!("Deduped ips: {ips:?}");
+    ips
 });
 
 #[derive(Clone, Default, Debug, Eq, PartialEq)]

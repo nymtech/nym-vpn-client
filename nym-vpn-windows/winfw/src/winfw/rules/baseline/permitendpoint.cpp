@@ -49,7 +49,7 @@ bool PermitEndpoint::apply(IObjectInstaller &objectInstaller)
 	uint32_t ipv4Count = 0;
 	uint32_t ipv6Count = 0;
 
-	for (auto endpoint: m_endpoints) {
+	for (auto &endpoint: m_endpoints) {
 		switch (endpoint.ip.type()) {
 			case wfp::IpAddress::Type::Ipv4:
 				if (ipv4Count == MAX_ALLOWED_ENDPOINTS) {

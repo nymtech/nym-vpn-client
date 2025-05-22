@@ -8,9 +8,22 @@
 #include <libwfp/conditions/conditionprotocol.h>
 #include <libwfp/conditions/conditionip.h>
 #include <libwfp/conditions/conditionport.h>
+#include <libcommon/string.h>
 #include <libcommon/error.h>
+#include <iostream>
+#include <format>
 
 using namespace wfp::conditions;
+
+static std::string StringFromGUID(const GUID& guid) {
+	return std::format("{:08X}-{:04X}-{:04X}-{:02X}{:02X}-{:02X}{:02X}{:02X}{:02X}{:02X}{:02X}", guid.Data1, guid.Data2, guid.Data3, guid.Data4[0], guid.Data4[1], guid.Data4[2], guid.Data4[3], guid.Data4[4], guid.Data4[5], guid.Data4[6], guid.Data4[7]);
+}
+
+static void LogAddrGuid(const wfp::IpAddress &address, const GUID &guid) {
+	auto addr_str = address.toString();
+	auto guid_str = StringFromGUID(guid);
+	std::wcout << L"address: " << addr_str << ", guid: " << guid_str.c_str() << std::endl;
+}
 
 namespace rules::baseline
 {
@@ -53,6 +66,8 @@ bool PermitSecureDns::apply(IObjectInstaller& objectInstaller) {
 				THROW_ERROR("Exceeded max allowed secure dns addresses (IPv4)");
 			}
 
+			LogAddrGuid(dns_address, SECURE_DNS_IPV4_GUIDS[ipv4Count]);
+
 			if (!AddIpv4EndpointFilter(dns_address, SECURE_DNS_IPV4_GUIDS[ipv4Count], objectInstaller)) {
 				return false;
 			}
@@ -65,6 +80,8 @@ bool PermitSecureDns::apply(IObjectInstaller& objectInstaller) {
 			if (ipv6Count == MAX_ALLOWED_SECURE_DNS_ADDRESSES) {
 				THROW_ERROR("Exceeded max allowed secure dns addresses (IPv6)");
 			}
+
+			LogAddrGuid(dns_address, SECURE_DNS_IPV6_GUIDS[ipv6Count]);
 
 			if (!AddIpv6EndpointFilter(dns_address, SECURE_DNS_IPV6_GUIDS[ipv6Count], objectInstaller)) {
 				return false;
@@ -96,7 +113,7 @@ bool PermitSecureDns::AddIpv4EndpointFilter(const wfp::IpAddress &dns_address, c
 	filterBuilder
 		.key(ipv4Guid)
 		.name(L"Permit outbound connections to secure DNS server (IPv4)")
-		.description(L"This filter is part of a rule that permits outbound DNS")
+		.description(L"This filter is part of a rule that permits outbound secure DNS")
 		.provider(MullvadGuids::Provider())
 		.layer(FWPM_LAYER_ALE_AUTH_CONNECT_V4)
 		.sublayer(MullvadGuids::SublayerBaseline())
@@ -126,7 +143,7 @@ bool PermitSecureDns::AddIpv6EndpointFilter(const wfp::IpAddress& dns_address, c
 	filterBuilder
 		.key(ipv6Guid)
 		.name(L"Permit outbound connections to secure DNS server (IPv6)")
-		.description(L"This filter is part of a rule that permits outbound DNS")
+		.description(L"This filter is part of a rule that permits outbound secure DNS")
 		.provider(MullvadGuids::Provider())
 		.layer(FWPM_LAYER_ALE_AUTH_CONNECT_V6)
 		.sublayer(MullvadGuids::SublayerBaseline())
