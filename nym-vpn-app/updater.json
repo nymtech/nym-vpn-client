@@ -1,9 +1,0 @@
-{
-  "version": "TODO",
-  "platforms": {
-    "windows-x86_64": {
-      "signature": "TODO",
-      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-vTODO/NymVPN_TODO_x64-setup.exe"
-    }
-  }
-}

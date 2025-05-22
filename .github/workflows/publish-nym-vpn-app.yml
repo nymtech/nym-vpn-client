@@ -7,14 +7,18 @@ on:
       tag_name:
         description: "Tag name for release"
         required: false
-        default: nym-vpn-app-nightly
-      stable_release:
-        description: "Stable release: will be signed, updater bundle will be generated and updater JSON data updated (Windows only)"
-        required: false
-        type: boolean
-        default: false
+        default: nym-vpn-app-v1.2.3
+      release_type:
+        type: choice
+        description: "Release type, stable: for public releases (signed with updater bundle Windows only), nightly for nightly build, dev: for any other releases"
+        options:
+          - dev
+          - nightly
+          - stable
+        default: dev
+        required: true
       pre_release:
-        description: "Label this release as \"Pre-release\""
+        description: "Label this release as \"Pre-release\" (true for dev releases)"
         required: false
         type: boolean
         default: false
@@ -47,8 +51,8 @@ jobs:
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
       core_release_tag: ${{ inputs.core_release_tag }}
       core_artifact_url: ${{ inputs.core_artifact_url }}
-      sign: ${{ inputs.stable_release == true }}
-      updater_bundle: ${{ inputs.stable_release == true }}
+      sign: ${{ inputs.release_type == 'stable' }}
+      updater_bundle: ${{ inputs.release_type == 'stable' }}
     secrets: inherit
 
   generate-build-info-nym-vpn-app:
@@ -65,8 +69,11 @@ jobs:
       - generate-build-info-nym-vpn-app
     runs-on: ubuntu-22.04
     outputs:
-      tag: ${{ steps.set_tag.outputs.tag }}
+      release_tag: ${{ steps.set_tag.outputs.tag }}
+      version: ${{ steps.cargo-get.outputs.metadata }}
     env:
+      # stable | nightly | dev
+      RELEASE_TYPE: ${{ inputs.release_type || (github.event_name == 'schedule' && 'nightly' || 'dev') }}
       # GH needed for gh cli
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,10 +85,9 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      # Adding envsubst, gh cli
       - name: Install system dependencies
         run: |
-          sudo apt update && sudo apt install -y gettext-base gh
+          sudo apt update && sudo apt install -y gh
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -89,7 +95,7 @@ jobs:
           components: rustfmt, clippy
 
       - name: Get package version
-        id: package-version
+        id: cargo-get
         uses: nicolaiunrein/cargo-get@master
         with:
           subcommand: package.version --entry nym-vpn-app/src-tauri
@@ -98,7 +104,7 @@ jobs:
         if: github.event_name == 'push'
         shell: bash
         run: |
-          if [[ nym-vpn-app-v${{ steps.package-version.outputs.metadata }} != ${{ github.ref_name }} ]]; then
+          if [[ nym-vpn-app-v${{ steps.cargo-get.outputs.metadata }} != ${{ github.ref_name }} ]]; then
             exit 1
           fi
 
@@ -108,30 +114,20 @@ jobs:
       # Setup TAG_NAME, which is used as a general "name"
       - if: github.event_name == 'workflow_dispatch'
         run: echo "TAG_NAME=${{ github.event.inputs.tag_name }}" >> $GITHUB_ENV
-      - if: github.event_name == 'schedule'
+      - if: ${{ env.RELEASE_TYPE == 'nightly' }}
         run: echo "TAG_NAME=nym-vpn-app-nightly" >> $GITHUB_ENV
       - if: github.event_name == 'push'
         run: echo "TAG_NAME=${{ github.ref_name }}" >> $GITHUB_ENV
 
-      - name: Set tag
+      - name: Set output 'tag'
         id: set_tag
         run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
 
-      - name: Setting subject, prerelease and notes files (nightly)
-        if: ${{ contains(env.TAG_NAME, 'nym-vpn-app-nightly') }}
+      - name: Remove previous nightly release
+        if: ${{ env.RELEASE_TYPE == 'nightly' }}
         run: |
-          (echo "SUBJECT=nym-vpn-app-v${{ steps.package-version.outputs.metadata }} nightly prerelease build";
-           echo 'PRERELEASE=--prerelease';
-           echo 'NOTES_FILE=release-notes/release-notes-vpn-app-nightly.md') >> $GITHUB_ENV
           gh release delete nym-vpn-app-nightly --yes || true
           git push origin :nym-vpn-app-nightly || true
-
-      - name: Setting subject, prerelease and notes files
-        if: ${{ !contains(env.TAG_NAME, 'nym-vpn-app-nightly') }}
-        run: |
-          (echo "SUBJECT=$TAG_NAME"
-           echo 'PRERELEASE=${{ inputs.pre_release && '--prerelease' || '' }}';
-           echo 'NOTES_FILE=release-notes/release-notes-vpn-app.md') >> $GITHUB_ENV
 
       - name: Generate checksums
         run: |
@@ -141,7 +137,7 @@ jobs:
           pushd ${{ env.UPLOAD_DIR_WINDOWS }} || exit 1
           for f in *; do sha256sum "$f" > "$f.sha256sum"; done
           popd
-          echo 'SHA256_CHECKSUMS<<EOF' >> $GITHUB_ENV
+          echo 'SHA256SUMS<<EOF' >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_UBUNTU_22 }}/*.sha256sum >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_WINDOWS }}/*.sha256sum >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
@@ -152,27 +148,79 @@ jobs:
           cat build-info/build-info.txt >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-      - name: Publish release
+      - if: ${{ env.RELEASE_TYPE != 'stable' }}
+        run: echo "RN_TITLE_SUFFIX=', ${{ env.RELEASE_TYPE }} build'" >> $GITHUB_ENV
+
+      - name: Release notes
         run: |
-          echo "build info"
-          echo "$BUILD_INFO"
-          echo "checksums"
-          echo "$SHA256_CHECKSUMS"
-          echo "Creating release notes"
-          envsubst < "$GITHUB_WORKSPACE/.github/workflows/$NOTES_FILE" > "$RUNNER_TEMP/release-notes.md"
-          echo "Creating release nodes: output"
-          cat $RUNNER_TEMP/release-notes.md
-          echo "Creating release"
-          gh release create $TAG_NAME ${{ env.PRERELEASE }} \
-            --notes-file "$RUNNER_TEMP/release-notes.md" \
-            --title "$SUBJECT" \
-            --target $GITHUB_SHA \
-            ${{ env.UPLOAD_DIR_UBUNTU_22}}/* \
+          {
+            echo 'RELEASE_NOTES<<EOF'
+            echo 'Linux and Windows desktop app${{ env.RN_TITLE_SUFFIX }}
+
+          ```
+          ${{ env.BUILD_INFO }}
+          ```
+
+          SHA256 checksums
+
+          ```
+          ${{ env.SHA256SUMS }}
+          ```
+          '
+            echo EOF
+          } >> "$GITHUB_ENV"
+
+      - name: Create release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          body: ${{ env.RELEASE_NOTES }}
+          tag_name: ${{ env.TAG_NAME }}
+          name: ${{ env.TAG_NAME }}
+          draft: false
+          make_latest: ${{ env.RELEASE_TYPE == 'stable' }}
+          prerelease: ${{ env.RELEASE_TYPE != 'stable' || inputs.pre_release }}
+          target_commitish: ${{ github.sha }}
+          files: |
+            ${{ env.UPLOAD_DIR_UBUNTU_22}}/*
             ${{ env.UPLOAD_DIR_WINDOWS}}/*
+
+      - name: Update updater metadata
+        run: |
+          git add docs
+          git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
+          git push
+
+  updater:
+    runs-on: ubuntu-latest
+    needs: publish
+    env:
+      # stable | nightly | dev
+      RELEASE_TYPE: ${{ inputs.release_type || (github.event_name == 'schedule' && 'nightly' || 'dev') }}
+      RELEASE_TAG: ${{ needs.publish.outputs.release_tag }}
+      VERSION: ${{ needs.publish.outputs.version }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: 'develop'
+
+      - name: Update metadata
+        run: |
+          TODO
+
+      - name: Push metadata
+        run: |
+          git config --global user.name "GH_bot"
+          git config --global user.email ""
+          git add docs
+          git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
+          git push
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml
     needs: publish
     with:
-      release_tag: ${{ needs.publish.outputs.tag }}
+      release_tag: ${{ needs.publish.outputs.release_tag }}
     secrets: inherit
