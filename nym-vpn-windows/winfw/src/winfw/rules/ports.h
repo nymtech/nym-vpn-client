@@ -18,11 +18,4 @@ enum Ports : uint16_t
 	DNS_OVER_TLS_PORT = 853,
 };
 
-
-static const uint16_t DNS_PORTS[] = {
-	DNS_SERVER_PORT,
-	DNS_OVER_HTTPS_PORT,
-	DNS_OVER_TLS_PORT
-};
-
 }

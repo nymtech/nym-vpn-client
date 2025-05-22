@@ -15,6 +15,7 @@
 #include "rules/baseline/permitvpntunnelservice.h"
 #include "rules/baseline/permitdns.h"
 #include "rules/baseline/permitendpoint.h"
+#include "rules/baseline/permitsecuredns.h"
 #include "rules/dns/blockall.h"
 #include "rules/dns/permitloopback.h"
 #include "rules/dns/permittunnel.h"
@@ -237,9 +238,7 @@ bool FwContext::applyPolicyConnecting
 
 	if (!nonTunnelDnsServers.empty())
 	{
-		ruleset.emplace_back(std::make_unique<dns::PermitNonTunnel>(
-			exitTunnelIfaceAlias, nonTunnelDnsServers
-		));
+		ruleset.emplace_back(std::make_unique<baseline::PermitSecureDns>(nonTunnelDnsServers));
 	}
 
 	//
