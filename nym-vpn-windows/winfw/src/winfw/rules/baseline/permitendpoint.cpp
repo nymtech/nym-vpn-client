@@ -52,24 +52,28 @@ bool PermitEndpoint::apply(IObjectInstaller &objectInstaller)
 	for (auto endpoint: m_endpoints) {
 		switch (endpoint.ip.type()) {
 			case wfp::IpAddress::Type::Ipv4:
+				if (ipv4Count == MAX_ALLOWED_ENDPOINTS) {
+					THROW_ERROR("Exceeded max allowed endpoints (IPv4)");
+				}
+
 				if (!AddIpv4EndpointFilter(endpoint, ENDPOINT_IPV4_GUIDS[ipv4Count], objectInstaller)) {
 					return false;
 				}
 
-				if (ipv4Count++ == MAX_ALLOWED_ENDPOINTS) {
-					THROW_ERROR("Exceeded max allowed endpoints (IPv4)");
-				}
+				ipv4Count++;
 
 				break;
 
 			case wfp::IpAddress::Type::Ipv6:
+				if (ipv6Count == MAX_ALLOWED_ENDPOINTS) {
+					THROW_ERROR("Exceeded max allowed endpoints (IPv6)");
+				}
+
 				if (!AddIpv6EndpointFilter(endpoint, ENDPOINT_IPV6_GUIDS[ipv6Count], objectInstaller)) {
 					return false;
 				}
 
-				if (ipv6Count++ == MAX_ALLOWED_ENDPOINTS) {
-					THROW_ERROR("Exceeded max allowed endpoints (IPv6)");
-				}
+				ipv6Count++;
 
 				break;
 

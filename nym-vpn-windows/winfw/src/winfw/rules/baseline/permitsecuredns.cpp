@@ -19,14 +19,14 @@ namespace {
     // Maximum number of allowed endpoint per IP protocol version.
     static const uint32_t MAX_ALLOWED_SECURE_DNS_ADDRESSES = 4;
 
-    static const GUID SECURE_DNS_IPV4_GUIDS[MAX_ALLOWED_ENDPOINTS] = { 
+    static const GUID SECURE_DNS_IPV4_GUIDS[MAX_ALLOWED_SECURE_DNS_ADDRESSES] = {
         MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv4_1(),
         MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv4_2(),
         MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv4_3(),
         MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv4_4(),
     };
 
-    static const GUID SECURE_DNS_IPV6_GUIDS[MAX_ALLOWED_ENDPOINTS] = {
+    static const GUID SECURE_DNS_IPV6_GUIDS[MAX_ALLOWED_SECURE_DNS_ADDRESSES] = {
         MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv6_1(),
         MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv6_2(),
         MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv6_3(),
@@ -46,27 +46,31 @@ bool PermitSecureDns::apply(IObjectInstaller& objectInstaller) {
 	uint32_t ipv4Count = 0;
 	uint32_t ipv6Count = 0;
 
-	for (auto dns_address : m_addresses) {
+	for (auto &dns_address : m_addresses) {
 		switch (dns_address.type()) {
 		case wfp::IpAddress::Type::Ipv4:
+			if (ipv4Count == MAX_ALLOWED_SECURE_DNS_ADDRESSES) {
+				THROW_ERROR("Exceeded max allowed secure dns addresses (IPv4)");
+			}
+
 			if (!AddIpv4EndpointFilter(dns_address, SECURE_DNS_IPV4_GUIDS[ipv4Count], objectInstaller)) {
 				return false;
 			}
 
-			if (ipv4Count++ == MAX_ALLOWED_SECURE_DNS_ADDRESSES) {
-				THROW_ERROR("Exceeded max allowed secure dns addresses (IPv4)");
-			}
+            ipv4Count++;
 
 			break;
 
 		case wfp::IpAddress::Type::Ipv6:
+			if (ipv6Count == MAX_ALLOWED_SECURE_DNS_ADDRESSES) {
+				THROW_ERROR("Exceeded max allowed secure dns addresses (IPv6)");
+			}
+
 			if (!AddIpv6EndpointFilter(dns_address, SECURE_DNS_IPV6_GUIDS[ipv6Count], objectInstaller)) {
 				return false;
 			}
 
-			if (ipv6Count++ == MAX_ALLOWED_SECURE_DNS_ADDRESSES) {
-				THROW_ERROR("Exceeded max allowed secure dns addresses (IPv6)");
-			}
+            ipv6Count++;
 
 			break;
 
