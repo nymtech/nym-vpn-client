@@ -43,11 +43,7 @@ bool PermitNonTunnel::apply(IObjectInstaller &objectInstaller)
 
 		wfp::ConditionBuilder conditionBuilder(FWPM_LAYER_ALE_AUTH_CONNECT_V4);
 
-		for (const auto& dnsPort : DNS_PORTS)
-		{
-			conditionBuilder.add_condition(ConditionPort::Remote(dnsPort));
-		}
-
+		conditionBuilder.add_condition(ConditionPort::Remote(DNS_SERVER_PORT));
 		for (const auto &host : m_hostsIpv4)
 		{
 			conditionBuilder.add_condition(ConditionIp::Remote(host));
@@ -85,11 +81,7 @@ bool PermitNonTunnel::apply(IObjectInstaller &objectInstaller)
 
 	wfp::ConditionBuilder conditionBuilder(FWPM_LAYER_ALE_AUTH_CONNECT_V6);
 
-	for (const auto& dnsPort : DNS_PORTS)
-	{
-		conditionBuilder.add_condition(ConditionPort::Remote(dnsPort));
-	}
-
+	conditionBuilder.add_condition(ConditionPort::Remote(DNS_SERVER_PORT));
 	for (const auto &host : m_hostsIpv6)
 	{
 		conditionBuilder.add_condition(ConditionIp::Remote(host));
