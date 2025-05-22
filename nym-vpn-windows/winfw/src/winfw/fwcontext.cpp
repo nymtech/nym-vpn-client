@@ -447,7 +447,6 @@ bool FwContext::applyPolicyConnected
 	if (entryTunnelIfaceAlias.has_value())
 	{
 		std::wstring entryTunnelIfaceAliasStr = entryTunnelIfaceAlias.value();
-
 		
 		ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
 			baseline::PermitVpnTunnel::InterfaceType::Entry,
