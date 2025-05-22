@@ -71,6 +71,8 @@ jobs:
     outputs:
       release_tag: ${{ steps.set_tag.outputs.tag }}
       version: ${{ steps.cargo-get.outputs.metadata }}
+      win_updater_exe: ${{ steps.win_updater.outputs.exe }}
+      win_updater_sig: ${{ steps.win_updater.outputs.sig }}
     env:
       # stable | nightly | dev
       RELEASE_TYPE: ${{ inputs.release_type || (github.event_name == 'schedule' && 'nightly' || 'dev') }}
@@ -123,6 +125,17 @@ jobs:
         id: set_tag
         run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
 
+      - name: Set output for updater (Windows)
+        if: ${{ env.RELEASE_TYPE == 'stable' }}
+        id: win_updater
+        working-directory: ${{ env.UPLOAD_DIR_WINDOWS }}
+        run: |
+          shopt -s failglob
+          exe=(*setup.exe)
+          echo "exe=${exe[0]}" >> "$GITHUB_OUTPUT"
+          sig=$(head -n 1 *.exe.sig)
+          echo "sig=$sig" >> "$GITHUB_OUTPUT"
+
       - name: Remove previous nightly release
         if: ${{ env.RELEASE_TYPE == 'nightly' }}
         run: |
@@ -135,7 +148,8 @@ jobs:
           for f in *; do sha256sum "$f" > "$f.sha256sum"; done
           popd
           pushd ${{ env.UPLOAD_DIR_WINDOWS }} || exit 1
-          for f in *; do sha256sum "$f" > "$f.sha256sum"; done
+          exe=(./*setup.exe)
+          sha256sum "${exe[0]}" > "${exe[0]}.sha256sum";
           popd
           echo 'SHA256SUMS<<EOF' >> $GITHUB_ENV
           cat ${{ env.UPLOAD_DIR_UBUNTU_22 }}/*.sha256sum >> $GITHUB_ENV
@@ -192,31 +206,16 @@ jobs:
           git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
           git push
 
-  updater:
-    runs-on: ubuntu-latest
+  update-windows-metadata:
+    uses: ./.github/workflows/tauri-updater.yml
     needs: publish
-    env:
-      # stable | nightly | dev
-      RELEASE_TYPE: ${{ inputs.release_type || (github.event_name == 'schedule' && 'nightly' || 'dev') }}
-      RELEASE_TAG: ${{ needs.publish.outputs.release_tag }}
-      VERSION: ${{ needs.publish.outputs.version }}
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
-        with:
-          ref: 'develop'
-
-      - name: Update metadata
-        run: |
-          TODO
-
-      - name: Push metadata
-        run: |
-          git config --global user.name "GH_bot"
-          git config --global user.email ""
-          git add docs
-          git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
-          git push
+    if: ${{ inputs.release_type == 'stable' }}
+    with:
+      channel: 'stable'
+      version: ${{ needs.publish.outputs.version }}
+      platform: 'windows-x86_64'
+      url: https://github.com/nymtech/nym-vpn-client/releases/download/${{ needs.publish.outputs.release_tag }}/${{ needs.publish.outputs.win_updater_exe }}
+      signature: ${{ needs.publish.outputs.win_updater_sig }}
 
   gen-hashes:
     uses: ./.github/workflows/gen-hashes-json.yml

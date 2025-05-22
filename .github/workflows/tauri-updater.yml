@@ -1,0 +1,90 @@
+name: tauri-updater
+on:
+  workflow_call:
+    inputs:
+      channel:
+        type: string
+        required: true
+      version:
+        type: string
+        required: true
+      # https://v2.tauri.app/plugin/updater/#static-json-file
+      platform: # windows-x86_64 | linux-x86_64
+        type: string
+        required: true
+      url:
+        type: string
+        required: true
+      signature:
+        type: string
+        required: true
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Build channel'
+        type: choice
+        options:
+          - stable
+          - dev
+        required: true
+        default: 'stable'
+      version:
+        description: 'Semver app version'
+        type: string
+        required: true
+        default: '0.0.0'
+      platform:
+        description: 'Platform to update (Windows or Linux x64)'
+        type: choice
+        options:
+          - windows-x86_64
+          - linux-x86_64
+        required: true
+        default: 'windows-x86_64'
+      url:
+        description: 'URL link to the executable (for Windows *setup.exe)'
+        type: string
+        required: true
+        default: 'https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v0.0.0/NymVPN_0.0.0_x64-setup.exe'
+      signature:
+        description: 'Signature of the update bundle (for Windows content of *setup.exe.sig)'
+        type: string
+        required: true
+        default: ''
+
+jobs:
+  update-metadata:
+    runs-on: ubuntu-latest
+    env:
+      JSON_FILE: ${{ inputs.channel == 'stable' && 'stable.json' || 'dev.json' }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: 'develop'
+
+      - name: Install yq
+        run: |
+          wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/bin/yq
+          chmod +x /usr/bin/yq
+
+      - name: Update metadata (${{ inputs.channel }})
+        working-directory: .pkg/tauri-updater
+        run: |
+          yq -i '
+            .version = "${{ inputs.version }}" |
+            .platforms.${{ inputs.platform }}.url = "${{ inputs.url }}" |
+            .platforms.${{ inputs.platform }}.signature = "${{ inputs.signature }}"
+          ' ${{ env.JSON_FILE }}
+          echo "updated metadata"
+          cat ${{ env.JSON_FILE }}
+
+      - name: Push metadata
+        env:
+          COMMIT_MSG: 'tauri-updater: update metadata ${{ inputs.channel }} ${{ inputs.platform }} v${{ inputs.version }}'
+        run: |
+          git config --global user.name "NYM_bot"
+          git config --global user.email ""
+          git add .pkg/tauri-updater
+          git commit -m "${{ env.COMMIT_MSG }}"
+          git push

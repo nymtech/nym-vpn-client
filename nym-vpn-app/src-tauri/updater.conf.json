@@ -9,7 +9,7 @@
         "installMode": "passive"
       },
       "endpoints": [
-        "https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/nym-vpn-app/updater.json"
+        "https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/stable.json"
       ]
     }
   }
