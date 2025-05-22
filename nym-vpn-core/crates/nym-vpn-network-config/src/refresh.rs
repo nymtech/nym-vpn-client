@@ -6,7 +6,7 @@ use std::{path::PathBuf, time::Duration};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use crate::{Network, NymNetwork};
+use crate::{Network, NymNetwork, envs::RegisteredNetworks};
 
 use super::discovery::Discovery;
 
@@ -50,6 +50,10 @@ impl FileRefresher {
         Ok(())
     }
 
+    async fn refresh_envs_file(&self) -> anyhow::Result<()> {
+        RegisteredNetworks::try_update_file(&self.config_path).await
+    }
+
     async fn run(self) {
         // Check once an hour
         let mut interval = tokio::time::interval(Duration::from_secs(60 * 60));
@@ -75,6 +79,10 @@ impl FileRefresher {
                     }
 
                     interval.tick().await;
+
+                    if let Err(err) = self.refresh_envs_file().await {
+                        tracing::error!("Failed to refresh envs file: {:?}", err);
+                    }
 
                     match self.refresh_discovery_file().await {
                         Err(err) => {
