@@ -3,6 +3,8 @@
 
 use std::{fmt::Debug, sync::Arc};
 
+use nym_vpn_api_client::HttpClientError;
+
 pub mod forget_account;
 pub mod register_device;
 pub mod request_zknym;
@@ -166,13 +168,19 @@ impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
             Err(err) => err,
         };
 
-        if nym_vpn_api_client::response::error_is_reqwest_timeout(&err) {
+        if err
+            .http_client_error()
+            .is_some_and(HttpClientError::is_timeout)
+        {
             return Ok(Self::Timeout(Arc::new(err)));
         }
 
-        match nym_vpn_api_client::response::extract_error_response_status_code(&err) {
+        match err
+            .http_client_error()
+            .and_then(HttpClientError::status_code)
+        {
             Some(code) => Ok(Self::StatusCode {
-                code,
+                code: code.into(),
                 source: Arc::new(err),
             }),
             None => Err(err),
