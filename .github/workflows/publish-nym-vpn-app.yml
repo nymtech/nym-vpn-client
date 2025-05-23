@@ -128,7 +128,7 @@ jobs:
         run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
 
       - name: Set output for updater (Windows)
-        if: ${{ env.RELEASE_TYPE == 'stable' }}
+        if: ${{ env.RELEASE_TYPE == 'stable' || env.RELEASE_TYPE == 'dev' }}
         id: win_updater
         working-directory: ${{ env.UPLOAD_DIR_WINDOWS }}
         run: |
@@ -202,18 +202,12 @@ jobs:
             ${{ env.UPLOAD_DIR_UBUNTU_22}}/*
             ${{ env.UPLOAD_DIR_WINDOWS}}/*
 
-      - name: Update updater metadata
-        run: |
-          git add docs
-          git commit -m "${{ env.CI_COMMIT_MESSAGE }}"
-          git push
-
   update-windows-metadata:
     uses: ./.github/workflows/tauri-updater.yml
     needs: publish
-    if: ${{ inputs.release_type == 'stable' }}
+    if: ${{ inputs.release_type == 'stable' || inputs.release_type == 'dev' }}
     with:
-      channel: 'stable'
+      channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
       version: ${{ needs.publish.outputs.version }}
       platform: 'windows-x86_64'
       url: https://github.com/nymtech/nym-vpn-client/releases/download/${{ needs.publish.outputs.release_tag }}/${{ needs.publish.outputs.win_updater_exe }}
