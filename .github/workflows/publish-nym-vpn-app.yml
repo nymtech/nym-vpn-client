@@ -70,6 +70,7 @@ jobs:
     runs-on: ubuntu-22.04
     outputs:
       release_tag: ${{ steps.set_tag.outputs.tag }}
+      release_id: ${{ steps.create_release.outputs.id }}
       version: ${{ steps.cargo-get.outputs.metadata }}
       win_updater_exe: ${{ steps.win_updater.outputs.exe }}
       win_updater_sig: ${{ steps.win_updater.outputs.sig }}
