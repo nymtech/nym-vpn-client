@@ -357,10 +357,9 @@ jobs:
           ls -la target/release/bundle/nsis/* || true
 
       - name: Move things around to prepare for upload
-        working-directory: nym-vpn-app/src-tauri
         shell: bash
         env:
-          NSIS_DIR: target/release/bundle/nsis
+          NSIS_DIR: nym-vpn-app/src-tauri/target/release/bundle/nsis
         run: |
           echo "moving binaries into ${{ env.UPLOAD_DIR_WINDOWS }}"
           rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
