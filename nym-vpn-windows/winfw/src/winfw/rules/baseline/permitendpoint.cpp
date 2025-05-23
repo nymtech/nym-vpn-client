@@ -17,7 +17,7 @@ namespace rules::baseline
 
 namespace {
 	// Maximum number of allowed endpoint per IP protocol version.
-	static const uint32_t MAX_ALLOWED_ENDPOINTS = 8;
+	static const uint32_t MAX_ALLOWED_ENDPOINTS = 12;
 
 	static const GUID ENDPOINT_IPV4_GUIDS[MAX_ALLOWED_ENDPOINTS] = { 
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_1(),
@@ -28,6 +28,10 @@ namespace {
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_6(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_7(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_8(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_9(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_10(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_11(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_12(),
 	};
 
 	static const GUID ENDPOINT_IPV6_GUIDS[MAX_ALLOWED_ENDPOINTS] = {
@@ -39,6 +43,10 @@ namespace {
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_6(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_7(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_8(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_9(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_10(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_11(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_12(),
 	};
 
 } // anonymous namespace

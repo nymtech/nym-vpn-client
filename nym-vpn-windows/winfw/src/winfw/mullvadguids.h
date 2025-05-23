@@ -80,6 +80,10 @@ public:
 	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_6();
 	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_7();
 	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_8();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_9();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_10();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_11();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv4_12();
 
 	static const GUID &Filter_Baseline_PermitEndpoint_Ipv6_1();
 	static const GUID &Filter_Baseline_PermitEndpoint_Ipv6_2();
@@ -89,6 +93,10 @@ public:
 	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_6();
 	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_7();
 	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_8();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_9();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_10();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_11();
+	static const GUID& Filter_Baseline_PermitEndpoint_Ipv6_12();
 
 	static const GUID &Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv4_1();
 	static const GUID &Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv6_1();

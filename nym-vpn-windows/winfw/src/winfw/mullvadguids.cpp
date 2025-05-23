@@ -87,6 +87,10 @@ MullvadGuids::DetailedIdentityRegistry MullvadGuids::DetailedRegistry(IdentityQu
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_6()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_7()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_8()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_9()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_10()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_11()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_12()));
 
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_1()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_2()));
@@ -96,6 +100,10 @@ MullvadGuids::DetailedIdentityRegistry MullvadGuids::DetailedRegistry(IdentityQu
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_6()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_7()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_8()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_9()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_10()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_11()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_12()));
 
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv4_1()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv6_1()));
@@ -564,6 +572,38 @@ const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_8() {
 }
 
 //static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_9() {
+	// {A6AACF88-3623-4D34-9AA9-028F8D63CCCD}
+	static const GUID g = { 0xa6aacf88,0x3623,0x4d34,{0x9a,0xa9,0x02,0x8f,0x8d,0x63,0xcc,0xcd} };
+
+	return g;
+}
+
+//static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_10() {
+	// {6DAA753E-22D5-4F61-B0DF-895D30319D1F}
+	static const GUID g = { 0x6daa753e,0x22d5,0x4f61,{0xb0,0xdf,0x89,0x5d,0x30,0x31,0x9d,0x1f} };
+
+	return g;
+}
+
+//static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_11() {
+	// {CCE1BBF0-36C2-4D8E-A1D0-BC61717C123E}
+	static const GUID g = { 0xcce1bbf0,0x36c2,0x4d8e,{0xa1,0xd0,0xbc,0x61,0x71,0x7c,0x12,0x3e} };
+
+	return g;
+}
+
+//static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_12() {
+	// {DE9D2B08-A6FD-435F-AA6F-95C9793EA9F7}
+	static const GUID g = { 0xde9d2b08,0xa6fd,0x435f,{0xaa,0x6f,0x95,0xc9,0x79,0x3e,0xa9,0xf7} };
+
+	return g;
+}
+
+//static
 const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_1()
 {
 	// {C88C848F-2DF9-4908-944D-DE550CAD325E}
@@ -632,6 +672,37 @@ const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_8() {
 	return g;
 }
 
+//static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_9() {
+	// {5E36E8E4-7D56-41C2-8655-5D09EECFA784}
+	static const GUID g = { 0x5e36e8e4,0x7d56,0x41c2,{0x86,0x55,0x5d,0x09,0xee,0xcf,0xa7,0x84} };
+
+	return g;
+}
+
+//static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_10() {
+	// {6A3345C4-91B3-4CFB-B26F-727C81FEBB39}
+	static const GUID g = { 0x6a3345c4,0x91b3,0x4cfb,{0xb2,0x6f,0x72,0x7c,0x81,0xfe,0xbb,0x39} };
+
+	return g;
+}
+
+//static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_11() {
+	// {769D1786-08D9-4EAD-902A-957DEAC26B40}
+	static const GUID g = { 0x769d1786,0x08d9,0x4ead,{0x90,0x2a,0x95,0x7d,0xea,0xc2,0x6b,0x40} };
+
+	return g;
+}
+
+//static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_12() {
+	// {860A7F65-C35A-4FD0-A725-D34BE2551774}
+	static const GUID g = { 0x860a7f65,0xc35a,0x4fd0,{0xa7,0x25,0xd3,0x4b,0xe2,0x55,0x17,0x74} };
+
+	return g;
+}
 
 //static
 const GUID &MullvadGuids::Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv4_1()
