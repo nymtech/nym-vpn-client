@@ -27,7 +27,7 @@ use super::{
     split_tunnel,
 };
 
-use crate::{AllowedClients, DNS_TCP_PORTS, DNS_UDP_PORTS, TunnelInterface};
+use crate::{AllowedClients, DNS_TCP_PORTS, TunnelInterface};
 
 /// Priority for rules that tag split tunneling packets. Equals NF_IP_PRI_MANGLE.
 const MANGLE_CHAIN_PRIORITY: i32 = libc::NF_IP_PRI_MANGLE;
@@ -242,22 +242,13 @@ impl Firewall {
 }
 
 fn get_allow_dns_endpoints_when_connecting(server: IpAddr) -> Vec<AllowedEndpoint> {
-    let mut allowed_endpoints = Vec::with_capacity(DNS_TCP_PORTS.len() + DNS_UDP_PORTS.len());
+    let mut allowed_endpoints = Vec::with_capacity(DNS_TCP_PORTS.len());
 
     // Allow requests on other interfaces
     for tcp_port in DNS_TCP_PORTS {
         let address = SocketAddr::new(server, tcp_port);
         let allowed_endpoint = AllowedEndpoint::new(
             Endpoint::from_socket_address(address, TransportProtocol::Tcp),
-            AllowedClients::Root,
-        );
-        allowed_endpoints.push(allowed_endpoint);
-    }
-
-    for udp_port in DNS_UDP_PORTS {
-        let address = SocketAddr::new(server, udp_port);
-        let allowed_endpoint = AllowedEndpoint::new(
-            Endpoint::from_socket_address(address, TransportProtocol::Udp),
             AllowedClients::Root,
         );
         allowed_endpoints.push(allowed_endpoint);

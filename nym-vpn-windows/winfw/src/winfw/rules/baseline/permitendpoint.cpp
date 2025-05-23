@@ -17,13 +17,17 @@ namespace rules::baseline
 
 namespace {
 	// Maximum number of allowed endpoint per IP protocol version.
-	static const uint32_t MAX_ALLOWED_ENDPOINTS = 4;
+	static const uint32_t MAX_ALLOWED_ENDPOINTS = 8;
 
 	static const GUID ENDPOINT_IPV4_GUIDS[MAX_ALLOWED_ENDPOINTS] = { 
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_1(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_2(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_3(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_4(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_5(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_6(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_7(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_8(),
 	};
 
 	static const GUID ENDPOINT_IPV6_GUIDS[MAX_ALLOWED_ENDPOINTS] = {
@@ -31,6 +35,10 @@ namespace {
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_2(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_3(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_4(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_5(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_6(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_7(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_8(),
 	};
 
 } // anonymous namespace
@@ -107,7 +115,7 @@ bool PermitEndpoint::AddIpv4EndpointFilter(const Endpoint &endpoint, const GUID 
 	conditionBuilder.add_condition(ConditionPort::Remote(endpoint.port));
 	conditionBuilder.add_condition(CreateProtocolCondition(endpoint.protocol));
 
-	for (const auto client : endpoint.clients) {
+	for (const auto &client : endpoint.clients) {
 		conditionBuilder.add_condition(std::make_unique<ConditionApplication>(client));
 	}
 
@@ -134,7 +142,7 @@ bool PermitEndpoint::AddIpv6EndpointFilter(const Endpoint &endpoint, const GUID 
 	conditionBuilder.add_condition(ConditionPort::Remote(endpoint.port));
 	conditionBuilder.add_condition(CreateProtocolCondition(endpoint.protocol));
 
-	for (const auto client : endpoint.clients) {
+	for (const auto &client : endpoint.clients) {
 		conditionBuilder.add_condition(std::make_unique<ConditionApplication>(client));
 	}
 

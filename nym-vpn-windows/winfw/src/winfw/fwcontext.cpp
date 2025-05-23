@@ -15,7 +15,6 @@
 #include "rules/baseline/permitvpntunnelservice.h"
 #include "rules/baseline/permitdns.h"
 #include "rules/baseline/permitendpoint.h"
-#include "rules/baseline/permitsecuredns.h"
 #include "rules/dns/blockall.h"
 #include "rules/dns/permitloopback.h"
 #include "rules/dns/permittunnel.h"
@@ -221,8 +220,7 @@ bool FwContext::applyPolicyConnecting
 	const std::optional<std::wstring>& exitTunnelIfaceAlias,
 	const WinFwAllowedTunnelTraffic& allowedExitTunnelTraffic,
 
-	const std::optional<std::vector<WinFwAllowedEndpoint>>& allowedEndpoints,
-	const std::vector<wfp::IpAddress>& nonTunnelDnsServers
+	const std::optional<std::vector<WinFwAllowedEndpoint>>& allowedEndpoints
 )
 {
 	Ruleset ruleset;
@@ -234,11 +232,6 @@ bool FwContext::applyPolicyConnecting
 	if (allowedEndpoints.has_value())
 	{
 		AppendAllowedEndpointRules(ruleset, allowedEndpoints.value());
-	}
-
-	if (!nonTunnelDnsServers.empty())
-	{
-		ruleset.emplace_back(std::make_unique<baseline::PermitSecureDns>(nonTunnelDnsServers));
 	}
 
 	//

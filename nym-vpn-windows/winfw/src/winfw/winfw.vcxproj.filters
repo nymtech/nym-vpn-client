@@ -64,9 +64,6 @@
     <ClCompile Include="rules\dns\permitloopback.cpp">
       <Filter>rules\dns</Filter>
     </ClCompile>
-    <ClCompile Include="rules\baseline\permitsecuredns.cpp">
-      <Filter>rules\baseline</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -142,9 +139,6 @@
       <Filter>rules\dns</Filter>
     </ClInclude>
     <ClInclude Include="version.h" />
-    <ClInclude Include="rules\baseline\permitsecuredns.h">
-      <Filter>rules\baseline</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="rules">

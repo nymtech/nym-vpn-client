@@ -48,64 +48,75 @@ MullvadGuids::DetailedIdentityRegistry MullvadGuids::DetailedRegistry(IdentityQu
 	registry.insert(std::make_pair(WfpObjectType::Provider, Provider()));
 	registry.insert(std::make_pair(WfpObjectType::Sublayer, SublayerBaseline()));
 	registry.insert(std::make_pair(WfpObjectType::Sublayer, SublayerDns()));
+
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_BlockAll_Outbound_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_BlockAll_Inbound_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_BlockAll_Outbound_Ipv6()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_BlockAll_Inbound_Ipv6()));
+
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitLan_Outbound_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitLan_Outbound_Multicast_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitLan_Outbound_Ipv6()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitLan_Outbound_Multicast_Ipv6()));
+
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitLanService_Inbound_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitLanService_Inbound_Ipv6()));
+
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitLoopback_Outbound_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitLoopback_Inbound_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitLoopback_Outbound_Ipv6()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitLoopback_Inbound_Ipv6()));
+
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitDhcp_Outbound_Request_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitDhcp_Inbound_Response_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitDhcp_Outbound_Request_Ipv6()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitDhcp_Inbound_Response_Ipv6()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitDhcpServer_Inbound_Request_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitDhcpServer_Outbound_Response_Ipv4()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnRelay_Ipv4_1()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnRelay_Ipv6_1()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnRelay_Ipv4_2()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnRelay_Ipv6_2()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_1()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_1()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_2()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_2()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_3()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_3()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_4()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_4()));
 
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitSecureDns_Ipv4_1()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitSecureDns_Ipv6_1()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitSecureDns_Ipv4_2()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitSecureDns_Ipv6_2()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitSecureDns_Ipv4_3()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitSecureDns_Ipv6_3()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitSecureDns_Ipv4_4()));
-	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitSecureDns_Ipv6_4()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnRelay_Ipv4_1()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnRelay_Ipv4_2()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnRelay_Ipv6_1()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnRelay_Ipv6_2()));
+
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_1()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_2()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_3()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_4()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_5()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_6()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_7()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv4_8()));
+
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_1()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_2()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_3()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_4()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_5()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_6()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_7()));
+	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitEndpoint_Ipv6_8()));
 
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv4_1()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv6_1()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv4_2()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnel_Entry_Outbound_Ipv6_2()));
+
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnel_Exit_Outbound_Ipv4_1()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnel_Exit_Outbound_Ipv6_1()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnel_Exit_Outbound_Ipv4_2()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnel_Exit_Outbound_Ipv6_2()));
+
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnelService_Entry_Ipv4_1()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnelService_Entry_Ipv6_1()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnelService_Entry_Ipv4_2()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnelService_Entry_Ipv6_2()));
+
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnelService_Exit_Ipv4_1()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnelService_Exit_Ipv6_1()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnelService_Exit_Ipv4_2()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitVpnTunnelService_Exit_Ipv6_2()));
+
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitNdp_Outbound_Router_Solicitation()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitNdp_Inbound_Router_Advertisement()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitNdp_Outbound_Neighbor_Solicitation()));
@@ -113,14 +124,19 @@ MullvadGuids::DetailedIdentityRegistry MullvadGuids::DetailedRegistry(IdentityQu
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitNdp_Outbound_Neighbor_Advertisement()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitNdp_Inbound_Neighbor_Advertisement()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitNdp_Inbound_Redirect()));
+
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitDns_Outbound_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Baseline_PermitDns_Outbound_Ipv6()));
+
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Dns_BlockAll_Outbound_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Dns_BlockAll_Outbound_Ipv6()));
+
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Dns_PermitLoopback_Outbound_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Dns_PermitLoopback_Outbound_Ipv6()));
+
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Dns_PermitNonTunnel_Outbound_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Dns_PermitNonTunnel_Outbound_Ipv6()));
+
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Dns_PermitTunnel_Outbound_Ipv4()));
 	registry.insert(std::make_pair(WfpObjectType::Filter, Filter_Dns_PermitTunnel_Outbound_Ipv6()));
 
@@ -489,28 +505,10 @@ const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_1()
 }
 
 //static
-const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_1()
-{
-	// {C88C848F-2DF9-4908-944D-DE550CAD325E}
-	static const GUID g = { 0xc88c848f,0x2df9,0x4908,{0x94,0x4d,0xde,0x55,0x0c,0xad,0x32,0x5e} };
-
-	return g;
-}
-
-//static
 const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_2()
 {
 	// {1F1D87EC-6022-48C9-BDAA-224C428E30C0}
 	static const GUID g = { 0x1f1d87ec,0x6022,0x48c9,{0xbd,0xaa,0x22,0x4c,0x42,0x8e,0x30,0xc0} };
-
-	return g;
-}
-
-//static
-const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_2()
-{
-	// {A8777D53-399B-418F-B24F-B03BAEABB68E}
-	static const GUID g = { 0xa8777d53,0x399b,0x418f,{0xb2,0x4f,0xb0,0x3b,0xae,0xab,0xb6,0x8e} };
 
 	return g;
 }
@@ -525,15 +523,6 @@ const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_3()
 }
 
 //static
-const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_3()
-{
-	// {ECE12F4D-EA16-4672-A128-43BE87A2D9C9}
-	static const GUID g = { 0xece12f4d,0xea16,0x4672,{0xa1,0x28,0x43,0xbe,0x87,0xa2,0xd9,0xc9} };
-
-	return g;
-}
-
-//static
 const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_4()
 {
 	// {7CB2CBA7-AF0A-43C8-B86E-86405FBC6352}
@@ -543,7 +532,67 @@ const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_4()
 }
 
 //static
-const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_4()
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_5() {
+	// {BD23286A-F0F0-41C1-A46C-935F2C8875EF}
+	static const GUID g = { 0xbd23286a,0xf0f0,0x41c1,{0xa4,0x6c,0x93,0x5f,0x2c,0x88,0x75,0xef} };
+
+	return g;
+}
+
+//static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_6() {
+	// {C6D38A13-7886-4D90-835B-DFF312F46BCB}
+	static const GUID g = { 0xc6d38a13,0x7886,0x4d90,{0x83,0x5b,0xdf,0xf3,0x12,0xf4,0x6b,0xcb} };
+
+	return g;
+}
+
+//static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_7() {
+	// {C7905ABB-4C9C-40B6-A9F5-8A5951063668}
+	static const GUID g = { 0xc7905abb,0x4c9c,0x40b6,{0xa9,0xf5,0x8a,0x59,0x51,0x06,0x36,0x68} };
+
+	return g;
+}
+
+//static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_8() {
+	// {5706FDD0-602A-4C91-BD57-A2D323DC7E7A}
+	static const GUID g = { 0x5706fdd0,0x602a,0x4c91,{0xbd,0x57,0xa2,0xd3,0x23,0xdc,0x7e,0x7a} };
+
+	return g;
+}
+
+//static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_1()
+{
+	// {C88C848F-2DF9-4908-944D-DE550CAD325E}
+	static const GUID g = { 0xc88c848f,0x2df9,0x4908,{0x94,0x4d,0xde,0x55,0x0c,0xad,0x32,0x5e} };
+
+	return g;
+}
+
+//static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_2()
+{
+	// {A8777D53-399B-418F-B24F-B03BAEABB68E}
+	static const GUID g = { 0xa8777d53,0x399b,0x418f,{0xb2,0x4f,0xb0,0x3b,0xae,0xab,0xb6,0x8e} };
+
+	return g;
+}
+
+//static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_3()
+{
+	// {ECE12F4D-EA16-4672-A128-43BE87A2D9C9}
+	static const GUID g = { 0xece12f4d,0xea16,0x4672,{0xa1,0x28,0x43,0xbe,0x87,0xa2,0xd9,0xc9} };
+
+	return g;
+}
+
+
+//static
+const GUID& MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_4()
 {
 	// {A6674EDA-3AA6-4937-B2DC-FAE0B1AE83BE}
 	static const GUID g = { 0xa6674eda,0x3aa6,0x4937,{0xb2,0xdc,0xfa,0xe0,0xb1,0xae,0x83,0xbe} };
@@ -552,39 +601,7 @@ const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_4()
 }
 
 //static
-const GUID& MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv4_1() {
-	// {BD23286A-F0F0-41C1-A46C-935F2C8875EF}
-	static const GUID g = { 0xbd23286a,0xf0f0,0x41c1,{0xa4,0x6c,0x93,0x5f,0x2c,0x88,0x75,0xef} };
-
-	return g;
-}
-
-//static
-const GUID &MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv4_2() {
-	// {C6D38A13-7886-4D90-835B-DFF312F46BCB}
-	static const GUID g = { 0xc6d38a13,0x7886,0x4d90,{0x83,0x5b,0xdf,0xf3,0x12,0xf4,0x6b,0xcb} };
-
-	return g;
-}
-
-//static
-const GUID& MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv4_3() {
-	// {C7905ABB-4C9C-40B6-A9F5-8A5951063668}
-	static const GUID g = { 0xc7905abb,0x4c9c,0x40b6,{0xa9,0xf5,0x8a,0x59,0x51,0x06,0x36,0x68} };
-
-	return g;
-}
-
-//static
-const GUID& MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv4_4() {
-	// {5706FDD0-602A-4C91-BD57-A2D323DC7E7A}
-	static const GUID g = { 0x5706fdd0,0x602a,0x4c91,{0xbd,0x57,0xa2,0xd3,0x23,0xdc,0x7e,0x7a} };
-
-	return g;
-}
-
-//static
-const GUID &MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv6_1() {
+const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_5() {
 	// {B0FC3204-8857-44E0-91F9-D3C0903BF6E8}
 	static const GUID g = { 0xb0fc3204,0x8857,0x44e0,{0x91,0xf9,0xd3,0xc0,0x90,0x3b,0xf6,0xe8} };
 
@@ -592,7 +609,7 @@ const GUID &MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv6_1() {
 }
 
 //static
-const GUID &MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv6_2() {
+const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_6() {
 	// {92A0C2EB-F886-477F-8E91-2D503D185060}
 	static const GUID g = { 0x92a0c2eb,0xf886,0x477f,{0x8e,0x91,0x2d,0x50,0x3d,0x18,0x50,0x60} };
 
@@ -600,7 +617,7 @@ const GUID &MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv6_2() {
 }
 
 //static
-const GUID &MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv6_3() {
+const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_7() {
 	// {55C9A462-39A8-42AF-A2A1-51D6E5AFA09C}
 	static const GUID g = { 0x55c9a462,0x39a8,0x42af,{0xa2,0xa1,0x51,0xd6,0xe5,0xaf,0xa0,0x9c} };
 
@@ -608,7 +625,7 @@ const GUID &MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv6_3() {
 }
 
 //static
-const GUID &MullvadGuids::Filter_Baseline_PermitSecureDns_Ipv6_4() {
+const GUID &MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_8() {
 	// {5F3D9433-C688-4112-AA31-7E9760EA20B6}
 	static const GUID g = { 0x5f3d9433,0xc688,0x4112,{0xaa,0x31,0x7e,0x97,0x60,0xea,0x20,0xb6} };
 

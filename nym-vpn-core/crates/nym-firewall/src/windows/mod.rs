@@ -5,7 +5,7 @@
 #[macro_use]
 mod ffi;
 
-use crate::TunnelInterface;
+use crate::{AllowedClients, DNS_TCP_PORTS, Endpoint, TransportProtocol, TunnelInterface};
 use nym_dns::ResolvedDnsConfig;
 
 use std::{ffi::CStr, net::IpAddr, ptr, sync::LazyLock};
@@ -270,28 +270,37 @@ impl Firewall {
         let allowed_exit_tunnel_traffic_bridge =
             AllowedTunnelTrafficBridge::from(allowed_exit_tunnel_traffic);
 
+        let non_tunnel_dns_servers =
+            dns_config
+                .non_tunnel_config()
+                .iter()
+                .cloned()
+                .flat_map(|dns_ip| {
+                    DNS_TCP_PORTS
+                        .iter()
+                        .copied()
+                        .map(|tcp_port| {
+                            AllowedEndpoint::new(
+                                Endpoint::new(dns_ip, tcp_port, TransportProtocol::Tcp),
+                                AllowedClients::current_exe(),
+                            )
+                        })
+                        .collect::<Vec<_>>()
+                });
+
         let allowed_endpoint_containers = allowed_endpoints
             .iter()
             .cloned()
+            .chain(non_tunnel_dns_servers)
             .map(AllowedEndpointBridge::from)
             .collect::<Vec<_>>();
         let winfw_allowed_endpoints = allowed_endpoint_containers
             .iter()
             .map(|allowed_endpoint| allowed_endpoint.as_endpoint())
             .collect::<Vec<_>>();
+
         // todo: verify that this is correct way to pass array of pointers.
         let allowed_endpoints_refs = winfw_allowed_endpoints.iter().collect::<Vec<_>>();
-
-        let non_tunnel_dns_servers: Vec<WideCString> = dns_config
-            .non_tunnel_config()
-            .iter()
-            .cloned()
-            .map(widestring_ip)
-            .collect();
-        let non_tunnel_dns_servers_refs: Vec<*const u16> = non_tunnel_dns_servers
-            .iter()
-            .map(|ip| ip.as_ptr())
-            .collect();
 
         unsafe {
             WinFw_ApplyPolicyConnecting(
@@ -310,8 +319,6 @@ impl Firewall {
                 allowed_endpoints_refs.len(),
                 allowed_entry_tunnel_traffic_bridge.as_inner_ref(),
                 allowed_exit_tunnel_traffic_bridge.as_inner_ref(),
-                non_tunnel_dns_servers_refs.as_ptr(),
-                non_tunnel_dns_servers_refs.len(),
             )
             .into_result()
             .map_err(Error::ApplyingConnectingPolicy)
@@ -833,8 +840,6 @@ mod winfw {
             numAllowedEndpoints: usize,
             allowedEntryTunnelTraffic: &WinFwAllowedTunnelTraffic,
             allowedExitTunnelTraffic: &WinFwAllowedTunnelTraffic,
-            nonTunnelDnsServers: *const *const libc::wchar_t,
-            numNonTunnelDnsServers: usize,
         ) -> WinFwPolicyStatus;
 
         #[link_name = "WinFw_ApplyPolicyConnected"]
