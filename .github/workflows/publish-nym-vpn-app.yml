@@ -18,7 +18,7 @@ on:
         default: dev
         required: true
       pre_release:
-        description: "Label this release as \"Pre-release\" (true for dev releases)"
+        description: "Label as \"Pre-release\""
         required: false
         type: boolean
         default: false
@@ -199,7 +199,7 @@ jobs:
             ${{ env.UPLOAD_DIR_UBUNTU_22}}/*
             ${{ env.UPLOAD_DIR_WINDOWS}}/*
 
-  update-windows-metadata:
+  windows-updater:
     uses: ./.github/workflows/tauri-updater.yml
     needs: publish
     if: ${{ inputs.release_type == 'stable' || inputs.release_type == 'dev' }}
