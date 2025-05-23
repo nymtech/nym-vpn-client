@@ -451,6 +451,9 @@ impl TunnelStateHandler for ConnectingState {
             }
             Some(monitor_event) = self.tunnel_monitor_event_receiver.recv() => {
             match monitor_event {
+                TunnelMonitorEvent::ReconnectCooldown { .. } => {
+                    NextTunnelState::SameState(self)
+                }
                 TunnelMonitorEvent::InitializingClient => {
                     NextTunnelState::SameState(self)
                 }

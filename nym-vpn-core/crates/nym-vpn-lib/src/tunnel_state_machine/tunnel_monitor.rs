@@ -13,7 +13,12 @@ use std::os::fd::BorrowedFd;
 use std::os::fd::{AsRawFd, IntoRawFd};
 #[cfg(target_os = "android")]
 use std::os::fd::{FromRawFd, OwnedFd};
-use std::{cmp, net::IpAddr, path::PathBuf, time::Duration};
+use std::{
+    cmp,
+    net::IpAddr,
+    path::PathBuf,
+    time::{Duration, Instant},
+};
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
 
@@ -118,6 +123,16 @@ const REPLY_TIMEOUT: Duration = Duration::from_secs(5);
 
 #[derive(Debug)]
 pub enum TunnelMonitorEvent {
+    /// Awaiting a cooldown period before reconnecting
+    #[allow(dead_code)]
+    ReconnectCooldown {
+        /// Cooldown begin time
+        begin_time: Instant,
+
+        /// Cooldown duration
+        duration: Duration,
+    },
+
     /// Initializing mixnet client
     InitializingClient,
 
@@ -271,6 +286,10 @@ impl TunnelMonitor {
         if self.tunnel_parameters.retry_attempt > 0 {
             let delay = wait_delay(self.tunnel_parameters.retry_attempt);
             tracing::debug!("Waiting for {}s before connecting.", delay.as_secs());
+            self.send_event(TunnelMonitorEvent::ReconnectCooldown {
+                begin_time: Instant::now(),
+                duration: delay,
+            });
 
             self.cancel_token
                 .run_until_cancelled(tokio::time::sleep(delay))
