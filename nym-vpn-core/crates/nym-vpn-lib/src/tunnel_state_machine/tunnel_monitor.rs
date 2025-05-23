@@ -526,10 +526,24 @@ impl TunnelMonitor {
         match self
             .shutdown_token
             .run_until_cancelled(tunnel_handle.recv_error())
-            .await;
+            .await
+        {
+            Some(task_error) => {
+                match task_error {
+                    Some(task_error) => {
+                        tracing::error!("Task manager quit with error: {}", task_error);
+                    }
+                    None => {
+                        tracing::error!("Task manager quit without error");
+                    }
+                }
 
-        if let Some(Some(task_error)) = task_error {
-            tracing::error!("Task manager quit with error: {}", task_error);
+                // Trigger cancellation since many other tasks depend on shutdown token
+                self.shutdown_token.cancel();
+            }
+            None => {
+                // Shutdown token has been cancelled.
+            }
         }
 
         tracing::info!("Wait for tunnel to exit");
