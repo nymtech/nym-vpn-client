@@ -532,7 +532,7 @@ impl TunnelMonitor {
             tracing::error!("Task manager quit with error: {}", task_error);
         }
 
-        tracing::debug!("Wait for tunnel to exit");
+        tracing::info!("Wait for tunnel to exit");
         tunnel_handle.cancel().await;
 
         let tun_devices = tunnel_handle
@@ -554,6 +554,7 @@ impl TunnelMonitor {
                 tracing::error!("Failed to join on discovery refresher: {}", e);
             }
         }
+        tracing::info!("Tunnel monitor finished");
 
         Ok(tun_devices)
     }
