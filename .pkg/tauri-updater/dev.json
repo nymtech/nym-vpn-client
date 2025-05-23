@@ -1,9 +1,9 @@
 {
-  "version": "TODO",
+  "version": "1.9.0-dev",
   "platforms": {
     "windows-x86_64": {
-      "signature": "TODO",
-      "url": "TODO"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VjhjR0xWd1FyaFVCWDJUOFd1OGRUVmV4Zm9EWWFCYmtMQTlDZWdMRHNuV21nalNuWWRqK3VJTkZsd2FKSlQ1aEdhdUdXWWtCTWZlM0tUVmZsemJ2ZGdrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzQ4MDI1MzU2CWZpbGU6TnltVlBOXzEuOS4wLWRldl94NjQtc2V0dXAuZXhlCm1VdWRSMTNhZ1JhQ1JVdndONHB1YTlJRkptdjUxOTUxMDQzVFkyczNkV1N2SVhQVEFuTithcHRPbm1wd3NxWUJZdnM1aitSWHFWUm9hYXNEWkFsc0NnPT0K",
+      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/tauri_updater_wip/NymVPN_1.9.0-dev_x64-setup.exe"
     }
   }
 }
