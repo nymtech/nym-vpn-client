@@ -35,9 +35,6 @@ on:
         description: "direct nym-vpn-core artifact URL for Windows, to get the daemon"
         required: false
         type: string
-  push:
-    tags:
-      - nym-vpn-app-v[0-9]+.[0-9]+.[0-9]+*
 
 jobs:
   build-nym-vpn-app-linux:
