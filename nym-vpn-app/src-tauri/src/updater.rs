@@ -1,20 +1,34 @@
+use crate::env;
+
 use anyhow::Result;
 use tauri::AppHandle;
 use tauri_plugin_updater::{Update, UpdaterExt};
-use tracing::{info, trace};
-
-const ENDPOINT: &str = "https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/nym-vpn-app/updater.json";
+use tracing::{debug, error, info, instrument, trace};
 
 // Based on https://v2.tauri.app/plugin/updater/#checking-for-updates
+#[instrument(skip(app))]
 pub async fn check(app: AppHandle) -> Result<Option<Update>> {
-    let url = url::Url::parse(ENDPOINT).expect("invalid updater endpoint URL");
-
-    let update = app
-        .updater_builder()
-        .endpoints(vec![url])?
-        .build()?
-        .check()
-        .await?;
+    let builder = app.updater_builder();
+    let update = if let Some(endpoint) = env::UPDATER_ENDPOINT {
+        debug!("using endpoint: {}", endpoint);
+        let url = url::Url::parse(endpoint)
+            .inspect_err(|e| error!("failed to parse URL endpoint: {}", e))?;
+        builder
+            .endpoints(vec![url])
+            .inspect_err(|e| error!("endpoint failed: {}", e))?
+            .build()
+            .inspect_err(|e| error!("build failed: {}", e))?
+            .check()
+            .await
+            .inspect_err(|e| error!("check update failed: {}", e))?
+    } else {
+        builder
+            .build()
+            .inspect_err(|e| error!("build failed: {}", e))?
+            .check()
+            .await
+            .inspect_err(|e| error!("check update failed: {}", e))?
+    };
     match &update {
         Some(update) => {
             info!("new update available: {}", update.version);
