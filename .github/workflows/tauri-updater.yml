@@ -52,12 +52,12 @@ on:
         required: true
         default: ''
 
-permissions:
-  contents: write
-
 jobs:
   update-metadata:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     env:
       JSON_FILE: ${{ inputs.channel == 'stable' && 'stable.json' || 'dev.json' }}
     steps:
@@ -82,12 +82,19 @@ jobs:
           echo "updated metadata"
           cat ${{ env.JSON_FILE }}
 
-      - name: Push metadata
+      - name: Create PR
         env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          GIT_BRANCH: 'tauri-updater-${{ inputs.channel }}-${{ inputs.version }}'
           COMMIT_MSG: 'tauri-updater: update metadata ${{ inputs.channel }} ${{ inputs.platform }} v${{ inputs.version }}'
+          PR_TITLE: "tauri-updater: update metadata v${{ inputs.version }} ${{ inputs.channel }}"
+          PR_BODY: "Update tauri updater metadata: `v${{ inputs.version }}` `${{ inputs.channel }}` `${{ inputs.platform }}`"
         run: |
           git config --global user.name "NYM_bot"
-          git config --global user.email ""
+          git config --global user.email "_@_"
+          git switch -C ${{ env.GIT_BRANCH }}
           git add .pkg/tauri-updater
           git commit -m "${{ env.COMMIT_MSG }}"
-          git push
+          git push origin ${{ env.GIT_BRANCH }}
+          gh pr create --title '${{ env.PR_TITLE }}' --body '${{ env.PR_BODY }}' --base develop --reviewer "doums"
