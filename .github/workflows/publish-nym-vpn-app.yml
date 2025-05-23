@@ -153,7 +153,7 @@ jobs:
           for f in *; do sha256sum "$f" > "$f.sha256sum"; done
           popd
           pushd ${{ env.UPLOAD_DIR_WINDOWS }} || exit 1
-          exe=(./*setup.exe)
+          exe=(*setup.exe)
           sha256sum "${exe[0]}" > "${exe[0]}.sha256sum";
           popd
           echo 'SHA256SUMS<<EOF' >> $GITHUB_ENV
@@ -167,14 +167,29 @@ jobs:
           cat build-info/build-info.txt >> $GITHUB_ENV
           echo 'EOF' >> $GITHUB_ENV
 
-      - if: ${{ env.RELEASE_TYPE != 'stable' }}
-        run: echo "RN_TITLE_SUFFIX=', ${{ env.RELEASE_TYPE }} build'" >> $GITHUB_ENV
+      - name: Set release notes header (stable)
+        if: ${{ env.RELEASE_TYPE == 'stable' }}
+        env:
+          EMOJI: ':ship:'
+        run: echo "RELEASE_NOTES_HEADER='$EMOJI Linux and Windows desktop app'" >> $GITHUB_ENV
+
+      - name: Set release notes header (dev)
+        if: ${{ env.RELEASE_TYPE == 'dev' }}
+        env:
+          EMOJI: ':hammer_and_wrench:'
+        run: echo "RELEASE_NOTES_HEADER='$EMOJI Linux and Windows desktop app, **dev** build'" >> $GITHUB_ENV
+
+      - name: Set release notes header (nightly)
+        if: ${{ env.RELEASE_TYPE == 'nightly' }}
+        env:
+          EMOJI: ':night_with_stars:'
+        run: echo "RELEASE_NOTES_HEADER='$EMOJI Linux and Windows desktop app, **nightly** build'" >> $GITHUB_ENV
 
       - name: Release notes
         run: |
           {
             echo 'RELEASE_NOTES<<EOF'
-            echo 'Linux and Windows desktop app${{ env.RN_TITLE_SUFFIX }}
+            echo '${{ env.RELEASE_NOTES_HEADER }}
 
           ```
           ${{ env.BUILD_INFO }}
