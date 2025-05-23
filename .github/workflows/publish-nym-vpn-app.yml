@@ -52,7 +52,8 @@ jobs:
       core_release_tag: ${{ inputs.core_release_tag }}
       core_artifact_url: ${{ inputs.core_artifact_url }}
       sign: ${{ inputs.release_type == 'stable' }}
-      updater_bundle: ${{ inputs.release_type == 'stable' }}
+      updater_bundle: ${{ inputs.release_type == 'stable' || inputs.release_type == 'dev' }}
+      updater_channel: ${{ inputs.release_type == 'stable' && 'stable' || 'dev' }}
     secrets: inherit
 
   generate-build-info-nym-vpn-app:

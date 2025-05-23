@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::updater;
 use tauri::ipc::Channel;
 use tauri::{AppHandle, State};
-use tracing::error;
+use tracing::instrument;
 use ts_rs::TS;
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
@@ -26,13 +26,13 @@ pub enum DownloadEvent {
 }
 
 #[tauri::command]
+#[instrument(skip_all)]
 pub async fn fetch_update(
     app: AppHandle,
     pending_update: State<'_, PendingUpdate>,
 ) -> Result<Option<UpdateMetadata>, BackendError> {
     let update = updater::check(app)
         .await
-        .inspect_err(|e| error!("updater failed: {}", e))
         .map_err(|_| BackendError::internal("updater failed to check for update", None))?;
 
     match update {
@@ -50,6 +50,7 @@ pub async fn fetch_update(
 
 // Based on https://v2.tauri.app/plugin/updater/#checking-for-updates
 #[tauri::command]
+#[instrument(skip_all)]
 pub async fn install_update(
     pending_update: State<'_, PendingUpdate>,
     on_event: Channel<DownloadEvent>,

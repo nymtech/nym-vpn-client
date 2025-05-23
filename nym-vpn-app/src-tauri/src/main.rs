@@ -126,20 +126,13 @@ async fn main() -> Result<()> {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .setup(move |app| {
             info!("app setup");
 
-            app.manage(updater_state::PendingUpdate(Mutex::new(None)));
-            // TODO #[cfg(windows)]
-            app.handle()
-                .plugin(tauri_plugin_updater::Builder::new().build())
-                .inspect_err(|e| {
-                    error!("failed to setup updater plugin: {e}");
-                })
-                .ok();
-
             app.manage(cli.clone());
+            app.manage(updater_state::PendingUpdate(Mutex::new(None)));
 
             info!("Creating k/v embedded db");
             let db = match Db::new() {
