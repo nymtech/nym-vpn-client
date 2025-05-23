@@ -1,3 +1,0 @@
-What's new:
-- Add credential check
-- Add encrypted storage for credential
