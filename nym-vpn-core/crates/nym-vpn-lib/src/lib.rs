@@ -52,13 +52,11 @@ static DEFAULT_DNS_SERVERS_CONFIG: LazyLock<NameServerConfigGroup> = LazyLock::n
 });
 
 pub static DEFAULT_DNS_SERVERS: LazyLock<Vec<IpAddr>> = LazyLock::new(|| {
-    let ips = DEFAULT_DNS_SERVERS_CONFIG
+    DEFAULT_DNS_SERVERS_CONFIG
         .iter()
         .map(|ns| ns.socket_addr.ip())
         .unique()
-        .collect();
-    println!("Deduped ips: {ips:?}");
-    ips
+        .collect()
 });
 
 #[derive(Clone, Default, Debug, Eq, PartialEq)]
