@@ -109,14 +109,14 @@ void Policy::processConnecting(const KeyValuePairs &arguments)
 		GetArgumentValue(arguments, L"protocol")
 	);
 
-	auto success = false; /* WINFW_POLICY_STATUS_SUCCESS == WinFw_ApplyPolicyConnecting
+	auto success = WINFW_POLICY_STATUS_SUCCESS == WinFw_ApplyPolicyConnecting
 	(
 		&settings,
 		&relay,
 		GetArgumentValue(arguments, L"client").c_str(),
 		nullptr,
 		nullptr
-	);*/
+	);
 
 	m_messageSink((success
 		? L"Successfully applied policy."
@@ -143,7 +143,7 @@ void Policy::processConnected(const KeyValuePairs &arguments)
 	const auto v4Gateway = GetArgumentValue(arguments, L"v4Gateway");
 	const auto dnsCstr = v4Gateway.c_str();
 
-	auto success = true; /* WINFW_POLICY_STATUS_SUCCESS == WinFw_ApplyPolicyConnected
+	auto success = WINFW_POLICY_STATUS_SUCCESS == WinFw_ApplyPolicyConnected
 	(
 		&settings,
 		&relay,
@@ -153,7 +153,7 @@ void Policy::processConnected(const KeyValuePairs &arguments)
 		nullptr,
 		&dnsCstr,
 		1
-	); */
+	);
 
 	m_messageSink((success
 		? L"Successfully applied policy."
@@ -168,7 +168,7 @@ void Policy::processBlocked(const KeyValuePairs &arguments)
 		GetArgumentValue(arguments, L"lan")
 	);
 
-	auto success = true; /* WINFW_POLICY_STATUS_SUCCESS == WinFw_ApplyPolicyBlocked(&settings, nullptr); */
+	auto success = WINFW_POLICY_STATUS_SUCCESS == WinFw_ApplyPolicyBlocked(&settings, nullptr);
 
 	m_messageSink((success
 		? L"Successfully applied policy."
