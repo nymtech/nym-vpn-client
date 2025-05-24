@@ -142,7 +142,7 @@ rand_chacha = "0.3.1"
 resolv-conf = "0.7"
 rs-release = "0.1.7"
 rtnetlink = "0.14.1"
-rust2go = "0.4.1"
+rust2go = { git = "https://github.com/ihciah/rust2go.git", rev = "00b068a9a99cac4252af0ec113e2ce5f2289132a" }
 semver = "1.0"
 serde = "1.0"
 serde_json = "1.0"

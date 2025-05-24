@@ -6352,8 +6352,7 @@ dependencies = [
 [[package]]
 name = "rust2go"
 version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b72d44674ddf3acb250c3cf3a608e928c6a0aa176f0f8fa9f83e7778ae713519"
+source = "git+https://github.com/ihciah/rust2go.git?rev=00b068a9a99cac4252af0ec113e2ce5f2289132a#00b068a9a99cac4252af0ec113e2ce5f2289132a"
 dependencies = [
  "bindgen 0.71.1",
  "rust2go-cli",
@@ -6365,8 +6364,7 @@ dependencies = [
 [[package]]
 name = "rust2go-cli"
 version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5f5b73395abf8ad750730351b7bcb5b8fc637dadf3d900f55dc59953a5b15bf6"
+source = "git+https://github.com/ihciah/rust2go.git?rev=00b068a9a99cac4252af0ec113e2ce5f2289132a#00b068a9a99cac4252af0ec113e2ce5f2289132a"
 dependencies = [
  "cbindgen",
  "clap",
@@ -6377,8 +6375,7 @@ dependencies = [
 [[package]]
 name = "rust2go-common"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "04274cfe9552d6893cf9cb17652de327c3b0f4f912b5372a904d9d97da9204c5"
+source = "git+https://github.com/ihciah/rust2go.git?rev=00b068a9a99cac4252af0ec113e2ce5f2289132a#00b068a9a99cac4252af0ec113e2ce5f2289132a"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -6388,14 +6385,12 @@ dependencies = [
 [[package]]
 name = "rust2go-convert"
 version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4c9b9dcfbeec346b228b700861dc2b43f32ab6679b6440db3eedc459ef024be"
+source = "git+https://github.com/ihciah/rust2go.git?rev=00b068a9a99cac4252af0ec113e2ce5f2289132a#00b068a9a99cac4252af0ec113e2ce5f2289132a"
 
 [[package]]
 name = "rust2go-macro"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9f195b1658c4984e70f0aef27b49a1d2b98e106a1418542017dfc9d11636e7c4"
+source = "git+https://github.com/ihciah/rust2go.git?rev=00b068a9a99cac4252af0ec113e2ce5f2289132a#00b068a9a99cac4252af0ec113e2ce5f2289132a"
 dependencies = [
  "proc-macro2",
  "quote",
