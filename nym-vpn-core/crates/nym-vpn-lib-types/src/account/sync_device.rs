@@ -13,7 +13,7 @@ pub enum SyncDeviceError {
     #[error("no device stored")]
     NoDeviceStored,
 
-    #[error("sync device: {0}")]
+    #[error("sync device")]
     SyncDeviceEndpointFailure(#[from] VpnApiError),
 
     #[error("unexpected response: {0}")]

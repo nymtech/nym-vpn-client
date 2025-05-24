@@ -376,10 +376,10 @@ pub enum Error {
     CreateUnixAddr(#[source] nix::errno::Errno),
 
     #[error("failed to decode UTF-8 string")]
-    DecodeUtf8(std::str::Utf8Error),
+    DecodeUtf8(#[source] std::str::Utf8Error),
 
     #[error("failed to parse IP address")]
-    ParseIpAddress(std::net::AddrParseError),
+    ParseIpAddress(#[source] std::net::AddrParseError),
 
     #[error("{:?} contains nul byte", _0)]
     FieldContainsNulByte(FieldName),

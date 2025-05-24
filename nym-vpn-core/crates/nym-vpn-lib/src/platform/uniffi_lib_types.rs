@@ -238,6 +238,7 @@ pub enum ErrorStateReason {
     Dns(Option<String>),
     Api(Option<String>),
     DeviceTimeOutOfSync,
+    CreateMixnetStorage,
     Internal(Option<String>),
 }
 
@@ -524,6 +525,7 @@ impl From<ClientErrorReason> for ErrorStateReason {
             ClientErrorReason::Dns(message) => Self::Dns(message),
             ClientErrorReason::Api(message) => Self::Api(message),
             ClientErrorReason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
+            ClientErrorReason::CreateMixnetStorage => Self::CreateMixnetStorage,
             ClientErrorReason::Internal(message) => Self::Internal(message),
         }
     }

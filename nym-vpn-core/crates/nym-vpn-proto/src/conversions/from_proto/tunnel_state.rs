@@ -58,6 +58,7 @@ impl From<ProtoError> for ClientErrorReason {
             ErrorStateReason::Dns => ClientErrorReason::Dns(value.detail),
             ErrorStateReason::Api => ClientErrorReason::Api(value.detail),
             ErrorStateReason::DeviceTimeOutOfSync => ClientErrorReason::DeviceTimeOutOfSync,
+            ErrorStateReason::CreateMixnetStorage => ClientErrorReason::CreateMixnetStorage,
             ErrorStateReason::Internal => ClientErrorReason::Internal(value.detail),
         }
     }

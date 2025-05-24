@@ -13,7 +13,7 @@ pub enum StoreAccountError {
     #[error("storage: {0}")]
     Storage(String),
 
-    #[error("get account: {0}")]
+    #[error("get account")]
     GetAccountEndpointFailure(VpnApiError),
 
     #[error("unexpected response: {0}")]
