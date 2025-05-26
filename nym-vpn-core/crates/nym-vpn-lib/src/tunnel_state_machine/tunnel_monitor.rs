@@ -583,8 +583,11 @@ impl TunnelMonitor {
 
     async fn setup_account(&mut self) -> Result<()> {
         // Check that the device time is synced as a precondition to continuing
-        account::check_device_time_sync(self.account_commands.clone(), self.shutdown_token.clone())
-            .await?;
+        account::check_device_time_sync(
+            self.account_commands.clone(),
+            self.shutdown_token.child_token(),
+        )
+        .await?;
 
         // Check if we have ticketbooks already stored, then we can sidestep the account and device
         // sync
@@ -609,20 +612,20 @@ impl TunnelMonitor {
             self.send_event(TunnelMonitorEvent::SyncingAccount);
             account::wait_for_account_sync(
                 self.account_commands.clone(),
-                self.shutdown_token.clone(),
+                self.shutdown_token.child_token(),
             )
             .await?;
 
             account::wait_for_device_sync(
                 self.account_commands.clone(),
-                self.shutdown_token.clone(),
+                self.shutdown_token.child_token(),
             )
             .await?;
 
             self.send_event(TunnelMonitorEvent::RegisteringDevice);
             account::wait_for_device_register(
                 self.account_commands.clone(),
-                self.shutdown_token.clone(),
+                self.shutdown_token.child_token(),
             )
             .await?;
         }
@@ -635,7 +638,7 @@ impl TunnelMonitor {
             self.send_event(TunnelMonitorEvent::RequestingZkNyms);
             account::wait_for_credentials_ready(
                 self.account_commands.clone(),
-                self.shutdown_token.clone(),
+                self.shutdown_token.child_token(),
             )
             .await?;
         }
@@ -648,7 +651,7 @@ impl TunnelMonitor {
         connected_mixnet: ConnectedMixnet,
     ) -> Result<StartTunnelResult> {
         let connected_tunnel = connected_mixnet
-            .connect_mixnet_tunnel(self.shutdown_token.clone())
+            .connect_mixnet_tunnel(self.shutdown_token.child_token())
             .await
             .map_err(Box::new)?;
         let assigned_addresses = connected_tunnel.assigned_addresses();
@@ -751,7 +754,7 @@ impl TunnelMonitor {
                 self.tunnel_parameters
                     .tunnel_settings
                     .enable_credentials_mode,
-                self.shutdown_token.clone(),
+                self.shutdown_token.child_token(),
             )
             .await
             .map_err(Box::new)?;
@@ -831,7 +834,7 @@ impl TunnelMonitor {
                 self.tunnel_parameters
                     .tunnel_settings
                     .enable_credentials_mode,
-                self.shutdown_token.clone(),
+                self.shutdown_token.child_token(),
             )
             .await
             .map_err(Box::new)?;
@@ -917,7 +920,7 @@ impl TunnelMonitor {
                 self.tunnel_parameters
                     .tunnel_settings
                     .enable_credentials_mode,
-                self.shutdown_token.clone(),
+                self.shutdown_token.child_token(),
             )
             .await
             .map_err(Box::new)?;
@@ -1027,7 +1030,7 @@ impl TunnelMonitor {
                 self.tunnel_parameters
                     .tunnel_settings
                     .enable_credentials_mode,
-                self.shutdown_token.clone(),
+                self.shutdown_token.child_token(),
             )
             .await
             .map_err(Box::new)?;
@@ -1149,7 +1152,7 @@ impl TunnelMonitor {
                 self.tunnel_parameters
                     .tunnel_settings
                     .enable_credentials_mode,
-                self.shutdown_token.clone(),
+                self.shutdown_token.child_token(),
             )
             .await
             .map_err(Box::new)?;
