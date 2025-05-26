@@ -29,7 +29,7 @@ pub(crate) struct PendingCredentialRequestsStorage {
 }
 
 impl PendingCredentialRequestsStorage {
-    pub(crate) async fn init<P: AsRef<Path>>(
+    pub async fn init<P: AsRef<Path>>(
         database_path: P,
     ) -> Result<Self, PendingCredentialRequestsStorageError> {
         tracing::debug!(
@@ -69,7 +69,7 @@ impl PendingCredentialRequestsStorage {
         })
     }
 
-    pub(crate) async fn reset(&mut self) -> Result<(), PendingCredentialRequestsStorageError> {
+    pub async fn reset(&mut self) -> Result<(), PendingCredentialRequestsStorageError> {
         // First we close the storage to ensure that all files are closed
         tracing::debug!("Closing pending credential requests storage");
         self.storage_manager.close().await;
@@ -95,7 +95,7 @@ impl PendingCredentialRequestsStorage {
         Ok(())
     }
 
-    pub(crate) async fn clean_up_stale_requests(
+    pub async fn clean_up_stale_requests(
         &self,
     ) -> Result<(), PendingCredentialRequestsStorageError> {
         let cutoff = OffsetDateTime::now_utc() - DEFAULT_STALE_REQUESTS_MAX_AGE;
@@ -120,7 +120,7 @@ impl PendingCredentialRequestsStorage {
             .map_err(Into::into)
     }
 
-    pub(crate) async fn get_pending_requests(
+    pub async fn get_pending_requests(
         &self,
     ) -> Result<Vec<PendingCredentialRequest>, PendingCredentialRequestsStorageError> {
         self.storage_manager
@@ -142,7 +142,7 @@ impl PendingCredentialRequestsStorage {
             .map_err(Into::into)
     }
 
-    pub(crate) async fn get_pending_request_by_id(
+    pub async fn get_pending_request_by_id(
         &self,
         id: &str,
     ) -> Result<Option<PendingCredentialRequest>, PendingCredentialRequestsStorageError> {
@@ -164,7 +164,7 @@ impl PendingCredentialRequestsStorage {
             .map_err(PendingCredentialRequestsStorageError::from)?
     }
 
-    pub(crate) async fn remove_pending_request(
+    pub async fn remove_pending_request(
         &self,
         id: &str,
     ) -> Result<(), PendingCredentialRequestsStorageError> {
