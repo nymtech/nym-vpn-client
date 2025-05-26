@@ -86,10 +86,14 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          GIT_BRANCH: 'tauri-updater-${{ inputs.channel }}-${{ inputs.version }}'
+          GIT_BRANCH: 'tauri-updater-${{ inputs.channel }}-${{ inputs.platform }}-${{ inputs.version }}'
           COMMIT_MSG: 'tauri-updater: update metadata ${{ inputs.channel }} ${{ inputs.platform }} v${{ inputs.version }}'
-          PR_TITLE: "tauri-updater: update metadata v${{ inputs.version }} ${{ inputs.channel }}"
-          PR_BODY: "Update tauri updater metadata: `v${{ inputs.version }}` `${{ inputs.channel }}` `${{ inputs.platform }}`"
+          PR_TITLE: "tauri-updater: update metadata ${{ inputs.channel }} ${{ inputs.platform }} v${{ inputs.version }}"
+          PR_BODY: |
+            Update tauri updater metadata
+            - channel: `${{ inputs.channel }}`
+            - platform: `${{ inputs.platform }}`
+            - version: `${{ inputs.version }}`
         run: |
           git config --global user.name "NYM_bot"
           git config --global user.email "_@_"
