@@ -60,7 +60,10 @@ impl PendingCredentialRequestsStorage {
             .ok();
 
         tracing::debug!("Running migrations");
-        sqlx::migrate!("./migrations").run(&connection_pool).await?;
+        if let Err(e) = sqlx::migrate!("./migrations").run(&connection_pool).await {
+            connection_pool.close().await;
+            return Err(e.into());
+        }
 
         Ok(Self {
             storage_manager: SqliteZkNymRequestsStorageManager::new(connection_pool),
