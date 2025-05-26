@@ -343,12 +343,13 @@ jobs:
           WINDOWS_CERTIFICATE: ${{ !inputs.sign && secrets.WINDOWS_SIGNING_PFX_BASE64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ !inputs.sign && secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
           DEV_MODE: ${{ inputs.dev_mode == true }}
+          UPDATER_ENABLED: ${{ inputs.updater_bundle == true }}
           UPDATER_ENDPOINT: ${{ inputs.updater_channel == 'stable' && env.UPDATER_URL_STABLE || env.UPDATER_URL_DEV }}
           CI: true
         run: |
           echo "signing: ${{ inputs.sign }}"
-          echo "generate updater bundle: ${{ inputs.updater_bundle }}"
-          if [ "${{ inputs.updater_bundle }}" = true ]; then
+          echo "generate updater bundle: ${{ env.UPDATER_ENABLED }}"
+          if [ "${{ env.UPDATER_ENABLED }}" = true ]; then
             echo "updater endpoint: ${{ env.UPDATER_ENDPOINT }}"
             npm run tauri build -- --config src-tauri/updater.conf.json
           else

@@ -1,11 +1,12 @@
+use crate::env::UPDATER_ENABLED;
 use crate::error::BackendError;
 use crate::state::updater::PendingUpdate;
-use serde::{Deserialize, Serialize};
-
 use crate::updater;
+
+use serde::{Deserialize, Serialize};
 use tauri::ipc::Channel;
 use tauri::{AppHandle, State};
-use tracing::instrument;
+use tracing::{error, instrument};
 use ts_rs::TS;
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
@@ -31,6 +32,10 @@ pub async fn fetch_update(
     app: AppHandle,
     pending_update: State<'_, PendingUpdate>,
 ) -> Result<Option<UpdateMetadata>, BackendError> {
+    if !*UPDATER_ENABLED {
+        error!("updater is disabled for this build");
+        return Err(BackendError::internal("updater is disabled", None));
+    }
     let update = updater::check(app)
         .await
         .map_err(|_| BackendError::internal("updater failed to check for update", None))?;
@@ -55,6 +60,10 @@ pub async fn install_update(
     pending_update: State<'_, PendingUpdate>,
     on_event: Channel<DownloadEvent>,
 ) -> Result<(), BackendError> {
+    if !*UPDATER_ENABLED {
+        error!("updater is disabled for this build");
+        return Err(BackendError::internal("updater is disabled", None));
+    }
     let Some(update) = pending_update.0.lock().await.take() else {
         return Err(BackendError::internal("no update available", None));
     };
