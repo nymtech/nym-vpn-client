@@ -17,4 +17,3 @@ pub use bootstrap::BootstrapVpnApiClient;
 pub use client::VpnApiClient;
 pub use error::{HttpClientError, VpnApiClientError};
 pub use network_compatibility::NetworkCompatibility;
-pub use response::{error_is_reqwest_timeout, extract_error_response_status_code};

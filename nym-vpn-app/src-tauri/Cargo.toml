@@ -1,6 +1,6 @@
 [package]
 name = "nym-vpn-app"
-version = "1.9.0-dev"
+version = "1.10.0-dev"
 description = "NymVPN desktop client"
 authors = [
     "Nym Technologies SA",
@@ -46,6 +46,7 @@ rust_iso3166 = "0.1"
 dirs = "6.0"
 semver = "1.0"
 sysinfo = "0.35.1"
+url = "2.5.4"
 
 # nym deps
 nym-vpn-proto = { path = "../../nym-vpn-core/crates/nym-vpn-proto" }

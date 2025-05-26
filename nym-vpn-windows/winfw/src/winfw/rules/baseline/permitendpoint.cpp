@@ -17,13 +17,21 @@ namespace rules::baseline
 
 namespace {
 	// Maximum number of allowed endpoint per IP protocol version.
-	static const uint32_t MAX_ALLOWED_ENDPOINTS = 4;
+	static const uint32_t MAX_ALLOWED_ENDPOINTS = 12;
 
 	static const GUID ENDPOINT_IPV4_GUIDS[MAX_ALLOWED_ENDPOINTS] = { 
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_1(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_2(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_3(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_4(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_5(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_6(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_7(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_8(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_9(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_10(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_11(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv4_12(),
 	};
 
 	static const GUID ENDPOINT_IPV6_GUIDS[MAX_ALLOWED_ENDPOINTS] = {
@@ -31,6 +39,14 @@ namespace {
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_2(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_3(),
 		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_4(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_5(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_6(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_7(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_8(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_9(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_10(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_11(),
+		MullvadGuids::Filter_Baseline_PermitEndpoint_Ipv6_12(),
 	};
 
 } // anonymous namespace
@@ -49,27 +65,31 @@ bool PermitEndpoint::apply(IObjectInstaller &objectInstaller)
 	uint32_t ipv4Count = 0;
 	uint32_t ipv6Count = 0;
 
-	for (auto endpoint: m_endpoints) {
+	for (auto &endpoint: m_endpoints) {
 		switch (endpoint.ip.type()) {
 			case wfp::IpAddress::Type::Ipv4:
+				if (ipv4Count == MAX_ALLOWED_ENDPOINTS) {
+					THROW_ERROR("Exceeded max allowed endpoints (IPv4)");
+				}
+
 				if (!AddIpv4EndpointFilter(endpoint, ENDPOINT_IPV4_GUIDS[ipv4Count], objectInstaller)) {
 					return false;
 				}
 
-				if (ipv4Count++ == MAX_ALLOWED_ENDPOINTS) {
-					THROW_ERROR("Exceeded max allowed endpoints (IPv4)");
-				}
+				ipv4Count++;
 
 				break;
 
 			case wfp::IpAddress::Type::Ipv6:
+				if (ipv6Count == MAX_ALLOWED_ENDPOINTS) {
+					THROW_ERROR("Exceeded max allowed endpoints (IPv6)");
+				}
+
 				if (!AddIpv6EndpointFilter(endpoint, ENDPOINT_IPV6_GUIDS[ipv6Count], objectInstaller)) {
 					return false;
 				}
 
-				if (ipv6Count++ == MAX_ALLOWED_ENDPOINTS) {
-					THROW_ERROR("Exceeded max allowed endpoints (IPv6)");
-				}
+				ipv6Count++;
 
 				break;
 
@@ -103,7 +123,7 @@ bool PermitEndpoint::AddIpv4EndpointFilter(const Endpoint &endpoint, const GUID 
 	conditionBuilder.add_condition(ConditionPort::Remote(endpoint.port));
 	conditionBuilder.add_condition(CreateProtocolCondition(endpoint.protocol));
 
-	for (const auto client : endpoint.clients) {
+	for (const auto &client : endpoint.clients) {
 		conditionBuilder.add_condition(std::make_unique<ConditionApplication>(client));
 	}
 
@@ -130,7 +150,7 @@ bool PermitEndpoint::AddIpv6EndpointFilter(const Endpoint &endpoint, const GUID 
 	conditionBuilder.add_condition(ConditionPort::Remote(endpoint.port));
 	conditionBuilder.add_condition(CreateProtocolCondition(endpoint.protocol));
 
-	for (const auto client : endpoint.clients) {
+	for (const auto &client : endpoint.clients) {
 		conditionBuilder.add_condition(std::make_unique<ConditionApplication>(client));
 	}
 

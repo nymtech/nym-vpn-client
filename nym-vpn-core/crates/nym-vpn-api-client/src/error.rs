@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::error::Error;
+
 pub use nym_http_api_client::HttpClientError;
 
 use nym_contracts_common::ContractsCommonError;
@@ -123,5 +125,15 @@ impl TryFrom<VpnApiClientError> for NymErrorResponse {
 
     fn try_from(response: VpnApiClientError) -> std::result::Result<Self, Self::Error> {
         crate::response::extract_error_response(&response).ok_or(response)
+    }
+}
+
+impl VpnApiClientError {
+    pub fn http_client_error<T>(&self) -> Option<&HttpClientError<T>>
+    where
+        T: std::fmt::Display + std::fmt::Debug + 'static,
+    {
+        self.source()
+            .and_then(|source| source.downcast_ref::<HttpClientError<T>>())
     }
 }

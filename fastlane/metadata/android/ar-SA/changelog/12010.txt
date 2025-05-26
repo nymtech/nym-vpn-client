@@ -1,4 +1,0 @@
-What's new:
-- Individual gateway selection
-- Bug fixes
-- Optimization improvements

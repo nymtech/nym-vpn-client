@@ -15,7 +15,7 @@ use libc::{c_int, sysctlbyname};
 use pfctl::{DropAction, FilterRuleAction, Ip, RedirectRule, Uid};
 
 use super::{
-    DNS_TCP_PORTS, DNS_UDP_PORTS, FirewallArguments, FirewallPolicy,
+    DNS_TCP_PORTS, FirewallArguments, FirewallPolicy,
     net::{
         ALLOWED_LAN_MULTICAST_NETS, ALLOWED_LAN_NETS, AllowedEndpoint, AllowedTunnelTraffic,
         TransportProtocol, TunnelInterface, TunnelMetadata,
@@ -631,9 +631,8 @@ impl Firewall {
         &self,
         server: IpAddr,
     ) -> Result<Vec<pfctl::FilterRule>> {
-        let mut rules = Vec::with_capacity(DNS_TCP_PORTS.len() + DNS_UDP_PORTS.len());
+        let mut rules = Vec::with_capacity(DNS_TCP_PORTS.len());
 
-        // Allow requests on other interfaces
         for tcp_port in DNS_TCP_PORTS {
             let allow_nontunnel_tcp = self
                 .create_rule_builder(FilterRuleAction::Pass)
@@ -646,19 +645,6 @@ impl Firewall {
                 .user(Uid::from(super::ROOT_UID))
                 .build()?;
             rules.push(allow_nontunnel_tcp);
-        }
-
-        for udp_port in DNS_UDP_PORTS {
-            let allow_nontunnel_udp = self
-                .create_rule_builder(FilterRuleAction::Pass)
-                .direction(pfctl::Direction::Out)
-                .quick(true)
-                .proto(pfctl::Proto::Udp)
-                .keep_state(pfctl::StatePolicy::Keep)
-                .to(pfctl::Endpoint::new(server, udp_port))
-                .user(Uid::from(super::ROOT_UID))
-                .build()?;
-            rules.push(allow_nontunnel_udp);
         }
 
         Ok(rules)

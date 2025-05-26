@@ -1,13 +1,18 @@
 use once_cell::sync::Lazy;
 use std::env;
 
+// compile-time environment variables
 /// SemVer version requirement for daemon compatibility
-//  comptime
 pub const VPND_COMPAT_REQ: Option<&str> = option_env!("VPND_COMPAT_REQ");
+pub const UPDATER_ENDPOINT: Option<&str> = option_env!("UPDATER_ENDPOINT");
 
-// comptime
 pub static DEV_MODE: Lazy<bool> = Lazy::new(|| {
     option_env!("DEV_MODE")
+        .map(|v| v == "1" || v.to_lowercase() == "true")
+        .unwrap_or(false)
+});
+pub static UPDATER_ENABLED: Lazy<bool> = Lazy::new(|| {
+    option_env!("UPDATER_ENABLED")
         .map(|v| v == "1" || v.to_lowercase() == "true")
         .unwrap_or(false)
 });

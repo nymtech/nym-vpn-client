@@ -2968,7 +2968,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.9.0-dev"
+version = "1.10.0-dev"
 dependencies = [
  "anyhow",
  "build-info",
@@ -3009,6 +3009,7 @@ dependencies = [
  "tracing-appender",
  "tracing-subscriber",
  "ts-rs",
+ "url",
  "windows 0.60.0",
 ]
 

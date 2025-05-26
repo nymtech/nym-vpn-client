@@ -1,3 +1,0 @@
-What's new:
-- Fix proguard
-- Update UI

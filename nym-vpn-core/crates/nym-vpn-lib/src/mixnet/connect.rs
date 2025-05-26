@@ -5,7 +5,7 @@
 use std::{os::fd::RawFd, sync::Arc};
 use std::{path::PathBuf, result::Result, time::Duration};
 
-use nym_client_core::config::StatsReporting;
+use nym_client_core::config::{RememberMe, StatsReporting};
 use nym_gateway_directory::Recipient;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths};
@@ -101,6 +101,11 @@ pub(crate) async fn setup_mixnet_client(
         provider_address: stats_recipient_address,
         ..Default::default()
     };
+    let remember_me = if two_hop_mode {
+        RememberMe::new_vpn()
+    } else {
+        RememberMe::new_mixnet()
+    };
     let user_agent = nym_bin_common::bin_info_owned!().into();
 
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
@@ -139,6 +144,7 @@ pub(crate) async fn setup_mixnet_client(
             .debug_config(debug_config)
             .custom_shutdown(task_client)
             .credentials_mode(enable_credentials_mode)
+            .with_remember_me(remember_me)
             .with_statistics_reporting(stats_reporting);
 
         #[cfg(unix)]
@@ -159,6 +165,7 @@ pub(crate) async fn setup_mixnet_client(
             .debug_config(debug_config)
             .custom_shutdown(task_client)
             .credentials_mode(enable_credentials_mode)
+            .with_remember_me(remember_me)
             .with_statistics_reporting(stats_reporting);
 
         #[cfg(unix)]

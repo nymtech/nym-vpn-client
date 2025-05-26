@@ -171,9 +171,7 @@ WinFw_ApplyPolicyConnecting(
 	const WinFwAllowedEndpoint* allowedEndpoints[],
 	size_t numAllowedEndpoints,
 	const WinFwAllowedTunnelTraffic* allowedEntryTunnelTraffic,
-	const WinFwAllowedTunnelTraffic* allowedExitTunnelTraffic,
-	const wchar_t* nonTunnelDnsServers[],
-	size_t numNonTunnelDnsServers
+	const WinFwAllowedTunnelTraffic* allowedExitTunnelTraffic
 );
 
 //
