@@ -10,6 +10,7 @@ use std::{error::Error as StdError, net::IpAddr};
 #[cfg(target_os = "ios")]
 use dispatch2::{DispatchQueue, DispatchQueueAttr};
 
+use ipnetwork::IpNetwork;
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
 #[cfg(target_os = "ios")]
 use tokio::sync::mpsc;
@@ -38,7 +39,7 @@ use crate::{
             two_hop_config::{ENTRY_MTU, EXIT_MTU, TwoHopConfig},
         },
     },
-    wg_config::WgNodeConfig,
+    wg_config::{AllowedIps, WgNodeConfig},
 };
 
 /// Delay before acting on default route changes.
@@ -95,6 +96,9 @@ impl ConnectedTunnel {
         let wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
+            AllowedIps::Specific(vec![IpNetwork::from(
+                self.connection_data.exit.endpoint.ip(),
+            )]),
             dns.clone(),
             self.entry_mtu(),
         );
@@ -102,6 +106,7 @@ impl ConnectedTunnel {
         let wg_exit_config = WgNodeConfig::with_gateway_data(
             self.connection_data.exit.clone(),
             self.exit_gateway_client.keypair().private_key(),
+            AllowedIps::All,
             dns,
             self.exit_mtu(),
         );
