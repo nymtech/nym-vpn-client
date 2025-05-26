@@ -11,6 +11,11 @@ pub static DEV_MODE: Lazy<bool> = Lazy::new(|| {
         .map(|v| v == "1" || v.to_lowercase() == "true")
         .unwrap_or(false)
 });
+pub static UPDATER_ENABLED: Lazy<bool> = Lazy::new(|| {
+    option_env!("UPDATER_ENABLED")
+        .map(|v| v == "1" || v.to_lowercase() == "true")
+        .unwrap_or(false)
+});
 
 /// Check if an environment variable is truthy, e.g. set to "1" | "true" | "TRUE"
 pub fn is_truthy(var: &str) -> bool {

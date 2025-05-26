@@ -1,5 +1,5 @@
 use crate::db::{Db, Key};
-use crate::env::DEV_MODE;
+use crate::env::{DEV_MODE, UPDATER_ENABLED};
 use crate::{APP_NAME, MAIN_WINDOW_LABEL};
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
@@ -44,8 +44,9 @@ impl AppWindow {
             "
             window._APP = {{}};
             window._APP.devMode = {};
+            window._APP.updaterEnabled = {};
             ",
-            *DEV_MODE
+            *DEV_MODE, *UPDATER_ENABLED,
         )
     }
 
