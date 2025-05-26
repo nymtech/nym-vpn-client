@@ -187,3 +187,9 @@ impl From<SetNetworkRequestError> for BackendError {
         BackendError::new(&message, ErrorKey::from(error.kind()))
     }
 }
+
+impl From<tauri_plugin_updater::Error> for BackendError {
+    fn from(_: tauri_plugin_updater::Error) -> Self {
+        BackendError::internal("internal updater error", None)
+    }
+}
