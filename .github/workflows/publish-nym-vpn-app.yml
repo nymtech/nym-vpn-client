@@ -92,10 +92,6 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install system dependencies
-        run: |
-          sudo apt update && sudo apt install -y gh
-
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
