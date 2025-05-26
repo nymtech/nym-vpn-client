@@ -561,33 +561,33 @@ impl TunnelStateMachine {
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    #[error("failed to create a route handler: {}", _0)]
+    #[error("failed to create a route handler")]
     CreateRouteHandler(#[source] route_handler::Error),
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    #[error("failed to create a dns handler: {}", _0)]
+    #[error("failed to create a dns handler")]
     CreateDnsHandler(#[source] dns_handler::Error),
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    #[error("failed to create firewall: {}", _0)]
+    #[error("failed to create firewall")]
     CreateFirewall(#[source] nym_firewall::Error),
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    #[error("failed to apply firewall policy: {}", _0)]
+    #[error("failed to apply firewall policy")]
     ApplyFirewallPolicy(#[source] nym_firewall::Error),
 
-    #[error("failed to resolve gateway addresses: {}", _0)]
+    #[error("failed to resolve gateway addresses")]
     ResolveGatewayAddrs(#[source] nym_gateway_directory::Error),
 
     #[cfg(target_os = "macos")]
-    #[error("failed to start local dns resolver: {}", _0)]
+    #[error("failed to start local dns resolver")]
     StartLocalDnsResolver(#[source] resolver::Error),
 
-    #[error("failed to create tunnel device: {}", _0)]
+    #[error("failed to create tunnel device")]
     CreateTunDevice(#[source] tun::Error),
 
     #[cfg(windows)]
-    #[error("failed to setup wintun adapter: {}", _0)]
+    #[error("failed to setup wintun adapter")]
     SetupWintunAdapter(#[from] SetupWintunAdapterError),
 
     #[cfg(target_os = "ios")]
@@ -599,7 +599,7 @@ pub enum Error {
     ConfigureTunnelProvider(String),
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    #[error("failed to obtain route handle: {}", _0)]
+    #[error("failed to obtain route handle")]
     GetRouteHandle(#[source] route_handler::Error),
 
     #[error("failed to get tunnel device name")]
@@ -615,14 +615,14 @@ pub enum Error {
     SetTunDeviceIpv6Addr(#[source] std::io::Error),
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    #[error("failed to add routes: {}", _0)]
+    #[error("failed to add routes")]
     AddRoutes(#[source] route_handler::Error),
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-    #[error("failed to set dns: {}", _0)]
+    #[error("failed to set dns")]
     SetDns(#[source] dns_handler::Error),
 
-    #[error("tunnel error: {}", _0)]
+    #[error("tunnel error")]
     Tunnel(#[from] Box<tunnel::Error>),
 
     #[error(transparent)]

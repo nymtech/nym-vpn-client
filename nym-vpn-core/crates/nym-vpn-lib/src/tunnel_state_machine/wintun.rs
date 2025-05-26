@@ -9,16 +9,16 @@ use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
 /// Wintun adapter configuration error.
 #[derive(Debug, thiserror::Error)]
 pub enum SetupWintunAdapterError {
-    #[error("failed to set wintun adapter ipv4 address: {}", _0)]
+    #[error("failed to set wintun adapter ipv4 address")]
     SetIpv4Addr(#[source] nym_windows::net::Error),
 
-    #[error("failed to set wintun adapter ipv6 address: {}", _0)]
+    #[error("failed to set wintun adapter ipv6 address")]
     SetIpv6Addr(#[source] nym_windows::net::Error),
 
-    #[error("failed to set wintun adapter ipv4 gateway address: {}", _0)]
+    #[error("failed to set wintun adapter ipv4 gateway address")]
     SetIpv4Gateway(#[source] nym_windows::net::Error),
 
-    #[error("failed to set wintun adapter ipv6 gateway address: {}", _0)]
+    #[error("failed to set wintun adapter ipv6 gateway address")]
     SetIpv6Gateway(#[source] nym_windows::net::Error),
 }
 

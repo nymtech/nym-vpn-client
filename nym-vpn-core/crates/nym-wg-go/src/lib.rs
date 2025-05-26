@@ -37,13 +37,13 @@ pub enum Error {
     #[error("wintun tunnel type contains nul byte")]
     WintunTunnelTypeContainsNulByte,
 
-    #[error("failed to start the tunnel (code: {})", _0)]
+    #[error("failed to start the tunnel (code: {0})")]
     StartTunnel(i32),
 
-    #[error("failed to open connection through the tunnel (code: {})", _0)]
+    #[error("failed to open connection through the tunnel (code: {0})")]
     OpenConnection(i32),
 
-    #[error("failed to set UAPI config (code: {})", _0)]
+    #[error("failed to set UAPI config (code: {0})")]
     SetUapiConfig(i64),
 
     #[error("failed to obtain tunnel socket fd")]
