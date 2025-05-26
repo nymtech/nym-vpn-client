@@ -35,8 +35,7 @@ public:
 		const std::optional<std::wstring> &exitTunnelIfaceAlias,
 		const WinFwAllowedTunnelTraffic &allowedExitTunnelTraffic,
 
-		const std::optional<std::vector<WinFwAllowedEndpoint>>& allowedEndpoints,
-		const std::vector<wfp::IpAddress>& nonTunnelDnsServers
+		const std::optional<std::vector<WinFwAllowedEndpoint>>& allowedEndpoints
 	);
 
 	bool applyPolicyConnected

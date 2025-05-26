@@ -220,8 +220,7 @@ bool FwContext::applyPolicyConnecting
 	const std::optional<std::wstring>& exitTunnelIfaceAlias,
 	const WinFwAllowedTunnelTraffic& allowedExitTunnelTraffic,
 
-	const std::optional<std::vector<WinFwAllowedEndpoint>>& allowedEndpoints,
-	const std::vector<wfp::IpAddress>& nonTunnelDnsServers
+	const std::optional<std::vector<WinFwAllowedEndpoint>>& allowedEndpoints
 )
 {
 	Ruleset ruleset;
@@ -233,13 +232,6 @@ bool FwContext::applyPolicyConnecting
 	if (allowedEndpoints.has_value())
 	{
 		AppendAllowedEndpointRules(ruleset, allowedEndpoints.value());
-	}
-
-	if (!nonTunnelDnsServers.empty())
-	{
-		ruleset.emplace_back(std::make_unique<dns::PermitNonTunnel>(
-			exitTunnelIfaceAlias, nonTunnelDnsServers
-		));
 	}
 
 	//
@@ -447,7 +439,6 @@ bool FwContext::applyPolicyConnected
 	if (entryTunnelIfaceAlias.has_value())
 	{
 		std::wstring entryTunnelIfaceAliasStr = entryTunnelIfaceAlias.value();
-
 		
 		ruleset.emplace_back(std::make_unique<baseline::PermitVpnTunnel>(
 			baseline::PermitVpnTunnel::InterfaceType::Entry,
