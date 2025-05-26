@@ -21,7 +21,7 @@ pub struct Options {
     pub enable_stdout_log: bool,
 }
 
-static INFO_CRATES: &[&str; 12] = &[
+static INFO_CRATES: &[&str; 11] = &[
     "hyper",
     "netlink_proto",
     "hickory_proto",
@@ -30,7 +30,6 @@ static INFO_CRATES: &[&str; 12] = &[
     "h2",
     "rustls",
     "nym_statistics_common",
-    "nym_client_core",
     "nym_sphinx_chunking",
     "nym_sphinx::preparer",
     "nym_task::manager",

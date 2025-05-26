@@ -29,7 +29,7 @@ pub(crate) struct PendingCredentialRequestsStorage {
 }
 
 impl PendingCredentialRequestsStorage {
-    pub(crate) async fn init<P: AsRef<Path>>(
+    pub async fn init<P: AsRef<Path>>(
         database_path: P,
     ) -> Result<Self, PendingCredentialRequestsStorageError> {
         tracing::debug!(
@@ -47,7 +47,6 @@ impl PendingCredentialRequestsStorage {
             .connect_with(opts)
             .await?;
 
-        tracing::debug!("Setting file permissions on the database file");
         set_file_permission_owner_rw(&database_path)
             .map_err(
                 |source| PendingCredentialRequestsStorageError::FilePermissions {
@@ -61,7 +60,10 @@ impl PendingCredentialRequestsStorage {
             .ok();
 
         tracing::debug!("Running migrations");
-        sqlx::migrate!("./migrations").run(&connection_pool).await?;
+        if let Err(e) = sqlx::migrate!("./migrations").run(&connection_pool).await {
+            connection_pool.close().await;
+            return Err(e.into());
+        }
 
         Ok(Self {
             storage_manager: SqliteZkNymRequestsStorageManager::new(connection_pool),
@@ -69,7 +71,7 @@ impl PendingCredentialRequestsStorage {
         })
     }
 
-    pub(crate) async fn reset(&mut self) -> Result<(), PendingCredentialRequestsStorageError> {
+    pub async fn reset(&mut self) -> Result<(), PendingCredentialRequestsStorageError> {
         // First we close the storage to ensure that all files are closed
         tracing::debug!("Closing pending credential requests storage");
         self.storage_manager.close().await;
@@ -95,7 +97,7 @@ impl PendingCredentialRequestsStorage {
         Ok(())
     }
 
-    pub(crate) async fn clean_up_stale_requests(
+    pub async fn clean_up_stale_requests(
         &self,
     ) -> Result<(), PendingCredentialRequestsStorageError> {
         let cutoff = OffsetDateTime::now_utc() - DEFAULT_STALE_REQUESTS_MAX_AGE;
@@ -105,7 +107,7 @@ impl PendingCredentialRequestsStorage {
             .map_err(Into::into)
     }
 
-    pub(crate) async fn insert_pending_request(
+    pub async fn insert_pending_request(
         &self,
         pending_request: PendingCredentialRequest,
     ) -> Result<(), PendingCredentialRequestsStorageError> {
@@ -120,7 +122,7 @@ impl PendingCredentialRequestsStorage {
             .map_err(Into::into)
     }
 
-    pub(crate) async fn get_pending_requests(
+    pub async fn get_pending_requests(
         &self,
     ) -> Result<Vec<PendingCredentialRequest>, PendingCredentialRequestsStorageError> {
         self.storage_manager
@@ -142,7 +144,7 @@ impl PendingCredentialRequestsStorage {
             .map_err(Into::into)
     }
 
-    pub(crate) async fn get_pending_request_by_id(
+    pub async fn get_pending_request_by_id(
         &self,
         id: &str,
     ) -> Result<Option<PendingCredentialRequest>, PendingCredentialRequestsStorageError> {
@@ -164,7 +166,7 @@ impl PendingCredentialRequestsStorage {
             .map_err(PendingCredentialRequestsStorageError::from)?
     }
 
-    pub(crate) async fn remove_pending_request(
+    pub async fn remove_pending_request(
         &self,
         id: &str,
     ) -> Result<(), PendingCredentialRequestsStorageError> {
@@ -177,14 +179,22 @@ impl PendingCredentialRequestsStorage {
 
 fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
     #[cfg(unix)]
-    return set_file_permission_owner_rw_unix(path);
+    {
+        tracing::debug!("Setting file permissions on the database file");
+        set_file_permission_owner_rw_unix(path)
+    }
 
     #[cfg(windows)]
-    return set_file_permission_owner_rw_windows(path);
+    {
+        // We set permissions for the parent folder instead of the file itself
+        Ok(())
+    }
 
     #[cfg(not(any(unix, windows)))]
     {
-        tracing::warn!("Setting file permissions is not yet implemented for this platform!");
+        tracing::warn!(
+            "Setting file permissions on the database file is not yet implemented for this platform!"
+        );
         Ok(())
     }
 }
@@ -196,10 +206,4 @@ fn set_file_permission_owner_rw_unix<P: AsRef<Path>>(path: P) -> Result<(), std:
     let mut permissions = metadata.permissions();
     permissions.set_mode(0o600);
     std::fs::set_permissions(&path, permissions)
-}
-
-#[cfg(windows)]
-fn set_file_permission_owner_rw_windows<P: AsRef<Path>>(_path: P) -> Result<(), std::io::Error> {
-    tracing::info!("Setting file permissions on Windows is not yet implemented!");
-    Ok(())
 }
