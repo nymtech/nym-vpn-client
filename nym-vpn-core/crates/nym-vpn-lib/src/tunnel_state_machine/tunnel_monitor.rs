@@ -474,6 +474,8 @@ impl TunnelMonitor {
 
         // todo: do initial ping
 
+        let (background_error_tx, background_error_rx) = tokio::sync::mpsc::channel(1);
+
         let discovery_refresher_handle = self
             .tunnel_parameters
             .nym_config
@@ -484,7 +486,8 @@ impl TunnelMonitor {
                 start_background_file_refresh(
                     config_dir.to_path_buf(),
                     self.tunnel_parameters.nym_config.network_env.clone(),
-                    self.cancel_token.clone(),
+                    background_error_tx,
+                    self.cancel_token.child_token(),
                 )
             });
 
@@ -497,14 +500,8 @@ impl TunnelMonitor {
             connection_data: Box::new(connection_data),
         });
 
-        let task_error = self
-            .cancel_token
-            .run_until_cancelled(tunnel_handle.recv_error())
+        self.recv_error(&mut tunnel_handle, background_error_rx)
             .await;
-
-        if let Some(Some(task_error)) = task_error {
-            tracing::error!("Task manager quit with error: {}", task_error);
-        }
 
         tracing::debug!("Wait for tunnel to exit");
         tunnel_handle.cancel().await;
@@ -530,6 +527,24 @@ impl TunnelMonitor {
         }
 
         Ok(tun_devices)
+    }
+
+    async fn recv_error(
+        &self,
+        tunnel_handle: &mut AnyTunnelHandle,
+        mut background_error_rx: tokio::sync::mpsc::Receiver<()>,
+    ) {
+        tokio::select! {
+            _ = self.cancel_token.cancelled() => {}
+            err = tunnel_handle.recv_error() => {
+                if let Some(task_error) = err {
+                    tracing::error!("Task manager quit with error: {}", task_error);
+                }
+            }
+            _ = background_error_rx.recv() => {
+                tracing::error!("Background tasks errored out");
+            }
+        }
     }
 
     fn send_event(&mut self, event: TunnelMonitorEvent) {

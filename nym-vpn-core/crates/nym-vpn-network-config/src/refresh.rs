@@ -13,14 +13,21 @@ use super::discovery::Discovery;
 struct FileRefresher {
     config_path: PathBuf,
     network: Network,
+    background_error_tx: tokio::sync::mpsc::Sender<()>,
     cancel_token: CancellationToken,
 }
 
 impl FileRefresher {
-    fn new(config_path: PathBuf, network: Network, cancel_token: CancellationToken) -> Self {
+    fn new(
+        config_path: PathBuf,
+        network: Network,
+        background_error_tx: tokio::sync::mpsc::Sender<()>,
+        cancel_token: CancellationToken,
+    ) -> Self {
         Self {
             config_path,
             network,
+            background_error_tx,
             cancel_token,
         }
     }
@@ -69,7 +76,7 @@ impl FileRefresher {
                             Err(e) => tracing::warn!("Could not check consistency: {e:?}"),
                             Ok(false) => {
                                 tracing::error!("Inconsistent network");
-                                self.cancel_token.cancel();
+                                self.background_error_tx.send(()).await.ok();
                                 return;
                             }
                             Ok(true) => {
@@ -106,8 +113,9 @@ impl FileRefresher {
 pub fn start_background_file_refresh(
     config_path: PathBuf,
     network: Network,
+    background_error_tx: tokio::sync::mpsc::Sender<()>,
     cancel_token: CancellationToken,
 ) -> JoinHandle<()> {
-    let refresher = FileRefresher::new(config_path, network, cancel_token);
+    let refresher = FileRefresher::new(config_path, network, background_error_tx, cancel_token);
     tokio::spawn(refresher.run())
 }
