@@ -47,7 +47,6 @@ impl PendingCredentialRequestsStorage {
             .connect_with(opts)
             .await?;
 
-        tracing::debug!("Setting file permissions on the database file");
         set_file_permission_owner_rw(&database_path)
             .map_err(
                 |source| PendingCredentialRequestsStorageError::FilePermissions {
@@ -105,7 +104,7 @@ impl PendingCredentialRequestsStorage {
             .map_err(Into::into)
     }
 
-    pub(crate) async fn insert_pending_request(
+    pub async fn insert_pending_request(
         &self,
         pending_request: PendingCredentialRequest,
     ) -> Result<(), PendingCredentialRequestsStorageError> {
@@ -177,14 +176,22 @@ impl PendingCredentialRequestsStorage {
 
 fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
     #[cfg(unix)]
-    return set_file_permission_owner_rw_unix(path);
+    {
+        tracing::debug!("Setting file permissions on the database file");
+        set_file_permission_owner_rw_unix(path)
+    }
 
     #[cfg(windows)]
-    return set_file_permission_owner_rw_windows(path);
+    {
+        // We set permissions for the parent folder instead of the file itself
+        Ok(())
+    }
 
     #[cfg(not(any(unix, windows)))]
     {
-        tracing::warn!("Setting file permissions is not yet implemented for this platform!");
+        tracing::warn!(
+            "Setting file permissions on the database file is not yet implemented for this platform!"
+        );
         Ok(())
     }
 }
@@ -196,10 +203,4 @@ fn set_file_permission_owner_rw_unix<P: AsRef<Path>>(path: P) -> Result<(), std:
     let mut permissions = metadata.permissions();
     permissions.set_mode(0o600);
     std::fs::set_permissions(&path, permissions)
-}
-
-#[cfg(windows)]
-fn set_file_permission_owner_rw_windows<P: AsRef<Path>>(_path: P) -> Result<(), std::io::Error> {
-    tracing::info!("Setting file permissions on Windows is not yet implemented!");
-    Ok(())
 }
