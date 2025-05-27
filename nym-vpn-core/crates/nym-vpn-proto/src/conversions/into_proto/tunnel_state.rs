@@ -87,6 +87,10 @@ impl From<ClientErrorReason> for ProtoError {
                 reason: ErrorStateReason::DeviceTimeOutOfSync.into(),
                 detail: None,
             },
+            ClientErrorReason::CreateMixnetStorage => ProtoError {
+                reason: ErrorStateReason::CreateMixnetStorage.into(),
+                detail: None,
+            },
             ClientErrorReason::Internal(detail) => ProtoError {
                 reason: ErrorStateReason::Internal.into(),
                 detail,

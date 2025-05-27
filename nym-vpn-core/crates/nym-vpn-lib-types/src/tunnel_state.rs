@@ -209,6 +209,9 @@ pub enum ErrorStateReason {
         failed: Vec<RequestZkNymErrorReason>,
     },
 
+    /// Failure to create mixnet storage.
+    CreateMixnetStorage,
+
     /// The device time is not synced with the server time.
     /// If the time is not synced, the device will not be able to connect to the entry gateways.
     DeviceTimeOutOfSync,
@@ -238,12 +241,14 @@ pub enum ClientErrorReason {
     Dns(Option<String>),
     Api(Option<String>),
     DeviceTimeOutOfSync,
+    CreateMixnetStorage,
     Internal(Option<String>),
 }
 
 impl From<ErrorStateReason> for ClientErrorReason {
     fn from(value: ErrorStateReason) -> Self {
         match value {
+            ErrorStateReason::CreateMixnetStorage => Self::CreateMixnetStorage,
             ErrorStateReason::SameEntryAndExitGateway => Self::SameEntryAndExitGateway,
             ErrorStateReason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
             ErrorStateReason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,

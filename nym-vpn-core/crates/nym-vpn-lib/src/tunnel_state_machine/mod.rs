@@ -57,7 +57,7 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
 use crate::{
-    GatewayDirectoryError, MixnetClientConfig,
+    GatewayDirectoryError, MixnetClientConfig, MixnetError,
     bandwidth_controller::Error as BandwidthControllerError,
 };
 #[cfg(target_os = "android")]
@@ -699,6 +699,9 @@ impl tunnel::Error {
                 _ => None,
             },
             Self::DupFd(_) => Some(ErrorStateReason::DuplicateTunFd),
+            Self::MixnetClient(MixnetError::CreateMixnetClientWithDefaultStorage(_)) => {
+                Some(ErrorStateReason::CreateMixnetStorage)
+            }
             Self::AuthenticationNotPossible(_)
             | Self::AuthenticatorAddressNotFound
             | Self::ConnectToIpPacketRouter(_)

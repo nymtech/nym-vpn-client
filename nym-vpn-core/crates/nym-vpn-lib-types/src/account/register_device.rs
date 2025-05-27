@@ -13,7 +13,7 @@ pub enum RegisterDeviceError {
     #[error("no device stored")]
     NoDeviceStored,
 
-    #[error("register device: {0}")]
+    #[error("register device")]
     RegisterDeviceEndpointFailure(VpnApiError),
 
     #[error("unexpected response: {0}")]

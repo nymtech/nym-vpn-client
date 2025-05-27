@@ -22,7 +22,7 @@ pub enum AccountCommandError {
     #[error("storage error: {0}")]
     Storage(String),
 
-    #[error("vpn-api error: {0}")]
+    #[error("vpn-api error")]
     VpnApi(#[from] VpnApiError),
 
     #[error("unexpected vpn-api response: {0}")]
@@ -40,19 +40,19 @@ pub enum AccountCommandError {
     //
     // --- Error cases for specific commands ---
     //
-    #[error("failed to store account: {0}")]
+    #[error("failed to store account")]
     StoreAccount(#[from] store_account::StoreAccountError),
 
-    #[error("failed to sync account state: {0}")]
+    #[error("failed to sync account state")]
     SyncAccount(#[from] sync_account::SyncAccountError),
 
-    #[error("failed to sync device state: {0}")]
+    #[error("failed to sync device state")]
     SyncDevice(#[from] sync_device::SyncDeviceError),
 
-    #[error("failed to register device: {0}")]
+    #[error("failed to register device")]
     RegisterDevice(#[from] register_device::RegisterDeviceError),
 
-    #[error("failed to request zk nym: {0}")]
+    #[error("failed to request zk nym:")]
     RequestZkNym(#[from] request_zknym::RequestZkNymError),
 
     #[error("failed to request zk nym")]
@@ -61,7 +61,7 @@ pub enum AccountCommandError {
         failed: Vec<request_zknym::RequestZkNymError>,
     },
 
-    #[error("failed to forget account: {0}")]
+    #[error("failed to forget account")]
     ForgetAccount(#[from] forget_account::ForgetAccountError),
 }
 

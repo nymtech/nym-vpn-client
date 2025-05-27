@@ -10,7 +10,7 @@ pub enum ForgetAccountError {
     #[error("registration is in progress")]
     RegistrationInProgress,
 
-    #[error("update device on vpn-api: {0}")]
+    #[error("update device on vpn-api")]
     UpdateDeviceErrorResponse(VpnApiError),
 
     #[error("unexpected response: {0}")]

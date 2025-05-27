@@ -376,8 +376,9 @@ message TunnelState {
     SUBSCRIPTION_EXPIRED = 7;
     DNS = 8;
     API = 9;
-    DEVICE_TIME_OUT_OF_SYNC = 11;
     INTERNAL = 10;
+    DEVICE_TIME_OUT_OF_SYNC = 11;
+    CREATE_MIXNET_STORAGE = 12;
   }
 
   enum ActionAfterDisconnect {
