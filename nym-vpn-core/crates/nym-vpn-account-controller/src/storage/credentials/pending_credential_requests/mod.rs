@@ -177,11 +177,11 @@ impl PendingCredentialRequestsStorage {
     }
 }
 
-fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
+fn set_file_permission_owner_rw<P: AsRef<Path>>(_path: P) -> Result<(), std::io::Error> {
     #[cfg(unix)]
     {
         tracing::debug!("Setting file permissions on the database file");
-        set_file_permission_owner_rw_unix(path)
+        set_file_permission_owner_rw_unix(_path)
     }
 
     #[cfg(windows)]
