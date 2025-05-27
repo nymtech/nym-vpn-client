@@ -9,6 +9,7 @@ use futures::{
     stream::{FusedStream, StreamExt},
 };
 use ipnetwork::IpNetwork;
+use nix::net::if_::if_nametoindex;
 use nym_common::ErrorExt;
 use std::{
     collections::{BTreeMap, HashSet},
@@ -317,17 +318,24 @@ impl RouteManagerImpl {
 
         // Add routes not using the default interface
         for route in routes_to_apply {
-            let mut message = if let Some(ref device) = route.node.device {
-                // If we specify route by interface name, use the link address of the given
-                // interface
-                match interface_link_addrs.get(device) {
-                    Some(link_addr) => RouteMessage::new_route(Destination::from(route.prefix))
-                        .set_gateway_sockaddr(*link_addr),
-                    None => {
-                        tracing::error!("Route with unknown device: {route:?}, {device}");
-                        continue;
-                    }
-                }
+            let mut message = if let Some(device) = route.node.get_device() {
+                // Get the link-address of the provided network interface (device).
+                // We need the link address to create a route that targets the interface.
+                let Some(link_addr) = interface_link_addrs.get(device) else {
+                    tracing::error!("Route with unknown device: {route:?}, {device}");
+                    continue;
+                };
+
+                // Get the index of the network interface. This is not needed to create the route,
+                // but we use it to later validate that the route is correct.
+                let Ok(interface_index) = if_nametoindex(device) else {
+                    tracing::error!("Route with unknown device: {route:?}, {device}");
+                    continue;
+                };
+
+                RouteMessage::new_route(Destination::from(route.prefix))
+                    .set_gateway_sockaddr(*link_addr)
+                    .set_interface_index(interface_index as u16)
             } else {
                 tracing::error!("Specifying gateway by IP rather than device is unimplemented");
                 continue;
