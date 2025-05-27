@@ -23,6 +23,9 @@ pub struct WgNodeConfig {
 
     /// Peer configuration
     pub peer: WgPeer,
+
+    /// IPs that are allowed to be routed over the tunnel interface.
+    pub allowed_ips: AllowedIps,
 }
 
 pub struct WgInterface {
@@ -64,6 +67,16 @@ impl fmt::Debug for WgInterface {
         d.field("amnezia", &self.azwg_config);
         d.finish()
     }
+}
+
+/// IPs that are allowed to be routed over the tunnel interface.
+#[derive(Debug, Clone)]
+pub enum AllowedIps {
+    /// All IPs are allowed.
+    All,
+
+    /// Specific IPs are allowed.
+    Specific(Vec<IpNetwork>),
 }
 
 #[derive(Debug, Clone)]
@@ -137,11 +150,18 @@ impl WgNodeConfig {
 
     fn allowed_ips(&self) -> Vec<IpNetwork> {
         let mut allowed_ips = vec![];
-        if self.interface.addresses.iter().any(|x| x.ip().is_ipv4()) {
-            allowed_ips.push("0.0.0.0/0".parse().unwrap());
-        }
-        if self.interface.addresses.iter().any(|x| x.ip().is_ipv6()) {
-            allowed_ips.push("::/0".parse().unwrap());
+        match self.allowed_ips {
+            AllowedIps::All => {
+                if self.interface.addresses.iter().any(|x| x.ip().is_ipv4()) {
+                    allowed_ips.push("0.0.0.0/0".parse().unwrap());
+                }
+                if self.interface.addresses.iter().any(|x| x.ip().is_ipv6()) {
+                    allowed_ips.push("::/0".parse().unwrap());
+                }
+            }
+            AllowedIps::Specific(ref ips) => {
+                allowed_ips.extend(ips);
+            }
         }
         allowed_ips
     }
@@ -151,6 +171,7 @@ impl WgNodeConfig {
     pub fn with_gateway_data(
         gateway_data: GatewayData,
         private_key: &nym_crypto::asymmetric::encryption::PrivateKey,
+        allowed_ips: AllowedIps,
         dns: Vec<IpAddr>,
         mtu: u16,
         #[cfg(target_os = "linux")] fwmark: Option<u32>,
@@ -174,6 +195,7 @@ impl WgNodeConfig {
                 public_key: PublicKey::from(*gateway_data.public_key.as_bytes()),
                 endpoint: gateway_data.endpoint,
             },
+            allowed_ips,
         }
     }
 

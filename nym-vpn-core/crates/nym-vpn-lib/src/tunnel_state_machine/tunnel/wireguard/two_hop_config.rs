@@ -96,6 +96,7 @@ impl TwoHopConfig {
                     ..entry.interface
                 },
                 peer: entry.peer,
+                allowed_ips: entry.allowed_ips,
             },
             exit: WgNodeConfig {
                 interface: WgInterface {
@@ -107,6 +108,7 @@ impl TwoHopConfig {
                     endpoint: forwarder_config.listen_endpoint,
                     ..exit.peer
                 },
+                allowed_ips: exit.allowed_ips,
             },
             forwarder: forwarder_config,
             tun: tun_config,

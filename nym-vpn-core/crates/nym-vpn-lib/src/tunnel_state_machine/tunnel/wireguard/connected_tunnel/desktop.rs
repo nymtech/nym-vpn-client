@@ -3,6 +3,7 @@
 
 use std::{error::Error as StdError, net::IpAddr};
 
+use ipnetwork::IpNetwork;
 use nym_authenticator_client::AuthClientMixnetListenerHandle;
 #[cfg(windows)]
 use tokio::sync::mpsc;
@@ -30,9 +31,12 @@ use crate::tunnel_state_machine::tunnel::wireguard::fd::DupFd;
 use crate::{
     tunnel_state_machine::tunnel::{
         Error, Result, Tombstone,
-        wireguard::{connector::ConnectionData, two_hop_config::TwoHopConfig},
+        wireguard::{
+            connector::ConnectionData,
+            two_hop_config::{ENTRY_MTU, EXIT_MTU, TwoHopConfig},
+        },
     },
-    wg_config::WgNodeConfig,
+    wg_config::{AllowedIps, WgNodeConfig},
 };
 
 pub struct ConnectedTunnel {
@@ -68,13 +72,11 @@ impl ConnectedTunnel {
     }
 
     pub fn entry_mtu(&self) -> u16 {
-        // 1500 - 80 (ipv6+wg header)
-        1420
+        ENTRY_MTU
     }
 
     pub fn exit_mtu(&self) -> u16 {
-        // 1420 - 80 (ipv6+wg header)
-        1340
+        EXIT_MTU
     }
 
     pub async fn run(
@@ -107,6 +109,9 @@ impl ConnectedTunnel {
         let wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
+            AllowedIps::Specific(vec![IpNetwork::from(
+                self.connection_data.exit.endpoint.ip(),
+            )]),
             options.dns.clone(),
             self.entry_mtu(),
             #[cfg(target_os = "linux")]
@@ -116,11 +121,15 @@ impl ConnectedTunnel {
         let wg_exit_config = WgNodeConfig::with_gateway_data(
             self.connection_data.exit.clone(),
             self.exit_gateway_client.keypair().private_key(),
+            AllowedIps::All,
             options.dns,
             self.exit_mtu(),
             #[cfg(target_os = "linux")]
             None,
         );
+
+        tracing::info!("Entry config: {wg_entry_config:#?}");
+        tracing::info!("Exit config: {wg_exit_config:#?}");
 
         #[allow(unused_mut)]
         let mut entry_tunnel = wireguard_go::Tunnel::start(
@@ -223,6 +232,9 @@ impl ConnectedTunnel {
         let wg_entry_config = WgNodeConfig::with_gateway_data(
             self.connection_data.entry.clone(),
             self.entry_gateway_client.keypair().private_key(),
+            AllowedIps::Specific(vec![IpNetwork::from(
+                self.connection_data.exit.endpoint.ip(),
+            )]),
             options.dns.clone(),
             self.entry_mtu(),
             #[cfg(target_os = "linux")]
@@ -232,6 +244,7 @@ impl ConnectedTunnel {
         let wg_exit_config = WgNodeConfig::with_gateway_data(
             self.connection_data.exit.clone(),
             self.exit_gateway_client.keypair().private_key(),
+            AllowedIps::All,
             options.dns,
             self.exit_mtu(),
             #[cfg(target_os = "linux")]
