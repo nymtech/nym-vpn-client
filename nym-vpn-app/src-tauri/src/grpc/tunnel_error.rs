@@ -43,7 +43,6 @@ impl From<ProtoTunnelError> for TunnelError {
             ErrorStateReason::SubscriptionExpired => TunnelError::SubscriptionExpired(error.detail),
             ErrorStateReason::Api => TunnelError::Api(error.detail),
             ErrorStateReason::DeviceTimeOutOfSync => TunnelError::DeviceTimeOutOfSync(error.detail),
-            // TODO not sure if this is the right way to handle this one
             ErrorStateReason::CreateMixnetStorage => TunnelError::Internal(error.detail),
         }
     }
