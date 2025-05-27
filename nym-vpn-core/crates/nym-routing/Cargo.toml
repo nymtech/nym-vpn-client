@@ -17,6 +17,8 @@ tokio = { workspace = true, features = [
     "net",
     "io-util",
     "time",
+    "sync",
+    "macros",
 ] }
 
 [target.'cfg(not(target_os="android"))'.dependencies]
