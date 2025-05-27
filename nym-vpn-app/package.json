@@ -29,6 +29,7 @@
     "gen:licenses:rust": "cargo license -j --avoid-dev-deps --avoid-build-deps --manifest-path src-tauri/Cargo.toml > public/licenses-rust.json"
   },
   "dependencies": {
+    "@base-ui-components/react": "^1.0.0-alpha.8",
     "@headlessui/react": "^2.1.2",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-slider": "^1.2.2",

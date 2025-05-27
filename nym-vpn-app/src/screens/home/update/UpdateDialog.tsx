@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { type } from '@tauri-apps/plugin-os';
-import { Button, Dialog, MsIcon } from '../../../ui';
+import { Button, Dialog, MsIcon, Progress } from '../../../ui';
 import {
   BackendError,
   DownloadUpdateEvent,
@@ -120,14 +120,12 @@ function UpdateDialog() {
             className="text-iron dark:text-bombay md:text-nowrap"
             data-testid="update-dialog-description"
           >
-            {t('app-update-available.description-1', {
+            {t('app-update-available.description', {
               version: update.version,
             })}
           </p>
           <p className="md:text-nowrap" data-testid="update-dialog-description">
-            {t('app-update-available.description-2', {
-              version: update.version,
-            })}
+            {t('app-update-available.note-close')}
           </p>
           <Button
             onClick={onUpdate}
@@ -141,7 +139,24 @@ function UpdateDialog() {
           </Button>
         </>
       ) : (
-        <> </>
+        <>
+          <p
+            className="text-iron dark:text-bombay md:text-nowrap"
+            data-testid="update-dialog-description"
+          >
+            {t('app-update-progress.description')}
+          </p>
+          <Progress
+            value={progress}
+            label={t('app-update-progress.bar-label')}
+          />
+          <p
+            className="text-iron dark:text-bombay md:text-nowrap"
+            data-testid="update-dialog-description"
+          >
+            {t('app-update-progress.note-close')}
+          </p>
+        </>
       )}
     </Dialog>
   );

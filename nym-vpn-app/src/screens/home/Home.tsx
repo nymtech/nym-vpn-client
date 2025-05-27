@@ -16,6 +16,7 @@ import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
 
+const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
 let compatChecked = false;
 
@@ -142,7 +143,7 @@ function Home() {
 
   return (
     <>
-      <UpdateDialog />
+      {updaterEnabled && <UpdateDialog />}
       <NetworkUpdateDialog
         isOpen={isDialogUpdateOpen}
         onClose={() => setIsDialogUpdateOpen(false)}

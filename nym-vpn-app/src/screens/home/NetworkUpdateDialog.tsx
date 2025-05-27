@@ -14,7 +14,12 @@ export type Props = {
   daemonUpdate: boolean;
 };
 
-function NetworkUpdateDialog({ isOpen, onClose, appUpdate, daemonUpdate }: Props) {
+function NetworkUpdateDialog({
+  isOpen,
+  onClose,
+  appUpdate,
+  daemonUpdate,
+}: Props) {
   const { t } = useTranslation('home');
   const os = type();
 
