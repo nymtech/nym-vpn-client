@@ -6,11 +6,12 @@ use crate::updater::PendingUpdate;
 use serde::{Deserialize, Serialize};
 use tauri::ipc::Channel;
 use tauri::{AppHandle, State};
-use tracing::{error, instrument};
+use tracing::{debug, error, instrument, trace};
 use ts_rs::TS;
 
 #[derive(Debug, Serialize, Deserialize, TS, Clone)]
 #[serde(rename_all = "camelCase")]
+#[ts(export)]
 pub struct UpdateMetadata {
     version: String,
     current_version: String,
@@ -20,8 +21,8 @@ pub struct UpdateMetadata {
 #[serde(tag = "event", content = "data")]
 #[serde(rename_all = "kebab-case", rename_all_fields = "camelCase")]
 #[ts(export)]
-pub enum DownloadEvent {
-    Started { content_length: Option<u64> },
+pub enum DownloadUpdateEvent {
+    Started { content_length: u64 },
     Progress { chunk_length: usize },
     Finished,
 }
@@ -58,7 +59,7 @@ pub async fn fetch_update(
 #[instrument(skip_all)]
 pub async fn install_update(
     pending_update: State<'_, PendingUpdate>,
-    on_event: Channel<DownloadEvent>,
+    on_event: Channel<DownloadUpdateEvent>,
 ) -> Result<(), BackendError> {
     if !*UPDATER_ENABLED {
         error!("updater is disabled for this build");
@@ -72,14 +73,22 @@ pub async fn install_update(
     update
         .download_and_install(
             |chunk_length, content_length| {
+                trace!("downloaded chunk: {chunk_length}, content length: {content_length:?}");
                 if !started {
-                    let _ = on_event.send(DownloadEvent::Started { content_length });
+                    debug!(
+                        "update download started, content length: {:?}",
+                        content_length
+                    );
+                    let _ = on_event.send(DownloadUpdateEvent::Started {
+                        content_length: content_length.unwrap_or(20_000_000), // default to 20MB
+                    });
                     started = true;
                 }
-                let _ = on_event.send(DownloadEvent::Progress { chunk_length });
+                let _ = on_event.send(DownloadUpdateEvent::Progress { chunk_length });
             },
             || {
-                let _ = on_event.send(DownloadEvent::Finished);
+                debug!("update download finished");
+                let _ = on_event.send(DownloadUpdateEvent::Finished);
             },
         )
         .await?;

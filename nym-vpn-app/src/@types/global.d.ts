@@ -6,6 +6,7 @@ type StartupError = {
 type JsEnv = {
   devMode: boolean;
   startupError?: StartupError | null;
+  updaterEnabled?: boolean;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

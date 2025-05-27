@@ -116,3 +116,8 @@ export function isCountry(node: Gateway | Country): node is Country {
 }
 
 export type NetworkCompat = { core: boolean | null; tauri: boolean | null };
+export type UpdateMetadata = { version: string; currentVersion: string };
+export type DownloadUpdateEvent =
+  | { event: 'started'; data: { contentLength: bigint } }
+  | { event: 'progress'; data: { chunkLength: number } }
+  | { event: 'finished' };
