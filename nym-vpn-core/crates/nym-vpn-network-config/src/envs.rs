@@ -9,11 +9,12 @@ use std::{
 
 use anyhow::Context;
 use itertools::Itertools;
+
 use nym_vpn_api_client::BootstrapVpnApiClient;
 
-use crate::discovery::Discovery;
-
 use super::{MAX_FILE_AGE, NETWORKS_SUBDIR};
+
+use crate::discovery::Discovery;
 
 // TODO: integrate with nym-vpn-api-client
 
@@ -56,7 +57,6 @@ impl RegisteredNetworks {
     fn path(config_dir: &Path) -> PathBuf {
         config_dir.join(NETWORKS_SUBDIR).join(ENVS_FILE)
     }
-
     fn path_is_stale(config_dir: &Path) -> anyhow::Result<bool> {
         if let Some(age) = crate::util::get_age_of_file(&Self::path(config_dir))? {
             Ok(age > MAX_FILE_AGE)
@@ -131,18 +131,6 @@ impl RegisteredNetworks {
                 .inspect_err(|err| tracing::warn!("Failed to write default envs file: {err}"))
                 .ok();
         }
-
-        // Download the file if it doesn't exists, or if the file is too old, refresh it.
-        // TODO: in the future, we should only refresh the discovery file when the tunnel is up.
-        // Probably in a background task.
-
-        Self::try_update_file(config_dir)
-            .await
-            .inspect_err(|err| {
-                tracing::warn!("Failed to update envs file: {err}");
-                tracing::warn!("Attempting to read envs file instead");
-            })
-            .ok();
 
         Self::read_from_file(config_dir)
     }

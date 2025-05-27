@@ -493,6 +493,8 @@ impl TunnelMonitor {
 
         // todo: do initial ping
 
+        let (background_error_tx, background_error_rx) = tokio::sync::mpsc::channel(1);
+
         let discovery_refresher_handle = self
             .tunnel_parameters
             .nym_config
@@ -502,13 +504,8 @@ impl TunnelMonitor {
             .map(|config_dir| {
                 start_background_file_refresh(
                     config_dir.to_path_buf(),
-                    self.tunnel_parameters
-                        .nym_config
-                        .network_env
-                        .nym_network
-                        .network
-                        .network_name
-                        .clone(),
+                    self.tunnel_parameters.nym_config.network_env.clone(),
+                    background_error_tx,
                     self.shutdown_token.child_token(),
                 )
             });
@@ -522,29 +519,8 @@ impl TunnelMonitor {
             connection_data: Box::new(connection_data),
         });
 
-        // Monitor tunnel for errors
-        match self
-            .shutdown_token
-            .run_until_cancelled(tunnel_handle.recv_error())
-            .await
-        {
-            Some(task_error) => {
-                match task_error {
-                    Some(task_error) => {
-                        tracing::error!("Task manager quit with error: {}", task_error);
-                    }
-                    None => {
-                        tracing::error!("Task manager quit without error");
-                    }
-                }
-
-                // Trigger cancellation since many other tasks depend on shutdown token
-                self.shutdown_token.cancel();
-            }
-            None => {
-                // Shutdown token has been cancelled.
-            }
-        }
+        self.recv_error(&mut tunnel_handle, background_error_rx)
+            .await;
 
         tracing::info!("Wait for tunnel to exit");
         tunnel_handle.cancel().await;
@@ -571,6 +547,32 @@ impl TunnelMonitor {
         tracing::info!("Tunnel monitor finished");
 
         Ok(tun_devices)
+    }
+
+    async fn recv_error(
+        &self,
+        tunnel_handle: &mut AnyTunnelHandle,
+        mut background_error_rx: tokio::sync::mpsc::Receiver<()>,
+    ) {
+        tokio::select! {
+            _ = self.shutdown_token.cancelled() => {}
+            task_error = tunnel_handle.recv_error() => {
+                match task_error {
+                    Some(task_error) => {
+                        tracing::error!("Task manager quit with error: {}", task_error);
+                    }
+                    None => {
+                        tracing::error!("Task manager quit without error");
+                    }
+                }
+            }
+            _ = background_error_rx.recv() => {
+                tracing::error!("Background tasks errored out");
+            }
+        }
+
+        // Trigger cancellation since many other tasks depend on shutdown token
+        self.shutdown_token.cancel();
     }
 
     fn send_event(&mut self, event: TunnelMonitorEvent) {
