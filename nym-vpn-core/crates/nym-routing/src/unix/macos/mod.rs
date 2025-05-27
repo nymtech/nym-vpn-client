@@ -594,7 +594,6 @@ impl RouteManagerImpl {
     }
 
     /// Get the route which goes to `0.0.0.0/0`/`::/0`, if any.
-
     async fn get_actual_default_route(
         &mut self,
         family: interface::Family,
