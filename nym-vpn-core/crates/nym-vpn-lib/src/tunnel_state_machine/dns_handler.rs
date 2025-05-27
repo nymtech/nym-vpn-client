@@ -156,7 +156,7 @@ impl DnsHandlerHandle {
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("Dns monitor error: {_0}")]
+    #[error("Dns monitor error")]
     DnsMonitor(#[from] nym_dns::Error),
 
     #[error("Dns monitor is already down")]

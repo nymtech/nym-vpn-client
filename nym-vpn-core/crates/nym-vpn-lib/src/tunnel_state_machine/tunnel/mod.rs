@@ -243,16 +243,16 @@ async fn shutdown_mixnet_client(mut task_manager: TaskManager, mixnet_client: Sh
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("failed to create gateway client: {}", _0)]
+    #[error("failed to create gateway client")]
     CreateGatewayClient(#[source] nym_gateway_directory::Error),
 
-    #[error("failed to select gateways: {}", _0)]
+    #[error("failed to select gateways")]
     SelectGateways(#[source] Box<GatewayDirectoryError>),
 
     #[error("start mixnet client timeout")]
     StartMixnetClientTimeout,
 
-    #[error("mixnet tunnel has failed: {}", _0)]
+    #[error("mixnet tunnel has failed")]
     MixnetClient(#[from] MixnetError),
 
     #[error("failed to lookup gateway: {}", gateway_id)]
@@ -262,7 +262,7 @@ pub enum Error {
         source: Box<nym_gateway_directory::Error>,
     },
 
-    #[error("failed to connect to ip packet router: {}", _0)]
+    #[error("failed to connect to ip packet router")]
     ConnectToIpPacketRouter(#[source] nym_ip_packet_client::Error),
 
     #[error(
@@ -273,24 +273,24 @@ pub enum Error {
     #[error("failed to find authenticator address")]
     AuthenticatorAddressNotFound,
 
-    #[error("failed to setup storage paths: {0}")]
+    #[error("failed to setup storage paths")]
     SetupStoragePaths(#[source] Box<nym_sdk::Error>),
 
-    #[error("bandwidth controller error: {0}")]
+    #[error("bandwidth controller error")]
     BandwidthController(#[from] crate::bandwidth_controller::Error),
 
     #[cfg(target_os = "ios")]
     #[error("failed to resolve using dns64")]
     ResolveDns64(#[from] wireguard::dns64::Error),
 
-    #[error("WireGuard error: {0}")]
+    #[error("WireGuard error")]
     Wireguard(#[from] nym_wg_go::Error),
 
-    #[error("failed to dup tunnel file descriptor: {0}")]
+    #[error("failed to dup tunnel file descriptor")]
     DupFd(#[source] std::io::Error),
 
     #[cfg(windows)]
-    #[error("failed to add default route listener: {0}")]
+    #[error("failed to add default route listener")]
     AddDefaultRouteListener(#[source] route_handler::Error),
 
     #[error("connection cancelled")]
