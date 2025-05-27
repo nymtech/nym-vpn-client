@@ -10,6 +10,7 @@ use nix::{
 use std::{
     collections::BTreeMap,
     ffi::{c_int, c_uchar, c_ushort},
+    fmt,
     net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr, SocketAddrV4, SocketAddrV6},
 };
 
@@ -796,7 +797,7 @@ bitflags::bitflags! {
     }
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum RouteSocketAddress {
     /// Corresponds to RTA_DST
     Destination(Option<SockaddrStorage>),
@@ -814,6 +815,44 @@ pub enum RouteSocketAddress {
     RedirectAuthor(Option<SockaddrStorage>),
     /// RTA_BRD
     Broadcast(Option<SockaddrStorage>),
+}
+
+/// Custom Debug-impl that uses the Display-impl of [SockaddrStorage] since its Debug-impl is
+
+/// basically unreadable.
+
+impl fmt::Debug for RouteSocketAddress {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let (variant, sockaddr) = match self {
+            Self::Destination(sockaddr) => ("Destination", sockaddr),
+            Self::Gateway(sockaddr) => ("Gateway", sockaddr),
+            Self::Netmask(sockaddr) => ("Netmask", sockaddr),
+            Self::CloningMask(sockaddr) => ("CloningMask", sockaddr),
+            Self::IfName(sockaddr) => ("IfName", sockaddr),
+            Self::IfSockaddr(sockaddr) => ("IfSockaddr", sockaddr),
+            Self::RedirectAuthor(sockaddr) => ("RedirectAuthor", sockaddr),
+            Self::Broadcast(sockaddr) => ("Broadcast", sockaddr),
+        };
+
+        if let Some(sockaddr) = sockaddr {
+            if let Some(link_addr) = sockaddr.as_link_addr() {
+                // The default Display impl for LinkAddrs does not print ifindex
+
+                write!(f, "{variant}(")?;
+
+                f.debug_struct("LinkAddr")
+                    .field("addr", &link_addr.addr())
+                    .field("iface", &link_addr.ifindex())
+                    .finish()?;
+
+                write!(f, ")")
+            } else {
+                write!(f, "{variant}({sockaddr})")
+            }
+        } else {
+            write!(f, "{variant}(None)")
+        }
+    }
 }
 
 impl RouteSocketAddress {
