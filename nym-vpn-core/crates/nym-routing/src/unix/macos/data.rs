@@ -862,7 +862,7 @@ impl RouteSocketAddress {
 
                 // The "serialized" socket addresses must be padded to be aligned to 4 bytes, with
                 // the smallest size being 4 bytes.
-                let buffer_size = len + len % 4;
+                let buffer_size = len.next_multiple_of(4);
                 let mut buffer = vec![0u8; buffer_size];
                 unsafe {
                     // SAFETY: copying conents of addr into buffer is safe, as long as addr.len()
