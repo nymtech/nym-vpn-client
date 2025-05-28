@@ -54,7 +54,7 @@ function SettingsMenuCard({
       tabIndex={disabled ? -1 : 0}
       style={style}
       data-testid={testId}
-      data-disabled={disabled ? 'true' : 'false'}
+      data-test-disabled={disabled ? 'true' : 'false'}
     >
       <div
         className={clsx(
