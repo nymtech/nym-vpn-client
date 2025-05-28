@@ -3,7 +3,10 @@ use crate::env;
 use anyhow::Result;
 use tauri::AppHandle;
 use tauri_plugin_updater::{Update, UpdaterExt};
+use tokio::sync::Mutex;
 use tracing::{debug, error, info, instrument, trace};
+
+pub struct PendingUpdate(pub Mutex<Option<Update>>);
 
 // Based on https://v2.tauri.app/plugin/updater/#checking-for-updates
 #[instrument(skip(app))]

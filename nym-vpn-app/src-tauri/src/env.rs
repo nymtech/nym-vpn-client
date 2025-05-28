@@ -4,6 +4,7 @@ use std::env;
 // compile-time environment variables
 /// SemVer version requirement for daemon compatibility
 pub const VPND_COMPAT_REQ: Option<&str> = option_env!("VPND_COMPAT_REQ");
+#[cfg(windows)]
 pub const UPDATER_ENDPOINT: Option<&str> = option_env!("UPDATER_ENDPOINT");
 
 pub static DEV_MODE: Lazy<bool> = Lazy::new(|| {
