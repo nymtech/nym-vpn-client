@@ -100,6 +100,12 @@ pub(crate) async fn setup_mixnet_client(
         debug_config.traffic.disable_mix_hops = true;
     }
     apply_mixnet_client_config(&mixnet_client_config, &mut debug_config);
+    custom_topology_provider
+        .update_config(
+            mixnet_client_config.min_mixnode_performance,
+            mixnet_client_config.min_gateway_performance,
+        )
+        .await;
 
     let stats_reporting = StatsReporting {
         provider_address: stats_recipient_address,
