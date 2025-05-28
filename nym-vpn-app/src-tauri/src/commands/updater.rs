@@ -1,7 +1,7 @@
 use crate::env::UPDATER_ENABLED;
 use crate::error::BackendError;
-use crate::state::updater::PendingUpdate;
 use crate::updater;
+use crate::updater::PendingUpdate;
 
 use serde::{Deserialize, Serialize};
 use tauri::ipc::Channel;

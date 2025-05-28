@@ -7,5 +7,6 @@ pub mod fs;
 pub mod gateway;
 pub mod log;
 pub mod tunnel;
+#[cfg(windows)]
 pub mod updater;
 pub mod window;

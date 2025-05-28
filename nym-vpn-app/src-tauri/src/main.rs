@@ -14,7 +14,9 @@ use crate::{
 };
 
 use crate::fs::path::APP_CONFIG_DIR;
-use crate::state::updater as updater_state;
+#[cfg(windows)]
+use crate::updater::PendingUpdate;
+
 use anyhow::{Result, anyhow};
 use clap::Parser;
 use commands::daemon as cmd_daemon;
@@ -23,6 +25,7 @@ use commands::dev as cmd_dev;
 use commands::fs as cmd_fs;
 use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
+#[cfg(windows)]
 use commands::updater as cmd_updater;
 use commands::window as cmd_window;
 use commands::*;
@@ -47,6 +50,7 @@ mod startup_error;
 mod state;
 mod sys;
 mod tray;
+#[cfg(windows)]
 mod updater;
 mod window;
 
@@ -126,13 +130,22 @@ async fn main() -> Result<()> {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_notification::init())
-        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_os::init())
         .setup(move |app| {
             info!("app setup");
 
+            #[cfg(windows)]
+            {
+                app.handle()
+                    .plugin(tauri_plugin_updater::Builder::new().build())
+                    .inspect_err(|e| {
+                        error!("failed to init updater plugin: {e}");
+                    })
+                    .ok();
+                app.manage(PendingUpdate(Mutex::new(None)));
+            }
+
             app.manage(cli.clone());
-            app.manage(updater_state::PendingUpdate(Mutex::new(None)));
 
             info!("Creating k/v embedded db");
             let db = match Db::new() {
@@ -247,7 +260,9 @@ async fn main() -> Result<()> {
             cmd_daemon::network_compat,
             cmd_daemon::vpnd_log_dir,
             cmd_fs::log_dir,
+            #[cfg(windows)]
             cmd_updater::fetch_update,
+            #[cfg(windows)]
             cmd_updater::install_update,
         ])
         // keep the app running in the background on window close request
