@@ -818,9 +818,7 @@ pub enum RouteSocketAddress {
 }
 
 /// Custom Debug-impl that uses the Display-impl of [SockaddrStorage] since its Debug-impl is
-
 /// basically unreadable.
-
 impl fmt::Debug for RouteSocketAddress {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let (variant, sockaddr) = match self {
