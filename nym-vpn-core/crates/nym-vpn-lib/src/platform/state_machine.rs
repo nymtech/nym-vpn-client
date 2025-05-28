@@ -8,9 +8,12 @@ use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use super::TunnelEvent as PlatformTunnelEvent;
-use crate::tunnel_state_machine::{
-    DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
-    TunnelSettings, TunnelStateMachine, WireguardTunnelOptions,
+use crate::{
+    CachingTopologyProvider,
+    tunnel_state_machine::{
+        DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
+        TunnelSettings, TunnelStateMachine, WireguardTunnelOptions,
+    },
 };
 use nym_vpn_lib_types::TunnelType;
 
@@ -98,7 +101,7 @@ pub(super) async fn start_state_machine(
         config_path: config.config_path,
         data_path: config.credential_data_path,
         gateway_config: gateway_config.clone(),
-        network_env,
+        network_env: network_env.clone(),
     };
 
     let user_agent = nym_sdk::UserAgent::from(config.user_agent.clone());
@@ -150,6 +153,14 @@ pub(super) async fn start_state_machine(
         .await;
 
     let shutdown_token = CancellationToken::new();
+
+    let topology_provider = CachingTopologyProvider::new(
+        network_env.api_url(),
+        Some(user_agent.clone()),
+        shutdown_token.child_token(),
+    );
+    topology_provider.refresh().await;
+
     let state_machine_handle = TunnelStateMachine::spawn(
         command_receiver,
         event_sender,
@@ -157,6 +168,7 @@ pub(super) async fn start_state_machine(
         tunnel_settings,
         account_controller_tx,
         gateway_directory_client,
+        topology_provider,
         connectivity_handle,
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler,

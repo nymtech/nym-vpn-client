@@ -18,8 +18,6 @@ use std::{sync::Arc, time::Duration};
 use nym_client_core::NymTopology;
 use nym_sdk::{NymApiTopologyProvider, TopologyProvider, UserAgent};
 
-use crate::MixnetClientConfig;
-
 const DEFAULT_TOPOLOGY_CACHE_TTL: Duration = Duration::from_secs(10 * 60);
 
 enum RefresherCommand {
@@ -80,19 +78,25 @@ impl Refresher {
     }
 }
 
-pub struct CachedTopologyProvider {
+#[derive(Debug, Clone)]
+pub struct CachingTopologyProvider {
     current_topology: Arc<RwLock<Option<NymTopology>>>,
     command_tx: UnboundedSender<(RefresherCommand, oneshot::Sender<()>)>,
 }
 
-impl CachedTopologyProvider {
+impl CachingTopologyProvider {
     pub fn new(
-        config: MixnetClientConfig,
         nym_api_url: Url,
         user_agent: Option<UserAgent>,
         cancel_token: CancellationToken,
     ) -> Self {
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
+        let config = nym_client_core::client::topology_control::nym_api_provider::Config {
+            min_mixnode_performance: 0,
+            min_gateway_performance: 0,
+            use_extended_topology: false,
+            ignore_egress_epoch_role: true,
+        };
         let topology_provider = NymApiTopologyProvider::new(config, vec![nym_api_url], user_agent);
         let current_topology = Arc::new(RwLock::new(None));
         let refresher = Refresher::new(
@@ -124,7 +128,7 @@ impl CachedTopologyProvider {
 }
 
 #[async_trait]
-impl TopologyProvider for CachedTopologyProvider {
+impl TopologyProvider for CachingTopologyProvider {
     async fn get_new_topology(&mut self) -> Option<NymTopology> {
         self.current_topology.read().await.clone()
     }

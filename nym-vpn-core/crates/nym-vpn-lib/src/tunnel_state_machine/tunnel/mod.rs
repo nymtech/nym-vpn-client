@@ -24,7 +24,7 @@ use tokio_util::sync::CancellationToken;
 #[cfg(windows)]
 use super::route_handler;
 use super::{MixnetEvent, TunnelType};
-use crate::{GatewayDirectoryError, MixnetClientConfig, MixnetError};
+use crate::{CachingTopologyProvider, GatewayDirectoryError, MixnetClientConfig, MixnetError};
 pub use any_tunnel_handle::AnyTunnelHandle;
 use status_listener::StatusListener;
 pub use tombstone::Tombstone;
@@ -137,6 +137,7 @@ pub struct MixnetConnectOptions {
     pub stats_recipient_address: Option<Recipient>,
     pub selected_gateways: SelectedGateways,
     pub user_agent: Option<UserAgent>,
+    pub custom_topology_provider: CachingTopologyProvider,
 }
 
 pub async fn select_gateways(
@@ -187,11 +188,11 @@ pub async fn connect_mixnet(
             options.selected_gateways.entry.identity(),
             &options.data_path,
             task_client,
-            cancel_token.child_token(),
             mixnet_client_config,
             options.enable_credentials_mode,
             options.stats_recipient_address,
             options.tunnel_type == TunnelType::Wireguard,
+            options.custom_topology_provider.clone(),
             #[cfg(unix)]
             connection_fd_callback,
         ),

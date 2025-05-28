@@ -27,7 +27,7 @@ use nym_vpn_api_client::{
     types::{Percent, ScoreThresholds},
 };
 use nym_vpn_lib::{
-    MixnetClientConfig, Recipient, UserAgent,
+    CachingTopologyProvider, MixnetClientConfig, Recipient, UserAgent,
     gateway_directory::{self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
@@ -354,6 +354,13 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             CachingGatewayClient::new(gateway_directory_client, Some(connectivity_handle.clone()));
         gateway_directory_client.refresh_all().await;
 
+        let topology_provider = CachingTopologyProvider::new(
+            network_env.api_url(),
+            Some(user_agent.clone()),
+            shutdown_token.child_token(),
+        );
+        topology_provider.refresh().await;
+
         if GATEWAY_DIRECTORY_CLIENT
             .set(gateway_directory_client.clone())
             .is_err()
@@ -368,6 +375,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             tunnel_settings,
             account_command_tx.clone(),
             gateway_directory_client,
+            topology_provider,
             connectivity_handle,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             route_handler,

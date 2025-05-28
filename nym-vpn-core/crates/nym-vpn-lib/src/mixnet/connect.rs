@@ -14,9 +14,8 @@ use nym_sdk::{
 };
 use nym_vpn_network_config::Network;
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
-use tokio_util::sync::CancellationToken;
 
-use super::{MixnetError, topology_provider::CachedTopologyProvider};
+use super::{MixnetError, topology_provider::CachingTopologyProvider};
 use crate::{MixnetClientConfig, storage::VpnClientOnDiskStorage};
 
 const VPN_AVERAGE_PACKET_DELAY: Duration = Duration::from_millis(15);
@@ -80,11 +79,11 @@ pub(crate) async fn setup_mixnet_client(
     mixnet_entry_gateway: NodeIdentity,
     mixnet_client_key_storage_path: &Option<PathBuf>,
     mut task_client: nym_task::TaskClient,
-    cancel_token: CancellationToken,
     mixnet_client_config: MixnetClientConfig,
     enable_credentials_mode: bool,
     stats_recipient_address: Option<Recipient>,
     two_hop_mode: bool,
+    custom_topology_provider: CachingTopologyProvider,
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<SharedMixnetClient, MixnetError> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
@@ -112,14 +111,6 @@ pub(crate) async fn setup_mixnet_client(
         RememberMe::new_mixnet()
     };
     let user_agent: UserAgent = nym_bin_common::bin_info_owned!().into();
-
-    let custom_topology_provider = CachedTopologyProvider::new(
-        mixnet_client_config.clone(),
-        network_env.api_url(),
-        Some(user_agent.clone()),
-        cancel_token,
-    );
-    custom_topology_provider.refresh().await;
 
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
         tracing::debug!("Using custom key storage path: {:?}", path);
