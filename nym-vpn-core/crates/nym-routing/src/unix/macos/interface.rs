@@ -27,7 +27,7 @@ use system_configuration::{
     network_configuration::SCNetworkSet,
     preferences::SCPreferences,
     sys::schema_definitions::{
-        kSCDynamicStorePropNetPrimaryInterface, kSCPropInterfaceName, kSCPropNetIPv4Addresses,
+        kSCDynamicStorePropNetPrimaryService, kSCPropInterfaceName, kSCPropNetIPv4Addresses,
         kSCPropNetIPv4Router, kSCPropNetIPv6Addresses, kSCPropNetIPv6Router,
     },
 };
@@ -220,25 +220,18 @@ impl PrimaryInterfaceMonitor {
             .store
             .get(key)
             .and_then(|v| v.downcast_into::<CFDictionary>())?;
-        let name = get_dict_elem_as_string(&global_dict, unsafe {
-            kSCDynamicStorePropNetPrimaryInterface
+
+        let service_id = get_dict_elem_as_string(&global_dict, unsafe {
+            kSCDynamicStorePropNetPrimaryService
         })
         .or_else(|| {
-            tracing::debug!("Missing name for primary interface ({family})");
+            tracing::debug!("Missing service ID for primary interface ({family})");
             None
         })?;
-        let router_ip = get_service_router_ip(&global_dict, family).or_else(|| {
-            tracing::debug!("Missing router IP for primary interface ({name}, {family})");
+
+        self.get_network_service(&service_id, family).or_else(|| {
+            tracing::debug!("Invalid service ID for primary interface ({family})");
             None
-        })?;
-        let first_ip = get_service_first_ip(&global_dict, family).or_else(|| {
-            tracing::debug!("Missing IP for primary interface ({name}, {family})");
-            None
-        })?;
-        Some(NetworkServiceDetails {
-            name,
-            router_ip,
-            first_ip,
         })
     }
 
@@ -246,37 +239,43 @@ impl PrimaryInterfaceMonitor {
         SCNetworkSet::new(&self.prefs)
             .service_order()
             .iter()
-            .filter_map(|service_id| {
-                let service_id_s = service_id.to_string();
-                let service_key = if family == Family::V4 {
-                    format!("State:/Network/Service/{service_id_s}/IPv4")
-                } else {
-                    format!("State:/Network/Service/{service_id_s}/IPv6")
-                };
-                let service_dict = self
-                    .store
-                    .get(CFString::new(&service_key))
-                    .and_then(|v| v.downcast_into::<CFDictionary>())?;
-                let name = get_dict_elem_as_string(&service_dict, unsafe { kSCPropInterfaceName })
-                    .or_else(|| {
-                        tracing::debug!("Missing name for service {service_key} ({family})");
-                        None
-                    })?;
-                let router_ip = get_service_router_ip(&service_dict, family).or_else(|| {
-                    tracing::debug!("Missing router IP for {service_key} ({name}, {family})");
-                    None
-                })?;
-                let first_ip = get_service_first_ip(&service_dict, family).or_else(|| {
-                    tracing::debug!("Missing IP for \"{service_key}\" ({name}, {family})");
-                    None
-                })?;
-                Some(NetworkServiceDetails {
-                    name,
-                    router_ip,
-                    first_ip,
-                })
-            })
+            .filter_map(|service_id| self.get_network_service(&service_id.to_string(), family))
             .collect::<Vec<_>>()
+    }
+
+    /// Get details about a specific network interface.
+    ///
+    /// Will return `None` and log a message on any error.
+    fn get_network_service(
+        &self,
+        service_id: &str,
+        family: Family,
+    ) -> Option<NetworkServiceDetails> {
+        let service_key = network_service_key(service_id.to_string(), family);
+        let service_dict = self
+            .store
+            .get(CFString::new(&service_key))
+            .and_then(|v| v.downcast_into::<CFDictionary>())?;
+
+        let name = get_dict_elem_as_string(&service_dict, unsafe { kSCPropInterfaceName })
+            .or_else(|| {
+                tracing::debug!("Missing name for service {service_key} ({family})");
+                None
+            })?;
+        let router_ip = get_service_router_ip(&service_dict, family).or_else(|| {
+            tracing::debug!("Missing router IP for {service_key} ({name}, {family})");
+            None
+        })?;
+        let first_ip = get_service_first_ip(&service_dict, family).or_else(|| {
+            tracing::debug!("Missing IP for \"{service_key}\" ({name}, {family})");
+            None
+        })?;
+
+        Some(NetworkServiceDetails {
+            name,
+            router_ip,
+            first_ip,
+        })
     }
 
     pub fn debug(&self) {
@@ -291,6 +290,16 @@ impl PrimaryInterfaceMonitor {
             );
         }
     }
+}
+
+/// Construct the string key for a network service from its ID.
+fn network_service_key(service_id: String, family: Family) -> String {
+    let family = match family {
+        Family::V4 => "IPv4",
+        Family::V6 => "IPv6",
+    };
+
+    format!("State:/Network/Service/{service_id}/{family}")
 }
 
 /// Return a map from interface name to link addresses (AF_LINK)
