@@ -17,6 +17,7 @@ use std::{
 /// Message that describes a route - either an added, removed, changed or plainly retrieved route.
 #[derive(Debug, Clone, PartialEq)]
 pub struct RouteMessage {
+    // INVARIANT: The `AddressFlag` must match the variant of `RouteSocketAddress`.
     sockaddrs: BTreeMap<AddressFlag, RouteSocketAddress>,
     mtu: u32,
     route_flags: RouteFlag,
@@ -835,14 +836,11 @@ impl fmt::Debug for RouteSocketAddress {
         if let Some(sockaddr) = sockaddr {
             if let Some(link_addr) = sockaddr.as_link_addr() {
                 // The default Display impl for LinkAddrs does not print ifindex
-
                 write!(f, "{variant}(")?;
-
                 f.debug_struct("LinkAddr")
                     .field("addr", &link_addr.addr())
                     .field("iface", &link_addr.ifindex())
                     .finish()?;
-
                 write!(f, ")")
             } else {
                 write!(f, "{variant}({sockaddr})")
@@ -907,15 +905,15 @@ impl RouteSocketAddress {
                 // the smallest size being 4 bytes.
                 let buffer_size = len.next_multiple_of(4);
                 let mut buffer = vec![0u8; buffer_size];
+                // SAFETY: copying contents of addr into buffer is safe, as long as addr.len()
+                // returns a correct size for the socket address pointer.
                 unsafe {
-                    // SAFETY: copying conents of addr into buffer is safe, as long as addr.len()
-                    // returns a correct size for the socket address pointer.
                     std::ptr::copy_nonoverlapping(
                         addr.as_ptr() as *const _,
                         buffer.as_mut_ptr(),
                         len,
-                    );
-                }
+                    )
+                };
                 buffer
             }
         }
@@ -1042,7 +1040,6 @@ impl Iterator for RouteSockAddrIterator<'_> {
 
         // Any undefiend flags are all returned as a clump in the final iteration.
         let no_undefined_flags = AddressFlag::all().contains(current_flag);
-
         debug_assert!(
             no_undefined_flags,
             "AddressFlag contained undefined bits! {current_flag:?}. \
@@ -1054,7 +1051,6 @@ impl Iterator for RouteSockAddrIterator<'_> {
                 self.advance_buffer(addr_len);
                 Some(Ok(next_addr))
             }
-
             Err(err) => {
                 self.buffer = &[];
                 Some(Err(err))
