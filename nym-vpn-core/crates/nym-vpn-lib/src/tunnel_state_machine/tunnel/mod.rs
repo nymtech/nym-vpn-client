@@ -187,6 +187,7 @@ pub async fn connect_mixnet(
             options.selected_gateways.entry.identity(),
             &options.data_path,
             task_client,
+            cancel_token.child_token(),
             mixnet_client_config,
             options.enable_credentials_mode,
             options.stats_recipient_address,

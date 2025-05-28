@@ -74,6 +74,19 @@ pub struct MixnetClientConfig {
     pub min_gateway_performance: Option<u8>,
 }
 
+impl From<MixnetClientConfig>
+    for nym_client_core::client::topology_control::nym_api_provider::Config
+{
+    fn from(value: MixnetClientConfig) -> Self {
+        Self {
+            min_mixnode_performance: value.min_mixnode_performance.unwrap_or_default(),
+            min_gateway_performance: value.min_gateway_performance.unwrap_or_default(),
+            use_extended_topology: false,
+            ignore_egress_epoch_role: true,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct MixnetConnectionInfo {
     pub nym_address: Recipient,
