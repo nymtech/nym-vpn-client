@@ -539,42 +539,6 @@ impl RouteManagerImpl {
         Ok(())
     }
 
-    async fn ensure_default_tunnel_routes_exist(&mut self) -> Result<()> {
-        for (family, _) in self.tunnel_default_routes.clone().iter() {
-            if !self.default_route_is_tunnel_route(family).await? {
-                return self.apply_tunnel_default_routes().await;
-            }
-        }
-
-        Ok(())
-    }
-
-    /// Check if the `0.0.0.0/0`/`::/0`-route goes to our tunnel interface.
-    async fn default_route_is_tunnel_route(&mut self, family: interface::Family) -> Result<bool> {
-        let actual_default_route = self.get_actual_default_route(family).await?;
-
-        let Some(actual_default_route) = actual_default_route else {
-            return Ok(false);
-        };
-
-        let Some(tunnel_route) = self.tunnel_default_routes.get(family) else {
-            return Ok(false);
-        };
-
-        Ok(actual_default_route.interface_index() == tunnel_route.interface_index())
-    }
-
-    /// Get the route which goes to `0.0.0.0/0`/`::/0`, if any.
-    async fn get_actual_default_route(
-        &mut self,
-        family: interface::Family,
-    ) -> Result<Option<data::RouteMessage>> {
-        self.routing_table
-            .get_route(&default_route_msg(family))
-            .await
-            .map_err(Error::RoutingTable)
-    }
-
     /// Update/add routes that use the default non-tunnel interface. If some applied destination is
     /// a default route, this function replaces the non-tunnel default route with an ifscope route.
     async fn apply_non_tunnel_routes(&mut self) -> Result<()> {
@@ -749,6 +713,42 @@ impl RouteManagerImpl {
         self.update_trigger.trigger();
 
         false
+    }
+
+    async fn ensure_default_tunnel_routes_exist(&mut self) -> Result<()> {
+        for (family, _) in self.tunnel_default_routes.clone().iter() {
+            if !self.default_route_is_tunnel_route(family).await? {
+                return self.apply_tunnel_default_routes().await;
+            }
+        }
+
+        Ok(())
+    }
+
+    /// Check if the `0.0.0.0/0`/`::/0`-route goes to our tunnel interface.
+    async fn default_route_is_tunnel_route(&mut self, family: interface::Family) -> Result<bool> {
+        let actual_default_route = self.get_actual_default_route(family).await?;
+
+        let Some(actual_default_route) = actual_default_route else {
+            return Ok(false);
+        };
+
+        let Some(tunnel_route) = self.tunnel_default_routes.get(family) else {
+            return Ok(false);
+        };
+
+        Ok(actual_default_route.interface_index() == tunnel_route.interface_index())
+    }
+
+    /// Get the route which goes to `0.0.0.0/0`/`::/0`, if any.
+    async fn get_actual_default_route(
+        &mut self,
+        family: interface::Family,
+    ) -> Result<Option<data::RouteMessage>> {
+        self.routing_table
+            .get_route(&default_route_msg(family))
+            .await
+            .map_err(Error::RoutingTable)
     }
 }
 
