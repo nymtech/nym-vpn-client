@@ -33,7 +33,7 @@ function DaemonDot({ status, ...rest }: DaemonDotProps) {
         status === 'ok' ? 'animate-pulse' : 'animate-pulse-fast',
       ])}
       data-testid={testId}
-      data-status={status}
+      data-test-status={status}
     >
       <div
         className={clsx(['relative w-2.5 h-2.5 rounded-full', bgColor()])}

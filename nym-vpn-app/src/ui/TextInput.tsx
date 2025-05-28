@@ -64,7 +64,7 @@ function TextInput({
         spellCheck={spellCheck}
         autoFocus={autoFocus}
         data-testid={testId}
-        data-has-left-icon={leftIcon ? 'true' : 'false'}
+        data-test-has-left-icon={leftIcon ? 'true' : 'false'}
       />
       {label && (
         <Label

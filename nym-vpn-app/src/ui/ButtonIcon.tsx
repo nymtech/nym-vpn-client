@@ -58,8 +58,8 @@ function ButtonIcon({
       }}
       disabled={disabled}
       data-testid={testId}
-      data-disabled={disabled ? 'true' : 'false'}
-      data-clicked={isClicked ? 'true' : 'false'}
+      data-test-disabled={disabled ? 'true' : 'false'}
+      data-test-clicked={isClicked ? 'true' : 'false'}
     >
       {isClicked ? (
         <motion.div

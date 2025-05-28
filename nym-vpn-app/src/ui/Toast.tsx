@@ -109,9 +109,9 @@ function Toast({
               transition={{ duration: 0.1, ease: 'easeOut' }}
               layout
               data-testid={testId}
-              data-type={type}
-              data-duration={duration}
-              data-open={open ? 'true' : 'false'}
+              data-test-type={type}
+              data-test-duration={duration}
+              data-test-open={open ? 'true' : 'false'}
             >
               {title && <div data-testid={`${testId}-title`}>{title}</div>}
               <div data-testid={`${testId}-message`}>{message}</div>

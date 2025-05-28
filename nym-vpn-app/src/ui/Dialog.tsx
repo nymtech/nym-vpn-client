@@ -31,8 +31,8 @@ function Dialog({ open, onClose, children, className, ...rest }: DialogProps) {
       open={open}
       onClose={onClose}
       data-testid={testId}
-      data-open={open ? 'true' : 'false'}
-      data-theme={uiTheme}
+      data-test-open={open ? 'true' : 'false'}
+      data-test-theme={uiTheme}
     >
       <DialogBackdrop
         transition

@@ -33,7 +33,7 @@ function Link({
       ])}
       onClick={() => openUrl(url)}
       data-testid={testId}
-      data-url={url}
+      data-test-url={url}
     >
       {({ hover }) => (
         <>

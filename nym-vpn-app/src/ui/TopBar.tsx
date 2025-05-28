@@ -243,8 +243,8 @@ export default function TopBar() {
           : 'dark:bg-charcoal bg-white',
       ])}
       data-testid="top-bar"
-      data-route={location.pathname}
-      data-no-background={currentNavLocation.noBackground ? 'true' : 'false'}
+      data-test-route={location.pathname}
+      data-test-no-background={currentNavLocation.noBackground ? 'true' : 'false'}
     >
       {currentNavLocation.leftIcon ? (
         <motion.div

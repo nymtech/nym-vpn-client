@@ -76,7 +76,7 @@ function RadioGroup<K extends Key>({
     <div
       className="select-none"
       data-testid={testId}
-      data-disabled={disabled ? 'true' : 'false'}
+      data-test-disabled={disabled ? 'true' : 'false'}
     >
       <HuRadioGroup
         value={selected}
@@ -124,7 +124,6 @@ function RadioGroup<K extends Key>({
                 disabled={option.disabled}
                 data-testid={optionTestId}
                 data-key={String(option.key)}
-                data-disabled={option.disabled ? 'true' : 'false'}
               >
                 {({ checked }) => {
                   return (
@@ -143,7 +142,6 @@ function RadioGroup<K extends Key>({
                           option.className && option.className,
                         ])}
                         data-testid={`${optionTestId}-content`}
-                        data-checked={checked ? 'true' : 'false'}
                       >
                         {radioIcons && checkedIcon(checked)}
                         {option.icon && (
