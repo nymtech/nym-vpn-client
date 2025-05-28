@@ -118,8 +118,8 @@ pub(crate) async fn setup_mixnet_client(
         network_env.api_url(),
         Some(user_agent.clone()),
         cancel_token,
-    )
-    .await;
+    );
+    custom_topology_provider.refresh().await;
 
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
         tracing::debug!("Using custom key storage path: {:?}", path);
