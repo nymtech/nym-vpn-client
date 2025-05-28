@@ -566,8 +566,12 @@ impl TunnelMonitor {
                     }
                 }
             }
-            _ = background_error_rx.recv() => {
-                tracing::error!("Background tasks errored out");
+            ret = background_error_rx.recv() => {
+                if ret.is_some() {
+                    tracing::error!("Background task errored out");
+                } else {
+                    tracing::debug!("Background task finished");
+                }
             }
         }
 
