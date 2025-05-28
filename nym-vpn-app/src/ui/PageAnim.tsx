@@ -29,7 +29,7 @@ function PageAnim({
       }}
       className={clsx([className])}
       data-testid={testId}
-      data-slide-origin={slideOrigin}
+      data-test-slide-origin={slideOrigin}
     >
       {children}
     </motion.div>

@@ -106,9 +106,9 @@ function Button({
       onClick={onClick}
       disabled={disabled}
       data-testid={testId}
-      data-color={color}
-      data-outline={outline ? 'true' : 'false'}
-      data-disabled={disabled ? 'true' : 'false'}
+      data-test-color={color}
+      data-test-outline={outline ? 'true' : 'false'}
+      data-test-disabled={disabled ? 'true' : 'false'}
     >
       {spinner ? (
         <Spinner />

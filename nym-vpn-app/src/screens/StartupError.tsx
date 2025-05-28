@@ -40,7 +40,7 @@ function StartupError({
     <div
       className={clsx([theme === 'dark' && 'dark', 'h-full'])}
       data-testid="startup-error-container"
-      data-theme={theme}
+      data-test-theme={theme}
     >
       <div
         className={clsx([

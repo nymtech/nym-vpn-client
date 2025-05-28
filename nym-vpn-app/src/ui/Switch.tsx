@@ -21,8 +21,8 @@ function Switch({ checked, onChange, disabled, ...rest }: SwitchProps) {
       ])}
       disabled={disabled}
       data-testid={testId}
-      data-checked={checked ? 'true' : 'false'}
-      data-disabled={disabled ? 'true' : 'false'}
+      data-test-checked={checked ? 'true' : 'false'}
+      data-test-disabled={disabled ? 'true' : 'false'}
     >
       <span
         className={clsx([

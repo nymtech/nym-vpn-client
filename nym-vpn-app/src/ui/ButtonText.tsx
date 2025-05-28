@@ -52,8 +52,8 @@ function ButtonText({
       onDoubleClick={onDoubleClick}
       disabled={disabled}
       data-testid={testId}
-      data-disabled={disabled ? 'true' : 'false'}
-      data-truncate={truncate ? 'true' : 'false'}
+      data-test-disabled={disabled ? 'true' : 'false'}
+      data-test-truncate={truncate ? 'true' : 'false'}
     >
       <div
         className={clsx(truncate && 'text-nowrap truncate')}

@@ -19,7 +19,7 @@ function MsIcon({ icon, className, ...rest }: MsIconProps) {
         className && className,
       ])}
       data-testid={testId}
-      data-icon={icon}
+      data-test-icon={icon}
     >
       {icon}
     </span>

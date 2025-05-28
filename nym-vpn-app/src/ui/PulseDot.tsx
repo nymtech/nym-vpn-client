@@ -28,7 +28,7 @@ function PulseDot({ color = 'cornflower', ...rest }: PulseDotProps) {
         'h-[10px] w-[10px]',
       ])}
       data-testid={testId}
-      data-color={color}
+      data-test-color={color}
     >
       <div
         className={clsx(

@@ -296,7 +296,7 @@ function FlagIcon({ code, alt, className, ...rest }: FlagIconProps) {
         ])}
         alt={alt}
         data-testid={testId}
-        data-country-code={code}
+        data-test-country-code={code}
       />
     </div>
   );

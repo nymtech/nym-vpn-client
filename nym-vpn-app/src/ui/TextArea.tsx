@@ -76,8 +76,8 @@ function TextArea({
         rows={rows}
         spellCheck={spellCheck}
         data-testid={testId}
-        data-resize={resize}
-        data-rows={rows}
+        data-test-resize={resize}
+        data-test-rows={rows}
       />
       {label && (
         <Label

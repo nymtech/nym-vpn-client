@@ -13,7 +13,7 @@ export default function ThemeSetter({
     <div
       className={clsx([uiTheme === 'dark' && 'dark', 'h-full'])}
       data-testid="theme-setter"
-      data-theme={uiTheme}
+      data-test-theme={uiTheme}
     >
       {children}
     </div>

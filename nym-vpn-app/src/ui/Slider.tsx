@@ -40,10 +40,10 @@ function Slider({
       )}
       disabled={disabled}
       data-testid={testId}
-      data-value={value}
-      data-min={min}
-      data-max={max}
-      data-disabled={disabled ? 'true' : 'false'}
+      data-test-value={value}
+      data-test-min={min}
+      data-test-max={max}
+      data-test-disabled={disabled ? 'true' : 'false'}
     >
       <RxSlider.Track
         className="relative h-1.5 grow rounded-full bg-bombay/60 dark:bg-iron"
