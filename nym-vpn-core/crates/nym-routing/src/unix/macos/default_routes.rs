@@ -6,7 +6,6 @@ use std::{collections::HashMap, convert::Infallible, future::pending, mem, time:
 
 use futures::FutureExt;
 use tokio::{
-    runtime,
     sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
     time::{Instant, sleep_until},
 };
@@ -67,9 +66,7 @@ impl DefaultRouteMonitor {
             primary_interfaces: IpMap::new(),
         };
 
-        tokio::task::spawn_blocking(move || {
-            runtime::Handle::current().block_on(monitor.run());
-        });
+        tokio::spawn(monitor.run());
 
         let route_v4_rx =
             filter_duplicates(delay_nones_except_first(NO_ROUTE_GRACE_TIME, route_v4_rx));
