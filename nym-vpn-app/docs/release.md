@@ -11,11 +11,11 @@ desktop app for Linux and Windows platforms
 
 ### Types of releases
 
-Release tags must follow the following patterns:
+Release tags must follow the following patterns depending on the release type:
 
 - **stable** `nym-vpn-app-v1.2.3`
-- dev `nym-vpn-app-v1.2.3-dev`
-- RC `nym-vpn-app-v1.2.3-rc.1`
+- dev: `nym-vpn-app-v1.2.3-dev`, `nym-vpn-app-v1.2.3-rc` for RC or
+  `nym-vpn-app-v1.2.3-beta` for beta builds
 - nightly `nym-vpn-app-nightly`
 
 ### Bump versions
@@ -51,12 +51,7 @@ version = ">=1.2.0"
 
 ---
 
-There are 2 ways to release the app:
-
-1. manually from the GH workflow, recommended for now
-2. via git tag (_TODO_)
-
-### Trigger the release manually
+### Trigger the release
 
 Go to the workflow
 [publish-nym-vpn-app](https://github.com/nymtech/nym-vpn-client/actions/workflows/publish-nym-vpn-app.yml)
@@ -69,22 +64,36 @@ and click on the _Run workflow_ button
 
    **NOTE** refer to the [types of releases](#types-of-releases) section
 
-3. :warning: if it is **not** a stable release check the _Pre-release_ tickbox
+3. select the release type
 
-4. check the _dev_ tickbox if it is a dev release, not stable, \
-   (enable in-app dev menu)
+   - **stable** for a stable public release
+   - **dev** for a development release, like RC, beta etc
+   - **nightly** for a nightly build (not really used)
 
-5. in the _nym-vpn-core release tag_ input, enter the core release \
-   tag that this app release targets, e.g. `nym-vpn-core-v1.2.3`
+4. if **not** a stable release, you may want to label it as _Pre-release_
 
-6. click the green _Run workflow_ button
+5. check _Enable updater_ if you want to enable the in-app updater (Windows only) \
+   this is recommended for stable releases \
+   if you check this:
+
+   - the app will check for updates on startup, and if there is one available, it will prompt the user to update
+   - it will create a PR to bump the updater JSON metadata
+   - at build time, it will generate the bundle signature
+
+6. check the _dev_ tickbox if it is a dev release, **not stable**, \
+   and you want to enable the in-app dev menu
+
+7. For stable releases, in the "nym-vpn-core release tag" input, enter the GH core release \
+   tag that this app release targets, e.g. `nym-vpn-core-v1.2.3` \
+   For dev releases, instead you can use any core dev builds using direct link to the Windows zip archive \
+   just copy the url into the "direct nym-vpn-core artifact URL" input
+
+   e.g. `https://buildsci.nym.anon/nym-vpn-client/nym-vpn-core/develop/123/nym-vpn-core-v1.2.3-beta.123_windows_x86_64.zip`
+
+8. click the green _Run workflow_ button
 
 If the release job is successful, the release has been published \
 -> https://github.com/nymtech/nym-vpn-client/releases
-
-### Trigger the release via a git tag
-
-_TODO_
 
 ---
 
@@ -102,7 +111,8 @@ on new stable, the rest of the packages need to be updated manually.
 
 - refer to [update AUR](update_aur.md) for Arch Linux packages
 - refer to [update Flatpak](update_flatpak.md) for Flatpak package
-- refer to [update Linux installer](update_linux_installer.md) for Linux installer script
+- refer to [update Linux installer](update_linux_installer.md) for Linux
+  installer script
 
 #### nym.com
 
