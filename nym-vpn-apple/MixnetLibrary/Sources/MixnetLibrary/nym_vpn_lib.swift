@@ -3828,6 +3828,7 @@ public enum ErrorStateReason {
     case api(String?
     )
     case deviceTimeOutOfSync
+    case createMixnetStorage
     case `internal`(String?
     )
 }
@@ -3864,7 +3865,9 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
         
         case 11: return .deviceTimeOutOfSync
         
-        case 12: return .`internal`(try FfiConverterOptionString.read(from: &buf)
+        case 12: return .createMixnetStorage
+        
+        case 13: return .`internal`(try FfiConverterOptionString.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -3921,8 +3924,12 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
             writeInt(&buf, Int32(11))
         
         
-        case let .`internal`(v1):
+        case .createMixnetStorage:
             writeInt(&buf, Int32(12))
+        
+        
+        case let .`internal`(v1):
+            writeInt(&buf, Int32(13))
             FfiConverterOptionString.write(v1, into: &buf)
             
         }
