@@ -28,7 +28,7 @@ export default function Progress({
         <BuiProgress.Value className="text-sm" />
       </div>
       <BuiProgress.Track className="h-1.5 rounded-full bg-faded-lavender dark:bg-ash border-none">
-        <BuiProgress.Indicator className="rounded-full transition-all duration-200 bg-malachite border-none" />
+        <BuiProgress.Indicator className="rounded-full transition-all duration-150 bg-malachite border-none" />
       </BuiProgress.Track>
     </BuiProgress.Root>
   );
