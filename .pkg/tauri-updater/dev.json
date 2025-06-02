@@ -1,9 +1,9 @@
 {
-  "version": "1.10.0-dev",
+  "version": "1.10.0-updater.1",
   "platforms": {
     "windows-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VjJKNWdyaTYwL3FJNlRLRHRSZzB6RjZ2SmJTaGFoeWhXTTJKNlJDSDVtYXNTcUhxbTZkNjNNYzdaaHRaaHd4NW1uSGV1ald4WGpjZWZ0Q1FyYlVCTkFRPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzQ4MjYwNjE4CWZpbGU6TnltVlBOXzEuMTAuMC1kZXZfeDY0LXNldHVwLmV4ZQp2TFErZDhVMXZQZEF2Z2VvcVUxTENyU0RYczh0VkxIbS9pVmErekUwYktvclplL1FXWEhiRDlFRC95TGtWL3dmNVg0b3ppQkpvdGV2L0FPKzUxaWlEdz09Cg==",
-      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/tauri-updater-init/NymVPN_1.10.0-dev_x64-setup.exe"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VitrSkNUMVg1UXNyK2FkRlM4QnFONGxzRVA4QnE1UENBeU5oYWkvMkNzaVpuT0MrcU43VkIrNElFRXFIU2FQdlFrbkQ4TWVGclZPN2p2WlNGRkRYR2dnPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzQ4ODcyOTMyCWZpbGU6TnltVlBOXzEuMTAuMC11cGRhdGVyLjFfeDY0LXNldHVwLmV4ZQo1cXpXRGRHV3hTV2tESTFPU1ZQd3k5WC8wUXhHYk1IVG5WVmllNGNGL3djN2MyakhqdnFtcHNabXZGTlBBbG96dzg4R0hMTmtjK0t5RllVVVBRL2tEZz09Cg==",
+      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/tauri-updater-test-1/NymVPN_1.10.0-updater.1_x64-setup.exe"
     }
   }
 }
