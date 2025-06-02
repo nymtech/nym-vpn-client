@@ -9,7 +9,7 @@ use tokio_util::sync::CancellationToken;
 
 use super::TunnelEvent as PlatformTunnelEvent;
 use crate::{
-    CachingTopologyProvider,
+    VpnTopologyProvider,
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelSettings, TunnelStateMachine, WireguardTunnelOptions,
@@ -154,12 +154,13 @@ pub(super) async fn start_state_machine(
 
     let shutdown_token = CancellationToken::new();
 
-    let topology_provider = CachingTopologyProvider::new(
+    let topology_provider = VpnTopologyProvider::new(
         network_env.api_url(),
         Some(user_agent.clone()),
+        false,
         shutdown_token.child_token(),
     );
-    topology_provider.refresh().await;
+    topology_provider.fetch().await;
 
     let state_machine_handle = TunnelStateMachine::spawn(
         command_receiver,

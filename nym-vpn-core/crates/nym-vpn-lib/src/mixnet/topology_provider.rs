@@ -1,44 +1,41 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::sync::Arc;
+
 use async_trait::async_trait;
-use tokio::{
-    sync::{
-        RwLock,
-        mpsc::{UnboundedReceiver, UnboundedSender},
-        oneshot,
-    },
-    time::interval,
+use tokio::sync::{
+    RwLock,
+    mpsc::{UnboundedReceiver, UnboundedSender},
+    oneshot,
 };
 use tokio_util::sync::CancellationToken;
 use url::Url;
-
-use std::{sync::Arc, time::Duration};
 
 use nym_client_core::NymTopology;
 use nym_client_core::client::topology_control::nym_api_provider::Config;
 use nym_sdk::{NymApiTopologyProvider, TopologyProvider, UserAgent};
 
-const DEFAULT_TOPOLOGY_CACHE_TTL: Duration = Duration::from_secs(10 * 60);
-
-enum RefresherCommand {
-    Refresh,
+enum FetcherCommand {
+    Fetch {
+        response: oneshot::Sender<Option<NymTopology>>,
+    },
     UpdateConfig {
         min_mixnode_performance: Option<u8>,
         min_gateway_performance: Option<u8>,
+        response: oneshot::Sender<()>,
     },
 }
 
-struct Refresher {
+struct Fetcher {
     topology_provider: NymApiTopologyProvider,
     nym_api_urls: Vec<Url>,
     user_agent: Option<UserAgent>,
-    current_topology: Arc<RwLock<Option<NymTopology>>>,
-    command_rx: UnboundedReceiver<(RefresherCommand, oneshot::Sender<()>)>,
+    command_rx: UnboundedReceiver<FetcherCommand>,
     cancel_token: CancellationToken,
 }
 
-impl Refresher {
+impl Fetcher {
     const DEFAULT_CONFIG: Config = Config {
         min_mixnode_performance: 0,
         min_gateway_performance: 0,
@@ -49,8 +46,7 @@ impl Refresher {
     fn new(
         nym_api_urls: Vec<Url>,
         user_agent: Option<UserAgent>,
-        current_topology: Arc<RwLock<Option<NymTopology>>>,
-        command_rx: UnboundedReceiver<(RefresherCommand, oneshot::Sender<()>)>,
+        command_rx: UnboundedReceiver<FetcherCommand>,
         cancel_token: CancellationToken,
     ) -> Self {
         Self {
@@ -61,14 +57,13 @@ impl Refresher {
             ),
             nym_api_urls,
             user_agent,
-            current_topology,
             command_rx,
             cancel_token,
         }
     }
 
-    async fn refresh_topology(&mut self) {
-        *self.current_topology.write().await = self.topology_provider.get_new_topology().await;
+    async fn fetch_topology(&mut self) -> Option<NymTopology> {
+        self.topology_provider.get_new_topology().await
     }
 
     fn update_config(
@@ -87,32 +82,32 @@ impl Refresher {
             NymApiTopologyProvider::new(config, self.nym_api_urls.clone(), self.user_agent.clone());
     }
 
-    async fn handle_command(&mut self, cmd: RefresherCommand, signal_finish: oneshot::Sender<()>) {
+    async fn handle_command(&mut self, cmd: FetcherCommand) {
         match cmd {
-            RefresherCommand::Refresh => self.refresh_topology().await,
-            RefresherCommand::UpdateConfig {
+            FetcherCommand::Fetch { response } => {
+                let latest_topology = self.fetch_topology().await;
+                let _ = response.send(latest_topology);
+            }
+            FetcherCommand::UpdateConfig {
                 min_mixnode_performance,
                 min_gateway_performance,
-            } => self.update_config(min_mixnode_performance, min_gateway_performance),
+                response,
+            } => {
+                self.update_config(min_mixnode_performance, min_gateway_performance);
+                let _ = response.send(());
+            }
         }
-        let _ = signal_finish.send(());
     }
 
     async fn run(mut self) {
-        let mut full_refresh_interval = interval(DEFAULT_TOPOLOGY_CACHE_TTL);
-        full_refresh_interval.tick().await;
-
         while !self.cancel_token.is_cancelled() {
             tokio::select! {
                 biased;
                 _ = self.cancel_token.cancelled() => {
-                   tracing::trace!("Topology Refresher: Received shutdown");
+                   tracing::trace!("Topology Fetcher: Received shutdown");
                 }
-                Some((cmd, signal_finish)) = self.command_rx.recv() => {
-                    self.handle_command(cmd, signal_finish).await;
-                }
-                _ = full_refresh_interval.tick() => {
-                    self.refresh_topology().await;
+                Some(cmd) = self.command_rx.recv() => {
+                    self.handle_command(cmd).await;
                 }
             }
         }
@@ -120,45 +115,59 @@ impl Refresher {
 }
 
 #[derive(Debug, Clone)]
-pub struct CachingTopologyProvider {
-    current_topology: Arc<RwLock<Option<NymTopology>>>,
-    command_tx: UnboundedSender<(RefresherCommand, oneshot::Sender<()>)>,
+struct CachedNymTopology {
+    latest_topology: Option<NymTopology>,
+    use_network: bool,
 }
 
-impl CachingTopologyProvider {
+#[derive(Debug, Clone)]
+pub struct VpnTopologyProvider {
+    cached_topology: Arc<RwLock<CachedNymTopology>>,
+    command_tx: UnboundedSender<FetcherCommand>,
+}
+
+impl VpnTopologyProvider {
     pub fn new(
         nym_api_url: Url,
         user_agent: Option<UserAgent>,
+        use_network: bool,
         cancel_token: CancellationToken,
     ) -> Self {
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
-        let current_topology = Arc::new(RwLock::new(None));
-        let refresher = Refresher::new(
-            vec![nym_api_url],
-            user_agent,
-            current_topology.clone(),
-            command_rx,
-            cancel_token,
-        );
+        let refresher = Fetcher::new(vec![nym_api_url], user_agent, command_rx, cancel_token);
         tokio::spawn(refresher.run());
 
         Self {
-            current_topology,
+            cached_topology: Arc::new(RwLock::new(CachedNymTopology {
+                latest_topology: None,
+                use_network,
+            })),
             command_tx,
         }
     }
 
-    pub async fn refresh(&self) {
+    /// Get topology from network, regardless of the set value of use_network
+    pub async fn fetch(&self) {
         let (signal_finished_tx, signal_finished_rx) = oneshot::channel();
         if self
             .command_tx
-            .send((RefresherCommand::Refresh, signal_finished_tx))
+            .send(FetcherCommand::Fetch {
+                response: signal_finished_tx,
+            })
             .is_err()
         {
-            tracing::debug!("Refresher terminated");
+            tracing::debug!("Fetcher terminated");
             return;
         }
-        let _ = signal_finished_rx.await;
+        if let Ok(latest_topology) = signal_finished_rx.await {
+            self.cached_topology.write().await.latest_topology = latest_topology;
+        } else {
+            tracing::warn!("Could not fetch topology from network");
+        }
+    }
+
+    pub async fn use_network(&mut self, use_network: bool) {
+        self.cached_topology.write().await.use_network = use_network;
     }
 
     pub async fn update_config(
@@ -169,25 +178,31 @@ impl CachingTopologyProvider {
         let (signal_finished_tx, signal_finished_rx) = oneshot::channel();
         if self
             .command_tx
-            .send((
-                RefresherCommand::UpdateConfig {
-                    min_mixnode_performance,
-                    min_gateway_performance,
-                },
-                signal_finished_tx,
-            ))
+            .send(FetcherCommand::UpdateConfig {
+                min_mixnode_performance,
+                min_gateway_performance,
+                response: signal_finished_tx,
+            })
             .is_err()
         {
-            tracing::debug!("Refresher terminated");
+            tracing::debug!("Fetcher terminated");
             return;
         }
-        let _ = signal_finished_rx.await;
+        if signal_finished_rx.await.is_err() {
+            tracing::warn!("Could not update topology provider configuration");
+        }
     }
 }
 
 #[async_trait]
-impl TopologyProvider for CachingTopologyProvider {
+impl TopologyProvider for VpnTopologyProvider {
     async fn get_new_topology(&mut self) -> Option<NymTopology> {
-        self.current_topology.read().await.clone()
+        let cached_topology = self.cached_topology.read().await.clone();
+        if cached_topology.use_network {
+            self.fetch().await;
+            self.cached_topology.read().await.latest_topology.clone()
+        } else {
+            cached_topology.latest_topology
+        }
     }
 }

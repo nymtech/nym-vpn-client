@@ -24,7 +24,7 @@ use tokio_util::sync::CancellationToken;
 #[cfg(windows)]
 use super::route_handler;
 use super::{MixnetEvent, TunnelType};
-use crate::{CachingTopologyProvider, GatewayDirectoryError, MixnetClientConfig, MixnetError};
+use crate::{VpnTopologyProvider, GatewayDirectoryError, MixnetClientConfig, MixnetError};
 pub use any_tunnel_handle::AnyTunnelHandle;
 use status_listener::StatusListener;
 pub use tombstone::Tombstone;
@@ -137,7 +137,7 @@ pub struct MixnetConnectOptions {
     pub stats_recipient_address: Option<Recipient>,
     pub selected_gateways: SelectedGateways,
     pub user_agent: Option<UserAgent>,
-    pub custom_topology_provider: CachingTopologyProvider,
+    pub custom_topology_provider: VpnTopologyProvider,
 }
 
 pub async fn select_gateways(

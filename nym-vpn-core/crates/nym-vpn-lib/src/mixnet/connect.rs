@@ -15,7 +15,7 @@ use nym_sdk::{
 use nym_vpn_network_config::Network;
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
 
-use super::{MixnetError, topology_provider::CachingTopologyProvider};
+use super::{MixnetError, topology_provider::VpnTopologyProvider};
 use crate::{MixnetClientConfig, storage::VpnClientOnDiskStorage};
 
 const VPN_AVERAGE_PACKET_DELAY: Duration = Duration::from_millis(15);
@@ -83,7 +83,7 @@ pub(crate) async fn setup_mixnet_client(
     enable_credentials_mode: bool,
     stats_recipient_address: Option<Recipient>,
     two_hop_mode: bool,
-    custom_topology_provider: CachingTopologyProvider,
+    custom_topology_provider: VpnTopologyProvider,
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<SharedMixnetClient, MixnetError> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();

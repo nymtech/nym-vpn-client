@@ -12,4 +12,4 @@ pub(crate) use connect::setup_mixnet_client;
 pub(crate) use processor::{MixnetProcessorConfig, start_processor};
 
 pub use error::MixnetError;
-pub use topology_provider::CachingTopologyProvider;
+pub use topology_provider::VpnTopologyProvider;

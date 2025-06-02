@@ -71,7 +71,7 @@ use crate::tunnel_provider::ios::OSTunProvider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 use crate::{
-    CachingTopologyProvider,
+    VpnTopologyProvider,
     tunnel_state_machine::{WireguardMultihopMode, account},
 };
 
@@ -228,7 +228,7 @@ pub struct TunnelMonitor {
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_commands: AccountCommandSender,
     gateway_directory_client: CachingGatewayClient,
-    custom_topology_provider: CachingTopologyProvider,
+    custom_topology_provider: VpnTopologyProvider,
     shutdown_token: CancellationToken,
 }
 
@@ -237,7 +237,7 @@ impl TunnelMonitor {
         tunnel_parameters: TunnelParameters,
         account_commands: AccountCommandSender,
         gateway_directory_client: CachingGatewayClient,
-        custom_topology_provider: CachingTopologyProvider,
+        custom_topology_provider: VpnTopologyProvider,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
         mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
