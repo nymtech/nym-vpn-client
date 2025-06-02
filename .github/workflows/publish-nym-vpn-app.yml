@@ -127,7 +127,7 @@ jobs:
         run: echo "tag=${{ env.TAG_NAME }}" >> "$GITHUB_OUTPUT"
 
       - name: Set output for updater (Windows)
-        if: ${{ env.UPDATER_ENABLED == true }}
+        if: ${{ env.UPDATER_ENABLED == 'true' }}
         id: win_updater
         working-directory: ${{ env.UPLOAD_DIR_WINDOWS }}
         run: |
