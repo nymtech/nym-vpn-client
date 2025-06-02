@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-unresolved
+import clsx from 'clsx';
 import { Progress as BuiProgress } from '@base-ui-components/react/progress';
 
 export type ProgressProps = {
@@ -7,15 +7,28 @@ export type ProgressProps = {
   className?: string;
 };
 
-export default function Progress({ value = null, label }: ProgressProps) {
+export default function Progress({
+  value = null,
+  label,
+  className,
+}: ProgressProps) {
   return (
-    <BuiProgress.Root className="grid w-48 grid-cols-2 gap-y-2" value={value}>
-      <BuiProgress.Label className="text-sm font-medium text-gray-900">
-        {label || 'Progress'}
-      </BuiProgress.Label>
-      <BuiProgress.Value className="col-start-2 text-right text-sm text-gray-900" />
-      <BuiProgress.Track className="col-span-full h-1 overflow-hidden rounded bg-gray-200 shadow-[inset_0_0_0_1px] shadow-gray-200">
-        <BuiProgress.Indicator className="block bg-gray-500 transition-all duration-500" />
+    <BuiProgress.Root
+      className={clsx(
+        'flex flex-col gap-2',
+        'text-iron dark:text-bombay',
+        className,
+      )}
+      value={value}
+    >
+      <div className="flex justify-between items-center">
+        <BuiProgress.Label className="text-sm">
+          {label || 'Progress'}
+        </BuiProgress.Label>
+        <BuiProgress.Value className="text-sm" />
+      </div>
+      <BuiProgress.Track className="h-1.5 rounded-full bg-faded-lavender dark:bg-ash border-none">
+        <BuiProgress.Indicator className="rounded-full transition-all duration-200 bg-malachite border-none" />
       </BuiProgress.Track>
     </BuiProgress.Root>
   );

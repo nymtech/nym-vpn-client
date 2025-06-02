@@ -1,9 +1,10 @@
+import clsx from 'clsx';
 import { Channel, invoke } from '@tauri-apps/api/core';
 import { useEffect, useState } from 'react';
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { type } from '@tauri-apps/plugin-os';
-import { Button, Dialog, MsIcon, Progress } from '../../../ui';
+import { Button, ButtonText, Dialog, MsIcon, Progress } from '../../../ui';
 import {
   BackendError,
   DownloadUpdateEvent,
@@ -11,8 +12,8 @@ import {
 } from '../../../types';
 
 const updaterEnabled = window._APP.updaterEnabled;
-let initialized = false;
 const os = type();
+let initialized = false;
 let contentLength: bigint | number = 20_000_000; // default to 20MB
 
 function UpdateDialog() {
@@ -20,6 +21,7 @@ function UpdateDialog() {
   const [isOpen, setIsOpen] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [progress, setProgress] = useState<number>(0); // 0% - 100%
+  const version = update?.version || 'unknown';
 
   const { t } = useTranslation('home');
 
@@ -49,6 +51,10 @@ function UpdateDialog() {
   }, []);
 
   const handleClose = () => {
+    if (isUpdating) {
+      // prevent the user from closing the dialog while updating
+      return;
+    }
     setIsOpen(false);
   };
 
@@ -56,9 +62,7 @@ function UpdateDialog() {
     console.log(`update download event`, event);
     switch (event.event) {
       case 'started':
-        if (event.data.contentLength) {
-          contentLength = event.data.contentLength;
-        }
+        contentLength = event.data.contentLength;
         break;
       case 'progress': {
         const chunkLength = event.data.chunkLength;
@@ -75,6 +79,9 @@ function UpdateDialog() {
   };
 
   const onUpdate = async () => {
+    if (isUpdating) {
+      return;
+    }
     setIsUpdating(true);
     const onEvent = new Channel<DownloadUpdateEvent>();
     onEvent.onmessage = onProgress;
@@ -87,7 +94,7 @@ function UpdateDialog() {
     }
   };
 
-  if (!updaterEnabled || !update) {
+  if (!updaterEnabled) {
     return null;
   }
 
@@ -110,38 +117,50 @@ function UpdateDialog() {
           data-testid="update-dialog-title"
         >
           {isUpdating
-            ? t('app-update-progress.title', { version: update.version })
+            ? t('app-update-progress.title', {
+                version: version,
+              })
             : t('app-update-available.title')}
         </DialogTitle>
       </div>
       {!isUpdating ? (
         <>
           <p
-            className="text-iron dark:text-bombay md:text-nowrap"
+            className="text-iron dark:text-bombay md:text-nowrap text-center"
             data-testid="update-dialog-description"
           >
             {t('app-update-available.description', {
-              version: update.version,
+              version: version,
             })}
           </p>
-          <p className="md:text-nowrap" data-testid="update-dialog-description">
+          <p
+            className="md:text-nowrap text-baltic-sea dark:text-white"
+            data-testid="update-dialog-description"
+          >
             {t('app-update-available.note-close')}
           </p>
-          <Button
-            onClick={onUpdate}
-            className="mt-2"
-            data-testid="update-dialog-button"
-            disabled={isUpdating}
-          >
-            <span className="text-lg text-black dark:text-baltic-sea">
-              {t('app-update-available.button-update')}
-            </span>
-          </Button>
+          <div className={clsx('flex flex-col items-center w-full gap-2')}>
+            <Button onClick={onUpdate} className="mt-2" disabled={isUpdating}>
+              <span className="text-lg text-black dark:text-baltic-sea">
+                {t('app-update-available.button-update')}
+              </span>
+            </Button>
+            <ButtonText
+              onClick={() => {
+                setIsOpen(false);
+              }}
+              className="mt-2"
+              disabled={isUpdating}
+              color="transparent"
+            >
+              {t('app-update-available.button-close')}
+            </ButtonText>
+          </div>
         </>
       ) : (
         <>
           <p
-            className="text-iron dark:text-bombay md:text-nowrap"
+            className="text-iron dark:text-bombay md:text-nowrap text-center"
             data-testid="update-dialog-description"
           >
             {t('app-update-progress.description')}
@@ -149,9 +168,10 @@ function UpdateDialog() {
           <Progress
             value={progress}
             label={t('app-update-progress.bar-label')}
+            className="w-full"
           />
           <p
-            className="text-iron dark:text-bombay md:text-nowrap"
+            className="md:text-nowrap text-baltic-sea dark:text-white"
             data-testid="update-dialog-description"
           >
             {t('app-update-progress.note-close')}
