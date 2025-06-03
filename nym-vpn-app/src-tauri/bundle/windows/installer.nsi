@@ -135,18 +135,18 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 
 
 ; 4. Custom page to ask user if he wants to reinstall/uninstall
-;    only if a previous installtion was detected
+;    only if a previous installation was detected
 Var ReinstallPageCheck
 Page custom PageReinstall PageLeaveReinstall
 Function PageReinstall
   ; Uninstall previous WiX installation if exists.
   ;
-  ; A WiX installer stores the isntallation info in registry
+  ; A WiX installer stores the installation info in registry
   ; using a UUID and so we have to loop through all keys under
   ; `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall`
   ; and check if `DisplayName` and `Publisher` keys match ${PRODUCTNAME} and ${MANUFACTURER}
   ;
-  ; This has a potentional issue that there maybe another installation that matches
+  ; This has a potential issue that there maybe another installation that matches
   ; our ${PRODUCTNAME} and ${MANUFACTURER} but wasn't installed by our WiX installer,
   ; however, this should be fine since the user will have to confirm the uninstallation
   ; and they can chose to abort it if doesn't make sense.
@@ -172,7 +172,7 @@ Function PageReinstall
   ReadRegStr $R1 SHCTX "${UNINSTKEY}" "UninstallString"
   ${IfThen} "$R0$R1" == "" ${|} Abort ${|}
 
-  ; Compare this installar version with the existing installation
+  ; Compare this installer version with the existing installation
   ; and modify the messages presented to the user accordingly
   compare_version:
   StrCpy $R4 "$(older)"
@@ -212,6 +212,14 @@ Function PageReinstall
     StrCpy $R5 "1"
   ${Else}
     Abort
+  ${EndIf}
+
+  ; when upgrading in passive mode, ie. via the updater, we need to call `vpnd --uninstall` first
+  ; before installing the new version
+  ${If} $PassiveMode == 1
+  ${AndIf} $R0 == 1
+  ${AndIf} ${FileExists} "$INSTDIR\nym-vpnd.exe"
+    ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
   ${EndIf}
 
   Call SkipIfPassive
@@ -302,7 +310,7 @@ Function PageLeaveReinstall
   reinst_done:
 FunctionEnd
 
-; 5. Choose install directoy page
+; 5. Choose install directory page
 !define MUI_PAGE_CUSTOMFUNCTION_PRE SkipIfPassive
 !insertmacro MUI_PAGE_DIRECTORY
 
