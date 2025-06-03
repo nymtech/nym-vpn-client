@@ -192,14 +192,11 @@ impl RouteManagerImpl {
                 new_best_route = self.best_default_route_rx_v4.recv() => {
                     let Some(new_best_route)= new_best_route else { continue };
                     self.handle_new_best_default_route(interface::Family::V4, new_best_route);
-
-
                 }
 
                 new_best_route = self.best_default_route_rx_v6.recv() => {
                     let Some(new_best_route)= new_best_route else { continue };
                     self.handle_new_best_default_route(interface::Family::V6, new_best_route);
-
                 }
 
                 command = manage_rx.recv() => {
