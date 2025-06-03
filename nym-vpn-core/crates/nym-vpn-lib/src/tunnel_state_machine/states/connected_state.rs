@@ -47,7 +47,7 @@ impl ConnectedState {
         selected_gateways: SelectedGateways,
         tunnel_monitor_handle: TunnelMonitorHandle,
         tunnel_monitor_event_receiver: TunnelMonitorEventReceiver,
-        _shared_state: &mut SharedState,
+        shared_state: &mut SharedState,
     ) -> (Box<dyn TunnelStateHandler>, PrivateTunnelState) {
         let connected_state = Self {
             tunnel_monitor_handle,
@@ -58,7 +58,7 @@ impl ConnectedState {
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         if let Err(e) = connected_state
-            .set_firewall_policy(_shared_state, &connection_data)
+            .set_firewall_policy(shared_state, &connection_data)
             .await
         {
             return DisconnectingState::enter(
@@ -67,18 +67,21 @@ impl ConnectedState {
                         .expect("failed to obtain error state reason"),
                 ),
                 connected_state.tunnel_monitor_handle,
-                _shared_state,
+                shared_state,
             );
-        } else if let Err(e) = connected_state.set_dns(_shared_state).await {
+        } else if let Err(e) = connected_state.set_dns(shared_state).await {
             return DisconnectingState::enter(
                 PrivateActionAfterDisconnect::Error(
                     e.error_state_reason()
                         .expect("failed to obtain error state reason"),
                 ),
                 connected_state.tunnel_monitor_handle,
-                _shared_state,
+                shared_state,
             );
         }
+
+        // We can use slower network fetches now
+        shared_state.topology_provider.use_network(true).await;
 
         (
             Box::new(connected_state),

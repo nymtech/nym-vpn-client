@@ -348,6 +348,9 @@ impl ConnectingState {
             );
         };
 
+        // Make mixnet client use pre-fetched topology
+        shared_state.topology_provider.use_network(false).await;
+
         let tunnel_parameters = TunnelParameters {
             nym_config: shared_state.nym_config.clone(),
             resolved_gateway_config: resolved_gateway_config.clone(),
