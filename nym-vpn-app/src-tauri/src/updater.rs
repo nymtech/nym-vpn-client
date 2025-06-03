@@ -1,4 +1,5 @@
 use crate::env;
+use std::thread::sleep;
 
 use anyhow::Result;
 use tauri::AppHandle;
@@ -11,7 +12,10 @@ pub struct PendingUpdate(pub Mutex<Option<Update>>);
 // Based on https://v2.tauri.app/plugin/updater/#checking-for-updates
 #[instrument(skip(app))]
 pub async fn check(app: AppHandle) -> Result<Option<Update>> {
-    let builder = app.updater_builder();
+    let builder = app.updater_builder().on_before_exit(|| {
+        // sleep for a short duration to allow the UI to finish rendering progress
+        sleep(std::time::Duration::from_millis(200));
+    });
     let update = if let Some(endpoint) = env::UPDATER_ENDPOINT {
         debug!("using endpoint: {}", endpoint);
         let url = url::Url::parse(endpoint)
