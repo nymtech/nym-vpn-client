@@ -4,12 +4,8 @@ import { useEffect, useState } from 'react';
 import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { type } from '@tauri-apps/plugin-os';
-import { Button, ButtonText, Dialog, MsIcon, Progress } from '../../../ui';
-import {
-  BackendError,
-  DownloadUpdateEvent,
-  UpdateMetadata,
-} from '../../../types';
+import { Button, ButtonText, Dialog, MsIcon, Progress } from '../../ui';
+import { BackendError, DownloadUpdateEvent, UpdateMetadata } from '../../types';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const os = type();

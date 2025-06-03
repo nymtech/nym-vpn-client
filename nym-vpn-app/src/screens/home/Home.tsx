@@ -10,11 +10,11 @@ import { routes } from '../../router';
 import { S_STATE } from '../../static';
 import { Button } from '../../ui';
 import { capFirst } from '../../util';
-import { UpdateDialog } from './update';
 import NetworkModeSelect from './NetworkModeSelect';
 import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
 import NetworkUpdateDialog from './NetworkUpdateDialog';
+import UpdateDialog from './UpdateDialog';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
