@@ -13,12 +13,8 @@
 //! to macOS's connectivity check. In the offline state, a DNS server on localhost prevents the
 //! connectivity check from being blocked.
 
-use std::{
-    sync::{Arc, LazyLock},
-    time::Duration,
-};
+use std::sync::{Arc, LazyLock};
 
-use futures::future::{Fuse, FutureExt};
 use nym_routing::{DefaultRouteEvent, RouteManagerHandle};
 use tokio::sync::{Mutex, watch};
 use tokio_util::sync::CancellationToken;
@@ -33,8 +29,6 @@ static USE_PATH_MONITOR: LazyLock<bool> = LazyLock::new(|| {
         .map(|v| v != "0")
         .unwrap_or(false)
 });
-
-const SYNTHETIC_OFFLINE_DURATION: Duration = Duration::from_secs(1);
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -84,6 +78,10 @@ impl ConnectivityInner {
     fn is_online(&self) -> bool {
         self.into_connectivity().is_online()
     }
+
+    fn is_offline(&self) -> bool {
+        self.into_connectivity().is_offline()
+    }
 }
 
 pub async fn spawn_monitor(
@@ -92,7 +90,7 @@ pub async fn spawn_monitor(
     shutdown_token: CancellationToken,
 ) -> Result<ConnectivityHandle, Error> {
     if *USE_PATH_MONITOR {
-        tracing::info!("Using path monitor.");
+        tracing::info!("Using path monitor");
         let path_monitor = super::path_monitor::spawn_monitor(notify_tx, shutdown_token).await;
 
         Ok(ConnectivityHandle::new(
@@ -132,64 +130,49 @@ async fn spawn_route_monitor(
         }
     );
 
-    let mut real_state = initial_state;
     let state = Arc::new(Mutex::new(initial_state));
     let shared_state = state.clone();
 
     // Detect changes to the default route
     tokio::spawn(async move {
-        let mut timeout = Fuse::terminated();
-
         loop {
             nym_common::detect_flood!();
 
             tokio::select! {
-                _ = &mut timeout => {
-                    // Update shared state
-                    let mut state = shared_state.lock().await;
-                    if real_state.is_online() {
-                        tracing::info!("Connectivity changed: Connected");
-                        let _ = notify_tx.send(real_state.into_connectivity());
-                    }
-
-                    *state = real_state;
-                }
                 route_event = route_listener.recv() => {
                     let Some(event) = route_event else {
                         break;
                     };
 
-                    // Update real state
+                    let mut state = shared_state.lock().await;
+
+                    let previous_connectivity = *state;
+                    let mut new_connectivity = *state;
+
                     match event {
                         DefaultRouteEvent::AddedOrChangedV4 => {
-                            real_state.ipv4 = true;
+                            new_connectivity.ipv4 = true;
                         }
                         DefaultRouteEvent::AddedOrChangedV6 => {
-                            real_state.ipv6 = true;
+                            new_connectivity.ipv6 = true;
                         }
                         DefaultRouteEvent::RemovedV4 => {
-                            real_state.ipv4 = false;
+                            new_connectivity.ipv4 = false;
                         }
                         DefaultRouteEvent::RemovedV6 => {
-                            real_state.ipv6 = false;
+                            new_connectivity.ipv6 = false;
                         }
                     }
 
-                    // Synthesize offline state
-                    // Update shared state
-                    let mut state = shared_state.lock().await;
-                    let previous_connectivity = *state;
-                    state.ipv4 = false;
-                    state.ipv6 = false;
-
-                    if previous_connectivity.is_online() {
-                        let _ = notify_tx.send(state.into_connectivity());
+                    if previous_connectivity.is_online() && new_connectivity.is_offline() {
                         tracing::info!("Connectivity changed: Offline");
+                    } else if previous_connectivity.is_offline() && new_connectivity.is_online() {
+                        tracing::info!("Connectivity changed: Connected");
                     }
 
-                    if real_state.is_online() {
-                        timeout = Box::pin(tokio::time::sleep(SYNTHETIC_OFFLINE_DURATION)).fuse();
-                    }
+                    *state = new_connectivity;
+
+                    let _ = notify_tx.send(new_connectivity.into_connectivity());
                 }
                 _ = shutdown_token.cancelled() => {
                     break
