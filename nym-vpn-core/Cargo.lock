@@ -5013,6 +5013,7 @@ dependencies = [
  "serde",
  "si-scale",
  "sqlx",
+ "sqlx-pool-guard",
  "strum",
  "thiserror 2.0.12",
  "time",

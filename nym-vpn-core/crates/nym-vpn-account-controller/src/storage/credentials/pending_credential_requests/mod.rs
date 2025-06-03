@@ -13,6 +13,7 @@ use std::{
 
 use sqlite::SqliteZkNymRequestsStorageManager;
 use sqlx::ConnectOptions;
+use sqlx_pool_guard::SqlitePoolGuard;
 use time::OffsetDateTime;
 use tracing::log::LevelFilter;
 
@@ -43,9 +44,12 @@ impl PendingCredentialRequestsStorage {
             .log_statements(LevelFilter::Trace);
 
         tracing::debug!("Connecting to the database");
-        let connection_pool = sqlx::sqlite::SqlitePoolOptions::new()
-            .connect_with(opts)
-            .await?;
+        let connection_pool = SqlitePoolGuard::new(
+            database_path.as_ref().to_path_buf(),
+            sqlx::sqlite::SqlitePoolOptions::new()
+                .connect_with(opts)
+                .await?,
+        );
 
         set_file_permission_owner_rw(&database_path)
             .map_err(
@@ -60,7 +64,7 @@ impl PendingCredentialRequestsStorage {
             .ok();
 
         tracing::debug!("Running migrations");
-        if let Err(e) = sqlx::migrate!("./migrations").run(&connection_pool).await {
+        if let Err(e) = sqlx::migrate!("./migrations").run(&*connection_pool).await {
             connection_pool.close().await;
             return Err(e.into());
         }
