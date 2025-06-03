@@ -113,7 +113,7 @@ function UpdateDialog() {
         />
         <DialogTitle
           as="h3"
-          className="text-xl text-baltic-sea dark:text-white"
+          className="text-xl text-baltic-sea dark:text-white text-center"
           data-testid="update-dialog-title"
         >
           {isUpdating

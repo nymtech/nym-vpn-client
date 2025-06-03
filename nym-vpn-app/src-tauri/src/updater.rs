@@ -14,7 +14,7 @@ pub struct PendingUpdate(pub Mutex<Option<Update>>);
 pub async fn check(app: AppHandle) -> Result<Option<Update>> {
     let builder = app.updater_builder().on_before_exit(|| {
         // sleep for a short duration to allow the UI to finish rendering progress
-        sleep(std::time::Duration::from_millis(200));
+        sleep(std::time::Duration::from_millis(400));
     });
     let update = if let Some(endpoint) = env::UPDATER_ENDPOINT {
         debug!("using endpoint: {}", endpoint);

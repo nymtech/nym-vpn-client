@@ -288,7 +288,6 @@ Function PageReinstallUpdateSelection
   ${EndIf}
 FunctionEnd
 Function PageLeaveReinstall
-  MessageBox MB_OK "_PageLeaveReinstall_"
   ${NSD_GetState} $R2 $R1
 
   ; If migrating from Wix, always uninstall
@@ -298,7 +297,6 @@ Function PageLeaveReinstall
 
   ; In update mode, always proceeds without uninstalling
   ${If} $UpdateMode = 1
-    MessageBox MB_OK "_UPDATE_MODE_"
     Call VpndUninstall
     Goto reinst_done
   ${EndIf}
@@ -371,9 +369,7 @@ Function PageLeaveReinstall
 FunctionEnd
 
 Function VpndUninstall
-  MessageBox MB_OK "_PRE_VPND_UNINST_"
   ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
-  MessageBox MB_OK "_POST_VPND_UNINST_"
 FunctionEnd
 
 ; 5. Choose install directory page
@@ -467,7 +463,6 @@ FunctionEnd
 {{/each}}
 
 Function .onInit
-  MessageBox MB_OK "_ON_INIT_"
   ${GetOptions} $CMDLINE "/P" $PassiveMode
   ${IfNot} ${Errors}
     StrCpy $PassiveMode 1
@@ -931,14 +926,14 @@ Function CreateOrUpdateStartMenuShortcut
   !insertmacro IsShortcutTarget "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk" "$INSTDIR\$OldMainBinaryName"
   Pop $0
   ${If} $0 = 1
-    !insertmacro SetShortcutTarget "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe -l -Ldebug"
+    !insertmacro SetShortcutTarget "$SMPROGRAMS\$AppStartMenuFolder\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe" -l -Ldebug'
     StrCpy $R0 1
   ${EndIf}
 
   !insertmacro IsShortcutTarget "$SMPROGRAMS\${PRODUCTNAME}.lnk" "$INSTDIR\$OldMainBinaryName"
   Pop $0
   ${If} $0 = 1
-    !insertmacro SetShortcutTarget "$SMPROGRAMS\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe -l -Ldebug"
+    !insertmacro SetShortcutTarget "$SMPROGRAMS\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe" -l -Ldebug'
     StrCpy $R0 1
   ${EndIf}
 
@@ -971,7 +966,7 @@ Function CreateOrUpdateDesktopShortcut
   !insertmacro IsShortcutTarget "$DESKTOP\${PRODUCTNAME}.lnk" "$INSTDIR\$OldMainBinaryName"
   Pop $0
   ${If} $0 = 1
-    !insertmacro SetShortcutTarget "$DESKTOP\${PRODUCTNAME}.lnk" "$INSTDIR\${MAINBINARYNAME}.exe -l -Ldebug"
+    !insertmacro SetShortcutTarget "$DESKTOP\${PRODUCTNAME}.lnk" '"$INSTDIR\${MAINBINARYNAME}.exe" -l -Ldebug'
     Return
   ${EndIf}
 
