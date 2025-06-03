@@ -42,6 +42,9 @@ pub type Result<T> = std::result::Result<T, Error>;
 const BURST_BUFFER_PERIOD: Duration = Duration::from_millis(200);
 const BURST_LONGEST_BUFFER_PERIOD: Duration = Duration::from_secs(2);
 
+/// Maximum duration to wait for the initial best default routes
+const INITIAL_BEST_ROUTES_TIMEOUT: Duration = Duration::from_millis(200);
+
 /// Errors that can happen in the macOS routing integration.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -147,7 +150,7 @@ impl RouteManagerImpl {
             },
         );
 
-        Ok(Self {
+        let mut route_manager = Self {
             routing_table,
             non_tunnel_routes: HashSet::new(),
             tunnel_default_routes: IpMap::new(),
@@ -161,7 +164,35 @@ impl RouteManagerImpl {
             check_default_routes_restored: Box::pin(futures::stream::pending()),
             unhandled_default_route_changes: false,
             interface_change_listeners: vec![],
-        })
+        };
+
+        route_manager.fetch_initial_best_default_routes().await;
+
+        Ok(route_manager)
+    }
+
+    /// Fetch initial best default routes (v4, v6) to pre-fill the default state of route manager
+    async fn fetch_initial_best_default_routes(&mut self) {
+        let Ok((best_v4_route, best_v6_route)) =
+            tokio::time::timeout(INITIAL_BEST_ROUTES_TIMEOUT, async {
+                tokio::join!(
+                    self.best_default_route_rx_v4.recv(),
+                    self.best_default_route_rx_v6.recv()
+                )
+            })
+            .await
+        else {
+            tracing::warn!("Timed out receiving initial best default routes");
+            return;
+        };
+
+        tracing::trace!("Received initial best default routes");
+        if let Some(best_v4_route) = best_v4_route {
+            self.handle_new_best_default_route(interface::Family::V4, best_v4_route);
+        }
+        if let Some(best_v6_route) = best_v6_route {
+            self.handle_new_best_default_route(interface::Family::V6, best_v6_route);
+        }
     }
 
     pub(crate) async fn run(mut self, mut manage_rx: mpsc::UnboundedReceiver<RouteManagerCommand>) {
