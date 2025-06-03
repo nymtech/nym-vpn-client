@@ -1,9 +1,9 @@
 {
-  "version": "TODO",
+  "version": "1.10.0",
   "platforms": {
     "windows-x86_64": {
-      "signature": "TODO",
-      "url": "TODO"
+      "signature": "",
+      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.10.0/"
     }
   }
 }
