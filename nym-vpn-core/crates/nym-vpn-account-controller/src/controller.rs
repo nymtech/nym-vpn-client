@@ -927,6 +927,9 @@ where
                 },
             }
         }
+
+        // Important: ensure to close credential storage before drop to avoid issues with sqlx
+        self.credential_storage.lock().await.close().await;
     }
 
     async fn print_info(&self) {
@@ -1005,6 +1008,7 @@ where
         }
 
         self.cleanup().await;
+
         tracing::debug!("Account controller is exiting");
     }
 }

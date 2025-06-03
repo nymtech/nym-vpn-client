@@ -75,6 +75,10 @@ impl PendingCredentialRequestsStorage {
         })
     }
 
+    pub async fn close(&self) {
+        self.storage_manager.close().await
+    }
+
     pub async fn reset(&mut self) -> Result<(), PendingCredentialRequestsStorageError> {
         // First we close the storage to ensure that all files are closed
         tracing::debug!("Closing pending credential requests storage");
