@@ -122,6 +122,16 @@ async fn spawn_route_monitor(
     };
 
     let initial_state = ConnectivityInner { ipv4, ipv6 };
+
+    tracing::info!(
+        "Initial connectivity: {}",
+        if initial_state.into_connectivity().is_online() {
+            "Connected"
+        } else {
+            "Offline"
+        }
+    );
+
     let mut real_state = initial_state;
     let state = Arc::new(Mutex::new(initial_state));
     let shared_state = state.clone();
