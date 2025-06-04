@@ -17,18 +17,14 @@ impl StatisticsControllerApiClient {
             let inner_api_client = nym_statistics_api_client::StatisticsApiClient::new(
                 url.clone(),
                 config.user_agent.clone(),
-            )
-            .map_err(Error::SetupVpnApiClient)?;
+            )?;
             Ok(Some(StatisticsControllerApiClient::from(inner_api_client)))
         } else {
             Ok(None)
         }
     }
     pub(crate) async fn post_report(&self, report: impl Serialize) -> Result<(), Error> {
-        self.inner
-            .post_stats_report(report)
-            .await
-            .map_err(Error::ReportSendingFailure)?;
+        self.inner.post_stats_report(report).await?;
         Ok(())
     }
 }

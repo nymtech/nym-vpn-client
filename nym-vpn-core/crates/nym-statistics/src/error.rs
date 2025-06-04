@@ -3,9 +3,6 @@
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("failed to setup nym-vpn-api client")]
-    SetupVpnApiClient(nym_statistics_api_client::StatisticsApiClientError),
-
-    #[error("failed to post statistics report")]
-    ReportSendingFailure(nym_statistics_api_client::StatisticsApiClientError),
+    #[error("Statistics API client error : {0}")]
+    StatsApiClient(#[from] nym_statistics_api_client::StatisticsApiClientError),
 }

@@ -3,8 +3,8 @@
 
 use std::{fmt, net::SocketAddr, time::Duration};
 
-use nym_http_api_client::{ApiClient, HttpClientError, PathSegments, UserAgent, NO_PARAMS};
-use serde::{de::DeserializeOwned, Serialize};
+use nym_http_api_client::{ApiClient, HttpClientError, NO_PARAMS, PathSegments, UserAgent};
+use serde::{Serialize, de::DeserializeOwned};
 use url::Url;
 
 use crate::{
@@ -89,7 +89,9 @@ impl StatisticsApiClient {
         let request = self.inner.create_post_request(path, NO_PARAMS, json_body);
 
         let response = request.send().await?;
-        nym_http_api_client::parse_response(response, true).await
+
+        //SW parse_response currently can't handle empty response without throwing an error because it will try to deserialize it anyway
+        nym_http_api_client::parse_response(response, false).await
     }
 
     pub async fn post_stats_report<B>(&self, body: B) -> Result<()>
