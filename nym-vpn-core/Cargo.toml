@@ -43,32 +43,32 @@ default-members = [
 ]
 
 # For local development
-[patch."https://github.com/nymtech/nym"]
-nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
-nym-api-requests = { path = "../../nym/nym-api/nym-api-requests" }
-nym-bandwidth-controller = { path = "../../nym/common/bandwidth-controller" }
-nym-bin-common = { path = "../../nym/common/bin-common" }
-nym-client-core = { path = "../../nym/common/client-core" }
-nym-compact-ecash = { path = "../../nym/common/nym_offline_compact_ecash" }
-nym-config = { path = "../../nym/common/config" }
-nym-contracts-common = { path = "../../nym/common/cosmwasm-smart-contracts/contracts-common" }
-nym-credential-proxy-requests = { path = "../../nym/nym-credential-proxy/nym-credential-proxy-requests", default-features = false }
-nym-credential-storage = { path = "../../nym/common/credential-storage" }
-nym-credentials = { path = "../../nym/common/credentials" }
-nym-credentials-interface = { path = "../../nym/common/credentials-interface" }
-nym-crypto = { path = "../../nym/common/crypto" }
-nym-ecash-time = { path = "../../nym/common/ecash-time" }
-nym-http-api-client = { path = "../../nym/common/http-api-client" }
-nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
-nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
-nym-pemstore = { path = "../../nym/common/pemstore" }
-nym-service-provider-requests-common = { path = "../../nym/common/service-provider-requests-common" }
-nym-sdk = { path = "../../nym/sdk/rust/nym-sdk" }
-nym-statistics-common = { path = "../../nym/common/statistics" }
-nym-task = { path = "../../nym/common/task" }
-nym-topology = { path = "../../nym/common/topology" }
-nym-validator-client = { path = "../../nym/common/client-libs/validator-client" }
-nym-wireguard-types = { path = "../../nym/common/wireguard-types" }
+# [patch."https://github.com/nymtech/nym"]
+# nym-authenticator-requests = { path = "../../nym/common/authenticator-requests" }
+# nym-api-requests = { path = "../../nym/nym-api/nym-api-requests" }
+# nym-bandwidth-controller = { path = "../../nym/common/bandwidth-controller" }
+# nym-bin-common = { path = "../../nym/common/bin-common" }
+# nym-client-core = { path = "../../nym/common/client-core" }
+# nym-compact-ecash = { path = "../../nym/common/nym_offline_compact_ecash" }
+# nym-config = { path = "../../nym/common/config" }
+# nym-contracts-common = { path = "../../nym/common/cosmwasm-smart-contracts/contracts-common" }
+# nym-credential-proxy-requests = { path = "../../nym/nym-credential-proxy/nym-credential-proxy-requests", default-features = false }
+# nym-credential-storage = { path = "../../nym/common/credential-storage" }
+# nym-credentials = { path = "../../nym/common/credentials" }
+# nym-credentials-interface = { path = "../../nym/common/credentials-interface" }
+# nym-crypto = { path = "../../nym/common/crypto" }
+# nym-ecash-time = { path = "../../nym/common/ecash-time" }
+# nym-http-api-client = { path = "../../nym/common/http-api-client" }
+# nym-ip-packet-requests = { path = "../../nym/common/ip-packet-requests" }
+# nym-node-requests = { path = "../../nym/nym-node/nym-node-requests" }
+# nym-pemstore = { path = "../../nym/common/pemstore" }
+# nym-service-provider-requests-common = { path = "../../nym/common/service-provider-requests-common" }
+# nym-sdk = { path = "../../nym/sdk/rust/nym-sdk" }
+# nym-statistics-common = { path = "../../nym/common/statistics" }
+# nym-task = { path = "../../nym/common/task" }
+# nym-topology = { path = "../../nym/common/topology" }
+# nym-validator-client = { path = "../../nym/common/client-libs/validator-client" }
+# nym-wireguard-types = { path = "../../nym/common/wireguard-types" }
 
 [workspace.package]
 version = "1.11.0-beta"
@@ -214,28 +214,28 @@ nym-wg-gateway-client = { path = "crates/nym-wg-gateway-client" }
 nym-wg-go = { path = "crates/nym-wg-go" }
 nym-windows = { path = "crates/nym-windows" }
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-task = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "release/2025.10-brie" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-task = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
