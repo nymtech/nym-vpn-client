@@ -42,6 +42,12 @@ pub enum ErrorMessage {
         gateway_id: Box<NodeIdentity>,
         authenticator_address: Box<Recipient>,
     },
+
+    #[error("disconnected by gateway: {gateway_id}")]
+    DisconnectedByGateway {
+        gateway_id: Box<NodeIdentity>,
+        authenticator_address: Box<Recipient>,
+    },
 }
 
 // Result type based on our error type
