@@ -100,6 +100,7 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.Firewall, ErrorStateReason.Routing -> context.getString(R.string.unexpected_error) + " ${error.javaClass.simpleName}"
 		ErrorStateReason.SubscriptionExpired -> context.getString(R.string.subscription_expired_error)
 		ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.device_time_out_of_sync)
+		ErrorStateReason.CreateMixnetStorage -> context.getString(R.string.create_mixnet_storage)
 	}
 }
 

@@ -260,4 +260,5 @@
 	<string name="telegram_url">https://nym.com/go/telegram</string>
 	<string name="join_telegram">Join us on Telegram</string>
 	<string name="device_time_out_of_sync">Device time out of sync</string>
+	<string name="create_mixnet_storage">Failed to create credential storage</string>
 </resources>
