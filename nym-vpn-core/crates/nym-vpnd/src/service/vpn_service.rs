@@ -32,7 +32,7 @@ use nym_vpn_api_client::{
     types::{Percent, ScoreThresholds},
 };
 use nym_vpn_lib::{
-    MixnetClientConfig, MixnetClientConfig, Recipient, UserAgent, UserAgent,
+    MixnetClientConfig, UserAgent,
     gateway_directory::{self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
@@ -826,6 +826,13 @@ where
             data_dir.display()
         );
 
+        self.storage
+            .lock()
+            .await
+            .remove_stats_seed()
+            .await
+            .map_err(|err| ForgetAccountError::internal(err.to_string()))?;
+
         self.account_command_tx.forget_account().await
     }
 
@@ -877,6 +884,13 @@ where
             .lock()
             .await
             .reset_keys(seed)
+            .await
+            .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
+
+        self.storage
+            .lock()
+            .await
+            .reset_stats_seed()
             .await
             .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
 

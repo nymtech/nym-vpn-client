@@ -27,6 +27,9 @@ pub struct StatisticsControllerConfig {
 
     /// Maximum delay after which to send the report when connected
     pub(crate) max_reporting_delay: u64,
+
+    /// Optional stats_id seed to override the random one
+    pub(crate) stats_id_seed: Option<String>,
 }
 
 impl StatisticsControllerConfig {
@@ -37,6 +40,7 @@ impl StatisticsControllerConfig {
             user_agent,
             allow_disconnected: false,
             max_reporting_delay: STATS_REPORT_MAX_DELAY_SECS,
+            stats_id_seed: None,
         }
     }
 
@@ -55,6 +59,12 @@ impl StatisticsControllerConfig {
     #[must_use]
     pub fn with_max_reporting_delay(mut self, max_reporting_delay: u64) -> Self {
         self.max_reporting_delay = max_reporting_delay;
+        self
+    }
+
+    #[must_use]
+    pub fn with_stats_id_seed(mut self, stats_id_seed: String) -> Self {
+        self.stats_id_seed = Some(stats_id_seed);
         self
     }
 }

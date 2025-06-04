@@ -12,7 +12,6 @@ use crate::{
     storage::StatsStorage,
 };
 
-use nym_statistics_common::generate_vpn_client_stats_id;
 use nym_vpn_lib_types::TunnelState;
 use nym_vpn_store::VpnStorage;
 use rand::{distributions::Uniform, prelude::Distribution};
@@ -32,9 +31,6 @@ where
     /// Keep store the different types of metrics collectors
     handler: StatisticsHandler<S>,
 
-    /// Storage used for unsent stats
-    //stats_storage: StatsStorage<S>,
-
     /// Api client to send statistics
     stats_api_client: Option<StatisticsControllerApiClient>,
 
@@ -42,8 +38,6 @@ where
     stats_rx: StatisticsReceiver,
 
     stats_tx: UnboundedSender<StatisticsEvent>, //SW TODO Better typing for keeping an instance of this
-
-    stats_id: String,
 
     tunnel_state: watch::Receiver<TunnelState>,
 
@@ -62,24 +56,15 @@ where
         tunnel_state: watch::Receiver<TunnelState>,
     ) -> Result<Self, Error> {
         let (stats_tx, stats_rx) = tokio::sync::mpsc::unbounded_channel();
-        let stats_id_seed = storage
-            .lock()
-            .await
-            .load_keys()
-            .await
-            .map(|key| key.device_keypair().public_key().to_base58_string())
-            .unwrap_or("default_seed".into());
 
         let stats_storage = StatsStorage::from(storage);
         let stats_api_client = StatisticsControllerApiClient::new(&config)?;
 
         Ok(StatisticsController {
-            handler: StatisticsHandler::new(stats_storage),
-            //stats_storage,
+            handler: StatisticsHandler::new(stats_storage, config.clone()),
             stats_api_client,
             stats_rx,
             stats_tx,
-            stats_id: generate_vpn_client_stats_id(&stats_id_seed),
             tunnel_state,
             config,
             cancel_token,
@@ -184,8 +169,14 @@ where
                 _ = wait_on_maybe_timer(&mut send_timer) => { //SW can't find a way to make that work differently for now
                     if matches!(*self.tunnel_state.borrow(), TunnelState::Connected { .. }) {
                         tracing::debug!("Send timer fired and connected, sending stuff");
-                        if let Err(e) = stats_api_client.post_report(self.handler.get_report(self.stats_id.clone())).await {
-                            tracing::warn!("Failed to send statistics report : {e}");
+                        match self.handler.get_report().await {
+                            Ok(report) => {
+                                if let Err(e) = stats_api_client.post_report(report).await {
+                                    tracing::warn!("Failed to send statistics report : {e}");
+                                }
+
+                            },
+                            Err(e) => tracing::warn!("Failed to generate statistics report : {e}"),
                         }
                     } else {
                         tracing::debug!("Not connected, not sending anything")
