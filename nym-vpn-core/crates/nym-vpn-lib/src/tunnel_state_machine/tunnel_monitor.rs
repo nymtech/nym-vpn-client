@@ -393,12 +393,6 @@ impl TunnelMonitor {
                 .tunnel_parameters
                 .tunnel_settings
                 .enable_credentials_mode,
-            stats_recipient_address: self
-                .tunnel_parameters
-                .tunnel_settings
-                .statistics_recipient
-                .as_deref()
-                .copied(),
             selected_gateways: selected_gateways.clone(),
             user_agent: None, // todo: provide user-agent
         };
