@@ -9,7 +9,6 @@ pub mod controller;
 mod error;
 pub mod events;
 pub mod handler;
-pub mod report;
 mod storage;
 
 const CLIENT_ID_PREFIX: &str = "vpnclient_stats_id";

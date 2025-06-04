@@ -3,9 +3,10 @@
 
 use std::time::{Duration, Instant};
 
+use nym_statistics_common::report::vpn_client::UsageReport;
 use nym_vpn_store::VpnStorage;
 
-use crate::{events::UsageEvent, report::UsageReport, storage::StatsStorage};
+use crate::{events::UsageEvent, storage::StatsStorage};
 
 pub(crate) struct UsageHandler<S>
 where
