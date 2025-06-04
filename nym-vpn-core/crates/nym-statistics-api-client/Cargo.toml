@@ -1,0 +1,19 @@
+[package]
+name = "nym-statistics-api-client"
+version.workspace = true
+authors.workspace = true
+repository.workspace = true
+homepage.workspace = true
+documentation.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+nym-http-api-client.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+
+thiserror.workspace = true
+tokio = { workspace = true, features = [] }
+tracing.workspace = true
+url.workspace = true
