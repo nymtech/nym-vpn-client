@@ -53,14 +53,14 @@
   "app-update-available": {
     "title": "Update available",
     "description": "Version {{version}} is ready with performance improvements and new features.",
-    "note-close": "The app will close after the update.",
+    "restart-note": "The app will restart after the update.",
     "button-update": "Update NymVPN",
     "button-close": "Close"
   },
   "app-update-progress": {
     "title": "Updating to Version {{version}}…",
     "description": "Installing updates - please don't close the app.",
-    "note-close": "The app will close after the update.",
+    "restart-note": "The app will restart after the update.",
     "bar-label": "Download progress"
   }
 }

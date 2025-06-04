@@ -43,7 +43,10 @@ function UpdateDialog() {
     }
     initialized = true;
 
-    fetchUpdate();
+    // wait for a bit before checking for updates to allow the UI to have fully loaded
+    setTimeout(() => {
+      fetchUpdate();
+    }, 300);
   }, []);
 
   const handleClose = () => {
@@ -133,7 +136,7 @@ function UpdateDialog() {
             className="md:text-nowrap text-baltic-sea dark:text-white"
             data-testid="update-dialog-description"
           >
-            {t('app-update-available.note-close')}
+            {t('app-update-available.restart-note')}
           </p>
           <div className={clsx('flex flex-col items-center w-full gap-2')}>
             <Button onClick={onUpdate} className="mt-2" disabled={isUpdating}>
@@ -170,7 +173,7 @@ function UpdateDialog() {
             className="md:text-nowrap text-baltic-sea dark:text-white"
             data-testid="update-dialog-description"
           >
-            {t('app-update-progress.note-close')}
+            {t('app-update-progress.restart-note')}
           </p>
         </>
       )}
