@@ -19,7 +19,7 @@
     "max-devices-reached": "Le nombre maximum d'appareils ajoutés a été atteint. Veuillez Supprimer un appareil de votre compte et réessayez.",
     "bandwidth-exceeded": "La bande passante mensuelle a été dépassée. Veuillez mettre à niveau l'abonnement de votre compte.",
     "subscription-expired": "Votre abonnement a expiré. Veuillez souscrire à un nouvel abonnement dans votre compte.",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+    "device-time-out-of-sync": "L'heure de votre appareil n'est pas synchronisée. Veuillez synchroniser l'heure de votre appareil avec celle d'Internet."
   },
   "account": {
     "invalid-recovery-phrase": "Code d'accès invalide",
