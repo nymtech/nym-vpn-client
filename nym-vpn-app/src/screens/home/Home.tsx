@@ -13,8 +13,10 @@ import { capFirst } from '../../util';
 import NetworkModeSelect from './NetworkModeSelect';
 import TunnelState from './TunnelState';
 import HopSelect from './HopSelect';
+import NetworkUpdateDialog from './NetworkUpdateDialog';
 import UpdateDialog from './UpdateDialog';
 
+const updaterEnabled = window._APP.updaterEnabled;
 const devMode = window._APP.devMode;
 let compatChecked = false;
 
@@ -141,7 +143,8 @@ function Home() {
 
   return (
     <>
-      <UpdateDialog
+      {updaterEnabled && <UpdateDialog />}
+      <NetworkUpdateDialog
         isOpen={isDialogUpdateOpen}
         onClose={() => setIsDialogUpdateOpen(false)}
         appUpdate={!networkCompat?.tauri}

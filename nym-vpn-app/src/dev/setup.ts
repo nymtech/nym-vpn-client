@@ -10,6 +10,7 @@ import {
   NetworkCompat,
   TunnelStateIpc,
   UiTheme,
+  UpdateMetadata,
   VpndStatus,
 } from '../types';
 import { TunnelStateEvent } from '../constants';
@@ -25,6 +26,7 @@ type MockIpcFn = (cmd: string, payload?: InvokeArgs) => Promise<any>;
 type ArgsObj<T> = Record<string, T>;
 
 // fake state
+const appVersion = '0.0.0';
 const uiTheme: UiTheme = 'dark';
 const lang = 'en';
 const showWelcome = false;
@@ -197,6 +199,15 @@ export function mockTauriIPC() {
       );
     }
 
+    if (cmd === 'fetch_update') {
+      return new Promise<UpdateMetadata>((resolve) =>
+        resolve({
+          version: '100.0.0',
+          currentVersion: appVersion,
+        }),
+      );
+    }
+
     if (cmd === 'network_compat') {
       return new Promise<NetworkCompat>((resolve) => resolve(networkCompat));
     }
@@ -220,7 +231,7 @@ export function mockTauriIPC() {
       autostart = true;
     }
     if (cmd === 'plugin:app|version') {
-      return new Promise((resolve) => resolve('0.0.0'));
+      return new Promise((resolve) => resolve(appVersion));
     }
     if (cmd === 'plugin:clipboard-manager|write_text') {
       console.log(`copied to clipboard: ${(args as ArgsObj<string>).text}`);

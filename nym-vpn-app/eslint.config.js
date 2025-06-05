@@ -56,6 +56,7 @@ export default [
           allowSeparatedGroups: true,
         },
       ],
+      'import/no-unresolved': 0,
       'react/react-in-jsx-scope': 0,
       '@typescript-eslint/no-floating-promises': 0,
       '@typescript-eslint/prefer-nullish-coalescing': 0,

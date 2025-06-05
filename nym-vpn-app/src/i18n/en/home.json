@@ -49,5 +49,18 @@
     "description-1-other": "Your app and daemon are no longer supported.",
     "description-2": "Please update to the latest version to continue using NymVPN.",
     "button-update": "Update"
+  },
+  "app-update-available": {
+    "title": "Update available",
+    "description": "Version {{version}} is ready with performance improvements and new features.",
+    "restart-note": "The app will restart after the update.",
+    "button-update": "Update NymVPN",
+    "button-close": "Close"
+  },
+  "app-update-progress": {
+    "title": "Updating to Version {{version}}…",
+    "description": "Installing updates - please don't close the app.",
+    "restart-note": "The app will restart after the update.",
+    "bar-label": "Download progress"
   }
 }

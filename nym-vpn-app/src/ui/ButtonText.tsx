@@ -10,7 +10,7 @@ export type ButtonTextProps = {
   className?: string;
   textClassName?: string;
   truncate?: boolean;
-  colors?: 'rain';
+  color?: 'rain' | 'transparent';
   'data-testid'?: string;
 };
 
@@ -21,18 +21,19 @@ function ButtonText({
   disabled,
   className,
   truncate,
-  colors = 'rain',
+  color = 'rain',
   ...rest
 }: ButtonTextProps) {
-  const getColors = () => {
-    switch (colors) {
-      case 'rain':
-        return [
-          'bg-faded-lavender dark:bg-ash',
-          'data-hover:text-baltic-sea data-hover:bg-iron/20',
-          'dark:data-hover:text-bombay dark:data-hover:bg-charcoal/65',
-        ];
-    }
+  const colors = {
+    rain: [
+      'bg-faded-lavender dark:bg-ash',
+      'data-hover:text-baltic-sea data-hover:bg-iron/20',
+      'dark:data-hover:text-bombay dark:data-hover:bg-charcoal/65',
+    ],
+    transparent: [
+      'text-black dark:text-white',
+      'data-hover:underline decoration-2 text-lg font-medium',
+    ],
   };
 
   const testId = rest['data-testid'] || 'button-text';
@@ -46,7 +47,7 @@ function ButtonText({
         'tracking-normal cursor-default',
         truncate && 'overflow-hidden',
         className && className,
-        ...getColors(),
+        ...colors[color],
       ])}
       onClick={onClick}
       onDoubleClick={onDoubleClick}
