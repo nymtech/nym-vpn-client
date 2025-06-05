@@ -8,7 +8,7 @@ use tokio::sync::{Mutex, mpsc, watch};
 use tokio_stream::{StreamExt, wrappers::UnboundedReceiverStream};
 use tokio_util::sync::CancellationToken;
 
-use nym_apple_network::{InterfaceType, Path, PathMonitor, PathStatus};
+use nym_apple_network::{Path, PathMonitor, PathStatus};
 
 use crate::Connectivity;
 
@@ -105,7 +105,6 @@ fn start_path_monitor(path_tx: mpsc::UnboundedSender<Path>) -> PathMonitor {
     let queue = DispatchQueue::new("net.nymtech.vpn.offline-monitor", DispatchQueueAttr::SERIAL);
 
     let mut path_monitor = PathMonitor::new();
-    path_monitor.prohibit_interface_type(InterfaceType::Other);
     path_monitor.set_dispatch_queue(&queue);
     path_monitor.set_update_handler(move |nw_path| {
         if let Err(e) = path_tx.send(nw_path) {
