@@ -42,6 +42,8 @@ pub type Result<T> = std::result::Result<T, Error>;
 const BURST_BUFFER_PERIOD: Duration = Duration::from_millis(200);
 const BURST_LONGEST_BUFFER_PERIOD: Duration = Duration::from_secs(2);
 
+const INITIAL_BEST_ROUTES_TIMEOUT: Duration = Duration::from_millis(200);
+
 /// Errors that can happen in the macOS routing integration.
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -132,7 +134,7 @@ impl RouteManagerImpl {
         let (primary_interface_monitor, interface_change_rx) =
             interface::PrimaryInterfaceMonitor::new();
 
-        let (best_route_rx_v4, best_route_rx_v6) =
+        let (mut best_route_rx_v4, mut best_route_rx_v6) =
             DefaultRouteMonitor::start(primary_interface_monitor, interface_change_rx);
 
         let routing_table = RoutingTable::new().map_err(Error::RoutingTable)?;
@@ -147,12 +149,35 @@ impl RouteManagerImpl {
             },
         );
 
+        let mut best_default_route = IpMap::new();
+
+        match tokio::time::timeout(INITIAL_BEST_ROUTES_TIMEOUT, async {
+            tokio::join!(best_route_rx_v4.recv(), best_route_rx_v6.recv())
+        })
+        .await
+        {
+            Ok((best_v4_route, best_v6_route)) => {
+                for (family, best_route) in [
+                    (interface::Family::V4, best_v4_route),
+                    (interface::Family::V6, best_v6_route),
+                ] {
+                    if let Some(best_route) = best_route {
+                        tracing::trace!("Best route ({family:?}): {best_route:?}");
+                        best_default_route.set(family, best_route);
+                    }
+                }
+            }
+            Err(_) => {
+                tracing::warn!("Timed out while waiting for initial best routes");
+            }
+        }
+
         Ok(Self {
             routing_table,
             non_tunnel_routes: HashSet::new(),
             tunnel_default_routes: IpMap::new(),
             applied_routes: BTreeMap::new(),
-            best_default_route: IpMap::new(),
+            best_default_route,
             best_default_route_update: IpMap::new(),
             default_route_listeners: vec![],
             best_default_route_rx_v4: best_route_rx_v4,
@@ -192,14 +217,11 @@ impl RouteManagerImpl {
                 new_best_route = self.best_default_route_rx_v4.recv() => {
                     let Some(new_best_route)= new_best_route else { continue };
                     self.handle_new_best_default_route(interface::Family::V4, new_best_route);
-
-
                 }
 
                 new_best_route = self.best_default_route_rx_v6.recv() => {
                     let Some(new_best_route)= new_best_route else { continue };
                     self.handle_new_best_default_route(interface::Family::V6, new_best_route);
-
                 }
 
                 command = manage_rx.recv() => {
