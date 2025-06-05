@@ -10,6 +10,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         configureActivationPolicy(appSettings.appMode)
+        NSApplication.shared.delegate = self
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -42,6 +43,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
                 forEventClass: AEEventClass(kCoreEventClass),
                 andEventID: AEEventID(kAEQuitApplication)
             )
+    }
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        if !hasVisibleWindows {
+            bringWindowToFront()
+        }
+        return true
+    }
+}
+
+extension AppDelegate {
+    func bringWindowToFront() {
+        NSApp.windows.first?.makeKeyAndOrderFront(self)
+
+        if #available(macOS 14.0, *) {
+            NSApplication.shared.activate()
+        } else {
+            NSApp.activate(ignoringOtherApps: true)
+        }
     }
 }
 

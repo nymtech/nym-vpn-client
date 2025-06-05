@@ -68,6 +68,11 @@ struct NymVPNDaemonApp: App {
                 }
             }
             .frame(minWidth: MagicNumbers.macMinWidth.rawValue, minHeight: MagicNumbers.macMinHeight.rawValue)
+            .onAppear {
+                DispatchQueue.main.async {
+                    appDelegate.bringWindowToFront()
+                }
+            }
             .onDisappear {
                 if autoUpdater.didPrepareForQuit {
                     quitApp()
@@ -169,15 +174,6 @@ private extension NymVPNDaemonApp {
         }
     }
 
-    func bringWindowToFront() {
-        NSApp.windows.first?.makeKeyAndOrderFront(self)
-        if #available(macOS 14.0, *) {
-            NSApplication.shared.activate()
-        } else {
-            NSApp.activate(ignoringOtherApps: true)
-        }
-    }
-
     func updateImageName(with status: TunnelStatus) {
         menuBarImageName = status == .connected ? "NymLogo" : "NymLogoDisabled"
     }
@@ -220,7 +216,7 @@ private extension NymVPNDaemonApp {
         connectDisconnectButton()
         connectionDetails()
         Button("menuBar.openApp".localizedString) {
-            bringWindowToFront()
+            appDelegate.bringWindowToFront()
         }
         .keyboardShortcut("o")
         Divider()
