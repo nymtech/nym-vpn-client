@@ -135,7 +135,7 @@ impl RouteManagerImpl {
         let (primary_interface_monitor, interface_change_rx) =
             interface::PrimaryInterfaceMonitor::new();
 
-        let (best_route_rx_v4, best_route_rx_v6) =
+        let (mut best_route_rx_v4, mut best_route_rx_v6) =
             DefaultRouteMonitor::start(primary_interface_monitor, interface_change_rx);
 
         let routing_table = RoutingTable::new().map_err(Error::RoutingTable)?;
@@ -150,12 +150,36 @@ impl RouteManagerImpl {
             },
         );
 
-        let mut route_manager = Self {
+        let mut best_default_route = IpMap::new();
+
+        // Fetch initial best default routes (v4, v6)
+        match tokio::time::timeout(INITIAL_BEST_ROUTES_TIMEOUT, async {
+            tokio::join!(best_route_rx_v4.recv(), best_route_rx_v6.recv())
+        })
+        .await
+        {
+            Ok((best_v4_route, best_v6_route)) => {
+                for (family, best_route) in [
+                    (interface::Family::V4, best_v4_route),
+                    (interface::Family::V6, best_v6_route),
+                ] {
+                    if let Some(best_route) = best_route {
+                        tracing::trace!("Best route ({family:?}): {best_route:?}");
+                        best_default_route.set(family, best_route);
+                    }
+                }
+            }
+            Err(_) => {
+                tracing::warn!("Timed out while waiting for initial best routes");
+            }
+        }
+
+        Ok(Self {
             routing_table,
             non_tunnel_routes: HashSet::new(),
             tunnel_default_routes: IpMap::new(),
             applied_routes: BTreeMap::new(),
-            best_default_route: IpMap::new(),
+            best_default_route,
             best_default_route_update: IpMap::new(),
             default_route_listeners: vec![],
             best_default_route_rx_v4: best_route_rx_v4,
@@ -164,35 +188,7 @@ impl RouteManagerImpl {
             check_default_routes_restored: Box::pin(futures::stream::pending()),
             unhandled_default_route_changes: false,
             interface_change_listeners: vec![],
-        };
-
-        route_manager.fetch_initial_best_default_routes().await;
-
-        Ok(route_manager)
-    }
-
-    /// Fetch initial best default routes (v4, v6) to pre-fill the default state of route manager
-    async fn fetch_initial_best_default_routes(&mut self) {
-        let Ok((best_v4_route, best_v6_route)) =
-            tokio::time::timeout(INITIAL_BEST_ROUTES_TIMEOUT, async {
-                tokio::join!(
-                    self.best_default_route_rx_v4.recv(),
-                    self.best_default_route_rx_v6.recv()
-                )
-            })
-            .await
-        else {
-            tracing::warn!("Timed out receiving initial best default routes");
-            return;
-        };
-
-        tracing::trace!("Received initial best default routes");
-        if let Some(best_v4_route) = best_v4_route {
-            self.handle_new_best_default_route(interface::Family::V4, best_v4_route);
-        }
-        if let Some(best_v6_route) = best_v6_route {
-            self.handle_new_best_default_route(interface::Family::V6, best_v6_route);
-        }
+        })
     }
 
     pub(crate) async fn run(mut self, mut manage_rx: mpsc::UnboundedReceiver<RouteManagerCommand>) {
