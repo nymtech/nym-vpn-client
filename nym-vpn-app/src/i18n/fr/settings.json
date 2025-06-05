@@ -57,6 +57,6 @@
   },
   "killswitch": {
     "title": "Killswitch",
-    "desc": "Disconnect if the internet drops"
+    "desc": "Se déconnecter en cas de coupure d'internet"
   }
 }
