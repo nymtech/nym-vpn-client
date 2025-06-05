@@ -42,7 +42,6 @@ pub type Result<T> = std::result::Result<T, Error>;
 const BURST_BUFFER_PERIOD: Duration = Duration::from_millis(200);
 const BURST_LONGEST_BUFFER_PERIOD: Duration = Duration::from_secs(2);
 
-/// Maximum duration to wait for the initial best default routes
 const INITIAL_BEST_ROUTES_TIMEOUT: Duration = Duration::from_millis(200);
 
 /// Errors that can happen in the macOS routing integration.
@@ -152,7 +151,6 @@ impl RouteManagerImpl {
 
         let mut best_default_route = IpMap::new();
 
-        // Fetch initial best default routes (v4, v6)
         match tokio::time::timeout(INITIAL_BEST_ROUTES_TIMEOUT, async {
             tokio::join!(best_route_rx_v4.recv(), best_route_rx_v6.recv())
         })
