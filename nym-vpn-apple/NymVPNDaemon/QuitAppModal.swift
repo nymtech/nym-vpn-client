@@ -35,6 +35,7 @@ public struct QuitAppModal: View {
                 Spacer()
                     .frame(height: 24)
             }
+            .frame(maxWidth: 450)
             .background(NymColor.elevation)
             .cornerRadius(16)
             .padding(32)
