@@ -12,6 +12,7 @@ license.workspace = true
 crate-type = ["cdylib", "lib", "staticlib"]
 
 [dependencies]
+nix = { workspace = true, features = ["net"] }
 thiserror.workspace = true
 tracing.workspace = true
 tokio = { workspace = true, features = [
@@ -23,9 +24,9 @@ tokio = { workspace = true, features = [
 futures.workspace = true
 triggered.workspace = true
 
-nym-routing = { workspace = true }
-nym-dbus = { workspace = true }
-nym-common = { workspace = true }
+nym-routing.workspace = true
+nym-dbus.workspace = true
+nym-common.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 system-configuration.workspace = true
