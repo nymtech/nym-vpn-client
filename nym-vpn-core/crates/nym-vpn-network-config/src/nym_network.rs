@@ -70,20 +70,31 @@ impl NymNetwork {
         config_dir: &Path,
         discovery: &Discovery,
     ) -> anyhow::Result<Self> {
-        if !tokio::fs::try_exists(Self::path(config_dir, &discovery.network_name)).await?
-            && discovery.network_name == "mainnet"
-        {
-            discovery
-                .fetch_nym_network_details()
-                .await
-                .inspect_err(|err| {
-                    tracing::warn!(
-                        "Failed to fetch remote nym network file: {err},  creating a default one"
-                    )
-                })
-                .unwrap_or_default()
-                .write_to_file(config_dir)
-                .inspect_err(|err| tracing::warn!("Failed to write nym network file: {err}"))?;
+        if !tokio::fs::try_exists(Self::path(config_dir, &discovery.network_name)).await? {
+            if discovery.network_name == "mainnet" {
+                discovery
+                    .fetch_nym_network_details()
+                    .await
+                    .inspect_err(|err| {
+                        tracing::warn!(
+                            "Failed to fetch remote nym network file: {err},  creating a default one"
+                        )
+                    })
+                    .unwrap_or_default()
+                    .write_to_file(config_dir)
+                    .inspect_err(|err| tracing::warn!("Failed to write nym network file: {err}"))?;
+            } else {
+                discovery
+                    .fetch_nym_network_details()
+                    .await
+                    .inspect_err(|err| {
+                        tracing::error!(
+                            "Failed to fetch remote nym network file: {err},  no default one for {} environment", discovery.network_name
+                        )
+                    })?
+                    .write_to_file(config_dir)
+                    .inspect_err(|err| tracing::warn!("Failed to write nym network file: {err}"))?;
+            }
         }
 
         Self::read_from_file(config_dir, &discovery.network_name)
