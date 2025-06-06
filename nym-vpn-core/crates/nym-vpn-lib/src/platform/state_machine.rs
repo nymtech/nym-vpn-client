@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 use nym_vpn_account_controller::AccountCommandSender;
 use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -60,7 +60,7 @@ fn setup_statistics_recipient(
         .map(nym_gateway_directory::Recipient::try_from_base58_string)
         .transpose()
         .inspect_err(|err| {
-            err.trace_chain_with_msg("Failed to parse statistics recipient");
+            trace_err_chain!(err, "Failed to parse statistics recipient");
         })
         .unwrap_or_default()
         .map(Box::new);

@@ -3,7 +3,7 @@
 
 use std::{path::PathBuf, str::FromStr, sync::Arc, time::Duration};
 
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 use nym_vpn_account_controller::{
     AccountCommandSender, SharedAccountState, shared_state::DeviceState,
 };
@@ -325,7 +325,7 @@ pub(crate) mod raw {
                     tracing::trace!("File not found, skipping: {}", path.display())
                 }
                 Err(e) => {
-                    e.trace_chain_with_msg(format!("Failed to remove file: {}", path.display()));
+                    trace_err_chain!(e, "Failed to remove file: {}", path.display());
 
                     return Err(VpnError::InternalError {
                         details: e.to_string(),

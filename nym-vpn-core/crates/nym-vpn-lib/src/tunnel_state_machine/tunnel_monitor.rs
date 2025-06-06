@@ -52,7 +52,7 @@ use super::{
 };
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use super::{route_handler::RoutingConfig, tun_ipv6};
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
     ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData, MixnetEvent, NymAddress,
     RequestZkNymError, TunnelConnectionData, TunnelType, WireguardConnectionData, WireguardNode,
@@ -265,7 +265,7 @@ impl TunnelMonitor {
         let (tombstone, reason) = match self.run_inner().await {
             Ok(tombstone) => (tombstone, None),
             Err(e) => {
-                e.trace_chain_with_msg("Tunnel monitor exited with error");
+                trace_err_chain!(e, "Tunnel monitor exited with error");
                 (Tombstone::default(), e.error_state_reason())
             }
         };
@@ -529,7 +529,7 @@ impl TunnelMonitor {
             .wait()
             .await
             .inspect_err(|e| {
-                e.trace_chain_with_msg("Failed to gracefully shutdown the tunnel");
+                trace_err_chain!(e, "Failed to gracefully shutdown the tunnel");
             })
             .unwrap_or_default();
 

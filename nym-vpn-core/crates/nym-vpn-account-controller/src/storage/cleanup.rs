@@ -9,7 +9,7 @@ use std::{
 use futures::StreamExt;
 use tokio_stream::wrappers::ReadDirStream;
 
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 use nym_sdk::mixnet::StoragePaths;
 use nym_vpn_store::keys::persistence::{
     DEFAULT_PRIVATE_DEVICE_KEY_FILENAME, DEFAULT_PUBLIC_DEVICE_KEY_FILENAME,
@@ -75,11 +75,9 @@ pub async fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
             Err(err) if err.kind() == io::ErrorKind::NotFound => {
                 tracing::debug!("File not found, skipping: {}", file_path.display());
             }
-            Err(err) => tracing::error!(
-                "Failed to remove file {}: {}",
-                file_path.display(),
-                err.display_chain()
-            ),
+            Err(err) => {
+                trace_err_chain!(err, "Failed to remove file {}", file_path.display());
+            }
         }
     }
 
@@ -102,10 +100,7 @@ pub async fn remove_files_for_account(data_dir: &Path) -> Result<(), Error> {
                     tracing::debug!("Corrupted file not found, skipping: {}", file.display());
                 }
                 Err(err) => {
-                    err.trace_chain_with_msg(format!(
-                        "Failed to remove corrupted file {}",
-                        file.display()
-                    ));
+                    trace_err_chain!(err, "Failed to remove corrupted file {}", file.display());
                 }
             }
         }

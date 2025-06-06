@@ -4,7 +4,7 @@
 
 use std::net::IpAddr;
 
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 use nym_dbus::systemd_resolved::{AsyncHandle, SystemdResolved as DbusInterface};
 use nym_routing::RouteManagerHandle;
 
@@ -49,7 +49,7 @@ impl SystemdResolved {
         self.tunnel_index = tunnel_index;
 
         if let Err(error) = self.dbus_interface.disable_dot(self.tunnel_index).await {
-            error.trace_chain_with_msg("Failed to disable DoT");
+            trace_err_chain!(error, "Failed to disable DoT");
         }
 
         if let Err(error) = self
@@ -57,7 +57,7 @@ impl SystemdResolved {
             .set_domains(tunnel_index, &[(".", true)])
             .await
         {
-            error.trace_chain_with_msg("Failed to set search domains");
+            trace_err_chain!(error, "Failed to set search domains");
         }
 
         let _ = self
@@ -74,7 +74,7 @@ impl SystemdResolved {
             .set_domains(self.tunnel_index, &[])
             .await
         {
-            error.trace_chain_with_msg("Failed to set search domains");
+            trace_err_chain!(error, "Failed to set search domains");
         }
 
         let _ = self

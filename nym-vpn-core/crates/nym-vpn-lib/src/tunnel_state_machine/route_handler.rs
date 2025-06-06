@@ -5,7 +5,7 @@ use std::{collections::HashSet, fmt, net::IpAddr};
 
 use ipnetwork::IpNetwork;
 
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 #[cfg(not(target_os = "linux"))]
 use nym_routing::NetNode;
 #[cfg(windows)]
@@ -67,19 +67,19 @@ impl RouteHandler {
 
     pub async fn remove_routes(&mut self) {
         if let Err(e) = self.route_manager.clear_routes() {
-            e.trace_chain_with_msg("Failed to remove routes");
+            trace_err_chain!(e, "Failed to remove routes");
         }
 
         #[cfg(target_os = "linux")]
         if let Err(e) = self.route_manager.clear_routing_rules().await {
-            e.trace_chain_with_msg("Failed to remove routing rules");
+            trace_err_chain!(e, "Failed to remove routing rules");
         }
     }
 
     #[cfg(target_os = "macos")]
     pub async fn refresh_routes(&mut self) {
         if let Err(e) = self.route_manager.refresh_routes() {
-            e.trace_chain_with_msg("Failed to refresh routes");
+            trace_err_chain!(e, "Failed to refresh routes");
         }
     }
 

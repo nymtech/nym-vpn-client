@@ -4,7 +4,7 @@
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 
 use crate::tunnel_state_machine::{
     NextTunnelState, PrivateTunnelState, SharedState, TunnelCommand, TunnelStateHandler,
@@ -30,7 +30,7 @@ impl DisconnectedState {
             .set_static_api_addresses(None)
             .await
         {
-            e.trace_chain_with_msg("Failed to unset static API addresses");
+            trace_err_chain!(e, "Failed to unset static API addresses");
         }
 
         // Drop tombstone to close tunnel devices.
@@ -42,14 +42,14 @@ impl DisconnectedState {
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     fn reset_firewall_policy(shared_state: &mut SharedState) {
         if let Err(e) = shared_state.firewall.reset_policy() {
-            e.trace_chain_with_msg("Failed to reset firewall policy");
+            trace_err_chain!(e, "Failed to reset firewall policy");
         }
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn reset_dns(shared_state: &mut SharedState) {
         if let Err(error) = shared_state.dns_handler.reset().await {
-            error.trace_chain_with_msg("Failed to reset DNS");
+            trace_err_chain!(error, "Failed to reset DNS");
         }
     }
 }

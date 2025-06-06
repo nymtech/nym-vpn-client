@@ -7,7 +7,7 @@ use std::{io, sync::Arc, time::Duration};
 use tokio::sync::{Mutex, watch};
 use tokio_util::sync::CancellationToken;
 
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 use nym_routing::{CallbackHandle, EventType, RouteManagerHandle, get_best_default_route};
 use nym_windows::{
     net::AddressFamily,
@@ -105,13 +105,13 @@ impl BroadcastListener {
         let v4_connectivity = get_best_default_route(AddressFamily::Ipv4)
             .map(|route| route.is_some())
             .unwrap_or_else(|error| {
-                error.trace_chain_with_msg("Failed to check initial IPv4 connectivity");
+                trace_err_chain!(error, "Failed to check initial IPv4 connectivity");
                 true
             });
         let v6_connectivity = get_best_default_route(AddressFamily::Ipv6)
             .map(|route| route.is_some())
             .unwrap_or_else(|error| {
-                error.trace_chain_with_msg("Failed to check initial IPv6 connectivity");
+                trace_err_chain!(error, "Failed to check initial IPv6 connectivity");
                 true
             });
 

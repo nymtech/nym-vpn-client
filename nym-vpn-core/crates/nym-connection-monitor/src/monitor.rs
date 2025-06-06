@@ -7,7 +7,7 @@ use std::{
 };
 
 use futures::{StreamExt, channel::mpsc};
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 use nym_sdk::TaskClient;
 use tokio::task::JoinHandle;
 
@@ -299,7 +299,7 @@ pub fn start_connection_monitor(
     let monitor = ConnectionMonitor::new(connection_event_rx);
     tokio::spawn(async move {
         monitor.run(shutdown_listener).await.inspect_err(|err| {
-            err.trace_chain_with_msg("Connection monitor error");
+            trace_err_chain!(err, "Connection monitor error");
         })
     })
 }
