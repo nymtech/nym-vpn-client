@@ -60,6 +60,11 @@ impl VpnCredentialStorage {
         })
     }
 
+    pub async fn close(&self) {
+        self.credential_storage.close().await;
+        self.pending_requests_storage.close().await;
+    }
+
     pub(crate) async fn reset(&mut self) -> Result<(), Error> {
         self.reset_credential_storage().await?;
         self.reset_pending_request_storage().await?;
