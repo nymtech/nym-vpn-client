@@ -165,6 +165,8 @@ pub(crate) struct BandwidthController<St> {
     timeout_check_interval: IntervalStream,
     entry_depletion_rate: DepletionRate,
     exit_depletion_rate: DepletionRate,
+    entry_previous_empty_query: bool,
+    exit_previous_empty_query: bool,
     shutdown: TaskClient,
 }
 
@@ -188,6 +190,8 @@ impl<St: Storage> BandwidthController<St> {
             timeout_check_interval,
             entry_depletion_rate: Default::default(),
             exit_depletion_rate: Default::default(),
+            entry_previous_empty_query: false,
+            exit_previous_empty_query: false,
             shutdown,
         })
     }
@@ -284,6 +288,11 @@ impl<St: Storage> BandwidthController<St> {
             ret = wg_gateway_client.query_bandwidth() => {
                 match ret {
                     Ok(Some(remaining_bandwidth)) => {
+                        if entry {
+                            self.entry_previous_empty_query = false;
+                        } else {
+                            self.exit_previous_empty_query = false;
+                        }
                         match current_depletion_rate
                             .update_dynamic_check_interval(current_period, remaining_bandwidth as u64)
                         {
@@ -319,7 +328,24 @@ impl<St: Storage> BandwidthController<St> {
                         }
                     }
                     Ok(None) => {
-                        tracing::info!("Empty query for {} gateway bandwidth check. This is normal, as long as it is not repeating for the same gateway", if entry {"entry".to_string()} else {"exit".to_string()});
+                        if (entry && self.entry_previous_empty_query) || (!entry && self.exit_previous_empty_query) {
+                            self.shutdown
+                            .send_we_stopped(Box::new(ErrorMessage::DisconnectedByGateway {
+                                gateway_id: Box::new(
+                                    wg_gateway_client.auth_recipient().gateway(),
+                                ),
+                                authenticator_address: Box::new(
+                                    wg_gateway_client.auth_recipient(),
+                                ),
+                            }));
+                        } else {
+                            if entry {
+                                self.entry_previous_empty_query = true;
+                            } else {
+                                self.exit_previous_empty_query = true;
+                            }
+                            tracing::info!("Empty query for {} gateway bandwidth check. This is normal, as long as it is not repeating for the same gateway", if entry {"entry".to_string()} else {"exit".to_string()});
+                        }
                     }
                     Err(e) => {
                         tracing::warn!("{}", e.display_chain_with_msg("error querying remaining bandwidth"));
