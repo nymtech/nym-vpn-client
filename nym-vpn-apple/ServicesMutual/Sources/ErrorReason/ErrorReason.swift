@@ -27,6 +27,7 @@ public enum ErrorReason: LocalizedError {
     case registrationInProgress
     case internalError(String)
     case deviceTimeOutOfSync
+    case createMixnetStorage
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -60,6 +61,8 @@ public enum ErrorReason: LocalizedError {
             self = .api(message ?? Self.somethingWentWrong)
         case .deviceTimeOutOfSync:
             self = .deviceTimeOutOfSync
+        case .createMixnetStorage:
+            self = .createMixnetStorage
         }
     }
 #endif
@@ -115,6 +118,8 @@ public enum ErrorReason: LocalizedError {
             self = .apiStatusCode(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .apiResponse:
             self = .apiResponse(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .createMixnetStorage:
+            self = .createMixnetStorage
         }
     }
 
@@ -185,6 +190,8 @@ private extension ErrorReason {
             code
         case let .apiResponse(message):
             message
+        case .createMixnetStorage:
+            "errorReason.createMixnetStorage".localizedString
         }
     }
 }
@@ -217,6 +224,7 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case internalError
     case registrationInProgress
     case deviceTimeOutOfSync
+    case createMixnetStorage
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -262,6 +270,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .apiStatusCode
         case .apiResponse:
             self = .apiResponse
+        case .createMixnetStorage:
+            self = .createMixnetStorage
         }
     }
 }

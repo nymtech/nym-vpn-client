@@ -93,6 +93,8 @@ extension GRPCManager {
             ErrorReason.unknown
         case .deviceTimeOutOfSync:
             ErrorReason.deviceTimeOutOfSync
+        case .createMixnetStorage:
+            ErrorReason.createMixnetStorage
         }
     }
 }
