@@ -2,12 +2,6 @@
 // Copyright 2025 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use ipnetwork::IpNetwork;
-use nftnl::{
-    Batch, Chain, FinalizedBatch, ProtoFamily, Rule, Table,
-    expr::{self, IcmpCode, Payload, RejectionType, Verdict},
-    nft_expr, table,
-};
 use std::{
     env,
     ffi::CStr,
@@ -16,7 +10,13 @@ use std::{
     sync::LazyLock,
 };
 
-use nym_common::linux::IfaceIndexLookupError;
+use ipnetwork::IpNetwork;
+use nftnl::{
+    Batch, Chain, FinalizedBatch, ProtoFamily, Rule, Table,
+    expr::{self, IcmpCode, Payload, RejectionType, Verdict},
+    nft_expr, table,
+};
+use nix::net::if_::if_nametoindex;
 
 use super::{
     FirewallArguments, FirewallPolicy,
@@ -63,7 +63,7 @@ pub enum Error {
 
     /// Unable to translate network interface name into index.
     #[error("unable to translate network interface name \"{0}\" into index")]
-    LookupIfaceIndexError(String, #[source] IfaceIndexLookupError),
+    LookupIfaceIndexError(String, #[source] nix::Error),
 }
 
 const TABLE_NAME: &CStr = c"nym";
@@ -407,8 +407,8 @@ impl<'a> PolicyBatch<'a> {
         // Don't masquerade packets on the loopback device.
         let mut rule = Rule::new(&self.nat_chain);
 
-        let iface_index = nym_common::linux::iface_index("lo")
-            .map_err(|e| Error::LookupIfaceIndexError("lo".to_string(), e))?;
+        let iface_index =
+            if_nametoindex("lo").map_err(|e| Error::LookupIfaceIndexError("lo".to_string(), e))?;
         rule.add_expr(&nft_expr!(meta oif));
         rule.add_expr(&nft_expr!(cmp != iface_index));
 
@@ -1047,8 +1047,8 @@ fn allow_interface_rule<'a>(
 }
 
 fn check_iface(rule: &mut Rule<'_>, direction: Direction, iface: &str) -> Result<()> {
-    let iface_index = nym_common::linux::iface_index(iface)
-        .map_err(|e| Error::LookupIfaceIndexError(iface.to_owned(), e))?;
+    let iface_index =
+        if_nametoindex(iface).map_err(|e| Error::LookupIfaceIndexError(iface.to_owned(), e))?;
     rule.add_expr(&match direction {
         Direction::In => nft_expr!(meta iif),
         Direction::Out => nft_expr!(meta oif),
@@ -1058,8 +1058,8 @@ fn check_iface(rule: &mut Rule<'_>, direction: Direction, iface: &str) -> Result
 }
 
 fn check_not_iface(rule: &mut Rule<'_>, direction: Direction, iface: &str) -> Result<()> {
-    let iface_index = nym_common::linux::iface_index(iface)
-        .map_err(|e| Error::LookupIfaceIndexError(iface.to_owned(), e))?;
+    let iface_index =
+        if_nametoindex(iface).map_err(|e| Error::LookupIfaceIndexError(iface.to_owned(), e))?;
     rule.add_expr(&match direction {
         Direction::In => nft_expr!(meta iif),
         Direction::Out => nft_expr!(meta oif),

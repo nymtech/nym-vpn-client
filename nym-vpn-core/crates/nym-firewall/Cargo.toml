@@ -22,6 +22,7 @@ pfctl.workspace = true
 nym-platform-metadata = { path = "../nym-platform-metadata" }
 
 [target.'cfg(target_os = "linux")'.dependencies]
+nix = { workspace = true, features = ["net"] }
 nftnl = { workspace = true, features = ["nftnl-1-1-0"] }
 mnl = { workspace = true, features = ["mnl-1-0-4"] }
 

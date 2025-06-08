@@ -4,10 +4,7 @@
 
 use std::net::IpAddr;
 
-use nym_common::{
-    ErrorExt,
-    linux::{IfaceIndexLookupError, iface_index},
-};
+use nym_common::ErrorExt;
 use nym_dbus::systemd_resolved::{AsyncHandle, SystemdResolved as DbusInterface};
 use nym_routing::RouteManagerHandle;
 
@@ -20,8 +17,8 @@ pub enum Error {
     #[error("systemd-resolved operation failed")]
     SystemdResolvedError(#[from] SystemdDbusError),
 
-    #[error("failed to resolve interface index with error {0}")]
-    InterfaceNameError(#[from] IfaceIndexLookupError),
+    #[error("unable to translate network interface name \"{0}\" into index")]
+    LookupInterfaceIndex(String, #[source] nix::Error),
 }
 
 pub struct SystemdResolved {
@@ -47,7 +44,8 @@ impl SystemdResolved {
         interface_name: &str,
         servers: &[IpAddr],
     ) -> Result<()> {
-        let tunnel_index = iface_index(interface_name)?;
+        let tunnel_index = nix::net::if_::if_nametoindex(interface_name)
+            .map_err(|e| Error::LookupInterfaceIndex(interface_name.to_owned(), e))?;
         self.tunnel_index = tunnel_index;
 
         if let Err(error) = self.dbus_interface.disable_dot(self.tunnel_index).await {

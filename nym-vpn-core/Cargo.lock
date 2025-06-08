@@ -3770,8 +3770,6 @@ dependencies = [
 name = "nym-common"
 version = "1.11.0-beta"
 dependencies = [
- "libc",
- "thiserror 2.0.12",
  "tracing",
 ]
 
@@ -3990,6 +3988,7 @@ dependencies = [
  "duct",
  "futures",
  "inotify",
+ "nix",
  "nym-common",
  "nym-dbus",
  "nym-routing",
@@ -4050,6 +4049,7 @@ dependencies = [
  "log",
  "mnl",
  "nftnl",
+ "nix",
  "nym-common",
  "nym-dns",
  "nym-platform-metadata",
