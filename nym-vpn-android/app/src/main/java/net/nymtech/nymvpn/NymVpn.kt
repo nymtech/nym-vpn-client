@@ -7,6 +7,11 @@ import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
 import dagger.hilt.android.HiltAndroidApp
+import io.sentry.Hint
+import io.sentry.SentryEvent
+import io.sentry.SentryLevel
+import io.sentry.SentryOptions
+import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -85,6 +90,33 @@ class NymVpn : Application() {
 			}
 		}
 		requestTileServiceStateUpdate()
+		initSentry()
+	}
+
+	private fun initSentry() {
+		SentryAndroid.init(this) { options ->
+			options.dsn = "https://cf027ef57330e976438c2cbbe1903868@o967446.ingest.us.sentry.io/4506859434082304"
+			var sampleRate = 0.1
+			var sessionSampleRate = 0.05
+			if (BuildConfig.DEBUG) {
+				sampleRate = 1.0
+				sessionSampleRate = 1.0
+			}
+			options.sampleRate = sampleRate
+			options.profileSessionSampleRate = sessionSampleRate
+			options.sessionReplay.onErrorSampleRate = sampleRate
+			options.sessionReplay.sessionSampleRate = sessionSampleRate
+			// Add a callback that will be used before the event is sent to Sentry.
+			// With this callback, you can modify the event or, when returning null, also discard the event.
+			options.beforeSend =
+				SentryOptions.BeforeSendCallback { event: SentryEvent, hint: Hint ->
+					if (SentryLevel.DEBUG == event.level) {
+						null
+					} else {
+						event
+					}
+				}
+		}
 	}
 
 	class AppLifecycleObserver : DefaultLifecycleObserver {
@@ -93,6 +125,7 @@ class NymVpn : Application() {
 			Timber.d("Application entered foreground")
 			foreground = true
 		}
+
 		override fun onPause(owner: LifecycleOwner) {
 			Timber.d("Application entered background")
 			foreground = false

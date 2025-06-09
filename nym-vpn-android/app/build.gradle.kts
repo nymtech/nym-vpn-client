@@ -236,6 +236,9 @@ dependencies {
 	// animations/splash
 	implementation(libs.lottie.compose)
 	implementation(libs.androidx.core.splashscreen)
+
+	// sentry
+	implementation(libs.sentry)
 }
 
 fun determineVersionName(): String {
