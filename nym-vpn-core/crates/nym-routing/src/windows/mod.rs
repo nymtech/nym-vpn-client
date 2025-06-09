@@ -13,7 +13,7 @@ use futures::{
 };
 pub use get_best_default_route::{InterfaceAndGateway, get_best_default_route};
 use net::AddressFamily;
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 use nym_windows::net;
 pub use route_manager::{Callback, CallbackHandle, Route, RouteManagerInternal};
 use std::{collections::HashSet, io, net::IpAddr};
@@ -212,7 +212,7 @@ impl RouteManagerHandle {
                 }
                 RouteManagerCommand::ClearRoutes => {
                     if let Err(e) = internal.delete_applied_routes() {
-                        e.trace_chain_with_msg("Could not clear routes");
+                        trace_err_chain!(e, "Could not clear routes");
                     }
                 }
                 RouteManagerCommand::RegisterDefaultRouteChangeCallback(callback, tx) => {

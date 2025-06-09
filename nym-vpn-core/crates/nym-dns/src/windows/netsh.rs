@@ -18,7 +18,7 @@ use tokio::{
 };
 use windows::Win32::{Foundation::MAX_PATH, System::SystemInformation::GetSystemDirectoryW};
 
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 use nym_windows::net::{index_from_luid, luid_from_alias};
 
 use crate::{DnsMonitorT, ResolvedDnsConfig};
@@ -124,7 +124,7 @@ impl DnsMonitorT for DnsMonitor {
             netsh_input.push_str(&create_netsh_flush_command(index, IpVersion::V6));
 
             if let Err(error) = run_netsh_with_timeout(netsh_input, NETSH_TIMEOUT).await {
-                error.trace_chain_with_msg("Failed to reset DNS");
+                trace_err_chain!(error, "Failed to reset DNS");
             }
         }
         Ok(())

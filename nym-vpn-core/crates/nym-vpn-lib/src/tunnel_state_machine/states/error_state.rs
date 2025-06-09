@@ -20,7 +20,7 @@ use tokio_util::sync::CancellationToken;
     target_os = "windows",
     target_os = "ios"
 ))]
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::FirewallPolicy;
 
@@ -67,7 +67,7 @@ impl ErrorState {
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         if let Err(e) = Self::set_firewall_policy(_shared_state) {
-            e.trace_chain_with_msg("Failed to apply firewall policy for blocked state");
+            trace_err_chain!(e, "Failed to apply firewall policy for blocked state");
         }
 
         (Box::new(Self), PrivateTunnelState::Error(reason))
@@ -92,14 +92,14 @@ impl ErrorState {
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     fn reset_firewall_policy(shared_state: &mut SharedState) {
         if let Err(e) = shared_state.firewall.reset_policy() {
-            e.trace_chain_with_msg("Failed to reset firewall policy");
+            trace_err_chain!(e, "Failed to reset firewall policy");
         }
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn reset_dns(shared_state: &mut SharedState) {
         if let Err(error) = shared_state.dns_handler.reset().await {
-            error.trace_chain_with_msg("Unable to disable filtering resolver");
+            trace_err_chain!(error, "Unable to disable filtering resolver");
         }
     }
 
@@ -115,7 +115,7 @@ impl ErrorState {
             .set("lo".to_owned(), system_dns)
             .await
             .inspect_err(|err| {
-                err.trace_chain_with_msg("Failed to configure system to use filtering resolver");
+                trace_err_chain!(err, "Failed to configure system to use filtering resolver");
             })
             .map_err(Error::SetDns)
     }
@@ -134,7 +134,7 @@ impl ErrorState {
             .set_tunnel_network_settings(tunnel_network_settings.into_tunnel_network_settings())
             .await
         {
-            e.trace_chain_with_msg("Failed to set tunnel network settings");
+            trace_err_chain!(e, "Failed to set tunnel network settings");
         }
     }
 }

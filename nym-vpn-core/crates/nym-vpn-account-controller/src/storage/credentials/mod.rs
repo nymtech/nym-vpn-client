@@ -14,7 +14,7 @@ use std::{
     sync::Arc,
 };
 
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 use nym_compact_ecash::VerificationKeyAuth;
 use nym_credential_storage::persistent_storage::PersistentStorage as PersistentCredentialStorage;
 use nym_credentials::{
@@ -95,7 +95,7 @@ impl VpnCredentialStorage {
                     tracing::debug!("File not found, skipping: {}", path.display())
                 }
                 Err(err) => {
-                    err.trace_chain_with_msg(format!("Failed to remove file {}", path.display()));
+                    trace_err_chain!(err, "Failed to remove file {}", path.display());
                     return Err(Error::RemoveCredentialStorage(err));
                 }
             }

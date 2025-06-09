@@ -7,7 +7,7 @@ use std::{
 };
 
 use bytes::Bytes;
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 use nym_config::defaults::mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6};
 use nym_ip_packet_requests::{IpPair, codec::MultiIpPacketCodec};
 use nym_sdk::{
@@ -144,16 +144,16 @@ impl IcmpConnectionBeacon {
                 _ = ping_interval.tick() => {
                     let cancellable_fut = async {
                         if let Err(err) = self.ping_v4_ipr_tun_device_over_the_mixnet().await {
-                            err.trace_chain_with_msg("Failed to send ICMP ping");
+                            trace_err_chain!(err, "Failed to send ICMP ping");
                         }
                         if let Err(err) = self.ping_v6_ipr_tun_device_over_the_mixnet().await {
-                            err.trace_chain_with_msg("Failed to send ICMPv6 ping");
+                            trace_err_chain!(err, "Failed to send ICMPv6 ping");
                         }
                         if let Err(err) = self.ping_v4_some_external_ip_over_the_mixnet().await {
-                            err.trace_chain_with_msg("Failed to send ICMP ping");
+                            trace_err_chain!(err, "Failed to send ICMP ping");
                         }
                         if let Err(err) = self.ping_v6_some_external_ip_over_the_mixnet().await {
-                            err.trace_chain_with_msg("Failed to send ICMPv6 ping");
+                            trace_err_chain!(err, "Failed to send ICMPv6 ping");
                         }
                     };
 
@@ -245,7 +245,7 @@ pub fn start_icmp_connection_beacon(
         IcmpConnectionBeacon::new(mixnet_client_sender, our_ips, ipr_address, icmp_identifier);
     tokio::spawn(async move {
         beacon.run(shutdown_listener).await.inspect_err(|err| {
-            err.trace_chain_with_msg("IcmpConnectionBeacon failed");
+            trace_err_chain!(err, "IcmpConnectionBeacon failed");
         })
     })
 }

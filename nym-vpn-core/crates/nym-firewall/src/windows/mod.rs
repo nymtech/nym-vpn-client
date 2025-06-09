@@ -10,7 +10,7 @@ use nym_dns::ResolvedDnsConfig;
 
 use std::{ffi::CStr, net::IpAddr, ptr, sync::LazyLock};
 
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 use widestring::WideCString;
 use windows::Win32::Globalization::{CP_ACP, MULTI_BYTE_TO_WIDE_CHAR_FLAGS, MultiByteToWideChar};
 
@@ -545,9 +545,7 @@ fn consume_and_log_hyperv_err<T>(
     result: Result<T, hyperv::Error>,
 ) -> Option<T> {
     result
-        .inspect_err(|error| {
-            error.trace_chain_with_msg(format!("{action}. {HYPERV_LEAK_WARNING_MSG}"))
-        })
+        .inspect_err(|error| trace_err_chain!(error, "{action}. {HYPERV_LEAK_WARNING_MSG}"))
         .ok()
 }
 

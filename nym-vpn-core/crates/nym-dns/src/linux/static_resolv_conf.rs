@@ -10,7 +10,7 @@ use resolv_conf::{Config, ScopedIp};
 use tokio::sync::Mutex;
 use triggered::{Listener, Trigger, trigger};
 
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 
 const RESOLV_CONF_BACKUP_PATH: &str = "/etc/resolv.conf.nymbackup";
 const RESOLV_CONF_PATH: &str = "/etc/resolv.conf";
@@ -161,7 +161,7 @@ impl DnsWatcher {
                 Some(_) = events.next() => {
                     let mut locked_state = state.lock().await;
                     if let Err(error) = Self::update(locked_state.as_mut()) {
-                        error.trace_chain_with_msg(
+                        trace_err_chain!(error,
                             "Failed to update DNS state after DNS settings changed"
                         );
                     }

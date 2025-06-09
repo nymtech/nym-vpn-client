@@ -33,7 +33,7 @@ use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -446,7 +446,7 @@ impl TunnelStateMachine {
             .register_offline_monitor(offline_watch)
             .await
             .inspect_err(|err| {
-                err.trace_chain_with_msg("Failed to register offline watch");
+                trace_err_chain!(err, "Failed to register offline watch");
             })
             .ok();
 

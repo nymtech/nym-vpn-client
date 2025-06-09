@@ -10,7 +10,7 @@ use futures::{
 };
 use ipnetwork::IpNetwork;
 use nix::net::if_::if_nametoindex;
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 use std::{
     collections::{BTreeMap, HashSet},
     net::{IpAddr, SocketAddr},
@@ -451,7 +451,7 @@ impl RouteManagerImpl {
             // ignore all other message types
             Ok(_) => {}
             Err(err) => {
-                err.trace_chain_with_msg("Failed to receive a message from the routing table");
+                trace_err_chain!(err, "Failed to receive a message from the routing table");
             }
         }
     }

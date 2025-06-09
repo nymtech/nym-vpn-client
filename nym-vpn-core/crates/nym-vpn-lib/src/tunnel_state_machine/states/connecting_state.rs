@@ -11,7 +11,7 @@ use futures::{
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_dns::DnsConfig;
 #[cfg(target_os = "macos")]
@@ -209,7 +209,10 @@ impl ConnectingState {
             .firewall
             .apply_policy(policy)
             .inspect_err(|error| {
-                error.trace_chain_with_msg("Failed to apply firewall policy for connecting state");
+                trace_err_chain!(
+                    error,
+                    "Failed to apply firewall policy for connecting state"
+                );
             })
             .map_err(Error::ApplyFirewallPolicy)
     }
@@ -227,9 +230,7 @@ impl ConnectingState {
                 .set("lo".to_owned(), system_dns)
                 .await
                 .inspect_err(|err| {
-                    err.trace_chain_with_msg(
-                        "Failed to configure system to use filtering resolver",
-                    );
+                    trace_err_chain!(err, "Failed to configure system to use filtering resolver",);
                 });
         }
 
@@ -324,7 +325,7 @@ impl ConnectingState {
             .set_static_api_addresses(resolved_gateway_config.nym_vpn_api_socket_addrs.to_owned())
             .await
         {
-            e.trace_chain_with_msg("Failed to set static API addresses");
+            trace_err_chain!(e, "Failed to set static API addresses");
             return NextTunnelState::NewState(
                 ErrorState::enter(
                     ErrorStateReason::Internal(

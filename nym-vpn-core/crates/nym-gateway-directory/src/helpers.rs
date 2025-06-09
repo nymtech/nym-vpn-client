@@ -3,7 +3,7 @@
 
 use std::net::{IpAddr, SocketAddr};
 
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 use nym_http_api_client::HickoryDnsResolver;
 
 use crate::{Config, Error, error::Result, gateway_client::ResolvedConfig};
@@ -12,7 +12,7 @@ async fn try_resolve_hostname(hostname: &str) -> Result<Vec<IpAddr>> {
     tracing::debug!("Trying to resolve hostname: {hostname}");
     let resolver = HickoryDnsResolver::default();
     let addrs = resolver.resolve_str(hostname).await.map_err(|err| {
-        err.trace_chain_with_msg("Failed to resolve gateway hostname");
+        trace_err_chain!(err, "Failed to resolve gateway hostname");
         Error::FailedToDnsResolveGateway {
             hostname: hostname.to_string(),
             source: err,

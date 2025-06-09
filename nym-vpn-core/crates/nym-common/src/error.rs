@@ -11,12 +11,6 @@ pub trait ErrorExt {
 
     /// Like [Self::display_chain] but with an extra message at the start of the chain.
     fn display_chain_with_msg<S: AsRef<str>>(&self, msg: S) -> String;
-
-    /// Print error chain to log using error level.
-    fn trace_chain(&self);
-
-    /// Like [Self::trace_chain] but with an extra message at the start of the chain.
-    fn trace_chain_with_msg<S: AsRef<str>>(&self, msg: S);
 }
 
 impl<E: Error> ErrorExt for E {
@@ -39,16 +33,55 @@ impl<E: Error> ErrorExt for E {
         }
         s
     }
-
-    fn trace_chain(&self) {
-        tracing::error!("{}", self.display_chain());
-    }
-
-    fn trace_chain_with_msg<S: AsRef<str>>(&self, msg: S) {
-        tracing::error!("{}", self.display_chain_with_msg(msg));
-    }
 }
 
+#[macro_export]
+macro_rules! trace_err_chain {
+    ($err:expr) => {
+        tracing::error!("{}", $crate::ErrorExt::display_chain(&$err));
+    };
+    ($err:expr, $($args:tt)*) => {
+        tracing::error!("{}", $crate::ErrorExt::display_chain_with_msg(&$err, ::std::format!($($args)*)));
+    };
+}
+
+#[cfg(test)]
+mod tests {
+    use tracing_test::traced_test;
+
+    use std::{io, path::PathBuf};
+
+    #[test]
+    #[traced_test]
+    fn test_trace_err_chain() {
+        trace_err_chain!(io::Error::other("file not found"));
+        assert!(logs_contain("Error: file not found"));
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_trace_err_chain_with_msg() {
+        trace_err_chain!(io::Error::other("file not found"), "failed to open file");
+        assert!(logs_contain("Error: failed to open file"));
+        // todo: fix once it supports multiline messages
+        // https://github.com/dbrgn/tracing-test/issues/48
+        // assert!(logs_contain("Caused by: file not found"));
+    }
+
+    #[test]
+    #[traced_test]
+    fn test_trace_err_chain_with_msgfmt() {
+        trace_err_chain!(
+            io::Error::other("file not found"),
+            "failed to open file: {}",
+            PathBuf::from("test.txt").display()
+        );
+        assert!(logs_contain("Error: failed to open file: test.txt"));
+        // todo: fix once it supports multiline messages
+        // https://github.com/dbrgn/tracing-test/issues/48
+        // assert!(logs_contain("Caused by: file not found"));
+    }
+}
 #[derive(Debug)]
 pub struct BoxedError(Box<dyn Error + 'static + Send>);
 

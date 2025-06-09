@@ -6,7 +6,7 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 #[cfg(any(target_os = "linux", target_os = "windows"))]
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 #[cfg(target_os = "macos")]
 use nym_dns::DnsConfig;
 #[cfg(target_os = "macos")]
@@ -218,7 +218,7 @@ impl ConnectedState {
             .reset_before_interface_removal()
             .await
         {
-            error.trace_chain_with_msg("Failed to reset DNS");
+            trace_err_chain!(error, "Failed to reset DNS");
         }
 
         // On macOS, configure only the local DNS resolver

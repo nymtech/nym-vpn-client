@@ -5,7 +5,7 @@ use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use nym_common::ErrorExt;
+use nym_common::trace_err_chain;
 #[cfg(target_os = "macos")]
 use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -42,7 +42,7 @@ impl OfflineState {
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         if let Err(e) = Self::set_firewall_policy(_shared_state) {
-            e.trace_chain_with_msg("Failed to apply firewall policy for blocked state");
+            trace_err_chain!(e, "Failed to apply firewall policy for blocked state");
         }
 
         (
@@ -73,14 +73,14 @@ impl OfflineState {
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     fn reset_firewall_policy(shared_state: &mut SharedState) {
         if let Err(e) = shared_state.firewall.reset_policy() {
-            e.trace_chain_with_msg("Failed to reset firewall policy");
+            trace_err_chain!(e, "Failed to reset firewall policy");
         }
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn reset_dns(shared_state: &mut SharedState) {
         if let Err(error) = shared_state.dns_handler.reset().await {
-            error.trace_chain_with_msg("Unable to reset DNS");
+            trace_err_chain!(error, "Unable to reset DNS");
         }
     }
 
@@ -96,7 +96,7 @@ impl OfflineState {
             .set("lo".to_owned(), system_dns)
             .await
             .inspect_err(|err| {
-                err.trace_chain_with_msg("Failed to configure system to use filtering resolver");
+                trace_err_chain!(err, "Failed to configure system to use filtering resolver");
             })
             .map_err(Error::SetDns)
     }

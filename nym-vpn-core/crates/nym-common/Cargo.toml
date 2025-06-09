@@ -8,3 +8,4 @@ edition.workspace = true
 
 [dependencies]
 tracing.workspace = true
+tracing-test.workspace = true
