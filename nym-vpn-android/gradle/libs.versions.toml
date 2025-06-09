@@ -31,6 +31,7 @@ window = "1.3.0"
 windowCoreAndroid = "1.3.0"
 desugar = "2.1.5"
 zxingAndroidEmbedded = "4.3.0"
+sentry = "8.13.2"
 
 gradlePlugins-licensee = "1.12.0"
 gradlePlugins-detekt = "1.23.8"
@@ -98,6 +99,9 @@ androidx-navigation-compose = { module = "androidx.navigation:navigation-compose
 androidx-window-core-android = { group = "androidx.window", name = "window-core-android", version.ref = "windowCoreAndroid" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 androidx-lifecycle-process = { group = "androidx.lifecycle", name = "lifecycle-process", version.ref = "lifecycle-compose" }
+
+#sentry
+sentry = { module = "io.sentry:sentry-android", version.ref = "sentry" }
 
 [plugins]
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

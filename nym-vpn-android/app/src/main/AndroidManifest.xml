@@ -108,14 +108,34 @@
 		<meta-data
 			android:name="io.sentry.auto-init"
 			android:value="false" />
+		<!-- Add data like request headers, user ip address and device name, see https://docs.sentry.io/platforms/android/data-management/data-collected/ for more info -->
+		<meta-data
+			android:name="io.sentry.send-default-pii"
+			android:value="true"
+			/>
+		<!-- enable automatic breadcrumbs for user interactions (clicks, swipes, scrolls) -->
+		<meta-data
+			android:name="io.sentry.traces.user-interaction.enable"
+			android:value="true"
+			/>
 		<!-- enable screenshot for crashes -->
 		<meta-data
 			android:name="io.sentry.attach-screenshot"
-			android:value="true" />
+			android:value="false" />
 		<!-- enable view hierarchy for crashes -->
 		<meta-data
 			android:name="io.sentry.attach-view-hierarchy"
 			android:value="true" />
+		<!-- Set profiling mode. For more info see https://docs.sentry.io/platforms/android/profiling/#enabling-ui-profiling -->
+		<meta-data
+			android:name="io.sentry.traces.profiling.lifecycle"
+			android:value="trace"
+			/>
+		<!-- Enable profiling on app start. The app start profile will be stopped automatically when the app start root span finishes -->
+		<meta-data
+			android:name="io.sentry.traces.profiling.start-on-app-start"
+			android:value="true"
+			/>
 		<meta-data
 			android:name="io.sentry.release"
 			android:value="@string/fullVersionName" />
