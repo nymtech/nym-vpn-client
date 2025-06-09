@@ -98,7 +98,7 @@ class NymVpn : Application() {
 			options.dsn = "https://cf027ef57330e976438c2cbbe1903868@o967446.ingest.us.sentry.io/4506859434082304"
 			var sampleRate = 0.1
 			var sessionSampleRate = 0.05
-			if(BuildConfig.DEBUG) {
+			if (BuildConfig.DEBUG) {
 				sampleRate = 1.0
 				sessionSampleRate = 1.0
 			}
@@ -125,6 +125,7 @@ class NymVpn : Application() {
 			Timber.d("Application entered foreground")
 			foreground = true
 		}
+
 		override fun onPause(owner: LifecycleOwner) {
 			Timber.d("Application entered background")
 			foreground = false
