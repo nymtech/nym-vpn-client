@@ -237,7 +237,7 @@ dependencies {
 	implementation(libs.lottie.compose)
 	implementation(libs.androidx.core.splashscreen)
 
-	//sentry
+	// sentry
 	implementation(libs.sentry)
 }
 
