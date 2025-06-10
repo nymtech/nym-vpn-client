@@ -34,7 +34,10 @@ where
 
     pub(crate) fn get_report(&mut self) -> UsageReport {
         UsageReport {
-            connection_time_ms: self.connection_time.take().map(|d| d.as_millis()),
+            connection_time_ms: self
+                .connection_time
+                .take()
+                .map(|d| d.as_millis().try_into().unwrap_or(i32::MAX)), //SW We should never hit the or clause, but it's better than to panic (it's ~24 days)
             two_hop: self.two_hop,
         }
     }

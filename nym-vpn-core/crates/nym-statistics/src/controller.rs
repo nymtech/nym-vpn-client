@@ -8,11 +8,11 @@ use crate::{
     config::StatisticsControllerConfig,
     error::Error,
     events::{StatisticsEvent, StatisticsReceiver, StatisticsSender},
-    generate_vpn_client_stats_id,
     handler::StatisticsHandler,
     storage::StatsStorage,
 };
 
+use nym_statistics_common::generate_vpn_client_stats_id;
 use nym_vpn_lib_types::TunnelState;
 use nym_vpn_store::VpnStorage;
 use rand::{distributions::Uniform, prelude::Distribution};
@@ -123,7 +123,9 @@ where
     }
     async fn enabled_loop(mut self) {
         if !self.config.enabled || self.stats_api_client.is_none() {
-            tracing::error!("StatisticsController : Enabled loop with disabled collection or missing api client. This should never happen.");
+            tracing::error!(
+                "StatisticsController : Enabled loop with disabled collection or missing api client. This should never happen."
+            );
             return;
         }
 
