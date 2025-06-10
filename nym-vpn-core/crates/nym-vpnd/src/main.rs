@@ -210,6 +210,7 @@ fn setup_sentry(dsn: &str) -> ClientInitGuard {
             send_default_pii: false,
             sample_rate: 1.0,
             traces_sample_rate: 1.0,
+            enable_logs: true,
             ..Default::default()
         },
     ))

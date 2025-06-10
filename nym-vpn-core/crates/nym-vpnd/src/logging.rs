@@ -267,7 +267,8 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
     if options.sentry {
         let layer = sentry_tracing::layer().event_filter(|md| match md.level() {
             &Level::ERROR | &Level::WARN => sentry_tracing::EventFilter::Event,
-            _ => sentry_tracing::EventFilter::Ignore,
+            &Level::TRACE => sentry_tracing::EventFilter::Ignore,
+            _ => sentry_tracing::EventFilter::Breadcrumb,
         });
         layers.push(layer.boxed());
     }
