@@ -12,7 +12,7 @@ pub(crate) struct StatisticsControllerApiClient {
 }
 
 impl StatisticsControllerApiClient {
-    pub(crate) fn new(config: &StatisticsControllerConfig) -> Result<Option<Self>, Error> {
+    pub fn new(config: &StatisticsControllerConfig) -> Result<Option<Self>, Error> {
         if let Some(url) = &config.stats_collector_url {
             let inner_api_client = nym_statistics_api_client::StatisticsApiClient::new(
                 url.clone(),
@@ -23,7 +23,7 @@ impl StatisticsControllerApiClient {
             Ok(None)
         }
     }
-    pub(crate) async fn post_report(&self, report: impl Serialize) -> Result<(), Error> {
+    pub async fn post_report(&self, report: impl Serialize) -> Result<(), Error> {
         self.inner.post_stats_report(report).await?;
         Ok(())
     }

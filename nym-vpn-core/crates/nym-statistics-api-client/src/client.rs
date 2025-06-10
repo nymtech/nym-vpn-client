@@ -65,7 +65,7 @@ impl StatisticsApiClient {
             })
             .and_then(|builder| builder.build())
             .map(|c| Self { inner: c })
-            .map_err(StatisticsApiClientError::FailedToCreateVpnApiClient)
+            .map_err(StatisticsApiClientError::VpnApiClientCreation)
     }
 
     pub fn swap_inner_client(&mut self, client: StatisticsApiClient) {
@@ -100,6 +100,6 @@ impl StatisticsApiClient {
     {
         self.post_query(&[routes::V1, routes::STATS, routes::REPORT], &body)
             .await
-            .map_err(StatisticsApiClientError::FailedToPostReport)
+            .map_err(StatisticsApiClientError::ReportSending)
     }
 }

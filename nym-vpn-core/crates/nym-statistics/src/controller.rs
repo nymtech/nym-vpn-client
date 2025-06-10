@@ -37,7 +37,7 @@ where
     /// Incoming packet stats events from other tasks
     stats_rx: StatisticsReceiver,
 
-    stats_tx: UnboundedSender<StatisticsEvent>, //SW TODO Better typing for keeping an instance of this
+    stats_tx: UnboundedSender<StatisticsEvent>,
 
     tunnel_state: watch::Receiver<TunnelState>,
 
@@ -173,6 +173,8 @@ where
                             Ok(report) => {
                                 if let Err(e) = stats_api_client.post_report(report).await {
                                     tracing::warn!("Failed to send statistics report : {e}");
+                                } else {
+                                    tracing::debug!("Stats sent successfull");
                                 }
 
                             },

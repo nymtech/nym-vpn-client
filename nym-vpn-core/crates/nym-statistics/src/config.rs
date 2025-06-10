@@ -17,7 +17,7 @@ pub struct StatisticsControllerConfig {
     pub user_agent: UserAgent,
 
     // Allow sending reports even with a not connected tunnel
-    // SW : This actually automatically takes the correct reportint channel :
+    // SW : This actually automatically takes the correct reporting channel :
     // - If the tunnel is not connected, it will go directly to the endpoint
     // - If the tunnel is connected in mixnet mode, it will go through the mixnet
     // - If the tunnel is connected in wireguard mode, it will go through wireguard

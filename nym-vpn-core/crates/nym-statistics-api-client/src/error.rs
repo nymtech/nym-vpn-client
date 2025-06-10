@@ -5,11 +5,11 @@ pub use nym_http_api_client::HttpClientError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum StatisticsApiClientError {
-    #[error("failed tp create vpn api client")]
-    FailedToCreateVpnApiClient(#[source] HttpClientError),
+    #[error("failed to create vpn api client")]
+    VpnApiClientCreation(#[source] HttpClientError),
 
     #[error("failed to post statistics report : {0}")]
-    FailedToPostReport(#[source] HttpClientError),
+    ReportSending(#[source] HttpClientError),
 }
 
 pub type Result<T> = std::result::Result<T, StatisticsApiClientError>;
