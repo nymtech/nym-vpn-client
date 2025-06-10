@@ -18,6 +18,8 @@ members = [
     "crates/nym-offline-monitor",
     "crates/nym-platform-metadata",
     "crates/nym-routing",
+    "crates/nym-statistics",
+    "crates/nym-statistics-api-client",
     "crates/nym-vpn-account-controller",
     "crates/nym-vpn-api-client",
     "crates/nym-vpn-lib-types",
@@ -199,6 +201,8 @@ nym-macos = { path = "crates/nym-macos" }
 nym-mixnet-client = { path = "crates/nym-mixnet-client" }
 nym-offline-monitor = { path = "crates/nym-offline-monitor" }
 nym-routing = { path = "crates/nym-routing" }
+nym-statistics = { path = "crates/nym-statistics" }
+nym-statistics-api-client = { path = "crates/nym-statistics-api-client" }
 nym-vpn-account-controller = { path = "crates/nym-vpn-account-controller" }
 nym-vpn-api-client = { path = "crates/nym-vpn-api-client" }
 nym-vpn-lib = { path = "crates/nym-vpn-lib" }

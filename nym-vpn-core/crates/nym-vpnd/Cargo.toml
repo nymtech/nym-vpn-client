@@ -43,6 +43,7 @@ nym-common.workspace = true
 # Local crates
 nym-ipc.workspace = true
 nym-offline-monitor.workspace = true
+nym-statistics = { workspace = true }
 nym-vpn-account-controller = { workspace = true }
 nym-vpn-api-client = { workspace = true }
 nym-vpn-lib = { workspace = true }

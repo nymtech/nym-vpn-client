@@ -1,7 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_common::trace_err_chain;
 use nym_vpn_account_controller::AccountCommandSender;
 use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -42,34 +41,6 @@ pub(super) async fn init_state_machine(
     }
 }
 
-fn setup_statistics_recipient(
-    config: &VPNConfig,
-    network_env: &Network,
-) -> Option<Box<nym_gateway_directory::Recipient>> {
-    // The statistics recipient can be set in the system configuration
-    let statistics_recipient_from_system = network_env
-        .system_configuration
-        .as_ref()
-        .and_then(|sc| sc.statistics_recipient)
-        .map(Box::new);
-
-    // The statistics recipient can also be set in the app configuration
-    let statistics_recipient_from_app = config
-        .statistics_recipient
-        .clone()
-        .map(nym_gateway_directory::Recipient::try_from_base58_string)
-        .transpose()
-        .inspect_err(|err| {
-            trace_err_chain!(err, "Failed to parse statistics recipient");
-        })
-        .unwrap_or_default()
-        .map(Box::new);
-
-    // We use the statistics recipient from the app configuration if it is set, otherwise we use
-    // the one from the system configuration
-    statistics_recipient_from_app.or(statistics_recipient_from_system)
-}
-
 pub(super) async fn start_state_machine(
     config: VPNConfig,
     network_env: Network,
@@ -81,8 +52,6 @@ pub(super) async fn start_state_machine(
     } else {
         TunnelType::Mixnet
     };
-
-    let statistics_recipient = setup_statistics_recipient(&config, &network_env);
 
     let entry_point = nym_gateway_directory::EntryPoint::from(config.entry_gateway);
     let exit_point = nym_gateway_directory::ExitPoint::from(config.exit_router);
@@ -106,7 +75,6 @@ pub(super) async fn start_state_machine(
     let tunnel_settings = TunnelSettings {
         tunnel_type,
         enable_credentials_mode,
-        statistics_recipient,
         mixnet_tunnel_options: MixnetTunnelOptions::default(),
         wireguard_tunnel_options: WireguardTunnelOptions::default(),
         gateway_performance_options: GatewayPerformanceOptions::default(),
