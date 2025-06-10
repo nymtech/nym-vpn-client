@@ -8,7 +8,7 @@ pub enum StatisticsApiClientError {
     #[error("failed tp create vpn api client")]
     FailedToCreateVpnApiClient(#[source] HttpClientError),
 
-    #[error("failed to post statistics report")]
+    #[error("failed to post statistics report : {0}")]
     FailedToPostReport(#[source] HttpClientError),
 }
 

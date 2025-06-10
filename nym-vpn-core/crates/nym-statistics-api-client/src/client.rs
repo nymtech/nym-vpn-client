@@ -89,7 +89,7 @@ impl StatisticsApiClient {
         let request = self.inner.create_post_request(path, NO_PARAMS, json_body);
 
         let response = request.send().await?;
-        nym_http_api_client::parse_response(response, false).await
+        nym_http_api_client::parse_response(response, true).await
     }
 
     pub async fn post_stats_report<B>(&self, body: B) -> Result<()>

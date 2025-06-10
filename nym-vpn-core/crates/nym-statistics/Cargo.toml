@@ -18,6 +18,7 @@ nym-validator-client.workspace = true
 nym-vpn-lib-types.workspace = true
 nym-vpn-store.workspace = true
 nym-statistics-api-client.workspace = true
+nym-statistics-common.workspace = true
 
 rand.workspace = true
 serde = { workspace = true, features = ["derive"] }

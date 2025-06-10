@@ -1,11 +1,12 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_statistics_common::report::vpn_client::VpnClientStatsReport;
 use nym_vpn_store::VpnStorage;
 use static_information::StaticInformationHandler;
 use usage::UsageHandler;
 
-use crate::{events::StatisticsEvent, report::VpnStatsReport, storage::StatsStorage};
+use crate::{events::StatisticsEvent, storage::StatsStorage};
 
 mod static_information;
 mod usage;
@@ -36,8 +37,8 @@ where
         }
     }
 
-    pub fn get_report(&mut self, identifier: String) -> VpnStatsReport {
-        VpnStatsReport::new(identifier, self.static_information_handler.get_report())
+    pub fn get_report(&mut self, identifier: String) -> VpnClientStatsReport {
+        VpnClientStatsReport::new(identifier, self.static_information_handler.get_report())
             .with_usage_report(self.usage_handler.get_report())
     }
 }
