@@ -18,6 +18,8 @@ members = [
     "crates/nym-offline-monitor",
     "crates/nym-platform-metadata",
     "crates/nym-routing",
+    "crates/nym-statistics",
+    "crates/nym-statistics-api-client",
     "crates/nym-vpn-account-controller",
     "crates/nym-vpn-api-client",
     "crates/nym-vpn-lib-types",
@@ -199,6 +201,8 @@ nym-macos = { path = "crates/nym-macos" }
 nym-mixnet-client = { path = "crates/nym-mixnet-client" }
 nym-offline-monitor = { path = "crates/nym-offline-monitor" }
 nym-routing = { path = "crates/nym-routing" }
+nym-statistics = { path = "crates/nym-statistics" }
+nym-statistics-api-client = { path = "crates/nym-statistics-api-client" }
 nym-vpn-account-controller = { path = "crates/nym-vpn-account-controller" }
 nym-vpn-api-client = { path = "crates/nym-vpn-api-client" }
 nym-vpn-lib = { path = "crates/nym-vpn-lib" }
@@ -211,29 +215,29 @@ nym-wg-gateway-client = { path = "crates/nym-wg-gateway-client" }
 nym-wg-go = { path = "crates/nym-wg-go" }
 nym-windows = { path = "crates/nym-windows" }
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-task = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-task = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
 sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
