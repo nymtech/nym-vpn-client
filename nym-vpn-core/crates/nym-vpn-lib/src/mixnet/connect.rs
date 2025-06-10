@@ -5,8 +5,7 @@
 use std::{os::fd::RawFd, sync::Arc};
 use std::{path::PathBuf, result::Result, time::Duration};
 
-use nym_client_core::config::{RememberMe, StatsReporting};
-use nym_gateway_directory::Recipient;
+use nym_client_core::config::RememberMe;
 use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::{
     UserAgent,
@@ -81,7 +80,6 @@ pub(crate) async fn setup_mixnet_client(
     mut task_client: nym_task::TaskClient,
     mixnet_client_config: MixnetClientConfig,
     enable_credentials_mode: bool,
-    stats_recipient_address: Option<Recipient>,
     two_hop_mode: bool,
     custom_topology_provider: VpnTopologyProvider,
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
@@ -107,10 +105,6 @@ pub(crate) async fn setup_mixnet_client(
         )
         .await;
 
-    let stats_reporting = StatsReporting {
-        provider_address: stats_recipient_address,
-        ..Default::default()
-    };
     let remember_me = if two_hop_mode {
         RememberMe::new_vpn()
     } else {
@@ -155,8 +149,7 @@ pub(crate) async fn setup_mixnet_client(
             .custom_shutdown(task_client)
             .credentials_mode(enable_credentials_mode)
             .with_remember_me(remember_me)
-            .custom_topology_provider(Box::new(custom_topology_provider))
-            .with_statistics_reporting(stats_reporting);
+            .custom_topology_provider(Box::new(custom_topology_provider));
 
         #[cfg(unix)]
         let builder = builder.with_connection_fd_callback(connection_fd_callback.clone());
@@ -177,8 +170,7 @@ pub(crate) async fn setup_mixnet_client(
             .custom_shutdown(task_client)
             .credentials_mode(enable_credentials_mode)
             .with_remember_me(remember_me)
-            .custom_topology_provider(Box::new(custom_topology_provider))
-            .with_statistics_reporting(stats_reporting);
+            .custom_topology_provider(Box::new(custom_topology_provider));
 
         #[cfg(unix)]
         let builder = builder.with_connection_fd_callback(connection_fd_callback.clone());
