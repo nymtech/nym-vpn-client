@@ -121,18 +121,26 @@ tasks.register<Exec>(Constants.BUILD_LIB_TASK) {
 		commandLine("echo", "Skipping library build")
 		return@register
 	}
+
 	// prefer system for reproducible builds
-	val ndkPath = System.getenv("ANDROID_NDK_HOME") ?: android.sdkDirectory.resolve("ndk").listFilesOrdered().lastOrNull()?.path
-	commandLine("echo", "NDK HOME: $ndkPath")
-	val script = "${projectDir.path}/src/main/scripts/build-libs.sh"
-	// TODO find a better way to limit builds
-	if (file("${projectDir.path}/src/main/jniLibs/arm64-v8a/libnym_vpn_lib.so").exists() &&
-		file("${projectDir.path}/src/main/jniLibs/arm64-v8a/libwg.so").exists()
-	) {
-		commandLine("echo", "Library already compiled")
-	} else {
-		commandLine("bash").args(script, ndkPath)
+	var ndkHome = System.getenv("ANDROID_NDK_HOME")?.let { File(it) } ?: android.sdkDirectory.resolve("ndk").listFilesOrdered().lastOrNull()
+	if (ndkHome == null) {
+		throw Exception("Cannot determine Android NDK home")
 	}
+
+	var ndkToolchain = ndkHome.resolve("toolchains/llvm/prebuilt").listFilesOrdered().lastOrNull()?.resolve("bin")
+	if (ndkToolchain == null) {
+		throw Exception("Cannot determine NDK toolchain directory")
+	}
+
+	// todo: how to do this properly with gradle?
+	val isReleaseBuild = project.gradle.startParameter.taskNames.any { it.lowercase().contains("release") }
+
+	val coreDir = "${projectDir.path}/../../nym-vpn-core"
+	commandLine("make", "-C", coreDir, "-f", "Android.mk")
+		.environment("RELEASE", isReleaseBuild)
+		.environment("ANDROID_NDK_HOME", ndkHome)
+		.environment("NDK_TOOLCHAIN_DIR", ndkToolchain)
 }
 
 tasks.named("preBuild") {
