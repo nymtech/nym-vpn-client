@@ -51,6 +51,12 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
 #[cfg(windows)]
 fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
+    let sentry_dsn = environment::sentry_dsn();
+    let mut _sentry_guard = None;
+    if let Some(dsn) = sentry_dsn.as_ref() {
+        _sentry_guard = Some(setup_sentry(dsn));
+    };
+
     if args.command.install {
         println!(
             "Processing request to install {} as a service...",
@@ -80,6 +86,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             verbosity_level: args.verbosity_level(),
             enable_file_log: true,
             enable_stdout_log: false,
+            sentry: sentry_dsn.is_some(),
         });
         let worker_guard = service::windows_service::start(
             service::windows_service::ServiceNetworkConfig {
@@ -94,6 +101,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             verbosity_level: args.verbosity_level(),
             enable_file_log: false,
             enable_stdout_log: true,
+            sentry: sentry_dsn.is_some(),
         };
         let logging_setup = logging::setup_logging(options);
         let global_config_file = setup_global_config(args.network.as_deref())?;
