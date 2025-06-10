@@ -70,7 +70,10 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 use crate::tunnel_provider::ios::OSTunProvider;
 #[cfg(target_os = "linux")]
 use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
-use crate::tunnel_state_machine::{WireguardMultihopMode, account};
+use crate::{
+    VpnTopologyProvider,
+    tunnel_state_machine::{WireguardMultihopMode, account},
+};
 
 /// Default MTU for mixnet tun device.
 const DEFAULT_TUN_MTU: u16 = if cfg!(any(target_os = "ios", target_os = "android")) {
@@ -225,6 +228,7 @@ pub struct TunnelMonitor {
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_commands: AccountCommandSender,
     gateway_directory_client: CachingGatewayClient,
+    custom_topology_provider: VpnTopologyProvider,
     shutdown_token: CancellationToken,
 }
 
@@ -233,6 +237,7 @@ impl TunnelMonitor {
         tunnel_parameters: TunnelParameters,
         account_commands: AccountCommandSender,
         gateway_directory_client: CachingGatewayClient,
+        custom_topology_provider: VpnTopologyProvider,
         monitor_event_sender: mpsc::UnboundedSender<TunnelMonitorEvent>,
         mixnet_event_sender: mpsc::UnboundedSender<MixnetEvent>,
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -251,6 +256,7 @@ impl TunnelMonitor {
             tun_provider,
             account_commands,
             gateway_directory_client,
+            custom_topology_provider,
             shutdown_token: shutdown_token.clone(),
         };
         let join_handle = tokio::spawn(tunnel_monitor.run());
@@ -401,6 +407,7 @@ impl TunnelMonitor {
                 .copied(),
             selected_gateways: selected_gateways.clone(),
             user_agent: None, // todo: provide user-agent
+            custom_topology_provider: self.custom_topology_provider.clone(),
         };
 
         #[cfg(target_os = "android")]

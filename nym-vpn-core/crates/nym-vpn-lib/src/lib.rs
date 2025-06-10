@@ -40,7 +40,7 @@ pub use nym_wg_gateway_client as wg_gateway_client;
 pub use crate::platform::swift;
 pub use crate::{
     error::{Error, GatewayDirectoryError},
-    mixnet::MixnetError,
+    mixnet::{MixnetError, VpnTopologyProvider},
 };
 
 static DEFAULT_DNS_SERVERS_CONFIG: LazyLock<NameServerConfigGroup> = LazyLock::new(|| {

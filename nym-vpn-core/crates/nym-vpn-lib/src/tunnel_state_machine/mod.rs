@@ -57,7 +57,7 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
 use crate::{
-    GatewayDirectoryError, MixnetClientConfig, MixnetError,
+    GatewayDirectoryError, MixnetClientConfig, MixnetError, VpnTopologyProvider,
     bandwidth_controller::Error as BandwidthControllerError,
 };
 #[cfg(target_os = "android")]
@@ -388,6 +388,7 @@ pub struct SharedState {
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_command_tx: AccountCommandSender,
     gateway_directory: CachingGatewayClient,
+    topology_provider: VpnTopologyProvider,
 }
 
 #[derive(Debug, Clone)]
@@ -420,6 +421,7 @@ impl TunnelStateMachine {
         tunnel_settings: TunnelSettings,
         account_command_tx: AccountCommandSender,
         gateway_directory: CachingGatewayClient,
+        topology_provider: VpnTopologyProvider,
         connectivity_handle: ConnectivityHandle,
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))] route_handler: RouteHandler,
         #[cfg(target_os = "ios")] tun_provider: Arc<dyn OSTunProvider>,
@@ -479,6 +481,7 @@ impl TunnelStateMachine {
             tun_provider,
             account_command_tx,
             gateway_directory,
+            topology_provider,
         };
 
         let (current_state_handler, _) = if shared_state

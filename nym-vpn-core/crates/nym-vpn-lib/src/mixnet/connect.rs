@@ -8,11 +8,14 @@ use std::{path::PathBuf, result::Result, time::Duration};
 use nym_client_core::config::{RememberMe, StatsReporting};
 use nym_gateway_directory::Recipient;
 use nym_mixnet_client::SharedMixnetClient;
-use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths};
+use nym_sdk::{
+    UserAgent,
+    mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths},
+};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
 
-use super::MixnetError;
+use super::{MixnetError, topology_provider::VpnTopologyProvider};
 use crate::{MixnetClientConfig, storage::VpnClientOnDiskStorage};
 
 const VPN_AVERAGE_PACKET_DELAY: Duration = Duration::from_millis(15);
@@ -80,6 +83,7 @@ pub(crate) async fn setup_mixnet_client(
     enable_credentials_mode: bool,
     stats_recipient_address: Option<Recipient>,
     two_hop_mode: bool,
+    custom_topology_provider: VpnTopologyProvider,
     #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 ) -> Result<SharedMixnetClient, MixnetError> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
@@ -96,6 +100,12 @@ pub(crate) async fn setup_mixnet_client(
         debug_config.traffic.disable_mix_hops = true;
     }
     apply_mixnet_client_config(&mixnet_client_config, &mut debug_config);
+    custom_topology_provider
+        .update_config(
+            mixnet_client_config.min_mixnode_performance,
+            mixnet_client_config.min_gateway_performance,
+        )
+        .await;
 
     let stats_reporting = StatsReporting {
         provider_address: stats_recipient_address,
@@ -106,7 +116,7 @@ pub(crate) async fn setup_mixnet_client(
     } else {
         RememberMe::new_mixnet()
     };
-    let user_agent = nym_bin_common::bin_info_owned!().into();
+    let user_agent: UserAgent = nym_bin_common::bin_info_owned!().into();
 
     let mixnet_client = if let Some(path) = mixnet_client_key_storage_path {
         tracing::debug!("Using custom key storage path: {:?}", path);
@@ -145,6 +155,7 @@ pub(crate) async fn setup_mixnet_client(
             .custom_shutdown(task_client)
             .credentials_mode(enable_credentials_mode)
             .with_remember_me(remember_me)
+            .custom_topology_provider(Box::new(custom_topology_provider))
             .with_statistics_reporting(stats_reporting);
 
         #[cfg(unix)]
@@ -166,6 +177,7 @@ pub(crate) async fn setup_mixnet_client(
             .custom_shutdown(task_client)
             .credentials_mode(enable_credentials_mode)
             .with_remember_me(remember_me)
+            .custom_topology_provider(Box::new(custom_topology_provider))
             .with_statistics_reporting(stats_reporting);
 
         #[cfg(unix)]
