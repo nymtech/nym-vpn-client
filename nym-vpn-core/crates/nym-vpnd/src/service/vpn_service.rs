@@ -263,7 +263,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
 
         let mut storage =
             nym_vpn_lib::storage::VpnClientOnDiskStorage::new(network_data_dir.clone());
-        storage.init_sqlite_storage().await?;
+        storage.init_sqlite_storage().await?; // SW No-op until we actually have some migrations to run
         let storage = Arc::new(tokio::sync::Mutex::new(storage));
 
         // Make sure the data dir exists

@@ -9,15 +9,23 @@ use nym_vpn_store::{
         persistence::{DeviceKeysPaths, OnDiskKeysError},
     },
     mnemonic::{Mnemonic, MnemonicStorage, on_disk::OnDiskMnemonicStorageError},
+    stats::{StatsStorage, on_disk::OnDiskStatsStorageError},
 };
 
 mod helpers;
 
 const MNEMONIC_FILE_NAME: &str = "mnemonic.json";
+const STATS_DB_FILE_NAME: &str = "stats.db";
 
+#[derive(Debug, thiserror::Error)]
+pub enum VpnClientOnDiskStorageError {
+    #[error("Statistics storage error : {0}")]
+    Sqlx(#[from] OnDiskStatsStorageError),
+}
 pub struct VpnClientOnDiskStorage {
     key_store: nym_vpn_store::keys::persistence::OnDiskKeys,
     mnemonic_storage: nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorage,
+    stats_storage: nym_vpn_store::stats::on_disk::OnDiskStatsStorage,
 }
 
 impl VpnClientOnDiskStorage {
@@ -29,10 +37,19 @@ impl VpnClientOnDiskStorage {
         let mnemonic_storage =
             nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorage::new(mnemonic_storage_path);
 
+        let stats_storage = nym_vpn_store::stats::on_disk::OnDiskStatsStorage::new(
+            base_data_directory.as_ref().join(STATS_DB_FILE_NAME),
+        );
+
         VpnClientOnDiskStorage {
             key_store,
             mnemonic_storage,
+            stats_storage,
         }
+    }
+    // SW I hate this
+    pub async fn init_sqlite_storage(&mut self) -> Result<(), VpnClientOnDiskStorageError> {
+        Ok(self.stats_storage.init().await?)
     }
 }
 
@@ -78,4 +95,8 @@ impl MnemonicStorage for VpnClientOnDiskStorage {
     async fn remove_mnemonic(&self) -> Result<(), Self::StorageError> {
         self.mnemonic_storage.remove_mnemonic().await
     }
+}
+
+impl StatsStorage for VpnClientOnDiskStorage {
+    type StorageError = OnDiskStatsStorageError;
 }
