@@ -204,6 +204,7 @@ where
 }
 
 impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
+    #[allow(clippy::too_many_arguments)]
     pub fn spawn(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
@@ -211,6 +212,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         shutdown_token: CancellationToken,
         network_env: Network,
         user_agent: UserAgent,
+        stats_id_seed: Option<String>,
         log_path: Option<LogPath>,
     ) -> JoinHandle<()> {
         tracing::trace!("Starting VPN service");
@@ -222,6 +224,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
                 shutdown_token,
                 network_env,
                 user_agent,
+                stats_id_seed,
                 log_path,
             )
             .await
@@ -245,6 +248,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         })
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn new(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
@@ -252,6 +256,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         shutdown_token: CancellationToken,
         network_env: Network,
         user_agent: UserAgent,
+        stats_id_seed: Option<String>,
         log_path: Option<LogPath>,
     ) -> Result<Self> {
         let network_name = network_env.nym_network_details().network_name.clone();
@@ -316,7 +321,8 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
 
         // Statistics collection setup
         let statistics_controller_config =
-            StatisticsControllerConfig::new(statistics_api, user_agent.clone());
+            StatisticsControllerConfig::new(statistics_api, user_agent.clone())
+                .with_stats_id_seed(stats_id_seed);
         let statistics_controller = StatisticsController::new(
             statistics_controller_config,
             Arc::clone(&storage),

@@ -63,8 +63,8 @@ impl StatisticsControllerConfig {
     }
 
     #[must_use]
-    pub fn with_stats_id_seed(mut self, stats_id_seed: String) -> Self {
-        self.stats_id_seed = Some(stats_id_seed);
+    pub fn with_stats_id_seed(mut self, stats_id_seed: Option<String>) -> Self {
+        self.stats_id_seed = stats_id_seed;
         self
     }
 }
