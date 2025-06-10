@@ -14,6 +14,7 @@ mod util;
 use clap::Parser;
 use logging::{LogFileRemover, LoggingSetup};
 use nym_vpn_network_config::Network;
+use sentry::ClientInitGuard;
 use service::NymVpnService;
 use tokio::sync::{broadcast, mpsc};
 use tokio_util::sync::CancellationToken;
@@ -29,11 +30,17 @@ fn main() -> anyhow::Result<()> {
 #[cfg(unix)]
 fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
+    let sentry_dsn = environment::sentry_dsn();
+    let mut _sentry_guard = None;
+    if let Some(dsn) = sentry_dsn.as_ref() {
+        _sentry_guard = Some(setup_sentry(dsn));
+    };
 
     let options = logging::Options {
         verbosity_level: args.verbosity_level(),
         enable_file_log: args.command.run_as_service,
         enable_stdout_log: true,
+        sentry: sentry_dsn.is_some(),
     };
     let logging_setup = logging::setup_logging(options);
     let global_config_file = setup_global_config(args.network.as_deref())?;
@@ -184,4 +191,18 @@ async fn run_inner_async(
     shutdown_join_set.shutdown().await;
 
     Ok(worker_guard)
+}
+
+fn setup_sentry(dsn: &str) -> ClientInitGuard {
+    println!("sentry monitoring enabled");
+    sentry::init((
+        dsn,
+        sentry::ClientOptions {
+            release: sentry::release_name!(),
+            send_default_pii: false,
+            sample_rate: 1.0,
+            traces_sample_rate: 1.0,
+            ..Default::default()
+        },
+    ))
 }

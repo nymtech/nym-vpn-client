@@ -33,3 +33,9 @@ pub async fn setup_environment(
     network_env.export_to_env();
     Ok(network_env)
 }
+
+pub fn sentry_dsn() -> Option<String> {
+    std::env::var("SENTRY_DSN")
+        .ok()
+        .or_else(|| option_env!("SENTRY_DSN").map(|s| s.to_string()))
+}
