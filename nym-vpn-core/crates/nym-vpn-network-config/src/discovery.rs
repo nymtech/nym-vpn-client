@@ -114,20 +114,22 @@ impl Discovery {
         config_dir: &Path,
         network_name: &str,
     ) -> anyhow::Result<Self> {
-        if !tokio::fs::try_exists(Self::path(config_dir, network_name)).await?
-            && network_name == "mainnet"
-        {
+        if !tokio::fs::try_exists(Self::path(config_dir, network_name)).await? {
             tracing::info!("No discovery file found, writing creating a new discovery file");
-            Self::fetch(network_name)
-                .await
-                .inspect_err(|err| {
-                    tracing::warn!(
-                        "Failed to fetch remote discovery file: {err}, creating a default one"
-                    )
-                })
-                .unwrap_or_default()
-                .write_to_file(config_dir)
-                .inspect_err(|err| tracing::warn!("Failed to write discovery file: {err}"))?;
+            Self::fetch(network_name).await.or_else(|e| {
+                if network_name == "mainnet" {
+                tracing::warn!(
+                    "Failed to fetch remote discovery file: {e}, creating a default one"
+                );
+                Ok(Default::default())
+            } else {
+                tracing::error!(
+                    "Failed to fetch remote discovery file: {e}, no default one for {network_name} environment"
+                );
+                Err(e)
+            }})?
+            .write_to_file(config_dir)
+            .inspect_err(|err| tracing::warn!("Failed to write discovery file: {err}"))?;
         }
 
         Self::read_from_file(config_dir, network_name)
