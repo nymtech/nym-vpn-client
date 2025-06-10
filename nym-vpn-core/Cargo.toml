@@ -240,3 +240,4 @@ nym-task = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-c
 nym-topology = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
 nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
 nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "release/2025.11-cheddar" }
+sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
