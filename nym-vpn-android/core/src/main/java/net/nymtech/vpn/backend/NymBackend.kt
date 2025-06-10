@@ -158,7 +158,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 			runCatching {
 				initEnvironment(storagePath, environment.networkName())
 			}.onFailure {
-				Timber.w("Failed to setup environment, defaulting to bundle mainnet")
+				Timber.e("Failed to setup environment: $it. Defaulting to bundle mainnet")
 				initFallbackMainnetEnvironment()
 			}
 		}

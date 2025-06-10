@@ -74,12 +74,12 @@ impl NymNetwork {
             discovery.fetch_nym_network_details().await.or_else(|e| {
                 if discovery.network_name == "mainnet" {
                     tracing::warn!(
-                        "Failed to fetch remote nym network file: {e},  creating a default one"
+                        "Failed to fetch remote nym network file: {e}, creating a default one"
                     );
                     Ok(Default::default())
                 } else {
                     tracing::error!(
-                        "Failed to fetch remote nym network file: {e},  no default one for {} environment", discovery.network_name
+                        "Failed to fetch remote nym network file: {e}, no default one for {} environment", discovery.network_name
                     );
                     Err(e)
                 }

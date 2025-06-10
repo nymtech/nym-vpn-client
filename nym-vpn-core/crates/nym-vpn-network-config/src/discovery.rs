@@ -1,7 +1,10 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::{Path, PathBuf};
+use std::{
+    path::{Path, PathBuf},
+    sync::LazyLock,
+};
 
 use anyhow::Context;
 use nym_sdk::UserAgent;
@@ -25,6 +28,13 @@ use super::{MAX_FILE_AGE, NETWORKS_SUBDIR, nym_network::NymNetwork};
 
 const DISCOVERY_FILE: &str = "discovery.json";
 
+static MAINNET_DISCOVERY_JSON: &[u8] = include_bytes!("../default/mainnet_discovery.json");
+static SANDBOX_DISCOVERY_JSON: &[u8] = include_bytes!("../default/sandbox_discovery.json");
+static CANARY_DISCOVERY_JSON: &[u8] = include_bytes!("../default/canary_discovery.json");
+
+static DEFAULT_VPN_API_URL: LazyLock<Url> =
+    LazyLock::new(|| Discovery::default_mainnet().nym_vpn_api_url);
+
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq, Eq)]
 pub struct Discovery {
     // Base network setup
@@ -36,13 +46,38 @@ pub struct Discovery {
     pub(super) account_management: Option<AccountManagement>,
     pub(super) feature_flags: Option<FeatureFlags>,
     pub(super) system_configuration: Option<SystemConfiguration>,
+
+    #[serde(default)]
     pub(super) system_messages: SystemMessages,
 }
 
-// Include the generated Default implementation
-include!(concat!(env!("OUT_DIR"), "/default_discovery.rs"));
-
 impl Discovery {
+    /// Default VPN API URL
+    pub fn defaul_vpn_api_url() -> Url {
+        DEFAULT_VPN_API_URL.clone()
+    }
+
+    /// Default mainnet discovery
+    pub fn default_mainnet() -> Self {
+        #[allow(clippy::expect_used)]
+        serde_json::from_slice(MAINNET_DISCOVERY_JSON)
+            .expect("failed to parse default mainnet discovery")
+    }
+
+    /// Default sandbox discovery
+    pub fn default_sandbox() -> Self {
+        #[allow(clippy::expect_used)]
+        serde_json::from_slice(SANDBOX_DISCOVERY_JSON)
+            .expect("failed to parse default sandbox discovery")
+    }
+
+    /// Default canary discovery
+    pub fn default_canary() -> Self {
+        #[allow(clippy::expect_used)]
+        serde_json::from_slice(CANARY_DISCOVERY_JSON)
+            .expect("failed to parse default canary discovery")
+    }
+
     fn path(config_dir: &Path, network_name: &str) -> PathBuf {
         config_dir
             .join(NETWORKS_SUBDIR)
@@ -59,10 +94,7 @@ impl Discovery {
 
     pub async fn fetch(network_name: &str) -> anyhow::Result<Self> {
         // allow panic because a broken bootstrap url means everything will fail anyways.
-        #[allow(clippy::expect_used)]
-        let default_url = Self::DEFAULT_VPN_API_URL
-            .parse()
-            .expect("Failed to parse NYM VPN API URL");
+        let default_url = DEFAULT_VPN_API_URL.clone();
         let client = BootstrapVpnApiClient::new(default_url)?;
 
         tracing::debug!("Fetching nym network discovery");
@@ -116,20 +148,30 @@ impl Discovery {
     ) -> anyhow::Result<Self> {
         if !tokio::fs::try_exists(Self::path(config_dir, network_name)).await? {
             tracing::info!("No discovery file found, writing creating a new discovery file");
-            Self::fetch(network_name).await.or_else(|e| {
-                if network_name == "mainnet" {
-                tracing::warn!(
-                    "Failed to fetch remote discovery file: {e}, creating a default one"
-                );
-                Ok(Default::default())
-            } else {
-                tracing::error!(
-                    "Failed to fetch remote discovery file: {e}, no default one for {network_name} environment"
-                );
-                Err(e)
-            }})?
-            .write_to_file(config_dir)
-            .inspect_err(|err| tracing::warn!("Failed to write discovery file: {err}"))?;
+            Self::fetch(network_name)
+                .await
+                .or_else(|e| {
+                    let default_discovery = if network_name == "mainnet" {
+                        Self::default_mainnet()
+                    }  else if network_name == "sandbox" {
+                        Self::default_sandbox()
+                    } else if network_name == "canary" {
+                        Self::default_canary()
+                    } else {
+                        tracing::error!(
+                            "Failed to fetch remote discovery file: {e}, no default one for {network_name} environment"
+                        );
+                        return Err(e);
+                    };
+
+                    tracing::warn!(
+                        "Failed to fetch remote discovery file: {e}, creating a default one"
+                    );
+
+                    Ok(default_discovery)
+                })?
+                .write_to_file(config_dir)
+                .inspect_err(|err| tracing::warn!("Failed to write discovery file: {err}"))?;
         }
 
         Self::read_from_file(config_dir, network_name)
@@ -247,13 +289,18 @@ mod tests {
 
     #[tokio::test]
     async fn test_discovery_default_same_as_fetched() {
-        let default = Discovery::default();
-        let fetched = Discovery::fetch(&default.network_name).await.unwrap();
+        for discovery in [
+            Discovery::default_mainnet(),
+            Discovery::default_sandbox(),
+            Discovery::default_canary(),
+        ] {
+            let fetched = Discovery::fetch(&discovery.network_name).await.unwrap();
 
-        // Only compare the base fields
-        assert_eq!(default.network_name, fetched.network_name);
-        assert_eq!(default.nym_api_url, fetched.nym_api_url);
-        assert_eq!(default.nym_vpn_api_url, fetched.nym_vpn_api_url);
+            // Only compare the base fields
+            assert_eq!(discovery.network_name, fetched.network_name);
+            assert_eq!(discovery.nym_api_url, fetched.nym_api_url);
+            assert_eq!(discovery.nym_vpn_api_url, fetched.nym_vpn_api_url);
+        }
     }
 
     #[test]
@@ -312,24 +359,22 @@ mod tests {
                     account: "{locale}/account/{account_id}".to_owned(),
                 },
             }),
-            feature_flags: Some(FeatureFlags {
-                flags: HashMap::from([
-                    (
-                        "website".to_owned(),
-                        FlagValue::Group(HashMap::from([(
-                            "showAccounts".to_owned(),
-                            "true".to_owned(),
-                        )])),
-                    ),
-                    (
-                        "zkNyms".to_owned(),
-                        FlagValue::Group(HashMap::from([(
-                            "credentialMode".to_owned(),
-                            "false".to_owned(),
-                        )])),
-                    ),
-                ]),
-            }),
+            feature_flags: Some(FeatureFlags::from(HashMap::from([
+                (
+                    "website".to_owned(),
+                    FlagValue::Group(HashMap::from([(
+                        "showAccounts".to_owned(),
+                        "true".to_owned(),
+                    )])),
+                ),
+                (
+                    "zkNyms".to_owned(),
+                    FlagValue::Group(HashMap::from([(
+                        "credentialMode".to_owned(),
+                        "false".to_owned(),
+                    )])),
+                ),
+            ]))),
             system_messages: SystemMessages::from(vec![SystemMessage {
                 name: "test_message".to_owned(),
                 display_from: Some(

@@ -5,14 +5,44 @@ use std::{collections::HashMap, fmt};
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct FeatureFlags {
-    pub flags: HashMap<String, FlagValue>,
+    flags: HashMap<String, FlagValue>,
 }
 
 impl FeatureFlags {
+    /// Get value for flag if set, otherwise return `None`
     pub fn get_flag(&self, flag: &str) -> Option<FlagValue> {
         self.flags.get(flag).cloned()
+    }
+
+    /// Convert feature flags into a `HashMap<String, FlagValue>`
+    pub fn into_hash_map(self) -> HashMap<String, FlagValue> {
+        self.flags
+    }
+}
+
+impl From<HashMap<String, FlagValue>> for FeatureFlags {
+    fn from(flags: HashMap<String, FlagValue>) -> Self {
+        Self { flags }
+    }
+}
+
+impl<'a> Deserialize<'a> for FeatureFlags {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::de::Deserializer<'a>,
+    {
+        HashMap::<String, FlagValue>::deserialize(deserializer).map(|flags| Self { flags })
+    }
+}
+
+impl Serialize for FeatureFlags {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::ser::Serializer,
+    {
+        self.flags.serialize(serializer)
     }
 }
 
