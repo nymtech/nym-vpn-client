@@ -1,6 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use rand::Rng;
 use sqlx::ConnectOptions;
 use std::path::{Path, PathBuf};
 use tracing::log::LevelFilter;
@@ -15,7 +16,7 @@ pub enum OnDiskStatsStorageError {
     #[error("sqlx error: {0}")]
     Sqlx(#[from] sqlx::Error),
 
-    #[error(" migrate error: {0}")]
+    #[error("migrate error: {0}")]
     Migrate(#[from] sqlx::migrate::MigrateError),
 
     #[error("file permissions error for {path:?}: {source}")]
@@ -63,10 +64,6 @@ impl OnDiskStatsStorage {
     }
 }
 
-impl StatsStorage for OnDiskStatsStorage {
-    type StorageError = OnDiskStatsStorageError;
-}
-
 fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
     #[cfg(unix)]
     return set_file_permission_owner_rw_unix(path);
@@ -94,4 +91,34 @@ fn set_file_permission_owner_rw_unix<P: AsRef<Path>>(path: P) -> Result<(), std:
 fn set_file_permission_owner_rw_windows<P: AsRef<Path>>(_path: P) -> Result<(), std::io::Error> {
     tracing::info!("Setting file permissions on Windows is not yet implemented!");
     Ok(())
+}
+
+#[async_trait::async_trait]
+impl StatsStorage for OnDiskStatsStorage {
+    type StorageError = OnDiskStatsStorageError;
+
+    async fn maybe_init_and_load_stats_seed(&self) -> Result<String, Self::StorageError> {
+        match self.storage_manager.load_seed().await {
+            Ok(Some(seed)) => Ok(seed),
+            Ok(None) => {
+                // we don't need anything crypto secure here
+                let seed: String = rand::thread_rng()
+                    .sample_iter(&rand::distributions::Alphanumeric)
+                    .take(20)
+                    .map(char::from)
+                    .collect();
+                self.storage_manager.set_seed(seed.clone()).await?;
+                Ok(seed)
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    async fn reset_stats_seed(&self) -> Result<String, Self::StorageError> {
+        self.storage_manager.remove_seed().await?;
+        self.maybe_init_and_load_stats_seed().await
+    }
+    async fn remove_stats_seed(&self) -> Result<(), Self::StorageError> {
+        self.storage_manager.remove_seed().await
+    }
 }

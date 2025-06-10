@@ -97,6 +97,19 @@ impl MnemonicStorage for VpnClientOnDiskStorage {
     }
 }
 
+#[async_trait::async_trait]
 impl StatsStorage for VpnClientOnDiskStorage {
     type StorageError = OnDiskStatsStorageError;
+
+    async fn maybe_init_and_load_stats_seed(&self) -> Result<String, Self::StorageError> {
+        self.stats_storage.maybe_init_and_load_stats_seed().await
+    }
+
+    async fn reset_stats_seed(&self) -> Result<String, Self::StorageError> {
+        self.stats_storage.reset_stats_seed().await
+    }
+
+    async fn remove_stats_seed(&self) -> Result<(), Self::StorageError> {
+        self.stats_storage.remove_stats_seed().await
+    }
 }
