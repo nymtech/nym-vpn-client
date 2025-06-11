@@ -17,6 +17,7 @@ pub enum FileTimeError {
 
 pub type Result<T, E = FileTimeError> = std::result::Result<T, E>;
 
+/// Returns true if time elapsed since last file modification exceeds the value specified in `max_age` or if file does not exist.
 pub fn is_stale_file(file_path: impl AsRef<Path>, max_age: Duration) -> Result<bool> {
     Ok(match time_since_modification(file_path)? {
         Some(elapsed) => elapsed > max_age,
@@ -24,6 +25,7 @@ pub fn is_stale_file(file_path: impl AsRef<Path>, max_age: Duration) -> Result<b
     })
 }
 
+/// Returns time elapsed since last file modification or `None` if file does not exist.
 fn time_since_modification(file_path: impl AsRef<Path>) -> Result<Option<Duration>> {
     match std::fs::metadata(file_path) {
         Ok(metadata) => {
