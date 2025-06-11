@@ -13,12 +13,6 @@ pub enum AccountControllerError {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum StatisticsControllerError {
-    #[error("failed to init statistics controller: {reason}")]
-    Initialization { reason: String },
-}
-
-#[derive(Debug, thiserror::Error)]
 pub enum SetNetworkError {
     #[error("failed to read config")]
     ReadConfig {
@@ -53,9 +47,6 @@ pub enum VpnServiceDeleteLogFileError {
 pub enum Error {
     #[error("account controller error")]
     AccountController(#[from] AccountControllerError),
-
-    #[error("statistics error: {0}")]
-    StatisticsController(#[from] StatisticsControllerError),
 
     #[error("config setup error")]
     ConfigSetup(#[source] ConfigSetupError),
