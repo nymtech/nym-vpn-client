@@ -146,34 +146,50 @@ impl Discovery {
         config_dir: &Path,
         network_name: &str,
     ) -> anyhow::Result<Self> {
-        if !tokio::fs::try_exists(Self::path(config_dir, network_name)).await? {
+        let path = Self::path(config_dir, network_name);
+
+        if tokio::fs::try_exists(&path).await? {
+            match Self::read_from_file(config_dir, network_name) {
+                Ok(discovery) => {
+                    return Ok(discovery);
+                }
+                Err(e) => {
+                    tracing::error!("Failed to read discovery file: {e}");
+                    tracing::info!("Discovery file is corrupt, removing it");
+
+                    if let Err(e) = tokio::fs::remove_file(path).await {
+                        tracing::warn!("Failed to remove corrupt discovery file: {e}");
+                    }
+                }
+            }
+        } else {
             tracing::info!("No discovery file found, writing creating a new discovery file");
-            Self::fetch(network_name)
-                .await
-                .or_else(|e| {
-                    let default_discovery = if network_name == "mainnet" {
-                        Self::default_mainnet()
-                    }  else if network_name == "sandbox" {
-                        Self::default_sandbox()
-                    } else if network_name == "canary" {
-                        Self::default_canary()
-                    } else {
-                        tracing::error!(
-                            "Failed to fetch remote discovery file: {e}, no default one for {network_name} environment"
-                        );
-                        return Err(e);
-                    };
-
-                    tracing::warn!(
-                        "Failed to fetch remote discovery file: {e}, creating a default one"
-                    );
-
-                    Ok(default_discovery)
-                })?
-                .write_to_file(config_dir)
-                .inspect_err(|err| tracing::warn!("Failed to write discovery file: {err}"))?;
         }
 
+        Self::fetch(network_name)
+            .await
+            .or_else(|e| {
+                let default_discovery = if network_name == "mainnet" {
+                    Self::default_mainnet()
+                }  else if network_name == "sandbox" {
+                    Self::default_sandbox()
+                } else if network_name == "canary" {
+                    Self::default_canary()
+                } else {
+                    tracing::error!(
+                        "Failed to fetch remote discovery file: {e}, no default one for {network_name} environment"
+                    );
+                    return Err(e);
+                };
+
+                tracing::warn!(
+                    "Failed to fetch remote discovery file: {e}, creating a default one"
+                );
+
+                Ok(default_discovery)
+            })?
+            .write_to_file(config_dir)
+            .inspect_err(|err| tracing::warn!("Failed to write discovery file: {err}"))?;
         Self::read_from_file(config_dir, network_name)
     }
 
