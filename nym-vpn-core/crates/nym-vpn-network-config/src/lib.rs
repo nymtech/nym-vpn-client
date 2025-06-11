@@ -257,12 +257,6 @@ pub fn manual_env(network_details: &NymNetworkDetails) -> Result<Network> {
 
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[error("deserialization error")]
-    Deserialize {
-        path: PathBuf,
-        source: serde_json::Error,
-    },
-
     #[error("no endpoints found in nym network")]
     NoEndpointsFound,
 
@@ -299,62 +293,57 @@ pub enum Error {
         source: std::io::Error,
     },
 
-    #[error("failed to open discovery file: {}", path.display())]
-    OpenDiscoveryFile {
+    #[error("failed to open file: {}", path.display())]
+    OpenFile {
         path: PathBuf,
         source: std::io::Error,
     },
 
-    #[error("failed to write discovery file: {}", path.display())]
-    WriteDiscoveryFile {
+    #[error("failed to write serialized data to file: {}", path.display())]
+    WriteFile {
         path: PathBuf,
         source: serde_json::Error,
     },
 
-    #[error("failed to check discovery file existence: {}", path.display())]
-    CheckFileExists {
+    #[error("failed to deserialize file: {}", path.display())]
+    Deserialize {
         path: PathBuf,
-        source: std::io::Error,
+        source: serde_json::Error,
     },
 
     #[error("failed to convert well known discovery response into discovery")]
     ConvertWellKnownDiscovery(#[source] TryFromNymWellknownDiscoveryItemResponseError),
 
-    #[error("failed to open registered networks file: {}", path.display())]
-    OpenRegisteredNetworksFile {
-        path: PathBuf,
-        source: std::io::Error,
-    },
-
-    #[error("failed to write registered networks file: {}", path.display())]
-    WriteRegisteredNetworksFile {
-        path: PathBuf,
-        source: serde_json::Error,
-    },
-
     #[error("failed to convert nym vpn network into parsed account links")]
     ConvertNymVpnNetworkIntoAccountLinks(#[from] TryNymVpnNetworkIntoParsedAccountLinksError),
 
-    #[error("failed to open nym network file: {}", path.display())]
-    OpenNymNetworkFile {
-        path: PathBuf,
-        source: std::io::Error,
-    },
-
-    #[error("failed to write discovery file: {}", path.display())]
-    WriteNymNetworkFile {
-        path: PathBuf,
-        source: serde_json::Error,
-    },
-
     #[error("failed to create nym vpn network from details")]
     CreateNymVpnNetwork(#[source] TryNymVpnNetworkFromDetailsError),
+}
 
-    #[error("failed to open nym vpn network file: {}", path.display())]
-    OpenNymVpnNetworkFile {
-        path: PathBuf,
-        source: std::io::Error,
-    },
+impl Error {
+    /// Returns true if underlying operation refers to the file not being found.
+    pub fn is_file_not_found(&self) -> bool {
+        let error_kind = match self {
+            Self::OpenFile { source, .. } => Some(source.kind()),
+            Self::Deserialize { source, .. } => source.io_error_kind(),
+            _ => None,
+        };
+
+        error_kind == Some(std::io::ErrorKind::NotFound)
+    }
+
+    /// Returns true if the error is related to deserialization or file not found.
+    pub(crate) fn should_refresh_file(&self) -> bool {
+        if let Self::Deserialize { source, .. } = self {
+            matches!(
+                source.io_error_kind(),
+                Some(std::io::ErrorKind::NotFound) | None
+            )
+        } else {
+            false
+        }
+    }
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

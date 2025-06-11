@@ -5,14 +5,14 @@ use std::{path::PathBuf, time::Duration};
 
 #[derive(Debug, thiserror::Error)]
 pub enum FileAgeError {
-    #[error("Failed to obtain file metadata")]
+    #[error("failed to obtain file metadata")]
     GetMetadata(#[source] std::io::Error),
 
-    #[error("Failed to obtain modification date")]
+    #[error("failed to obtain modification date")]
     GetModificationTime(#[source] std::io::Error),
 
-    #[error("Failed to calculate elapsed time")]
-    SystemTime(#[source] std::time::SystemTimeError),
+    #[error("failed to calculate elapsed time")]
+    ElapsedTime(#[source] std::time::SystemTimeError),
 }
 
 pub(crate) fn get_age_of_file(file_path: &PathBuf) -> Result<Option<Duration>, FileAgeError> {
@@ -23,7 +23,7 @@ pub(crate) fn get_age_of_file(file_path: &PathBuf) -> Result<Option<Duration>, F
                 .map_err(FileAgeError::GetModificationTime)?;
             let elapsed = modification_date
                 .elapsed()
-                .map_err(FileAgeError::SystemTime)?;
+                .map_err(FileAgeError::ElapsedTime)?;
             Ok(Some(elapsed))
         }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {

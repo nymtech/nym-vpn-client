@@ -86,7 +86,7 @@ impl RegisteredNetworks {
             path.display()
         );
 
-        let file = File::open(&path).map_err(|source| Error::OpenRegisteredNetworksFile {
+        let file = File::open(&path).map_err(|source| Error::OpenFile {
             path: path.clone(),
             source,
         })?;
@@ -115,16 +115,14 @@ impl RegisteredNetworks {
             .create(true)
             .truncate(true)
             .open(&path)
-            .map_err(|source| Error::OpenRegisteredNetworksFile {
+            .map_err(|source| Error::OpenFile {
                 path: path.clone(),
                 source,
             })?;
 
-        serde_json::to_writer_pretty(&file, &self).map_err(|source| {
-            Error::WriteRegisteredNetworksFile {
-                path: path.clone(),
-                source,
-            }
+        serde_json::to_writer_pretty(&file, &self).map_err(|source| Error::WriteFile {
+            path: path.clone(),
+            source,
         })?;
 
         Ok(())
@@ -139,21 +137,25 @@ impl RegisteredNetworks {
     }
 
     pub(super) async fn ensure_exists(config_dir: &Path) -> Result<Self> {
-        let path = Self::path(config_dir);
-        if !tokio::fs::try_exists(&path)
-            .await
-            .map_err(|source| Error::CheckFileExists {
-                path: path.clone(),
-                source,
-            })?
-        {
-            Self::default()
-                .write_to_file(config_dir)
-                .inspect_err(|err| tracing::warn!("Failed to write default envs file: {err}"))
-                .ok();
-        }
+        match Self::read_from_file(config_dir) {
+            Ok(registered_networks) => Ok(registered_networks),
+            Err(e) if e.should_refresh_file() => {
+                if !e.is_file_not_found() {
+                    tracing::error!("Failed to read registered networks file: {e}");
+                }
 
-        Self::read_from_file(config_dir)
+                let default_envs = Self::default();
+                default_envs.write_to_file(config_dir).inspect_err(|err| {
+                    tracing::warn!("Failed to write default envs file: {err}")
+                })?;
+
+                Ok(default_envs)
+            }
+            Err(e) => {
+                tracing::error!("Failed to read registered networks file: {e}");
+                Err(e)
+            }
+        }
     }
 }
 

@@ -43,7 +43,7 @@ impl NymNetwork {
         let path = Self::path(config_dir, network_name);
         tracing::debug!("Reading network details from: {}", path.display());
 
-        let file = File::open(&path).map_err(|source| Error::OpenNymVpnNetworkFile {
+        let file = File::open(&path).map_err(|source| Error::OpenFile {
             path: path.clone(),
             source,
         })?;
@@ -70,50 +70,52 @@ impl NymNetwork {
             .create(true)
             .truncate(true)
             .open(&path)
-            .map_err(|source| Error::OpenNymNetworkFile {
+            .map_err(|source| Error::OpenFile {
                 path: path.clone(),
                 source,
             })?;
 
-        serde_json::to_writer_pretty(&file, network).map_err(|source| {
-            Error::WriteNymNetworkFile {
-                path: path.clone(),
-                source,
-            }
+        serde_json::to_writer_pretty(&file, network).map_err(|source| Error::WriteFile {
+            path: path.clone(),
+            source,
         })?;
 
         Ok(())
     }
 
     pub(super) async fn ensure_exists(config_dir: &Path, discovery: &Discovery) -> Result<Self> {
-        let path = Self::path(config_dir, &discovery.network_name);
-        if !tokio::fs::try_exists(&path)
-            .await
-            .map_err(|source| Error::CheckFileExists {
-                path: path.clone(),
-                source,
-            })?
-        {
-            discovery.fetch_nym_network_details().await.or_else(|e| {
-                if discovery.network_name == "mainnet" {
-                    tracing::warn!(
-                        "Failed to fetch remote nym network file: {e}, creating a default one"
-                    );
-                    Ok(Default::default())
-                } else {
-                    tracing::error!(
-                        "Failed to fetch remote nym network file: {e}, no default one for {} environment", discovery.network_name
-                    );
-                    Err(e)
+        match Self::read_from_file(config_dir, &discovery.network_name) {
+            Ok(nym_network) => Ok(nym_network),
+            Err(e) if e.should_refresh_file() => {
+                if !e.is_file_not_found() {
+                    tracing::error!("Failed to read nym network file: {e}");
                 }
-            })?
-            .write_to_file(config_dir)
-            .inspect_err(|err| {
-                tracing::error!("Failed to write nym network file: {err}");
-            })?;
-        }
 
-        Self::read_from_file(config_dir, &discovery.network_name)
+                let nym_network = discovery.fetch_nym_network_details().await.or_else(|e| {
+                    if discovery.network_name == "mainnet" {
+                        tracing::warn!(
+                            "Failed to fetch remote nym network file: {e}, creating a default one"
+                        );
+                        Ok(Default::default())
+                    } else {
+                        tracing::error!(
+                            "Failed to fetch remote nym network file: {e}, no default one for {} environment", discovery.network_name
+                        );
+                        Err(e)
+                    }
+                })?;
+
+                nym_network.write_to_file(config_dir).inspect_err(|err| {
+                    tracing::error!("Failed to write nym network file: {err}");
+                })?;
+
+                Ok(nym_network)
+            }
+            Err(e) => {
+                tracing::error!("Failed to read nym network file: {e}");
+                Err(e)
+            }
+        }
     }
 
     pub(super) fn export_to_env(&self) {
