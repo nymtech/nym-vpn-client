@@ -54,7 +54,7 @@ impl NymVpnNetwork {
 
 #[derive(Debug, thiserror::Error)]
 pub enum NymVpnNetworkAccountLinksConversionError {
-    #[error("Account management is not available for this network")]
+    #[error("account management is not available for this network")]
     Unavailable,
 
     #[error(transparent)]
