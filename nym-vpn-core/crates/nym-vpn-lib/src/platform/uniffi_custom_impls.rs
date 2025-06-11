@@ -15,198 +15,109 @@ use nym_sdk::UserAgent as NymUserAgent;
 use time::OffsetDateTime;
 use url::Url;
 
-use crate::{NodeIdentity, Recipient, UniffiCustomTypeConverter, platform::error::VpnError};
+use crate::{NodeIdentity, Recipient, platform::error::VpnError};
 
-uniffi::custom_type!(Ipv4Addr, String);
-uniffi::custom_type!(Ipv6Addr, String);
-uniffi::custom_type!(IpAddr, String);
-uniffi::custom_type!(IpNetwork, String);
-uniffi::custom_type!(Ipv4Network, String);
-uniffi::custom_type!(Ipv6Network, String);
-uniffi::custom_type!(SocketAddr, String);
-uniffi::custom_type!(Url, String);
-uniffi::custom_type!(NodeIdentity, String);
-uniffi::custom_type!(Recipient, String);
-uniffi::custom_type!(PathBuf, String);
-uniffi::custom_type!(OffsetDateTime, i64);
+uniffi::custom_type!(Ipv4Addr, String, {
+    remote,
+    try_lift: |val| Ok(Ipv4Addr::from_str(&val)?),
+    lower: |val| val.to_string()
+});
+
+uniffi::custom_type!(Ipv6Addr, String, {
+    remote,
+    try_lift: |val| Ok(Ipv6Addr::from_str(&val)?),
+    lower: |val| val.to_string()
+});
+
+uniffi::custom_type!(IpAddr, String, {
+    remote,
+    try_lift: |val| Ok(IpAddr::from_str(&val)?),
+    lower: |val| val.to_string()
+});
+
+uniffi::custom_type!(SocketAddr, String, {
+    remote,
+    try_lift: |val| Ok(SocketAddr::from_str(&val)?),
+    lower: |val| val.to_string()
+});
+
+uniffi::custom_type!(PathBuf, String, {
+    remote,
+    try_lift: |val| Ok(PathBuf::from(val)),
+    lower: |val| val.display().to_string()
+});
+
+uniffi::custom_type!(IpNetwork, String, {
+    remote,
+    try_lift: |val| Ok(IpNetwork::from_str(&val)?),
+    lower: |val| val.to_string()
+});
+
+uniffi::custom_type!(Ipv4Network, String, {
+    remote,
+    try_lift: |val| Ok(Ipv4Network::from_str(&val)?),
+    lower: |val| val.to_string()
+});
+
+uniffi::custom_type!(Ipv6Network, String, {
+    remote,
+    try_lift: |val| Ok(Ipv6Network::from_str(&val)?),
+    lower: |val| val.to_string()
+});
+
+uniffi::custom_type!(Url, String, {
+    remote,
+    try_lift: |val| Ok(Url::from_str(&val)?),
+    lower: |val| val.to_string()
+});
+
+uniffi::custom_type!(OffsetDateTime, i64, {
+    remote,
+    try_lift: |val| Ok(OffsetDateTime::from_unix_timestamp(val)?),
+    lower: |val| val.unix_timestamp()
+});
 
 pub type BoxedRecepient = Box<Recipient>;
 pub type BoxedNodeIdentity = Box<NodeIdentity>;
-uniffi::custom_type!(BoxedRecepient, String);
-uniffi::custom_type!(BoxedNodeIdentity, String);
 
-impl UniffiCustomTypeConverter for NodeIdentity {
-    type Builtin = String;
+uniffi::custom_type!(NodeIdentity, String, {
+    remote,
+    try_lift: |val| Ok(NodeIdentity::from_base58_string(val)?),
+    lower: |val| val.to_base58_string()
+});
 
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(NodeIdentity::from_base58_string(val)?)
+uniffi::custom_type!(BoxedNodeIdentity, String, {
+    remote,
+    try_lift: |val| Ok(Box::new(NodeIdentity::from_base58_string(val)?)),
+    lower: |val| val.to_base58_string()
+});
+
+uniffi::custom_type!(Recipient, String, {
+    remote,
+    try_lift: |val| Ok(Recipient::try_from_base58_string(val)?),
+    lower: |val| val.to_string()
+});
+
+uniffi::custom_type!(BoxedRecepient, String, {
+    remote,
+    try_lift: |val| Ok(Box::new(Recipient::try_from_base58_string(val)?)),
+    lower: |val| val.to_string()
+});
+
+uniffi::custom_type!(
+    IpPair,
+    String, {
+        remote,
+        try_lift: |val| {
+            Ok(
+                serde_json::from_str(&val).map_err(|e| VpnError::InternalError {
+                    details: e.to_string(),
+                })?,
+            )
+        },
+        lower: |val| serde_json::to_string(&val).expect("Failed to serialize ip pair")
     }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_base58_string()
-    }
-}
-
-impl UniffiCustomTypeConverter for BoxedNodeIdentity {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(Box::new(NodeIdentity::from_base58_string(val)?))
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_base58_string()
-    }
-}
-
-impl UniffiCustomTypeConverter for Recipient {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(Recipient::try_from_base58_string(val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
-
-impl crate::UniffiCustomTypeConverter for BoxedRecepient {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(Box::new(Recipient::try_from_base58_string(val)?))
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
-
-impl UniffiCustomTypeConverter for Url {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(Url::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
-
-impl UniffiCustomTypeConverter for IpAddr {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(IpAddr::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
-
-uniffi::custom_type!(IpPair, String);
-impl UniffiCustomTypeConverter for IpPair {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(
-            serde_json::from_str(&val).map_err(|e| VpnError::InternalError {
-                details: e.to_string(),
-            })?,
-        )
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        serde_json::to_string(&obj).expect("Failed to serialize ip pair")
-    }
-}
-
-impl UniffiCustomTypeConverter for Ipv4Addr {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(Ipv4Addr::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
-
-impl UniffiCustomTypeConverter for Ipv6Addr {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(Ipv6Addr::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
-
-impl UniffiCustomTypeConverter for IpNetwork {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(IpNetwork::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
-
-impl UniffiCustomTypeConverter for Ipv4Network {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(Ipv4Network::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
-
-impl UniffiCustomTypeConverter for Ipv6Network {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(Ipv6Network::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
-
-impl UniffiCustomTypeConverter for SocketAddr {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(SocketAddr::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.to_string()
-    }
-}
-
-impl UniffiCustomTypeConverter for OffsetDateTime {
-    type Builtin = i64;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(OffsetDateTime::from_unix_timestamp(val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.unix_timestamp()
-    }
-}
+);
 
 /// Represents the nym network environment together with the environment specific to nym-vpn. These
 /// need to be exported to the environment (for now, until it's refactored internally in the nym
@@ -567,18 +478,6 @@ impl From<ExitPoint> for GwExitPoint {
             ExitPoint::Gateway { identity } => GwExitPoint::Gateway { identity },
             ExitPoint::Location { location } => GwExitPoint::Location { location },
         }
-    }
-}
-
-impl UniffiCustomTypeConverter for PathBuf {
-    type Builtin = String;
-
-    fn into_custom(val: Self::Builtin) -> uniffi::Result<Self> {
-        Ok(PathBuf::from_str(&val)?)
-    }
-
-    fn from_custom(obj: Self) -> Self::Builtin {
-        obj.display().to_string()
     }
 }
 
