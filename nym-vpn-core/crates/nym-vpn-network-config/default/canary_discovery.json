@@ -1,0 +1,10 @@
+{
+    "network_name": "canary",
+    "nym_api_url": "https://canary-api.performance.nymte.ch/api/",
+    "nym_vpn_api_url": "https://nym-vpn-api-git-deploy-canary-nyx-network-staging.vercel.app/api/",
+    "feature_flags": {
+        "zkNyms": {
+            "credentialMode": "false"
+        }
+    }
+}

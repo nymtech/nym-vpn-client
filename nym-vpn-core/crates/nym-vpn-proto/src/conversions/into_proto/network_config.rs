@@ -110,7 +110,7 @@ impl From<nym_vpn_network_config::FeatureFlags> for crate::GetFeatureFlagsRespon
             groups: Default::default(),
         };
 
-        for (k, v) in feature_flags.flags {
+        for (k, v) in feature_flags.into_hash_map() {
             match v {
                 nym_vpn_network_config::feature_flags::FlagValue::Value(value) => {
                     response.flags.insert(k, value);

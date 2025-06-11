@@ -373,7 +373,7 @@ impl From<nym_vpn_network_config::FeatureFlags> for FeatureFlags {
     fn from(value: nym_vpn_network_config::FeatureFlags) -> Self {
         FeatureFlags {
             flags: value
-                .flags
+                .into_hash_map()
                 .into_iter()
                 .map(|(k, v)| (k, v.into()))
                 .collect(),

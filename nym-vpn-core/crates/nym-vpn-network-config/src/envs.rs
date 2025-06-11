@@ -19,14 +19,12 @@ use crate::discovery::Discovery;
 // TODO: integrate with nym-vpn-api-client
 
 const ENVS_FILE: &str = "envs.json";
+static DEFAULT_ENVS_JSON: &[u8] = include_bytes!("../default/envs.json");
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RegisteredNetworks {
     inner: HashSet<String>,
 }
-
-// Include the generated Default implementation
-include!(concat!(env!("OUT_DIR"), "/default_envs.rs"));
 
 impl<'de> serde::de::Deserialize<'de> for RegisteredNetworks {
     fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
@@ -57,6 +55,7 @@ impl RegisteredNetworks {
     fn path(config_dir: &Path) -> PathBuf {
         config_dir.join(NETWORKS_SUBDIR).join(ENVS_FILE)
     }
+
     fn path_is_stale(config_dir: &Path) -> anyhow::Result<bool> {
         if let Some(age) = crate::util::get_age_of_file(&Self::path(config_dir))? {
             Ok(age > MAX_FILE_AGE)
@@ -67,13 +66,9 @@ impl RegisteredNetworks {
 
     async fn fetch() -> anyhow::Result<Self> {
         tracing::debug!("Fetching registered networks");
-        // allow panic because a broken bootstrap url means everything will fail anyways.
-        #[allow(clippy::expect_used)]
-        let default_url = Discovery::DEFAULT_VPN_API_URL
-            .parse()
-            .expect("Failed to parse NYM VPN API URL");
 
         // Spawn the root task
+        let default_url = Discovery::defaul_vpn_api_url();
         let inner = BootstrapVpnApiClient::new(default_url)?
             .get_wellknown_envs()
             .await?;
@@ -133,6 +128,13 @@ impl RegisteredNetworks {
         }
 
         Self::read_from_file(config_dir)
+    }
+}
+
+impl Default for RegisteredNetworks {
+    fn default() -> Self {
+        #[allow(clippy::expect_used)]
+        serde_json::from_slice(DEFAULT_ENVS_JSON).expect("Failed to parse default envs JSON")
     }
 }
 

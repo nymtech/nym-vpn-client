@@ -131,7 +131,7 @@ impl Network {
         tracing::debug!("Getting feature flag: group={}, flag={}", group, flag);
         self.feature_flags
             .as_ref()
-            .and_then(|ff| ff.flags.get(group))
+            .and_then(|ff| ff.get_flag(group))
             .and_then(|value| match value {
                 FlagValue::Group(group) => group.get(flag).and_then(|v| {
                     v.parse::<T>()
@@ -150,7 +150,7 @@ impl Network {
         tracing::debug!("Getting simple feature flag: flag={}", flag);
         self.feature_flags
             .as_ref()
-            .and_then(|ff| ff.flags.get(flag))
+            .and_then(|ff| ff.get_flag(flag))
             .and_then(|value| match value {
                 FlagValue::Value(value) => value
                     .parse::<T>()
