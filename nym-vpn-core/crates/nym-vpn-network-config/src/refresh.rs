@@ -8,6 +8,8 @@ use tokio_util::sync::CancellationToken;
 
 use crate::{Network, NymNetwork, Result, discovery::Discovery, envs::RegisteredNetworks};
 
+const CHECK_INTERVAL: Duration = Duration::from_secs(60 * 60);
+
 struct FileRefresher {
     config_path: PathBuf,
     network: Network,
@@ -61,7 +63,7 @@ impl FileRefresher {
 
     async fn run(self) {
         // Check once an hour
-        let mut interval = tokio::time::interval(Duration::from_secs(60 * 60));
+        let mut interval = tokio::time::interval(CHECK_INTERVAL);
         let mut checked_consistency = false;
 
         self.cancel_token

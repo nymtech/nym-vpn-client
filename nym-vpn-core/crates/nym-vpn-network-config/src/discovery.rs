@@ -206,7 +206,7 @@ impl Discovery {
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum TryFromNymWellknownDiscoveryItemResponseError {
+pub enum DiscoveryFromNymWellknownDiscoveryError {
     #[error("Failed to parse nym api url: {value}")]
     ParseNymApiUrl {
         value: String,
@@ -221,7 +221,7 @@ pub enum TryFromNymWellknownDiscoveryItemResponseError {
 }
 
 impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
-    type Error = TryFromNymWellknownDiscoveryItemResponseError;
+    type Error = DiscoveryFromNymWellknownDiscoveryError;
 
     fn try_from(discovery: NymWellknownDiscoveryItemResponse) -> Result<Self, Self::Error> {
         let account_management = discovery.account_management.and_then(|am| {
@@ -246,13 +246,13 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
             .unwrap_or_default();
 
         let nym_api_url = discovery.nym_api_url.parse().map_err(|source| {
-            TryFromNymWellknownDiscoveryItemResponseError::ParseNymApiUrl {
+            DiscoveryFromNymWellknownDiscoveryError::ParseNymApiUrl {
                 value: discovery.nym_api_url,
                 source,
             }
         })?;
         let nym_vpn_api_url = discovery.nym_vpn_api_url.parse().map_err(|source| {
-            TryFromNymWellknownDiscoveryItemResponseError::ParseNymVpnApiUrl {
+            DiscoveryFromNymWellknownDiscoveryError::ParseNymVpnApiUrl {
                 value: discovery.nym_vpn_api_url,
                 source,
             }

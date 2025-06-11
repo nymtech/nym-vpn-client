@@ -48,7 +48,7 @@ where
             source,
         })?;
 
-    serde_json::to_writer_pretty(&file, &value).map_err(|source| Error::WriteFile {
+    serde_json::to_writer_pretty(&file, &value).map_err(|source| Error::Serialize {
         path: path.as_ref().to_path_buf(),
         source,
     })

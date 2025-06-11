@@ -40,17 +40,14 @@ use std::{
 };
 
 use crate::{
-    discovery::TryFromNymWellknownDiscoveryItemResponseError,
-    nym_vpn_network::{
-        TryNymVpnNetworkFromDetailsError, TryNymVpnNetworkIntoParsedAccountLinksError,
-    },
+    discovery::DiscoveryFromNymWellknownDiscoveryError,
+    nym_vpn_network::{NymVpnNetworkAccountLinksConversionError, NymVpnNetworkFromDetailsError},
 };
 
 const NETWORKS_SUBDIR: &str = "networks";
 
 // Refresh the discovery and network details files periodically
 const MAX_FILE_AGE: Duration = Duration::from_secs(60 * 60 * 24);
-// const MAX_FILE_AGE: Duration = Duration::from_secs(60);
 
 #[derive(Clone, Debug)]
 pub struct Network {
@@ -244,7 +241,7 @@ pub fn manual_env(network_details: &NymNetworkDetails) -> Result<Network> {
     let nyxd_url = endpoint.nyxd_url();
     let api_url = endpoint.api_url().ok_or(Error::NoApiUrlFound)?;
     let nym_vpn_network =
-        NymVpnNetwork::try_from(network_details).map_err(Error::CreateNymVpnNetwork)?;
+        NymVpnNetwork::try_from(network_details).map_err(Error::ConvertNetworkDetailsToNetwork)?;
 
     Ok(Network {
         nym_network,
@@ -267,7 +264,7 @@ pub enum Error {
     #[error("network name mismatch between requested and fetched discovery")]
     NetworkNameMismatch { expected: String, actual: String },
 
-    #[error("failed to compute the file staleness: {}", path.display())]
+    #[error("failed to obtain file staleness: {}", path.display())]
     GetFileStaleness {
         path: PathBuf,
         source: filetime::FileTimeError,
@@ -303,8 +300,8 @@ pub enum Error {
         source: std::io::Error,
     },
 
-    #[error("failed to write serialized data to file: {}", path.display())]
-    WriteFile {
+    #[error("failed to serialize data to file: {}", path.display())]
+    Serialize {
         path: PathBuf,
         source: serde_json::Error,
     },
@@ -315,14 +312,14 @@ pub enum Error {
         source: serde_json::Error,
     },
 
+    #[error("failed to obtain account links")]
+    GetAccountLinks(#[from] NymVpnNetworkAccountLinksConversionError),
+
     #[error("failed to convert well known discovery response into discovery")]
-    ConvertWellKnownDiscovery(#[source] TryFromNymWellknownDiscoveryItemResponseError),
+    ConvertWellKnownDiscovery(#[source] DiscoveryFromNymWellknownDiscoveryError),
 
-    #[error("failed to convert nym vpn network into parsed account links")]
-    ConvertNymVpnNetworkIntoAccountLinks(#[from] TryNymVpnNetworkIntoParsedAccountLinksError),
-
-    #[error("failed to create nym vpn network from details")]
-    CreateNymVpnNetwork(#[source] TryNymVpnNetworkFromDetailsError),
+    #[error("failed to convert nym network details to nym vpn network")]
+    ConvertNetworkDetailsToNetwork(#[source] NymVpnNetworkFromDetailsError),
 }
 
 impl Error {

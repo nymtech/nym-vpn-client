@@ -42,21 +42,21 @@ impl AccountManagement {
         self,
         locale: &str,
         account_id: Option<&str>,
-    ) -> Result<ParsedAccountLinks, TryIntoParsedAccountLinksError> {
+    ) -> Result<ParsedAccountLinks, AccountLinksConversionError> {
         Ok(ParsedAccountLinks {
             sign_up: self
                 .sign_up_url(locale)
-                .ok_or(TryIntoParsedAccountLinksError::ParseSignupUrl)?,
+                .ok_or(AccountLinksConversionError::ParseSignupUrl)?,
             sign_in: self
                 .sign_in_url(locale)
-                .ok_or(TryIntoParsedAccountLinksError::ParseSigninUrl)?,
+                .ok_or(AccountLinksConversionError::ParseSigninUrl)?,
             account: account_id.and_then(|account_id| self.account_url(locale, account_id)),
         })
     }
 }
 
 #[derive(Debug, thiserror::Error)]
-pub enum TryIntoParsedAccountLinksError {
+pub enum AccountLinksConversionError {
     #[error("Failed to parse sign in URL")]
     ParseSigninUrl,
 

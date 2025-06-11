@@ -45,30 +45,7 @@ impl NymNetwork {
         let network = &self.network;
         let path = Self::path(config_dir, &network.network_name);
 
-        // Create parent directories if they don't exist
-        if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent).map_err(|source| Error::CreateParentDirs {
-                path: parent.to_path_buf(),
-                source,
-            })?;
-        }
-
-        let file = std::fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&path)
-            .map_err(|source| Error::OpenFile {
-                path: path.clone(),
-                source,
-            })?;
-
-        serde_json::to_writer_pretty(&file, network).map_err(|source| Error::WriteFile {
-            path: path.clone(),
-            source,
-        })?;
-
-        Ok(())
+        crate::serialization::serialize_to_json_file(path, network)
     }
 
     pub(super) async fn ensure_exists(config_dir: &Path, discovery: &Discovery) -> Result<Self> {
