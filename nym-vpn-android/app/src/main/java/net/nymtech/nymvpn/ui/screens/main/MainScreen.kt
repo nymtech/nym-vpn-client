@@ -140,7 +140,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	}
 
 	Column(
-		verticalArrangement = Arrangement.spacedBy(24.dp.scaledHeight(), Alignment.Top),
+		verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight(), Alignment.Top),
 		horizontalAlignment = Alignment.CenterHorizontally,
 		modifier = Modifier
 			.verticalScroll(rememberScrollState())
