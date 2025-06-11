@@ -30,17 +30,13 @@ fn main() -> anyhow::Result<()> {
 #[cfg(unix)]
 fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
-    let sentry_dsn = environment::sentry_dsn();
-    let mut _sentry_guard = None;
-    if let Some(dsn) = sentry_dsn.as_ref() {
-        _sentry_guard = Some(setup_sentry(dsn));
-    };
+    let _sentry_guard = init_sentry();
 
     let options = logging::Options {
         verbosity_level: args.verbosity_level(),
         enable_file_log: args.command.run_as_service,
         enable_stdout_log: true,
-        sentry: sentry_dsn.is_some(),
+        sentry: _sentry_guard.is_some(),
     };
     let logging_setup = logging::setup_logging(options);
     let global_config_file = setup_global_config(args.network.as_deref())?;
@@ -51,11 +47,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
 #[cfg(windows)]
 fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
-    let sentry_dsn = environment::sentry_dsn();
-    let mut _sentry_guard = None;
-    if let Some(dsn) = sentry_dsn.as_ref() {
-        _sentry_guard = Some(setup_sentry(dsn));
-    };
+    let _sentry_guard = init_sentry();
 
     if args.command.install {
         println!(
@@ -86,7 +78,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             verbosity_level: args.verbosity_level(),
             enable_file_log: true,
             enable_stdout_log: false,
-            sentry: sentry_dsn.is_some(),
+            sentry: _sentry_guard.is_some(),
         });
         let worker_guard = service::windows_service::start(
             service::windows_service::ServiceNetworkConfig {
@@ -101,7 +93,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             verbosity_level: args.verbosity_level(),
             enable_file_log: false,
             enable_stdout_log: true,
-            sentry: sentry_dsn.is_some(),
+            sentry: _sentry_guard.is_some(),
         };
         let logging_setup = logging::setup_logging(options);
         let global_config_file = setup_global_config(args.network.as_deref())?;
@@ -201,17 +193,22 @@ async fn run_inner_async(
     Ok(worker_guard)
 }
 
-fn setup_sentry(dsn: &str) -> ClientInitGuard {
-    println!("sentry monitoring enabled");
-    sentry::init((
-        dsn,
-        sentry::ClientOptions {
-            release: sentry::release_name!(),
-            send_default_pii: false,
-            sample_rate: 1.0,
-            traces_sample_rate: 1.0,
-            enable_logs: true,
-            ..Default::default()
-        },
-    ))
+fn init_sentry() -> Option<ClientInitGuard> {
+    if let Some(dsn) = environment::sentry_dsn() {
+        println!("sentry monitoring enabled");
+        let guard = sentry::init((
+            dsn,
+            sentry::ClientOptions {
+                release: sentry::release_name!(),
+                send_default_pii: false,
+                sample_rate: 1.0,
+                traces_sample_rate: 1.0,
+                enable_logs: true,
+                ..Default::default()
+            },
+        ));
+        Some(guard)
+    } else {
+        None
+    }
 }
