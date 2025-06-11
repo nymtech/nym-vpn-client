@@ -85,13 +85,10 @@ impl Discovery {
     }
 
     pub(super) fn path_is_stale(config_dir: &Path, network_name: &str) -> Result<bool> {
-        let age = crate::file_age::get_age_of_file(&Self::path(config_dir, network_name))
-            .map_err(Error::GetFileAge)?;
-        if let Some(age) = age {
-            Ok(age > MAX_FILE_AGE)
-        } else {
-            Ok(true)
-        }
+        let path = Self::path(config_dir, network_name);
+
+        crate::filetime::is_file_stale(&path, MAX_FILE_AGE)
+            .map_err(|source| Error::GetFileStaleness { path, source })
     }
 
     pub async fn fetch(network_name: &str) -> Result<Self> {
@@ -122,48 +119,14 @@ impl Discovery {
         let path = Self::path(config_dir, network_name);
         tracing::debug!("Reading discovery file from: {}", path.display());
 
-        let file = std::fs::File::open(&path).map_err(|source| Error::OpenFile {
-            path: path.clone(),
-            source,
-        })?;
-        let reader = std::io::BufReader::new(file);
-        let network: Discovery =
-            serde_json::from_reader(reader).map_err(|source| Error::Deserialize {
-                path: path.clone(),
-                source,
-            })?;
-
-        Ok(network)
+        crate::serialization::deserialize_from_json_file(path)
     }
 
     pub(super) fn write_to_file(&self, config_dir: &Path) -> Result<()> {
         let path = Self::path(config_dir, &self.network_name);
         tracing::debug!("Writing discovery file to: {}", path.display());
 
-        // Create parent directories if they don't exist
-        if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent).map_err(|source| Error::CreateParentDirs {
-                path: parent.to_path_buf(),
-                source,
-            })?;
-        }
-
-        let file = std::fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&path)
-            .map_err(|source| Error::OpenFile {
-                path: path.to_path_buf(),
-                source,
-            })?;
-
-        serde_json::to_writer_pretty(&file, self).map_err(|source| Error::WriteFile {
-            path: path.to_path_buf(),
-            source,
-        })?;
-
-        Ok(())
+        crate::serialization::serialize_to_json_file(path, self)
     }
 
     pub(super) async fn ensure_exists(config_dir: &Path, network_name: &str) -> Result<Self> {
@@ -171,7 +134,7 @@ impl Discovery {
             Ok(discovery) => Ok(discovery),
             Err(e) if e.should_refresh_file() => {
                 if e.is_file_not_found() {
-                    tracing::info!("No discovery file found, creating a new discovery file");
+                    tracing::debug!("No discovery file found, creating a new discovery file");
                 } else {
                     tracing::error!("Failed to read discovery file: {e}");
                 }

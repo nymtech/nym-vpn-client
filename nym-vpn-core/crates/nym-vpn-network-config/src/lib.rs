@@ -8,10 +8,11 @@ pub mod system_messages;
 mod account_management;
 mod discovery;
 mod envs;
-mod file_age;
+mod filetime;
 mod nym_network;
 mod nym_vpn_network;
 mod refresh;
+mod serialization;
 mod system_configuration;
 
 pub use account_management::{AccountManagement, ParsedAccountLinks};
@@ -266,8 +267,11 @@ pub enum Error {
     #[error("network name mismatch between requested and fetched discovery")]
     NetworkNameMismatch { expected: String, actual: String },
 
-    #[error("failed to get file age")]
-    GetFileAge(#[from] file_age::FileAgeError),
+    #[error("failed to compute the file staleness: {}", path.display())]
+    GetFileStaleness {
+        path: PathBuf,
+        source: filetime::FileTimeError,
+    },
 
     #[error("failed to bootstrap api client")]
     CreateBootstrapApiClient(#[source] nym_vpn_api_client::VpnApiClientError),

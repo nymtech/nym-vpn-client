@@ -4,8 +4,6 @@
 use std::{
     collections::HashSet,
     fmt,
-    fs::File,
-    io::BufReader,
     path::{Path, PathBuf},
 };
 
@@ -55,13 +53,10 @@ impl RegisteredNetworks {
     }
 
     fn path_is_stale(config_dir: &Path) -> Result<bool> {
-        if let Some(age) =
-            crate::file_age::get_age_of_file(&Self::path(config_dir)).map_err(Error::GetFileAge)?
-        {
-            Ok(age > MAX_FILE_AGE)
-        } else {
-            Ok(true)
-        }
+        let path = Self::path(config_dir);
+
+        crate::filetime::is_file_stale(&path, MAX_FILE_AGE)
+            .map_err(|source| Error::GetFileStaleness { path, source })
     }
 
     async fn fetch() -> Result<Self> {
@@ -86,46 +81,14 @@ impl RegisteredNetworks {
             path.display()
         );
 
-        let file = File::open(&path).map_err(|source| Error::OpenFile {
-            path: path.clone(),
-            source,
-        })?;
-        let reader = BufReader::new(file);
-        let registered_networks: RegisteredNetworks =
-            serde_json::from_reader(reader).map_err(|source| Error::Deserialize {
-                path: path.clone(),
-                source,
-            })?;
-        Ok(registered_networks)
+        crate::serialization::deserialize_from_json_file(path)
     }
 
     fn write_to_file(&self, config_dir: &Path) -> Result<()> {
         let path = Self::path(config_dir);
         tracing::debug!("Writing registered networks to file: {:?}", path.display());
 
-        if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent).map_err(|source| Error::CreateParentDirs {
-                path: parent.to_path_buf(),
-                source,
-            })?;
-        }
-
-        let file = std::fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&path)
-            .map_err(|source| Error::OpenFile {
-                path: path.clone(),
-                source,
-            })?;
-
-        serde_json::to_writer_pretty(&file, &self).map_err(|source| Error::WriteFile {
-            path: path.clone(),
-            source,
-        })?;
-
-        Ok(())
+        crate::serialization::serialize_to_json_file(&path, self)
     }
 
     pub(super) async fn try_update_file(config_dir: &Path) -> Result<()> {

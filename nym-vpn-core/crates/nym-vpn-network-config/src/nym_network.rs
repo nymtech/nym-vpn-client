@@ -1,11 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    fs::File,
-    io::BufReader,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use nym_config::defaults::NymNetworkDetails;
 
@@ -30,26 +26,18 @@ impl NymNetwork {
     }
 
     pub(super) fn path_is_stale(config_dir: &Path, network_name: &str) -> Result<bool> {
-        let file_age = crate::file_age::get_age_of_file(&Self::path(config_dir, network_name))
-            .map_err(Error::GetFileAge)?;
-        if let Some(age) = file_age {
-            Ok(age > MAX_FILE_AGE)
-        } else {
-            Ok(true)
-        }
+        let path = Self::path(config_dir, network_name);
+
+        crate::filetime::is_file_stale(&path, MAX_FILE_AGE)
+            .map_err(|source| Error::GetFileStaleness { path, source })
     }
 
     pub(super) fn read_from_file(config_dir: &Path, network_name: &str) -> Result<Self> {
         let path = Self::path(config_dir, network_name);
         tracing::debug!("Reading network details from: {}", path.display());
 
-        let file = File::open(&path).map_err(|source| Error::OpenFile {
-            path: path.clone(),
-            source,
-        })?;
-        let reader = BufReader::new(file);
-        let network: NymNetworkDetails = serde_json::from_reader(reader)
-            .map_err(|source| Error::Deserialize { path: path, source })?;
+        let network: NymNetworkDetails = crate::serialization::deserialize_from_json_file(path)?;
+
         Ok(Self { network })
     }
 
@@ -96,7 +84,7 @@ impl NymNetwork {
                         tracing::warn!(
                             "Failed to fetch remote nym network file: {e}, creating a default one"
                         );
-                        Ok(Default::default())
+                        Ok(Self::default())
                     } else {
                         tracing::error!(
                             "Failed to fetch remote nym network file: {e}, no default one for {} environment", discovery.network_name
