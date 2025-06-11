@@ -335,7 +335,7 @@ impl Error {
     }
 
     /// Returns true if the error is related to deserialization or file not found.
-    pub(crate) fn should_refresh_file(&self) -> bool {
+    pub(crate) fn should_overwrite_file(&self) -> bool {
         if let Self::Deserialize { source, .. } = self {
             matches!(
                 source.io_error_kind(),

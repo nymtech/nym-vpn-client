@@ -102,7 +102,7 @@ impl RegisteredNetworks {
     pub(super) async fn ensure_exists(config_dir: &Path) -> Result<Self> {
         match Self::read_from_file(config_dir) {
             Ok(registered_networks) => Ok(registered_networks),
-            Err(e) if e.should_refresh_file() => {
+            Err(e) if e.should_overwrite_file() => {
                 if !e.is_file_not_found() {
                     tracing::error!("Failed to read registered networks file: {e}");
                 }

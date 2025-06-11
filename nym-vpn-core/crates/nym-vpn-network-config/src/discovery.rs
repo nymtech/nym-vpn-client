@@ -132,7 +132,7 @@ impl Discovery {
     pub(super) async fn ensure_exists(config_dir: &Path, network_name: &str) -> Result<Self> {
         match Self::read_from_file(config_dir, network_name) {
             Ok(discovery) => Ok(discovery),
-            Err(e) if e.should_refresh_file() => {
+            Err(e) if e.should_overwrite_file() => {
                 if e.is_file_not_found() {
                     tracing::debug!("No discovery file found, creating a new discovery file");
                 } else {
