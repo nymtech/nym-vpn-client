@@ -264,7 +264,7 @@ pub enum Error {
     #[error("network name mismatch between requested and fetched discovery")]
     NetworkNameMismatch { expected: String, actual: String },
 
-    #[error("failed to obtain file staleness: {}", path.display())]
+    #[error("failed to obtain file staleness: {path}")]
     GetFileStaleness {
         path: PathBuf,
         source: filetime::FileTimeError,
