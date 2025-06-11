@@ -4,17 +4,15 @@
 use std::{
     collections::HashSet,
     fmt,
+    fs::File,
+    io::BufReader,
     path::{Path, PathBuf},
 };
 
-use anyhow::Context;
 use itertools::Itertools;
-
 use nym_vpn_api_client::BootstrapVpnApiClient;
 
-use super::{MAX_FILE_AGE, NETWORKS_SUBDIR};
-
-use crate::discovery::Discovery;
+use crate::{Error, MAX_FILE_AGE, NETWORKS_SUBDIR, Result, discovery::Discovery};
 
 // TODO: integrate with nym-vpn-api-client
 
@@ -56,46 +54,60 @@ impl RegisteredNetworks {
         config_dir.join(NETWORKS_SUBDIR).join(ENVS_FILE)
     }
 
-    fn path_is_stale(config_dir: &Path) -> anyhow::Result<bool> {
-        if let Some(age) = crate::util::get_age_of_file(&Self::path(config_dir))? {
+    fn path_is_stale(config_dir: &Path) -> Result<bool> {
+        if let Some(age) =
+            crate::file_age::get_age_of_file(&Self::path(config_dir)).map_err(Error::GetFileAge)?
+        {
             Ok(age > MAX_FILE_AGE)
         } else {
             Ok(true)
         }
     }
 
-    async fn fetch() -> anyhow::Result<Self> {
+    async fn fetch() -> Result<Self> {
         tracing::debug!("Fetching registered networks");
 
         // Spawn the root task
         let default_url = Discovery::defaul_vpn_api_url();
-        let inner = BootstrapVpnApiClient::new(default_url)?
+        let inner = BootstrapVpnApiClient::new(default_url)
+            .map_err(Error::CreateBootstrapApiClient)?
             .get_wellknown_envs()
-            .await?;
+            .await
+            .map_err(Error::GetWellKnownEnvs)?;
         tracing::debug!("Envs response: {:#?}", inner);
 
         Ok(Self { inner })
     }
 
-    fn read_from_file(config_dir: &Path) -> anyhow::Result<Self> {
+    fn read_from_file(config_dir: &Path) -> Result<Self> {
         let path = Self::path(config_dir);
         tracing::debug!(
             "Reading registered networks from file: {:?}",
             path.display()
         );
 
-        let file_str = std::fs::read_to_string(&path)?;
-        let registered_networks: RegisteredNetworks = serde_json::from_str(&file_str)?;
+        let file = File::open(&path).map_err(|source| Error::OpenRegisteredNetworksFile {
+            path: path.clone(),
+            source,
+        })?;
+        let reader = BufReader::new(file);
+        let registered_networks: RegisteredNetworks =
+            serde_json::from_reader(reader).map_err(|source| Error::Deserialize {
+                path: path.clone(),
+                source,
+            })?;
         Ok(registered_networks)
     }
 
-    fn write_to_file(&self, config_dir: &Path) -> anyhow::Result<()> {
+    fn write_to_file(&self, config_dir: &Path) -> Result<()> {
         let path = Self::path(config_dir);
         tracing::debug!("Writing registered networks to file: {:?}", path.display());
 
         if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent)
-                .with_context(|| format!("Failed to create parent directories for {path:?}"))?;
+            std::fs::create_dir_all(parent).map_err(|source| Error::CreateParentDirs {
+                path: parent.to_path_buf(),
+                source,
+            })?;
         }
 
         let file = std::fs::OpenOptions::new()
@@ -103,15 +115,22 @@ impl RegisteredNetworks {
             .create(true)
             .truncate(true)
             .open(&path)
-            .with_context(|| format!("Failed to open envs file: {path:?}"))?;
+            .map_err(|source| Error::OpenRegisteredNetworksFile {
+                path: path.clone(),
+                source,
+            })?;
 
-        serde_json::to_writer_pretty(&file, &self)
-            .with_context(|| format!("Failed to write envs file: {path:?}"))?;
+        serde_json::to_writer_pretty(&file, &self).map_err(|source| {
+            Error::WriteRegisteredNetworksFile {
+                path: path.clone(),
+                source,
+            }
+        })?;
 
         Ok(())
     }
 
-    pub(super) async fn try_update_file(config_dir: &Path) -> anyhow::Result<()> {
+    pub(super) async fn try_update_file(config_dir: &Path) -> Result<()> {
         if Self::path_is_stale(config_dir)? {
             Self::fetch().await?.write_to_file(config_dir)?;
         }
@@ -119,8 +138,15 @@ impl RegisteredNetworks {
         Ok(())
     }
 
-    pub(super) async fn ensure_exists(config_dir: &Path) -> anyhow::Result<Self> {
-        if !tokio::fs::try_exists(Self::path(config_dir)).await? {
+    pub(super) async fn ensure_exists(config_dir: &Path) -> Result<Self> {
+        let path = Self::path(config_dir);
+        if !tokio::fs::try_exists(&path)
+            .await
+            .map_err(|source| Error::CheckFileExists {
+                path: path.clone(),
+                source,
+            })?
+        {
             Self::default()
                 .write_to_file(config_dir)
                 .inspect_err(|err| tracing::warn!("Failed to write default envs file: {err}"))

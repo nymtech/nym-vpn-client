@@ -5454,7 +5454,6 @@ dependencies = [
 name = "nym-vpn-network-config"
 version = "1.11.0-beta"
 dependencies = [
- "anyhow",
  "futures-util",
  "itertools 0.13.0",
  "nym-api-requests",
@@ -5465,6 +5464,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tempfile",
+ "thiserror 2.0.12",
  "time",
  "tokio",
  "tokio-util",

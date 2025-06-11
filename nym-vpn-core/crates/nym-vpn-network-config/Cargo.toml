@@ -9,7 +9,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
-anyhow.workspace = true
+thiserror.workspace = true
 futures-util.workspace = true
 itertools.workspace = true
 nym-api-requests.workspace = true

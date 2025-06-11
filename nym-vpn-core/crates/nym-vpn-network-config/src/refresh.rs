@@ -6,9 +6,7 @@ use std::{path::PathBuf, time::Duration};
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use crate::{Network, NymNetwork, envs::RegisteredNetworks};
-
-use super::discovery::Discovery;
+use crate::{Network, NymNetwork, Result, discovery::Discovery, envs::RegisteredNetworks};
 
 struct FileRefresher {
     config_path: PathBuf,
@@ -32,7 +30,7 @@ impl FileRefresher {
         }
     }
 
-    async fn refresh_discovery_file(&self) -> anyhow::Result<Option<Discovery>> {
+    async fn refresh_discovery_file(&self) -> Result<Option<Discovery>> {
         if Discovery::path_is_stale(
             self.config_path.as_path(),
             &self.network.nym_network.network.network_name,
@@ -46,7 +44,7 @@ impl FileRefresher {
         }
     }
 
-    async fn refresh_nym_network_file(&self, discovery: Discovery) -> anyhow::Result<()> {
+    async fn refresh_nym_network_file(&self, discovery: Discovery) -> Result<()> {
         if NymNetwork::path_is_stale(
             self.config_path.as_path(),
             &self.network.nym_network.network.network_name,
@@ -57,7 +55,7 @@ impl FileRefresher {
         Ok(())
     }
 
-    async fn refresh_envs_file(&self) -> anyhow::Result<()> {
+    async fn refresh_envs_file(&self) -> Result<()> {
         RegisteredNetworks::try_update_file(&self.config_path).await
     }
 

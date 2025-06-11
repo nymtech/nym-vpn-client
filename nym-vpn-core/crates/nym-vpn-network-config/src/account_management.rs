@@ -13,20 +13,6 @@ pub struct AccountManagement {
     pub(crate) paths: AccountManagementPaths,
 }
 
-#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub(crate) struct AccountManagementPaths {
-    pub(crate) sign_up: String,
-    pub(crate) sign_in: String,
-    pub(crate) account: String,
-}
-
-#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
-pub struct ParsedAccountLinks {
-    pub sign_up: Url,
-    pub sign_in: Url,
-    pub account: Option<Url>,
-}
-
 impl AccountManagement {
     pub fn sign_up_url(&self, locale: &str) -> Option<Url> {
         self.url
@@ -56,24 +42,70 @@ impl AccountManagement {
         self,
         locale: &str,
         account_id: Option<&str>,
-    ) -> Result<ParsedAccountLinks, anyhow::Error> {
+    ) -> Result<ParsedAccountLinks, TryIntoParsedAccountLinksError> {
         Ok(ParsedAccountLinks {
             sign_up: self
                 .sign_up_url(locale)
-                .ok_or_else(|| anyhow::anyhow!("Failed to parse sign up URL"))?,
+                .ok_or(TryIntoParsedAccountLinksError::ParseSignupUrl)?,
             sign_in: self
                 .sign_in_url(locale)
-                .ok_or_else(|| anyhow::anyhow!("Failed to parse sign in URL"))?,
+                .ok_or(TryIntoParsedAccountLinksError::ParseSigninUrl)?,
             account: account_id.and_then(|account_id| self.account_url(locale, account_id)),
         })
     }
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum TryIntoParsedAccountLinksError {
+    #[error("Failed to parse sign in URL")]
+    ParseSigninUrl,
+
+    #[error("Failed to parse sign up URL")]
+    ParseSignupUrl,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub(crate) struct AccountManagementPaths {
+    pub(crate) sign_up: String,
+    pub(crate) sign_in: String,
+    pub(crate) account: String,
+}
+
+#[derive(Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+pub struct ParsedAccountLinks {
+    pub sign_up: Url,
+    pub sign_in: Url,
+    pub account: Option<Url>,
+}
+
+impl fmt::Display for ParsedAccountLinks {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(f, "sign_up: {}", self.sign_up)?;
+        write!(f, "sign_in: {}", self.sign_in)?;
+        if let Some(account) = &self.account {
+            write!(f, "\naccount: {account}")?;
+        }
+
+        Ok(())
+    }
+}
+
+pub struct TryFromAccountManagementResponseError(url::ParseError);
+
+impl std::fmt::Display for TryFromAccountManagementResponseError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Failed to parse URL: {}", self.0)
+    }
+}
+
 impl TryFrom<AccountManagementResponse> for AccountManagement {
-    type Error = anyhow::Error;
+    type Error = TryFromAccountManagementResponseError;
 
     fn try_from(response: AccountManagementResponse) -> Result<Self, Self::Error> {
-        let url = response.url.parse()?;
+        let url = response
+            .url
+            .parse()
+            .map_err(TryFromAccountManagementResponseError)?;
         Ok(Self {
             url,
             paths: response.paths.into(),
@@ -88,17 +120,5 @@ impl From<AccountManagementPathsResponse> for AccountManagementPaths {
             sign_in: response.sign_in,
             account: response.account,
         }
-    }
-}
-
-impl fmt::Display for ParsedAccountLinks {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "sign_up: {}", self.sign_up)?;
-        write!(f, "sign_in: {}", self.sign_in)?;
-        if let Some(account) = &self.account {
-            write!(f, "\naccount: {account}")?;
-        }
-
-        Ok(())
     }
 }

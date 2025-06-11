@@ -1,14 +1,17 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::path::{Path, PathBuf};
+use std::{
+    fs::File,
+    io::BufReader,
+    path::{Path, PathBuf},
+};
 
-use anyhow::Context;
 use nym_config::defaults::NymNetworkDetails;
 
 use crate::MAX_FILE_AGE;
 
-use super::{NETWORKS_SUBDIR, discovery::Discovery};
+use super::{Error, NETWORKS_SUBDIR, Result, discovery::Discovery};
 
 #[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
 pub struct NymNetwork {
@@ -26,31 +29,40 @@ impl NymNetwork {
             .join(format!("{network_name}.json"))
     }
 
-    pub(super) fn path_is_stale(config_dir: &Path, network_name: &str) -> anyhow::Result<bool> {
-        if let Some(age) = crate::util::get_age_of_file(&Self::path(config_dir, network_name))? {
+    pub(super) fn path_is_stale(config_dir: &Path, network_name: &str) -> Result<bool> {
+        let file_age = crate::file_age::get_age_of_file(&Self::path(config_dir, network_name))
+            .map_err(Error::GetFileAge)?;
+        if let Some(age) = file_age {
             Ok(age > MAX_FILE_AGE)
         } else {
             Ok(true)
         }
     }
 
-    pub(super) fn read_from_file(config_dir: &Path, network_name: &str) -> anyhow::Result<Self> {
+    pub(super) fn read_from_file(config_dir: &Path, network_name: &str) -> Result<Self> {
         let path = Self::path(config_dir, network_name);
         tracing::debug!("Reading network details from: {}", path.display());
-        let file_str = std::fs::read_to_string(path)?;
-        let network: NymNetworkDetails = serde_json::from_str(&file_str)?;
-        // resolve_nym_network_details(&mut network);
+
+        let file = File::open(&path).map_err(|source| Error::OpenNymVpnNetworkFile {
+            path: path.clone(),
+            source,
+        })?;
+        let reader = BufReader::new(file);
+        let network: NymNetworkDetails = serde_json::from_reader(reader)
+            .map_err(|source| Error::Deserialize { path: path, source })?;
         Ok(Self { network })
     }
 
-    pub(super) fn write_to_file(&self, config_dir: &Path) -> anyhow::Result<()> {
+    pub(super) fn write_to_file(&self, config_dir: &Path) -> Result<()> {
         let network = &self.network;
         let path = Self::path(config_dir, &network.network_name);
 
         // Create parent directories if they don't exist
         if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent)
-                .with_context(|| format!("Failed to create parent directories for {path:?}"))?;
+            std::fs::create_dir_all(parent).map_err(|source| Error::CreateParentDirs {
+                path: parent.to_path_buf(),
+                source,
+            })?;
         }
 
         let file = std::fs::OpenOptions::new()
@@ -58,19 +70,30 @@ impl NymNetwork {
             .create(true)
             .truncate(true)
             .open(&path)
-            .with_context(|| format!("Failed to open network details file at {path:?}"))?;
+            .map_err(|source| Error::OpenNymNetworkFile {
+                path: path.clone(),
+                source,
+            })?;
 
-        serde_json::to_writer_pretty(&file, network)
-            .with_context(|| format!("Failed to write network details file at {path:?}"))?;
+        serde_json::to_writer_pretty(&file, network).map_err(|source| {
+            Error::WriteNymNetworkFile {
+                path: path.clone(),
+                source,
+            }
+        })?;
 
         Ok(())
     }
 
-    pub(super) async fn ensure_exists(
-        config_dir: &Path,
-        discovery: &Discovery,
-    ) -> anyhow::Result<Self> {
-        if !tokio::fs::try_exists(Self::path(config_dir, &discovery.network_name)).await? {
+    pub(super) async fn ensure_exists(config_dir: &Path, discovery: &Discovery) -> Result<Self> {
+        let path = Self::path(config_dir, &discovery.network_name);
+        if !tokio::fs::try_exists(&path)
+            .await
+            .map_err(|source| Error::CheckFileExists {
+                path: path.clone(),
+                source,
+            })?
+        {
             discovery.fetch_nym_network_details().await.or_else(|e| {
                 if discovery.network_name == "mainnet" {
                     tracing::warn!(
