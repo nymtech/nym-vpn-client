@@ -62,7 +62,6 @@ impl FileRefresher {
     }
 
     async fn run(self) {
-        // Check once an hour
         let mut interval = tokio::time::interval(CHECK_INTERVAL);
         let mut checked_consistency = false;
 
