@@ -25,6 +25,7 @@ use commands::dev as cmd_dev;
 use commands::fs as cmd_fs;
 use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
+use commands::sys as cmd_sys;
 #[cfg(windows)]
 use commands::updater as cmd_updater;
 use commands::window as cmd_window;
@@ -191,7 +192,7 @@ async fn main() -> Result<()> {
             };
             debug!("app_config: {app_config:?}");
 
-            let app_state = AppState::new(&db, &app_config, &cli);
+            let app_state = AppState::new(&db, &app_config, &cli, os);
             app.manage(Mutex::new(app_state));
 
             let pkg_info = app.package_info().clone();
@@ -260,6 +261,7 @@ async fn main() -> Result<()> {
             cmd_daemon::network_compat,
             cmd_daemon::vpnd_log_dir,
             cmd_fs::log_dir,
+            cmd_sys::os_info,
             #[cfg(windows)]
             cmd_updater::fetch_update,
             #[cfg(windows)]

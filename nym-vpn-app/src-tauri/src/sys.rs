@@ -1,27 +1,34 @@
+use serde::Serialize;
 use std::env;
-
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
 use std::process::Command;
 use sysinfo::System;
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
 use tracing::{error, info, warn};
+use ts_rs::TS;
 
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
-#[derive(Debug, strum::AsRefStr)]
+#[derive(Debug, Clone, Default, Serialize, TS, strum::AsRefStr)]
+#[serde(rename_all = "kebab-case")]
+#[ts(export)]
 pub enum GpuType {
     #[strum(serialize = "NVIDIA")]
     Nvidia,
     #[strum(serialize = "AMD")]
     Amd,
     Intel,
+    #[default]
     Unknown,
 }
 
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
-#[derive(Debug, strum::AsRefStr)]
+#[derive(Debug, Clone, Default, Serialize, TS, strum::AsRefStr)]
+#[serde(rename_all = "kebab-case")]
+#[ts(export)]
 pub enum DisplayServer {
     X11,
     Wayland,
+    #[default]
     Unknown,
 }
 
@@ -41,6 +48,9 @@ fn get_display_server() -> DisplayServer {
     }
 }
 
+#[derive(Debug, Clone, Default, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
 pub struct OsInfo {
     pub name: String,
     pub kernel: Option<String>,
