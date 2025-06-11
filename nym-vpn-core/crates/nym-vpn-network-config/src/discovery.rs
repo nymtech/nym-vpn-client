@@ -163,7 +163,7 @@ impl Discovery {
                 }
             }
         } else {
-            tracing::info!("No discovery file found, writing creating a new discovery file");
+            tracing::info!("No discovery file found, creating a new discovery file");
         }
 
         Self::fetch(network_name)
