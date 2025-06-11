@@ -26,12 +26,9 @@ fn dup_fd(raw_fd: RawFd) -> io::Result<OwnedFd> {
 
     let owned_fd = unsafe { OwnedFd::from_raw_fd(dup_fd) };
 
-    let flags = OFlag::from_bits_retain(fcntl::fcntl(owned_fd.as_raw_fd(), FcntlArg::F_GETFL)?);
+    let flags = OFlag::from_bits_retain(fcntl::fcntl(&owned_fd, FcntlArg::F_GETFL)?);
     if !flags.contains(OFlag::O_NONBLOCK) {
-        fcntl::fcntl(
-            owned_fd.as_raw_fd(),
-            FcntlArg::F_SETFL(flags | OFlag::O_NONBLOCK),
-        )?;
+        fcntl::fcntl(&owned_fd, FcntlArg::F_SETFL(flags | OFlag::O_NONBLOCK))?;
     }
 
     Ok(owned_fd)
