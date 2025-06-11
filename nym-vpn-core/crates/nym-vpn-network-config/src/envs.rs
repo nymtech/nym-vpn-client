@@ -109,7 +109,7 @@ impl RegisteredNetworks {
 
                 let default_envs = Self::default();
                 default_envs.write_to_file(config_dir).inspect_err(|err| {
-                    tracing::warn!("Failed to write default envs file: {err}")
+                    tracing::error!("Failed to write default envs file: {err}")
                 })?;
 
                 Ok(default_envs)
