@@ -83,6 +83,10 @@ impl NymNetwork {
                     );
                     Err(e)
                 }
+            })?
+            .write_to_file(config_dir)
+            .inspect_err(|err| {
+                tracing::error!("Failed to write nym network file: {err}");
             })?;
         }
 
