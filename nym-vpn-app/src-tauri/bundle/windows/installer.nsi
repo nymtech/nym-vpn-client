@@ -888,6 +888,7 @@ Section Uninstall
     RmDir /r "$APPDATA\${APPDIR}"
     RmDir /r "$LOCALAPPDATA\${BUNDLEID}"
     RmDir /r "$LOCALAPPDATA\${APPDIR}"
+    RmDir /r "C:\ProgramData\nym-vpnd"
   ${EndIf}
 
   !ifmacrodef NSIS_HOOK_POSTUNINSTALL
