@@ -288,25 +288,25 @@ pub enum Error {
     #[error("failed to get network details")]
     GetNetworkDetails(#[source] nym_validator_client::nym_api::error::NymAPIError),
 
-    #[error("failed to create parent directories for discovery file: {}", path.display())]
+    #[error("failed to create parent directories for discovery file: {path}")]
     CreateParentDirs {
         path: PathBuf,
         source: std::io::Error,
     },
 
-    #[error("failed to open file: {}", path.display())]
+    #[error("failed to open file: {path}")]
     OpenFile {
         path: PathBuf,
         source: std::io::Error,
     },
 
-    #[error("failed to serialize data to file: {}", path.display())]
+    #[error("failed to serialize data to file: {path}")]
     Serialize {
         path: PathBuf,
         source: serde_json::Error,
     },
 
-    #[error("failed to deserialize file: {}", path.display())]
+    #[error("failed to deserialize file: {path}")]
     Deserialize {
         path: PathBuf,
         source: serde_json::Error,

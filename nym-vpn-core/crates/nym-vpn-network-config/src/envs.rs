@@ -86,7 +86,7 @@ impl RegisteredNetworks {
 
     fn write_to_file(&self, config_dir: &Path) -> Result<()> {
         let path = Self::path(config_dir);
-        tracing::debug!("Writing registered networks to file: {:?}", path.display());
+        tracing::debug!("Writing registered networks to file: {}", path.display());
 
         crate::serialization::serialize_to_json_file(&path, self)
     }
