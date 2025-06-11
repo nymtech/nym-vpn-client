@@ -888,6 +888,12 @@ Section Uninstall
     RmDir /r "$APPDATA\${APPDIR}"
     RmDir /r "$LOCALAPPDATA\${BUNDLEID}"
     RmDir /r "$LOCALAPPDATA\${APPDIR}"
+
+    ; Switch context to point to <DRIVE>:\ProgramData
+    SetShellVarContext all
+    RmDir /r "$APPDATA\nym-vpnd"
+    ; Revert to current context just in case
+    SetShellVarContext current
   ${EndIf}
 
   !ifmacrodef NSIS_HOOK_POSTUNINSTALL
