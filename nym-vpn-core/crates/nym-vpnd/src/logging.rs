@@ -3,6 +3,7 @@
 
 use std::{path::PathBuf, sync::Arc};
 
+use sentry::integrations::tracing as sentry_tracing;
 use tokio::sync::{Mutex, mpsc};
 use tokio_util::sync::CancellationToken;
 use tracing::Level;
@@ -19,6 +20,7 @@ pub struct Options {
     pub verbosity_level: Level,
     pub enable_file_log: bool,
     pub enable_stdout_log: bool,
+    pub sentry: bool,
 }
 
 static INFO_CRATES: &[&str; 12] = &[
@@ -260,6 +262,15 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
             .with_span_events(FmtSpan::CLOSE)
             .with_ansi(true);
         layers.push(console_layer.boxed());
+    }
+
+    if options.sentry {
+        let layer = sentry_tracing::layer().event_filter(|md| match md.level() {
+            &Level::ERROR | &Level::WARN => sentry_tracing::EventFilter::Event,
+            &Level::TRACE => sentry_tracing::EventFilter::Ignore,
+            _ => sentry_tracing::EventFilter::Breadcrumb,
+        });
+        layers.push(layer.boxed());
     }
 
     tracing_subscriber::registry()

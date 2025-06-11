@@ -109,6 +109,8 @@ jobs:
 
       - name: Build nym-vpn-core
         working-directory: nym-vpn-core
+        env:
+          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo build --${{ env.CARGO_TARGET }}
 

@@ -14,6 +14,7 @@ mod util;
 use clap::Parser;
 use logging::{LogFileRemover, LoggingSetup};
 use nym_vpn_network_config::Network;
+use sentry::ClientInitGuard;
 use service::NymVpnService;
 use tokio::sync::{broadcast, mpsc};
 use tokio_util::sync::CancellationToken;
@@ -29,11 +30,13 @@ fn main() -> anyhow::Result<()> {
 #[cfg(unix)]
 fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
+    let _sentry_guard = init_sentry();
 
     let options = logging::Options {
         verbosity_level: args.verbosity_level(),
         enable_file_log: args.command.run_as_service,
         enable_stdout_log: true,
+        sentry: _sentry_guard.is_some(),
     };
     let logging_setup = logging::setup_logging(options);
     let global_config_file = setup_global_config(args.network.as_deref())?;
@@ -44,6 +47,8 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
 #[cfg(windows)]
 fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
+    let _sentry_guard = init_sentry();
+
     if args.command.install {
         println!(
             "Processing request to install {} as a service...",
@@ -73,6 +78,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             verbosity_level: args.verbosity_level(),
             enable_file_log: true,
             enable_stdout_log: false,
+            sentry: _sentry_guard.is_some(),
         });
         let worker_guard = service::windows_service::start(
             service::windows_service::ServiceNetworkConfig {
@@ -87,6 +93,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             verbosity_level: args.verbosity_level(),
             enable_file_log: false,
             enable_stdout_log: true,
+            sentry: _sentry_guard.is_some(),
         };
         let logging_setup = logging::setup_logging(options);
         let global_config_file = setup_global_config(args.network.as_deref())?;
@@ -184,4 +191,24 @@ async fn run_inner_async(
     shutdown_join_set.shutdown().await;
 
     Ok(worker_guard)
+}
+
+fn init_sentry() -> Option<ClientInitGuard> {
+    if let Some(dsn) = environment::sentry_dsn() {
+        println!("sentry monitoring enabled");
+        let guard = sentry::init((
+            dsn,
+            sentry::ClientOptions {
+                release: sentry::release_name!(),
+                send_default_pii: false,
+                sample_rate: 1.0,
+                traces_sample_rate: 1.0,
+                enable_logs: true,
+                ..Default::default()
+            },
+        ));
+        Some(guard)
+    } else {
+        None
+    }
 }
