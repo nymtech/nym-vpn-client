@@ -28,7 +28,7 @@ impl NymNetwork {
     pub(super) fn path_is_stale(config_dir: &Path, network_name: &str) -> Result<bool> {
         let path = Self::path(config_dir, network_name);
 
-        crate::filetime::is_file_stale(&path, MAX_FILE_AGE)
+        crate::filetime::is_stale_file(&path, MAX_FILE_AGE)
             .map_err(|source| Error::GetFileStaleness { path, source })
     }
 

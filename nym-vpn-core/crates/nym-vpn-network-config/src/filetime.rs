@@ -17,7 +17,7 @@ pub enum FileTimeError {
 
 pub type Result<T, E = FileTimeError> = std::result::Result<T, E>;
 
-pub fn is_file_stale(file_path: impl AsRef<Path>, max_age: Duration) -> Result<bool> {
+pub fn is_stale_file(file_path: impl AsRef<Path>, max_age: Duration) -> Result<bool> {
     Ok(match time_since_modification(file_path)? {
         Some(elapsed) => elapsed > max_age,
         None => true, // If the file does not exist, consider it stale
