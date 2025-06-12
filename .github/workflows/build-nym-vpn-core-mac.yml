@@ -19,7 +19,7 @@ jobs:
 
   build-mac:
     needs: build-wireguard-go-mac
-    runs-on: macos-15
+    runs-on: custom-macos-15
     outputs:
       UPLOAD_DIR_MAC: ${{ env.UPLOAD_DIR_MAC }}
     steps:
@@ -90,13 +90,13 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.WG_GO_LIB_PATH }}
 
-      - name: Build nym-vpn-core (native)
+      - name: Build nym-vpn-core (aarch64)
         working-directory: nym-vpn-core
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          cargo build -p nym-vpnc -p nym-gateway-probe --${{ env.CARGO_TARGET }}
+          cargo build -p nym-vpnc --target aarch64-apple-darwin --release
           ls -la target/release/ || true
 
       - name: Build nym-vpn-core (x86_64)
@@ -105,7 +105,7 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          cargo build -p nym-vpnc --${{ env.CARGO_TARGET }} --target x86_64-apple-darwin
+          cargo build -p nym-vpnc --target x86_64-apple-darwin --release
           ls -la target/x86_64-apple-darwin/release/ || true
 
       - name: Build nym-vpnd with extra flags (native)
@@ -114,7 +114,7 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }} -C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Launchd.plist"
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          cargo build -p nym-vpnd --${{ env.CARGO_TARGET }}
+          cargo build -p nym-vpnd --target aarch64-apple-darwin --release
           ls -la target/release/ || true
 
       - name: Build nym-vpnd with extra flags (x86_64)
@@ -123,20 +123,20 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }} -C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Launchd.plist"
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          cargo build -p nym-vpnd --${{ env.CARGO_TARGET }} --target x86_64-apple-darwin
+          cargo build -p nym-vpnd --target x86_64-apple-darwin --release
           ls -la target/x86_64-apple-darwin/release/ || true
 
       - name: Create universal binaries and prepare for upload
         env:
-          SRC_NATIVE_BINARY: nym-vpn-core/target/${{ env.CARGO_TARGET }}/
-          SRC_X86_64_BINARY: nym-vpn-core/target/x86_64-apple-darwin/${{ env.CARGO_TARGET }}/
+          SRC_NATIVE_BINARY: nym-vpn-core/target/aarch64-apple-darwin/release
+          SRC_X86_64_BINARY: nym-vpn-core/target/x86_64-apple-darwin/release
         run: |
           mkdir -p ${{ env.UPLOAD_DIR_MAC }}
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnc ${{ env.SRC_NATIVE_BINARY }}/nym-vpnc ${{ env.SRC_X86_64_BINARY }}/nym-vpnc
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnd ${{ env.SRC_NATIVE_BINARY }}/nym-vpnd ${{ env.SRC_X86_64_BINARY }}/nym-vpnd
           #lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.SRC_X86_64_BINARY }}/nym-gateway-probe
           # Native only for nym-gateway-probe
-          cp ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe
+          # cp ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe
 
       - name: Compile protobuf for swift (vpn)
         working-directory: proto/nym
