@@ -12,7 +12,6 @@ on:
 env:
   IPHONEOS_DEPLOYMENT_TARGET: 16.0
   CARGO_TERM_COLOR: always
-  CARGO_TARGET: release
   WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib
   WG_GO_LIB_NAME: wireguard-go_ios_universal
   UPLOAD_DIR_IOS: ios_artifacts
@@ -23,7 +22,7 @@ jobs:
 
   build-ios:
     needs: build-wireguard-go-ios
-    runs-on: macos-15
+    runs-on: custom-macos-15
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
@@ -73,7 +72,7 @@ jobs:
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
-          cargo swift package -p ios -n NymVpnLib --${{ env.CARGO_TARGET }} --accept-all
+          cargo swift package -p ios -n NymVpnLib --target aarch64-apple-ios --accept-all --release
           ls -la ../target/universal-ios/release/ || true
 
       - name: Generate uniffi
