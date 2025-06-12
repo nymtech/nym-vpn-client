@@ -164,7 +164,7 @@ impl Discovery {
             }
             Err(e) => {
                 tracing::error!("Failed to read discovery file: {e}");
-                return Err(e);
+                Err(e)
             }
         }
     }

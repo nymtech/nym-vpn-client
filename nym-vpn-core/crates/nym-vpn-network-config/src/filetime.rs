@@ -38,7 +38,7 @@ fn time_since_modification(file_path: impl AsRef<Path>) -> Result<Option<Duratio
             Ok(Some(elapsed))
         }
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            return Ok(None);
+            Ok(None)
         }
         Err(e) => Err(FileTimeError::GetMetadata(e)),
     }

@@ -119,14 +119,7 @@ impl From<Vec<SystemMessage>> for SystemMessages {
 impl From<Vec<SystemMessageResponse>> for SystemMessages {
     fn from(responses: Vec<SystemMessageResponse>) -> Self {
         Self {
-            messages: responses
-                .into_iter()
-                .filter_map(|m| {
-                    SystemMessage::try_from(m)
-                        .inspect_err(|err| tracing::warn!("Failed to parse system message: {err}"))
-                        .ok()
-                })
-                .collect(),
+            messages: responses.into_iter().map(SystemMessage::from).collect(),
         }
     }
 }
