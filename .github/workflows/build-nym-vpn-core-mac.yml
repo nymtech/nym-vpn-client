@@ -19,7 +19,7 @@ jobs:
 
   build-mac:
     needs: build-wireguard-go-mac
-    runs-on: macos-15
+    runs-on: custom-macos-15
     outputs:
       UPLOAD_DIR_MAC: ${{ env.UPLOAD_DIR_MAC }}
     steps:
@@ -90,13 +90,13 @@ jobs:
           name: ${{ env.WG_GO_LIB_NAME }}
           path: ${{ env.WG_GO_LIB_PATH }}
 
-      - name: Build nym-vpn-core (native)
+      - name: Build nym-vpn-core (aarch64)
         working-directory: nym-vpn-core
         env:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          cargo build -p nym-vpnc -p nym-gateway-probe --${{ env.CARGO_TARGET }}
+          cargo build -p nym-vpnc -p nym-gateway-probe --target aarch64-apple-darwin
           ls -la target/release/ || true
 
       - name: Build nym-vpn-core (x86_64)
