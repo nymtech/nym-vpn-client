@@ -86,9 +86,9 @@ and click on the _Run workflow_ button
 7. For stable releases, in the "nym-vpn-core release tag" input, enter the GH core release \
    tag that this app release targets, e.g. `nym-vpn-core-v1.2.3` \
    For dev releases, instead you can use any core dev builds using direct link to the Windows zip archive \
-   just copy the url into the "direct nym-vpn-core artifact URL" input
+   just copy the url into the "direct link" input
 
-   e.g. `https://buildsci.nym.anon/nym-vpn-client/nym-vpn-core/develop/123/nym-vpn-core-v1.2.3-beta.123_windows_x86_64.zip`
+   e.g. `https://.../nym-vpn-core-v1.2.3-beta_windows_x86_64.zip`
 
 8. click the green _Run workflow_ button
 
