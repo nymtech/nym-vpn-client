@@ -325,24 +325,18 @@ pub enum Error {
 impl Error {
     /// Returns true if underlying operation refers to the file not being found.
     pub fn is_file_not_found(&self) -> bool {
-        let error_kind = match self {
-            Self::OpenFile { source, .. } => Some(source.kind()),
-            Self::Deserialize { source, .. } => source.io_error_kind(),
-            _ => None,
-        };
-
-        error_kind == Some(std::io::ErrorKind::NotFound)
+        matches!(self, Self::OpenFile { source, .. } if source.kind() == std::io::ErrorKind::NotFound)
     }
 
     /// Returns true if the error is related to deserialization or file not found.
     pub(crate) fn should_overwrite_file(&self) -> bool {
-        if let Self::Deserialize { source, .. } = self {
-            matches!(
-                source.io_error_kind(),
-                Some(std::io::ErrorKind::NotFound) | None
-            )
-        } else {
-            false
+        match self {
+            Self::OpenFile { source, .. } => source.kind() == std::io::ErrorKind::NotFound,
+            Self::Deserialize { source, .. } => {
+                // everything except i/o error indicates deserialization problem
+                !source.is_io()
+            }
+            _ => false,
         }
     }
 }
