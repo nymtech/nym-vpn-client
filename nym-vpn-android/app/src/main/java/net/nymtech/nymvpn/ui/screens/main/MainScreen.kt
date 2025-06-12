@@ -23,6 +23,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -94,20 +95,11 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	var didAutoStart by remember { mutableStateOf(false) }
 	var showInfoDialog by remember { mutableStateOf(false) }
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
-	var connectionTime: String? by remember { mutableStateOf(null) }
+	val connectionTime by viewModel.connectionTime.collectAsState()
 
 	with(appUiState.managerState) {
-		LaunchedEffect(tunnelState) {
-			while (tunnelState == Tunnel.State.Up && connectionData != null) {
-				connectionData.connectedAt?.let {
-					connectionTime = (System.currentTimeMillis() / 1000L - it).convertSecondsToTimeString()
-					delay(1000)
-				}
-			}
-			connectionTime = null
-		}
-		LaunchedEffect(isNetworkCompatible) {
-			if (!isNetworkCompatible) showCompatibilityDialog = true
+		LaunchedEffect(tunnelState, connectionData?.connectedAt) {
+			viewModel.onTunnelStateChanged(tunnelState, connectionData?.connectedAt)
 		}
 	}
 
