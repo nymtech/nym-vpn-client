@@ -3704,6 +3704,18 @@ dependencies = [
  "cfg-if",
  "cfg_aliases",
  "libc",
+]
+
+[[package]]
+name = "nix"
+version = "0.30.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "74523f3a35e05aba87a1d978330aef40f67b0304ac79c1c00b294c9830543db6"
+dependencies = [
+ "bitflags 2.9.1",
+ "cfg-if",
+ "cfg_aliases",
+ "libc",
  "memoffset",
 ]
 
@@ -3854,7 +3866,7 @@ version = "1.11.0-beta"
 dependencies = [
  "block2",
  "dispatch2",
- "nix",
+ "nix 0.30.1",
  "objc2",
  "objc2-foundation",
  "thiserror 2.0.12",
@@ -4288,7 +4300,7 @@ dependencies = [
  "duct",
  "futures",
  "inotify",
- "nix",
+ "nix 0.30.1",
  "nym-common",
  "nym-dbus",
  "nym-routing",
@@ -4349,7 +4361,7 @@ dependencies = [
  "log",
  "mnl",
  "nftnl",
- "nix",
+ "nix 0.30.1",
  "nym-common",
  "nym-dns",
  "nym-platform-metadata",
@@ -4817,7 +4829,7 @@ dependencies = [
  "netlink-packet-core",
  "netlink-packet-route",
  "netlink-sys",
- "nix",
+ "nix 0.30.1",
  "nym-common",
  "nym-windows",
  "rtnetlink",
@@ -5370,7 +5382,7 @@ dependencies = [
  "itertools 0.13.0",
  "lazy_static",
  "log",
- "nix",
+ "nix 0.30.1",
  "nym-apple-network",
  "nym-authenticator-client",
  "nym-bandwidth-controller",
@@ -6757,7 +6769,7 @@ dependencies = [
  "netlink-packet-utils",
  "netlink-proto",
  "netlink-sys",
- "nix",
+ "nix 0.29.0",
  "thiserror 1.0.69",
  "tokio",
 ]
