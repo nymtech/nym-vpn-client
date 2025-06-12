@@ -3862,7 +3862,7 @@ dependencies = [
 
 [[package]]
 name = "nym-apple-network"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "block2",
  "dispatch2",
@@ -3874,7 +3874,7 @@ dependencies = [
 
 [[package]]
 name = "nym-authenticator-client"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "bincode",
  "futures",
@@ -3882,7 +3882,7 @@ dependencies = [
  "nym-common",
  "nym-credentials-interface",
  "nym-crypto",
- "nym-mixnet-client 1.11.0-beta",
+ "nym-mixnet-client 1.12.0-beta",
  "nym-sdk",
  "nym-service-provider-requests-common",
  "nym-wireguard-types",
@@ -4079,7 +4079,7 @@ dependencies = [
 
 [[package]]
 name = "nym-common"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "tracing",
  "tracing-test",
@@ -4125,7 +4125,7 @@ dependencies = [
 
 [[package]]
 name = "nym-connection-monitor"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "bincode",
  "bytes",
@@ -4284,7 +4284,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dbus"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "dbus",
  "libc",
@@ -4295,7 +4295,7 @@ dependencies = [
 
 [[package]]
 name = "nym-dns"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "duct",
  "futures",
@@ -4354,7 +4354,7 @@ dependencies = [
 
 [[package]]
 name = "nym-firewall"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "ipnetwork",
  "libc",
@@ -4414,7 +4414,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-directory"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "futures",
  "itertools 0.13.0",
@@ -4437,7 +4437,7 @@ dependencies = [
 
 [[package]]
 name = "nym-gateway-probe"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -4457,7 +4457,7 @@ dependencies = [
  "nym-gateway-directory",
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
- "nym-mixnet-client 1.11.0-beta",
+ "nym-mixnet-client 1.12.0-beta",
  "nym-sdk",
  "nym-task",
  "nym-wireguard-types",
@@ -4519,7 +4519,7 @@ dependencies = [
 
 [[package]]
 name = "nym-harbour-master-client"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "async-trait",
  "chrono",
@@ -4579,13 +4579,13 @@ dependencies = [
 
 [[package]]
 name = "nym-ip-packet-client"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "bytes",
  "futures",
  "nym-gateway-directory",
  "nym-ip-packet-requests",
- "nym-mixnet-client 1.11.0-beta",
+ "nym-mixnet-client 1.12.0-beta",
  "nym-sdk",
  "thiserror 2.0.12",
  "tokio",
@@ -4614,7 +4614,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "async-stream",
  "hyper-util",
@@ -4628,7 +4628,7 @@ dependencies = [
 
 [[package]]
 name = "nym-macos"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "libc",
  "tracing",
@@ -4660,7 +4660,7 @@ dependencies = [
 
 [[package]]
 name = "nym-mixnet-client"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "nym-sdk",
  "tokio",
@@ -4755,7 +4755,7 @@ dependencies = [
 
 [[package]]
 name = "nym-offline-monitor"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "async-trait",
  "debounced",
@@ -4810,7 +4810,7 @@ dependencies = [
 
 [[package]]
 name = "nym-platform-metadata"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "nym-dbus",
  "objc2-foundation",
@@ -4820,7 +4820,7 @@ dependencies = [
 
 [[package]]
 name = "nym-routing"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "bitflags 2.9.1",
  "futures",
@@ -5303,7 +5303,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-account-controller"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "bincode",
  "futures",
@@ -5339,7 +5339,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-api-client"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "backon",
  "base64-url",
@@ -5367,7 +5367,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "android_logger",
  "async-trait",
@@ -5399,7 +5399,7 @@ dependencies = [
  "nym-ip-packet-client",
  "nym-ip-packet-requests",
  "nym-macos",
- "nym-mixnet-client 1.11.0-beta",
+ "nym-mixnet-client 1.12.0-beta",
  "nym-offline-monitor",
  "nym-routing",
  "nym-sdk",
@@ -5435,7 +5435,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-lib-types"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "nym-bandwidth-controller",
  "nym-connection-monitor",
@@ -5452,7 +5452,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-network-config"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "anyhow",
  "futures-util",
@@ -5474,7 +5474,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "nym-config",
  "nym-gateway-directory",
@@ -5496,7 +5496,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-store"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "async-trait",
  "bip39",
@@ -5515,7 +5515,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnc"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "anyhow",
  "clap",
@@ -5537,7 +5537,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnd"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "anyhow",
  "bip39",
@@ -5587,7 +5587,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpnd-types"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "nym-validator-client",
  "nym-vpn-lib",
@@ -5596,7 +5596,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-gateway-client"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "nym-authenticator-client",
  "nym-authenticator-requests",
@@ -5616,7 +5616,7 @@ dependencies = [
 
 [[package]]
 name = "nym-wg-go"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "base64 0.22.1",
  "hex",
@@ -5632,7 +5632,7 @@ dependencies = [
 
 [[package]]
 name = "nym-windows"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "bitflags 2.9.1",
  "futures",
@@ -8690,7 +8690,7 @@ dependencies = [
 
 [[package]]
 name = "uniffi-bindgen"
-version = "1.11.0-beta"
+version = "1.12.0-beta"
 dependencies = [
  "uniffi",
 ]
