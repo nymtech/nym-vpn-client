@@ -3,12 +3,13 @@
 
 use std::{path::PathBuf, time::Duration};
 
+use nym_common::trace_err_chain;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use crate::{Network, NymNetwork, envs::RegisteredNetworks};
+use crate::{Network, NymNetwork, Result, discovery::Discovery, envs::RegisteredNetworks};
 
-use super::discovery::Discovery;
+const CHECK_INTERVAL: Duration = Duration::from_secs(60 * 60);
 
 struct FileRefresher {
     config_path: PathBuf,
@@ -32,7 +33,7 @@ impl FileRefresher {
         }
     }
 
-    async fn refresh_discovery_file(&self) -> anyhow::Result<Option<Discovery>> {
+    async fn refresh_discovery_file(&self) -> Result<Option<Discovery>> {
         if Discovery::path_is_stale(
             self.config_path.as_path(),
             &self.network.nym_network.network.network_name,
@@ -46,7 +47,7 @@ impl FileRefresher {
         }
     }
 
-    async fn refresh_nym_network_file(&self, discovery: Discovery) -> anyhow::Result<()> {
+    async fn refresh_nym_network_file(&self, discovery: Discovery) -> Result<()> {
         if NymNetwork::path_is_stale(
             self.config_path.as_path(),
             &self.network.nym_network.network.network_name,
@@ -57,13 +58,12 @@ impl FileRefresher {
         Ok(())
     }
 
-    async fn refresh_envs_file(&self) -> anyhow::Result<()> {
+    async fn refresh_envs_file(&self) -> Result<()> {
         RegisteredNetworks::try_update_file(&self.config_path).await
     }
 
     async fn run(self) {
-        // Check once an hour
-        let mut interval = tokio::time::interval(Duration::from_secs(60 * 60));
+        let mut interval = tokio::time::interval(CHECK_INTERVAL);
         let mut checked_consistency = false;
 
         self.cancel_token
@@ -88,16 +88,16 @@ impl FileRefresher {
                     interval.tick().await;
 
                     if let Err(err) = self.refresh_envs_file().await {
-                        tracing::error!("Failed to refresh envs file: {:?}", err);
+                        trace_err_chain!(err, "Failed to refresh envs file");
                     }
 
                     match self.refresh_discovery_file().await {
                         Err(err) => {
-                            tracing::error!("Failed to refresh discovery file: {:?}", err)
+                            trace_err_chain!(err, "Failed to refresh discovery file");
                         }
                         Ok(Some(discovery)) => {
                             if let Err(err) = self.refresh_nym_network_file(discovery).await {
-                                tracing::error!("Failed to refresh nym network file: {:?}", err);
+                                trace_err_chain!(err, "Failed to refresh nym network file");
                             }
                         }
                         _ => {}

@@ -3,12 +3,12 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::Context;
+use nym_common::trace_err_chain;
 use nym_config::defaults::NymNetworkDetails;
 
 use crate::MAX_FILE_AGE;
 
-use super::{NETWORKS_SUBDIR, discovery::Discovery};
+use super::{Error, NETWORKS_SUBDIR, Result, discovery::Discovery};
 
 #[derive(Clone, Debug, Default, serde::Serialize, serde::Deserialize)]
 pub struct NymNetwork {
@@ -26,71 +26,60 @@ impl NymNetwork {
             .join(format!("{network_name}.json"))
     }
 
-    pub(super) fn path_is_stale(config_dir: &Path, network_name: &str) -> anyhow::Result<bool> {
-        if let Some(age) = crate::util::get_age_of_file(&Self::path(config_dir, network_name))? {
-            Ok(age > MAX_FILE_AGE)
-        } else {
-            Ok(true)
-        }
+    pub(super) fn path_is_stale(config_dir: &Path, network_name: &str) -> Result<bool> {
+        let path = Self::path(config_dir, network_name);
+
+        crate::filetime::is_stale_file(&path, MAX_FILE_AGE)
+            .map_err(|source| Error::GetFileStaleness { path, source })
     }
 
-    pub(super) fn read_from_file(config_dir: &Path, network_name: &str) -> anyhow::Result<Self> {
+    pub(super) fn read_from_file(config_dir: &Path, network_name: &str) -> Result<Self> {
         let path = Self::path(config_dir, network_name);
         tracing::debug!("Reading network details from: {}", path.display());
-        let file_str = std::fs::read_to_string(path)?;
-        let network: NymNetworkDetails = serde_json::from_str(&file_str)?;
-        // resolve_nym_network_details(&mut network);
+
+        let network: NymNetworkDetails = crate::serialization::deserialize_from_json_file(path)?;
+
         Ok(Self { network })
     }
 
-    pub(super) fn write_to_file(&self, config_dir: &Path) -> anyhow::Result<()> {
+    pub(super) fn write_to_file(&self, config_dir: &Path) -> Result<()> {
         let network = &self.network;
         let path = Self::path(config_dir, &network.network_name);
 
-        // Create parent directories if they don't exist
-        if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent)
-                .with_context(|| format!("Failed to create parent directories for {path:?}"))?;
-        }
-
-        let file = std::fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&path)
-            .with_context(|| format!("Failed to open network details file at {path:?}"))?;
-
-        serde_json::to_writer_pretty(&file, network)
-            .with_context(|| format!("Failed to write network details file at {path:?}"))?;
-
-        Ok(())
+        crate::serialization::serialize_to_json_file(path, network)
     }
 
-    pub(super) async fn ensure_exists(
-        config_dir: &Path,
-        discovery: &Discovery,
-    ) -> anyhow::Result<Self> {
-        if !tokio::fs::try_exists(Self::path(config_dir, &discovery.network_name)).await? {
-            discovery.fetch_nym_network_details().await.or_else(|e| {
-                if discovery.network_name == "mainnet" {
-                    tracing::warn!(
-                        "Failed to fetch remote nym network file: {e}, creating a default one"
-                    );
-                    Ok(Default::default())
-                } else {
-                    tracing::error!(
-                        "Failed to fetch remote nym network file: {e}, no default one for {} environment", discovery.network_name
-                    );
-                    Err(e)
+    pub(super) async fn ensure_exists(config_dir: &Path, discovery: &Discovery) -> Result<Self> {
+        match Self::read_from_file(config_dir, &discovery.network_name) {
+            Ok(nym_network) => Ok(nym_network),
+            Err(e) if e.should_overwrite_file() => {
+                if !e.is_file_not_found() {
+                    trace_err_chain!(e, "Failed to read nym network file");
                 }
-            })?
-            .write_to_file(config_dir)
-            .inspect_err(|err| {
-                tracing::error!("Failed to write nym network file: {err}");
-            })?;
-        }
 
-        Self::read_from_file(config_dir, &discovery.network_name)
+                let nym_network = discovery.fetch_nym_network_details().await.or_else(|e| {
+                    if discovery.network_name == "mainnet" {
+                        tracing::warn!(
+                            "Failed to fetch remote nym network file: {e}, creating a default one"
+                        );
+                        Ok(Self::default())
+                    } else {
+                        trace_err_chain!(e, "Failed to fetch remote nym network file, no default one for {} environment", discovery.network_name);
+                        Err(e)
+                    }
+                })?;
+
+                nym_network.write_to_file(config_dir).inspect_err(|err| {
+                    trace_err_chain!(err, "Failed to write nym network file");
+                })?;
+
+                Ok(nym_network)
+            }
+            Err(e) => {
+                trace_err_chain!(e, "Failed to read nym network file");
+                Err(e)
+            }
+        }
     }
 
     pub(super) fn export_to_env(&self) {

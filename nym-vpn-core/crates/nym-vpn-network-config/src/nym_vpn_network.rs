@@ -6,9 +6,10 @@ use std::env;
 use nym_config::defaults::{NymNetworkDetails, var_names};
 use url::Url;
 
-use crate::{AccountManagement, ParsedAccountLinks, SystemMessages};
-
-use super::discovery::Discovery;
+use crate::{
+    AccountManagement, ParsedAccountLinks, Result, SystemMessages,
+    account_management::AccountLinksConversionError, discovery::Discovery,
+};
 
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct NymVpnNetwork {
@@ -40,11 +41,24 @@ impl NymVpnNetwork {
         self,
         locale: &str,
         account_id: Option<&str>,
-    ) -> Result<ParsedAccountLinks, anyhow::Error> {
-        self.account_management
-            .ok_or_else(|| anyhow::anyhow!("Account management is not available for this network"))?
+    ) -> Result<ParsedAccountLinks> {
+        let account_management = self
+            .account_management
+            .ok_or(NymVpnNetworkAccountLinksConversionError::Unavailable)?;
+
+        Ok(account_management
             .try_into_parsed_links(locale, account_id)
+            .map_err(NymVpnNetworkAccountLinksConversionError::Conversion)?)
     }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum NymVpnNetworkAccountLinksConversionError {
+    #[error("account management is not available for this network")]
+    Unavailable,
+
+    #[error(transparent)]
+    Conversion(AccountLinksConversionError),
 }
 
 impl From<Discovery> for NymVpnNetwork {
@@ -57,15 +71,25 @@ impl From<Discovery> for NymVpnNetwork {
     }
 }
 
+#[derive(Debug, thiserror::Error)]
+pub enum NymVpnNetworkFromDetailsError {
+    #[error("Nym vpn api url is missing in the network details")]
+    NymVpnApiUrlMissing,
+
+    #[error("Failed to parse Nym VPN API URL")]
+    ParseNymVpnApiUrlError(#[source] url::ParseError),
+}
+
 impl TryFrom<&NymNetworkDetails> for NymVpnNetwork {
-    type Error = anyhow::Error;
+    type Error = NymVpnNetworkFromDetailsError;
 
     fn try_from(network_details: &NymNetworkDetails) -> Result<Self, Self::Error> {
         let nym_vpn_api_url = network_details
             .nym_vpn_api_url
             .clone()
-            .ok_or_else(|| anyhow::anyhow!("Failed to find NYM_VPN_API_URL in the environment"))?
-            .parse()?;
+            .ok_or(NymVpnNetworkFromDetailsError::NymVpnApiUrlMissing)?
+            .parse()
+            .map_err(NymVpnNetworkFromDetailsError::ParseNymVpnApiUrlError)?;
 
         Ok(Self {
             nym_vpn_api_url,

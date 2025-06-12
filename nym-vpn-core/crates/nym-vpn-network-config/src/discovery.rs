@@ -6,7 +6,7 @@ use std::{
     sync::LazyLock,
 };
 
-use anyhow::Context;
+use nym_common::trace_err_chain;
 use nym_sdk::UserAgent;
 use url::Url;
 
@@ -19,7 +19,8 @@ use nym_api_requests::NymNetworkDetailsResponse;
 use nym_validator_client::nym_api::{Client as NymApiClient, NymApiClientExt};
 
 use crate::{
-    AccountManagement, FeatureFlags, SystemMessages, system_configuration::SystemConfiguration,
+    AccountManagement, Error, FeatureFlags, Result, SystemMessages,
+    system_configuration::SystemConfiguration,
 };
 
 use super::{MAX_FILE_AGE, NETWORKS_SUBDIR, nym_network::NymNetwork};
@@ -84,141 +85,146 @@ impl Discovery {
             .join(format!("{network_name}_{DISCOVERY_FILE}"))
     }
 
-    pub(super) fn path_is_stale(config_dir: &Path, network_name: &str) -> anyhow::Result<bool> {
-        if let Some(age) = crate::util::get_age_of_file(&Self::path(config_dir, network_name))? {
-            Ok(age > MAX_FILE_AGE)
+    pub(super) fn path_is_stale(config_dir: &Path, network_name: &str) -> Result<bool> {
+        let path = Self::path(config_dir, network_name);
+
+        crate::filetime::is_stale_file(&path, MAX_FILE_AGE)
+            .map_err(|source| Error::GetFileStaleness { path, source })
+    }
+
+    pub async fn fetch(network_name: &str) -> Result<Self> {
+        // allow panic because a broken bootstrap url means everything will fail anyways.
+        let default_url = DEFAULT_VPN_API_URL.clone();
+        let client =
+            BootstrapVpnApiClient::new(default_url).map_err(Error::CreateBootstrapApiClient)?;
+
+        tracing::debug!("Fetching nym network discovery");
+        let discovery = client
+            .get_wellknown_discovery(network_name)
+            .await
+            .map_err(Error::GetWellKnownDiscovery)?;
+
+        tracing::trace!("Discovery response: {:#?}", discovery);
+        if discovery.network_name == network_name {
+            tracing::trace!("Fetched nym network discovery: {:#?}", discovery);
+            Self::try_from(discovery).map_err(Error::ConvertWellKnownDiscovery)
         } else {
-            Ok(true)
+            Err(Error::NetworkNameMismatch {
+                expected: network_name.to_owned(),
+                actual: discovery.network_name.clone(),
+            })
         }
     }
 
-    pub async fn fetch(network_name: &str) -> anyhow::Result<Self> {
-        // allow panic because a broken bootstrap url means everything will fail anyways.
-        let default_url = DEFAULT_VPN_API_URL.clone();
-        let client = BootstrapVpnApiClient::new(default_url)?;
-
-        tracing::debug!("Fetching nym network discovery");
-        let discovery = client.get_wellknown_discovery(network_name).await?;
-
-        tracing::debug!("Discovery response: {:#?}", discovery);
-        anyhow::ensure!(
-            discovery.network_name == network_name,
-            "Network name mismatch between requested and fetched discovery"
-        );
-
-        tracing::debug!("Fetched nym network discovery: {:#?}", discovery);
-        discovery.try_into()
-    }
-
-    pub(super) fn read_from_file(config_dir: &Path, network_name: &str) -> anyhow::Result<Self> {
+    pub(super) fn read_from_file(config_dir: &Path, network_name: &str) -> Result<Self> {
         let path = Self::path(config_dir, network_name);
         tracing::debug!("Reading discovery file from: {}", path.display());
 
-        let file_str = std::fs::read_to_string(path)?;
-        let network: Discovery = serde_json::from_str(&file_str)?;
-        Ok(network)
+        crate::serialization::deserialize_from_json_file(path)
     }
 
-    pub(super) fn write_to_file(&self, config_dir: &Path) -> anyhow::Result<()> {
+    pub(super) fn write_to_file(&self, config_dir: &Path) -> Result<()> {
         let path = Self::path(config_dir, &self.network_name);
         tracing::debug!("Writing discovery file to: {}", path.display());
 
-        // Create parent directories if they don't exist
-        if let Some(parent) = path.parent() {
-            std::fs::create_dir_all(parent)
-                .with_context(|| format!("Failed to create parent directories for {path:?}"))?;
-        }
-
-        let file = std::fs::OpenOptions::new()
-            .write(true)
-            .create(true)
-            .truncate(true)
-            .open(&path)
-            .with_context(|| format!("Failed to open discovery file at {path:?}"))?;
-
-        serde_json::to_writer_pretty(&file, self)
-            .with_context(|| format!("Failed to write discovery file at {path:?}"))?;
-
-        Ok(())
+        crate::serialization::serialize_to_json_file(path, self)
     }
 
-    pub(super) async fn ensure_exists(
-        config_dir: &Path,
-        network_name: &str,
-    ) -> anyhow::Result<Self> {
-        let path = Self::path(config_dir, network_name);
-
-        if tokio::fs::try_exists(&path).await? {
-            match Self::read_from_file(config_dir, network_name) {
-                Ok(discovery) => {
-                    return Ok(discovery);
-                }
-                Err(e) => {
-                    tracing::error!("Failed to read discovery file: {e}");
-                    tracing::info!("Discovery file is corrupt, removing it");
-
-                    if let Err(e) = tokio::fs::remove_file(path).await {
-                        tracing::warn!("Failed to remove corrupt discovery file: {e}");
-                    }
-                }
-            }
-        } else {
-            tracing::info!("No discovery file found, creating a new discovery file");
-        }
-
-        Self::fetch(network_name)
-            .await
-            .or_else(|e| {
-                let default_discovery = if network_name == "mainnet" {
-                    Self::default_mainnet()
-                }  else if network_name == "sandbox" {
-                    Self::default_sandbox()
-                } else if network_name == "canary" {
-                    Self::default_canary()
+    pub(super) async fn ensure_exists(config_dir: &Path, network_name: &str) -> Result<Self> {
+        match Self::read_from_file(config_dir, network_name) {
+            Ok(discovery) => Ok(discovery),
+            Err(e) if e.should_overwrite_file() => {
+                if e.is_file_not_found() {
+                    tracing::debug!("No discovery file found, creating a new discovery file");
                 } else {
-                    tracing::error!(
-                        "Failed to fetch remote discovery file: {e}, no default one for {network_name} environment"
-                    );
-                    return Err(e);
-                };
+                    trace_err_chain!(e, "Failed to read discovery file");
+                }
 
-                tracing::warn!(
-                    "Failed to fetch remote discovery file: {e}, creating a default one"
-                );
+                let discovery = Self::fetch(network_name).await.or_else(|e| {
+                    match Self::default_discovery(network_name) {
+                        Some(default_discovery) => {
+                            tracing::warn!(
+                                "Failed to fetch remote discovery file: {e}, creating a default one"
+                            );
+                            Ok(default_discovery)
+                        }
+                        None => {
+                            tracing::error!(
+                                "No default discovery available for {network_name} environment"
+                            );
+                            Err(e)
+                        }
+                    }
+                })?;
 
-                Ok(default_discovery)
-            })?
-            .write_to_file(config_dir)
-            .inspect_err(|err| tracing::warn!("Failed to write discovery file: {err}"))?;
-        Self::read_from_file(config_dir, network_name)
+                discovery.write_to_file(config_dir).inspect_err(|err| {
+                    trace_err_chain!(err, "Failed to write discovery file");
+                })?;
+
+                Ok(discovery)
+            }
+            Err(e) => {
+                trace_err_chain!(e, "Failed to read discovery file");
+                Err(e)
+            }
+        }
     }
 
-    pub async fn fetch_nym_network_details(&self) -> anyhow::Result<NymNetwork> {
+    pub async fn fetch_nym_network_details(&self) -> Result<NymNetwork> {
         tracing::debug!("Fetching nym network details");
         let client = NymApiClient::new(self.nym_api_url.clone(), None);
-        let network_details = client.get_network_details().await?;
+        let network_details = client
+            .get_network_details()
+            .await
+            .map_err(Error::GetNetworkDetails)?;
 
-        anyhow::ensure!(
-            network_details.network.network_name == self.network_name,
-            "Network name mismatch between requested and fetched network details"
-        );
-
-        Ok(NymNetwork {
-            network: network_details.network,
-        })
+        if network_details.network.network_name == self.network_name {
+            Ok(NymNetwork {
+                network: network_details.network,
+            })
+        } else {
+            Err(Error::NetworkNameMismatch {
+                expected: self.network_name.clone(),
+                actual: network_details.network.network_name,
+            })
+        }
     }
 
-    pub async fn update_nym_network_file(&self, config_dir: &Path) -> anyhow::Result<()> {
+    pub async fn update_nym_network_file(&self, config_dir: &Path) -> Result<()> {
         self.fetch_nym_network_details()
             .await?
             .write_to_file(config_dir)
     }
+
+    fn default_discovery(network_name: &str) -> Option<Self> {
+        Some(match network_name {
+            "mainnet" => Self::default_mainnet(),
+            "sandbox" => Self::default_sandbox(),
+            "canary" => Self::default_canary(),
+            _ => None?,
+        })
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum DiscoveryFromNymWellknownDiscoveryError {
+    #[error("Failed to parse nym api url: {value}")]
+    ParseNymApiUrl {
+        value: String,
+        source: url::ParseError,
+    },
+
+    #[error("Failed to parse nym vpn api url: {value}")]
+    ParseNymVpnApiUrl {
+        value: String,
+        source: url::ParseError,
+    },
 }
 
 impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
-    type Error = anyhow::Error;
+    type Error = DiscoveryFromNymWellknownDiscoveryError;
 
-    fn try_from(discovery: NymWellknownDiscoveryItemResponse) -> anyhow::Result<Self> {
+    fn try_from(discovery: NymWellknownDiscoveryItemResponse) -> Result<Self, Self::Error> {
         let account_management = discovery.account_management.and_then(|am| {
             AccountManagement::try_from(am)
                 .inspect_err(|err| tracing::warn!("Failed to parse account management: {err}"))
@@ -240,10 +246,23 @@ impl TryFrom<NymWellknownDiscoveryItemResponse> for Discovery {
             .map(SystemMessages::from)
             .unwrap_or_default();
 
+        let nym_api_url = discovery.nym_api_url.parse().map_err(|source| {
+            DiscoveryFromNymWellknownDiscoveryError::ParseNymApiUrl {
+                value: discovery.nym_api_url,
+                source,
+            }
+        })?;
+        let nym_vpn_api_url = discovery.nym_vpn_api_url.parse().map_err(|source| {
+            DiscoveryFromNymWellknownDiscoveryError::ParseNymVpnApiUrl {
+                value: discovery.nym_vpn_api_url,
+                source,
+            }
+        })?;
+
         Ok(Self {
             network_name: discovery.network_name,
-            nym_api_url: discovery.nym_api_url.parse()?,
-            nym_vpn_api_url: discovery.nym_vpn_api_url.parse()?,
+            nym_api_url,
+            nym_vpn_api_url,
             account_management,
             feature_flags,
             system_configuration,
@@ -263,24 +282,25 @@ fn empty_user_agent() -> UserAgent {
 
 pub(crate) async fn fetch_nym_network_details(
     nym_api_url: Url,
-) -> anyhow::Result<NymNetworkDetailsResponse> {
+) -> Result<NymNetworkDetailsResponse> {
     tracing::debug!("Fetching nym network details");
     let client = NymApiClient::new(nym_api_url, None);
 
     client
         .get_network_details()
         .await
-        .with_context(|| "Discovery endpoint returned error response".to_owned())
+        .map_err(Error::GetNetworkDetails)
 }
 
 pub(crate) async fn fetch_nym_vpn_network_details(
     nym_vpn_api_url: Url,
-) -> anyhow::Result<NymWellknownDiscoveryItem> {
+) -> Result<NymWellknownDiscoveryItem> {
     tracing::debug!("Fetching nym vpn network details");
-    VpnApiClient::new(nym_vpn_api_url, empty_user_agent())?
+    VpnApiClient::new(nym_vpn_api_url, empty_user_agent())
+        .map_err(Error::CreateVpnApiClient)?
         .get_wellknown_current_env()
         .await
-        .with_context(|| "Discovery endpoint returned error response".to_owned())
+        .map_err(Error::GetWellKnownCurrentEnv)
 }
 
 #[cfg(test)]

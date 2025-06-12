@@ -8,11 +8,12 @@ pub mod system_messages;
 mod account_management;
 mod discovery;
 mod envs;
+mod filetime;
 mod nym_network;
 mod nym_vpn_network;
 mod refresh;
+mod serialization;
 mod system_configuration;
-mod util;
 
 pub use account_management::{AccountManagement, ParsedAccountLinks};
 pub use feature_flags::FeatureFlags;
@@ -31,13 +32,22 @@ use nym_config::defaults::NymNetworkDetails;
 use tokio::join;
 use url::Url;
 
-use std::{fmt::Debug, path::Path, str::FromStr, time::Duration};
+use std::{
+    fmt::Debug,
+    path::{Path, PathBuf},
+    str::FromStr,
+    time::Duration,
+};
+
+use crate::{
+    discovery::DiscoveryFromNymWellknownDiscoveryError,
+    nym_vpn_network::{NymVpnNetworkAccountLinksConversionError, NymVpnNetworkFromDetailsError},
+};
 
 const NETWORKS_SUBDIR: &str = "networks";
 
 // Refresh the discovery and network details files periodically
 const MAX_FILE_AGE: Duration = Duration::from_secs(60 * 60 * 24);
-// const MAX_FILE_AGE: Duration = Duration::from_secs(60);
 
 #[derive(Clone, Debug)]
 pub struct Network {
@@ -53,7 +63,6 @@ pub struct Network {
 impl Network {
     pub fn mainnet_default() -> Option<Self> {
         let network_details = NymNetworkDetails::new_mainnet();
-        // resolve_nym_network_details(&mut network_details);
         let nym_network = NymNetwork::new(network_details.clone());
         let nyxd_url = nym_network
             .network
@@ -86,15 +95,15 @@ impl Network {
 
     // Query the network name for both urls and check that it matches
     // TODO: integrate with validator-client and/or nym-vpn-api-client
-    pub async fn check_consistency(&self) -> anyhow::Result<bool> {
+    pub async fn check_consistency(&self) -> Result<bool> {
         tracing::debug!("Checking network consistency");
-        let nym_api_url = self
+        let endpoint = self
             .nym_network
             .network
             .endpoints
             .first()
-            .and_then(|v| v.api_url())
-            .ok_or(anyhow::anyhow!("No endpoints found"))?;
+            .ok_or(Error::NoEndpointsFound)?;
+        let nym_api_url = endpoint.api_url().ok_or(Error::NoApiUrlFound)?;
         let network_name = discovery::fetch_nym_network_details(nym_api_url)
             .map(|resp| resp.map(|d| d.network.network_name));
 
@@ -169,22 +178,22 @@ impl Network {
     }
 }
 
-pub async fn discover_networks(config_path: &Path) -> anyhow::Result<RegisteredNetworks> {
+pub async fn discover_networks(config_path: &Path) -> Result<RegisteredNetworks> {
     RegisteredNetworks::ensure_exists(config_path).await
 }
 
-pub async fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Result<Network> {
-    tracing::trace!(
-        "Discovering network details: config_path={:?}, network_name={}",
-        config_path,
+pub async fn discover_env(config_path: &Path, network_name: &str) -> Result<Network> {
+    tracing::debug!(
+        "Discovering network details: config_path={}, network_name={}",
+        config_path.display(),
         network_name
     );
 
     // Lookup network discovery to bootstrap
     let discovery = Discovery::ensure_exists(config_path, network_name).await?;
-    tracing::debug!("Discovery: {:#?}", discovery);
+    tracing::trace!("Discovery: {:#?}", discovery);
 
-    tracing::debug!(
+    tracing::trace!(
         "System messages: {}",
         discovery.system_messages.clone().into_current_messages()
     );
@@ -201,18 +210,13 @@ pub async fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Res
 
     // Using discovery, fetch and setup nym network details
     let nym_network = NymNetwork::ensure_exists(config_path, &discovery).await?;
-    let nyxd_url = nym_network
+    let endpoint = nym_network
         .network
         .endpoints
         .first()
-        .map(|ep| ep.nyxd_url())
-        .ok_or(anyhow::anyhow!("no nyxd endpoint found in nym network"))?;
-    let api_url = nym_network
-        .network
-        .endpoints
-        .first()
-        .and_then(|ep| ep.api_url())
-        .ok_or(anyhow::anyhow!("no nyxd endpoint found in nym network"))?;
+        .ok_or(Error::NoEndpointsFound)?;
+    let nyxd_url = endpoint.nyxd_url();
+    let api_url = endpoint.api_url().ok_or(Error::NoApiUrlFound)?;
 
     // Using discovery, setup nym vpn network details
     let nym_vpn_network = NymVpnNetwork::from(discovery);
@@ -227,21 +231,17 @@ pub async fn discover_env(config_path: &Path, network_name: &str) -> anyhow::Res
     })
 }
 
-pub fn manual_env(network_details: &NymNetworkDetails) -> anyhow::Result<Network> {
+pub fn manual_env(network_details: &NymNetworkDetails) -> Result<Network> {
     let nym_network = NymNetwork::from(network_details.clone());
-    let nyxd_url = nym_network
+    let endpoint = nym_network
         .network
         .endpoints
         .first()
-        .map(|ep| ep.nyxd_url())
-        .ok_or(anyhow::anyhow!("no nyxd endpoint found in nym network"))?;
-    let api_url = nym_network
-        .network
-        .endpoints
-        .first()
-        .and_then(|ep| ep.api_url())
-        .ok_or(anyhow::anyhow!("no nyxd endpoint found in nym network"))?;
-    let nym_vpn_network = NymVpnNetwork::try_from(network_details)?;
+        .ok_or(Error::NoEndpointsFound)?;
+    let nyxd_url = endpoint.nyxd_url();
+    let api_url = endpoint.api_url().ok_or(Error::NoApiUrlFound)?;
+    let nym_vpn_network =
+        NymVpnNetwork::try_from(network_details).map_err(Error::ConvertNetworkDetailsToNetwork)?;
 
     Ok(Network {
         nym_network,
@@ -252,3 +252,94 @@ pub fn manual_env(network_details: &NymNetworkDetails) -> anyhow::Result<Network
         system_configuration: None,
     })
 }
+
+#[derive(Debug, thiserror::Error)]
+pub enum Error {
+    #[error("no endpoints found in nym network")]
+    NoEndpointsFound,
+
+    #[error("no api url found in nym network")]
+    NoApiUrlFound,
+
+    #[error("network name mismatch between requested and fetched discovery")]
+    NetworkNameMismatch { expected: String, actual: String },
+
+    #[error("failed to obtain file staleness: {path}")]
+    GetFileStaleness {
+        path: PathBuf,
+        source: filetime::FileTimeError,
+    },
+
+    #[error("failed to bootstrap api client")]
+    CreateBootstrapApiClient(#[source] nym_vpn_api_client::VpnApiClientError),
+
+    #[error("failed to create vpn api client")]
+    CreateVpnApiClient(#[source] nym_vpn_api_client::VpnApiClientError),
+
+    #[error("failed to fetch well known current env")]
+    GetWellKnownCurrentEnv(#[source] nym_vpn_api_client::VpnApiClientError),
+
+    #[error("failed to fetch well known envs")]
+    GetWellKnownEnvs(#[source] nym_vpn_api_client::VpnApiClientError),
+
+    #[error("failed to fetch well known discovery")]
+    GetWellKnownDiscovery(#[source] nym_vpn_api_client::VpnApiClientError),
+
+    #[error("failed to get network details")]
+    GetNetworkDetails(#[source] nym_validator_client::nym_api::error::NymAPIError),
+
+    #[error("failed to create parent directories for discovery file: {path}")]
+    CreateParentDirs {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error("failed to open file: {path}")]
+    OpenFile {
+        path: PathBuf,
+        source: std::io::Error,
+    },
+
+    #[error("failed to serialize data to file: {path}")]
+    Serialize {
+        path: PathBuf,
+        source: serde_json::Error,
+    },
+
+    #[error("failed to deserialize file: {path}")]
+    Deserialize {
+        path: PathBuf,
+        source: serde_json::Error,
+    },
+
+    #[error("failed to obtain account links")]
+    GetAccountLinks(#[from] NymVpnNetworkAccountLinksConversionError),
+
+    #[error("failed to convert well known discovery response into discovery")]
+    ConvertWellKnownDiscovery(#[source] DiscoveryFromNymWellknownDiscoveryError),
+
+    #[error("failed to convert nym network details to nym vpn network")]
+    ConvertNetworkDetailsToNetwork(#[source] NymVpnNetworkFromDetailsError),
+}
+
+impl Error {
+    /// Returns true if file cannot be opened because it's not found.
+    pub(crate) fn is_file_not_found(&self) -> bool {
+        matches!(self, Self::OpenFile { source, .. } if source.kind() == std::io::ErrorKind::NotFound)
+    }
+
+    /// Returns true if file contents cannot be deserialized indicating that the file is likely corrupt.
+    /// For convenience, returns true if file does not exist.
+    pub(crate) fn should_overwrite_file(&self) -> bool {
+        match self {
+            Self::OpenFile { source, .. } => source.kind() == std::io::ErrorKind::NotFound,
+            Self::Deserialize { source, .. } => {
+                // everything except i/o error indicates deserialization problem
+                !source.is_io()
+            }
+            _ => false,
+        }
+    }
+}
+
+pub type Result<T, E = Error> = std::result::Result<T, E>;
