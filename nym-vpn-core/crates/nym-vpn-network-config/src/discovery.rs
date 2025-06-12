@@ -106,7 +106,7 @@ impl Discovery {
 
         tracing::trace!("Discovery response: {:#?}", discovery);
         if discovery.network_name == network_name {
-            tracing::debug!("Fetched nym network discovery: {:#?}", discovery);
+            tracing::trace!("Fetched nym network discovery: {:#?}", discovery);
             Self::try_from(discovery).map_err(Error::ConvertWellKnownDiscovery)
         } else {
             Err(Error::NetworkNameMismatch {
