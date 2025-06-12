@@ -323,12 +323,13 @@ pub enum Error {
 }
 
 impl Error {
-    /// Returns true if underlying operation refers to the file not being found.
-    pub fn is_file_not_found(&self) -> bool {
+    /// Returns true if file cannot be opened because it's not found.
+    pub(crate) fn is_file_not_found(&self) -> bool {
         matches!(self, Self::OpenFile { source, .. } if source.kind() == std::io::ErrorKind::NotFound)
     }
 
-    /// Returns true if the error is related to deserialization or file not found.
+    /// Returns true if file contents cannot be deserialized indicating that the file is likely corrupt.
+    /// For convenience, returns true if file does not exist.
     pub(crate) fn should_overwrite_file(&self) -> bool {
         match self {
             Self::OpenFile { source, .. } => source.kind() == std::io::ErrorKind::NotFound,
