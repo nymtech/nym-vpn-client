@@ -191,7 +191,7 @@ pub async fn discover_env(config_path: &Path, network_name: &str) -> Result<Netw
 
     // Lookup network discovery to bootstrap
     let discovery = Discovery::ensure_exists(config_path, network_name).await?;
-    tracing::debug!("Discovery: {:#?}", discovery);
+    tracing::trace!("Discovery: {:#?}", discovery);
 
     tracing::debug!(
         "System messages: {}",
