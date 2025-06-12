@@ -7,14 +7,21 @@ import {
 } from 'react-router';
 import * as Sentry from '@sentry/react';
 import { getVersion } from '@tauri-apps/api/app';
+import { invoke } from '@tauri-apps/api/core';
+import { type as osType } from '@tauri-apps/plugin-os';
+import { OsInfo } from './types';
+
+const os = osType();
 
 async function initSentry() {
   const dsn = import.meta.env.APP_SENTRY_DSN;
   let version = '0.0.0-unknown';
+  let osInfo;
   try {
     version = await getVersion();
+    osInfo = await invoke<OsInfo>('os_info');
   } catch (e) {
-    console.warn('failed to get app version from tauri:', e);
+    console.warn('failed to get system info:', e);
   }
 
   if (!dsn) {
@@ -56,12 +63,19 @@ async function initSentry() {
     // 'development' or 'production'
     environment: import.meta.env.MODE,
 
-    release: `nym-vpn-app@${version}`,
+    release: version,
   });
 
   Sentry.setTag('app_version', version);
-  Sentry.setTag('client_version', 'x');
   Sentry.setUser({ id: 'nym', ip_address: undefined });
+  if (osInfo) {
+    Sentry.setTag('os_long', osInfo?.name || 'unknown');
+    Sentry.setTag('os_kernel', osInfo?.kernel || 'unknown');
+    if (os === 'linux') {
+      Sentry.setTag('gpu', osInfo?.gpu || 'unknown');
+      Sentry.setTag('display_server', osInfo?.displayServer || 'unknown');
+    }
+  }
 }
 
 export default initSentry;

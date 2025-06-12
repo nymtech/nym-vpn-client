@@ -121,3 +121,13 @@ export type DownloadUpdateEvent =
   | { event: 'started'; data: { contentLength: bigint } }
   | { event: 'progress'; data: { chunkLength: number } }
   | { event: 'finished' };
+
+export type GpuType = 'nvidia' | 'amd' | 'intel' | 'unknown';
+export type DisplayServer = 'x11' | 'wayland' | 'unknown';
+export type OsInfo = {
+  name: string;
+  kernel: string | null;
+  arch: string;
+  displayServer?: DisplayServer;
+  gpu?: GpuType;
+};

@@ -10,6 +10,7 @@ use crate::events::AppHandleEventEmitter;
 use crate::grpc::client::{NetworkCompatVersions, VersionCheck};
 use crate::grpc::tunnel::TunnelState;
 use crate::state::SharedAppState;
+use crate::sys::OsInfo;
 use crate::{
     cli::Cli,
     db::{Db, Key},
@@ -38,6 +39,7 @@ pub struct NetworkCompat {
 
 #[derive(Debug, Default)]
 pub struct AppState {
+    pub os_info: OsInfo,
     pub vpnd_status: VpndStatus,
     pub vpnd_info: Option<VpndInfo>,
     pub tunnel: TunnelState,
@@ -48,7 +50,7 @@ pub struct AppState {
 }
 
 impl AppState {
-    pub fn new(db: &Db, config: &AppConfig, cli: &Cli) -> Self {
+    pub fn new(db: &Db, config: &AppConfig, cli: &Cli, os_info: OsInfo) -> Self {
         let vpn_mode = db
             .get_typed::<VpnMode>(Key::VpnMode.as_ref())
             .inspect_err(|e| error!("failed to retrieve vpn mode from db: {e}"))
@@ -62,6 +64,7 @@ impl AppState {
             vpn_mode,
             dns_server,
             credentials_mode: cli.dev_mode,
+            os_info,
             ..Default::default()
         }
     }
