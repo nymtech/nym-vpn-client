@@ -40,6 +40,7 @@ data class LogMessage(
 				)
 			}
 		}
+
 		fun system(message: String): LogMessage {
 			return LogMessage(
 				time = Instant.now().toString(),
@@ -47,7 +48,7 @@ data class LogMessage(
 				tid = "0",
 				level = LogLevel.INFO,
 				tag = "System",
-				message = message
+				message = message,
 			)
 		}
 	}
