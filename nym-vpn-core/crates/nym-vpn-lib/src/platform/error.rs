@@ -53,6 +53,12 @@ pub enum VpnError {
         details: super::uniffi_lib_types::StoreAccountError,
     },
 
+    #[error("failed to register account: {details}")]
+    RegisterAccount {
+        #[from]
+        details: super::uniffi_lib_types::RegisterAccountError,
+    },
+
     #[error("sync account failed: {details}")]
     SyncAccount {
         #[from]
@@ -110,6 +116,7 @@ impl From<AccountCommandError> for VpnError {
                 details: "Unable to proceed with command since we are offline".to_owned(),
             },
             AccountCommandError::StoreAccount(e) => Self::StoreAccount { details: e.into() },
+            AccountCommandError::RegisterAccount(e) => Self::RegisterAccount { details: e.into() },
             AccountCommandError::SyncAccount(e) => Self::SyncAccount { details: e.into() },
             AccountCommandError::SyncDevice(e) => Self::SyncDevice { details: e.into() },
             AccountCommandError::RegisterDevice(e) => Self::RegisterDevice { details: e.into() },

@@ -13,8 +13,8 @@ use nym_vpn_lib_types::{
     ConnectionStatisticsEvent as CoreConnectionStatisticsEvent,
     ForgetAccountError as CoreForgetAccountError, Gateway as CoreGateway,
     MixnetConnectionData as CoreMixnetConnectionData, MixnetEvent as CoreMixnetEvent,
-    NymAddress as CoreNymAddress, RegisterDeviceError as CoreRegisterDeviceError,
-    RequestZkNymError as CoreRequestZkNymError,
+    NymAddress as CoreNymAddress, RegisterAccountError as CoreRegisterAccountError,
+    RegisterDeviceError as CoreRegisterDeviceError, RequestZkNymError as CoreRequestZkNymError,
     RequestZkNymErrorReason as CoreRequestZkNymErrorReason,
     RequestZkNymSuccess as CoreRequestZkNymSuccess, SphinxPacketRates as CoreSphinxPacketRates,
     StoreAccountError as CoreStoreAccountError, SyncAccountError as CoreSyncAccountError,
@@ -268,6 +268,36 @@ impl From<CoreStoreAccountError> for StoreAccountError {
                 Self::UnexpectedResponse(response)
             }
             CoreStoreAccountError::Internal(err) => Self::Internal(err),
+        }
+    }
+}
+
+#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
+pub enum RegisterAccountError {
+    #[error("offline")]
+    Offline,
+    #[error("storage: {0}")]
+    Storage(String),
+    #[error("vpn api endpoint failure: {0}")]
+    GetAccountEndpointFailure(VpnApiError),
+    #[error("unexpected response: {0}")]
+    UnexpectedResponse(String),
+    #[error("internal error: {0}")]
+    Internal(String),
+}
+
+impl From<CoreRegisterAccountError> for RegisterAccountError {
+    fn from(value: CoreRegisterAccountError) -> Self {
+        match value {
+            CoreRegisterAccountError::Offline => Self::Offline,
+            CoreRegisterAccountError::Storage(err) => Self::Storage(err),
+            CoreRegisterAccountError::RegisterAccountEndpointFailure(failure) => {
+                Self::GetAccountEndpointFailure(failure.into())
+            }
+            CoreRegisterAccountError::UnexpectedResponse(response) => {
+                Self::UnexpectedResponse(response)
+            }
+            CoreRegisterAccountError::Internal(err) => Self::Internal(err),
         }
     }
 }

@@ -14,6 +14,21 @@ use crate::network_compatibility::NetworkCompatibility;
 const MAX_PROBE_RESULT_AGE_MINUTES: i64 = 60;
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub struct NymVpnRegisterAccountResponse {
+    pub created_on_utc: String,
+    pub last_updated_utc: String,
+    pub account_addr: String,
+    pub status: NymVpnRegisterAccountStatusResponse,
+    pub payment_token: String,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum NymVpnRegisterAccountStatusResponse {
+    Active,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 pub struct NymVpnAccountResponse {
     pub created_on_utc: String,
     pub last_updated_utc: String,

@@ -6,9 +6,11 @@ use std::{net::SocketAddr, sync::Arc, time::Duration};
 use nym_offline_monitor::{Connectivity, ConnectivityHandle};
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
-    types::{DeviceStatus, VpnApiAccount, VpnApiTimeSynced},
+    types::{DeviceStatus, Platform, VpnApiAccount, VpnApiTimeSynced},
 };
-use nym_vpn_lib_types::{AccountCommandError, ForgetAccountError, StoreAccountError, VpnApiError};
+use nym_vpn_lib_types::{
+    AccountCommandError, ForgetAccountError, RegisterAccountError, StoreAccountError, VpnApiError,
+};
 use nym_vpn_store::{VpnStorage, mnemonic::Mnemonic};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
@@ -17,7 +19,7 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    AccountCommandSender, AccountControllerConfig, AvailableTicketbooks,
+    AccountCommandSender, AccountControllerConfig, AvailableTicketbooks, PaymentResponse,
     commands::{AccountCommand, AccountCommandHandler, AccountCommandResult},
     connectivity::OfflineWatch,
     error::Error,
@@ -286,6 +288,42 @@ where
         }
 
         Ok(())
+    }
+
+    async fn handle_register_account(
+        &self,
+        platform: Platform,
+    ) -> Result<PaymentResponse, RegisterAccountError> {
+        let (account, mnemonic) = VpnApiAccount::random();
+
+        let payment_token = if self.offline_watch.is_online() {
+            self.vpn_api_client
+                .register_account_with_api(&account, platform)
+                .await?
+        } else {
+            tracing::error!("Can't register account with vpn-api as we are offline");
+            return Err(RegisterAccountError::Offline);
+        };
+
+        self.account_storage
+            .store_account(mnemonic.clone())
+            .await
+            .map_err(RegisterAccountError::storage)?;
+
+        self.update_mnemonic_state()
+            .await
+            .map_err(RegisterAccountError::internal)?;
+
+        if self.offline_watch.is_online() {
+            // We don't need to wait for the sync to finish, so queue it up and return
+            self.get_command_sender().background_sync_account_state();
+            self.get_command_sender().background_sync_device_state();
+        }
+
+        Ok(PaymentResponse {
+            payment_token,
+            mnemonic,
+        })
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), ForgetAccountError> {
@@ -802,6 +840,9 @@ where
         match command {
             AccountCommand::StoreAccount(result_tx, mnemonic) => {
                 result_tx.send(self.handle_store_account(mnemonic).await);
+            }
+            AccountCommand::RegisterAccount(result_tx, platform) => {
+                result_tx.send(self.handle_register_account(platform).await);
             }
             AccountCommand::ForgetAccount(result_tx) => {
                 result_tx.send(self.handle_forget_account().await);

@@ -116,6 +116,9 @@ pub enum VpnApiClientError {
 
     #[error("failed to get vpn network Details")]
     FailedToGetVpnNetworkDetails(#[source] HttpClientError<UnexpectedError>),
+
+    #[error("failed to post account")]
+    FailedToPostAccount(#[source] HttpClientError<UnexpectedError>),
 }
 
 pub type Result<T> = std::result::Result<T, VpnApiClientError>;

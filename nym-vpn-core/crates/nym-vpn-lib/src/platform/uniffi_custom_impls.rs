@@ -583,6 +583,21 @@ impl UniffiCustomTypeConverter for PathBuf {
 }
 
 #[derive(uniffi::Record, Clone, Default, PartialEq)]
+pub struct PaymentResponse {
+    pub payment_token: String,
+    pub mnemonic: String,
+}
+
+impl From<nym_vpn_account_controller::PaymentResponse> for PaymentResponse {
+    fn from(value: nym_vpn_account_controller::PaymentResponse) -> Self {
+        PaymentResponse {
+            payment_token: value.payment_token,
+            mnemonic: value.mnemonic.to_string(),
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone, Default, PartialEq)]
 pub struct AccountStateSummary {
     pub mnemonic: Option<MnemonicState>,
     pub account_registered: Option<AccountRegistered>,

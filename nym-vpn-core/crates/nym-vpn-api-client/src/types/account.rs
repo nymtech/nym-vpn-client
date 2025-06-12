@@ -20,15 +20,32 @@ pub struct VpnApiAccount {
 }
 
 impl VpnApiAccount {
-    #[allow(unused)]
-    fn random() -> Self {
+    pub fn random() -> (Self, bip39::Mnemonic) {
         let mnemonic = bip39::Mnemonic::generate(24).unwrap();
         let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
-        Self { wallet }
+        (Self { wallet }, mnemonic)
     }
 
     pub fn id(&self) -> String {
         self.wallet.get_accounts().unwrap()[0].address().to_string()
+    }
+
+    pub fn pub_key(&self) -> String {
+        bs58::encode(
+            self.wallet.get_accounts().unwrap()[0]
+                .public_key()
+                .to_bytes(),
+        )
+        .into_string()
+    }
+
+    pub fn signature_base64(&self) -> String {
+        let account = self.wallet.get_accounts().unwrap();
+        let address = account[0].address();
+        let message = format!("{address}").into_bytes();
+        let signature = self.wallet.sign_raw(address, message).unwrap();
+        let signature_bytes = signature.to_bytes().to_vec();
+        base64_url::encode(&signature_bytes)
     }
 
     pub(crate) fn jwt(&self, remote_time: Option<VpnApiTime>) -> Jwt {

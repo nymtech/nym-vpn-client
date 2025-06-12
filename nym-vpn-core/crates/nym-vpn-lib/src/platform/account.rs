@@ -7,7 +7,10 @@ use nym_common::trace_err_chain;
 use nym_vpn_account_controller::{
     AccountCommandSender, SharedAccountState, shared_state::DeviceState,
 };
-use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
+use nym_vpn_api_client::{
+    response::NymVpnAccountSummaryResponse,
+    types::{Platform, VpnApiAccount},
+};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     keys::KeyStore,
@@ -16,7 +19,7 @@ use nym_vpn_store::{
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use super::uniffi_custom_impls::AccountStateSummary;
+use super::uniffi_custom_impls::{AccountStateSummary, PaymentResponse};
 
 use super::{ACCOUNT_CONTROLLER_HANDLE, error::VpnError};
 
@@ -228,6 +231,20 @@ pub(super) async fn login(mnemonic: &str) -> Result<(), VpnError> {
     let mnemonic = parse_mnemonic(mnemonic).await?;
     get_command_sender().await?.login(mnemonic).await?;
     Ok(())
+}
+
+pub(super) async fn register() -> Result<PaymentResponse, VpnError> {
+    let platform = if cfg!(target_os = "ios") {
+        Platform::Apple
+    } else {
+        Platform::Unspecified
+    };
+    get_command_sender()
+        .await?
+        .register(platform)
+        .await
+        .map(PaymentResponse::from)
+        .map_err(VpnError::from)
 }
 
 pub(super) async fn forget_account() -> Result<(), VpnError> {

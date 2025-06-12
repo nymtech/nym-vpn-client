@@ -4,6 +4,7 @@
 mod account;
 mod device;
 mod gateway;
+mod platform;
 
 #[cfg(test)]
 mod test_fixtures;
@@ -11,5 +12,6 @@ mod test_fixtures;
 pub use account::{VpnApiAccount, VpnApiTime, VpnApiTimeSynced};
 pub use device::{Device, DeviceStatus};
 pub use gateway::{GatewayMinPerformance, GatewayType, ScoreThresholds};
+pub use platform::Platform;
 
 pub use nym_contracts_common::{NaiveFloat, Percent};

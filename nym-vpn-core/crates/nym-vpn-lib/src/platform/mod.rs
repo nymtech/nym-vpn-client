@@ -74,7 +74,7 @@ use crate::{
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
     AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayInfo, GatewayType, Location,
-    NetworkEnvironment, SystemMessage, UserAgent,
+    NetworkEnvironment, PaymentResponse, SystemMessage, UserAgent,
 };
 use uniffi_lib_types::TunnelEvent;
 
@@ -189,6 +189,13 @@ pub fn getAccountLinksRaw(
 #[uniffi::export]
 pub fn login(mnemonic: String) -> Result<(), VpnError> {
     RUNTIME.block_on(account::login(&mnemonic))
+}
+
+/// Generate the account mnemonic locally
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn register() -> Result<PaymentResponse, VpnError> {
+    RUNTIME.block_on(account::register())
 }
 
 /// Store the account mnemonic

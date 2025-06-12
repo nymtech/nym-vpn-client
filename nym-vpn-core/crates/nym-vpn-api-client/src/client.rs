@@ -13,21 +13,21 @@ use url::Url;
 use crate::{
     error::{Result, VpnApiClientError},
     request::{
-        ApplyFreepassRequestBody, CreateSubscriptionKind, CreateSubscriptionRequestBody,
-        RegisterDeviceRequestBody, RequestZkNymRequestBody, UpdateDeviceRequestBody,
-        UpdateDeviceRequestStatus,
+        ApplyFreepassRequestBody, CreateAccountRequestBody, CreateSubscriptionKind,
+        CreateSubscriptionRequestBody, RegisterDeviceRequestBody, RequestZkNymRequestBody,
+        UpdateDeviceRequestBody, UpdateDeviceRequestStatus,
     },
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
         NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnHealthResponse,
-        NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse,
-        NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymResponse,
-        NymWellknownDiscoveryItem, StatusOk,
+        NymVpnRegisterAccountResponse, NymVpnSubscription, NymVpnSubscriptionResponse,
+        NymVpnSubscriptionsResponse, NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost,
+        NymVpnZkNymResponse, NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
     types::{
-        Device, DeviceStatus, GatewayMinPerformance, GatewayType, VpnApiAccount, VpnApiTime,
-        VpnApiTimeSynced,
+        Device, DeviceStatus, GatewayMinPerformance, GatewayType, Platform, VpnApiAccount,
+        VpnApiTime, VpnApiTimeSynced,
     },
 };
 
@@ -281,6 +281,29 @@ impl VpnApiClient {
         Ok(response)
     }
 
+    async fn post_json_with_retry<B, T, K, V, E>(
+        &self,
+        path: PathSegments<'_>,
+        params: Params<'_, K, V>,
+        json_body: &B,
+    ) -> std::result::Result<T, HttpClientError<E>>
+    where
+        for<'a> T: Deserialize<'a>,
+        B: Serialize + ?Sized + Sync,
+        K: AsRef<str> + Sync,
+        V: AsRef<str> + Sync,
+        E: fmt::Display + fmt::Debug + DeserializeOwned,
+    {
+        let response = (|| async { self.inner.post_json(path, params, json_body).await })
+            .retry(backon::ConstantBuilder::default())
+            .notify(|err: &HttpClientError<E>, dur: Duration| {
+                tracing::warn!("Failed to post JSON: {}", err);
+                tracing::warn!("retrying {:?} after {:?}", err, dur);
+            })
+            .await?;
+        Ok(response)
+    }
+
     async fn post_query<T, B, E>(
         &self,
         path: PathSegments<'_>,
@@ -507,6 +530,31 @@ impl VpnApiClient {
         )
         .await
         .map_err(crate::error::VpnApiClientError::FailedToGetAccount)
+    }
+
+    pub async fn post_account(
+        &self,
+        account: &VpnApiAccount,
+        platform: Platform,
+    ) -> Result<NymVpnRegisterAccountResponse> {
+        let body = CreateAccountRequestBody {
+            account_addr: account.id(),
+            pub_key: account.pub_key(),
+            signature_base64: account.signature_base64(),
+        };
+
+        self.post_json_with_retry(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                platform.as_ref(),
+            ],
+            NO_PARAMS,
+            &body,
+        )
+        .await
+        .map_err(crate::error::VpnApiClientError::FailedToPostAccount)
     }
 
     pub async fn get_health(&self) -> Result<NymVpnHealthResponse> {

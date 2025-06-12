@@ -6,6 +6,7 @@ use std::{fmt::Debug, sync::Arc};
 use nym_vpn_api_client::HttpClientError;
 
 pub mod forget_account;
+pub mod register_account;
 pub mod register_device;
 pub mod request_zknym;
 pub mod store_account;
@@ -42,6 +43,9 @@ pub enum AccountCommandError {
     //
     #[error("failed to store account")]
     StoreAccount(#[from] store_account::StoreAccountError),
+
+    #[error("failed to register account")]
+    RegisterAccount(#[from] register_account::RegisterAccountError),
 
     #[error("failed to sync account state")]
     SyncAccount(#[from] sync_account::SyncAccountError),
