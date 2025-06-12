@@ -6,6 +6,7 @@ use std::{
     sync::LazyLock,
 };
 
+use nym_common::trace_err_chain;
 use nym_sdk::UserAgent;
 use url::Url;
 
@@ -136,7 +137,7 @@ impl Discovery {
                 if e.is_file_not_found() {
                     tracing::debug!("No discovery file found, creating a new discovery file");
                 } else {
-                    tracing::error!("Failed to read discovery file: {e}");
+                    trace_err_chain!(e, "Failed to read discovery file");
                 }
 
                 let discovery = Self::fetch(network_name).await.or_else(|e| {
@@ -156,14 +157,14 @@ impl Discovery {
                     }
                 })?;
 
-                discovery
-                    .write_to_file(config_dir)
-                    .inspect_err(|err| tracing::warn!("Failed to write discovery file: {err}"))?;
+                discovery.write_to_file(config_dir).inspect_err(|err| {
+                    trace_err_chain!(err, "Failed to write discovery file");
+                })?;
 
                 Ok(discovery)
             }
             Err(e) => {
-                tracing::error!("Failed to read discovery file: {e}");
+                trace_err_chain!(e, "Failed to read discovery file");
                 Err(e)
             }
         }

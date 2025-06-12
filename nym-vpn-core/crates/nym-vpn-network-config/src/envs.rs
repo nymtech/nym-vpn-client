@@ -8,6 +8,7 @@ use std::{
 };
 
 use itertools::Itertools;
+use nym_common::trace_err_chain;
 use nym_vpn_api_client::BootstrapVpnApiClient;
 
 use crate::{Error, MAX_FILE_AGE, NETWORKS_SUBDIR, Result, discovery::Discovery};
@@ -104,18 +105,18 @@ impl RegisteredNetworks {
             Ok(registered_networks) => Ok(registered_networks),
             Err(e) if e.should_overwrite_file() => {
                 if !e.is_file_not_found() {
-                    tracing::error!("Failed to read registered networks file: {e}");
+                    trace_err_chain!(e, "Failed to read registered networks file");
                 }
 
                 let default_envs = Self::default();
                 default_envs.write_to_file(config_dir).inspect_err(|err| {
-                    tracing::error!("Failed to write default envs file: {err}")
+                    trace_err_chain!(err, "Failed to write default envs file");
                 })?;
 
                 Ok(default_envs)
             }
             Err(e) => {
-                tracing::error!("Failed to read registered networks file: {e}");
+                trace_err_chain!(e, "Failed to read registered networks file");
                 Err(e)
             }
         }

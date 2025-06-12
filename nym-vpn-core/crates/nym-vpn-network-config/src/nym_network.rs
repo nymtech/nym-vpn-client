@@ -3,6 +3,7 @@
 
 use std::path::{Path, PathBuf};
 
+use nym_common::trace_err_chain;
 use nym_config::defaults::NymNetworkDetails;
 
 use crate::MAX_FILE_AGE;
@@ -53,7 +54,7 @@ impl NymNetwork {
             Ok(nym_network) => Ok(nym_network),
             Err(e) if e.should_overwrite_file() => {
                 if !e.is_file_not_found() {
-                    tracing::error!("Failed to read nym network file: {e}");
+                    trace_err_chain!(e, "Failed to read nym network file");
                 }
 
                 let nym_network = discovery.fetch_nym_network_details().await.or_else(|e| {
@@ -63,21 +64,19 @@ impl NymNetwork {
                         );
                         Ok(Self::default())
                     } else {
-                        tracing::error!(
-                            "Failed to fetch remote nym network file: {e}, no default one for {} environment", discovery.network_name
-                        );
+                        trace_err_chain!(e, "Failed to fetch remote nym network file, no default one for {} environment", discovery.network_name);
                         Err(e)
                     }
                 })?;
 
                 nym_network.write_to_file(config_dir).inspect_err(|err| {
-                    tracing::error!("Failed to write nym network file: {err}");
+                    trace_err_chain!(err, "Failed to write nym network file");
                 })?;
 
                 Ok(nym_network)
             }
             Err(e) => {
-                tracing::error!("Failed to read nym network file: {e}");
+                trace_err_chain!(e, "Failed to read nym network file");
                 Err(e)
             }
         }

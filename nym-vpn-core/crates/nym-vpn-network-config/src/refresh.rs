@@ -3,6 +3,7 @@
 
 use std::{path::PathBuf, time::Duration};
 
+use nym_common::trace_err_chain;
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
@@ -87,16 +88,16 @@ impl FileRefresher {
                     interval.tick().await;
 
                     if let Err(err) = self.refresh_envs_file().await {
-                        tracing::error!("Failed to refresh envs file: {:?}", err);
+                        trace_err_chain!(err, "Failed to refresh envs file");
                     }
 
                     match self.refresh_discovery_file().await {
                         Err(err) => {
-                            tracing::error!("Failed to refresh discovery file: {:?}", err)
+                            trace_err_chain!(err, "Failed to refresh discovery file");
                         }
                         Ok(Some(discovery)) => {
                             if let Err(err) = self.refresh_nym_network_file(discovery).await {
-                                tracing::error!("Failed to refresh nym network file: {:?}", err);
+                                trace_err_chain!(err, "Failed to refresh nym network file");
                             }
                         }
                         _ => {}

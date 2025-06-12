@@ -183,7 +183,7 @@ pub async fn discover_networks(config_path: &Path) -> Result<RegisteredNetworks>
 }
 
 pub async fn discover_env(config_path: &Path, network_name: &str) -> Result<Network> {
-    tracing::trace!(
+    tracing::debug!(
         "Discovering network details: config_path={}, network_name={}",
         config_path.display(),
         network_name
@@ -193,7 +193,7 @@ pub async fn discover_env(config_path: &Path, network_name: &str) -> Result<Netw
     let discovery = Discovery::ensure_exists(config_path, network_name).await?;
     tracing::trace!("Discovery: {:#?}", discovery);
 
-    tracing::debug!(
+    tracing::trace!(
         "System messages: {}",
         discovery.system_messages.clone().into_current_messages()
     );
