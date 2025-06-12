@@ -40,5 +40,16 @@ data class LogMessage(
 				)
 			}
 		}
+
+		fun system(message: String): LogMessage {
+			return LogMessage(
+				time = Instant.now().toString(),
+				pid = "0",
+				tid = "0",
+				level = LogLevel.INFO,
+				tag = "System",
+				message = message,
+			)
+		}
 	}
 }
