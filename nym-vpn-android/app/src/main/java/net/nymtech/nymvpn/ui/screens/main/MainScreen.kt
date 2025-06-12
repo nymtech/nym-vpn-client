@@ -36,7 +36,6 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import kotlinx.coroutines.delay
 import net.nymtech.connectivity.NetworkStatus
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.manager.backend.model.BackendUiEvent
@@ -58,7 +57,6 @@ import net.nymtech.nymvpn.ui.screens.main.components.ModeSelector
 import net.nymtech.nymvpn.ui.screens.permission.Permission
 import net.nymtech.nymvpn.ui.theme.CustomTypography
 import net.nymtech.nymvpn.ui.theme.Theme
-import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
 import net.nymtech.nymvpn.util.extensions.goFromRoot
 import net.nymtech.nymvpn.util.extensions.openWebUrl
 import net.nymtech.nymvpn.util.extensions.scaledHeight
