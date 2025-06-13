@@ -227,7 +227,7 @@ jobs:
           name: ${{ env.TAG_NAME }}
           draft: false
           make_latest: ${{ env.RELEASE_TYPE == 'stable' }}
-          prerelease: ${{ inputs.pre_release == true }}
+          prerelease: ${{ env.RELEASE_TYPE != 'stable' || inputs.pre_release }}
           target_commitish: ${{ github.sha }}
           files: |
             ${{ env.UPLOAD_DIR_UBUNTU_22}}/*
