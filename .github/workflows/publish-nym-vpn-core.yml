@@ -26,16 +26,27 @@ env:
 jobs:
   build-nym-vpn-core-linux:
     uses: ./.github/workflows/build-nym-vpn-core-linux.yml
+    secrets:
+      VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+
   build-nym-vpn-core-deb:
     uses: ./.github/workflows/build-nym-vpn-core-deb.yml
+
   build-nym-vpn-core-mac:
     uses: ./.github/workflows/build-nym-vpn-core-mac.yml
+    secrets:
+      VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+
   build-nym-vpn-core-android:
     uses: ./.github/workflows/build-nym-vpn-core-android.yml
+
   build-nym-vpn-core-ios:
     uses: ./.github/workflows/build-nym-vpn-core-ios.yml
+
   build-nym-vpn-core-windows:
     uses: ./.github/workflows/build-nym-vpn-core-windows.yml
+    secrets:
+      VPND_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
 
   generate-build-info-core:
     uses: ./.github/workflows/generate-build-info-core.yml
