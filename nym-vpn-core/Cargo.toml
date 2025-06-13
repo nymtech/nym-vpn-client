@@ -175,7 +175,7 @@ tun = { version = "0.6.1", features = ["async"] }
 uniffi = { version = "0.29.3", features = ["cli"] }
 url = "2.5"
 uuid = "1.17"
-vergen = { version = "8.3.1", default-features = false }
+vergen-gitcl = { version = "1.0.8", default-features = false }
 which = { version = "7.0", default-features = false }
 widestring = "1.0"
 windows = "0.59"
