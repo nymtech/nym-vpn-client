@@ -5,6 +5,9 @@ on:
     paths:
       - ".github/workflows/build-nym-vpn-core-mac.yml"
   workflow_call:
+    secrets:
+      VPND_SENTRY_DSN:
+        required: true
 
 env:
   CARGO_TERM_COLOR: always

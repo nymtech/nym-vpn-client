@@ -5,6 +5,9 @@ on:
     paths:
       - ".github/workflows/build-nym-vpn-core-windows.yml"
   workflow_call:
+    secrets:
+      VPND_SENTRY_DSN:
+        required: true
     outputs:
       RUST_VERSION:
         value: ${{ jobs.build-windows.outputs.RUST_VERSION }}
