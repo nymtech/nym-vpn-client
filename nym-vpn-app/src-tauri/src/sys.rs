@@ -76,13 +76,12 @@ impl OsInfo {
 
     #[cfg(any(target_os = "linux", target_os = "openbsd"))]
     pub fn linux_check(&self) {
-        // under X11 with nvidia gpu, there is an upstream issue with webkit dmabuf renderer
+        // with NVIDIA gpu, there is an upstream issue with webkit dmabuf renderer
         // see https://github.com/tauri-apps/tauri/issues/9304
-        if matches!(self.display_server, DisplayServer::X11) && matches!(self.gpu, GpuType::Nvidia)
-        {
-            info!("NVIDIA gpu and X11 detected, disabling webkit dmabuf renderer");
+        if matches!(self.gpu, GpuType::Nvidia) {
+            info!("NVIDIA gpu detected, disabling webkit dmabuf renderer");
             unsafe {
-                std::env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
+                env::set_var("WEBKIT_DISABLE_DMABUF_RENDERER", "1");
             }
         }
     }
