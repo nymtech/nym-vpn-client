@@ -5,6 +5,9 @@ on:
     paths:
       - ".github/workflows/build-nym-vpn-core-linux.yml"
   workflow_call:
+    secrets:
+      VPND_SENTRY_DSN:
+        required: true
     outputs:
       RUST_VERSION:
         value: ${{ jobs.build-linux.outputs.RUST_VERSION }}
