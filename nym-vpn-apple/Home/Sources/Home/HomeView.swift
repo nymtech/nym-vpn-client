@@ -182,7 +182,7 @@ private extension HomeView {
             viewModel.navigateToExitGateways()
         }
         .accessibilityAction {
-            viewModel.navigateToEntryGateways()
+            viewModel.navigateToExitGateways()
         }
     }
 
