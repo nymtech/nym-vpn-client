@@ -1,8 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::Duration;
-
 use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_network_config::Network;
 use nym_vpn_proto::nym_vpnd_server::NymVpndServer;
@@ -20,9 +18,6 @@ use super::{
     config::default_socket_path, error::CommandInterfaceError, listener::CommandInterface,
 };
 use crate::service::VpnServiceCommand;
-
-// If the shutdown signal is received, we give the listeners a little extra time to finish
-const SHUTDOWN_TIMEOUT: Duration = Duration::from_secs(2);
 
 fn grpc_span(req: &http::Request<()>) -> tracing::Span {
     let service = req.uri().path().trim_start_matches('/');
@@ -78,11 +73,8 @@ pub async fn start_command_interface(
             }
         });
 
-        shutdown_token.cancelled().await;
-        match tokio::time::timeout(SHUTDOWN_TIMEOUT, socket_listener_handle).await {
-            Ok(Ok(())) => {}
-            Ok(Err(e)) => tracing::error!("Failed to join on socket listener: {}", e),
-            Err(_) => tracing::warn!("Socket listener did not finish in time"),
+        if let Err(e) = socket_listener_handle.await {
+            tracing::error!("Failed to join on socket listener: {}", e);
         }
 
         tracing::info!("Command interface exiting");
