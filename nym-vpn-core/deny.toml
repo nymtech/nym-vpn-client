@@ -241,7 +241,10 @@ unknown-git = "warn"
 # if not specified. If it is specified but empty, no registries are allowed.
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 # List of URLs for allowed Git repositories
-allow-git = []
+allow-git = [
+    "https://github.com/nymtech/nym?branch=am%2Fbackport-close-sqlite-pool-brie",
+    "https://github.com/ihciah/rust2go.git?rev=00b068a9a99cac4252af0ec113e2ce5f2289132a",
+]
 
 [sources.allow-org]
 # github.com organizations to allow git sources for
