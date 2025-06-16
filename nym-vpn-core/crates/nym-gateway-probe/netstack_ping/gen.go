@@ -7,6 +7,7 @@ package main
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct StringRef {
   const uint8_t *ptr;
@@ -46,6 +47,18 @@ typedef struct NetstackResponseRef {
   struct StringRef download_error;
 } NetstackResponseRef;
 
+// Helper function to allocate C memory for strings
+static inline struct StringRef allocate_c_string(const char* go_str, size_t len) {
+    if (len == 0) {
+        return (struct StringRef){.ptr = NULL, .len = 0};
+    }
+    uint8_t* c_mem = (uint8_t*)malloc(len);
+    if (c_mem != NULL) {
+        memcpy(c_mem, go_str, len);
+    }
+    return (struct StringRef){.ptr = c_mem, .len = len};
+}
+
 // hack from: https://stackoverflow.com/a/69904977
 __attribute__((weak))
 inline void NetstackCall_ping_cb(const void *f_ptr, struct NetstackResponseRef resp, const void *slot) {
@@ -73,14 +86,15 @@ func CNetstackCall_ping(req C.NetstackRequestGoRef, slot *C.void, cb *C.void) {
 	log.Printf("[DEBUG] Got response, creating refs")
 	log.Printf("[DEBUG] Response downloaded_file length: %d", len(resp.downloaded_file))
 	log.Printf("[DEBUG] Response download_error length: %d", len(resp.download_error))
-	// Use cvt_ref_cap with extra capacity to handle large downloaded files
-	resp_ref, buffer := cvt_ref_cap(cntNetstackResponse, refNetstackResponse, 1024*1024)(&resp)
-	log.Printf("[DEBUG] Buffer size allocated: %d", len(buffer))
+	
+	// Create response without buffer allocation since we use C memory
+	var dummy_buffer []byte
+	resp_ref := refNetstackResponse(&resp, &dummy_buffer)
+	
 	log.Printf("[DEBUG] Created refs, calling callback")
 	C.NetstackCall_ping_cb(unsafe.Pointer(cb), resp_ref, unsafe.Pointer(slot))
 	log.Printf("[DEBUG] Callback completed, keeping alive")
 	runtime.KeepAlive(resp)
-	runtime.KeepAlive(buffer)
 	log.Printf("[DEBUG] CNetstackCall_ping completed")
 }
 
@@ -96,29 +110,13 @@ func refString(s *string, buffer *[]byte) C.StringRef {
 		}
 	}
 	
-	// Always copy string data into the buffer to avoid pointer issues
+	// Use C allocation to avoid Go GC issues with callbacks
 	str_bytes := []byte(*s)
+	c_str := C.CString(*s)
+	result := C.allocate_c_string(c_str, C.size_t(len(str_bytes)))
+	C.free(unsafe.Pointer(c_str)) // Free the temporary CString
 	
-	if buffer == nil || len(*buffer) < len(str_bytes) {
-		// If buffer is nil or too small, return empty string to avoid panic
-		// This should not happen if buffer allocation is correct
-		log.Printf("[ERROR] Buffer too small: needed %d, have %d", len(str_bytes), len(*buffer))
-		return C.StringRef{
-			ptr: (*C.uint8_t)(unsafe.Pointer(nil)),
-			len: C.uintptr_t(0),
-		}
-	}
-	
-	// Copy string data into the buffer
-	copy(*buffer, str_bytes)
-	result := C.StringRef{
-		ptr: (*C.uint8_t)(unsafe.Pointer(&(*buffer)[0])),
-		len: C.uintptr_t(len(str_bytes)),
-	}
-	
-	// Advance the buffer pointer
-	*buffer = (*buffer)[len(str_bytes):]
-	
+	log.Printf("[DEBUG] refString: allocated C memory for string len=%d", len(str_bytes))
 	return result
 }
 
