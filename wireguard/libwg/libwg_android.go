@@ -15,9 +15,9 @@ import (
 
 	"golang.org/x/sys/unix"
 
-	"github.com/amnezia-vpn/amneziawg-go/conn"
-	"github.com/amnezia-vpn/amneziawg-go/device"
-	"github.com/amnezia-vpn/amneziawg-go/tun"
+	"github.com/tommyv1987/amneziawg-go/conn"
+	"github.com/tommyv1987/amneziawg-go/device"
+	"github.com/tommyv1987/amneziawg-go/tun"
 
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/logging"
 )
