@@ -82,14 +82,37 @@ func CNetstackCall_ping(req C.NetstackRequestGoRef, slot *C.void, cb *C.void) {
 func newString(s_ref C.StringRef) string {
 	return unsafe.String((*byte)(unsafe.Pointer(s_ref.ptr)), s_ref.len)
 }
-func refString(s *string, _ *[]byte) C.StringRef {
-	return C.StringRef{
-		ptr: (*C.uint8_t)(unsafe.StringData(*s)),
-		len: C.uintptr_t(len(*s)),
+func refString(s *string, buffer *[]byte) C.StringRef {
+	if buffer == nil || len(*buffer) == 0 {
+		// Fallback to direct reference if no buffer provided
+		return C.StringRef{
+			ptr: (*C.uint8_t)(unsafe.StringData(*s)),
+			len: C.uintptr_t(len(*s)),
+		}
 	}
+	
+	// copy string data into the buffer to avoid pointer issues
+	str_bytes := []byte(*s)
+	if len(str_bytes) > len(*buffer) {
+		str_bytes = str_bytes[:len(*buffer)]
+	}
+	
+	copy(*buffer, str_bytes)
+	result := C.StringRef{
+		ptr: (*C.uint8_t)(unsafe.Pointer(&(*buffer)[0])),
+		len: C.uintptr_t(len(str_bytes)),
+	}
+	
+	// advance the buffer pointer
+	*buffer = (*buffer)[len(str_bytes):]
+	
+	return result
 }
 
-func cntString(_ *string, _ *uint) [0]C.StringRef { return [0]C.StringRef{} }
+func cntString(s *string, cnt *uint) [0]C.StringRef { 
+	*cnt += uint(len(*s))
+	return [0]C.StringRef{} 
+}
 func new_list_mapper[T1, T2 any](f func(T1) T2) func(C.ListRef) []T2 {
 	return func(x C.ListRef) []T2 {
 		input := unsafe.Slice((*T1)(unsafe.Pointer(x.ptr)), x.len)
