@@ -73,7 +73,9 @@ fn setup_logging() {
         .from_env()
         .unwrap()
         .add_directive("hyper::proto=info".parse().unwrap())
-        .add_directive("netlink_proto=info".parse().unwrap());
+        .add_directive("netlink_proto=info".parse().unwrap())
+        .add_directive("hickory_proto=error".parse().unwrap())
+        .add_directive("hickory_resolver=error".parse().unwrap());
 
     tracing_subscriber::fmt()
         .with_env_filter(filter)
@@ -133,8 +135,8 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
     trial
         .probe(
             gateway_config,
-            args.only_wireguard,
             args.ignore_egress_epoch_role,
+            args.only_wireguard,
         )
         .await
 }

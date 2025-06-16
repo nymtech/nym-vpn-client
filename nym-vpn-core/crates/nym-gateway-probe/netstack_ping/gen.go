@@ -46,6 +46,9 @@ typedef struct NetstackResponseRef {
   struct StringRef download_error;
 } NetstackResponseRef;
 
+// New retrieval function to bypass callback issues
+extern struct NetstackResponseRef CNetstackCall_get_last_response();
+
 // hack from: https://stackoverflow.com/a/69904977
 __attribute__((weak))
 inline void NetstackCall_ping_cb(const void *f_ptr, struct NetstackResponseRef resp, const void *slot) {
@@ -54,8 +57,17 @@ inline void NetstackCall_ping_cb(const void *f_ptr, struct NetstackResponseRef r
 */
 import "C"
 import (
+	"log"
 	"runtime"
+	"sync"
 	"unsafe"
+)
+
+// Global storage to keep strings alive during callbacks
+var (
+	stringStorage = make(map[uintptr][]byte)
+	storageMutex  sync.Mutex
+	storageID     uintptr = 1
 )
 
 var NetstackCallImpl NetstackCall
@@ -64,26 +76,98 @@ type NetstackCall interface {
 	ping(req NetstackRequestGo) NetstackResponse
 }
 
+// Global variables to store the last response and its C strings
+var lastResponse NetstackResponse
+var lastResponseCStrings struct {
+	downloaded_file *C.char
+	download_error  *C.char
+}
+
 //export CNetstackCall_ping
 func CNetstackCall_ping(req C.NetstackRequestGoRef, slot *C.void, cb *C.void) {
 	resp := NetstackCallImpl.ping(newNetstackRequestGo(req))
-	resp_ref, buffer := cvt_ref(cntNetstackResponse, refNetstackResponse)(&resp)
-	C.NetstackCall_ping_cb(unsafe.Pointer(cb), resp_ref, unsafe.Pointer(slot))
+	
+	// Free any existing C strings
+	if lastResponseCStrings.downloaded_file != nil {
+		C.free(unsafe.Pointer(lastResponseCStrings.downloaded_file))
+	}
+	if lastResponseCStrings.download_error != nil {
+		C.free(unsafe.Pointer(lastResponseCStrings.download_error))
+	}
+	
+	// Store response globally and create C strings for it
+	lastResponse = resp
+	lastResponseCStrings.downloaded_file = C.CString(resp.downloaded_file)
+	lastResponseCStrings.download_error = C.CString(resp.download_error)
+	
+	// Don't call the callback at all - let Rust side retrieve via different mechanism
+	// C.NetstackCall_ping_cb(unsafe.Pointer(cb), safe_resp, unsafe.Pointer(slot))
+	
 	runtime.KeepAlive(resp)
-	runtime.KeepAlive(buffer)
+}
+
+//export CNetstackCall_get_last_response
+func CNetstackCall_get_last_response() C.NetstackResponseRef {
+	// Create response ref using C strings (properly pinned memory)
+	resp_ref := C.NetstackResponseRef{
+		can_handshake: C.bool(lastResponse.can_handshake),
+		sent_ips: C.uint16_t(lastResponse.sent_ips),
+		received_ips: C.uint16_t(lastResponse.received_ips),
+		sent_hosts: C.uint16_t(lastResponse.sent_hosts),
+		received_hosts: C.uint16_t(lastResponse.received_hosts),
+		can_resolve_dns: C.bool(lastResponse.can_resolve_dns),
+		downloaded_file: C.StringRef{
+			ptr: (*C.uint8_t)(unsafe.Pointer(lastResponseCStrings.downloaded_file)),
+			len: C.uintptr_t(len(lastResponse.downloaded_file)),
+		},
+		download_duration_sec: C.uint64_t(lastResponse.download_duration_sec),
+		download_error: C.StringRef{
+			ptr: (*C.uint8_t)(unsafe.Pointer(lastResponseCStrings.download_error)),
+			len: C.uintptr_t(len(lastResponse.download_error)),
+		},
+	}
+	
+	return resp_ref
 }
 
 func newString(s_ref C.StringRef) string {
 	return unsafe.String((*byte)(unsafe.Pointer(s_ref.ptr)), s_ref.len)
 }
-func refString(s *string, _ *[]byte) C.StringRef {
+func refString(s *string, buffer *[]byte) C.StringRef {
+	if s == nil || len(*s) == 0 {
+		placeholder := []byte(" ") // Single space as placeholder
+		storageMutex.Lock()
+		id := storageID
+		storageID++
+		stringStorage[id] = placeholder
+		stored_bytes := stringStorage[id]
+		storageMutex.Unlock()
+		
+		return C.StringRef{
+			ptr: (*C.uint8_t)(unsafe.Pointer(&stored_bytes[0])),
+			len: C.uintptr_t(1),
+		}
+	}
+	
+	// For non-empty strings, store normally
+	str_bytes := []byte(*s)
+	storageMutex.Lock()
+	id := storageID
+	storageID++
+	stringStorage[id] = str_bytes
+	stored_bytes := stringStorage[id]
+	storageMutex.Unlock()
+	
 	return C.StringRef{
-		ptr: (*C.uint8_t)(unsafe.StringData(*s)),
-		len: C.uintptr_t(len(*s)),
+		ptr: (*C.uint8_t)(unsafe.Pointer(&stored_bytes[0])),
+		len: C.uintptr_t(len(stored_bytes)),
 	}
 }
 
-func cntString(_ *string, _ *uint) [0]C.StringRef { return [0]C.StringRef{} }
+func cntString(s *string, cnt *uint) [0]C.StringRef { 
+	*cnt += uint(len(*s))
+	return [0]C.StringRef{} 
+}
 func new_list_mapper[T1, T2 any](f func(T1) T2) func(C.ListRef) []T2 {
 	return func(x C.ListRef) []T2 {
 		input := unsafe.Slice((*T1)(unsafe.Pointer(x.ptr)), x.len)
@@ -173,7 +257,8 @@ func cvt_ref_cap[R, CR any](cnt_f func(s *R, cnt *uint) [0]CR, ref_f func(p *R, 
 	return func(p *R) (CR, []byte) {
 		var cnt uint
 		cnt_f(p, &cnt)
-		buffer := make([]byte, cnt, cnt+add_cap)
+		total_size := cnt + add_cap
+		buffer := make([]byte, total_size)  // Make buffer with full size, not just capacity
 		return ref_f(p, &buffer), buffer
 	}
 }
@@ -302,6 +387,8 @@ func newNetstackResponse(p C.NetstackResponseRef) NetstackResponse {
 	}
 }
 func cntNetstackResponse(s *NetstackResponse, cnt *uint) [0]C.NetstackResponseRef {
+	cntString(&s.downloaded_file, cnt)
+	cntString(&s.download_error, cnt)
 	return [0]C.NetstackResponseRef{}
 }
 func refNetstackResponse(p *NetstackResponse, buffer *[]byte) C.NetstackResponseRef {
@@ -318,3 +405,4 @@ func refNetstackResponse(p *NetstackResponse, buffer *[]byte) C.NetstackResponse
 	}
 }
 func main() {}
+

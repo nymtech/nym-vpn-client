@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"golang.zx2c4.com/wireguard/conn"
-	"golang.zx2c4.com/wireguard/device"
-	"golang.zx2c4.com/wireguard/tun/netstack"
+	"github.com/tommyv1987/amneziawg-go/conn"
+	"github.com/tommyv1987/amneziawg-go/device"
+	"github.com/tommyv1987/amneziawg-go/tun/netstack"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
@@ -52,11 +52,18 @@ func (Netstack) ping(req NetstackRequestGo) NetstackResponse {
 		log.Panic(err)
 	}
 	dev := device.NewDevice(tun, conn.NewDefaultBind(), device.NewLogger(device.LogLevelError, ""))
+	
+	// Ensure proper cleanup of the device to prevent memory leaks
+	defer dev.Close()
 
 	var ipc strings.Builder
 
 	ipc.WriteString("private_key=")
 	ipc.WriteString(req.private_key)
+	if req.awg_args != "" {
+		awg := strings.ReplaceAll(req.awg_args, "\\n", "\n")
+		ipc.WriteString(fmt.Sprintf("\n%s", awg))
+	}
 	ipc.WriteString("\npublic_key=")
 	ipc.WriteString(req.public_key)
 	ipc.WriteString("\nendpoint=")
@@ -136,14 +143,22 @@ func (Netstack) ping(req NetstackRequestGo) NetstackResponse {
 	}
 
 	response.download_duration_sec = uint64(downloadDuration.Seconds())
-	response.downloaded_file = fileURL
+	// Make defensive copies of strings to avoid memory reference issues
+	response.downloaded_file = string([]byte(fileURL))
 	if err != nil {
-		response.download_error = err.Error()
+		response.download_error = string([]byte(err.Error()))
 	} else {
 		response.download_error = ""
 	}
 
+	// Store response globally for callback-free retrieval
+	lastResponse = response
+	
 	return response
+}
+
+func (Netstack) get_last_response() NetstackResponse {
+	return lastResponse
 }
 
 func sendPing(address string, seq uint8, send_timeout_secs uint64, recieve_timout_secs uint64, tnet *netstack.Net, ip_version uint8) (time.Duration, error) {
@@ -158,6 +173,9 @@ func sendPing(address string, seq uint8, send_timeout_secs uint64, recieve_timou
 	if err != nil {
 		return 0, err
 	}
+	
+	// Ensure proper cleanup of the socket
+	defer socket.Close()
 
 	var icmpBytes []byte
 

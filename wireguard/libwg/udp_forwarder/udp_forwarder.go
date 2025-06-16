@@ -11,8 +11,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/amnezia-vpn/amneziawg-go/device"
-	"github.com/amnezia-vpn/amneziawg-go/tun/netstack"
+	"github.com/tommyv1987/amneziawg-go/device"
+	"github.com/tommyv1987/amneziawg-go/tun/netstack"
 	"gvisor.dev/gvisor/pkg/tcpip/adapters/gonet"
 )
 
