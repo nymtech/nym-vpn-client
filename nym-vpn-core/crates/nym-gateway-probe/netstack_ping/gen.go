@@ -46,6 +46,9 @@ typedef struct NetstackResponseRef {
   struct StringRef download_error;
 } NetstackResponseRef;
 
+// New retrieval function to bypass callback issues
+extern struct NetstackResponseRef CNetstackCall_get_last_response();
+
 // hack from: https://stackoverflow.com/a/69904977
 __attribute__((weak))
 inline void NetstackCall_ping_cb(const void *f_ptr, struct NetstackResponseRef resp, const void *slot) {
@@ -73,6 +76,9 @@ type NetstackCall interface {
 	ping(req NetstackRequestGo) NetstackResponse
 }
 
+// Global variable to store the last response (thread-unsafe but works for single calls)
+var lastResponse NetstackResponse
+
 //export CNetstackCall_ping
 func CNetstackCall_ping(req C.NetstackRequestGoRef, slot *C.void, cb *C.void) {
 	log.Printf("[DEBUG] Starting CNetstackCall_ping")
@@ -82,21 +88,27 @@ func CNetstackCall_ping(req C.NetstackRequestGoRef, slot *C.void, cb *C.void) {
 	log.Printf("[DEBUG] Response downloaded_file length: %d", len(resp.downloaded_file))
 	log.Printf("[DEBUG] Response download_error length: %d", len(resp.download_error))
 	
-	// Create response using global storage
-	var dummy_buffer []byte
-	resp_ref := refNetstackResponse(&resp, &dummy_buffer)
+	// Store response globally to avoid callback memory issues
+	lastResponse = resp
+	log.Printf("[DEBUG] Stored response globally, bypassing callback")
 	
-	log.Printf("[DEBUG] Created refs, calling callback")
-	C.NetstackCall_ping_cb(unsafe.Pointer(cb), resp_ref, unsafe.Pointer(slot))
-	log.Printf("[DEBUG] Callback completed, cleaning up storage")
-	
-	// Clean up global storage (let it leak for now to avoid issues)
-	// storageMutex.Lock()
-	// stringStorage = make(map[uintptr][]byte)
-	// storageMutex.Unlock()
+	// Don't call the callback at all - let Rust side retrieve via different mechanism
+	// C.NetstackCall_ping_cb(unsafe.Pointer(cb), safe_resp, unsafe.Pointer(slot))
 	
 	runtime.KeepAlive(resp)
-	log.Printf("[DEBUG] CNetstackCall_ping completed")
+	log.Printf("[DEBUG] CNetstackCall_ping completed without callback")
+}
+
+//export CNetstackCall_get_last_response
+func CNetstackCall_get_last_response() C.NetstackResponseRef {
+	log.Printf("[DEBUG] Retrieving last response")
+	
+	// Create safe response with actual data since no callback memory issues
+	var dummy_buffer []byte
+	resp_ref := refNetstackResponse(&lastResponse, &dummy_buffer)
+	
+	log.Printf("[DEBUG] Created response ref for retrieval")
+	return resp_ref
 }
 
 func newString(s_ref C.StringRef) string {

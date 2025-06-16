@@ -63,6 +63,7 @@ impl NetstackRequestGo {
 #[rust2go::r2g]
 pub trait NetstackCall {
     fn ping(req: &NetstackRequestGo) -> NetstackResponse;
+    fn get_last_response() -> NetstackResponse;
 }
 
 #[derive(rust2go::R2G, Clone, Debug)]
@@ -76,4 +77,27 @@ pub struct NetstackResponse {
     pub downloaded_file: String,
     pub download_duration_sec: u64,
     pub download_error: String,
+}
+
+impl NetstackCall for binding::NetstackCallImpl {
+    fn ping(req: &NetstackRequestGo) -> NetstackResponse {
+        // Call the Go function that stores the result globally (no callback)
+        unsafe {
+            binding::CNetstackCall_ping(
+                binding::NetstackRequestGoRef::from(req),
+                std::ptr::null_mut(), // slot - not used anymore
+                std::ptr::null_mut(), // callback - not used anymore
+            );
+        }
+        
+        Self::get_last_response()
+    }
+    
+    fn get_last_response() -> NetstackResponse {
+        // Call the Go function to retrieve the last stored response
+        unsafe {
+            let response_ref = binding::CNetstackCall_get_last_response();
+            NetstackResponse::from(response_ref)
+        }
+    }
 }
