@@ -233,19 +233,22 @@ unused = "deny"
 [sources]
 # Lint level for what to happen when a crate from a crate registry that is not
 # in the allow list is encountered
-unknown-registry = "warn"
+unknown-registry = "deny"
 # Lint level for what to happen when a crate from a git repository that is not
 # in the allow list is encountered
-unknown-git = "warn"
+unknown-git = "deny"
 # List of URLs for allowed crate registries. Defaults to the crates.io index
 # if not specified. If it is specified but empty, no registries are allowed.
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 # List of URLs for allowed Git repositories
-allow-git = ["https://github.com/madsmtm/objc2"]
+allow-git = [
+    "git+https://github.com/jstuczyn/bls12_381?branch=temp/experimental-serdect-updated",
+    "https://github.com/ihciah/rust2go.git?rev=00b068a9a99cac4252af0ec113e2ce5f2289132a",
+]
 
 [sources.allow-org]
 # github.com organizations to allow git sources for
-github = []
+github = ["nymtech"]
 # gitlab.com organizations to allow git sources for
 gitlab = []
 # bitbucket.org organizations to allow git sources for
