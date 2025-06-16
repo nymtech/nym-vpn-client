@@ -84,40 +84,33 @@ impl NetstackResponse {
     pub fn get_last_response() -> Self {
         unsafe {
             let response_ref = binding::CNetstackCall_get_last_response();
-            Self::from_response_ref(response_ref)
-        }
-    }
-    
-    /// Convert from C NetstackResponseRef to Rust NetstackResponse
-    fn from_response_ref(response_ref: binding::NetstackResponseRef) -> Self {
-        Self {
-            can_handshake: response_ref.can_handshake,
-            sent_ips: response_ref.sent_ips,
-            received_ips: response_ref.received_ips,
-            sent_hosts: response_ref.sent_hosts,
-            received_hosts: response_ref.received_hosts,
-            can_resolve_dns: response_ref.can_resolve_dns,
-            downloaded_file: unsafe {
-                let ptr = response_ref.downloaded_file.ptr;
-                let len = response_ref.downloaded_file.len;
-                if ptr.is_null() || len == 0 {
-                    String::new()
-                } else {
-                    let slice = std::slice::from_raw_parts(ptr, len);
-                    String::from_utf8_lossy(slice).to_string()
-                }
-            },
-            download_duration_sec: response_ref.download_duration_sec,
-            download_error: unsafe {
-                let ptr = response_ref.download_error.ptr;
-                let len = response_ref.download_error.len;
-                if ptr.is_null() || len == 0 {
-                    String::new()
-                } else {
-                    let slice = std::slice::from_raw_parts(ptr, len);
-                    String::from_utf8_lossy(slice).to_string()
-                }
-            },
+            
+            // Convert the C strings safely
+            let downloaded_file = if response_ref.downloaded_file.ptr.is_null() || response_ref.downloaded_file.len == 0 {
+                String::new()
+            } else {
+                let bytes = std::slice::from_raw_parts(response_ref.downloaded_file.ptr, response_ref.downloaded_file.len);
+                String::from_utf8_lossy(bytes).into_owned()
+            };
+            
+            let download_error = if response_ref.download_error.ptr.is_null() || response_ref.download_error.len == 0 {
+                String::new()
+            } else {
+                let bytes = std::slice::from_raw_parts(response_ref.download_error.ptr, response_ref.download_error.len);
+                String::from_utf8_lossy(bytes).into_owned()
+            };
+            
+            Self {
+                can_handshake: response_ref.can_handshake,
+                sent_ips: response_ref.sent_ips,
+                received_ips: response_ref.received_ips,
+                sent_hosts: response_ref.sent_hosts,
+                received_hosts: response_ref.received_hosts,
+                can_resolve_dns: response_ref.can_resolve_dns,
+                downloaded_file,
+                download_duration_sec: response_ref.download_duration_sec,
+                download_error,
+            }
         }
     }
 }
