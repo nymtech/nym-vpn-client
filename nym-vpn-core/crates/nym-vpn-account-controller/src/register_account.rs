@@ -4,7 +4,7 @@
 use nym_vpn_store::mnemonic::Mnemonic;
 
 #[derive(Clone, Debug)]
-pub struct PaymentResponse {
+pub struct RegisterAccountResponse {
     pub payment_token: String,
     pub mnemonic: Mnemonic,
 }

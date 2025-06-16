@@ -19,7 +19,7 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    AccountCommandSender, AccountControllerConfig, AvailableTicketbooks, PaymentResponse,
+    AccountCommandSender, AccountControllerConfig, AvailableTicketbooks, RegisterAccountResponse,
     commands::{AccountCommand, AccountCommandHandler, AccountCommandResult},
     connectivity::OfflineWatch,
     error::Error,
@@ -293,12 +293,12 @@ where
     async fn handle_register_account(
         &self,
         platform: Platform,
-    ) -> Result<PaymentResponse, RegisterAccountError> {
+    ) -> Result<RegisterAccountResponse, RegisterAccountError> {
         let (account, mnemonic) = VpnApiAccount::random();
 
         let payment_token = if self.offline_watch.is_online() {
             self.vpn_api_client
-                .register_account_with_api(&account, platform)
+                .register_account(&account, platform)
                 .await?
         } else {
             tracing::error!("Can't register account with vpn-api as we are offline");
@@ -320,7 +320,7 @@ where
             self.get_command_sender().background_sync_device_state();
         }
 
-        Ok(PaymentResponse {
+        Ok(RegisterAccountResponse {
             payment_token,
             mnemonic,
         })

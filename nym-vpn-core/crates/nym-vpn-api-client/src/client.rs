@@ -86,7 +86,7 @@ impl VpnApiClient {
             })
             .and_then(|builder| builder.build())
             .map(|c| Self { inner: c })
-            .map_err(VpnApiClientError::FailedToCreateVpnApiClient)
+            .map_err(VpnApiClientError::CreateVpnApiClient)
     }
 
     pub fn swap_inner_client(&mut self, client: VpnApiClient) {
@@ -275,7 +275,7 @@ impl VpnApiClient {
             .retry(backon::ConstantBuilder::default())
             .notify(|err: &HttpClientError<E>, dur: Duration| {
                 tracing::warn!("Failed to get JSON: {}", err);
-                tracing::warn!("retrying {:?} after {:?}", err, dur);
+                tracing::warn!("retrying after {:?}", dur);
             })
             .await?;
         Ok(response)
@@ -298,7 +298,7 @@ impl VpnApiClient {
             .retry(backon::ConstantBuilder::default())
             .notify(|err: &HttpClientError<E>, dur: Duration| {
                 tracing::warn!("Failed to post JSON: {}", err);
-                tracing::warn!("retrying {:?} after {:?}", err, dur);
+                tracing::warn!("retrying after {:?}", dur);
             })
             .await?;
         Ok(response)
@@ -529,7 +529,7 @@ impl VpnApiClient {
             None,
         )
         .await
-        .map_err(crate::error::VpnApiClientError::FailedToGetAccount)
+        .map_err(crate::error::VpnApiClientError::GetAccount)
     }
 
     pub async fn post_account(
@@ -548,19 +548,19 @@ impl VpnApiClient {
                 routes::PUBLIC,
                 routes::V1,
                 routes::ACCOUNT,
-                platform.as_ref(),
+                platform.api_path_component(),
             ],
             NO_PARAMS,
             &body,
         )
         .await
-        .map_err(crate::error::VpnApiClientError::FailedToPostAccount)
+        .map_err(crate::error::VpnApiClientError::PostAccount)
     }
 
     pub async fn get_health(&self) -> Result<NymVpnHealthResponse> {
         self.get_json_with_retry(&[routes::PUBLIC, routes::V1, routes::HEALTH], NO_PARAMS)
             .await
-            .map_err(crate::error::VpnApiClientError::FailedToGetHealth)
+            .map_err(crate::error::VpnApiClientError::GetHealth)
     }
 
     pub async fn get_account_summary(
@@ -579,7 +579,7 @@ impl VpnApiClient {
             None,
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetAccountSummary)
+        .map_err(VpnApiClientError::GetAccountSummary)
     }
 
     // DEVICES
@@ -597,7 +597,7 @@ impl VpnApiClient {
             None,
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetDevices)
+        .map_err(VpnApiClientError::GetDevices)
     }
 
     pub async fn register_device(
@@ -623,7 +623,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
-        .map_err(VpnApiClientError::FailedToRegisterDevice)
+        .map_err(VpnApiClientError::RegisterDevice)
     }
 
     pub async fn get_active_devices(
@@ -643,7 +643,7 @@ impl VpnApiClient {
             None,
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetActiveDevices)
+        .map_err(VpnApiClientError::GetActiveDevices)
     }
 
     pub async fn get_device_by_id(
@@ -664,7 +664,7 @@ impl VpnApiClient {
             None,
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetDeviceById)
+        .map_err(VpnApiClientError::GetDeviceById)
     }
 
     pub async fn update_device(
@@ -691,7 +691,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
-        .map_err(VpnApiClientError::FailedToUpdateDevice)
+        .map_err(VpnApiClientError::UpdateDevice)
     }
 
     // ZK-NYM
@@ -715,7 +715,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetDeviceZkNyms)
+        .map_err(VpnApiClientError::GetDeviceZkNyms)
     }
 
     pub async fn request_zk_nym(
@@ -751,7 +751,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
-        .map_err(VpnApiClientError::FailedToRequestZkNym)
+        .map_err(VpnApiClientError::RequestZkNym)
     }
 
     pub async fn get_zk_nyms_available_for_download(
@@ -774,7 +774,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetDeviceZkNyms)
+        .map_err(VpnApiClientError::GetDeviceZkNyms)
     }
 
     pub async fn get_zk_nym_by_id(
@@ -798,7 +798,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetZkNymById)
+        .map_err(VpnApiClientError::GetZkNymById)
     }
 
     pub async fn confirm_zk_nym_download_by_id(
@@ -822,7 +822,7 @@ impl VpnApiClient {
             Some(device),
         )
         .await
-        .map_err(VpnApiClientError::FailedToConfirmZkNymDownloadById)
+        .map_err(VpnApiClientError::ConfirmZkNymDownloadById)
     }
 
     // FREEPASS
@@ -843,7 +843,7 @@ impl VpnApiClient {
             None,
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetFreePasses)
+        .map_err(VpnApiClientError::GetFreePasses)
     }
 
     pub async fn apply_freepass(
@@ -866,7 +866,7 @@ impl VpnApiClient {
             None,
         )
         .await
-        .map_err(VpnApiClientError::FailedToApplyFreepass)
+        .map_err(VpnApiClientError::ApplyFreepass)
     }
 
     // SUBSCRIPTIONS
@@ -887,7 +887,7 @@ impl VpnApiClient {
             None,
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetSubscriptions)
+        .map_err(VpnApiClientError::GetSubscriptions)
     }
 
     pub async fn create_subscription(&self, account: &VpnApiAccount) -> Result<NymVpnSubscription> {
@@ -909,7 +909,7 @@ impl VpnApiClient {
             None,
         )
         .await
-        .map_err(VpnApiClientError::FailedToCreateSubscription)
+        .map_err(VpnApiClientError::CreateSubscription)
     }
 
     pub async fn get_active_subscriptions(
@@ -929,7 +929,7 @@ impl VpnApiClient {
             None,
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetActiveSubscriptions)
+        .map_err(VpnApiClientError::GetActiveSubscriptions)
     }
 
     pub async fn get_usage(&self, account: &VpnApiAccount) -> Result<NymVpnUsagesResponse> {
@@ -945,7 +945,7 @@ impl VpnApiClient {
             None,
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetUsage)
+        .map_err(VpnApiClientError::GetUsage)
     }
 
     // GATEWAYS
@@ -964,7 +964,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetGateways)
+        .map_err(VpnApiClientError::GetGateways)
     }
 
     pub async fn get_gateways_by_type(
@@ -1007,7 +1007,7 @@ impl VpnApiClient {
             &params,
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetVpnGateways)
+        .map_err(VpnApiClientError::GetVpnGateways)
     }
 
     pub async fn get_vpn_gateway_countries(
@@ -1027,7 +1027,7 @@ impl VpnApiClient {
             &params,
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetVpnGatewayCountries)
+        .map_err(VpnApiClientError::GetVpnGatewayCountries)
     }
 
     pub async fn get_gateway_countries(
@@ -1045,7 +1045,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetGatewayCountries)
+        .map_err(VpnApiClientError::GetGatewayCountries)
     }
 
     pub async fn get_entry_gateways(
@@ -1063,7 +1063,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetEntryGateways)
+        .map_err(VpnApiClientError::GetEntryGateways)
     }
 
     pub async fn get_entry_gateway_countries(
@@ -1082,7 +1082,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetEntryGatewayCountries)
+        .map_err(VpnApiClientError::GetEntryGatewayCountries)
     }
 
     pub async fn get_exit_gateways(
@@ -1100,7 +1100,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetExitGateways)
+        .map_err(VpnApiClientError::GetExitGateways)
     }
 
     pub async fn get_exit_gateway_countries(
@@ -1119,7 +1119,7 @@ impl VpnApiClient {
             &min_performance.unwrap_or_default().to_param(),
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetExitGatewayCountries)
+        .map_err(VpnApiClientError::GetExitGatewayCountries)
     }
 
     // DIRECTORY ZK-NYM
@@ -1139,7 +1139,7 @@ impl VpnApiClient {
             NO_PARAMS,
         )
         .await
-        .map_err(VpnApiClientError::FailedToGetDirectoryZkNymsTicketbookPartialVerificationKeys)
+        .map_err(VpnApiClientError::GetDirectoryZkNymsTicketbookPartialVerificationKeys)
     }
 
     pub async fn get_wellknown_current_env(&self) -> Result<NymWellknownDiscoveryItem> {
@@ -1155,7 +1155,7 @@ impl VpnApiClient {
                 NO_PARAMS,
             )
             .await
-            .map_err(VpnApiClientError::FailedToGetVpnNetworkDetails)
+            .map_err(VpnApiClientError::GetVpnNetworkDetails)
     }
 }
 

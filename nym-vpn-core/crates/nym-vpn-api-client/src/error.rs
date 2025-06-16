@@ -12,82 +12,82 @@ use crate::response::{ErrorMessage, NymErrorResponse, UnexpectedError};
 #[derive(Debug, thiserror::Error)]
 pub enum VpnApiClientError {
     #[error("failed tp create vpn api client")]
-    FailedToCreateVpnApiClient(#[source] HttpClientError<UnexpectedError>),
+    CreateVpnApiClient(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get account")]
-    FailedToGetAccount(#[source] HttpClientError<NymErrorResponse>),
+    GetAccount(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get account summary")]
-    FailedToGetAccountSummary(#[source] HttpClientError<NymErrorResponse>),
+    GetAccountSummary(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get devices")]
-    FailedToGetDevices(#[source] HttpClientError<NymErrorResponse>),
+    GetDevices(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to register device")]
-    FailedToRegisterDevice(#[source] HttpClientError<NymErrorResponse>),
+    RegisterDevice(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get active devices")]
-    FailedToGetActiveDevices(#[source] HttpClientError<NymErrorResponse>),
+    GetActiveDevices(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get device by id")]
-    FailedToGetDeviceById(#[source] HttpClientError<NymErrorResponse>),
+    GetDeviceById(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get device zk-nym")]
-    FailedToGetDeviceZkNyms(#[source] HttpClientError<NymErrorResponse>),
+    GetDeviceZkNyms(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to update device")]
-    FailedToUpdateDevice(#[source] HttpClientError<NymErrorResponse>),
+    UpdateDevice(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to request zk-nym")]
-    FailedToRequestZkNym(#[source] HttpClientError<NymErrorResponse>),
+    RequestZkNym(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get active zk-nym")]
-    FailedToGetActiveZkNym(#[source] HttpClientError<NymErrorResponse>),
+    GetActiveZkNym(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get zk-nym by id")]
-    FailedToGetZkNymById(#[source] HttpClientError<NymErrorResponse>),
+    GetZkNymById(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to confirm zk-nym download")]
-    FailedToConfirmZkNymDownloadById(#[source] HttpClientError<NymErrorResponse>),
+    ConfirmZkNymDownloadById(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get free passes")]
-    FailedToGetFreePasses(#[source] HttpClientError<ErrorMessage>),
+    GetFreePasses(#[source] HttpClientError<ErrorMessage>),
 
     #[error("failed to apply free pass")]
-    FailedToApplyFreepass(#[source] HttpClientError<NymErrorResponse>),
+    ApplyFreepass(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get subscriptions")]
-    FailedToGetSubscriptions(#[source] HttpClientError<NymErrorResponse>),
+    GetSubscriptions(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to create subscription")]
-    FailedToCreateSubscription(#[source] HttpClientError<NymErrorResponse>),
+    CreateSubscription(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get active subscription")]
-    FailedToGetActiveSubscriptions(#[source] HttpClientError<NymErrorResponse>),
+    GetActiveSubscriptions(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get gateways")]
-    FailedToGetGateways(#[source] HttpClientError<UnexpectedError>),
+    GetGateways(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get gateway countries")]
-    FailedToGetGatewayCountries(#[source] HttpClientError<UnexpectedError>),
+    GetGatewayCountries(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get entry gateways")]
-    FailedToGetEntryGateways(#[source] HttpClientError<UnexpectedError>),
+    GetEntryGateways(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get entry gateway countries")]
-    FailedToGetEntryGatewayCountries(#[source] HttpClientError<UnexpectedError>),
+    GetEntryGatewayCountries(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get exit gateways")]
-    FailedToGetExitGateways(#[source] HttpClientError<UnexpectedError>),
+    GetExitGateways(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get exit gateway countries")]
-    FailedToGetExitGatewayCountries(#[source] HttpClientError<UnexpectedError>),
+    GetExitGatewayCountries(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get vpn gateways")]
-    FailedToGetVpnGateways(#[source] HttpClientError<UnexpectedError>),
+    GetVpnGateways(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get vpn gateway countries")]
-    FailedToGetVpnGatewayCountries(#[source] HttpClientError<UnexpectedError>),
+    GetVpnGatewayCountries(#[source] HttpClientError<UnexpectedError>),
 
     #[error("invalud percent value")]
     InvalidPercentValue(#[source] ContractsCommonError),
@@ -98,27 +98,25 @@ pub enum VpnApiClientError {
     ),
 
     #[error("failed to get directory zk-nym ticketbook partial verification keys")]
-    FailedToGetDirectoryZkNymsTicketbookPartialVerificationKeys(
-        #[source] HttpClientError<ErrorMessage>,
-    ),
+    GetDirectoryZkNymsTicketbookPartialVerificationKeys(#[source] HttpClientError<ErrorMessage>),
 
     #[error("failed to get health")]
-    FailedToGetHealth(#[source] HttpClientError<UnexpectedError>),
+    GetHealth(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get usage")]
-    FailedToGetUsage(#[source] HttpClientError<UnexpectedError>),
+    GetUsage(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get registered network environments")]
-    FailedToGetNetworkEnvs(#[source] HttpClientError<UnexpectedError>),
+    GetNetworkEnvs(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get discovery info")]
-    FailedToGetDiscoveryInfo(#[source] HttpClientError<UnexpectedError>),
+    GetDiscoveryInfo(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get vpn network Details")]
-    FailedToGetVpnNetworkDetails(#[source] HttpClientError<UnexpectedError>),
+    GetVpnNetworkDetails(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to post account")]
-    FailedToPostAccount(#[source] HttpClientError<UnexpectedError>),
+    PostAccount(#[source] HttpClientError<UnexpectedError>),
 }
 
 pub type Result<T> = std::result::Result<T, VpnApiClientError>;

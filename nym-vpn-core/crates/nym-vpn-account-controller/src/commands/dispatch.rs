@@ -17,7 +17,7 @@ use nym_vpn_api_client::{
 use tokio::sync::oneshot;
 
 use crate::{
-    AvailableTicketbooks, Error, PaymentResponse,
+    AvailableTicketbooks, Error, RegisterAccountResponse,
     commands::tasks::request_zknym::RequestZkNymSummary, shared_state::DeviceState,
 };
 
@@ -25,7 +25,7 @@ use crate::{
 pub enum AccountCommand {
     StoreAccount(ReturnSender<(), StoreAccountError>, Mnemonic),
     RegisterAccount(
-        ReturnSender<PaymentResponse, RegisterAccountError>,
+        ReturnSender<RegisterAccountResponse, RegisterAccountError>,
         Platform,
     ),
     ForgetAccount(ReturnSender<(), ForgetAccountError>),

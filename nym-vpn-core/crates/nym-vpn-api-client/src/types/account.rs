@@ -42,7 +42,7 @@ impl VpnApiAccount {
     pub fn signature_base64(&self) -> String {
         let account = self.wallet.get_accounts().unwrap();
         let address = account[0].address();
-        let message = format!("{address}").into_bytes();
+        let message = address.to_string().into_bytes();
         let signature = self.wallet.sign_raw(address, message).unwrap();
         let signature_bytes = signature.to_bytes().to_vec();
         base64_url::encode(&signature_bytes)

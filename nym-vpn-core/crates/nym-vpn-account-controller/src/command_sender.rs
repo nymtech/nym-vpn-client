@@ -16,7 +16,7 @@ use nym_vpn_store::mnemonic::Mnemonic;
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
-    AvailableTicketbooks, PaymentResponse,
+    AvailableTicketbooks, RegisterAccountResponse,
     commands::{AccountCommand, ReturnSender, tasks::request_zknym::RequestZkNymSummary},
     shared_state::{AccountRegistered, DeviceState, SharedAccountState},
 };
@@ -51,7 +51,7 @@ impl AccountCommandSender {
     pub async fn register_account(
         &self,
         platform: Platform,
-    ) -> Result<PaymentResponse, RegisterAccountError> {
+    ) -> Result<RegisterAccountResponse, RegisterAccountError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::RegisterAccount(tx, platform))
@@ -66,10 +66,10 @@ impl AccountCommandSender {
         Ok(())
     }
 
-    pub async fn register(
+    pub async fn create_account(
         &self,
         platform: Platform,
-    ) -> Result<PaymentResponse, AccountCommandError> {
+    ) -> Result<RegisterAccountResponse, AccountCommandError> {
         let response = self.register_account(platform).await?;
         self.ensure_update_account().await?;
         self.ensure_update_device().await?;

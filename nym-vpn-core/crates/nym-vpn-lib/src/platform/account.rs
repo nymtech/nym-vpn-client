@@ -19,7 +19,7 @@ use nym_vpn_store::{
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use super::uniffi_custom_impls::{AccountStateSummary, PaymentResponse};
+use super::uniffi_custom_impls::{AccountStateSummary, RegisterAccountResponse};
 
 use super::{ACCOUNT_CONTROLLER_HANDLE, error::VpnError};
 
@@ -233,7 +233,7 @@ pub(super) async fn login(mnemonic: &str) -> Result<(), VpnError> {
     Ok(())
 }
 
-pub(super) async fn register() -> Result<PaymentResponse, VpnError> {
+pub(super) async fn create_account() -> Result<RegisterAccountResponse, VpnError> {
     let platform = if cfg!(target_os = "ios") {
         Platform::Apple
     } else {
@@ -241,9 +241,9 @@ pub(super) async fn register() -> Result<PaymentResponse, VpnError> {
     };
     get_command_sender()
         .await?
-        .register(platform)
+        .create_account(platform)
         .await
-        .map(PaymentResponse::from)
+        .map(RegisterAccountResponse::from)
         .map_err(VpnError::from)
 }
 

@@ -6,9 +6,8 @@ pub enum Platform {
     Apple,
     Unspecified,
 }
-
-impl AsRef<str> for Platform {
-    fn as_ref(&self) -> &str {
+impl Platform {
+    pub fn api_path_component(&self) -> &'static str {
         match self {
             Platform::Apple => crate::routes::APPLE,
             Platform::Unspecified => "",
