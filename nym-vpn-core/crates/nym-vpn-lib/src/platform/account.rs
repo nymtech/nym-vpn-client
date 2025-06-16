@@ -315,12 +315,13 @@ pub(crate) mod raw {
 
     pub(crate) async fn get_account_id_raw(path: &str) -> Result<String, VpnError> {
         let storage = setup_account_storage(path).await?;
-        storage
+        let mnemonic = storage
             .load_mnemonic()
             .await
-            .map(VpnApiAccount::from)
+            .map_err(|_err| VpnError::NoAccountStored)?;
+        VpnApiAccount::try_from(mnemonic)
+            .map_err(VpnError::internal)
             .map(|account| account.id())
-            .map_err(|_err| VpnError::NoAccountStored)
     }
 
     async fn remove_account_mnemonic_raw(path: &str) -> Result<bool, VpnError> {
@@ -377,7 +378,7 @@ pub(crate) mod raw {
             .load_mnemonic()
             .await
             .map_err(|_| VpnError::NoAccountStored)?;
-        let account = VpnApiAccount::from(mnemonic);
+        let account = VpnApiAccount::try_from(mnemonic).map_err(VpnError::internal)?;
 
         let vpn_api_client = create_vpn_api_client().await?;
 
@@ -394,7 +395,7 @@ pub(crate) mod raw {
         mnemonic: Mnemonic,
     ) -> Result<NymVpnAccountResponse, VpnError> {
         let vpn_api_client = create_vpn_api_client().await?;
-        let account = VpnApiAccount::from(mnemonic);
+        let account = VpnApiAccount::try_from(mnemonic).map_err(VpnError::internal)?;
         vpn_api_client
             .get_account(&account)
             .await

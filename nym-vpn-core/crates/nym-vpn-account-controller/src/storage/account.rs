@@ -36,15 +36,16 @@ where
     }
 
     pub(crate) async fn load_account(&self) -> Result<VpnApiAccount, Error> {
-        self.storage
+        let mnemonic = self
+            .storage
             .lock()
             .await
             .load_mnemonic()
             .await
-            .map(VpnApiAccount::from)
             .map_err(|err| Error::MnemonicStore {
                 source: Box::new(err),
-            })
+            })?;
+        VpnApiAccount::try_from(mnemonic).map_err(Error::internal)
     }
 
     pub(crate) async fn remove_account(&self) -> Result<(), Error> {

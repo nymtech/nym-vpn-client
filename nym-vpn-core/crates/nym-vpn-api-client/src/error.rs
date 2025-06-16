@@ -117,6 +117,9 @@ pub enum VpnApiClientError {
 
     #[error("failed to post account")]
     PostAccount(#[source] HttpClientError<UnexpectedError>),
+
+    #[error("create account")]
+    CreateAccount(#[source] crate::types::AccountError),
 }
 
 pub type Result<T> = std::result::Result<T, VpnApiClientError>;

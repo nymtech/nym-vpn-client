@@ -266,7 +266,10 @@ where
     async fn handle_store_account(&self, mnemonic: Mnemonic) -> Result<(), StoreAccountError> {
         if self.offline_watch.is_online() {
             self.vpn_api_client
-                .check_account_exists_on_api(&VpnApiAccount::from(mnemonic.clone()))
+                .check_account_exists_on_api(
+                    &VpnApiAccount::try_from(mnemonic.clone())
+                        .map_err(StoreAccountError::internal)?,
+                )
                 .await?;
         } else {
             tracing::info!("Not checking if account exists on vpn-api as we are offline");
@@ -294,7 +297,8 @@ where
         &self,
         platform: Platform,
     ) -> Result<RegisterAccountResponse, RegisterAccountError> {
-        let (account, mnemonic) = VpnApiAccount::random();
+        let (account, mnemonic) =
+            VpnApiAccount::random().map_err(RegisterAccountError::internal)?;
 
         let payment_token = if self.offline_watch.is_online() {
             self.vpn_api_client
