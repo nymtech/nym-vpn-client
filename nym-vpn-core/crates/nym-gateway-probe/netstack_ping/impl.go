@@ -52,6 +52,9 @@ func (Netstack) ping(req NetstackRequestGo) NetstackResponse {
 		log.Panic(err)
 	}
 	dev := device.NewDevice(tun, conn.NewDefaultBind(), device.NewLogger(device.LogLevelError, ""))
+	
+	// Ensure proper cleanup of the device to prevent memory leaks
+	defer dev.Close()
 
 	var ipc strings.Builder
 
@@ -162,6 +165,9 @@ func sendPing(address string, seq uint8, send_timeout_secs uint64, recieve_timou
 	if err != nil {
 		return 0, err
 	}
+	
+	// Ensure proper cleanup of the socket
+	defer socket.Close()
 
 	var icmpBytes []byte
 
