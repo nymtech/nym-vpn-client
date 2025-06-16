@@ -5,21 +5,37 @@ pub mod binding {
     rust2go::r2g_include_binding!();
 }
 
-#[derive(rust2go::R2G, Clone)]
+// Types for the netstack ping functionality
+// Note: These are kept minimal since we use direct C function calls to avoid callback issues
+
+#[derive(Clone, Debug, PartialEq)]
 pub struct NetstackRequestGo {
     pub wg_ip: String,
-    private_key: String,
-    public_key: String,
-    endpoint: String,
+    pub private_key: String,
+    pub public_key: String,
+    pub endpoint: String,
     pub dns: String,
-    ip_version: u8,
-    ping_hosts: Vec<String>,
-    ping_ips: Vec<String>,
-    num_ping: u8,
-    send_timeout_sec: u64,
-    recv_timeout_sec: u64,
-    download_timeout_sec: u64,
-    awg_args: String,
+    pub ip_version: u8,
+    pub ping_hosts: Vec<String>,
+    pub ping_ips: Vec<String>,
+    pub num_ping: u8,
+    pub send_timeout_sec: u64,
+    pub recv_timeout_sec: u64,
+    pub download_timeout_sec: u64,
+    pub awg_args: String,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct NetstackResponse {
+    pub can_handshake: bool,
+    pub sent_ips: u16,
+    pub received_ips: u16,
+    pub sent_hosts: u16,
+    pub received_hosts: u16,
+    pub can_resolve_dns: bool,
+    pub downloaded_file: String,
+    pub download_duration_sec: u64,
+    pub download_error: String,
 }
 
 impl NetstackRequestGo {
@@ -58,24 +74,6 @@ impl NetstackRequestGo {
             awg_args: req.awg_args.clone(),
         }
     }
-}
-
-#[rust2go::r2g]
-pub trait NetstackCall {
-    fn ping(req: &NetstackRequestGo) -> NetstackResponse;
-}
-
-#[derive(rust2go::R2G, Clone, Debug)]
-pub struct NetstackResponse {
-    pub can_handshake: bool,
-    pub sent_ips: u16,
-    pub received_ips: u16,
-    pub sent_hosts: u16,
-    pub received_hosts: u16,
-    pub can_resolve_dns: bool,
-    pub downloaded_file: String,
-    pub download_duration_sec: u64,
-    pub download_error: String,
 }
 
 // Helper functions to use the callback-free approach
