@@ -283,7 +283,7 @@ pub(crate) mod raw {
     use nym_sdk::mixnet::StoragePaths;
     use nym_vpn_api_client::{
         VpnApiClient,
-        response::NymVpnAccountResponse,
+        response::{NymVpnAccountResponse, NymVpnRegisterAccountResponse},
         types::{Device, DeviceStatus},
     };
 
@@ -306,6 +306,27 @@ pub(crate) mod raw {
         storage.store_mnemonic(mnemonic).await?;
         storage.init_keys(None).await?;
         Ok(())
+    }
+
+    pub(crate) async fn create_account_raw(
+        path: &str,
+    ) -> Result<RegisterAccountResponse, VpnError> {
+        let platform = if cfg!(target_os = "ios") {
+            Platform::Apple
+        } else {
+            Platform::Unspecified
+        };
+        let (account, mnemonic) = VpnApiAccount::random().map_err(VpnError::internal)?;
+        let payment_token = register_account_by_account_raw(&account, platform)
+            .await?
+            .payment_token;
+        let storage = setup_account_storage(path).await?;
+        storage.store_mnemonic(mnemonic.clone()).await?;
+        storage.init_keys(None).await?;
+        Ok(RegisterAccountResponse {
+            payment_token,
+            mnemonic: mnemonic.to_string(),
+        })
     }
 
     pub(crate) async fn is_account_mnemonic_stored_raw(path: &str) -> Result<bool, VpnError> {
@@ -400,6 +421,17 @@ pub(crate) mod raw {
             .get_account(&account)
             .await
             .map_err(|_err| VpnError::AccountNotRegistered)
+    }
+
+    async fn register_account_by_account_raw(
+        account: &VpnApiAccount,
+        platform: Platform,
+    ) -> Result<NymVpnRegisterAccountResponse, VpnError> {
+        let vpn_api_client = create_vpn_api_client().await?;
+        vpn_api_client
+            .post_account(account, platform)
+            .await
+            .map_err(|_err| VpnError::FailedAccountRegisteration)
     }
 
     pub(crate) async fn forget_account_raw(path: &str) -> Result<(), VpnError> {
