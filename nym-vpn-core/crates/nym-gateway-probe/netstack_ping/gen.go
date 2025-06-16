@@ -69,8 +69,13 @@ type NetstackCall interface {
 func CNetstackCall_ping(req C.NetstackRequestGoRef, slot *C.void, cb *C.void) {
 	log.Printf("[DEBUG] Starting CNetstackCall_ping")
 	resp := NetstackCallImpl.ping(newNetstackRequestGo(req))
+	log.Printf("[DEBUG] Ping function completed successfully, returning response")
 	log.Printf("[DEBUG] Got response, creating refs")
-	resp_ref, buffer := cvt_ref(cntNetstackResponse, refNetstackResponse)(&resp)
+	log.Printf("[DEBUG] Response downloaded_file length: %d", len(resp.downloaded_file))
+	log.Printf("[DEBUG] Response download_error length: %d", len(resp.download_error))
+	// Use cvt_ref_cap with extra capacity to handle large downloaded files
+	resp_ref, buffer := cvt_ref_cap(cntNetstackResponse, refNetstackResponse, 1024*1024)(&resp)
+	log.Printf("[DEBUG] Buffer size allocated: %d", len(buffer))
 	log.Printf("[DEBUG] Created refs, calling callback")
 	C.NetstackCall_ping_cb(unsafe.Pointer(cb), resp_ref, unsafe.Pointer(slot))
 	log.Printf("[DEBUG] Callback completed, keeping alive")
@@ -83,12 +88,21 @@ func newString(s_ref C.StringRef) string {
 	return unsafe.String((*byte)(unsafe.Pointer(s_ref.ptr)), s_ref.len)
 }
 func refString(s *string, buffer *[]byte) C.StringRef {
+	// Handle empty string case
+	if s == nil || len(*s) == 0 {
+		return C.StringRef{
+			ptr: (*C.uint8_t)(unsafe.Pointer(nil)),
+			len: C.uintptr_t(0),
+		}
+	}
+	
 	// Always copy string data into the buffer to avoid pointer issues
 	str_bytes := []byte(*s)
 	
 	if buffer == nil || len(*buffer) < len(str_bytes) {
-		// If buffer is nil or too small, we need to handle this properly
-		// Instead of fallback to unsafe direct reference, return empty string
+		// If buffer is nil or too small, return empty string to avoid panic
+		// This should not happen if buffer allocation is correct
+		log.Printf("[ERROR] Buffer too small: needed %d, have %d", len(str_bytes), len(*buffer))
 		return C.StringRef{
 			ptr: (*C.uint8_t)(unsafe.Pointer(nil)),
 			len: C.uintptr_t(0),
