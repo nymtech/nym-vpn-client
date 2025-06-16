@@ -63,7 +63,6 @@ impl NetstackRequestGo {
 #[rust2go::r2g]
 pub trait NetstackCall {
     fn ping(req: &NetstackRequestGo) -> NetstackResponse;
-    fn get_last_response() -> NetstackResponse;
 }
 
 #[derive(rust2go::R2G, Clone, Debug)]
@@ -79,5 +78,46 @@ pub struct NetstackResponse {
     pub download_error: String,
 }
 
-// Re-export the generated types for easier access
-pub use binding::NetstackCallImpl;
+// Helper functions to use the callback-free approach
+impl NetstackResponse {
+    /// Get the last response stored globally in Go
+    pub fn get_last_response() -> Self {
+        unsafe {
+            let response_ref = binding::CNetstackCall_get_last_response();
+            Self::from_response_ref(response_ref)
+        }
+    }
+    
+    /// Convert from C NetstackResponseRef to Rust NetstackResponse
+    fn from_response_ref(response_ref: binding::NetstackResponseRef) -> Self {
+        Self {
+            can_handshake: response_ref.can_handshake,
+            sent_ips: response_ref.sent_ips,
+            received_ips: response_ref.received_ips,
+            sent_hosts: response_ref.sent_hosts,
+            received_hosts: response_ref.received_hosts,
+            can_resolve_dns: response_ref.can_resolve_dns,
+            downloaded_file: unsafe {
+                let ptr = response_ref.downloaded_file.ptr;
+                let len = response_ref.downloaded_file.len;
+                if ptr.is_null() || len == 0 {
+                    String::new()
+                } else {
+                    let slice = std::slice::from_raw_parts(ptr, len);
+                    String::from_utf8_lossy(slice).to_string()
+                }
+            },
+            download_duration_sec: response_ref.download_duration_sec,
+            download_error: unsafe {
+                let ptr = response_ref.download_error.ptr;
+                let len = response_ref.download_error.len;
+                if ptr.is_null() || len == 0 {
+                    String::new()
+                } else {
+                    let slice = std::slice::from_raw_parts(ptr, len);
+                    String::from_utf8_lossy(slice).to_string()
+                }
+            },
+        }
+    }
+}
