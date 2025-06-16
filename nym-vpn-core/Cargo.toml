@@ -184,7 +184,7 @@ winreg = "0.55"
 wmi = "0.14"
 x25519-dalek = "2.0"
 zeroize = "1.6.0"
-sentry = "0.39.0"
+sentry = { version = "0.39.0", default-features = false }
 
 nym-apple-network = { path = "crates/nym-apple-network" }
 nym-authenticator-client = { path = "crates/nym-authenticator-client" }
