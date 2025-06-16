@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/amnezia-vpn/amneziawg-go/conn"
-	"github.com/amnezia-vpn/amneziawg-go/device"
-	"github.com/amnezia-vpn/amneziawg-go/tun/netstack"
+	"golang.zx2c4.com/wireguard/conn"
+	"golang.zx2c4.com/wireguard/device"
+	"golang.zx2c4.com/wireguard/tun/netstack"
 	"golang.org/x/net/icmp"
 	"golang.org/x/net/ipv4"
 	"golang.org/x/net/ipv6"
@@ -57,10 +57,6 @@ func (Netstack) ping(req NetstackRequestGo) NetstackResponse {
 
 	ipc.WriteString("private_key=")
 	ipc.WriteString(req.private_key)
-	if req.awg_args != "" {
-		awg := strings.ReplaceAll(req.awg_args, "\\n", "\n")
-		ipc.WriteString(fmt.Sprintf("\n%s", awg))
-	}
 	ipc.WriteString("\npublic_key=")
 	ipc.WriteString(req.public_key)
 	ipc.WriteString("\nendpoint=")
