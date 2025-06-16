@@ -103,12 +103,36 @@ func newString(s_ref C.StringRef) string {
 	return unsafe.String((*byte)(unsafe.Pointer(s_ref.ptr)), s_ref.len)
 }
 func refString(s *string, buffer *[]byte) C.StringRef {
-	// Handle empty string case - return NULL for ALL strings to test
-	// This will help us identify if the issue is string-related or callback-related
-	log.Printf("[DEBUG] refString: returning NULL for string len=%d to test callback", len(*s))
+	// Test: provide a minimal string for empty cases to see if NULL pointers are the issue
+	if s == nil || len(*s) == 0 {
+		log.Printf("[DEBUG] refString: empty string, providing minimal placeholder")
+		placeholder := []byte(" ") // Single space as placeholder
+		storageMutex.Lock()
+		id := storageID
+		storageID++
+		stringStorage[id] = placeholder
+		stored_bytes := stringStorage[id]
+		storageMutex.Unlock()
+		
+		return C.StringRef{
+			ptr: (*C.uint8_t)(unsafe.Pointer(&stored_bytes[0])),
+			len: C.uintptr_t(1),
+		}
+	}
+	
+	// For non-empty strings, store normally
+	str_bytes := []byte(*s)
+	storageMutex.Lock()
+	id := storageID
+	storageID++
+	stringStorage[id] = str_bytes
+	stored_bytes := stringStorage[id]
+	storageMutex.Unlock()
+	
+	log.Printf("[DEBUG] refString: stored string len=%d in global storage id=%d", len(str_bytes), id)
 	return C.StringRef{
-		ptr: (*C.uint8_t)(unsafe.Pointer(nil)),
-		len: C.uintptr_t(0),
+		ptr: (*C.uint8_t)(unsafe.Pointer(&stored_bytes[0])),
+		len: C.uintptr_t(len(stored_bytes)),
 	}
 }
 
