@@ -123,7 +123,9 @@ func refString(s *string, buffer *[]byte) C.StringRef {
 }
 
 func cntString(s *string, cnt *uint) [0]C.StringRef { 
+	old_cnt := *cnt
 	*cnt += uint(len(*s))
+	log.Printf("[DEBUG] cntString: string len=%d, cnt: %d -> %d", len(*s), old_cnt, *cnt)
 	return [0]C.StringRef{} 
 }
 func new_list_mapper[T1, T2 any](f func(T1) T2) func(C.ListRef) []T2 {
@@ -215,7 +217,8 @@ func cvt_ref_cap[R, CR any](cnt_f func(s *R, cnt *uint) [0]CR, ref_f func(p *R, 
 	return func(p *R) (CR, []byte) {
 		var cnt uint
 		cnt_f(p, &cnt)
-		buffer := make([]byte, cnt, cnt+add_cap)
+		total_size := cnt + add_cap
+		buffer := make([]byte, total_size)  // Make buffer with full size, not just capacity
 		return ref_f(p, &buffer), buffer
 	}
 }
@@ -344,6 +347,8 @@ func newNetstackResponse(p C.NetstackResponseRef) NetstackResponse {
 	}
 }
 func cntNetstackResponse(s *NetstackResponse, cnt *uint) [0]C.NetstackResponseRef {
+	log.Printf("[DEBUG] cntNetstackResponse: downloaded_file='%s' (len=%d)", s.downloaded_file, len(s.downloaded_file))
+	log.Printf("[DEBUG] cntNetstackResponse: download_error='%s' (len=%d)", s.download_error, len(s.download_error))
 	cntString(&s.downloaded_file, cnt)
 	cntString(&s.download_error, cnt)
 	return [0]C.NetstackResponseRef{}
