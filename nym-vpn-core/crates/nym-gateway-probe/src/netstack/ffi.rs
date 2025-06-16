@@ -114,3 +114,74 @@ impl NetstackResponse {
         }
     }
 }
+
+// Helper functions to call C functions directly, bypassing rust2go trait issues
+impl NetstackRequestGo {
+    /// Call ping directly via C function, bypassing the problematic trait implementation
+    pub fn call_ping_direct(&self) -> NetstackResponse {
+        unsafe {
+            // Convert strings to C string refs
+            let wg_ip_bytes = self.wg_ip.as_bytes();
+            let private_key_bytes = self.private_key.as_bytes();
+            let public_key_bytes = self.public_key.as_bytes();
+            let endpoint_bytes = self.endpoint.as_bytes();
+            let dns_bytes = self.dns.as_bytes();
+            let awg_args_bytes = self.awg_args.as_bytes();
+            
+            // Convert Vec<String> to Vec<&[u8]> for hosts and ips
+            let ping_hosts_bytes: Vec<&[u8]> = self.ping_hosts.iter().map(|s| s.as_bytes()).collect();
+            let ping_ips_bytes: Vec<&[u8]> = self.ping_ips.iter().map(|s| s.as_bytes()).collect();
+            
+            // Create C NetstackRequestGoRef
+            let req_ref = binding::NetstackRequestGoRef {
+                wg_ip: binding::StringRef {
+                    ptr: wg_ip_bytes.as_ptr(),
+                    len: wg_ip_bytes.len(),
+                },
+                private_key: binding::StringRef {
+                    ptr: private_key_bytes.as_ptr(),
+                    len: private_key_bytes.len(),
+                },
+                public_key: binding::StringRef {
+                    ptr: public_key_bytes.as_ptr(),
+                    len: public_key_bytes.len(),
+                },
+                endpoint: binding::StringRef {
+                    ptr: endpoint_bytes.as_ptr(),
+                    len: endpoint_bytes.len(),
+                },
+                dns: binding::StringRef {
+                    ptr: dns_bytes.as_ptr(),
+                    len: dns_bytes.len(),
+                },
+                ip_version: self.ip_version,
+                ping_hosts: binding::ListRef {
+                    ptr: if ping_hosts_bytes.is_empty() { std::ptr::null() } else { ping_hosts_bytes.as_ptr() as *const std::ffi::c_void },
+                    len: ping_hosts_bytes.len(),
+                },
+                ping_ips: binding::ListRef {
+                    ptr: if ping_ips_bytes.is_empty() { std::ptr::null() } else { ping_ips_bytes.as_ptr() as *const std::ffi::c_void },
+                    len: ping_ips_bytes.len(),
+                },
+                num_ping: self.num_ping,
+                send_timeout_sec: self.send_timeout_sec,
+                recv_timeout_sec: self.recv_timeout_sec,
+                download_timeout_sec: self.download_timeout_sec,
+                awg_args: binding::StringRef {
+                    ptr: awg_args_bytes.as_ptr(),
+                    len: awg_args_bytes.len(),
+                },
+            };
+            
+            // Call the ping function directly (stores result globally, no callback)
+            binding::CNetstackCall_ping(
+                req_ref,
+                std::ptr::null_mut(),
+                std::ptr::null_mut(),
+            );
+            
+            // Get the stored result
+            NetstackResponse::get_last_response()
+        }
+    }
+}

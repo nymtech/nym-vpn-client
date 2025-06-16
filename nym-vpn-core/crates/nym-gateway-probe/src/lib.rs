@@ -52,7 +52,7 @@ use crate::{
 
 use netstack::{
     NetstackRequest,
-    ffi::{NetstackCall as _, NetstackCallImpl, NetstackRequestGo, NetstackResponse},
+    ffi::{NetstackRequestGo},
 };
 
 mod error;
@@ -492,9 +492,8 @@ async fn wg_probe(
             // Perform IPv4 ping test
             let ipv4_request = NetstackRequestGo::from_rust_v4(&netstack_request);
 
-            // Use callback-free approach: ping stores result globally, then we retrieve it
-            let _ping_result_v4 = NetstackCallImpl::ping(&ipv4_request);
-            let netstack_response_v4 = NetstackResponse::get_last_response();
+            // Use direct C function call to bypass rust2go trait issues
+            let netstack_response_v4 = ipv4_request.call_ping_direct();
             info!(
                 "Wireguard probe response for IPv4: {:?}",
                 netstack_response_v4
@@ -513,9 +512,8 @@ async fn wg_probe(
             // Perform IPv6 ping test
             let ipv6_request = NetstackRequestGo::from_rust_v6(&netstack_request);
 
-            // Use callback-free approach: ping stores result globally, then we retrieve it
-            let _ping_result_v6 = NetstackCallImpl::ping(&ipv6_request);
-            let netstack_response_v6 = NetstackResponse::get_last_response();
+            // Use direct C function call to bypass rust2go trait issues
+            let netstack_response_v6 = ipv6_request.call_ping_direct();
             info!(
                 "Wireguard probe response for IPv6: {:?}",
                 netstack_response_v6

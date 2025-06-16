@@ -76,8 +76,12 @@ type NetstackCall interface {
 	ping(req NetstackRequestGo) NetstackResponse
 }
 
-// Global variable to store the last response (thread-unsafe but works for single calls)
+// Global variables to store the last response and its C strings
 var lastResponse NetstackResponse
+var lastResponseCStrings struct {
+	downloaded_file *C.char
+	download_error  *C.char
+}
 
 //export CNetstackCall_ping
 func CNetstackCall_ping(req C.NetstackRequestGoRef, slot *C.void, cb *C.void) {
@@ -88,9 +92,20 @@ func CNetstackCall_ping(req C.NetstackRequestGoRef, slot *C.void, cb *C.void) {
 	log.Printf("[DEBUG] Response downloaded_file length: %d", len(resp.downloaded_file))
 	log.Printf("[DEBUG] Response download_error length: %d", len(resp.download_error))
 	
-	// Store response globally to avoid callback memory issues
+	// Free any existing C strings
+	if lastResponseCStrings.downloaded_file != nil {
+		C.free(unsafe.Pointer(lastResponseCStrings.downloaded_file))
+	}
+	if lastResponseCStrings.download_error != nil {
+		C.free(unsafe.Pointer(lastResponseCStrings.download_error))
+	}
+	
+	// Store response globally and create C strings for it
 	lastResponse = resp
-	log.Printf("[DEBUG] Stored response globally, bypassing callback")
+	lastResponseCStrings.downloaded_file = C.CString(resp.downloaded_file)
+	lastResponseCStrings.download_error = C.CString(resp.download_error)
+	
+	log.Printf("[DEBUG] Stored response globally with C strings, bypassing callback")
 	
 	// Don't call the callback at all - let Rust side retrieve via different mechanism
 	// C.NetstackCall_ping_cb(unsafe.Pointer(cb), safe_resp, unsafe.Pointer(slot))
@@ -103,11 +118,26 @@ func CNetstackCall_ping(req C.NetstackRequestGoRef, slot *C.void, cb *C.void) {
 func CNetstackCall_get_last_response() C.NetstackResponseRef {
 	log.Printf("[DEBUG] Retrieving last response")
 	
-	// Create safe response with actual data since no callback memory issues
-	var dummy_buffer []byte
-	resp_ref := refNetstackResponse(&lastResponse, &dummy_buffer)
+	// Create response ref using C strings (properly pinned memory)
+	resp_ref := C.NetstackResponseRef{
+		can_handshake: C.bool(lastResponse.can_handshake),
+		sent_ips: C.uint16_t(lastResponse.sent_ips),
+		received_ips: C.uint16_t(lastResponse.received_ips),
+		sent_hosts: C.uint16_t(lastResponse.sent_hosts),
+		received_hosts: C.uint16_t(lastResponse.received_hosts),
+		can_resolve_dns: C.bool(lastResponse.can_resolve_dns),
+		downloaded_file: C.StringRef{
+			ptr: (*C.uint8_t)(unsafe.Pointer(lastResponseCStrings.downloaded_file)),
+			len: C.uintptr_t(len(lastResponse.downloaded_file)),
+		},
+		download_duration_sec: C.uint64_t(lastResponse.download_duration_sec),
+		download_error: C.StringRef{
+			ptr: (*C.uint8_t)(unsafe.Pointer(lastResponseCStrings.download_error)),
+			len: C.uintptr_t(len(lastResponse.download_error)),
+		},
+	}
 	
-	log.Printf("[DEBUG] Created response ref for retrieval")
+	log.Printf("[DEBUG] Created response ref with C strings for retrieval")
 	return resp_ref
 }
 
