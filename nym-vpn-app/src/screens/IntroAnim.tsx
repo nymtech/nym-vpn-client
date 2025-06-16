@@ -4,8 +4,6 @@ import { DotLottie, DotLottieReact } from '@lottiefiles/dotlottie-react';
 import { useMainDispatch, useMainState } from '../contexts';
 import { StateDispatch } from '../types';
 
-let initialized = false;
-
 function IntroAnim() {
   const [dotLottie, setDotLottie] = useState<DotLottie | null>(null);
   const [completed, setCompleted] = useState(false);
@@ -14,15 +12,7 @@ function IntroAnim() {
   const dispatch = useMainDispatch() as StateDispatch;
 
   useEffect(() => {
-    if (initialized) {
-      return;
-    }
-    initialized = true;
-
-    const id = setTimeout(() => {
-      setCompleted(true);
-    }, 3000);
-
+    console.log('___SPLASH ANIM INIT');
     const onComplete = () => {
       console.log('___SPLASH ANIM DONE');
       setCompleted(true);
@@ -34,15 +24,17 @@ function IntroAnim() {
       dotLottie.addEventListener('frame', onFrameChange);
     }
 
-    function onFrameChange(args) {
+    function onFrameChange(args: any) {
       console.log(args);
+      if (args?.currentFrame > 27) {
+        setCompleted(true);
+      }
     }
 
     return () => {
-      clearTimeout(id);
       // Remove event listeners when the component is unmounted.
       if (dotLottie) {
-        dotLottie.removeEventListener('complete');
+        dotLottie.removeEventListener('complete', onComplete);
         dotLottie.removeEventListener('frame', onFrameChange);
       }
     };
@@ -62,10 +54,11 @@ function IntroAnim() {
       <div
         className={clsx([
           'h-full w-full absolute z-200 flex flex-col min-w-64',
-          'bg-faded-lavender dark:bg-ash',
+          'bg-faded-lavender dark:bg-ash overflow-hidden',
         ])}
       >
         <DotLottieReact
+          // src="https://lottie.host/63e43fb7-61be-486f-aef2-622b144f7fc1/2m8UGcP8KR.json"
           src="/animations/splash.json"
           dotLottieRefCallback={dotLottieRefCallback}
           autoplay

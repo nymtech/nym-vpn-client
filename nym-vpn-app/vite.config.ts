@@ -49,6 +49,7 @@ export default defineConfig(() => ({
             '@radix-ui/react-toast',
           ],
           lodash: ['lodash-es'],
+          lottie: ['@lottiefiles/dotlottie-react'],
         },
       },
     },
