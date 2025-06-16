@@ -5,7 +5,7 @@ go 1.23.1
 toolchain go1.23.3
 
 require (
-	github.com/tommyv1987/amneziawg-go v0.2.15-nym
+	github.com/tommyv1987/amneziawg-go v0.2.16-nym
 	golang.org/x/net v0.39.0
 )
 
