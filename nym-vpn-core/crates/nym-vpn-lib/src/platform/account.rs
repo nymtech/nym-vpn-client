@@ -280,6 +280,7 @@ pub(super) async fn get_device_id() -> Result<String, VpnError> {
 pub(crate) mod raw {
     use std::path::Path;
 
+    use nym_common::ErrorExt;
     use nym_sdk::mixnet::StoragePaths;
     use nym_vpn_api_client::{
         VpnApiClient,
@@ -432,7 +433,7 @@ pub(crate) mod raw {
             .post_account(account, platform)
             .await
             .map_err(|err| VpnError::FailedAccountRegistration {
-                details: err.to_string(),
+                details: err.display_chain(),
             })
     }
 
