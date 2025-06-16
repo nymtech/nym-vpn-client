@@ -83,27 +83,26 @@ func newString(s_ref C.StringRef) string {
 	return unsafe.String((*byte)(unsafe.Pointer(s_ref.ptr)), s_ref.len)
 }
 func refString(s *string, buffer *[]byte) C.StringRef {
-	if buffer == nil || len(*buffer) == 0 {
-		// Fallback to direct reference if no buffer provided
+	// Always copy string data into the buffer to avoid pointer issues
+	str_bytes := []byte(*s)
+	
+	if buffer == nil || len(*buffer) < len(str_bytes) {
+		// If buffer is nil or too small, we need to handle this properly
+		// Instead of fallback to unsafe direct reference, return empty string
 		return C.StringRef{
-			ptr: (*C.uint8_t)(unsafe.StringData(*s)),
-			len: C.uintptr_t(len(*s)),
+			ptr: (*C.uint8_t)(unsafe.Pointer(nil)),
+			len: C.uintptr_t(0),
 		}
 	}
 	
-	// copy string data into the buffer to avoid pointer issues
-	str_bytes := []byte(*s)
-	if len(str_bytes) > len(*buffer) {
-		str_bytes = str_bytes[:len(*buffer)]
-	}
-	
+	// Copy string data into the buffer
 	copy(*buffer, str_bytes)
 	result := C.StringRef{
 		ptr: (*C.uint8_t)(unsafe.Pointer(&(*buffer)[0])),
 		len: C.uintptr_t(len(str_bytes)),
 	}
 	
-	// advance the buffer pointer
+	// Advance the buffer pointer
 	*buffer = (*buffer)[len(str_bytes):]
 	
 	return result
@@ -349,3 +348,4 @@ func refNetstackResponse(p *NetstackResponse, buffer *[]byte) C.NetstackResponse
 	}
 }
 func main() {}
+
