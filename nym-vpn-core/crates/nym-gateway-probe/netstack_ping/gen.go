@@ -331,6 +331,8 @@ func newNetstackResponse(p C.NetstackResponseRef) NetstackResponse {
 	}
 }
 func cntNetstackResponse(s *NetstackResponse, cnt *uint) [0]C.NetstackResponseRef {
+	cntString(&s.downloaded_file, cnt)
+	cntString(&s.download_error, cnt)
 	return [0]C.NetstackResponseRef{}
 }
 func refNetstackResponse(p *NetstackResponse, buffer *[]byte) C.NetstackResponseRef {
