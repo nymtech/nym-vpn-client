@@ -1,6 +1,12 @@
 name: build-nym-gateway-probe-linux
 on:
   workflow_dispatch:
+    inputs:
+      branch:
+        description: 'Branch to build from'
+        required: false
+        default: 'develop'
+        type: string
   pull_request:
     paths:
       - ".github/workflows/build-nym-gateway-probe-linux.yml"
@@ -26,6 +32,8 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.branch || github.ref }}
 
       - name: Install system dependencies
         run: |
