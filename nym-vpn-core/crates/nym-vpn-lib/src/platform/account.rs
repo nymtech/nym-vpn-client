@@ -431,7 +431,9 @@ pub(crate) mod raw {
         vpn_api_client
             .post_account(account, platform)
             .await
-            .map_err(|_err| VpnError::FailedAccountRegisteration)
+            .map_err(|err| VpnError::FailedAccountRegistration {
+                details: err.to_string(),
+            })
     }
 
     pub(crate) async fn forget_account_raw(path: &str) -> Result<(), VpnError> {

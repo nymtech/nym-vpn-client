@@ -23,8 +23,8 @@ pub enum VpnError {
     #[error("attempting to access an account that is not registered")]
     AccountNotRegistered,
 
-    #[error("failed to register account")]
-    FailedAccountRegisteration,
+    #[error("failed to register account: {details}")]
+    FailedAccountRegistration { details: String },
 
     #[error("no device identity stored")]
     NoDeviceIdentity,
