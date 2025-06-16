@@ -85,6 +85,7 @@ var lastResponseCStrings struct {
 
 //export CNetstackCall_ping
 func CNetstackCall_ping(req C.NetstackRequestGoRef, slot *C.void, cb *C.void) {
+	log.Printf("[DEBUG] Starting CNetstackCall_ping")
 	resp := NetstackCallImpl.ping(newNetstackRequestGo(req))
 	
 	// Free any existing C strings
