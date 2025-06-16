@@ -1,10 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { invoke, isTauri } from '@tauri-apps/api/core';
-import {
-  WebviewWindow,
-  getCurrentWebviewWindow,
-} from '@tauri-apps/api/webviewWindow';
+import { getCurrentWebviewWindow } from '@tauri-apps/api/webviewWindow';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import duration from 'dayjs/plugin/duration';
@@ -12,7 +9,7 @@ import App from './App';
 import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
 import initSentry from './sentry';
-import { ThemeMode, VpnMode, VpndStatus } from './types';
+import { VpnMode, VpndStatus } from './types';
 import { StartupError } from './screens';
 import { init } from './log';
 import { DefaultVpnMode } from './constants';
@@ -48,25 +45,6 @@ if (import.meta.env.MODE === 'dev-browser') {
 dayjs.extend(relativeTime);
 dayjs.extend(duration);
 
-async function setSplashTheme(window: WebviewWindow) {
-  let isDarkMode = false;
-
-  const mode = await kvGet<ThemeMode>('ui-theme');
-  if (mode === 'dark') {
-    isDarkMode = true;
-  }
-  if (!mode || mode === 'system') {
-    const theme = await window.theme();
-    if (theme === 'dark') {
-      isDarkMode = true;
-    }
-  }
-  if (isDarkMode) {
-    const splash = document.getElementById('splash');
-    splash?.classList.add('dark');
-  }
-}
-
 (async () => {
   if (isTauri()) {
     init();
@@ -74,9 +52,6 @@ async function setSplashTheme(window: WebviewWindow) {
   console.info('starting UI');
 
   const window = getCurrentWebviewWindow();
-  if (window.label === 'main') {
-    await setSplashTheme(window);
-  }
 
   if (devMode) {
     console.info('dev mode enabled');

@@ -15,9 +15,9 @@ import { LngTag } from './i18n';
 import { kvGet } from './kvStore';
 import router from './router';
 import './i18n/config';
-import { Cli } from './types';
 import { RouteLoading, ThemeSetter } from './ui';
 import { GatewaysProvider } from './contexts/gateways';
+import { IntroAnim } from './screens';
 
 let initialized = false;
 
@@ -34,21 +34,11 @@ function App() {
     }
     initialized = true;
 
-    const showSplashAnimation = async () => {
-      const args = await invoke<Cli>(`cli_args`);
-      // if NOSPLASH is set, skip the splash-screen animation
-      if (import.meta.env.APP_NOSPLASH || args.nosplash) {
-        console.log('splash-screen disabled');
-        const splash = document.getElementById('splash');
-        if (splash) {
-          splash.remove();
-        }
-        return;
-      }
+    const showAppWindow = () => {
       console.info('show main window');
       invoke<void>('show_main_window').catch((e: unknown) => console.error(e));
     };
-    showSplashAnimation();
+    showAppWindow();
   }, []);
 
   useEffect(() => {
@@ -65,6 +55,7 @@ function App() {
     <InAppNotificationProvider>
       <Toast.Provider>
         <MainStateProvider>
+          <IntroAnim />
           <GatewaysProvider>
             <ThemeSetter>
               <DialogProvider>
