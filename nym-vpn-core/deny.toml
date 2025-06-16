@@ -236,7 +236,7 @@ unused = "deny"
 unknown-registry = "warn"
 # Lint level for what to happen when a crate from a git repository that is not
 # in the allow list is encountered
-unknown-git = "warn"
+unknown-git = "error"
 # List of URLs for allowed crate registries. Defaults to the crates.io index
 # if not specified. If it is specified but empty, no registries are allowed.
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
