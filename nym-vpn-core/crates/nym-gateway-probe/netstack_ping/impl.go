@@ -143,9 +143,10 @@ func (Netstack) ping(req NetstackRequestGo) NetstackResponse {
 	}
 
 	response.download_duration_sec = uint64(downloadDuration.Seconds())
-	response.downloaded_file = fileURL
+	// Make defensive copies of strings to avoid memory reference issues
+	response.downloaded_file = string([]byte(fileURL))
 	if err != nil {
-		response.download_error = err.Error()
+		response.download_error = string([]byte(err.Error()))
 	} else {
 		response.download_error = ""
 	}
