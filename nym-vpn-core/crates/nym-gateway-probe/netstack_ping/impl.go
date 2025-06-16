@@ -152,7 +152,16 @@ func (Netstack) ping(req NetstackRequestGo) NetstackResponse {
 	}
 
 	log.Printf("[DEBUG] Ping function completed successfully, returning response")
+	
+	// Store response globally for callback-free retrieval
+	lastResponse = response
+	
 	return response
+}
+
+func (Netstack) get_last_response() NetstackResponse {
+	log.Printf("[DEBUG] Retrieving last response from Go side")
+	return lastResponse
 }
 
 func sendPing(address string, seq uint8, send_timeout_secs uint64, recieve_timout_secs uint64, tnet *netstack.Net, ip_version uint8) (time.Duration, error) {
