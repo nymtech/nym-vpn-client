@@ -54,6 +54,7 @@ inline void NetstackCall_ping_cb(const void *f_ptr, struct NetstackResponseRef r
 */
 import "C"
 import (
+	"log"
 	"runtime"
 	"unsafe"
 )
@@ -66,11 +67,16 @@ type NetstackCall interface {
 
 //export CNetstackCall_ping
 func CNetstackCall_ping(req C.NetstackRequestGoRef, slot *C.void, cb *C.void) {
+	log.Printf("[DEBUG] Starting CNetstackCall_ping")
 	resp := NetstackCallImpl.ping(newNetstackRequestGo(req))
+	log.Printf("[DEBUG] Got response, creating refs")
 	resp_ref, buffer := cvt_ref(cntNetstackResponse, refNetstackResponse)(&resp)
+	log.Printf("[DEBUG] Created refs, calling callback")
 	C.NetstackCall_ping_cb(unsafe.Pointer(cb), resp_ref, unsafe.Pointer(slot))
+	log.Printf("[DEBUG] Callback completed, keeping alive")
 	runtime.KeepAlive(resp)
 	runtime.KeepAlive(buffer)
+	log.Printf("[DEBUG] CNetstackCall_ping completed")
 }
 
 func newString(s_ref C.StringRef) string {

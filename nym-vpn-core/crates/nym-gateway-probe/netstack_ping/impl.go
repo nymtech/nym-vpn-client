@@ -151,6 +151,7 @@ func (Netstack) ping(req NetstackRequestGo) NetstackResponse {
 		response.download_error = ""
 	}
 
+	log.Printf("[DEBUG] Ping function completed successfully, returning response")
 	return response
 }
 
