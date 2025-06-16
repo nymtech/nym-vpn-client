@@ -183,3 +183,203 @@ impl NetstackRequestGo {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn create_test_netstack_request() -> NetstackRequest {
+        use crate::NetstackArgs;
+        let args = NetstackArgs {
+            netstack_download_timeout_sec: 30,
+            netstack_v4_dns: "1.1.1.1".to_string(),
+            netstack_v6_dns: "2001:4860:4860::8888".to_string(),
+            netstack_num_ping: 3,
+            netstack_send_timeout_sec: 5,
+            netstack_recv_timeout_sec: 5,
+            netstack_ping_hosts_v4: vec!["example.com".to_string()],
+            netstack_ping_ips_v4: vec!["8.8.8.8".to_string()],
+            netstack_ping_hosts_v6: vec!["ipv6.google.com".to_string()],
+            netstack_ping_ips_v6: vec!["2001:4860:4860::8888".to_string()],
+        };
+        
+        NetstackRequest::new(
+            "10.0.0.1",
+            "fc00::1",
+            "test_private_key",
+            "test_public_key",
+            "192.168.1.1:51820",
+            30,
+            "",
+            args,
+        )
+    }
+
+    #[test]
+    fn test_netstack_request_go_from_rust_v4() {
+        let request = create_test_netstack_request();
+        let go_request = NetstackRequestGo::from_rust_v4(&request);
+
+        assert_eq!(go_request.wg_ip, "10.0.0.1");
+        assert_eq!(go_request.private_key, "test_private_key");
+        assert_eq!(go_request.public_key, "test_public_key");
+        assert_eq!(go_request.endpoint, "192.168.1.1:51820");
+        assert_eq!(go_request.dns, "1.1.1.1");
+        assert_eq!(go_request.ip_version, 4);
+        assert_eq!(go_request.ping_hosts, vec!["example.com"]);
+        assert_eq!(go_request.ping_ips, vec!["8.8.8.8"]);
+        assert_eq!(go_request.num_ping, 3);
+        assert_eq!(go_request.send_timeout_sec, 5);
+        assert_eq!(go_request.recv_timeout_sec, 5);
+        assert_eq!(go_request.download_timeout_sec, 30);
+        assert_eq!(go_request.awg_args, "");
+    }
+
+    #[test]
+    fn test_netstack_request_go_from_rust_v6() {
+        let request = create_test_netstack_request();
+        let go_request = NetstackRequestGo::from_rust_v6(&request);
+
+        assert_eq!(go_request.wg_ip, "fc00::1");
+        assert_eq!(go_request.private_key, "test_private_key");
+        assert_eq!(go_request.public_key, "test_public_key");
+        assert_eq!(go_request.endpoint, "192.168.1.1:51820");
+        assert_eq!(go_request.dns, "2001:4860:4860::8888");
+        assert_eq!(go_request.ip_version, 6);
+        assert_eq!(go_request.ping_hosts, vec!["ipv6.google.com"]);
+        assert_eq!(go_request.ping_ips, vec!["2001:4860:4860::8888"]);
+        assert_eq!(go_request.num_ping, 3);
+        assert_eq!(go_request.send_timeout_sec, 5);
+        assert_eq!(go_request.recv_timeout_sec, 5);
+        assert_eq!(go_request.download_timeout_sec, 30);
+        assert_eq!(go_request.awg_args, "");
+    }
+
+    #[test]
+    fn test_netstack_response_creation() {
+        let response = NetstackResponse {
+            can_handshake: true,
+            sent_ips: 5,
+            received_ips: 4,
+            sent_hosts: 3,
+            received_hosts: 2,
+            can_resolve_dns: true,
+            downloaded_file: "https://example.com/test.dat".to_string(),
+            download_duration_sec: 10,
+            download_error: "".to_string(),
+        };
+
+        assert!(response.can_handshake);
+        assert_eq!(response.sent_ips, 5);
+        assert_eq!(response.received_ips, 4);
+        assert_eq!(response.sent_hosts, 3);
+        assert_eq!(response.received_hosts, 2);
+        assert!(response.can_resolve_dns);
+        assert_eq!(response.downloaded_file, "https://example.com/test.dat");
+        assert_eq!(response.download_duration_sec, 10);
+        assert_eq!(response.download_error, "");
+    }
+
+    #[test]
+    fn test_netstack_request_go_with_amnezia_args() {
+        let mut request = create_test_netstack_request();
+        request.awg_args = "jc=4 jmin=10 jmax=100".to_string();
+        
+        let go_request = NetstackRequestGo::from_rust_v4(&request);
+        assert_eq!(go_request.awg_args, "jc=4 jmin=10 jmax=100");
+    }
+
+    #[test]
+    fn test_netstack_request_go_with_multiple_hosts_and_ips() {
+        let mut request = create_test_netstack_request();
+        request.v4_ping_config.ping_hosts = vec![
+            "example.com".to_string(),
+            "google.com".to_string(),
+            "cloudflare.com".to_string(),
+        ];
+        request.v4_ping_config.ping_ips = vec![
+            "8.8.8.8".to_string(),
+            "1.1.1.1".to_string(),
+            "9.9.9.9".to_string(),
+        ];
+        
+        let go_request = NetstackRequestGo::from_rust_v4(&request);
+        assert_eq!(go_request.ping_hosts.len(), 3);
+        assert_eq!(go_request.ping_ips.len(), 3);
+        assert!(go_request.ping_hosts.contains(&"google.com".to_string()));
+        assert!(go_request.ping_ips.contains(&"1.1.1.1".to_string()));
+    }
+
+    #[test]
+    fn test_netstack_request_go_debug_format() {
+        let request = create_test_netstack_request();
+        let go_request = NetstackRequestGo::from_rust_v4(&request);
+        
+        let debug_str = format!("{:?}", go_request);
+        assert!(debug_str.contains("NetstackRequestGo"));
+        assert!(debug_str.contains("10.0.0.1"));
+        assert!(debug_str.contains("test_private_key"));
+    }
+
+    #[test]
+    fn test_netstack_response_debug_format() {
+        let response = NetstackResponse {
+            can_handshake: true,
+            sent_ips: 5,
+            received_ips: 4,
+            sent_hosts: 3,
+            received_hosts: 2,
+            can_resolve_dns: true,
+            downloaded_file: "test.dat".to_string(),
+            download_duration_sec: 10,
+            download_error: "".to_string(),
+        };
+        
+        let debug_str = format!("{:?}", response);
+        assert!(debug_str.contains("NetstackResponse"));
+        assert!(debug_str.contains("can_handshake: true"));
+        assert!(debug_str.contains("sent_ips: 5"));
+    }
+
+    #[test]
+    fn test_netstack_response_equality() {
+        let response1 = NetstackResponse {
+            can_handshake: true,
+            sent_ips: 5,
+            received_ips: 4,
+            sent_hosts: 3,
+            received_hosts: 2,
+            can_resolve_dns: true,
+            downloaded_file: "test.dat".to_string(),
+            download_duration_sec: 10,
+            download_error: "".to_string(),
+        };
+
+        let response2 = NetstackResponse {
+            can_handshake: true,
+            sent_ips: 5,
+            received_ips: 4,
+            sent_hosts: 3,
+            received_hosts: 2,
+            can_resolve_dns: true,
+            downloaded_file: "test.dat".to_string(),
+            download_duration_sec: 10,
+            download_error: "".to_string(),
+        };
+
+        let response3 = NetstackResponse {
+            can_handshake: false, // Different value
+            sent_ips: 5,
+            received_ips: 4,
+            sent_hosts: 3,
+            received_hosts: 2,
+            can_resolve_dns: true,
+            downloaded_file: "test.dat".to_string(),
+            download_duration_sec: 10,
+            download_error: "".to_string(),
+        };
+
+        assert_eq!(response1, response2);
+        assert_ne!(response1, response3);
+    }
+}

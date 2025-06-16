@@ -12,7 +12,6 @@ use crate::types::Entry;
 use anyhow::{anyhow, bail};
 use base64::{Engine as _, engine::general_purpose};
 use bytes::BytesMut;
-use clap::Args;
 use futures::StreamExt;
 use nym_authenticator_client::{
     AuthClientMixnetListener, AuthenticatorResponse, AuthenticatorVersion, ClientMessage,
@@ -57,52 +56,53 @@ use netstack::{
 
 mod error;
 mod icmp;
-mod netstack;
 mod types;
 
 pub use error::{Error, Result};
 pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
 
-#[derive(Args)]
+pub mod netstack;
+
+#[derive(clap::Args, Clone, Debug)]
 pub struct NetstackArgs {
     #[arg(long, default_value_t = 180)]
-    netstack_download_timeout_sec: u64,
+    pub netstack_download_timeout_sec: u64,
 
     #[arg(long, default_value = "1.1.1.1")]
-    netstack_v4_dns: String,
+    pub netstack_v4_dns: String,
 
     #[arg(long, default_value = "2606:4700:4700::1111")]
-    netstack_v6_dns: String,
+    pub netstack_v6_dns: String,
 
     #[arg(long, default_value_t = 5)]
-    netstack_num_ping: u8,
+    pub netstack_num_ping: u8,
 
     #[arg(long, default_value_t = 3)]
-    netstack_send_timeout_sec: u64,
+    pub netstack_send_timeout_sec: u64,
 
     #[arg(long, default_value_t = 3)]
-    netstack_recv_timeout_sec: u64,
+    pub netstack_recv_timeout_sec: u64,
 
     #[arg(long, default_values_t = vec!["nymtech.net".to_string()])]
-    netstack_ping_hosts_v4: Vec<String>,
+    pub netstack_ping_hosts_v4: Vec<String>,
 
     #[arg(long, default_values_t = vec!["1.1.1.1".to_string()])]
-    netstack_ping_ips_v4: Vec<String>,
+    pub netstack_ping_ips_v4: Vec<String>,
 
     #[arg(long, default_values_t = vec!["ipv6.google.com".to_string()])]
-    netstack_ping_hosts_v6: Vec<String>,
+    pub netstack_ping_hosts_v6: Vec<String>,
 
     #[arg(long, default_values_t = vec!["2001:4860:4860::8888".to_string(), "2606:4700:4700::1111".to_string(), "2620:fe::fe".to_string()])]
-    netstack_ping_ips_v6: Vec<String>,
+    pub netstack_ping_ips_v6: Vec<String>,
 }
 
-#[derive(Args)]
+#[derive(clap::Args, Clone, Debug)]
 pub struct CredentialArgs {
     #[arg(long)]
-    enable_credentials_mode: bool,
+    pub enable_credentials_mode: bool,
 
     #[arg(long, required_if_eq("enable_credentials_mode", "true"))]
-    mnemonic: Option<String>,
+    pub mnemonic: Option<String>,
 }
 
 #[derive(Default, Debug)]
@@ -771,6 +771,113 @@ fn unpack_data_response(reconstructed_message: &ReconstructedMessage) -> Option<
         Err(err) => {
             warn!("Failed to parse mixnet message: {err}");
             None
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::str::FromStr;
+
+    fn create_test_netstack_args() -> NetstackArgs {
+        NetstackArgs {
+            netstack_download_timeout_sec: 30,
+            netstack_v4_dns: "1.1.1.1".to_string(),
+            netstack_v6_dns: "2001:4860:4860::8888".to_string(),
+            netstack_num_ping: 3,
+            netstack_send_timeout_sec: 5,
+            netstack_recv_timeout_sec: 5,
+            netstack_ping_hosts_v4: vec!["example.com".to_string()],
+            netstack_ping_ips_v4: vec!["8.8.8.8".to_string()],
+            netstack_ping_hosts_v6: vec!["ipv6.google.com".to_string()],
+            netstack_ping_ips_v6: vec!["2001:4860:4860::8888".to_string()],
+        }
+    }
+
+    fn create_test_credential_args() -> CredentialArgs {
+        CredentialArgs {
+            enable_credentials_mode: false,
+            mnemonic: None,
+        }
+    }
+
+    #[test]
+    fn test_netstack_args_creation() {
+        let args = create_test_netstack_args();
+        assert_eq!(args.netstack_download_timeout_sec, 30);
+        assert_eq!(args.netstack_v4_dns, "1.1.1.1");
+        assert_eq!(args.netstack_v6_dns, "2001:4860:4860::8888");
+        assert_eq!(args.netstack_num_ping, 3);
+        assert_eq!(args.netstack_send_timeout_sec, 5);
+        assert_eq!(args.netstack_recv_timeout_sec, 5);
+        assert_eq!(args.netstack_ping_hosts_v4, vec!["example.com"]);
+        assert_eq!(args.netstack_ping_ips_v4, vec!["8.8.8.8"]);
+        assert_eq!(args.netstack_ping_hosts_v6, vec!["ipv6.google.com"]);
+        assert_eq!(args.netstack_ping_ips_v6, vec!["2001:4860:4860::8888"]);
+    }
+
+    #[test]
+    fn test_credential_args_creation() {
+        let args = create_test_credential_args();
+        assert!(!args.enable_credentials_mode);
+        assert!(args.mnemonic.is_none());
+
+        let args_with_creds = CredentialArgs {
+            enable_credentials_mode: true,
+            mnemonic: Some("test mnemonic".to_string()),
+        };
+        assert!(args_with_creds.enable_credentials_mode);
+        assert!(args_with_creds.mnemonic.is_some());
+    }
+
+    #[test]
+    fn test_probe_creation() {
+        let entry = nym_gateway_directory::EntryPoint::Gateway {
+            identity: nym_sdk::mixnet::NodeIdentity::from_str("98uf1hyzmWTinkyc5PGyCxDo3E9QQK5XhWQ8B8z8aFoX").unwrap(),
+        };
+        let test_point = TestedNode::SameAsEntry;
+        let netstack_args = create_test_netstack_args();
+        let credential_args = create_test_credential_args();
+
+        let probe = Probe::new(entry, test_point, netstack_args, credential_args);
+        
+        // Test that probe was created successfully
+        assert!(std::mem::size_of_val(&probe) > 0);
+    }
+
+    #[test]
+    fn test_probe_with_amnezia() {
+        let entry = nym_gateway_directory::EntryPoint::Gateway {
+            identity: nym_sdk::mixnet::NodeIdentity::from_str("98uf1hyzmWTinkyc5PGyCxDo3E9QQK5XhWQ8B8z8aFoX").unwrap(),
+        };
+        let test_point = TestedNode::SameAsEntry;
+        let netstack_args = create_test_netstack_args();
+        let credential_args = create_test_credential_args();
+
+        let mut probe = Probe::new(entry, test_point, netstack_args, credential_args);
+        probe.with_amnezia("jc=4 jmin=10 jmax=100");
+        
+        // Test that amnezia args can be set without panicking
+        assert!(std::mem::size_of_val(&probe) > 0);
+    }
+
+    #[test]
+    fn test_tested_node_variants() {
+        let same_as_entry = TestedNode::SameAsEntry;
+        let custom_node = TestedNode::Custom {
+            identity: nym_sdk::mixnet::NodeIdentity::from_str("98uf1hyzmWTinkyc5PGyCxDo3E9QQK5XhWQ8B8z8aFoX").unwrap(),
+        };
+
+        // Test that we can create both variants
+        match same_as_entry {
+            TestedNode::SameAsEntry => (),
+            _ => panic!("Expected SameAsEntry variant"),
+        }
+
+        match custom_node {
+            TestedNode::Custom { identity: _ } => (),
+            _ => panic!("Expected Custom variant"),
         }
     }
 }
