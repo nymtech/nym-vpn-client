@@ -108,12 +108,10 @@ dispatch2.workspace = true
 
 [build-dependencies]
 uniffi = { workspace = true, features = ["build"] }
-vergen = { workspace = true, default-features = false, features = [
+vergen-gitcl = { workspace = true, default-features = false, features = [
     "build",
-    "git",
-    "gitcl",
-    "rustc",
     "cargo",
+    "rustc",
 ] }
 
 [features]

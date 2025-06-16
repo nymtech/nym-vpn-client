@@ -80,12 +80,10 @@ features = [
 ]
 
 [build-dependencies]
-vergen = { workspace = true, default-features = false, features = [
+vergen-gitcl = { workspace = true, default-features = false, features = [
     "build",
-    "git",
-    "gitcl",
-    "rustc",
     "cargo",
+    "rustc",
 ] }
 
 # Debian

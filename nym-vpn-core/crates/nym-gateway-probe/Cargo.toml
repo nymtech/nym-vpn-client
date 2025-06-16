@@ -55,12 +55,10 @@ nym-sdk.workspace = true
 nym-task.workspace = true
 
 [build-dependencies]
-vergen = { workspace = true, default-features = false, features = [
+vergen-gitcl = { workspace = true, default-features = false, features = [
     "build",
-    "git",
-    "gitcl",
-    "rustc",
     "cargo",
+    "rustc",
 ] }
 
 rust2go = { workspace = true, features = ["build"] }
