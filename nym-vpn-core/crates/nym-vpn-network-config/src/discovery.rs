@@ -330,7 +330,12 @@ mod tests {
             Discovery::default_sandbox(),
             Discovery::default_canary(),
         ] {
-            let fetched = Discovery::fetch(&discovery.network_name).await.unwrap();
+            let fetched = Discovery::fetch(&discovery.network_name)
+                .await
+                .expect(&format!(
+                    "failed to fetch discovery for {}",
+                    discovery.network_name
+                ));
 
             // Only compare the base fields
             assert_eq!(discovery.network_name, fetched.network_name);
