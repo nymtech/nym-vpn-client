@@ -56,7 +56,7 @@ jobs:
       - name: Install Go toolchain
         uses: actions/setup-go@v5
         with:
-          go-version: "stable"
+          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
 
       - name: Get workspace version
         id: workspace-version

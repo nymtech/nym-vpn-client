@@ -20,8 +20,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: "stable"
-          cache-dependency-path: "**/go.sum"
+          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
 
       - name: Build wireguard
         run: ./wireguard/build-wireguard-go.sh

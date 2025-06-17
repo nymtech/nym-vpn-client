@@ -47,7 +47,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: "stable"
+          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
