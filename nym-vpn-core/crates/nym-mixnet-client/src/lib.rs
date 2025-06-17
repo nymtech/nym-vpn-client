@@ -33,8 +33,8 @@ impl SharedMixnetClient {
         self.inner.lock().await
     }
 
-    pub async fn nym_address(&self) -> Recipient {
-        *self.lock().await.as_ref().unwrap().nym_address()
+    pub async fn nym_address(&self) -> Result<Recipient, &'static str> {
+        Ok(*self.lock().await.as_ref().ok_or("MixnetClient has been disconnected")?.nym_address())
     }
 
     pub async fn sign(&self, data: &[u8]) -> ed25519::Signature {
@@ -42,8 +42,10 @@ impl SharedMixnetClient {
     }
 
     pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<(), nym_sdk::Error> {
-        self.lock().await.as_mut().unwrap().send(msg).await?;
-        Ok(())
+        match self.lock().await.as_mut() {
+            Some(client) => client.send(msg).await,
+            None => Err(nym_sdk::Error::ConnectionNotEstablished),
+        }
     }
 
     pub async fn split_sender(&self) -> MixnetClientSender {
@@ -87,8 +89,9 @@ impl SharedMixnetClient {
 
     // If the mixnet client does NOT have an external task manager, call this method to disconnect.
     pub async fn disconnect(&self) {
-        let mixnet_client = self.lock().await.take().unwrap();
-        mixnet_client.disconnect().await;
+        if let Some(mixnet_client) = self.lock().await.take() {
+            mixnet_client.disconnect().await;
+        }
     }
 
     // If the mixnet does have an external task manager, call this method to dispose.

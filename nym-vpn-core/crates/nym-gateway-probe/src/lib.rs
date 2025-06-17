@@ -577,8 +577,23 @@ async fn do_ping(
 ) -> anyhow::Result<ProbeOutcome> {
     // Step 1: confirm that the entry gateway is routing our mixnet traffic
     info!("Sending mixnet ping to ourselves to verify mixnet connection");
+    let nym_address = match shared_mixnet_client.nym_address().await {
+        Ok(addr) => addr,
+        Err(e) => {
+            error!("Failed to get nym address: {}", e);
+            return Ok(ProbeOutcome {
+                as_entry: if tested_entry {
+                    Entry::fail_to_connect()
+                } else {
+                    Entry::EntryFailure
+                },
+                as_exit: None,
+                wg: None,
+            });
+        }
+    };
     if self_ping_and_wait(
-        shared_mixnet_client.nym_address().await,
+        nym_address,
         shared_mixnet_client.inner(),
     )
     .await
@@ -698,7 +713,23 @@ async fn listen_for_icmp_ping_replies(
     entry_result: Entry,
 ) -> anyhow::Result<ProbeOutcome> {
     // HACK: take it out of the shared mixnet client
-    let mut mixnet_client = shared_mixnet_client.inner().lock().await.take().unwrap();
+    let mut mixnet_client = match shared_mixnet_client.inner().lock().await.take() {
+        Some(client) => client,
+        None => {
+            error!("MixnetClient has already been disconnected");
+            return Ok(ProbeOutcome {
+                as_entry: entry_result,
+                as_exit: Some(Exit {
+                    can_connect: false,
+                    can_route_ip_v4: false,
+                    can_route_ip_external_v4: false,
+                    can_route_ip_v6: false,
+                    can_route_ip_external_v6: false,
+                }),
+                wg: None,
+            });
+        }
+    };
     let mut multi_ip_packet_decoder = MultiIpPacketCodec::new();
     let mut registered_replies = IpPingReplies::new();
 
