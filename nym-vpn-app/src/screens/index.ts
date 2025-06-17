@@ -1,3 +1,4 @@
+export { default as IntroSplash } from './IntroSplash';
 export { default as MainLayout } from './MainLayout';
 export { default as Error } from './Error';
 export { default as StartupError } from './StartupError';

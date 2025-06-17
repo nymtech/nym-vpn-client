@@ -1,7 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import React, { useEffect, useReducer } from 'react';
-import { sleep } from '../../util';
-import { BackendError, Cli, SystemMessage } from '../../types';
+import { BackendError, SystemMessage } from '../../types';
 import { initFirstBatch, initSecondBatch } from '../../state/init';
 import { useTauriEvents } from '../../state/useTauriEvents';
 import { S_STATE } from '../../static';
@@ -39,26 +38,10 @@ function MainStateProvider({ children }: Props) {
       }
     });
 
-    // this first batch is needed to ensure the app is fully
-    // initialized and ready, once done splash screen is removed
-    // and the UI is shown
-    initFirstBatch(dispatch).then(async () => {
+    // this first batch is needed to ensure the app is fully initialized and ready
+    initFirstBatch(dispatch).then(() => {
       console.log('init of 1st batch done');
       dispatch({ type: 'init-done' });
-      const args = await invoke<Cli>(`cli_args`);
-      // skip the animation if NOSPLASH is set
-      if (import.meta.env.APP_NOSPLASH || args.nosplash) {
-        return;
-      }
-      // wait for the splash screen to be visible for a short time
-      // as init phase is very fast
-      await sleep(300);
-      const splash = document.getElementById('splash');
-      if (splash) {
-        splash.style.opacity = '0';
-        splash.remove();
-        console.log('splash animation done');
-      }
     });
 
     // this second batch is not needed for the app to be fully

@@ -7,6 +7,7 @@ type JsEnv = {
   devMode: boolean;
   startupError?: StartupError | null;
   updaterEnabled?: boolean;
+  noSplash?: boolean;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

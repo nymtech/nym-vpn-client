@@ -162,7 +162,7 @@ async fn main() -> Result<()> {
             };
             app.manage(db.clone());
 
-            let app_window = AppWindow::create_main_window(app.handle())?;
+            let app_window = AppWindow::create_main_window(app.handle(), &cli)?;
             app_window.set_bg_color(&db).ok();
             app_window.set_max_size().ok();
 
@@ -201,12 +201,6 @@ async fn main() -> Result<()> {
             app.manage(app_config);
             app.manage(grpc.clone());
 
-            // if splash-screen is disabled, remove it and show
-            // the main window without waiting for frontend signal
-            if cli.nosplash || env::is_truthy(ENV_APP_NOSPLASH) {
-                debug!("splash screen disabled, showing main window");
-                app_window.no_splash();
-            }
             tray::setup(app.handle())?;
 
             let handle = app.handle().clone();
