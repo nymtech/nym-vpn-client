@@ -24,9 +24,8 @@ func TestCNetstackCallPingBasic(t *testing.T) {
 		awg_args:             "",
 	}
 
-	// Convert to C struct for testing
-	var buffer []byte
-	cReq := refNetstackRequestGo(&req, &buffer)
+	// Convert to C struct for testing using proper buffer allocation
+	cReq, _ := cvt_ref(cntNetstackRequestGo, refNetstackRequestGo)(&req)
 
 	// We can't call the actual ping function without network setup
 	// but we can test the data conversion
@@ -82,9 +81,8 @@ func TestNetstackResponseConversion(t *testing.T) {
 		download_error:        "",
 	}
 
-	// Convert to C and back
-	var buffer []byte
-	cResp := refNetstackResponse(&resp, &buffer)
+	// Convert to C and back using proper buffer allocation
+	cResp, _ := cvt_ref(cntNetstackResponse, refNetstackResponse)(&resp)
 	goResp := newNetstackResponse(cResp)
 
 	// Verify all fields are preserved
@@ -129,9 +127,8 @@ func TestNetworkArgsWithMultipleTargets(t *testing.T) {
 		awg_args:             "jc=4 jmin=10 jmax=100",
 	}
 
-	// Test that we can convert with multiple targets
-	var buffer []byte
-	cReq := refNetstackRequestGo(&req, &buffer)
+	// Test that we can convert with multiple targets using proper buffer allocation
+	cReq, _ := cvt_ref(cntNetstackRequestGo, refNetstackRequestGo)(&req)
 	goReq := newNetstackRequestGo(cReq)
 
 	if len(goReq.ping_hosts) != 3 {
@@ -168,20 +165,12 @@ func TestStringRefConversion(t *testing.T) {
 			download_error:  testStr + "_error",
 		}
 
-		var buffer []byte
-		cResp := refNetstackResponse(&resp, &buffer)
+		cResp, _ := cvt_ref(cntNetstackResponse, refNetstackResponse)(&resp)
 		goResp := newNetstackResponse(cResp)
 
-		// Note: For empty strings, our implementation provides a placeholder
-		// so we adjust the test accordingly
+		// The implementation correctly preserves empty strings
 		expectedFile := testStr
 		expectedError := testStr + "_error"
-
-		if testStr == "" {
-			// Our implementation provides a placeholder for empty strings
-			expectedFile = " " // Single space placeholder
-			expectedError = " " // Single space placeholder
-		}
 
 		if goResp.downloaded_file != expectedFile {
 			t.Errorf("String conversion failed for downloaded_file: expected '%s', got '%s'", expectedFile, goResp.downloaded_file)
@@ -216,8 +205,7 @@ func TestMemoryManagement(t *testing.T) {
 			awg_args:             "",
 		}
 
-		var buffer []byte
-		cReq := refNetstackRequestGo(&req, &buffer)
+		cReq, _ := cvt_ref(cntNetstackRequestGo, refNetstackRequestGo)(&req)
 		goReq := newNetstackRequestGo(cReq)
 
 		// Verify the conversion worked
@@ -257,8 +245,7 @@ func TestEdgeCaseEmptyRequest(t *testing.T) {
 		awg_args:             "",
 	}
 
-	var buffer []byte
-	cReq := refNetstackRequestGo(&req, &buffer)
+	cReq, _ := cvt_ref(cntNetstackRequestGo, refNetstackRequestGo)(&req)
 	goReq := newNetstackRequestGo(cReq)
 
 	// Should handle empty values gracefully
