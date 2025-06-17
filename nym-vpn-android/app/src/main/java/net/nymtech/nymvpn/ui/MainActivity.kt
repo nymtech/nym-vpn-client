@@ -15,7 +15,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarData
 import androidx.compose.material3.SnackbarDuration
@@ -171,8 +170,7 @@ class MainActivity : AppCompatActivity() {
 							NavHost(
 								navController,
 								startDestination = Route.Splash,
-								modifier =
-								Modifier
+								modifier = Modifier
 									.fillMaxSize()
 									.padding(padding),
 								enterTransition = { fadeIn(tween(200)) },
