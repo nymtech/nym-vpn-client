@@ -66,7 +66,7 @@ impl AccountCommandSender {
         Ok(())
     }
 
-    pub async fn create_account(
+    pub async fn register_account_command(
         &self,
         platform: Platform,
     ) -> Result<RegisterAccountResponse, AccountCommandError> {

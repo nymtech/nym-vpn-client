@@ -233,7 +233,7 @@ pub(super) async fn login(mnemonic: &str) -> Result<(), VpnError> {
     Ok(())
 }
 
-pub(super) async fn create_account() -> Result<RegisterAccountResponse, VpnError> {
+pub(super) async fn register_account() -> Result<RegisterAccountResponse, VpnError> {
     let platform = if cfg!(target_os = "ios") {
         Platform::Apple
     } else {
@@ -241,7 +241,7 @@ pub(super) async fn create_account() -> Result<RegisterAccountResponse, VpnError
     };
     get_command_sender()
         .await?
-        .create_account(platform)
+        .register_account_command(platform)
         .await
         .map(RegisterAccountResponse::from)
         .map_err(VpnError::from)
@@ -309,7 +309,7 @@ pub(crate) mod raw {
         Ok(())
     }
 
-    pub(crate) async fn create_account_raw(
+    pub(crate) async fn register_account_raw(
         path: &str,
     ) -> Result<RegisterAccountResponse, VpnError> {
         let platform = if cfg!(target_os = "ios") {

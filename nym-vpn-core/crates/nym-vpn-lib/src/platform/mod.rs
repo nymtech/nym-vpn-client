@@ -194,8 +194,8 @@ pub fn login(mnemonic: String) -> Result<(), VpnError> {
 /// Generate the account mnemonic locally and register it.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn createAccount() -> Result<RegisterAccountResponse, VpnError> {
-    RUNTIME.block_on(account::create_account())
+pub fn registerAccount() -> Result<RegisterAccountResponse, VpnError> {
+    RUNTIME.block_on(account::register_account())
 }
 
 /// Store the account mnemonic
@@ -210,8 +210,8 @@ pub fn loginRaw(mnemonic: String, path: String) -> Result<(), VpnError> {
 /// This is a version that can be called when the account controller is not running.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn createAccountRaw(path: String) -> Result<RegisterAccountResponse, VpnError> {
-    RUNTIME.block_on(account::raw::create_account_raw(&path))
+pub fn registerAccountRaw(path: String) -> Result<RegisterAccountResponse, VpnError> {
+    RUNTIME.block_on(account::raw::register_account_raw(&path))
 }
 
 /// Check if the account mnemonic is stored
