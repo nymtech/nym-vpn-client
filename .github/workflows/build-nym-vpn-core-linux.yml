@@ -14,7 +14,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  CARGO_TARGET: release
   WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib/x86_64-unknown-linux-gnu
   WG_GO_LIB_NAME: wireguard-go_ubuntu-22.04_x86_64
   UPLOAD_DIR_LINUX: linux_artifacts
@@ -75,8 +74,8 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
 #          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          cargo build --${{ env.CARGO_TARGET }}
-          cargo build -p nym-gateway-probe --${{ env.CARGO_TARGET }}
+          cargo build --release
+          cargo build -p nym-gateway-probe --release
           ls -la nym-vpn-core/target/release/ || true
 
       - name: Get rust version used for build
@@ -86,7 +85,7 @@ jobs:
 
       - name: Move things around to prepare for upload
         env:
-          SRC_BINARY: nym-vpn-core/target/${{ env.CARGO_TARGET }}/
+          SRC_BINARY: nym-vpn-core/target/release/
         run: |
           mkdir ${{ env.UPLOAD_DIR_LINUX }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR_LINUX }}
