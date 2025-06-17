@@ -25,11 +25,9 @@ export async function getTheme(): Promise<'light' | 'dark'> {
     return 'dark';
   }
   const window = getCurrentWebviewWindow();
-  if (!mode || mode === 'system') {
-    const theme = await window.theme();
-    if (theme === 'dark') {
-      return 'dark';
-    }
+  const theme = await window.theme();
+  if (theme === 'dark') {
+    return 'dark';
   }
   return 'light';
 }

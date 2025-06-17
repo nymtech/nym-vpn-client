@@ -20,6 +20,7 @@ import { GatewaysProvider } from './contexts/gateways';
 import { IntroAnim } from './screens';
 
 let initialized = false;
+const noSplash = window._APP.noSplash;
 
 function App() {
   const { i18n } = useTranslation();
@@ -52,22 +53,24 @@ function App() {
   }, [i18n, set]);
 
   return (
-    <InAppNotificationProvider>
-      <Toast.Provider>
-        <MainStateProvider>
-          <IntroAnim />
-          <GatewaysProvider>
-            <ThemeSetter>
-              <DialogProvider>
-                <Suspense fallback={<RouteLoading />}>
-                  <RouterProvider router={router} />
-                </Suspense>
-              </DialogProvider>
-            </ThemeSetter>
-          </GatewaysProvider>
-        </MainStateProvider>
-      </Toast.Provider>
-    </InAppNotificationProvider>
+    <>
+      {!noSplash && <IntroAnim />}
+      <InAppNotificationProvider>
+        <Toast.Provider>
+          <MainStateProvider>
+            <GatewaysProvider>
+              <ThemeSetter>
+                <DialogProvider>
+                  <Suspense fallback={<RouteLoading />}>
+                    <RouterProvider router={router} />
+                  </Suspense>
+                </DialogProvider>
+              </ThemeSetter>
+            </GatewaysProvider>
+          </MainStateProvider>
+        </Toast.Provider>
+      </InAppNotificationProvider>
+    </>
   );
 }
 

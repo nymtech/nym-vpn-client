@@ -1,6 +1,7 @@
+use crate::cli::Cli;
 use crate::db::{Db, Key};
 use crate::env::{DEV_MODE, UPDATER_ENABLED};
-use crate::{APP_NAME, MAIN_WINDOW_LABEL};
+use crate::{APP_NAME, ENV_APP_NOSPLASH, MAIN_WINDOW_LABEL, env};
 use anyhow::{Result, anyhow};
 use serde::{Deserialize, Serialize};
 use tauri::window::Color;
@@ -8,7 +9,7 @@ use tauri::{
     AppHandle, LogicalPosition, LogicalSize, Manager, PhysicalPosition, PhysicalSize, Theme,
     WebviewUrl, WebviewWindow, WebviewWindowBuilder,
 };
-use tracing::{debug, error, instrument, warn};
+use tracing::{debug, error, instrument, trace, warn};
 use ts_rs::TS;
 
 const MAIN_WEBVIEW_URL: &str = "index.html";
@@ -38,20 +39,23 @@ enum UiMode {
     Dark,
 }
 
+#[derive(Serialize, Deserialize, Debug, Default, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct WindowInitEnv {
+    pub dev_mode: bool,
+    pub updater_enabled: bool,
+    pub no_splash: bool,
+}
+
 impl AppWindow {
-    fn init_js() -> String {
-        format!(
-            "
-            window._APP = {{}};
-            window._APP.devMode = {};
-            window._APP.updaterEnabled = {};
-            ",
-            *DEV_MODE, *UPDATER_ENABLED,
-        )
+    fn init_js(json: String) -> String {
+        format!("window._APP = JSON.parse('{}');", json)
     }
 
     #[instrument(skip(app))]
-    pub fn create_main_window(app: &AppHandle) -> Result<AppWindow> {
+    pub fn create_main_window(app: &AppHandle, cli: &Cli) -> Result<AppWindow> {
+        let init_env = WindowInitEnv::new(cli);
         let window = WebviewWindowBuilder::new(
             app,
             MAIN_WINDOW_LABEL,
@@ -68,7 +72,7 @@ impl AppWindow {
         .inner_size(328.0, 710.0)
         .min_inner_size(160.0, 346.0)
         .max_inner_size(600.0, 1299.0)
-        .initialization_script(AppWindow::init_js())
+        .initialization_script(AppWindow::init_js(init_env.to_json()))
         .build()
         .inspect_err(|e| error!("failed to create main window: {e}"))?;
         Ok(AppWindow(window))
@@ -103,12 +107,13 @@ impl AppWindow {
     /// try to get the window, if not found recreate it from its config
     #[instrument(skip(app))]
     pub fn get_or_create(app: &AppHandle, label: &str) -> Result<Self> {
+        let cli = app.state::<Cli>();
         let window = app
             .get_webview_window(label)
             .map(AppWindow)
             .or_else(|| {
                 debug!("main window not found, re-creating it");
-                AppWindow::create_main_window(app).ok()
+                AppWindow::create_main_window(app, &cli).ok()
             })
             .ok_or_else(|| anyhow!("failed to get window {}", label))?;
         Ok(window)
@@ -143,20 +148,6 @@ impl AppWindow {
         self.0.is_minimized().ok().unwrap_or(false)
     }
 
-    /// remove splash screen from HTML and show main window
-    #[instrument(skip_all)]
-    pub fn no_splash(&self) {
-        self.0
-            .eval("document.getElementById('splash').remove();")
-            .inspect_err(|e| error!("failed to remove splash screen: {e}"))
-            .ok();
-
-        self.0
-            .show()
-            .inspect_err(|e| error!("failed to show the window: {e}"))
-            .ok();
-    }
-
     #[instrument(skip_all)]
     pub fn set_max_size(&self) -> Result<()> {
         let Some(monitor) = self.0.current_monitor().inspect_err(|e| {
@@ -187,13 +178,16 @@ impl AppWindow {
     fn get_current_theme(&self, db: &Db) -> Result<UiMode> {
         let ui_theme = db
             .get_typed::<UiTheme>(Key::UiTheme.as_ref())?
-            .unwrap_or_default();
+            .unwrap_or(UiTheme::System);
         Ok(match ui_theme {
             UiTheme::Light => UiMode::Light,
             UiTheme::Dark => UiMode::Dark,
             UiTheme::System => self
                 .0
                 .theme()
+                .inspect(|theme| {
+                    trace!("current window theme: {theme}");
+                })
                 .inspect_err(|e| {
                     error!("failed to get current window theme: {e}, fallback to `Light`");
                 })
@@ -278,5 +272,22 @@ impl From<Theme> for UiMode {
             Theme::Dark => UiMode::Dark,
             _ => UiMode::Light,
         }
+    }
+}
+
+impl WindowInitEnv {
+    pub fn new(cli: &Cli) -> Self {
+        WindowInitEnv {
+            dev_mode: *DEV_MODE,
+            updater_enabled: *UPDATER_ENABLED,
+            no_splash: cli.nosplash || env::is_truthy(ENV_APP_NOSPLASH),
+        }
+    }
+
+    #[instrument]
+    pub fn to_json(&self) -> String {
+        serde_json::to_string(self)
+            .inspect_err(|e| error!("failed to serialize as JSON string: {e}"))
+            .unwrap_or_else(|_| "{}".to_string())
     }
 }

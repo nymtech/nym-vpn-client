@@ -14,6 +14,7 @@ import { StartupError } from './screens';
 import { init } from './log';
 import { DefaultVpnMode } from './constants';
 import { S_STATE } from './static';
+import { getTheme } from './util';
 
 // needed locales to load for dayjs
 import 'dayjs/locale/es';
@@ -57,6 +58,7 @@ dayjs.extend(duration);
     console.info('dev mode enabled');
   }
 
+  S_STATE.uiTheme = await getTheme();
   S_STATE.vpnd =
     (await invoke<VpndStatus | undefined>('daemon_status')) || 'down';
   S_STATE.vpnModeAtStart = (await kvGet<VpnMode>('vpn-mode')) || DefaultVpnMode;
