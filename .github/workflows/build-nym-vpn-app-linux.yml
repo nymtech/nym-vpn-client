@@ -31,7 +31,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  CARGO_TARGET: release
   UPDATER_BUNDLE_NAME: updater_linux_x86_64.AppImage.tar.gz
   UPLOAD_DIR_LINUX: linux_artifacts
 

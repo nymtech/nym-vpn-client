@@ -11,7 +11,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  CARGO_TARGET: release
   WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib/aarch64-linux-android
   WG_GO_LIB_NAME: wireguard-go_aarch64-linux-android
   UPLOAD_DIR_ANDROID: android_artifacts
@@ -42,7 +41,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23.6'  # If this changes, we need a PR to Fdroid to update pipeline for reproducibility
+          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
 
       - name: Setup NDK
         uses: nttld/setup-ndk@v1
@@ -93,7 +92,7 @@ jobs:
           RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
-          cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --${{ env.CARGO_TARGET }}
+          cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --release
           ls -la ../target/aarch64-linux-android/release/ || true
 
       - name: Get rust version used for build
@@ -103,7 +102,7 @@ jobs:
 
       - name: Move things around to prepare for upload
         env:
-          SRC_BINARY: nym-vpn-core/target/aarch64-linux-android/${{ env.CARGO_TARGET }}/
+          SRC_BINARY: nym-vpn-core/target/aarch64-linux-android/release/
         run: |
           mkdir ${{ env.UPLOAD_DIR_ANDROID }}
           cp -vpr ${{ env.SRC_BINARY }}/libnym_vpn_lib.so ${{ env.UPLOAD_DIR_ANDROID }}
