@@ -50,7 +50,7 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 						ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
 					} else {
 						0
-					}
+					},
 				)
 			}
 		}

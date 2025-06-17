@@ -170,10 +170,9 @@ class MainActivity : AppCompatActivity() {
 							NavHost(
 								navController,
 								startDestination = Route.Splash,
-								modifier =
-									Modifier
-										.fillMaxSize()
-										.padding(padding),
+								modifier = Modifier
+									.fillMaxSize()
+									.padding(padding),
 								enterTransition = { fadeIn(tween(200)) },
 								exitTransition = { fadeOut(tween(200)) },
 								popEnterTransition = { fadeIn(tween(200)) },
