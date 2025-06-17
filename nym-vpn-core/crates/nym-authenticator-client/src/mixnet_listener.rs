@@ -94,11 +94,17 @@ pub struct AuthClientMixnetListenerHandle {
 
 impl AuthClientMixnetListenerHandle {
     pub async fn new_auth_client(&self) -> AuthClient {
+        let nym_address = self.mixnet_client.nym_address().await
+            .expect("MixnetClient should be available when creating AuthClient");
+        let split_sender = self.mixnet_client.split_sender().await
+            .expect("MixnetClient should be available when creating AuthClient");
+        let stats_sender = self.mixnet_client.stats_sender().await
+            .expect("MixnetClient should be available when creating AuthClient");
         AuthClient::new(
-            self.mixnet_client.split_sender().await,
+            split_sender,
             self.message_broadcast.subscribe(),
-            self.mixnet_client.stats_sender().await,
-            self.mixnet_client.nym_address().await,
+            stats_sender,
+            nym_address,
         )
         .await
     }

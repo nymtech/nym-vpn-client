@@ -44,28 +44,28 @@ impl SharedMixnetClient {
     pub async fn send(&self, msg: nym_sdk::mixnet::InputMessage) -> Result<(), nym_sdk::Error> {
         match self.lock().await.as_mut() {
             Some(client) => client.send(msg).await,
-            None => Err(nym_sdk::Error::ConnectionNotEstablished),
+            None => Err(nym_sdk::Error::MessageSendingFailure),
         }
     }
 
-    pub async fn split_sender(&self) -> MixnetClientSender {
-        self.lock().await.as_ref().unwrap().split_sender()
+    pub async fn split_sender(&self) -> Result<MixnetClientSender, &'static str> {
+        Ok(self.lock().await.as_ref().ok_or("MixnetClient has been disconnected")?.split_sender())
     }
 
-    pub async fn stats_sender(&self) -> ClientStatsSender {
-        self.lock().await.as_ref().unwrap().stats_events_reporter()
+    pub async fn stats_sender(&self) -> Result<ClientStatsSender, &'static str> {
+        Ok(self.lock().await.as_ref().ok_or("MixnetClient has been disconnected")?.stats_events_reporter())
     }
 
     pub async fn send_stats_event(&self, event: ClientStatsEvents) {
         self.lock().await.as_ref().unwrap().send_stats_event(event);
     }
 
-    pub async fn shared_lane_queue_lengths(&self) -> LaneQueueLengths {
-        self.lock()
+    pub async fn shared_lane_queue_lengths(&self) -> Result<LaneQueueLengths, &'static str> {
+        Ok(self.lock()
             .await
             .as_ref()
-            .unwrap()
-            .shared_lane_queue_lengths()
+            .ok_or("MixnetClient has been disconnected")?
+            .shared_lane_queue_lengths())
     }
 
     #[cfg(unix)]
@@ -98,5 +98,67 @@ impl SharedMixnetClient {
     pub async fn dispose(self) {
         // A mixnet client that has an external task manager is dropped to disconnect.
         self.lock().await.take();
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::sync::Arc;
+
+    // Simple test to verify that methods return errors when client is None
+    #[tokio::test]
+    async fn test_disconnected_client_behavior() {
+        // Create a SharedMixnetClient with None (simulating a disconnected state)
+        let shared_client = SharedMixnetClient {
+            inner: Arc::new(tokio::sync::Mutex::new(None)),
+            #[cfg(unix)]
+            connection_fd_callback: Arc::new(|_| {}),
+        };
+
+        // All methods should return errors gracefully
+        assert!(shared_client.nym_address().await.is_err());
+        assert!(shared_client.split_sender().await.is_err());
+        assert!(shared_client.stats_sender().await.is_err());
+        assert!(shared_client.shared_lane_queue_lengths().await.is_err());
+
+        // Check error messages for those that we can check
+        match shared_client.nym_address().await {
+            Err(msg) => assert_eq!(msg, "MixnetClient has been disconnected"),
+            Ok(_) => panic!("Expected error"),
+        }
+        
+        match shared_client.split_sender().await {
+            Err(msg) => assert_eq!(msg, "MixnetClient has been disconnected"),
+            Ok(_) => panic!("Expected error"),
+        }
+        
+        match shared_client.stats_sender().await {
+            Err(msg) => assert_eq!(msg, "MixnetClient has been disconnected"),
+            Ok(_) => panic!("Expected error"),
+        }
+        
+        match shared_client.shared_lane_queue_lengths().await {
+            Err(msg) => assert_eq!(msg, "MixnetClient has been disconnected"),
+            Ok(_) => panic!("Expected error"),
+        }
+    }
+
+    #[tokio::test]
+    async fn test_multiple_disconnects_safe() {
+        // Create a SharedMixnetClient with None
+        let shared_client = SharedMixnetClient {
+            inner: Arc::new(tokio::sync::Mutex::new(None)),
+            #[cfg(unix)]
+            connection_fd_callback: Arc::new(|_| {}),
+        };
+
+        // Should be safe to call disconnect multiple times on an already disconnected client
+        shared_client.disconnect().await;
+        shared_client.disconnect().await;
+        shared_client.disconnect().await;
+
+        // Should still return appropriate errors
+        assert!(shared_client.nym_address().await.is_err());
     }
 }

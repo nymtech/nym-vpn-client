@@ -123,9 +123,21 @@ impl MixnetProcessor {
         let (tun_device_sink, mut tun_device_stream) = self.device.into_framed().split();
 
         tracing::debug!("Split mixnet sender");
-        let mixnet_sender = self.mixnet_client.split_sender().await;
+        let mixnet_sender = match self.mixnet_client.split_sender().await {
+            Ok(sender) => sender,
+            Err(e) => {
+                tracing::error!("Failed to get mixnet sender: {}", e);
+                return Err(MixnetError::ClientNotAvailable);
+            }
+        };
 
-        let lane_queue_lengths = self.mixnet_client.shared_lane_queue_lengths().await;
+        let lane_queue_lengths = match self.mixnet_client.shared_lane_queue_lengths().await {
+            Ok(lengths) => lengths,
+            Err(e) => {
+                tracing::error!("Failed to get lane queue lengths: {}", e);
+                return Err(MixnetError::ClientNotAvailable);
+            }
+        };
 
         let message_creator = MessageCreator::new(self.ip_packet_router_address.into());
 

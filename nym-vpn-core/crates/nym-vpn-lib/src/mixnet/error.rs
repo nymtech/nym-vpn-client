@@ -21,6 +21,9 @@ pub enum MixnetError {
         source: Box<dyn std::error::Error + Send + Sync>,
     },
 
+    #[error("mixnet client is not available")]
+    ClientNotAvailable,
+
     #[error("invalid credential")]
     InvalidCredential,
 

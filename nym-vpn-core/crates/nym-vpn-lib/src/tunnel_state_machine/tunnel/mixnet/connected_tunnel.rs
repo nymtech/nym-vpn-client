@@ -68,7 +68,15 @@ impl ConnectedTunnel {
         )
         .await;
 
-        let mixnet_client_sender = self.mixnet_client.split_sender().await;
+        let mixnet_client_sender = match self.mixnet_client.split_sender().await {
+            Ok(sender) => sender,
+            Err(e) => {
+                tracing::error!("Failed to get mixnet client sender: {}", e);
+                // For now, we'll still panic here as this is during tunnel startup
+                // and indicates a programming error, but at least we log the error
+                panic!("MixnetClient should be available when starting tunnel: {}", e);
+            }
+        };
         connection_monitor.start(
             mixnet_client_sender,
             self.assigned_addresses.mixnet_client_address,
