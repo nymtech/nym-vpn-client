@@ -30,7 +30,6 @@ nym-common.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 system-configuration.workspace = true
-duct.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
 which.workspace = true
