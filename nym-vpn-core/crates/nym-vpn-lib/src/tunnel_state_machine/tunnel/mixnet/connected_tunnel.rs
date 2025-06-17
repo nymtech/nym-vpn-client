@@ -74,7 +74,10 @@ impl ConnectedTunnel {
                 tracing::error!("Failed to get mixnet client sender: {}", e);
                 // For now, we'll still panic here as this is during tunnel startup
                 // and indicates a programming error, but at least we log the error
-                panic!("MixnetClient should be available when starting tunnel: {}", e);
+                panic!(
+                    "MixnetClient should be available when starting tunnel: {}",
+                    e
+                );
             }
         };
         connection_monitor.start(

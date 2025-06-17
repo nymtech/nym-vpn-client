@@ -34,7 +34,12 @@ impl SharedMixnetClient {
     }
 
     pub async fn nym_address(&self) -> Result<Recipient, &'static str> {
-        Ok(*self.lock().await.as_ref().ok_or("MixnetClient has been disconnected")?.nym_address())
+        Ok(*self
+            .lock()
+            .await
+            .as_ref()
+            .ok_or("MixnetClient has been disconnected")?
+            .nym_address())
     }
 
     pub async fn sign(&self, data: &[u8]) -> ed25519::Signature {
@@ -49,11 +54,21 @@ impl SharedMixnetClient {
     }
 
     pub async fn split_sender(&self) -> Result<MixnetClientSender, &'static str> {
-        Ok(self.lock().await.as_ref().ok_or("MixnetClient has been disconnected")?.split_sender())
+        Ok(self
+            .lock()
+            .await
+            .as_ref()
+            .ok_or("MixnetClient has been disconnected")?
+            .split_sender())
     }
 
     pub async fn stats_sender(&self) -> Result<ClientStatsSender, &'static str> {
-        Ok(self.lock().await.as_ref().ok_or("MixnetClient has been disconnected")?.stats_events_reporter())
+        Ok(self
+            .lock()
+            .await
+            .as_ref()
+            .ok_or("MixnetClient has been disconnected")?
+            .stats_events_reporter())
     }
 
     pub async fn send_stats_event(&self, event: ClientStatsEvents) {
@@ -61,7 +76,8 @@ impl SharedMixnetClient {
     }
 
     pub async fn shared_lane_queue_lengths(&self) -> Result<LaneQueueLengths, &'static str> {
-        Ok(self.lock()
+        Ok(self
+            .lock()
             .await
             .as_ref()
             .ok_or("MixnetClient has been disconnected")?
@@ -127,17 +143,17 @@ mod tests {
             Err(msg) => assert_eq!(msg, "MixnetClient has been disconnected"),
             Ok(_) => panic!("Expected error"),
         }
-        
+
         match shared_client.split_sender().await {
             Err(msg) => assert_eq!(msg, "MixnetClient has been disconnected"),
             Ok(_) => panic!("Expected error"),
         }
-        
+
         match shared_client.stats_sender().await {
             Err(msg) => assert_eq!(msg, "MixnetClient has been disconnected"),
             Ok(_) => panic!("Expected error"),
         }
-        
+
         match shared_client.shared_lane_queue_lengths().await {
             Err(msg) => assert_eq!(msg, "MixnetClient has been disconnected"),
             Ok(_) => panic!("Expected error"),

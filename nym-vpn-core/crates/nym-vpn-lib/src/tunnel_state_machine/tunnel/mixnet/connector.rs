@@ -82,7 +82,10 @@ impl Connector {
         gateway_directory_client: CachingGatewayClient,
         cancel_token: CancellationToken,
     ) -> Result<AssignedAddresses> {
-        let mixnet_client_address = mixnet_client.nym_address().await;
+        let mixnet_client_address = mixnet_client
+            .nym_address()
+            .await
+            .map_err(|_| crate::MixnetError::ClientNotAvailable)?;
         let gateway_used = mixnet_client_address.gateway().to_base58_string();
         let entry_mixnet_gateway_ip: IpAddr = cancel_token
             .run_until_cancelled(gateway_directory_client.lookup_gateway_ip(&gateway_used))

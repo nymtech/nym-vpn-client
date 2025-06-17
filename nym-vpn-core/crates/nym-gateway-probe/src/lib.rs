@@ -592,12 +592,9 @@ async fn do_ping(
             });
         }
     };
-    if self_ping_and_wait(
-        nym_address,
-        shared_mixnet_client.inner(),
-    )
-    .await
-    .is_err()
+    if self_ping_and_wait(nym_address, shared_mixnet_client.inner())
+        .await
+        .is_err()
     {
         return Ok(ProbeOutcome {
             as_entry: if tested_entry {
