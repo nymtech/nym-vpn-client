@@ -119,6 +119,7 @@
     <string name="notifications">Notifications</string>
     <string name="allow_permissions">Allow permissions</string>
     <string name="notification_permission_message">Required to keep VPN services running while the app is closed.</string>
+	<string name="notification_permission_required">Please enable notification permission for proper app functionality</string>
     <string name="error_gateway_lookup">Failed to lookup Nym gateways. Please check your network connection and try again.</string>
     <string name="error_bad_peer_cert">"Selected gateway has a bad peer certificate. Please try again to connect to a different gateway. "</string>
     <string name="error_no_hostname_address">Gateway missing hostname address. Please try again to connect to a different gateway.</string>

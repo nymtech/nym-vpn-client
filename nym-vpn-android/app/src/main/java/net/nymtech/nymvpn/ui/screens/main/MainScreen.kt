@@ -1,7 +1,9 @@
 package net.nymtech.nymvpn.ui.screens.main
 
+import android.Manifest
 import android.app.Activity.RESULT_OK
 import android.net.VpnService
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
@@ -113,12 +115,24 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		},
 	)
 
+	val requestPermissionLauncher = rememberLauncherForActivityResult(
+		ActivityResultContracts.RequestPermission(),
+	) { isGranted ->
+		if (!isGranted) snackbar.showMessage(context.getString(R.string.notification_permission_required))
+	}
+
 	fun onConnectPressed() {
 		val intent = VpnService.prepare(context)
 		if (intent != null) {
 			vpnActivityResultState.launch(intent)
 		} else {
 			viewModel.onConnect()
+		}
+	}
+
+	LaunchedEffect(Unit) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+			requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
 		}
 	}
 
@@ -149,7 +163,9 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 		Column(
 			verticalArrangement = Arrangement.spacedBy(36.dp.scaledHeight(), Alignment.Bottom),
 			horizontalAlignment = Alignment.CenterHorizontally,
-			modifier = Modifier.fillMaxSize().padding(bottom = 24.dp.scaledHeight()),
+			modifier = Modifier
+				.fillMaxSize()
+				.padding(bottom = 24.dp.scaledHeight()),
 		) {
 			ModeSelector(
 				vpnMode = appUiState.settings.vpnMode,
@@ -240,7 +256,9 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 					context.openWebUrl(context.getString(R.string.download_url))
 				},
 				content = { Text(stringResource(R.string.update).uppercase(), fontFamily = FontFamily(Font(R.font.lab_grotesque_mono))) },
-				modifier = Modifier.fillMaxWidth().height(56.dp.scaledHeight()),
+				modifier = Modifier
+					.fillMaxWidth()
+					.height(56.dp.scaledHeight()),
 			)
 		},
 	)

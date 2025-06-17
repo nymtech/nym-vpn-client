@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+	<uses-permission android:name="android.permission.INTERNET" />
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+	<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
 	<uses-permission android:name="android.permission.WAKE_LOCK" />
 
-    <!--foreground service exempt android 14-->
+	<!--foreground service exempt android 14-->
 	<uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" android:minSdkVersion="33"/>
+	<uses-permission android:name="android.permission.FOREGROUND_SERVICE_SYSTEM_EXEMPTED" android:minSdkVersion="33"/>
 
-    <application
-        android:hardwareAccelerated="true"
-        android:largeHeap="true">
-        <service
-            android:name="net.nymtech.vpn.backend.NymBackend$VpnService"
-            android:exported="true"
-            android:foregroundServiceType="systemExempted"
-            android:permission="android.permission.BIND_VPN_SERVICE"
-            android:persistent="true"
-            android:stopWithTask="false">
+	<application
+		android:hardwareAccelerated="true"
+		android:largeHeap="true">
+		<service
+			android:name="net.nymtech.vpn.backend.service.VpnService"
+			android:exported="true"
+			android:foregroundServiceType="systemExempted"
+			android:permission="android.permission.BIND_VPN_SERVICE"
+			android:persistent="true"
+			android:stopWithTask="false">
 			<intent-filter>
 				<action android:name="android.net.VpnService" />
 			</intent-filter>
@@ -29,11 +29,12 @@
 				android:value="true" />
 		</service>
 		<service
-			android:name="net.nymtech.vpn.backend.NymBackend$StateMachineService"
+			android:name="net.nymtech.vpn.backend.service.StateMachineService"
 			android:enabled="true"
 			android:exported="false"
 			android:foregroundServiceType="systemExempted"
 			android:persistent="true"
 			android:stopWithTask="false"/>
-    </application>
+		<receiver android:name=".util.notifications.StopVpnReceiver" />
+	</application>
 </manifest>
