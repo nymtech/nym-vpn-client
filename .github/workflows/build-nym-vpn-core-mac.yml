@@ -28,10 +28,10 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
-      - name: Install Rust toolchain
-        uses: brndnmtthws/rust-action-rustup@v1
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: stable
+          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           components: rustfmt, clippy
           targets: x86_64-apple-darwin aarch64-apple-darwin
 

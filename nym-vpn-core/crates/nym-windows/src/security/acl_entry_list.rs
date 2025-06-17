@@ -40,8 +40,7 @@ impl AclEntryList<'_> {
             .map(|i| {
                 // Safety: cast to isize should be fine as number of entries is likely limited.
                 let entry_ptr = unsafe { self.entries.offset(i as isize) };
-                let explicit_access = unsafe { BorrowedExplicitAccess::from_ptr(entry_ptr) };
-                explicit_access
+                unsafe { BorrowedExplicitAccess::from_ptr(entry_ptr) }
             })
             .collect::<Vec<_>>()
     }
