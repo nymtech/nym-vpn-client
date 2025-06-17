@@ -257,7 +257,7 @@ jobs:
         env:
           VERSION: ${{ needs.publish.outputs.version }}
           APP_RELEASE_TAG: ${{ needs.publish.outputs.release_tag }}
-          EMOJI: ${{ (env.RELEASE_TYPE == 'stable' && ':ship:') || (env.RELEASE_TYPE == 'nightly' && ':night_with_stars:') || ':hammer_and_wrench:' }}
+          EMOJI: ${{ (env.RELEASE_TYPE == 'stable' && ':ship:') || (env.RELEASE_TYPE == 'nightly' && ':night:') || ':hammer_and_wrench:' }}
           NAME: ${{ env.RELEASE_TYPE == 'stable' && 'release' || (env.RELEASE_TYPE == 'nightly' && 'nightly build') || 'dev build' }}
         run: |
           {
