@@ -16,7 +16,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  CARGO_TARGET: release
   LIBS_PATH: '${{ github.workspace }}/build/lib/x86_64-pc-windows-msvc'
   WINFW_PATH: '${{ github.workspace }}/build/winfw/x64-Release'
   WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
@@ -115,7 +114,7 @@ jobs:
         env:
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          cargo build --${{ env.CARGO_TARGET }}
+          cargo build --release
 
       - name: Get rust version used for build
         id: rust-version
@@ -125,7 +124,7 @@ jobs:
       - name: Move things around to prepare for upload
         shell: bash
         env:
-          SRC_BINARY: nym-vpn-core/target/${{ env.CARGO_TARGET }}/
+          SRC_BINARY: nym-vpn-core/target/release/
         run: |
           echo "moving binaries into ${{ env.UPLOAD_DIR_WINDOWS }}"
           rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
