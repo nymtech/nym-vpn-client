@@ -39,7 +39,7 @@ jobs:
       - name: Install Go
         uses: actions/setup-go@v5
         with:
-          go-version: "stable"
+          go-version: '1.23.6'
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
