@@ -357,5 +357,4 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 		notificationManager.updateVpnNotification(state, tunnel?.environment?.networkName(), tunnel?.credentialMode)
 	}
-
 }

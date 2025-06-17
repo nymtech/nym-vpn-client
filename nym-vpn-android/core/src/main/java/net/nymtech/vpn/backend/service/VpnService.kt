@@ -46,8 +46,11 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 				startForeground(
 					VpnNotificationManager.VPN_FOREGROUND_ID,
 					notificationManager.buildVpnNotification(getCurrentState(), getCurrentEnvironment(), getCurrentCredentialMode()),
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-						ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED else 0,
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+						ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
+					} else {
+						0
+					}
 				)
 			}
 		}
