@@ -109,8 +109,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23.6'
-
+          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
       - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: 1.85 # If this changes, we need a PR to Fdroid to update pipeline for reproducibility
