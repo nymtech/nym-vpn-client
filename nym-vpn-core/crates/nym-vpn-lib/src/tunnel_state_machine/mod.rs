@@ -715,7 +715,8 @@ impl tunnel::Error {
             | Self::CreateGatewayClient(_)
             | Self::BandwidthController(_)
             | Self::Wireguard(_)
-            | Self::Cancelled => None,
+            | Self::Cancelled
+            | Self::MixnetClientDisposed => None,
             #[cfg(target_os = "ios")]
             Self::ResolveDns64(_) => None,
             #[cfg(windows)]

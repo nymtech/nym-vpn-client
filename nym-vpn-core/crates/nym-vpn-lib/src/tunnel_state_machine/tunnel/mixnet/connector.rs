@@ -6,14 +6,16 @@ use std::net::IpAddr;
 use nym_gateway_directory::{CachingGatewayClient, IpPacketRouterAddress, Recipient};
 use nym_ip_packet_client::IprClientConnect;
 use nym_ip_packet_requests::IpPair;
-use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::ConnectionStatsEvent;
 use nym_task::TaskManager;
 use tokio_util::sync::CancellationToken;
 
-use super::connected_tunnel::ConnectedTunnel;
-use crate::tunnel_state_machine::tunnel::{
-    self, AnyConnector, ConnectorError, Error, Result, gateway_selector::SelectedGateways,
+use crate::{
+    mixnet::SharedMixnetClient,
+    tunnel_state_machine::tunnel::{
+        self, AnyConnector, ConnectorError, Error, Result, gateway_selector::SelectedGateways,
+        mixnet::connected_tunnel::ConnectedTunnel,
+    },
 };
 
 /// Struct holding addresses assigned by mixnet upon connect.
@@ -82,7 +84,12 @@ impl Connector {
         gateway_directory_client: CachingGatewayClient,
         cancel_token: CancellationToken,
     ) -> Result<AssignedAddresses> {
-        let mixnet_client_address = mixnet_client.nym_address().await;
+        let mixnet_client_address = *mixnet_client
+            .lock()
+            .await
+            .as_ref()
+            .ok_or(Error::MixnetClientDisposed)?
+            .nym_address();
         let gateway_used = mixnet_client_address.gateway().to_base58_string();
         let entry_mixnet_gateway_ip: IpAddr = cancel_token
             .run_until_cancelled(gateway_directory_client.lookup_gateway_ip(&gateway_used))
@@ -115,10 +122,13 @@ impl Connector {
 
         if let Some(exit_country_code) = selected_gateways.exit.two_letter_iso_country_code() {
             mixnet_client
+                .lock()
+                .await
+                .as_ref()
+                .ok_or(Error::MixnetClientDisposed)?
                 .send_stats_event(
                     ConnectionStatsEvent::MixCountry(exit_country_code.to_string()).into(),
-                )
-                .await;
+                );
         }
 
         Ok(AssignedAddresses {

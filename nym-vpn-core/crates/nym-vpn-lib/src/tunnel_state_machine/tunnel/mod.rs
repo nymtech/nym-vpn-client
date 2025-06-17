@@ -14,7 +14,6 @@ use std::{os::fd::RawFd, sync::Arc};
 
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint, Recipient};
-use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
 use nym_vpn_network_config::Network;
@@ -24,7 +23,10 @@ use tokio_util::sync::CancellationToken;
 #[cfg(windows)]
 use super::route_handler;
 use super::{MixnetEvent, TunnelType};
-use crate::{GatewayDirectoryError, MixnetClientConfig, MixnetError, VpnTopologyProvider};
+use crate::{
+    GatewayDirectoryError, MixnetClientConfig, MixnetError, VpnTopologyProvider,
+    mixnet::SharedMixnetClient,
+};
 pub use any_tunnel_handle::AnyTunnelHandle;
 use status_listener::StatusListener;
 pub use tombstone::Tombstone;
@@ -44,7 +46,12 @@ impl ConnectedMixnet {
     /// Returns the websocket fd owned by mixnet client.
     #[cfg(target_os = "android")]
     pub async fn websocket_fd(&self) -> Option<std::os::fd::RawFd> {
-        self.mixnet_client.gateway_ws_fd().await
+        self.mixnet_client
+            .lock()
+            .await
+            .as_ref()?
+            .gateway_connection()
+            .gateway_ws_fd
     }
 
     pub fn selected_gateways(&self) -> &SelectedGateways {
@@ -237,7 +244,7 @@ async fn shutdown_mixnet_client(mut task_manager: TaskManager, mixnet_client: Sh
     }
 
     tracing::debug!("Disposing mixnet client");
-    mixnet_client.dispose().await;
+    mixnet_client.lock().await.take();
 
     tracing::debug!("Waiting for task manager to shutdown");
     task_manager.wait_for_graceful_shutdown().await;
@@ -297,6 +304,14 @@ pub enum Error {
 
     #[error("connection cancelled")]
     Cancelled,
+
+    /// Indicates that a mixnet client has been moved out of shared reference (`Arc<Mutex<Option<MixnetClient>>`)
+    /// Typically this is done for the purpose of disconnecting and disposing a mixnet client.
+    ///
+    /// If this error occurs, it's likely that two or more parties have been racing for access to mixnet client.
+    /// One of parties then moved the mixnet client out of shared reference.
+    #[error("mixnet client is already disposed")]
+    MixnetClientDisposed,
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

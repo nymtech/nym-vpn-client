@@ -747,7 +747,12 @@ impl TunnelMonitor {
             ipv6_gateway: None,
         };
 
-        let tunnel_handle = AnyTunnelHandle::from(connected_tunnel.run(tun_device).await);
+        let tunnel_handle = AnyTunnelHandle::from(
+            connected_tunnel
+                .run(tun_device)
+                .await
+                .map_err(|e| Error::Tunnel(Box::new(e)))?,
+        );
 
         Ok(StartTunnelResult {
             tunnel_interface: TunnelInterface::One(tunnel_metadata),

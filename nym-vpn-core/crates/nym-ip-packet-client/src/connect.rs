@@ -1,13 +1,13 @@
 // Copyright 2023-2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::time::Duration;
+use std::{sync::Arc, time::Duration};
 
 use nym_gateway_directory::IpPacketRouterAddress;
 use nym_ip_packet_requests::IpPair;
-use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{
-    InputMessage, MixnetClientSender, MixnetMessageSender, Recipient, TransmissionLane,
+    InputMessage, MixnetClient, MixnetClientSender, MixnetMessageSender, Recipient,
+    TransmissionLane,
 };
 use tokio::time::sleep;
 use tokio_util::sync::CancellationToken;
@@ -24,6 +24,8 @@ use crate::{
     error::{Error, Result},
     helpers::check_ipr_message_version,
 };
+
+pub type SharedMixnetClient = Arc<tokio::sync::Mutex<Option<MixnetClient>>>;
 
 const IPR_CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
 

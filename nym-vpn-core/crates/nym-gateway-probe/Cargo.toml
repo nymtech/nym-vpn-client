@@ -48,7 +48,6 @@ nym-credentials-interface.workspace = true
 nym-gateway-directory = { workspace = true }
 nym-ip-packet-client = { workspace = true }
 nym-authenticator-client = { workspace = true }
-nym-mixnet-client = { workspace = true }
 nym-wireguard-types.workspace = true
 nym-ip-packet-requests.workspace = true
 nym-sdk.workspace = true

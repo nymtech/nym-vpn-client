@@ -13,3 +13,6 @@ pub(crate) use processor::{MixnetProcessorConfig, start_processor};
 
 pub use error::MixnetError;
 pub use topology_provider::VpnTopologyProvider;
+
+pub type SharedMixnetClient =
+    std::sync::Arc<tokio::sync::Mutex<Option<nym_sdk::mixnet::MixnetClient>>>;

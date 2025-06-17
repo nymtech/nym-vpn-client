@@ -14,7 +14,6 @@ members = [
     "crates/nym-ipc",
     "crates/nym-ip-packet-client",
     "crates/nym-macos",
-    "crates/nym-mixnet-client",
     "crates/nym-offline-monitor",
     "crates/nym-platform-metadata",
     "crates/nym-routing",
@@ -197,7 +196,6 @@ nym-gateway-directory = { path = "crates/nym-gateway-directory" }
 nym-ip-packet-client = { path = "crates/nym-ip-packet-client" }
 nym-ipc = { path = "crates/nym-ipc" }
 nym-macos = { path = "crates/nym-macos" }
-nym-mixnet-client = { path = "crates/nym-mixnet-client" }
 nym-offline-monitor = { path = "crates/nym-offline-monitor" }
 nym-routing = { path = "crates/nym-routing" }
 nym-vpn-account-controller = { path = "crates/nym-vpn-account-controller" }

@@ -1,5 +1,6 @@
 use std::net::{Ipv4Addr, Ipv6Addr};
 
+use anyhow::Context;
 use bytes::Bytes;
 use nym_connection_monitor::{
     ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply, is_icmp_beacon_reply,
@@ -11,12 +12,11 @@ use nym_connection_monitor::{
 };
 use nym_gateway_directory::IpPacketRouterAddress;
 use nym_ip_packet_requests::{IpPair, codec::MultiIpPacketCodec, v8::request::IpPacketRequest};
-use nym_mixnet_client::SharedMixnetClient;
-use nym_sdk::mixnet::{InputMessage, Recipient};
+use nym_sdk::mixnet::{InputMessage, MixnetMessageSender, Recipient};
 use nym_task::connections::TransmissionLane;
 use pnet_packet::Packet;
 
-use crate::Result;
+use crate::{Result, SharedMixnetClient};
 
 pub fn icmp_identifier() -> u16 {
     8475
@@ -40,7 +40,13 @@ pub async fn send_ping_v4(
     // Wrap into a mixnet input message addressed to the IPR
     let mixnet_message = create_input_message(exit_router_address, bundled_packet)?;
 
-    shared_mixnet_client.send(mixnet_message).await?;
+    shared_mixnet_client
+        .lock()
+        .await
+        .as_ref()
+        .with_context(|| "mixnet client is already moved out of shared reference")?
+        .send(mixnet_message)
+        .await?;
     Ok(())
 }
 
@@ -68,7 +74,13 @@ pub async fn send_ping_v6(
     let mixnet_message = create_input_message(exit_router_address, bundled_packet)?;
 
     // Send across the mixnet
-    shared_mixnet_client.send(mixnet_message).await?;
+    shared_mixnet_client
+        .lock()
+        .await
+        .as_ref()
+        .with_context(|| "mixnet client is already moved out of shared reference")?
+        .send(mixnet_message)
+        .await?;
     Ok(())
 }
 

@@ -3,11 +3,12 @@
 
 use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
+    sync::Arc,
     time::Duration,
 };
 
 use crate::types::Entry;
-use anyhow::{anyhow, bail};
+use anyhow::{Context, anyhow, bail};
 use base64::{Engine as _, engine::general_purpose};
 use bytes::BytesMut;
 use clap::Args;
@@ -36,9 +37,9 @@ use nym_ip_packet_requests::{
         ControlResponse, DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData,
     },
 };
-use nym_mixnet_client::SharedMixnetClient;
-use nym_sdk::mixnet::{MixnetClientBuilder, NodeIdentity, ReconstructedMessage};
+use nym_sdk::mixnet::{MixnetClient, MixnetClientBuilder, NodeIdentity, ReconstructedMessage};
 use nym_wireguard_types::PeerPublicKey;
+use tokio::sync::Mutex;
 use tokio_util::{codec::Decoder, sync::CancellationToken};
 use tracing::*;
 use types::WgProbeResults;
@@ -60,6 +61,8 @@ mod types;
 
 pub use error::{Error, Result};
 pub use types::{IpPingReplies, ProbeOutcome, ProbeResult};
+
+pub type SharedMixnetClient = Arc<tokio::sync::Mutex<Option<MixnetClient>>>;
 
 #[derive(Args)]
 pub struct NetstackArgs {
@@ -281,7 +284,7 @@ impl Probe {
         info!("Successfully connected to entry gateway: {entry_gateway}");
         info!("Our nym address: {nym_address}");
 
-        let shared_client = SharedMixnetClient::new(mixnet_client);
+        let shared_client = Arc::new(Mutex::new(Some(mixnet_client)));
 
         // Now that we have a connected mixnet client, we can start pinging
         let outcome = if only_wireguard {
@@ -308,7 +311,10 @@ impl Probe {
         {
             // Start the mixnet listener that the auth clients use to receive messages.
             let mixnet_listener_task = AuthClientMixnetListener::new(shared_client.clone()).start();
-            let auth_client = mixnet_listener_task.new_auth_client().await;
+            let auth_client = mixnet_listener_task
+                .new_auth_client()
+                .await
+                .with_context(|| "mixnet client is already moved out of shared reference")?;
 
             let outcome = wg_probe(
                 authenticator,
@@ -328,7 +334,13 @@ impl Probe {
             WgProbeResults::default()
         };
 
-        shared_client.disconnect().await;
+        shared_client
+            .lock()
+            .await
+            .take()
+            .with_context(|| "mixnet client is already moved out of shared reference")?
+            .disconnect()
+            .await;
 
         // Disconnect the mixnet client gracefully
         outcome.map(|mut outcome| {
@@ -571,12 +583,17 @@ async fn do_ping(
 ) -> anyhow::Result<ProbeOutcome> {
     // Step 1: confirm that the entry gateway is routing our mixnet traffic
     info!("Sending mixnet ping to ourselves to verify mixnet connection");
-    if self_ping_and_wait(
-        shared_mixnet_client.nym_address().await,
-        shared_mixnet_client.inner(),
-    )
-    .await
-    .is_err()
+
+    let our_address = *shared_mixnet_client
+        .lock()
+        .await
+        .as_ref()
+        .with_context(|| "mixnet client is already moved out of shared reference")?
+        .nym_address();
+
+    if self_ping_and_wait(our_address, shared_mixnet_client.clone())
+        .await
+        .is_err()
     {
         return Ok(ProbeOutcome {
             as_entry: if tested_entry {
@@ -692,7 +709,11 @@ async fn listen_for_icmp_ping_replies(
     entry_result: Entry,
 ) -> anyhow::Result<ProbeOutcome> {
     // HACK: take it out of the shared mixnet client
-    let mut mixnet_client = shared_mixnet_client.inner().lock().await.take().unwrap();
+    let mut mixnet_client = shared_mixnet_client
+        .lock()
+        .await
+        .take()
+        .with_context(|| "mixnet client is already moved out of shared reference")?;
     let mut multi_ip_packet_decoder = MultiIpPacketCodec::new();
     let mut registered_replies = IpPingReplies::new();
 
@@ -721,11 +742,7 @@ async fn listen_for_icmp_ping_replies(
     }
 
     // HACK: put it back in the shared mixnet client, so it can be properly disconnected
-    shared_mixnet_client
-        .inner()
-        .lock()
-        .await
-        .replace(mixnet_client);
+    shared_mixnet_client.lock().await.replace(mixnet_client);
 
     Ok(ProbeOutcome {
         as_entry: entry_result,

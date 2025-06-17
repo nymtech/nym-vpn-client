@@ -9,7 +9,6 @@ use tokio::task::JoinHandle;
 use nym_authenticator_client::{AuthClientMixnetListener, AuthClientMixnetListenerHandle};
 use nym_credentials_interface::TicketType;
 use nym_gateway_directory::{AuthAddresses, CachingGatewayClient, Gateway};
-use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{ConnectionStatsEvent, EphemeralCredentialStorage, StoragePaths};
 use nym_task::TaskManager;
 use nym_wg_gateway_client::{GatewayData, WgGatewayClient};
@@ -18,6 +17,7 @@ use tokio_util::sync::CancellationToken;
 use super::connected_tunnel::ConnectedTunnel;
 use crate::{
     bandwidth_controller::BandwidthController,
+    mixnet::SharedMixnetClient,
     tunnel_state_machine::tunnel::{
         self, AnyConnector, ConnectorError, Error, Result, gateway_selector::SelectedGateways,
     },
@@ -115,7 +115,10 @@ impl Connector {
             .with_external_cancel_token(cancel_token.clone())
             .start();
 
-        let auth_client = mixnet_listener.new_auth_client().await;
+        let auth_client = mixnet_listener
+            .new_auth_client()
+            .await
+            .ok_or(Error::MixnetClientDisposed)?;
 
         let mut wg_entry_gateway_client = if enable_credentials_mode {
             WgGatewayClient::new_free_entry(

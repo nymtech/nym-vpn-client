@@ -12,7 +12,6 @@ use nym_ip_packet_requests::{
     codec::{IprPacket, MultiIpPacketCodec},
     v8::request::IpPacketRequest,
 };
-use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::mixnet::{
     InputMessage, MixnetClientSender, MixnetMessageSender, MixnetMessageSinkTranslator, Recipient,
 };
@@ -21,7 +20,7 @@ use tokio::{sync::oneshot, task::JoinHandle};
 use tokio_util::{codec::Encoder, sync::CancellationToken};
 use tun::{AsyncDevice, Device};
 
-use super::{MixnetError, backpressure::MixnetBackpressureMonitor};
+use super::{MixnetError, SharedMixnetClient, backpressure::MixnetBackpressureMonitor};
 
 #[derive(Debug)]
 pub(crate) struct MixnetProcessorConfig {
@@ -123,9 +122,14 @@ impl MixnetProcessor {
         let (tun_device_sink, mut tun_device_stream) = self.device.into_framed().split();
 
         tracing::debug!("Split mixnet sender");
-        let mixnet_sender = self.mixnet_client.split_sender().await;
+        let mixnet_client_guard = self.mixnet_client.lock().await;
 
-        let lane_queue_lengths = self.mixnet_client.shared_lane_queue_lengths().await;
+        let shared_mixnet_client = mixnet_client_guard
+            .as_ref()
+            .ok_or(MixnetError::ClientAlreadyDisposed)?;
+
+        let mixnet_sender = shared_mixnet_client.split_sender();
+        let lane_queue_lengths = shared_mixnet_client.shared_lane_queue_lengths();
 
         let message_creator = MessageCreator::new(self.ip_packet_router_address.into());
 
