@@ -303,9 +303,10 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - uses: dtolnay/rust-toolchain@master
+      - name: Install rust toolchain
+        uses: dtolnay/rust-toolchain@master
         with:
-          toolchain: 1.85 # If this changes, we need a PR to Fdroid to update pipeline for reproducibility
+          toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           targets: aarch64-linux-android
 
       - name: Set up Go
