@@ -300,7 +300,7 @@ where
         let (account, mnemonic) =
             VpnApiAccount::random().map_err(RegisterAccountError::internal)?;
 
-        let payment_token = if self.offline_watch.is_online() {
+        let account_token = if self.offline_watch.is_online() {
             self.vpn_api_client
                 .register_account(&account, platform)
                 .await?
@@ -325,7 +325,7 @@ where
         }
 
         Ok(RegisterAccountResponse {
-            payment_token,
+            account_token,
             mnemonic,
         })
     }

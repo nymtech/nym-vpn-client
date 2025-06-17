@@ -73,7 +73,7 @@ impl AccountControllerVpnApiClient {
                     .unwrap_or_else(RegisterAccountError::unexpected_response)
             })?;
         match account.status {
-            NymVpnRegisterAccountStatusResponse::Active => Ok(account.payment_token),
+            NymVpnRegisterAccountStatusResponse::Active => Ok(account.account_token),
         }
     }
 }

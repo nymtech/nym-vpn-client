@@ -318,14 +318,14 @@ pub(crate) mod raw {
             Platform::Unspecified
         };
         let (account, mnemonic) = VpnApiAccount::random().map_err(VpnError::internal)?;
-        let payment_token = register_account_by_account_raw(&account, platform)
+        let account_token = register_account_by_account_raw(&account, platform)
             .await?
-            .payment_token;
+            .account_token;
         let storage = setup_account_storage(path).await?;
         storage.store_mnemonic(mnemonic.clone()).await?;
         storage.init_keys(None).await?;
         Ok(RegisterAccountResponse {
-            payment_token,
+            account_token,
             mnemonic: mnemonic.to_string(),
         })
     }

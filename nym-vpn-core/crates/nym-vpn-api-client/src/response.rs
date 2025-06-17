@@ -19,7 +19,7 @@ pub struct NymVpnRegisterAccountResponse {
     pub last_updated_utc: String,
     pub account_addr: String,
     pub status: NymVpnRegisterAccountStatusResponse,
-    pub payment_token: String,
+    pub account_token: String,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
