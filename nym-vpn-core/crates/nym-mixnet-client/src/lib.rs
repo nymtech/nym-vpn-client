@@ -1,8 +1,6 @@
 // Copyright 2024 Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#[cfg(unix)]
-use std::os::fd::RawFd;
 use std::sync::Arc;
 
 use nym_sdk::mixnet::{
@@ -13,19 +11,12 @@ use nym_sdk::mixnet::{
 #[derive(Clone)]
 pub struct SharedMixnetClient {
     inner: Arc<tokio::sync::Mutex<Option<MixnetClient>>>,
-    #[cfg(unix)]
-    connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 }
 
 impl SharedMixnetClient {
-    pub fn new(
-        mixnet_client: MixnetClient,
-        #[cfg(unix)] connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
-    ) -> Self {
+    pub fn new(mixnet_client: MixnetClient) -> Self {
         Self {
             inner: Arc::new(tokio::sync::Mutex::new(Some(mixnet_client))),
-            #[cfg(unix)]
-            connection_fd_callback,
         }
     }
 
@@ -78,11 +69,6 @@ impl SharedMixnetClient {
 
     pub fn inner(&self) -> Arc<tokio::sync::Mutex<Option<MixnetClient>>> {
         self.inner.clone()
-    }
-
-    #[cfg(unix)]
-    pub fn connection_fd_callback(&self) -> Arc<dyn Fn(RawFd) + Send + Sync> {
-        self.connection_fd_callback.clone()
     }
 
     // If the mixnet client does NOT have an external task manager, call this method to disconnect.

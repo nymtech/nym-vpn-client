@@ -5,8 +5,6 @@ use std::{
     net::{IpAddr, Ipv4Addr, Ipv6Addr},
     time::Duration,
 };
-#[cfg(unix)]
-use std::{os::fd::RawFd, sync::Arc};
 
 use crate::types::Entry;
 use anyhow::{anyhow, bail};
@@ -283,11 +281,7 @@ impl Probe {
         info!("Successfully connected to entry gateway: {entry_gateway}");
         info!("Our nym address: {nym_address}");
 
-        let shared_client = SharedMixnetClient::new(
-            mixnet_client,
-            #[cfg(unix)]
-            Arc::new(|_: RawFd| {}),
-        );
+        let shared_client = SharedMixnetClient::new(mixnet_client);
 
         // Now that we have a connected mixnet client, we can start pinging
         let outcome = if only_wireguard {

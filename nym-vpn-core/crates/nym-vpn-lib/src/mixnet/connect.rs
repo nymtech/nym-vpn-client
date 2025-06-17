@@ -191,11 +191,7 @@ pub(crate) async fn setup_mixnet_client(
             .map_err(map_mixnet_connect_error)?
     };
 
-    Ok(SharedMixnetClient::new(
-        mixnet_client,
-        #[cfg(unix)]
-        connection_fd_callback,
-    ))
+    Ok(SharedMixnetClient::new(mixnet_client))
 }
 
 // Map some specific mixnet errors to more specific ones
