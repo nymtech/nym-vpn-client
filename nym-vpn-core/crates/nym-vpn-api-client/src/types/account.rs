@@ -32,7 +32,7 @@ pub struct VpnApiAccount {
 }
 
 impl VpnApiAccount {
-    fn deruve_from_wallet(wallet: DirectSecp256k1HdWallet) -> std::result::Result<Self, Error> {
+    fn derive_from_wallet(wallet: DirectSecp256k1HdWallet) -> std::result::Result<Self, Error> {
         let accounts = wallet.get_accounts()?;
         let address = accounts.first().ok_or(Error::NoAccounts)?.address();
         let id = address.to_string();
@@ -61,7 +61,7 @@ impl VpnApiAccount {
     pub fn random() -> Result<(Self, bip39::Mnemonic)> {
         let mnemonic = bip39::Mnemonic::generate(24).unwrap();
         let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
-        let account = Self::deruve_from_wallet(wallet).map_err(VpnApiClientError::CreateAccount)?;
+        let account = Self::derive_from_wallet(wallet).map_err(VpnApiClientError::CreateAccount)?;
         Ok((account, mnemonic))
     }
 
@@ -101,7 +101,7 @@ impl TryFrom<bip39::Mnemonic> for VpnApiAccount {
 
     fn try_from(mnemonic: bip39::Mnemonic) -> std::result::Result<Self, Self::Error> {
         let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
-        Self::deruve_from_wallet(wallet).map_err(VpnApiClientError::CreateAccount)
+        Self::derive_from_wallet(wallet).map_err(VpnApiClientError::CreateAccount)
     }
 }
 
@@ -238,7 +238,7 @@ mod tests {
     fn derive_wallets() {
         for word_count in [12, 24] {
             let wallet = DirectSecp256k1HdWallet::generate("n", word_count).unwrap();
-            VpnApiAccount::deruve_from_wallet(wallet).unwrap();
+            VpnApiAccount::derive_from_wallet(wallet).unwrap();
         }
     }
 }
