@@ -24,11 +24,6 @@ jobs:
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
 
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Setup msys2
         uses: msys2/setup-msys2@v2
         id: msys2
