@@ -12,16 +12,14 @@ on:
 env:
   IPHONEOS_DEPLOYMENT_TARGET: 16.0
   CARGO_TERM_COLOR: always
-  WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib
-  WG_GO_LIB_NAME: wireguard-go_ios_universal
   UPLOAD_DIR_IOS: ios_artifacts
 
 jobs:
-  build-wireguard-go-ios:
+  build-wireguard-go:
     uses: ./.github/workflows/build-wireguard-go-ios.yml
 
   build-ios:
-    needs: build-wireguard-go-ios
+    needs: build-wireguard-go
     runs-on: custom-macos-15
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
@@ -64,13 +62,11 @@ jobs:
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.WG_GO_LIB_NAME }}
-          path: ${{ env.WG_GO_LIB_PATH }}
+          name: wireguard-go_ios_universal
+          path: build/lib
 
       - name: Build nym-vpn-lib
         working-directory: nym-vpn-core/crates/nym-vpn-lib
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
           cargo swift package -p ios -n NymVpnLib --target aarch64-apple-ios --accept-all --release
           ls -la ../target/universal-ios/release/ || true

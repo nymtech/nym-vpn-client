@@ -110,7 +110,6 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
-          # RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
           DEV_MODE: ${{ inputs.dev_mode == true }}
           UPDATER_ENABLED: false
         run: |

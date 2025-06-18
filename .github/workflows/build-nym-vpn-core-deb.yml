@@ -8,16 +8,14 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib/x86_64-unknown-linux-gnu
-  WG_GO_LIB_NAME: wireguard-go_deb_x86_64
   UPLOAD_DIR_DEB: deb_artifacts
 
 jobs:
-  build-wireguard-go-deb:
-    uses: ./.github/workflows/build-wireguard-go-deb.yml
+  build-wireguard-go:
+    uses: ./.github/workflows/build-wireguard-go-linux.yml
 
   build-linux:
-    needs: build-wireguard-go-deb
+    needs: build-wireguard-go
     runs-on: ubuntu-22.04
     outputs:
       UPLOAD_DIR_DEB: ${{ env.UPLOAD_DIR_DEB }}
@@ -63,13 +61,11 @@ jobs:
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.WG_GO_LIB_NAME }}
-          path: ${{ env.WG_GO_LIB_PATH }}
+          name: wireguard-go_deb_x86_64
+          path: build/lib/x86_64-unknown-linux-gnu
 
       - name: Build nym-vpn-core debian packages
         working-directory: nym-vpn-core
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
           cargo deb -p nym-vpnd
           cargo deb -p nym-vpnc
