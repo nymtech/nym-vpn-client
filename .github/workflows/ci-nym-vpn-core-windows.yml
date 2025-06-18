@@ -33,19 +33,6 @@ jobs:
       - name: Support longpaths on windows
         run: git config --system core.longpaths true
 
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: wireguard-go_x86_64-pc-windows-msvc
-          path: build/lib/x86_64-pc-windows-msvc
-    
-      - name: 'Test: list files'
-        shell: bash
-        run: |
-          ls -la build
-          ls -la build/lib
-          ls -la build/lib/x86_64-pc-windows-msvc
-
       - name: Checkout repo
         uses: actions/checkout@v4
         with:
@@ -76,6 +63,19 @@ jobs:
         run: |
           winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wireguard-go_x86_64-pc-windows-msvc
+          path: build/lib/x86_64-pc-windows-msvc
+    
+      - name: 'Test: list files'
+        shell: bash
+        run: |
+          ls -la build
+          ls -la build/lib
+          ls -la build/lib/x86_64-pc-windows-msvc
 
       - name: Build Windows dependencies
         working-directory: nym-vpn-core
