@@ -57,6 +57,11 @@ jobs:
         run: |
           cargo fmt --check --all
 
+      - name: Clippy
+        working-directory: nym-vpn-core
+        run: |
+          cargo clippy --workspace --locked -- -Dwarnings
+
       - name: Build
         working-directory: nym-vpn-core
         run: |
@@ -66,9 +71,4 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           cargo test --verbose --workspace --locked
-
-      - name: Clippy
-        working-directory: nym-vpn-core
-        run: |
-          cargo clippy --workspace --locked -- -Dwarnings
 
