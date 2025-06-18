@@ -19,6 +19,7 @@ jobs:
 
   build:
     runs-on: custom-windows-11
+    needs: build-wireguard-go
 
     steps:
       - name: "Cleanup working directory"
