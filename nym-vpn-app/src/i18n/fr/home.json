@@ -49,5 +49,18 @@
     "description-1-other": "L'application et le daemon sont anciens et ne sont plus pris en charge.",
     "description-2": "Svp mettez à jour vers la dernière version pour continuer à utiliser NymVPN.",
     "button-update": "Mettre à jour"
+  },
+  "app-update-available": {
+    "title": "Mise à jour disponible",
+    "description": "La version {{version}} est prête avec des améliorations de performance et de nouvelles fonctionnalités.",
+    "restart-note": "L'application redémarrera après la mise à jour.",
+    "button-update": "Mise à jour de NymVPN",
+    "button-close": "Fermer"
+  },
+  "app-update-progress": {
+    "title": "Mise à jour de la version {{version}}…",
+    "description": "Installation des mises à jour - veuillez ne pas fermer l'application.",
+    "restart-note": "L'application redémarrera après la mise à jour.",
+    "bar-label": "Téléchargement en cours"
   }
 }
