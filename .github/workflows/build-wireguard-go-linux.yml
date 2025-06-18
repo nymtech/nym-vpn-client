@@ -21,7 +21,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.23.6'
+          go-version: ${{ vars.REQUIRED_GOLANG_VERSION}}
 
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
