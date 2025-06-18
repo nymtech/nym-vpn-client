@@ -169,7 +169,9 @@ where
             Ok(ref account) => {
                 tracing::debug!("Our account id: {}", account.id());
                 self.account_state
-                    .set_mnemonic(MnemonicState::Stored { id: account.id() })
+                    .set_mnemonic(MnemonicState::Stored {
+                        id: account.id().to_string(),
+                    })
                     .await;
             }
             Err(ref err) => {

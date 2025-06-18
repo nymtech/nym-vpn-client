@@ -343,7 +343,7 @@ pub(crate) mod raw {
             .map_err(|_err| VpnError::NoAccountStored)?;
         VpnApiAccount::try_from(mnemonic)
             .map_err(VpnError::internal)
-            .map(|account| account.id())
+            .map(|account| account.id().to_string())
     }
 
     async fn remove_account_mnemonic_raw(path: &str) -> Result<bool, VpnError> {

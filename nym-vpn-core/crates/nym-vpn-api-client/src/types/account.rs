@@ -65,16 +65,16 @@ impl VpnApiAccount {
         Ok((account, mnemonic))
     }
 
-    pub fn id(&self) -> String {
-        self.id.clone()
+    pub fn id(&self) -> &str {
+        &self.id
     }
 
-    pub fn pub_key(&self) -> String {
-        self.pub_key.clone()
+    pub fn pub_key(&self) -> &str {
+        &self.pub_key
     }
 
-    pub fn signature_base64(&self) -> String {
-        self.signature_base64.clone()
+    pub fn signature_base64(&self) -> &str {
+        &self.signature_base64
     }
 
     pub(crate) fn jwt(&self, remote_time: Option<VpnApiTime>) -> Jwt {

@@ -60,7 +60,9 @@ where
     }
 
     pub(crate) async fn load_account_id(&self) -> Result<String, Error> {
-        self.load_account().await.map(|account| account.id())
+        self.load_account()
+            .await
+            .map(|account| account.id().to_string())
     }
 
     pub(crate) async fn init_keys(&self) -> Result<(), Error> {
