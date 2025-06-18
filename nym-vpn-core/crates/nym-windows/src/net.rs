@@ -62,8 +62,11 @@ pub enum Error {
 
     /// Error returned from `CreateUnicastIpAddressEntry`
     #[cfg(windows)]
-    #[error("failed to create unicast IP address")]
-    CreateUnicastEntry(#[source] windows::core::Error),
+    #[error("failed to create unicast IP address entry (code: {win32_error_code})")]
+    CreateUnicastEntry {
+        win32_error_code: u32,
+        source: windows::core::Error,
+    },
 
     /// Error returned from `CreateIpForwardEntry2`
     #[cfg(windows)]
@@ -348,9 +351,14 @@ pub fn add_ip_address_for_interface(luid: NET_LUID_LH, address: IpAddr) -> Resul
     row.DadState = IpDadStatePreferred;
     row.OnLinkPrefixLength = 255;
 
-    unsafe { CreateUnicastIpAddressEntry(&row) }
+    let win32_err = unsafe { CreateUnicastIpAddressEntry(&row) };
+
+    win32_err
         .ok()
-        .map_err(Error::CreateUnicastEntry)
+        .map_err(|source: windows::core::Error| Error::CreateUnicastEntry {
+            win32_error_code: win32_err.0,
+            source,
+        })
 }
 
 /// Add default IPv4 gateway for the given interface.
