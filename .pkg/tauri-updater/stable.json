@@ -1,9 +1,9 @@
 {
-  "version": "TODO",
+  "version": "1.11.0",
   "platforms": {
     "windows-x86_64": {
-      "signature": "TODO",
-      "url": "TODO"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTjN5M3FybWZ5VnpDQVNwTEU1QU52QnRVZzh0anBuZTJab2RnSkJZbnJraVM0OXJXamRYRTRlZmZoNVlUY2k3a1FzSkZ5SFJiOFViNU1wZ0lEaWlWaXZ2R25qTU5hQXdzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzUwMjcwNzIzCWZpbGU6TnltVlBOXzEuMTEuMF94NjQtc2V0dXAuZXhlCmxZWkVGbkY5SStRVEJRMFo0bkRaYlE2eEJ4dWZzQzNWTzBGY2hOcWphWWZuQ1lXZE9vYWd1VEtZN1hXQzBIWERmeXZFeEpaWFJwRGp3QzA4dERoNkFnPT0K",
+      "url": "https://github.com/nymtech/nym-vpn-client/releases/download/nym-vpn-app-v1.11.0/NymVPN_1.11.0_x64-setup.exe"
     }
   }
 }
