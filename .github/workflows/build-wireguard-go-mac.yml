@@ -29,6 +29,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wireguard-go_apple_universal
-          path: |
-            build/lib/universal-apple-darwin
+          path: build/lib/universal-apple-darwin
           retention-days: 10

@@ -69,13 +69,6 @@ jobs:
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
           path: build/lib/x86_64-pc-windows-msvc
-    
-      - name: 'Test: list files'
-        shell: bash
-        run: |
-          ls -la build
-          ls -la build/lib
-          ls -la build/lib/x86_64-pc-windows-msvc
 
       - name: Build Windows dependencies
         working-directory: nym-vpn-core

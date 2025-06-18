@@ -18,22 +18,15 @@ jobs:
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
 
-      - name: Moving directories
-        run: |
-          mkdir workspace
-          mv wireguard workspace
+      - name: Set up Docker
+        uses: docker/setup-docker-action@v4
 
-      - name: Build wireguard with docker
-        uses: addnab/docker-run-action@v3
-        with:
-          image: docker.io/nymtech/android-wg-patched:latest@sha256:fe6c1ded2e1f8a7e6ff0da2800c98b9d564d4723cc63ae46b1a8a3af33f78d1f
-          options: --rm -v ${{ github.workspace }}/workspace:/workspace --env ANDROID_NDK_HOME="/opt/android/android-ndk-r20b"
-          run: /workspace/wireguard/libwg/build-android.sh
+      - name: Build wireguard
+        run: ./wireguard/build-wireguard-go.sh --android --docker
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: wireguard-go_aarch64-linux-android
-          path: |
-            workspace/build/lib/aarch64-linux-android
+          path: build/lib/aarch64-linux-android
           retention-days: 1
