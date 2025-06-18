@@ -57,6 +57,11 @@ jobs:
         run: |
           cargo fmt --check --all
 
+      - name: Clippy
+        working-directory: nym-vpn-core
+        run: |
+          cargo clippy --target aarch64-apple-ios -p nym-vpn-lib --locked -- -Dwarnings
+
       - name: Build
         working-directory: nym-vpn-core
         run: |
@@ -76,8 +81,3 @@ jobs:
           name: updated-uniffi-ios
           path: nym-vpn-core/build/nym_vpn_lib.swift
           retention-days: 1
-
-      - name: Clippy
-        working-directory: nym-vpn-core
-        run: |
-          cargo clippy --target aarch64-apple-ios -p nym-vpn-lib --locked -- -Dwarnings
