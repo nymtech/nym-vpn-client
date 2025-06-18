@@ -309,10 +309,10 @@ pub fn install_service() -> anyhow::Result<()> {
     let manager_access = ServiceManagerAccess::CONNECT | ServiceManagerAccess::CREATE_SERVICE;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 
-    println!("Registering event logger {}...", SERVICE_DISPLAY_NAME);
+    println!("Registering event logger {SERVICE_DISPLAY_NAME}...");
     eventlog::register(SERVICE_DISPLAY_NAME).unwrap();
 
-    println!("Registering {} service...", SERVICE_NAME);
+    println!("Registering {SERVICE_NAME} service...");
 
     let service_access = ServiceAccess::QUERY_CONFIG
         | ServiceAccess::QUERY_STATUS
@@ -369,7 +369,7 @@ pub fn install_service() -> anyhow::Result<()> {
         .set_description(SERVICE_DESCRIPTION)
         .with_context(|| "Failed to set service description")?;
 
-    println!("{} service has been registered.", SERVICE_NAME);
+    println!("{SERVICE_NAME} service has been registered.");
 
     Ok(())
 }
@@ -401,13 +401,13 @@ pub fn uninstall_service() -> windows_service::Result<()> {
             service_manager.open_service(SERVICE_NAME, ServiceAccess::QUERY_STATUS)
         {
             if e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32) {
-                println!("{} is deleted.", SERVICE_NAME);
+                println!("{SERVICE_NAME} is deleted.");
                 return Ok(());
             }
         }
         std::thread::sleep(Duration::from_secs(1));
     }
-    println!("{} is marked for deletion.", SERVICE_NAME);
+    println!("{SERVICE_NAME} is marked for deletion.");
 
     Ok(())
 }
