@@ -49,5 +49,18 @@
     "description-1-other": "Ứng dụng và daemon của bạn không còn được hỗ trợ.",
     "description-2": "Vui lòng cập nhật lên phiên bản mới nhất để tiếp tục sử dụng NymVPN.",
     "button-update": "Cập nhật"
+  },
+  "app-update-available": {
+    "title": "Update available",
+    "description": "Version {{version}} is ready with performance improvements and new features.",
+    "restart-note": "The app will restart after the update.",
+    "button-update": "Update NymVPN",
+    "button-close": "Close"
+  },
+  "app-update-progress": {
+    "title": "Updating to Version {{version}}…",
+    "description": "Installing updates - please don't close the app.",
+    "restart-note": "The app will restart after the update.",
+    "bar-label": "Download progress"
   }
 }
