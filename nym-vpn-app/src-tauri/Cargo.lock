@@ -2968,7 +2968,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.11.0-watermelon-rc3"
+version = "1.11.0"
 dependencies = [
  "anyhow",
  "build-info",
