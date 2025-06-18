@@ -2,20 +2,20 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(unix)]
-use std::{os::fd::RawFd, sync::Arc};
-use std::{path::PathBuf, result::Result, time::Duration};
+use std::os::fd::RawFd;
+use std::{path::PathBuf, result::Result, sync::Arc, time::Duration};
 
 use nym_client_core::config::{RememberMe, StatsReporting};
 use nym_gateway_directory::Recipient;
-use nym_mixnet_client::SharedMixnetClient;
 use nym_sdk::{
     UserAgent,
     mixnet::{MixnetClientBuilder, NodeIdentity, StoragePaths},
 };
 use nym_vpn_network_config::Network;
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
+use tokio::sync::Mutex;
 
-use super::{MixnetError, topology_provider::VpnTopologyProvider};
+use super::{MixnetError, SharedMixnetClient, topology_provider::VpnTopologyProvider};
 use crate::{MixnetClientConfig, storage::VpnClientOnDiskStorage};
 
 const VPN_AVERAGE_PACKET_DELAY: Duration = Duration::from_millis(15);
@@ -191,11 +191,7 @@ pub(crate) async fn setup_mixnet_client(
             .map_err(map_mixnet_connect_error)?
     };
 
-    Ok(SharedMixnetClient::new(
-        mixnet_client,
-        #[cfg(unix)]
-        connection_fd_callback,
-    ))
+    Ok(Arc::new(Mutex::new(Some(mixnet_client))))
 }
 
 // Map some specific mixnet errors to more specific ones

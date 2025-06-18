@@ -12,12 +12,11 @@ use tokio_util::sync::CancellationToken;
 use tun::AsyncDevice;
 
 use nym_connection_monitor::ConnectionMonitorTask;
-use nym_mixnet_client::SharedMixnetClient;
 
 use super::connector::AssignedAddresses;
 use crate::{
-    mixnet::{MixnetError, MixnetProcessorConfig},
-    tunnel_state_machine::tunnel::Tombstone,
+    mixnet::{MixnetError, MixnetProcessorConfig, SharedMixnetClient},
+    tunnel_state_machine::tunnel::{Error, Result, Tombstone},
 };
 
 /// Type representing a connected mixnet tunnel.
@@ -47,7 +46,7 @@ impl ConnectedTunnel {
         &self.assigned_addresses
     }
 
-    pub async fn run(self, tun_device: AsyncDevice) -> TunnelHandle {
+    pub async fn run(self, tun_device: AsyncDevice) -> Result<TunnelHandle> {
         let connection_monitor = ConnectionMonitorTask::setup();
 
         let processor_config = MixnetProcessorConfig::new(
@@ -68,7 +67,13 @@ impl ConnectedTunnel {
         )
         .await;
 
-        let mixnet_client_sender = self.mixnet_client.split_sender().await;
+        let mixnet_client_sender = self
+            .mixnet_client
+            .lock()
+            .await
+            .as_ref()
+            .ok_or(Error::MixnetClientDisposed)?
+            .split_sender();
         connection_monitor.start(
             mixnet_client_sender,
             self.assigned_addresses.mixnet_client_address,
@@ -77,11 +82,11 @@ impl ConnectedTunnel {
             &self.task_manager,
         );
 
-        TunnelHandle {
+        Ok(TunnelHandle {
             task_manager: self.task_manager,
             processor_handle,
             processor_disconnected: Some(ipr_disconnect_rx),
-        }
+        })
     }
 }
 

@@ -6,11 +6,12 @@ use futures::{SinkExt, StreamExt, channel::mpsc, prelude::stream::SplitSink};
 use nym_connection_monitor::{ConnectionStatusEvent, IcmpBeaconReply, Icmpv6BeaconReply};
 use nym_ip_packet_client::{IprListener, MixnetMessageOutcome};
 use nym_ip_packet_requests::IpPair;
-use nym_mixnet_client::SharedMixnetClient;
 use nym_task::TaskClient;
 use tokio::{sync::oneshot, task::JoinHandle};
 use tokio_util::codec::Framed;
 use tun::{AsyncDevice, TunPacket, TunPacketCodec};
+
+use super::SharedMixnetClient;
 
 // The mixnet listener is responsible for listening for incoming mixnet messages from the mixnet
 // client, and if they contain IP packets, forward them to the tun device.

@@ -63,7 +63,6 @@ nym-connection-monitor.workspace = true
 nym-gateway-directory.workspace = true
 nym-ip-packet-client.workspace = true
 nym-macos.workspace = true
-nym-mixnet-client.workspace = true
 nym-offline-monitor.workspace = true
 nym-vpn-account-controller.workspace = true
 nym-vpn-api-client.workspace = true
