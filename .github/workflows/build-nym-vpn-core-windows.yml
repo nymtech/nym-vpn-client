@@ -22,14 +22,14 @@ env:
   UPLOAD_DIR_WINDOWS: windows_artifacts
 
 jobs:
-  build-wireguard-go:
+  build-wireguard-go-windows:
     uses: ./.github/workflows/build-wireguard-go-windows.yml
 
   build-winfw:
     uses: ./.github/workflows/build-winfw-windows.yml
 
   build-windows:
-    needs: [build-wireguard-go, build-winfw]
+    needs: [build-wireguard-go-windows, build-winfw]
     runs-on: custom-windows-11
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}

@@ -14,11 +14,11 @@ env:
   UPLOAD_DIR_ANDROID: android_artifacts
 
 jobs:
-  build-wireguard-go:
+  build-wireguard-go-android:
     uses: ./.github/workflows/build-wireguard-go-android.yml
 
   build-android:
-    needs: build-wireguard-go
+    needs: build-wireguard-go-android
     runs-on: ubuntu-22.04
     outputs:
       UPLOAD_DIR_ANDROID: ${{ env.UPLOAD_DIR_ANDROID }}

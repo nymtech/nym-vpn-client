@@ -14,11 +14,11 @@ env:
   UPLOAD_DIR_MAC: mac_artifacts
 
 jobs:
-  build-wireguard-go:
+  build-wireguard-go-mac:
     uses: ./.github/workflows/build-wireguard-go-mac.yml
 
   build-mac:
-    needs: build-wireguard-go
+    needs: build-wireguard-go-mac
     runs-on: custom-macos-15
     outputs:
       UPLOAD_DIR_MAC: ${{ env.UPLOAD_DIR_MAC }}

@@ -13,12 +13,12 @@ env:
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
-  build-wireguard-go:
+  build-wireguard-go-linux:
     uses: ./.github/workflows/build-wireguard-go-linux.yml
 
   build:
     runs-on: ubuntu-22.04
-    needs: build-wireguard-go
+    needs: build-wireguard-go-linux
 
     steps:
       - name: Install system dependencies

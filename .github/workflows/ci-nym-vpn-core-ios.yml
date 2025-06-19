@@ -14,12 +14,12 @@ env:
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
-  build-wireguard-go:
+  build-wireguard-go-ios:
     uses: ./.github/workflows/build-wireguard-go-ios.yml
 
   build:
     runs-on: custom-macos-15
-    needs: build-wireguard-go
+    needs: build-wireguard-go-ios
 
     steps:
       - name: "Cleanup working directory"

@@ -15,11 +15,11 @@ env:
   UPLOAD_DIR_IOS: ios_artifacts
 
 jobs:
-  build-wireguard-go:
+  build-wireguard-go-ios:
     uses: ./.github/workflows/build-wireguard-go-ios.yml
 
   build-ios:
-    needs: build-wireguard-go
+    needs: build-wireguard-go-ios
     runs-on: custom-macos-15
     outputs:
       UPLOAD_DIR_IOS: ${{ env.UPLOAD_DIR_IOS }}
