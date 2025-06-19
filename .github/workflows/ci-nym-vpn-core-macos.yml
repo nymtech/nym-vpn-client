@@ -39,7 +39,7 @@ jobs:
           components: rustfmt, clippy
       
       - name: Chmod go mod cache
-        run: chmod u+w -R $HOME/pkg/mod
+        run: chmod u+w -R $HOME/go/pkg/mod
       
       - name: Install Go
         uses: actions/setup-go@v5
