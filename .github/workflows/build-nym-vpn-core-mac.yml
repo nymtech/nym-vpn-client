@@ -94,14 +94,6 @@ jobs:
           cargo build -p nym-vpnc --target aarch64-apple-darwin --release
           ls -la target/release/ || true
 
-      - name: Build nym-vpnc (x86_64)
-        working-directory: nym-vpn-core
-        env:
-          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-        run: |
-          cargo build -p nym-vpnc --target x86_64-apple-darwin --release
-          ls -la target/x86_64-apple-darwin/release/ || true
-
       - name: Build nym-vpnd (aarch64)
         working-directory: nym-vpn-core
         env:
@@ -111,6 +103,14 @@ jobs:
           cargo build -p nym-vpnd --target aarch64-apple-darwin --release
           ls -la target/release/ || true
 
+      - name: Build nym-vpnc (x86_64)
+        working-directory: nym-vpn-core
+        env:
+          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+        run: |
+          cargo build -p nym-vpnc --target x86_64-apple-darwin --release
+          ls -la target/x86_64-apple-darwin/release/ || true
+      
       - name: Build nym-vpnd (x86_64)
         working-directory: nym-vpn-core
         env:
