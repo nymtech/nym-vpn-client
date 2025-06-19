@@ -18,7 +18,6 @@ env:
   CARGO_TERM_COLOR: always
   LIBS_PATH: '${{ github.workspace }}/build/lib/x86_64-pc-windows-msvc'
   WINFW_PATH: '${{ github.workspace }}/build/winfw/x64-Release'
-  WINFW_LIB_NAME: winfw
   UPLOAD_DIR_WINDOWS: windows_artifacts
 
 jobs:
@@ -78,16 +77,10 @@ jobs:
           name: wireguard-go_x86_64-pc-windows-msvc
           path: ${{ env.LIBS_PATH }}
 
-      - name: Download winfw lib artifact (winfw.lib)
+      - name: Download winfw artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.WINFW_LIB_NAME }}.lib
-          path: ${{ env.WINFW_PATH }}
-
-      - name: Download winfw lib artifact (winfw.dll)
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ env.WINFW_LIB_NAME }}.dll
+          name: winfw
           path: ${{ env.WINFW_PATH }}
 
       - name: Download wintun
