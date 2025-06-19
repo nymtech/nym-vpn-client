@@ -4,3 +4,5 @@ What's new:
 - More stable app performance
 - UI and UX improvements
 - Updated error and info messages
+- Improved notification handling
+- Implemented proper runtime permission checks
