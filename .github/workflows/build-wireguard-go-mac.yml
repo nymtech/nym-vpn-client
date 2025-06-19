@@ -17,6 +17,9 @@ jobs:
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
       
+      - name: Chmod go mod cache
+        run: chmod u+w -R $HOME/pkg/mod
+      
       - name: Install Go
         uses: actions/setup-go@v5
         with:
