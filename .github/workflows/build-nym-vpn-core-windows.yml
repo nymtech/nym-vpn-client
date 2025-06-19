@@ -77,13 +77,6 @@ jobs:
           name: wireguard-go_x86_64-pc-windows-msvc
           path: ${{ env.LIBS_PATH }}
 
-      - name: List files
-        shell: bash
-        run: |
-          ls -la build
-          ls -la build/lib
-          ls -la build/lib/x86_64-pc-windows-msvc
-
       - name: Download winfw artifacts
         uses: actions/download-artifact@v4
         with:
