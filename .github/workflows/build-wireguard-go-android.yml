@@ -23,11 +23,21 @@ jobs:
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
 
-      - name: Set up Docker
-        uses: docker/setup-docker-action@v4
+      - name: Setup NDK
+        uses: nttld/setup-ndk@v1
+        id: setup-ndk
+        with:
+          ndk-version: r25c
+          add-to-path: false
+
+      - name: Set env
+        shell: bash
+        run: |
+          echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
+          echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
 
       - name: Build wireguard
-        run: ./wireguard/build-wireguard-go.sh --android --docker
+        run: ./wireguard/build-wireguard-go.sh --android
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
