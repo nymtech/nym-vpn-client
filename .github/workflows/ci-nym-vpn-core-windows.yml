@@ -41,11 +41,9 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+          targets: i686-pc-windows-msvc
           components: rustfmt, clippy
 
-      - name: Install target i686-pc-windows-msvc
-        run: |
-          rustup target add i686-pc-windows-msvc
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
