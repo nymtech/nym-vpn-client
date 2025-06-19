@@ -16,8 +16,8 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  LIBS_PATH: '${{ github.workspace }}/build/lib/x86_64-pc-windows-msvc'
-  WINFW_PATH: '${{ github.workspace }}/build/winfw/x64-Release'
+  LIBS_PATH: build/lib/x86_64-pc-windows-msvc
+  WINFW_PATH: build/winfw/x64-Release
   UPLOAD_DIR_WINDOWS: windows_artifacts
 
 jobs:
@@ -76,6 +76,13 @@ jobs:
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
           path: ${{ env.LIBS_PATH }}
+
+      - name: List files
+        shell: bash
+        run: |
+          ls -la build
+          ls -la build/lib
+          ls -la build/lib/x86_64-pc-windows-msvc
 
       - name: Download winfw artifacts
         uses: actions/download-artifact@v4
