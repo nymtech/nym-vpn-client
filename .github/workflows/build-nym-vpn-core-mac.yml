@@ -11,8 +11,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib/universal-apple-darwin
-  WG_GO_LIB_NAME: wireguard-go_apple_universal
   UPLOAD_DIR_MAC: mac_artifacts
 
 jobs:
