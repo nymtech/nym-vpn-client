@@ -21,7 +21,9 @@ jobs:
       - name: Override Go cache
         run: |
           echo "GOMODCACHE=${{ github.workspace }}/.go/pkg/mod" >> $GITHUB_ENV
+          echo "GOCACHE=${{ github.workspace }}/.go-cache" >> $GITHUB_ENV
           mkdir -p "${{ github.workspace }}/.go/pkg/mod"
+          mkdir -p "${{ github.workspace }}/.go-cache"
 
       - name: Install Go
         uses: actions/setup-go@v5
