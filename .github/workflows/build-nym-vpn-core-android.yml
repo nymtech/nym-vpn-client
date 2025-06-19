@@ -48,7 +48,7 @@ jobs:
         uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
-          ndk-version: r25c
+          ndk-version: ${{ vars.REQUIRED_NDK_VERSION }}
           add-to-path: false
 
       - name: Set env
