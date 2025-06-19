@@ -82,20 +82,11 @@ on:
 env:
   CARGO_TERM_COLOR: always
   LIBS_PATH: '${{ github.workspace }}/lib'
-  # WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
-  # MULLVAD_LIB_NAME: winfw
   UPLOAD_DIR_WINDOWS: windows_artifacts
   TAURI_SRC: '${{ github.workspace }}/nym-vpn-app/src-tauri/'
 
 jobs:
-  # build-wireguard-go-windows:
-  #   uses: ./.github/workflows/build-wireguard-go-windows.yml
-  #
-  # build-mullvad-windows:
-  #   uses: ./.github/workflows/build-mullvad-windows.yml
-
   build-windows:
-    # needs: [build-wireguard-go-windows,build-mullvad-windows]
     runs-on: custom-windows-11
     env:
       CPP_BUILD_MODES: ${{ needs.build-mullvad-windows.outputs.CPP_BUILD_MODES }}
@@ -146,36 +137,6 @@ jobs:
         uses: nicolaiunrein/cargo-get@master
         with:
           subcommand: package.version --entry nym-vpn-app/src-tauri
-
-      # - name: Download wireguard-go-windows artifacts
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: ${{ env.WG_GO_LIB_NAME }}
-      #     path: ${{ env.LIBS_PATH }}/
-      #
-      # - name: Download mullvad lib artifact (winfw.lib)
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: ${{ env.MULLVAD_LIB_NAME }}.lib
-      #     path: ${{ env.TAURI_SRC }}/
-      #
-      # - name: Download mullvad lib artifact (winfw.lib)
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: ${{ env.MULLVAD_LIB_NAME }}.dll
-      #     path: ${{ env.TAURI_SRC }}/
-      #
-      # - name: Download/Unzip/Move wintun.zip, winpcap.zip also move wireguard lib for windows
-      #   shell: bash
-      #   run: |
-      #     curl --output ${GITHUB_WORKSPACE}/wintun.zip https://www.wintun.net/builds/wintun-0.14.1.zip
-      #     curl --output ${GITHUB_WORKSPACE}/winpcap.zip https://www.winpcap.org/install/bin/WpdPack_4_1_2.zip
-      #     unzip ${GITHUB_WORKSPACE}/wintun.zip
-      #     unzip ${GITHUB_WORKSPACE}/winpcap.zip
-      #     mv ${GITHUB_WORKSPACE}/wintun/bin/amd64/wintun.dll '${{ env.TAURI_SRC }}'
-      #     mv ${GITHUB_WORKSPACE}/WpdPack/Lib/x64/Packet.lib '${{ env.TAURI_SRC }}'
-      #     mv '${{ env.LIBS_PATH }}/libwg.dll' '${{ env.TAURI_SRC }}'
-      #     mv '${{ env.LIBS_PATH }}/libwg.lib' '${{ env.TAURI_SRC }}'
 
       - name: Install yq
         run: |
@@ -245,17 +206,6 @@ jobs:
           $sourcePath = Join-Path -Path $destination -ChildPath $subdirectory.Name
           $targetPath = 'nym-vpn-app/src-tauri'
           Copy-Item -Path (Join-Path -Path $sourcePath -ChildPath '*') -Destination $targetPath -Recurse -Force
-
-      # - name: Generate licenses file (Js & Rust) and install JS dependencies
-      #   working-directory: nym-vpn-desktop
-      #   shell: bash
-      #   run: |
-      #     npm i license-checker-rseidelsohn
-      #     rm public/licenses-js.json || true
-      #     npm run gen:licenses:js
-      #     rm public/licenses-rust.json || true
-      #     npm run gen:licenses:rust
-      #     npm ci
 
       - name: Install JS dependencies
         working-directory: nym-vpn-app
