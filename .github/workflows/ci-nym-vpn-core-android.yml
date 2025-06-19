@@ -67,7 +67,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: wireguard-go_aarch64-linux-android
-          path: build/lib
+          path: build/lib/aarch64-linux-android
 
       - name: rustfmt check
         working-directory: nym-vpn-core
