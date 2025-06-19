@@ -34,15 +34,10 @@ jobs:
           winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
-      # This step is prone to compiler error that are simply blanks, this action auto retries a few times in case of error
-      - name: Build/Move winfw
-        uses: nick-fields/retry@v3
-        with:
-          shell: pwsh
-          timeout_seconds: 300
-          max_attempts: 3
-          retry_on: error
-          command: make -C nym-vpn-core -f Windows.mk winfw CPU_ARCH=amd64 RELEASE=1
+      - name: Build winfw
+        shell: pwsh
+        working-directory: nym-vpn-core
+        run: make -f Windows.mk winfw CPU_ARCH=amd64 RELEASE=1
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
