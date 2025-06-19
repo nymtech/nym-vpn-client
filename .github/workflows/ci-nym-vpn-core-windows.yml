@@ -43,11 +43,6 @@ jobs:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           targets: i686-pc-windows-msvc
           components: rustfmt, clippy
-      
-      - name: Override Go cache
-        run: |
-          echo "GOMODCACHE=${{ github.workspace }}/.go/pkg/mod" >> $GITHUB_ENV
-          mkdir -p "${{ github.workspace }}/.go/pkg/mod"
 
       - name: Install Go
         uses: actions/setup-go@v5

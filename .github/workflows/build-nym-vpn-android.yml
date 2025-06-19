@@ -106,11 +106,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Override Go cache
-        run: |
-          echo "GOMODCACHE=${{ github.workspace }}/.go/pkg/mod" >> $GITHUB_ENV
-          mkdir -p "${{ github.workspace }}/.go/pkg/mod"
-
       - name: Install Go
         uses: actions/setup-go@v5
         with:
