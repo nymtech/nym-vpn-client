@@ -18,6 +18,7 @@ env:
   CARGO_TERM_COLOR: always
   LIBS_PATH: build/lib/x86_64-pc-windows-msvc
   WINFW_PATH: build/winfw/x64-Release
+  WINTUN_DIST_DIR: wintun-dist
   UPLOAD_DIR_WINDOWS: windows_artifacts
 
 jobs:
@@ -87,7 +88,7 @@ jobs:
         shell: pwsh
         working-directory: nym-vpn-core
         run: |
-          make -f Windows.mk wintun PWSH=1 CPU_ARCH=amd64 TARGET_DIR="${{ github.workspace }}"
+          make -f Windows.mk wintun PWSH=1 CPU_ARCH=amd64 TARGET_DIR="${{ github.workspace }}/${{ env.WINTUN_DIST_DIR }}"
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -119,7 +120,7 @@ jobs:
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.LIBS_PATH }}/libwg.dll ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.WINFW_PATH }}/winfw.dll ${{ env.UPLOAD_DIR_WINDOWS }}
-          cp -vpr wintun.dll ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.WINTUN_DIST_DIR }}/wintun.dll ${{ env.UPLOAD_DIR_WINDOWS }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
