@@ -96,4 +96,5 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_IOS }}
           path: ${{ env.UPLOAD_DIR_IOS }}
+          if-no-files-found: error
           retention-days: 1

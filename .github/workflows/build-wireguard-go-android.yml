@@ -44,4 +44,5 @@ jobs:
         with:
           name: wireguard-go_aarch64-linux-android
           path: build/lib/aarch64-linux-android
+          if-no-files-found: error
           retention-days: 1

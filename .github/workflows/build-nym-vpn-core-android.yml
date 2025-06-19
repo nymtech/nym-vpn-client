@@ -110,4 +110,5 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ env.UPLOAD_DIR_ANDROID }}
+          if-no-files-found: error
           retention-days: 1

@@ -68,6 +68,7 @@ jobs:
         with:
           name: mac-plist-changes.patch
           path: mac-plist-changes.patch
+          if-no-files-found: error
           retention-days: 3
 
       - name: Get workspace version
@@ -151,6 +152,7 @@ jobs:
             proto/nym/vpn.pb.swift
             proto/nym/account.grpc.swift
             proto/nym/account.pb.swift
+          if-no-files-found: error
           retention-days: 3
 
       - name: Include generated proto files for swift in the bundled upload
@@ -167,5 +169,6 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_MAC }}
           path: ${{ env.UPLOAD_DIR_MAC }}
+          if-no-files-found: error
           retention-days: 1
 

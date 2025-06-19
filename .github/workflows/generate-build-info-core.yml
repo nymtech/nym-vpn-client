@@ -82,4 +82,5 @@ jobs:
         with:
           name: build-info
           path: build-info.txt
+          if-no-files-found: error
           retention-days: 1

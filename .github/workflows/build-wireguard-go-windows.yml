@@ -48,4 +48,5 @@ jobs:
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
           path: build/lib/x86_64-pc-windows-msvc
+          if-no-files-found: error
           retention-days: 1

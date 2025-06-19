@@ -248,6 +248,7 @@ jobs:
         with:
           name: app-apks
           path: app-fdroid-release.apks
+          if-no-files-found: error
       
 
   publish-play:

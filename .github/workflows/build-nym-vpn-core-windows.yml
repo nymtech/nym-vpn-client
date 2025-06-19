@@ -133,4 +133,5 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_WINDOWS }}
           path: ${{ env.UPLOAD_DIR_WINDOWS }}
+          if-no-files-found: error
           retention-days: 1

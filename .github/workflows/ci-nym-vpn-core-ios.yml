@@ -85,4 +85,5 @@ jobs:
         with:
           name: updated-uniffi-ios
           path: nym-vpn-core/build/nym_vpn_lib.swift
+          if-no-files-found: error
           retention-days: 1

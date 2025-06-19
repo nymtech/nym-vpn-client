@@ -58,4 +58,5 @@ jobs:
           name: winfw.lib
           path: |
             ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.lib
+          if-no-files-found: error
           retention-days: 10

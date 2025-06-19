@@ -94,4 +94,5 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_LINUX }}
           path: ${{ env.UPLOAD_DIR_LINUX }}
+          if-no-files-found: error
           retention-days: 1

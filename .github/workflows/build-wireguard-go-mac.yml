@@ -30,4 +30,5 @@ jobs:
         with:
           name: wireguard-go_apple_universal
           path: build/lib/universal-apple-darwin
+          if-no-files-found: error
           retention-days: 10

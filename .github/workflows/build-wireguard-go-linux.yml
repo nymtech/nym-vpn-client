@@ -35,4 +35,5 @@ jobs:
         with:
           name: wireguard-go_ubuntu-22.04_x86_64
           path: build/lib/x86_64-unknown-linux-gnu
+          if-no-files-found: error
           retention-days: 10
