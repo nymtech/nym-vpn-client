@@ -16,7 +16,12 @@ jobs:
     steps:
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
-
+      
+      - name: Override Go cache
+        run: |
+          echo "GOMODCACHE=${{ github.workspace }}/.go/pkg/mod" >> $GITHUB_ENV
+          mkdir -p "${{ github.workspace }}/.go/pkg/mod"
+      
       - name: Install Go
         uses: actions/setup-go@v5
         with:
