@@ -1,49 +1,31 @@
-Téléchargez le VPN le plus sûr de Nym et sécurisez votre activité en ligne.
+Vous vous inquiétez pour votre confidentialité en ligne ? Besoin d'accéder à des informations bloquées ? Le VPN décentralisé de Nym est là pour vous aider. Avec NymVPN pour Android, vous pouvez naviguer sur le web en toute confidentialité, contourner les restrictions de censure et protéger vos transactions en cryptomonnaies.
 
-De nombreuses entités sur Internet peuvent espionner votre activité et s'emparer de vos données.
-Les gouvernements, les grandes entreprises technologiques, les courtiers en données, les fournisseurs d'accès à Internet et les annonceurs peuvent tous essayer de surveiller votre activité en ligne. Les récents scandales de fuites de données ont clairement montré que nous ne pouvons même pas faire confiance aux entreprises VPN traditionnelles.
+NymVPN est le premier VPN pour les utilisateurs lambda fonctionnant sur un réseau décentralisé. Au lieu d'utiliser des serveurs centraux comme les VPN traditionnels, il achemine votre trafic via plusieurs nœuds indépendants, ajoutant un chiffrement puissant et un bruit de protection pour préserver votre confidentialité.
 
-Notre VPN est né pour rendre vos activités sur Internet privées et un élément crucial de cela est d'empêcher toute possibilité de journalisation et de suivi des activités.
+Choisissez votre niveau de confidentialité :
+- Le mode rapide offre des protections décentralisées à 2 sauts avec AmneziaWG
+- Le mode anonyme offre un routage à 5 sauts avec la technologie Mixnet et un bruit supplémentaire
 
-NymVPN est un nouveau type de VPN conçu de manière à rendre impossible pour quiconque de surveiller ou de journaliser votre activité en ligne, même pour nous. Notre VPN fonctionne sur un réseau décentralisé, sans parties de confiance, composants centralisés ou points de défaillance uniques. Toutes les fonctionnalités de NymVPN sont réalisées de manière décentralisée et distribuée, sans possibilité de journalisation centralisée.
+Réseau non journalisable :
+Alors que d'autres VPN promettent de ne pas conserver de journaux, le réseau Nym est conçu pour que la centralisation des journaux soit impossible. Aucun point du réseau décentralisé ne peut relier votre adresse IP à vos activités en ligne. Votre confidentialité est garantie par défaut.
 
-Notre VPN crypte les données et protège les métadonnées contre l'analyse du trafic via un Mixnet décentralisé. En termes simples : il est impossible pour nous de journaliser votre activité, donc personne ne peut y accéder.
+Paiements non liés :
+Aucune information personnelle n'est requise pour s'abonner à NymVPN, pas même votre nom. Payez en toute sécurité grâce à des preuves à connaissance nulle qui garantissent que vous ne pourrez jamais être lié à votre utilisation de l'application et du réseau.
 
-Mais qu'est-ce qu'un Mixnet exactement ? Un Mixnet est un réseau de nœuds qui :
-1. Reçoivent le trafic chiffré
-2. Mélangent le trafic
-3. Redirigent le trafic
-Ce processus est effectué jusqu'à 5 fois (5 sauts) et rend impossible pour quiconque de surveiller ou de suivre votre activité en ligne.
+Résistance à la censure :
+Contournez les obstacles à l'accès aux informations dont vous avez besoin en sélectionnant les passerelles d'entrée et de sortie de votre trafic. AmneziaWG (un dérivé du protocole WireGuard) en mode rapide protège contre la surveillance ciblant l'utilisation du VPN.
 
-C'est pourquoi vous devriez choisir notre VPN décentralisé, sécurisé et privé.
+Fonctionnalités supplémentaires de NymVPN :
+- Paiements en cryptomonnaies, y compris Zcash et Monero
+- Paiements en espèces pour une confidentialité maximale
+- Sans publicité
+- Jusqu'à 10 appareils
+- Sélection de la passerelle
+- Protections IP multi-sauts
+- Killswitch (natif Android)
 
-Confidentialité
-Notre dVPN a été conçu avec la confidentialité à l'esprit. Nous ne stockons pas de journaux (politique de non-journalisation) ni ne suivons votre activité. Même si quelqu'un voulait voler vos données chez nous, il n'y aurait rien à voler.
-
-Résistance à la censure
-Notre application VPN rend votre activité en ligne complètement anonyme. Nous chiffrons votre trafic, votre adresse IP, votre localisation et tout ce qu'une personne mal intentionnée pourrait surveiller. Vous êtes complètement en sécurité grâce à des fonctionnalités comme le killswitch.
-
-Rapide
-La vitesse de notre réseau VPN croît de minute grâce à de nombreux nœuds supplémentaires qui rejoignent le réseau Mixnet. De plus, nous utilisons des algorithmes de chiffrement modernes et des protocoles innovants tels que Sphinx et Loopix pour rendre votre connexion aussi rapide que possible.
-
-Lieu de choix
-Avec NymVPN, vous pouvez choisir de vous connecter à partir de centaines d’endroits à travers le monde.
-Téléchargez l'application --> Choisissez l'emplacement --> Connectez
-
-Paiements en cryptomonnaie
-Vous cherchez un VPN qui accepte les paiements crypto ? Nous en sommes là. Nous sommes heureux d'accepter les paiements avec des cryptomonnaies.
-
-Pas de publicités
-Profitez de votre VPN sans publicité. Notre objectif principal est de protéger votre vie privée, également à cause de cela vous ne verrez aucune publicité dans notre application VPN.
-
-Utilisation illimitée
-Profitez d'Internet autant que vous le souhaitez, NymVPN ne limitera jamais votre trafic.
-
-Les fonctionnalités préférées de notre VPN :
-- Mixnet à 5 sauts : votre trafic Internet sera chiffré et envoyé à des mixnodes qui le mélangeront avec d'autres paquets de trafic 5 fois, rendant impossible pour quelqu'un de suivre votre activité en ligne.
-- dVPN à 2 sauts : dans ce cas, votre trafic est chiffré et envoyé à 2 mixnodes qui le mélangeront. Le nombre réduit de sauts se traduit par une vitesse plus élevée.
-- Pas de journaux centralisés : nous ne stockons aucun journal d'activité, ce qui rend impossible pour quiconque d'accéder à votre activité Internet par notre intermédiaire.
-- Garantie de remboursement : si vous n'êtes pas satisfait du produit, nous offrons une politique de remboursement. Si quelque chose ne vous convient pas, envoyez-nous un e-mail à support@nymvpn.com, nous cherchons toujours à nous améliorer.
-- Tunnel fractionné : vous pouvez facilement choisir quelles de vos applications accéderont à Internet via le VPN et lesquelles accéderont directement à Internet.
-- Masquer l'IP : notre dVPN masquera toutes les informations liées à vous, y compris votre adresse IP.
-- Killswitch : notre VPN est conçu pour fournir confidentialité et sécurité, c'est pourquoi en cas de coupure de votre connexion VPN, le killswitch bloquera votre accès Internet, vous protégeant ainsi que vos données
+Fonctionnalités à venir en 2025 :
+- Split tunneling
+- Résistance avancée à la censure
+- Cryptographie post-quantique
+- IP résidentielles
