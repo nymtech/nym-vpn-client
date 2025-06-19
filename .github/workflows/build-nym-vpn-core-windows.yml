@@ -52,11 +52,6 @@ jobs:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           components: rustfmt, clippy
 
-      - name: Install Go toolchain
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-
       - name: Get workspace version
         id: workspace-version
         uses: nicolaiunrein/cargo-get@master
@@ -115,7 +110,6 @@ jobs:
           echo "moving binaries into ${{ env.UPLOAD_DIR_WINDOWS }}"
           rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
           mkdir ${{ env.UPLOAD_DIR_WINDOWS }}
-          #cp -vpr ${{ env.SRC_BINARY }}/nym-gateway-probe.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.LIBS_PATH }}/libwg.dll ${{ env.UPLOAD_DIR_WINDOWS }}

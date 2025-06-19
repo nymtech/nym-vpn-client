@@ -310,11 +310,6 @@ jobs:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           targets: aarch64-linux-android
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-
       - name: Install cargo-ndk
         uses: baptiste0928/cargo-install@v3
         with:

@@ -18,7 +18,7 @@ jobs:
       - name: Install system dependencies
         run: sudo apt-get update && sudo apt-get install -y gcc
 
-      - name: Set up Go
+      - name: Install Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION}}
