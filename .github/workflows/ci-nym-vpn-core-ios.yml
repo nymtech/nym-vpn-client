@@ -55,6 +55,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: wireguard-go_ios_universal
+          path: build/lib
 
       - name: rustfmt check
         working-directory: nym-vpn-core
