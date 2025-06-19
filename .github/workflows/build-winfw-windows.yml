@@ -2,21 +2,15 @@ name: build-winfw-windows
 on:
   workflow_dispatch:
   workflow_call:
-    outputs:
-      CPP_BUILD_MODES:
-        value: ${{ jobs.build.outputs.CPP_BUILD_MODES }}
 
 env:
   CARGO_TERM_COLOR: always
-  CPP_BUILD_MODES: Release
 
 # https://github.com/actions/runner-images/issues/1794#issuecomment-707217728
 
 jobs:
   build:
     runs-on: "custom-windows-11"
-    outputs:
-      CPP_BUILD_MODES: ${{ env.CPP_BUILD_MODES }}
 
     steps:
       - name: Cleanup working directory
@@ -48,21 +42,14 @@ jobs:
           timeout_seconds: 300
           max_attempts: 3
           retry_on: error
-          command: |
-            cd nym-vpn-core
-            if ('${{ env.CPP_BUILD_MODES }}' -eq "Release") {
-              $RELEASE = 1
-            } else {
-              $RELEASE = 0
-            }
-            make -f Windows.mk winfw CPU_ARCH=amd64 RELEASE=$RELEASE
+          command: make -C nym-vpn-core -f Windows.mk winfw CPU_ARCH=amd64 RELEASE=1
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: winfw.dll
           path: |
-            ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-${{ env.CPP_BUILD_MODES }}/winfw.dll
+            ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.dll
           retention-days: 10
 
       - name: Upload artifacts
@@ -70,5 +57,5 @@ jobs:
         with:
           name: winfw.lib
           path: |
-            ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-${{ env.CPP_BUILD_MODES }}/winfw.lib
+            ${{ github.workspace }}/nym-vpn-windows/winfw/bin/x64-Release/winfw.lib
           retention-days: 10

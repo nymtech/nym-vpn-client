@@ -18,7 +18,6 @@ env:
   CARGO_TERM_COLOR: always
   LIBS_PATH: '${{ github.workspace }}/build/lib/x86_64-pc-windows-msvc'
   WINFW_PATH: '${{ github.workspace }}/build/winfw/x64-Release'
-  WG_GO_LIB_NAME: wireguard-go_x86_64-pc-windows-msvc
   WINFW_LIB_NAME: winfw
   UPLOAD_DIR_WINDOWS: windows_artifacts
 
@@ -76,33 +75,26 @@ jobs:
       - name: Download wireguard-go-windows artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.WG_GO_LIB_NAME }}
-          path: ${{ env.LIBS_PATH }}/
+          name: wireguard-go_x86_64-pc-windows-msvc
+          path: ${{ env.LIBS_PATH }}
 
       - name: Download winfw lib artifact (winfw.lib)
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.WINFW_LIB_NAME }}.lib
-          path: ${{ env.WINFW_PATH }}/
+          path: ${{ env.WINFW_PATH }}
 
       - name: Download winfw lib artifact (winfw.dll)
         uses: actions/download-artifact@v4
         with:
           name: ${{ env.WINFW_LIB_NAME }}.dll
-          path: ${{ env.WINFW_PATH }}/
-
-      - name: Move libwg and winfw lib
-        shell: bash
-        working-directory: nym-vpn-core
-        run: |
-          mv '${{ env.LIBS_PATH }}/libwg.dll' .
-          mv '${{ env.WINFW_PATH }}/winfw.dll' .
+          path: ${{ env.WINFW_PATH }}
 
       - name: Download wintun
         shell: pwsh
         working-directory: nym-vpn-core
         run: |
-          make -f Windows.mk wintun PWSH=1 CPU_ARCH=amd64 TARGET_DIR="${{ github.workspace }}/nym-vpn-core"
+          make -f Windows.mk wintun PWSH=1 CPU_ARCH=amd64 TARGET_DIR="${{ github.workspace }}"
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -124,7 +116,7 @@ jobs:
       - name: Move things around to prepare for upload
         shell: bash
         env:
-          SRC_BINARY: nym-vpn-core/target/release/
+          SRC_BINARY: nym-vpn-core/target/release
         run: |
           echo "moving binaries into ${{ env.UPLOAD_DIR_WINDOWS }}"
           rm -rf ${{ env.UPLOAD_DIR_WINDOWS }} || true
@@ -132,9 +124,9 @@ jobs:
           #cp -vpr ${{ env.SRC_BINARY }}/nym-gateway-probe.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnc.exe ${{ env.UPLOAD_DIR_WINDOWS }}
           cp -vpr ${{ env.SRC_BINARY }}/nym-vpnd.exe ${{ env.UPLOAD_DIR_WINDOWS }}
-          cp -vpr nym-vpn-core/libwg.dll ${{ env.UPLOAD_DIR_WINDOWS }}
-          cp -vpr nym-vpn-core/wintun.dll ${{ env.UPLOAD_DIR_WINDOWS }}
-          cp -vpr nym-vpn-core/winfw.dll ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.LIBS_PATH }}/libwg.dll ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr ${{ env.WINFW_PATH }}/winfw.dll ${{ env.UPLOAD_DIR_WINDOWS }}
+          cp -vpr wintun.dll ${{ env.UPLOAD_DIR_WINDOWS }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

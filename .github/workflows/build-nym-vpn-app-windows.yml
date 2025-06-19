@@ -89,7 +89,6 @@ jobs:
   build-windows:
     runs-on: custom-windows-11
     env:
-      CPP_BUILD_MODES: ${{ needs.build-mullvad-windows.outputs.CPP_BUILD_MODES }}
       VPN_CORE_BUILDS_URL: https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core
       UPDATER_URL_STABLE: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/stable.json
       UPDATER_URL_DEV: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/dev.json
@@ -288,7 +287,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_KEY_PASSWORD }}
           APP_SENTRY_DSN: ${{ secrets.DESKTOP_JS_SENTRY_DSN }}
-          RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-${{ env.CPP_BUILD_MODES }}"
+          RUSTFLAGS: "-L ${{ env.TAURI_SRC }}/x86_64-pc-windows-msvc -L ${{ env.TAURI_SRC }} -Clink-args=/LIBPATH:${{ env.TAURI_SRC }}/x64-Release"
           CODE_SIGN_TOOL_PATH: ${{ inputs.sign && 'C:\\actions-runner\\_work\\nym-vpn-client\\nym-vpn-client\\nym-vpn-app\\src-tauri\\' }}
           WINDOWS_CERTIFICATE: ${{ !inputs.sign && secrets.WINDOWS_SIGNING_PFX_BASE64 }}
           WINDOWS_CERTIFICATE_PASSWORD: ${{ !inputs.sign && secrets.WINDOWS_SIGNING_PFX_PASSWORD }}
