@@ -11,8 +11,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib/aarch64-linux-android
-  WG_GO_LIB_NAME: wireguard-go_aarch64-linux-android
   UPLOAD_DIR_ANDROID: android_artifacts
 
 jobs:
@@ -84,8 +82,8 @@ jobs:
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.WG_GO_LIB_NAME }}
-          path: ${{ env.WG_GO_LIB_PATH }}
+          name: wireguard-go_aarch64-linux-android
+          path: build/lib/aarch64-linux-android
 
       - name: Build nym-vpn-core for android
         working-directory: nym-vpn-core/crates/nym-vpn-lib
