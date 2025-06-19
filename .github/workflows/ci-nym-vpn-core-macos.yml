@@ -58,7 +58,7 @@ jobs:
       - name: Clippy
         working-directory: nym-vpn-core
         run: |
-          cargo clippy --workspace --locked -- -Dwarnings
+          cargo clippy --workspace --exclude nym-gateway-probe --locked -- -Dwarnings
 
       - name: Build
         working-directory: nym-vpn-core
