@@ -14,11 +14,6 @@ jobs:
   build:
     runs-on: custom-macos-15
     steps:
-      - name: Delete all files
-        run: |
-          ls -la ./
-          sudo rm -rf .go || true
-
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
       
