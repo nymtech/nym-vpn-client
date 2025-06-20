@@ -112,6 +112,7 @@ private extension GatewayManager {
         configurationManager.environmentDidChange = { [weak self] in
             self?.gatewayStore.lastFetchDate = nil
             Task {
+                try? await Task.sleep(for: .seconds(7))
                 await self?.fetchGateways()
             }
         }

@@ -15,9 +15,19 @@ public struct NymTextStyle {
 // MARK: - Styles -
 extension NymTextStyle {
     public struct Headline {
+        public struct ExtraLarge {
+            public static var bold: NymTextStyle {
+                NymTextStyle(nymFont: .labGrotesque(size: 32, weight: .bold), kerning: 1.2)
+            }
+        }
+
         public struct Large {
             public static var regular: NymTextStyle {
                 NymTextStyle(nymFont: .labGrotesqueMono(size: 24, weight: .regular), kerning: 1.2)
+            }
+
+            public static var bold: NymTextStyle {
+                NymTextStyle(nymFont: .labGrotesqueMono(size: 24, weight: .bold), kerning: 1.2)
             }
         }
 

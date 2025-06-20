@@ -3,21 +3,24 @@ import AppSettings
 import Theme
 
 public struct CustomNavBar: View {
-    @EnvironmentObject private var appSettings: AppSettings
+    private let title: String?
+    private let useElevationBackground: Bool
+    private let isLogoImageHidden: Bool
+    private let leftButton: CustomNavBarButton?
+    private let rightButton: CustomNavBarButton?
 
-    public let title: String?
-    public let isHomeScreen: Bool
-    public let leftButton: CustomNavBarButton?
-    public let rightButton: CustomNavBarButton?
+    @EnvironmentObject private var appSettings: AppSettings
 
     public init(
         title: String? = nil,
-        isHomeScreen: Bool = false,
+        useElevationBackground: Bool = false,
+        isLogoImageHidden: Bool = false,
         leftButton: CustomNavBarButton? = CustomNavBarButton(type: .empty, action: {}),
         rightButton: CustomNavBarButton? = CustomNavBarButton(type: .empty, action: {})
     ) {
         self.title = title
-        self.isHomeScreen = isHomeScreen
+        self.useElevationBackground = useElevationBackground
+        self.isLogoImageHidden = isLogoImageHidden
         self.leftButton = leftButton
         self.rightButton = rightButton
     }
@@ -29,7 +32,7 @@ public struct CustomNavBar: View {
             if let title {
                 Text(title)
                     .textStyle(.Headline.Medium.regular)
-            } else {
+            } else if !isLogoImageHidden {
                 Image("logoText", bundle: .module)
                     .frame(width: 110, height: 16)
                     .accessibilityLabel("NymVPN".localizedString)
@@ -47,7 +50,7 @@ public struct CustomNavBar: View {
 
 private extension CustomNavBar {
     func backgroundColor() -> Color {
-        if isHomeScreen {
+        if useElevationBackground {
             return NymColor.background
         } else {
             return NymColor.elevation

@@ -65,6 +65,9 @@ private extension WelcomeView {
             .onTapGesture {
                 viewModel.continueTapped()
             }
+            .accessibilityAction {
+                viewModel.continueTapped()
+            }
         Spacer()
             .frame(height: 24)
     }

@@ -65,7 +65,7 @@ private extension HomeView {
     @ViewBuilder
     func navbar() -> some View {
         CustomNavBar(
-            isHomeScreen: true,
+            useElevationBackground: true,
             rightButton: CustomNavBarButton(type: .settings, action: { viewModel.navigateToSettings() })
         )
     }

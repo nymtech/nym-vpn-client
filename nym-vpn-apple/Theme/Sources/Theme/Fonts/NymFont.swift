@@ -19,6 +19,7 @@ public enum NymFont {
 extension NymFont {
     public enum LabGrotesqueWeight: String, CaseIterable {
         case regular = "Regular"
+        case bold = "Bold"
     }
 
     public enum LabGrotesqueMonoWeight: String, CaseIterable {
