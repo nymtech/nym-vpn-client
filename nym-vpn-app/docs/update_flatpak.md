@@ -6,6 +6,9 @@ A new app **stable** release has been released and published
 
 ### Update the app metainfo
 
+> [!TIP]
+> This is done automatically by `publish-nym-vpn-app.yml` workflow
+
 The app metainfo file is located at `.pkg/flatpak/net.nymtech.NymVPN.metainfo.xml`. \
 Add a new `release` tag with the corresponding release info. \
 Create a PR and merge into `develop`.

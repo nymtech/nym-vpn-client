@@ -1,5 +1,8 @@
 ## Update Linux installer script
 
+> [!TIP]
+> This is done automatically by the `publish-nym-vpn-app.yml` workflow
+
 ### Prerequisite
 
 A new app **stable** release has been released and published
