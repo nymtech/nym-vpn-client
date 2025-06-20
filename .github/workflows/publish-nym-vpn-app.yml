@@ -227,9 +227,70 @@ jobs:
       url: https://github.com/nymtech/nym-vpn-client/releases/download/${{ needs.publish.outputs.release_tag }}/${{ needs.publish.outputs.win_updater_exe }}
       signature: ${{ needs.publish.outputs.win_updater_sig }}
 
+  post-release:
+    runs-on: ubuntu-latest
+    needs: publish
+    continue-on-error: true
+    if: ${{ inputs.release_type == 'stable' }}
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          ref: 'develop'
+
+      - name: Bump installer script
+        continue-on-error: true
+        working-directory: .pkg/linux
+        env:
+          APP_TAG: ${{ needs.publish.outputs.release_tag }}
+          CORE_TAG: ${{ inputs.core_release_tag }}
+        run: |
+          ./bump.sh
+
+      - name: Set release date
+        run: |
+          date=$(date -u +'%Y-%m-%d')
+          echo "release date: $date"
+          echo "RELEASE_DATE=$date" >> $GITHUB_ENV
+
+      - name: Update flatpak metainfo
+        continue-on-error: true
+        working-directory: nym-vpn-app/.pkg/flatpak
+        env:
+          METAINFO_XML: net.nymtech.NymVPN.metainfo.xml
+          VERSION: ${{ needs.publish.outputs.version }}
+          RELEASE_TAG: ${{ needs.publish.outputs.release_tag }}
+          RELEASE_DATE: ${{ env.RELEASE_DATE }}
+        run: |
+          ./update_metainfo.sh
+
+      - name: Create PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          GIT_BRANCH: 'tauri_postrel_${{ inputs.version }}'
+          COMMIT_MSG: 'tauri: bump linux installer and update flatpak metainfo v${{ inputs.version }}'
+          PR_TITLE: "tauri: post release update v${{ inputs.version }}"
+          PR_BODY: |
+            - bump Linux installer script
+            - update flatpak package metainfo.xml
+        run: |
+          git config --global user.name "NYM_bot"
+          git config --global user.email "_@_"
+          git switch -C ${{ env.GIT_BRANCH }}
+          git add .pkg/linux
+          git add nym-vpn-app/.pkg/flatpak
+          git commit -m "${{ env.COMMIT_MSG }}"
+          git push origin ${{ env.GIT_BRANCH }}
+          gh pr create --title '${{ env.PR_TITLE }}' --body '${{ env.PR_BODY }}' --base develop --reviewer "doums"
+
   zulip-notify:
     runs-on: ubuntu-latest
     needs: publish
+    continue-on-error: true
     env:
       # stable | nightly | dev
       RELEASE_TYPE: ${{ inputs.release_type || (github.event_name == 'schedule' && 'nightly' || 'dev') }}
