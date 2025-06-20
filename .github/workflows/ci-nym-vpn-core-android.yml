@@ -13,8 +13,12 @@ env:
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
+  build-wireguard-go-android:
+    uses: ./.github/workflows/build-wireguard-go-android.yml
+
   build:
     runs-on: ubuntu-22.04
+    needs: build-wireguard-go-android
 
     steps:
       - name: Install system dependencies
@@ -39,7 +43,7 @@ jobs:
         uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
-          ndk-version: r25c
+          ndk-version: ${{ vars.REQUIRED_NDK_VERSION }}
           add-to-path: false
 
       - name: Set env
@@ -48,19 +52,17 @@ jobs:
           echo "ANDROID_NDK_HOME=${{ steps.setup-ndk.outputs.ndk-path }}" >> $GITHUB_ENV
           echo "NDK_TOOLCHAIN_DIR=${{ steps.setup-ndk.outputs.ndk-path }}/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_ENV
 
-      - name: Install Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build wireguard
-        run: ./wireguard/build-wireguard-go.sh --android
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wireguard-go_aarch64-linux-android
+          path: build/lib/aarch64-linux-android
 
       - name: rustfmt check
         working-directory: nym-vpn-core

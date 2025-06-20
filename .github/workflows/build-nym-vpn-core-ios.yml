@@ -12,8 +12,6 @@ on:
 env:
   IPHONEOS_DEPLOYMENT_TARGET: 16.0
   CARGO_TERM_COLOR: always
-  WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib
-  WG_GO_LIB_NAME: wireguard-go_ios_universal
   UPLOAD_DIR_IOS: ios_artifacts
 
 jobs:
@@ -64,22 +62,18 @@ jobs:
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.WG_GO_LIB_NAME }}
-          path: ${{ env.WG_GO_LIB_PATH }}
+          name: wireguard-go_ios_universal
+          path: build/lib
 
       - name: Build nym-vpn-lib
         working-directory: nym-vpn-core/crates/nym-vpn-lib
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
         run: |
           cargo swift package -p ios -n NymVpnLib --target aarch64-apple-ios --accept-all --release
-          ls -la ../target/universal-ios/release/ || true
 
       - name: Generate uniffi
         working-directory: nym-vpn-core
         run: |
           make generate-uniffi-ios
-          ls -al crates/nym-vpn-lib/uniffi
 
       - name: Get rust version used for build
         id: rust-version
@@ -100,4 +94,5 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_IOS }}
           path: ${{ env.UPLOAD_DIR_IOS }}
+          if-no-files-found: error
           retention-days: 1

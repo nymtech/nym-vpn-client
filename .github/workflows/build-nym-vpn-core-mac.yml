@@ -11,8 +11,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib/universal-apple-darwin
-  WG_GO_LIB_NAME: wireguard-go_apple_universal
   UPLOAD_DIR_MAC: mac_artifacts
 
 jobs:
@@ -35,11 +33,6 @@ jobs:
           components: rustfmt, clippy
           targets: x86_64-apple-darwin aarch64-apple-darwin
 
-      - name: Install Go toochain
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
@@ -49,9 +42,9 @@ jobs:
         run: |
           export HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK=1
           curl -O https://raw.githubusercontent.com/Homebrew/homebrew-core/7186d42bc60247d6b5e860348db7402f12bca912/Formula/s/swift-protobuf.rb
-          brew install ./swift-protobuf.rb
+          brew install --formula $(pwd)/swift-protobuf.rb
           curl -O https://raw.githubusercontent.com/Homebrew/homebrew-core/e377282a7027ed0ca583939b8fb1d52f8dcdf5a7/Formula/g/grpc-swift.rb
-          brew install ./grpc-swift.rb
+          brew install --formula $(pwd)/grpc-swift.rb
 
       - name: Install cargo-get
         uses: baptiste0928/cargo-install@v3
@@ -70,6 +63,7 @@ jobs:
         with:
           name: mac-plist-changes.patch
           path: mac-plist-changes.patch
+          if-no-files-found: error
           retention-days: 3
 
       - name: Get workspace version
@@ -89,44 +83,38 @@ jobs:
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.WG_GO_LIB_NAME }}
-          path: ${{ env.WG_GO_LIB_PATH }}
+          name: wireguard-go_apple_universal
+          path: build/lib/universal-apple-darwin
 
-      - name: Build nym-vpn-core (aarch64)
+      - name: Build nym-vpnc (aarch64)
         working-directory: nym-vpn-core
         env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo build -p nym-vpnc --target aarch64-apple-darwin --release
-          ls -la target/release/ || true
 
-      - name: Build nym-vpn-core (x86_64)
+      - name: Build nym-vpnd (aarch64)
         working-directory: nym-vpn-core
         env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
-          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
-        run: |
-          cargo build -p nym-vpnc --target x86_64-apple-darwin --release
-          ls -la target/x86_64-apple-darwin/release/ || true
-
-      - name: Build nym-vpnd with extra flags (native)
-        working-directory: nym-vpn-core
-        env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }} -C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Launchd.plist"
+          RUSTFLAGS: "-C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Launchd.plist"
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo build -p nym-vpnd --target aarch64-apple-darwin --release
-          ls -la target/release/ || true
 
-      - name: Build nym-vpnd with extra flags (x86_64)
+      - name: Build nym-vpnc (x86_64)
         working-directory: nym-vpn-core
         env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }} -C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Launchd.plist"
+          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
+        run: |
+          cargo build -p nym-vpnc --target x86_64-apple-darwin --release
+      
+      - name: Build nym-vpnd (x86_64)
+        working-directory: nym-vpn-core
+        env:
+          RUSTFLAGS: "-C link-arg=-all_load -C link-arg=-ObjC -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__info_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Info.plist -C link-arg=-sectcreate -C link-arg=__TEXT -C link-arg=__launchd_plist -C link-arg=${{ github.workspace }}/nym-vpn-apple/Daemon/Launchd.plist"
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo build -p nym-vpnd --target x86_64-apple-darwin --release
-          ls -la target/x86_64-apple-darwin/release/ || true
 
       - name: Create universal binaries and prepare for upload
         env:
@@ -136,9 +124,6 @@ jobs:
           mkdir -p ${{ env.UPLOAD_DIR_MAC }}
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnc ${{ env.SRC_NATIVE_BINARY }}/nym-vpnc ${{ env.SRC_X86_64_BINARY }}/nym-vpnc
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnd ${{ env.SRC_NATIVE_BINARY }}/nym-vpnd ${{ env.SRC_X86_64_BINARY }}/nym-vpnd
-          #lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.SRC_X86_64_BINARY }}/nym-gateway-probe
-          # Native only for nym-gateway-probe
-          # cp ${{ env.SRC_NATIVE_BINARY }}/nym-gateway-probe ${{ env.UPLOAD_DIR_MAC }}/nym-gateway-probe
 
       - name: Compile protobuf for swift (vpn)
         working-directory: proto/nym
@@ -155,6 +140,7 @@ jobs:
             proto/nym/vpn.pb.swift
             proto/nym/account.grpc.swift
             proto/nym/account.pb.swift
+          if-no-files-found: error
           retention-days: 3
 
       - name: Include generated proto files for swift in the bundled upload
@@ -171,5 +157,6 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_MAC }}
           path: ${{ env.UPLOAD_DIR_MAC }}
+          if-no-files-found: error
           retention-days: 1
 

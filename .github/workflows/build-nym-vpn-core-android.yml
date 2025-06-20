@@ -11,8 +11,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib/aarch64-linux-android
-  WG_GO_LIB_NAME: wireguard-go_aarch64-linux-android
   UPLOAD_DIR_ANDROID: android_artifacts
 
 jobs:
@@ -39,16 +37,11 @@ jobs:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           targets: aarch64-linux-android 
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-
       - name: Setup NDK
         uses: nttld/setup-ndk@v1
         id: setup-ndk
         with:
-          ndk-version: r25c
+          ndk-version: ${{ vars.REQUIRED_NDK_VERSION }}
           add-to-path: false
 
       - name: Set env
@@ -84,13 +77,12 @@ jobs:
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.WG_GO_LIB_NAME }}
-          path: ${{ env.WG_GO_LIB_PATH }}
+          name: wireguard-go_aarch64-linux-android
+          path: build/lib/aarch64-linux-android
 
       - name: Build nym-vpn-core for android
         working-directory: nym-vpn-core/crates/nym-vpn-lib
         env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
         run: |
           cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --release
@@ -113,4 +105,5 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_ANDROID }}
           path: ${{ env.UPLOAD_DIR_ANDROID }}
+          if-no-files-found: error
           retention-days: 1

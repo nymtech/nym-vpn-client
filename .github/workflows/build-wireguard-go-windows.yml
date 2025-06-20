@@ -18,16 +18,12 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
-
+      
       - name: Install Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-
-      - name: Install Protoc
-        uses: arduino/setup-protoc@v3
-        with:
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          cache: false
 
       - name: Setup msys2
         uses: msys2/setup-msys2@v2
@@ -52,6 +48,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wireguard-go_x86_64-pc-windows-msvc
-          path: |
-            build/lib/x86_64-pc-windows-msvc
+          path: build/lib/x86_64-pc-windows-msvc
+          if-no-files-found: error
           retention-days: 1

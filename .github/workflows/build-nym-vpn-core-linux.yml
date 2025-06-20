@@ -14,8 +14,6 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  WG_GO_LIB_PATH: ${{ github.workspace }}/build/lib/x86_64-unknown-linux-gnu
-  WG_GO_LIB_NAME: wireguard-go_ubuntu-22.04_x86_64
   UPLOAD_DIR_LINUX: linux_artifacts
 
 jobs:
@@ -42,6 +40,12 @@ jobs:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           components: rustfmt, clippy
 
+      - name: Install Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
+          cache-dependency-path: nym-vpn-core/crates/nym-gateway-probe/netstack_ping/go.sum
+
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
@@ -65,13 +69,12 @@ jobs:
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
         with:
-          name: ${{ env.WG_GO_LIB_NAME }}
-          path: ${{ env.WG_GO_LIB_PATH }}
+          name: wireguard-go_ubuntu-22.04_x86_64
+          path: build/lib/x86_64-unknown-linux-gnu
 
       - name: Build nym-vpn-core
         working-directory: nym-vpn-core
         env:
-          RUSTFLAGS: "-L ${{ env.WG_GO_LIB_PATH }}"
           SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo build --release
@@ -97,4 +100,5 @@ jobs:
         with:
           name: ${{ env.UPLOAD_DIR_LINUX }}
           path: ${{ env.UPLOAD_DIR_LINUX }}
+          if-no-files-found: error
           retention-days: 1

@@ -1,7 +1,6 @@
 name: ci-nym-vpn-core-windows
 
 on:
-  # push:
   pull_request:
     paths:
       - "nym-vpn-core/**"
@@ -14,8 +13,12 @@ env:
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
+  build-wireguard-go-windows:
+    uses: ./.github/workflows/build-wireguard-go-windows.yml
+
   build:
     runs-on: custom-windows-11
+    needs: build-wireguard-go-windows
 
     steps:
       - name: "Cleanup working directory"
@@ -38,16 +41,14 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
+          targets: i686-pc-windows-msvc
           components: rustfmt, clippy
-
-      - name: Install target i686-pc-windows-msvc
-        run: |
-          rustup target add i686-pc-windows-msvc
 
       - name: Install Go
         uses: actions/setup-go@v5
         with:
           go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
+          cache: false
 
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
@@ -55,24 +56,20 @@ jobs:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Setup msys2
-        uses: msys2/setup-msys2@v2
-        id: msys2
-        with:
-          update: false
-          msystem: MINGW64
-          install: mingw-w64-x86_64-clang
-
       - name: Install GNU make
         run: |
           winget list GnuWin32.Make || winget install --disable-interactivity --id GnuWin32.Make
           echo "${env:ProgramFiles(x86)}\GnuWin32\bin" | Out-File -FilePath "$env:GITHUB_PATH" -Append
 
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wireguard-go_x86_64-pc-windows-msvc
+          path: build/lib/x86_64-pc-windows-msvc
+
       - name: Build Windows dependencies
-        env:
-          MSYS2_LOCATION: ${{ steps.msys2.outputs.msys2-location }}
         working-directory: nym-vpn-core
-        run: make -f Windows.mk winfw libwg CPU_ARCH=amd64
+        run: make -f Windows.mk winfw CPU_ARCH=amd64
 
       - name: rustfmt check
         working-directory: nym-vpn-core
@@ -82,14 +79,14 @@ jobs:
       - name: Clippy
         working-directory: nym-vpn-core
         run: |
-          cargo clippy --workspace --exclude nym-gateway-probe --locked -- -Dwarnings
+          cargo clippy --workspace --locked -- -Dwarnings
 
       - name: Build
         working-directory: nym-vpn-core
         run: |
-          cargo build --verbose --workspace --exclude nym-gateway-probe --locked
+          cargo build --verbose --workspace --locked
 
       - name: Run tests
         working-directory: nym-vpn-core
         run: |
-          cargo test --verbose --workspace --exclude nym-gateway-probe --locked
+          cargo test --verbose --workspace --locked

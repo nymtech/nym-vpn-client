@@ -14,8 +14,12 @@ env:
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
+  build-wireguard-go-ios:
+    uses: ./.github/workflows/build-wireguard-go-ios.yml
+
   build:
     runs-on: custom-macos-15
+    needs: build-wireguard-go-ios
 
     steps:
       - name: "Cleanup working directory"
@@ -36,21 +40,17 @@ jobs:
           components: rustfmt, clippy
           targets: aarch64-apple-ios
 
-      - name: Install Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
           version: "21.12" # 3.21.12: the version on ubuntu 24.04. Don't change this!
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build wireguard
-        shell: bash
-        run: |
-          ./wireguard/build-wireguard-go.sh --ios
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wireguard-go_ios_universal
+          path: build/lib
 
       - name: rustfmt check
         working-directory: nym-vpn-core
@@ -80,4 +80,5 @@ jobs:
         with:
           name: updated-uniffi-ios
           path: nym-vpn-core/build/nym_vpn_lib.swift
+          if-no-files-found: error
           retention-days: 1

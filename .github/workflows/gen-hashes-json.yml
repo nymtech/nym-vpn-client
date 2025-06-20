@@ -32,4 +32,5 @@ jobs:
         with:
           name: Asset Hashes
           path: hashes.json
+          if-no-files-found: error
 

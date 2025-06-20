@@ -13,8 +13,12 @@ env:
   AGENT_ISSELFHOSTED: 1 # https://github.com/actions/setup-go/issues/432
 
 jobs:
+  build-wireguard-go-linux:
+    uses: ./.github/workflows/build-wireguard-go-linux.yml
+
   build:
     runs-on: ubuntu-22.04
+    needs: build-wireguard-go-linux
 
     steps:
       - name: Install system dependencies
@@ -29,11 +33,6 @@ jobs:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
           components: rustfmt, clippy
 
-      - name: Install Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ vars.REQUIRED_GOLANG_VERSION }}
-
       - name: Install Protoc
         uses: arduino/setup-protoc@v3
         with:
@@ -47,10 +46,11 @@ jobs:
           sed -i.bak '1s/^/\[profile.dev\]\ndebug = false\n\n/' Cargo.toml
           git diff
 
-      - name: Build wireguard
-        shell: bash
-        run: |
-          ./wireguard/build-wireguard-go.sh
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: wireguard-go_ubuntu-22.04_x86_64
+          path: build/lib/x86_64-unknown-linux-gnu
 
       - name: rustfmt check
         working-directory: nym-vpn-core
