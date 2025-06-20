@@ -1,5 +1,8 @@
 ## Update AUR packages
 
+> [!TIP]
+> This is done automatically by `publish-nym-vpn-app.yml` workflow
+
 ### Prerequisites
 
 - A new core **stable** release has been released and published

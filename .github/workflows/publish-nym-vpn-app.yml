@@ -227,6 +227,26 @@ jobs:
       url: https://github.com/nymtech/nym-vpn-client/releases/download/${{ needs.publish.outputs.release_tag }}/${{ needs.publish.outputs.win_updater_exe }}
       signature: ${{ needs.publish.outputs.win_updater_sig }}
 
+  update-aur-app:
+    uses: ./.github/workflows/publish-aur-nym-vpn-app.yml
+    needs: publish
+    if: ${{ inputs.release_type == 'stable' }}
+    with:
+      release_tag: ${{ needs.publish.outputs.release_tag }}
+      pkgrel: 1
+      publish_aur: true
+      commit_msg: "v${{ needs.publish.outputs.version }}"
+
+  update-aur-vpnd:
+    uses: ./.github/workflows/publish-aur-nym-vpnd.yml
+    needs: publish
+    if: ${{ inputs.release_type == 'stable' && inputs.core_release_tag }}
+    with:
+      release_tag: ${{ inputs.core_release_tag }}
+      pkgrel: 1
+      publish_aur: true
+      commit_msg: "release ${{ inputs.core_release_tag }}"
+
   post-release:
     runs-on: ubuntu-latest
     needs: publish

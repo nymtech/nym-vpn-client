@@ -100,19 +100,13 @@ If the release job is successful, the release has been published \
 ### Post-release
 
 Once the release is published, the artifacts and sources tarball are available \
-for download from GitHub. \
-Generally after a **stable** release we want to update our different packages \
-to distribute the new version.
+for download from GitHub.
 
-#### Linux packages
+After publishing a **stable** release the workflow will update some packages automatically. \
+But some post-release tasks still need to be done manually:
 
-For now, except the `deb` package which is automatically updated \
-on new stable, the rest of the packages need to be updated manually.
-
-- refer to [update AUR](update_aur.md) for Arch Linux packages
-- refer to [update Flatpak](update_flatpak.md) for Flatpak package
-- refer to [update Linux installer](update_linux_installer.md) for Linux
-  installer script
+- see [update Flatpak](update_flatpak.md) to update the Flathub package
+- bump `develop` to the next `-dev` version (if not already done)
 
 #### nym.com
 

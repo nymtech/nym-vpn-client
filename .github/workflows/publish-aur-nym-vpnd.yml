@@ -22,6 +22,21 @@ on:
         description: "Commit message for the AUR repo (default to package version)"
         type: string
         required: false
+  workflow_call:
+    inputs:
+      release_tag:
+        required: true
+        type: string
+      pkgrel:
+        required: false
+        type: number
+        default: 1
+      publish_aur:
+        type: boolean
+        required: true
+      commit_msg:
+        type: string
+        required: true
 
 jobs:
   aur-publish:
