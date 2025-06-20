@@ -173,12 +173,16 @@ private extension CredentialsManager {
 
     func updateAccountIdentifier() {
         Task {
+            let newAccIdentifier: String?
 #if os(iOS)
             let dataFolderURL = try dataFolderURL()
-            accountIdentifier = try? getAccountIdentityRaw(path: dataFolderURL.path())
+            newAccIdentifier = try? getAccountIdentityRaw(path: dataFolderURL.path())
 #elseif os(macOS)
-            accountIdentifier = try? await grpcManager.accountIdentifier()
+            newAccIdentifier = try? await grpcManager.accountIdentifier()
 #endif
+            Task { @MainActor in
+                accountIdentifier = newAccIdentifier
+            }
         }
     }
 }

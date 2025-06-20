@@ -1,5 +1,8 @@
 import SwiftUI
 import AppSettings
+#if os(iOS)
+import ImpactGenerator
+#endif
 import UIComponents
 import Theme
 
@@ -40,6 +43,9 @@ public final class WelcomeViewModel: ObservableObject {
     }
 
     func continueTapped() {
+#if os(iOS)
+        ImpactGenerator.shared.impact()
+#endif
         appSettings.welcomeScreenDidDisplay = true
     }
 }

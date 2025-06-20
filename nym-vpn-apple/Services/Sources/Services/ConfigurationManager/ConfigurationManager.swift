@@ -25,10 +25,12 @@ public final class ConfigurationManager: ObservableObject {
     private var lastCompatibleAppVersion: String? {
         didSet {
             guard let lastCompatibleAppVersion else { return }
-            isCurrentAppVersionCompatible = appVersion.compare(
-                lastCompatibleAppVersion,
-                options: .numeric
-            ) != .orderedAscending
+            Task { @MainActor in
+                isCurrentAppVersionCompatible = appVersion.compare(
+                    lastCompatibleAppVersion,
+                    options: .numeric
+                ) != .orderedAscending
+            }
         }
     }
     private var lastCompatibleCoreVersion: String?
@@ -125,7 +127,7 @@ public final class ConfigurationManager: ObservableObject {
         Task {
             do {
 #if os(iOS)
-                let links = try  getAccountLinksRaw(
+                let links = try getAccountLinksRaw(
                     accountStorePath: credentialsManager.dataFolderURL().path(),
                     locale: Locale.current.region?.identifier.lowercased() ?? "en"
                 )

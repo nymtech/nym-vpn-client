@@ -4,7 +4,6 @@ extension GRPCManager {
     public func countryCodes(for type: NodeType) async throws -> [String] {
         logger.log(level: .info, "Fetching countries: \(type.rawValue)")
         return try await withCheckedThrowingContinuation { continuation in
-
             var request = Nym_Vpn_ListCountriesRequest()
             request.kind = type.convertToGatewayType()
             request.userAgent = userAgent
