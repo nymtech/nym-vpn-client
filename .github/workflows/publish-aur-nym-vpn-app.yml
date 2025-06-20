@@ -42,6 +42,7 @@ jobs:
   aur-publish:
     name: Publish package in AUR
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
       fail-fast: false
       matrix:
