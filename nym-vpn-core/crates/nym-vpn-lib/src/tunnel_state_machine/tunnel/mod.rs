@@ -43,17 +43,6 @@ pub struct ConnectedMixnet {
 }
 
 impl ConnectedMixnet {
-    /// Returns the websocket fd owned by mixnet client.
-    #[cfg(target_os = "android")]
-    pub async fn websocket_fd(&self) -> Option<std::os::fd::RawFd> {
-        self.mixnet_client
-            .lock()
-            .await
-            .as_ref()?
-            .gateway_connection()
-            .gateway_ws_fd
-    }
-
     pub fn selected_gateways(&self) -> &SelectedGateways {
         &self.selected_gateways
     }
