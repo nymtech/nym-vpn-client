@@ -1,4 +1,5 @@
-# Linker/compiler flags for producing reproducible output
+# cargo ndk always builds for Linux/Android
+OS := Linux
 include reproducible_builds.mk
 
 RELEASE ?= true

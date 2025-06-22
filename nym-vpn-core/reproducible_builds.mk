@@ -7,6 +7,10 @@ RUST_COMPILER_SYS_ROOT = $(shell rustc --print sysroot)
 # Rust flags used for redacting common paths in binaries
 IDEMPOTENT_RUSTFLAGS = --remap-path-prefix $(HOME)= --remap-path-prefix $(PROJECT_ROOT)= --remap-path-prefix $(RUST_COMPILER_SYS_ROOT)=
 
+ifndef OS
+$(error Please set the "OS" variable, accepted values include the result of "uname -s")
+endif
+
 # Disable build-id on Linux
 ifeq ($(OS),Linux)
 	IDEMPOTENT_RUSTFLAGS += -C link-args=-Wl,--build-id=none
