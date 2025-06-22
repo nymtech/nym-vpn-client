@@ -1,49 +1,31 @@
-Nym'den en güvenli VPN'i indirerek çevrimiçi etkinliğinizi güvende tutun. VPN uygulamamız ile IP adresinizi gizleyebilir, trafiğinizi şifreleyebilir, çevrimiçi kimliğinizi saklayabilir ve çok daha fazlasını yapabilirsiniz.
+Çevrimiçi gizliliğiniz konusunda endişeli misiniz? Engellenen bilgilere mi erişmeniz gerekiyor? Nym'in merkezi olmayan VPN'i size yardımcı olmak için burada. Android için NymVPN ile web'de gizli bir şekilde gezinebilir, sansür kısıtlamalarını aşabilir ve kripto işlemlerinizi koruyabilirsiniz.
 
-İnternet üzerindeki birçok kuruluş etkinliğinizi izleyebilir ve verilerinizi alabilir.
-Hükümetler, büyük teknoloji şirketleri, veri satıcıları, internet servis sağlayıcıları ve reklamcılar, çevrimiçi etkinliğinizi izlemeye çalışabilir. Son veri sızıntısı skandalları, geleneksel VPN şirketlerine bile güvenemeyeceğimizi gösterdi.
+NymVPN, merkezi olmayan bir ağda çalışan günlük kullanıcılar için ilk VPN'dir. Geleneksel VPN'ler gibi merkezi sunucular kullanmak yerine, trafiğinizi birden fazla bağımsız düğümden geçirerek gizliliğinizi korumak için güçlü şifreleme ve koruyucu gürültü ekler.
 
-VPN'imiz, internet etkinliklerinizi gizli tutmak için tasarlandı ve bunun en önemli parçası, etkinlik kaydı tutmayı ve izlemeyi imkansız hale getirmektir.
+Gizlilik seviyenizi seçin:
+- AmneziaWG ile Hızlı modun 2-atlamalı merkezi olmayan korumaları
+- Mixnet teknolojisi ve eklenen gürültü ile Anonim modunun 5-atlamalı yönlendirmesi
 
-NymVPN, çevrimiçi etkinliğinizi izlemeyi veya kaydetmeyi imkansız hale getirecek şekilde tasarlanmış yeni bir VPN türüdür, hatta biz dahil hiç kimse için. VPN'imiz, güvenilen taraflar, merkezi bileşenler veya tek bir arıza noktası olmadan çalışan merkeziyetsiz bir ağ üzerinde faaliyet gösterir. NymVPN’in tüm işlevleri merkeziyetsiz ve dağıtılmış bir şekilde gerçekleştirilir, bu nedenle merkezi bir kayıt sistemi oluşturmak mümkün değildir.
+Ağ günlüğü tutulamaz:
+Diğer VPN'ler günlük tutmayacağına söz verirken, Nym ağı merkezi günlüklerin mümkün olmayacağı şekilde tasarlanmıştır. Merkezi olmayan ağdaki hiçbir nokta IP adresinizi çevrimiçi yaptığınız şeylerle ilişkilendiremez. Gizliliğiniz varsayılan olarak garantilidir.
 
-VPN'imiz verileri şifreler ve meta verileri trafiği analiz edenlerden korumak için merkeziyetsiz bir Mixnet kullanır. Basitçe söylemek gerekirse: Nym'in etkinliğinizi kaydetme imkânı yoktur, dolayısıyla kimse buna erişemez.
+Bağlantı kurulamayan ödemeler:
+NymVPN'e abone olmak için adınız dahil hiçbir kişisel bilgi gerekmez. Uygulama ve ağ kullanımınıza asla bağlanamayacağınızı garanti eden sıfır bilgi kanıtlarıyla güvenli bir şekilde ödeme yapın.
 
-Mixnet nedir? Mixnet, şu işlemleri gerçekleştiren bir node ağıdır:
-1. Şifrelenmiş trafiği alır
-2. Trafikleri karıştırır
-3. Trafikleri yeniden yönlendirir
-Bu süreç, 5 kez (5-hop) kadar tekrarlanır ve kimse çevrimiçi etkinliğinizi izleyemez veya takip edemez.
+Sansüre dayanıklılık:
+Trafik için giriş ve çıkış ağ geçitlerini seçerek ihtiyacınız olan bilgilere erişim engellerini aşın. Hızlı moddaki AmneziaWG (WireGuard protokolünün bir çatalı), VPN kullanımını hedef alan gözetime karşı koruma sağlar.
 
-İşte bu yüzden merkeziyetsiz, güvenli ve gizli VPN'imizi tercih etmelisiniz
+Ek NymVPN özellikleri:
+- Zcash ve Monero dahil kripto ödemeleri
+- Maksimum gizlilik için nakit ödemeler
+- Reklam yok
+- 10 adede kadar cihaz
+- Ağ geçidi seçimi
+- Çoklu atlamalı IP korumaları
+- Killswitch (Android yerel)
 
-Gizlilik
-dVPN'imiz gizlilik ön planda tutularak tasarlandı. Günlük tutmuyoruz (no-logs politikası) ve etkinliğinizi izlemiyoruz. Bize ait verilerinizi çalmak isteyen biri bile çalacak bir şey bulamaz.
-
-Sansür direnci
-VPN uygulamamız çevrimiçi etkinliğinizi tamamen anonim hale getirir. Trafik, IP adresi, konum ve kötü niyetli kişilerin izleyebileceği her şey şifrelenir. Killswitch gibi özellikler sayesinde tamamen güvendesiniz.
-
-Hız
-VPN ağımızın hızı, Mixnet ağına katılan ek node’lar sayesinde sürekli artar. Modern şifreleme algoritmaları ve Sphinx, Loopix gibi yenilikçi protokoller kullanarak bağlantınızı mümkün olduğunca hızlı hale getiriyoruz.
-
-Bölge Seçimi
-NymVPN sayesinde dünya çapında yüzlerce farklı konumdan bağlanabilirsiniz.
-Uygulamayı indirin --> Bölgeyi seçin --> Bağlanın.
-
-Kripto Ödemeleri
-Kripto ödemeleri kabul eden bir VPN mi arıyorsunuz? Kripto paralarla ödeme yapabilirsiniz. İşte buradayız. Kripto para ile ödemeleri memnuniyetle kabul ediyoruz.
-
-Reklam içermez
-VPN’inizi reklamsız olarak kullanın. Temel hedefimiz gizliliğinizi korumaktır; bu yüzden VPN uygulamamızda reklam bulunmaz.
-
-Sınırsız Kullanım
-İnterneti istediğiniz kadar kullanın, NymVPN trafiğinizi asla sınırlamaz.
-
-VPN'imizin en sevilen özellikleri:
-5-Hop Mixnet: İnternet trafiğiniz şifrelenir ve mixnode’lara gönderilir, diğer trafik paketleriyle 5 kez karıştırılır, böylece çevrimiçi etkinliğinizi izlemek imkânsız hale gelir.
-2-Hop dVPN: Trafiğiniz şifrelenir ve 2 mixnode’a gönderilir, bu sayede daha yüksek hız sağlar. Azaltılmış hop sayısı, daha yüksek hız sağlar.
-Merkezi Kayıt Tutma Yok: Hiçbir etkinlik kaydı tutmuyoruz, bu da internet etkinliğinize bizden erişimi imkânsız hale getirir.
-Para İade Garantisi: Üründen memnun değil misiniz? Para iade garantisi sunuyoruz. Beğenmediğiniz bir şey olursa, support@nymvpn.com adresine e-posta gönderin, her zaman daha iyi olmayı hedefliyoruz.
-Bölünmüş Tünelleme: Hangi uygulamalarınızın VPN üzerinden internete erişeceğini ve hangilerinin doğrudan erişeceğini kolayca seçebilirsiniz.
-IP Gizleme: dVPN'ımız tüm bilgilerinizi, IP adresiniz de dahil olmak üzere gizler.
-Killswitch: VPN bağlantınız kesilirse internet erişiminizi engelleyen acil kapatma anahtarı ile gizlilik ve güvenlik sağlarız
+2025'te gelecek özellikler:
+- Bölünmüş tünelleme
+- Gelişmiş sansüre dayanıklılık
+- Kuantum sonrası kriptografi
+- Konut IP'leri
