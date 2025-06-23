@@ -49,7 +49,6 @@
         </p>
     </description>
     <releases>
-        <!-- WF_ANCHOR_NEW_RELEASE --> <!-- DO NOT REMOVE! -->
         <release version="1.11.0" date="2025-06-18">
             <url type="details">
                 https://github.com/nymtech/nym-vpn-client/releases/tag/nym-vpn-app-v1.11.0

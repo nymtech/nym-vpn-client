@@ -261,6 +261,10 @@ jobs:
         with:
           ref: 'develop'
 
+      - name: Install deps
+        run: |
+          sudo apt-get install -y xmlstarlet
+
       - name: Bump installer script
         continue-on-error: true
         working-directory: .pkg/linux
