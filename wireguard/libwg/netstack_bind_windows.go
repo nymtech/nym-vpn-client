@@ -7,7 +7,7 @@ package main
 
 import "C"
 import (
-	"github.com/amnezia-vpn/amneziawg-go/conn"
+	"github.com/nymtech/amneziawg-go/conn"
 	"golang.org/x/sys/windows"
 )
 
