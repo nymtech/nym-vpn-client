@@ -29,16 +29,16 @@ if [ -z "$date" ]; then
     date=$(date -u +'%Y-%m-%d')
 fi
 
-# new release block to insert
-rel_block="        <release version=\"$VERSION\" date=\"$date\">
-            <url type=\"details\">
-                https://github.com/nymtech/nym-vpn-client/releases/tag/$RELEASE_TAG
-            </url>
-        </release>"
-rel_file=$(mktemp)
-echo "$rel_block" > "$rel_file"
-
-sed -i -e "/<!-- WF_ANCHOR_NEW_RELEASE -->/r $rel_file" "$MATAINFO_XML"
-rm "$rel_file"
+xmlstarlet edit --inplace \
+    --insert '//component/releases/node()[1]' --type elem -n 'release' \
+    --var new_node '$prev' \
+    --insert '$new_node' --type attr -n 'version' --value "$VERSION" \
+    --insert '$new_node' --type attr -n 'date' --value "$date" \
+    --subnode '$new_node' --type elem -n 'url' -v "https://github.com/nymtech/nym-vpn-client/releases/tag/$RELEASE_TAG" \
+    --var new_node '$prev' \
+    --insert '$new_node' --type attr -n 'type' --value 'details' \
+    "$MATAINFO_XML"
+formatted_xml=$(xmlstarlet format --indent-spaces 4 "$MATAINFO_XML")
+echo "$formatted_xml" > "$MATAINFO_XML"
 
 echo "✓ done"
