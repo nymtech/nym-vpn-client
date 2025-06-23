@@ -1,0 +1,15 @@
+{
+  "images" : [
+    {
+      "filename" : "mail_16dp_1F1F1F_FILL1_wght400_GRAD0_opsz20 2.svg",
+      "idiom" : "universal"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  },
+  "properties" : {
+    "preserves-vector-representation" : true
+  }
+}
