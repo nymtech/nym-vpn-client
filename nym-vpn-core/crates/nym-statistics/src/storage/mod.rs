@@ -86,9 +86,9 @@ impl StatsStorage {
     }
 }
 
-fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::Error> {
+fn set_file_permission_owner_rw<P: AsRef<Path>>(_path: P) -> Result<(), std::io::Error> {
     #[cfg(unix)]
-    return set_file_permission_owner_rw_unix(path);
+    return set_file_permission_owner_rw_unix(_path);
 
     // Windows permission is set on the parent folder, nothing to do
     #[cfg(windows)]
