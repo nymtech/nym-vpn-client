@@ -228,7 +228,7 @@ impl ErrorStateReason {
     }
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, strum_macros::Display)]
 pub enum ClientErrorReason {
     Firewall,
     Routing,
