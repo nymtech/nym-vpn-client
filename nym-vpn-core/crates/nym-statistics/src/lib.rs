@@ -2,9 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 mod api_client;
-pub mod config;
-pub mod controller;
+mod config;
+mod controller;
 mod error;
 pub mod events;
-pub mod handler;
+mod handler;
 mod storage;
+
+pub use config::StatisticsControllerConfig;
+pub use controller::StatisticsController;
+pub use error::Error;
+pub use events::StatisticsSender;

@@ -10,8 +10,7 @@ use std::{
 
 use bip39::Mnemonic;
 use nym_statistics::{
-    config::StatisticsControllerConfig,
-    controller::StatisticsController,
+    StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
 };
 use serde::{Deserialize, Serialize};
