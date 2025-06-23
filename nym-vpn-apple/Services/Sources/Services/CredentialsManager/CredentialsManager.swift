@@ -64,6 +64,10 @@ public final class CredentialsManager: ObservableObject {
         }.value
     }
 
+    public func registerAccount() async throws -> (token: String, mnemonic: String) {
+        return ("", "")
+    }
+
     public func removeCredential() async throws {
         try await Task {
             do {

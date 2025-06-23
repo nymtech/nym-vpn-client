@@ -31,6 +31,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             AddCredentialsView(viewModel: AddCredentialsViewModel(path: $flowState.path))
         case .createAccount:
             EmptyView()
+        case .createAccountSuccess:
+            EmptyView()
         case .logs:
             LogsView(viewModel: LogsViewModel(path: $flowState.path, logFileManager: logFileManager))
         case .acknowledgments:
