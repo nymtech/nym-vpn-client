@@ -1,49 +1,31 @@
-Baixe a VPN mais segura da Nym e proteja sua atividade online.
+Preocupado com sua privacidade online? Precisa acessar informações bloqueadas? A VPN descentralizada da Nym está aqui para ajudar. Com a NymVPN para Android, você pode navegar na web com privacidade, contornar restrições de censura e proteger suas transações com criptomoedas.
 
-Muitas entidades na internet podem espionar sua atividade e capturar seus dados.
-Governos, big techs, corretores de dados, provedores de internet e anunciantes tentam monitorar sua navegação. Escândalos recentes de vazamento de dados mostraram que nem mesmo as empresas tradicionais de VPN são confiáveis.
+A NymVPN é a primeira VPN para usuários comuns que opera em uma rede descentralizada. Em vez de usar servidores centrais como as VPNs tradicionais, ela envia seu tráfego por vários nós independentes, adicionando criptografia forte e ruído de proteção para manter sua privacidade.
 
-Nossa VPN foi criada para garantir privacidade real, eliminando qualquer possibilidade de registro ou rastreamento da sua atividade.
+Escolha seu nível de privacidade:
+- Proteções descentralizadas de 2 saltos do modo Rápido com AmneziaWG
+- Roteamento de 5 saltos do modo Anônimo com tecnologia mixnet e ruído adicional
 
-NymVPN é um novo tipo de VPN, projetada para impedir qualquer monitoramento ou registro de dados — até por nós. Nossa VPN opera em uma rede descentralizada, sem partes confiáveis, componentes centralizados ou pontos únicos de falha. Todas as funcionalidades do NymVPN são executadas de forma descentralizada e distribuída, e não há possibilidade de ativar o registro centralizado.
+Rede sem registro:
+Enquanto outras VPNs prometem não manter registros, a rede Nym foi projetada para que registros centralizados não sejam possíveis. Nenhum ponto na rede descentralizada pode conectar seu endereço IP com o que você faz online. Sua privacidade é garantida por padrão.
 
-Nossa VPN criptografa dados e protege metadados contra análise de tráfego usando uma Mixnet descentralizada. Isso significa que não há como a Nym registrar sua atividade, e sem registros, ninguém pode acessá-la.
+Pagamentos não vinculáveis:
+Nenhuma informação pessoal é necessária para assinar o NymVPN, nem mesmo seu nome. Pague com segurança com provas de conhecimento zero que garantem que você nunca será vinculado ao seu uso do aplicativo e da rede.
 
-O que é uma Mixnet? Uma Mixnet é uma rede de nós que:
-1. Recebe o tráfego criptografado
-2. Mistura os pacotes de tráfego
-3. Redirecionam o tráfego
-Esse processo acontece até 5 vezes (5-saltos), tornando impossível rastrear sua atividade online.
+Resistência à censura:
+Contorne as barreiras de acesso às informações necessárias selecionando os gateways de entrada e saída para o seu tráfego. O AmneziaWG (uma ramificação do protocolo WireGuard) no modo Rápido protege contra vigilância direcionada ao uso da VPN.
 
-É por isso que você deve escolher nossa VPN descentralizada, segura e privada
+Recursos adicionais do NymVPN:
+- Pagamentos com criptomoedas, incluindo Zcash e Monero
+- Pagamentos em dinheiro para máxima privacidade
+- Sem anúncios
+- Até 10 dispositivos
+- Seleção de gateway
+- Proteções de IP multi-hop
+- Killswitch (nativo para Android)
 
-Privacidade
-Nossa dVPN foi criada para garantir sua privacidade. Não armazenamos registros (no-logs policy) nem rastreamos sua atividade. Mesmo que tentassem roubar seus dados, não haveria nada para capturar.
-
-Resistência à censura
-Nosso aplicativo VPN torna sua atividade ‘online’ completamente anônima. Ele criptografa seu tráfego, IP, localização e qualquer outro dado que possa ser monitorado. Você também conta com recursos como o killswitch para segurança adicional.
-
-Velocidade
-Nossa rede VPN cresce continuamente com novos nós se juntando à Mixnet. Além disso, usamos algoritmos criptográficos modernos e protocolos inovadores, como Sphinx e Loopix, para garantir conexões rápidas.
-
-Localização à sua escolha
-Com o NymVPN, você pode se conectar a diversos locais ao redor do mundo.
-Baixe o app → Escolha a localização → Conecte-se
-
-Pagamentos com criptomoedas
-Você está procurando uma VPN que aceite pagamentos criptomoedas? Aqui estamos. Estamos felizes em aceitar pagamentos com criptomoedas.
-
-Sem anúncios
-Desfrute de sua VPN sem anúncios. Não exibimos anúncios, pois nosso compromisso é proteger sua privacidade.
-
-Uso ilimitado
-O NymVPN não limita seu tráfego.
-
-Nossos recursos mais queridos da VPN:
-- 5-hop Mixnet: seu tráfego de Internet será criptografado e enviado para mixnodes que o misturarão com outros pacotes de tráfego 5 vezes, impossibilitando que alguém rastreie sua atividade online.
-— dVPN com 2 saltos: neste caso, seu tráfego é criptografado e enviado para 2 mixodes que vão misturá-lo. O número reduzido de saltos resulta em maior velocidade.
-- Sem registros centralizados: não armazenamos nenhum registro de atividade, o que impossibilita que qualquer pessoa tenha acesso à sua atividade na Internet por nosso intermédio.
-- Garantia de devolução do dinheiro: se você não estiver satisfeito com o produto, oferecemos uma política de garantia de devolução do dinheiro. Se não estiver satisfeito com algo, envie-nos um email para support@nymvpn.com. Estamos sempre procurando melhorar.
-- Tunelamento dividido: você pode escolher facilmente quais dos seus aplicativos acessarão a Internet por meio da VPN e quais acessarão a Internet diretamente.
-- Ocultar IP: nossa dVPN ocultará todas as informações relacionadas a você, inclusive seu endereço IP.
-- Hide IP: our dVPN will hide all information about you, including your IP address.
+Recursos futuros em 2025:
+- Tunelamento dividido
+- Resistência avançada à censura
+- Criptografia pós-quântica
+- IPs residenciais
