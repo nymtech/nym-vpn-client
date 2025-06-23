@@ -73,4 +73,8 @@ impl StatisticsHandler {
                 .ok(),
         };
     }
+
+    pub fn is_connected(&self) -> bool {
+        self.usage_handler.is_connected
+    }
 }

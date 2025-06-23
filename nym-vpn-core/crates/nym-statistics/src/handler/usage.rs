@@ -12,6 +12,7 @@ pub(crate) struct UsageHandler {
     connection_time: Option<Duration>,
     connecting: Option<Instant>,
     two_hop: bool,
+    pub(crate) is_connected: bool,
 }
 
 impl UsageHandler {
@@ -21,6 +22,7 @@ impl UsageHandler {
             connection_time: None,
             connecting: None,
             two_hop: false,
+            is_connected: false,
         }
     }
 
@@ -43,15 +45,26 @@ impl UsageHandler {
                 self.connecting = Some(instant);
                 self.connection_time = None;
                 self.two_hop = enable_two_hop;
+                self.is_connected = false;
             }
             UsageEvent::Connected(instant) => {
                 if let Some(connecting_time) = self.connecting {
                     self.connection_time = Some(instant.duration_since(connecting_time));
                 }
+                self.is_connected = true;
+            }
+            UsageEvent::Disconnecting(_) => {
+                // If this branch doesn't trigger, it means we were connected and `connect` was called again, so we must ignore that, otherwise we will overwrite stuff
+                if self.connecting.is_none() || self.is_connected {
+                    self.connecting = None;
+                    self.connection_time = None;
+                    self.is_connected = false;
+                }
             }
             _ => {
                 self.connecting = None;
                 self.connection_time = None;
+                self.is_connected = false;
             }
         }
     }

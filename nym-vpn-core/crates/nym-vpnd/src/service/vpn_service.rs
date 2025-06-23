@@ -311,8 +311,6 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             }
         })?;
 
-        let tunnel_state = watch::Sender::new(TunnelState::Disconnected);
-
         // These are used to interact with the account controller
         let shared_account_state = account_controller.get_shared_state();
         let account_command_tx = account_controller.get_command_sender();
@@ -328,7 +326,6 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             statistics_controller_config,
             network_data_dir.clone(),
             shutdown_token.child_token(),
-            tunnel_state.subscribe(),
         )
         .await;
 
@@ -404,6 +401,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             nym_config,
             tunnel_settings,
             account_command_tx.clone(),
+            statistics_event_sender.clone(),
             gateway_directory_client,
             topology_provider,
             connectivity_handle,
@@ -426,7 +424,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             data_dir: network_data_dir,
             log_path,
             storage,
-            tunnel_state,
+            tunnel_state: watch::Sender::new(TunnelState::Disconnected),
             state_machine_handle,
             account_controller_handle,
             command_sender,
@@ -645,7 +643,7 @@ where
         } = connect_args;
 
         self.statistics_event_sender
-            .report(StatisticsEvent::new_connecting(options.enable_two_hop));
+            .report(StatisticsEvent::new_connecting(options.enable_two_hop)); // desktop "Connect" event
 
         // Get feature flag
         let enable_credentials_mode = self
