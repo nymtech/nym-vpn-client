@@ -328,14 +328,6 @@ function build_wireguard_go {
     esac
 }
 
-verlte() {
-    [  "$1" = "`echo -e "$1\n$2" | sort -V | head -n1`" ]
-}
-
-verlt() {
-    [ "$1" = "$2" ] && return 1 || verlte $1 $2
-}
-
 function check_golang_version() {
     local go_path=$(which go)
     if [ $? -eq 0 ]; then
@@ -348,10 +340,9 @@ function check_golang_version() {
     # Extract go version from the output that looks as: 
     # go version go1.24.4 darwin/arm64
     local go_version=$(go version | cut -d' ' -f3 | cut -c 3-)
-    echo "Golang version: ${go_version} (>= ${REQUIRED_GOLANG_VERSION} required)"
-    # make sure we at least meet the minimum version
-    if verlt "${go_version}" "${REQUIRED_GOLANG_VERSION}"; then
-        echo "Required golang version: $REQUIRED_GOLANG_VERSION or newer"
+    echo "Golang version: ${go_version}"
+    if [ "$go_version" != "$REQUIRED_GOLANG_VERSION" ]; then
+        echo "Required golang version: $REQUIRED_GOLANG_VERSION"
         echo "Please install it and re-run this script"
         exit 3
     fi
