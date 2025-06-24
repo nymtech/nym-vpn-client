@@ -585,14 +585,12 @@ impl UniffiCustomTypeConverter for PathBuf {
 #[derive(uniffi::Record, Clone, Default, PartialEq)]
 pub struct RegisterAccountResponse {
     pub account_token: String,
-    pub mnemonic: String,
 }
 
 impl From<nym_vpn_account_controller::RegisterAccountResponse> for RegisterAccountResponse {
     fn from(value: nym_vpn_account_controller::RegisterAccountResponse) -> Self {
         RegisterAccountResponse {
             account_token: value.account_token,
-            mnemonic: value.mnemonic.to_string(),
         }
     }
 }

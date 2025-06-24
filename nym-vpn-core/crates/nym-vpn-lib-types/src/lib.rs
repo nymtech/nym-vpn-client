@@ -11,7 +11,9 @@ mod tunnel_state;
 
 pub use account::{
     AccountCommandError, VpnApiError, VpnApiErrorResponse,
+    create_account::CreateAccountError,
     forget_account::ForgetAccountError,
+    get_mnemonic::GetMnemonicError,
     register_account::RegisterAccountError,
     register_device::RegisterDeviceError,
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},

@@ -11,7 +11,8 @@ use nym_vpn_lib_types::{
     ClientErrorReason, ConnectionData as CoreConnectionData,
     ConnectionEvent as CoreConnectionEvent,
     ConnectionStatisticsEvent as CoreConnectionStatisticsEvent,
-    ForgetAccountError as CoreForgetAccountError, Gateway as CoreGateway,
+    CreateAccountError as CoreCreateAccountError, ForgetAccountError as CoreForgetAccountError,
+    Gateway as CoreGateway, GetMnemonicError as CoreGetMnemonicError,
     MixnetConnectionData as CoreMixnetConnectionData, MixnetEvent as CoreMixnetEvent,
     NymAddress as CoreNymAddress, RegisterAccountError as CoreRegisterAccountError,
     RegisterDeviceError as CoreRegisterDeviceError, RequestZkNymError as CoreRequestZkNymError,
@@ -240,6 +241,40 @@ pub enum ErrorStateReason {
     DeviceTimeOutOfSync,
     CreateMixnetStorage,
     Internal(Option<String>),
+}
+
+#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
+pub enum GetMnemonicError {
+    #[error("storage: {0}")]
+    Storage(String),
+    #[error("internal error: {0}")]
+    Internal(String),
+}
+
+impl From<CoreGetMnemonicError> for GetMnemonicError {
+    fn from(value: CoreGetMnemonicError) -> Self {
+        match value {
+            CoreGetMnemonicError::Storage(err) => Self::Storage(err),
+            CoreGetMnemonicError::Internal(err) => Self::Internal(err),
+        }
+    }
+}
+
+#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
+pub enum CreateAccountError {
+    #[error("storage: {0}")]
+    Storage(String),
+    #[error("internal error: {0}")]
+    Internal(String),
+}
+
+impl From<CoreCreateAccountError> for CreateAccountError {
+    fn from(value: CoreCreateAccountError) -> Self {
+        match value {
+            CoreCreateAccountError::Storage(err) => Self::Storage(err),
+            CoreCreateAccountError::Internal(err) => Self::Internal(err),
+        }
+    }
 }
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]

@@ -5,7 +5,9 @@ use std::{fmt::Debug, sync::Arc};
 
 use nym_vpn_api_client::HttpClientError;
 
+pub mod create_account;
 pub mod forget_account;
+pub mod get_mnemonic;
 pub mod register_account;
 pub mod register_device;
 pub mod request_zknym;
@@ -41,6 +43,12 @@ pub enum AccountCommandError {
     //
     // --- Error cases for specific commands ---
     //
+    #[error("failed to create account")]
+    CreateAccount(#[from] create_account::CreateAccountError),
+
+    #[error("failed to get mnemonic")]
+    GetMnemonic(#[from] get_mnemonic::GetMnemonicError),
+
     #[error("failed to store account")]
     StoreAccount(#[from] store_account::StoreAccountError),
 

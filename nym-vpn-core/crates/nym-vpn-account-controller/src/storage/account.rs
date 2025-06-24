@@ -35,16 +35,19 @@ where
             })
     }
 
-    pub(crate) async fn load_account(&self) -> Result<VpnApiAccount, Error> {
-        let mnemonic = self
-            .storage
+    pub(crate) async fn load_mnemonic(&self) -> Result<Mnemonic, Error> {
+        self.storage
             .lock()
             .await
             .load_mnemonic()
             .await
             .map_err(|err| Error::MnemonicStore {
                 source: Box::new(err),
-            })?;
+            })
+    }
+
+    pub(crate) async fn load_account(&self) -> Result<VpnApiAccount, Error> {
+        let mnemonic = self.load_mnemonic().await?;
         VpnApiAccount::try_from(mnemonic).map_err(Error::internal)
     }
 

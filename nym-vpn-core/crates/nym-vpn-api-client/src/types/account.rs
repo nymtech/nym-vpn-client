@@ -94,6 +94,10 @@ impl VpnApiAccount {
             extended_private_key.private_key().to_bytes(),
         ))
     }
+
+    pub fn get_mnemonic(&self) -> String {
+        self.wallet.mnemonic()
+    }
 }
 
 impl TryFrom<bip39::Mnemonic> for VpnApiAccount {
