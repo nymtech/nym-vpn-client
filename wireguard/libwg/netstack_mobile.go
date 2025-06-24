@@ -16,9 +16,9 @@ import (
 
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/logging"
 
-	"github.com/amnezia-vpn/amneziawg-go/conn"
-	"github.com/amnezia-vpn/amneziawg-go/device"
-	"github.com/amnezia-vpn/amneziawg-go/tun/netstack"
+	"github.com/nymtech/amneziawg-go/conn"
+	"github.com/nymtech/amneziawg-go/device"
+	"github.com/nymtech/amneziawg-go/tun/netstack"
 )
 
 //export wgNetTurnOn

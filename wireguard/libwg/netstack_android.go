@@ -8,7 +8,7 @@ package main
 
 import "C"
 
-import "github.com/amnezia-vpn/amneziawg-go/conn"
+import "github.com/nymtech/amneziawg-go/conn"
 
 //export wgNetGetSocketV4
 func wgNetGetSocketV4(tunnelHandle int32) int32 {

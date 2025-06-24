@@ -22,7 +22,7 @@ import (
 	"log"
 	"unsafe"
 
-	"github.com/amnezia-vpn/amneziawg-go/device"
+	"github.com/nymtech/amneziawg-go/device"
 )
 
 // Define type aliases.
