@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@" : {
+
+    },
     "%@: %@" : {
       "localizations" : {
         "ar" : {
@@ -2644,30 +2647,30 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Welcome to NymVPN"
+            "value" : "Welcome to"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Bienvenido a NymVPN"
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "خوش آمدید به NymVPN"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Bienvenue !"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "NymVPN में आपका स्वागत है"
           }
         },
@@ -2679,7 +2682,7 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "NymVPNへようこそ"
           }
         },
@@ -2691,37 +2694,37 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Bem-vindo ao NymVPN"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Добро пожаловать в NymVPN"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "NymVPN'e Hoş Geldiniz"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Ласкаво просимо до NymVPN"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Chào mừng đến với NymVPN"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "欢迎使用 NymVPN"
           }
         }
@@ -3332,6 +3335,9 @@
           }
         }
       }
+    },
+    "c" : {
+      "extractionState" : "manual"
     },
     "cancel" : {
       "extractionState" : "manual",
@@ -4137,6 +4143,424 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "连接至"
+          }
+        }
+      }
+    },
+    "createAccount.actsAsLogin" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acts as your login"
+          }
+        }
+      }
+    },
+    "createAccount.alreadyHaveAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already have account?"
+          }
+        }
+      }
+    },
+    "createAccount.anonymousByDesign" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Is anonymous by design"
+          }
+        }
+      }
+    },
+    "createAccount.anonymousMixnetTechnology" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anonymous mixnet technology"
+          }
+        }
+      }
+    },
+    "createAccount.continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        }
+      }
+    },
+    "createAccount.countries" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "50+ countries worldwide"
+          }
+        }
+      }
+    },
+    "createAccount.createAccountButtonTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start protecting my privacy"
+          }
+        }
+      }
+    },
+    "createAccount.createAnAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create an account"
+          }
+        }
+      }
+    },
+    "createAccount.createPassphraseButtonTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Create my 24-word passphrase"
+          }
+        }
+      }
+    },
+    "createAccount.dontLoosePassphraseSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save it in a trusted password manager or write down your passphrase and store it securely."
+          }
+        }
+      }
+    },
+    "createAccount.dontLoosePassphraseTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don’t Lose Your Passphrase"
+          }
+        }
+      }
+    },
+    "createAccount.dontShareSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Never share it—not even with Nym Support team."
+          }
+        }
+      }
+    },
+    "createAccount.dontShareTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Don’t share!"
+          }
+        }
+      }
+    },
+    "createAccount.emailUsage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Email usage"
+          }
+        }
+      }
+    },
+    "createAccount.enablesSelfCustody" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enables self-custody"
+          }
+        }
+      }
+    },
+    "createAccount.howToKeepPassphraseSafe" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How to keep your NymVPN passphrase safe?"
+          }
+        }
+      }
+    },
+    "createAccount.insteadCreatePassphrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+          }
+        }
+      }
+    },
+    "createAccount.login" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log in"
+          }
+        }
+      }
+    },
+    "createAccount.noPassphraseNoAccess" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I understand: no passphrase, no access."
+          }
+        }
+      }
+    },
+    "createAccount.openSource" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open source & Swiss privacy laws"
+          }
+        }
+      }
+    },
+    "createAccount.passwordCreation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password creation"
+          }
+        }
+      }
+    },
+    "createAccount.savedPassphrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I’ve saved my passphrase"
+          }
+        }
+      }
+    },
+    "createAccount.success.accountCreateSuccessfully" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account Created Successfully"
+          }
+        }
+      }
+    },
+    "createAccount.success.choosePlan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose your NymVPN plan"
+          }
+        }
+      }
+    },
+    "createAccount.success.fastAnonymousModeSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Instant, secure connections without compromising your privacy."
+          }
+        }
+      }
+    },
+    "createAccount.success.fastAnonymousModeTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fast & Anonymous Mode"
+          }
+        }
+      }
+    },
+    "createAccount.success.globalCoverageSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+          }
+        }
+      }
+    },
+    "createAccount.success.globalCoverageTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Global Coverage"
+          }
+        }
+      }
+    },
+    "createAccount.success.maybeLater" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maybe later"
+          }
+        }
+      }
+    },
+    "createAccount.success.selectPlan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select plan"
+          }
+        }
+      }
+    },
+    "createAccount.success.skipForNow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip for now"
+          }
+        }
+      }
+    },
+    "createAccount.success.toContinueTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+          }
+        }
+      }
+    },
+    "createAccount.thirdPartyTrust" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Third-party trust"
+          }
+        }
+      }
+    },
+    "createAccount.unlikedData" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payments and activity stay unlinked"
+          }
+        }
+      }
+    },
+    "createAccount.whatIsPassphrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What is a 24-word passphrase?"
+          }
+        }
+      }
+    },
+    "createAccount.whatIsPassphraseExplanation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "24-word passphrase (locally created on your device) serves as your account login details. This passphrase is the only way to access your account."
+          }
+        }
+      }
+    },
+    "createAccount.yourPassphrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your 24-word NymVPN passphrase"
+          }
+        }
+      }
+    },
+    "createAccount.yourPrivacyEliminated" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "For your privacy, we’ve eliminated:"
           }
         }
       }
@@ -6370,6 +6794,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法建立wireguard连接"
+          }
+        }
+      }
+    },
+    "errorReason.failedAccountRegistration" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account registration failed. Please try again."
           }
         }
       }
@@ -18288,6 +18723,61 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Ok"
+          }
+        }
+      }
+    },
+    "purchasePlan.startUsing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start using NymVPN"
+          }
+        }
+      }
+    },
+    "purchasePlan.success.connectionPrivate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your connection is private."
+          }
+        }
+      }
+    },
+    "purchasePlan.success.itentityYours" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your identity stays yours."
+          }
+        }
+      }
+    },
+    "purchasePlan.success.planActivated" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan Activated"
+          }
+        }
+      }
+    },
+    "purchasePlan.success.successfully" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Succesfully"
           }
         }
       }

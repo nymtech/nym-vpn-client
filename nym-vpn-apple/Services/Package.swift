@@ -24,6 +24,7 @@ let package = Package(
         .library(name: "NetworkMonitor", targets: ["NetworkMonitor"]),
         .library(name: "NotificationsManager", targets: ["NotificationsManager"]),
         .library(name: "NotificationMessages", targets: ["NotificationMessages"]),
+        .library(name: "PurchasesManager", targets: ["PurchasesManager"]),
         .library(name: "SentryManager", targets: ["SentryManager"]),
         .library(name: "SystemMessageManager", targets: ["SystemMessageManager"]),
         .library(name: "Tunnels", targets: ["Tunnels"]),
@@ -169,6 +170,13 @@ let package = Package(
                 "Theme"
             ],
             path: "Sources/Services/NotificationMessages"
+        ),
+        .target(
+            name: "PurchasesManager",
+            dependencies: [
+                "AppSettings"
+            ],
+            path: "Sources/Services/PurchasesManager"
         ),
         .target(
             name: "SentryManager",
