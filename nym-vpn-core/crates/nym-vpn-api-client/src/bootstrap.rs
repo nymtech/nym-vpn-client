@@ -26,7 +26,7 @@ impl BootstrapVpnApiClient {
             .map(|builder| builder.with_timeout(NYM_VPN_API_TIMEOUT))
             .and_then(|builder| builder.build())
             .map(|c| Self { inner: c })
-            .map_err(VpnApiClientError::FailedToCreateVpnApiClient)
+            .map_err(VpnApiClientError::CreateVpnApiClient)
     }
 
     pub async fn get_wellknown_envs(&self) -> Result<RegisteredNetworksResponse> {
@@ -41,7 +41,7 @@ impl BootstrapVpnApiClient {
                 NO_PARAMS,
             )
             .await
-            .map_err(VpnApiClientError::FailedToGetNetworkEnvs)
+            .map_err(VpnApiClientError::GetNetworkEnvs)
     }
 
     pub async fn get_wellknown_discovery(
@@ -60,6 +60,6 @@ impl BootstrapVpnApiClient {
                 NO_PARAMS,
             )
             .await
-            .map_err(VpnApiClientError::FailedToGetDiscoveryInfo)
+            .map_err(VpnApiClientError::GetDiscoveryInfo)
     }
 }

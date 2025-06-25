@@ -6,17 +6,18 @@ use std::net::SocketAddr;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_api_client::{
     response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage},
-    types::VpnApiTimeSynced,
+    types::{Platform, VpnApiTimeSynced},
 };
 use nym_vpn_lib_types::{
-    AccountCommandError, ForgetAccountError, RegisterDeviceError, RequestZkNymError,
-    StoreAccountError, SyncAccountError, SyncDeviceError,
+    AccountCommandError, CreateAccountError, ForgetAccountError, GetMnemonicError,
+    RegisterAccountError, RegisterDeviceError, RequestZkNymError, StoreAccountError,
+    SyncAccountError, SyncDeviceError,
 };
 use nym_vpn_store::mnemonic::Mnemonic;
 use tokio::sync::mpsc::UnboundedSender;
 
 use crate::{
-    AvailableTicketbooks,
+    AvailableTicketbooks, RegisterAccountResponse,
     commands::{AccountCommand, ReturnSender, tasks::request_zknym::RequestZkNymSummary},
     shared_state::{AccountRegistered, DeviceState, SharedAccountState},
 };
@@ -48,11 +49,56 @@ impl AccountCommandSender {
         rx.await.map_err(StoreAccountError::internal)?
     }
 
+    pub async fn register_account(
+        &self,
+        mnemonic: Mnemonic,
+        platform: Platform,
+    ) -> Result<RegisterAccountResponse, RegisterAccountError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::RegisterAccount(tx, mnemonic, platform))
+            .map_err(RegisterAccountError::internal)?;
+        rx.await.map_err(RegisterAccountError::internal)?
+    }
+
     pub async fn login(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
         self.store_account(mnemonic).await?;
         self.ensure_update_account().await?;
         self.ensure_update_device().await?;
         Ok(())
+    }
+
+    pub async fn get_stored_mnemonic(&self) -> Result<Mnemonic, GetMnemonicError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::GetStoredMnemonic(tx))
+            .map_err(GetMnemonicError::internal)?;
+        rx.await.map_err(GetMnemonicError::internal)?
+    }
+
+    pub async fn create_account_command(&self) -> Result<(), AccountCommandError> {
+        let (tx, rx) = ReturnSender::new();
+        self.command_tx
+            .send(AccountCommand::CreateAccount(tx))
+            .map_err(CreateAccountError::internal)?;
+        rx.await.map_err(CreateAccountError::internal)??;
+        Ok(())
+    }
+
+    pub async fn register_account_command(
+        &self,
+        mnemonic: Mnemonic,
+        platform: Platform,
+    ) -> Result<RegisterAccountResponse, AccountCommandError> {
+        let response = self.register_account(mnemonic, platform).await?;
+        self.ensure_update_account().await?;
+        self.ensure_update_device().await?;
+        Ok(response)
+    }
+
+    pub async fn get_stored_mnemonic_command(&self) -> Result<Mnemonic, AccountCommandError> {
+        let mnemonic = self.get_stored_mnemonic().await?;
+        Ok(mnemonic)
     }
 
     pub async fn forget_account(&self) -> Result<(), ForgetAccountError> {

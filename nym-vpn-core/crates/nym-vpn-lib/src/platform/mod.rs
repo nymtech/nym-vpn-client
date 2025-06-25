@@ -74,7 +74,7 @@ use crate::{
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
     AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayInfo, GatewayType, Location,
-    NetworkEnvironment, SystemMessage, UserAgent,
+    NetworkEnvironment, RegisterAccountResponse, SystemMessage, UserAgent,
 };
 use uniffi_lib_types::TunnelEvent;
 
@@ -191,12 +191,42 @@ pub fn login(mnemonic: String) -> Result<(), VpnError> {
     RUNTIME.block_on(account::login(&mnemonic))
 }
 
+/// Generate the account mnemonic locally and store it.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn createAccount() -> Result<(), VpnError> {
+    RUNTIME.block_on(account::create_account())
+}
+
+/// Register the stored account.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn registerAccount() -> Result<RegisterAccountResponse, VpnError> {
+    RUNTIME.block_on(account::register_account())
+}
+
 /// Store the account mnemonic
 /// This is a version that can be called when the account controller is not running.
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn loginRaw(mnemonic: String, path: String) -> Result<(), VpnError> {
     RUNTIME.block_on(account::raw::login_raw(&mnemonic, &path))
+}
+
+/// Generate the account mnemonic locally and store it.
+/// This is a version that can be called when the account controller is not running.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn createAccountRaw(path: String) -> Result<(), VpnError> {
+    RUNTIME.block_on(account::raw::create_account_raw(&path))
+}
+
+/// Load the account mnemonic stored locally and register it.
+/// This is a version that can be called when the account controller is not running.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn registerAccountRaw(path: String) -> Result<RegisterAccountResponse, VpnError> {
+    RUNTIME.block_on(account::raw::register_account_raw(&path))
 }
 
 /// Check if the account mnemonic is stored
@@ -212,6 +242,20 @@ pub fn isAccountMnemonicStored() -> Result<bool, VpnError> {
 #[uniffi::export]
 pub fn isAccountMnemonicStoredRaw(path: String) -> Result<bool, VpnError> {
     RUNTIME.block_on(account::raw::is_account_mnemonic_stored_raw(&path))
+}
+
+/// Read and return the mnemonic, if there's one stored.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getStoredMnemonicRaw(path: String) -> Result<String, VpnError> {
+    RUNTIME.block_on(account::raw::get_stored_mnemonic_raw(&path))
+}
+
+/// Read and return the mnemonic, if there's one stored.
+#[allow(non_snake_case)]
+#[uniffi::export]
+pub fn getStoredMnemonic() -> Result<String, VpnError> {
+    RUNTIME.block_on(account::get_stored_mnemonic())
 }
 
 /// Remove the account mnemonic and all associated keys and files

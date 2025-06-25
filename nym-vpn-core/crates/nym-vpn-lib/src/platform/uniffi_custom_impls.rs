@@ -482,6 +482,19 @@ impl From<ExitPoint> for GwExitPoint {
 }
 
 #[derive(uniffi::Record, Clone, Default, PartialEq)]
+pub struct RegisterAccountResponse {
+    pub account_token: String,
+}
+
+impl From<nym_vpn_account_controller::RegisterAccountResponse> for RegisterAccountResponse {
+    fn from(value: nym_vpn_account_controller::RegisterAccountResponse) -> Self {
+        RegisterAccountResponse {
+            account_token: value.account_token,
+        }
+    }
+}
+
+#[derive(uniffi::Record, Clone, Default, PartialEq)]
 pub struct AccountStateSummary {
     pub mnemonic: Option<MnemonicState>,
     pub account_registered: Option<AccountRegistered>,

@@ -35,16 +35,20 @@ where
             })
     }
 
-    pub(crate) async fn load_account(&self) -> Result<VpnApiAccount, Error> {
+    pub(crate) async fn load_mnemonic(&self) -> Result<Mnemonic, Error> {
         self.storage
             .lock()
             .await
             .load_mnemonic()
             .await
-            .map(VpnApiAccount::from)
             .map_err(|err| Error::MnemonicStore {
                 source: Box::new(err),
             })
+    }
+
+    pub(crate) async fn load_account(&self) -> Result<VpnApiAccount, Error> {
+        let mnemonic = self.load_mnemonic().await?;
+        VpnApiAccount::try_from(mnemonic).map_err(Error::internal)
     }
 
     pub(crate) async fn remove_account(&self) -> Result<(), Error> {
@@ -59,7 +63,9 @@ where
     }
 
     pub(crate) async fn load_account_id(&self) -> Result<String, Error> {
-        self.load_account().await.map(|account| account.id())
+        self.load_account()
+            .await
+            .map(|account| account.id().to_string())
     }
 
     pub(crate) async fn init_keys(&self) -> Result<(), Error> {

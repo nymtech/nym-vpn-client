@@ -7,7 +7,10 @@ use nym_common::trace_err_chain;
 use nym_vpn_account_controller::{
     AccountCommandSender, SharedAccountState, shared_state::DeviceState,
 };
-use nym_vpn_api_client::{response::NymVpnAccountSummaryResponse, types::VpnApiAccount};
+use nym_vpn_api_client::{
+    response::NymVpnAccountSummaryResponse,
+    types::{Platform, VpnApiAccount},
+};
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     keys::KeyStore,
@@ -16,7 +19,7 @@ use nym_vpn_store::{
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use super::uniffi_custom_impls::AccountStateSummary;
+use super::uniffi_custom_impls::{AccountStateSummary, RegisterAccountResponse};
 
 use super::{ACCOUNT_CONTROLLER_HANDLE, error::VpnError};
 
@@ -230,6 +233,33 @@ pub(super) async fn login(mnemonic: &str) -> Result<(), VpnError> {
     Ok(())
 }
 
+pub(super) async fn create_account() -> Result<(), VpnError> {
+    get_command_sender()
+        .await?
+        .create_account_command()
+        .await
+        .map_err(VpnError::from)
+}
+
+pub(super) async fn register_account() -> Result<RegisterAccountResponse, VpnError> {
+    let mnemonic = get_command_sender()
+        .await?
+        .get_stored_mnemonic_command()
+        .await
+        .map_err(VpnError::from)?;
+    let platform = if cfg!(target_os = "ios") {
+        Platform::Apple
+    } else {
+        Platform::Unspecified
+    };
+    get_command_sender()
+        .await?
+        .register_account_command(mnemonic, platform)
+        .await
+        .map(RegisterAccountResponse::from)
+        .map_err(VpnError::from)
+}
+
 pub(super) async fn forget_account() -> Result<(), VpnError> {
     get_command_sender()
         .await?
@@ -244,6 +274,15 @@ pub(super) async fn get_account_id() -> Result<Option<String>, VpnError> {
 
 pub(super) async fn is_account_mnemonic_stored() -> Result<bool, VpnError> {
     Ok(get_shared_account_state().await?.is_account_stored().await)
+}
+
+pub(super) async fn get_stored_mnemonic() -> Result<String, VpnError> {
+    Ok(get_command_sender()
+        .await?
+        .get_stored_mnemonic_command()
+        .await
+        .map_err(VpnError::from)?
+        .to_string())
 }
 
 pub(super) async fn get_device_id() -> Result<String, VpnError> {
@@ -263,10 +302,11 @@ pub(super) async fn get_device_id() -> Result<String, VpnError> {
 pub(crate) mod raw {
     use std::path::Path;
 
+    use nym_common::ErrorExt;
     use nym_sdk::mixnet::StoragePaths;
     use nym_vpn_api_client::{
         VpnApiClient,
-        response::NymVpnAccountResponse,
+        response::{NymVpnAccountResponse, NymVpnRegisterAccountResponse},
         types::{Device, DeviceStatus},
     };
 
@@ -291,19 +331,53 @@ pub(crate) mod raw {
         Ok(())
     }
 
+    pub(crate) async fn create_account_raw(path: &str) -> Result<(), VpnError> {
+        let (_, mnemonic) = VpnApiAccount::random().map_err(VpnError::internal)?;
+        let storage = setup_account_storage(path).await?;
+        storage.store_mnemonic(mnemonic.clone()).await?;
+        storage.init_keys(None).await?;
+        Ok(())
+    }
+
+    pub(crate) async fn register_account_raw(
+        path: &str,
+    ) -> Result<RegisterAccountResponse, VpnError> {
+        let platform = if cfg!(target_os = "ios") {
+            Platform::Apple
+        } else {
+            Platform::Unspecified
+        };
+        let storage = setup_account_storage(path).await?;
+        let mnemonic = storage
+            .load_mnemonic()
+            .await
+            .map_err(|_err| VpnError::NoAccountStored)?;
+        let account = VpnApiAccount::try_from(mnemonic).map_err(VpnError::internal)?;
+        let account_token = register_account_by_account_raw(&account, platform)
+            .await?
+            .account_token;
+        Ok(RegisterAccountResponse { account_token })
+    }
+
     pub(crate) async fn is_account_mnemonic_stored_raw(path: &str) -> Result<bool, VpnError> {
         let storage = setup_account_storage(path).await?;
         storage.is_mnemonic_stored().await.map_err(Into::into)
     }
 
+    pub(crate) async fn get_stored_mnemonic_raw(path: &str) -> Result<String, VpnError> {
+        let storage = setup_account_storage(path).await?;
+        Ok(storage.load_mnemonic().await?.to_string())
+    }
+
     pub(crate) async fn get_account_id_raw(path: &str) -> Result<String, VpnError> {
         let storage = setup_account_storage(path).await?;
-        storage
+        let mnemonic = storage
             .load_mnemonic()
             .await
-            .map(VpnApiAccount::from)
-            .map(|account| account.id())
-            .map_err(|_err| VpnError::NoAccountStored)
+            .map_err(|_err| VpnError::NoAccountStored)?;
+        VpnApiAccount::try_from(mnemonic)
+            .map_err(VpnError::internal)
+            .map(|account| account.id().to_string())
     }
 
     async fn remove_account_mnemonic_raw(path: &str) -> Result<bool, VpnError> {
@@ -360,7 +434,7 @@ pub(crate) mod raw {
             .load_mnemonic()
             .await
             .map_err(|_| VpnError::NoAccountStored)?;
-        let account = VpnApiAccount::from(mnemonic);
+        let account = VpnApiAccount::try_from(mnemonic).map_err(VpnError::internal)?;
 
         let vpn_api_client = create_vpn_api_client().await?;
 
@@ -377,11 +451,24 @@ pub(crate) mod raw {
         mnemonic: Mnemonic,
     ) -> Result<NymVpnAccountResponse, VpnError> {
         let vpn_api_client = create_vpn_api_client().await?;
-        let account = VpnApiAccount::from(mnemonic);
+        let account = VpnApiAccount::try_from(mnemonic).map_err(VpnError::internal)?;
         vpn_api_client
             .get_account(&account)
             .await
             .map_err(|_err| VpnError::AccountNotRegistered)
+    }
+
+    async fn register_account_by_account_raw(
+        account: &VpnApiAccount,
+        platform: Platform,
+    ) -> Result<NymVpnRegisterAccountResponse, VpnError> {
+        let vpn_api_client = create_vpn_api_client().await?;
+        vpn_api_client
+            .post_account(account, platform)
+            .await
+            .map_err(|err| VpnError::FailedAccountRegistration {
+                details: err.display_chain(),
+            })
     }
 
     pub(crate) async fn forget_account_raw(path: &str) -> Result<(), VpnError> {

@@ -14,21 +14,67 @@ use crate::{VpnApiClientError, error::Result, jwt::Jwt};
 const MAX_ACCEPTABLE_SKEW_SECONDS: i64 = 60;
 const SKEW_SECONDS_CONSIDERED_SAME: i64 = 2;
 
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    #[error("wallet error")]
+    Wallet(#[from] nym_validator_client::signing::direct_wallet::DirectSecp256k1HdWalletError),
+
+    #[error("no accounts in wallet")]
+    NoAccounts,
+}
+
 #[derive(Clone, Debug)]
 pub struct VpnApiAccount {
     wallet: DirectSecp256k1HdWallet,
+    id: String,
+    pub_key: String,
+    signature_base64: String,
 }
 
 impl VpnApiAccount {
-    #[allow(unused)]
-    fn random() -> Self {
-        let mnemonic = bip39::Mnemonic::generate(24).unwrap();
-        let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
-        Self { wallet }
+    fn derive_from_wallet(wallet: DirectSecp256k1HdWallet) -> std::result::Result<Self, Error> {
+        let accounts = wallet.get_accounts()?;
+        let address = accounts.first().ok_or(Error::NoAccounts)?.address();
+        let id = address.to_string();
+        let pub_key = bs58::encode(
+            accounts
+                .first()
+                .ok_or(Error::NoAccounts)?
+                .public_key()
+                .to_bytes(),
+        )
+        .into_string();
+
+        let message = id.clone().into_bytes();
+        let signature = wallet.sign_raw(address, message)?;
+        let signature_bytes = signature.to_bytes().to_vec();
+        let signature_base64 = base64_url::encode(&signature_bytes);
+
+        Ok(Self {
+            wallet,
+            id,
+            pub_key,
+            signature_base64,
+        })
     }
 
-    pub fn id(&self) -> String {
-        self.wallet.get_accounts().unwrap()[0].address().to_string()
+    pub fn random() -> Result<(Self, bip39::Mnemonic)> {
+        let mnemonic = bip39::Mnemonic::generate(24).unwrap();
+        let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
+        let account = Self::derive_from_wallet(wallet).map_err(VpnApiClientError::CreateAccount)?;
+        Ok((account, mnemonic))
+    }
+
+    pub fn id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn pub_key(&self) -> &str {
+        &self.pub_key
+    }
+
+    pub fn signature_base64(&self) -> &str {
+        &self.signature_base64
     }
 
     pub(crate) fn jwt(&self, remote_time: Option<VpnApiTime>) -> Jwt {
@@ -48,12 +94,18 @@ impl VpnApiAccount {
             extended_private_key.private_key().to_bytes(),
         ))
     }
+
+    pub fn get_mnemonic(&self) -> String {
+        self.wallet.mnemonic()
+    }
 }
 
-impl From<bip39::Mnemonic> for VpnApiAccount {
-    fn from(mnemonic: bip39::Mnemonic) -> Self {
+impl TryFrom<bip39::Mnemonic> for VpnApiAccount {
+    type Error = VpnApiClientError;
+
+    fn try_from(mnemonic: bip39::Mnemonic) -> std::result::Result<Self, Self::Error> {
         let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
-        Self { wallet }
+        Self::derive_from_wallet(wallet).map_err(VpnApiClientError::CreateAccount)
     }
 }
 
@@ -174,7 +226,23 @@ mod tests {
 
     #[test]
     fn create_account_from_mnemonic() {
-        let account = VpnApiAccount::from(bip39::Mnemonic::parse(TEST_DEFAULT_MNEMONIC).unwrap());
+        let account =
+            VpnApiAccount::try_from(bip39::Mnemonic::parse(TEST_DEFAULT_MNEMONIC).unwrap())
+                .unwrap();
         assert_eq!(account.id(), TEST_DEFAULT_MNEMONIC_ID);
+    }
+
+    #[test]
+    fn create_random_account() {
+        let (_, mnemonic) = VpnApiAccount::random().unwrap();
+        assert_eq!(mnemonic.word_count(), 24);
+    }
+
+    #[test]
+    fn derive_wallets() {
+        for word_count in [12, 24] {
+            let wallet = DirectSecp256k1HdWallet::generate("n", word_count).unwrap();
+            VpnApiAccount::derive_from_wallet(wallet).unwrap();
+        }
     }
 }

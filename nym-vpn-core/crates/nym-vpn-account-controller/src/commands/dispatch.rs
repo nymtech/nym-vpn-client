@@ -3,8 +3,9 @@
 
 use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_lib_types::{
-    AccountCommandError, ForgetAccountError, RegisterDeviceError, RequestZkNymError,
-    StoreAccountError, SyncAccountError, SyncDeviceError,
+    AccountCommandError, CreateAccountError, ForgetAccountError, GetMnemonicError,
+    RegisterAccountError, RegisterDeviceError, RequestZkNymError, StoreAccountError,
+    SyncAccountError, SyncDeviceError,
 };
 use nym_vpn_store::mnemonic::Mnemonic;
 
@@ -12,18 +13,25 @@ use std::net::SocketAddr;
 
 use nym_vpn_api_client::{
     response::{NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnUsage},
-    types::VpnApiTimeSynced,
+    types::{Platform, VpnApiTimeSynced},
 };
 use tokio::sync::oneshot;
 
 use crate::{
-    AvailableTicketbooks, Error, commands::tasks::request_zknym::RequestZkNymSummary,
-    shared_state::DeviceState,
+    AvailableTicketbooks, Error, RegisterAccountResponse,
+    commands::tasks::request_zknym::RequestZkNymSummary, shared_state::DeviceState,
 };
 
 #[derive(Debug, strum::Display)]
 pub enum AccountCommand {
+    CreateAccount(ReturnSender<(), CreateAccountError>),
     StoreAccount(ReturnSender<(), StoreAccountError>, Mnemonic),
+    GetStoredMnemonic(ReturnSender<Mnemonic, GetMnemonicError>),
+    RegisterAccount(
+        ReturnSender<RegisterAccountResponse, RegisterAccountError>,
+        Mnemonic,
+        Platform,
+    ),
     ForgetAccount(ReturnSender<(), ForgetAccountError>),
     SyncAccountState(Option<ReturnSender<NymVpnAccountSummaryResponse, SyncAccountError>>),
     SyncDeviceState(Option<ReturnSender<DeviceState, SyncDeviceError>>),

@@ -3,8 +3,11 @@
 
 use std::ops::Deref;
 
-use nym_vpn_api_client::{response::NymVpnAccountStatusResponse, types::VpnApiAccount};
-use nym_vpn_lib_types::{StoreAccountError, VpnApiError};
+use nym_vpn_api_client::{
+    response::{NymVpnAccountStatusResponse, NymVpnRegisterAccountStatusResponse},
+    types::{Platform, VpnApiAccount},
+};
+use nym_vpn_lib_types::{RegisterAccountError, StoreAccountError, VpnApiError};
 
 use crate::{AccountControllerConfig, Error};
 
@@ -35,28 +38,42 @@ impl AccountControllerVpnApiClient {
         &self,
         account: &VpnApiAccount,
     ) -> Result<(), StoreAccountError> {
-        let response = self.inner.get_account(account).await.map_err(|e| {
+        let account = self.inner.get_account(account).await.map_err(|e| {
             VpnApiError::try_from(e)
                 .map(StoreAccountError::GetAccountEndpointFailure)
                 .unwrap_or_else(StoreAccountError::unexpected_response)
-        });
-
+        })?;
         // TODO: handle these cases
         // The logic below replicates the previous behaviour, but we should extend it to also
         // handle where the account exists, but is not active or soft-deleted.
-        match response {
-            Ok(account) => match account.status {
-                NymVpnAccountStatusResponse::Active => Ok(()),
-                NymVpnAccountStatusResponse::Inactive => {
-                    tracing::warn!("Account is inactive - proceeding anyway");
-                    Ok(())
-                }
-                NymVpnAccountStatusResponse::DeleteMe => {
-                    tracing::warn!("Account is marked for deletion - proceeding anyway");
-                    Ok(())
-                }
-            },
-            Err(err) => Err(err),
+        match account.status {
+            NymVpnAccountStatusResponse::Active => {}
+            NymVpnAccountStatusResponse::Inactive => {
+                tracing::warn!("Account is inactive - proceeding anyway");
+            }
+            NymVpnAccountStatusResponse::DeleteMe => {
+                tracing::warn!("Account is marked for deletion - proceeding anyway");
+            }
+        }
+        Ok(())
+    }
+
+    pub(crate) async fn register_account(
+        &self,
+        account: &VpnApiAccount,
+        platform: Platform,
+    ) -> Result<String, RegisterAccountError> {
+        let account = self
+            .inner
+            .post_account(account, platform)
+            .await
+            .map_err(|e| {
+                VpnApiError::try_from(e)
+                    .map(RegisterAccountError::RegisterAccountEndpointFailure)
+                    .unwrap_or_else(RegisterAccountError::unexpected_response)
+            })?;
+        match account.status {
+            NymVpnRegisterAccountStatusResponse::Active => Ok(account.account_token),
         }
     }
 }

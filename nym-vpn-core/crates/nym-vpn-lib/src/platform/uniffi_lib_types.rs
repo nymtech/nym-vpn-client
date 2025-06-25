@@ -11,10 +11,11 @@ use nym_vpn_lib_types::{
     ClientErrorReason, ConnectionData as CoreConnectionData,
     ConnectionEvent as CoreConnectionEvent,
     ConnectionStatisticsEvent as CoreConnectionStatisticsEvent,
-    ForgetAccountError as CoreForgetAccountError, Gateway as CoreGateway,
+    CreateAccountError as CoreCreateAccountError, ForgetAccountError as CoreForgetAccountError,
+    Gateway as CoreGateway, GetMnemonicError as CoreGetMnemonicError,
     MixnetConnectionData as CoreMixnetConnectionData, MixnetEvent as CoreMixnetEvent,
-    NymAddress as CoreNymAddress, RegisterDeviceError as CoreRegisterDeviceError,
-    RequestZkNymError as CoreRequestZkNymError,
+    NymAddress as CoreNymAddress, RegisterAccountError as CoreRegisterAccountError,
+    RegisterDeviceError as CoreRegisterDeviceError, RequestZkNymError as CoreRequestZkNymError,
     RequestZkNymErrorReason as CoreRequestZkNymErrorReason,
     RequestZkNymSuccess as CoreRequestZkNymSuccess, SphinxPacketRates as CoreSphinxPacketRates,
     StoreAccountError as CoreStoreAccountError, SyncAccountError as CoreSyncAccountError,
@@ -243,6 +244,40 @@ pub enum ErrorStateReason {
 }
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
+pub enum GetMnemonicError {
+    #[error("storage: {0}")]
+    Storage(String),
+    #[error("internal error: {0}")]
+    Internal(String),
+}
+
+impl From<CoreGetMnemonicError> for GetMnemonicError {
+    fn from(value: CoreGetMnemonicError) -> Self {
+        match value {
+            CoreGetMnemonicError::Storage(err) => Self::Storage(err),
+            CoreGetMnemonicError::Internal(err) => Self::Internal(err),
+        }
+    }
+}
+
+#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
+pub enum CreateAccountError {
+    #[error("storage: {0}")]
+    Storage(String),
+    #[error("internal error: {0}")]
+    Internal(String),
+}
+
+impl From<CoreCreateAccountError> for CreateAccountError {
+    fn from(value: CoreCreateAccountError) -> Self {
+        match value {
+            CoreCreateAccountError::Storage(err) => Self::Storage(err),
+            CoreCreateAccountError::Internal(err) => Self::Internal(err),
+        }
+    }
+}
+
+#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
 pub enum StoreAccountError {
     #[error("invalid mnemonic: {0}")]
     InvalidMnemonic(String),
@@ -268,6 +303,36 @@ impl From<CoreStoreAccountError> for StoreAccountError {
                 Self::UnexpectedResponse(response)
             }
             CoreStoreAccountError::Internal(err) => Self::Internal(err),
+        }
+    }
+}
+
+#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
+pub enum RegisterAccountError {
+    #[error("offline")]
+    Offline,
+    #[error("storage: {0}")]
+    Storage(String),
+    #[error("vpn api endpoint failure: {0}")]
+    GetAccountEndpointFailure(VpnApiError),
+    #[error("unexpected response: {0}")]
+    UnexpectedResponse(String),
+    #[error("internal error: {0}")]
+    Internal(String),
+}
+
+impl From<CoreRegisterAccountError> for RegisterAccountError {
+    fn from(value: CoreRegisterAccountError) -> Self {
+        match value {
+            CoreRegisterAccountError::Offline => Self::Offline,
+            CoreRegisterAccountError::Storage(err) => Self::Storage(err),
+            CoreRegisterAccountError::RegisterAccountEndpointFailure(failure) => {
+                Self::GetAccountEndpointFailure(failure.into())
+            }
+            CoreRegisterAccountError::UnexpectedResponse(response) => {
+                Self::UnexpectedResponse(response)
+            }
+            CoreRegisterAccountError::Internal(err) => Self::Internal(err),
         }
     }
 }

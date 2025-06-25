@@ -23,6 +23,9 @@ pub enum VpnError {
     #[error("attempting to access an account that is not registered")]
     AccountNotRegistered,
 
+    #[error("failed to register account: {details}")]
+    FailedAccountRegistration { details: String },
+
     #[error("no device identity stored")]
     NoDeviceIdentity,
 
@@ -47,10 +50,28 @@ pub enum VpnError {
     #[error("failed to remove device from nym vpn api: {details}")]
     UnregisterDevice { details: String },
 
+    #[error("failed to get stored mnemonic: {details}")]
+    GetMnemonic {
+        #[from]
+        details: super::uniffi_lib_types::GetMnemonicError,
+    },
+
+    #[error("failed to create account: {details}")]
+    CreateAccount {
+        #[from]
+        details: super::uniffi_lib_types::CreateAccountError,
+    },
+
     #[error("failed to store account: {details}")]
     StoreAccount {
         #[from]
         details: super::uniffi_lib_types::StoreAccountError,
+    },
+
+    #[error("failed to register account: {details}")]
+    RegisterAccount {
+        #[from]
+        details: super::uniffi_lib_types::RegisterAccountError,
     },
 
     #[error("sync account failed: {details}")]
@@ -109,7 +130,10 @@ impl From<AccountCommandError> for VpnError {
             AccountCommandError::Offline => Self::NetworkConnectionError {
                 details: "Unable to proceed with command since we are offline".to_owned(),
             },
+            AccountCommandError::GetMnemonic(e) => Self::GetMnemonic { details: e.into() },
+            AccountCommandError::CreateAccount(e) => Self::CreateAccount { details: e.into() },
             AccountCommandError::StoreAccount(e) => Self::StoreAccount { details: e.into() },
+            AccountCommandError::RegisterAccount(e) => Self::RegisterAccount { details: e.into() },
             AccountCommandError::SyncAccount(e) => Self::SyncAccount { details: e.into() },
             AccountCommandError::SyncDevice(e) => Self::SyncDevice { details: e.into() },
             AccountCommandError::RegisterDevice(e) => Self::RegisterDevice { details: e.into() },

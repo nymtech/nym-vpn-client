@@ -6,9 +6,12 @@ use std::{net::SocketAddr, sync::Arc, time::Duration};
 use nym_offline_monitor::{Connectivity, ConnectivityHandle};
 use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
-    types::{DeviceStatus, VpnApiAccount, VpnApiTimeSynced},
+    types::{DeviceStatus, Platform, VpnApiAccount, VpnApiTimeSynced},
 };
-use nym_vpn_lib_types::{AccountCommandError, ForgetAccountError, StoreAccountError, VpnApiError};
+use nym_vpn_lib_types::{
+    AccountCommandError, CreateAccountError, ForgetAccountError, GetMnemonicError,
+    RegisterAccountError, StoreAccountError, VpnApiError,
+};
 use nym_vpn_store::{VpnStorage, mnemonic::Mnemonic};
 use tokio::{
     sync::mpsc::{UnboundedReceiver, UnboundedSender},
@@ -17,7 +20,7 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    AccountCommandSender, AccountControllerConfig, AvailableTicketbooks,
+    AccountCommandSender, AccountControllerConfig, AvailableTicketbooks, RegisterAccountResponse,
     commands::{AccountCommand, AccountCommandHandler, AccountCommandResult},
     connectivity::OfflineWatch,
     error::Error,
@@ -167,7 +170,9 @@ where
             Ok(ref account) => {
                 tracing::debug!("Our account id: {}", account.id());
                 self.account_state
-                    .set_mnemonic(MnemonicState::Stored { id: account.id() })
+                    .set_mnemonic(MnemonicState::Stored {
+                        id: account.id().to_string(),
+                    })
                     .await;
             }
             Err(ref err) => {
@@ -261,10 +266,37 @@ where
             })
     }
 
+    async fn handle_create_account(&self) -> Result<(), CreateAccountError> {
+        let (_, mnemonic) = VpnApiAccount::random().map_err(CreateAccountError::internal)?;
+
+        self.account_storage
+            .store_account(mnemonic.clone())
+            .await
+            .map_err(CreateAccountError::storage)?;
+
+        self.update_mnemonic_state()
+            .await
+            .map_err(CreateAccountError::internal)?;
+
+        Ok(())
+    }
+
+    async fn handle_get_stored_mnemonic(&self) -> Result<Mnemonic, GetMnemonicError> {
+        let mnemonic = self
+            .account_storage
+            .load_mnemonic()
+            .await
+            .map_err(GetMnemonicError::storage)?;
+        Ok(mnemonic)
+    }
+
     async fn handle_store_account(&self, mnemonic: Mnemonic) -> Result<(), StoreAccountError> {
         if self.offline_watch.is_online() {
             self.vpn_api_client
-                .check_account_exists_on_api(&VpnApiAccount::from(mnemonic.clone()))
+                .check_account_exists_on_api(
+                    &VpnApiAccount::try_from(mnemonic.clone())
+                        .map_err(StoreAccountError::internal)?,
+                )
                 .await?;
         } else {
             tracing::info!("Not checking if account exists on vpn-api as we are offline");
@@ -286,6 +318,31 @@ where
         }
 
         Ok(())
+    }
+
+    async fn handle_register_account(
+        &self,
+        mnemonic: Mnemonic,
+        platform: Platform,
+    ) -> Result<RegisterAccountResponse, RegisterAccountError> {
+        let account = VpnApiAccount::try_from(mnemonic).map_err(RegisterAccountError::internal)?;
+
+        let account_token = if self.offline_watch.is_online() {
+            self.vpn_api_client
+                .register_account(&account, platform)
+                .await?
+        } else {
+            tracing::error!("Can't register account with vpn-api as we are offline");
+            return Err(RegisterAccountError::Offline);
+        };
+
+        if self.offline_watch.is_online() {
+            // We don't need to wait for the sync to finish, so queue it up and return
+            self.get_command_sender().background_sync_account_state();
+            self.get_command_sender().background_sync_device_state();
+        }
+
+        Ok(RegisterAccountResponse { account_token })
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), ForgetAccountError> {
@@ -800,8 +857,17 @@ where
     async fn handle_command(&mut self, command: AccountCommand) {
         tracing::info!("← {}", command);
         match command {
+            AccountCommand::CreateAccount(result_tx) => {
+                result_tx.send(self.handle_create_account().await);
+            }
             AccountCommand::StoreAccount(result_tx, mnemonic) => {
                 result_tx.send(self.handle_store_account(mnemonic).await);
+            }
+            AccountCommand::GetStoredMnemonic(result_tx) => {
+                result_tx.send(self.handle_get_stored_mnemonic().await);
+            }
+            AccountCommand::RegisterAccount(result_tx, mnemonic, platform) => {
+                result_tx.send(self.handle_register_account(mnemonic, platform).await);
             }
             AccountCommand::ForgetAccount(result_tx) => {
                 result_tx.send(self.handle_forget_account().await);
