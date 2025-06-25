@@ -75,7 +75,7 @@ static LOGGING_SETUP: LazyLock<Mutex<Option<LoggingSetup>>> = LazyLock::new(|| M
 static LOGGING_WORKER_GUARD: LazyLock<Mutex<Option<WorkerGuard>>> =
     LazyLock::new(|| Mutex::new(None));
 
-/// Whether a sentry client has been initialized, passed from `main()` and used later to interact with logging.
+/// Whether a sentry client has been initialized, passed from `main()` and used later by the vpn service.
 static SENTRY_ENABLED: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(false));
 
 fn service_main(arguments: Vec<OsString>) {
