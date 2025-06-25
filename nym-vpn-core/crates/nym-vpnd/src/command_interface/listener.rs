@@ -11,13 +11,14 @@ use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
     AccountManagement, AvailableTickets, ConfirmZkNymDownloadedRequest,
     ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse, DeleteLogFileResponse,
-    DisconnectResponse, ForgetAccountResponse, GetAccountIdentityResponse, GetAccountLinksRequest,
-    GetAccountStateResponse, GetAccountUsageResponse, GetDeviceIdentityResponse,
-    GetDeviceZkNymsResponse, GetDevicesResponse, GetFeatureFlagsResponse, GetLogPathResponse,
+    DisableSentryResponse, DisconnectResponse, EnableSentryResponse, ForgetAccountResponse,
+    GetAccountIdentityResponse, GetAccountLinksRequest, GetAccountStateResponse,
+    GetAccountUsageResponse, GetDeviceIdentityResponse, GetDeviceZkNymsResponse,
+    GetDevicesResponse, GetFeatureFlagsResponse, GetLogPathResponse,
     GetNetworkCompatibilityResponse, GetSystemMessagesResponse, GetZkNymByIdRequest,
     GetZkNymByIdResponse, GetZkNymsAvailableForDownloadResponse, InfoResponse,
-    IsAccountStoredResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
-    ListGatewaysResponse, RefreshAccountStateResponse, RegisterDeviceResponse,
+    IsAccountStoredResponse, IsSentryEnabledResponse, ListCountriesRequest, ListCountriesResponse,
+    ListGatewaysRequest, ListGatewaysResponse, RefreshAccountStateResponse, RegisterDeviceResponse,
     RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
     SetNetworkRequest, SetNetworkResponse, StoreAccountRequest, StoreAccountResponse, TunnelState,
     conversions::ConversionError, get_account_state_response::AccountStateSummary,
@@ -760,6 +761,52 @@ impl NymVpnd for CommandInterface {
         };
         tracing::debug!("log dir path: {}", log_path.dir.display());
         Ok(tonic::Response::new(log_path.into()))
+    }
+
+    async fn is_sentry_enabled(
+        &self,
+        _: tonic::Request<()>,
+    ) -> Result<tonic::Response<IsSentryEnabledResponse>, tonic::Status> {
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_is_sentry_enabled()
+            .await?;
+        tracing::debug!("sentry monitoring enabled: {}", result);
+        let response = IsSentryEnabledResponse { enabled: result };
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn enable_sentry(
+        &self,
+        _: tonic::Request<()>,
+    ) -> Result<tonic::Response<EnableSentryResponse>, tonic::Status> {
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_toggle_sentry(true)
+            .await?;
+        match &result {
+            Ok(_) => tracing::info!("sentry monitoring enabled ⚠ vpnd needs to be restarted ⚠"),
+            Err(err) => tracing::error!("failed to enable sentry monitoring: {:?}", err),
+        }
+        let response = EnableSentryResponse {
+            success: result.is_ok(),
+        };
+        Ok(tonic::Response::new(response))
+    }
+
+    async fn disable_sentry(
+        &self,
+        _: tonic::Request<()>,
+    ) -> Result<tonic::Response<DisableSentryResponse>, tonic::Status> {
+        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
+            .handle_toggle_sentry(false)
+            .await?;
+        match &result {
+            Ok(_) => tracing::info!("sentry monitoring disabled ⚠ vpnd needs to be restarted ⚠"),
+            Err(err) => tracing::error!("failed to disable sentry monitoring: {}", err),
+        }
+        let response = DisableSentryResponse {
+            success: result.is_ok(),
+        };
+        Ok(tonic::Response::new(response))
     }
 }
 

@@ -55,4 +55,12 @@ pub enum Error {
     StateMachine(#[source] TunnelStateMachineError),
 }
 
+#[derive(Clone, Debug, thiserror::Error)]
+pub enum GlobalConfigError {
+    #[error("failed to read config")]
+    ReadConfig(String),
+    #[error("failed to write config")]
+    WriteConfig(String),
+}
+
 pub type Result<T, E = Error> = std::result::Result<T, E>;

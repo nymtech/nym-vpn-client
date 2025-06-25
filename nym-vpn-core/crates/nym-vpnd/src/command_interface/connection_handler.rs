@@ -17,15 +17,14 @@ use nym_vpn_lib_types::{
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::gateway;
 
+use super::protobuf::error::VpnCommandSendError;
 use crate::{
     logging::LogPath,
     service::{
-        AccountLinksError, ConnectArgs, ConnectOptions, GATEWAY_DIRECTORY_CLIENT, SetNetworkError,
-        VpnServiceCommand, VpnServiceDeleteLogFileError,
+        AccountLinksError, ConnectArgs, ConnectOptions, GATEWAY_DIRECTORY_CLIENT,
+        GlobalConfigError, SetNetworkError, VpnServiceCommand, VpnServiceDeleteLogFileError,
     },
 };
-
-use super::protobuf::error::VpnCommandSendError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum ListGatewayError {
@@ -294,6 +293,19 @@ impl CommandInterfaceConnectionHandler {
 
     pub async fn handle_get_log_path(&self) -> Result<Option<LogPath>, VpnCommandSendError> {
         self.send_and_wait(VpnServiceCommand::GetLogPath, ()).await
+    }
+
+    pub async fn handle_is_sentry_enabled(&self) -> Result<bool, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::IsSentryEnabled, ())
+            .await
+    }
+
+    pub async fn handle_toggle_sentry(
+        &self,
+        enable: bool,
+    ) -> Result<Result<(), GlobalConfigError>, VpnCommandSendError> {
+        self.send_and_wait(VpnServiceCommand::ToggleSentry, enable)
+            .await
     }
 
     async fn send_and_wait<R, F, O>(&self, command: F, opts: O) -> Result<R, VpnCommandSendError>

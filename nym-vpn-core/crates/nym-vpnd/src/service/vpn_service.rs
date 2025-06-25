@@ -48,6 +48,7 @@ use super::{
         VpnServiceDeleteLogFileError,
     },
 };
+use crate::service::error::GlobalConfigError;
 use crate::{config::GlobalConfigFile, logging::LogPath};
 
 // Lazy initialized static instance of CachingGatewayClient, using OnceLock
@@ -118,6 +119,8 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<(), VpnServiceDeleteLogFileError>>,
         (),
     ),
+    IsSentryEnabled(oneshot::Sender<bool>, ()),
+    ToggleSentry(oneshot::Sender<Result<(), GlobalConfigError>>, bool),
 }
 
 #[derive(Debug)]
@@ -197,6 +200,9 @@ where
 
     // The (optional) recipient to send statistics to
     statistics_recipient: Option<Recipient>,
+
+    // Sentry client has been initialized and is enabled
+    sentry_enabled: bool,
 }
 
 impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
@@ -208,9 +214,10 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         network_env: Network,
         user_agent: UserAgent,
         log_path: Option<LogPath>,
+        sentry_enabled: bool,
     ) -> JoinHandle<()> {
         tracing::trace!("Starting VPN service");
-        tokio::spawn(async {
+        tokio::spawn(async move {
             match NymVpnService::new(
                 vpn_command_rx,
                 tunnel_event_tx,
@@ -219,6 +226,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
                 network_env,
                 user_agent,
                 log_path,
+                sentry_enabled,
             )
             .await
             {
@@ -249,6 +257,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         network_env: Network,
         user_agent: UserAgent,
         log_path: Option<LogPath>,
+        sentry_enabled: bool,
     ) -> Result<Self> {
         let network_name = network_env.nym_network_details().network_name.clone();
 
@@ -405,6 +414,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             event_receiver,
             shutdown_token,
             statistics_recipient,
+            sentry_enabled,
         })
     }
 }
@@ -570,6 +580,12 @@ where
             }
             VpnServiceCommand::DeleteLogFile(tx, ()) => {
                 let _ = tx.send(self.handle_delete_log_file().await);
+            }
+            VpnServiceCommand::IsSentryEnabled(tx, ()) => {
+                let _ = tx.send(self.handle_is_sentry_enabled().await);
+            }
+            VpnServiceCommand::ToggleSentry(tx, enable) => {
+                let _ = tx.send(self.handle_toggle_sentry(enable).await);
             }
         }
     }
@@ -934,6 +950,26 @@ where
                 ));
             }
         }
+        Ok(())
+    }
+
+    async fn handle_is_sentry_enabled(&self) -> bool {
+        GlobalConfigFile::read_from_file()
+            .inspect_err(|e| {
+                tracing::error!("Failed to read global config file: {}", e);
+            })
+            .ok()
+            .and_then(|c| c.sentry_monitoring)
+            // if something goes wrong with the config file, fallback to the real state of Sentry client
+            .unwrap_or(self.sentry_enabled)
+    }
+
+    async fn handle_toggle_sentry(&self, enable: bool) -> Result<(), GlobalConfigError> {
+        let mut config = GlobalConfigFile::read_from_file()
+            .map_err(|e| GlobalConfigError::ReadConfig(e.to_string()))?;
+        config.sentry_monitoring = Some(enable);
+        GlobalConfigFile::write_to_file(&config)
+            .map_err(|e| GlobalConfigError::WriteConfig(e.to_string()))?;
         Ok(())
     }
 }
