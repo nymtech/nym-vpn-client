@@ -31,6 +31,10 @@ public final class CredentialsManager: ObservableObject {
         appSettings.isCredentialImported
     }
 
+    public var accountToken: String? {
+        appSettings.accountToken
+    }
+
     private init() {
         setup()
     }

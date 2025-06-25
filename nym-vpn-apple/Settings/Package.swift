@@ -40,6 +40,7 @@ let package = Package(
                 .product(name: "HelperInstall", package: "HelperInstall", condition: .when(platforms: [.macOS])),
                 .product(name: "ImpactGenerator", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
                 .product(name: "KeyboardManager", package: "ServicesIOS", condition: .when(platforms: [.iOS])),
+                .product(name: "PurchasesManager", package: "Services"),
                 .product(name: "SentryManager", package: "Services"),
                 .product(name: "NymLogger", package: "ServicesMutual"),
                 .product(name: "Theme", package: "Theme"),

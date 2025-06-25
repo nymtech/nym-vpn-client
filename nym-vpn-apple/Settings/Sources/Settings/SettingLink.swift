@@ -5,8 +5,10 @@ import HelperInstall
 
 public enum SettingLink: Hashable, Identifiable {
     case addCredentials
+    case createAccountWelcome
     case createAccount
     case createAccountSuccess
+    case planPurchaseSuccess
     case appearance
     case displayTheme
     case logs
