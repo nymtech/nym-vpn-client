@@ -49,6 +49,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
 fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
     let _sentry_guard = init_sentry();
+    let sentry_enabled = _sentry_guard.is_some_and(|client| client.is_enabled());
 
     if args.command.install {
         println!(
@@ -79,7 +80,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             verbosity_level: args.verbosity_level(),
             enable_file_log: true,
             enable_stdout_log: false,
-            sentry: _sentry_guard.is_some(),
+            sentry: sentry_enabled,
         });
         let worker_guard = service::windows_service::start(
             service::windows_service::ServiceNetworkConfig {
@@ -87,6 +88,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
                 config_env_file: args.config_env_file.to_owned(),
             },
             logging_setup,
+            sentry_enabled,
         )?;
         Ok(worker_guard)
     } else {
@@ -94,12 +96,12 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             verbosity_level: args.verbosity_level(),
             enable_file_log: false,
             enable_stdout_log: true,
-            sentry: _sentry_guard.is_some(),
+            sentry: sentry_enabled,
         };
         let logging_setup = logging::setup_logging(options);
         let global_config_file = setup_global_config(args.network.as_deref())?;
 
-        run_inner(args, global_config_file, logging_setup)
+        run_inner(args, global_config_file, logging_setup, sentry_enabled)
     }
 }
 

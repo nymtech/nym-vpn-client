@@ -75,6 +75,9 @@ static LOGGING_SETUP: LazyLock<Mutex<Option<LoggingSetup>>> = LazyLock::new(|| M
 static LOGGING_WORKER_GUARD: LazyLock<Mutex<Option<WorkerGuard>>> =
     LazyLock::new(|| Mutex::new(None));
 
+/// Whether a sentry client has been initialized, passed from `main()` and used later to interact with logging.
+static SENTRY_ENABLED: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(false));
+
 fn service_main(arguments: Vec<OsString>) {
     if let Err(err) = run_service(arguments) {
         tracing::error!("service_main: {:?}", err);
@@ -164,6 +167,7 @@ async fn run_service_inner() -> anyhow::Result<()> {
 
     let network_config = (*SERVICE_NETWORK_CONFIG.lock().await).clone();
     let logging_setup = (*LOGGING_SETUP.lock().await).take();
+    let sentry_enabled = *SENTRY_ENABLED.lock().await;
     let log_path = logging_setup.as_ref().map(|setup| setup.log_path.clone());
     let cloned_network_config = network_config.clone();
     let network_env_result = tokio::task::spawn(async move {
@@ -237,6 +241,7 @@ async fn run_service_inner() -> anyhow::Result<()> {
         network_env,
         user_agent,
         log_path,
+        sentry_enabled,
     );
 
     tracing::info!("Service has started");
@@ -292,10 +297,12 @@ pub(super) fn get_service_info() -> ServiceInfo {
 pub fn start(
     service_network_config: ServiceNetworkConfig,
     logging_setup: Option<LoggingSetup>,
+    sentry_enabled: bool,
 ) -> Result<Option<WorkerGuard>, windows_service::Error> {
     // Important: release mutex lock before starting service dispatcher to avoid deadlock.
     *SERVICE_NETWORK_CONFIG.blocking_lock() = service_network_config;
     *LOGGING_SETUP.blocking_lock() = logging_setup;
+    *SENTRY_ENABLED.blocking_lock() = sentry_enabled;
 
     // Register generated `ffi_service_main` with the system and start the service, blocking
     // this thread until the service is stopped.

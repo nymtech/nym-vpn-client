@@ -206,6 +206,7 @@ where
 }
 
 impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
+    #![allow(clippy::too_many_arguments)]
     pub fn spawn(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
