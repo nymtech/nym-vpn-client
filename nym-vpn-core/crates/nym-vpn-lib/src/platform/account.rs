@@ -364,6 +364,11 @@ pub(crate) mod raw {
         storage.is_mnemonic_stored().await.map_err(Into::into)
     }
 
+    pub(crate) async fn get_stored_mnemonic_raw(path: &str) -> Result<String, VpnError> {
+        let storage = setup_account_storage(path).await?;
+        Ok(storage.load_mnemonic().await?.to_string())
+    }
+
     pub(crate) async fn get_account_id_raw(path: &str) -> Result<String, VpnError> {
         let storage = setup_account_storage(path).await?;
         let mnemonic = storage

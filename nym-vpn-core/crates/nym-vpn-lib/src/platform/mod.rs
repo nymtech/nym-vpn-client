@@ -247,6 +247,13 @@ pub fn isAccountMnemonicStoredRaw(path: String) -> Result<bool, VpnError> {
 /// Read and return the mnemonic, if there's one stored.
 #[allow(non_snake_case)]
 #[uniffi::export]
+pub fn getStoredMnemonicRaw(path: String) -> Result<String, VpnError> {
+    RUNTIME.block_on(account::raw::get_stored_mnemonic_raw(&path))
+}
+
+/// Read and return the mnemonic, if there's one stored.
+#[allow(non_snake_case)]
+#[uniffi::export]
 pub fn getStoredMnemonic() -> Result<String, VpnError> {
     RUNTIME.block_on(account::get_stored_mnemonic())
 }
