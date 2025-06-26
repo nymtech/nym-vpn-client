@@ -166,6 +166,7 @@ async fn run_inner_async(
         shutdown_token.child_token(),
         network_env,
         user_agent,
+        args.stats_id_seed,
         log_path,
     );
 
