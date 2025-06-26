@@ -64,7 +64,7 @@ public enum ConnectButtonState {
 extension ConnectButtonState {
     public var menuBarItemIsAction: Bool {
         switch self {
-        case .connect, .disconnect, .stop, .noInternetReconnect, .noInternet:
+        case .connect, .disconnect, .stop, .noInternetReconnect, .noInternet, .noAccount:
             true
         case .disconnecting, .installingDaemon:
             false
