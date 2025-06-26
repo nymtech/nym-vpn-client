@@ -22,7 +22,7 @@ public struct CreateAccountSuccessView: View {
     @State private var alertTitle = ""
 
     public var body: some View {
-        ScrollView {
+        VStack(spacing: 0) {
             navbar
             Spacer()
                 .frame(height: 40)
