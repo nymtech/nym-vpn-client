@@ -1,7 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{path::Path, pin::Pin, time::Duration};
+use futures::{FutureExt, future::Fuse, pin_mut};
+use std::{path::Path, time::Duration};
 
 use crate::{
     api_client::StatisticsControllerApiClient,
@@ -11,7 +12,7 @@ use crate::{
     storage::StatsStorage,
 };
 use rand::{distributions::Uniform, prelude::Distribution};
-use tokio::{sync::mpsc::UnboundedSender, time::Sleep};
+use tokio::sync::mpsc::UnboundedSender;
 use tokio_util::sync::CancellationToken;
 
 pub struct StatisticsController {
@@ -59,6 +60,12 @@ impl StatisticsController {
         StatisticsSender::new(Some(self.stats_tx.clone()), self.cancel_token.child_token())
     }
 
+    async fn cleanup(&self) {
+        if let Some(handler) = &self.handler {
+            handler.close().await
+        }
+    }
+
     pub async fn run(self) {
         tracing::debug!("StatisticsController initialized successfully");
         if self.config.enabled && self.stats_api_client.is_some() && self.handler.is_some() {
@@ -77,23 +84,25 @@ impl StatisticsController {
                 biased;
                 _ = self.cancel_token.cancelled() => {
                     tracing::trace!("StatisticsController : Received cancellation signal");
-                    return;
+                    break;
                 },
                 stats_event = self.stats_rx.recv() => match stats_event {
                         Some(_) => {},
                         None => {
                             tracing::trace!("StatisticsController: shutting down due to closed stats channel");
-                            return;
+                            break;
                         }
                 },
             }
         }
+        self.cleanup().await
     }
     async fn enabled_loop(mut self) {
         if !self.config.enabled || self.stats_api_client.is_none() || self.handler.is_none() {
             tracing::error!(
                 "StatisticsController : Enabled loop with disabled collection, missing api client or missing handler. This should never happen."
             );
+            self.cleanup().await;
             return;
         }
 
@@ -105,7 +114,8 @@ impl StatisticsController {
         #[allow(clippy::unwrap_used)]
         let mut stats_handler = self.handler.unwrap();
 
-        let mut send_timer: Option<Pin<Box<Sleep>>> = None;
+        let send_timer = Fuse::terminated();
+        pin_mut!(send_timer);
 
         loop {
             tokio::select! {
@@ -116,11 +126,11 @@ impl StatisticsController {
                 },
                 stats_event = self.stats_rx.recv() => match stats_event {
                     Some(stats_event) => {
-                        tracing::error!("Received stats event : {stats_event:?}");
+                        tracing::trace!("Received stats event : {stats_event:?}");
                         if matches!(stats_event, StatisticsEvent::Usage(UsageEvent::Connected(_))) {
                             let random_delay_secs = Uniform::new_inclusive(0, self.config.max_reporting_delay).sample(&mut rand::thread_rng());
                             tracing::debug!("StatisticsController : Trying to send report in {random_delay_secs} secs");
-                            send_timer = Some(Box::pin(tokio::time::sleep(Duration::from_secs(random_delay_secs))));
+                            send_timer.set(tokio::time::sleep(Duration::from_secs(random_delay_secs)).fuse());
                         }
                         stats_handler.handle_event(stats_event).await
                     },
@@ -131,7 +141,7 @@ impl StatisticsController {
                 },
 
                 // Initial sending strategy, send after a random amount of time, if we're still connected
-                _ = wait_on_maybe_timer(&mut send_timer) => { //SW can't find a way to make that work differently for now
+                _ = &mut send_timer => {
                     if stats_handler.is_connected() {
                         tracing::debug!("Send timer fired and connected, sending report");
                         match stats_handler.get_report().await {
@@ -148,18 +158,10 @@ impl StatisticsController {
                     } else {
                         tracing::debug!("Not connected, not sending anything")
                     }
-                        send_timer = None;
                 }
             }
         }
+        stats_handler.close().await;
         tracing::trace!("StatisticsController: Exiting");
-    }
-}
-
-async fn wait_on_maybe_timer(timer: &mut Option<Pin<Box<Sleep>>>) {
-    if let Some(t) = timer {
-        t.as_mut().await
-    } else {
-        std::future::pending::<()>().await
     }
 }

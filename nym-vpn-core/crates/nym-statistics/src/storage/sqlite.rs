@@ -14,6 +14,10 @@ impl SqliteStatsStorageManager {
         Self { connection_pool }
     }
 
+    pub(crate) async fn close(&self) {
+        self.connection_pool.close().await
+    }
+
     pub async fn load_seed(&self) -> Result<Option<String>, StatsStorageError> {
         Ok(sqlx::query!("SELECT seed FROM seed")
             .fetch_optional(&*self.connection_pool)

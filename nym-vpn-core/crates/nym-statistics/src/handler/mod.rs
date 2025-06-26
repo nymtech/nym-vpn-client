@@ -36,6 +36,10 @@ impl StatisticsHandler {
         }
     }
 
+    pub(crate) async fn close(&self) {
+        self.storage.close().await
+    }
+
     pub async fn handle_event(&mut self, event: StatisticsEvent) {
         match event {
             StatisticsEvent::Usage(e) => self.usage_handler.handle_event(e),
