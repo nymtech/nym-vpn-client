@@ -4,6 +4,7 @@
 use crate::storage::{error::StatsStorageError, sqlite::SqliteStatsStorageManager};
 use rand::Rng;
 use sqlx::ConnectOptions;
+use sqlx_pool_guard::SqlitePoolGuard;
 use std::path::Path;
 use tracing::log::LevelFilter;
 
@@ -31,11 +32,16 @@ impl StatsStorage {
             .log_statements(LevelFilter::Trace);
 
         tracing::debug!("Connecting to the database");
-        let connection_pool = sqlx::sqlite::SqlitePoolOptions::new()
-            .connect_with(opts)
-            .await?;
+        let connection_pool = SqlitePoolGuard::new(
+            database_path.to_path_buf(),
+            sqlx::sqlite::SqlitePoolOptions::new()
+                .connect_with(opts)
+                .await?,
+        );
 
-        sqlx::migrate!("./migrations").run(&connection_pool).await?;
+        sqlx::migrate!("./migrations")
+            .run(&*connection_pool)
+            .await?;
 
         tracing::debug!("Setting file permissions on the database file");
         set_file_permission_owner_rw(&database_path)
@@ -84,8 +90,7 @@ fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::
     #[cfg(unix)]
     return set_file_permission_owner_rw_unix(path);
 
-    #[cfg(windows)]
-    return set_file_permission_owner_rw_windows(path);
+    // Windows permission is set on the parent folder, nothing to do
 
     #[cfg(not(any(unix, windows)))]
     {
@@ -101,10 +106,4 @@ fn set_file_permission_owner_rw_unix<P: AsRef<Path>>(path: P) -> Result<(), std:
     let mut permissions = metadata.permissions();
     permissions.set_mode(0o600);
     std::fs::set_permissions(&path, permissions)
-}
-
-#[cfg(windows)]
-fn set_file_permission_owner_rw_windows<P: AsRef<Path>>(_path: P) -> Result<(), std::io::Error> {
-    tracing::info!("Setting file permissions on Windows is not yet implemented!");
-    Ok(())
 }

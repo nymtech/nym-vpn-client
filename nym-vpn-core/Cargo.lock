@@ -4863,6 +4863,7 @@ dependencies = [
  "serde",
  "serde_json",
  "sqlx",
+ "sqlx-pool-guard",
  "sysinfo",
  "thiserror 2.0.12",
  "tokio",

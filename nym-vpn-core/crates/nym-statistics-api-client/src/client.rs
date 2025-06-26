@@ -3,7 +3,7 @@
 
 use std::{fmt, net::SocketAddr, time::Duration};
 
-use nym_http_api_client::{ApiClient, HttpClientError, NO_PARAMS, PathSegments, UserAgent};
+use nym_http_api_client::{ApiClient, HttpClientError, NO_PARAMS, UserAgent};
 use serde::{Serialize, de::DeserializeOwned};
 use url::Url;
 
@@ -78,7 +78,7 @@ impl StatisticsApiClient {
 
     async fn post_query<T, B, E>(
         &self,
-        path: PathSegments<'_>,
+        path: &str,
         json_body: &B,
     ) -> std::result::Result<T, HttpClientError<E>>
     where
@@ -98,7 +98,7 @@ impl StatisticsApiClient {
     where
         B: Serialize,
     {
-        self.post_query(&[routes::V1, routes::STATS, routes::REPORT], &body)
+        self.post_query(routes::REPORT_ROUTE, &body)
             .await
             .map_err(StatisticsApiClientError::ReportSending)
     }
