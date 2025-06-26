@@ -71,7 +71,7 @@ private extension SettingsView {
 
     @ViewBuilder
     func loginButton() -> some View {
-        GenericButton(title: "settings.logIn".localizedString)
+        GenericButton(title: "settings.getStarted".localizedString)
             .frame(height: 64)
             .padding(EdgeInsets(top: 24, leading: 16, bottom: 0, trailing: 16))
             .onTapGesture {

@@ -10,6 +10,7 @@ public enum ConnectButtonState {
     case installingDaemon
     case noInternet
     case noInternetReconnect
+    case noAccount
 
     public init(tunnelStatus: TunnelStatus) {
         switch tunnelStatus {
@@ -42,12 +43,14 @@ public enum ConnectButtonState {
             "stop".localizedString
         case .installingDaemon:
             "home.installDaemonButton".localizedString
+        case .noAccount:
+            "home.getStarted".localizedString
         }
     }
 
     var backgroundColor: Color {
         switch self {
-        case .connect, .noInternet:
+        case .connect, .noInternet, .noAccount:
             NymColor.accent
         case .installingDaemon, .noInternetReconnect:
             NymColor.gray1
@@ -61,7 +64,7 @@ public enum ConnectButtonState {
 extension ConnectButtonState {
     public var menuBarItemIsAction: Bool {
         switch self {
-        case .connect, .disconnect, .stop, .noInternetReconnect, .noInternet:
+        case .connect, .disconnect, .stop, .noInternetReconnect, .noInternet, .noAccount:
             true
         case .disconnecting, .installingDaemon:
             false

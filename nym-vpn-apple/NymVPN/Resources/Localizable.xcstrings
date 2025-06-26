@@ -3336,9 +3336,6 @@
         }
       }
     },
-    "c" : {
-      "extractionState" : "manual"
-    },
     "cancel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14485,6 +14482,17 @@
         }
       }
     },
+    "home.getStarted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get started"
+          }
+        }
+      }
+    },
     "home.installDaemon" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -21707,6 +21715,17 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Contact support"
+          }
+        }
+      }
+    },
+    "settings.getStarted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get started"
           }
         }
       }

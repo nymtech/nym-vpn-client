@@ -173,7 +173,11 @@ public extension HomeViewModel {
 
     @MainActor func navigateToAddCredentials() {
         path.append(HomeLink.settings)
+        #if os(iOS)
+        path.append(SettingLink.createAccountWelcome)
+        #elseif os(macOS)
         path.append(SettingLink.addCredentials)
+        #endif
     }
 
 #if os(macOS)
@@ -198,6 +202,7 @@ private extension HomeViewModel {
 #if os(iOS)
         setupConnectionErrorObservers()
         setupNetworkMonitorObservers()
+        setupIsMnemonicImportedObserver()
 #elseif os(macOS)
         setupGRPCManagerObservers()
 #endif

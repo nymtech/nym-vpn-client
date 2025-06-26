@@ -1,7 +1,13 @@
 import SwiftUI
 import ConfigurationManager
 import CredentialsManager
+#if os(iOS)
+import ImpactGenerator
+import MixnetLibrary
+import ErrorHandler
+#endif
 import PurchasesManager
+import StoreKit
 import Theme
 import UIComponents
 
@@ -12,43 +18,52 @@ public struct CreateAccountSuccessView: View {
     @Binding private var path: NavigationPath
 
     @State private var isPlanAlertDisplayed = false
+    @State private var isDisplayingAlert = false
+    @State private var alertTitle = ""
 
     public var body: some View {
-        VStack(spacing: 0) {
+        ScrollView {
             navbar
             Spacer()
                 .frame(height: 40)
-            HStack {
-                VStack(alignment: .leading, spacing: 0) {
-                    StepView(stepCount: 3, currentStep: 2)
-                    Spacer()
-                        .frame(height: 40)
-                    accountCreateSuccessfully
-                    Spacer()
-                        .frame(height: 24)
-                    continueTitle
-                    Spacer()
-                        .frame(height: 24)
 
-                    successItem(
-                        title: "createAccount.success.fastAnonymousModeTitle".localizedString,
-                        subtitle: "createAccount.success.fastAnonymousModeSubtitle".localizedString
-                    )
+            VStack(spacing: 0) {
+                HStack {
+                    VStack(alignment: .leading, spacing: 0) {
+                        StepView(stepCount: 3, currentStep: 2)
+                        Spacer()
+                            .frame(height: 40)
+                        accountCreateSuccessfully
+                        Spacer()
+                            .frame(height: 24)
+                        continueTitle
+                        Spacer()
+                            .frame(height: 24)
 
-                    successItem(
-                        title: "createAccount.success.globalCoverageTitle".localizedString,
-                        subtitle: "createAccount.success.globalCoverageSubtitle".localizedString
-                    )
+                        successItem(
+                            title: "createAccount.success.fastAnonymousModeTitle".localizedString,
+                            subtitle: "createAccount.success.fastAnonymousModeSubtitle".localizedString
+                        )
+
+                        successItem(
+                            title: "createAccount.success.globalCoverageTitle".localizedString,
+                            subtitle: "createAccount.success.globalCoverageSubtitle".localizedString
+                        )
+                        Spacer()
+                        selectPlanButton
+                        skipPlanSelect
+                    }
                     Spacer()
-                    selectPlanButton
-                    skipPlanSelect
                 }
-                Spacer()
-            }
-            .padding(.horizontal, 16)
+                .padding(.horizontal, 16)
+                .alert(alertTitle, isPresented: $isDisplayingAlert) {
+                    Button("ok".localizedString, role: .cancel) {}
+                }
 
-            Spacer()
-                .frame(height: 16)
+                Spacer()
+                    .frame(height: 16)
+            }
+            .frame(maxWidth: MagicNumbers.moreMaxWidth)
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -84,10 +99,10 @@ private extension CreateAccountSuccessView {
         GenericButton(title: "createAccount.success.selectPlan".localizedString)
             .padding(.bottom, 16)
             .onTapGesture {
-                selectPlan()
+                selectPlanAction()
             }
             .accessibilityAction {
-                selectPlan()
+                selectPlanAction()
             }
             .confirmationDialog(
                 "createAccount.success.choosePlan".localizedString,
@@ -97,9 +112,7 @@ private extension CreateAccountSuccessView {
                 ForEach(purchasesManager.products, id: \.id) { plan in
                     Button("\(plan.displayName) (\(plan.displayPrice))") {
                         Task {
-                            do {
-                                try await purchasesManager.purchase(with: plan, token: credentialsManager.accountToken)
-                            }
+                            await purchasePlanAction(with: plan)
                         }
                     }
                 }
@@ -170,7 +183,32 @@ private extension CreateAccountSuccessView {
         path.append(SettingLink.planPurchaseSuccess)
     }
 
-    func selectPlan() {
+    func selectPlanAction() {
         isPlanAlertDisplayed = true
+    }
+
+    func purchasePlanAction(with plan: Product) async {
+#if os(iOS)
+        ImpactGenerator.shared.impact()
+#endif
+        do {
+            let didPurchaseSuccesfully = try await purchasesManager.purchase(
+                with: plan,
+                token: credentialsManager.accountToken
+            )
+            guard didPurchaseSuccesfully else { return }
+            navigateToDidPurchaseSuccessfully()
+        } catch {
+            Task { @MainActor in
+#if os(iOS)
+                if let lastVPNError = error as? VpnError {
+                    alertTitle = VPNErrorReason(with: lastVPNError).errorDescription ?? ""
+                } else {
+                    alertTitle = error.localizedDescription
+                }
+                isDisplayingAlert = true
+#endif
+            }
+        }
     }
 }

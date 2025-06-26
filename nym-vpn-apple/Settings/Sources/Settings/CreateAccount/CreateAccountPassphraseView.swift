@@ -13,6 +13,30 @@ public struct CreateAccountPassphraseView: View {
     private var passphraseSuccessfullySavedAction: (@Sendable @MainActor () -> Void)?
 
     public var body: some View {
+        if #available(macOS 13.3, *) {
+            content
+                .scrollBounceBehavior(.basedOnSize)
+        } else {
+            content
+        }
+        savedConfirmation
+    }
+
+    public init(
+        isAnimating: Binding<Bool>,
+        isPassphraseSaved: Binding<Bool>,
+        mnemonic: Binding<String?>,
+        passphraseSuccessfullySavedAction: (@Sendable @MainActor () -> Void)?
+    ) {
+        _isAnimating = isAnimating
+        _isPassphraseSaved = isPassphraseSaved
+        _mnemonic = mnemonic
+        self.passphraseSuccessfullySavedAction = passphraseSuccessfullySavedAction
+    }
+}
+
+private extension CreateAccountPassphraseView {
+    var content: some View {
         ScrollView {
             yourPassphraseTitle
             Spacer()
@@ -33,23 +57,8 @@ public struct CreateAccountPassphraseView: View {
             Spacer()
         }
         .padding(.bottom, 8)
-        savedConfirmation
     }
 
-    public init(
-        isAnimating: Binding<Bool>,
-        isPassphraseSaved: Binding<Bool>,
-        mnemonic: Binding<String?>,
-        passphraseSuccessfullySavedAction: (@Sendable @MainActor () -> Void)?
-    ) {
-        _isAnimating = isAnimating
-        _isPassphraseSaved = isPassphraseSaved
-        _mnemonic = mnemonic
-        self.passphraseSuccessfullySavedAction = passphraseSuccessfullySavedAction
-    }
-}
-
-private extension CreateAccountPassphraseView {
     var yourPassphraseTitle: some View {
         Text("createAccount.yourPassphrase".localizedString)
             .textStyle(.Headline.Small.regular)

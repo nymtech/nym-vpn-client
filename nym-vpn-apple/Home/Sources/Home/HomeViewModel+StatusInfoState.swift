@@ -4,6 +4,17 @@ import ErrorReason
 import UIComponents
 
 extension HomeViewModel {
+    func updateConnectButtonStateIfMnemonicImported() {
+        guard !credentialsManager.isValidCredentialImported
+        else {
+            if connectButtonState == .noAccount {
+                connectButtonState = .connect
+            }
+            return
+        }
+        connectButtonState = .noAccount
+    }
+
     func resetStatusInfoState() {
         updateStatusInfoState(with: .unknown)
     }

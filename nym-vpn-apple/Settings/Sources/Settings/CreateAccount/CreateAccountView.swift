@@ -51,6 +51,7 @@ public struct CreateAccountView: View {
             Spacer()
                 .frame(height: 16)
         }
+        .frame(maxWidth: MagicNumbers.moreMaxWidth)
         .alert(alertTitle, isPresented: $isDisplayingAlert) {
             Button("ok".localizedString, role: .cancel) {}
         }
@@ -117,10 +118,12 @@ private extension CreateAccountView {
             }
             do {
                 isLoading = true
-                let result = try await credentialsManager.registerAccount()
+                try await credentialsManager.createMnemonic()
+                let newMnemonic = try await credentialsManager.mnemonic()
                 Task { @MainActor in
-                    mnemonic = result.mnemonic
+                    mnemonic = newMnemonic
                 }
+                try await credentialsManager.registerAccount()
             } catch {
                 Task { @MainActor in
 #if os(iOS)
