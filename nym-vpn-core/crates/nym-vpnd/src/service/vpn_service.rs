@@ -39,6 +39,7 @@ use nym_vpn_lib_types::{
     TunnelType, VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo,
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
+use std::time::Duration;
 use zeroize::Zeroizing;
 
 use super::{
@@ -969,6 +970,12 @@ where
         let mut config = GlobalConfigFile::read_from_file()
             .map_err(|e| GlobalConfigError::ReadConfig(e.to_string()))?;
         config.sentry_monitoring = Some(enable);
+        if !enable {
+            if let Some(client) = sentry::Hub::current().client() {
+                client.close(Some(Duration::from_secs(1)));
+                tracing::debug!("sentry client closed");
+            }
+        }
         GlobalConfigFile::write_to_file(&config)
             .map_err(|e| GlobalConfigError::WriteConfig(e.to_string()))?;
         Ok(())

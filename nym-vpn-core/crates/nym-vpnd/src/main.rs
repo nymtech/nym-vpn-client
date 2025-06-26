@@ -16,6 +16,7 @@ use logging::{LogFileRemover, LoggingSetup};
 use nym_vpn_network_config::Network;
 use sentry::ClientInitGuard;
 use service::NymVpnService;
+use std::time::Duration;
 use tokio::sync::{broadcast, mpsc};
 use tokio_util::sync::CancellationToken;
 use tracing_appender::non_blocking::WorkerGuard;
@@ -214,6 +215,7 @@ fn init_sentry() -> Option<ClientInitGuard> {
                 sample_rate: 1.0,
                 traces_sample_rate: 1.0,
                 enable_logs: true,
+                shutdown_timeout: Duration::from_secs(2),
                 ..Default::default()
             },
         ));
