@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, net::SocketAddr, time::Duration};
+use std::{fmt, time::Duration};
 
 use nym_http_api_client::{ApiClient, HttpClientError, NO_PARAMS, UserAgent};
 use serde::{Serialize, de::DeserializeOwned};
@@ -22,48 +22,13 @@ pub struct StatisticsApiClient {
 
 impl StatisticsApiClient {
     pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self> {
-        Self::new_with_resolver_overrides(base_url, user_agent, None)
-    }
-
-    pub fn new_with_resolver_overrides(
-        base_url: Url,
-        user_agent: UserAgent,
-        static_addresses: Option<&[SocketAddr]>,
-    ) -> Result<Self> {
         nym_http_api_client::Client::builder(base_url.clone())
-            .map(|builder| {
-                let mut builder = builder
-                    .with_user_agent(user_agent)
-                    .with_timeout(NYM_STATISTICS_API_TIMEOUT);
-
-                if let Some(domain) = base_url.domain() {
-                    match static_addresses {
-                        Some(static_addresses) if !static_addresses.is_empty() => {
-                            tracing::info!(
-                                "Enabling DNS resolver overrides: {:?}", static_addresses
-                            );
-                            builder = builder.resolve_to_addrs(domain, static_addresses);
-                        }
-                        Some(_) => {
-                            tracing::warn!(
-                                "Not enabling DNS resolver overrides because static addresses are empty"
-                            );
-                        }
-                        None => {
-                            tracing::info!(
-                                "Not enabling DNS resolver overrides because static addresses are not set"
-                            );
-                        }
-                    }
-                } else {
-                    tracing::info!(
-                        "Not enabling DNS resolver overrides because domain is not present in base URL"
-                    );
-                }
-
+            .and_then(|builder| {
                 builder
+                    .with_user_agent(user_agent)
+                    .with_timeout(NYM_STATISTICS_API_TIMEOUT)
+                    .build()
             })
-            .and_then(|builder| builder.build())
             .map(|c| Self { inner: c })
             .map_err(StatisticsApiClientError::VpnApiClientCreation)
     }
