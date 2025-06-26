@@ -189,6 +189,7 @@ where
     // Tunnel state machine handle
     state_machine_handle: JoinHandle<()>,
     account_controller_handle: JoinHandle<()>,
+    statistics_controller_handle: JoinHandle<()>,
 
     // Command channel for state machine
     command_sender: mpsc::UnboundedSender<TunnelCommand>,
@@ -330,7 +331,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         .await;
 
         let statistics_event_sender = statistics_controller.get_statistics_sender();
-        let _statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
+        let statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
 
         // These used to interact with the tunnel state machine
         let (command_sender, command_receiver) = mpsc::unbounded_channel();
@@ -427,6 +428,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             tunnel_state: watch::Sender::new(TunnelState::Disconnected),
             state_machine_handle,
             account_controller_handle,
+            statistics_controller_handle,
             command_sender,
             event_receiver,
             shutdown_token,
@@ -471,6 +473,10 @@ where
 
         if let Err(e) = self.account_controller_handle.await {
             tracing::error!("Failed to join on account controller handle: {}", e);
+        }
+
+        if let Err(e) = self.statistics_controller_handle.await {
+            tracing::error!("Failed to join on statistics controller handle: {}", e);
         }
 
         if let Err(e) = self.state_machine_handle.await {
