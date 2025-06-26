@@ -68,14 +68,6 @@ impl StatisticsApiClient {
             .map_err(StatisticsApiClientError::VpnApiClientCreation)
     }
 
-    pub fn swap_inner_client(&mut self, client: StatisticsApiClient) {
-        self.inner = client.inner;
-    }
-
-    pub fn current_url(&self) -> &Url {
-        self.inner.current_url()
-    }
-
     async fn post_query<T, B, E>(
         &self,
         path: &str,
