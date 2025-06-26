@@ -50,7 +50,7 @@ use super::{
     config::{DEFAULT_CONFIG_FILE, NetworkEnvironments, NymVpnServiceConfig},
     error::{
         AccountControllerError, AccountLinksError, Error, Result, SetNetworkError,
-        StatisticsControllerError, VpnServiceDeleteLogFileError,
+        VpnServiceDeleteLogFileError,
     },
 };
 use crate::{config::GlobalConfigFile, logging::LogPath};
@@ -323,19 +323,16 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let statistics_controller_config =
             StatisticsControllerConfig::new(statistics_api, user_agent.clone())
                 .with_stats_id_seed(stats_id_seed);
+
+        // Statistics collection can technically fail, but if it's the case, we just disable it as it is not operation critical.
         let statistics_controller = StatisticsController::new(
             statistics_controller_config,
             network_data_dir.clone(),
             shutdown_token.child_token(),
             tunnel_state.subscribe(),
         )
-        .await
-        .map_err(|err| {
-            tracing::error!("Failed to create statistics controller: {err:?}");
-            StatisticsControllerError::Initialization {
-                reason: err.to_string(),
-            }
-        })?;
+        .await;
+
         let statistics_event_sender = statistics_controller.get_statistics_sender();
         let _statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
 
