@@ -5122,6 +5122,7 @@ dependencies = [
  "nym-offline-monitor",
  "nym-routing",
  "nym-sdk",
+ "nym-statistics",
  "nym-statistics-common",
  "nym-task",
  "nym-validator-client",

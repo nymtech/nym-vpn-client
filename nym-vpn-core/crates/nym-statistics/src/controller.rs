@@ -6,17 +6,12 @@ use std::{path::Path, pin::Pin, time::Duration};
 use crate::{
     api_client::StatisticsControllerApiClient,
     config::StatisticsControllerConfig,
-    events::{StatisticsEvent, StatisticsReceiver, StatisticsSender},
+    events::{StatisticsEvent, StatisticsReceiver, StatisticsSender, UsageEvent},
     handler::StatisticsHandler,
     storage::StatsStorage,
 };
-
-use nym_vpn_lib_types::TunnelState;
 use rand::{distributions::Uniform, prelude::Distribution};
-use tokio::{
-    sync::{mpsc::UnboundedSender, watch},
-    time::Sleep,
-};
+use tokio::{sync::mpsc::UnboundedSender, time::Sleep};
 use tokio_util::sync::CancellationToken;
 
 pub struct StatisticsController {
@@ -34,8 +29,6 @@ pub struct StatisticsController {
 
     stats_tx: UnboundedSender<StatisticsEvent>,
 
-    tunnel_state: watch::Receiver<TunnelState>,
-
     // Listen for cancellation signals
     cancel_token: CancellationToken,
 }
@@ -45,7 +38,6 @@ impl StatisticsController {
         config: StatisticsControllerConfig,
         base_storage_path: P,
         cancel_token: CancellationToken,
-        tunnel_state: watch::Receiver<TunnelState>,
     ) -> Self {
         let (stats_tx, stats_rx) = tokio::sync::mpsc::unbounded_channel();
 
@@ -57,7 +49,6 @@ impl StatisticsController {
             stats_api_client,
             stats_rx,
             stats_tx,
-            tunnel_state,
             config,
             cancel_token,
         }
@@ -124,48 +115,25 @@ impl StatisticsController {
                     break;
                 },
                 stats_event = self.stats_rx.recv() => match stats_event {
-                    Some(stats_event) => stats_handler.handle_event(stats_event).await,
+                    Some(stats_event) => {
+                        tracing::error!("Received stats event : {stats_event:?}");
+                        if matches!(stats_event, StatisticsEvent::Usage(UsageEvent::Connected(_))) {
+                            let random_delay_secs = Uniform::new_inclusive(0, self.config.max_reporting_delay).sample(&mut rand::thread_rng());
+                            tracing::debug!("StatisticsController : Trying to send report in {random_delay_secs} secs");
+                            send_timer = Some(Box::pin(tokio::time::sleep(Duration::from_secs(random_delay_secs))));
+                        }
+                        stats_handler.handle_event(stats_event).await
+                    },
                     None => {
                         tracing::trace!("StatisticsController: shutting down due to closed stats channel");
                         break;
                     }
                 },
-                Ok(_) = self.tunnel_state.changed() => {
-                    match self.tunnel_state.borrow().clone() {
-                        TunnelState::Connected {..} => {
-                            if let Err(e) = self.stats_tx.send(StatisticsEvent::new_connected()){
-                                tracing::warn!("Failed to send stat event : {e}")
-                            }
-                            let random_delay_secs = Uniform::new_inclusive(0, self.config.max_reporting_delay).sample(&mut rand::thread_rng());
-                            tracing::debug!("StatisticsController : Trying to send report in {random_delay_secs} secs");
-                            send_timer = Some(Box::pin(tokio::time::sleep(Duration::from_secs(random_delay_secs))));
 
-                        },
-                        TunnelState::Disconnecting {..}=>{
-                            if let Err(e) = self.stats_tx.send(StatisticsEvent::new_disconnecting()){
-                                tracing::warn!("Failed to send stat event : {e}")
-                            }
-                        },
-                        TunnelState::Disconnected => {
-                            if let Err(e) = self.stats_tx.send(StatisticsEvent::new_disconnected()){
-                                tracing::warn!("Failed to send stat event : {e}")
-                            }
-                        },
-                        TunnelState::Error(client_error) => {
-                            if let Err(e) = self.stats_tx.send(StatisticsEvent::new_error(client_error.clone())){
-                               tracing::warn!("Failed to send stat event : {e}")
-                            }
-                        },
-                        _ => {},
-
-                    }
-
-
-                },
                 // Initial sending strategy, send after a random amount of time, if we're still connected
                 _ = wait_on_maybe_timer(&mut send_timer) => { //SW can't find a way to make that work differently for now
-                    if matches!(*self.tunnel_state.borrow(), TunnelState::Connected { .. }) {
-                        tracing::debug!("Send timer fired and connected, sending stuff");
+                    if stats_handler.is_connected() {
+                        tracing::debug!("Send timer fired and connected, sending report");
                         match stats_handler.get_report().await {
                             Ok(report) => {
                                 if let Err(e) = stats_api_client.post_report(report).await {
