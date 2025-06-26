@@ -5,6 +5,7 @@ public enum MagicNumbers: CGFloat {
     case macMinWidth = 390
     case macMinHeight = 675
     case ipadMaxWidth = 358
+    case ipadExtraWidth = 450
 
     public static var maxWidth: CGFloat {
         switch Device.type {
@@ -14,6 +15,17 @@ public enum MagicNumbers: CGFloat {
             .infinity
         case .mac:
             390
+        }
+    }
+
+    public static var moreMaxWidth: CGFloat {
+        switch Device.type {
+        case .ipad:
+            450
+        case .iphone:
+                .infinity
+        case .mac:
+            450
         }
     }
 }

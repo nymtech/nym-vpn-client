@@ -36,6 +36,7 @@ public struct ActionDialogView: View {
                 Spacer()
                     .frame(width: 40)
             }
+            .frame(maxWidth: MagicNumbers.moreMaxWidth)
         }
         .edgesIgnoringSafeArea(.all)
     }

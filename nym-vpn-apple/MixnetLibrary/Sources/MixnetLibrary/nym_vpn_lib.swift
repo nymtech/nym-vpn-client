@@ -3,6 +3,7 @@
 
 // swiftlint:disable all
 import Foundation
+import Foundation
 
 // Depending on the consumer's build setup, the low-level FFI code
 // might be in a separate module, or it might be compiled inline into
@@ -50,9 +51,11 @@ fileprivate extension ForeignBytes {
 
 fileprivate extension Data {
     init(rustBuffer: RustBuffer) {
-        // TODO: This copies the buffer. Can we read directly from a
-        // Rust buffer?
-        self.init(bytes: rustBuffer.data!, count: Int(rustBuffer.len))
+        self.init(
+            bytesNoCopy: rustBuffer.data!,
+            count: Int(rustBuffer.len),
+            deallocator: .none
+        )
     }
 }
 
@@ -153,7 +156,7 @@ fileprivate func writeDouble(_ writer: inout [UInt8], _ value: Double) {
 }
 
 // Protocol for types that transfer other types across the FFI. This is
-// analogous go the Rust trait of the same name.
+// analogous to the Rust trait of the same name.
 fileprivate protocol FfiConverter {
     associatedtype FfiType
     associatedtype SwiftType
@@ -168,10 +171,16 @@ fileprivate protocol FfiConverter {
 fileprivate protocol FfiConverterPrimitive: FfiConverter where FfiType == SwiftType { }
 
 extension FfiConverterPrimitive {
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
     public static func lift(_ value: FfiType) throws -> SwiftType {
         return value
     }
 
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
     public static func lower(_ value: SwiftType) -> FfiType {
         return value
     }
@@ -182,6 +191,9 @@ extension FfiConverterPrimitive {
 fileprivate protocol FfiConverterRustBuffer: FfiConverter where FfiType == RustBuffer {}
 
 extension FfiConverterRustBuffer {
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
     public static func lift(_ buf: RustBuffer) throws -> SwiftType {
         var reader = createReader(data: Data(rustBuffer: buf))
         let value = try read(from: &reader)
@@ -192,6 +204,9 @@ extension FfiConverterRustBuffer {
         return value
     }
 
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
     public static func lower(_ value: SwiftType) -> RustBuffer {
           var writer = createWriter()
           write(value, into: &writer)
@@ -253,29 +268,30 @@ fileprivate extension RustCallStatus {
 }
 
 private func rustCall<T>(_ callback: (UnsafeMutablePointer<RustCallStatus>) -> T) throws -> T {
-    try makeRustCall(callback, errorHandler: nil)
+    let neverThrow: ((RustBuffer) throws -> Never)? = nil
+    return try makeRustCall(callback, errorHandler: neverThrow)
 }
 
-private func rustCallWithError<T>(
-    _ errorHandler: @escaping (RustBuffer) throws -> Error,
+private func rustCallWithError<T, E: Swift.Error>(
+    _ errorHandler: @escaping (RustBuffer) throws -> E,
     _ callback: (UnsafeMutablePointer<RustCallStatus>) -> T) throws -> T {
     try makeRustCall(callback, errorHandler: errorHandler)
 }
 
-private func makeRustCall<T>(
+private func makeRustCall<T, E: Swift.Error>(
     _ callback: (UnsafeMutablePointer<RustCallStatus>) -> T,
-    errorHandler: ((RustBuffer) throws -> Error)?
+    errorHandler: ((RustBuffer) throws -> E)?
 ) throws -> T {
-    uniffiEnsureInitialized()
+    uniffiEnsureNymVpnLibInitialized()
     var callStatus = RustCallStatus.init()
     let returnedVal = callback(&callStatus)
     try uniffiCheckCallStatus(callStatus: callStatus, errorHandler: errorHandler)
     return returnedVal
 }
 
-private func uniffiCheckCallStatus(
+private func uniffiCheckCallStatus<E: Swift.Error>(
     callStatus: RustCallStatus,
-    errorHandler: ((RustBuffer) throws -> Error)?
+    errorHandler: ((RustBuffer) throws -> E)?
 ) throws {
     switch callStatus.code {
         case CALL_SUCCESS:
@@ -337,9 +353,10 @@ private func uniffiTraitInterfaceCallWithError<T, E>(
         callStatus.pointee.errorBuf = FfiConverterString.lower(String(describing: error))
     }
 }
-fileprivate class UniffiHandleMap<T> {
-    private var map: [UInt64: T] = [:]
+fileprivate final class UniffiHandleMap<T>: @unchecked Sendable {
+    // All mutation happens with this lock held, which is why we implement @unchecked Sendable.
     private let lock = NSLock()
+    private var map: [UInt64: T] = [:]
     private var currentHandle: UInt64 = 1
 
     func insert(obj: T) -> UInt64 {
@@ -379,8 +396,17 @@ fileprivate class UniffiHandleMap<T> {
 
 
 // Public interface members begin here.
+// Magic number for the Rust proxy to call using the same mechanism as every other method,
+// to free the callback once it's dropped by Rust.
+private let IDX_CALLBACK_FREE: Int32 = 0
+// Callback return codes
+private let UNIFFI_CALLBACK_SUCCESS: Int32 = 0
+private let UNIFFI_CALLBACK_ERROR: Int32 = 1
+private let UNIFFI_CALLBACK_UNEXPECTED_ERROR: Int32 = 2
 
-
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterUInt8: FfiConverterPrimitive {
     typealias FfiType = UInt8
     typealias SwiftType = UInt8
@@ -394,6 +420,9 @@ fileprivate struct FfiConverterUInt8: FfiConverterPrimitive {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterUInt16: FfiConverterPrimitive {
     typealias FfiType = UInt16
     typealias SwiftType = UInt16
@@ -407,6 +436,9 @@ fileprivate struct FfiConverterUInt16: FfiConverterPrimitive {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterUInt32: FfiConverterPrimitive {
     typealias FfiType = UInt32
     typealias SwiftType = UInt32
@@ -420,6 +452,9 @@ fileprivate struct FfiConverterUInt32: FfiConverterPrimitive {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterUInt64: FfiConverterPrimitive {
     typealias FfiType = UInt64
     typealias SwiftType = UInt64
@@ -433,6 +468,9 @@ fileprivate struct FfiConverterUInt64: FfiConverterPrimitive {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterInt64: FfiConverterPrimitive {
     typealias FfiType = Int64
     typealias SwiftType = Int64
@@ -446,6 +484,9 @@ fileprivate struct FfiConverterInt64: FfiConverterPrimitive {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterDouble: FfiConverterPrimitive {
     typealias FfiType = Double
     typealias SwiftType = Double
@@ -459,6 +500,9 @@ fileprivate struct FfiConverterDouble: FfiConverterPrimitive {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterBool : FfiConverter {
     typealias FfiType = Int8
     typealias SwiftType = Bool
@@ -480,6 +524,9 @@ fileprivate struct FfiConverterBool : FfiConverter {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterString: FfiConverter {
     typealias SwiftType = String
     typealias FfiType = RustBuffer
@@ -521,7 +568,7 @@ fileprivate struct FfiConverterString: FfiConverter {
 
 
 
-public protocol OsTunProvider : AnyObject {
+public protocol OsTunProvider: AnyObject, Sendable {
     
     /**
      * Set network settings including tun, dns, ip.
@@ -529,12 +576,13 @@ public protocol OsTunProvider : AnyObject {
     func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings) async throws 
     
 }
-
-open class OsTunProviderImpl:
-    OsTunProvider {
+open class OsTunProviderImpl: OsTunProvider, @unchecked Sendable {
     fileprivate let pointer: UnsafeMutableRawPointer!
 
     /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
     public struct NoPointer {
         public init() {}
     }
@@ -542,19 +590,28 @@ open class OsTunProviderImpl:
     // TODO: We'd like this to be `private` but for Swifty reasons,
     // we can't implement `FfiConverter` without making this `required` and we can't
     // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
     required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
         self.pointer = pointer
     }
 
-    /// This constructor can be used to instantiate a fake object.
-    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
-    ///
-    /// - Warning:
-    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
     public init(noPointer: NoPointer) {
         self.pointer = nil
     }
 
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
     public func uniffiClonePointer() -> UnsafeMutableRawPointer {
         return try! rustCall { uniffi_nym_vpn_lib_fn_clone_ostunprovider(self.pointer, $0) }
     }
@@ -574,39 +631,36 @@ open class OsTunProviderImpl:
     /**
      * Set network settings including tun, dns, ip.
      */
-open func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings)async throws  {
+open func setTunnelNetworkSettings(tunnelSettings: TunnelNetworkSettings)async throws   {
     return
         try  await uniffiRustCallAsync(
             rustFutureFunc: {
                 uniffi_nym_vpn_lib_fn_method_ostunprovider_set_tunnel_network_settings(
                     self.uniffiClonePointer(),
-                    FfiConverterTypeTunnelNetworkSettings.lower(tunnelSettings)
+                    FfiConverterTypeTunnelNetworkSettings_lower(tunnelSettings)
                 )
             },
             pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
             completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
             freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
             liftFunc: { $0 },
-            errorHandler: FfiConverterTypeVpnError.lift
+            errorHandler: FfiConverterTypeVpnError_lift
         )
 }
     
 
 }
-// Magic number for the Rust proxy to call using the same mechanism as every other method,
-// to free the callback once it's dropped by Rust.
-private let IDX_CALLBACK_FREE: Int32 = 0
-// Callback return codes
-private let UNIFFI_CALLBACK_SUCCESS: Int32 = 0
-private let UNIFFI_CALLBACK_ERROR: Int32 = 1
-private let UNIFFI_CALLBACK_UNEXPECTED_ERROR: Int32 = 2
+
 
 // Put the implementation in a struct so we don't pollute the top-level namespace
 fileprivate struct UniffiCallbackInterfaceOSTunProvider {
 
     // Create the VTable using a series of closures.
     // Swift automatically converts these into C callback functions.
-    static var vtable: UniffiVTableCallbackInterfaceOsTunProvider = UniffiVTableCallbackInterfaceOsTunProvider(
+    //
+    // This creates 1-element array, since this seems to be the only way to construct a const
+    // pointer that we can pass to the Rust code.
+    static let vtable: [UniffiVTableCallbackInterfaceOsTunProvider] = [UniffiVTableCallbackInterfaceOsTunProvider(
         setTunnelNetworkSettings: { (
             uniffiHandle: UInt64,
             tunnelSettings: RustBuffer,
@@ -620,7 +674,7 @@ fileprivate struct UniffiCallbackInterfaceOSTunProvider {
                     throw UniffiInternalError.unexpectedStaleHandle
                 }
                 return try await uniffiObj.setTunnelNetworkSettings(
-                     tunnelSettings: try FfiConverterTypeTunnelNetworkSettings.lift(tunnelSettings)
+                     tunnelSettings: try FfiConverterTypeTunnelNetworkSettings_lift(tunnelSettings)
                 )
             }
 
@@ -644,7 +698,7 @@ fileprivate struct UniffiCallbackInterfaceOSTunProvider {
                 makeCall: makeCall,
                 handleSuccess: uniffiHandleSuccess,
                 handleError: uniffiHandleError,
-                lowerError: FfiConverterTypeVpnError.lower
+                lowerError: FfiConverterTypeVpnError_lower
             )
             uniffiOutReturn.pointee = uniffiForeignFuture
         },
@@ -654,15 +708,19 @@ fileprivate struct UniffiCallbackInterfaceOSTunProvider {
                 print("Uniffi callback interface OSTunProvider: handle missing in uniffiFree")
             }
         }
-    )
+    )]
 }
 
 private func uniffiCallbackInitOSTunProvider() {
-    uniffi_nym_vpn_lib_fn_init_callback_vtable_ostunprovider(&UniffiCallbackInterfaceOSTunProvider.vtable)
+    uniffi_nym_vpn_lib_fn_init_callback_vtable_ostunprovider(UniffiCallbackInterfaceOSTunProvider.vtable)
 }
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeOSTunProvider: FfiConverter {
-    fileprivate static var handleMap = UniffiHandleMap<OsTunProvider>()
+    fileprivate static let handleMap = UniffiHandleMap<OsTunProvider>()
 
     typealias FfiType = UnsafeMutableRawPointer
     typealias SwiftType = OsTunProvider
@@ -697,12 +755,16 @@ public struct FfiConverterTypeOSTunProvider: FfiConverter {
 }
 
 
-
-
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeOSTunProvider_lift(_ pointer: UnsafeMutableRawPointer) throws -> OsTunProvider {
     return try FfiConverterTypeOSTunProvider.lift(pointer)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeOSTunProvider_lower(_ value: OsTunProvider) -> UnsafeMutableRawPointer {
     return FfiConverterTypeOSTunProvider.lower(value)
 }
@@ -710,17 +772,20 @@ public func FfiConverterTypeOSTunProvider_lower(_ value: OsTunProvider) -> Unsaf
 
 
 
-public protocol TunnelStatusListener : AnyObject {
+
+
+public protocol TunnelStatusListener: AnyObject, Sendable {
     
     func onEvent(event: TunnelEvent) 
     
 }
-
-open class TunnelStatusListenerImpl:
-    TunnelStatusListener {
+open class TunnelStatusListenerImpl: TunnelStatusListener, @unchecked Sendable {
     fileprivate let pointer: UnsafeMutableRawPointer!
 
     /// Used to instantiate a [FFIObject] without an actual pointer, for fakes in tests, mostly.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
     public struct NoPointer {
         public init() {}
     }
@@ -728,19 +793,28 @@ open class TunnelStatusListenerImpl:
     // TODO: We'd like this to be `private` but for Swifty reasons,
     // we can't implement `FfiConverter` without making this `required` and we can't
     // make it `required` without making it `public`.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
     required public init(unsafeFromRawPointer pointer: UnsafeMutableRawPointer) {
         self.pointer = pointer
     }
 
-    /// This constructor can be used to instantiate a fake object.
-    /// - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
-    ///
-    /// - Warning:
-    ///     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+    // This constructor can be used to instantiate a fake object.
+    // - Parameter noPointer: Placeholder value so we can have a constructor separate from the default empty one that may be implemented for classes extending [FFIObject].
+    //
+    // - Warning:
+    //     Any object instantiated with this constructor cannot be passed to an actual Rust-backed object. Since there isn't a backing [Pointer] the FFI lower functions will crash.
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
     public init(noPointer: NoPointer) {
         self.pointer = nil
     }
 
+#if swift(>=5.8)
+    @_documentation(visibility: private)
+#endif
     public func uniffiClonePointer() -> UnsafeMutableRawPointer {
         return try! rustCall { uniffi_nym_vpn_lib_fn_clone_tunnelstatuslistener(self.pointer, $0) }
     }
@@ -757,9 +831,9 @@ open class TunnelStatusListenerImpl:
     
 
     
-open func onEvent(event: TunnelEvent) {try! rustCall() {
+open func onEvent(event: TunnelEvent)  {try! rustCall() {
     uniffi_nym_vpn_lib_fn_method_tunnelstatuslistener_on_event(self.uniffiClonePointer(),
-        FfiConverterTypeTunnelEvent.lower(event),$0
+        FfiConverterTypeTunnelEvent_lower(event),$0
     )
 }
 }
@@ -773,7 +847,10 @@ fileprivate struct UniffiCallbackInterfaceTunnelStatusListener {
 
     // Create the VTable using a series of closures.
     // Swift automatically converts these into C callback functions.
-    static var vtable: UniffiVTableCallbackInterfaceTunnelStatusListener = UniffiVTableCallbackInterfaceTunnelStatusListener(
+    //
+    // This creates 1-element array, since this seems to be the only way to construct a const
+    // pointer that we can pass to the Rust code.
+    static let vtable: [UniffiVTableCallbackInterfaceTunnelStatusListener] = [UniffiVTableCallbackInterfaceTunnelStatusListener(
         onEvent: { (
             uniffiHandle: UInt64,
             event: RustBuffer,
@@ -786,7 +863,7 @@ fileprivate struct UniffiCallbackInterfaceTunnelStatusListener {
                     throw UniffiInternalError.unexpectedStaleHandle
                 }
                 return uniffiObj.onEvent(
-                     event: try FfiConverterTypeTunnelEvent.lift(event)
+                     event: try FfiConverterTypeTunnelEvent_lift(event)
                 )
             }
 
@@ -804,15 +881,19 @@ fileprivate struct UniffiCallbackInterfaceTunnelStatusListener {
                 print("Uniffi callback interface TunnelStatusListener: handle missing in uniffiFree")
             }
         }
-    )
+    )]
 }
 
 private func uniffiCallbackInitTunnelStatusListener() {
-    uniffi_nym_vpn_lib_fn_init_callback_vtable_tunnelstatuslistener(&UniffiCallbackInterfaceTunnelStatusListener.vtable)
+    uniffi_nym_vpn_lib_fn_init_callback_vtable_tunnelstatuslistener(UniffiCallbackInterfaceTunnelStatusListener.vtable)
 }
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeTunnelStatusListener: FfiConverter {
-    fileprivate static var handleMap = UniffiHandleMap<TunnelStatusListener>()
+    fileprivate static let handleMap = UniffiHandleMap<TunnelStatusListener>()
 
     typealias FfiType = UnsafeMutableRawPointer
     typealias SwiftType = TunnelStatusListener
@@ -847,15 +928,21 @@ public struct FfiConverterTypeTunnelStatusListener: FfiConverter {
 }
 
 
-
-
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeTunnelStatusListener_lift(_ pointer: UnsafeMutableRawPointer) throws -> TunnelStatusListener {
     return try FfiConverterTypeTunnelStatusListener.lift(pointer)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeTunnelStatusListener_lower(_ value: TunnelStatusListener) -> UnsafeMutableRawPointer {
     return FfiConverterTypeTunnelStatusListener.lower(value)
 }
+
+
 
 
 public struct AccountLinks {
@@ -872,6 +959,9 @@ public struct AccountLinks {
     }
 }
 
+#if compiler(>=6)
+extension AccountLinks: Sendable {}
+#endif
 
 
 extension AccountLinks: Equatable, Hashable {
@@ -896,6 +986,10 @@ extension AccountLinks: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeAccountLinks: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AccountLinks {
         return
@@ -914,10 +1008,16 @@ public struct FfiConverterTypeAccountLinks: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeAccountLinks_lift(_ buf: RustBuffer) throws -> AccountLinks {
     return try FfiConverterTypeAccountLinks.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeAccountLinks_lower(_ value: AccountLinks) -> RustBuffer {
     return FfiConverterTypeAccountLinks.lower(value)
 }
@@ -943,6 +1043,9 @@ public struct AccountStateSummary {
     }
 }
 
+#if compiler(>=6)
+extension AccountStateSummary: Sendable {}
+#endif
 
 
 extension AccountStateSummary: Equatable, Hashable {
@@ -979,6 +1082,10 @@ extension AccountStateSummary: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeAccountStateSummary: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AccountStateSummary {
         return
@@ -1003,10 +1110,16 @@ public struct FfiConverterTypeAccountStateSummary: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeAccountStateSummary_lift(_ buf: RustBuffer) throws -> AccountStateSummary {
     return try FfiConverterTypeAccountStateSummary.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeAccountStateSummary_lower(_ value: AccountStateSummary) -> RustBuffer {
     return FfiConverterTypeAccountStateSummary.lower(value)
 }
@@ -1028,6 +1141,9 @@ public struct AccountSummary {
     }
 }
 
+#if compiler(>=6)
+extension AccountSummary: Sendable {}
+#endif
 
 
 extension AccountSummary: Equatable, Hashable {
@@ -1056,6 +1172,10 @@ extension AccountSummary: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeAccountSummary: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> AccountSummary {
         return
@@ -1076,10 +1196,16 @@ public struct FfiConverterTypeAccountSummary: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeAccountSummary_lift(_ buf: RustBuffer) throws -> AccountSummary {
     return try FfiConverterTypeAccountSummary.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeAccountSummary_lower(_ value: AccountSummary) -> RustBuffer {
     return FfiConverterTypeAccountSummary.lower(value)
 }
@@ -1099,6 +1225,9 @@ public struct ChainDetails {
     }
 }
 
+#if compiler(>=6)
+extension ChainDetails: Sendable {}
+#endif
 
 
 extension ChainDetails: Equatable, Hashable {
@@ -1123,6 +1252,10 @@ extension ChainDetails: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeChainDetails: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ChainDetails {
         return
@@ -1141,10 +1274,16 @@ public struct FfiConverterTypeChainDetails: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeChainDetails_lift(_ buf: RustBuffer) throws -> ChainDetails {
     return try FfiConverterTypeChainDetails.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeChainDetails_lower(_ value: ChainDetails) -> RustBuffer {
     return FfiConverterTypeChainDetails.lower(value)
 }
@@ -1166,6 +1305,9 @@ public struct ConnectionData {
     }
 }
 
+#if compiler(>=6)
+extension ConnectionData: Sendable {}
+#endif
 
 
 extension ConnectionData: Equatable, Hashable {
@@ -1194,6 +1336,10 @@ extension ConnectionData: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeConnectionData: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ConnectionData {
         return
@@ -1214,10 +1360,16 @@ public struct FfiConverterTypeConnectionData: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeConnectionData_lift(_ buf: RustBuffer) throws -> ConnectionData {
     return try FfiConverterTypeConnectionData.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeConnectionData_lower(_ value: ConnectionData) -> RustBuffer {
     return FfiConverterTypeConnectionData.lower(value)
 }
@@ -1233,6 +1385,9 @@ public struct ConnectionStatisticsEvent {
     }
 }
 
+#if compiler(>=6)
+extension ConnectionStatisticsEvent: Sendable {}
+#endif
 
 
 extension ConnectionStatisticsEvent: Equatable, Hashable {
@@ -1249,6 +1404,10 @@ extension ConnectionStatisticsEvent: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeConnectionStatisticsEvent: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ConnectionStatisticsEvent {
         return
@@ -1263,10 +1422,16 @@ public struct FfiConverterTypeConnectionStatisticsEvent: FfiConverterRustBuffer 
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeConnectionStatisticsEvent_lift(_ buf: RustBuffer) throws -> ConnectionStatisticsEvent {
     return try FfiConverterTypeConnectionStatisticsEvent.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeConnectionStatisticsEvent_lower(_ value: ConnectionStatisticsEvent) -> RustBuffer {
     return FfiConverterTypeConnectionStatisticsEvent.lower(value)
 }
@@ -1286,6 +1451,9 @@ public struct DenomDetails {
     }
 }
 
+#if compiler(>=6)
+extension DenomDetails: Sendable {}
+#endif
 
 
 extension DenomDetails: Equatable, Hashable {
@@ -1310,6 +1478,10 @@ extension DenomDetails: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeDenomDetails: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DenomDetails {
         return
@@ -1328,10 +1500,16 @@ public struct FfiConverterTypeDenomDetails: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeDenomDetails_lift(_ buf: RustBuffer) throws -> DenomDetails {
     return try FfiConverterTypeDenomDetails.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeDenomDetails_lower(_ value: DenomDetails) -> RustBuffer {
     return FfiConverterTypeDenomDetails.lower(value)
 }
@@ -1351,6 +1529,9 @@ public struct DeviceSummary {
     }
 }
 
+#if compiler(>=6)
+extension DeviceSummary: Sendable {}
+#endif
 
 
 extension DeviceSummary: Equatable, Hashable {
@@ -1375,6 +1556,10 @@ extension DeviceSummary: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeDeviceSummary: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DeviceSummary {
         return
@@ -1393,10 +1578,16 @@ public struct FfiConverterTypeDeviceSummary: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeDeviceSummary_lift(_ buf: RustBuffer) throws -> DeviceSummary {
     return try FfiConverterTypeDeviceSummary.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeDeviceSummary_lower(_ value: DeviceSummary) -> RustBuffer {
     return FfiConverterTypeDeviceSummary.lower(value)
 }
@@ -1434,6 +1625,9 @@ public struct DnsSettings {
     }
 }
 
+#if compiler(>=6)
+extension DnsSettings: Sendable {}
+#endif
 
 
 extension DnsSettings: Equatable, Hashable {
@@ -1458,6 +1652,10 @@ extension DnsSettings: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeDnsSettings: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> DnsSettings {
         return
@@ -1476,10 +1674,16 @@ public struct FfiConverterTypeDnsSettings: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeDnsSettings_lift(_ buf: RustBuffer) throws -> DnsSettings {
     return try FfiConverterTypeDnsSettings.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeDnsSettings_lower(_ value: DnsSettings) -> RustBuffer {
     return FfiConverterTypeDnsSettings.lower(value)
 }
@@ -1499,6 +1703,9 @@ public struct FairUsage {
     }
 }
 
+#if compiler(>=6)
+extension FairUsage: Sendable {}
+#endif
 
 
 extension FairUsage: Equatable, Hashable {
@@ -1523,6 +1730,10 @@ extension FairUsage: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeFairUsage: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FairUsage {
         return
@@ -1541,10 +1752,16 @@ public struct FfiConverterTypeFairUsage: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeFairUsage_lift(_ buf: RustBuffer) throws -> FairUsage {
     return try FfiConverterTypeFairUsage.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeFairUsage_lower(_ value: FairUsage) -> RustBuffer {
     return FfiConverterTypeFairUsage.lower(value)
 }
@@ -1560,6 +1777,9 @@ public struct FeatureFlags {
     }
 }
 
+#if compiler(>=6)
+extension FeatureFlags: Sendable {}
+#endif
 
 
 extension FeatureFlags: Equatable, Hashable {
@@ -1576,6 +1796,10 @@ extension FeatureFlags: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeFeatureFlags: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> FeatureFlags {
         return
@@ -1590,10 +1814,16 @@ public struct FfiConverterTypeFeatureFlags: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeFeatureFlags_lift(_ buf: RustBuffer) throws -> FeatureFlags {
     return try FfiConverterTypeFeatureFlags.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeFeatureFlags_lower(_ value: FeatureFlags) -> RustBuffer {
     return FfiConverterTypeFeatureFlags.lower(value)
 }
@@ -1615,6 +1845,9 @@ public struct Gateway {
     }
 }
 
+#if compiler(>=6)
+extension Gateway: Sendable {}
+#endif
 
 
 extension Gateway: Equatable, Hashable {
@@ -1631,6 +1864,10 @@ extension Gateway: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeGateway: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Gateway {
         return
@@ -1645,10 +1882,16 @@ public struct FfiConverterTypeGateway: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeGateway_lift(_ buf: RustBuffer) throws -> Gateway {
     return try FfiConverterTypeGateway.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeGateway_lower(_ value: Gateway) -> RustBuffer {
     return FfiConverterTypeGateway.lower(value)
 }
@@ -1672,6 +1915,9 @@ public struct GatewayInfo {
     }
 }
 
+#if compiler(>=6)
+extension GatewayInfo: Sendable {}
+#endif
 
 
 extension GatewayInfo: Equatable, Hashable {
@@ -1704,6 +1950,10 @@ extension GatewayInfo: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeGatewayInfo: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> GatewayInfo {
         return
@@ -1726,10 +1976,16 @@ public struct FfiConverterTypeGatewayInfo: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeGatewayInfo_lift(_ buf: RustBuffer) throws -> GatewayInfo {
     return try FfiConverterTypeGatewayInfo.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeGatewayInfo_lower(_ value: GatewayInfo) -> RustBuffer {
     return FfiConverterTypeGatewayInfo.lower(value)
 }
@@ -1747,6 +2003,9 @@ public struct GatewayMinPerformance {
     }
 }
 
+#if compiler(>=6)
+extension GatewayMinPerformance: Sendable {}
+#endif
 
 
 extension GatewayMinPerformance: Equatable, Hashable {
@@ -1767,6 +2026,10 @@ extension GatewayMinPerformance: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeGatewayMinPerformance: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> GatewayMinPerformance {
         return
@@ -1783,10 +2046,16 @@ public struct FfiConverterTypeGatewayMinPerformance: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeGatewayMinPerformance_lift(_ buf: RustBuffer) throws -> GatewayMinPerformance {
     return try FfiConverterTypeGatewayMinPerformance.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeGatewayMinPerformance_lower(_ value: GatewayMinPerformance) -> RustBuffer {
     return FfiConverterTypeGatewayMinPerformance.lower(value)
 }
@@ -1824,6 +2093,9 @@ public struct Ipv4Settings {
     }
 }
 
+#if compiler(>=6)
+extension Ipv4Settings: Sendable {}
+#endif
 
 
 extension Ipv4Settings: Equatable, Hashable {
@@ -1848,6 +2120,10 @@ extension Ipv4Settings: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeIpv4Settings: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ipv4Settings {
         return
@@ -1866,10 +2142,16 @@ public struct FfiConverterTypeIpv4Settings: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv4Settings_lift(_ buf: RustBuffer) throws -> Ipv4Settings {
     return try FfiConverterTypeIpv4Settings.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv4Settings_lower(_ value: Ipv4Settings) -> RustBuffer {
     return FfiConverterTypeIpv4Settings.lower(value)
 }
@@ -1907,6 +2189,9 @@ public struct Ipv6Settings {
     }
 }
 
+#if compiler(>=6)
+extension Ipv6Settings: Sendable {}
+#endif
 
 
 extension Ipv6Settings: Equatable, Hashable {
@@ -1931,6 +2216,10 @@ extension Ipv6Settings: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeIpv6Settings: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ipv6Settings {
         return
@@ -1949,10 +2238,16 @@ public struct FfiConverterTypeIpv6Settings: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv6Settings_lift(_ buf: RustBuffer) throws -> Ipv6Settings {
     return try FfiConverterTypeIpv6Settings.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv6Settings_lower(_ value: Ipv6Settings) -> RustBuffer {
     return FfiConverterTypeIpv6Settings.lower(value)
 }
@@ -1968,6 +2263,9 @@ public struct Location {
     }
 }
 
+#if compiler(>=6)
+extension Location: Sendable {}
+#endif
 
 
 extension Location: Equatable, Hashable {
@@ -1984,6 +2282,10 @@ extension Location: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeLocation: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Location {
         return
@@ -1998,10 +2300,16 @@ public struct FfiConverterTypeLocation: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeLocation_lift(_ buf: RustBuffer) throws -> Location {
     return try FfiConverterTypeLocation.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeLocation_lower(_ value: Location) -> RustBuffer {
     return FfiConverterTypeLocation.lower(value)
 }
@@ -2023,6 +2331,9 @@ public struct MixnetConnectionData {
     }
 }
 
+#if compiler(>=6)
+extension MixnetConnectionData: Sendable {}
+#endif
 
 
 extension MixnetConnectionData: Equatable, Hashable {
@@ -2051,6 +2362,10 @@ extension MixnetConnectionData: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeMixnetConnectionData: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> MixnetConnectionData {
         return
@@ -2071,10 +2386,16 @@ public struct FfiConverterTypeMixnetConnectionData: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeMixnetConnectionData_lift(_ buf: RustBuffer) throws -> MixnetConnectionData {
     return try FfiConverterTypeMixnetConnectionData.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeMixnetConnectionData_lower(_ value: MixnetConnectionData) -> RustBuffer {
     return FfiConverterTypeMixnetConnectionData.lower(value)
 }
@@ -2098,6 +2419,9 @@ public struct NetworkCompatibility {
     }
 }
 
+#if compiler(>=6)
+extension NetworkCompatibility: Sendable {}
+#endif
 
 
 extension NetworkCompatibility: Equatable, Hashable {
@@ -2130,6 +2454,10 @@ extension NetworkCompatibility: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeNetworkCompatibility: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NetworkCompatibility {
         return
@@ -2152,10 +2480,16 @@ public struct FfiConverterTypeNetworkCompatibility: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeNetworkCompatibility_lift(_ buf: RustBuffer) throws -> NetworkCompatibility {
     return try FfiConverterTypeNetworkCompatibility.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeNetworkCompatibility_lower(_ value: NetworkCompatibility) -> RustBuffer {
     return FfiConverterTypeNetworkCompatibility.lower(value)
 }
@@ -2204,6 +2538,9 @@ public struct NetworkEnvironment {
     }
 }
 
+#if compiler(>=6)
+extension NetworkEnvironment: Sendable {}
+#endif
 
 
 extension NetworkEnvironment: Equatable, Hashable {
@@ -2228,6 +2565,10 @@ extension NetworkEnvironment: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeNetworkEnvironment: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NetworkEnvironment {
         return
@@ -2246,10 +2587,16 @@ public struct FfiConverterTypeNetworkEnvironment: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeNetworkEnvironment_lift(_ buf: RustBuffer) throws -> NetworkEnvironment {
     return try FfiConverterTypeNetworkEnvironment.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeNetworkEnvironment_lower(_ value: NetworkEnvironment) -> RustBuffer {
     return FfiConverterTypeNetworkEnvironment.lower(value)
 }
@@ -2267,6 +2614,9 @@ public struct NymAddress {
     }
 }
 
+#if compiler(>=6)
+extension NymAddress: Sendable {}
+#endif
 
 
 extension NymAddress: Equatable, Hashable {
@@ -2287,6 +2637,10 @@ extension NymAddress: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeNymAddress: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NymAddress {
         return
@@ -2303,10 +2657,16 @@ public struct FfiConverterTypeNymAddress: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeNymAddress_lift(_ buf: RustBuffer) throws -> NymAddress {
     return try FfiConverterTypeNymAddress.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeNymAddress_lower(_ value: NymAddress) -> RustBuffer {
     return FfiConverterTypeNymAddress.lower(value)
 }
@@ -2332,6 +2692,9 @@ public struct NymContracts {
     }
 }
 
+#if compiler(>=6)
+extension NymContracts: Sendable {}
+#endif
 
 
 extension NymContracts: Equatable, Hashable {
@@ -2368,6 +2731,10 @@ extension NymContracts: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeNymContracts: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NymContracts {
         return
@@ -2392,10 +2759,16 @@ public struct FfiConverterTypeNymContracts: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeNymContracts_lift(_ buf: RustBuffer) throws -> NymContracts {
     return try FfiConverterTypeNymContracts.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeNymContracts_lower(_ value: NymContracts) -> RustBuffer {
     return FfiConverterTypeNymContracts.lower(value)
 }
@@ -2417,6 +2790,9 @@ public struct NymNetworkDetails {
     }
 }
 
+#if compiler(>=6)
+extension NymNetworkDetails: Sendable {}
+#endif
 
 
 extension NymNetworkDetails: Equatable, Hashable {
@@ -2445,6 +2821,10 @@ extension NymNetworkDetails: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeNymNetworkDetails: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NymNetworkDetails {
         return
@@ -2465,10 +2845,16 @@ public struct FfiConverterTypeNymNetworkDetails: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeNymNetworkDetails_lift(_ buf: RustBuffer) throws -> NymNetworkDetails {
     return try FfiConverterTypeNymNetworkDetails.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeNymNetworkDetails_lower(_ value: NymNetworkDetails) -> RustBuffer {
     return FfiConverterTypeNymNetworkDetails.lower(value)
 }
@@ -2484,6 +2870,9 @@ public struct NymVpnNetwork {
     }
 }
 
+#if compiler(>=6)
+extension NymVpnNetwork: Sendable {}
+#endif
 
 
 extension NymVpnNetwork: Equatable, Hashable {
@@ -2500,6 +2889,10 @@ extension NymVpnNetwork: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeNymVpnNetwork: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NymVpnNetwork {
         return
@@ -2514,12 +2907,80 @@ public struct FfiConverterTypeNymVpnNetwork: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeNymVpnNetwork_lift(_ buf: RustBuffer) throws -> NymVpnNetwork {
     return try FfiConverterTypeNymVpnNetwork.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeNymVpnNetwork_lower(_ value: NymVpnNetwork) -> RustBuffer {
     return FfiConverterTypeNymVpnNetwork.lower(value)
+}
+
+
+public struct RegisterAccountResponse {
+    public var accountToken: String
+
+    // Default memberwise initializers are never public by default, so we
+    // declare one manually.
+    public init(accountToken: String) {
+        self.accountToken = accountToken
+    }
+}
+
+#if compiler(>=6)
+extension RegisterAccountResponse: Sendable {}
+#endif
+
+
+extension RegisterAccountResponse: Equatable, Hashable {
+    public static func ==(lhs: RegisterAccountResponse, rhs: RegisterAccountResponse) -> Bool {
+        if lhs.accountToken != rhs.accountToken {
+            return false
+        }
+        return true
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(accountToken)
+    }
+}
+
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeRegisterAccountResponse: FfiConverterRustBuffer {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> RegisterAccountResponse {
+        return
+            try RegisterAccountResponse(
+                accountToken: FfiConverterString.read(from: &buf)
+        )
+    }
+
+    public static func write(_ value: RegisterAccountResponse, into buf: inout [UInt8]) {
+        FfiConverterString.write(value.accountToken, into: &buf)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeRegisterAccountResponse_lift(_ buf: RustBuffer) throws -> RegisterAccountResponse {
+    return try FfiConverterTypeRegisterAccountResponse.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeRegisterAccountResponse_lower(_ value: RegisterAccountResponse) -> RustBuffer {
+    return FfiConverterTypeRegisterAccountResponse.lower(value)
 }
 
 
@@ -2533,6 +2994,9 @@ public struct RequestZkNymSuccess {
     }
 }
 
+#if compiler(>=6)
+extension RequestZkNymSuccess: Sendable {}
+#endif
 
 
 extension RequestZkNymSuccess: Equatable, Hashable {
@@ -2549,6 +3013,10 @@ extension RequestZkNymSuccess: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeRequestZkNymSuccess: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> RequestZkNymSuccess {
         return
@@ -2563,10 +3031,16 @@ public struct FfiConverterTypeRequestZkNymSuccess: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeRequestZkNymSuccess_lift(_ buf: RustBuffer) throws -> RequestZkNymSuccess {
     return try FfiConverterTypeRequestZkNymSuccess.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeRequestZkNymSuccess_lower(_ value: RequestZkNymSuccess) -> RustBuffer {
     return FfiConverterTypeRequestZkNymSuccess.lower(value)
 }
@@ -2616,6 +3090,9 @@ public struct SphinxPacketRates {
     }
 }
 
+#if compiler(>=6)
+extension SphinxPacketRates: Sendable {}
+#endif
 
 
 extension SphinxPacketRates: Equatable, Hashable {
@@ -2700,6 +3177,10 @@ extension SphinxPacketRates: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeSphinxPacketRates: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SphinxPacketRates {
         return
@@ -2748,10 +3229,16 @@ public struct FfiConverterTypeSphinxPacketRates: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeSphinxPacketRates_lift(_ buf: RustBuffer) throws -> SphinxPacketRates {
     return try FfiConverterTypeSphinxPacketRates.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeSphinxPacketRates_lower(_ value: SphinxPacketRates) -> RustBuffer {
     return FfiConverterTypeSphinxPacketRates.lower(value)
 }
@@ -2771,6 +3258,9 @@ public struct SystemMessage {
     }
 }
 
+#if compiler(>=6)
+extension SystemMessage: Sendable {}
+#endif
 
 
 extension SystemMessage: Equatable, Hashable {
@@ -2795,6 +3285,10 @@ extension SystemMessage: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeSystemMessage: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SystemMessage {
         return
@@ -2813,10 +3307,16 @@ public struct FfiConverterTypeSystemMessage: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeSystemMessage_lift(_ buf: RustBuffer) throws -> SystemMessage {
     return try FfiConverterTypeSystemMessage.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeSystemMessage_lower(_ value: SystemMessage) -> RustBuffer {
     return FfiConverterTypeSystemMessage.lower(value)
 }
@@ -2873,6 +3373,9 @@ public struct TunnelNetworkSettings {
     }
 }
 
+#if compiler(>=6)
+extension TunnelNetworkSettings: Sendable {}
+#endif
 
 
 extension TunnelNetworkSettings: Equatable, Hashable {
@@ -2905,6 +3408,10 @@ extension TunnelNetworkSettings: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeTunnelNetworkSettings: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> TunnelNetworkSettings {
         return
@@ -2927,10 +3434,16 @@ public struct FfiConverterTypeTunnelNetworkSettings: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeTunnelNetworkSettings_lift(_ buf: RustBuffer) throws -> TunnelNetworkSettings {
     return try FfiConverterTypeTunnelNetworkSettings.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeTunnelNetworkSettings_lower(_ value: TunnelNetworkSettings) -> RustBuffer {
     return FfiConverterTypeTunnelNetworkSettings.lower(value)
 }
@@ -2952,6 +3465,9 @@ public struct UserAgent {
     }
 }
 
+#if compiler(>=6)
+extension UserAgent: Sendable {}
+#endif
 
 
 extension UserAgent: Equatable, Hashable {
@@ -2980,6 +3496,10 @@ extension UserAgent: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeUserAgent: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> UserAgent {
         return
@@ -3000,10 +3520,16 @@ public struct FfiConverterTypeUserAgent: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeUserAgent_lift(_ buf: RustBuffer) throws -> UserAgent {
     return try FfiConverterTypeUserAgent.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeUserAgent_lower(_ value: UserAgent) -> RustBuffer {
     return FfiConverterTypeUserAgent.lower(value)
 }
@@ -3037,8 +3563,15 @@ public struct VpnConfig {
     }
 }
 
+#if compiler(>=6)
+extension VpnConfig: Sendable {}
+#endif
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> VpnConfig {
         return
@@ -3071,10 +3604,16 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeVPNConfig_lift(_ buf: RustBuffer) throws -> VpnConfig {
     return try FfiConverterTypeVPNConfig.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeVPNConfig_lower(_ value: VpnConfig) -> RustBuffer {
     return FfiConverterTypeVPNConfig.lower(value)
 }
@@ -3094,6 +3633,9 @@ public struct ValidatorDetails {
     }
 }
 
+#if compiler(>=6)
+extension ValidatorDetails: Sendable {}
+#endif
 
 
 extension ValidatorDetails: Equatable, Hashable {
@@ -3118,6 +3660,10 @@ extension ValidatorDetails: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeValidatorDetails: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ValidatorDetails {
         return
@@ -3136,10 +3682,16 @@ public struct FfiConverterTypeValidatorDetails: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeValidatorDetails_lift(_ buf: RustBuffer) throws -> ValidatorDetails {
     return try FfiConverterTypeValidatorDetails.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeValidatorDetails_lower(_ value: ValidatorDetails) -> RustBuffer {
     return FfiConverterTypeValidatorDetails.lower(value)
 }
@@ -3159,6 +3711,9 @@ public struct VpnApiErrorResponse {
     }
 }
 
+#if compiler(>=6)
+extension VpnApiErrorResponse: Sendable {}
+#endif
 
 
 extension VpnApiErrorResponse: Equatable, Hashable {
@@ -3183,6 +3738,10 @@ extension VpnApiErrorResponse: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeVpnApiErrorResponse: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> VpnApiErrorResponse {
         return
@@ -3201,10 +3760,16 @@ public struct FfiConverterTypeVpnApiErrorResponse: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeVpnApiErrorResponse_lift(_ buf: RustBuffer) throws -> VpnApiErrorResponse {
     return try FfiConverterTypeVpnApiErrorResponse.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeVpnApiErrorResponse_lower(_ value: VpnApiErrorResponse) -> RustBuffer {
     return FfiConverterTypeVpnApiErrorResponse.lower(value)
 }
@@ -3222,6 +3787,9 @@ public struct WireguardConnectionData {
     }
 }
 
+#if compiler(>=6)
+extension WireguardConnectionData: Sendable {}
+#endif
 
 
 extension WireguardConnectionData: Equatable, Hashable {
@@ -3242,6 +3810,10 @@ extension WireguardConnectionData: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeWireguardConnectionData: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> WireguardConnectionData {
         return
@@ -3258,10 +3830,16 @@ public struct FfiConverterTypeWireguardConnectionData: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeWireguardConnectionData_lift(_ buf: RustBuffer) throws -> WireguardConnectionData {
     return try FfiConverterTypeWireguardConnectionData.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeWireguardConnectionData_lower(_ value: WireguardConnectionData) -> RustBuffer {
     return FfiConverterTypeWireguardConnectionData.lower(value)
 }
@@ -3283,6 +3861,9 @@ public struct WireguardNode {
     }
 }
 
+#if compiler(>=6)
+extension WireguardNode: Sendable {}
+#endif
 
 
 extension WireguardNode: Equatable, Hashable {
@@ -3311,6 +3892,10 @@ extension WireguardNode: Equatable, Hashable {
 }
 
 
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeWireguardNode: FfiConverterRustBuffer {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> WireguardNode {
         return
@@ -3331,10 +3916,16 @@ public struct FfiConverterTypeWireguardNode: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeWireguardNode_lift(_ buf: RustBuffer) throws -> WireguardNode {
     return try FfiConverterTypeWireguardNode.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeWireguardNode_lower(_ value: WireguardNode) -> RustBuffer {
     return FfiConverterTypeWireguardNode.lower(value)
 }
@@ -3349,6 +3940,13 @@ public enum AccountRegistered {
 }
 
 
+#if compiler(>=6)
+extension AccountRegistered: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeAccountRegistered: FfiConverterRustBuffer {
     typealias SwiftType = AccountRegistered
 
@@ -3380,17 +3978,25 @@ public struct FfiConverterTypeAccountRegistered: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeAccountRegistered_lift(_ buf: RustBuffer) throws -> AccountRegistered {
     return try FfiConverterTypeAccountRegistered.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeAccountRegistered_lower(_ value: AccountRegistered) -> RustBuffer {
     return FfiConverterTypeAccountRegistered.lower(value)
 }
 
 
-
 extension AccountRegistered: Equatable, Hashable {}
+
+
+
 
 
 
@@ -3405,6 +4011,13 @@ public enum AccountState {
 }
 
 
+#if compiler(>=6)
+extension AccountState: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeAccountState: FfiConverterRustBuffer {
     typealias SwiftType = AccountState
 
@@ -3442,17 +4055,25 @@ public struct FfiConverterTypeAccountState: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeAccountState_lift(_ buf: RustBuffer) throws -> AccountState {
     return try FfiConverterTypeAccountState.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeAccountState_lower(_ value: AccountState) -> RustBuffer {
     return FfiConverterTypeAccountState.lower(value)
 }
 
 
-
 extension AccountState: Equatable, Hashable {}
+
+
+
 
 
 
@@ -3468,6 +4089,13 @@ public enum ActionAfterDisconnect {
 }
 
 
+#if compiler(>=6)
+extension ActionAfterDisconnect: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeActionAfterDisconnect: FfiConverterRustBuffer {
     typealias SwiftType = ActionAfterDisconnect
 
@@ -3511,17 +4139,25 @@ public struct FfiConverterTypeActionAfterDisconnect: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeActionAfterDisconnect_lift(_ buf: RustBuffer) throws -> ActionAfterDisconnect {
     return try FfiConverterTypeActionAfterDisconnect.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeActionAfterDisconnect_lower(_ value: ActionAfterDisconnect) -> RustBuffer {
     return FfiConverterTypeActionAfterDisconnect.lower(value)
 }
 
 
-
 extension ActionAfterDisconnect: Equatable, Hashable {}
+
+
+
 
 
 
@@ -3536,6 +4172,13 @@ public enum BandwidthEvent {
 }
 
 
+#if compiler(>=6)
+extension BandwidthEvent: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeBandwidthEvent: FfiConverterRustBuffer {
     typealias SwiftType = BandwidthEvent
 
@@ -3569,17 +4212,25 @@ public struct FfiConverterTypeBandwidthEvent: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeBandwidthEvent_lift(_ buf: RustBuffer) throws -> BandwidthEvent {
     return try FfiConverterTypeBandwidthEvent.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeBandwidthEvent_lower(_ value: BandwidthEvent) -> RustBuffer {
     return FfiConverterTypeBandwidthEvent.lower(value)
 }
 
 
-
 extension BandwidthEvent: Equatable, Hashable {}
+
+
+
 
 
 
@@ -3598,6 +4249,13 @@ public enum ConnectionEvent {
 }
 
 
+#if compiler(>=6)
+extension ConnectionEvent: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeConnectionEvent: FfiConverterRustBuffer {
     typealias SwiftType = ConnectionEvent
 
@@ -3659,17 +4317,111 @@ public struct FfiConverterTypeConnectionEvent: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeConnectionEvent_lift(_ buf: RustBuffer) throws -> ConnectionEvent {
     return try FfiConverterTypeConnectionEvent.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeConnectionEvent_lower(_ value: ConnectionEvent) -> RustBuffer {
     return FfiConverterTypeConnectionEvent.lower(value)
 }
 
 
-
 extension ConnectionEvent: Equatable, Hashable {}
+
+
+
+
+
+
+
+public enum CreateAccountError: Swift.Error {
+
+    
+    
+    case Storage(String
+    )
+    case Internal(String
+    )
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeCreateAccountError: FfiConverterRustBuffer {
+    typealias SwiftType = CreateAccountError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> CreateAccountError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .Storage(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 2: return .Internal(
+            try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: CreateAccountError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        
+        case let .Storage(v1):
+            writeInt(&buf, Int32(1))
+            FfiConverterString.write(v1, into: &buf)
+            
+        
+        case let .Internal(v1):
+            writeInt(&buf, Int32(2))
+            FfiConverterString.write(v1, into: &buf)
+            
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeCreateAccountError_lift(_ buf: RustBuffer) throws -> CreateAccountError {
+    return try FfiConverterTypeCreateAccountError.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeCreateAccountError_lower(_ value: CreateAccountError) -> RustBuffer {
+    return FfiConverterTypeCreateAccountError.lower(value)
+}
+
+
+extension CreateAccountError: Equatable, Hashable {}
+
+
+
+
+extension CreateAccountError: Foundation.LocalizedError {
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+}
+
 
 
 
@@ -3685,6 +4437,13 @@ public enum DeviceState {
 }
 
 
+#if compiler(>=6)
+extension DeviceState: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeDeviceState: FfiConverterRustBuffer {
     typealias SwiftType = DeviceState
 
@@ -3728,17 +4487,25 @@ public struct FfiConverterTypeDeviceState: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeDeviceState_lift(_ buf: RustBuffer) throws -> DeviceState {
     return try FfiConverterTypeDeviceState.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeDeviceState_lower(_ value: DeviceState) -> RustBuffer {
     return FfiConverterTypeDeviceState.lower(value)
 }
 
 
-
 extension DeviceState: Equatable, Hashable {}
+
+
+
 
 
 
@@ -3755,6 +4522,13 @@ public enum EntryPoint {
 }
 
 
+#if compiler(>=6)
+extension EntryPoint: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeEntryPoint: FfiConverterRustBuffer {
     typealias SwiftType = EntryPoint
 
@@ -3796,17 +4570,25 @@ public struct FfiConverterTypeEntryPoint: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeEntryPoint_lift(_ buf: RustBuffer) throws -> EntryPoint {
     return try FfiConverterTypeEntryPoint.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeEntryPoint_lower(_ value: EntryPoint) -> RustBuffer {
     return FfiConverterTypeEntryPoint.lower(value)
 }
 
 
-
 extension EntryPoint: Equatable, Hashable {}
+
+
+
 
 
 
@@ -3834,6 +4616,13 @@ public enum ErrorStateReason {
 }
 
 
+#if compiler(>=6)
+extension ErrorStateReason: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
     typealias SwiftType = ErrorStateReason
 
@@ -3937,17 +4726,25 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeErrorStateReason_lift(_ buf: RustBuffer) throws -> ErrorStateReason {
     return try FfiConverterTypeErrorStateReason.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeErrorStateReason_lower(_ value: ErrorStateReason) -> RustBuffer {
     return FfiConverterTypeErrorStateReason.lower(value)
 }
 
 
-
 extension ErrorStateReason: Equatable, Hashable {}
+
+
+
 
 
 
@@ -3965,6 +4762,13 @@ public enum ExitPoint {
 }
 
 
+#if compiler(>=6)
+extension ExitPoint: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeExitPoint: FfiConverterRustBuffer {
     typealias SwiftType = ExitPoint
 
@@ -4008,17 +4812,25 @@ public struct FfiConverterTypeExitPoint: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeExitPoint_lift(_ buf: RustBuffer) throws -> ExitPoint {
     return try FfiConverterTypeExitPoint.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeExitPoint_lower(_ value: ExitPoint) -> RustBuffer {
     return FfiConverterTypeExitPoint.lower(value)
 }
 
 
-
 extension ExitPoint: Equatable, Hashable {}
+
+
+
 
 
 
@@ -4034,6 +4846,13 @@ public enum FlagValue {
 }
 
 
+#if compiler(>=6)
+extension FlagValue: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeFlagValue: FfiConverterRustBuffer {
     typealias SwiftType = FlagValue
 
@@ -4069,126 +4888,143 @@ public struct FfiConverterTypeFlagValue: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeFlagValue_lift(_ buf: RustBuffer) throws -> FlagValue {
     return try FfiConverterTypeFlagValue.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeFlagValue_lower(_ value: FlagValue) -> RustBuffer {
     return FfiConverterTypeFlagValue.lower(value)
 }
-
 
 
 extension FlagValue: Equatable, Hashable {}
 
 
 
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-public enum ForgetAccountError {
+
+
+
+public enum ForgetAccountError: Swift.Error {
+
     
-    case registrationInProgress
-    case updateDeviceErrorResponse(VpnApiError
+    
+    case RegistrationInProgress
+    case UpdateDeviceErrorResponse(VpnApiError
     )
-    case unexpectedResponse(String
+    case UnexpectedResponse(String
     )
-    case removeAccount(String
+    case RemoveAccount(String
     )
-    case removeDeviceKeys(String
+    case RemoveDeviceKeys(String
     )
-    case resetCredentialStorage(String
+    case ResetCredentialStorage(String
     )
-    case removeAccountFiles(String
+    case RemoveAccountFiles(String
     )
-    case initDeviceKeys(String
+    case InitDeviceKeys(String
     )
-    case `internal`(String
+    case Internal(String
     )
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeForgetAccountError: FfiConverterRustBuffer {
     typealias SwiftType = ForgetAccountError
 
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> ForgetAccountError {
         let variant: Int32 = try readInt(&buf)
         switch variant {
+
         
-        case 1: return .registrationInProgress
+
         
-        case 2: return .updateDeviceErrorResponse(try FfiConverterTypeVpnApiError.read(from: &buf)
-        )
-        
-        case 3: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
-        )
-        
-        case 4: return .removeAccount(try FfiConverterString.read(from: &buf)
-        )
-        
-        case 5: return .removeDeviceKeys(try FfiConverterString.read(from: &buf)
-        )
-        
-        case 6: return .resetCredentialStorage(try FfiConverterString.read(from: &buf)
-        )
-        
-        case 7: return .removeAccountFiles(try FfiConverterString.read(from: &buf)
-        )
-        
-        case 8: return .initDeviceKeys(try FfiConverterString.read(from: &buf)
-        )
-        
-        case 9: return .`internal`(try FfiConverterString.read(from: &buf)
-        )
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
+        case 1: return .RegistrationInProgress
+        case 2: return .UpdateDeviceErrorResponse(
+            try FfiConverterTypeVpnApiError.read(from: &buf)
+            )
+        case 3: return .UnexpectedResponse(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 4: return .RemoveAccount(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 5: return .RemoveDeviceKeys(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 6: return .ResetCredentialStorage(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 7: return .RemoveAccountFiles(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 8: return .InitDeviceKeys(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 9: return .Internal(
+            try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
 
     public static func write(_ value: ForgetAccountError, into buf: inout [UInt8]) {
         switch value {
+
+        
+
         
         
-        case .registrationInProgress:
+        case .RegistrationInProgress:
             writeInt(&buf, Int32(1))
         
         
-        case let .updateDeviceErrorResponse(v1):
+        case let .UpdateDeviceErrorResponse(v1):
             writeInt(&buf, Int32(2))
             FfiConverterTypeVpnApiError.write(v1, into: &buf)
             
         
-        case let .unexpectedResponse(v1):
+        case let .UnexpectedResponse(v1):
             writeInt(&buf, Int32(3))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .removeAccount(v1):
+        case let .RemoveAccount(v1):
             writeInt(&buf, Int32(4))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .removeDeviceKeys(v1):
+        case let .RemoveDeviceKeys(v1):
             writeInt(&buf, Int32(5))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .resetCredentialStorage(v1):
+        case let .ResetCredentialStorage(v1):
             writeInt(&buf, Int32(6))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .removeAccountFiles(v1):
+        case let .RemoveAccountFiles(v1):
             writeInt(&buf, Int32(7))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .initDeviceKeys(v1):
+        case let .InitDeviceKeys(v1):
             writeInt(&buf, Int32(8))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .`internal`(v1):
+        case let .Internal(v1):
             writeInt(&buf, Int32(9))
             FfiConverterString.write(v1, into: &buf)
             
@@ -4197,17 +5033,32 @@ public struct FfiConverterTypeForgetAccountError: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeForgetAccountError_lift(_ buf: RustBuffer) throws -> ForgetAccountError {
     return try FfiConverterTypeForgetAccountError.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeForgetAccountError_lower(_ value: ForgetAccountError) -> RustBuffer {
     return FfiConverterTypeForgetAccountError.lower(value)
 }
 
 
-
 extension ForgetAccountError: Equatable, Hashable {}
+
+
+
+
+extension ForgetAccountError: Foundation.LocalizedError {
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+}
+
 
 
 
@@ -4222,6 +5073,13 @@ public enum GatewayType {
 }
 
 
+#if compiler(>=6)
+extension GatewayType: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeGatewayType: FfiConverterRustBuffer {
     typealias SwiftType = GatewayType
 
@@ -4259,17 +5117,111 @@ public struct FfiConverterTypeGatewayType: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeGatewayType_lift(_ buf: RustBuffer) throws -> GatewayType {
     return try FfiConverterTypeGatewayType.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeGatewayType_lower(_ value: GatewayType) -> RustBuffer {
     return FfiConverterTypeGatewayType.lower(value)
 }
 
 
-
 extension GatewayType: Equatable, Hashable {}
+
+
+
+
+
+
+
+public enum GetMnemonicError: Swift.Error {
+
+    
+    
+    case Storage(String
+    )
+    case Internal(String
+    )
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeGetMnemonicError: FfiConverterRustBuffer {
+    typealias SwiftType = GetMnemonicError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> GetMnemonicError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .Storage(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 2: return .Internal(
+            try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: GetMnemonicError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        
+        case let .Storage(v1):
+            writeInt(&buf, Int32(1))
+            FfiConverterString.write(v1, into: &buf)
+            
+        
+        case let .Internal(v1):
+            writeInt(&buf, Int32(2))
+            FfiConverterString.write(v1, into: &buf)
+            
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeGetMnemonicError_lift(_ buf: RustBuffer) throws -> GetMnemonicError {
+    return try FfiConverterTypeGetMnemonicError.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeGetMnemonicError_lower(_ value: GetMnemonicError) -> RustBuffer {
+    return FfiConverterTypeGetMnemonicError.lower(value)
+}
+
+
+extension GetMnemonicError: Equatable, Hashable {}
+
+
+
+
+extension GetMnemonicError: Foundation.LocalizedError {
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+}
+
 
 
 
@@ -4290,6 +5242,13 @@ public enum Ipv4Route {
 }
 
 
+#if compiler(>=6)
+extension Ipv4Route: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeIpv4Route: FfiConverterRustBuffer {
     typealias SwiftType = Ipv4Route
 
@@ -4325,17 +5284,25 @@ public struct FfiConverterTypeIpv4Route: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv4Route_lift(_ buf: RustBuffer) throws -> Ipv4Route {
     return try FfiConverterTypeIpv4Route.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv4Route_lower(_ value: Ipv4Route) -> RustBuffer {
     return FfiConverterTypeIpv4Route.lower(value)
 }
 
 
-
 extension Ipv4Route: Equatable, Hashable {}
+
+
+
 
 
 
@@ -4356,6 +5323,13 @@ public enum Ipv6Route {
 }
 
 
+#if compiler(>=6)
+extension Ipv6Route: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeIpv6Route: FfiConverterRustBuffer {
     typealias SwiftType = Ipv6Route
 
@@ -4391,17 +5365,25 @@ public struct FfiConverterTypeIpv6Route: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv6Route_lift(_ buf: RustBuffer) throws -> Ipv6Route {
     return try FfiConverterTypeIpv6Route.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv6Route_lower(_ value: Ipv6Route) -> RustBuffer {
     return FfiConverterTypeIpv6Route.lower(value)
 }
 
 
-
 extension Ipv6Route: Equatable, Hashable {}
+
+
+
 
 
 
@@ -4419,6 +5401,13 @@ public enum MixnetEvent {
 }
 
 
+#if compiler(>=6)
+extension MixnetEvent: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeMixnetEvent: FfiConverterRustBuffer {
     typealias SwiftType = MixnetEvent
 
@@ -4462,17 +5451,25 @@ public struct FfiConverterTypeMixnetEvent: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeMixnetEvent_lift(_ buf: RustBuffer) throws -> MixnetEvent {
     return try FfiConverterTypeMixnetEvent.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeMixnetEvent_lower(_ value: MixnetEvent) -> RustBuffer {
     return FfiConverterTypeMixnetEvent.lower(value)
 }
 
 
-
 extension MixnetEvent: Equatable, Hashable {}
+
+
+
 
 
 
@@ -4486,6 +5483,13 @@ public enum MnemonicState {
 }
 
 
+#if compiler(>=6)
+extension MnemonicState: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeMnemonicState: FfiConverterRustBuffer {
     typealias SwiftType = MnemonicState
 
@@ -4517,90 +5521,217 @@ public struct FfiConverterTypeMnemonicState: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeMnemonicState_lift(_ buf: RustBuffer) throws -> MnemonicState {
     return try FfiConverterTypeMnemonicState.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeMnemonicState_lower(_ value: MnemonicState) -> RustBuffer {
     return FfiConverterTypeMnemonicState.lower(value)
 }
-
 
 
 extension MnemonicState: Equatable, Hashable {}
 
 
 
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-public enum RegisterDeviceError {
+
+
+
+public enum RegisterAccountError: Swift.Error {
+
     
-    case noAccountStored
-    case noDeviceStored
-    case errorResponse(VpnApiError
+    
+    case Offline
+    case Storage(String
     )
-    case unexpectedResponse(String
+    case GetAccountEndpointFailure(VpnApiError
     )
-    case offline
-    case `internal`(String
+    case UnexpectedResponse(String
+    )
+    case Internal(String
     )
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeRegisterAccountError: FfiConverterRustBuffer {
+    typealias SwiftType = RegisterAccountError
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> RegisterAccountError {
+        let variant: Int32 = try readInt(&buf)
+        switch variant {
+
+        
+
+        
+        case 1: return .Offline
+        case 2: return .Storage(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 3: return .GetAccountEndpointFailure(
+            try FfiConverterTypeVpnApiError.read(from: &buf)
+            )
+        case 4: return .UnexpectedResponse(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 5: return .Internal(
+            try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
+        }
+    }
+
+    public static func write(_ value: RegisterAccountError, into buf: inout [UInt8]) {
+        switch value {
+
+        
+
+        
+        
+        case .Offline:
+            writeInt(&buf, Int32(1))
+        
+        
+        case let .Storage(v1):
+            writeInt(&buf, Int32(2))
+            FfiConverterString.write(v1, into: &buf)
+            
+        
+        case let .GetAccountEndpointFailure(v1):
+            writeInt(&buf, Int32(3))
+            FfiConverterTypeVpnApiError.write(v1, into: &buf)
+            
+        
+        case let .UnexpectedResponse(v1):
+            writeInt(&buf, Int32(4))
+            FfiConverterString.write(v1, into: &buf)
+            
+        
+        case let .Internal(v1):
+            writeInt(&buf, Int32(5))
+            FfiConverterString.write(v1, into: &buf)
+            
+        }
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeRegisterAccountError_lift(_ buf: RustBuffer) throws -> RegisterAccountError {
+    return try FfiConverterTypeRegisterAccountError.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeRegisterAccountError_lower(_ value: RegisterAccountError) -> RustBuffer {
+    return FfiConverterTypeRegisterAccountError.lower(value)
+}
+
+
+extension RegisterAccountError: Equatable, Hashable {}
+
+
+
+
+extension RegisterAccountError: Foundation.LocalizedError {
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+}
+
+
+
+
+
+public enum RegisterDeviceError: Swift.Error {
+
+    
+    
+    case NoAccountStored
+    case NoDeviceStored
+    case ErrorResponse(VpnApiError
+    )
+    case UnexpectedResponse(String
+    )
+    case Offline
+    case Internal(String
+    )
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeRegisterDeviceError: FfiConverterRustBuffer {
     typealias SwiftType = RegisterDeviceError
 
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> RegisterDeviceError {
         let variant: Int32 = try readInt(&buf)
         switch variant {
+
         
-        case 1: return .noAccountStored
+
         
-        case 2: return .noDeviceStored
-        
-        case 3: return .errorResponse(try FfiConverterTypeVpnApiError.read(from: &buf)
-        )
-        
-        case 4: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
-        )
-        
-        case 5: return .offline
-        
-        case 6: return .`internal`(try FfiConverterString.read(from: &buf)
-        )
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
+        case 1: return .NoAccountStored
+        case 2: return .NoDeviceStored
+        case 3: return .ErrorResponse(
+            try FfiConverterTypeVpnApiError.read(from: &buf)
+            )
+        case 4: return .UnexpectedResponse(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 5: return .Offline
+        case 6: return .Internal(
+            try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
 
     public static func write(_ value: RegisterDeviceError, into buf: inout [UInt8]) {
         switch value {
+
+        
+
         
         
-        case .noAccountStored:
+        case .NoAccountStored:
             writeInt(&buf, Int32(1))
         
         
-        case .noDeviceStored:
+        case .NoDeviceStored:
             writeInt(&buf, Int32(2))
         
         
-        case let .errorResponse(v1):
+        case let .ErrorResponse(v1):
             writeInt(&buf, Int32(3))
             FfiConverterTypeVpnApiError.write(v1, into: &buf)
             
         
-        case let .unexpectedResponse(v1):
+        case let .UnexpectedResponse(v1):
             writeInt(&buf, Int32(4))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case .offline:
+        case .Offline:
             writeInt(&buf, Int32(5))
         
         
-        case let .`internal`(v1):
+        case let .Internal(v1):
             writeInt(&buf, Int32(6))
             FfiConverterString.write(v1, into: &buf)
             
@@ -4609,17 +5740,32 @@ public struct FfiConverterTypeRegisterDeviceError: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeRegisterDeviceError_lift(_ buf: RustBuffer) throws -> RegisterDeviceError {
     return try FfiConverterTypeRegisterDeviceError.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeRegisterDeviceError_lower(_ value: RegisterDeviceError) -> RustBuffer {
     return FfiConverterTypeRegisterDeviceError.lower(value)
 }
 
 
-
 extension RegisterDeviceError: Equatable, Hashable {}
+
+
+
+
+extension RegisterDeviceError: Foundation.LocalizedError {
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+}
+
 
 
 
@@ -4635,6 +5781,13 @@ public enum RegisterDeviceResult {
 }
 
 
+#if compiler(>=6)
+extension RegisterDeviceResult: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeRegisterDeviceResult: FfiConverterRustBuffer {
     typealias SwiftType = RegisterDeviceResult
 
@@ -4675,100 +5828,115 @@ public struct FfiConverterTypeRegisterDeviceResult: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeRegisterDeviceResult_lift(_ buf: RustBuffer) throws -> RegisterDeviceResult {
     return try FfiConverterTypeRegisterDeviceResult.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeRegisterDeviceResult_lower(_ value: RegisterDeviceResult) -> RustBuffer {
     return FfiConverterTypeRegisterDeviceResult.lower(value)
 }
-
 
 
 extension RegisterDeviceResult: Equatable, Hashable {}
 
 
 
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-public enum RequestZkNymError {
+
+
+
+public enum RequestZkNymError: Swift.Error {
+
     
-    case noAccountStored
-    case noDeviceStored
-    case vpnApi(VpnApiError
+    
+    case NoAccountStored
+    case NoDeviceStored
+    case VpnApi(VpnApiError
     )
-    case unexpectedVpnApiResponse(String
+    case UnexpectedVpnApiResponse(String
     )
-    case storage(String
+    case Storage(String
     )
-    case offline
-    case `internal`(String
+    case Offline
+    case Internal(String
     )
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeRequestZkNymError: FfiConverterRustBuffer {
     typealias SwiftType = RequestZkNymError
 
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> RequestZkNymError {
         let variant: Int32 = try readInt(&buf)
         switch variant {
+
         
-        case 1: return .noAccountStored
+
         
-        case 2: return .noDeviceStored
-        
-        case 3: return .vpnApi(try FfiConverterTypeVpnApiError.read(from: &buf)
-        )
-        
-        case 4: return .unexpectedVpnApiResponse(try FfiConverterString.read(from: &buf)
-        )
-        
-        case 5: return .storage(try FfiConverterString.read(from: &buf)
-        )
-        
-        case 6: return .offline
-        
-        case 7: return .`internal`(try FfiConverterString.read(from: &buf)
-        )
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
+        case 1: return .NoAccountStored
+        case 2: return .NoDeviceStored
+        case 3: return .VpnApi(
+            try FfiConverterTypeVpnApiError.read(from: &buf)
+            )
+        case 4: return .UnexpectedVpnApiResponse(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 5: return .Storage(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 6: return .Offline
+        case 7: return .Internal(
+            try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
 
     public static func write(_ value: RequestZkNymError, into buf: inout [UInt8]) {
         switch value {
+
+        
+
         
         
-        case .noAccountStored:
+        case .NoAccountStored:
             writeInt(&buf, Int32(1))
         
         
-        case .noDeviceStored:
+        case .NoDeviceStored:
             writeInt(&buf, Int32(2))
         
         
-        case let .vpnApi(v1):
+        case let .VpnApi(v1):
             writeInt(&buf, Int32(3))
             FfiConverterTypeVpnApiError.write(v1, into: &buf)
             
         
-        case let .unexpectedVpnApiResponse(v1):
+        case let .UnexpectedVpnApiResponse(v1):
             writeInt(&buf, Int32(4))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .storage(v1):
+        case let .Storage(v1):
             writeInt(&buf, Int32(5))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case .offline:
+        case .Offline:
             writeInt(&buf, Int32(6))
         
         
-        case let .`internal`(v1):
+        case let .Internal(v1):
             writeInt(&buf, Int32(7))
             FfiConverterString.write(v1, into: &buf)
             
@@ -4777,17 +5945,32 @@ public struct FfiConverterTypeRequestZkNymError: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeRequestZkNymError_lift(_ buf: RustBuffer) throws -> RequestZkNymError {
     return try FfiConverterTypeRequestZkNymError.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeRequestZkNymError_lower(_ value: RequestZkNymError) -> RustBuffer {
     return FfiConverterTypeRequestZkNymError.lower(value)
 }
 
 
-
 extension RequestZkNymError: Equatable, Hashable {}
+
+
+
+
+extension RequestZkNymError: Foundation.LocalizedError {
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+}
+
 
 
 
@@ -4804,6 +5987,13 @@ public enum RequestZkNymResult {
 }
 
 
+#if compiler(>=6)
+extension RequestZkNymResult: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeRequestZkNymResult: FfiConverterRustBuffer {
     typealias SwiftType = RequestZkNymResult
 
@@ -4846,17 +6036,25 @@ public struct FfiConverterTypeRequestZkNymResult: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeRequestZkNymResult_lift(_ buf: RustBuffer) throws -> RequestZkNymResult {
     return try FfiConverterTypeRequestZkNymResult.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeRequestZkNymResult_lower(_ value: RequestZkNymResult) -> RustBuffer {
     return FfiConverterTypeRequestZkNymResult.lower(value)
 }
 
 
-
 extension RequestZkNymResult: Equatable, Hashable {}
+
+
+
 
 
 
@@ -4872,6 +6070,13 @@ public enum Score {
 }
 
 
+#if compiler(>=6)
+extension Score: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeScore: FfiConverterRustBuffer {
     typealias SwiftType = Score
 
@@ -4915,89 +6120,107 @@ public struct FfiConverterTypeScore: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeScore_lift(_ buf: RustBuffer) throws -> Score {
     return try FfiConverterTypeScore.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeScore_lower(_ value: Score) -> RustBuffer {
     return FfiConverterTypeScore.lower(value)
 }
-
 
 
 extension Score: Equatable, Hashable {}
 
 
 
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-public enum StoreAccountError {
+
+
+
+public enum StoreAccountError: Swift.Error {
+
     
-    case invalidMnemonic(String
+    
+    case InvalidMnemonic(String
     )
-    case storage(String
+    case Storage(String
     )
-    case getAccountEndpointFailure(VpnApiError
+    case GetAccountEndpointFailure(VpnApiError
     )
-    case unexpectedResponse(String
+    case UnexpectedResponse(String
     )
-    case `internal`(String
+    case Internal(String
     )
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeStoreAccountError: FfiConverterRustBuffer {
     typealias SwiftType = StoreAccountError
 
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> StoreAccountError {
         let variant: Int32 = try readInt(&buf)
         switch variant {
+
         
-        case 1: return .invalidMnemonic(try FfiConverterString.read(from: &buf)
-        )
+
         
-        case 2: return .storage(try FfiConverterString.read(from: &buf)
-        )
-        
-        case 3: return .getAccountEndpointFailure(try FfiConverterTypeVpnApiError.read(from: &buf)
-        )
-        
-        case 4: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
-        )
-        
-        case 5: return .`internal`(try FfiConverterString.read(from: &buf)
-        )
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
+        case 1: return .InvalidMnemonic(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 2: return .Storage(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 3: return .GetAccountEndpointFailure(
+            try FfiConverterTypeVpnApiError.read(from: &buf)
+            )
+        case 4: return .UnexpectedResponse(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 5: return .Internal(
+            try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
 
     public static func write(_ value: StoreAccountError, into buf: inout [UInt8]) {
         switch value {
+
+        
+
         
         
-        case let .invalidMnemonic(v1):
+        case let .InvalidMnemonic(v1):
             writeInt(&buf, Int32(1))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .storage(v1):
+        case let .Storage(v1):
             writeInt(&buf, Int32(2))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .getAccountEndpointFailure(v1):
+        case let .GetAccountEndpointFailure(v1):
             writeInt(&buf, Int32(3))
             FfiConverterTypeVpnApiError.write(v1, into: &buf)
             
         
-        case let .unexpectedResponse(v1):
+        case let .UnexpectedResponse(v1):
             writeInt(&buf, Int32(4))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case let .`internal`(v1):
+        case let .Internal(v1):
             writeInt(&buf, Int32(5))
             FfiConverterString.write(v1, into: &buf)
             
@@ -5006,17 +6229,32 @@ public struct FfiConverterTypeStoreAccountError: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeStoreAccountError_lift(_ buf: RustBuffer) throws -> StoreAccountError {
     return try FfiConverterTypeStoreAccountError.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeStoreAccountError_lower(_ value: StoreAccountError) -> RustBuffer {
     return FfiConverterTypeStoreAccountError.lower(value)
 }
 
 
-
 extension StoreAccountError: Equatable, Hashable {}
+
+
+
+
+extension StoreAccountError: Foundation.LocalizedError {
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+}
+
 
 
 
@@ -5032,6 +6270,13 @@ public enum SubscriptionState {
 }
 
 
+#if compiler(>=6)
+extension SubscriptionState: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeSubscriptionState: FfiConverterRustBuffer {
     typealias SwiftType = SubscriptionState
 
@@ -5075,83 +6320,99 @@ public struct FfiConverterTypeSubscriptionState: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeSubscriptionState_lift(_ buf: RustBuffer) throws -> SubscriptionState {
     return try FfiConverterTypeSubscriptionState.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeSubscriptionState_lower(_ value: SubscriptionState) -> RustBuffer {
     return FfiConverterTypeSubscriptionState.lower(value)
 }
-
 
 
 extension SubscriptionState: Equatable, Hashable {}
 
 
 
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-public enum SyncAccountError {
+
+
+
+public enum SyncAccountError: Swift.Error {
+
     
-    case noAccountStored
-    case errorResponse(VpnApiError
+    
+    case NoAccountStored
+    case ErrorResponse(VpnApiError
     )
-    case unexpectedResponse(String
+    case UnexpectedResponse(String
     )
-    case offline
-    case `internal`(String
+    case Offline
+    case Internal(String
     )
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeSyncAccountError: FfiConverterRustBuffer {
     typealias SwiftType = SyncAccountError
 
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SyncAccountError {
         let variant: Int32 = try readInt(&buf)
         switch variant {
+
         
-        case 1: return .noAccountStored
+
         
-        case 2: return .errorResponse(try FfiConverterTypeVpnApiError.read(from: &buf)
-        )
-        
-        case 3: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
-        )
-        
-        case 4: return .offline
-        
-        case 5: return .`internal`(try FfiConverterString.read(from: &buf)
-        )
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
+        case 1: return .NoAccountStored
+        case 2: return .ErrorResponse(
+            try FfiConverterTypeVpnApiError.read(from: &buf)
+            )
+        case 3: return .UnexpectedResponse(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 4: return .Offline
+        case 5: return .Internal(
+            try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
 
     public static func write(_ value: SyncAccountError, into buf: inout [UInt8]) {
         switch value {
+
+        
+
         
         
-        case .noAccountStored:
+        case .NoAccountStored:
             writeInt(&buf, Int32(1))
         
         
-        case let .errorResponse(v1):
+        case let .ErrorResponse(v1):
             writeInt(&buf, Int32(2))
             FfiConverterTypeVpnApiError.write(v1, into: &buf)
             
         
-        case let .unexpectedResponse(v1):
+        case let .UnexpectedResponse(v1):
             writeInt(&buf, Int32(3))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case .offline:
+        case .Offline:
             writeInt(&buf, Int32(4))
         
         
-        case let .`internal`(v1):
+        case let .Internal(v1):
             writeInt(&buf, Int32(5))
             FfiConverterString.write(v1, into: &buf)
             
@@ -5160,90 +6421,112 @@ public struct FfiConverterTypeSyncAccountError: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeSyncAccountError_lift(_ buf: RustBuffer) throws -> SyncAccountError {
     return try FfiConverterTypeSyncAccountError.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeSyncAccountError_lower(_ value: SyncAccountError) -> RustBuffer {
     return FfiConverterTypeSyncAccountError.lower(value)
 }
-
 
 
 extension SyncAccountError: Equatable, Hashable {}
 
 
 
-// Note that we don't yet support `indirect` for enums.
-// See https://github.com/mozilla/uniffi-rs/issues/396 for further discussion.
 
-public enum SyncDeviceError {
+extension SyncAccountError: Foundation.LocalizedError {
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+}
+
+
+
+
+
+public enum SyncDeviceError: Swift.Error {
+
     
-    case noAccountStored
-    case noDeviceStored
-    case errorResponse(VpnApiError
+    
+    case NoAccountStored
+    case NoDeviceStored
+    case ErrorResponse(VpnApiError
     )
-    case unexpectedResponse(String
+    case UnexpectedResponse(String
     )
-    case offline
-    case `internal`(String
+    case Offline
+    case Internal(String
     )
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeSyncDeviceError: FfiConverterRustBuffer {
     typealias SwiftType = SyncDeviceError
 
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SyncDeviceError {
         let variant: Int32 = try readInt(&buf)
         switch variant {
+
         
-        case 1: return .noAccountStored
+
         
-        case 2: return .noDeviceStored
-        
-        case 3: return .errorResponse(try FfiConverterTypeVpnApiError.read(from: &buf)
-        )
-        
-        case 4: return .unexpectedResponse(try FfiConverterString.read(from: &buf)
-        )
-        
-        case 5: return .offline
-        
-        case 6: return .`internal`(try FfiConverterString.read(from: &buf)
-        )
-        
-        default: throw UniffiInternalError.unexpectedEnumCase
+        case 1: return .NoAccountStored
+        case 2: return .NoDeviceStored
+        case 3: return .ErrorResponse(
+            try FfiConverterTypeVpnApiError.read(from: &buf)
+            )
+        case 4: return .UnexpectedResponse(
+            try FfiConverterString.read(from: &buf)
+            )
+        case 5: return .Offline
+        case 6: return .Internal(
+            try FfiConverterString.read(from: &buf)
+            )
+
+         default: throw UniffiInternalError.unexpectedEnumCase
         }
     }
 
     public static func write(_ value: SyncDeviceError, into buf: inout [UInt8]) {
         switch value {
+
+        
+
         
         
-        case .noAccountStored:
+        case .NoAccountStored:
             writeInt(&buf, Int32(1))
         
         
-        case .noDeviceStored:
+        case .NoDeviceStored:
             writeInt(&buf, Int32(2))
         
         
-        case let .errorResponse(v1):
+        case let .ErrorResponse(v1):
             writeInt(&buf, Int32(3))
             FfiConverterTypeVpnApiError.write(v1, into: &buf)
             
         
-        case let .unexpectedResponse(v1):
+        case let .UnexpectedResponse(v1):
             writeInt(&buf, Int32(4))
             FfiConverterString.write(v1, into: &buf)
             
         
-        case .offline:
+        case .Offline:
             writeInt(&buf, Int32(5))
         
         
-        case let .`internal`(v1):
+        case let .Internal(v1):
             writeInt(&buf, Int32(6))
             FfiConverterString.write(v1, into: &buf)
             
@@ -5252,17 +6535,32 @@ public struct FfiConverterTypeSyncDeviceError: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeSyncDeviceError_lift(_ buf: RustBuffer) throws -> SyncDeviceError {
     return try FfiConverterTypeSyncDeviceError.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeSyncDeviceError_lower(_ value: SyncDeviceError) -> RustBuffer {
     return FfiConverterTypeSyncDeviceError.lower(value)
 }
 
 
-
 extension SyncDeviceError: Equatable, Hashable {}
+
+
+
+
+extension SyncDeviceError: Foundation.LocalizedError {
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+}
+
 
 
 
@@ -5278,6 +6576,13 @@ public enum TunnelConnectionData {
 }
 
 
+#if compiler(>=6)
+extension TunnelConnectionData: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeTunnelConnectionData: FfiConverterRustBuffer {
     typealias SwiftType = TunnelConnectionData
 
@@ -5313,17 +6618,25 @@ public struct FfiConverterTypeTunnelConnectionData: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeTunnelConnectionData_lift(_ buf: RustBuffer) throws -> TunnelConnectionData {
     return try FfiConverterTypeTunnelConnectionData.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeTunnelConnectionData_lower(_ value: TunnelConnectionData) -> RustBuffer {
     return FfiConverterTypeTunnelConnectionData.lower(value)
 }
 
 
-
 extension TunnelConnectionData: Equatable, Hashable {}
+
+
+
 
 
 
@@ -5339,6 +6652,13 @@ public enum TunnelEvent {
 }
 
 
+#if compiler(>=6)
+extension TunnelEvent: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeTunnelEvent: FfiConverterRustBuffer {
     typealias SwiftType = TunnelEvent
 
@@ -5374,17 +6694,25 @@ public struct FfiConverterTypeTunnelEvent: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeTunnelEvent_lift(_ buf: RustBuffer) throws -> TunnelEvent {
     return try FfiConverterTypeTunnelEvent.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeTunnelEvent_lower(_ value: TunnelEvent) -> RustBuffer {
     return FfiConverterTypeTunnelEvent.lower(value)
 }
 
 
-
 extension TunnelEvent: Equatable, Hashable {}
+
+
+
 
 
 
@@ -5407,6 +6735,13 @@ public enum TunnelState {
 }
 
 
+#if compiler(>=6)
+extension TunnelState: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeTunnelState: FfiConverterRustBuffer {
     typealias SwiftType = TunnelState
 
@@ -5473,17 +6808,25 @@ public struct FfiConverterTypeTunnelState: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeTunnelState_lift(_ buf: RustBuffer) throws -> TunnelState {
     return try FfiConverterTypeTunnelState.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeTunnelState_lower(_ value: TunnelState) -> RustBuffer {
     return FfiConverterTypeTunnelState.lower(value)
 }
 
 
-
 extension TunnelState: Equatable, Hashable {}
+
+
+
 
 
 
@@ -5500,6 +6843,13 @@ public enum VpnApiError {
 }
 
 
+#if compiler(>=6)
+extension VpnApiError: Sendable {}
+#endif
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeVpnApiError: FfiConverterRustBuffer {
     typealias SwiftType = VpnApiError
 
@@ -5541,14 +6891,19 @@ public struct FfiConverterTypeVpnApiError: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeVpnApiError_lift(_ buf: RustBuffer) throws -> VpnApiError {
     return try FfiConverterTypeVpnApiError.lift(buf)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeVpnApiError_lower(_ value: VpnApiError) -> RustBuffer {
     return FfiConverterTypeVpnApiError.lower(value)
 }
-
 
 
 extension VpnApiError: Equatable, Hashable {}
@@ -5556,7 +6911,10 @@ extension VpnApiError: Equatable, Hashable {}
 
 
 
-public enum VpnError {
+
+
+
+public enum VpnError: Swift.Error {
 
     
     
@@ -5570,6 +6928,8 @@ public enum VpnError {
     )
     case NoAccountStored
     case AccountNotRegistered
+    case FailedAccountRegistration(details: String
+    )
     case NoDeviceIdentity
     case VpnApi(details: VpnApiError
     )
@@ -5582,7 +6942,13 @@ public enum VpnError {
     )
     case UnregisterDevice(details: String
     )
+    case GetMnemonic(details: GetMnemonicError
+    )
+    case CreateAccount(details: CreateAccountError
+    )
     case StoreAccount(details: StoreAccountError
+    )
+    case RegisterAccount(details: RegisterAccountError
     )
     case SyncAccount(details: SyncAccountError
     )
@@ -5599,6 +6965,9 @@ public enum VpnError {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
     typealias SwiftType = VpnError
 
@@ -5623,43 +6992,55 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             )
         case 5: return .NoAccountStored
         case 6: return .AccountNotRegistered
-        case 7: return .NoDeviceIdentity
-        case 8: return .VpnApi(
+        case 7: return .FailedAccountRegistration(
+            details: try FfiConverterString.read(from: &buf)
+            )
+        case 8: return .NoDeviceIdentity
+        case 9: return .VpnApi(
             details: try FfiConverterTypeVpnApiError.read(from: &buf)
             )
-        case 9: return .UnexpectedVpnApiResponse(
+        case 10: return .UnexpectedVpnApiResponse(
             details: try FfiConverterString.read(from: &buf)
             )
-        case 10: return .VpnApiTimeout
-        case 11: return .InvalidMnemonic(
+        case 11: return .VpnApiTimeout
+        case 12: return .InvalidMnemonic(
             details: try FfiConverterString.read(from: &buf)
             )
-        case 12: return .InvalidAccountStoragePath(
+        case 13: return .InvalidAccountStoragePath(
             details: try FfiConverterString.read(from: &buf)
             )
-        case 13: return .UnregisterDevice(
+        case 14: return .UnregisterDevice(
             details: try FfiConverterString.read(from: &buf)
             )
-        case 14: return .StoreAccount(
+        case 15: return .GetMnemonic(
+            details: try FfiConverterTypeGetMnemonicError.read(from: &buf)
+            )
+        case 16: return .CreateAccount(
+            details: try FfiConverterTypeCreateAccountError.read(from: &buf)
+            )
+        case 17: return .StoreAccount(
             details: try FfiConverterTypeStoreAccountError.read(from: &buf)
             )
-        case 15: return .SyncAccount(
+        case 18: return .RegisterAccount(
+            details: try FfiConverterTypeRegisterAccountError.read(from: &buf)
+            )
+        case 19: return .SyncAccount(
             details: try FfiConverterTypeSyncAccountError.read(from: &buf)
             )
-        case 16: return .SyncDevice(
+        case 20: return .SyncDevice(
             details: try FfiConverterTypeSyncDeviceError.read(from: &buf)
             )
-        case 17: return .RegisterDevice(
+        case 21: return .RegisterDevice(
             details: try FfiConverterTypeRegisterDeviceError.read(from: &buf)
             )
-        case 18: return .RequestZkNym(
+        case 22: return .RequestZkNym(
             details: try FfiConverterTypeRequestZkNymError.read(from: &buf)
             )
-        case 19: return .RequestZkNymBundle(
+        case 23: return .RequestZkNymBundle(
             successes: try FfiConverterSequenceTypeRequestZkNymSuccess.read(from: &buf), 
             failed: try FfiConverterSequenceTypeRequestZkNymError.read(from: &buf)
             )
-        case 20: return .ForgetAccount(
+        case 24: return .ForgetAccount(
             details: try FfiConverterTypeForgetAccountError.read(from: &buf)
             )
 
@@ -5702,72 +7083,92 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
             writeInt(&buf, Int32(6))
         
         
-        case .NoDeviceIdentity:
+        case let .FailedAccountRegistration(details):
             writeInt(&buf, Int32(7))
+            FfiConverterString.write(details, into: &buf)
+            
+        
+        case .NoDeviceIdentity:
+            writeInt(&buf, Int32(8))
         
         
         case let .VpnApi(details):
-            writeInt(&buf, Int32(8))
+            writeInt(&buf, Int32(9))
             FfiConverterTypeVpnApiError.write(details, into: &buf)
             
         
         case let .UnexpectedVpnApiResponse(details):
-            writeInt(&buf, Int32(9))
+            writeInt(&buf, Int32(10))
             FfiConverterString.write(details, into: &buf)
             
         
         case .VpnApiTimeout:
-            writeInt(&buf, Int32(10))
+            writeInt(&buf, Int32(11))
         
         
         case let .InvalidMnemonic(details):
-            writeInt(&buf, Int32(11))
-            FfiConverterString.write(details, into: &buf)
-            
-        
-        case let .InvalidAccountStoragePath(details):
             writeInt(&buf, Int32(12))
             FfiConverterString.write(details, into: &buf)
             
         
-        case let .UnregisterDevice(details):
+        case let .InvalidAccountStoragePath(details):
             writeInt(&buf, Int32(13))
             FfiConverterString.write(details, into: &buf)
             
         
-        case let .StoreAccount(details):
+        case let .UnregisterDevice(details):
             writeInt(&buf, Int32(14))
+            FfiConverterString.write(details, into: &buf)
+            
+        
+        case let .GetMnemonic(details):
+            writeInt(&buf, Int32(15))
+            FfiConverterTypeGetMnemonicError.write(details, into: &buf)
+            
+        
+        case let .CreateAccount(details):
+            writeInt(&buf, Int32(16))
+            FfiConverterTypeCreateAccountError.write(details, into: &buf)
+            
+        
+        case let .StoreAccount(details):
+            writeInt(&buf, Int32(17))
             FfiConverterTypeStoreAccountError.write(details, into: &buf)
             
         
+        case let .RegisterAccount(details):
+            writeInt(&buf, Int32(18))
+            FfiConverterTypeRegisterAccountError.write(details, into: &buf)
+            
+        
         case let .SyncAccount(details):
-            writeInt(&buf, Int32(15))
+            writeInt(&buf, Int32(19))
             FfiConverterTypeSyncAccountError.write(details, into: &buf)
             
         
         case let .SyncDevice(details):
-            writeInt(&buf, Int32(16))
+            writeInt(&buf, Int32(20))
             FfiConverterTypeSyncDeviceError.write(details, into: &buf)
             
         
         case let .RegisterDevice(details):
-            writeInt(&buf, Int32(17))
+            writeInt(&buf, Int32(21))
             FfiConverterTypeRegisterDeviceError.write(details, into: &buf)
             
         
         case let .RequestZkNym(details):
-            writeInt(&buf, Int32(18))
+            writeInt(&buf, Int32(22))
             FfiConverterTypeRequestZkNymError.write(details, into: &buf)
             
         
         case let .RequestZkNymBundle(successes,failed):
-            writeInt(&buf, Int32(19))
+            writeInt(&buf, Int32(23))
             FfiConverterSequenceTypeRequestZkNymSuccess.write(successes, into: &buf)
             FfiConverterSequenceTypeRequestZkNymError.write(failed, into: &buf)
             
         
         case let .ForgetAccount(details):
-            writeInt(&buf, Int32(20))
+            writeInt(&buf, Int32(24))
             FfiConverterTypeForgetAccountError.write(details, into: &buf)
             
         }
@@ -5775,10 +7176,38 @@ public struct FfiConverterTypeVpnError: FfiConverterRustBuffer {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeVpnError_lift(_ buf: RustBuffer) throws -> VpnError {
+    return try FfiConverterTypeVpnError.lift(buf)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeVpnError_lower(_ value: VpnError) -> RustBuffer {
+    return FfiConverterTypeVpnError.lower(value)
+}
+
+
 extension VpnError: Equatable, Hashable {}
 
-extension VpnError: Error { }
 
+
+
+extension VpnError: Foundation.LocalizedError {
+    public var errorDescription: String? {
+        String(reflecting: self)
+    }
+}
+
+
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionUInt64: FfiConverterRustBuffer {
     typealias SwiftType = UInt64?
 
@@ -5800,6 +7229,9 @@ fileprivate struct FfiConverterOptionUInt64: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionBool: FfiConverterRustBuffer {
     typealias SwiftType = Bool?
 
@@ -5821,6 +7253,9 @@ fileprivate struct FfiConverterOptionBool: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
     typealias SwiftType = String?
 
@@ -5842,6 +7277,9 @@ fileprivate struct FfiConverterOptionString: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeTunnelStatusListener: FfiConverterRustBuffer {
     typealias SwiftType = TunnelStatusListener?
 
@@ -5863,6 +7301,9 @@ fileprivate struct FfiConverterOptionTypeTunnelStatusListener: FfiConverterRustB
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeAccountSummary: FfiConverterRustBuffer {
     typealias SwiftType = AccountSummary?
 
@@ -5884,6 +7325,9 @@ fileprivate struct FfiConverterOptionTypeAccountSummary: FfiConverterRustBuffer 
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeConnectionData: FfiConverterRustBuffer {
     typealias SwiftType = ConnectionData?
 
@@ -5905,6 +7349,9 @@ fileprivate struct FfiConverterOptionTypeConnectionData: FfiConverterRustBuffer 
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeDnsSettings: FfiConverterRustBuffer {
     typealias SwiftType = DnsSettings?
 
@@ -5926,6 +7373,9 @@ fileprivate struct FfiConverterOptionTypeDnsSettings: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeFeatureFlags: FfiConverterRustBuffer {
     typealias SwiftType = FeatureFlags?
 
@@ -5947,6 +7397,9 @@ fileprivate struct FfiConverterOptionTypeFeatureFlags: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeIpv4Settings: FfiConverterRustBuffer {
     typealias SwiftType = Ipv4Settings?
 
@@ -5968,6 +7421,9 @@ fileprivate struct FfiConverterOptionTypeIpv4Settings: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeIpv6Settings: FfiConverterRustBuffer {
     typealias SwiftType = Ipv6Settings?
 
@@ -5989,6 +7445,9 @@ fileprivate struct FfiConverterOptionTypeIpv6Settings: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeLocation: FfiConverterRustBuffer {
     typealias SwiftType = Location?
 
@@ -6010,6 +7469,9 @@ fileprivate struct FfiConverterOptionTypeLocation: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeNetworkCompatibility: FfiConverterRustBuffer {
     typealias SwiftType = NetworkCompatibility?
 
@@ -6031,6 +7493,9 @@ fileprivate struct FfiConverterOptionTypeNetworkCompatibility: FfiConverterRustB
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeAccountRegistered: FfiConverterRustBuffer {
     typealias SwiftType = AccountRegistered?
 
@@ -6052,6 +7517,9 @@ fileprivate struct FfiConverterOptionTypeAccountRegistered: FfiConverterRustBuff
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeDeviceState: FfiConverterRustBuffer {
     typealias SwiftType = DeviceState?
 
@@ -6073,6 +7541,9 @@ fileprivate struct FfiConverterOptionTypeDeviceState: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeMnemonicState: FfiConverterRustBuffer {
     typealias SwiftType = MnemonicState?
 
@@ -6094,6 +7565,9 @@ fileprivate struct FfiConverterOptionTypeMnemonicState: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeRegisterDeviceResult: FfiConverterRustBuffer {
     typealias SwiftType = RegisterDeviceResult?
 
@@ -6115,6 +7589,9 @@ fileprivate struct FfiConverterOptionTypeRegisterDeviceResult: FfiConverterRustB
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeRequestZkNymResult: FfiConverterRustBuffer {
     typealias SwiftType = RequestZkNymResult?
 
@@ -6136,6 +7613,9 @@ fileprivate struct FfiConverterOptionTypeRequestZkNymResult: FfiConverterRustBuf
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeScore: FfiConverterRustBuffer {
     typealias SwiftType = Score?
 
@@ -6157,6 +7637,9 @@ fileprivate struct FfiConverterOptionTypeScore: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionSequenceString: FfiConverterRustBuffer {
     typealias SwiftType = [String]?
 
@@ -6178,6 +7661,9 @@ fileprivate struct FfiConverterOptionSequenceString: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionSequenceTypeIpv4Route: FfiConverterRustBuffer {
     typealias SwiftType = [Ipv4Route]?
 
@@ -6199,6 +7685,9 @@ fileprivate struct FfiConverterOptionSequenceTypeIpv4Route: FfiConverterRustBuff
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionSequenceTypeIpv6Route: FfiConverterRustBuffer {
     typealias SwiftType = [Ipv6Route]?
 
@@ -6220,6 +7709,9 @@ fileprivate struct FfiConverterOptionSequenceTypeIpv6Route: FfiConverterRustBuff
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeIpv4Addr: FfiConverterRustBuffer {
     typealias SwiftType = Ipv4Addr?
 
@@ -6241,6 +7733,9 @@ fileprivate struct FfiConverterOptionTypeIpv4Addr: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeIpv6Addr: FfiConverterRustBuffer {
     typealias SwiftType = Ipv6Addr?
 
@@ -6262,6 +7757,9 @@ fileprivate struct FfiConverterOptionTypeIpv6Addr: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypeOffsetDateTime: FfiConverterRustBuffer {
     typealias SwiftType = OffsetDateTime?
 
@@ -6283,6 +7781,9 @@ fileprivate struct FfiConverterOptionTypeOffsetDateTime: FfiConverterRustBuffer 
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterOptionTypePathBuf: FfiConverterRustBuffer {
     typealias SwiftType = PathBuf?
 
@@ -6304,6 +7805,9 @@ fileprivate struct FfiConverterOptionTypePathBuf: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceString: FfiConverterRustBuffer {
     typealias SwiftType = [String]
 
@@ -6326,6 +7830,9 @@ fileprivate struct FfiConverterSequenceString: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeGatewayInfo: FfiConverterRustBuffer {
     typealias SwiftType = [GatewayInfo]
 
@@ -6348,6 +7855,9 @@ fileprivate struct FfiConverterSequenceTypeGatewayInfo: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeLocation: FfiConverterRustBuffer {
     typealias SwiftType = [Location]
 
@@ -6370,6 +7880,9 @@ fileprivate struct FfiConverterSequenceTypeLocation: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeRequestZkNymSuccess: FfiConverterRustBuffer {
     typealias SwiftType = [RequestZkNymSuccess]
 
@@ -6392,6 +7905,9 @@ fileprivate struct FfiConverterSequenceTypeRequestZkNymSuccess: FfiConverterRust
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeSystemMessage: FfiConverterRustBuffer {
     typealias SwiftType = [SystemMessage]
 
@@ -6414,6 +7930,9 @@ fileprivate struct FfiConverterSequenceTypeSystemMessage: FfiConverterRustBuffer
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeValidatorDetails: FfiConverterRustBuffer {
     typealias SwiftType = [ValidatorDetails]
 
@@ -6436,6 +7955,9 @@ fileprivate struct FfiConverterSequenceTypeValidatorDetails: FfiConverterRustBuf
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeIpv4Route: FfiConverterRustBuffer {
     typealias SwiftType = [Ipv4Route]
 
@@ -6458,6 +7980,9 @@ fileprivate struct FfiConverterSequenceTypeIpv4Route: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeIpv6Route: FfiConverterRustBuffer {
     typealias SwiftType = [Ipv6Route]
 
@@ -6480,6 +8005,9 @@ fileprivate struct FfiConverterSequenceTypeIpv6Route: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeRequestZkNymError: FfiConverterRustBuffer {
     typealias SwiftType = [RequestZkNymError]
 
@@ -6502,6 +8030,9 @@ fileprivate struct FfiConverterSequenceTypeRequestZkNymError: FfiConverterRustBu
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeIpAddr: FfiConverterRustBuffer {
     typealias SwiftType = [IpAddr]
 
@@ -6524,6 +8055,9 @@ fileprivate struct FfiConverterSequenceTypeIpAddr: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeIpv4Network: FfiConverterRustBuffer {
     typealias SwiftType = [Ipv4Network]
 
@@ -6546,6 +8080,9 @@ fileprivate struct FfiConverterSequenceTypeIpv4Network: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterSequenceTypeIpv6Network: FfiConverterRustBuffer {
     typealias SwiftType = [Ipv6Network]
 
@@ -6568,6 +8105,9 @@ fileprivate struct FfiConverterSequenceTypeIpv6Network: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterDictionaryStringString: FfiConverterRustBuffer {
     public static func write(_ value: [String: String], into buf: inout [UInt8]) {
         let len = Int32(value.count)
@@ -6591,6 +8131,9 @@ fileprivate struct FfiConverterDictionaryStringString: FfiConverterRustBuffer {
     }
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 fileprivate struct FfiConverterDictionaryStringTypeFlagValue: FfiConverterRustBuffer {
     public static func write(_ value: [String: FlagValue], into buf: inout [UInt8]) {
         let len = Int32(value.count)
@@ -6619,7 +8162,99 @@ fileprivate struct FfiConverterDictionaryStringTypeFlagValue: FfiConverterRustBu
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
  */
+public typealias BoxedNodeIdentity = String
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeBoxedNodeIdentity: FfiConverter {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> BoxedNodeIdentity {
+        return try FfiConverterString.read(from: &buf)
+    }
+
+    public static func write(_ value: BoxedNodeIdentity, into buf: inout [UInt8]) {
+        return FfiConverterString.write(value, into: &buf)
+    }
+
+    public static func lift(_ value: RustBuffer) throws -> BoxedNodeIdentity {
+        return try FfiConverterString.lift(value)
+    }
+
+    public static func lower(_ value: BoxedNodeIdentity) -> RustBuffer {
+        return FfiConverterString.lower(value)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeBoxedNodeIdentity_lift(_ value: RustBuffer) throws -> BoxedNodeIdentity {
+    return try FfiConverterTypeBoxedNodeIdentity.lift(value)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeBoxedNodeIdentity_lower(_ value: BoxedNodeIdentity) -> RustBuffer {
+    return FfiConverterTypeBoxedNodeIdentity.lower(value)
+}
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ */
+public typealias BoxedRecepient = String
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeBoxedRecepient: FfiConverter {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> BoxedRecepient {
+        return try FfiConverterString.read(from: &buf)
+    }
+
+    public static func write(_ value: BoxedRecepient, into buf: inout [UInt8]) {
+        return FfiConverterString.write(value, into: &buf)
+    }
+
+    public static func lift(_ value: RustBuffer) throws -> BoxedRecepient {
+        return try FfiConverterString.lift(value)
+    }
+
+    public static func lower(_ value: BoxedRecepient) -> RustBuffer {
+        return FfiConverterString.lower(value)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeBoxedRecepient_lift(_ value: RustBuffer) throws -> BoxedRecepient {
+    return try FfiConverterTypeBoxedRecepient.lift(value)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeBoxedRecepient_lower(_ value: BoxedRecepient) -> RustBuffer {
+    return FfiConverterTypeBoxedRecepient.lower(value)
+}
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ */
 public typealias IpAddr = String
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeIpAddr: FfiConverter {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> IpAddr {
         return try FfiConverterString.read(from: &buf)
@@ -6639,10 +8274,16 @@ public struct FfiConverterTypeIpAddr: FfiConverter {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpAddr_lift(_ value: RustBuffer) throws -> IpAddr {
     return try FfiConverterTypeIpAddr.lift(value)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpAddr_lower(_ value: IpAddr) -> RustBuffer {
     return FfiConverterTypeIpAddr.lower(value)
 }
@@ -6653,7 +8294,99 @@ public func FfiConverterTypeIpAddr_lower(_ value: IpAddr) -> RustBuffer {
  * Typealias from the type name used in the UDL file to the builtin type.  This
  * is needed because the UDL type name is used in function/method signatures.
  */
+public typealias IpNetwork = String
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeIpNetwork: FfiConverter {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> IpNetwork {
+        return try FfiConverterString.read(from: &buf)
+    }
+
+    public static func write(_ value: IpNetwork, into buf: inout [UInt8]) {
+        return FfiConverterString.write(value, into: &buf)
+    }
+
+    public static func lift(_ value: RustBuffer) throws -> IpNetwork {
+        return try FfiConverterString.lift(value)
+    }
+
+    public static func lower(_ value: IpNetwork) -> RustBuffer {
+        return FfiConverterString.lower(value)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeIpNetwork_lift(_ value: RustBuffer) throws -> IpNetwork {
+    return try FfiConverterTypeIpNetwork.lift(value)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeIpNetwork_lower(_ value: IpNetwork) -> RustBuffer {
+    return FfiConverterTypeIpNetwork.lower(value)
+}
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ */
+public typealias IpPair = String
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeIpPair: FfiConverter {
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> IpPair {
+        return try FfiConverterString.read(from: &buf)
+    }
+
+    public static func write(_ value: IpPair, into buf: inout [UInt8]) {
+        return FfiConverterString.write(value, into: &buf)
+    }
+
+    public static func lift(_ value: RustBuffer) throws -> IpPair {
+        return try FfiConverterString.lift(value)
+    }
+
+    public static func lower(_ value: IpPair) -> RustBuffer {
+        return FfiConverterString.lower(value)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeIpPair_lift(_ value: RustBuffer) throws -> IpPair {
+    return try FfiConverterTypeIpPair.lift(value)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeIpPair_lower(_ value: IpPair) -> RustBuffer {
+    return FfiConverterTypeIpPair.lower(value)
+}
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the builtin type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ */
 public typealias Ipv4Addr = String
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeIpv4Addr: FfiConverter {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ipv4Addr {
         return try FfiConverterString.read(from: &buf)
@@ -6673,10 +8406,16 @@ public struct FfiConverterTypeIpv4Addr: FfiConverter {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv4Addr_lift(_ value: RustBuffer) throws -> Ipv4Addr {
     return try FfiConverterTypeIpv4Addr.lift(value)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv4Addr_lower(_ value: Ipv4Addr) -> RustBuffer {
     return FfiConverterTypeIpv4Addr.lower(value)
 }
@@ -6688,6 +8427,10 @@ public func FfiConverterTypeIpv4Addr_lower(_ value: Ipv4Addr) -> RustBuffer {
  * is needed because the UDL type name is used in function/method signatures.
  */
 public typealias Ipv4Network = String
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeIpv4Network: FfiConverter {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ipv4Network {
         return try FfiConverterString.read(from: &buf)
@@ -6707,10 +8450,16 @@ public struct FfiConverterTypeIpv4Network: FfiConverter {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv4Network_lift(_ value: RustBuffer) throws -> Ipv4Network {
     return try FfiConverterTypeIpv4Network.lift(value)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv4Network_lower(_ value: Ipv4Network) -> RustBuffer {
     return FfiConverterTypeIpv4Network.lower(value)
 }
@@ -6722,6 +8471,10 @@ public func FfiConverterTypeIpv4Network_lower(_ value: Ipv4Network) -> RustBuffe
  * is needed because the UDL type name is used in function/method signatures.
  */
 public typealias Ipv6Addr = String
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeIpv6Addr: FfiConverter {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ipv6Addr {
         return try FfiConverterString.read(from: &buf)
@@ -6741,10 +8494,16 @@ public struct FfiConverterTypeIpv6Addr: FfiConverter {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv6Addr_lift(_ value: RustBuffer) throws -> Ipv6Addr {
     return try FfiConverterTypeIpv6Addr.lift(value)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv6Addr_lower(_ value: Ipv6Addr) -> RustBuffer {
     return FfiConverterTypeIpv6Addr.lower(value)
 }
@@ -6756,6 +8515,10 @@ public func FfiConverterTypeIpv6Addr_lower(_ value: Ipv6Addr) -> RustBuffer {
  * is needed because the UDL type name is used in function/method signatures.
  */
 public typealias Ipv6Network = String
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeIpv6Network: FfiConverter {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Ipv6Network {
         return try FfiConverterString.read(from: &buf)
@@ -6775,10 +8538,16 @@ public struct FfiConverterTypeIpv6Network: FfiConverter {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv6Network_lift(_ value: RustBuffer) throws -> Ipv6Network {
     return try FfiConverterTypeIpv6Network.lift(value)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeIpv6Network_lower(_ value: Ipv6Network) -> RustBuffer {
     return FfiConverterTypeIpv6Network.lower(value)
 }
@@ -6790,6 +8559,10 @@ public func FfiConverterTypeIpv6Network_lower(_ value: Ipv6Network) -> RustBuffe
  * is needed because the UDL type name is used in function/method signatures.
  */
 public typealias NodeIdentity = String
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeNodeIdentity: FfiConverter {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> NodeIdentity {
         return try FfiConverterString.read(from: &buf)
@@ -6809,10 +8582,16 @@ public struct FfiConverterTypeNodeIdentity: FfiConverter {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeNodeIdentity_lift(_ value: RustBuffer) throws -> NodeIdentity {
     return try FfiConverterTypeNodeIdentity.lift(value)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeNodeIdentity_lower(_ value: NodeIdentity) -> RustBuffer {
     return FfiConverterTypeNodeIdentity.lower(value)
 }
@@ -6824,6 +8603,10 @@ public func FfiConverterTypeNodeIdentity_lower(_ value: NodeIdentity) -> RustBuf
  * is needed because the UDL type name is used in function/method signatures.
  */
 public typealias OffsetDateTime = Int64
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeOffsetDateTime: FfiConverter {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> OffsetDateTime {
         return try FfiConverterInt64.read(from: &buf)
@@ -6843,10 +8626,16 @@ public struct FfiConverterTypeOffsetDateTime: FfiConverter {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeOffsetDateTime_lift(_ value: Int64) throws -> OffsetDateTime {
     return try FfiConverterTypeOffsetDateTime.lift(value)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeOffsetDateTime_lower(_ value: OffsetDateTime) -> Int64 {
     return FfiConverterTypeOffsetDateTime.lower(value)
 }
@@ -6858,6 +8647,10 @@ public func FfiConverterTypeOffsetDateTime_lower(_ value: OffsetDateTime) -> Int
  * is needed because the UDL type name is used in function/method signatures.
  */
 public typealias PathBuf = String
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypePathBuf: FfiConverter {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> PathBuf {
         return try FfiConverterString.read(from: &buf)
@@ -6877,10 +8670,16 @@ public struct FfiConverterTypePathBuf: FfiConverter {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypePathBuf_lift(_ value: RustBuffer) throws -> PathBuf {
     return try FfiConverterTypePathBuf.lift(value)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypePathBuf_lower(_ value: PathBuf) -> RustBuffer {
     return FfiConverterTypePathBuf.lower(value)
 }
@@ -6892,6 +8691,10 @@ public func FfiConverterTypePathBuf_lower(_ value: PathBuf) -> RustBuffer {
  * is needed because the UDL type name is used in function/method signatures.
  */
 public typealias Recipient = String
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeRecipient: FfiConverter {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Recipient {
         return try FfiConverterString.read(from: &buf)
@@ -6911,10 +8714,16 @@ public struct FfiConverterTypeRecipient: FfiConverter {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeRecipient_lift(_ value: RustBuffer) throws -> Recipient {
     return try FfiConverterTypeRecipient.lift(value)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeRecipient_lower(_ value: Recipient) -> RustBuffer {
     return FfiConverterTypeRecipient.lower(value)
 }
@@ -6926,6 +8735,10 @@ public func FfiConverterTypeRecipient_lower(_ value: Recipient) -> RustBuffer {
  * is needed because the UDL type name is used in function/method signatures.
  */
 public typealias SocketAddr = String
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public struct FfiConverterTypeSocketAddr: FfiConverter {
     public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> SocketAddr {
         return try FfiConverterString.read(from: &buf)
@@ -6945,12 +8758,70 @@ public struct FfiConverterTypeSocketAddr: FfiConverter {
 }
 
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeSocketAddr_lift(_ value: RustBuffer) throws -> SocketAddr {
     return try FfiConverterTypeSocketAddr.lift(value)
 }
 
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
 public func FfiConverterTypeSocketAddr_lower(_ value: SocketAddr) -> RustBuffer {
     return FfiConverterTypeSocketAddr.lower(value)
+}
+
+
+
+
+
+/**
+ * Typealias from the type name used in the UDL file to the custom type.  This
+ * is needed because the UDL type name is used in function/method signatures.
+ */
+public typealias Url = URL
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public struct FfiConverterTypeUrl: FfiConverter {
+
+    public static func read(from buf: inout (data: Data, offset: Data.Index)) throws -> Url {
+        let builtinValue = try FfiConverterString.read(from: &buf)
+        return URL(string: builtinValue)!
+    }
+
+    public static func write(_ value: Url, into buf: inout [UInt8]) {
+        let builtinValue = String(describing: value)
+        return FfiConverterString.write(builtinValue, into: &buf)
+    }
+
+    public static func lift(_ value: RustBuffer) throws -> Url {
+        let builtinValue = try FfiConverterString.lift(value)
+        return URL(string: builtinValue)!
+    }
+
+    public static func lower(_ value: Url) -> RustBuffer {
+        let builtinValue = String(describing: value)
+        return FfiConverterString.lower(builtinValue)
+    }
+}
+
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeUrl_lift(_ value: RustBuffer) throws -> Url {
+    return try FfiConverterTypeUrl.lift(value)
+}
+
+#if swift(>=5.8)
+@_documentation(visibility: private)
+#endif
+public func FfiConverterTypeUrl_lower(_ value: Url) -> RustBuffer {
+    return FfiConverterTypeUrl.lower(value)
 }
 
 private let UNIFFI_RUST_FUTURE_POLL_READY: Int8 = 0
@@ -6964,11 +8835,11 @@ fileprivate func uniffiRustCallAsync<F, T>(
     completeFunc: (UInt64, UnsafeMutablePointer<RustCallStatus>) -> F,
     freeFunc: (UInt64) -> (),
     liftFunc: (F) throws -> T,
-    errorHandler: ((RustBuffer) throws -> Error)?
+    errorHandler: ((RustBuffer) throws -> Swift.Error)?
 ) async throws -> T {
-    // Make sure to call uniffiEnsureInitialized() since future creation doesn't have a
+    // Make sure to call the ensure init function since future creation doesn't have a
     // RustCallStatus param, so doesn't use makeRustCall()
-    uniffiEnsureInitialized()
+    uniffiEnsureNymVpnLibInitialized()
     let rustFuture = rustFutureFunc()
     defer {
         freeFunc(rustFuture)
@@ -7037,13 +8908,13 @@ private func uniffiTraitInterfaceCallAsyncWithError<T, E>(
 
 // Borrow the callback handle map implementation to store foreign future handles
 // TODO: consolidate the handle-map code (https://github.com/mozilla/uniffi-rs/pull/1823)
-fileprivate var UNIFFI_FOREIGN_FUTURE_HANDLE_MAP = UniffiHandleMap<UniffiForeignFutureTask>()
+fileprivate let UNIFFI_FOREIGN_FUTURE_HANDLE_MAP = UniffiHandleMap<UniffiForeignFutureTask>()
 
 // Protocol for tasks that handle foreign futures.
 //
 // Defining a protocol allows all tasks to be stored in the same handle map.  This can't be done
 // with the task object itself, since has generic parameters.
-protocol UniffiForeignFutureTask {
+fileprivate protocol UniffiForeignFutureTask {
     func cancel()
 }
 
@@ -7068,7 +8939,7 @@ public func uniffiForeignFutureHandleCountNymVpnLib() -> Int {
 /**
  * Setup the library with the given data directory and optionally enable credential mode.
  */
-public func configureLib(dataDir: String, credentialMode: Bool?)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func configureLib(dataDir: String, credentialMode: Bool?)throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_configurelib(
         FfiConverterString.lower(dataDir),
         FfiConverterOptionBool.lower(credentialMode),$0
@@ -7076,10 +8947,28 @@ public func configureLib(dataDir: String, credentialMode: Bool?)throws  {try rus
 }
 }
 /**
+ * Generate the account mnemonic locally and store it.
+ */
+public func createAccount()throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
+    uniffi_nym_vpn_lib_fn_func_createaccount($0
+    )
+}
+}
+/**
+ * Generate the account mnemonic locally and store it.
+ * This is a version that can be called when the account controller is not running.
+ */
+public func createAccountRaw(path: String)throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
+    uniffi_nym_vpn_lib_fn_func_createaccountraw(
+        FfiConverterString.lower(path),$0
+    )
+}
+}
+/**
  * Returns the currently set network environment
  */
-public func currentEnvironment()throws  -> NetworkEnvironment {
-    return try  FfiConverterTypeNetworkEnvironment.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func currentEnvironment()throws  -> NetworkEnvironment  {
+    return try  FfiConverterTypeNetworkEnvironment_lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_currentenvironment($0
     )
 })
@@ -7087,7 +8976,7 @@ public func currentEnvironment()throws  -> NetworkEnvironment {
 /**
  * Remove the account mnemonic and all associated keys and files
  */
-public func forgetAccount()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func forgetAccount()throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_forgetaccount($0
     )
 }
@@ -7096,7 +8985,7 @@ public func forgetAccount()throws  {try rustCallWithError(FfiConverterTypeVpnErr
  * Remove the account mnemonic and all associated keys and files.
  * This is a version that can be called when the account controller is not running.
  */
-public func forgetAccountRaw(path: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func forgetAccountRaw(path: String)throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_forgetaccountraw(
         FfiConverterString.lower(path),$0
     )
@@ -7105,8 +8994,8 @@ public func forgetAccountRaw(path: String)throws  {try rustCallWithError(FfiConv
 /**
  * Get the account identity
  */
-public func getAccountIdentity()throws  -> String {
-    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func getAccountIdentity()throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_getaccountidentity($0
     )
 })
@@ -7115,8 +9004,8 @@ public func getAccountIdentity()throws  -> String {
  * Get the account identity
  * This is a version that can be called when the account controller is not running.
  */
-public func getAccountIdentityRaw(path: String)throws  -> String {
-    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func getAccountIdentityRaw(path: String)throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_getaccountidentityraw(
         FfiConverterString.lower(path),$0
     )
@@ -7125,8 +9014,8 @@ public func getAccountIdentityRaw(path: String)throws  -> String {
 /**
  * Returns the account links for the current network environment
  */
-public func getAccountLinks(locale: String)throws  -> AccountLinks {
-    return try  FfiConverterTypeAccountLinks.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func getAccountLinks(locale: String)throws  -> AccountLinks  {
+    return try  FfiConverterTypeAccountLinks_lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_getaccountlinks(
         FfiConverterString.lower(locale),$0
     )
@@ -7136,8 +9025,8 @@ public func getAccountLinks(locale: String)throws  -> AccountLinks {
  * Returns the account links for the current network environment.
  * This is a version that can be called when the account controller is not running.
  */
-public func getAccountLinksRaw(accountStorePath: String, locale: String)throws  -> AccountLinks {
-    return try  FfiConverterTypeAccountLinks.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func getAccountLinksRaw(accountStorePath: String, locale: String)throws  -> AccountLinks  {
+    return try  FfiConverterTypeAccountLinks_lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_getaccountlinksraw(
         FfiConverterString.lower(accountStorePath),
         FfiConverterString.lower(locale),$0
@@ -7147,8 +9036,8 @@ public func getAccountLinksRaw(accountStorePath: String, locale: String)throws  
 /**
  * Get the account state
  */
-public func getAccountState()throws  -> AccountStateSummary {
-    return try  FfiConverterTypeAccountStateSummary.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func getAccountState()throws  -> AccountStateSummary  {
+    return try  FfiConverterTypeAccountStateSummary_lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_getaccountstate($0
     )
 })
@@ -7156,8 +9045,8 @@ public func getAccountState()throws  -> AccountStateSummary {
 /**
  * Get the device identity
  */
-public func getDeviceIdentity()throws  -> String {
-    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func getDeviceIdentity()throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_getdeviceidentity($0
     )
 })
@@ -7166,8 +9055,8 @@ public func getDeviceIdentity()throws  -> String {
  * Get the device identity
  * This is a version that can be called when the account controller is not running.
  */
-public func getDeviceIdentityRaw(path: String)throws  -> String {
-    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func getDeviceIdentityRaw(path: String)throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_getdeviceidentityraw(
         FfiConverterString.lower(path),$0
     )
@@ -7176,22 +9065,22 @@ public func getDeviceIdentityRaw(path: String)throws  -> String {
 /**
  * Get the list of countries that have gateways available of the given type.
  */
-public func getGatewayCountries(gwType: GatewayType, userAgent: UserAgent)throws  -> [Location] {
-    return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func getGatewayCountries(gwType: GatewayType, userAgent: UserAgent)throws  -> [Location]  {
+    return try  FfiConverterSequenceTypeLocation.lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_getgatewaycountries(
-        FfiConverterTypeGatewayType.lower(gwType),
-        FfiConverterTypeUserAgent.lower(userAgent),$0
+        FfiConverterTypeGatewayType_lower(gwType),
+        FfiConverterTypeUserAgent_lower(userAgent),$0
     )
 })
 }
 /**
  * Get the list of gateways available of the given type.
  */
-public func getGateways(gwType: GatewayType, userAgent: UserAgent)throws  -> [GatewayInfo] {
-    return try  FfiConverterSequenceTypeGatewayInfo.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func getGateways(gwType: GatewayType, userAgent: UserAgent)throws  -> [GatewayInfo]  {
+    return try  FfiConverterSequenceTypeGatewayInfo.lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_getgateways(
-        FfiConverterTypeGatewayType.lower(gwType),
-        FfiConverterTypeUserAgent.lower(userAgent),$0
+        FfiConverterTypeGatewayType_lower(gwType),
+        FfiConverterTypeUserAgent_lower(userAgent),$0
     )
 })
 }
@@ -7199,17 +9088,36 @@ public func getGateways(gwType: GatewayType, userAgent: UserAgent)throws  -> [Ga
  * Returns the oldest client versions that are compatible with the
  * network environment. (environment must be initialized first)
  */
-public func getNetworkCompatibilityVersions()throws  -> NetworkCompatibility? {
-    return try  FfiConverterOptionTypeNetworkCompatibility.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func getNetworkCompatibilityVersions()throws  -> NetworkCompatibility?  {
+    return try  FfiConverterOptionTypeNetworkCompatibility.lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_getnetworkcompatibilityversions($0
+    )
+})
+}
+/**
+ * Read and return the mnemonic, if there's one stored.
+ */
+public func getStoredMnemonic()throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
+    uniffi_nym_vpn_lib_fn_func_getstoredmnemonic($0
+    )
+})
+}
+/**
+ * Read and return the mnemonic, if there's one stored.
+ */
+public func getStoredMnemonicRaw(path: String)throws  -> String  {
+    return try  FfiConverterString.lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
+    uniffi_nym_vpn_lib_fn_func_getstoredmnemonicraw(
+        FfiConverterString.lower(path),$0
     )
 })
 }
 /**
  * Returns the system messages for the current network environment
  */
-public func getSystemMessages()throws  -> [SystemMessage] {
-    return try  FfiConverterSequenceTypeSystemMessage.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func getSystemMessages()throws  -> [SystemMessage]  {
+    return try  FfiConverterSequenceTypeSystemMessage.lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_getsystemmessages($0
     )
 })
@@ -7218,7 +9126,7 @@ public func getSystemMessages()throws  -> [SystemMessage] {
  * Fetches the network environment details from the network name and initializes the environment,
  * including exporting to the environment
  */
-public func initEnvironment(cacheDir: String, networkName: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func initEnvironment(cacheDir: String, networkName: String)throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_initenvironment(
         FfiConverterString.lower(cacheDir),
         FfiConverterString.lower(networkName),$0
@@ -7229,7 +9137,7 @@ public func initEnvironment(cacheDir: String, networkName: String)throws  {try r
  * Async variant of initEnvironment. Fetches the network environment details from the network name
  * and initializes the environment, including exporting to the environment
  */
-public func initEnvironmentAsync(dataDir: String, networkName: String)async throws  {
+public func initEnvironmentAsync(dataDir: String, networkName: String)async throws   {
     return
         try  await uniffiRustCallAsync(
             rustFutureFunc: {
@@ -7240,14 +9148,14 @@ public func initEnvironmentAsync(dataDir: String, networkName: String)async thro
             completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
             freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
             liftFunc: { $0 },
-            errorHandler: FfiConverterTypeVpnError.lift
+            errorHandler: FfiConverterTypeVpnError_lift
         )
 }
 /**
  * Sets up mainnet defaults without making any network calls. This means no system messages or
  * account links will be available.
  */
-public func initFallbackMainnetEnvironment()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func initFallbackMainnetEnvironment()throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_initfallbackmainnetenvironment($0
     )
 }
@@ -7256,7 +9164,7 @@ public func initFallbackMainnetEnvironment()throws  {try rustCallWithError(FfiCo
  * Additional extra function for when only only want to set the logger without initializing the
  * library. Thus it's only needed when `configureLib` is not used.
  */
-public func initLogger(path: PathBuf?, debugLevel: String?) {try! rustCall() {
+public func initLogger(path: PathBuf?, debugLevel: String?)  {try! rustCall() {
     uniffi_nym_vpn_lib_fn_func_initlogger(
         FfiConverterOptionTypePathBuf.lower(path),
         FfiConverterOptionString.lower(debugLevel),$0
@@ -7266,8 +9174,8 @@ public func initLogger(path: PathBuf?, debugLevel: String?) {try! rustCall() {
 /**
  * Check if the account mnemonic is stored
  */
-public func isAccountMnemonicStored()throws  -> Bool {
-    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func isAccountMnemonicStored()throws  -> Bool  {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_isaccountmnemonicstored($0
     )
 })
@@ -7276,8 +9184,8 @@ public func isAccountMnemonicStored()throws  -> Bool {
  * Check if the account mnemonic is stored
  * This is a version that can be called when the account controller is not running.
  */
-public func isAccountMnemonicStoredRaw(path: String)throws  -> Bool {
-    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func isAccountMnemonicStoredRaw(path: String)throws  -> Bool  {
+    return try  FfiConverterBool.lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_isaccountmnemonicstoredraw(
         FfiConverterString.lower(path),$0
     )
@@ -7286,7 +9194,7 @@ public func isAccountMnemonicStoredRaw(path: String)throws  -> Bool {
 /**
  * Import the account mnemonic
  */
-public func login(mnemonic: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func login(mnemonic: String)throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_login(
         FfiConverterString.lower(mnemonic),$0
     )
@@ -7296,7 +9204,7 @@ public func login(mnemonic: String)throws  {try rustCallWithError(FfiConverterTy
  * Store the account mnemonic
  * This is a version that can be called when the account controller is not running.
  */
-public func loginRaw(mnemonic: String, path: String)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func loginRaw(mnemonic: String, path: String)throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_loginraw(
         FfiConverterString.lower(mnemonic),
         FfiConverterString.lower(path),$0
@@ -7304,9 +9212,29 @@ public func loginRaw(mnemonic: String, path: String)throws  {try rustCallWithErr
 }
 }
 /**
+ * Register the stored account.
+ */
+public func registerAccount()throws  -> RegisterAccountResponse  {
+    return try  FfiConverterTypeRegisterAccountResponse_lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
+    uniffi_nym_vpn_lib_fn_func_registeraccount($0
+    )
+})
+}
+/**
+ * Load the account mnemonic stored locally and register it.
+ * This is a version that can be called when the account controller is not running.
+ */
+public func registerAccountRaw(path: String)throws  -> RegisterAccountResponse  {
+    return try  FfiConverterTypeRegisterAccountResponse_lift(try rustCallWithError(FfiConverterTypeVpnError_lift) {
+    uniffi_nym_vpn_lib_fn_func_registeraccountraw(
+        FfiConverterString.lower(path),$0
+    )
+})
+}
+/**
  * Shutdown the library by stopping the account controller and cleaning up any resources.
  */
-public func shutdown()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func shutdown()throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_shutdown($0
     )
 }
@@ -7315,16 +9243,16 @@ public func shutdown()throws  {try rustCallWithError(FfiConverterTypeVpnError.li
  * Start the VPN by first establishing that the account is ready to connect, including requesting
  * zknym credentials, and then starting the VPN state machine.
  */
-public func startVpn(config: VpnConfig)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func startVpn(config: VpnConfig)throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_startvpn(
-        FfiConverterTypeVPNConfig.lower(config),$0
+        FfiConverterTypeVPNConfig_lower(config),$0
     )
 }
 }
 /**
  * Stop the VPN by stopping the VPN state machine.
  */
-public func stopVpn()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func stopVpn()throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_stopvpn($0
     )
 }
@@ -7333,7 +9261,7 @@ public func stopVpn()throws  {try rustCallWithError(FfiConverterTypeVpnError.lif
  * This manually syncs the account state with the server. Normally this is done automatically, but
  * this can be used to manually trigger a sync.
  */
-public func updateAccountState()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func updateAccountState()throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_updateaccountstate($0
     )
 }
@@ -7349,7 +9277,7 @@ public func updateAccountState()throws  {try rustCallWithError(FfiConverterTypeV
  *
  * This function will return an error if the account controller is not running.
  */
-public func waitForAccountReadyToConnect(timeoutSec: UInt64)throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func waitForAccountReadyToConnect(timeoutSec: UInt64)throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_waitforaccountreadytoconnect(
         FfiConverterUInt64.lower(timeoutSec),$0
     )
@@ -7365,7 +9293,7 @@ public func waitForAccountReadyToConnect(timeoutSec: UInt64)throws  {try rustCal
  *
  * This function will return an error if the account controller is not running.
  */
-public func waitForAccountReadyToConnectAsync(timeoutSec: UInt64)async throws  {
+public func waitForAccountReadyToConnectAsync(timeoutSec: UInt64)async throws   {
     return
         try  await uniffiRustCallAsync(
             rustFutureFunc: {
@@ -7376,7 +9304,7 @@ public func waitForAccountReadyToConnectAsync(timeoutSec: UInt64)async throws  {
             completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
             freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
             liftFunc: { $0 },
-            errorHandler: FfiConverterTypeVpnError.lift
+            errorHandler: FfiConverterTypeVpnError_lift
         )
 }
 /**
@@ -7388,7 +9316,7 @@ public func waitForAccountReadyToConnectAsync(timeoutSec: UInt64)async throws  {
  *
  * This function will return an error if the account controller is not running.
  */
-public func waitForAvailableZkNyms()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func waitForAvailableZkNyms()throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_waitforavailablezknyms($0
     )
 }
@@ -7401,7 +9329,7 @@ public func waitForAvailableZkNyms()throws  {try rustCallWithError(FfiConverterT
  *
  * This function will return an error if the account controller is not running.
  */
-public func waitForAvailableZkNymsAsync()async throws  {
+public func waitForAvailableZkNymsAsync()async throws   {
     return
         try  await uniffiRustCallAsync(
             rustFutureFunc: {
@@ -7412,7 +9340,7 @@ public func waitForAvailableZkNymsAsync()async throws  {
             completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
             freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
             liftFunc: { $0 },
-            errorHandler: FfiConverterTypeVpnError.lift
+            errorHandler: FfiConverterTypeVpnError_lift
         )
 }
 /**
@@ -7423,7 +9351,7 @@ public func waitForAvailableZkNymsAsync()async throws  {
  *
  * This function will return an error if the account controller is not running.
  */
-public func waitForRegisterDevice()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func waitForRegisterDevice()throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_waitforregisterdevice($0
     )
 }
@@ -7436,7 +9364,7 @@ public func waitForRegisterDevice()throws  {try rustCallWithError(FfiConverterTy
  *
  * This function will return an error if the account controller is not running.
  */
-public func waitForRegisterDeviceAsync()async throws  {
+public func waitForRegisterDeviceAsync()async throws   {
     return
         try  await uniffiRustCallAsync(
             rustFutureFunc: {
@@ -7447,7 +9375,7 @@ public func waitForRegisterDeviceAsync()async throws  {
             completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
             freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
             liftFunc: { $0 },
-            errorHandler: FfiConverterTypeVpnError.lift
+            errorHandler: FfiConverterTypeVpnError_lift
         )
 }
 /**
@@ -7458,7 +9386,7 @@ public func waitForRegisterDeviceAsync()async throws  {
  *
  * This function will return an error if the account controller is not running.
  */
-public func waitForUpdateAccount()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func waitForUpdateAccount()throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_waitforupdateaccount($0
     )
 }
@@ -7471,7 +9399,7 @@ public func waitForUpdateAccount()throws  {try rustCallWithError(FfiConverterTyp
  *
  * This function will return an error if the account controller is not running.
  */
-public func waitForUpdateAccountAsync()async throws  {
+public func waitForUpdateAccountAsync()async throws   {
     return
         try  await uniffiRustCallAsync(
             rustFutureFunc: {
@@ -7482,7 +9410,7 @@ public func waitForUpdateAccountAsync()async throws  {
             completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
             freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
             liftFunc: { $0 },
-            errorHandler: FfiConverterTypeVpnError.lift
+            errorHandler: FfiConverterTypeVpnError_lift
         )
 }
 /**
@@ -7493,7 +9421,7 @@ public func waitForUpdateAccountAsync()async throws  {
  *
  * This function will return an error if the account controller is not running.
  */
-public func waitForUpdateDevice()throws  {try rustCallWithError(FfiConverterTypeVpnError.lift) {
+public func waitForUpdateDevice()throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_waitforupdatedevice($0
     )
 }
@@ -7506,7 +9434,7 @@ public func waitForUpdateDevice()throws  {try rustCallWithError(FfiConverterType
  *
  * This function will return an error if the account controller is not running.
  */
-public func waitForUpdateDeviceAsync()async throws  {
+public func waitForUpdateDeviceAsync()async throws   {
     return
         try  await uniffiRustCallAsync(
             rustFutureFunc: {
@@ -7517,7 +9445,7 @@ public func waitForUpdateDeviceAsync()async throws  {
             completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
             freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
             liftFunc: { $0 },
-            errorHandler: FfiConverterTypeVpnError.lift
+            errorHandler: FfiConverterTypeVpnError_lift
         )
 }
 
@@ -7526,17 +9454,23 @@ private enum InitializationResult {
     case contractVersionMismatch
     case apiChecksumMismatch
 }
-// Use a global variables to perform the versioning checks. Swift ensures that
+// Use a global variable to perform the versioning checks. Swift ensures that
 // the code inside is only computed once.
-private var initializationResult: InitializationResult {
+private let initializationResult: InitializationResult = {
     // Get the bindings contract version from our ComponentInterface
-    let bindings_contract_version = 26
+    let bindings_contract_version = 29
     // Get the scaffolding contract version by calling the into the dylib
     let scaffolding_contract_version = ffi_nym_vpn_lib_uniffi_contract_version()
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_configurelib() != 2570) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_createaccount() != 10575) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_createaccountraw() != 13570) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_currentenvironment() != 53371) {
@@ -7578,6 +9512,12 @@ private var initializationResult: InitializationResult {
     if (uniffi_nym_vpn_lib_checksum_func_getnetworkcompatibilityversions() != 4608) {
         return InitializationResult.apiChecksumMismatch
     }
+    if (uniffi_nym_vpn_lib_checksum_func_getstoredmnemonic() != 29970) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_getstoredmnemonicraw() != 15796) {
+        return InitializationResult.apiChecksumMismatch
+    }
     if (uniffi_nym_vpn_lib_checksum_func_getsystemmessages() != 3453) {
         return InitializationResult.apiChecksumMismatch
     }
@@ -7603,6 +9543,12 @@ private var initializationResult: InitializationResult {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_loginraw() != 2219) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_registeraccount() != 55294) {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if (uniffi_nym_vpn_lib_checksum_func_registeraccountraw() != 53677) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_shutdown() != 33036) {
@@ -7657,9 +9603,11 @@ private var initializationResult: InitializationResult {
     uniffiCallbackInitOSTunProvider()
     uniffiCallbackInitTunnelStatusListener()
     return InitializationResult.ok
-}
+}()
 
-private func uniffiEnsureInitialized() {
+// Make the ensure init function public so that other modules which have external type references to
+// our types can call it.
+public func uniffiEnsureNymVpnLibInitialized() {
     switch initializationResult {
     case .ok:
         break

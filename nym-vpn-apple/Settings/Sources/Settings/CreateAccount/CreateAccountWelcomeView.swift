@@ -9,23 +9,26 @@ public struct CreateAccountWelcomeView: View {
     @Binding private var path: NavigationPath
 
     public var body: some View {
-        VStack(spacing: 0) {
+        ScrollView {
             navbar
             Spacer()
-            backgroundDots
-            Spacer()
-                .frame(height: 40)
-            welcomeTitle
-            nymVpnTitle
-            Spacer()
-                .frame(height: 24)
-            benefitsList
-            Spacer()
-                .frame(height: 32)
-            createAccountButton
-            Spacer()
-                .frame(height: 32)
-            alreadyHaveAnAccount
+            VStack(spacing: 0) {
+                backgroundDots
+                Spacer()
+                    .frame(height: 40)
+                welcomeTitle
+                nymVpnTitle
+                Spacer()
+                    .frame(height: 24)
+                benefitsList
+                Spacer()
+                    .frame(height: 32)
+                createAccountButton
+                Spacer()
+                    .frame(height: 32)
+                alreadyHaveAnAccount
+            }
+            .frame(maxWidth: MagicNumbers.moreMaxWidth)
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)

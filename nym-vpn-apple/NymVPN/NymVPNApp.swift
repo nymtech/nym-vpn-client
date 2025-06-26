@@ -4,6 +4,7 @@ import AppSettings
 import ConfigurationManager
 import ConnectionManager
 import CountriesManager
+import CredentialsManager
 import GatewayManager
 import Home
 import Extensions
@@ -11,6 +12,7 @@ import KeyboardManager
 import Migrations
 import NymLogger
 import NotificationsManager
+import PurchasesManager
 import SentryManager
 import SystemMessageManager
 import Theme
@@ -27,7 +29,9 @@ struct NymVPNApp: App {
 
     @ObservedObject private var appSettings = AppSettings.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
+    @ObservedObject private var credentialsManager = CredentialsManager.shared
     @ObservedObject private var countriesManager = CountriesManager.shared
+    @ObservedObject private var purchasesManager = PurchasesManager()
 
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var welcomeViewModel = WelcomeViewModel()
@@ -40,6 +44,7 @@ struct NymVPNApp: App {
     }
 
     var body: some Scene {
+        // swiftlint:disable:next closure_body_length
         WindowGroup {
             NavigationStack {
                 if !splashScreenDidDisplay {
@@ -68,8 +73,10 @@ struct NymVPNApp: App {
             .environmentObject(appSettings)
             .environmentObject(connectionManager)
             .environmentObject(countriesManager)
+            .environmentObject(credentialsManager)
             .environmentObject(KeyboardManager.shared)
             .environmentObject(logFileManager)
+            .environmentObject(purchasesManager)
         }
     }
 }

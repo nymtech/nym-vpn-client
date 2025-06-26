@@ -44,11 +44,6 @@ public final class CredentialsManager: ObservableObject {
             do {
 #if os(iOS)
                 let dataFolderURL = try dataFolderURL()
-
-                if !FileManager.default.fileExists(atPath: dataFolderURL.path()) {
-                    try FileManager.default.createDirectory(at: dataFolderURL, withIntermediateDirectories: true)
-                }
-
                 try loginRaw(mnemonic: credential, path: dataFolderURL.path())
 #elseif os(macOS)
                 try await grpcManager.storeAccount(with: credential)
@@ -68,8 +63,42 @@ public final class CredentialsManager: ObservableObject {
         }.value
     }
 
-    public func registerAccount() async throws -> (token: String, mnemonic: String) {
-        return ("", "")
+    public func createMnemonic() async throws {
+#if os(iOS)
+        try await Task {
+            let dataFolderURL = try dataFolderURL()
+            try createAccountRaw(path: dataFolderURL.path())
+            Task { @MainActor in
+                checkCredentialImport()
+            }
+        }.value
+#endif
+    }
+
+    public func mnemonic() async throws -> String {
+#if os(iOS)
+        try await Task {
+            let dataFolderURL = try dataFolderURL()
+            return try getStoredMnemonicRaw(path: dataFolderURL.path())
+        }.value
+#elseif os(macOS)
+        return ""
+#endif
+    }
+
+    public func registerAccount() async throws {
+#if os(iOS)
+        try await Task {
+            do {
+                let dataFolderURL = try dataFolderURL()
+                let result = try registerAccountRaw(path: dataFolderURL.path())
+                Task { @MainActor in
+                    appSettings.accountToken = result.accountToken
+                    checkCredentialImport()
+                }
+            }
+        }.value
+#endif
     }
 
     public func removeCredential() async throws {
@@ -88,9 +117,15 @@ public final class CredentialsManager: ObservableObject {
                 // TODO: need modal for alerts
                 throw error
             }
+            Task { @MainActor in
+                appSettings.accountToken = nil
+            }
         }.value
     }
 
+    /// Group folder, created automatically if does not exists
+    /// `/private/var/mobile/Containers/Shared/AppGroup/xxx-xxx-xxx-xxx-xxx/Data/`
+    /// - Returns: URL to group data folder
     public func dataFolderURL() throws -> URL {
         guard let dataFolderURL = FileManager.default
             .containerURL(
@@ -99,6 +134,9 @@ public final class CredentialsManager: ObservableObject {
             .appendingPathComponent("Data")
         else {
             throw CredentialsManagerError.cannotCreateDB
+        }
+        if !FileManager.default.fileExists(atPath: dataFolderURL.path()) {
+            try FileManager.default.createDirectory(at: dataFolderURL, withIntermediateDirectories: true)
         }
         return dataFolderURL
     }

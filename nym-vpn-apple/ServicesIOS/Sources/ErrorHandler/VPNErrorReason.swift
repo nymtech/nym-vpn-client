@@ -25,6 +25,10 @@ public enum VPNErrorReason: LocalizedError {
     case forgetAccount(details: String)
     case offline
     case unexpectedVpnApiResponse(details: String)
+    case registerAccount(details: String)
+    case failedAccountRegistration(details: String)
+    case getMnemonic(details: String)
+    case createAccount(details: String)
     case unkownTunnelState
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -70,9 +74,9 @@ public enum VPNErrorReason: LocalizedError {
         case let .StoreAccount(details: details):
             let messageString: String
             switch details {
-            case let .storage(message), let .unexpectedResponse(message):
+            case let .Storage(message), let .UnexpectedResponse(message):
                 messageString = message
-            case let .getAccountEndpointFailure(vpnApiErrorResponse):
+            case let .GetAccountEndpointFailure(vpnApiErrorResponse):
                 switch vpnApiErrorResponse {
                 case .timeout:
                     self = .vpnApiTimeout
@@ -82,19 +86,19 @@ public enum VPNErrorReason: LocalizedError {
                     self = .vpnApi(details: errorResponse.message)
                 }
                 return
-            case let .invalidMnemonic(message):
+            case let .InvalidMnemonic(message):
                 messageString = message
-            case let .internal(message):
+            case let .Internal(message):
                 messageString = message
             }
             self = .storeAccount(details: messageString)
         case let .SyncAccount(details: details):
             let messageString: String
             switch details {
-            case .noAccountStored:
+            case .NoAccountStored:
                 self = .noAccountStored
                 return
-            case let .errorResponse(vpnApiErrorResponse):
+            case let .ErrorResponse(vpnApiErrorResponse):
                 switch vpnApiErrorResponse {
                 case .timeout:
                     self = .vpnApiTimeout
@@ -104,22 +108,22 @@ public enum VPNErrorReason: LocalizedError {
                     self = .vpnApi(details: errorResponse.message)
                 }
                 return
-            case let .unexpectedResponse(message), let .internal(message):
+            case let .UnexpectedResponse(message), let .Internal(message):
                 messageString = message
-            case .offline:
+            case .Offline:
                 messageString = "errorReason.unknownTunnelState".localizedString
             }
             self = .syncAccount(details: messageString)
         case let .SyncDevice(details: details):
             let messageString: String
             switch details {
-            case .noAccountStored:
+            case .NoAccountStored:
                 self = .noAccountStored
                 return
-            case .noDeviceStored:
+            case .NoDeviceStored:
                 self = .noDeviceIdentity
                 return
-            case let .errorResponse(vpnApiErrorResponse):
+            case let .ErrorResponse(vpnApiErrorResponse):
                 switch vpnApiErrorResponse {
                 case .timeout:
                     self = .vpnApiTimeout
@@ -129,9 +133,9 @@ public enum VPNErrorReason: LocalizedError {
                     self = .vpnApi(details: errorResponse.message)
                 }
                 return
-            case let .unexpectedResponse(message), let .internal(message):
+            case let .UnexpectedResponse(message), let .Internal(message):
                 messageString = message
-            case .offline:
+            case .Offline:
                 self = .offline
                 return
             }
@@ -139,13 +143,13 @@ public enum VPNErrorReason: LocalizedError {
         case let .RegisterDevice(details: details):
             let messageString: String
             switch details {
-            case .noAccountStored:
+            case .NoAccountStored:
                 self = .noAccountStored
                 return
-            case .noDeviceStored:
+            case .NoDeviceStored:
                 self = .noDeviceIdentity
                 return
-            case let .errorResponse(vpnApiErrorResponse):
+            case let .ErrorResponse(vpnApiErrorResponse):
                 switch vpnApiErrorResponse {
                 case .timeout:
                     self = .vpnApiTimeout
@@ -155,11 +159,11 @@ public enum VPNErrorReason: LocalizedError {
                     self = .vpnApi(details: errorResponse.message)
                 }
                 return
-            case let .unexpectedResponse(message):
+            case let .UnexpectedResponse(message):
                 messageString = message
-            case let .internal(message):
+            case let .Internal(message):
                 messageString = message
-            case .offline:
+            case .Offline:
                 self = .offline
                 return
             }
@@ -167,13 +171,13 @@ public enum VPNErrorReason: LocalizedError {
         case let .RequestZkNym(details: details):
             let messageString: String
             switch details {
-            case .noAccountStored:
+            case .NoAccountStored:
                 self = .noAccountStored
                 return
-            case .noDeviceStored:
+            case .NoDeviceStored:
                 self = .noDeviceIdentity
                 return
-            case let .vpnApi(vpnApiErrorResponse):
+            case let .VpnApi(vpnApiErrorResponse):
                 switch vpnApiErrorResponse {
                 case .timeout:
                     self = .vpnApiTimeout
@@ -183,9 +187,9 @@ public enum VPNErrorReason: LocalizedError {
                     self = .vpnApi(details: errorResponse.message)
                 }
                 return
-            case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
+            case let .UnexpectedVpnApiResponse(message), let .Storage(message), let .Internal(message):
                 messageString = message
-            case .offline:
+            case .Offline:
                 self = .offline
                 return
             }
@@ -193,11 +197,11 @@ public enum VPNErrorReason: LocalizedError {
         case let .RequestZkNymBundle(successes: successes, failed: failed):
             let newFailed = failed.compactMap {
                 switch $0 {
-                case .noAccountStored:
+                case .NoAccountStored:
                     return "errorReason.noAccountStored".localizedString
-                case .noDeviceStored:
+                case .NoDeviceStored:
                     return "errorReason.noDeviceStored".localizedString
-                case let .vpnApi(vpnApiErrorResponse):
+                case let .VpnApi(vpnApiErrorResponse):
                     switch vpnApiErrorResponse {
                     case .timeout:
                         return VPNErrorReason.vpnApiTimeout.description
@@ -206,9 +210,9 @@ public enum VPNErrorReason: LocalizedError {
                     case let .response(errorResponse):
                         return errorResponse.message
                     }
-                case let .unexpectedVpnApiResponse(message), let .storage(message), let .internal(message):
+                case let .UnexpectedVpnApiResponse(message), let .Storage(message), let .Internal(message):
                     return message
-                case .offline:
+                case .Offline:
                     return "errorReason.offline".localizedString
                 }
             }
@@ -219,9 +223,9 @@ public enum VPNErrorReason: LocalizedError {
         case let .ForgetAccount(details: details):
             let messageString: String
             switch details {
-            case .registrationInProgress:
+            case .RegistrationInProgress:
                 messageString = "errorReason.registrationInProgress".localizedString
-            case let .updateDeviceErrorResponse(vpnApiErrorResponse):
+            case let .UpdateDeviceErrorResponse(vpnApiErrorResponse):
                 switch vpnApiErrorResponse {
                 case .timeout:
                     self = .vpnApiTimeout
@@ -231,17 +235,53 @@ public enum VPNErrorReason: LocalizedError {
                     self = .vpnApi(details: errorResponse.message)
                 }
                 return
-            case let .unexpectedResponse(message),
-                let .removeAccount(message), let .removeDeviceKeys(message),
-                let .resetCredentialStorage(message), let .removeAccountFiles(message),
-                let .initDeviceKeys(message):
+            case let .UnexpectedResponse(message),
+                let .RemoveAccount(message), let .RemoveDeviceKeys(message),
+                let .ResetCredentialStorage(message), let .RemoveAccountFiles(message),
+                let .InitDeviceKeys(message):
                 messageString = message
-            case let .internal(message):
+            case let .Internal(message):
                 messageString = message
             }
             self = .forgetAccount(details: messageString)
         case let .UnexpectedVpnApiResponse(details: details):
             self = .unexpectedVpnApiResponse(details: details)
+        case let .RegisterAccount(details: details):
+            switch details {
+            case .Offline:
+                self = .offline
+            case let .Storage(response):
+                self = .registerAccount(details: response)
+            case let .GetAccountEndpointFailure(vpnApiErrorResponse):
+                switch vpnApiErrorResponse {
+                case .timeout:
+                    self = .vpnApiTimeout
+                case let .statusCode(code):
+                    self = .vpnApi(details: String(code))
+                case let .response(errorResponse):
+                    self = .vpnApi(details: errorResponse.message)
+                }
+            case let .UnexpectedResponse(response):
+                self = .registerAccount(details: response)
+            case let .Internal(response):
+                self = .registerAccount(details: response)
+            }
+        case let .FailedAccountRegistration(details: details):
+            self = .failedAccountRegistration(details: details)
+        case let .GetMnemonic(details: details):
+            switch details {
+            case let .Storage(message):
+                self = .getMnemonic(details: message)
+            case let .Internal(message):
+                self = .getMnemonic(details: message)
+            }
+        case let .CreateAccount(details: details):
+            switch details {
+            case let .Storage(message):
+                self = .createAccount(details: message)
+            case let .Internal(message):
+                self = .createAccount(details: message)
+            }
         }
     }
 
@@ -313,6 +353,16 @@ public enum VPNErrorReason: LocalizedError {
             self = .unkownTunnelState
         case .unexpectedVpnApiResponse:
             self = .unexpectedVpnApiResponse(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .registerAccount:
+            self = .registerAccount(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .failedAccountRegistration:
+            self = .failedAccountRegistration(
+                details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong
+            )
+        case .getMnemonic:
+            self = .getMnemonic(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
+        case .createAccount:
+            self = .createAccount(details: nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         }
     }
 
@@ -398,6 +448,14 @@ extension VPNErrorReason {
             "errorReason.offline".localizedString
         case let .unexpectedVpnApiResponse(details: details):
             details
+        case let .registerAccount(details: details):
+            details
+        case let .failedAccountRegistration(details: details):
+            details
+        case let .getMnemonic(details: details):
+            details
+        case let .createAccount(details: details):
+            details
         }
     }
 
@@ -441,6 +499,10 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
     case offline
     case unkownTunnelState
     case unexpectedVpnApiResponse
+    case registerAccount
+    case failedAccountRegistration
+    case getMnemonic
+    case createAccount
 
     init?(vpnErrorReason: VPNErrorReason) {
         switch vpnErrorReason {
@@ -486,8 +548,16 @@ enum VPNErrorReasonCode: Int, RawRepresentable {
             self = .unkownTunnelState
         case .offline:
             self = .offline
+        case .registerAccount:
+            self = .registerAccount
         case .unexpectedVpnApiResponse:
             self = .unexpectedVpnApiResponse
+        case .failedAccountRegistration:
+            self = .failedAccountRegistration
+        case .getMnemonic:
+            self = .getMnemonic
+        case .createAccount:
+            self = .createAccount
         }
     }
 }

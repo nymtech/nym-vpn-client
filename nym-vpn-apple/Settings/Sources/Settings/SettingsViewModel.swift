@@ -110,7 +110,7 @@ public class SettingsViewModel: SettingsFlowState {
         if credentialsManager.isValidCredentialImported {
             navigateToAccount()
         } else {
-            path.append(SettingLink.addCredentials)
+            path.append(SettingLink.createAccountWelcome)
         }
     }
 

@@ -14,7 +14,7 @@ public struct ConnectButton: View {
         HStack {
             Text(state.localizedTitle)
                 .foregroundStyle(NymColor.black)
-                .textStyle(.Headline.Medium.bold)
+                .textStyle(.Headline.Small.regular)
                 .transaction { transaction in
                     transaction.animation = nil
                 }

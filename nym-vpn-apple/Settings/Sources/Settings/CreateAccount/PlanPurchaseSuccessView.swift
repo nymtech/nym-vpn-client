@@ -10,30 +10,35 @@ public struct PlanPurchaseSuccessView: View {
 
     public var body: some View {
         VStack(spacing: 0) {
-            navbar
-            Spacer()
-                .frame(height: 40)
-            HStack {
-                VStack(alignment: .center, spacing: 0) {
-                    StepView(stepCount: 3, currentStep: 3)
+            VStack(spacing: 0) {
+                navbar
+                Spacer()
+                    .frame(height: 40)
+                HStack {
+                    VStack(alignment: .center, spacing: 0) {
+                        StepView(stepCount: 3, currentStep: 3)
+                        Spacer()
+                        planActivatedSuccessTitle
+                            .padding(.horizontal, 30)
+                        planActivatedSuccessSubtitle
+                        Spacer()
+                            .frame(height: 24)
+                        planActivatedSuccessfullyConnectionPrivate
+                        planActivatedSuccessfullyIdentityYours
+                        Spacer()
+                        startUsingVPNButton
+                    }
                     Spacer()
-                    planActivatedSuccessTitle
-                        .padding(.horizontal, 30)
-                    planActivatedSuccessSubtitle
-                    Spacer()
-                        .frame(height: 24)
-                    planActivatedSuccessfullyConnectionPrivate
-                    planActivatedSuccessfullyIdentityYours
-                    Spacer()
-                    startUsingVPNButton
                 }
+                .padding(.horizontal, 16)
+
                 Spacer()
             }
-            .padding(.horizontal, 16)
-
             Spacer()
                 .frame(height: 16)
         }
+        .frame(maxWidth: MagicNumbers.moreMaxWidth)
+
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background {
