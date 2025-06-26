@@ -9,7 +9,7 @@ public struct CreateAccountWelcomeView: View {
     @Binding private var path: NavigationPath
 
     public var body: some View {
-        ScrollView {
+        VStack(spacing: 0) {
             navbar
             Spacer()
             VStack(spacing: 0) {

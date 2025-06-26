@@ -5,7 +5,7 @@ import UIComponents
 
 extension HomeViewModel {
     func updateConnectButtonStateIfMnemonicImported() {
-        guard !credentialsManager.isValidCredentialImported
+        guard !appSettings.isCredentialImported
         else {
             if connectButtonState == .noAccount {
                 connectButtonState = .connect
