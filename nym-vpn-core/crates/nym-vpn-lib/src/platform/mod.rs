@@ -14,7 +14,7 @@
 //! 2. Initialise the library: `configureLib(..)`.
 //!
 //!    This sets up the logger and starts the account controller that runs in the background and
-//!    manages the account state.
+//!    manages the account state. It also starts the statistics controller running in the background.
 //!
 //! 3. At this point we can interact with the vpn-api and the account controller to do things like:
 //!
@@ -52,6 +52,7 @@ pub mod swift;
 mod account;
 mod environment;
 mod state_machine;
+mod stats;
 mod uniffi_custom_impls;
 mod uniffi_lib_types;
 
@@ -69,7 +70,8 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
 use crate::{
-    gateway_directory::GatewayClient, platform::uniffi_custom_impls::NetworkCompatibility,
+    gateway_directory::GatewayClient,
+    platform::{stats::StatisticsControllerHandle, uniffi_custom_impls::NetworkCompatibility},
 };
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
@@ -82,6 +84,8 @@ lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
     static ref STATE_MACHINE_HANDLE: Mutex<Option<StateMachineHandle>> = Mutex::new(None);
     static ref ACCOUNT_CONTROLLER_HANDLE: Mutex<Option<AccountControllerHandle>> = Mutex::new(None);
+    static ref STATISTICS_CONTROLLER_HANDLE: Mutex<Option<StatisticsControllerHandle>> =
+        Mutex::new(None);
     static ref NETWORK_ENVIRONMENT: Mutex<Option<nym_vpn_network_config::Network>> =
         Mutex::new(None);
     static ref GATEWAY_DIRECTORY_CLIENT: Mutex<Option<CachingGatewayClient>> = Mutex::new(None);
@@ -121,12 +125,26 @@ pub fn currentEnvironment() -> Result<NetworkEnvironment, VpnError> {
 /// Setup the library with the given data directory and optionally enable credential mode.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn configureLib(data_dir: String, credential_mode: Option<bool>) -> Result<(), VpnError> {
-    RUNTIME.block_on(configure_lib(data_dir, credential_mode))
+pub fn configureLib(
+    data_dir: String,
+    credential_mode: Option<bool>,
+    statistics_enabled: bool,
+) -> Result<(), VpnError> {
+    RUNTIME.block_on(configure_lib(data_dir, credential_mode, statistics_enabled))
 }
 
-async fn configure_lib(data_dir: String, credential_mode: Option<bool>) -> Result<(), VpnError> {
+async fn configure_lib(
+    data_dir: String,
+    credential_mode: Option<bool>,
+    statistics_enabled: bool,
+) -> Result<(), VpnError> {
     let network = environment::current_environment_details().await?;
+    stats::init_statistics_controller(
+        PathBuf::from(data_dir.clone()),
+        network.clone(),
+        statistics_enabled,
+    )
+    .await?;
     account::init_account_controller(PathBuf::from(data_dir), credential_mode, network).await
 }
 
@@ -446,12 +464,16 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
 
     let account_controller_tx = account::get_command_sender().await?;
 
+    // SW Get a stats reporting channel here and give it to the state_machine
+    let statistics_event_sender = stats::get_events_sender().await?;
+
     // Once we have established that the account is ready, we can start the state machine.
     state_machine::init_state_machine(
         config,
         network_env,
         enable_credentials_mode,
         account_controller_tx,
+        statistics_event_sender,
     )
     .await
 }
@@ -499,7 +521,12 @@ async fn stop_vpn_inner() -> Result<(), VpnError> {
 #[allow(non_snake_case)]
 #[uniffi::export]
 pub fn shutdown() -> Result<(), VpnError> {
-    RUNTIME.block_on(account::stop_account_controller())
+    RUNTIME.block_on(shutdown_lib())
+}
+
+pub async fn shutdown_lib() -> Result<(), VpnError> {
+    stats::stop_statistics_controller().await?;
+    account::stop_account_controller().await
 }
 
 #[derive(uniffi::Record)]

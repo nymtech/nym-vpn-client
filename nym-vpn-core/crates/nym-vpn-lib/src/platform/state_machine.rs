@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_statistics::StatisticsSender;
 use nym_vpn_account_controller::AccountCommandSender;
 use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -23,15 +24,20 @@ pub(super) async fn init_state_machine(
     network_env: Network,
     enable_credentials_mode: bool,
     account_controller_tx: AccountCommandSender,
+    statistics_event_sender: StatisticsSender,
 ) -> Result<(), VpnError> {
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
     if guard.is_none() {
+        statistics_event_sender.report(nym_statistics::events::StatisticsEvent::new_connecting(
+            config.enable_two_hop,
+        )); // mobile "Connect" event
         let state_machine_handle = start_state_machine(
             config,
             network_env,
             enable_credentials_mode,
             account_controller_tx,
+            statistics_event_sender,
         )
         .await?;
         state_machine_handle.send_command(TunnelCommand::Connect);
@@ -49,6 +55,7 @@ pub(super) async fn start_state_machine(
     network_env: Network,
     enable_credentials_mode: bool,
     account_controller_tx: AccountCommandSender,
+    statistics_event_sender: StatisticsSender,
 ) -> Result<StateMachineHandle, VpnError> {
     let tunnel_type = if config.enable_two_hop {
         TunnelType::Wireguard
@@ -136,6 +143,7 @@ pub(super) async fn start_state_machine(
         nym_config,
         tunnel_settings,
         account_controller_tx,
+        statistics_event_sender,
         gateway_directory_client,
         topology_provider,
         connectivity_handle,
