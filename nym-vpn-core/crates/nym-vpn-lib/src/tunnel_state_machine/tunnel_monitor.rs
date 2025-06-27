@@ -414,14 +414,18 @@ impl TunnelMonitor {
         let tun_provider = self.tun_provider.clone();
         #[cfg(unix)]
         let connection_fd_callback = move |_fd: RawFd| {
-            tracing::debug!("Callback on connection fd");
             #[cfg(target_os = "android")]
-            tun_provider.bypass(_fd);
+            {
+                tracing::debug!("Bypass websocket");
+                tun_provider.bypass(_fd);
+            }
+
             #[cfg(target_os = "linux")]
             {
+                tracing::debug!("Bypass websocket");
                 let borrowed_fd = unsafe { &BorrowedFd::borrow_raw(_fd) };
                 if let Err(err) = Mark.set(borrowed_fd, &TUNNEL_FWMARK) {
-                    tracing::error!("Could not fwmark mixnet fd: {err}");
+                    tracing::error!("Could not set fwmark for websocket fd: {err}");
                 }
             }
         };
@@ -435,17 +439,6 @@ impl TunnelMonitor {
         )
         .await
         .map_err(Box::new)?;
-
-        // Route mixnet client outside the tunnel.
-        #[cfg(target_os = "android")]
-        match connected_mixnet.websocket_fd().await {
-            Some(fd) => {
-                self.tun_provider.bypass(fd);
-            }
-            None => {
-                tracing::error!("Failed to obtain websocket for bypass");
-            }
-        }
 
         let status_listener_handle = connected_mixnet
             .start_event_listener(
