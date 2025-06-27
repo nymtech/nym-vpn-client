@@ -6,14 +6,15 @@ use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct GlobalConfigFile {
     pub network_name: String,
-    pub sentry_monitoring: Option<bool>,
+    #[serde(default)]
+    pub sentry_monitoring: bool,
 }
 
 impl Default for GlobalConfigFile {
     fn default() -> Self {
         Self {
             network_name: NymNetworkDetails::default().network_name,
-            sentry_monitoring: None,
+            sentry_monitoring: false,
         }
     }
 }
@@ -45,6 +46,6 @@ impl GlobalConfigFile {
                 eprintln!("failed to read global config file: {}", e);
             })
             .ok()
-            .is_some_and(|cfg| matches!(cfg.sentry_monitoring, Some(true)))
+            .is_some_and(|cfg| cfg.sentry_monitoring)
     }
 }

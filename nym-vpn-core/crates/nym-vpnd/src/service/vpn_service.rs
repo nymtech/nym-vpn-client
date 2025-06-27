@@ -961,7 +961,7 @@ where
                 tracing::error!("Failed to read global config file: {}", e);
             })
             .ok()
-            .and_then(|c| c.sentry_monitoring)
+            .map(|c| c.sentry_monitoring)
             // if something goes wrong with the config file, fallback to the real state of Sentry client
             .unwrap_or(self.sentry_enabled)
     }
@@ -969,7 +969,7 @@ where
     async fn handle_toggle_sentry(&self, enable: bool) -> Result<(), GlobalConfigError> {
         let mut config = GlobalConfigFile::read_from_file()
             .map_err(|e| GlobalConfigError::ReadConfig(e.to_string()))?;
-        config.sentry_monitoring = Some(enable);
+        config.sentry_monitoring = enable;
         if !enable {
             if let Some(client) = sentry::Hub::current().client() {
                 client.close(Some(Duration::from_secs(1)));
