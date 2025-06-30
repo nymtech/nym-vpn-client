@@ -488,6 +488,18 @@ message GetLogPathResponse {
   string filename = 2;
 }
 
+message IsSentryEnabledResponse {
+  bool enabled = 1;
+}
+
+message EnableSentryResponse {
+  bool success = 1;
+}
+
+message DisableSentryResponse {
+  bool success = 1;
+}
+
 service NymVpnd {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
@@ -594,5 +606,14 @@ service NymVpnd {
 
   // Delete the log file
   rpc DeleteLogFile (google.protobuf.Empty) returns (DeleteLogFileResponse) {}
+
+  // Check if Sentry error monitoring is enabled
+  rpc IsSentryEnabled (google.protobuf.Empty) returns (IsSentryEnabledResponse) {}
+
+  // Enable Sentry error monitoring
+  rpc EnableSentry (google.protobuf.Empty) returns (EnableSentryResponse) {}
+
+  // Disable Sentry error monitoring
+  rpc DisableSentry (google.protobuf.Empty) returns (DisableSentryResponse) {}
 }
 

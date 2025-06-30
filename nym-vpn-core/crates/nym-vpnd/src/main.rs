@@ -16,6 +16,7 @@ use logging::{LogFileRemover, LoggingSetup};
 use nym_vpn_network_config::Network;
 use sentry::ClientInitGuard;
 use service::NymVpnService;
+use std::time::Duration;
 use tokio::sync::{broadcast, mpsc};
 use tokio_util::sync::CancellationToken;
 use tracing_appender::non_blocking::WorkerGuard;
@@ -31,23 +32,25 @@ fn main() -> anyhow::Result<()> {
 fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
     let _sentry_guard = init_sentry();
+    let sentry_enabled = _sentry_guard.is_some_and(|client| client.is_enabled());
 
     let options = logging::Options {
         verbosity_level: args.verbosity_level(),
         enable_file_log: args.command.run_as_service,
         enable_stdout_log: true,
-        sentry: _sentry_guard.is_some(),
+        sentry: sentry_enabled,
     };
     let logging_setup = logging::setup_logging(options);
     let global_config_file = setup_global_config(args.network.as_deref())?;
 
-    run_inner(args, global_config_file, logging_setup)
+    run_inner(args, global_config_file, logging_setup, sentry_enabled)
 }
 
 #[cfg(windows)]
 fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
     let _sentry_guard = init_sentry();
+    let sentry_enabled = _sentry_guard.is_some_and(|client| client.is_enabled());
 
     if args.command.install {
         println!(
@@ -78,7 +81,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             verbosity_level: args.verbosity_level(),
             enable_file_log: true,
             enable_stdout_log: false,
-            sentry: _sentry_guard.is_some(),
+            sentry: sentry_enabled,
         });
         let worker_guard = service::windows_service::start(
             service::windows_service::ServiceNetworkConfig {
@@ -86,6 +89,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
                 config_env_file: args.config_env_file.to_owned(),
             },
             logging_setup,
+            sentry_enabled,
         )?;
         Ok(worker_guard)
     } else {
@@ -93,12 +97,12 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             verbosity_level: args.verbosity_level(),
             enable_file_log: false,
             enable_stdout_log: true,
-            sentry: _sentry_guard.is_some(),
+            sentry: sentry_enabled,
         };
         let logging_setup = logging::setup_logging(options);
         let global_config_file = setup_global_config(args.network.as_deref())?;
 
-        run_inner(args, global_config_file, logging_setup)
+        run_inner(args, global_config_file, logging_setup, sentry_enabled)
     }
 }
 
@@ -115,12 +119,13 @@ fn run_inner(
     args: CliArgs,
     global_config_file: GlobalConfigFile,
     logging_setup: Option<LoggingSetup>,
+    sentry_enabled: bool,
 ) -> anyhow::Result<Option<WorkerGuard>> {
     runtime::new_runtime().block_on(async {
         let network_env =
             environment::setup_environment(&global_config_file, args.config_env_file.as_deref())
                 .await?;
-        run_inner_async(args, network_env, logging_setup).await
+        run_inner_async(args, network_env, logging_setup, sentry_enabled).await
     })
 }
 
@@ -128,6 +133,7 @@ async fn run_inner_async(
     args: CliArgs,
     network_env: Network,
     logging_setup: Option<LoggingSetup>,
+    sentry_enabled: bool,
 ) -> anyhow::Result<Option<WorkerGuard>> {
     let log_path = logging_setup
         .as_ref()
@@ -167,6 +173,7 @@ async fn run_inner_async(
         network_env,
         user_agent,
         log_path,
+        sentry_enabled,
     );
 
     let mut shutdown_join_set = shutdown_handler::install(shutdown_token);
@@ -194,8 +201,12 @@ async fn run_inner_async(
 }
 
 fn init_sentry() -> Option<ClientInitGuard> {
+    let enabled = GlobalConfigFile::sentry_enabled();
+    if !enabled {
+        return None;
+    }
     if let Some(dsn) = environment::sentry_dsn() {
-        println!("sentry monitoring enabled");
+        println!("⚠ sentry monitoring enabled ⚠");
         let guard = sentry::init((
             dsn,
             sentry::ClientOptions {
@@ -204,11 +215,13 @@ fn init_sentry() -> Option<ClientInitGuard> {
                 sample_rate: 1.0,
                 traces_sample_rate: 1.0,
                 enable_logs: true,
+                shutdown_timeout: Duration::from_secs(2),
                 ..Default::default()
             },
         ));
         Some(guard)
     } else {
+        println!("failed to init sentry: SENTRY_DSN is not set");
         None
     }
 }

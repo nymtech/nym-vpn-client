@@ -6,12 +6,15 @@ use nym_vpn_lib::nym_config::defaults::NymNetworkDetails;
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize)]
 pub struct GlobalConfigFile {
     pub network_name: String,
+    #[serde(default)]
+    pub sentry_monitoring: bool,
 }
 
 impl Default for GlobalConfigFile {
     fn default() -> Self {
         Self {
             network_name: NymNetworkDetails::default().network_name,
+            sentry_monitoring: false,
         }
     }
 }
@@ -32,5 +35,17 @@ impl GlobalConfigFile {
 
         crate::service::write_config_file(&global_config_file_path, global_config)
             .map_err(Into::into)
+    }
+
+    pub fn sentry_enabled() -> bool {
+        let global_config_file_path =
+            crate::service::config_dir().join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE);
+
+        crate::service::read_config_file::<GlobalConfigFile>(&global_config_file_path)
+            .inspect_err(|e| {
+                eprintln!("failed to read global config file: {}", e);
+            })
+            .ok()
+            .is_some_and(|cfg| cfg.sentry_monitoring)
     }
 }
