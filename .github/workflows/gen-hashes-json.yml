@@ -18,6 +18,7 @@ jobs:
   gen-hashes:
     name: Generate hashes.json
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Generate hashes.json
         uses: nymtech/nym/.github/actions/nym-hash-releases@develop
