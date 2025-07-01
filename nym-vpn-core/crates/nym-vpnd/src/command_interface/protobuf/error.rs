@@ -3,25 +3,6 @@
 
 use crate::service::{SetNetworkError, VpnServiceDeleteLogFileError};
 
-#[derive(Debug, thiserror::Error)]
-pub enum VpnCommandSendError {
-    #[error("failed to send command to VPN service task")]
-    Send,
-
-    #[error("failed to receive response from VPN service task")]
-    Receive,
-}
-
-impl From<VpnCommandSendError> for tonic::Status {
-    fn from(err: VpnCommandSendError) -> Self {
-        match err {
-            VpnCommandSendError::Send | VpnCommandSendError::Receive => {
-                tonic::Status::internal(err.to_string())
-            }
-        }
-    }
-}
-
 impl From<SetNetworkError> for nym_vpn_proto::SetNetworkRequestError {
     fn from(err: SetNetworkError) -> Self {
         match err {
