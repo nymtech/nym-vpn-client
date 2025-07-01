@@ -2,6 +2,7 @@ package net.nymtech.vpn.backend.service
 
 import android.content.Intent
 import android.os.Build
+import android.os.ParcelFileDescriptor
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.launch
@@ -17,6 +18,7 @@ import timber.log.Timber
 
 internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwner {
 
+	private var vpnInterfaceFd: ParcelFileDescriptor? = null
 	override var owner: NymBackend? = null
 
 	private val builder: Builder
@@ -30,6 +32,12 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 
 	override fun onDestroy() {
 		Timber.d("Vpn service destroyed")
+		try {
+			vpnInterfaceFd?.close()
+			vpnInterfaceFd = null
+		} catch (e: Exception) {
+			Timber.e(e, "Error closing VPN interface")
+		}
 		vpnService = CompletableDeferred()
 		stopForeground(STOP_FOREGROUND_REMOVE)
 		super.onDestroy()
@@ -56,6 +64,8 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 	override fun configureTunnel(config: TunnelNetworkSettings): Int {
 		Timber.i("Configuring tunnel")
 		if (prepare(this) != null) return -1
+		vpnInterfaceFd?.close()
+		vpnInterfaceFd = null
 		val vpnInterface = builder.apply {
 			config.ipv4Settings?.addresses?.forEach {
 				Timber.d("Address v4: $it")
@@ -100,6 +110,7 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 				setMetered(false)
 			}
 		}.establish()
+		vpnInterfaceFd = vpnInterface
 		val fd = vpnInterface?.detachFd() ?: return -1
 		return fd
 	}
