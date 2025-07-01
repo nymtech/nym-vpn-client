@@ -140,7 +140,7 @@ impl CachingGatewayClientInner {
         let mut stale_gw_types = Vec::new();
         for gw_type in GatewayType::iter() {
             if !self.is_gateways_current(&gw_type) {
-                stale_gw_types.push(gw_type.clone());
+                stale_gw_types.push(gw_type);
             }
         }
         stale_gw_types
@@ -150,7 +150,7 @@ impl CachingGatewayClientInner {
         let mut stale_gw_types = Vec::new();
         for gw_type in GatewayType::iter() {
             if !self.is_countries_current(&gw_type) {
-                stale_gw_types.push(gw_type.clone());
+                stale_gw_types.push(gw_type);
             }
         }
         stale_gw_types
@@ -171,7 +171,7 @@ impl CachingGatewayClientInner {
             let client = self.gateway_client.clone();
             tasks.push(
                 async move {
-                    let res = client.lookup_countries(gw_type.clone()).await;
+                    let res = client.lookup_countries(gw_type).await;
                     (gw_type, LookupResult::Countries(res))
                 }
                 .boxed(),
@@ -181,7 +181,7 @@ impl CachingGatewayClientInner {
             let client = self.gateway_client.clone();
             tasks.push(
                 async move {
-                    let res = client.lookup_gateways(gw_type.clone()).await;
+                    let res = client.lookup_gateways(gw_type).await;
                     (gw_type, LookupResult::Gateways(res))
                 }
                 .boxed(),
@@ -193,10 +193,8 @@ impl CachingGatewayClientInner {
                 LookupResult::Gateways(r) => match r {
                     Ok(ref refreshed_gateways) => {
                         tracing::info!("Refreshed gateways for {gw_type:?}");
-                        self.cached_gateways.insert(
-                            gw_type.clone(),
-                            (refreshed_gateways.clone(), Instant::now()),
-                        );
+                        self.cached_gateways
+                            .insert(gw_type, (refreshed_gateways.clone(), Instant::now()));
                     }
                     Err(err) => {
                         tracing::warn!("Failed to refresh gateways for {gw_type:?}: {err}");
@@ -205,10 +203,8 @@ impl CachingGatewayClientInner {
                 LookupResult::Countries(r) => match r {
                     Ok(ref refreshed_countries) => {
                         tracing::info!("Refreshed countries for {gw_type:?}");
-                        self.cached_countries.insert(
-                            gw_type.clone(),
-                            (refreshed_countries.clone(), Instant::now()),
-                        );
+                        self.cached_countries
+                            .insert(gw_type, (refreshed_countries.clone(), Instant::now()));
                     }
                     Err(err) => {
                         tracing::warn!("Failed to refresh countries for {gw_type:?}: {err}");
@@ -248,14 +244,9 @@ impl CachingGatewayClientInner {
             tracing::warn!("Not refreshing countries because we are not connected");
             return Err(Error::Offline);
         }
-        let refreshed_countries = self
-            .gateway_client
-            .lookup_countries(gw_type.clone())
-            .await?;
-        self.cached_countries.insert(
-            gw_type.clone(),
-            (refreshed_countries.clone(), Instant::now()),
-        );
+        let refreshed_countries = self.gateway_client.lookup_countries(gw_type).await?;
+        self.cached_countries
+            .insert(gw_type, (refreshed_countries.clone(), Instant::now()));
         Ok(refreshed_countries)
     }
 
@@ -273,16 +264,14 @@ impl CachingGatewayClientInner {
             tracing::warn!("Not refreshing countries because we are not connected");
             return Err(Error::Offline);
         }
-        let refreshed_gateways = self.gateway_client.lookup_gateways(gw_type.clone()).await?;
-        self.cached_gateways.insert(
-            gw_type.clone(),
-            (refreshed_gateways.clone(), Instant::now()),
-        );
+        let refreshed_gateways = self.gateway_client.lookup_gateways(gw_type).await?;
+        self.cached_gateways
+            .insert(gw_type, (refreshed_gateways.clone(), Instant::now()));
         Ok(refreshed_gateways)
     }
 
     async fn lookup_gateways(&mut self, gw_type: GatewayType) -> Result<GatewayList> {
-        let refresh_result = self.refresh_gateways(gw_type.clone()).await;
+        let refresh_result = self.refresh_gateways(gw_type).await;
 
         // Regardless of if we managed to refresh the cache, we return the cached gateways if they
         // exist. They should be the most recent one we can muster
@@ -294,7 +283,7 @@ impl CachingGatewayClientInner {
     }
 
     async fn lookup_countries(&mut self, gw_type: GatewayType) -> Result<Vec<Country>> {
-        let refresh_result = self.refresh_countries(gw_type.clone()).await;
+        let refresh_result = self.refresh_countries(gw_type).await;
 
         // Regardless of if we managed to refresh the cache, we return the cached countries if they
         // exist. They should be the most recent one we can muster
