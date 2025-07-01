@@ -43,15 +43,11 @@ use zeroize::Zeroizing;
 use super::{
     config::{DEFAULT_CONFIG_FILE, NetworkEnvironments, NymVpnServiceConfig},
     error::{
-        AccountControllerError, AccountLinksError, Error, Result, SetNetworkError,
-        VpnServiceDeleteLogFileError,
+        AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
+        Result, SetNetworkError, VpnServiceDeleteLogFileError,
     },
 };
-use crate::{
-    config::GlobalConfigFile,
-    logging::LogPath,
-    service::error::{GlobalConfigError, ListGatewaysError},
-};
+use crate::{config::GlobalConfigFile, logging::LogPath};
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];

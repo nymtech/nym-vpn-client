@@ -11,9 +11,7 @@ pub use config::{
     DEFAULT_GLOBAL_CONFIG_FILE, DEFAULT_LOG_FILE, DEFAULT_OLD_LOG_FILE, config_dir,
     create_config_file, log_dir, read_config_file, write_config_file,
 };
-pub use error::{
-    AccountLinksError, GlobalConfigError, SetNetworkError, VpnServiceDeleteLogFileError,
-};
+pub use error::{SetNetworkError, VpnServiceDeleteLogFileError};
 pub use vpn_service::{
     ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions, NymVpnService,
     VpnServiceCommand,
