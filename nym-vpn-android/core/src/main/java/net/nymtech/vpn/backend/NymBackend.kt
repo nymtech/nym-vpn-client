@@ -342,7 +342,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	val notification = notificationManager.buildVpnNotification(
 		getState(),
 		tunnel?.environment?.networkName(),
-		tunnel?.credentialMode
+		tunnel?.credentialMode,
 	)
 
 	private suspend fun ensureNotificationAndStartForeground() {
@@ -351,7 +351,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 		val initialNotification = notificationManager.buildVpnNotification(
 			getState(),
 			tunnel?.environment?.networkName(),
-			tunnel?.credentialMode
+			tunnel?.credentialMode,
 		)
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 			vpn.startForeground(
@@ -359,12 +359,14 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 				initialNotification,
 				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
 					ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
-				} else 0
+				} else {
+					0
+				},
 			)
 		} else {
 			vpn.startForeground(
 				VpnNotificationManager.VPN_FOREGROUND_ID,
-				initialNotification
+				initialNotification,
 			)
 		}
 
@@ -372,7 +374,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 			val updatedNotification = notificationManager.buildVpnNotification(
 				getState(),
 				tunnel?.environment?.networkName(),
-				tunnel?.credentialMode
+				tunnel?.credentialMode,
 			)
 			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 				vpn.startForeground(
@@ -380,18 +382,18 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 					updatedNotification,
 					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
 						ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
-					} else 0
+					} else {
+						0
+					},
 				)
 			} else {
 				vpn.startForeground(
 					VpnNotificationManager.VPN_FOREGROUND_ID,
-					updatedNotification
+					updatedNotification,
 				)
 			}
 		}
 	}
-
-
 
 	override fun getState(): Tunnel.State {
 		return state

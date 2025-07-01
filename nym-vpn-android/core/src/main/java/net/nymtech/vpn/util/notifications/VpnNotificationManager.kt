@@ -139,4 +139,3 @@ internal class VpnNotificationManager private constructor(private val context: C
 		}
 	}
 }
-

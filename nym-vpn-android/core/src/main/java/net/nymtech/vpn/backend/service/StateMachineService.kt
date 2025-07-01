@@ -37,7 +37,7 @@ internal class StateMachineService : LifecycleService(), TunnelOwner {
 				this,
 				FOREGROUND_NOTIFICATION_ID,
 				richNotification,
-				SYSTEM_EXEMPT_SERVICE_TYPE_ID
+				SYSTEM_EXEMPT_SERVICE_TYPE_ID,
 			)
 		}
 
@@ -57,7 +57,7 @@ internal class StateMachineService : LifecycleService(), TunnelOwner {
 				this,
 				FOREGROUND_NOTIFICATION_ID,
 				richNotification,
-				SYSTEM_EXEMPT_SERVICE_TYPE_ID
+				SYSTEM_EXEMPT_SERVICE_TYPE_ID,
 			)
 		}
 

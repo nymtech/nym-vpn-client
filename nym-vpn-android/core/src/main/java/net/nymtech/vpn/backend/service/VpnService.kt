@@ -1,7 +1,6 @@
 package net.nymtech.vpn.backend.service
 
 import android.content.Intent
-import android.content.pm.ServiceInfo
 import android.os.Build
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.CompletableDeferred
@@ -11,7 +10,6 @@ import net.nymtech.vpn.backend.NymBackend.Companion.alwaysOnCallback
 import net.nymtech.vpn.backend.NymBackend.Companion.vpnService
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.util.LifecycleVpnService
-import net.nymtech.vpn.util.notifications.VpnNotificationManager
 import nym_vpn_lib.AndroidTunProvider
 import nym_vpn_lib.ConnectivityObserver
 import nym_vpn_lib.TunnelNetworkSettings
@@ -49,7 +47,6 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 
 		return super.onStartCommand(intent, flags, startId)
 	}
-
 
 	override fun bypass(socket: Int) {
 		Timber.d("Bypassing socket: $socket")
