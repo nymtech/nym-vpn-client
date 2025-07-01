@@ -20,20 +20,48 @@ internal class StateMachineService : LifecycleService(), TunnelOwner {
 
 	companion object {
 		const val SYSTEM_EXEMPT_SERVICE_TYPE_ID = 1024
+		const val FOREGROUND_NOTIFICATION_ID = VpnNotificationManager.VPN_FOREGROUND_ID
 	}
 
 	override fun onCreate() {
 		super.onCreate()
 		stateMachineService.complete(this)
+
+		// Immediately start foreground with minimal notification to satisfy Android
+		startForeground(FOREGROUND_NOTIFICATION_ID, notificationManager.buildMinimalNotification())
+
+		// Then update with the richer notification if permission granted
 		notificationManager.withNotificationPermission {
+			val richNotification = notificationManager.buildVpnNotification(getCurrentState(), getCurrentEnvironment(), getCurrentCredentialMode())
 			ServiceCompat.startForeground(
 				this,
-				VpnNotificationManager.VPN_FOREGROUND_ID,
-				notificationManager.buildVpnNotification(getCurrentState(), getCurrentEnvironment(), getCurrentCredentialMode()),
-				SYSTEM_EXEMPT_SERVICE_TYPE_ID,
+				FOREGROUND_NOTIFICATION_ID,
+				richNotification,
+				SYSTEM_EXEMPT_SERVICE_TYPE_ID
 			)
 		}
+
 		initWakeLock()
+	}
+
+	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+		stateMachineService.complete(this)
+
+		// Same here: call startForeground synchronously with minimal notification first
+		startForeground(FOREGROUND_NOTIFICATION_ID, notificationManager.buildMinimalNotification())
+
+		// Then update notification if permission granted
+		notificationManager.withNotificationPermission {
+			val richNotification = notificationManager.buildVpnNotification(getCurrentState(), getCurrentEnvironment(), getCurrentCredentialMode())
+			ServiceCompat.startForeground(
+				this,
+				FOREGROUND_NOTIFICATION_ID,
+				richNotification,
+				SYSTEM_EXEMPT_SERVICE_TYPE_ID
+			)
+		}
+
+		return super.onStartCommand(intent, flags, startId)
 	}
 
 	override fun onDestroy() {
@@ -47,21 +75,6 @@ internal class StateMachineService : LifecycleService(), TunnelOwner {
 		super.onDestroy()
 	}
 
-	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-		stateMachineService.complete(this)
-		notificationManager.withNotificationPermission {
-			ServiceCompat.startForeground(
-				this,
-				VpnNotificationManager.VPN_FOREGROUND_ID,
-				notificationManager.buildVpnNotification(getCurrentState(), getCurrentEnvironment(), getCurrentCredentialMode()),
-				SYSTEM_EXEMPT_SERVICE_TYPE_ID,
-			)
-		}
-		return super.onStartCommand(intent, flags, startId)
-	}
-
-	// Forever wakelock required to keep bandwidth controller websocket connection alive
-	// Once bandwidth controller is changes from persistent connection, we can remove to save battery
 	private fun initWakeLock() {
 		wakeLock = (getSystemService(POWER_SERVICE) as PowerManager).run {
 			val tag = this.javaClass.name

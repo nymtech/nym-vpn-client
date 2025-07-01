@@ -1,6 +1,8 @@
 package net.nymtech.vpn.backend
 
 import android.content.Context
+import android.content.pm.ServiceInfo
+import android.os.Build
 import androidx.lifecycle.LifecycleObserver
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -292,6 +294,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	private suspend fun startVpn(tunnel: Tunnel, userAgent: UserAgent) {
 		withContext(ioDispatcher) {
 			startServices()
+			ensureNotificationAndStartForeground()
 			try {
 				startVpn(
 					VpnConfig(
@@ -333,6 +336,60 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 			onStateChange(Tunnel.State.Down)
 		}
 	}
+
+	val notification = notificationManager.buildVpnNotification(
+		getState(),
+		tunnel?.environment?.networkName(),
+		tunnel?.credentialMode
+	)
+
+	private suspend fun ensureNotificationAndStartForeground() {
+		val vpn = vpnService.await()
+
+		val initialNotification = notificationManager.buildVpnNotification(
+			getState(),
+			tunnel?.environment?.networkName(),
+			tunnel?.credentialMode
+		)
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+			vpn.startForeground(
+				VpnNotificationManager.VPN_FOREGROUND_ID,
+				initialNotification,
+				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+					ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
+				} else 0
+			)
+		} else {
+			vpn.startForeground(
+				VpnNotificationManager.VPN_FOREGROUND_ID,
+				initialNotification
+			)
+		}
+
+		notificationManager.withNotificationPermission {
+			val updatedNotification = notificationManager.buildVpnNotification(
+				getState(),
+				tunnel?.environment?.networkName(),
+				tunnel?.credentialMode
+			)
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+				vpn.startForeground(
+					VpnNotificationManager.VPN_FOREGROUND_ID,
+					updatedNotification,
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+						ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
+					} else 0
+				)
+			} else {
+				vpn.startForeground(
+					VpnNotificationManager.VPN_FOREGROUND_ID,
+					updatedNotification
+				)
+			}
+		}
+	}
+
+
 
 	override fun getState(): Tunnel.State {
 		return state

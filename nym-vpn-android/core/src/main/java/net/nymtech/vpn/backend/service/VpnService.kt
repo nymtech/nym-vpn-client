@@ -20,7 +20,6 @@ import timber.log.Timber
 internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwner {
 
 	override var owner: NymBackend? = null
-	private val notificationManager = VpnNotificationManager.getInstance(this)
 
 	private val builder: Builder
 		get() = Builder()
@@ -41,27 +40,16 @@ internal class VpnService : LifecycleVpnService(), AndroidTunProvider, TunnelOwn
 	override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
 		vpnService.complete(this)
 
-		notificationManager.withNotificationPermission {
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-				startForeground(
-					VpnNotificationManager.VPN_FOREGROUND_ID,
-					notificationManager.buildVpnNotification(getCurrentState(), getCurrentEnvironment(), getCurrentCredentialMode()),
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-						ServiceInfo.FOREGROUND_SERVICE_TYPE_SYSTEM_EXEMPTED
-					} else {
-						0
-					},
-				)
-			}
-		}
 		if (intent == null || intent.component == null || intent.component?.packageName != packageName) {
 			Timber.i("Always-on VPN starting tunnel")
 			lifecycleScope.launch {
 				alwaysOnCallback?.invoke()
 			}
 		}
+
 		return super.onStartCommand(intent, flags, startId)
 	}
+
 
 	override fun bypass(socket: Int) {
 		Timber.d("Bypassing socket: $socket")

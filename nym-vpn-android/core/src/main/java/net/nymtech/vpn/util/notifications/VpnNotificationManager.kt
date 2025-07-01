@@ -86,6 +86,19 @@ internal class VpnNotificationManager private constructor(private val context: C
 			.build()
 	}
 
+	fun buildMinimalNotification(): Notification {
+		setupChannel()
+
+		val title = context.getString(R.string.vpn_notification_title)
+
+		return NotificationCompat.Builder(context, VPN_CHANNEL_ID)
+			.setOngoing(true)
+			.setContentTitle(title)
+			.setSmallIcon(R.drawable.ic_stat_name)
+			.setCategory(Notification.CATEGORY_SERVICE)
+			.build()
+	}
+
 	internal fun updateVpnNotification(state: Tunnel.State, environment: String?, credentialMode: Boolean?) {
 		withNotificationPermission {
 			val notificationManager = NotificationManagerCompat.from(context)
@@ -126,3 +139,4 @@ internal class VpnNotificationManager private constructor(private val context: C
 		}
 	}
 }
+
