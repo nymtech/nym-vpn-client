@@ -73,7 +73,9 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 				}
 			},
 		)
-		ProcessLifecycleOwner.get().lifecycle.addObserver(this)
+		ProcessLifecycleOwner.get().lifecycleScope.launch(Dispatchers.Main) {
+			ProcessLifecycleOwner.get().lifecycle.addObserver(this@NymBackend)
+		}
 	}
 
 	companion object {
