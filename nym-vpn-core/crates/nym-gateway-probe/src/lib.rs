@@ -23,7 +23,7 @@ use nym_config::defaults::{
     mixnet_vpn::{NYM_TUN_DEVICE_ADDRESS_V4, NYM_TUN_DEVICE_ADDRESS_V6},
 };
 use nym_connection_monitor::self_ping_and_wait;
-use nym_credentials_interface::TicketType;
+use nym_credentials_interface::{CredentialSpendingData, TicketType};
 use nym_gateway_directory::{
     AuthAddress, Config as GatewayDirectoryConfig, EntryPoint,
     GatewayClient as GatewayDirectoryClient, GatewayList, GatewayMinPerformance,
@@ -37,7 +37,10 @@ use nym_ip_packet_requests::{
         ControlResponse, DataResponse, InfoLevel, IpPacketResponse, IpPacketResponseData,
     },
 };
-use nym_sdk::mixnet::{MixnetClient, MixnetClientBuilder, NodeIdentity, ReconstructedMessage};
+use nym_sdk::mixnet::{
+    Ephemeral, MixnetClient, MixnetClientBuilder, MixnetClientStorage, NodeIdentity,
+    ReconstructedMessage,
+};
 use nym_wireguard_types::PeerPublicKey;
 use tokio::sync::Mutex;
 use tokio_util::{codec::Decoder, sync::CancellationToken};
@@ -227,8 +230,10 @@ impl Probe {
             node_info.authenticator_version
         );
 
+        let storage = Ephemeral::default();
+
         // Connect to the mixnet via the entry gateway
-        let disconnected_mixnet_client = MixnetClientBuilder::new_ephemeral()
+        let disconnected_mixnet_client = MixnetClientBuilder::new_with_storage(storage.clone())
             .request_gateway(mixnet_entry_gateway_id.to_string())
             .network_details(NymNetworkDetails::new_from_env())
             .debug_config(mixnet_debug_config(
@@ -315,6 +320,25 @@ impl Probe {
                 .new_auth_client()
                 .await
                 .with_context(|| "mixnet client is already moved out of shared reference")?;
+            let config = nym_validator_client::nyxd::Config::try_from_nym_network_details(
+                &nym_config::defaults::NymNetworkDetails::new_from_env(),
+            )?;
+            let client = nym_validator_client::nyxd::NyxdClient::connect(
+                config,
+                gateway_config.nyxd_url().as_str(),
+            )?;
+            let bw_controller = nym_bandwidth_controller::BandwidthController::new(
+                storage.credential_store().clone(),
+                client,
+            );
+            let credential = bw_controller
+                .prepare_ecash_ticket(
+                    TicketType::V1WireguardEntry,
+                    nym_address.gateway().to_bytes(),
+                    1,
+                )
+                .await?
+                .data;
 
             let outcome = wg_probe(
                 authenticator,
@@ -323,6 +347,7 @@ impl Probe {
                 node_info.authenticator_version,
                 self.amnezia_args,
                 self.netstack_args,
+                credential,
             )
             .await
             .unwrap_or_default();
@@ -361,6 +386,7 @@ async fn wg_probe(
     auth_version: AuthenticatorVersion,
     awg_args: String,
     netstack_args: NetstackArgs,
+    credential: CredentialSpendingData,
 ) -> anyhow::Result<WgProbeResults> {
     info!("attempting to use authenticator version {auth_version:?}");
 
@@ -410,7 +436,7 @@ async fn wg_probe(
                                 pending_registration_response.private_ips().ipv4.into(),
                                 pending_registration_response.nonce(),
                             ),
-                            credential: None,
+                            credential: Some(credential),
                         }))
                     }
                     AuthenticatorVersion::V3 => {
@@ -421,7 +447,7 @@ async fn wg_probe(
                                 pending_registration_response.private_ips().ipv4.into(),
                                 pending_registration_response.nonce(),
                             ),
-                            credential: None,
+                            credential: Some(credential),
                         }))
                     }
                     AuthenticatorVersion::V4 => {
@@ -432,7 +458,7 @@ async fn wg_probe(
                                 pending_registration_response.private_ips().into(),
                                 pending_registration_response.nonce(),
                             ),
-                            credential: None,
+                            credential: Some(credential),
                         }))
                     }
                     AuthenticatorVersion::V5 => {
@@ -443,7 +469,7 @@ async fn wg_probe(
                                 pending_registration_response.private_ips(),
                                 pending_registration_response.nonce(),
                             ),
-                            credential: None,
+                            credential: Some(credential),
                         }))
                     }
                     AuthenticatorVersion::UNKNOWN => bail!("Unknown version number"),

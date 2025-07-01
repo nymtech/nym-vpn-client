@@ -133,8 +133,8 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
     trial
         .probe(
             gateway_config,
-            args.only_wireguard,
             args.ignore_egress_epoch_role,
+            args.only_wireguard,
         )
         .await
 }
