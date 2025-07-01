@@ -7,6 +7,9 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.pm.ShortcutInfoCompat
 import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.graphics.drawable.IconCompat
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.ui.ShortcutActivity
 
@@ -19,7 +22,9 @@ class DynamicShortcutManager(val context: Context) : ShortcutManager {
 
 	override fun removeShortcuts() {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {
-			ShortcutManagerCompat.removeDynamicShortcuts(context, createShortcuts().map { it.id })
+			CoroutineScope(Dispatchers.Main).launch {
+				ShortcutManagerCompat.removeDynamicShortcuts(context, createShortcuts().map { it.id })
+			}
 		}
 	}
 
