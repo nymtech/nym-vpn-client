@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib_types::TunnelEvent;
-use nym_vpn_network_config::Network;
 use nym_vpn_proto::nym_vpnd_server::NymVpndServer;
 use tokio::{
     sync::{
@@ -29,7 +28,6 @@ fn grpc_span(req: &http::Request<()>) -> tracing::Span {
 
 pub async fn start_command_interface(
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
-    network_env: Network,
     shutdown_token: CancellationToken,
 ) -> Result<(JoinHandle<()>, UnboundedReceiver<VpnServiceCommand>), CommandInterfaceError> {
     tracing::debug!("Starting command interface");
@@ -53,8 +51,7 @@ pub async fn start_command_interface(
     let server_handle = tokio::spawn(async move {
         let incoming_shutdown_token = shutdown_token.child_token();
         let socket_listener_handle = tokio::spawn(async move {
-            let command_interface =
-                CommandInterface::new(vpn_command_tx, tunnel_event_rx, network_env);
+            let command_interface = CommandInterface::new(vpn_command_tx, tunnel_event_rx);
 
             let server = Server::builder()
                 .trace_fn(grpc_span)

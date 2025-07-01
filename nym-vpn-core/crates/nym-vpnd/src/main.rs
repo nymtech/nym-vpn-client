@@ -153,12 +153,9 @@ async fn run_inner_async(
         )
     });
 
-    let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
-        tunnel_event_rx,
-        network_env.clone(),
-        shutdown_token.child_token(),
-    )
-    .await?;
+    let (command_handle, vpn_command_rx) =
+        command_interface::start_command_interface(tunnel_event_rx, shutdown_token.child_token())
+            .await?;
 
     // The user agent can be overridden by the user, but if it's not, we'll construct it
     // based on the current system information and it will be for "nym-vpnd". A number of the rpc

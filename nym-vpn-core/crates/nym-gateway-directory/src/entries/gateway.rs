@@ -497,7 +497,7 @@ impl nym_client_core::init::helpers::ConnectableGateway for Gateway {
     }
 }
 
-#[derive(Debug, Clone, Hash, PartialEq, Eq, strum::EnumIter)]
+#[derive(Debug, Copy, Clone, Hash, PartialEq, Eq, strum::EnumIter)]
 pub enum GatewayType {
     MixnetEntry,
     MixnetExit,

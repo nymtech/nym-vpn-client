@@ -15,5 +15,6 @@ pub use error::{
     AccountLinksError, GlobalConfigError, SetNetworkError, VpnServiceDeleteLogFileError,
 };
 pub use vpn_service::{
-    ConnectArgs, ConnectOptions, GATEWAY_DIRECTORY_CLIENT, NymVpnService, VpnServiceCommand,
+    ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions, NymVpnService,
+    VpnServiceCommand,
 };
