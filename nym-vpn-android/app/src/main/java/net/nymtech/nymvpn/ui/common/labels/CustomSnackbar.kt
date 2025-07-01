@@ -20,7 +20,7 @@ import net.nymtech.nymvpn.ui.theme.CustomColors
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
 @Composable
-fun CustomSnackBar(message: String, paddingTop: Dp, isRtl: Boolean = true, containerColor: Color = CustomColors.snackBarBackgroundColor) {
+fun CustomSnackBar(message: String, paddingTop: Dp, isRtl: Boolean = false, containerColor: Color = CustomColors.snackBarBackgroundColor) {
 	Box(
 		modifier =
 		Modifier
