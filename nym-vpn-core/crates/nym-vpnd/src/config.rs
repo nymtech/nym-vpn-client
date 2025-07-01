@@ -43,7 +43,7 @@ impl GlobalConfigFile {
 
         crate::service::read_config_file::<GlobalConfigFile>(&global_config_file_path)
             .inspect_err(|e| {
-                eprintln!("failed to read global config file: {}", e);
+                eprintln!("failed to read global config file: {e}");
             })
             .ok()
             .is_some_and(|cfg| cfg.sentry_monitoring)

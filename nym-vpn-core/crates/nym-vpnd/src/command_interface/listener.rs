@@ -605,14 +605,11 @@ impl NymVpnd for CommandInterface {
         &self,
         _: tonic::Request<()>,
     ) -> Result<tonic::Response<GetLogPathResponse>, tonic::Status> {
-        let result = self
+        let log_path = self
             .send_and_wait(VpnServiceCommand::GetLogPath, ())
-            .await?;
-        let log_path = if let Some(path) = result {
-            path
-        } else {
-            LogPath::default()
-        };
+            .await?
+            .unwrap_or_default();
+
         Ok(tonic::Response::new(log_path.into()))
     }
 
