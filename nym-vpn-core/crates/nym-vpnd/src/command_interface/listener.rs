@@ -182,12 +182,10 @@ impl NymVpnd for CommandInterface {
                 success: true,
                 error: None,
             },
-            Err(err) => {
-                ConnectResponse {
-                    success: false,
-                    error: Some(nym_vpn_proto::ConnectRequestError::from(err)),
-                }
-            }
+            Err(err) => ConnectResponse {
+                success: false,
+                error: Some(nym_vpn_proto::ConnectRequestError::from(err)),
+            },
         };
 
         Ok(tonic::Response::new(response))
@@ -223,7 +221,7 @@ impl NymVpnd for CommandInterface {
     type ListenToTunnelStateStream = BoxStream<'static, Result<TunnelState, tonic::Status>>;
     async fn listen_to_tunnel_state(
         &self,
-        request: tonic::Request<()>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<Self::ListenToTunnelStateStream>, tonic::Status> {
         let rx = self
             .send_and_wait(VpnServiceCommand::SubscribeToTunnelState, ())
@@ -239,7 +237,7 @@ impl NymVpnd for CommandInterface {
         BoxStream<'static, Result<nym_vpn_proto::TunnelEvent, tonic::Status>>;
     async fn listen_to_events(
         &self,
-        request: tonic::Request<()>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<Self::ListenToEventsStream>, tonic::Status> {
         let rx = self.tunnel_event_rx.resubscribe();
         let stream = tokio_stream::wrappers::BroadcastStream::new(rx).map(|event| {
