@@ -50,7 +50,7 @@ impl WindowsVersion {
         let function_address = unsafe { GetProcAddress(ntdll, s!("RtlGetVersion")) }
             .ok_or_else(windows::core::Error::from_win32)?;
 
-        let rtl_get_version: extern "stdcall" fn(*mut RTL_OSVERSIONINFOEXW) =
+        let rtl_get_version: extern "system" fn(*mut RTL_OSVERSIONINFOEXW) =
             unsafe { *(&function_address as *const _ as *const _) };
 
         let mut version_info: MaybeUninit<RTL_OSVERSIONINFOEXW> = mem::MaybeUninit::zeroed();
