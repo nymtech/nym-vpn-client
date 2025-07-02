@@ -4,9 +4,11 @@
 use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
 use sentry::integrations::tracing as sentry_tracing;
+use tracing::Level;
 use tracing_oslog::OsLogger;
 use tracing_subscriber::{
-    Registry, filter::LevelFilter, fmt::Layer, layer::SubscriberExt, util::SubscriberInitExt,
+    Layer, Registry, filter::LevelFilter, fmt::Layer as fmtLayer, layer::SubscriberExt,
+    util::SubscriberInitExt,
 };
 
 pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) {
@@ -60,7 +62,7 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) {
             .open(path)
             .ok()
             .map(|file| {
-                Layer::default()
+                fmtLayer::default()
                     .with_writer(file)
                     .with_ansi(false)
                     .compact()
