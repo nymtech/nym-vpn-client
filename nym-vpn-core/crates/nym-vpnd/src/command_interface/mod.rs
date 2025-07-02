@@ -5,7 +5,6 @@ mod config;
 mod error;
 mod helpers;
 mod listener;
-mod protobuf;
 mod start;
 
 pub use start::start_command_interface;

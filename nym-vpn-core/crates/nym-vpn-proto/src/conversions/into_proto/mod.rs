@@ -4,7 +4,6 @@
 pub mod account;
 pub mod account_shared_state;
 pub mod network_config;
-pub mod service;
 pub mod tunnel_event;
 pub mod tunnel_state;
 pub mod vpn_api_client;

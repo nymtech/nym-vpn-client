@@ -4,6 +4,7 @@ package nym.vpn;
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
+import "google/protobuf/wrappers.proto";
 
 import "account.proto";
 
@@ -150,31 +151,6 @@ message InfoResponse {
   NymVpnNetworkDetails nym_vpn_network = 7;
 }
 
-message SetNetworkRequest {
-  string network = 1;
-}
-
-message SetNetworkResponse {
-  SetNetworkRequestError error = 1;
-}
-
-message SetNetworkRequestError {
-  enum SetNetworkRequestErrorType {
-    SET_NETWORK_REQUEST_ERROR_TYPE_UNSPECIFIED = 0;
-
-    // Unspecified internal error
-    INTERNAL = 1;
-
-    // The network name provided is not valid
-    INVALID_NETWORK_NAME = 2;
-  }
-
-  SetNetworkRequestErrorType kind = 1;
-
-  // Internal message for logging and debugging
-  string message = 2;
-}
-
 message SystemMessage {
   string name = 1;
   string message = 2;
@@ -239,10 +215,6 @@ message ConnectRequest {
 message ConnectResponse {
   bool success = 1;
   ConnectRequestError error = 2;
-}
-
-message DisconnectResponse {
-  bool success = 1;
 }
 
 message AsEntry {
@@ -488,24 +460,12 @@ message GetLogPathResponse {
   string filename = 2;
 }
 
-message IsSentryEnabledResponse {
-  bool enabled = 1;
-}
-
-message EnableSentryResponse {
-  bool success = 1;
-}
-
-message DisableSentryResponse {
-  bool success = 1;
-}
-
 service NymVpnd {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
 
   // Set the network. This requires a restart to take effect
-  rpc SetNetwork (SetNetworkRequest) returns (SetNetworkResponse) {}
+  rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
 
   // List messages fetched from nym-vpn-api
   rpc GetSystemMessages (google.protobuf.Empty) returns (GetSystemMessagesResponse) {}
@@ -520,7 +480,7 @@ service NymVpnd {
   rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
 
   // Disconnect and stop the tunnel
-  rpc VpnDisconnect (google.protobuf.Empty) returns (DisconnectResponse) {}
+  rpc VpnDisconnect (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Get the current tunnel state
   rpc GetTunnelState (google.protobuf.Empty) returns (TunnelState) {}
@@ -605,15 +565,14 @@ service NymVpnd {
   rpc GetLogPath (google.protobuf.Empty) returns (GetLogPathResponse) {}
 
   // Delete the log file
-  rpc DeleteLogFile (google.protobuf.Empty) returns (DeleteLogFileResponse) {}
+  rpc DeleteLogFile (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Check if Sentry error monitoring is enabled
-  rpc IsSentryEnabled (google.protobuf.Empty) returns (IsSentryEnabledResponse) {}
+  rpc IsSentryEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Enable Sentry error monitoring
-  rpc EnableSentry (google.protobuf.Empty) returns (EnableSentryResponse) {}
+  rpc EnableSentry (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Disable Sentry error monitoring
-  rpc DisableSentry (google.protobuf.Empty) returns (DisableSentryResponse) {}
+  rpc DisableSentry (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
-

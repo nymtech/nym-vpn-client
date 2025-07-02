@@ -42,6 +42,7 @@ use nym_vpn_lib_types::{
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
     gateway::{Country, Gateway},
+    log_path::LogPath,
     service::{VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo},
 };
 use std::time::Duration;
@@ -51,10 +52,10 @@ use super::{
     config::{DEFAULT_CONFIG_FILE, NetworkEnvironments, NymVpnServiceConfig},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
-        Result, SetNetworkError, VpnServiceDeleteLogFileError,
+        Result, SetNetworkError,
     },
 };
-use crate::{config::GlobalConfigFile, logging::LogPath};
+use crate::config::GlobalConfigFile;
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -125,10 +126,7 @@ pub enum VpnServiceCommand {
         (),
     ),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
-    DeleteLogFile(
-        oneshot::Sender<Result<(), VpnServiceDeleteLogFileError>>,
-        (),
-    ),
+    DeleteLogFile(oneshot::Sender<bool>, ()),
     IsSentryEnabled(oneshot::Sender<bool>, ()),
     ToggleSentry(oneshot::Sender<Result<(), GlobalConfigError>>, bool),
 }
@@ -1052,20 +1050,18 @@ where
         self.account_command_tx.get_available_tickets().await
     }
 
-    async fn handle_delete_log_file(&self) -> Result<(), VpnServiceDeleteLogFileError> {
+    async fn handle_delete_log_file(&self) -> bool {
         match self.file_logging_event_tx.try_send(()) {
-            Ok(_) => {}
+            Ok(_) => true,
             Err(mpsc::error::TrySendError::Full(_)) => {
                 tracing::debug!("Already trying to delete file");
+                true
             }
             Err(mpsc::error::TrySendError::Closed(_)) => {
                 tracing::error!("Failed to send command to delete log file: channel is closed");
-                return Err(VpnServiceDeleteLogFileError::Internal(
-                    "failed to send delete log command".to_owned(),
-                ));
+                false
             }
         }
-        Ok(())
     }
 
     async fn handle_is_sentry_enabled(&self) -> bool {

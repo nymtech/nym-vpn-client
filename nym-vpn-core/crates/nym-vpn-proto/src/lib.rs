@@ -8,3 +8,6 @@ pub mod conversions;
 
 // Re-export needed prost types
 pub use prost_types::Timestamp;
+
+#[cfg(feature = "rpc_client")]
+pub mod rpc_client;

@@ -14,6 +14,8 @@ use tracing_subscriber::{
     EnvFilter, Layer, fmt::format::FmtSpan, layer::SubscriberExt, util::SubscriberInitExt,
 };
 
+use nym_vpnd_types::log_path::LogPath;
+
 use crate::service;
 
 pub struct Options {
@@ -158,29 +160,13 @@ impl LoggingSetup {
     }
 }
 
-#[derive(Clone, Debug)]
-pub struct LogPath {
-    pub dir: PathBuf,
-    pub filename: String,
-}
-
-impl LogPath {
-    pub fn new(log_dir: PathBuf, log_file: String) -> Self {
-        Self {
-            dir: log_dir,
-            filename: log_file,
-        }
+pub fn default_log_path() -> LogPath {
+    LogPath {
+        dir: service::log_dir(),
+        filename: service::DEFAULT_LOG_FILE.to_string(),
     }
 }
 
-impl Default for LogPath {
-    fn default() -> Self {
-        Self {
-            dir: service::log_dir(),
-            filename: service::DEFAULT_LOG_FILE.to_string(),
-        }
-    }
-}
 struct FileManager {
     file_appender: FileAppender,
 }
