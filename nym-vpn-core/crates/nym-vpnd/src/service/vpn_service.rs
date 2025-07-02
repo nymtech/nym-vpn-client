@@ -33,10 +33,13 @@ use nym_vpn_lib::{
 };
 use nym_vpn_lib_types::{
     AccountCommandError, ForgetAccountError, StoreAccountError, TunnelEvent, TunnelState,
-    TunnelType, VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo,
+    TunnelType,
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
-use nym_vpnd_types::gateway::{Country, Gateway};
+use nym_vpnd_types::{
+    gateway::{Country, Gateway},
+    service::{VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo},
+};
 use std::time::Duration;
 use zeroize::Zeroizing;
 

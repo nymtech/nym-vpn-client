@@ -3,8 +3,6 @@
 
 use std::{fmt::Debug, sync::Arc};
 
-use nym_vpn_api_client::HttpClientError;
-
 pub mod create_account;
 pub mod forget_account;
 pub mod get_mnemonic;
@@ -171,6 +169,7 @@ impl VpnApiError {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
 impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
     type Error = nym_vpn_api_client::VpnApiClientError;
 
@@ -182,14 +181,14 @@ impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
 
         if err
             .http_client_error()
-            .is_some_and(HttpClientError::is_timeout)
+            .is_some_and(nym_vpn_api_client::HttpClientError::is_timeout)
         {
             return Ok(Self::Timeout(Arc::new(err)));
         }
 
         match err
             .http_client_error()
-            .and_then(HttpClientError::status_code)
+            .and_then(nym_vpn_api_client::HttpClientError::status_code)
         {
             Some(code) => Ok(Self::StatusCode {
                 code: code.into(),
