@@ -16,8 +16,8 @@ import (
 	"runtime"
 	"unsafe"
 
+	"github.com/amnezia-vpn/amneziawg-go/device"
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/container"
-	"github.com/nymtech/amneziawg-go/device"
 )
 
 const (

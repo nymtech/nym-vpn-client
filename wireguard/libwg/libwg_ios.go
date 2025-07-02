@@ -12,11 +12,11 @@ import (
 	"time"
 	"unsafe"
 
+	"github.com/amnezia-vpn/amneziawg-go/conn"
+	"github.com/amnezia-vpn/amneziawg-go/device"
+	"github.com/amnezia-vpn/amneziawg-go/tun"
 	"github.com/nymtech/nym-vpn-client/wireguard/libwg/logging"
 	"golang.org/x/sys/unix"
-	"github.com/nymtech/amneziawg-go/conn"
-	"github.com/nymtech/amneziawg-go/device"
-	"github.com/nymtech/amneziawg-go/tun"
 )
 
 // Redefined here because otherwise the compiler doesn't realize it's a type alias for a type that's safe to export.
