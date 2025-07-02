@@ -440,20 +440,10 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     // advance by calling initEnvironment or initFallbackMainnetEnvironment.
     let network_env = environment::current_environment_details().await?;
 
-    // Enabling credential mode will depend on the network feature flag as well as what is passed
-    // in the config.
-    let enable_credentials_mode = is_credential_mode_enabled(config.credential_mode).await?;
-
     let account_controller_tx = account::get_command_sender().await?;
 
     // Once we have established that the account is ready, we can start the state machine.
-    state_machine::init_state_machine(
-        config,
-        network_env,
-        enable_credentials_mode,
-        account_controller_tx,
-    )
-    .await
+    state_machine::init_state_machine(config, network_env, account_controller_tx).await
 }
 
 fn log_build_info() {
@@ -464,13 +454,6 @@ fn log_build_info() {
         build_info.build_version,
         build_info.commit_sha
     );
-}
-
-async fn is_credential_mode_enabled(credential_mode: Option<bool>) -> Result<bool, VpnError> {
-    match credential_mode {
-        Some(enable_credentials_mode) => Ok(enable_credentials_mode),
-        None => environment::get_feature_flag_credential_mode().await,
-    }
 }
 
 /// Stop the VPN by stopping the VPN state machine.

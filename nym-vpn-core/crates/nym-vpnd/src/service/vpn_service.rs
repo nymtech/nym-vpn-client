@@ -702,9 +702,11 @@ where
 
         let tunnel_settings = TunnelSettings {
             tunnel_type,
-            enable_credentials_mode: options.enable_credentials_mode,
             statistics_recipient: self.statistics_recipient.map(Box::new),
-            mixnet_tunnel_options: MixnetTunnelOptions::default(),
+            mixnet_tunnel_options: MixnetTunnelOptions {
+                mtu: None,
+                enable_credentials_mode,
+            },
             wireguard_tunnel_options: WireguardTunnelOptions {
                 multihop_mode: if options.netstack {
                     WireguardMultihopMode::Netstack

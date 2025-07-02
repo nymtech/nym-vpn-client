@@ -22,19 +22,13 @@ use super::{STATE_MACHINE_HANDLE, VPNConfig, error::VpnError};
 pub(super) async fn init_state_machine(
     config: VPNConfig,
     network_env: Network,
-    enable_credentials_mode: bool,
     account_controller_tx: AccountCommandSender,
 ) -> Result<(), VpnError> {
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
 
     if guard.is_none() {
-        let state_machine_handle = start_state_machine(
-            config,
-            network_env,
-            enable_credentials_mode,
-            account_controller_tx,
-        )
-        .await?;
+        let state_machine_handle =
+            start_state_machine(config, network_env, account_controller_tx).await?;
         state_machine_handle.send_command(TunnelCommand::Connect);
         *guard = Some(state_machine_handle);
         Ok(())
@@ -76,7 +70,6 @@ fn setup_statistics_recipient(
 pub(super) async fn start_state_machine(
     config: VPNConfig,
     network_env: Network,
-    enable_credentials_mode: bool,
     account_controller_tx: AccountCommandSender,
 ) -> Result<StateMachineHandle, VpnError> {
     let tunnel_type = if config.enable_two_hop {
@@ -108,7 +101,6 @@ pub(super) async fn start_state_machine(
 
     let tunnel_settings = TunnelSettings {
         tunnel_type,
-        enable_credentials_mode,
         statistics_recipient,
         mixnet_tunnel_options: MixnetTunnelOptions::default(),
         wireguard_tunnel_options: WireguardTunnelOptions::default(),

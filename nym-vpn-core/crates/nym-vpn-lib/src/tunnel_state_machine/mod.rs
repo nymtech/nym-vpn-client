@@ -93,9 +93,6 @@ pub struct TunnelSettings {
     /// Type of tunnel.
     pub tunnel_type: TunnelType,
 
-    /// Enable the credentials mode between the client and the gateways.
-    pub enable_credentials_mode: bool,
-
     /// The (optional) recipient to send statistics to.
     pub statistics_recipient: Option<Box<Recipient>>,
 
@@ -135,6 +132,9 @@ pub struct GatewayPerformanceOptions {
 pub struct MixnetTunnelOptions {
     /// Overrides tunnel interface MTU.
     pub mtu: Option<u16>,
+
+    /// Enable the credentials mode between the client and the gateways.
+    pub enable_credentials_mode: bool,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -206,7 +206,6 @@ impl Default for TunnelSettings {
     fn default() -> Self {
         Self {
             tunnel_type: TunnelType::Wireguard,
-            enable_credentials_mode: false,
             statistics_recipient: None,
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
             mixnet_client_config: None,

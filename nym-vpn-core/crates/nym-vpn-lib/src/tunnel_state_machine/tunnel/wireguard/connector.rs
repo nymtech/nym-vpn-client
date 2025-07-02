@@ -49,7 +49,6 @@ impl Connector {
     pub async fn connect(
         self,
         network: &Network,
-        enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
         cancel_token: CancellationToken,
@@ -59,7 +58,6 @@ impl Connector {
             network,
             self.mixnet_client.clone(),
             self.gateway_directory_client.clone(),
-            enable_credentials_mode,
             selected_gateways,
             data_path,
             cancel_token,
@@ -92,7 +90,6 @@ impl Connector {
         network: &Network,
         mixnet_client: SharedMixnetClient,
         gateway_directory_client: CachingGatewayClient,
-        enable_credentials_mode: bool,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
         cancel_token: CancellationToken,
@@ -120,36 +117,18 @@ impl Connector {
             .await
             .ok_or(Error::MixnetClientDisposed)?;
 
-        let mut wg_entry_gateway_client = if enable_credentials_mode {
-            WgGatewayClient::new_free_entry(
-                &data_path,
-                auth_client.clone(),
-                entry_auth_recipient,
-                entry_version,
-            )
-        } else {
-            WgGatewayClient::new_entry(
-                &data_path,
-                auth_client.clone(),
-                entry_auth_recipient,
-                entry_version,
-            )
-        };
-        let mut wg_exit_gateway_client = if enable_credentials_mode {
-            WgGatewayClient::new_free_exit(
-                &data_path,
-                auth_client.clone(),
-                exit_auth_recipient,
-                exit_version,
-            )
-        } else {
-            WgGatewayClient::new_exit(
-                &data_path,
-                auth_client.clone(),
-                exit_auth_recipient,
-                exit_version,
-            )
-        };
+        let mut wg_entry_gateway_client = WgGatewayClient::new_entry(
+            &data_path,
+            auth_client.clone(),
+            entry_auth_recipient,
+            entry_version,
+        );
+        let mut wg_exit_gateway_client = WgGatewayClient::new_exit(
+            &data_path,
+            auth_client.clone(),
+            exit_auth_recipient,
+            exit_version,
+        );
 
         let shutdown = task_manager.subscribe_named("bandwidth_controller");
         let (connection_data, bandwidth_controller_handle) =
@@ -168,13 +147,11 @@ impl Connector {
                     shutdown,
                 )?;
                 let entry_fut = bw.get_initial_bandwidth(
-                    enable_credentials_mode,
                     TicketType::V1WireguardEntry,
                     gateway_directory_client.clone(),
                     &mut wg_entry_gateway_client,
                 );
                 let exit_fut = bw.get_initial_bandwidth(
-                    enable_credentials_mode,
                     TicketType::V1WireguardExit,
                     gateway_directory_client.clone(),
                     &mut wg_exit_gateway_client,
@@ -199,7 +176,6 @@ impl Connector {
                 )?;
                 let entry = bw
                     .get_initial_bandwidth(
-                        enable_credentials_mode,
                         TicketType::V1WireguardEntry,
                         gateway_directory_client.clone(),
                         &mut wg_entry_gateway_client,
@@ -207,7 +183,6 @@ impl Connector {
                     .await?;
                 let exit = bw
                     .get_initial_bandwidth(
-                        enable_credentials_mode,
                         TicketType::V1WireguardExit,
                         gateway_directory_client,
                         &mut wg_exit_gateway_client,
