@@ -223,12 +223,9 @@ async fn run_service_inner() -> anyhow::Result<()> {
     });
 
     // Start the command interface that listens for commands from the outside
-    let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
-        tunnel_event_rx,
-        network_env.clone(),
-        shutdown_token.child_token(),
-    )
-    .await?;
+    let (command_handle, vpn_command_rx) =
+        command_interface::start_command_interface(tunnel_event_rx, shutdown_token.child_token())
+            .await?;
 
     let user_agent = crate::util::construct_user_agent();
 

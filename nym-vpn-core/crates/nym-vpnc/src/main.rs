@@ -477,7 +477,7 @@ async fn list_gateways(
     let user_agent = setup_user_agent(&opts, info);
 
     let request = tonic::Request::new(ListGatewaysRequest {
-        kind: into_gateway_type(gw_type.clone()) as i32,
+        kind: into_gateway_type(gw_type) as i32,
         user_agent: Some(user_agent),
     });
     let response = client.list_gateways(request).await?.into_inner();
@@ -507,7 +507,7 @@ async fn list_countries(
     let user_agent = setup_user_agent(&opts, info);
 
     let request = tonic::Request::new(ListCountriesRequest {
-        kind: into_gateway_type(gw_type.clone()) as i32,
+        kind: into_gateway_type(gw_type) as i32,
         user_agent: Some(user_agent),
     });
 

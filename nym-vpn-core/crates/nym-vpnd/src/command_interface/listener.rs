@@ -3,10 +3,8 @@
 
 use futures::{StreamExt, stream::BoxStream};
 use nym_vpn_api_client::NetworkCompatibility;
-use nym_vpn_network_config::Network;
-use tokio::sync::{broadcast, mpsc::UnboundedSender};
+use tokio::sync::{broadcast, mpsc::UnboundedSender, oneshot};
 
-use nym_vpn_api_client::types::ScoreThresholds;
 use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
     AccountManagement, AvailableTickets, ConfirmZkNymDownloadedRequest,
@@ -28,13 +26,14 @@ use nym_vpn_proto::{
 use zeroize::Zeroizing;
 
 use super::{
-    connection_handler::CommandInterfaceConnectionHandler,
     error::CommandInterfaceError,
     helpers::{parse_entry_point, parse_exit_point},
 };
 use crate::{
     logging::LogPath,
-    service::{ConnectOptions, VpnServiceCommand},
+    service::{
+        ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions, VpnServiceCommand,
+    },
 };
 
 pub(super) struct CommandInterface {
@@ -43,20 +42,31 @@ pub(super) struct CommandInterface {
 
     // Broadcast tunnel events to our API endpoint listeners
     tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
-    network_env: Network,
 }
 
 impl CommandInterface {
     pub(super) fn new(
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
         tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
-        network_env: Network,
     ) -> Self {
         Self {
             vpn_command_tx,
             tunnel_event_rx,
-            network_env,
         }
+    }
+
+    async fn send_and_wait<R, F, O>(&self, command: F, opts: O) -> Result<R, tonic::Status>
+    where
+        F: FnOnce(oneshot::Sender<R>, O) -> VpnServiceCommand,
+    {
+        let (tx, rx) = oneshot::channel();
+
+        self.vpn_command_tx
+            .send(command(tx, opts))
+            .map_err(|_| tonic::Status::internal("Command channel is closed"))?;
+
+        rx.await
+            .map_err(|_| tonic::Status::internal("Response channel is closed"))
     }
 }
 
@@ -66,12 +76,9 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<InfoResponse>, tonic::Status> {
-        let info = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_info()
-            .await?;
-
+        let info = self.send_and_wait(VpnServiceCommand::Info, ()).await?;
         let response = InfoResponse::from(info);
-        tracing::debug!("Returning info response: {:?}", response);
+
         Ok(tonic::Response::new(response))
     }
 
@@ -81,8 +88,8 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<SetNetworkResponse>, tonic::Status> {
         let network = request.into_inner().network;
 
-        let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_set_network(network)
+        let status = self
+            .send_and_wait(VpnServiceCommand::SetNetwork, network)
             .await?;
 
         let response = nym_vpn_proto::SetNetworkResponse {
@@ -90,7 +97,6 @@ impl NymVpnd for CommandInterface {
                 .err()
                 .map(nym_vpn_proto::SetNetworkRequestError::from),
         };
-        tracing::debug!("Returning set network response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 
@@ -98,10 +104,8 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetSystemMessagesResponse>, tonic::Status> {
-        tracing::debug!("Got get system messages request");
-
-        let messages = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_system_messages()
+        let messages = self
+            .send_and_wait(VpnServiceCommand::GetSystemMessages, ())
             .await?;
 
         let messages = messages.into_current_iter().map(|m| m.into()).collect();
@@ -114,10 +118,8 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetNetworkCompatibilityResponse>, tonic::Status> {
-        tracing::debug!("Got get system messages request");
-
-        let compatibility = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_network_compatibility()
+        let compatibility = self
+            .send_and_wait(VpnServiceCommand::GetNetworkCompatibility, ())
             .await?;
 
         let compatibility = compatibility.map(NetworkCompatibility::into);
@@ -132,10 +134,8 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetFeatureFlagsResponse>, tonic::Status> {
-        tracing::debug!("Got get feature flags request");
-
-        let feature_flags = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_feature_flags()
+        let feature_flags = self
+            .send_and_wait(VpnServiceCommand::GetFeatureFlags, ())
             .await?
             .ok_or(tonic::Status::not_found("Feature flags not found"))?;
 
@@ -147,8 +147,6 @@ impl NymVpnd for CommandInterface {
         request: tonic::Request<ConnectRequest>,
     ) -> Result<tonic::Response<ConnectResponse>, tonic::Status> {
         let connect_request = request.into_inner();
-        tracing::debug!("Got connect request: {connect_request:?}");
-
         let entry = connect_request
             .entry
             .clone()
@@ -166,12 +164,17 @@ impl NymVpnd for CommandInterface {
             .map_err(|err| *err)?;
 
         let options = ConnectOptions::try_from(connect_request).map_err(|err| {
-            tracing::error!("Failed to parse connect options: {:?}", err);
-            tonic::Status::invalid_argument("Invalid connect options")
+            tonic::Status::invalid_argument(format!("Invalid connect options: {err}"))
         })?;
 
-        let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_connect(entry, exit, options)
+        let connect_args = ConnectArgs {
+            entry,
+            exit,
+            options,
+        };
+
+        let status = self
+            .send_and_wait(VpnServiceCommand::Connect, connect_args)
             .await?;
 
         let response = match status {
@@ -179,16 +182,12 @@ impl NymVpnd for CommandInterface {
                 success: true,
                 error: None,
             },
-            Err(err) => {
-                tracing::debug!("Connect request error: {:?}", err);
-                ConnectResponse {
-                    success: false,
-                    error: Some(nym_vpn_proto::ConnectRequestError::from(err)),
-                }
-            }
+            Err(err) => ConnectResponse {
+                success: false,
+                error: Some(nym_vpn_proto::ConnectRequestError::from(err)),
+            },
         };
 
-        tracing::debug!("Returning connect response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 
@@ -196,14 +195,14 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<DisconnectResponse>, tonic::Status> {
-        let status = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_disconnect()
+        let status = self
+            .send_and_wait(VpnServiceCommand::Disconnect, ())
             .await?;
 
         let response = DisconnectResponse {
             success: status.is_ok(),
         };
-        tracing::debug!("Returning disconnect response: {:?}", response);
+
         Ok(tonic::Response::new(response))
     }
 
@@ -211,24 +210,21 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<TunnelState>, tonic::Status> {
-        let tunnel_state = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_status()
+        let tunnel_state = self
+            .send_and_wait(VpnServiceCommand::GetTunnelState, ())
             .await
             .map(TunnelState::from)?;
 
-        tracing::debug!("Returning tunnel state: {:?}", tunnel_state);
         Ok(tonic::Response::new(tunnel_state))
     }
 
     type ListenToTunnelStateStream = BoxStream<'static, Result<TunnelState, tonic::Status>>;
     async fn listen_to_tunnel_state(
         &self,
-        request: tonic::Request<()>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<Self::ListenToTunnelStateStream>, tonic::Status> {
-        tracing::debug!("Got connection status stream request: {request:?}");
-
-        let rx = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_subscribe_to_tunnel_state()
+        let rx = self
+            .send_and_wait(VpnServiceCommand::SubscribeToTunnelState, ())
             .await?;
         let stream = tokio_stream::wrappers::WatchStream::new(rx)
             .map(|new_state| Ok(TunnelState::from(new_state)));
@@ -241,16 +237,13 @@ impl NymVpnd for CommandInterface {
         BoxStream<'static, Result<nym_vpn_proto::TunnelEvent, tonic::Status>>;
     async fn listen_to_events(
         &self,
-        request: tonic::Request<()>,
+        _request: tonic::Request<()>,
     ) -> Result<tonic::Response<Self::ListenToEventsStream>, tonic::Status> {
-        tracing::debug!("Got daemon events stream request: {request:?}");
-
         let rx = self.tunnel_event_rx.resubscribe();
         let stream = tokio_stream::wrappers::BroadcastStream::new(rx).map(|event| {
-            event.map(nym_vpn_proto::TunnelEvent::from).map_err(|err| {
-                tracing::error!("Failed to receive tunnel event: {:?}", err);
-                tonic::Status::internal("Failed to receive tunnel event")
-            })
+            event
+                .map(nym_vpn_proto::TunnelEvent::from)
+                .map_err(|_| tonic::Status::internal("Failed to receive tunnel event"))
         });
         Ok(tonic::Response::new(
             Box::pin(stream) as Self::ListenToEventsStream
@@ -261,60 +254,13 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<ListGatewaysRequest>,
     ) -> Result<tonic::Response<ListGatewaysResponse>, tonic::Status> {
-        tracing::debug!("Got list gateways request: {:?}", request);
+        let options = ListGatewaysOptions::try_from(request.into_inner())
+            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
 
-        let request = request.into_inner();
-
-        let gw_type = nym_vpn_proto::GatewayType::try_from(request.kind)
-            // TODO: do this conversion in one step instead
-            .map_err(|err| ConversionError::Generic(err.to_string()))
-            .and_then(nym_vpn_lib::gateway_directory::GatewayType::try_from)
-            .map_err(|_err| {
-                let msg = format!("Failed to parse gateway type: {}", request.kind);
-                tracing::error!(msg);
-                tonic::Status::invalid_argument(msg)
-            })?;
-
-        let user_agent = request
-            .user_agent
-            .map(nym_vpn_lib::UserAgent::from)
-            .unwrap_or_else(crate::util::construct_user_agent);
-
-        let mix_score_thresholds =
-            self.network_env
-                .system_configuration
-                .as_ref()
-                .map(|sc| ScoreThresholds {
-                    high: sc.mix_thresholds.high,
-                    medium: sc.mix_thresholds.medium,
-                    low: sc.mix_thresholds.low,
-                });
-        let wg_score_thresholds =
-            self.network_env
-                .system_configuration
-                .as_ref()
-                .map(|sc| ScoreThresholds {
-                    high: sc.wg_thresholds.high,
-                    medium: sc.wg_thresholds.medium,
-                    low: sc.wg_thresholds.low,
-                });
-        let directory_config = nym_vpn_lib::gateway_directory::Config {
-            nyxd_url: self.network_env.nyxd_url(),
-            api_url: self.network_env.api_url(),
-            nym_vpn_api_url: Some(self.network_env.vpn_api_url()),
-            min_gateway_performance: None,
-            mix_score_thresholds,
-            wg_score_thresholds,
-        };
-
-        let gateways = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_gateways(gw_type, user_agent, directory_config)
-            .await
-            .map_err(|err| {
-                let msg = format!("Failed to list gateways: {err:?}");
-                tracing::error!(msg);
-                tonic::Status::internal(msg)
-            })?;
+        let gateways = self
+            .send_and_wait(VpnServiceCommand::ListGateways, options)
+            .await?
+            .map_err(|err| tonic::Status::internal(format!("Failed to list gateways: {err}")))?;
 
         let response = ListGatewaysResponse {
             gateways: gateways
@@ -322,11 +268,6 @@ impl NymVpnd for CommandInterface {
                 .map(nym_vpn_proto::GatewayResponse::from)
                 .collect(),
         };
-
-        tracing::debug!(
-            "Returning list gateways response: {} entries",
-            response.gateways.len()
-        );
         Ok(tonic::Response::new(response))
     }
 
@@ -334,71 +275,23 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<ListCountriesRequest>,
     ) -> Result<tonic::Response<ListCountriesResponse>, tonic::Status> {
-        tracing::debug!("Got list entry countries request: {request:?}");
+        let options = ListCountriesOptions::try_from(request.into_inner())
+            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
 
-        let request = request.into_inner();
-
-        let gw_type = nym_vpn_proto::GatewayType::try_from(request.kind)
-            .map_err(|err| ConversionError::Generic(err.to_string()))
-            .and_then(nym_vpn_lib::gateway_directory::GatewayType::try_from)
-            .map_err(|_err| {
-                let msg = format!("Failed to parse list countries kind: {}", request.kind);
-                tracing::error!(msg);
-                tonic::Status::invalid_argument(msg)
-            })?;
-
-        let user_agent = request
-            .user_agent
-            .map(nym_vpn_lib::UserAgent::from)
-            .unwrap_or_else(crate::util::construct_user_agent);
-
-        let mix_score_thresholds =
-            self.network_env
-                .system_configuration
-                .as_ref()
-                .map(|sc| ScoreThresholds {
-                    high: sc.mix_thresholds.high,
-                    medium: sc.mix_thresholds.medium,
-                    low: sc.mix_thresholds.low,
-                });
-        let wg_score_thresholds =
-            self.network_env
-                .system_configuration
-                .as_ref()
-                .map(|sc| ScoreThresholds {
-                    high: sc.wg_thresholds.high,
-                    medium: sc.wg_thresholds.medium,
-                    low: sc.wg_thresholds.low,
-                });
-        let directory_config = nym_vpn_lib::gateway_directory::Config {
-            nyxd_url: self.network_env.nyxd_url(),
-            api_url: self.network_env.api_url(),
-            nym_vpn_api_url: Some(self.network_env.vpn_api_url()),
-            min_gateway_performance: None,
-            mix_score_thresholds,
-            wg_score_thresholds,
-        };
-
-        let countries = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_list_countries(gw_type, user_agent, directory_config)
-            .await
+        let countries = self
+            .send_and_wait(VpnServiceCommand::ListCountries, options)
+            .await?
             .map_err(|err| {
-                let msg = format!("Failed to list entry countries: {err:?}");
-                tracing::error!(msg);
-                tonic::Status::internal(msg)
+                tonic::Status::internal(format!("Failed to list entry countries: {err}"))
             })?;
 
-        let response = nym_vpn_proto::ListCountriesResponse {
+        let response = ListCountriesResponse {
             countries: countries
                 .into_iter()
                 .map(nym_vpn_proto::Location::from)
                 .collect(),
         };
 
-        tracing::debug!(
-            "Returning list countries response: {} countries",
-            response.countries.len()
-        );
         Ok(tonic::Response::new(response))
     }
 
@@ -408,15 +301,14 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<StoreAccountResponse>, tonic::Status> {
         let account = Zeroizing::new(request.into_inner().mnemonic);
 
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_store_account(account)
+        let result = self
+            .send_and_wait(VpnServiceCommand::StoreAccount, account)
             .await?;
 
         let response = StoreAccountResponse {
             error: result.err().map(nym_vpn_proto::StoreAccountError::from),
         };
 
-        tracing::debug!("Returning store account response: {:?}", response);
         Ok(tonic::Response::new(response))
     }
 
@@ -424,11 +316,10 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<IsAccountStoredResponse>, tonic::Status> {
-        let is_stored = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_is_account_stored()
+        let is_stored = self
+            .send_and_wait(VpnServiceCommand::IsAccountStored, ())
             .await?;
 
-        tracing::debug!("Returning is account stored response");
         Ok(tonic::Response::new(IsAccountStoredResponse { is_stored }))
     }
 
@@ -436,15 +327,14 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<ForgetAccountResponse>, tonic::Status> {
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_forget_account()
+        let result = self
+            .send_and_wait(VpnServiceCommand::ForgetAccount, ())
             .await?;
 
         let response = ForgetAccountResponse {
             error: result.err().map(nym_vpn_proto::ForgetAccountError::from),
         };
 
-        tracing::debug!("Returning forget account response");
         Ok(tonic::Response::new(response))
     }
 
@@ -452,8 +342,8 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetAccountIdentityResponse>, tonic::Status> {
-        let account_identity = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_account_identity()
+        let account_identity = self
+            .send_and_wait(VpnServiceCommand::GetAccountIdentity, ())
             .await?;
 
         Ok(tonic::Response::new(GetAccountIdentityResponse {
@@ -467,12 +357,11 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<AccountManagement>, tonic::Status> {
         let locale = request.into_inner().locale;
 
-        let account_links = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_account_links(locale)
+        let account_links = self
+            .send_and_wait(VpnServiceCommand::GetAccountLinks, locale)
             .await?
             .map_err(|err| {
-                tracing::error!("Failed to get account links: {:?}", err);
-                tonic::Status::internal("Failed to get account links")
+                tonic::Status::internal(format!("Failed to get account links: {err}"))
             })?;
 
         Ok(tonic::Response::new(AccountManagement::from(account_links)))
@@ -482,10 +371,9 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetAccountStateResponse>, tonic::Status> {
-        let account_state_summary =
-            CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-                .handle_get_account_state()
-                .await?;
+        let account_state_summary = self
+            .send_and_wait(VpnServiceCommand::GetAccountState, ())
+            .await?;
 
         Ok(tonic::Response::new(GetAccountStateResponse {
             account: Some(AccountStateSummary::from(account_state_summary)),
@@ -496,8 +384,7 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<RefreshAccountStateResponse>, tonic::Status> {
-        CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_refresh_account_state()
+        self.send_and_wait(VpnServiceCommand::RefreshAccountState, ())
             .await?;
 
         Ok(tonic::Response::new(RefreshAccountStateResponse {}))
@@ -507,15 +394,12 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetAccountUsageResponse>, tonic::Status> {
-        let account_usage = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_account_usage()
+        let account_usage = self
+            .send_and_wait(VpnServiceCommand::GetAccountUsage, ())
             .await?
             .map_err(|err| {
-                tracing::error!("Failed to get account usage: {:?}", err);
-                tonic::Status::internal("Failed to get account usage")
+                tonic::Status::internal(format!("Failed to get account usage: {err}"))
             })?;
-
-        tracing::info!("Account usage: {:#?}", account_usage);
 
         Ok(tonic::Response::new(GetAccountUsageResponse {
             account_usages: Some(AccountUsages::from(account_usage)),
@@ -536,12 +420,10 @@ impl NymVpnd for CommandInterface {
             })
             .transpose()?;
 
-        CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_reset_device_identity(seed)
+        self.send_and_wait(VpnServiceCommand::ResetDeviceIdentity, seed)
             .await?
             .map_err(|err| {
-                tracing::error!("Failed to reset device identity: {:?}", err);
-                tonic::Status::internal("Failed to reset device identity")
+                tonic::Status::internal(format!("Failed to reset device identity: {err}"))
             })?;
 
         Ok(tonic::Response::new(ResetDeviceIdentityResponse {}))
@@ -551,12 +433,11 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetDeviceIdentityResponse>, tonic::Status> {
-        let device_identity = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_device_identity()
+        let device_identity = self
+            .send_and_wait(VpnServiceCommand::GetDeviceIdentity, ())
             .await?
             .map_err(|err| {
-                tracing::error!("Failed to get device identity: {:?}", err);
-                tonic::Status::internal("Failed to get device identity")
+                tonic::Status::internal(format!("Failed to get device identity: {err}"))
             })?;
 
         Ok(tonic::Response::new(GetDeviceIdentityResponse {
@@ -568,11 +449,8 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<RegisterDeviceResponse>, tonic::Status> {
-        CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_register_device()
+        self.send_and_wait(VpnServiceCommand::RegisterDevice, ())
             .await?;
-
-        tracing::debug!("Returning register device response");
         Ok(tonic::Response::new(RegisterDeviceResponse {}))
     }
 
@@ -580,13 +458,10 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetDevicesResponse>, tonic::Status> {
-        let devices = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_devices()
+        let devices = self
+            .send_and_wait(VpnServiceCommand::GetDevices, ())
             .await?
-            .map_err(|err| {
-                tracing::error!("Failed to get devices: {:?}", err);
-                tonic::Status::internal("Failed to get devices")
-            })?;
+            .map_err(|err| tonic::Status::internal(format!("Failed to get devices: {err}")))?;
 
         Ok(tonic::Response::new(GetDevicesResponse {
             devices: Some(Devices::from(devices)),
@@ -597,12 +472,11 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetDevicesResponse>, tonic::Status> {
-        let devices = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_active_devices()
+        let devices = self
+            .send_and_wait(VpnServiceCommand::GetActiveDevices, ())
             .await?
             .map_err(|err| {
-                tracing::error!("Failed to get active devices: {:?}", err);
-                tonic::Status::internal("Failed to get active devices")
+                tonic::Status::internal(format!("Failed to get active devices: {err}"))
             })?;
 
         Ok(tonic::Response::new(GetDevicesResponse {
@@ -614,11 +488,8 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<RequestZkNymResponse>, tonic::Status> {
-        CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_request_zk_nym()
+        self.send_and_wait(VpnServiceCommand::RequestZkNym, ())
             .await?;
-
-        tracing::debug!("Returning request zk nym response");
         Ok(tonic::Response::new(RequestZkNymResponse {}))
     }
 
@@ -628,15 +499,13 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<GetDeviceZkNymsResponse>, tonic::Status> {
         // Internal command where returning the result is not yet implemented. It's primary
         // implementation is to trigger the command interface.
-        let _ = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_device_zk_nyms()
+        let _ = self
+            .send_and_wait(VpnServiceCommand::GetDeviceZkNyms, ())
             .await?
             .map_err(|err| {
-                tracing::error!("Failed to get device zknyms: {:?}", err);
-                tonic::Status::internal("Failed to get devicezk nyms")
+                tonic::Status::internal(format!("Failed to get device zk nyms: {err}"))
             })?;
 
-        tracing::debug!("Returning get device zk nyms response");
         Ok(tonic::Response::new(GetDeviceZkNymsResponse {}))
     }
 
@@ -646,15 +515,15 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<GetZkNymsAvailableForDownloadResponse>, tonic::Status> {
         // Internal command where returning the result is not yet implemented. It's primary
         // purpose is to trigger the command interface.
-        let _ = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_zk_nyms_available_for_download()
+        let _ = self
+            .send_and_wait(VpnServiceCommand::GetZkNymsAvailableForDownload, ())
             .await?
             .map_err(|err| {
-                tracing::error!("Failed to get zknyms available for download: {:?}", err);
-                tonic::Status::internal("Failed to get zknyms available for download")
+                tonic::Status::internal(format!(
+                    "Failed to get zknyms available for download: {err}",
+                ))
             })?;
 
-        tracing::debug!("Returning get zk nyms available to download response");
         Ok(tonic::Response::new(
             GetZkNymsAvailableForDownloadResponse {},
         ))
@@ -668,15 +537,10 @@ impl NymVpnd for CommandInterface {
 
         // This is an internal command, and returning the ID is not yet implemented. It's primary
         // purpose is to trigger the command interface.
-        let _ = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_zk_nym_by_id(id)
+        let _ = self
+            .send_and_wait(VpnServiceCommand::GetZkNymById, id)
             .await?
-            .map_err(|err| {
-                tracing::error!("Failed to get zknym by id: {:?}", err);
-                tonic::Status::internal("Failed to get zknym by id")
-            })?;
-
-        tracing::debug!("Returning get zknym by id response");
+            .map_err(|err| tonic::Status::internal(format!("Failed to get zknym by id: {err}")))?;
         Ok(tonic::Response::new(GetZkNymByIdResponse {}))
     }
 
@@ -686,12 +550,10 @@ impl NymVpnd for CommandInterface {
     ) -> Result<tonic::Response<ConfirmZkNymDownloadedResponse>, tonic::Status> {
         let id = request.into_inner().id;
 
-        CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_confirm_zk_nym_downloaded(id)
+        self.send_and_wait(VpnServiceCommand::ConfirmZkNymIdDownloaded, id)
             .await?
             .map_err(|err| {
-                tracing::error!("Failed to confirm zk nym downloaded: {:?}", err);
-                tonic::Status::internal("Failed to confirm zk nym downloaded")
+                tonic::Status::internal(format!("Failed to confirm zk nym downloaded: {err}"))
             })?;
 
         Ok(tonic::Response::new(ConfirmZkNymDownloadedResponse {}))
@@ -701,16 +563,12 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<AvailableTickets>, tonic::Status> {
-        tracing::debug!("Got get available tickets request");
-
-        let available_ticketbooks =
-            CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-                .handle_get_available_tickets()
-                .await?
-                .map_err(|err| {
-                    tracing::error!("Failed to get available tickets: {err:?}");
-                    tonic::Status::internal("Failed to get available tickets")
-                })?;
+        let available_ticketbooks = self
+            .send_and_wait(VpnServiceCommand::GetAvailableTickets, ())
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to get available tickets: {err}"))
+            })?;
 
         let available_tickets = nym_vpn_lib_types::AvailableTickets::from(available_ticketbooks);
         let response = AvailableTickets::from(available_tickets);
@@ -722,14 +580,11 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<DeleteLogFileResponse>, tonic::Status> {
-        tracing::debug!("Got delete log file request");
-
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_delete_log_file()
+        let result = self
+            .send_and_wait(VpnServiceCommand::DeleteLogFile, ())
             .await
             .map_err(|err| {
-                tracing::error!("Failed to get available tickets: {:?}", err);
-                tonic::Status::internal("Failed to get available tickets")
+                tonic::Status::internal(format!("Failed to get available tickets: {err}"))
             })?;
 
         let response = match result {
@@ -750,16 +605,11 @@ impl NymVpnd for CommandInterface {
         &self,
         _: tonic::Request<()>,
     ) -> Result<tonic::Response<GetLogPathResponse>, tonic::Status> {
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_get_log_path()
-            .await?;
-        let log_path = if let Some(path) = result {
-            path
-        } else {
-            tracing::info!("log path not set, fallback to default");
-            LogPath::default()
-        };
-        tracing::debug!("log dir path: {}", log_path.dir.display());
+        let log_path = self
+            .send_and_wait(VpnServiceCommand::GetLogPath, ())
+            .await?
+            .unwrap_or_default();
+
         Ok(tonic::Response::new(log_path.into()))
     }
 
@@ -767,10 +617,9 @@ impl NymVpnd for CommandInterface {
         &self,
         _: tonic::Request<()>,
     ) -> Result<tonic::Response<IsSentryEnabledResponse>, tonic::Status> {
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_is_sentry_enabled()
+        let result = self
+            .send_and_wait(VpnServiceCommand::IsSentryEnabled, ())
             .await?;
-        tracing::debug!("sentry monitoring enabled: {}", result);
         let response = IsSentryEnabledResponse { enabled: result };
         Ok(tonic::Response::new(response))
     }
@@ -779,13 +628,12 @@ impl NymVpnd for CommandInterface {
         &self,
         _: tonic::Request<()>,
     ) -> Result<tonic::Response<EnableSentryResponse>, tonic::Status> {
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_toggle_sentry(true)
-            .await?;
-        match &result {
-            Ok(_) => tracing::info!("sentry monitoring enabled ⚠ vpnd needs to be restarted ⚠"),
-            Err(err) => tracing::error!("failed to enable sentry monitoring: {:?}", err),
-        }
+        let result = self
+            .send_and_wait(VpnServiceCommand::ToggleSentry, true)
+            .await?
+            .inspect_err(|err| {
+                tracing::error!("Failed to enable sentry monitoring: {err}");
+            });
         let response = EnableSentryResponse {
             success: result.is_ok(),
         };
@@ -796,13 +644,12 @@ impl NymVpnd for CommandInterface {
         &self,
         _: tonic::Request<()>,
     ) -> Result<tonic::Response<DisableSentryResponse>, tonic::Status> {
-        let result = CommandInterfaceConnectionHandler::new(self.vpn_command_tx.clone())
-            .handle_toggle_sentry(false)
-            .await?;
-        match &result {
-            Ok(_) => tracing::info!("sentry monitoring disabled ⚠ vpnd needs to be restarted ⚠"),
-            Err(err) => tracing::error!("failed to disable sentry monitoring: {}", err),
-        }
+        let result = self
+            .send_and_wait(VpnServiceCommand::ToggleSentry, false)
+            .await?
+            .inspect_err(|err| {
+                tracing::error!("Failed to disable sentry monitoring: {err}");
+            });
         let response = DisableSentryResponse {
             success: result.is_ok(),
         };
@@ -834,10 +681,7 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             request.disable_background_cover_traffic
         };
 
-        let user_agent = request
-            .user_agent
-            .map(nym_vpn_lib::UserAgent::from)
-            .or(Some(crate::util::construct_user_agent()));
+        let user_agent = request.user_agent.map(nym_vpn_lib::UserAgent::from);
 
         Ok(ConnectOptions {
             dns,
@@ -860,5 +704,39 @@ impl From<LogPath> for GetLogPathResponse {
             path: log_path.dir.to_string_lossy().to_string(),
             filename: log_path.filename.clone(),
         }
+    }
+}
+
+impl TryFrom<ListGatewaysRequest> for ListGatewaysOptions {
+    type Error = ConversionError;
+
+    fn try_from(value: ListGatewaysRequest) -> Result<Self, Self::Error> {
+        let gw_type = nym_vpn_proto::GatewayType::try_from(value.kind)
+            .map_err(|err| ConversionError::Decode("ListGatewaysRequest.kind", err))
+            .and_then(nym_vpn_lib::gateway_directory::GatewayType::try_from)?;
+
+        let user_agent = value.user_agent.map(nym_vpn_lib::UserAgent::from);
+
+        Ok(Self {
+            gw_type,
+            user_agent,
+        })
+    }
+}
+
+impl TryFrom<ListCountriesRequest> for ListCountriesOptions {
+    type Error = ConversionError;
+
+    fn try_from(value: ListCountriesRequest) -> Result<Self, Self::Error> {
+        let gw_type = nym_vpn_proto::GatewayType::try_from(value.kind)
+            .map_err(|err| ConversionError::Decode("ListCountriesRequest.kind", err))
+            .and_then(nym_vpn_lib::gateway_directory::GatewayType::try_from)?;
+
+        let user_agent = value.user_agent.map(nym_vpn_lib::UserAgent::from);
+
+        Ok(Self {
+            gw_type,
+            user_agent,
+        })
     }
 }

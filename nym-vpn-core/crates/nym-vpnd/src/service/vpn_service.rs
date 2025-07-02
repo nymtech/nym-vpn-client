@@ -1,12 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    net::IpAddr,
-    path::PathBuf,
-    sync::{Arc, OnceLock},
-    time::Instant,
-};
+use std::{net::IpAddr, path::PathBuf, sync::Arc, time::Instant};
 
 use bip39::Mnemonic;
 use serde::{Deserialize, Serialize};
@@ -28,7 +23,9 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_lib::{
     MixnetClientConfig, Recipient, UserAgent, VpnTopologyProvider,
-    gateway_directory::{self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient},
+    gateway_directory::{
+        self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient, GatewayType,
+    },
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
@@ -39,21 +36,18 @@ use nym_vpn_lib_types::{
     TunnelType, VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo,
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
+use nym_vpnd_types::gateway::{Country, Gateway};
 use std::time::Duration;
 use zeroize::Zeroizing;
 
 use super::{
     config::{DEFAULT_CONFIG_FILE, NetworkEnvironments, NymVpnServiceConfig},
     error::{
-        AccountControllerError, AccountLinksError, Error, Result, SetNetworkError,
-        VpnServiceDeleteLogFileError,
+        AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
+        Result, SetNetworkError, VpnServiceDeleteLogFileError,
     },
 };
-use crate::service::error::GlobalConfigError;
 use crate::{config::GlobalConfigFile, logging::LogPath};
-
-// Lazy initialized static instance of CachingGatewayClient, using OnceLock
-pub static GATEWAY_DIRECTORY_CLIENT: OnceLock<CachingGatewayClient> = OnceLock::new();
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -68,6 +62,14 @@ pub enum VpnServiceCommand {
     GetSystemMessages(oneshot::Sender<SystemMessages>, ()),
     GetNetworkCompatibility(oneshot::Sender<Option<NetworkCompatibility>>, ()),
     GetFeatureFlags(oneshot::Sender<Option<FeatureFlags>>, ()),
+    ListGateways(
+        oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
+        ListGatewaysOptions,
+    ),
+    ListCountries(
+        oneshot::Sender<Result<Vec<Country>, ListGatewaysError>>,
+        ListCountriesOptions,
+    ),
     Connect(
         oneshot::Sender<Result<(), VpnServiceConnectError>>,
         ConnectArgs,
@@ -122,6 +124,20 @@ pub enum VpnServiceCommand {
     ),
     IsSentryEnabled(oneshot::Sender<bool>, ()),
     ToggleSentry(oneshot::Sender<Result<(), GlobalConfigError>>, bool),
+}
+
+#[derive(Debug)]
+pub struct ListGatewaysOptions {
+    pub gw_type: GatewayType,
+    #[allow(unused)]
+    pub user_agent: Option<UserAgent>,
+}
+
+#[derive(Debug)]
+pub struct ListCountriesOptions {
+    pub gw_type: GatewayType,
+    #[allow(unused)]
+    pub user_agent: Option<UserAgent>,
 }
 
 #[derive(Debug)]
@@ -188,6 +204,8 @@ where
 
     // Tunnel state machine handle
     state_machine_handle: JoinHandle<()>,
+
+    // Account controller handle
     account_controller_handle: JoinHandle<()>,
 
     // Command channel for state machine
@@ -201,6 +219,9 @@ where
 
     // The (optional) recipient to send statistics to
     statistics_recipient: Option<Recipient>,
+
+    // Gateway directory client
+    gateway_directory_client: CachingGatewayClient,
 
     // Sentry client has been initialized and is enabled
     sentry_enabled: bool,
@@ -374,20 +395,13 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         );
         topology_provider.fetch().await;
 
-        if GATEWAY_DIRECTORY_CLIENT
-            .set(gateway_directory_client.clone())
-            .is_err()
-        {
-            tracing::error!("Failed to set global gateway client");
-        }
-
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,
             event_sender,
             nym_config,
             tunnel_settings,
             account_command_tx.clone(),
-            gateway_directory_client,
+            gateway_directory_client.clone(),
             topology_provider,
             connectivity_handle,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -416,6 +430,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             event_receiver,
             shutdown_token,
             statistics_recipient,
+            gateway_directory_client,
             sentry_enabled,
         })
     }
@@ -500,6 +515,12 @@ where
             VpnServiceCommand::GetFeatureFlags(tx, ()) => {
                 let result = self.handle_get_feature_flags().await;
                 let _ = tx.send(result);
+            }
+            VpnServiceCommand::ListGateways(tx, options) => {
+                self.handle_list_gateways(options, tx);
+            }
+            VpnServiceCommand::ListCountries(tx, options) => {
+                self.handle_list_countries(options, tx)
             }
             VpnServiceCommand::Connect(tx, connect_args) => {
                 let result = self.handle_connect(connect_args).await;
@@ -809,6 +830,59 @@ where
         self.network_env.feature_flags.clone()
     }
 
+    fn handle_list_gateways(
+        &self,
+        options: ListGatewaysOptions,
+        completion_tx: oneshot::Sender<Result<Vec<Gateway>, ListGatewaysError>>,
+    ) {
+        let gateway_client = self.gateway_directory_client.clone();
+
+        tokio::spawn(async move {
+            // todo: pass options.user_agent with request
+            let result = gateway_client
+                .lookup_gateways(options.gw_type)
+                .await
+                .map_err(|source| ListGatewaysError::GetGateways {
+                    gw_type: options.gw_type,
+                    source,
+                })
+                .map(|gateways| {
+                    gateways
+                        .into_iter()
+                        .map(nym_vpnd_types::gateway::Gateway::from)
+                        .collect::<Vec<_>>()
+                });
+
+            completion_tx.send(result).ok();
+        });
+    }
+
+    fn handle_list_countries(
+        &self,
+        options: ListCountriesOptions,
+        completion_tx: oneshot::Sender<Result<Vec<Country>, ListGatewaysError>>,
+    ) {
+        let gateway_client = self.gateway_directory_client.clone();
+
+        tokio::spawn(async move {
+            // todo: pass options.user_agent with request
+            let result = gateway_client
+                .lookup_countries(options.gw_type)
+                .await
+                .map_err(|source| ListGatewaysError::GetCountries {
+                    gw_type: options.gw_type,
+                    source,
+                })
+                .map(|countries| {
+                    countries
+                        .into_iter()
+                        .map(nym_vpnd_types::gateway::Country::from)
+                        .collect::<Vec<_>>()
+                });
+            completion_tx.send(result).ok();
+        });
+    }
+
     async fn handle_store_account(
         &mut self,
         account: Zeroizing<String>,
@@ -970,11 +1044,14 @@ where
         let mut config = GlobalConfigFile::read_from_file()
             .map_err(|e| GlobalConfigError::ReadConfig(e.to_string()))?;
         config.sentry_monitoring = enable;
-        if !enable {
+        if enable {
+            tracing::info!("Sentry monitoring enabled, daemon needs to be restarted");
+        } else {
             if let Some(client) = sentry::Hub::current().client() {
                 client.close(Some(Duration::from_secs(1)));
-                tracing::debug!("sentry client closed");
+                tracing::debug!("Sentry client closed");
             }
+            tracing::info!("Sentry monitoring disabled, daemon needs to be restarted");
         }
         GlobalConfigFile::write_to_file(&config)
             .map_err(|e| GlobalConfigError::WriteConfig(e.to_string()))?;

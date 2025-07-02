@@ -1,7 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib::tunnel_state_machine::Error as TunnelStateMachineError;
+use nym_vpn_lib::{
+    gateway_directory::GatewayType, tunnel_state_machine::Error as TunnelStateMachineError,
+};
 use tracing::error;
 
 use super::config::ConfigSetupError;
@@ -61,6 +63,21 @@ pub enum GlobalConfigError {
     ReadConfig(String),
     #[error("failed to write config")]
     WriteConfig(String),
+}
+
+#[derive(Debug, thiserror::Error)]
+pub enum ListGatewaysError {
+    #[error("failed to get gateways ({gw_type})")]
+    GetGateways {
+        gw_type: GatewayType,
+        source: nym_vpn_lib::gateway_directory::Error,
+    },
+
+    #[error("failed to get countries ({gw_type})")]
+    GetCountries {
+        gw_type: GatewayType,
+        source: nym_vpn_lib::gateway_directory::Error,
+    },
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;
