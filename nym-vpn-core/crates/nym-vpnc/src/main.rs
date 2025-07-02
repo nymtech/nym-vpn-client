@@ -17,7 +17,7 @@ use nym_vpn_network_config::ParsedAccountLinks;
 use nym_vpn_proto::{
     ConfirmZkNymDownloadedRequest, ConnectRequest, GetAccountLinksRequest, GetZkNymByIdRequest,
     InfoResponse, ListCountriesRequest, ListGatewaysRequest, ResetDeviceIdentityRequest,
-    SetNetworkRequest, StoreAccountRequest, UserAgent,
+    StoreAccountRequest, UserAgent,
 };
 use protobuf_conversion::into_gateway_type;
 use sysinfo::System;
@@ -207,7 +207,7 @@ async fn disconnect(opts: CliOptions, wait: bool) -> Result<()> {
         println!("{response:#?}");
     }
 
-    if response.success {
+    if response {
         if wait {
             println!("Successfully sent disconnect command. Waiting until disconnected.");
             wait_until_disconnected().await
@@ -269,10 +269,7 @@ async fn info() -> Result<()> {
 
 async fn set_network(args: &cli::SetNetworkArgs) -> Result<()> {
     let mut client = vpnd_client::get_client().await?;
-    let request = tonic::Request::new(SetNetworkRequest {
-        network: args.network.clone(),
-    });
-    let response = client.set_network(request).await?.into_inner();
+    let response = client.set_network(args.network.clone()).await?.into_inner();
     println!("{response:#?}");
     Ok(())
 }

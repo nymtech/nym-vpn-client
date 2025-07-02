@@ -1,7 +1,18 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use crate::{Score, conversions::ConversionError};
+use std::{path::PathBuf, str::FromStr};
+
+use nym_config::defaults::NymNetworkDetails;
+use nym_vpn_network_config::{
+    NymNetwork, NymVpnNetwork, SystemMessage, SystemMessages, system_messages::Properties,
+};
+use url::Url;
+
+use crate::{
+    GetLogPathResponse, GetSystemMessagesResponse, Score, SystemMessage as ProtoSystemMessage,
+    conversions::ConversionError,
+};
 
 impl From<crate::Location> for nym_vpnd_types::gateway::Location {
     fn from(location: crate::Location) -> Self {
@@ -113,6 +124,92 @@ impl From<crate::Location> for nym_vpnd_types::gateway::Country {
     fn from(location: crate::Location) -> Self {
         Self {
             iso_code: location.two_letter_iso_country_code,
+        }
+    }
+}
+
+impl TryFrom<crate::InfoResponse> for nym_vpnd_types::service::VpnServiceInfo {
+    type Error = ConversionError;
+
+    fn try_from(info: crate::InfoResponse) -> Result<Self, Self::Error> {
+        let build_timestamp = info
+            .build_timestamp
+            .map(crate::conversions::prost::prost_timestamp_into_offset_datetime)
+            .transpose()
+            .map_err(|e| ConversionError::ConvertTime("build_timestamp", e))?;
+
+        // todo: why is it not passed as `NymNetwork` instead?
+        let nym_network = info
+            .nym_network
+            .ok_or(ConversionError::NoValueSet("nym_network"))
+            .and_then(NymNetworkDetails::try_from)
+            .map(NymNetwork::new)?;
+
+        // todo: why is it not passed as `NymVpnNetwork` instead?
+        let nym_vpn_network = info
+            .nym_vpn_network
+            .ok_or(ConversionError::NoValueSet("nym_vpn_network"))
+            .and_then(|s| {
+                // todo: rework this later
+                let nym_vpn_api_url = s
+                    .nym_vpn_api_url
+                    .ok_or(ConversionError::NoValueSet(
+                        "NymVpnNetworkDetails.nym_vpn_api_url",
+                    ))
+                    .and_then(|s| {
+                        Url::from_str(&s.url).map_err(|e| {
+                            ConversionError::Generic(format!("failed to parse Url: {e}"))
+                        })
+                    })?;
+                Ok(NymVpnNetwork {
+                    nym_vpn_api_url,
+                    account_management: Default::default(),
+                    system_messages: Default::default(),
+                })
+            })?;
+
+        Ok(Self {
+            version: info.version,
+            build_timestamp,
+            triple: info.triple,
+            platform: info.platform,
+            git_commit: info.git_commit,
+            nym_network,
+            nym_vpn_network,
+        })
+    }
+}
+
+impl From<GetLogPathResponse> for nym_vpnd_types::log_path::LogPath {
+    fn from(value: GetLogPathResponse) -> Self {
+        Self {
+            dir: PathBuf::from(value.path),
+            filename: value.filename,
+        }
+    }
+}
+
+impl From<GetSystemMessagesResponse> for SystemMessages {
+    fn from(value: GetSystemMessagesResponse) -> Self {
+        Self {
+            messages: value
+                .messages
+                .into_iter()
+                .map(SystemMessage::from)
+                .collect(),
+        }
+    }
+}
+
+impl From<ProtoSystemMessage> for SystemMessage {
+    fn from(value: ProtoSystemMessage) -> Self {
+        Self {
+            // todo: why is this not present in protobuf?
+            display_from: None,
+            display_until: None,
+            name: value.name,
+            message: value.message,
+            properties: Properties::from(value.properties),
         }
     }
 }

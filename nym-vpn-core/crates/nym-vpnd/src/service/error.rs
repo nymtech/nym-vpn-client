@@ -39,12 +39,6 @@ pub enum AccountLinksError {
     FailedToParseAccountLinks,
 }
 
-#[derive(Clone, Debug, thiserror::Error)]
-pub enum VpnServiceDeleteLogFileError {
-    #[error("internal error: {0}")]
-    Internal(String),
-}
-
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("account controller error")]

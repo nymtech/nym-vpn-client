@@ -8,32 +8,29 @@ use tokio::sync::{broadcast, mpsc::UnboundedSender, oneshot};
 use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
     AccountManagement, AvailableTickets, ConfirmZkNymDownloadedRequest,
-    ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse, DeleteLogFileResponse,
-    DisableSentryResponse, DisconnectResponse, EnableSentryResponse, ForgetAccountResponse,
+    ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse, ForgetAccountResponse,
     GetAccountIdentityResponse, GetAccountLinksRequest, GetAccountStateResponse,
     GetAccountUsageResponse, GetDeviceIdentityResponse, GetDeviceZkNymsResponse,
     GetDevicesResponse, GetFeatureFlagsResponse, GetLogPathResponse,
     GetNetworkCompatibilityResponse, GetSystemMessagesResponse, GetZkNymByIdRequest,
     GetZkNymByIdResponse, GetZkNymsAvailableForDownloadResponse, InfoResponse,
-    IsAccountStoredResponse, IsSentryEnabledResponse, ListCountriesRequest, ListCountriesResponse,
-    ListGatewaysRequest, ListGatewaysResponse, RefreshAccountStateResponse, RegisterDeviceResponse,
+    IsAccountStoredResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
+    ListGatewaysResponse, RefreshAccountStateResponse, RegisterDeviceResponse,
     RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
-    SetNetworkRequest, SetNetworkResponse, StoreAccountRequest, StoreAccountResponse, TunnelState,
-    conversions::ConversionError, get_account_state_response::AccountStateSummary,
-    get_account_usage_response::AccountUsages, get_devices_response::Devices,
-    nym_vpnd_server::NymVpnd,
+    StoreAccountRequest, StoreAccountResponse, TunnelState, conversions::ConversionError,
+    get_account_state_response::AccountStateSummary, get_account_usage_response::AccountUsages,
+    get_devices_response::Devices, nym_vpnd_server::NymVpnd,
 };
+use nym_vpnd_types::log_path::LogPath;
 use zeroize::Zeroizing;
 
 use super::{
     error::CommandInterfaceError,
     helpers::{parse_entry_point, parse_exit_point},
 };
-use crate::{
-    logging::LogPath,
-    service::{
-        ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions, VpnServiceCommand,
-    },
+use crate::service::{
+    ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions, SetNetworkError,
+    VpnServiceCommand,
 };
 
 pub(super) struct CommandInterface {
@@ -84,20 +81,19 @@ impl NymVpnd for CommandInterface {
 
     async fn set_network(
         &self,
-        request: tonic::Request<SetNetworkRequest>,
-    ) -> Result<tonic::Response<SetNetworkResponse>, tonic::Status> {
-        let network = request.into_inner().network;
-
+        request: tonic::Request<String>,
+    ) -> Result<tonic::Response<()>, tonic::Status> {
+        let network = request.into_inner();
         let status = self
             .send_and_wait(VpnServiceCommand::SetNetwork, network)
             .await?;
 
-        let response = nym_vpn_proto::SetNetworkResponse {
-            error: status
-                .err()
-                .map(nym_vpn_proto::SetNetworkRequestError::from),
-        };
-        Ok(tonic::Response::new(response))
+        status.map_err(|e| match e {
+            SetNetworkError::NetworkNotFound(s) => tonic::Status::not_found(s),
+            e => tonic::Status::internal(e.to_string()),
+        })?;
+
+        Ok(tonic::Response::new(()))
     }
 
     async fn get_system_messages(
@@ -194,16 +190,12 @@ impl NymVpnd for CommandInterface {
     async fn vpn_disconnect(
         &self,
         _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<DisconnectResponse>, tonic::Status> {
+    ) -> Result<tonic::Response<bool>, tonic::Status> {
         let status = self
             .send_and_wait(VpnServiceCommand::Disconnect, ())
             .await?;
 
-        let response = DisconnectResponse {
-            success: status.is_ok(),
-        };
-
-        Ok(tonic::Response::new(response))
+        Ok(tonic::Response::new(status.is_ok()))
     }
 
     async fn get_tunnel_state(
@@ -579,26 +571,12 @@ impl NymVpnd for CommandInterface {
     async fn delete_log_file(
         &self,
         _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<DeleteLogFileResponse>, tonic::Status> {
-        let result = self
+    ) -> Result<tonic::Response<bool>, tonic::Status> {
+        let success = self
             .send_and_wait(VpnServiceCommand::DeleteLogFile, ())
-            .await
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get available tickets: {err}"))
-            })?;
+            .await?;
 
-        let response = match result {
-            Ok(_) => DeleteLogFileResponse {
-                success: true,
-                error: None,
-            },
-            Err(err) => DeleteLogFileResponse {
-                success: false,
-                error: Some(nym_vpn_proto::DeleteLogFileError::from(err)),
-            },
-        };
-
-        Ok(tonic::Response::new(response))
+        Ok(tonic::Response::new(success))
     }
 
     async fn get_log_path(
@@ -608,7 +586,7 @@ impl NymVpnd for CommandInterface {
         let log_path = self
             .send_and_wait(VpnServiceCommand::GetLogPath, ())
             .await?
-            .unwrap_or_default();
+            .unwrap_or(crate::logging::default_log_path());
 
         Ok(tonic::Response::new(log_path.into()))
     }
@@ -616,44 +594,37 @@ impl NymVpnd for CommandInterface {
     async fn is_sentry_enabled(
         &self,
         _: tonic::Request<()>,
-    ) -> Result<tonic::Response<IsSentryEnabledResponse>, tonic::Status> {
+    ) -> Result<tonic::Response<bool>, tonic::Status> {
         let result = self
             .send_and_wait(VpnServiceCommand::IsSentryEnabled, ())
             .await?;
-        let response = IsSentryEnabledResponse { enabled: result };
-        Ok(tonic::Response::new(response))
+        Ok(tonic::Response::new(result))
     }
 
     async fn enable_sentry(
         &self,
         _: tonic::Request<()>,
-    ) -> Result<tonic::Response<EnableSentryResponse>, tonic::Status> {
-        let result = self
-            .send_and_wait(VpnServiceCommand::ToggleSentry, true)
+    ) -> Result<tonic::Response<()>, tonic::Status> {
+        self.send_and_wait(VpnServiceCommand::ToggleSentry, true)
             .await?
-            .inspect_err(|err| {
+            .map_err(|err| {
                 tracing::error!("Failed to enable sentry monitoring: {err}");
-            });
-        let response = EnableSentryResponse {
-            success: result.is_ok(),
-        };
-        Ok(tonic::Response::new(response))
+                tonic::Status::internal("failed to enable sentry")
+            })?;
+        Ok(tonic::Response::new(()))
     }
 
     async fn disable_sentry(
         &self,
         _: tonic::Request<()>,
-    ) -> Result<tonic::Response<DisableSentryResponse>, tonic::Status> {
-        let result = self
-            .send_and_wait(VpnServiceCommand::ToggleSentry, false)
+    ) -> Result<tonic::Response<()>, tonic::Status> {
+        self.send_and_wait(VpnServiceCommand::ToggleSentry, false)
             .await?
-            .inspect_err(|err| {
+            .map_err(|err| {
                 tracing::error!("Failed to disable sentry monitoring: {err}");
-            });
-        let response = DisableSentryResponse {
-            success: result.is_ok(),
-        };
-        Ok(tonic::Response::new(response))
+                tonic::Status::internal("failed to disable sentry")
+            })?;
+        Ok(tonic::Response::new(()))
     }
 }
 
@@ -695,15 +666,6 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
             min_gateway_vpn_performance: None,
             user_agent,
         })
-    }
-}
-
-impl From<LogPath> for GetLogPathResponse {
-    fn from(log_path: LogPath) -> Self {
-        GetLogPathResponse {
-            path: log_path.dir.to_string_lossy().to_string(),
-            filename: log_path.filename.clone(),
-        }
     }
 }
 

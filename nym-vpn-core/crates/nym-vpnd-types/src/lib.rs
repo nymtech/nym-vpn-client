@@ -2,4 +2,5 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod gateway;
+pub mod log_path;
 pub mod service;

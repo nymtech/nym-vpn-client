@@ -3,13 +3,15 @@
 
 use nym_vpnd_types::{
     gateway::Score,
+    log_path::LogPath,
     service::{VpnServiceConnectError, VpnServiceInfo},
 };
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
 use crate::{
-    ConnectRequestError as ProtoConnectRequestError, InfoResponse as ProtoInfoResponse,
-    NymNetworkDetails as ProtoNymNetworkDetails, NymVpnNetworkDetails as ProtoNymVpnNetworkDetails,
+    ConnectRequestError as ProtoConnectRequestError, GetLogPathResponse as ProtoGetLogPathResponse,
+    InfoResponse as ProtoInfoResponse, NymNetworkDetails as ProtoNymNetworkDetails,
+    NymVpnNetworkDetails as ProtoNymVpnNetworkDetails,
 };
 
 impl From<nym_vpnd_types::gateway::Location> for crate::Location {
@@ -147,6 +149,16 @@ impl From<VpnServiceConnectError> for ProtoConnectRequestError {
                 kind: crate::connect_request_error::ConnectRequestErrorType::Internal as i32,
                 message: err.to_string(),
             },
+        }
+    }
+}
+
+impl From<LogPath> for ProtoGetLogPathResponse {
+    fn from(value: nym_vpnd_types::log_path::LogPath) -> Self {
+        Self {
+            // todo: consider TryFrom instead to raise encoding issues
+            path: value.dir.to_string_lossy().into_owned(),
+            filename: value.filename,
         }
     }
 }
