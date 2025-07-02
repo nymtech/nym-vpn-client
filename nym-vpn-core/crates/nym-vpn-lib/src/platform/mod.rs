@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 //! The Uniffi generated bindings for the Nym VPN library. The API is designed to be used by
-//! frontends to interact with the Nym VPN library. The API is designed to be platform agnostic and
+//! frontends to interact with the Nym VPN library. The API is designed to be platform-agnostic and
 //! should work on any platform that supports the Uniffi FFI bindings.
 //!
 //! Usage:
@@ -11,7 +11,7 @@
 //!
 //!    This is required to set the network environment details.
 //!
-//! 2. Initialise the library: `configureLib(..)`.
+//! 2. Initialize the library: `configureLib(..)`.
 //!
 //!    This sets up the logger and starts the account controller that runs in the background and
 //!    manages the account state.
@@ -51,6 +51,7 @@ pub mod swift;
 
 mod account;
 mod environment;
+mod sentry_monitoring;
 mod state_machine;
 mod uniffi_custom_impls;
 mod uniffi_lib_types;
@@ -61,6 +62,7 @@ use account::AccountControllerHandle;
 use lazy_static::lazy_static;
 use nym_gateway_directory::CachingGatewayClient;
 use nym_vpn_api_client::types::ScoreThresholds;
+use sentry::ClientInitGuard;
 use tokio::{runtime::Runtime, sync::Mutex};
 
 use self::error::VpnError;
@@ -85,6 +87,7 @@ lazy_static! {
     static ref NETWORK_ENVIRONMENT: Mutex<Option<nym_vpn_network_config::Network>> =
         Mutex::new(None);
     static ref GATEWAY_DIRECTORY_CLIENT: Mutex<Option<CachingGatewayClient>> = Mutex::new(None);
+    static ref SENTRY_CLIENT: Mutex<Option<ClientInitGuard>> = Mutex::new(None);
 }
 
 /// Fetches the network environment details from the network name and initializes the environment,
@@ -121,31 +124,57 @@ pub fn currentEnvironment() -> Result<NetworkEnvironment, VpnError> {
 /// Setup the library with the given data directory and optionally enable credential mode.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn configureLib(data_dir: String, credential_mode: Option<bool>) -> Result<(), VpnError> {
-    RUNTIME.block_on(configure_lib(data_dir, credential_mode))
+pub fn configureLib(
+    data_dir: String,
+    credential_mode: Option<bool>,
+    sentry_monitoring: Option<bool>,
+) -> Result<(), VpnError> {
+    RUNTIME.block_on(configure_lib(data_dir, credential_mode, sentry_monitoring))
 }
 
-async fn configure_lib(data_dir: String, credential_mode: Option<bool>) -> Result<(), VpnError> {
+async fn configure_lib(
+    data_dir: String,
+    credential_mode: Option<bool>,
+    sentry_monitoring: Option<bool>,
+) -> Result<(), VpnError> {
     let network = environment::current_environment_details().await?;
+    let sentry_enabled = sentry_monitoring.is_some_and(|v| v);
+    if sentry_enabled {
+        let mut guard = SENTRY_CLIENT.lock().await;
+        *guard = sentry_monitoring::init();
+    }
     account::init_account_controller(PathBuf::from(data_dir), credential_mode, network).await
 }
 
-fn init_logger(path: Option<PathBuf>, debug_level: Option<String>) {
+async fn init_logger(
+    path: Option<PathBuf>,
+    debug_level: Option<String>,
+    sentry_monitoring: Option<bool>,
+) {
     let default_log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     let log_level = debug_level.unwrap_or(default_log_level);
+    let sentry_enabled = sentry_monitoring.is_some_and(|v| v);
     tracing::info!("Setting log level: {log_level}, path?: {path:?}");
+    if sentry_enabled {
+        let mut guard = SENTRY_CLIENT.lock().await;
+        *guard = sentry_monitoring::init();
+    }
     #[cfg(target_os = "ios")]
-    swift::init_logs(log_level, path);
+    swift::init_logs(log_level, path, sentry_enabled);
     #[cfg(target_os = "android")]
     android::init_logs(log_level);
 }
 
-/// Additional extra function for when only only want to set the logger without initializing the
-/// library. Thus it's only needed when `configureLib` is not used.
+/// Additional extra function for when only want to set the logger without initializing the
+/// library. Thus, it's only needed when `configureLib` is not used.
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn initLogger(path: Option<PathBuf>, debug_level: Option<String>) {
-    init_logger(path, debug_level);
+pub async fn initLogger(
+    path: Option<PathBuf>,
+    debug_level: Option<String>,
+    sentry_monitoring: Option<bool>,
+) {
+    init_logger(path, debug_level, sentry_monitoring).await;
 }
 
 /// Returns the system messages for the current network environment
