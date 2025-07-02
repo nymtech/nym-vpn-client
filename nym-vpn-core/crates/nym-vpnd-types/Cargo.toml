@@ -12,7 +12,10 @@ license.workspace = true
 workspace = true
 
 [dependencies]
-nym-validator-client.workspace = true
 serde.workspace = true
+time.workspace = true
+thiserror.workspace = true
 
 nym-vpn-lib = { workspace = true }
+nym-validator-client.workspace = true
+nym-vpn-network-config = { workspace = true }

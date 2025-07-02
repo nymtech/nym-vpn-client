@@ -5293,7 +5293,10 @@ version = "1.12.0-beta"
 dependencies = [
  "nym-validator-client",
  "nym-vpn-lib",
+ "nym-vpn-network-config",
  "serde",
+ "thiserror 2.0.12",
+ "time",
 ]
 
 [[package]]
