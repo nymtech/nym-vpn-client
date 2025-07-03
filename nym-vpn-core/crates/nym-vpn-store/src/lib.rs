@@ -4,4 +4,4 @@
 pub mod keys;
 pub mod mnemonic;
 
-pub trait VpnStorage: mnemonic::MnemonicStorage + keys::KeyStore {}
+pub trait VpnStorage: mnemonic::MnemonicStorage + keys::device::DeviceKeyStore {}

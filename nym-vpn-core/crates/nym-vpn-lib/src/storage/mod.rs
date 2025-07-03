@@ -4,9 +4,8 @@
 use std::path::Path;
 
 use nym_vpn_store::{
-    keys::{
-        DeviceKeys, KeyStore,
-        persistence::{DeviceKeysPaths, OnDiskKeysError},
+    keys::device::{
+        DeviceKeyStore, DeviceKeys, {DeviceKeysPaths, OnDiskKeysError},
     },
     mnemonic::{Mnemonic, MnemonicStorage, on_disk::OnDiskMnemonicStorageError},
 };
@@ -16,14 +15,14 @@ mod helpers;
 const MNEMONIC_FILE_NAME: &str = "mnemonic.json";
 
 pub struct VpnClientOnDiskStorage {
-    key_store: nym_vpn_store::keys::persistence::OnDiskKeys,
+    key_store: nym_vpn_store::keys::device::OnDiskKeys,
     mnemonic_storage: nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorage,
 }
 
 impl VpnClientOnDiskStorage {
     pub fn new<P: AsRef<Path>>(base_data_directory: P) -> Self {
         let device_key_paths = DeviceKeysPaths::new(&base_data_directory);
-        let key_store = nym_vpn_store::keys::persistence::OnDiskKeys::new(device_key_paths);
+        let key_store = nym_vpn_store::keys::device::OnDiskKeys::new(device_key_paths);
 
         let mnemonic_storage_path = base_data_directory.as_ref().join(MNEMONIC_FILE_NAME);
         let mnemonic_storage =
@@ -39,7 +38,7 @@ impl VpnClientOnDiskStorage {
 impl nym_vpn_store::VpnStorage for VpnClientOnDiskStorage {}
 
 #[async_trait::async_trait]
-impl KeyStore for VpnClientOnDiskStorage {
+impl DeviceKeyStore for VpnClientOnDiskStorage {
     type StorageError = OnDiskKeysError;
 
     async fn load_keys(&self) -> Result<DeviceKeys, Self::StorageError> {

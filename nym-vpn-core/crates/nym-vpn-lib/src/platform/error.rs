@@ -165,8 +165,8 @@ impl From<crate::Error> for VpnError {
     }
 }
 
-impl From<nym_vpn_store::keys::persistence::OnDiskKeysError> for VpnError {
-    fn from(value: nym_vpn_store::keys::persistence::OnDiskKeysError) -> Self {
+impl From<nym_vpn_store::keys::device::OnDiskKeysError> for VpnError {
+    fn from(value: nym_vpn_store::keys::device::OnDiskKeysError) -> Self {
         Self::Storage {
             details: value.to_string(),
         }

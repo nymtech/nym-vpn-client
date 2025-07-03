@@ -3,7 +3,7 @@
 
 use std::path::{Path, PathBuf};
 
-use nym_vpn_store::keys::{DeviceKeys, KeyStore as _, persistence::OnDiskKeysError};
+use nym_vpn_store::keys::device::{DeviceKeyStore as _, DeviceKeys, OnDiskKeysError};
 
 use super::VpnClientOnDiskStorage;
 

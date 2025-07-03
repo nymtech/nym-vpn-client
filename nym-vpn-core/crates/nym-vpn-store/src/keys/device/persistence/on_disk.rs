@@ -7,7 +7,7 @@ use nym_crypto::asymmetric::ed25519;
 use nym_pemstore::{KeyPairPath, traits::PemStorableKeyPair};
 use rand::SeedableRng as _;
 
-use crate::keys::{DeviceKeys, KeyStore};
+use crate::keys::device::{DeviceKeyStore, DeviceKeys};
 
 pub const DEFAULT_PRIVATE_DEVICE_KEY_FILENAME: &str = "private_device.pem";
 pub const DEFAULT_PUBLIC_DEVICE_KEY_FILENAME: &str = "public_device.pem";
@@ -160,26 +160,26 @@ impl OnDiskKeys {
 }
 
 #[async_trait::async_trait]
-impl KeyStore for OnDiskKeys {
+impl DeviceKeyStore for OnDiskKeys {
     type StorageError = OnDiskKeysError;
 
-    async fn load_keys(&self) -> Result<DeviceKeys, Self::StorageError> {
+    async fn load_keys(&self) -> Result<DeviceKeys, OnDiskKeysError> {
         self.load_keys()
     }
 
-    async fn store_keys(&self, keys: &DeviceKeys) -> Result<(), Self::StorageError> {
+    async fn store_keys(&self, keys: &DeviceKeys) -> Result<(), OnDiskKeysError> {
         self.store_keys(keys)
     }
 
-    async fn init_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError> {
+    async fn init_keys(&self, seed: Option<[u8; 32]>) -> Result<(), OnDiskKeysError> {
         self.init_keys(seed)
     }
 
-    async fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError> {
+    async fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<(), OnDiskKeysError> {
         self.reset_keys(seed)
     }
 
-    async fn remove_keys(&self) -> Result<(), Self::StorageError> {
+    async fn remove_keys(&self) -> Result<(), OnDiskKeysError> {
         self.reset_keys(None)
             .inspect_err(|_| {
                 tracing::warn!("Failed to reset keys before removal.");
