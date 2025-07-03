@@ -3,5 +3,6 @@
 
 pub mod keys;
 pub mod mnemonic;
+mod types;
 
 pub trait VpnStorage: mnemonic::MnemonicStorage + keys::device::DeviceKeyStore {}

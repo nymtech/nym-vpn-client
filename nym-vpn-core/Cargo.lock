@@ -5210,6 +5210,7 @@ dependencies = [
  "rand_chacha 0.3.1",
  "serde",
  "serde_json",
+ "sqlx",
  "tempfile",
  "thiserror 2.0.12",
  "tokio",

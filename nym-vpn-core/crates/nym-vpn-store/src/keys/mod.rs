@@ -3,5 +3,6 @@
 
 pub mod device;
 mod error;
+pub mod wireguard;
 
 pub use error::KeyStoreError;
