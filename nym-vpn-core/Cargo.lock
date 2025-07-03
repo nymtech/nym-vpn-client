@@ -5268,6 +5268,7 @@ dependencies = [
  "nym-vpn-store",
  "nym-vpnd-types",
  "nym-windows",
+ "once_cell",
  "sentry",
  "serde",
  "serde_json",
