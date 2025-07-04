@@ -23,9 +23,13 @@ impl SysInfo {
         }
     }
 
-    pub fn print_extra_info(&self) {
-        for info in &self.extra {
-            info!("os {info}");
+    pub fn display(&self, print_extra: bool) {
+        info!("os version: {}", self.os_version);
+        info!("os arch: {}", self.arch);
+        if print_extra {
+            for info in &self.extra {
+                info!("os {info}");
+            }
         }
     }
 }
