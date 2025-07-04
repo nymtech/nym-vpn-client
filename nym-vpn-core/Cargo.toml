@@ -209,6 +209,7 @@ nym-vpnd-types = { path = "crates/nym-vpnd-types" }
 nym-wg-gateway-client = { path = "crates/nym-wg-gateway-client" }
 nym-wg-go = { path = "crates/nym-wg-go" }
 nym-windows = { path = "crates/nym-windows" }
+nym-platform-metadata = { path = "crates/nym-platform-metadata" }
 
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
 nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
