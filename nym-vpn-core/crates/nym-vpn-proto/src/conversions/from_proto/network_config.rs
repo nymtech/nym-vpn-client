@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::collections::HashMap;
+
 use crate::conversions::ConversionError;
 
 impl TryFrom<crate::ChainDetails> for nym_config::defaults::ChainDetails {
@@ -124,5 +126,33 @@ impl TryFrom<crate::AccountManagement> for nym_vpn_network_config::ParsedAccount
             sign_in,
             account,
         })
+    }
+}
+
+impl From<crate::NetworkCompatibility> for nym_vpn_api_client::NetworkCompatibility {
+    fn from(value: crate::NetworkCompatibility) -> Self {
+        Self {
+            core: value.core,
+            ios: value.ios,
+            macos: value.macos,
+            tauri: value.tauri,
+            android: value.android,
+        }
+    }
+}
+
+impl From<crate::GetFeatureFlagsResponse> for nym_vpn_network_config::FeatureFlags {
+    fn from(feature_flags: crate::GetFeatureFlagsResponse) -> Self {
+        let mut data = HashMap::default();
+
+        for (k, v) in feature_flags.flags {
+            data.insert(k, nym_vpn_network_config::FlagValue::Value(v));
+        }
+
+        for (k, v) in feature_flags.groups {
+            data.insert(k, nym_vpn_network_config::FlagValue::Group(v.map));
+        }
+
+        Self::from(data)
     }
 }

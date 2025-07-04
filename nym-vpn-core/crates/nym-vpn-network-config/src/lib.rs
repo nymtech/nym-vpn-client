@@ -16,8 +16,7 @@ mod serialization;
 mod system_configuration;
 
 pub use account_management::{AccountManagement, ParsedAccountLinks};
-pub use feature_flags::FeatureFlags;
-use feature_flags::FlagValue;
+pub use feature_flags::{FeatureFlags, FlagValue};
 use futures_util::FutureExt;
 pub use nym_network::NymNetwork;
 use nym_sdk::mixnet::Recipient;
