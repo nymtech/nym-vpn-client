@@ -37,10 +37,10 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 
 # ✨ Key Features
 
-🎯 Dual Privacy Modes
+🎯 Dual-Mode Privacy Architecture
 
-- Anonymous Mode: Maximum privacy via 5-hop mixnet routing
-- Fast Mode: High-speed 2-hop decentralized WireGuard VPN
+- Anonymous Mode (5-hop mixnet): Maximal anonymity thanks to Nym's Noise Generating Mixnet with added noise to protect users against even AI surveillance
+- Fast Mode (2-hop WireGuard): Decentralized 2-hop mode for faster connections and less latency thanks to WireGuard
 
 🔧 Developer-Friendly
 
@@ -48,12 +48,33 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 - Rust-based: Memory-safe, high-performance implementation
 - Cross-platform: Android, iOS, Linux, macOS, Windows, CLI
 
-🛡️ Advanced Security
+⚙️ Power User Features
+- Split Tunneling: Choose per-app routing (mixnet vs WireGuard) (_coming soon_)
+- Custom Entry/Exit Selection: Choose your preferred node operators
+- Kill Switch: Automatic connection protection with data leak prevention
+- Multi-language Support: 10+ localizations with crowdsourced language support
 
-- AmneziaWG Integration: Enhanced WireGuard with censorship resistance
+🛡️ Advanced Privacy and Security
+
 - Multi-hop by Default: No server views both your IP address and online activity
 - zk-nyms: Private zero-knowledge credential system to unlink payments data from online activity
-- No centralized logging: Cryptographically impossible to track users
+- No Centralized Logging: Cryptographically impossible to track users
+- Independent Security Audits: JP Aumasson (2021), Oak Security (2022), Cryspen (2023-2024), Cure53 (2024)
+
+🔐 Advanced Cryptographic Stack
+
+- Curve25519: key exchange and authentication
+- AES: Data encryption (AES-GCM-SIV-256, AES-CTR-128
+- ChaCha20-Poly1305: High-speed cipher with authentication
+- BLAKE2/BLAKE3: Advanced hashing algorithms
+- Lioness Wide Block Cipher: Custom encryption for mixnet packets
+- Pointcheval-Sanders Signatures, Pedersen Commitments, NIZK Proofs, BLS12-381 Curve: Zero-knowledge credentials
+- Post-Quantum Readiness (_coming soon_)
+
+🌐 Censorship Resistance Technologies
+- AmneziaWG Integration: Bypass barriers to information access with AmneziaWG (censorship-resistance WireGuard fork)
+- Adaptive Protocols: Pluggable transport, QUIC (_coming soon_)
+
 
 
 # 🏗️ Architecture
@@ -66,6 +87,15 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 │                 │───▶│  AmneziaWG   │───▶│   Destination   │
 │                 │    │  (2 hops)    │    │                 │
 └─────────────────┘    └──────────────┘    └─────────────────┘
+
+
+# 🌍 Network Infrastructure & Performance (July 2025)
+
+Global Network Statistics
+- 600+ Active Nodes across nearly 60 countries
+- Decentralized Operators: Independent individuals and organizations
+- Token Incentives: Economic sustainability for operators
+- Community-driven node reputation system
 
 
 # 🌐 Use Cases
@@ -84,6 +114,37 @@ For Organizations
 - Censorship circumvention: Access blocked content and services
 - Compliance: GDPR-friendly privacy infrastructure
 
+
+# 💸 Pricing and Payments
+
+Subscription Tiers
+- Starting at less than $3.00/month (with 24-month plan) for up to 10 devices
+- Multi-device Support: Single subscription for up to 10 devices on 5 platforms
+- 30-day Pro-rated Refunds: Risk-free trial period
+
+Wide Choice of Payment Methods:
+- Cards and Express Checkout (Apple Pay, Google Pay, PayPal - via Stripe)
+- Crypto-currencies (BTC, BTC-Lightning, LTC, NYM, USDT, XMR, etc.)
+- Cash
+
+Anonymous Payment System (zk-nyms)
+Your payments in fiat currencies or crypto are unlinkable to your usage of NymVPN thanks to zk-nym anonymous credentials:
+1. Payment Conversion: Fiat/crypto automatically converted to NYM tokens
+2. Credential Issuance: Zero-knowledge proof of payment generated
+3. Network Access: Unlinkable credentials provide anonymous service access
+4. Privacy Guarantee: No entity can connect payment to network activity
+
+
+🔬 Research Foundation & Academic Partnerships
+
+Peer-Reviewed Research ([50+ Publications](https://nym.com/trust-center/papers-and-research))
+
+Academic Partnerships
+- [KU Leuven (COSIC Research Group)](https://www.esat.kuleuven.be/cosic/): Privacy, performance, and hardware optimization
+- [EPFL (SPRING Lab)](https://spring.epfl.ch): Network security and sophisticated attack analysis
+- [Cryspen](https://cryspen.com): Formal verification and post-quantum cryptography
+
+Advisory Board with multiple industry awards (Levchin Prize, BCS Lovelace Medal)
 
 
 # 📚 Documentation & Resources
