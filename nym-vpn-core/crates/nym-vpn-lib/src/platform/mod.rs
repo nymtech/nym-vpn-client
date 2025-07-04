@@ -127,7 +127,7 @@ pub fn currentEnvironment() -> Result<NetworkEnvironment, VpnError> {
 pub fn configureLib(
     data_dir: String,
     credential_mode: Option<bool>,
-    sentry_monitoring: Option<bool>,
+    sentry_monitoring: bool,
 ) -> Result<(), VpnError> {
     RUNTIME.block_on(configure_lib(data_dir, credential_mode, sentry_monitoring))
 }
@@ -135,11 +135,10 @@ pub fn configureLib(
 async fn configure_lib(
     data_dir: String,
     credential_mode: Option<bool>,
-    sentry_monitoring: Option<bool>,
+    sentry_monitoring: bool,
 ) -> Result<(), VpnError> {
     let network = environment::current_environment_details().await?;
-    let sentry_enabled = sentry_monitoring.is_some_and(|v| v);
-    if sentry_enabled {
+    if sentry_monitoring {
         let mut guard = SENTRY_CLIENT.lock().await;
         *guard = sentry_monitoring::init();
     }
@@ -149,13 +148,12 @@ async fn configure_lib(
 async fn init_logger(
     path: Option<PathBuf>,
     debug_level: Option<String>,
-    sentry_monitoring: Option<bool>,
+    sentry_monitoring: bool,
 ) {
     let default_log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     let log_level = debug_level.unwrap_or(default_log_level);
-    let sentry_enabled = sentry_monitoring.is_some_and(|v| v);
     tracing::info!("Setting log level: {log_level}, path?: {path:?}");
-    if sentry_enabled {
+    if sentry_monitoring {
         let mut guard = SENTRY_CLIENT.lock().await;
         *guard = sentry_monitoring::init();
     }
@@ -172,7 +170,7 @@ async fn init_logger(
 pub async fn initLogger(
     path: Option<PathBuf>,
     debug_level: Option<String>,
-    sentry_monitoring: Option<bool>,
+    sentry_monitoring: bool,
 ) {
     init_logger(path, debug_level, sentry_monitoring).await;
 }
