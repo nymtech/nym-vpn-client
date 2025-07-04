@@ -5,8 +5,6 @@ set -eu
 
 LIB_DIR="libwg"
 
-REQUIRED_GOLANG_VERSION="1.23.6"
-
 IS_ANDROID_BUILD=false
 IS_IOS_BUILD=false
 IS_DOCKER_BUILD=false
@@ -328,28 +326,7 @@ function build_wireguard_go {
     esac
 }
 
-function check_golang_version() {
-    local go_path=$(which go)
-    if [ $? -eq 0 ]; then
-        echo "Found golang: $go_path"
-    else
-        echo "Golang is not found. Please install go$REQUIRED_GOLANG_VERSION"
-        exit 3
-    fi
-
-    # Extract go version from the output that looks as: 
-    # go version go1.24.4 darwin/arm64
-    local go_version=$(go version | cut -d' ' -f3 | cut -c 3-)
-    echo "Golang version: ${go_version}"
-    if [ "$go_version" != "$REQUIRED_GOLANG_VERSION" ]; then
-        echo "Required golang version: $REQUIRED_GOLANG_VERSION"
-        echo "Please install it and re-run this script"
-        exit 3
-    fi
-}
-
 # Ensure we are in the correct directory for the execution of this script
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd $script_dir
-check_golang_version
 build_wireguard_go $@
