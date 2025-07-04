@@ -60,7 +60,7 @@ nym-vpn-network-config = { workspace = true }
 nym-vpn-proto = { workspace = true, features = ["conversions"] }
 nym-vpn-store = { workspace = true }
 nym-vpnd-types = { workspace = true }
-nym-platform-metadata = { path = "../nym-platform-metadata" }
+nym-platform-metadata = { workspace = true }
 
 [target.'cfg(windows)'.dependencies]
 windows-service.workspace = true
