@@ -31,13 +31,13 @@ fn os_version() -> String {
     get_prop("ro.build.version.release").unwrap_or_else(|| "N/A".to_owned())
 }
 
-pub fn extra_metadata() -> HashMap<String, String> {
+pub fn extra_metadata() -> impl Iterator<Item = (String, String)> {
     let mut metadata = HashMap::new();
     metadata.insert(
         "abi".to_owned(),
         get_prop("ro.product.cpu.abilist").unwrap_or_else(|| "N/A".to_owned()),
     );
-    metadata
+    metadata.into_iter()
 }
 
 fn get_prop(property: &str) -> Option<String> {
