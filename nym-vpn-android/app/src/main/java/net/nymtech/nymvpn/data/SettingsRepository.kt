@@ -51,5 +51,9 @@ interface SettingsRepository {
 
 	suspend fun setLocale(locale: String)
 
+	suspend fun setBatteryOptSkipped(skip: Boolean)
+
+	suspend fun getBatteryOptSkipped(): Boolean
+
 	val settingsFlow: Flow<Settings>
 }

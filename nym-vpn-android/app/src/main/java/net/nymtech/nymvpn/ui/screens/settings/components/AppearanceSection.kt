@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowRight
 import androidx.compose.material.icons.automirrored.outlined.ViewQuilt
 import androidx.compose.material.icons.outlined.AppShortcut
+import androidx.compose.material.icons.outlined.BatterySaver
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -22,6 +23,7 @@ import net.nymtech.nymvpn.ui.common.buttons.surface.SelectionItem
 import net.nymtech.nymvpn.ui.common.navigation.LocalNavController
 import net.nymtech.nymvpn.ui.screens.settings.SettingsViewModel
 import net.nymtech.nymvpn.ui.theme.iconSize
+import net.nymtech.nymvpn.util.extensions.launchBatteryOptSettingsScreen
 import net.nymtech.nymvpn.util.extensions.launchNotificationSettings
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
@@ -74,6 +76,29 @@ fun AppearanceSection(appUiState: AppUiState, viewModel: SettingsViewModel, cont
 				)
 			},
 			onClick = { context.launchNotificationSettings() },
+		),
+		SelectionItem(
+			leading = {
+				Icon(
+					Icons.Outlined.BatterySaver,
+					stringResource(R.string.battery_opt),
+					modifier = Modifier.size(iconSize.scaledWidth()),
+				)
+			},
+			trailing = {
+				Icon(
+					Icons.AutoMirrored.Outlined.ArrowRight,
+					stringResource(R.string.go),
+					modifier = Modifier.size(iconSize),
+				)
+			},
+			title = {
+				Text(
+					stringResource(R.string.battery_opt),
+					style = MaterialTheme.typography.bodyLarge.copy(MaterialTheme.colorScheme.onSurface),
+				)
+			},
+			onClick = { context.launchBatteryOptSettingsScreen() },
 		),
 	).apply {
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N_MR1) {

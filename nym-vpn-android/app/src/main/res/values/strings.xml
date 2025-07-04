@@ -262,4 +262,9 @@
 	<string name="join_telegram">Join us on Telegram</string>
 	<string name="device_time_out_of_sync">Device time out of sync</string>
 	<string name="create_mixnet_storage">Failed to create credential storage</string>
+	<string name="battery_opt_title">For best connection</string>
+	<string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
+	<string name="skip">Skip</string>
+	<string name="battery_opt">Battery optimization</string>
+	<string name="battery_opt_settings_text">Battery optimization setting can be changed anytime in app settings.</string>
 </resources>

@@ -45,6 +45,10 @@ constructor(
 		stopConnectionTimer() // stop on manual disconnect
 	}
 
+	fun onBatteryOptSkipped() = viewModelScope.launch {
+		settingsRepository.setBatteryOptSkipped(true)
+	}
+
 	fun onTunnelStateChanged(tunnelState: Tunnel.State, connectedAt: Long?) {
 		if (tunnelState == Tunnel.State.Up && connectedAt != null) {
 			startConnectionTimer(connectedAt)

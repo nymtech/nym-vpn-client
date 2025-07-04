@@ -13,6 +13,7 @@ import android.service.quicksettings.TileService
 import android.widget.Toast
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
+import androidx.core.net.toUri
 import net.nymtech.nymvpn.BuildConfig
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.NymVpn.Companion.instance
@@ -125,6 +126,14 @@ fun Context.launchNotificationSettings() {
 	} else {
 		this.launchAppSettings()
 	}
+}
+
+fun Context.launchBatteryOptSettingsScreen() {
+	val packageName = "package:${this.packageName}".toUri()
+	val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+		data = packageName
+	}
+	this.startActivity(intent)
 }
 
 // for localization changes
