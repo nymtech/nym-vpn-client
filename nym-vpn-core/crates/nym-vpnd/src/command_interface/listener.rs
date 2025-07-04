@@ -1,28 +1,27 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{FutureExt, StreamExt, stream::BoxStream};
+use futures::{StreamExt, stream::BoxStream};
 use tokio::sync::{broadcast, mpsc::UnboundedSender, oneshot};
 use zeroize::Zeroizing;
 
 use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
     AccountManagement, AvailableTickets, ConfirmZkNymDownloadedRequest,
-    ConfirmZkNymDownloadedResponse, ConnectRequest, ConnectResponse, ForgetAccountResponse,
+    ConfirmZkNymDownloadedResponse, ConnectRequest, ForgetAccountResponse,
     GetAccountIdentityResponse, GetAccountLinksRequest, GetAccountStateResponse,
     GetAccountUsageResponse, GetDeviceIdentityResponse, GetDeviceZkNymsResponse,
     GetDevicesResponse, GetFeatureFlagsResponse, GetLogPathResponse,
     GetNetworkCompatibilityResponse, GetSystemMessagesResponse, GetZkNymByIdRequest,
     GetZkNymByIdResponse, GetZkNymsAvailableForDownloadResponse, InfoResponse,
-    IsAccountStoredResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
-    ListGatewaysResponse, NetworkCompatibility, RefreshAccountStateResponse,
-    RegisterDeviceResponse, RequestZkNymResponse, ResetDeviceIdentityRequest,
-    ResetDeviceIdentityResponse, StoreAccountRequest, StoreAccountResponse, TunnelState,
-    conversions::ConversionError, get_account_state_response::AccountStateSummary,
-    get_account_usage_response::AccountUsages, get_devices_response::Devices,
-    nym_vpnd_server::NymVpnd,
+    ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
+    NetworkCompatibility, RefreshAccountStateResponse, RegisterDeviceResponse,
+    RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
+    StoreAccountRequest, StoreAccountResponse, TunnelState, conversions::ConversionError,
+    get_account_state_response::AccountStateSummary, get_account_usage_response::AccountUsages,
+    get_devices_response::Devices, nym_vpnd_server::NymVpnd,
 };
-use nym_vpnd_types::{ConnectArgs, log_path::LogPath};
+use nym_vpnd_types::ConnectArgs;
 
 use crate::service::{
     ListCountriesOptions, ListGatewaysOptions, SetNetworkError, VpnServiceCommand,
@@ -136,7 +135,7 @@ impl NymVpnd for CommandInterface {
     async fn vpn_connect(
         &self,
         request: tonic::Request<ConnectRequest>,
-    ) -> Result<tonic::Response<ConnectResponse>, tonic::Status> {
+    ) -> Result<tonic::Response<bool>, tonic::Status> {
         let connect_args = ConnectArgs::try_from(request.into_inner())
             .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
 
@@ -144,18 +143,7 @@ impl NymVpnd for CommandInterface {
             .send_and_wait(VpnServiceCommand::Connect, connect_args)
             .await?;
 
-        let response = match status {
-            Ok(()) => ConnectResponse {
-                success: true,
-                error: None,
-            },
-            Err(err) => ConnectResponse {
-                success: false,
-                error: Some(nym_vpn_proto::ConnectRequestError::from(err)),
-            },
-        };
-
-        Ok(tonic::Response::new(response))
+        Ok(tonic::Response::new(status))
     }
 
     async fn vpn_disconnect(
@@ -278,12 +266,12 @@ impl NymVpnd for CommandInterface {
     async fn is_account_stored(
         &self,
         _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<IsAccountStoredResponse>, tonic::Status> {
+    ) -> Result<tonic::Response<bool>, tonic::Status> {
         let is_stored = self
             .send_and_wait(VpnServiceCommand::IsAccountStored, ())
             .await?;
 
-        Ok(tonic::Response::new(IsAccountStoredResponse { is_stored }))
+        Ok(tonic::Response::new(is_stored))
     }
 
     async fn forget_account(

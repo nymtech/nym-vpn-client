@@ -6,7 +6,7 @@ use std::{io, path::PathBuf};
 use nym_vpn_api_client::NetworkCompatibility;
 use nym_vpn_lib_types::{TunnelEvent, TunnelState};
 use nym_vpn_network_config::{FeatureFlags, SystemMessages};
-use nym_vpnd_types::{log_path::LogPath, service::VpnServiceInfo};
+use nym_vpnd_types::{ConnectArgs, log_path::LogPath, service::VpnServiceInfo};
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio_stream::{Stream, StreamExt};
 use tonic::{
@@ -15,7 +15,7 @@ use tonic::{
 };
 use tower::service_fn;
 
-use crate::{InfoResponse, nym_vpnd_client::NymVpndClient};
+use crate::{ConnectRequest, InfoResponse, nym_vpnd_client::NymVpndClient};
 
 type ServiceClient = NymVpndClient<tonic::transport::Channel>;
 
@@ -83,6 +83,27 @@ impl RpcClient {
         Ok(FeatureFlags::from(response))
     }
 
+    pub async fn connect_tunnel(&mut self, request: ConnectArgs) -> Result<bool> {
+        let connect_req = ConnectRequest::try_from(request).map_err(Error::InvalidRequest)?;
+
+        let r = self
+            .0
+            .vpn_connect(connect_req)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc);
+
+        Ok(true)
+    }
+
+    pub async fn disconnect_tunnel(&mut self) -> Result<bool> {
+        self.0
+            .vpn_disconnect(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
     pub async fn listen_to_tunnel_state(
         &mut self,
     ) -> Result<impl Stream<Item = Result<TunnelState>>> {
@@ -113,14 +134,6 @@ impl RpcClient {
                 TunnelEvent::try_from(daemon_event).map_err(Error::InvalidResponse)
             })
         }))
-    }
-
-    pub async fn disconnect_tunnel(&mut self) -> Result<bool> {
-        self.0
-            .vpn_disconnect(())
-            .await
-            .map(|v| v.into_inner())
-            .map_err(Error::Rpc)
     }
 
     pub async fn get_tunnel_state(&mut self) -> Result<TunnelState> {
@@ -193,6 +206,9 @@ pub enum Error {
 
     #[error("GRPC call returned error")]
     Rpc(#[source] tonic::Status),
+
+    #[error("Failed to serialize gRPC request")]
+    InvalidRequest(#[source] crate::conversions::ConversionError),
 
     #[error("Failed to parse gRPC response")]
     InvalidResponse(#[source] crate::conversions::ConversionError),

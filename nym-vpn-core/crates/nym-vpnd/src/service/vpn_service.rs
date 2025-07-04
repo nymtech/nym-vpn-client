@@ -44,7 +44,7 @@ use nym_vpnd_types::{
     ConnectArgs,
     gateway::{Country, Gateway},
     log_path::LogPath,
-    service::{VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo},
+    service::{VpnServiceDisconnectError, VpnServiceInfo},
 };
 use std::time::Duration;
 use zeroize::Zeroizing;
@@ -79,10 +79,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Vec<Country>, ListGatewaysError>>,
         ListCountriesOptions,
     ),
-    Connect(
-        oneshot::Sender<Result<(), VpnServiceConnectError>>,
-        ConnectArgs,
-    ),
+    Connect(oneshot::Sender<Result<bool>>, ConnectArgs),
     Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
     SubscribeToTunnelState(oneshot::Sender<watch::Receiver<TunnelState>>, ()),
@@ -536,7 +533,7 @@ where
             }
             VpnServiceCommand::Connect(tx, connect_args) => {
                 let result = self.handle_connect(connect_args).await;
-                let _ = tx.send(result);
+                let _ = tx.send(result.is_ok());
             }
             VpnServiceCommand::Disconnect(tx, ()) => {
                 let result = self.handle_disconnect().await;
@@ -657,10 +654,7 @@ where
         Ok(config)
     }
 
-    async fn handle_connect(
-        &mut self,
-        connect_args: ConnectArgs,
-    ) -> Result<(), VpnServiceConnectError> {
+    async fn handle_connect(&mut self, connect_args: ConnectArgs) -> Result<()> {
         let ConnectArgs {
             entry,
             exit,
@@ -695,9 +689,7 @@ where
         );
         tracing::debug!("Using options: {:?}", options);
 
-        let config = self
-            .try_setup_config(entry, exit)
-            .map_err(|err| VpnServiceConnectError::Internal(err.to_string()))?;
+        let config = self.try_setup_config(entry, exit)?;
         tracing::info!("Using config: {}", config);
 
         let gateway_options = GatewayPerformanceOptions {
@@ -756,18 +748,17 @@ where
             .command_sender
             .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
         {
-            Ok(()) => self
-                .command_sender
-                .send(TunnelCommand::Connect)
-                .map_err(|e| {
-                    tracing::error!("Failed to send command to connect: {}", e);
-                    VpnServiceConnectError::Internal("failed to send command to connect".to_owned())
-                }),
+            Ok(()) => {
+                self.command_sender
+                    .send(TunnelCommand::Connect)
+                    .map_err(|e| {
+                        tracing::error!("Failed to send command to connect: {}", e);
+                    })?;
+                Ok(())
+            }
             Err(e) => {
                 tracing::error!("Failed to send command to set tunnel options: {}", e);
-                Err(VpnServiceConnectError::Internal(
-                    "failed to send command to set tunnel options".to_owned(),
-                ))
+                Ok(())
             }
         }
     }
