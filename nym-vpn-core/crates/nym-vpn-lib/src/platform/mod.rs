@@ -127,6 +127,8 @@ pub fn configureLib(data_dir: String, credential_mode: Option<bool>) -> Result<(
 
 async fn configure_lib(data_dir: String, credential_mode: Option<bool>) -> Result<(), VpnError> {
     let network = environment::current_environment_details().await?;
+    let os = crate::SysInfo::new();
+    os.raw_display(true);
     account::init_account_controller(PathBuf::from(data_dir), credential_mode, network).await
 }
 
@@ -134,6 +136,8 @@ fn init_logger(path: Option<PathBuf>, debug_level: Option<String>) {
     let default_log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     let log_level = debug_level.unwrap_or(default_log_level);
     tracing::info!("Setting log level: {log_level}, path?: {path:?}");
+    let os = crate::SysInfo::new();
+    os.display(true);
     #[cfg(target_os = "ios")]
     swift::init_logs(log_level, path);
     #[cfg(target_os = "android")]

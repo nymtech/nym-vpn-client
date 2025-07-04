@@ -9,11 +9,11 @@ mod logging;
 mod runtime;
 mod service;
 mod shutdown_handler;
-mod system;
 mod util;
 
 use clap::Parser;
 use logging::{LogFileRemover, LoggingSetup};
+use nym_vpn_lib::SysInfo;
 use nym_vpn_network_config::Network;
 use sentry::ClientInitGuard;
 use service::NymVpnService;
@@ -22,7 +22,6 @@ use tokio::sync::{broadcast, mpsc};
 use tokio_util::sync::CancellationToken;
 use tracing_appender::non_blocking::WorkerGuard;
 
-use crate::system::SysInfo;
 use crate::{cli::CliArgs, config::GlobalConfigFile};
 
 fn main() -> anyhow::Result<()> {
