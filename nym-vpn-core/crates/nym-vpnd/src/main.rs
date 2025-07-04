@@ -20,7 +20,6 @@ use service::NymVpnService;
 use std::time::Duration;
 use tokio::sync::{broadcast, mpsc};
 use tokio_util::sync::CancellationToken;
-use tracing::info;
 use tracing_appender::non_blocking::WorkerGuard;
 
 use crate::system::SysInfo;
@@ -47,9 +46,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let global_config_file = setup_global_config(args.network.as_deref())?;
 
     let os = SysInfo::new();
-    info!("os version: {}", os.os_version);
-    info!("os arch: {}", os.arch);
-    os.print_extra_info();
+    os.display(true);
 
     run_inner(args, global_config_file, logging_setup, sentry_enabled)
 }
@@ -100,8 +97,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             logging_setup,
             sentry_enabled,
         )?;
-        info!("os version: {}", os.os_version);
-        info!("os arch: {}", os.arch);
+        os.display(true);
         Ok(worker_guard)
     } else {
         let options = logging::Options {
@@ -113,8 +109,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
         let logging_setup = logging::setup_logging(options);
         let global_config_file = setup_global_config(args.network.as_deref())?;
 
-        info!("os version: {}", os.os_version);
-        info!("os arch: {}", os.arch);
+        os.display(true);
         run_inner(args, global_config_file, logging_setup, sentry_enabled)
     }
 }
