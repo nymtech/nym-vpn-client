@@ -32,6 +32,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 	private val manualGatewayOverride = booleanPreferencesKey("MANUAL_GATEWAYS")
 	private val credentialMode = booleanPreferencesKey("CREDENTIAL_MODE")
 	private val locale = stringPreferencesKey("LOCALE")
+	private val batteryOptSkip = booleanPreferencesKey("BATTERY_OPT_SKIP")
 
 	override suspend fun setEntryPoint(entry: EntryPoint) {
 		dataStoreManager.saveToDataStore(entryPoint, entry.asString())
@@ -135,6 +136,14 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 		dataStoreManager.saveToDataStore(this.locale, locale)
 	}
 
+	override suspend fun setBatteryOptSkipped(skip: Boolean) {
+		dataStoreManager.saveToDataStore(this.batteryOptSkip, skip)
+	}
+
+	override suspend fun getBatteryOptSkipped(): Boolean {
+		return dataStoreManager.getFromStore(batteryOptSkip) ?: Settings.DEFAULT_BATTERY_OPT_SKIP
+	}
+
 	override val settingsFlow: Flow<Settings> =
 		dataStoreManager.preferencesFlow.map { prefs ->
 			prefs?.let { pref ->
@@ -162,6 +171,7 @@ class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager
 						environment = pref[environment]?.let { Tunnel.Environment.valueOf(it) } ?: Settings.DEFAULT_ENVIRONMENT,
 						isCredentialMode = pref[credentialMode],
 						locale = pref[locale],
+						batteryOptSkip = pref[batteryOptSkip] ?: Settings.DEFAULT_BATTERY_OPT_SKIP,
 					)
 				} catch (e: IllegalArgumentException) {
 					Timber.e(e)

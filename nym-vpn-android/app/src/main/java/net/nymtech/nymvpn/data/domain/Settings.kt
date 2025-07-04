@@ -19,6 +19,7 @@ data class Settings(
 	val environment: Tunnel.Environment = DEFAULT_ENVIRONMENT,
 	val isCredentialMode: Boolean? = null,
 	val locale: String? = null,
+	val batteryOptSkip: Boolean = DEFAULT_BATTERY_OPT_SKIP,
 ) {
 	companion object {
 		const val AUTO_START_DEFAULT = false
@@ -26,6 +27,7 @@ data class Settings(
 		const val ANALYTICS_SHOWN_DEFAULT = false
 		const val SHORTCUTS_DEFAULT = false
 		const val BYPASS_LAN_DEFAULT = false
+		const val DEFAULT_BATTERY_OPT_SKIP = false
 		val DEFAULT_ENVIRONMENT = Tunnel.Environment.MAINNET
 		val DEFAULT_ENTRY_POINT = EntryPoint.Location("FR")
 		val DEFAULT_EXIT_POINT = ExitPoint.Location("FR")
