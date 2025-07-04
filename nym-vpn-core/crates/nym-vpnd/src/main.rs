@@ -9,6 +9,7 @@ mod logging;
 mod runtime;
 mod service;
 mod shutdown_handler;
+mod system;
 mod util;
 
 use clap::Parser;
@@ -19,8 +20,10 @@ use service::NymVpnService;
 use std::time::Duration;
 use tokio::sync::{broadcast, mpsc};
 use tokio_util::sync::CancellationToken;
+use tracing::info;
 use tracing_appender::non_blocking::WorkerGuard;
 
+use crate::system::SysInfo;
 use crate::{cli::CliArgs, config::GlobalConfigFile};
 
 fn main() -> anyhow::Result<()> {
@@ -43,6 +46,11 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let logging_setup = logging::setup_logging(options);
     let global_config_file = setup_global_config(args.network.as_deref())?;
 
+    let os = SysInfo::new();
+    info!("os version: {}", os.os_version);
+    info!("os arch: {}", os.arch);
+    os.print_extra_info();
+
     run_inner(args, global_config_file, logging_setup, sentry_enabled)
 }
 
@@ -51,6 +59,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
     let _sentry_guard = init_sentry();
     let sentry_enabled = _sentry_guard.is_some_and(|client| client.is_enabled());
+    let os = SysInfo::new();
 
     if args.command.install {
         println!(
@@ -91,6 +100,8 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             logging_setup,
             sentry_enabled,
         )?;
+        info!("os version: {}", os.os_version);
+        info!("os arch: {}", os.arch);
         Ok(worker_guard)
     } else {
         let options = logging::Options {
@@ -102,6 +113,8 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
         let logging_setup = logging::setup_logging(options);
         let global_config_file = setup_global_config(args.network.as_deref())?;
 
+        info!("os version: {}", os.os_version);
+        info!("os arch: {}", os.arch);
         run_inner(args, global_config_file, logging_setup, sentry_enabled)
     }
 }
