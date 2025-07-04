@@ -116,7 +116,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	private fun init(environment: Tunnel.Environment, credentialMode: Boolean?) = ProcessLifecycleOwner.get().lifecycleScope.launch(ioDispatcher) {
 		runCatching {
 			startNetworkMonitorJob()
-			initLogger(null, LOG_LEVEL)
+			initLogger(null, LOG_LEVEL, false)
 			initEnvironment(environment)
 			configureLib(credentialMode)
 			initialized.complete(Unit)
@@ -171,7 +171,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 	private suspend fun configureLib(credentialMode: Boolean?) {
 		withContext(ioDispatcher) {
-			nym_vpn_lib.configureLib(storagePath, credentialMode)
+			nym_vpn_lib.configureLib(storagePath, credentialMode, false)
 		}
 	}
 

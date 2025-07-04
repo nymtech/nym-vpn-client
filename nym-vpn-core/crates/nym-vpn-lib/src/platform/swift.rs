@@ -3,12 +3,15 @@
 
 use std::{fs::OpenOptions, path::PathBuf, str::FromStr};
 
+use sentry::integrations::tracing as sentry_tracing;
+use tracing::Level;
 use tracing_oslog::OsLogger;
 use tracing_subscriber::{
-    Registry, filter::LevelFilter, fmt::Layer, layer::SubscriberExt, util::SubscriberInitExt,
+    Layer, Registry, filter::LevelFilter, fmt::Layer as fmtLayer, layer::SubscriberExt,
+    util::SubscriberInitExt,
 };
 
-pub fn init_logs(level: String, path: Option<PathBuf>) {
+pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) {
     let oslogger_layer = OsLogger::new("net.nymtech.vpn.agent", "default");
 
     let filter = tracing_subscriber::EnvFilter::builder()
@@ -37,6 +40,7 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
 
     let registry = Registry::default().with(oslogger_layer);
 
+    let mut layers = Vec::new();
     let file_layer = path.as_ref().and_then(|path| {
         // Ensure log directory exists
         if let Some(parent) = path.parent() {
@@ -58,18 +62,26 @@ pub fn init_logs(level: String, path: Option<PathBuf>) {
             .open(path)
             .ok()
             .map(|file| {
-                Layer::default()
+                fmtLayer::default()
                     .with_writer(file)
                     .with_ansi(false)
                     .compact()
             })
     });
 
-    let result = if let Some(file_layer) = file_layer {
-        registry.with(file_layer).with(filter).try_init()
-    } else {
-        registry.with(filter).try_init()
+    if let Some(file_layer) = file_layer {
+        layers.push(file_layer.boxed());
     };
+    if sentry {
+        let layer = sentry_tracing::layer().event_filter(|md| match md.level() {
+            &Level::ERROR | &Level::WARN => sentry_tracing::EventFilter::Event,
+            &Level::TRACE => sentry_tracing::EventFilter::Ignore,
+            _ => sentry_tracing::EventFilter::Breadcrumb,
+        });
+        layers.push(layer.boxed());
+    }
+
+    let result = registry.with(layers).with(filter).try_init();
 
     if let Err(err) = result {
         eprintln!("Failed to initialize logger: {err}");
