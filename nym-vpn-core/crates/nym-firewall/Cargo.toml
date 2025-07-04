@@ -19,7 +19,7 @@ nym-common.workspace = true
 
 [target.'cfg(target_os = "macos")'.dependencies]
 pfctl.workspace = true
-nym-platform-metadata = { path = "../nym-platform-metadata" }
+nym-platform-metadata.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
 nix = { workspace = true, features = ["net"] }

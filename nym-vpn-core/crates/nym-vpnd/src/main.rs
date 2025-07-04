@@ -13,6 +13,7 @@ mod util;
 
 use clap::Parser;
 use logging::{LogFileRemover, LoggingSetup};
+use nym_vpn_lib::SysInfo;
 use nym_vpn_network_config::Network;
 use sentry::ClientInitGuard;
 use service::NymVpnService;
@@ -43,6 +44,9 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let logging_setup = logging::setup_logging(options);
     let global_config_file = setup_global_config(args.network.as_deref())?;
 
+    let os = SysInfo::new();
+    os.display(true);
+
     run_inner(args, global_config_file, logging_setup, sentry_enabled)
 }
 
@@ -51,6 +55,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
     let _sentry_guard = init_sentry();
     let sentry_enabled = _sentry_guard.is_some_and(|client| client.is_enabled());
+    let os = SysInfo::new();
 
     if args.command.install {
         println!(
@@ -91,6 +96,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             logging_setup,
             sentry_enabled,
         )?;
+        os.display(true);
         Ok(worker_guard)
     } else {
         let options = logging::Options {
@@ -102,6 +108,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
         let logging_setup = logging::setup_logging(options);
         let global_config_file = setup_global_config(args.network.as_deref())?;
 
+        os.display(true);
         run_inner(args, global_config_file, logging_setup, sentry_enabled)
     }
 }

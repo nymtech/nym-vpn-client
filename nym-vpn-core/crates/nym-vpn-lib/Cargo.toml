@@ -71,6 +71,7 @@ nym-vpn-network-config.workspace = true
 nym-vpn-store.workspace = true
 nym-wg-gateway-client.workspace = true
 nym-wg-go.workspace = true
+nym-platform-metadata.workspace = true
 sentry = { workspace = true, features = [
     "backtrace",
     "contexts",
