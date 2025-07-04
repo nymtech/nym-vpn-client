@@ -138,37 +138,23 @@ async fn connect(opts: CliOptions, connect_args: &cli::ConnectArgs) -> Result<()
         user_agent: Some(user_agent),
     });
 
-    let response = client.vpn_connect(request).await?.into_inner();
+    let connect_accepted = client.vpn_connect(request).await?.into_inner();
 
     if opts.verbose {
-        println!("{response:#?}");
+        println!("{connect_accepted:#?}");
     }
 
-    if response.success {
-        handle_connect_success(connect_args).await
-    } else if let Some(error) = response.error {
-        handle_connect_failure(error)
+    if connect_accepted {
+        if connect_args.wait {
+            println!("Waiting until connected or failed");
+            wait_until_connected().await
+        } else {
+            Ok(())
+        }
     } else {
-        println!("Connect command failed with unknown error");
+        println!("Connect has not been accepted");
         Ok(())
     }
-}
-
-async fn handle_connect_success(connect_args: &cli::ConnectArgs) -> Result<()> {
-    if connect_args.wait {
-        println!("Successfully sent connect command. Waiting until connected or failed.");
-        wait_until_connected().await
-    } else {
-        println!("Successfully sent connect command");
-        Ok(())
-    }
-}
-
-fn handle_connect_failure(error: nym_vpn_proto::ConnectRequestError) -> Result<()> {
-    let kind = nym_vpn_proto::connect_request_error::ConnectRequestErrorType::try_from(error.kind)
-        .context("failed to parse connect request error kind")?;
-    println!("Connect command failed: {} (id={kind:?})", error.message);
-    Ok(())
 }
 
 async fn wait_until_connected() -> Result<()> {

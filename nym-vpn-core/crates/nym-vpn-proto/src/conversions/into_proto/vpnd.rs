@@ -1,17 +1,14 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpnd_types::{
-    gateway::Score,
-    log_path::LogPath,
-    service::{VpnServiceConnectError, VpnServiceInfo},
-};
+use nym_vpnd_types::{ConnectArgs, gateway::Score, log_path::LogPath, service::VpnServiceInfo};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
 use crate::{
-    ConnectRequestError as ProtoConnectRequestError, GetLogPathResponse as ProtoGetLogPathResponse,
-    InfoResponse as ProtoInfoResponse, NymNetworkDetails as ProtoNymNetworkDetails,
-    NymVpnNetworkDetails as ProtoNymVpnNetworkDetails,
+    ConnectRequest, Dns as ProtoDns, EntryNode as ProtoEntryNode, ExitNode as ProtoExitNode,
+    GetLogPathResponse as ProtoGetLogPathResponse, InfoResponse as ProtoInfoResponse,
+    NymNetworkDetails as ProtoNymNetworkDetails, NymVpnNetworkDetails as ProtoNymVpnNetworkDetails,
+    UserAgent as ProtoUserAgent, conversions::ConversionError,
 };
 
 impl From<nym_vpnd_types::gateway::Location> for crate::Location {
@@ -138,21 +135,6 @@ impl From<VpnServiceInfo> for ProtoInfoResponse {
     }
 }
 
-impl From<VpnServiceConnectError> for ProtoConnectRequestError {
-    fn from(err: VpnServiceConnectError) -> Self {
-        match err {
-            VpnServiceConnectError::Internal(ref _account_error) => ProtoConnectRequestError {
-                kind: crate::connect_request_error::ConnectRequestErrorType::Internal as i32,
-                message: err.to_string(),
-            },
-            VpnServiceConnectError::Cancel => ProtoConnectRequestError {
-                kind: crate::connect_request_error::ConnectRequestErrorType::Internal as i32,
-                message: err.to_string(),
-            },
-        }
-    }
-}
-
 impl From<LogPath> for ProtoGetLogPathResponse {
     fn from(value: nym_vpnd_types::log_path::LogPath) -> Self {
         Self {
@@ -160,5 +142,39 @@ impl From<LogPath> for ProtoGetLogPathResponse {
             path: value.dir.to_string_lossy().into_owned(),
             filename: value.filename,
         }
+    }
+}
+
+impl TryFrom<ConnectArgs> for ConnectRequest {
+    type Error = ConversionError;
+
+    fn try_from(value: ConnectArgs) -> Result<Self, Self::Error> {
+        let entry = value.entry.map(ProtoEntryNode::try_from).transpose()?;
+        let exit = value.exit.map(ProtoExitNode::try_from).transpose()?;
+        Ok(Self {
+            dns: value.options.dns.map(|ip| ProtoDns { ip: ip.to_string() }),
+            enable_two_hop: value.options.enable_two_hop,
+            netstack: value.options.netstack,
+            disable_poisson_rate: value.options.disable_poisson_rate,
+            disable_background_cover_traffic: value.options.disable_background_cover_traffic,
+            enable_credentials_mode: value.options.enable_credentials_mode,
+            user_agent: value.options.user_agent.map(|s| ProtoUserAgent::from(s)),
+            entry,
+            exit,
+        })
+    }
+}
+
+impl TryFrom<nym_gateway_directory::ExitPoint> for ProtoExitNode {
+    type Error = ConversionError;
+    fn try_from(value: nym_gateway_directory::ExitPoint) -> Result<Self, Self::Error> {
+        todo!("implement me")
+    }
+}
+
+impl TryFrom<nym_gateway_directory::EntryPoint> for ProtoEntryNode {
+    type Error = ConversionError;
+    fn try_from(value: nym_gateway_directory::EntryPoint) -> Result<Self, Self::Error> {
+        todo!("implement me")
     }
 }

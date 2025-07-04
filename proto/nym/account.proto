@@ -110,10 +110,6 @@ message StoreAccountResponse {
   StoreAccountError error = 2;
 }
 
-message IsAccountStoredResponse {
-  bool is_stored = 1;
-}
-
 message ForgetAccountResponse {
   ForgetAccountError error = 2;
 }

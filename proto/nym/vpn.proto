@@ -186,20 +186,6 @@ message Threshold {
   uint32 min_performance = 1;
 }
 
-message ConnectRequestError {
-  enum ConnectRequestErrorType {
-    CONNECT_REQUEST_ERROR_TYPE_UNSPECIFIED = 0;
-
-    // Unspecified internal error
-    INTERNAL = 1;
-  }
-
-  ConnectRequestErrorType kind = 1;
-
-  // Internal message for logging and debugging
-  string message = 2;
-}
-
 message ConnectRequest {
   EntryNode entry = 1;
   ExitNode exit = 2;
@@ -210,11 +196,6 @@ message ConnectRequest {
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
   UserAgent user_agent = 12;
-}
-
-message ConnectResponse {
-  bool success = 1;
-  ConnectRequestError error = 2;
 }
 
 message AsEntry {
@@ -477,7 +458,7 @@ service NymVpnd {
   rpc GetFeatureFlags (google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
 
   // Start the tunnel and connect
-  rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
+  rpc VpnConnect (ConnectRequest) returns (google.protobuf.BoolValue) {}
 
   // Disconnect and stop the tunnel
   rpc VpnDisconnect (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
@@ -505,7 +486,7 @@ service NymVpnd {
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
 
   // Check if the recovery phrase is stored
-  rpc IsAccountStored (google.protobuf.Empty) returns (IsAccountStoredResponse) {}
+  rpc IsAccountStored (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Removes everything related to the account, including the device identity,
   // credential storage, mixnet keys, gateway registrations.
