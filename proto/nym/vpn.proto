@@ -170,7 +170,7 @@ message GetSystemMessagesResponse {
 }
 
 message GetNetworkCompatibilityResponse {
-  optional NetworkCompatibility messages = 1;
+  optional NetworkCompatibility network_compatibility = 1;
 }
 
 message GetFeatureFlagsResponse {

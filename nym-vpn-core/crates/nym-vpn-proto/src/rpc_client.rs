@@ -3,8 +3,9 @@
 
 use std::{io, path::PathBuf};
 
+use nym_vpn_api_client::NetworkCompatibility;
 use nym_vpn_lib_types::{TunnelEvent, TunnelState};
-use nym_vpn_network_config::SystemMessages;
+use nym_vpn_network_config::{FeatureFlags, SystemMessages};
 use nym_vpnd_types::{log_path::LogPath, service::VpnServiceInfo};
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio_stream::{Stream, StreamExt};
@@ -58,15 +59,28 @@ impl RpcClient {
         Ok(SystemMessages::from(response))
     }
 
-    pub async fn get_tunnel_status(&mut self) -> Result<TunnelState> {
-        let state = self
+    pub async fn get_network_compatibility(&mut self) -> Result<Option<NetworkCompatibility>> {
+        let response = self
             .0
-            .get_tunnel_state(())
+            .get_network_compatibility(())
             .await
             .map_err(Error::Rpc)?
             .into_inner();
 
-        TunnelState::try_from(state).map_err(Error::InvalidResponse)
+        Ok(response
+            .network_compatibility
+            .map(NetworkCompatibility::from))
+    }
+
+    pub async fn get_feature_flags(&mut self) -> Result<FeatureFlags> {
+        let response = self
+            .0
+            .get_feature_flags(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(FeatureFlags::from(response))
     }
 
     pub async fn listen_to_tunnel_state(
@@ -107,6 +121,17 @@ impl RpcClient {
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
+    }
+
+    pub async fn get_tunnel_state(&mut self) -> Result<TunnelState> {
+        let state = self
+            .0
+            .get_tunnel_state(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        TunnelState::try_from(state).map_err(Error::InvalidResponse)
     }
 
     pub async fn get_log_path(&mut self) -> Result<LogPath> {

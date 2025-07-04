@@ -7,11 +7,12 @@ use nym_config::defaults::NymNetworkDetails;
 use nym_vpn_network_config::{
     NymNetwork, NymVpnNetwork, SystemMessage, SystemMessages, system_messages::Properties,
 };
+use nym_vpnd_types::{ConnectArgs, ConnectOptions};
 use url::Url;
 
 use crate::{
-    GetLogPathResponse, GetSystemMessagesResponse, Score, SystemMessage as ProtoSystemMessage,
-    conversions::ConversionError,
+    ConnectRequest, EntryNode, ExitNode, GetLogPathResponse, GetSystemMessagesResponse, Score,
+    SystemMessage as ProtoSystemMessage, conversions::ConversionError,
 };
 
 impl From<crate::Location> for nym_vpnd_types::gateway::Location {
@@ -211,5 +212,124 @@ impl From<ProtoSystemMessage> for SystemMessage {
             message: value.message,
             properties: Properties::from(value.properties),
         }
+    }
+}
+
+impl TryFrom<ConnectRequest> for ConnectArgs {
+    type Error = ConversionError;
+
+    fn try_from(value: ConnectRequest) -> Result<Self, Self::Error> {
+        let entry = value
+            .entry
+            .clone() // todo: prevent clone()
+            .map(nym_gateway_directory::EntryPoint::try_from)
+            .transpose()?;
+        let exit = value
+            .exit
+            .clone() // todo: prevent clone()
+            .map(nym_gateway_directory::ExitPoint::try_from)
+            .transpose()?;
+
+        let options = ConnectOptions::try_from(value)?;
+
+        Ok(Self {
+            entry,
+            exit,
+            options,
+        })
+    }
+}
+
+impl TryFrom<ConnectRequest> for ConnectOptions {
+    type Error = ConversionError;
+
+    fn try_from(value: ConnectRequest) -> Result<Self, Self::Error> {
+        let dns = value
+            .dns
+            .map(|dns| {
+                dns.ip
+                    .parse()
+                    .map_err(|err| ConversionError::ParseAddr("ConnectRequest.dns", err))
+            })
+            .transpose()?;
+
+        Ok(Self {
+            dns,
+            enable_two_hop: value.enable_two_hop,
+            netstack: value.netstack,
+            disable_poisson_rate: value.disable_poisson_rate,
+            disable_background_cover_traffic: value.disable_background_cover_traffic,
+            enable_credentials_mode: value.enable_credentials_mode,
+            // todo: perf options are missing from connect request?
+            min_mixnode_performance: None,
+            min_gateway_mixnet_performance: None,
+            min_gateway_vpn_performance: None,
+            user_agent: value.user_agent.map(nym_sdk::UserAgent::from),
+        })
+    }
+}
+
+impl TryFrom<EntryNode> for nym_gateway_directory::EntryPoint {
+    type Error = ConversionError;
+
+    fn try_from(value: EntryNode) -> Result<Self, Self::Error> {
+        let entry_enum_value = value
+            .entry_node_enum
+            .ok_or(ConversionError::NoValueSet("EntryNode.entry_node_enum"))?;
+
+        Ok(match entry_enum_value {
+            crate::entry_node::EntryNodeEnum::Location(location) => {
+                nym_gateway_directory::EntryPoint::Location {
+                    location: location.two_letter_iso_country_code.to_string(),
+                }
+            }
+            crate::entry_node::EntryNodeEnum::Gateway(gateway) => {
+                let identity = nym_gateway_directory::NodeIdentity::from_base58_string(&gateway.id)
+                    .map_err(|err| {
+                        ConversionError::Generic(format!("failed to parse gateway id: {err}"))
+                    })?;
+                nym_gateway_directory::EntryPoint::Gateway { identity }
+            }
+            crate::entry_node::EntryNodeEnum::Random(_) => {
+                nym_gateway_directory::EntryPoint::Random
+            }
+        })
+    }
+}
+
+impl TryFrom<ExitNode> for nym_gateway_directory::ExitPoint {
+    type Error = ConversionError;
+
+    fn try_from(value: ExitNode) -> Result<Self, Self::Error> {
+        let exit_enum_value = value
+            .exit_node_enum
+            .ok_or(ConversionError::NoValueSet("ExitNode.exit_node_enum"))?;
+
+        Ok(match exit_enum_value {
+            crate::exit_node::ExitNodeEnum::Address(address) => {
+                let address = nym_gateway_directory::Recipient::try_from_base58_string(
+                    address.nym_address.clone(),
+                )
+                .map_err(|err| {
+                    ConversionError::Generic(format!("failed to parse exit node address: {err}"))
+                })?;
+                nym_gateway_directory::ExitPoint::Address {
+                    address: Box::new(address),
+                }
+            }
+            crate::exit_node::ExitNodeEnum::Gateway(gateway) => {
+                let identity = nym_gateway_directory::NodeIdentity::from_base58_string(&gateway.id)
+                    .map_err(|err| {
+                        ConversionError::Generic(format!("failed to parse gateway id: {err}"))
+                    })?;
+                nym_gateway_directory::ExitPoint::Gateway { identity }
+            }
+            crate::exit_node::ExitNodeEnum::Location(location) => {
+                nym_gateway_directory::ExitPoint::Location {
+                    location: location.two_letter_iso_country_code.to_string(),
+                }
+            }
+            crate::exit_node::ExitNodeEnum::Random(_) => nym_gateway_directory::ExitPoint::Random,
+        })
     }
 }

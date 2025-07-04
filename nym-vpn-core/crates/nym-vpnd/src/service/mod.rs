@@ -13,6 +13,5 @@ pub use config::{
 };
 pub use error::SetNetworkError;
 pub use vpn_service::{
-    ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions, NymVpnService,
-    VpnServiceCommand,
+    ListCountriesOptions, ListGatewaysOptions, NymVpnService, VpnServiceCommand,
 };

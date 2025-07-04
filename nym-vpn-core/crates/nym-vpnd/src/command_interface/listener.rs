@@ -1,9 +1,9 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use futures::{StreamExt, stream::BoxStream};
-use nym_vpn_api_client::NetworkCompatibility;
+use futures::{FutureExt, StreamExt, stream::BoxStream};
 use tokio::sync::{broadcast, mpsc::UnboundedSender, oneshot};
+use zeroize::Zeroizing;
 
 use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
@@ -15,22 +15,17 @@ use nym_vpn_proto::{
     GetNetworkCompatibilityResponse, GetSystemMessagesResponse, GetZkNymByIdRequest,
     GetZkNymByIdResponse, GetZkNymsAvailableForDownloadResponse, InfoResponse,
     IsAccountStoredResponse, ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest,
-    ListGatewaysResponse, RefreshAccountStateResponse, RegisterDeviceResponse,
-    RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
-    StoreAccountRequest, StoreAccountResponse, TunnelState, conversions::ConversionError,
-    get_account_state_response::AccountStateSummary, get_account_usage_response::AccountUsages,
-    get_devices_response::Devices, nym_vpnd_server::NymVpnd,
+    ListGatewaysResponse, NetworkCompatibility, RefreshAccountStateResponse,
+    RegisterDeviceResponse, RequestZkNymResponse, ResetDeviceIdentityRequest,
+    ResetDeviceIdentityResponse, StoreAccountRequest, StoreAccountResponse, TunnelState,
+    conversions::ConversionError, get_account_state_response::AccountStateSummary,
+    get_account_usage_response::AccountUsages, get_devices_response::Devices,
+    nym_vpnd_server::NymVpnd,
 };
-use nym_vpnd_types::log_path::LogPath;
-use zeroize::Zeroizing;
+use nym_vpnd_types::{ConnectArgs, log_path::LogPath};
 
-use super::{
-    error::CommandInterfaceError,
-    helpers::{parse_entry_point, parse_exit_point},
-};
 use crate::service::{
-    ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions, SetNetworkError,
-    VpnServiceCommand,
+    ListCountriesOptions, ListGatewaysOptions, SetNetworkError, VpnServiceCommand,
 };
 
 pub(super) struct CommandInterface {
@@ -114,13 +109,13 @@ impl NymVpnd for CommandInterface {
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<GetNetworkCompatibilityResponse>, tonic::Status> {
-        let compatibility = self
+        let network_compatibility = self
             .send_and_wait(VpnServiceCommand::GetNetworkCompatibility, ())
-            .await?;
+            .await?
+            .map(NetworkCompatibility::from);
 
-        let compatibility = compatibility.map(NetworkCompatibility::into);
         let response = GetNetworkCompatibilityResponse {
-            messages: compatibility,
+            network_compatibility,
         };
 
         Ok(tonic::Response::new(response))
@@ -142,32 +137,8 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<ConnectRequest>,
     ) -> Result<tonic::Response<ConnectResponse>, tonic::Status> {
-        let connect_request = request.into_inner();
-        let entry = connect_request
-            .entry
-            .clone()
-            .and_then(|e| e.entry_node_enum)
-            .map(parse_entry_point)
-            .transpose()
-            .map_err(|err| *err)?;
-
-        let exit = connect_request
-            .exit
-            .clone()
-            .and_then(|e| e.exit_node_enum)
-            .map(parse_exit_point)
-            .transpose()
-            .map_err(|err| *err)?;
-
-        let options = ConnectOptions::try_from(connect_request).map_err(|err| {
-            tonic::Status::invalid_argument(format!("Invalid connect options: {err}"))
-        })?;
-
-        let connect_args = ConnectArgs {
-            entry,
-            exit,
-            options,
-        };
+        let connect_args = ConnectArgs::try_from(request.into_inner())
+            .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
 
         let status = self
             .send_and_wait(VpnServiceCommand::Connect, connect_args)
@@ -625,47 +596,6 @@ impl NymVpnd for CommandInterface {
                 tonic::Status::internal("failed to disable sentry")
             })?;
         Ok(tonic::Response::new(()))
-    }
-}
-
-impl TryFrom<ConnectRequest> for ConnectOptions {
-    type Error = CommandInterfaceError;
-
-    fn try_from(request: ConnectRequest) -> Result<Self, Self::Error> {
-        // Parse the inner DNS IP address if it exists, but make sure to keep the outer Option.
-        let dns = request
-            .dns
-            .map(|dns| {
-                dns.ip
-                    .parse()
-                    .map_err(|err| CommandInterfaceError::ParseDnsIp {
-                        ip: dns.ip.clone(),
-                        source: err,
-                    })
-            })
-            .transpose()?;
-
-        let disable_background_cover_traffic = if request.enable_two_hop {
-            // If two-hop is enabled, we always disable background cover traffic
-            true
-        } else {
-            request.disable_background_cover_traffic
-        };
-
-        let user_agent = request.user_agent.map(nym_vpn_lib::UserAgent::from);
-
-        Ok(ConnectOptions {
-            dns,
-            enable_two_hop: request.enable_two_hop,
-            netstack: request.netstack,
-            disable_poisson_rate: request.disable_poisson_rate,
-            disable_background_cover_traffic,
-            enable_credentials_mode: request.enable_credentials_mode,
-            min_mixnode_performance: None,
-            min_gateway_mixnet_performance: None,
-            min_gateway_vpn_performance: None,
-            user_agent,
-        })
     }
 }
 

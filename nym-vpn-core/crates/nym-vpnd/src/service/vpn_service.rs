@@ -41,6 +41,7 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
+    ConnectArgs,
     gateway::{Country, Gateway},
     log_path::LogPath,
     service::{VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo},
@@ -142,27 +143,6 @@ pub struct ListGatewaysOptions {
 pub struct ListCountriesOptions {
     pub gw_type: GatewayType,
     #[allow(unused)]
-    pub user_agent: Option<UserAgent>,
-}
-
-#[derive(Debug)]
-pub struct ConnectArgs {
-    pub entry: Option<gateway_directory::EntryPoint>,
-    pub exit: Option<gateway_directory::ExitPoint>,
-    pub options: ConnectOptions,
-}
-
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectOptions {
-    pub dns: Option<IpAddr>,
-    pub enable_two_hop: bool,
-    pub netstack: bool,
-    pub disable_poisson_rate: bool,
-    pub disable_background_cover_traffic: bool,
-    pub enable_credentials_mode: bool,
-    pub min_mixnode_performance: Option<Percent>,
-    pub min_gateway_mixnet_performance: Option<Percent>,
-    pub min_gateway_vpn_performance: Option<Percent>,
     pub user_agent: Option<UserAgent>,
 }
 
