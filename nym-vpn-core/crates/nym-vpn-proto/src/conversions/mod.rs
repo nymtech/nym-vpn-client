@@ -9,13 +9,10 @@ pub mod network_config;
 pub mod prost;
 pub mod tunnel_event;
 pub mod tunnel_state;
-pub mod types;
-mod util;
 pub mod vpn_api_client;
 pub mod vpnd;
 
 pub use error::ConversionError;
-pub use types::InfoResponse;
 
 use crate::proto;
 
