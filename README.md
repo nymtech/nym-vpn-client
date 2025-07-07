@@ -57,21 +57,11 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 - Multi-language Support: 10+ localizations with crowdsourced language support
 
 🛡️ Advanced Privacy and Security
-
 - Multi-hop by Default: No server views both your IP address and online activity
 - zk-nyms: Private zero-knowledge credential system to unlink payments data from online activity
 - No Centralized Logging: Cryptographically impossible to track users
+- Advanced Cryptographic Stack: Cure25519, AES, ChaCha20-Poly1305, BLAKE2/BLAKE3, Lioness Wide Block Cipher, Pointcheval-Sanders Signatures, Pedersen Commitments, NIZK Proofs, BLS12-381 Curve, post-quantum readiness (_coming soon_)
 - Independent Security Audits: JP Aumasson (2021), Oak Security (2022), Cryspen (2023-2024), Cure53 (2024)
-
-🔐 Advanced Cryptographic Stack
-
-- Curve25519: key exchange and authentication
-- AES: Data encryption (AES-GCM-SIV-256, AES-CTR-128
-- ChaCha20-Poly1305: High-speed cipher with authentication
-- BLAKE2/BLAKE3: Advanced hashing algorithms
-- Lioness Wide Block Cipher: Custom encryption for mixnet packets
-- Pointcheval-Sanders Signatures, Pedersen Commitments, NIZK Proofs, BLS12-381 Curve: Zero-knowledge credentials
-- Post-Quantum Readiness (_coming soon_)
 
 🌐 Censorship Resistance Technologies
 - AmneziaWG Integration: Bypass barriers to information access with AmneziaWG (censorship-resistance WireGuard fork)
@@ -110,7 +100,7 @@ For Organizations
 - Compliance: GDPR-friendly privacy infrastructure
 
 
-🔬 Research Foundation & Academic Partnerships
+# 🔬 Research Foundation & Academic Partnerships
 
 Peer-Reviewed Research ([50+ Publications](https://nym.com/trust-center/papers-and-research))
 
