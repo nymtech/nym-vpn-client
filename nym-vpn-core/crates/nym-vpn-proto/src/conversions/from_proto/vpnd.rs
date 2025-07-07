@@ -15,7 +15,8 @@ use url::Url;
 use crate::{
     ConnectRequest, EntryNode, ExitNode, GatewayType as ProtoGatewayType, GetLogPathResponse,
     GetSystemMessagesResponse, ListCountriesRequest as ProtoListCountriesRequest,
-    ListGatewaysRequest as ProtoListGatewaysRequest, Score, SystemMessage as ProtoSystemMessage,
+    ListGatewaysRequest as ProtoListGatewaysRequest, Score,
+    StoreAccountRequest as ProtoStoreAccountRequest, SystemMessage as ProtoSystemMessage,
     conversions::ConversionError,
 };
 
@@ -366,5 +367,13 @@ impl TryFrom<ProtoListCountriesRequest> for ListCountriesOptions {
             gw_type,
             user_agent,
         })
+    }
+}
+
+impl From<ProtoStoreAccountRequest> for nym_vpnd_types::StoreAccountRequest {
+    fn from(value: ProtoStoreAccountRequest) -> Self {
+        Self {
+            mnemonic: value.mnemonic,
+        }
     }
 }

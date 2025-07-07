@@ -15,6 +15,7 @@ workspace = true
 serde.workspace = true
 time.workspace = true
 thiserror.workspace = true
+zeroize.workspace = true
 
 nym-vpn-lib = { workspace = true }
 nym-validator-client.workspace = true

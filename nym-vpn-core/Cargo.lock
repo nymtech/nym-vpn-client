@@ -5330,6 +5330,7 @@ dependencies = [
  "serde",
  "thiserror 2.0.12",
  "time",
+ "zeroize",
 ]
 
 [[package]]
