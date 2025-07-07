@@ -3,9 +3,38 @@
 
 use nym_vpn_lib_types::{
     AvailableTickets, RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess,
+    StoreAccountError,
 };
 
 use crate::proto;
+
+impl From<StoreAccountError> for proto::StoreAccountError {
+    fn from(value: StoreAccountError) -> Self {
+        match value {
+            StoreAccountError::InvalidMnemonic(err) => proto::StoreAccountError {
+                error_detail: Some(proto::store_account_error::ErrorDetail::InvalidMnemonic(
+                    err,
+                )),
+            },
+            StoreAccountError::Storage(err) => proto::StoreAccountError {
+                error_detail: Some(proto::store_account_error::ErrorDetail::StorageError(err)),
+            },
+            StoreAccountError::GetAccountEndpointFailure(vpn_api) => proto::StoreAccountError {
+                error_detail: Some(proto::store_account_error::ErrorDetail::VpnApi(
+                    vpn_api.into(),
+                )),
+            },
+            StoreAccountError::UnexpectedResponse(err) => proto::StoreAccountError {
+                error_detail: Some(proto::store_account_error::ErrorDetail::UnexpectedResponse(
+                    err,
+                )),
+            },
+            StoreAccountError::Internal(err) => proto::StoreAccountError {
+                error_detail: Some(proto::store_account_error::ErrorDetail::Internal(err)),
+            },
+        }
+    }
+}
 
 impl From<RequestZkNymSuccess> for proto::RequestZkNymSuccess {
     fn from(value: RequestZkNymSuccess) -> Self {

@@ -371,3 +371,33 @@ impl From<proto::StoreAccountRequest> for nym_vpnd_types::StoreAccountRequest {
         }
     }
 }
+
+impl TryFrom<proto::StoreAccountResponse> for nym_vpnd_types::StoreAccountResponse {
+    type Error = ConversionError;
+    fn try_from(value: proto::StoreAccountResponse) -> Result<Self, Self::Error> {
+        let error = value
+            .error
+            .map(nym_vpn_lib_types::StoreAccountError::try_from)
+            .transpose()
+            .map_err(|e| {
+                ConversionError::Generic(format!("failed to parse StoreAccountError: {e}"))
+            })?;
+
+        Ok(Self { error })
+    }
+}
+
+impl TryFrom<proto::ForgetAccountResponse> for nym_vpnd_types::ForgetAccountResponse {
+    type Error = ConversionError;
+    fn try_from(value: proto::ForgetAccountResponse) -> Result<Self, Self::Error> {
+        let error = value
+            .error
+            .map(nym_vpn_lib_types::ForgetAccountError::try_from)
+            .transpose()
+            .map_err(|e| {
+                ConversionError::Generic(format!("failed to parse ForgetAccountError: {e}"))
+            })?;
+
+        Ok(Self { error })
+    }
+}

@@ -74,22 +74,22 @@ pub enum Command {
     GetDeviceId,
 
     /// List the set of entry gateways for mixnet mode.
-    ListEntryGateways(ListGatewaysArgs),
+    ListEntryGateways,
 
     /// List the set of exit gateways for mixnet mode.
-    ListExitGateways(ListGatewaysArgs),
+    ListExitGateways,
 
     /// List the set of entry and exit gateways for dVPN mode.
-    ListVpnGateways(ListGatewaysArgs),
+    ListVpnGateways,
 
     /// List the set of countries with available entry gateways for mixnet mode.
-    ListEntryCountries(ListCountriesArgs),
+    ListEntryCountries,
 
     /// List the set of countries with available exit gateways for mixnet mode.
-    ListExitCountries(ListCountriesArgs),
+    ListExitCountries,
 
     /// List the set of countries with available entry and exit gateways for dVPN mode.
-    ListVpnCountries(ListCountriesArgs),
+    ListVpnCountries,
 
     /// Internal commands for development and debugging.
     #[clap(subcommand, hide = true)]
@@ -236,13 +236,6 @@ pub struct GetAccountLinksArgs {
     /// The locale to be used.
     #[arg(long)]
     pub locale: String,
-}
-
-#[derive(Args)]
-pub struct ListGatewaysArgs {
-    /// Display additional information about the gateways.
-    #[arg(long, short)]
-    pub verbose: bool,
 }
 
 #[derive(Args)]

@@ -3,11 +3,12 @@
 
 use std::path::PathBuf;
 
-use nym_vpn_api_client::NetworkCompatibility;
+use nym_vpn_api_client::{NetworkCompatibility, response::NymVpnDevice};
 use nym_vpn_lib_types::{TunnelEvent, TunnelState};
-use nym_vpn_network_config::{FeatureFlags, SystemMessages};
+use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
-    ConnectArgs, ListCountriesOptions, ListGatewaysOptions,
+    ConnectArgs, ForgetAccountResponse, ListCountriesOptions, ListGatewaysOptions,
+    StoreAccountRequest, StoreAccountResponse,
     gateway::{Country, Gateway},
     log_path::LogPath,
     service::VpnServiceInfo,
@@ -16,9 +17,7 @@ use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
 
-use crate::proto::{
-    ConnectRequest, ListCountriesRequest, ListGatewaysRequest, nym_vpnd_client::NymVpndClient,
-};
+use crate::proto::{self, nym_vpnd_client::NymVpndClient};
 
 type ServiceClient = NymVpndClient<tonic::transport::Channel>;
 
@@ -87,7 +86,8 @@ impl RpcClient {
     }
 
     pub async fn connect_tunnel(&mut self, request: ConnectArgs) -> Result<bool> {
-        let connect_req = ConnectRequest::try_from(request).map_err(Error::InvalidRequest)?;
+        let connect_req =
+            proto::ConnectRequest::try_from(request).map_err(Error::InvalidRequest)?;
 
         let is_accepted = self
             .0
@@ -151,7 +151,8 @@ impl RpcClient {
     }
 
     pub async fn list_gateways(&mut self, options: ListGatewaysOptions) -> Result<Vec<Gateway>> {
-        let request = ListGatewaysRequest::try_from(options).map_err(Error::InvalidRequest)?;
+        let request =
+            proto::ListGatewaysRequest::try_from(options).map_err(Error::InvalidRequest)?;
 
         let gateways = self
             .0
@@ -167,7 +168,8 @@ impl RpcClient {
     }
 
     pub async fn list_countries(&mut self, options: ListCountriesOptions) -> Result<Vec<Country>> {
-        let request = ListCountriesRequest::try_from(options).map_err(Error::InvalidRequest)?;
+        let request =
+            proto::ListCountriesRequest::try_from(options).map_err(Error::InvalidRequest)?;
 
         let countries = self
             .0
@@ -177,6 +179,161 @@ impl RpcClient {
             .map_err(Error::Rpc)?;
 
         Ok(countries.into_iter().map(Country::from).collect())
+    }
+
+    pub async fn store_account(
+        &mut self,
+        store_request: StoreAccountRequest,
+    ) -> Result<StoreAccountResponse> {
+        let request = proto::StoreAccountRequest::from(store_request);
+        let response = self
+            .0
+            .store_account(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        StoreAccountResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn is_account_stored(&mut self) -> Result<bool> {
+        self.0
+            .is_account_stored(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn forget_account(&mut self) -> Result<ForgetAccountResponse> {
+        let response = self
+            .0
+            .forget_account(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        ForgetAccountResponse::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn get_account_identity(&mut self) -> Result<Option<String>> {
+        self.0
+            .get_account_identity(())
+            .await
+            .map(|v| v.into_inner().account_identity)
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn get_account_links(&mut self, locale: String) -> Result<ParsedAccountLinks> {
+        let request = proto::GetAccountLinksRequest {
+            locale: locale.into(),
+        };
+        let response = self
+            .0
+            .get_account_links(request)
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)?;
+
+        ParsedAccountLinks::try_from(response).map_err(Error::InvalidResponse)
+    }
+
+    pub async fn get_account_state(&mut self) -> Result<()> {
+        // let response = self
+        //     .0
+        //     .get_account_state(())
+        //     .await
+        //     .map_err(Error::Rpc)?
+        //     .into_inner();
+        Ok(()) // todo!
+    }
+
+    pub async fn refresh_account_state(&mut self) -> Result<()> {
+        self.0
+            .refresh_account_state(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
+    pub async fn get_account_usage(&mut self) -> Result<()> {
+        let response = self
+            .0
+            .get_account_usage(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(()) // todo!
+    }
+
+    pub async fn reset_device_identity(&mut self, seed: Option<Vec<u8>>) -> Result<()> {
+        let request = proto::ResetDeviceIdentityRequest { seed };
+        self.0
+            .reset_device_identity(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+        Ok(())
+    }
+
+    pub async fn get_device_identity(&mut self) -> Result<String> {
+        let response = self
+            .0
+            .get_device_identity(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(response.device_identity)
+    }
+
+    pub async fn register_device(&mut self) -> Result<()> {
+        self.0
+            .register_device(())
+            .await
+            .map(|v| v.into_inner())
+            .map_err(Error::Rpc)
+    }
+
+    pub async fn get_devices(&mut self) -> Result<Vec<NymVpnDevice>> {
+        let response = self
+            .0
+            .get_devices(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        let devices = response
+            .devices
+            .unwrap_or_default()
+            .devices
+            .into_iter()
+            .map(NymVpnDevice::try_from)
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(Error::InvalidResponse)?;
+
+        Ok(devices)
+    }
+
+    pub async fn get_active_devices(&mut self) -> Result<Vec<NymVpnDevice>> {
+        let response = self
+            .0
+            .get_active_devices(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        let devices = response
+            .devices
+            .unwrap_or_default()
+            .devices
+            .into_iter()
+            .map(NymVpnDevice::try_from)
+            .collect::<Result<Vec<_>, _>>()
+            .map_err(Error::InvalidResponse)?;
+
+        Ok(devices)
     }
 
     pub async fn get_log_path(&mut self) -> Result<LogPath> {
