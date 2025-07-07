@@ -9,24 +9,11 @@ use nym_vpn_account_controller::{
     },
 };
 
-use crate::{
-    RegisterDeviceError as ProtoRegisterDeviceError,
-    RegisterDeviceResult as ProtoRegisterDeviceResult, RequestZkNymError as ProtoRequestZkNymError,
-    RequestZkNymResult as ProtoRequestZkNymResult, RequestZkNymSuccess as ProtoRequestZkNymSuccess,
-    get_account_state_response::{
-        AccountStateSummary as ProtoAccountStateSummary,
-        account_state_summary::{
-            AccountRegistered as ProtoAccountRegistered, AccountSummary as ProtoAccountSummary,
-            DeviceState as ProtoDeviceState, MnemonicState as ProtoMnemonicState,
-            account_summary::{
-                AccountState as ProtoAccountState, DeviceSummary as ProtoDeviceSummary,
-                FairUsageState as ProtoFairUsageState, SubscriptionState as ProtoSubscriptionState,
-            },
-        },
-    },
-};
+use crate::proto;
 
-impl From<MnemonicState> for ProtoMnemonicState {
+impl From<MnemonicState>
+    for proto::get_account_state_response::account_state_summary::MnemonicState
+{
     fn from(mnemonic: MnemonicState) -> Self {
         match mnemonic {
             MnemonicState::Stored { .. } => Self::Stored,
@@ -35,7 +22,9 @@ impl From<MnemonicState> for ProtoMnemonicState {
     }
 }
 
-impl From<AccountRegistered> for ProtoAccountRegistered {
+impl From<AccountRegistered>
+    for proto::get_account_state_response::account_state_summary::AccountRegistered
+{
     fn from(account_registered: AccountRegistered) -> Self {
         match account_registered {
             AccountRegistered::Registered => Self::AccountRegistered,
@@ -44,7 +33,9 @@ impl From<AccountRegistered> for ProtoAccountRegistered {
     }
 }
 
-impl From<AccountState> for ProtoAccountState {
+impl From<AccountState>
+    for proto::get_account_state_response::account_state_summary::account_summary::AccountState
+{
     fn from(account: AccountState) -> Self {
         match account {
             AccountState::Inactive => Self::Inactive,
@@ -54,7 +45,9 @@ impl From<AccountState> for ProtoAccountState {
     }
 }
 
-impl From<SubscriptionState> for ProtoSubscriptionState {
+impl From<SubscriptionState>
+    for proto::get_account_state_response::account_state_summary::account_summary::SubscriptionState
+{
     fn from(subscription: SubscriptionState) -> Self {
         match subscription {
             SubscriptionState::NotActive => Self::NotRegistered,
@@ -65,7 +58,9 @@ impl From<SubscriptionState> for ProtoSubscriptionState {
     }
 }
 
-impl From<DeviceSummary> for ProtoDeviceSummary {
+impl From<DeviceSummary>
+    for proto::get_account_state_response::account_state_summary::account_summary::DeviceSummary
+{
     fn from(device_summary: DeviceSummary) -> Self {
         Self {
             active: device_summary.active,
@@ -75,7 +70,9 @@ impl From<DeviceSummary> for ProtoDeviceSummary {
     }
 }
 
-impl From<FairUsage> for ProtoFairUsageState {
+impl From<FairUsage>
+    for proto::get_account_state_response::account_state_summary::account_summary::FairUsageState
+{
     fn from(fair_usage: FairUsage) -> Self {
         Self {
             used_gb: fair_usage.used_gb,
@@ -85,18 +82,23 @@ impl From<FairUsage> for ProtoFairUsageState {
     }
 }
 
-impl From<AccountSummary> for ProtoAccountSummary {
+impl From<AccountSummary>
+    for proto::get_account_state_response::account_state_summary::AccountSummary
+{
     fn from(account_summary: AccountSummary) -> Self {
+        use proto::get_account_state_response::account_state_summary::account_summary::{
+            AccountState, DeviceSummary, FairUsageState,
+        };
         Self {
-            account: ProtoAccountState::from(account_summary.account) as i32,
-            subscription: ProtoSubscriptionState::from(account_summary.subscription) as i32,
-            device_summary: Some(ProtoDeviceSummary::from(account_summary.device_summary)),
-            fair_usage: Some(ProtoFairUsageState::from(account_summary.fair_usage)),
+            account: AccountState::from(account_summary.account) as i32,
+            subscription: SubscriptionState::from(account_summary.subscription) as i32,
+            device_summary: Some(DeviceSummary::from(account_summary.device_summary)),
+            fair_usage: Some(FairUsageState::from(account_summary.fair_usage)),
         }
     }
 }
 
-impl From<DeviceState> for ProtoDeviceState {
+impl From<DeviceState> for proto::get_account_state_response::account_state_summary::DeviceState {
     fn from(device: DeviceState) -> Self {
         match device {
             DeviceState::NotRegistered => Self::NotRegistered,
@@ -107,30 +109,30 @@ impl From<DeviceState> for ProtoDeviceState {
     }
 }
 
-impl From<RegisterDeviceResult> for ProtoRegisterDeviceResult {
+impl From<RegisterDeviceResult> for proto::RegisterDeviceResult {
     fn from(device_registration: RegisterDeviceResult) -> Self {
         match device_registration {
             RegisterDeviceResult::InProgress => Self {
-                kind: crate::register_device_result::RegisterDeviceResultType::InProgress as i32,
+                kind: proto::register_device_result::RegisterDeviceResultType::InProgress as i32,
                 error: None,
             },
             RegisterDeviceResult::Success => Self {
-                kind: crate::register_device_result::RegisterDeviceResultType::Success as i32,
+                kind: proto::register_device_result::RegisterDeviceResultType::Success as i32,
                 error: None,
             },
             RegisterDeviceResult::Failed(err) => Self {
-                kind: crate::register_device_result::RegisterDeviceResultType::Failed as i32,
-                error: Some(ProtoRegisterDeviceError::from(err)),
+                kind: proto::register_device_result::RegisterDeviceResultType::Failed as i32,
+                error: Some(proto::RegisterDeviceError::from(err)),
             },
         }
     }
 }
 
-impl From<RequestZkNymResult> for ProtoRequestZkNymResult {
+impl From<RequestZkNymResult> for proto::RequestZkNymResult {
     fn from(zk_nym_request: RequestZkNymResult) -> Self {
         match zk_nym_request {
             RequestZkNymResult::InProgress => Self {
-                kind: crate::request_zk_nym_result::RequestZkNymResultType::InProgress as i32,
+                kind: proto::request_zk_nym_result::RequestZkNymResultType::InProgress as i32,
                 successes: Default::default(),
                 failures: Default::default(),
             },
@@ -138,44 +140,45 @@ impl From<RequestZkNymResult> for ProtoRequestZkNymResult {
                 successes,
                 failures,
             } => Self {
-                kind: crate::request_zk_nym_result::RequestZkNymResultType::Done as i32,
+                kind: proto::request_zk_nym_result::RequestZkNymResultType::Done as i32,
                 successes: successes
                     .into_iter()
-                    .map(ProtoRequestZkNymSuccess::from)
+                    .map(proto::RequestZkNymSuccess::from)
                     .collect(),
                 failures: failures
                     .into_iter()
-                    .map(ProtoRequestZkNymError::from)
+                    .map(proto::RequestZkNymError::from)
                     .collect(),
             },
             RequestZkNymResult::Error(e) => Self {
-                kind: crate::request_zk_nym_result::RequestZkNymResultType::Error as i32,
+                kind: proto::request_zk_nym_result::RequestZkNymResultType::Error as i32,
                 successes: Default::default(),
-                failures: vec![ProtoRequestZkNymError::from(e)],
+                failures: vec![proto::RequestZkNymError::from(e)],
             },
         }
     }
 }
 
-impl From<AccountStateSummary> for ProtoAccountStateSummary {
+impl From<AccountStateSummary> for proto::get_account_state_response::AccountStateSummary {
     fn from(state: AccountStateSummary) -> Self {
+        use proto::get_account_state_response::account_state_summary::{
+            AccountRegistered, AccountSummary, DeviceState, MnemonicState,
+        };
+
         Self {
-            mnemonic: state
-                .mnemonic
-                .map(ProtoMnemonicState::from)
-                .map(|m| m as i32),
+            mnemonic: state.mnemonic.map(MnemonicState::from).map(|m| m as i32),
             account_registered: state
                 .account_registered
-                .map(ProtoAccountRegistered::from)
+                .map(AccountRegistered::from)
                 .map(|m| m as i32),
-            account_summary: state.account_summary.map(ProtoAccountSummary::from),
-            device: state.device.map(ProtoDeviceState::from).map(|m| m as i32),
+            account_summary: state.account_summary.map(AccountSummary::from),
+            device: state.device.map(DeviceState::from).map(|m| m as i32),
             register_device_result: state
                 .register_device_result
-                .map(ProtoRegisterDeviceResult::from),
+                .map(proto::RegisterDeviceResult::from),
             request_zk_nym_result: state
                 .request_zk_nym_result
-                .map(ProtoRequestZkNymResult::from),
+                .map(proto::RequestZkNymResult::from),
         }
     }
 }

@@ -4,7 +4,6 @@
 
 mod cli;
 mod config;
-mod protobuf_conversion;
 mod vpnd_client;
 
 use anyhow::{Context, Result, bail};
@@ -14,12 +13,6 @@ use itertools::Itertools;
 use nym_gateway_directory::GatewayType;
 use nym_vpn_lib_types::TunnelState;
 use nym_vpn_network_config::ParsedAccountLinks;
-use nym_vpn_proto::{
-    ConfirmZkNymDownloadedRequest, ConnectRequest, GetAccountLinksRequest, GetZkNymByIdRequest,
-    InfoResponse, ListCountriesRequest, ListGatewaysRequest, ResetDeviceIdentityRequest,
-    StoreAccountRequest, UserAgent,
-};
-use protobuf_conversion::into_gateway_type;
 use sysinfo::System;
 
 use crate::{

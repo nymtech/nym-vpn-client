@@ -16,7 +16,7 @@ use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
 
-use crate::{
+use crate::proto::{
     ConnectRequest, ListCountriesRequest, ListGatewaysRequest, nym_vpnd_client::NymVpndClient,
 };
 

@@ -5,38 +5,35 @@ use nym_vpn_lib_types::{
     AvailableTickets, RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess,
 };
 
-use crate::{
-    AvailableTickets as ProtoAvailableTickets, RequestZkNymError as ProtoRequestZkNymError,
-    RequestZkNymSuccess as ProtoRequestZkNymSuccess,
-};
+use crate::proto;
 
-impl From<RequestZkNymSuccess> for ProtoRequestZkNymSuccess {
+impl From<RequestZkNymSuccess> for proto::RequestZkNymSuccess {
     fn from(value: RequestZkNymSuccess) -> Self {
         Self { id: value.id }
     }
 }
 
-impl From<RequestZkNymErrorReason> for ProtoRequestZkNymError {
+impl From<RequestZkNymErrorReason> for proto::RequestZkNymError {
     fn from(error: RequestZkNymErrorReason) -> Self {
         let outcome = match error {
             RequestZkNymErrorReason::NoAccountStored => {
-                crate::request_zk_nym_error::Outcome::NoAccountStored(true)
+                proto::request_zk_nym_error::Outcome::NoAccountStored(true)
             }
             RequestZkNymErrorReason::NoDeviceStored => {
-                crate::request_zk_nym_error::Outcome::NoDeviceStored(true)
+                proto::request_zk_nym_error::Outcome::NoDeviceStored(true)
             }
             RequestZkNymErrorReason::VpnApi(vpn_api_endpoint_failure) => {
-                crate::request_zk_nym_error::Outcome::VpnApi(vpn_api_endpoint_failure.into())
+                proto::request_zk_nym_error::Outcome::VpnApi(vpn_api_endpoint_failure.into())
             }
             RequestZkNymErrorReason::UnexpectedVpnApiResponse(err) => {
-                crate::request_zk_nym_error::Outcome::UnexpectedVpnApiResponse(err)
+                proto::request_zk_nym_error::Outcome::UnexpectedVpnApiResponse(err)
             }
             RequestZkNymErrorReason::Storage(err) => {
-                crate::request_zk_nym_error::Outcome::Storage(err)
+                proto::request_zk_nym_error::Outcome::Storage(err)
             }
-            RequestZkNymErrorReason::Offline => crate::request_zk_nym_error::Outcome::Offline(true),
+            RequestZkNymErrorReason::Offline => proto::request_zk_nym_error::Outcome::Offline(true),
             RequestZkNymErrorReason::Internal(err) => {
-                crate::request_zk_nym_error::Outcome::Internal(err)
+                proto::request_zk_nym_error::Outcome::Internal(err)
             }
         };
         Self {
@@ -45,13 +42,13 @@ impl From<RequestZkNymErrorReason> for ProtoRequestZkNymError {
     }
 }
 
-impl From<RequestZkNymError> for ProtoRequestZkNymError {
+impl From<RequestZkNymError> for proto::RequestZkNymError {
     fn from(error: RequestZkNymError) -> Self {
         RequestZkNymErrorReason::from(error).into()
     }
 }
 
-impl From<AvailableTickets> for ProtoAvailableTickets {
+impl From<AvailableTickets> for proto::AvailableTickets {
     fn from(ticketbooks: AvailableTickets) -> Self {
         Self {
             mixnet_entry_tickets: ticketbooks.mixnet_entry_tickets,

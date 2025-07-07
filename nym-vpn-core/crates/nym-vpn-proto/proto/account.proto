@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package nym.vpn;
+package nym_vpn_service;
 
 // --- Error types
 
@@ -212,8 +212,6 @@ message RequestZkNymResult {
   repeated RequestZkNymError failures = 3;
 }
 
-message RefreshAccountStateResponse {}
-
 message GetAccountUsageResponse {
   message AccountUsages {
     repeated AccountUsage account_usages = 1;
@@ -238,13 +236,9 @@ message ResetDeviceIdentityRequest {
   optional bytes seed = 1;
 }
 
-message ResetDeviceIdentityResponse {}
-
 message GetDeviceIdentityResponse {
   string device_identity = 1;
 }
-
-message RegisterDeviceResponse {}
 
 message GetDevicesResponse {
   message Device {
@@ -268,27 +262,13 @@ message GetDevicesResponse {
   Devices devices = 1;
 }
 
-message RequestZkNymResponse {}
-
-message GetDeviceZkNymsResponse {
-  // todo
-}
-
-message GetZkNymsAvailableForDownloadResponse {
-  // todo
-}
-
 message GetZkNymByIdRequest {
   string id = 1;
 }
 
-message GetZkNymByIdResponse {}
-
 message ConfirmZkNymDownloadedRequest {
   string id = 1;
 }
-
-message ConfirmZkNymDownloadedResponse {}
 
 message AvailableTickets {
   // Remaining number of mixnet entry tickets

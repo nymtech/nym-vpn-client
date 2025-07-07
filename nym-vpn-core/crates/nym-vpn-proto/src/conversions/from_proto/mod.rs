@@ -7,20 +7,20 @@ pub mod tunnel_event;
 pub mod tunnel_state;
 pub mod vpnd;
 
-use crate::GatewayType as ProtoGatewayType;
+use crate::proto;
 
-impl From<nym_gateway_directory::GatewayType> for ProtoGatewayType {
+impl From<nym_gateway_directory::GatewayType> for proto::GatewayType {
     fn from(value: nym_gateway_directory::GatewayType) -> Self {
         match value {
-            nym_gateway_directory::GatewayType::MixnetEntry => ProtoGatewayType::MixnetEntry,
-            nym_gateway_directory::GatewayType::MixnetExit => ProtoGatewayType::MixnetExit,
-            nym_gateway_directory::GatewayType::Wg => ProtoGatewayType::Wg,
+            nym_gateway_directory::GatewayType::MixnetEntry => proto::GatewayType::MixnetEntry,
+            nym_gateway_directory::GatewayType::MixnetExit => proto::GatewayType::MixnetExit,
+            nym_gateway_directory::GatewayType::Wg => proto::GatewayType::Wg,
         }
     }
 }
 
-impl From<crate::UserAgent> for nym_sdk::UserAgent {
-    fn from(user_agent: crate::UserAgent) -> Self {
+impl From<proto::UserAgent> for nym_sdk::UserAgent {
+    fn from(user_agent: proto::UserAgent) -> Self {
         Self {
             application: user_agent.application,
             version: user_agent.version,

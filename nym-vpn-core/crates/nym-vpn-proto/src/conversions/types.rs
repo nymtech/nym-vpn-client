@@ -8,7 +8,8 @@ use std::fmt;
 
 use time::OffsetDateTime;
 
-use super::{ConversionError, util::or_not_set};
+use super::util::or_not_set;
+use crate::{conversions::ConversionError, proto};
 
 pub struct InfoResponse {
     pub version: String,
@@ -24,10 +25,10 @@ pub struct NymVpnNetworkDetails {
     nym_vpn_api_url: String,
 }
 
-impl TryFrom<crate::NymVpnNetworkDetails> for NymVpnNetworkDetails {
+impl TryFrom<proto::NymVpnNetworkDetails> for NymVpnNetworkDetails {
     type Error = ConversionError;
 
-    fn try_from(network: crate::NymVpnNetworkDetails) -> Result<Self, Self::Error> {
+    fn try_from(network: proto::NymVpnNetworkDetails) -> Result<Self, Self::Error> {
         let nym_vpn_api_url = network
             .nym_vpn_api_url
             .ok_or(ConversionError::generic("missing nym vpn api url"))
@@ -36,10 +37,10 @@ impl TryFrom<crate::NymVpnNetworkDetails> for NymVpnNetworkDetails {
     }
 }
 
-impl TryFrom<crate::InfoResponse> for InfoResponse {
+impl TryFrom<proto::InfoResponse> for InfoResponse {
     type Error = ConversionError;
 
-    fn try_from(response: crate::InfoResponse) -> Result<Self, Self::Error> {
+    fn try_from(response: proto::InfoResponse) -> Result<Self, Self::Error> {
         let build_timestamp = response
             .build_timestamp
             .ok_or(ConversionError::generic("missing build timestamp"))

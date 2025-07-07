@@ -8,28 +8,9 @@ use nym_vpn_lib_types::{
     WireguardConnectionData, WireguardNode,
 };
 
-use crate::{
-    Address as ProtoAddress, ConnectionData as ProtoConnectionData,
-    ForgetAccountError as ProtoForgetAccountError, Gateway as ProtoGateway,
-    MixnetConnectionData as ProtoMixnetConnectionData,
-    RegisterDeviceError as ProtoRegisterDeviceError, StoreAccountError as ProtoStoreAccountError,
-    SyncAccountError as ProtoSyncAccountError, SyncDeviceError as ProtoSyncDeviceError,
-    TunnelConnectionData as ProtoTunnelConnectionData, TunnelState as ProtoTunnelState,
-    VpnApiError as ProtoVpnApiError, VpnApiErrorResponse as ProtoVpnApiErrorResponse,
-    WireguardConnectionData as ProtoWireguardConnectionData, WireguardNode as ProtoWireguardNode,
-    tunnel_connection_data::{
-        Mixnet as ProtoMixnetConnectionDataVariant, State as ProtoTunnelConnectionDataState,
-        Wireguard as ProtoWireguardConnectionDataVariant,
-    },
-    tunnel_state::{
-        ActionAfterDisconnect as ProtoActionAfterDisconnect, Connected as ProtoConnected,
-        Connecting as ProtoConnecting, Disconnected as ProtoDisconnected,
-        Disconnecting as ProtoDisconnecting, Error as ProtoError, ErrorStateReason,
-        Offline as ProtoOffline, State as ProtoState,
-    },
-};
+use crate::proto;
 
-impl From<ActionAfterDisconnect> for ProtoActionAfterDisconnect {
+impl From<ActionAfterDisconnect> for proto::tunnel_state::ActionAfterDisconnect {
     fn from(value: ActionAfterDisconnect) -> Self {
         match value {
             ActionAfterDisconnect::Error => Self::Error,
@@ -40,242 +21,242 @@ impl From<ActionAfterDisconnect> for ProtoActionAfterDisconnect {
     }
 }
 
-impl From<ClientErrorReason> for ProtoError {
+impl From<ClientErrorReason> for proto::tunnel_state::Error {
     fn from(value: ClientErrorReason) -> Self {
         match value {
-            ClientErrorReason::Firewall => ProtoError {
-                reason: ErrorStateReason::Firewall.into(),
+            ClientErrorReason::Firewall => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::Firewall.into(),
                 detail: None,
             },
-            ClientErrorReason::Routing => ProtoError {
-                reason: ErrorStateReason::Routing.into(),
+            ClientErrorReason::Routing => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::Routing.into(),
                 detail: None,
             },
-            ClientErrorReason::SameEntryAndExitGateway => ProtoError {
-                reason: ErrorStateReason::SameEntryAndExitGateway.into(),
+            ClientErrorReason::SameEntryAndExitGateway => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::SameEntryAndExitGateway.into(),
                 detail: None,
             },
-            ClientErrorReason::InvalidEntryGatewayCountry => ProtoError {
-                reason: ErrorStateReason::InvalidEntryGatewayCountry.into(),
+            ClientErrorReason::InvalidEntryGatewayCountry => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::InvalidEntryGatewayCountry.into(),
                 detail: None,
             },
-            ClientErrorReason::InvalidExitGatewayCountry => ProtoError {
-                reason: ErrorStateReason::InvalidExitGatewayCountry.into(),
+            ClientErrorReason::InvalidExitGatewayCountry => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::InvalidExitGatewayCountry.into(),
                 detail: None,
             },
-            ClientErrorReason::MaxDevicesReached => ProtoError {
-                reason: ErrorStateReason::MaxDevicesReached.into(),
+            ClientErrorReason::MaxDevicesReached => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::MaxDevicesReached.into(),
                 detail: None,
             },
-            ClientErrorReason::BandwidthExceeded => ProtoError {
-                reason: ErrorStateReason::BandwidthExceeded.into(),
+            ClientErrorReason::BandwidthExceeded => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::BandwidthExceeded.into(),
                 detail: None,
             },
-            ClientErrorReason::SubscriptionExpired => ProtoError {
-                reason: ErrorStateReason::SubscriptionExpired.into(),
+            ClientErrorReason::SubscriptionExpired => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::SubscriptionExpired.into(),
                 detail: None,
             },
-            ClientErrorReason::Dns(detail) => ProtoError {
-                reason: ErrorStateReason::Dns.into(),
+            ClientErrorReason::Dns(detail) => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::Dns.into(),
                 detail,
             },
-            ClientErrorReason::Api(detail) => ProtoError {
-                reason: ErrorStateReason::Api.into(),
+            ClientErrorReason::Api(detail) => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::Api.into(),
                 detail,
             },
-            ClientErrorReason::DeviceTimeOutOfSync => ProtoError {
-                reason: ErrorStateReason::DeviceTimeOutOfSync.into(),
+            ClientErrorReason::DeviceTimeOutOfSync => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::DeviceTimeOutOfSync.into(),
                 detail: None,
             },
-            ClientErrorReason::CreateMixnetStorage => ProtoError {
-                reason: ErrorStateReason::CreateMixnetStorage.into(),
+            ClientErrorReason::CreateMixnetStorage => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::CreateMixnetStorage.into(),
                 detail: None,
             },
-            ClientErrorReason::Internal(detail) => ProtoError {
-                reason: ErrorStateReason::Internal.into(),
+            ClientErrorReason::Internal(detail) => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::Internal.into(),
                 detail,
             },
         }
     }
 }
 
-impl From<StoreAccountError> for ProtoStoreAccountError {
+impl From<StoreAccountError> for proto::StoreAccountError {
     fn from(value: StoreAccountError) -> Self {
         match value {
-            StoreAccountError::InvalidMnemonic(err) => ProtoStoreAccountError {
-                error_detail: Some(crate::store_account_error::ErrorDetail::InvalidMnemonic(
+            StoreAccountError::InvalidMnemonic(err) => proto::StoreAccountError {
+                error_detail: Some(proto::store_account_error::ErrorDetail::InvalidMnemonic(
                     err,
                 )),
             },
-            StoreAccountError::Storage(err) => ProtoStoreAccountError {
-                error_detail: Some(crate::store_account_error::ErrorDetail::StorageError(err)),
+            StoreAccountError::Storage(err) => proto::StoreAccountError {
+                error_detail: Some(proto::store_account_error::ErrorDetail::StorageError(err)),
             },
-            StoreAccountError::GetAccountEndpointFailure(vpn_api) => ProtoStoreAccountError {
-                error_detail: Some(crate::store_account_error::ErrorDetail::VpnApi(
+            StoreAccountError::GetAccountEndpointFailure(vpn_api) => proto::StoreAccountError {
+                error_detail: Some(proto::store_account_error::ErrorDetail::VpnApi(
                     vpn_api.into(),
                 )),
             },
-            StoreAccountError::UnexpectedResponse(err) => ProtoStoreAccountError {
-                error_detail: Some(crate::store_account_error::ErrorDetail::UnexpectedResponse(
+            StoreAccountError::UnexpectedResponse(err) => proto::StoreAccountError {
+                error_detail: Some(proto::store_account_error::ErrorDetail::UnexpectedResponse(
                     err,
                 )),
             },
-            StoreAccountError::Internal(err) => ProtoStoreAccountError {
-                error_detail: Some(crate::store_account_error::ErrorDetail::Internal(err)),
+            StoreAccountError::Internal(err) => proto::StoreAccountError {
+                error_detail: Some(proto::store_account_error::ErrorDetail::Internal(err)),
             },
         }
     }
 }
 
-impl From<SyncAccountError> for ProtoSyncAccountError {
+impl From<SyncAccountError> for proto::SyncAccountError {
     fn from(value: SyncAccountError) -> Self {
         match value {
-            SyncAccountError::NoAccountStored => ProtoSyncAccountError {
-                error_detail: Some(crate::sync_account_error::ErrorDetail::NoAccountStored(
+            SyncAccountError::NoAccountStored => proto::SyncAccountError {
+                error_detail: Some(proto::sync_account_error::ErrorDetail::NoAccountStored(
                     true,
                 )),
             },
-            SyncAccountError::SyncAccountEndpointFailure(vpn_api) => ProtoSyncAccountError {
-                error_detail: Some(crate::sync_account_error::ErrorDetail::VpnApi(
+            SyncAccountError::SyncAccountEndpointFailure(vpn_api) => proto::SyncAccountError {
+                error_detail: Some(proto::sync_account_error::ErrorDetail::VpnApi(
                     vpn_api.into(),
                 )),
             },
-            SyncAccountError::UnexpectedResponse(err) => ProtoSyncAccountError {
-                error_detail: Some(crate::sync_account_error::ErrorDetail::UnexpectedResponse(
+            SyncAccountError::UnexpectedResponse(err) => proto::SyncAccountError {
+                error_detail: Some(proto::sync_account_error::ErrorDetail::UnexpectedResponse(
                     err,
                 )),
             },
-            SyncAccountError::Offline => ProtoSyncAccountError {
-                error_detail: Some(crate::sync_account_error::ErrorDetail::Offline(true)),
+            SyncAccountError::Offline => proto::SyncAccountError {
+                error_detail: Some(proto::sync_account_error::ErrorDetail::Offline(true)),
             },
-            SyncAccountError::Internal(err) => ProtoSyncAccountError {
-                error_detail: Some(crate::sync_account_error::ErrorDetail::Internal(err)),
+            SyncAccountError::Internal(err) => proto::SyncAccountError {
+                error_detail: Some(proto::sync_account_error::ErrorDetail::Internal(err)),
             },
         }
     }
 }
 
-impl From<SyncDeviceError> for ProtoSyncDeviceError {
+impl From<SyncDeviceError> for proto::SyncDeviceError {
     fn from(value: SyncDeviceError) -> Self {
         match value {
-            SyncDeviceError::NoAccountStored => ProtoSyncDeviceError {
-                error_detail: Some(crate::sync_device_error::ErrorDetail::NoAccountStored(true)),
+            SyncDeviceError::NoAccountStored => proto::SyncDeviceError {
+                error_detail: Some(proto::sync_device_error::ErrorDetail::NoAccountStored(true)),
             },
-            SyncDeviceError::NoDeviceStored => ProtoSyncDeviceError {
-                error_detail: Some(crate::sync_device_error::ErrorDetail::NoDeviceStored(true)),
+            SyncDeviceError::NoDeviceStored => proto::SyncDeviceError {
+                error_detail: Some(proto::sync_device_error::ErrorDetail::NoDeviceStored(true)),
             },
-            SyncDeviceError::SyncDeviceEndpointFailure(vpn_api) => ProtoSyncDeviceError {
-                error_detail: Some(crate::sync_device_error::ErrorDetail::VpnApi(
+            SyncDeviceError::SyncDeviceEndpointFailure(vpn_api) => proto::SyncDeviceError {
+                error_detail: Some(proto::sync_device_error::ErrorDetail::VpnApi(
                     vpn_api.into(),
                 )),
             },
-            SyncDeviceError::UnexpectedResponse(err) => ProtoSyncDeviceError {
-                error_detail: Some(crate::sync_device_error::ErrorDetail::UnexpectedResponse(
+            SyncDeviceError::UnexpectedResponse(err) => proto::SyncDeviceError {
+                error_detail: Some(proto::sync_device_error::ErrorDetail::UnexpectedResponse(
                     err,
                 )),
             },
-            SyncDeviceError::Offline => ProtoSyncDeviceError {
-                error_detail: Some(crate::sync_device_error::ErrorDetail::Offline(true)),
+            SyncDeviceError::Offline => proto::SyncDeviceError {
+                error_detail: Some(proto::sync_device_error::ErrorDetail::Offline(true)),
             },
-            SyncDeviceError::Internal(err) => ProtoSyncDeviceError {
-                error_detail: Some(crate::sync_device_error::ErrorDetail::Internal(err)),
+            SyncDeviceError::Internal(err) => proto::SyncDeviceError {
+                error_detail: Some(proto::sync_device_error::ErrorDetail::Internal(err)),
             },
         }
     }
 }
 
-impl From<RegisterDeviceError> for ProtoRegisterDeviceError {
+impl From<RegisterDeviceError> for proto::RegisterDeviceError {
     fn from(value: RegisterDeviceError) -> Self {
         match value {
-            RegisterDeviceError::NoAccountStored => ProtoRegisterDeviceError {
-                error_detail: Some(crate::register_device_error::ErrorDetail::NoAccountStored(
+            RegisterDeviceError::NoAccountStored => proto::RegisterDeviceError {
+                error_detail: Some(proto::register_device_error::ErrorDetail::NoAccountStored(
                     true,
                 )),
             },
-            RegisterDeviceError::NoDeviceStored => ProtoRegisterDeviceError {
-                error_detail: Some(crate::register_device_error::ErrorDetail::NoDeviceStored(
+            RegisterDeviceError::NoDeviceStored => proto::RegisterDeviceError {
+                error_detail: Some(proto::register_device_error::ErrorDetail::NoDeviceStored(
                     true,
                 )),
             },
             RegisterDeviceError::RegisterDeviceEndpointFailure(vpn_api) => {
-                ProtoRegisterDeviceError {
-                    error_detail: Some(crate::register_device_error::ErrorDetail::VpnApi(
+                proto::RegisterDeviceError {
+                    error_detail: Some(proto::register_device_error::ErrorDetail::VpnApi(
                         vpn_api.into(),
                     )),
                 }
             }
-            RegisterDeviceError::UnexpectedResponse(err) => ProtoRegisterDeviceError {
+            RegisterDeviceError::UnexpectedResponse(err) => proto::RegisterDeviceError {
                 error_detail: Some(
-                    crate::register_device_error::ErrorDetail::UnexpectedResponse(err),
+                    proto::register_device_error::ErrorDetail::UnexpectedResponse(err),
                 ),
             },
-            RegisterDeviceError::Offline => ProtoRegisterDeviceError {
-                error_detail: Some(crate::register_device_error::ErrorDetail::Offline(true)),
+            RegisterDeviceError::Offline => proto::RegisterDeviceError {
+                error_detail: Some(proto::register_device_error::ErrorDetail::Offline(true)),
             },
-            RegisterDeviceError::Internal(err) => ProtoRegisterDeviceError {
-                error_detail: Some(crate::register_device_error::ErrorDetail::Internal(err)),
+            RegisterDeviceError::Internal(err) => proto::RegisterDeviceError {
+                error_detail: Some(proto::register_device_error::ErrorDetail::Internal(err)),
             },
         }
     }
 }
 
-impl From<ForgetAccountError> for ProtoForgetAccountError {
+impl From<ForgetAccountError> for proto::ForgetAccountError {
     fn from(value: ForgetAccountError) -> Self {
         match value {
             ForgetAccountError::RegistrationInProgress => Self {
                 error_detail: Some(
-                    crate::forget_account_error::ErrorDetail::RegistrationInProgress(true),
+                    proto::forget_account_error::ErrorDetail::RegistrationInProgress(true),
                 ),
             },
             ForgetAccountError::UpdateDeviceErrorResponse(vpn_api) => Self {
-                error_detail: Some(crate::forget_account_error::ErrorDetail::VpnApi(
+                error_detail: Some(proto::forget_account_error::ErrorDetail::VpnApi(
                     vpn_api.into(),
                 )),
             },
             ForgetAccountError::UnexpectedResponse(err) => Self {
                 error_detail: Some(
-                    crate::forget_account_error::ErrorDetail::UnexpectedResponse(err),
+                    proto::forget_account_error::ErrorDetail::UnexpectedResponse(err),
                 ),
             },
             ForgetAccountError::RemoveAccount(err) => Self {
-                error_detail: Some(crate::forget_account_error::ErrorDetail::RemoveAccount(err)),
+                error_detail: Some(proto::forget_account_error::ErrorDetail::RemoveAccount(err)),
             },
             ForgetAccountError::RemoveDeviceKeys(err) => Self {
-                error_detail: Some(crate::forget_account_error::ErrorDetail::RemoveDeviceKeys(
+                error_detail: Some(proto::forget_account_error::ErrorDetail::RemoveDeviceKeys(
                     err,
                 )),
             },
             ForgetAccountError::ResetCredentialStorage(err) => Self {
                 error_detail: Some(
-                    crate::forget_account_error::ErrorDetail::ResetCredentialStore(err),
+                    proto::forget_account_error::ErrorDetail::ResetCredentialStore(err),
                 ),
             },
             ForgetAccountError::RemoveAccountFiles(err) => Self {
                 error_detail: Some(
-                    crate::forget_account_error::ErrorDetail::RemoveAccountFiles(err),
+                    proto::forget_account_error::ErrorDetail::RemoveAccountFiles(err),
                 ),
             },
             ForgetAccountError::InitDeviceKeys(err) => Self {
-                error_detail: Some(crate::forget_account_error::ErrorDetail::InitDeviceKeys(
+                error_detail: Some(proto::forget_account_error::ErrorDetail::InitDeviceKeys(
                     err,
                 )),
             },
             ForgetAccountError::Internal(err) => Self {
-                error_detail: Some(crate::forget_account_error::ErrorDetail::Internal(err)),
+                error_detail: Some(proto::forget_account_error::ErrorDetail::Internal(err)),
             },
         }
     }
 }
 
-impl From<VpnApiError> for ProtoVpnApiError {
+impl From<VpnApiError> for proto::VpnApiError {
     fn from(value: VpnApiError) -> Self {
         let error_detail = match value {
-            VpnApiError::Timeout(..) => crate::vpn_api_error::ErrorDetail::Timeout(true),
+            VpnApiError::Timeout(..) => proto::vpn_api_error::ErrorDetail::Timeout(true),
             VpnApiError::StatusCode { code, .. } => {
-                crate::vpn_api_error::ErrorDetail::StatusCode(code.into())
+                proto::vpn_api_error::ErrorDetail::StatusCode(code.into())
             }
             VpnApiError::Response(vpn_api_error_response) => {
-                crate::vpn_api_error::ErrorDetail::Response(vpn_api_error_response.into())
+                proto::vpn_api_error::ErrorDetail::Response(vpn_api_error_response.into())
             }
         };
         Self {
@@ -284,7 +265,7 @@ impl From<VpnApiError> for ProtoVpnApiError {
     }
 }
 
-impl From<VpnApiErrorResponse> for ProtoVpnApiErrorResponse {
+impl From<VpnApiErrorResponse> for proto::VpnApiErrorResponse {
     fn from(value: VpnApiErrorResponse) -> Self {
         Self {
             message: value.message,
@@ -294,38 +275,48 @@ impl From<VpnApiErrorResponse> for ProtoVpnApiErrorResponse {
     }
 }
 
-impl From<TunnelState> for ProtoTunnelState {
-    fn from(value: TunnelState) -> ProtoTunnelState {
-        let proto_state: ProtoState = match value {
-            TunnelState::Disconnected => ProtoState::Disconnected(ProtoDisconnected {}),
+impl From<TunnelState> for proto::TunnelState {
+    fn from(value: TunnelState) -> proto::TunnelState {
+        let proto_state: proto::tunnel_state::State = match value {
+            TunnelState::Disconnected => {
+                proto::tunnel_state::State::Disconnected(proto::tunnel_state::Disconnected {})
+            }
             TunnelState::Connecting {
                 retry_attempt,
                 connection_data,
-            } => ProtoState::Connecting(ProtoConnecting {
+            } => proto::tunnel_state::State::Connecting(proto::tunnel_state::Connecting {
                 retry_attempt,
-                connection_data: connection_data.map(ProtoConnectionData::from),
+                connection_data: connection_data.map(proto::ConnectionData::from),
             }),
-            TunnelState::Connected { connection_data } => ProtoState::Connected(ProtoConnected {
-                connection_data: Some(ProtoConnectionData::from(connection_data)),
-            }),
-            TunnelState::Disconnecting { after_disconnect } => {
-                ProtoState::Disconnecting(ProtoDisconnecting {
-                    after_disconnect: ProtoActionAfterDisconnect::from(after_disconnect) as i32,
+            TunnelState::Connected { connection_data } => {
+                proto::tunnel_state::State::Connected(proto::tunnel_state::Connected {
+                    connection_data: Some(proto::ConnectionData::from(connection_data)),
                 })
             }
-            TunnelState::Offline { reconnect } => ProtoState::Offline(ProtoOffline { reconnect }),
-            TunnelState::Error(reason) => ProtoState::Error(ProtoError::from(reason)),
+            TunnelState::Disconnecting { after_disconnect } => {
+                proto::tunnel_state::State::Disconnecting(proto::tunnel_state::Disconnecting {
+                    after_disconnect: proto::tunnel_state::ActionAfterDisconnect::from(
+                        after_disconnect,
+                    ) as i32,
+                })
+            }
+            TunnelState::Offline { reconnect } => {
+                proto::tunnel_state::State::Offline(proto::tunnel_state::Offline { reconnect })
+            }
+            TunnelState::Error(reason) => {
+                proto::tunnel_state::State::Error(proto::tunnel_state::Error::from(reason))
+            }
         };
 
-        ProtoTunnelState {
+        proto::TunnelState {
             state: Some(proto_state),
         }
     }
 }
 
-impl From<WireguardNode> for ProtoWireguardNode {
-    fn from(value: WireguardNode) -> ProtoWireguardNode {
-        ProtoWireguardNode {
+impl From<WireguardNode> for proto::WireguardNode {
+    fn from(value: WireguardNode) -> proto::WireguardNode {
+        proto::WireguardNode {
             public_key: value.public_key,
             endpoint: value.endpoint.to_string(),
             private_ipv4: value.private_ipv4.to_string(),
@@ -334,27 +325,27 @@ impl From<WireguardNode> for ProtoWireguardNode {
     }
 }
 
-impl From<ConnectionData> for ProtoConnectionData {
-    fn from(value: ConnectionData) -> ProtoConnectionData {
-        ProtoConnectionData {
-            entry_gateway: Some(ProtoGateway::from(value.entry_gateway)),
-            exit_gateway: Some(ProtoGateway::from(value.exit_gateway)),
+impl From<ConnectionData> for proto::ConnectionData {
+    fn from(value: ConnectionData) -> proto::ConnectionData {
+        proto::ConnectionData {
+            entry_gateway: Some(proto::Gateway::from(value.entry_gateway)),
+            exit_gateway: Some(proto::Gateway::from(value.exit_gateway)),
             connected_at: value
                 .connected_at
                 .map(crate::conversions::prost::offset_datetime_into_proto_timestamp),
-            tunnel: Some(ProtoTunnelConnectionData::from(value.tunnel)),
+            tunnel: Some(proto::TunnelConnectionData::from(value.tunnel)),
         }
     }
 }
 
-impl From<MixnetConnectionData> for ProtoMixnetConnectionData {
-    fn from(value: MixnetConnectionData) -> ProtoMixnetConnectionData {
-        ProtoMixnetConnectionData {
-            nym_address: Some(ProtoAddress {
+impl From<MixnetConnectionData> for proto::MixnetConnectionData {
+    fn from(value: MixnetConnectionData) -> proto::MixnetConnectionData {
+        proto::MixnetConnectionData {
+            nym_address: Some(proto::Address {
                 nym_address: value.nym_address.to_string(),
                 gateway_id: value.nym_address.gateway_id,
             }),
-            exit_ipr: Some(ProtoAddress {
+            exit_ipr: Some(proto::Address {
                 nym_address: value.exit_ipr.to_string(),
                 gateway_id: value.exit_ipr.gateway_id,
             }),
@@ -366,35 +357,37 @@ impl From<MixnetConnectionData> for ProtoMixnetConnectionData {
     }
 }
 
-impl From<WireguardConnectionData> for ProtoWireguardConnectionData {
-    fn from(value: WireguardConnectionData) -> ProtoWireguardConnectionData {
-        ProtoWireguardConnectionData {
-            entry: Some(ProtoWireguardNode::from(value.entry)),
-            exit: Some(ProtoWireguardNode::from(value.exit)),
+impl From<WireguardConnectionData> for proto::WireguardConnectionData {
+    fn from(value: WireguardConnectionData) -> proto::WireguardConnectionData {
+        proto::WireguardConnectionData {
+            entry: Some(proto::WireguardNode::from(value.entry)),
+            exit: Some(proto::WireguardNode::from(value.exit)),
         }
     }
 }
 
-impl From<TunnelConnectionData> for ProtoTunnelConnectionData {
-    fn from(value: TunnelConnectionData) -> ProtoTunnelConnectionData {
+impl From<TunnelConnectionData> for proto::TunnelConnectionData {
+    fn from(value: TunnelConnectionData) -> proto::TunnelConnectionData {
         let state = match value {
-            TunnelConnectionData::Mixnet(data) => {
-                ProtoTunnelConnectionDataState::Mixnet(ProtoMixnetConnectionDataVariant {
-                    data: Some(ProtoMixnetConnectionData::from(data)),
-                })
-            }
+            TunnelConnectionData::Mixnet(data) => proto::tunnel_connection_data::State::Mixnet(
+                proto::tunnel_connection_data::Mixnet {
+                    data: Some(proto::MixnetConnectionData::from(data)),
+                },
+            ),
             TunnelConnectionData::Wireguard(data) => {
-                ProtoTunnelConnectionDataState::Wireguard(ProtoWireguardConnectionDataVariant {
-                    data: Some(ProtoWireguardConnectionData::from(data)),
-                })
+                proto::tunnel_connection_data::State::Wireguard(
+                    proto::tunnel_connection_data::Wireguard {
+                        data: Some(proto::WireguardConnectionData::from(data)),
+                    },
+                )
             }
         };
 
-        ProtoTunnelConnectionData { state: Some(state) }
+        proto::TunnelConnectionData { state: Some(state) }
     }
 }
 
-impl From<Gateway> for ProtoGateway {
+impl From<Gateway> for proto::Gateway {
     fn from(value: Gateway) -> Self {
         Self { id: value.id }
     }
