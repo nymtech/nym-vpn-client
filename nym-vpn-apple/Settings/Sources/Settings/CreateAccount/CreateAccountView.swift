@@ -31,7 +31,7 @@ public struct CreateAccountView: View {
                     createAccountTitle
                     Spacer()
                         .frame(height: 24)
-                    if mnemonic == nil {
+                    if mnemonic == nil || CredentialsManager.shared.accountToken == nil {
                         CreateAccountNoPassphraseView(isLoading: $isLoading) {
                             createPassphraseAction()
                         }
@@ -53,7 +53,11 @@ public struct CreateAccountView: View {
         }
         .frame(maxWidth: MagicNumbers.moreMaxWidth)
         .alert(alertTitle, isPresented: $isDisplayingAlert) {
-            Button("ok".localizedString, role: .cancel) {}
+            Button("tryAgain".localizedString, role: .cancel) {
+                Task {
+                    await registerAccount()
+                }
+            }
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -111,31 +115,47 @@ private extension CreateAccountView {
 #if os(iOS)
         ImpactGenerator.shared.impact()
 #endif
+        defer {
+            isLoading = false
+        }
+
         isAnimating = true
         Task {
-            defer {
-                isLoading = false
-            }
             do {
                 isLoading = true
-                try await credentialsManager.createMnemonic()
-                let newMnemonic = try await credentialsManager.mnemonic()
-                Task { @MainActor in
-                    mnemonic = newMnemonic
+                if mnemonic == nil {
+                    try await credentialsManager.createMnemonic()
+                    let newMnemonic = try await credentialsManager.mnemonic()
+                    Task { @MainActor in
+                        mnemonic = newMnemonic
+                    }
                 }
                 try await credentialsManager.registerAccount()
             } catch {
-                Task { @MainActor in
-#if os(iOS)
-                    if let lastVPNError = error as? VpnError {
-                        alertTitle = VPNErrorReason(with: lastVPNError).errorDescription ?? ""
-                    } else {
-                        alertTitle = error.localizedDescription
-                    }
-                    isDisplayingAlert = true
-#endif
-                }
+                displayErrorAlert(with: error)
             }
         }
+    }
+
+    func registerAccount() async {
+        do {
+            try await credentialsManager.registerAccount()
+        } catch {
+            displayErrorAlert(with: error)
+        }
+    }
+}
+
+// MARK: - Errors -
+private extension CreateAccountView {
+    @MainActor func displayErrorAlert(with error: Error) {
+#if os(iOS)
+        if let lastVPNError = error as? VpnError {
+            alertTitle = VPNErrorReason(with: lastVPNError).errorDescription ?? ""
+        } else {
+            alertTitle = error.localizedDescription
+        }
+        isDisplayingAlert = true
+#endif
     }
 }
