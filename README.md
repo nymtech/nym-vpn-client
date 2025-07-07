@@ -116,26 +116,6 @@ For Organizations
 - Compliance: GDPR-friendly privacy infrastructure
 
 
-# 💸 Pricing and Payments
-
-Subscription Tiers
-- Starting at less than $3.00/month (with 24-month plan) for up to 10 devices
-- Multi-device Support: Single subscription for up to 10 devices on 5 platforms
-- 30-day Pro-rated Refunds: Risk-free trial period
-
-Wide Choice of Payment Methods:
-- Cards and Express Checkout (Apple Pay, Google Pay, PayPal - via Stripe)
-- Crypto-currencies (BTC, BTC-Lightning, LTC, NYM, USDT, XMR, etc.)
-- Cash
-
-Anonymous Payment System (zk-nyms)
-Your payments in fiat currencies or crypto are unlinkable to your usage of NymVPN thanks to zk-nym anonymous credentials:
-1. Payment Conversion: Fiat/crypto automatically converted to NYM tokens
-2. Credential Issuance: Zero-knowledge proof of payment generated
-3. Network Access: Unlinkable credentials provide anonymous service access
-4. Privacy Guarantee: No entity can connect payment to network activity
-
-
 🔬 Research Foundation & Academic Partnerships
 
 Peer-Reviewed Research ([50+ Publications](https://nym.com/trust-center/papers-and-research))
