@@ -5263,7 +5263,7 @@ dependencies = [
  "nym-vpnd-types",
  "sysinfo",
  "tokio",
- "tonic",
+ "tokio-stream",
  "tower",
  "vergen-gitcl",
 ]
@@ -5326,6 +5326,7 @@ version = "1.13.0-beta"
 dependencies = [
  "nym-validator-client",
  "nym-vpn-lib",
+ "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "serde",
  "thiserror 2.0.12",

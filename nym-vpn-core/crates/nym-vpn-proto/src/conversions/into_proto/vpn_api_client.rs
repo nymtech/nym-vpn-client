@@ -3,16 +3,9 @@
 
 use nym_vpn_api_client::response::{NymVpnDevice, NymVpnDeviceStatus, NymVpnUsage};
 
-use crate::proto::{
-    get_account_usage_response::{
-        AccountUsage as ProtoAccountUsage, AccountUsages as ProtoAccountUsages,
-    },
-    get_devices_response::{
-        Device as ProtoDevice, Devices as ProtoDevices, device::DeviceStatus as ProtoDeviceStatus,
-    },
-};
+use crate::{conversions::ConversionError, proto};
 
-impl From<NymVpnUsage> for ProtoAccountUsage {
+impl From<NymVpnUsage> for proto::get_account_usage_response::AccountUsage {
     fn from(usage: NymVpnUsage) -> Self {
         Self {
             created_on_utc: usage.created_on_utc,
@@ -27,15 +20,18 @@ impl From<NymVpnUsage> for ProtoAccountUsage {
     }
 }
 
-impl From<Vec<NymVpnUsage>> for ProtoAccountUsages {
+impl From<Vec<NymVpnUsage>> for proto::get_account_usage_response::AccountUsages {
     fn from(usage: Vec<NymVpnUsage>) -> Self {
         Self {
-            account_usages: usage.into_iter().map(ProtoAccountUsage::from).collect(),
+            account_usages: usage
+                .into_iter()
+                .map(proto::get_account_usage_response::AccountUsage::from)
+                .collect(),
         }
     }
 }
 
-impl From<NymVpnDeviceStatus> for ProtoDeviceStatus {
+impl From<NymVpnDeviceStatus> for proto::get_devices_response::device::DeviceStatus {
     fn from(value: NymVpnDeviceStatus) -> Self {
         match value {
             NymVpnDeviceStatus::Active => Self::Active,
@@ -45,21 +41,52 @@ impl From<NymVpnDeviceStatus> for ProtoDeviceStatus {
     }
 }
 
-impl From<NymVpnDevice> for ProtoDevice {
+impl From<proto::get_devices_response::device::DeviceStatus> for NymVpnDeviceStatus {
+    fn from(value: proto::get_devices_response::device::DeviceStatus) -> Self {
+        match value {
+            proto::get_devices_response::device::DeviceStatus::Active => Self::Active,
+            proto::get_devices_response::device::DeviceStatus::Inactive => Self::Inactive,
+            proto::get_devices_response::device::DeviceStatus::DeleteMe => Self::DeleteMe,
+        }
+    }
+}
+
+impl From<NymVpnDevice> for proto::get_devices_response::Device {
     fn from(device: NymVpnDevice) -> Self {
         Self {
             created_on_utc: device.created_on_utc,
             last_updated_utc: device.last_updated_utc,
             device_identity_key: device.device_identity_key,
-            status: ProtoDeviceStatus::from(device.status) as i32,
+            status: proto::get_devices_response::device::DeviceStatus::from(device.status) as i32,
         }
     }
 }
 
-impl From<Vec<NymVpnDevice>> for ProtoDevices {
+impl TryFrom<proto::get_devices_response::Device> for NymVpnDevice {
+    type Error = ConversionError;
+
+    fn try_from(device: proto::get_devices_response::Device) -> Result<Self, Self::Error> {
+        let proto_device_state =
+            proto::get_devices_response::device::DeviceStatus::try_from(device.status).map_err(
+                |err| ConversionError::Generic(format!("failed to convert DeviceStatus: {err}")),
+            )?;
+
+        Ok(Self {
+            created_on_utc: device.created_on_utc,
+            last_updated_utc: device.last_updated_utc,
+            device_identity_key: device.device_identity_key,
+            status: NymVpnDeviceStatus::from(proto_device_state),
+        })
+    }
+}
+
+impl From<Vec<NymVpnDevice>> for proto::get_devices_response::Devices {
     fn from(devices: Vec<NymVpnDevice>) -> Self {
         Self {
-            devices: devices.into_iter().map(ProtoDevice::from).collect(),
+            devices: devices
+                .into_iter()
+                .map(proto::get_devices_response::Device::from)
+                .collect(),
         }
     }
 }

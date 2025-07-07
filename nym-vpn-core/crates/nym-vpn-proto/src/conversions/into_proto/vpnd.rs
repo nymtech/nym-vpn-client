@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpnd_types::{
-    ConnectArgs, ListCountriesOptions, ListGatewaysOptions, gateway::Score, log_path::LogPath,
+    ConnectArgs, ForgetAccountResponse, ListCountriesOptions, ListGatewaysOptions,
+    StoreAccountRequest, StoreAccountResponse, gateway::Score, log_path::LogPath,
     service::VpnServiceInfo,
 };
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
@@ -247,5 +248,39 @@ impl TryFrom<ListCountriesOptions> for proto::ListCountriesRequest {
             kind: proto_gw_type as i32,
             user_agent,
         })
+    }
+}
+
+impl From<StoreAccountRequest> for proto::StoreAccountRequest {
+    fn from(value: StoreAccountRequest) -> Self {
+        Self {
+            mnemonic: value.mnemonic,
+        }
+    }
+}
+
+impl TryFrom<StoreAccountResponse> for proto::StoreAccountResponse {
+    type Error = ConversionError;
+
+    fn try_from(value: StoreAccountResponse) -> Result<Self, Self::Error> {
+        let error = value
+            .error
+            .map(proto::StoreAccountError::try_from)
+            .transpose()
+            .map_err(|e| {
+                ConversionError::Generic(format!("failed to parse StoreAccountError: {e}"))
+            })?;
+
+        Ok(Self { error })
+    }
+}
+
+impl TryFrom<ForgetAccountResponse> for proto::ForgetAccountResponse {
+    type Error = ConversionError;
+
+    fn try_from(value: ForgetAccountResponse) -> Result<Self, Self::Error> {
+        let error = value.error.map(proto::ForgetAccountError::from);
+
+        Ok(Self { error })
     }
 }

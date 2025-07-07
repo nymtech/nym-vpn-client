@@ -3,9 +3,9 @@
 
 use nym_vpn_lib_types::{
     ActionAfterDisconnect, ClientErrorReason, ConnectionData, ForgetAccountError, Gateway,
-    MixnetConnectionData, RegisterDeviceError, StoreAccountError, SyncAccountError,
-    SyncDeviceError, TunnelConnectionData, TunnelState, VpnApiError, VpnApiErrorResponse,
-    WireguardConnectionData, WireguardNode,
+    MixnetConnectionData, RegisterDeviceError, SyncAccountError, SyncDeviceError,
+    TunnelConnectionData, TunnelState, VpnApiError, VpnApiErrorResponse, WireguardConnectionData,
+    WireguardNode,
 };
 
 use crate::proto;
@@ -75,34 +75,6 @@ impl From<ClientErrorReason> for proto::tunnel_state::Error {
             ClientErrorReason::Internal(detail) => proto::tunnel_state::Error {
                 reason: proto::tunnel_state::ErrorStateReason::Internal.into(),
                 detail,
-            },
-        }
-    }
-}
-
-impl From<StoreAccountError> for proto::StoreAccountError {
-    fn from(value: StoreAccountError) -> Self {
-        match value {
-            StoreAccountError::InvalidMnemonic(err) => proto::StoreAccountError {
-                error_detail: Some(proto::store_account_error::ErrorDetail::InvalidMnemonic(
-                    err,
-                )),
-            },
-            StoreAccountError::Storage(err) => proto::StoreAccountError {
-                error_detail: Some(proto::store_account_error::ErrorDetail::StorageError(err)),
-            },
-            StoreAccountError::GetAccountEndpointFailure(vpn_api) => proto::StoreAccountError {
-                error_detail: Some(proto::store_account_error::ErrorDetail::VpnApi(
-                    vpn_api.into(),
-                )),
-            },
-            StoreAccountError::UnexpectedResponse(err) => proto::StoreAccountError {
-                error_detail: Some(proto::store_account_error::ErrorDetail::UnexpectedResponse(
-                    err,
-                )),
-            },
-            StoreAccountError::Internal(err) => proto::StoreAccountError {
-                error_detail: Some(proto::store_account_error::ErrorDetail::Internal(err)),
             },
         }
     }

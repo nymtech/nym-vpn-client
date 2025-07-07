@@ -59,3 +59,11 @@ impl std::fmt::Debug for StoreAccountRequest {
             .finish()
     }
 }
+
+pub struct StoreAccountResponse {
+    pub error: Option<nym_vpn_lib_types::StoreAccountError>,
+}
+
+pub struct ForgetAccountResponse {
+    pub error: Option<nym_vpn_lib_types::ForgetAccountError>,
+}
