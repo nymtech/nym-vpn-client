@@ -129,12 +129,6 @@ Advisory Board with multiple industry awards (Levchin Prize, BCS Lovelace Medal)
 - 💡 [The Nym Network Whitepaper](https://nym.com/nym-whitepaper.pdf)
 - 📣 [Nym's blog](https://nym.com/en/blog).
 
-- 🐥 [X account](https://nym.com/go/x)
-- 💬 [Community Discord](https://nym.com/go/discord)
-- 💬 [Community Matrix](https://nym.com/go/matrix)
-- 💬 [Community Telegram](https://nym.com/go/telegram)
-- 🎥 [Nym on YouTube](https://nym.com/go/youtube)
-
 
 # 🤝 Contributing
 We welcome contributions from developers passionate about privacy, decentralization, and open-source software! This monorepo contains all of our source code for our NymVPN client apps (iOS / Android / Linux / macOS / Windows / CLI), separate from the Nym network [monorepo](https://github.com/nymtech/nym).
