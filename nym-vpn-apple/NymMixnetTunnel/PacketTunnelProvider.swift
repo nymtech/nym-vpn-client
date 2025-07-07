@@ -57,13 +57,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             throw PacketTunnelProviderError.noCredentialDataDir
         }
 
-        do {
-            try await startNymVpn(credentialDataPath: credentialDataPath, vpnConfig: vpnConfig)
-        } catch {
-            try? stopVpn()
-            try? shutdown()
-            throw error
-        }
+        try await startNymVpn(credentialDataPath: credentialDataPath, vpnConfig: vpnConfig)
     }
 
     override func stopTunnel(with reason: NEProviderStopReason) async {

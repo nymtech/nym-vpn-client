@@ -18,6 +18,7 @@ actor TunnelActor {
     var canReassert = false
 
     @Published private(set) var tunnelState: TunnelState?
+    var lastError: ErrorReason?
 
     init() {
         let (eventStream, eventContinuation) = AsyncStream<TunnelEvent>.makeStream()
@@ -53,11 +54,28 @@ actor TunnelActor {
                 tunnelProvider?.reasserting = false
             }
             canReassert = true
-        case .error:
+        case let .error(errorStateReason):
             if canReassert {
                 // todo: remove once we properly handle error state
                 tunnelProvider?.cancelTunnelWithError(PacketTunnelProviderError.errorState)
             }
+            lastError = ErrorReason(with: errorStateReason)
+            tunnelState = .connected(
+                connectionData: ConnectionData(
+                    entryGateway: Gateway(id: ""),
+                    exitGateway: Gateway(id: ""),
+                    connectedAt: nil,
+                    tunnel: .mixnet(
+                        MixnetConnectionData(
+                            nymAddress: NymAddress(nymAddress: "127.0.0.1", gatewayId: "127.0.0.1"),
+                            exitIpr: NymAddress(nymAddress: "127.0.0.1", gatewayId: "127.0.0.1"),
+                            ipv4: "0.0.0.0",
+                            ipv6: "0.0.0.0"
+                        )
+                    )
+                )
+            )
+            return
         case .disconnecting(.error):
             await NotificationMessages.scheduleDisconnectNotification()
         default:
@@ -76,14 +94,14 @@ actor TunnelActor {
             case .connected, .disconnected:
                 return
             case let .error(errorStateReason):
-                throw ErrorReason(with: errorStateReason).nsError
+                lastError = ErrorReason(with: errorStateReason)
             case .disconnecting, .none, .connecting:
                 break
             case let .some(.offline(reconnect: reconnect)):
                 if reconnect {
                     break
                 } else {
-                    throw ErrorReason.offline
+                    throw ErrorReason.offline.nsError
                 }
             }
         }

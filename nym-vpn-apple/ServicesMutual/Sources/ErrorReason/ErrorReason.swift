@@ -4,7 +4,7 @@ import MixnetLibrary
 #endif
 import Theme
 
-public enum ErrorReason: LocalizedError {
+public enum ErrorReason: LocalizedError, Codable {
     // App
     case offline
     case noAccountStored

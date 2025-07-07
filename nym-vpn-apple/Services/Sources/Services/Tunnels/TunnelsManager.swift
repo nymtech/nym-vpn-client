@@ -146,10 +146,6 @@ private extension TunnelsManager {
                 else {
                     return
                 }
-                logger.log(
-                    level: .debug,
-                    "Tunnel '\(tunnel.name)' connection status changed to '\(tunnel.tunnel.connection.status)'"
-                )
                 tunnel.updateStatus()
 #if os(iOS)
                 Task { [weak self] in
@@ -162,21 +158,19 @@ private extension TunnelsManager {
 
 #if os(iOS)
     func updateLastTunnelErrorIfNeeded() async {
-        guard activeTunnel?.status == .disconnecting && activeTunnel?.status != .connected else { return }
+        guard activeTunnel?.status == .disconnecting else { return }
 
-        do {
-            try await activeTunnel?.tunnel.connection.fetchLastDisconnectError()
-        } catch let error as NSError {
+        if let error = activeTunnel?.lastError as? NSError {
             switch error.domain {
             case VPNErrorReason.domain:
                 lastError = VPNErrorReason(nsError: error)
             case ErrorReason.domain:
                 lastError = ErrorReason(nsError: error)
             default:
-                lastError = GeneralNymError.somethingWentWrong
+                lastError = error
             }
-        } catch {
-            lastError = GeneralNymError.somethingWentWrong
+        } else {
+            lastError = nil
         }
     }
 #endif

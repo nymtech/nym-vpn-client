@@ -26,10 +26,11 @@ extension PacketTunnelProvider {
                     afterDisconnectAction = nil
                 }
 
-                let statusResponse = TunnelStatusResponse(
+                let statusResponse = await TunnelStatusResponse(
                     status: TunnelStatus(from: tunnelState),
                     retryAttempt: retryAttempt,
-                    afterDisconnectAction: afterDisconnectAction
+                    afterDisconnectAction: afterDisconnectAction,
+                    lastError: tunnelActor.lastError
                 )
                 return try JSONEncoder().encode(statusResponse)
             } catch {

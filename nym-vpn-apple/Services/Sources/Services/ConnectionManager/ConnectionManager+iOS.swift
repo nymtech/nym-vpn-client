@@ -60,6 +60,14 @@ extension ConnectionManager {
                     self?.afterDisconnectAction = action
                 }
             }
+
+        tunnelLastErrorCancelable = tunnel.$lastError
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newError in
+                MainActor.assumeIsolated {
+                    self?.lastError = newError
+                }
+            }
     }
 }
 
@@ -146,9 +154,9 @@ extension ConnectionManager {
         guard let activeTunnel else { return false }
 
         switch activeTunnel.status {
-        case .connected, .connecting, .reasserting, .restarting, .offlineReconnect:
+        case .connected, .connecting, .reasserting, .restarting, .offlineReconnect, .error:
             return true
-        case .disconnecting, .disconnected, .offline, .unknown, .error:
+        case .disconnecting, .disconnected, .offline, .unknown:
             return false
         }
     }
