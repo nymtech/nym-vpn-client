@@ -289,6 +289,25 @@ impl From<AvailableTickets> for proto::AvailableTickets {
     }
 }
 
+impl From<proto::AvailableTickets> for AvailableTickets {
+    fn from(ticketbooks: proto::AvailableTickets) -> Self {
+        Self {
+            mixnet_entry_tickets: ticketbooks.mixnet_entry_tickets,
+            mixnet_entry_data: ticketbooks.mixnet_entry_data,
+            mixnet_entry_data_si: ticketbooks.mixnet_entry_data_si,
+            mixnet_exit_tickets: ticketbooks.mixnet_exit_tickets,
+            mixnet_exit_data: ticketbooks.mixnet_exit_data,
+            mixnet_exit_data_si: ticketbooks.mixnet_exit_data_si,
+            vpn_entry_tickets: ticketbooks.vpn_entry_tickets,
+            vpn_entry_data: ticketbooks.vpn_entry_data,
+            vpn_entry_data_si: ticketbooks.vpn_entry_data_si,
+            vpn_exit_tickets: ticketbooks.vpn_exit_tickets,
+            vpn_exit_data: ticketbooks.vpn_exit_data,
+            vpn_exit_data_si: ticketbooks.vpn_exit_data_si,
+        }
+    }
+}
+
 impl From<SyncAccountError> for proto::SyncAccountError {
     fn from(value: SyncAccountError) -> Self {
         match value {

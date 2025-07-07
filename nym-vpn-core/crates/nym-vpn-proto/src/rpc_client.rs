@@ -4,7 +4,7 @@
 use std::path::PathBuf;
 
 use nym_vpn_api_client::{NetworkCompatibility, response::NymVpnDevice};
-use nym_vpn_lib_types::{TunnelEvent, TunnelState};
+use nym_vpn_lib_types::{AvailableTickets, TunnelEvent, TunnelState};
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
     ConnectArgs, ForgetAccountResponse, ListCountriesOptions, ListGatewaysOptions,
@@ -248,12 +248,12 @@ impl RpcClient {
     }
 
     pub async fn refresh_account_state(&mut self) -> Result<()> {
-        self.0
+        Ok(self
+            .0
             .refresh_account_state(())
             .await
             .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
+            .into_inner())
     }
 
     pub async fn get_account_usage(&mut self) -> Result<()> {
@@ -334,6 +334,64 @@ impl RpcClient {
             .map_err(Error::InvalidResponse)?;
 
         Ok(devices)
+    }
+
+    pub async fn request_zk_nym(&mut self) -> Result<()> {
+        Ok(self
+            .0
+            .request_zk_nym(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner())
+    }
+
+    pub async fn get_device_zk_nyms(&mut self) -> Result<()> {
+        Ok(self
+            .0
+            .get_device_zk_nyms(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner())
+    }
+
+    pub async fn get_zk_nym_by_id(&mut self, id: String) -> Result<()> {
+        let request = proto::GetZkNymByIdRequest { id };
+        Ok(self
+            .0
+            .get_zk_nym_by_id(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner())
+    }
+
+    pub async fn confirm_zk_nym_downloaded(&mut self, id: String) -> Result<()> {
+        let request = proto::ConfirmZkNymDownloadedRequest { id };
+        Ok(self
+            .0
+            .confirm_zk_nym_downloaded(request)
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner())
+    }
+
+    pub async fn get_available_tickets(&mut self) -> Result<AvailableTickets> {
+        let response = self
+            .0
+            .get_available_tickets(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(AvailableTickets::from(response))
+    }
+
+    pub async fn get_zk_nyms_available_for_download(&mut self) -> Result<()> {
+        Ok(self
+            .0
+            .get_zk_nyms_available_for_download(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner())
     }
 
     pub async fn get_log_path(&mut self) -> Result<LogPath> {

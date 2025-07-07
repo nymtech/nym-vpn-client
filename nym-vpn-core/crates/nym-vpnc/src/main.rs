@@ -375,7 +375,7 @@ async fn confirm_zk_nym_downloaded(
 }
 
 async fn get_available_tickets(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.get_available_tickets().await?.into_inner();
+    let response = rpc_client.get_available_tickets().await?;
     println!("{response:#?}");
     Ok(())
 }
