@@ -278,7 +278,6 @@ async fn store_account(opts: CliOptions, store_args: &cli::StoreAccountArgs) -> 
     let mut client = vpnd_client::get_client().await?;
     let request = tonic::Request::new(StoreAccountRequest {
         mnemonic: store_args.mnemonic.clone(),
-        nonce: 0,
     });
     let response = client.store_account(request).await?.into_inner();
     if opts.verbose {

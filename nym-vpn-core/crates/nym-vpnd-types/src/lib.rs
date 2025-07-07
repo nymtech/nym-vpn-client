@@ -46,3 +46,16 @@ pub struct ListCountriesOptions {
     #[allow(unused)]
     pub user_agent: Option<UserAgent>,
 }
+
+#[derive(zeroize::Zeroize)]
+pub struct StoreAccountRequest {
+    pub mnemonic: String,
+}
+
+impl std::fmt::Debug for StoreAccountRequest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("StoreAccountRequest")
+            .field("mnemonic", &"[redacted]")
+            .finish()
+    }
+}

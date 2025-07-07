@@ -103,7 +103,6 @@ message RequestZkNymBundle {
 
 message StoreAccountRequest {
   string mnemonic = 1;
-  uint32 nonce = 2;
 }
 
 message StoreAccountResponse {

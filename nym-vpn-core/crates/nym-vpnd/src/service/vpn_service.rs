@@ -38,13 +38,12 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
-    ConnectArgs, ListCountriesOptions, ListGatewaysOptions,
+    ConnectArgs, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
     gateway::{Country, Gateway},
     log_path::LogPath,
     service::{VpnServiceDisconnectError, VpnServiceInfo},
 };
 use std::time::Duration;
-use zeroize::Zeroizing;
 
 use super::{
     config::{DEFAULT_CONFIG_FILE, NetworkEnvironments, NymVpnServiceConfig},
@@ -82,7 +81,7 @@ pub enum VpnServiceCommand {
     SubscribeToTunnelState(oneshot::Sender<watch::Receiver<TunnelState>>, ()),
     StoreAccount(
         oneshot::Sender<Result<(), StoreAccountError>>,
-        Zeroizing<String>,
+        StoreAccountRequest,
     ),
     IsAccountStored(oneshot::Sender<bool>, ()),
     ForgetAccount(oneshot::Sender<Result<(), ForgetAccountError>>, ()),
@@ -866,9 +865,9 @@ where
 
     async fn handle_store_account(
         &mut self,
-        account: Zeroizing<String>,
+        store_request: StoreAccountRequest,
     ) -> Result<(), StoreAccountError> {
-        let mnemonic = Mnemonic::parse::<&str>(account.as_ref())
+        let mnemonic = Mnemonic::parse::<&str>(store_request.mnemonic.as_str())
             .map_err(|err| StoreAccountError::InvalidMnemonic(err.to_string()))?;
         self.account_command_tx.store_account(mnemonic).await
     }

@@ -14,7 +14,6 @@ use tokio::{
 };
 use tokio_util::sync::CancellationToken;
 use tonic::transport::Server;
-use zeroize::Zeroizing;
 
 use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::{
@@ -263,10 +262,9 @@ impl NymVpnd for CommandInterface {
         &self,
         request: tonic::Request<StoreAccountRequest>,
     ) -> Result<tonic::Response<StoreAccountResponse>, tonic::Status> {
-        let account = Zeroizing::new(request.into_inner().mnemonic);
-
+        let store_request = nym_vpnd_types::StoreAccountRequest::from(request.into_inner());
         let result = self
-            .send_and_wait(VpnServiceCommand::StoreAccount, account)
+            .send_and_wait(VpnServiceCommand::StoreAccount, store_request)
             .await?;
 
         let response = StoreAccountResponse {
