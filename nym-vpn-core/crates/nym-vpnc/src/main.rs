@@ -417,3 +417,177 @@ async fn list_countries(mut rpc_client: RpcClient, gw_type: GatewayType) -> Resu
 
     Ok(())
 }
+
+fn print_service_info(service_info: VpnServiceInfo) {
+    println!("nym-vpnd:");
+    println!("  version:               {}", service_info.version);
+    println!(
+        "  build_timestamp (utc): {}",
+        service_info
+            .build_timestamp
+            .map(|s| s.to_string())
+            .unwrap_or_default()
+    );
+    println!("  triple:                {}", service_info.triple);
+    println!("  platform:              {}", service_info.platform);
+    println!("  git_commit:            {}", service_info.git_commit);
+
+    println!("\nnym_network:");
+    println!(
+        "  network_name:          {}",
+        service_info.nym_network.network.network_name
+    );
+    println!("  chain_details:");
+    println!(
+        "    bech32_account_prefix: {}",
+        service_info
+            .nym_network
+            .network
+            .chain_details
+            .bech32_account_prefix
+    );
+    println!("    mix_denom:");
+    println!(
+        "      base:               {}",
+        service_info
+            .nym_network
+            .network
+            .chain_details
+            .mix_denom
+            .base
+    );
+    println!(
+        "      display:            {}",
+        service_info
+            .nym_network
+            .network
+            .chain_details
+            .mix_denom
+            .display
+    );
+    println!(
+        "      display_exponent:   {}",
+        service_info
+            .nym_network
+            .network
+            .chain_details
+            .mix_denom
+            .display_exponent
+    );
+    println!("    stake_denom:");
+    println!(
+        "      base:               {}",
+        service_info
+            .nym_network
+            .network
+            .chain_details
+            .stake_denom
+            .base
+    );
+    println!(
+        "      display:            {}",
+        service_info
+            .nym_network
+            .network
+            .chain_details
+            .stake_denom
+            .display
+    );
+    println!(
+        "      display_exponent:   {}",
+        service_info
+            .nym_network
+            .network
+            .chain_details
+            .stake_denom
+            .display_exponent
+    );
+
+    println!("  validators:");
+    for validator in &service_info.nym_network.network.endpoints {
+        println!("    nyxd_url:              {}", validator.nyxd_url);
+        println!(
+            "    api_url:               {}",
+            or_not_set(&validator.api_url)
+        );
+        println!(
+            "    websocket_url:         {}",
+            or_not_set(&validator.websocket_url)
+        );
+    }
+
+    println!("  nym_contracts:");
+    println!(
+        "    mixnet_contract_address:       {}",
+        or_not_set(
+            &service_info
+                .nym_network
+                .network
+                .contracts
+                .mixnet_contract_address
+        )
+    );
+    println!(
+        "    vesting_contract_address:      {}",
+        or_not_set(
+            &service_info
+                .nym_network
+                .network
+                .contracts
+                .vesting_contract_address
+        )
+    );
+    println!(
+        "    ecash_contract_address:        {}",
+        or_not_set(
+            &service_info
+                .nym_network
+                .network
+                .contracts
+                .ecash_contract_address
+        )
+    );
+    println!(
+        "    group_contract_address:        {}",
+        or_not_set(
+            &service_info
+                .nym_network
+                .network
+                .contracts
+                .group_contract_address
+        )
+    );
+    println!(
+        "    multisig_contract_address:     {}",
+        or_not_set(
+            &service_info
+                .nym_network
+                .network
+                .contracts
+                .multisig_contract_address
+        )
+    );
+    println!(
+        "    coconut_dkg_contract_address:  {}",
+        or_not_set(
+            &service_info
+                .nym_network
+                .network
+                .contracts
+                .coconut_dkg_contract_address
+        )
+    );
+
+    println!("\nnym_vpn_network:");
+    println!(
+        "  nym_vpn_api_url: {}",
+        service_info.nym_vpn_network.nym_vpn_api_url
+    )
+}
+
+pub fn or_not_set<T: ToString + Clone>(value: &Option<T>) -> String {
+    value
+        .clone()
+        .map(|v| v.to_string())
+        .unwrap_or("not set".to_string())
+}
