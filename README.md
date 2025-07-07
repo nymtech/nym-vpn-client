@@ -117,19 +117,17 @@ Advisory Board with multiple industry awards (Levchin Prize, BCS Lovelace Medal)
 - 🛡️ [The NymVPN Litepaper](https://nym.com/nymvpn-litepaper)
 - ♟️ [NymVPN public roadmap](https://trello.com/b/qVhBo3e2/nymvpn-public-roadmap)
 - 👀 [NymVPN Signals of Trustworthy VPNs](https://nym.com/trust-center/signals-of-trustworthy-vpns)
-- 🌐 [Nym crowdsouced localization](https://crowdin.com/editor/nymvpn-apps)
+- 🌐 [Nym Crowdsouced Localization](https://crowdin.com/editor/nymvpn-apps)
 
 - 🙏 [Nym's Help Center](https://support.nym.com/hc/en-us)
 - 🏡 [Nym Forum](https://forum.nym.com)
 - 🍀 [Nym's Trust Center](https://nym.com/trust-center)
 - 🔬 [Nym Audits](https://nym.com/trust-center/independently-audited)
 - 🧪 [Nym Research Papers](https://nym.com/trust-center/papers-and-research)
-- 🔐 [Nym cryptography](https://nym.com/trust-center/cryptography)
+- 🔐 [Nym Cryptography](https://nym.com/trust-center/cryptography)
 
 - 💡 [The Nym Network Whitepaper](https://nym.com/nym-whitepaper.pdf)
 - 📣 [Nym's blog](https://nym.com/en/blog).
-- 📖 [Nym Developer Docs](https://nym.com/docs)
-- 🔧 [Nym Network API Reference](https://nym.com/docs/apis/introduction)
 
 - 🐥 [X account](https://nym.com/go/x)
 - 💬 [Community Discord](https://nym.com/go/discord)
@@ -137,11 +135,9 @@ Advisory Board with multiple industry awards (Levchin Prize, BCS Lovelace Medal)
 - 💬 [Community Telegram](https://nym.com/go/telegram)
 - 🎥 [Nym on YouTube](https://nym.com/go/youtube)
 
-This monorepo contains all of our source code for our NymVPN client apps (iOS / Android / Linux / macOS / Windows / CLI), separate from the Nym network [monorepo](https://github.com/nymtech/nym). 
-
 
 # 🤝 Contributing
-We welcome contributions from developers passionate about privacy, decentralization, and open-source software!
+We welcome contributions from developers passionate about privacy, decentralization, and open-source software! This monorepo contains all of our source code for our NymVPN client apps (iOS / Android / Linux / macOS / Windows / CLI), separate from the Nym network [monorepo](https://github.com/nymtech/nym).
 
 Development Areas
 - Rust core development: Networking, cryptography, protocols
