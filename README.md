@@ -8,11 +8,11 @@ Open-source, cross-platform VPN client built with Rust that provides true privac
 # 🚀 What is NymVPN
 
 NymVPN is a privacy-focused, decentralized VPN application that goes beyond traditional VPNs by leveraging:
-🔀 [Mixnet](https://nym.com/mixnet) Technology: Anonymous 5-hop routing through Nym's decentralized network
-⚡ WireGuard + AmneziaWG: Fast, secure tunneling with built-in censorship resistance
-🛡️ Metadata Protection: Unlike traditional VPNs, protects both content AND traffic patterns (in mixnet mode)
-🔐 Zero-Knowledge Credentials: Private authentication using zero-knowledge [zk-nyms](https://nym.com/zk-nyms)
-🌍 No Single Point of Failure: Fully decentralized infrastructure
+- 🔀 [Mixnet](https://nym.com/mixnet) Technology: Anonymous 5-hop routing through Nym's decentralized network
+- ⚡ WireGuard + AmneziaWG: Fast, secure tunneling with built-in censorship resistance
+- 🛡️ Metadata Protection: Unlike traditional VPNs, protects both content AND traffic patterns (in mixnet mode)
+- 🔐 Zero-Knowledge Credentials: Private authentication using zero-knowledge [zk-nyms](https://nym.com/zk-nyms)
+- 🌍 No Single Point of Failure: Fully decentralized infrastructure
 
 
 <div align="left">
@@ -23,6 +23,7 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 <br />
 
 <div align="left">
+
 [<img height="40" width="120" src=".github/assets/apk-download-badge-1745835177551.png">](https://github.com/nymtech/nym-vpn-client/releases?q=android&expanded=true)
 [<img height="40" width="120"  src=".github/assets/fdroid-badge.png">](https://f-droid.org/packages/net.nymtech.nymvpn/)
 [<img height="40" width="120" src=".github/assets/flathub-store.svg">](https://flathub.org/apps/net.nymtech.NymVPN)
@@ -32,6 +33,7 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 [<img height="40" width="120" src=".github/assets/linux-badge.png">](https://github.com/nymtech/nym-vpn-client/releases?q=linux&expanded=true)
 [<img height="40" width="120"  src=".github/assets/macos-badge.png">](https://github.com/nymtech/nym-vpn-client/releases?q=macos&expanded=true)
 [<img height="40" width="120" src=".github/assets/windows-badge.png">](https://github.com/nymtech/nym-vpn-client/releases?q=windows&expanded=true)
+
 </div>
 
 
@@ -90,14 +92,6 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 └─────────────────┘    └──────────────┘    └─────────────────┘
 ```
 
-# 🌍 Network Infrastructure & Performance (July 2025)
-
-Global Network Statistics
-- 600+ Active Nodes across nearly 60 countries
-- Decentralized Operators: Independent individuals and organizations
-- Token Incentives: Economic sustainability for operators
-- Community-driven node reputation system
-
 
 # 🌐 Use Cases
 For Privacy Advocates
@@ -130,28 +124,28 @@ Advisory Board with multiple industry awards (Levchin Prize, BCS Lovelace Medal)
 
 # 📚 Documentation & Resources
 
-🛡️ [The NymVPN Litepaper](https://nym.com/nymvpn-litepaper)
-♟️ [NymVPN public roadmap](https://trello.com/b/qVhBo3e2/nymvpn-public-roadmap)
-👀 [NymVPN Signals of Trustworthy VPNs](https://nym.com/trust-center/signals-of-trustworthy-vpns)
-🌐 [Nym crowdsouced localization](https://crowdin.com/editor/nymvpn-apps)
+- 🛡️ [The NymVPN Litepaper](https://nym.com/nymvpn-litepaper)
+- ♟️ [NymVPN public roadmap](https://trello.com/b/qVhBo3e2/nymvpn-public-roadmap)
+- 👀 [NymVPN Signals of Trustworthy VPNs](https://nym.com/trust-center/signals-of-trustworthy-vpns)
+- 🌐 [Nym crowdsouced localization](https://crowdin.com/editor/nymvpn-apps)
 
-🙏 [Nym's Help Center](https://support.nym.com/hc/en-us)
-🏡 [Nym Forum](https://forum.nym.com)
-🍀 [Nym's Trust Center](https://nym.com/trust-center)
-🔬 [Nym Audits](https://nym.com/trust-center/independently-audited)
-🧪 [Nym Research Papers](https://nym.com/trust-center/papers-and-research)
-🔐 [Nym cryptography](https://nym.com/trust-center/cryptography)
+- 🙏 [Nym's Help Center](https://support.nym.com/hc/en-us)
+- 🏡 [Nym Forum](https://forum.nym.com)
+- 🍀 [Nym's Trust Center](https://nym.com/trust-center)
+- 🔬 [Nym Audits](https://nym.com/trust-center/independently-audited)
+- 🧪 [Nym Research Papers](https://nym.com/trust-center/papers-and-research)
+- 🔐 [Nym cryptography](https://nym.com/trust-center/cryptography)
 
-💡 [The Nym Network Whitepaper](https://nym.com/nym-whitepaper.pdf)
-📣 [Nym's blog](https://nym.com/en/blog).
-📖 [Nym Developer Docs](https://nym.com/docs)
-🔧 [Nym Network API Reference](https://nym.com/docs/apis/introduction)
+- 💡 [The Nym Network Whitepaper](https://nym.com/nym-whitepaper.pdf)
+- 📣 [Nym's blog](https://nym.com/en/blog).
+- 📖 [Nym Developer Docs](https://nym.com/docs)
+- 🔧 [Nym Network API Reference](https://nym.com/docs/apis/introduction)
 
-🐥 [X account](https://nym.com/go/x)
-💬 [Community Discord](https://nym.com/go/discord)
-💬 [Community Matrix](https://nym.com/go/matrix)
-💬 [Community Telegram](https://nym.com/go/telegram)
-🎥 [Nym on YouTube](https://nym.com/go/youtube)
+- 🐥 [X account](https://nym.com/go/x)
+- 💬 [Community Discord](https://nym.com/go/discord)
+- 💬 [Community Matrix](https://nym.com/go/matrix)
+- 💬 [Community Telegram](https://nym.com/go/telegram)
+- 🎥 [Nym on YouTube](https://nym.com/go/youtube)
 
 This monorepo contains all of our source code for our NymVPN client apps (iOS / Android / Linux / macOS / Windows / CLI), separate from the Nym network [monorepo](https://github.com/nymtech/nym). 
 
