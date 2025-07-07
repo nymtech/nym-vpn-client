@@ -3,12 +3,12 @@
 
 use std::collections::HashMap;
 
-use crate::conversions::ConversionError;
+use crate::{conversions::ConversionError, proto};
 
-impl TryFrom<crate::ChainDetails> for nym_config::defaults::ChainDetails {
+impl TryFrom<proto::ChainDetails> for nym_config::defaults::ChainDetails {
     type Error = ConversionError;
 
-    fn try_from(details: crate::ChainDetails) -> Result<Self, Self::Error> {
+    fn try_from(details: proto::ChainDetails) -> Result<Self, Self::Error> {
         let mix_denom = details
             .mix_denom
             .clone()
@@ -27,8 +27,8 @@ impl TryFrom<crate::ChainDetails> for nym_config::defaults::ChainDetails {
     }
 }
 
-impl From<crate::DenomDetails> for nym_config::defaults::DenomDetailsOwned {
-    fn from(details: crate::DenomDetails) -> Self {
+impl From<proto::DenomDetails> for nym_config::defaults::DenomDetailsOwned {
+    fn from(details: proto::DenomDetails) -> Self {
         nym_config::defaults::DenomDetailsOwned {
             base: details.base,
             display: details.display,
@@ -37,10 +37,10 @@ impl From<crate::DenomDetails> for nym_config::defaults::DenomDetailsOwned {
     }
 }
 
-impl TryFrom<crate::ValidatorDetails> for nym_config::defaults::ValidatorDetails {
+impl TryFrom<proto::ValidatorDetails> for nym_config::defaults::ValidatorDetails {
     type Error = ConversionError;
 
-    fn try_from(details: crate::ValidatorDetails) -> Result<Self, Self::Error> {
+    fn try_from(details: proto::ValidatorDetails) -> Result<Self, Self::Error> {
         let nyxd_url = details
             .nyxd_url
             .clone()
@@ -56,8 +56,8 @@ impl TryFrom<crate::ValidatorDetails> for nym_config::defaults::ValidatorDetails
     }
 }
 
-impl From<crate::NymContracts> for nym_config::defaults::NymContracts {
-    fn from(contracts: crate::NymContracts) -> Self {
+impl From<proto::NymContracts> for nym_config::defaults::NymContracts {
+    fn from(contracts: proto::NymContracts) -> Self {
         Self {
             mixnet_contract_address: contracts.mixnet_contract_address,
             vesting_contract_address: contracts.vesting_contract_address,
@@ -69,10 +69,10 @@ impl From<crate::NymContracts> for nym_config::defaults::NymContracts {
     }
 }
 
-impl TryFrom<crate::NymNetworkDetails> for nym_config::defaults::NymNetworkDetails {
+impl TryFrom<proto::NymNetworkDetails> for nym_config::defaults::NymNetworkDetails {
     type Error = ConversionError;
 
-    fn try_from(details: crate::NymNetworkDetails) -> Result<Self, Self::Error> {
+    fn try_from(details: proto::NymNetworkDetails) -> Result<Self, Self::Error> {
         let chain_details = details
             .chain_details
             .clone()
@@ -101,10 +101,10 @@ impl TryFrom<crate::NymNetworkDetails> for nym_config::defaults::NymNetworkDetai
     }
 }
 
-impl TryFrom<crate::AccountManagement> for nym_vpn_network_config::ParsedAccountLinks {
+impl TryFrom<proto::AccountManagement> for nym_vpn_network_config::ParsedAccountLinks {
     type Error = ConversionError;
 
-    fn try_from(account_management: crate::AccountManagement) -> Result<Self, Self::Error> {
+    fn try_from(account_management: proto::AccountManagement) -> Result<Self, Self::Error> {
         let sign_up = account_management
             .sign_up
             .map(|url| url.url)
@@ -129,8 +129,8 @@ impl TryFrom<crate::AccountManagement> for nym_vpn_network_config::ParsedAccount
     }
 }
 
-impl From<crate::NetworkCompatibility> for nym_vpn_api_client::NetworkCompatibility {
-    fn from(value: crate::NetworkCompatibility) -> Self {
+impl From<proto::NetworkCompatibility> for nym_vpn_api_client::NetworkCompatibility {
+    fn from(value: proto::NetworkCompatibility) -> Self {
         Self {
             core: value.core,
             ios: value.ios,
@@ -141,8 +141,8 @@ impl From<crate::NetworkCompatibility> for nym_vpn_api_client::NetworkCompatibil
     }
 }
 
-impl From<crate::GetFeatureFlagsResponse> for nym_vpn_network_config::FeatureFlags {
-    fn from(feature_flags: crate::GetFeatureFlagsResponse) -> Self {
+impl From<proto::GetFeatureFlagsResponse> for nym_vpn_network_config::FeatureFlags {
+    fn from(feature_flags: proto::GetFeatureFlagsResponse) -> Self {
         let mut data = HashMap::default();
 
         for (k, v) in feature_flags.flags {

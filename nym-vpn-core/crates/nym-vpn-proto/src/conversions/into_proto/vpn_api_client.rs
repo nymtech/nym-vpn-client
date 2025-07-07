@@ -3,7 +3,7 @@
 
 use nym_vpn_api_client::response::{NymVpnDevice, NymVpnDeviceStatus, NymVpnUsage};
 
-use crate::{
+use crate::proto::{
     get_account_usage_response::{
         AccountUsage as ProtoAccountUsage, AccountUsages as ProtoAccountUsages,
     },

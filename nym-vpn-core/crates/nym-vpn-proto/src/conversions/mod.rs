@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: GPL-3.0-only
 #![warn(clippy::panic, clippy::unwrap_used, clippy::expect_used)]
 
-pub mod decorations;
 pub mod error;
 pub mod from_proto;
 pub mod into_proto;

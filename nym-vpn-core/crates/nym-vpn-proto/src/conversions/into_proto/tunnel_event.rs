@@ -6,47 +6,34 @@ use nym_vpn_lib_types::{
     TunnelEvent,
 };
 
-use crate::{
-    MixnetEvent as ProtoMixnetEvent, TunnelEvent as ProtoTunnelEvent,
-    TunnelState as ProtoTunnelState,
-    mixnet_event::{
-        BandwidthEvent as ProtoBandwidthEvent, ConnectionEvent as ProtoConnectionEvent,
-        ConnectionStatisticsEvent as ProtoConnectionStatisticsEvent, Event as ProtoMixnetEventEnum,
-        SphinxPacketRates as ProtoSphinxPacketRates,
-        bandwidth_event::{
-            Event as ProtoBanwidthEventEnum, NoBandwidth as ProtoNoBandwidth,
-            RemainingBandwidth as ProtoRemainingBandwidth,
-        },
-    },
-    tunnel_event::Event as ProtoTunnelEventEnum,
-};
+use crate::proto;
 
-impl From<TunnelEvent> for ProtoTunnelEvent {
+impl From<TunnelEvent> for proto::TunnelEvent {
     fn from(value: TunnelEvent) -> Self {
         let event = match value {
             TunnelEvent::NewState(tunnel_state) => {
-                ProtoTunnelEventEnum::TunnelState(ProtoTunnelState::from(tunnel_state))
+                proto::tunnel_event::Event::TunnelState(proto::TunnelState::from(tunnel_state))
             }
             TunnelEvent::MixnetState(mixnet_event) => {
-                ProtoTunnelEventEnum::MixnetEvent(ProtoMixnetEvent::from(mixnet_event))
+                proto::tunnel_event::Event::MixnetEvent(proto::MixnetEvent::from(mixnet_event))
             }
         };
         Self { event: Some(event) }
     }
 }
 
-impl From<MixnetEvent> for ProtoMixnetEvent {
+impl From<MixnetEvent> for proto::MixnetEvent {
     fn from(value: MixnetEvent) -> Self {
         let event = match value {
-            MixnetEvent::Bandwidth(e) => {
-                ProtoMixnetEventEnum::BandwidthEvent(ProtoBandwidthEvent::from(e))
-            }
-            MixnetEvent::Connection(e) => {
-                ProtoMixnetEventEnum::ConnectionEvent(ProtoConnectionEvent::from(e) as i32)
-            }
+            MixnetEvent::Bandwidth(e) => proto::mixnet_event::Event::BandwidthEvent(
+                proto::mixnet_event::BandwidthEvent::from(e),
+            ),
+            MixnetEvent::Connection(e) => proto::mixnet_event::Event::ConnectionEvent(
+                proto::mixnet_event::ConnectionEvent::from(e) as i32,
+            ),
             MixnetEvent::ConnectionStatistics(e) => {
-                ProtoMixnetEventEnum::ConnectionStatisticsEvent(
-                    ProtoConnectionStatisticsEvent::from(e),
+                proto::mixnet_event::Event::ConnectionStatisticsEvent(
+                    proto::mixnet_event::ConnectionStatisticsEvent::from(e),
                 )
             }
         };
@@ -55,19 +42,25 @@ impl From<MixnetEvent> for ProtoMixnetEvent {
     }
 }
 
-impl From<BandwidthEvent> for ProtoBandwidthEvent {
+impl From<BandwidthEvent> for proto::mixnet_event::BandwidthEvent {
     fn from(value: BandwidthEvent) -> Self {
         let event = match value {
-            BandwidthEvent::NoBandwidth => ProtoBanwidthEventEnum::NoBandwidth(ProtoNoBandwidth {}),
+            BandwidthEvent::NoBandwidth => {
+                proto::mixnet_event::bandwidth_event::Event::NoBandwidth(
+                    proto::mixnet_event::bandwidth_event::NoBandwidth {},
+                )
+            }
             BandwidthEvent::RemainingBandwidth(value) => {
-                ProtoBanwidthEventEnum::RemainingBandwidth(ProtoRemainingBandwidth { value })
+                proto::mixnet_event::bandwidth_event::Event::RemainingBandwidth(
+                    proto::mixnet_event::bandwidth_event::RemainingBandwidth { value },
+                )
             }
         };
         Self { event: Some(event) }
     }
 }
 
-impl From<ConnectionEvent> for ProtoConnectionEvent {
+impl From<ConnectionEvent> for proto::mixnet_event::ConnectionEvent {
     fn from(value: ConnectionEvent) -> Self {
         match value {
             ConnectionEvent::EntryGatewayDown => Self::EntryGatewayDown,
@@ -81,15 +74,15 @@ impl From<ConnectionEvent> for ProtoConnectionEvent {
     }
 }
 
-impl From<ConnectionStatisticsEvent> for ProtoConnectionStatisticsEvent {
+impl From<ConnectionStatisticsEvent> for proto::mixnet_event::ConnectionStatisticsEvent {
     fn from(value: ConnectionStatisticsEvent) -> Self {
         Self {
-            rates: Some(ProtoSphinxPacketRates::from(value.rates)),
+            rates: Some(proto::mixnet_event::SphinxPacketRates::from(value.rates)),
         }
     }
 }
 
-impl From<SphinxPacketRates> for ProtoSphinxPacketRates {
+impl From<SphinxPacketRates> for proto::mixnet_event::SphinxPacketRates {
     fn from(value: SphinxPacketRates) -> Self {
         Self {
             real_packets_sent: value.real_packets_sent,

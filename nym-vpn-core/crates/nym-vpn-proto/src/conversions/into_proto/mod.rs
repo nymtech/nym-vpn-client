@@ -9,46 +9,46 @@ pub mod tunnel_state;
 pub mod vpn_api_client;
 pub mod vpnd;
 
-use crate::GatewayType as ProtoGatewayType;
+use crate::proto;
 
-impl From<String> for crate::Url {
+impl From<String> for proto::Url {
     fn from(url: String) -> Self {
-        crate::Url { url }
+        proto::Url { url }
     }
 }
 
-impl From<url::Url> for crate::Url {
+impl From<url::Url> for proto::Url {
     fn from(url: url::Url) -> Self {
-        crate::Url {
+        proto::Url {
             url: url.to_string(),
         }
     }
 }
 
-impl From<&nym_sdk::mixnet::NodeIdentity> for crate::EntryNode {
+impl From<&nym_sdk::mixnet::NodeIdentity> for proto::EntryNode {
     fn from(identity: &nym_sdk::mixnet::NodeIdentity) -> Self {
         Self {
-            entry_node_enum: Some(crate::entry_node::EntryNodeEnum::Gateway(crate::Gateway {
+            entry_node_enum: Some(proto::entry_node::EntryNodeEnum::Gateway(proto::Gateway {
                 id: identity.to_base58_string(),
             })),
         }
     }
 }
 
-impl From<&nym_sdk::mixnet::NodeIdentity> for crate::ExitNode {
+impl From<&nym_sdk::mixnet::NodeIdentity> for proto::ExitNode {
     fn from(identity: &nym_sdk::mixnet::NodeIdentity) -> Self {
         Self {
-            exit_node_enum: Some(crate::exit_node::ExitNodeEnum::Gateway(crate::Gateway {
+            exit_node_enum: Some(proto::exit_node::ExitNodeEnum::Gateway(proto::Gateway {
                 id: identity.to_base58_string(),
             })),
         }
     }
 }
 
-impl From<&nym_sdk::mixnet::Recipient> for crate::ExitNode {
+impl From<&nym_sdk::mixnet::Recipient> for proto::ExitNode {
     fn from(address: &nym_sdk::mixnet::Recipient) -> Self {
         Self {
-            exit_node_enum: Some(crate::exit_node::ExitNodeEnum::Address(crate::Address {
+            exit_node_enum: Some(proto::exit_node::ExitNodeEnum::Address(proto::Address {
                 nym_address: address.to_string(),
                 gateway_id: address.gateway().to_base58_string(),
             })),
@@ -56,13 +56,13 @@ impl From<&nym_sdk::mixnet::Recipient> for crate::ExitNode {
     }
 }
 
-impl From<std::net::IpAddr> for crate::Dns {
+impl From<std::net::IpAddr> for proto::Dns {
     fn from(ip: std::net::IpAddr) -> Self {
         Self { ip: ip.to_string() }
     }
 }
 
-impl From<u8> for crate::Threshold {
+impl From<u8> for proto::Threshold {
     fn from(performance: u8) -> Self {
         Self {
             min_performance: performance.into(),
@@ -70,17 +70,17 @@ impl From<u8> for crate::Threshold {
     }
 }
 
-impl From<ProtoGatewayType> for nym_gateway_directory::GatewayType {
-    fn from(value: ProtoGatewayType) -> Self {
+impl From<proto::GatewayType> for nym_gateway_directory::GatewayType {
+    fn from(value: proto::GatewayType) -> Self {
         match value {
-            ProtoGatewayType::MixnetEntry => nym_gateway_directory::GatewayType::MixnetEntry,
-            ProtoGatewayType::MixnetExit => nym_gateway_directory::GatewayType::MixnetExit,
-            ProtoGatewayType::Wg => nym_gateway_directory::GatewayType::Wg,
+            proto::GatewayType::MixnetEntry => nym_gateway_directory::GatewayType::MixnetEntry,
+            proto::GatewayType::MixnetExit => nym_gateway_directory::GatewayType::MixnetExit,
+            proto::GatewayType::Wg => nym_gateway_directory::GatewayType::Wg,
         }
     }
 }
 
-impl From<nym_http_api_client::UserAgent> for crate::UserAgent {
+impl From<nym_http_api_client::UserAgent> for proto::UserAgent {
     fn from(user_agent: nym_http_api_client::UserAgent) -> Self {
         Self {
             application: user_agent.application,

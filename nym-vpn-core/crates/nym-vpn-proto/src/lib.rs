@@ -2,10 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod proto {
-    // Re-export needed prost types
-    pub use prost_types::Timestamp;
-
-    tonic::include_proto!("nym.vpn");
+    tonic::include_proto!("nym_vpn_service");
 }
 
 #[cfg(feature = "conversions")]

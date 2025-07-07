@@ -11,78 +11,81 @@ use nym_vpn_lib_types::{
     NymAddress, TunnelConnectionData, TunnelState, WireguardConnectionData, WireguardNode,
 };
 
-use crate::{
-    Address as ProtoAddress, ConnectionData as ProtoConnectionData, Gateway as ProtoGateway,
-    MixnetConnectionData as ProtoMixnetConnectionData,
-    TunnelConnectionData as ProtoTunnelConnectionData, TunnelState as ProtoTunnelState,
-    WireguardConnectionData as ProtoWireguardConnectionData, WireguardNode as ProtoWireguardNode,
-    conversions::ConversionError,
-    tunnel_connection_data::{
-        Mixnet as ProtoMixnetConnectionDataVariant, State as ProtoTunnelConnectionDataState,
-        Wireguard as ProtoWireguardConnectionDataVariant,
-    },
-    tunnel_state::{
-        ActionAfterDisconnect as ProtoActionAfterDisconnect, Connected as ProtoConnected,
-        Connecting as ProtoConnecting, Disconnected as ProtoDisconnected,
-        Disconnecting as ProtoDisconnecting, Error as ProtoError, ErrorStateReason,
-        Offline as ProtoOffline, State as ProtoState,
-    },
-};
+use crate::{conversions::ConversionError, proto};
 
-impl From<ProtoActionAfterDisconnect> for ActionAfterDisconnect {
-    fn from(value: ProtoActionAfterDisconnect) -> Self {
+impl From<proto::tunnel_state::ActionAfterDisconnect> for ActionAfterDisconnect {
+    fn from(value: proto::tunnel_state::ActionAfterDisconnect) -> Self {
         match value {
-            ProtoActionAfterDisconnect::Error => Self::Error,
-            ProtoActionAfterDisconnect::Nothing => Self::Nothing,
-            ProtoActionAfterDisconnect::Offline => Self::Offline,
-            ProtoActionAfterDisconnect::Reconnect => Self::Reconnect,
+            proto::tunnel_state::ActionAfterDisconnect::Error => Self::Error,
+            proto::tunnel_state::ActionAfterDisconnect::Nothing => Self::Nothing,
+            proto::tunnel_state::ActionAfterDisconnect::Offline => Self::Offline,
+            proto::tunnel_state::ActionAfterDisconnect::Reconnect => Self::Reconnect,
         }
     }
 }
 
-impl From<ProtoError> for ClientErrorReason {
-    fn from(value: ProtoError) -> Self {
+impl From<proto::tunnel_state::Error> for ClientErrorReason {
+    fn from(value: proto::tunnel_state::Error) -> Self {
         match value.reason() {
-            ErrorStateReason::Firewall => ClientErrorReason::Firewall,
-            ErrorStateReason::Routing => ClientErrorReason::Routing,
-            ErrorStateReason::SameEntryAndExitGateway => ClientErrorReason::SameEntryAndExitGateway,
-            ErrorStateReason::InvalidEntryGatewayCountry => {
+            proto::tunnel_state::ErrorStateReason::Firewall => ClientErrorReason::Firewall,
+            proto::tunnel_state::ErrorStateReason::Routing => ClientErrorReason::Routing,
+            proto::tunnel_state::ErrorStateReason::SameEntryAndExitGateway => {
+                ClientErrorReason::SameEntryAndExitGateway
+            }
+            proto::tunnel_state::ErrorStateReason::InvalidEntryGatewayCountry => {
                 ClientErrorReason::InvalidEntryGatewayCountry
             }
-            ErrorStateReason::InvalidExitGatewayCountry => {
+            proto::tunnel_state::ErrorStateReason::InvalidExitGatewayCountry => {
                 ClientErrorReason::InvalidExitGatewayCountry
             }
-            ErrorStateReason::MaxDevicesReached => ClientErrorReason::MaxDevicesReached,
-            ErrorStateReason::BandwidthExceeded => ClientErrorReason::BandwidthExceeded,
-            ErrorStateReason::SubscriptionExpired => ClientErrorReason::SubscriptionExpired,
-            ErrorStateReason::Dns => ClientErrorReason::Dns(value.detail),
-            ErrorStateReason::Api => ClientErrorReason::Api(value.detail),
-            ErrorStateReason::DeviceTimeOutOfSync => ClientErrorReason::DeviceTimeOutOfSync,
-            ErrorStateReason::CreateMixnetStorage => ClientErrorReason::CreateMixnetStorage,
-            ErrorStateReason::Internal => ClientErrorReason::Internal(value.detail),
+            proto::tunnel_state::ErrorStateReason::MaxDevicesReached => {
+                ClientErrorReason::MaxDevicesReached
+            }
+            proto::tunnel_state::ErrorStateReason::BandwidthExceeded => {
+                ClientErrorReason::BandwidthExceeded
+            }
+            proto::tunnel_state::ErrorStateReason::SubscriptionExpired => {
+                ClientErrorReason::SubscriptionExpired
+            }
+            proto::tunnel_state::ErrorStateReason::Dns => ClientErrorReason::Dns(value.detail),
+            proto::tunnel_state::ErrorStateReason::Api => ClientErrorReason::Api(value.detail),
+            proto::tunnel_state::ErrorStateReason::DeviceTimeOutOfSync => {
+                ClientErrorReason::DeviceTimeOutOfSync
+            }
+            proto::tunnel_state::ErrorStateReason::CreateMixnetStorage => {
+                ClientErrorReason::CreateMixnetStorage
+            }
+            proto::tunnel_state::ErrorStateReason::Internal => {
+                ClientErrorReason::Internal(value.detail)
+            }
         }
     }
 }
 
-impl TryFrom<ProtoTunnelState> for TunnelState {
+impl TryFrom<proto::TunnelState> for TunnelState {
     type Error = ConversionError;
 
-    fn try_from(value: ProtoTunnelState) -> Result<Self, ConversionError> {
+    fn try_from(value: proto::TunnelState) -> Result<Self, ConversionError> {
         let state = value
             .state
             .ok_or(ConversionError::NoValueSet("TunnelState.state"))?;
 
         Ok(match state {
-            ProtoState::Disconnected(ProtoDisconnected {}) => Self::Disconnected,
-            ProtoState::Disconnecting(ProtoDisconnecting { after_disconnect }) => {
-                let proto_after_disconnect = ProtoActionAfterDisconnect::try_from(after_disconnect)
-                    .map_err(|e| ConversionError::Decode("TunnelState.after_disconnect", e))?;
+            proto::tunnel_state::State::Disconnected(proto::tunnel_state::Disconnected {}) => {
+                Self::Disconnected
+            }
+            proto::tunnel_state::State::Disconnecting(proto::tunnel_state::Disconnecting {
+                after_disconnect,
+            }) => {
+                let proto_after_disconnect =
+                    proto::tunnel_state::ActionAfterDisconnect::try_from(after_disconnect)
+                        .map_err(|e| ConversionError::Decode("TunnelState.after_disconnect", e))?;
 
                 Self::Disconnecting {
                     after_disconnect: ActionAfterDisconnect::from(proto_after_disconnect),
                 }
             }
-            ProtoState::Connecting(ProtoConnecting {
+            proto::tunnel_state::State::Connecting(proto::tunnel_state::Connecting {
                 retry_attempt,
                 connection_data,
             }) => {
@@ -93,23 +96,29 @@ impl TryFrom<ProtoTunnelState> for TunnelState {
                     connection_data,
                 }
             }
-            ProtoState::Connected(ProtoConnected { connection_data }) => {
+            proto::tunnel_state::State::Connected(proto::tunnel_state::Connected {
+                connection_data,
+            }) => {
                 let connection_data = connection_data
                     .ok_or(ConversionError::NoValueSet("TunnelState.connection_data"))
                     .and_then(ConnectionData::try_from)?;
 
                 Self::Connected { connection_data }
             }
-            ProtoState::Error(error_state_reason) => Self::Error(error_state_reason.into()),
-            ProtoState::Offline(ProtoOffline { reconnect }) => Self::Offline { reconnect },
+            proto::tunnel_state::State::Error(error_state_reason) => {
+                Self::Error(error_state_reason.into())
+            }
+            proto::tunnel_state::State::Offline(proto::tunnel_state::Offline { reconnect }) => {
+                Self::Offline { reconnect }
+            }
         })
     }
 }
 
-impl TryFrom<ProtoConnectionData> for ConnectionData {
+impl TryFrom<proto::ConnectionData> for ConnectionData {
     type Error = ConversionError;
 
-    fn try_from(value: ProtoConnectionData) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::ConnectionData) -> Result<Self, Self::Error> {
         let connected_at = value
             .connected_at
             .map(|timestamp| {
@@ -137,33 +146,33 @@ impl TryFrom<ProtoConnectionData> for ConnectionData {
     }
 }
 
-impl TryFrom<ProtoTunnelConnectionData> for TunnelConnectionData {
+impl TryFrom<proto::TunnelConnectionData> for TunnelConnectionData {
     type Error = ConversionError;
 
-    fn try_from(value: ProtoTunnelConnectionData) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::TunnelConnectionData) -> Result<Self, Self::Error> {
         let state = value
             .state
             .ok_or(ConversionError::NoValueSet("TunnelConnectionData.state"))?;
 
         Ok(match state {
-            ProtoTunnelConnectionDataState::Mixnet(ProtoMixnetConnectionDataVariant { data }) => {
-                Self::Mixnet(MixnetConnectionData::try_from(data.ok_or(
-                    ConversionError::NoValueSet("TunnelConnectionData::Mixnet.data"),
-                )?)?)
-            }
-            ProtoTunnelConnectionDataState::Wireguard(ProtoWireguardConnectionDataVariant {
-                data,
-            }) => Self::Wireguard(WireguardConnectionData::try_from(data.ok_or(
+            proto::tunnel_connection_data::State::Mixnet(
+                proto::tunnel_connection_data::Mixnet { data },
+            ) => Self::Mixnet(MixnetConnectionData::try_from(data.ok_or(
+                ConversionError::NoValueSet("TunnelConnectionData::Mixnet.data"),
+            )?)?),
+            proto::tunnel_connection_data::State::Wireguard(
+                proto::tunnel_connection_data::Wireguard { data },
+            ) => Self::Wireguard(WireguardConnectionData::try_from(data.ok_or(
                 ConversionError::NoValueSet("TunnelConnectionData::Wireguard.data"),
             )?)?),
         })
     }
 }
 
-impl TryFrom<ProtoMixnetConnectionData> for MixnetConnectionData {
+impl TryFrom<proto::MixnetConnectionData> for MixnetConnectionData {
     type Error = ConversionError;
 
-    fn try_from(value: ProtoMixnetConnectionData) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::MixnetConnectionData) -> Result<Self, Self::Error> {
         Ok(Self {
             nym_address: value.nym_address.map(NymAddress::from).ok_or(
                 ConversionError::NoValueSet("MixnetConnectionData.nym_address"),
@@ -184,10 +193,10 @@ impl TryFrom<ProtoMixnetConnectionData> for MixnetConnectionData {
     }
 }
 
-impl TryFrom<ProtoWireguardConnectionData> for WireguardConnectionData {
+impl TryFrom<proto::WireguardConnectionData> for WireguardConnectionData {
     type Error = ConversionError;
 
-    fn try_from(value: ProtoWireguardConnectionData) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::WireguardConnectionData) -> Result<Self, Self::Error> {
         Ok(Self {
             entry: WireguardNode::try_from(
                 value
@@ -203,10 +212,10 @@ impl TryFrom<ProtoWireguardConnectionData> for WireguardConnectionData {
     }
 }
 
-impl TryFrom<ProtoWireguardNode> for WireguardNode {
+impl TryFrom<proto::WireguardNode> for WireguardNode {
     type Error = ConversionError;
 
-    fn try_from(value: ProtoWireguardNode) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::WireguardNode) -> Result<Self, Self::Error> {
         Ok(Self {
             endpoint: SocketAddr::from_str(&value.endpoint)
                 .map_err(|e| ConversionError::ParseAddr("WireguardNode.endpoint", e))?,
@@ -219,14 +228,14 @@ impl TryFrom<ProtoWireguardNode> for WireguardNode {
     }
 }
 
-impl From<ProtoGateway> for Gateway {
-    fn from(value: ProtoGateway) -> Self {
+impl From<proto::Gateway> for Gateway {
+    fn from(value: proto::Gateway) -> Self {
         Self::new(value.id)
     }
 }
 
-impl From<ProtoAddress> for NymAddress {
-    fn from(value: ProtoAddress) -> Self {
+impl From<proto::Address> for NymAddress {
+    fn from(value: proto::Address) -> Self {
         Self::new(value.nym_address, value.gateway_id)
     }
 }

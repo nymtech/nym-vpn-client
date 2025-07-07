@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package nym.vpn;
+package nym_vpn_service;
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
@@ -503,19 +503,19 @@ service NymVpnd {
 
   // The vpn client will periodically refresh the account state in the
   // background. This command triggers a manual refresh.
-  rpc RefreshAccountState (google.protobuf.Empty) returns (RefreshAccountStateResponse) {}
+  rpc RefreshAccountState (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get the account usage from the nym-vpn-api
   rpc GetAccountUsage (google.protobuf.Empty) returns (GetAccountUsageResponse) {}
 
   // Reset the device identity
-  rpc ResetDeviceIdentity (ResetDeviceIdentityRequest) returns (ResetDeviceIdentityResponse) {}
+  rpc ResetDeviceIdentity (ResetDeviceIdentityRequest) returns (google.protobuf.Empty) {}
 
   // Get the device identity
   rpc GetDeviceIdentity (google.protobuf.Empty) returns (GetDeviceIdentityResponse) {}
 
   // Try to register the local device with the nym-vpn-api
-  rpc RegisterDevice (google.protobuf.Empty) returns (RegisterDeviceResponse) {}
+  rpc RegisterDevice (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get the list of devices associated with this account from the nym-vpn-api
   rpc GetDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
@@ -524,19 +524,19 @@ service NymVpnd {
   rpc GetActiveDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
 
   // Request new zk-nyms (ticketbooks) from the nym-vpn-api
-  rpc RequestZkNym (google.protobuf.Empty) returns (RequestZkNymResponse) {}
+  rpc RequestZkNym (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // List the zk-nyms associated with this device from the nym-vpn-api
-  rpc GetDeviceZkNyms (google.protobuf.Empty) returns (GetDeviceZkNymsResponse) {}
+  rpc GetDeviceZkNyms (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // List the zk-nyms available for download from the nym-vpn-api
-  rpc GetZkNymsAvailableForDownload (google.protobuf.Empty) returns (GetZkNymsAvailableForDownloadResponse) {}
+  rpc GetZkNymsAvailableForDownload (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get a zk-nym by its id from the nym-vpn-api
-  rpc GetZkNymById (GetZkNymByIdRequest) returns (GetZkNymByIdResponse) {}
+  rpc GetZkNymById (GetZkNymByIdRequest) returns (google.protobuf.Empty) {}
 
   // Confirm that a zk-nym has been downloaded from the nym-vpn-api
-  rpc ConfirmZkNymDownloaded (ConfirmZkNymDownloadedRequest) returns (ConfirmZkNymDownloadedResponse) {}
+  rpc ConfirmZkNymDownloaded (ConfirmZkNymDownloadedRequest) returns (google.protobuf.Empty) {}
 
   // Get the available tickets in the local credential store
   rpc GetAvailableTickets (google.protobuf.Empty) returns (AvailableTickets) {}

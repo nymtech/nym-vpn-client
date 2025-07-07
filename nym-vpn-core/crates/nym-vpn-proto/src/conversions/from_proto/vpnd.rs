@@ -12,16 +12,10 @@ use nym_vpn_network_config::{
 use nym_vpnd_types::{ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions};
 use url::Url;
 
-use crate::{
-    ConnectRequest, EntryNode, ExitNode, GatewayType as ProtoGatewayType, GetLogPathResponse,
-    GetSystemMessagesResponse, ListCountriesRequest as ProtoListCountriesRequest,
-    ListGatewaysRequest as ProtoListGatewaysRequest, Score,
-    StoreAccountRequest as ProtoStoreAccountRequest, SystemMessage as ProtoSystemMessage,
-    conversions::ConversionError,
-};
+use crate::{conversions::ConversionError, proto};
 
-impl From<crate::Location> for nym_vpnd_types::gateway::Location {
-    fn from(location: crate::Location) -> Self {
+impl From<proto::Location> for nym_vpnd_types::gateway::Location {
+    fn from(location: proto::Location) -> Self {
         Self {
             two_letter_iso_country_code: location.two_letter_iso_country_code,
             latitude: location.latitude,
@@ -30,19 +24,19 @@ impl From<crate::Location> for nym_vpnd_types::gateway::Location {
     }
 }
 
-impl From<crate::Score> for nym_vpnd_types::gateway::Score {
-    fn from(score: Score) -> Self {
+impl From<proto::Score> for nym_vpnd_types::gateway::Score {
+    fn from(score: proto::Score) -> Self {
         match score {
-            Score::None => nym_vpnd_types::gateway::Score::None,
-            Score::Low => nym_vpnd_types::gateway::Score::Low,
-            Score::Medium => nym_vpnd_types::gateway::Score::Medium,
-            Score::High => nym_vpnd_types::gateway::Score::High,
+            proto::Score::None => nym_vpnd_types::gateway::Score::None,
+            proto::Score::Low => nym_vpnd_types::gateway::Score::Low,
+            proto::Score::Medium => nym_vpnd_types::gateway::Score::Medium,
+            proto::Score::High => nym_vpnd_types::gateway::Score::High,
         }
     }
 }
 
-impl From<crate::AsEntry> for nym_vpnd_types::gateway::Entry {
-    fn from(entry: crate::AsEntry) -> Self {
+impl From<proto::AsEntry> for nym_vpnd_types::gateway::Entry {
+    fn from(entry: proto::AsEntry) -> Self {
         Self {
             can_connect: entry.can_connect,
             can_route: entry.can_route,
@@ -50,8 +44,8 @@ impl From<crate::AsEntry> for nym_vpnd_types::gateway::Entry {
     }
 }
 
-impl From<crate::AsExit> for nym_vpnd_types::gateway::Exit {
-    fn from(exit: crate::AsExit) -> Self {
+impl From<proto::AsExit> for nym_vpnd_types::gateway::Exit {
+    fn from(exit: proto::AsExit) -> Self {
         Self {
             can_connect: exit.can_connect,
             can_route_ip_v4: exit.can_route_ip_v4,
@@ -62,10 +56,10 @@ impl From<crate::AsExit> for nym_vpnd_types::gateway::Exit {
     }
 }
 
-impl TryFrom<crate::ProbeOutcome> for nym_vpnd_types::gateway::ProbeOutcome {
+impl TryFrom<proto::ProbeOutcome> for nym_vpnd_types::gateway::ProbeOutcome {
     type Error = ConversionError;
 
-    fn try_from(outcome: crate::ProbeOutcome) -> Result<Self, Self::Error> {
+    fn try_from(outcome: proto::ProbeOutcome) -> Result<Self, Self::Error> {
         let as_entry = outcome
             .as_entry
             .map(nym_vpnd_types::gateway::Entry::from)
@@ -75,10 +69,10 @@ impl TryFrom<crate::ProbeOutcome> for nym_vpnd_types::gateway::ProbeOutcome {
     }
 }
 
-impl TryFrom<crate::Probe> for nym_vpnd_types::gateway::Probe {
+impl TryFrom<proto::Probe> for nym_vpnd_types::gateway::Probe {
     type Error = ConversionError;
 
-    fn try_from(probe: crate::Probe) -> Result<Self, Self::Error> {
+    fn try_from(probe: proto::Probe) -> Result<Self, Self::Error> {
         let last_updated_utc = probe
             .last_updated_utc
             .ok_or(ConversionError::generic("missing last updated timestamp"))
@@ -94,9 +88,9 @@ impl TryFrom<crate::Probe> for nym_vpnd_types::gateway::Probe {
     }
 }
 
-impl TryFrom<crate::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
+impl TryFrom<proto::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
     type Error = ConversionError;
-    fn try_from(gateway: crate::GatewayResponse) -> Result<Self, Self::Error> {
+    fn try_from(gateway: proto::GatewayResponse) -> Result<Self, Self::Error> {
         let identity_key = gateway
             .id
             .map(|id| id.id)
@@ -126,18 +120,18 @@ impl TryFrom<crate::GatewayResponse> for nym_vpnd_types::gateway::Gateway {
     }
 }
 
-impl From<crate::Location> for nym_vpnd_types::gateway::Country {
-    fn from(location: crate::Location) -> Self {
+impl From<proto::Location> for nym_vpnd_types::gateway::Country {
+    fn from(location: proto::Location) -> Self {
         Self {
             iso_code: location.two_letter_iso_country_code,
         }
     }
 }
 
-impl TryFrom<crate::InfoResponse> for nym_vpnd_types::service::VpnServiceInfo {
+impl TryFrom<proto::InfoResponse> for nym_vpnd_types::service::VpnServiceInfo {
     type Error = ConversionError;
 
-    fn try_from(info: crate::InfoResponse) -> Result<Self, Self::Error> {
+    fn try_from(info: proto::InfoResponse) -> Result<Self, Self::Error> {
         let build_timestamp = info
             .build_timestamp
             .map(crate::conversions::prost::prost_timestamp_into_offset_datetime)
@@ -186,8 +180,8 @@ impl TryFrom<crate::InfoResponse> for nym_vpnd_types::service::VpnServiceInfo {
     }
 }
 
-impl From<GetLogPathResponse> for nym_vpnd_types::log_path::LogPath {
-    fn from(value: GetLogPathResponse) -> Self {
+impl From<proto::GetLogPathResponse> for nym_vpnd_types::log_path::LogPath {
+    fn from(value: proto::GetLogPathResponse) -> Self {
         Self {
             dir: PathBuf::from(value.path),
             filename: value.filename,
@@ -195,8 +189,8 @@ impl From<GetLogPathResponse> for nym_vpnd_types::log_path::LogPath {
     }
 }
 
-impl From<GetSystemMessagesResponse> for SystemMessages {
-    fn from(value: GetSystemMessagesResponse) -> Self {
+impl From<proto::GetSystemMessagesResponse> for SystemMessages {
+    fn from(value: proto::GetSystemMessagesResponse) -> Self {
         Self {
             messages: value
                 .messages
@@ -207,8 +201,8 @@ impl From<GetSystemMessagesResponse> for SystemMessages {
     }
 }
 
-impl From<ProtoSystemMessage> for SystemMessage {
-    fn from(value: ProtoSystemMessage) -> Self {
+impl From<proto::SystemMessage> for SystemMessage {
+    fn from(value: proto::SystemMessage) -> Self {
         Self {
             // todo: why is this not present in protobuf?
             display_from: None,
@@ -220,10 +214,10 @@ impl From<ProtoSystemMessage> for SystemMessage {
     }
 }
 
-impl TryFrom<ConnectRequest> for ConnectArgs {
+impl TryFrom<proto::ConnectRequest> for ConnectArgs {
     type Error = ConversionError;
 
-    fn try_from(value: ConnectRequest) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::ConnectRequest) -> Result<Self, Self::Error> {
         let entry = value
             .entry
             .clone() // todo: prevent clone()
@@ -245,10 +239,10 @@ impl TryFrom<ConnectRequest> for ConnectArgs {
     }
 }
 
-impl TryFrom<ConnectRequest> for ConnectOptions {
+impl TryFrom<proto::ConnectRequest> for ConnectOptions {
     type Error = ConversionError;
 
-    fn try_from(value: ConnectRequest) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::ConnectRequest) -> Result<Self, Self::Error> {
         let dns = value
             .dns
             .map(|dns| {
@@ -274,44 +268,44 @@ impl TryFrom<ConnectRequest> for ConnectOptions {
     }
 }
 
-impl TryFrom<EntryNode> for nym_gateway_directory::EntryPoint {
+impl TryFrom<proto::EntryNode> for nym_gateway_directory::EntryPoint {
     type Error = ConversionError;
 
-    fn try_from(value: EntryNode) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::EntryNode) -> Result<Self, Self::Error> {
         let entry_enum_value = value
             .entry_node_enum
             .ok_or(ConversionError::NoValueSet("EntryNode.entry_node_enum"))?;
 
         Ok(match entry_enum_value {
-            crate::entry_node::EntryNodeEnum::Location(location) => {
+            proto::entry_node::EntryNodeEnum::Location(location) => {
                 nym_gateway_directory::EntryPoint::Location {
                     location: location.two_letter_iso_country_code.to_string(),
                 }
             }
-            crate::entry_node::EntryNodeEnum::Gateway(gateway) => {
+            proto::entry_node::EntryNodeEnum::Gateway(gateway) => {
                 let identity = nym_gateway_directory::NodeIdentity::from_base58_string(&gateway.id)
                     .map_err(|err| {
                         ConversionError::Generic(format!("failed to parse gateway id: {err}"))
                     })?;
                 nym_gateway_directory::EntryPoint::Gateway { identity }
             }
-            crate::entry_node::EntryNodeEnum::Random(_) => {
+            proto::entry_node::EntryNodeEnum::Random(_) => {
                 nym_gateway_directory::EntryPoint::Random
             }
         })
     }
 }
 
-impl TryFrom<ExitNode> for nym_gateway_directory::ExitPoint {
+impl TryFrom<proto::ExitNode> for nym_gateway_directory::ExitPoint {
     type Error = ConversionError;
 
-    fn try_from(value: ExitNode) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::ExitNode) -> Result<Self, Self::Error> {
         let exit_enum_value = value
             .exit_node_enum
             .ok_or(ConversionError::NoValueSet("ExitNode.exit_node_enum"))?;
 
         Ok(match exit_enum_value {
-            crate::exit_node::ExitNodeEnum::Address(address) => {
+            proto::exit_node::ExitNodeEnum::Address(address) => {
                 let address = nym_gateway_directory::Recipient::try_from_base58_string(
                     address.nym_address.clone(),
                 )
@@ -322,28 +316,28 @@ impl TryFrom<ExitNode> for nym_gateway_directory::ExitPoint {
                     address: Box::new(address),
                 }
             }
-            crate::exit_node::ExitNodeEnum::Gateway(gateway) => {
+            proto::exit_node::ExitNodeEnum::Gateway(gateway) => {
                 let identity = nym_gateway_directory::NodeIdentity::from_base58_string(&gateway.id)
                     .map_err(|err| {
                         ConversionError::Generic(format!("failed to parse gateway id: {err}"))
                     })?;
                 nym_gateway_directory::ExitPoint::Gateway { identity }
             }
-            crate::exit_node::ExitNodeEnum::Location(location) => {
+            proto::exit_node::ExitNodeEnum::Location(location) => {
                 nym_gateway_directory::ExitPoint::Location {
                     location: location.two_letter_iso_country_code.to_string(),
                 }
             }
-            crate::exit_node::ExitNodeEnum::Random(_) => nym_gateway_directory::ExitPoint::Random,
+            proto::exit_node::ExitNodeEnum::Random(_) => nym_gateway_directory::ExitPoint::Random,
         })
     }
 }
 
-impl TryFrom<ProtoListGatewaysRequest> for ListGatewaysOptions {
+impl TryFrom<proto::ListGatewaysRequest> for ListGatewaysOptions {
     type Error = ConversionError;
 
-    fn try_from(value: ProtoListGatewaysRequest) -> Result<Self, Self::Error> {
-        let proto_gw_type = ProtoGatewayType::try_from(value.kind)
+    fn try_from(value: proto::ListGatewaysRequest) -> Result<Self, Self::Error> {
+        let proto_gw_type = proto::GatewayType::try_from(value.kind)
             .map_err(|err| ConversionError::Decode("ListGatewaysRequest.kind", err))?;
 
         Ok(Self {
@@ -353,11 +347,11 @@ impl TryFrom<ProtoListGatewaysRequest> for ListGatewaysOptions {
     }
 }
 
-impl TryFrom<ProtoListCountriesRequest> for ListCountriesOptions {
+impl TryFrom<proto::ListCountriesRequest> for ListCountriesOptions {
     type Error = ConversionError;
 
-    fn try_from(value: ProtoListCountriesRequest) -> Result<Self, Self::Error> {
-        let gw_type = ProtoGatewayType::try_from(value.kind)
+    fn try_from(value: proto::ListCountriesRequest) -> Result<Self, Self::Error> {
+        let gw_type = proto::GatewayType::try_from(value.kind)
             .map_err(|err| ConversionError::Decode("ListCountriesRequest.kind", err))
             .map(nym_gateway_directory::GatewayType::from)?;
 
@@ -370,8 +364,8 @@ impl TryFrom<ProtoListCountriesRequest> for ListCountriesOptions {
     }
 }
 
-impl From<ProtoStoreAccountRequest> for nym_vpnd_types::StoreAccountRequest {
-    fn from(value: ProtoStoreAccountRequest) -> Self {
+impl From<proto::StoreAccountRequest> for nym_vpnd_types::StoreAccountRequest {
+    fn from(value: proto::StoreAccountRequest) -> Self {
         Self {
             mnemonic: value.mnemonic,
         }
