@@ -311,6 +311,8 @@ unsafe extern "C" {
     unsafe fn wgRebindTunnelSocket(address_family: u16, interface_index: u32);
 }
 
+const TRANSPORT_PACKET_TYPE_LOG: &str = "transport packet lined up with another msg type";
+
 /// Callback used by libwg to pass wireguard-go logs.
 ///
 /// # Safety
@@ -324,6 +326,13 @@ pub unsafe extern "system" fn wg_logger_callback(
     if !msg.is_null() {
         let str = unsafe { CStr::from_ptr(msg).to_string_lossy() };
         let trimmed_str = str.trim_end();
+        // TODO this is spamming aggressively, drop those lines
+        if trimmed_str
+            .to_lowercase()
+            .contains(TRANSPORT_PACKET_TYPE_LOG)
+        {
+            return;
+        }
         tracing::debug!("{}", trimmed_str);
     }
 }
