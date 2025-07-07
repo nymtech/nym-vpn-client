@@ -17,15 +17,13 @@ use nym_vpn_proto::{
     ListCountriesRequest, ListCountriesResponse, ListGatewaysRequest, ListGatewaysResponse,
     NetworkCompatibility, RefreshAccountStateResponse, RegisterDeviceResponse,
     RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
-    StoreAccountRequest, StoreAccountResponse, TunnelState, conversions::ConversionError,
+    StoreAccountRequest, StoreAccountResponse, TunnelState,
     get_account_state_response::AccountStateSummary, get_account_usage_response::AccountUsages,
     get_devices_response::Devices, nym_vpnd_server::NymVpnd,
 };
-use nym_vpnd_types::ConnectArgs;
+use nym_vpnd_types::{ConnectArgs, ListCountriesOptions, ListGatewaysOptions};
 
-use crate::service::{
-    ListCountriesOptions, ListGatewaysOptions, SetNetworkError, VpnServiceCommand,
-};
+use crate::service::{SetNetworkError, VpnServiceCommand};
 
 pub(super) struct CommandInterface {
     // Send commands to the VPN service
@@ -584,39 +582,5 @@ impl NymVpnd for CommandInterface {
                 tonic::Status::internal("failed to disable sentry")
             })?;
         Ok(tonic::Response::new(()))
-    }
-}
-
-impl TryFrom<ListGatewaysRequest> for ListGatewaysOptions {
-    type Error = ConversionError;
-
-    fn try_from(value: ListGatewaysRequest) -> Result<Self, Self::Error> {
-        let gw_type = nym_vpn_proto::GatewayType::try_from(value.kind)
-            .map_err(|err| ConversionError::Decode("ListGatewaysRequest.kind", err))
-            .and_then(nym_vpn_lib::gateway_directory::GatewayType::try_from)?;
-
-        let user_agent = value.user_agent.map(nym_vpn_lib::UserAgent::from);
-
-        Ok(Self {
-            gw_type,
-            user_agent,
-        })
-    }
-}
-
-impl TryFrom<ListCountriesRequest> for ListCountriesOptions {
-    type Error = ConversionError;
-
-    fn try_from(value: ListCountriesRequest) -> Result<Self, Self::Error> {
-        let gw_type = nym_vpn_proto::GatewayType::try_from(value.kind)
-            .map_err(|err| ConversionError::Decode("ListCountriesRequest.kind", err))
-            .and_then(nym_vpn_lib::gateway_directory::GatewayType::try_from)?;
-
-        let user_agent = value.user_agent.map(nym_vpn_lib::UserAgent::from);
-
-        Ok(Self {
-            gw_type,
-            user_agent,
-        })
     }
 }

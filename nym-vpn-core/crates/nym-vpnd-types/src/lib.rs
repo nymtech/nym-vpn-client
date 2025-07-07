@@ -9,7 +9,7 @@ use std::net::IpAddr;
 
 use nym_vpn_lib::{
     UserAgent,
-    gateway_directory::{EntryPoint, ExitPoint, Percent},
+    gateway_directory::{EntryPoint, ExitPoint, GatewayType, Percent},
 };
 
 #[derive(Debug)]
@@ -30,5 +30,19 @@ pub struct ConnectOptions {
     pub min_mixnode_performance: Option<Percent>,
     pub min_gateway_mixnet_performance: Option<Percent>,
     pub min_gateway_vpn_performance: Option<Percent>,
+    pub user_agent: Option<UserAgent>,
+}
+
+#[derive(Debug)]
+pub struct ListGatewaysOptions {
+    pub gw_type: GatewayType,
+    #[allow(unused)]
+    pub user_agent: Option<UserAgent>,
+}
+
+#[derive(Debug)]
+pub struct ListCountriesOptions {
+    pub gw_type: GatewayType,
+    #[allow(unused)]
     pub user_agent: Option<UserAgent>,
 }

@@ -9,6 +9,8 @@ pub mod tunnel_state;
 pub mod vpn_api_client;
 pub mod vpnd;
 
+use crate::GatewayType as ProtoGatewayType;
+
 impl From<String> for crate::Url {
     fn from(url: String) -> Self {
         crate::Url { url }
@@ -64,6 +66,16 @@ impl From<u8> for crate::Threshold {
     fn from(performance: u8) -> Self {
         Self {
             min_performance: performance.into(),
+        }
+    }
+}
+
+impl From<ProtoGatewayType> for nym_gateway_directory::GatewayType {
+    fn from(value: ProtoGatewayType) -> Self {
+        match value {
+            ProtoGatewayType::MixnetEntry => nym_gateway_directory::GatewayType::MixnetEntry,
+            ProtoGatewayType::MixnetExit => nym_gateway_directory::GatewayType::MixnetExit,
+            ProtoGatewayType::Wg => nym_gateway_directory::GatewayType::Wg,
         }
     }
 }

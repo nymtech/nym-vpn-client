@@ -4,15 +4,19 @@
 use std::{path::PathBuf, str::FromStr};
 
 use nym_config::defaults::NymNetworkDetails;
+use nym_gateway_directory::GatewayType;
+use nym_sdk::UserAgent;
 use nym_vpn_network_config::{
     NymNetwork, NymVpnNetwork, SystemMessage, SystemMessages, system_messages::Properties,
 };
-use nym_vpnd_types::{ConnectArgs, ConnectOptions};
+use nym_vpnd_types::{ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions};
 use url::Url;
 
 use crate::{
-    ConnectRequest, EntryNode, ExitNode, GetLogPathResponse, GetSystemMessagesResponse, Score,
-    SystemMessage as ProtoSystemMessage, conversions::ConversionError,
+    ConnectRequest, EntryNode, ExitNode, GatewayType as ProtoGatewayType, GetLogPathResponse,
+    GetSystemMessagesResponse, ListCountriesRequest as ProtoListCountriesRequest,
+    ListGatewaysRequest as ProtoListGatewaysRequest, Score, SystemMessage as ProtoSystemMessage,
+    conversions::ConversionError,
 };
 
 impl From<crate::Location> for nym_vpnd_types::gateway::Location {
@@ -330,6 +334,37 @@ impl TryFrom<ExitNode> for nym_gateway_directory::ExitPoint {
                 }
             }
             crate::exit_node::ExitNodeEnum::Random(_) => nym_gateway_directory::ExitPoint::Random,
+        })
+    }
+}
+
+impl TryFrom<ProtoListGatewaysRequest> for ListGatewaysOptions {
+    type Error = ConversionError;
+
+    fn try_from(value: ProtoListGatewaysRequest) -> Result<Self, Self::Error> {
+        let proto_gw_type = ProtoGatewayType::try_from(value.kind)
+            .map_err(|err| ConversionError::Decode("ListGatewaysRequest.kind", err))?;
+
+        Ok(Self {
+            gw_type: GatewayType::from(proto_gw_type),
+            user_agent: value.user_agent.map(UserAgent::from),
+        })
+    }
+}
+
+impl TryFrom<ProtoListCountriesRequest> for ListCountriesOptions {
+    type Error = ConversionError;
+
+    fn try_from(value: ProtoListCountriesRequest) -> Result<Self, Self::Error> {
+        let gw_type = ProtoGatewayType::try_from(value.kind)
+            .map_err(|err| ConversionError::Decode("ListCountriesRequest.kind", err))
+            .map(nym_gateway_directory::GatewayType::from)?;
+
+        let user_agent = value.user_agent.map(nym_sdk::UserAgent::from);
+
+        Ok(Self {
+            gw_type,
+            user_agent,
         })
     }
 }

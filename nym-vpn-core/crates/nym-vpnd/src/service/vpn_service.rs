@@ -1,14 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, path::PathBuf, sync::Arc, time::Instant};
+use std::{path::PathBuf, sync::Arc, time::Instant};
 
 use bip39::Mnemonic;
 use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
 };
-use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot, watch},
@@ -41,7 +40,7 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
-    ConnectArgs,
+    ConnectArgs, ListCountriesOptions, ListGatewaysOptions,
     gateway::{Country, Gateway},
     log_path::LogPath,
     service::{VpnServiceDisconnectError, VpnServiceInfo},
@@ -79,7 +78,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Vec<Country>, ListGatewaysError>>,
         ListCountriesOptions,
     ),
-    Connect(oneshot::Sender<Result<bool>>, ConnectArgs),
+    Connect(oneshot::Sender<bool>, ConnectArgs),
     Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
     SubscribeToTunnelState(oneshot::Sender<watch::Receiver<TunnelState>>, ()),
@@ -127,20 +126,6 @@ pub enum VpnServiceCommand {
     DeleteLogFile(oneshot::Sender<bool>, ()),
     IsSentryEnabled(oneshot::Sender<bool>, ()),
     ToggleSentry(oneshot::Sender<Result<(), GlobalConfigError>>, bool),
-}
-
-#[derive(Debug)]
-pub struct ListGatewaysOptions {
-    pub gw_type: GatewayType,
-    #[allow(unused)]
-    pub user_agent: Option<UserAgent>,
-}
-
-#[derive(Debug)]
-pub struct ListCountriesOptions {
-    pub gw_type: GatewayType,
-    #[allow(unused)]
-    pub user_agent: Option<UserAgent>,
 }
 
 pub struct NymVpnService<S>
@@ -749,11 +734,7 @@ where
             .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
         {
             Ok(()) => {
-                self.command_sender
-                    .send(TunnelCommand::Connect)
-                    .map_err(|e| {
-                        tracing::error!("Failed to send command to connect: {}", e);
-                    })?;
+                self.command_sender.send(TunnelCommand::Connect);
                 Ok(())
             }
             Err(e) => {
