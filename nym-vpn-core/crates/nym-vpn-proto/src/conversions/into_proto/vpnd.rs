@@ -1,8 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_gateway_directory::GatewayType;
-use nym_sdk::UserAgent;
 use nym_vpnd_types::{
     ConnectArgs, ListCountriesOptions, ListGatewaysOptions, gateway::Score, log_path::LogPath,
     service::VpnServiceInfo,
