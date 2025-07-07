@@ -84,7 +84,9 @@ let package = Package(
         ),
         .target(
             name: "TunnelStatus",
-            dependencies: [],
+            dependencies: [
+                "ErrorReason"
+            ],
             path: "Sources/TunnelStatus"
         )
     ]
