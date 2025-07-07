@@ -15,7 +15,6 @@ use clap::Parser;
 use logging::{LogFileRemover, LoggingSetup};
 use nym_vpn_lib::SysInfo;
 use nym_vpn_network_config::Network;
-use once_cell::sync::OnceCell;
 use sentry::ClientInitGuard;
 use service::NymVpnService;
 use std::time::Duration;
@@ -25,8 +24,6 @@ use tracing_appender::non_blocking::WorkerGuard;
 
 use crate::{cli::CliArgs, config::GlobalConfigFile};
 
-static SENTRY_CLIENT: OnceCell<ClientInitGuard> = OnceCell::new();
-
 fn main() -> anyhow::Result<()> {
     let _ = run()?;
     Ok(())
@@ -35,7 +32,8 @@ fn main() -> anyhow::Result<()> {
 #[cfg(unix)]
 fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
-    let sentry_enabled = init_sentry().is_some();
+    let _sentry_guard = init_sentry();
+    let sentry_enabled = _sentry_guard.is_some();
 
     let options = logging::Options {
         verbosity_level: args.verbosity_level(),
@@ -55,7 +53,8 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
 #[cfg(windows)]
 fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
-    let sentry_enabled = init_sentry().is_some();
+    let _sentry_guard = init_sentry();
+    let sentry_enabled = _sentry_guard.is_some();
     let os = SysInfo::new();
 
     if args.command.install {
@@ -205,7 +204,7 @@ async fn run_inner_async(
     Ok(worker_guard)
 }
 
-fn init_sentry() -> Option<&'static ClientInitGuard> {
+fn init_sentry() -> Option<ClientInitGuard> {
     let enabled = GlobalConfigFile::sentry_enabled();
     if !enabled {
         return None;
@@ -224,7 +223,7 @@ fn init_sentry() -> Option<&'static ClientInitGuard> {
                 ..Default::default()
             },
         ));
-        Some(SENTRY_CLIENT.get_or_init(|| guard))
+        Some(guard)
     } else {
         println!("failed to init sentry: SENTRY_DSN is not set");
         None
