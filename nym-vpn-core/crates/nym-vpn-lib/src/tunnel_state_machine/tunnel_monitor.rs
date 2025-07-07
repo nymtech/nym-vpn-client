@@ -398,6 +398,7 @@ impl TunnelMonitor {
             enable_credentials_mode: self
                 .tunnel_parameters
                 .tunnel_settings
+                .mixnet_tunnel_options
                 .enable_credentials_mode,
             stats_recipient_address: self
                 .tunnel_parameters
@@ -636,18 +637,12 @@ impl TunnelMonitor {
             .await?;
         }
 
-        if self
-            .tunnel_parameters
-            .tunnel_settings
-            .enable_credentials_mode
-        {
-            self.send_event(TunnelMonitorEvent::RequestingZkNyms);
-            account::wait_for_credentials_ready(
-                self.account_commands.clone(),
-                self.shutdown_token.child_token(),
-            )
-            .await?;
-        }
+        self.send_event(TunnelMonitorEvent::RequestingZkNyms);
+        account::wait_for_credentials_ready(
+            self.account_commands.clone(),
+            self.shutdown_token.child_token(),
+        )
+        .await?;
 
         Ok(())
     }
@@ -762,9 +757,6 @@ impl TunnelMonitor {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
                 &self.tunnel_parameters.nym_config.network_env,
-                self.tunnel_parameters
-                    .tunnel_settings
-                    .enable_credentials_mode,
                 self.shutdown_token.child_token(),
             )
             .await
@@ -842,9 +834,6 @@ impl TunnelMonitor {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
                 &self.tunnel_parameters.nym_config.network_env,
-                self.tunnel_parameters
-                    .tunnel_settings
-                    .enable_credentials_mode,
                 self.shutdown_token.child_token(),
             )
             .await
@@ -928,9 +917,6 @@ impl TunnelMonitor {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
                 &self.tunnel_parameters.nym_config.network_env,
-                self.tunnel_parameters
-                    .tunnel_settings
-                    .enable_credentials_mode,
                 self.shutdown_token.child_token(),
             )
             .await
@@ -1038,9 +1024,6 @@ impl TunnelMonitor {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
                 &self.tunnel_parameters.nym_config.network_env,
-                self.tunnel_parameters
-                    .tunnel_settings
-                    .enable_credentials_mode,
                 self.shutdown_token.child_token(),
             )
             .await
@@ -1160,9 +1143,6 @@ impl TunnelMonitor {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
                 &self.tunnel_parameters.nym_config.network_env,
-                self.tunnel_parameters
-                    .tunnel_settings
-                    .enable_credentials_mode,
                 self.shutdown_token.child_token(),
             )
             .await

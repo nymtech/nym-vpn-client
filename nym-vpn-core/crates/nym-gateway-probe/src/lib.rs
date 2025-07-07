@@ -103,10 +103,7 @@ pub struct NetstackArgs {
 #[derive(Args)]
 pub struct CredentialArgs {
     #[arg(long)]
-    enable_credentials_mode: bool,
-
-    #[arg(long, required_if_eq("enable_credentials_mode", "true"))]
-    mnemonic: Option<String>,
+    mnemonic: String,
 }
 
 #[derive(Default, Debug)]
@@ -241,26 +238,20 @@ impl Probe {
                 ignore_egress_epoch_role,
             ))
             .with_forget_me(ForgetMe::new_all())
-            .credentials_mode(self.credentials_args.enable_credentials_mode)
+            .credentials_mode(true)
             .build()?;
 
-        if self.credentials_args.enable_credentials_mode {
-            let mnemonic = self
-                .credentials_args
-                .mnemonic
-                .expect("Mnemonic should be required if credentials mode is enabled");
-
-            for ticketbook_type in [
-                TicketType::V1MixnetEntry,
-                TicketType::V1WireguardEntry,
-                TicketType::V1WireguardExit,
-            ] {
-                let bw_client = disconnected_mixnet_client
-                    .create_bandwidth_client(mnemonic.clone(), ticketbook_type)
-                    .await?;
-                bw_client.acquire().await?;
-            }
+        for ticketbook_type in [
+            TicketType::V1MixnetEntry,
+            TicketType::V1WireguardEntry,
+            TicketType::V1WireguardExit,
+        ] {
+            let bw_client = disconnected_mixnet_client
+                .create_bandwidth_client(self.credentials_args.mnemonic.clone(), ticketbook_type)
+                .await?;
+            bw_client.acquire().await?;
         }
+
         let mixnet_client = disconnected_mixnet_client.connect_to_mixnet().await;
 
         let mixnet_client = match mixnet_client {

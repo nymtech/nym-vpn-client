@@ -29,18 +29,10 @@ use tracing::{debug, error, info, trace, warn};
 
 use crate::error::Result;
 
-pub const DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME: &str = "private_entry_wireguard.pem";
-pub const DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME: &str = "public_entry_wireguard.pem";
-pub const DEFAULT_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME: &str = "private_exit_wireguard.pem";
-pub const DEFAULT_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME: &str = "public_exit_wireguard.pem";
-
-pub const DEFAULT_FREE_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME: &str =
-    "free_private_entry_wireguard.pem";
-pub const DEFAULT_FREE_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME: &str =
-    "free_public_entry_wireguard.pem";
-pub const DEFAULT_FREE_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME: &str =
-    "free_private_exit_wireguard.pem";
-pub const DEFAULT_FREE_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME: &str = "free_public_exit_wireguard.pem";
+pub const DEFAULT_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME: &str = "free_private_entry_wireguard.pem";
+pub const DEFAULT_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME: &str = "free_public_entry_wireguard.pem";
+pub const DEFAULT_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME: &str = "free_private_exit_wireguard.pem";
+pub const DEFAULT_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME: &str = "free_public_exit_wireguard.pem";
 
 pub const TICKETS_TO_SPEND: u32 = 1;
 const RETRY_PERIOD: Duration = Duration::from_secs(30);
@@ -242,38 +234,6 @@ impl WgGatewayClient {
         }
     }
 
-    pub fn new_free_entry(
-        data_path: &Option<PathBuf>,
-        auth_client: AuthClient,
-        auth_recipient: Recipient,
-        auth_version: AuthenticatorVersion,
-    ) -> Self {
-        Self::new_type(
-            data_path,
-            auth_client,
-            auth_recipient,
-            auth_version,
-            DEFAULT_FREE_PRIVATE_ENTRY_WIREGUARD_KEY_FILENAME,
-            DEFAULT_FREE_PUBLIC_ENTRY_WIREGUARD_KEY_FILENAME,
-        )
-    }
-
-    pub fn new_free_exit(
-        data_path: &Option<PathBuf>,
-        auth_client: AuthClient,
-        auth_recipient: Recipient,
-        auth_version: AuthenticatorVersion,
-    ) -> Self {
-        Self::new_type(
-            data_path,
-            auth_client,
-            auth_recipient,
-            auth_version,
-            DEFAULT_FREE_PRIVATE_EXIT_WIREGUARD_KEY_FILENAME,
-            DEFAULT_FREE_PUBLIC_EXIT_WIREGUARD_KEY_FILENAME,
-        )
-    }
-
     pub fn new_entry(
         data_path: &Option<PathBuf>,
         auth_client: AuthClient,
@@ -344,7 +304,6 @@ impl WgGatewayClient {
         &mut self,
         gateway_host: IpAddr,
         controller: &nym_bandwidth_controller::BandwidthController<QueryHttpRpcNyxdClient, St>,
-        enable_credentials_mode: bool,
         ticketbook_type: TicketType,
     ) -> Result<GatewayData>
     where
@@ -392,17 +351,11 @@ impl WgGatewayClient {
                     &gateway_host, &pending_registration_response
                 );
 
-                let credential = if enable_credentials_mode {
-                    let cred = Self::request_bandwidth(
-                        &mut self.light_client(),
-                        controller,
-                        ticketbook_type,
-                    )
-                    .await?;
-                    Some(cred.data)
-                } else {
-                    None
-                };
+                let credential = Some(
+                    Self::request_bandwidth(&mut self.light_client(), controller, ticketbook_type)
+                        .await?
+                        .data,
+                );
 
                 let finalized_message = match self.auth_version {
                     AuthenticatorVersion::V2 => {

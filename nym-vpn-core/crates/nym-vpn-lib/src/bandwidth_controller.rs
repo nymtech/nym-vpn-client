@@ -198,7 +198,6 @@ impl<St: Storage> BandwidthController<St> {
 
     pub(crate) async fn get_initial_bandwidth(
         &self,
-        enable_credentials_mode: bool,
         ticketbook_type: TicketType,
         gateway_client: CachingGatewayClient,
         wg_gateway_client: &mut WgGatewayClient,
@@ -219,12 +218,7 @@ impl<St: Storage> BandwidthController<St> {
                 source: Box::new(source),
             })?;
         let wg_gateway_data = wg_gateway_client
-            .register_wireguard(
-                gateway_host,
-                &self.inner,
-                enable_credentials_mode,
-                ticketbook_type,
-            )
+            .register_wireguard(gateway_host, &self.inner, ticketbook_type)
             .await
             .map_err(|source| Error::RegisterWireguard {
                 gateway_id: gateway_id.to_base58_string(),

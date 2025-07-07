@@ -307,7 +307,6 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 						storagePath,
 						storagePath,
 						this@NymBackend,
-						tunnel.credentialMode,
 						null,
 						userAgent,
 					),

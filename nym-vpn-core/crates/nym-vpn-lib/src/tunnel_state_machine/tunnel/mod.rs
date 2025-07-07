@@ -88,7 +88,6 @@ impl ConnectedMixnet {
     pub async fn connect_wireguard_tunnel(
         self,
         network: &Network,
-        enable_credentials_mode: bool,
         cancel_token: CancellationToken,
     ) -> Result<wireguard::connected_tunnel::ConnectedTunnel> {
         let connector = wireguard::connector::Connector::new(
@@ -100,7 +99,6 @@ impl ConnectedMixnet {
         match connector
             .connect(
                 network,
-                enable_credentials_mode,
                 self.selected_gateways,
                 self.data_path,
                 cancel_token,
