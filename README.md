@@ -2,29 +2,24 @@
 
 <img src=".github/assets/header.png" width="600"/>
 
-Fully open source, multi-hop, decentralized VPN.
-
+Open-source, cross-platform VPN client built with Rust that provides true privacy through decentralized mixnet technology and multi-hop censorship-resistant WireGuard tunneling.
 </div>
 
-# NymVPN
+# 🚀 What is NymVPN
 
-The NymVPN is a VPN-like app built on [Nym's signature, decentralized mixnet](https://nym.com/mixnet), offering the following core [features](https://nym.com/features):
-- Anonymous 5-hop mixnet mode
-- Fast 2-hop [WireGuard](https://www.wireguard.com/)-based decentralized VPN mode with [Amnezia](https://amnezia.org/) censorship resistence
-- Private credentials using zk-nyms (zero-knowledge proofs)
-
-This monorepo contains all of our source code for our NymVPN client apps (iOS / Android / Linux / macOS / Windows / CLI), separate from the Nym network [monorepo](https://github.com/nymtech/nym). 
+NymVPN is a privacy-focused, decentralized VPN application that goes beyond traditional VPNs by leveraging:
+- 🔀 [Mixnet](https://nym.com/mixnet) Technology: Anonymous 5-hop routing through Nym's decentralized network
+- ⚡ WireGuard + AmneziaWG: Fast, secure tunneling with built-in censorship resistance
+- 🛡️ Metadata Protection: Unlike traditional VPNs, protects both content AND traffic patterns (in mixnet mode)
+- 🔐 Zero-Knowledge Credentials: Private authentication using zero-knowledge [zk-nyms](https://nym.com/zk-nyms)
+- 🌍 No Single Point of Failure: Fully decentralized infrastructure
 
 
 <div align="left">
-
 <img src=".github/assets/app.png" width="800"/>
-
-
 </div>
 
 <br />
-
 <br />
 
 <div align="left">
@@ -41,24 +36,130 @@ This monorepo contains all of our source code for our NymVPN client apps (iOS / 
 
 </div>
 
-## Roadmap
 
-Check out our [public roadmap](https://trello.com/b/qVhBo3e2/nymvpn-public-roadmap) to see what is coming next.
+# ✨ Key Features
 
-## Support
+🎯 Dual-Mode Privacy Architecture
 
-For help, visit our [Help Center](https://support.nym.com/hc/en-us) or contact our [Support team](https://support.nym.com/hc/en-us/requests/new) with any questions about NymVPN.
+- Anonymous Mode (5-hop mixnet): Maximal anonymity thanks to Nym's Noise Generating Mixnet with added noise to protect users against even AI surveillance
+- Fast Mode (2-hop WireGuard): Decentralized 2-hop mode for faster connections and less latency thanks to WireGuard
 
-For the latest announcements and articles on privacy and security, visit [Nym's blog](https://nym.com/en/blog).
+🔧 Developer-Friendly
+
+- 100% Open Source: Fully auditable codebase
+- Rust-based: Memory-safe, high-performance implementation
+- Cross-platform: Android, iOS, Linux, macOS, Windows, CLI
+
+⚙️ Power User Features
+- Split Tunneling: Choose per-app routing (mixnet vs WireGuard) (_coming soon_)
+- Custom Entry/Exit Selection: Choose your preferred node operators
+- Kill Switch: Automatic connection protection with data leak prevention
+- Multi-language Support: 10+ localizations with crowdsourced language support
+
+🛡️ Advanced Privacy and Security
+- Multi-hop by Default: No server views both your IP address and online activity
+- zk-nyms: Private zero-knowledge credential system to unlink payments data from online activity
+- No Centralized Logging: Cryptographically impossible to track users
+- Advanced Cryptographic Stack: Cure25519, AES, ChaCha20-Poly1305, BLAKE2/BLAKE3, Lioness Wide Block Cipher, Pointcheval-Sanders Signatures, Pedersen Commitments, NIZK Proofs, BLS12-381 Curve, post-quantum readiness (_coming soon_)
+- Independent Security Audits: JP Aumasson (2021), Oak Security (2022), Cryspen (2023-2024), Cure53 (2024)
+
+🌐 Censorship Resistance Technologies
+- AmneziaWG Integration: Bypass barriers to information access with AmneziaWG (censorship-resistance WireGuard fork)
+- Adaptive Protocols: Pluggable transport, QUIC (_coming soon_)
 
 
-## Acknowledgements
 
-[Mullvad open source libraries](https://github.com/mullvad/mullvadvpn-app/) to handle setting up local routing and wrapping wireguard-go.
+# 🏗️ Architecture
 
-[Amnezia wg-go open source library](https://github.com/amnezia-vpn/amneziawg-go) to help prevent censorship of WireGuard.
+```
+┌─────────────────┐    ┌──────────────┐    ┌─────────────────┐
+│                 │───▶│   Mixnet     │───▶│   Destination   │
+│                 │    │  (5 hops)    │    │                 │
+│    NymVPN App   │    └──────────────┘    └─────────────────┘
+│    (Rust Core)  │    ┌──────────────┐    ┌─────────────────┐
+│                 │───▶│  AmneziaWG   │───▶│   Destination   │
+│                 │    │  (2 hops)    │    │                 │
+└─────────────────┘    └──────────────┘    └─────────────────┘
+```
 
-## Community
+
+# 🌐 Use Cases
+For Privacy Advocates
+- Personal privacy: Protection from ISP/government surveillance
+- Journalist protection: Secure communication in hostile environments
+- Whistleblowing: Anonymous document sharing
+
+For Developers
+- Decentralized app integration: Privacy layer for dApps
+- Research projects: Privacy-preserving network protocols
+- Security auditing: Open-source cryptographic implementations
+
+For Organizations
+- Corporate security: Enhanced privacy for remote teams
+- Censorship circumvention: Access blocked content and services
+- Compliance: GDPR-friendly privacy infrastructure
+
+
+# 🔬 Research Foundation & Academic Partnerships
+
+Peer-Reviewed Research ([50+ Publications](https://nym.com/trust-center/papers-and-research))
+
+Academic Partnerships
+- [KU Leuven (COSIC Research Group)](https://www.esat.kuleuven.be/cosic/): Privacy, performance, and hardware optimization
+- [EPFL (SPRING Lab)](https://spring.epfl.ch): Network security and sophisticated attack analysis
+- [Cryspen](https://cryspen.com): Formal verification and post-quantum cryptography
+
+Advisory Board with multiple industry awards (Levchin Prize, BCS Lovelace Medal)
+
+
+# 📚 Documentation & Resources
+
+- 🛡️ [The NymVPN Litepaper](https://nym.com/nymvpn-litepaper)
+- ♟️ [NymVPN public roadmap](https://trello.com/b/qVhBo3e2/nymvpn-public-roadmap)
+- 👀 [NymVPN Signals of Trustworthy VPNs](https://nym.com/trust-center/signals-of-trustworthy-vpns)
+- 🌐 [Nym Crowdsouced Localization](https://crowdin.com/editor/nymvpn-apps)
+
+- 🙏 [Nym's Help Center](https://support.nym.com/hc/en-us)
+- 🏡 [Nym Forum](https://forum.nym.com)
+- 🍀 [Nym's Trust Center](https://nym.com/trust-center)
+- 🔬 [Nym Audits](https://nym.com/trust-center/independently-audited)
+- 🧪 [Nym Research Papers](https://nym.com/trust-center/papers-and-research)
+- 🔐 [Nym Cryptography](https://nym.com/trust-center/cryptography)
+
+- 💡 [The Nym Network Whitepaper](https://nym.com/nym-whitepaper.pdf)
+- 📣 [Nym's blog](https://nym.com/en/blog).
+
+
+# 🤝 Contributing
+We welcome contributions from developers passionate about privacy, decentralization, and open-source software! This monorepo contains all of our source code for our NymVPN client apps (iOS / Android / Linux / macOS / Windows / CLI), separate from the Nym network [monorepo](https://github.com/nymtech/nym).
+
+Development Areas
+- Rust core development: Networking, cryptography, protocols
+- Mobile development: Kotlin (Android), SwiftUI (iOS)
+- Desktop applications: SwiftUI (macOS), Tauri (Linux, Windows)
+- Protocol research: Mixnet improvements, censorship resistance
+- Security auditing: Code review, vulnerability research, pen tests
+
+Check our [Contribution Guide](CONTRIBUTING.md).
+
+
+# 🏷️ Topics & Keywords
+- Privacy & Security: `privacy-tools` `privacy-enhancing tech` `security` `encryption` `zero-knowledge` `anonymity` `surveillance-resistance` `cryptography`
+- Networking: `vpn` `dvpn` `wireguard` `amneziawg` `mixnet` `decentralized-network` `censorship-resistance`
+- Development: `rust` `open-source` `kotlin` `swiftui`
+- Protocols: `sphinx` `onion-routing` `distributed-systems` `network-privacy`
+
+
+
+
+# 📝 Acknowledgements
+
+- [Mullvad open source libraries](https://github.com/mullvad/mullvadvpn-app/) to handle setting up local routing and wrapping wireguard-go.
+- [AmneziaWG wg-go open source library](https://github.com/amnezia-vpn/amneziawg-go) to help prevent censorship of WireGuard.
+- [WireGuard](https://github.com/WireGuard)
+
+
+# ⛓️ Community
 
 Connect with the community on our socials.
 
@@ -71,7 +172,5 @@ Connect with the community on our socials.
 [<img  src="https://img.shields.io/badge/X-000000.svg?style=for-the-badge&logo=X&logoColor=white">](https://nym.com/go/x)
 </div>
 
-## Contributing
 
-Find out the various ways [you can
-contribute](CONTRIBUTING.md).
+Building the future of private, decentralized internet infrastructure - one commit at a time. 🚀
