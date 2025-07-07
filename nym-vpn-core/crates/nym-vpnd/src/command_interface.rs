@@ -1,8 +1,19 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::path::PathBuf;
+
 use futures::{StreamExt, stream::BoxStream};
-use tokio::sync::{broadcast, mpsc::UnboundedSender, oneshot};
+use tokio::{
+    sync::{
+        broadcast,
+        mpsc::{self, UnboundedReceiver, UnboundedSender},
+        oneshot,
+    },
+    task::JoinHandle,
+};
+use tokio_util::sync::CancellationToken;
+use tonic::transport::Server;
 use zeroize::Zeroizing;
 
 use nym_vpn_lib_types::TunnelEvent;
@@ -18,14 +29,16 @@ use nym_vpn_proto::{
     NetworkCompatibility, RefreshAccountStateResponse, RegisterDeviceResponse,
     RequestZkNymResponse, ResetDeviceIdentityRequest, ResetDeviceIdentityResponse,
     StoreAccountRequest, StoreAccountResponse, TunnelState,
-    get_account_state_response::AccountStateSummary, get_account_usage_response::AccountUsages,
-    get_devices_response::Devices, nym_vpnd_server::NymVpnd,
+    get_account_state_response::AccountStateSummary,
+    get_account_usage_response::AccountUsages,
+    get_devices_response::Devices,
+    nym_vpnd_server::{NymVpnd, NymVpndServer},
 };
 use nym_vpnd_types::{ConnectArgs, ListCountriesOptions, ListGatewaysOptions};
 
 use crate::service::{SetNetworkError, VpnServiceCommand};
 
-pub(super) struct CommandInterface {
+pub struct CommandInterface {
     // Send commands to the VPN service
     vpn_command_tx: UnboundedSender<VpnServiceCommand>,
 
@@ -34,7 +47,7 @@ pub(super) struct CommandInterface {
 }
 
 impl CommandInterface {
-    pub(super) fn new(
+    fn new(
         vpn_command_tx: UnboundedSender<VpnServiceCommand>,
         tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
     ) -> Self {
@@ -81,7 +94,9 @@ impl NymVpnd for CommandInterface {
             .await?;
 
         status.map_err(|e| match e {
-            SetNetworkError::NetworkNotFound(s) => tonic::Status::not_found(s),
+            SetNetworkError::NetworkNotFound(network_name) => {
+                tonic::Status::not_found(format!("Network not found: {network_name}"))
+            }
             e => tonic::Status::internal(e.to_string()),
         })?;
 
@@ -582,5 +597,81 @@ impl NymVpnd for CommandInterface {
                 tonic::Status::internal("failed to disable sentry")
             })?;
         Ok(tonic::Response::new(()))
+    }
+}
+
+pub async fn start_command_interface(
+    tunnel_event_rx: broadcast::Receiver<TunnelEvent>,
+    shutdown_token: CancellationToken,
+) -> std::io::Result<(JoinHandle<()>, UnboundedReceiver<VpnServiceCommand>)> {
+    tracing::debug!("Starting command interface");
+
+    let socket_path = default_socket_path();
+    let (vpn_command_tx, vpn_command_rx) = mpsc::unbounded_channel();
+
+    // Remove previous socket file in case if the daemon crashed in the prior run and could not clean up the socket file.
+    #[cfg(unix)]
+    remove_previous_socket_file(&socket_path).await;
+    tracing::info!("Starting socket listener on: {}", socket_path.display());
+
+    // Wrap the unix socket or named pipe into a stream that can be used by tonic
+    let incoming = nym_ipc::server::create_incoming(socket_path.clone())?;
+
+    let server_handle = tokio::spawn(async move {
+        let incoming_shutdown_token = shutdown_token.child_token();
+        let socket_listener_handle = tokio::spawn(async move {
+            let command_interface = CommandInterface::new(vpn_command_tx, tunnel_event_rx);
+
+            let server = Server::builder().add_service(NymVpndServer::new(command_interface));
+
+            match server
+                .serve_with_incoming_shutdown(incoming, incoming_shutdown_token.cancelled_owned())
+                .await
+            {
+                Ok(()) => {
+                    tracing::info!("Socket listener has finished");
+                }
+                Err(e) => {
+                    tracing::error!("Socket listener exited with error: {}", e);
+                }
+            }
+        });
+
+        if let Err(e) = socket_listener_handle.await {
+            tracing::error!("Failed to join on socket listener: {}", e);
+        }
+
+        tracing::info!("Command interface exiting");
+    });
+
+    Ok((server_handle, vpn_command_rx))
+}
+
+#[cfg(unix)]
+async fn remove_previous_socket_file(socket_path: &std::path::Path) {
+    match tokio::fs::remove_file(socket_path).await {
+        Ok(_) => tracing::info!(
+            "Removed previous command interface socket: {}",
+            socket_path.display()
+        ),
+        Err(err) if err.kind() == std::io::ErrorKind::NotFound => {}
+        Err(err) => {
+            tracing::error!(
+                "Failed to remove previous command interface socket: {:?}",
+                err
+            );
+        }
+    }
+}
+
+fn default_socket_path() -> PathBuf {
+    #[cfg(unix)]
+    {
+        PathBuf::from("/var/run/nym-vpn.sock")
+    }
+
+    #[cfg(windows)]
+    {
+        PathBuf::from(r"\\.\pipe\nym-vpn")
     }
 }

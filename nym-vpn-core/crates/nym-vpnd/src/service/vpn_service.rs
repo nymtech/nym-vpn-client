@@ -22,13 +22,11 @@ use nym_vpn_account_controller::{
 use nym_vpn_api_client::{
     NetworkCompatibility,
     response::{NymVpnDevice, NymVpnUsage},
-    types::{Percent, ScoreThresholds},
+    types::ScoreThresholds,
 };
 use nym_vpn_lib::{
     MixnetClientConfig, UserAgent, VpnTopologyProvider,
-    gateway_directory::{
-        self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient, GatewayType,
-    },
+    gateway_directory::{self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
@@ -734,7 +732,7 @@ where
             .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
         {
             Ok(()) => {
-                self.command_sender.send(TunnelCommand::Connect);
+                self.command_sender.send(TunnelCommand::Connect).ok();
                 Ok(())
             }
             Err(e) => {
