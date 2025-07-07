@@ -1,21 +1,24 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{io, path::PathBuf};
+use std::path::PathBuf;
 
 use nym_vpn_api_client::NetworkCompatibility;
 use nym_vpn_lib_types::{TunnelEvent, TunnelState};
 use nym_vpn_network_config::{FeatureFlags, SystemMessages};
-use nym_vpnd_types::{ConnectArgs, log_path::LogPath, service::VpnServiceInfo};
-use tokio::io::{AsyncRead, AsyncWrite};
-use tokio_stream::{Stream, StreamExt};
-use tonic::{
-    IntoRequest, Request,
-    transport::{Endpoint, Uri},
+use nym_vpnd_types::{
+    ConnectArgs, ListCountriesOptions, ListGatewaysOptions,
+    gateway::{Country, Gateway},
+    log_path::LogPath,
+    service::VpnServiceInfo,
 };
+use tokio_stream::{Stream, StreamExt};
+use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
 
-use crate::{ConnectRequest, InfoResponse, nym_vpnd_client::NymVpndClient};
+use crate::{
+    ConnectRequest, ListCountriesRequest, ListGatewaysRequest, nym_vpnd_client::NymVpndClient,
+};
 
 type ServiceClient = NymVpndClient<tonic::transport::Channel>;
 
@@ -86,14 +89,14 @@ impl RpcClient {
     pub async fn connect_tunnel(&mut self, request: ConnectArgs) -> Result<bool> {
         let connect_req = ConnectRequest::try_from(request).map_err(Error::InvalidRequest)?;
 
-        let r = self
+        let is_accepted = self
             .0
             .vpn_connect(connect_req)
             .await
             .map(|v| v.into_inner())
-            .map_err(Error::Rpc);
+            .map_err(Error::Rpc)?;
 
-        Ok(true)
+        Ok(is_accepted)
     }
 
     pub async fn disconnect_tunnel(&mut self) -> Result<bool> {
@@ -102,6 +105,17 @@ impl RpcClient {
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
+    }
+
+    pub async fn get_tunnel_state(&mut self) -> Result<TunnelState> {
+        let state = self
+            .0
+            .get_tunnel_state(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        TunnelState::try_from(state).map_err(Error::InvalidResponse)
     }
 
     pub async fn listen_to_tunnel_state(
@@ -136,15 +150,33 @@ impl RpcClient {
         }))
     }
 
-    pub async fn get_tunnel_state(&mut self) -> Result<TunnelState> {
-        let state = self
-            .0
-            .get_tunnel_state(())
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
+    pub async fn list_gateways(&mut self, options: ListGatewaysOptions) -> Result<Vec<Gateway>> {
+        let request = ListGatewaysRequest::try_from(options).map_err(Error::InvalidRequest)?;
 
-        TunnelState::try_from(state).map_err(Error::InvalidResponse)
+        let gateways = self
+            .0
+            .list_gateways(request)
+            .await
+            .map(|v| v.into_inner().gateways)
+            .map_err(Error::Rpc)?;
+
+        Ok(gateways
+            .into_iter()
+            .map(|gateway| Gateway::try_from(gateway).map_err(Error::InvalidResponse))
+            .collect::<Result<Vec<_>>>()?)
+    }
+
+    pub async fn list_countries(&mut self, options: ListCountriesOptions) -> Result<Vec<Country>> {
+        let request = ListCountriesRequest::try_from(options).map_err(Error::InvalidRequest)?;
+
+        let countries = self
+            .0
+            .list_countries(request)
+            .await
+            .map(|v| v.into_inner().countries)
+            .map_err(Error::Rpc)?;
+
+        Ok(countries.into_iter().map(Country::from).collect())
     }
 
     pub async fn get_log_path(&mut self) -> Result<LogPath> {

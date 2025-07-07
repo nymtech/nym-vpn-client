@@ -1,30 +1,21 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use super::ConversionError;
-
 pub mod account;
 pub mod network_config;
 pub mod tunnel_event;
 pub mod tunnel_state;
 pub mod vpnd;
 
-impl TryFrom<crate::GatewayType> for nym_gateway_directory::GatewayType {
-    type Error = ConversionError;
+use crate::GatewayType as ProtoGatewayType;
 
-    fn try_from(gateway_type: crate::GatewayType) -> Result<Self, Self::Error> {
-        use nym_gateway_directory::GatewayType;
-        let gw_type = match gateway_type {
-            crate::GatewayType::Unspecified => {
-                return Err(ConversionError::Generic(
-                    "gateway type unspecified".to_string(),
-                ));
-            }
-            crate::GatewayType::MixnetEntry => GatewayType::MixnetEntry,
-            crate::GatewayType::MixnetExit => GatewayType::MixnetExit,
-            crate::GatewayType::Wg => GatewayType::Wg,
-        };
-        Ok(gw_type)
+impl From<nym_gateway_directory::GatewayType> for ProtoGatewayType {
+    fn from(value: nym_gateway_directory::GatewayType) -> Self {
+        match value {
+            nym_gateway_directory::GatewayType::MixnetEntry => ProtoGatewayType::MixnetEntry,
+            nym_gateway_directory::GatewayType::MixnetExit => ProtoGatewayType::MixnetExit,
+            nym_gateway_directory::GatewayType::Wg => ProtoGatewayType::Wg,
+        }
     }
 }
 

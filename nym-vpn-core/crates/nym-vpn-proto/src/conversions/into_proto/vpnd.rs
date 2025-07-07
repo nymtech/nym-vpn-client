@@ -1,14 +1,22 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpnd_types::{ConnectArgs, gateway::Score, log_path::LogPath, service::VpnServiceInfo};
+use nym_gateway_directory::GatewayType;
+use nym_sdk::UserAgent;
+use nym_vpnd_types::{
+    ConnectArgs, ListCountriesOptions, ListGatewaysOptions, gateway::Score, log_path::LogPath,
+    service::VpnServiceInfo,
+};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 
 use crate::{
-    ConnectRequest, Dns as ProtoDns, EntryNode as ProtoEntryNode, ExitNode as ProtoExitNode,
+    Address as ProtoAddress, ConnectRequest, Dns as ProtoDns, EntryNode as ProtoEntryNode,
+    ExitNode as ProtoExitNode, GatewayType as ProtoGatewayType,
     GetLogPathResponse as ProtoGetLogPathResponse, InfoResponse as ProtoInfoResponse,
-    NymNetworkDetails as ProtoNymNetworkDetails, NymVpnNetworkDetails as ProtoNymVpnNetworkDetails,
-    UserAgent as ProtoUserAgent, conversions::ConversionError,
+    ListCountriesRequest as ProtoListCountriesRequest,
+    ListGatewaysRequest as ProtoListGatewaysRequest, NymNetworkDetails as ProtoNymNetworkDetails,
+    NymVpnNetworkDetails as ProtoNymVpnNetworkDetails, UserAgent as ProtoUserAgent,
+    conversions::ConversionError, exit_node::ExitNodeEnum as ProtoExitNodeEnum,
 };
 
 impl From<nym_vpnd_types::gateway::Location> for crate::Location {
@@ -167,14 +175,84 @@ impl TryFrom<ConnectArgs> for ConnectRequest {
 
 impl TryFrom<nym_gateway_directory::ExitPoint> for ProtoExitNode {
     type Error = ConversionError;
+
     fn try_from(value: nym_gateway_directory::ExitPoint) -> Result<Self, Self::Error> {
-        todo!("implement me")
+        let exit_node_enum = match value {
+            nym_gateway_directory::ExitPoint::Address { address } => {
+                ProtoExitNodeEnum::Address(ProtoAddress {
+                    nym_address: address.to_string(),
+                    gateway_id: address.gateway().to_base58_string(),
+                })
+            }
+            nym_gateway_directory::ExitPoint::Gateway { identity } => {
+                ProtoExitNodeEnum::Gateway(crate::Gateway {
+                    id: identity.to_base58_string(),
+                })
+            }
+            nym_gateway_directory::ExitPoint::Location { location } => {
+                ProtoExitNodeEnum::Location(crate::Location {
+                    two_letter_iso_country_code: location,
+                    latitude: None,
+                    longitude: None,
+                })
+            }
+            nym_gateway_directory::ExitPoint::Random => ProtoExitNodeEnum::Random(()),
+        };
+        Ok(ProtoExitNode {
+            exit_node_enum: Some(exit_node_enum),
+        })
     }
 }
 
 impl TryFrom<nym_gateway_directory::EntryPoint> for ProtoEntryNode {
     type Error = ConversionError;
     fn try_from(value: nym_gateway_directory::EntryPoint) -> Result<Self, Self::Error> {
-        todo!("implement me")
+        match value {
+            nym_gateway_directory::EntryPoint::Gateway { identity } => Ok(ProtoEntryNode {
+                entry_node_enum: Some(crate::entry_node::EntryNodeEnum::Gateway(crate::Gateway {
+                    id: identity.to_base58_string(),
+                })),
+            }),
+            nym_gateway_directory::EntryPoint::Location { location } => Ok(ProtoEntryNode {
+                entry_node_enum: Some(crate::entry_node::EntryNodeEnum::Location(
+                    crate::Location {
+                        two_letter_iso_country_code: location,
+                        latitude: None,
+                        longitude: None,
+                    },
+                )),
+            }),
+            nym_gateway_directory::EntryPoint::Random => Ok(ProtoEntryNode {
+                entry_node_enum: Some(crate::entry_node::EntryNodeEnum::Random(())),
+            }),
+        }
+    }
+}
+
+impl TryFrom<ListGatewaysOptions> for ProtoListGatewaysRequest {
+    type Error = ConversionError;
+
+    fn try_from(value: ListGatewaysOptions) -> Result<Self, Self::Error> {
+        let proto_gw_type = ProtoGatewayType::from(value.gw_type);
+        let user_agent = value.user_agent.map(ProtoUserAgent::from);
+
+        Ok(Self {
+            kind: proto_gw_type as i32,
+            user_agent,
+        })
+    }
+}
+
+impl TryFrom<ListCountriesOptions> for ProtoListCountriesRequest {
+    type Error = ConversionError;
+
+    fn try_from(value: ListCountriesOptions) -> Result<Self, Self::Error> {
+        let proto_gw_type = ProtoGatewayType::from(value.gw_type);
+        let user_agent = value.user_agent.map(ProtoUserAgent::from);
+
+        Ok(Self {
+            kind: proto_gw_type as i32,
+            user_agent,
+        })
     }
 }

@@ -247,10 +247,9 @@ enum Score {
 }
 
 enum GatewayType {
-  GATEWAY_TYPE_UNSPECIFIED = 0;
-  MIXNET_ENTRY = 1;
-  MIXNET_EXIT = 2;
-  WG = 3;
+  MIXNET_ENTRY = 0;
+  MIXNET_EXIT = 1;
+  WG = 2;
 }
 
 message ListGatewaysRequest {
