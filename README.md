@@ -79,6 +79,7 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 
 # 🏗️ Architecture
 
+```
 ┌─────────────────┐    ┌──────────────┐    ┌─────────────────┐
 │                 │───▶│   Mixnet     │───▶│   Destination   │
 │                 │    │  (5 hops)    │    │                 │
@@ -87,7 +88,7 @@ NymVPN is a privacy-focused, decentralized VPN application that goes beyond trad
 │                 │───▶│  AmneziaWG   │───▶│   Destination   │
 │                 │    │  (2 hops)    │    │                 │
 └─────────────────┘    └──────────────┘    └─────────────────┘
-
+```
 
 # 🌍 Network Infrastructure & Performance (July 2025)
 
