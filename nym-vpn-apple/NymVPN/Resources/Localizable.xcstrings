@@ -17,7 +17,7 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@"
           }
         },
@@ -83,7 +83,7 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@"
           }
         },
@@ -688,8 +688,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Dimmed"
+            "state" : "translated",
+            "value" : "Tối"
           }
         },
         "zh-Hans" : {
@@ -789,8 +789,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Double-tap to copy"
+            "state" : "translated",
+            "value" : "Nhấn đúp để sao chép"
           }
         },
         "zh-Hans" : {
@@ -890,8 +890,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Double-tap to open external link"
+            "state" : "translated",
+            "value" : "Nhấn đúp để mở liên kết bên ngoài"
           }
         },
         "zh-Hans" : {
@@ -991,8 +991,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Double-tap to toggle"
+            "state" : "translated",
+            "value" : "Nhấn đúp để chuyển đổi"
           }
         },
         "zh-Hans" : {
@@ -2743,8 +2743,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to"
+            "state" : "translated",
+            "value" : "Bienvenido/a a"
           }
         },
         "fa" : {
@@ -2809,8 +2809,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to"
+            "state" : "translated",
+            "value" : "Chào mừng đến với"
           }
         },
         "zh-Hans" : {
@@ -4258,8 +4258,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Acts as your login"
+            "state" : "translated",
+            "value" : "Actúa como tu usuario"
           }
         },
         "fa" : {
@@ -4324,8 +4324,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Acts as your login"
+            "state" : "translated",
+            "value" : "Đóng vai trò như là hành động đăng nhập của bạn"
           }
         },
         "zh-Hans" : {
@@ -4359,8 +4359,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Already have account?"
+            "state" : "translated",
+            "value" : "¿Ya tienes una cuenta?"
           }
         },
         "fa" : {
@@ -4425,8 +4425,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Already have account?"
+            "state" : "translated",
+            "value" : "Bạn đã có tài khoản?"
           }
         },
         "zh-Hans" : {
@@ -4460,8 +4460,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Is anonymous by design"
+            "state" : "translated",
+            "value" : "Es anónimo por diseño"
           }
         },
         "fa" : {
@@ -4526,8 +4526,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Is anonymous by design"
+            "state" : "translated",
+            "value" : "Ẩn danh theo thiết kế"
           }
         },
         "zh-Hans" : {
@@ -4561,8 +4561,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous mixnet technology"
+            "state" : "translated",
+            "value" : "Tecnología de mixnet anónima"
           }
         },
         "fa" : {
@@ -4627,8 +4627,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous mixnet technology"
+            "state" : "translated",
+            "value" : "Công nghệ mixnet ẩn danh"
           }
         },
         "zh-Hans" : {
@@ -4662,8 +4662,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "Continuar"
           }
         },
         "fa" : {
@@ -4728,8 +4728,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "Tiếp tục"
           }
         },
         "zh-Hans" : {
@@ -4763,8 +4763,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "50+ countries worldwide"
+            "state" : "translated",
+            "value" : "Más de 50 países en todo el mundo"
           }
         },
         "fa" : {
@@ -4829,8 +4829,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "50+ countries worldwide"
+            "state" : "translated",
+            "value" : "Hơn 50 quốc gia trên toàn thế giới"
           }
         },
         "zh-Hans" : {
@@ -4864,8 +4864,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start protecting my privacy"
+            "state" : "translated",
+            "value" : "Comenzar a proteger mi privacidad"
           }
         },
         "fa" : {
@@ -4930,8 +4930,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start protecting my privacy"
+            "state" : "translated",
+            "value" : "Bắt đầu bảo vệ quyền riêng tư của tôi"
           }
         },
         "zh-Hans" : {
@@ -4965,8 +4965,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create an account"
+            "state" : "translated",
+            "value" : "Crear cuenta"
           }
         },
         "fa" : {
@@ -5031,8 +5031,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create an account"
+            "state" : "translated",
+            "value" : "Tạo tài khoản"
           }
         },
         "zh-Hans" : {
@@ -5066,8 +5066,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create my 24-word passphrase"
+            "state" : "translated",
+            "value" : "Crea mi frase de contraseña de 24 palabras"
           }
         },
         "fa" : {
@@ -5132,8 +5132,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create my 24-word passphrase"
+            "state" : "translated",
+            "value" : "Tạo cụm từ khóa 24 từ của tôi"
           }
         },
         "zh-Hans" : {
@@ -5167,8 +5167,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Save it in a trusted password manager or write down your passphrase and store it securely."
+            "state" : "translated",
+            "value" : "Guárdalo en un administrador de contraseñas de confianza o anota tu frase de contraseña y guárdala de forma segura."
           }
         },
         "fa" : {
@@ -5233,8 +5233,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Save it in a trusted password manager or write down your passphrase and store it securely."
+            "state" : "translated",
+            "value" : "Lưu nó trong trình quản lý mật khẩu đáng tin cậy hoặc ghi lại cụm từ mật khẩu của bạn và lưu trữ một cách an toàn."
           }
         },
         "zh-Hans" : {
@@ -5268,8 +5268,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t Lose Your Passphrase"
+            "state" : "translated",
+            "value" : "No pierdas tu frase de contraseña"
           }
         },
         "fa" : {
@@ -5334,8 +5334,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t Lose Your Passphrase"
+            "state" : "translated",
+            "value" : "Đừng để mất cụm từ khóa của bạn"
           }
         },
         "zh-Hans" : {
@@ -5369,8 +5369,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Never share it—not even with Nym Support team."
+            "state" : "translated",
+            "value" : "Nunca la compartas—ni siquiera con el equipo de soporte de Nym."
           }
         },
         "fa" : {
@@ -5435,8 +5435,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Never share it—not even with Nym Support team."
+            "state" : "translated",
+            "value" : "Không chia sẻ nó - ngay cả với đội ngũ hỗ trợ Nym."
           }
         },
         "zh-Hans" : {
@@ -5470,8 +5470,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t share!"
+            "state" : "translated",
+            "value" : "¡No la compartas!"
           }
         },
         "fa" : {
@@ -5536,8 +5536,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t share!"
+            "state" : "translated",
+            "value" : "Đừng chia sẻ!"
           }
         },
         "zh-Hans" : {
@@ -5571,8 +5571,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Email usage"
+            "state" : "translated",
+            "value" : "Uso del correo electrónico"
           }
         },
         "fa" : {
@@ -5637,8 +5637,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Email usage"
+            "state" : "translated",
+            "value" : "Sử dụng email"
           }
         },
         "zh-Hans" : {
@@ -5672,8 +5672,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enables self-custody"
+            "state" : "translated",
+            "value" : "Habilita la autocustodia"
           }
         },
         "fa" : {
@@ -5738,8 +5738,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enables self-custody"
+            "state" : "translated",
+            "value" : "Cho phép tự lưu ký"
           }
         },
         "zh-Hans" : {
@@ -5773,8 +5773,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How to keep your NymVPN passphrase safe?"
+            "state" : "translated",
+            "value" : "¿Cómo mantener segura tu frase de acceso de NymVPN?"
           }
         },
         "fa" : {
@@ -5839,8 +5839,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How to keep your NymVPN passphrase safe?"
+            "state" : "translated",
+            "value" : "Làm thế nào để lưu trữ an toàn cụm từ khóa NymVPN của bạn?"
           }
         },
         "zh-Hans" : {
@@ -5874,8 +5874,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "state" : "translated",
+            "value" : "En su lugar, está creando una cuenta asegurada \npor una contraseña de 24 palabras."
           }
         },
         "fa" : {
@@ -5940,8 +5940,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "state" : "translated",
+            "value" : "Thay vào đó, bạn đang tạo tài khoản được bảo vệ bởi một cụm từ khóa gồm 24 từ."
           }
         },
         "zh-Hans" : {
@@ -5975,8 +5975,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Log in"
+            "state" : "translated",
+            "value" : "Iniciar sesión"
           }
         },
         "fa" : {
@@ -6041,8 +6041,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Log in"
+            "state" : "translated",
+            "value" : "Đăng nhập"
           }
         },
         "zh-Hans" : {
@@ -6076,8 +6076,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I understand: no passphrase, no access."
+            "state" : "translated",
+            "value" : "Lo entiendo: sin frase de acceso no podré acceder."
           }
         },
         "fa" : {
@@ -6142,8 +6142,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I understand: no passphrase, no access."
+            "state" : "translated",
+            "value" : "Tôi hiểu: không có cụm từ khóa, không có quyền truy cập."
           }
         },
         "zh-Hans" : {
@@ -6177,8 +6177,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open source & Swiss privacy laws"
+            "state" : "translated",
+            "value" : "Código abierto y leyes suizas de privacidad"
           }
         },
         "fa" : {
@@ -6243,8 +6243,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open source & Swiss privacy laws"
+            "state" : "translated",
+            "value" : "Mã nguồn mở & luật bảo mật của Thụy Sĩ"
           }
         },
         "zh-Hans" : {
@@ -6278,8 +6278,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Password creation"
+            "state" : "translated",
+            "value" : "Creación de contraseña"
           }
         },
         "fa" : {
@@ -6344,8 +6344,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Password creation"
+            "state" : "translated",
+            "value" : "Tạo mật khẩu"
           }
         },
         "zh-Hans" : {
@@ -6379,8 +6379,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
+            "state" : "translated",
+            "value" : "He guardado mi frase de contraseña"
           }
         },
         "fa" : {
@@ -6445,8 +6445,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
+            "state" : "translated",
+            "value" : "Tôi đã lưu cụm từ khóa của mình"
           }
         },
         "zh-Hans" : {
@@ -6480,8 +6480,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account Created Successfully"
+            "state" : "translated",
+            "value" : "Cuenta creada con éxito"
           }
         },
         "fa" : {
@@ -6546,8 +6546,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account Created Successfully"
+            "state" : "translated",
+            "value" : "Đã tạo tài khoản thành công"
           }
         },
         "zh-Hans" : {
@@ -6581,8 +6581,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose your NymVPN plan"
+            "state" : "translated",
+            "value" : "Elige tu plan NymVPN"
           }
         },
         "fa" : {
@@ -6647,8 +6647,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose your NymVPN plan"
+            "state" : "translated",
+            "value" : "Chọn gói NymVPN của bạn"
           }
         },
         "zh-Hans" : {
@@ -6682,8 +6682,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Instant, secure connections without compromising your privacy."
+            "state" : "translated",
+            "value" : "Conexiones instantáneas y seguras sin comprometer tu privacidad."
           }
         },
         "fa" : {
@@ -6748,8 +6748,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Instant, secure connections without compromising your privacy."
+            "state" : "translated",
+            "value" : "Kết nối tức thì, an toàn mà không làm lộ thông tin cá nhân của bạn."
           }
         },
         "zh-Hans" : {
@@ -6783,8 +6783,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Fast & Anonymous Mode"
+            "state" : "translated",
+            "value" : "Modo Rápido & Anónimo"
           }
         },
         "fa" : {
@@ -6849,8 +6849,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Fast & Anonymous Mode"
+            "state" : "translated",
+            "value" : "Chế độ Nhanh & chế độ Ẩn danh"
           }
         },
         "zh-Hans" : {
@@ -6884,8 +6884,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+            "state" : "translated",
+            "value" : "Acceda a servidores en más de 85 países: disfrute de la libertad y la privacidad sin fronteras."
           }
         },
         "fa" : {
@@ -6950,8 +6950,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+            "state" : "translated",
+            "value" : "Truy cập các máy chủ tại hơn 85 quốc gia - tận hưởng tự do và quyền riêng tư không biên giới."
           }
         },
         "zh-Hans" : {
@@ -6985,8 +6985,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Global Coverage"
+            "state" : "translated",
+            "value" : "Cobertura Global"
           }
         },
         "fa" : {
@@ -7051,8 +7051,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Global Coverage"
+            "state" : "translated",
+            "value" : "Phạm vi Toàn cầu"
           }
         },
         "zh-Hans" : {
@@ -7086,8 +7086,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Maybe later"
+            "state" : "translated",
+            "value" : "Quizás más tarde"
           }
         },
         "fa" : {
@@ -7152,8 +7152,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Maybe later"
+            "state" : "translated",
+            "value" : "Có lẽ để sau"
           }
         },
         "zh-Hans" : {
@@ -7187,8 +7187,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select plan"
+            "state" : "translated",
+            "value" : "Selecciona el plan"
           }
         },
         "fa" : {
@@ -7253,8 +7253,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select plan"
+            "state" : "translated",
+            "value" : "Chọn gói"
           }
         },
         "zh-Hans" : {
@@ -7288,8 +7288,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Skip for now"
+            "state" : "translated",
+            "value" : "Saltar por ahora"
           }
         },
         "fa" : {
@@ -7354,8 +7354,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Skip for now"
+            "state" : "translated",
+            "value" : "Bỏ qua bây giờ"
           }
         },
         "zh-Hans" : {
@@ -7389,8 +7389,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+            "state" : "translated",
+            "value" : "Para continuar, selecciona un plan para desbloquear todo el potencial de NymVPN y beneficiarte de:"
           }
         },
         "fa" : {
@@ -7455,8 +7455,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+            "state" : "translated",
+            "value" : "Để tiếp tục, hãy chọn một gói để mở khóa toàn bộ tiềm năng của NymVPN và hưởng lợi từ:"
           }
         },
         "zh-Hans" : {
@@ -7490,8 +7490,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Third-party trust"
+            "state" : "translated",
+            "value" : "Confianza de terceros"
           }
         },
         "fa" : {
@@ -7556,8 +7556,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Third-party trust"
+            "state" : "translated",
+            "value" : "Tin cậy vào bên thứ ba"
           }
         },
         "zh-Hans" : {
@@ -7591,8 +7591,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Payments and activity stay unlinked"
+            "state" : "translated",
+            "value" : "Los pagos y la actividad permanecen desvinculados"
           }
         },
         "fa" : {
@@ -7657,8 +7657,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Payments and activity stay unlinked"
+            "state" : "translated",
+            "value" : "Thanh toán và hoạt động không bị liên kết"
           }
         },
         "zh-Hans" : {
@@ -7692,8 +7692,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "What is a 24-word passphrase?"
+            "state" : "translated",
+            "value" : "¿Qué es una contraseña de 24 palabras?"
           }
         },
         "fa" : {
@@ -7758,8 +7758,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "What is a 24-word passphrase?"
+            "state" : "translated",
+            "value" : "Cụm từ khóa 24 từ là gì?"
           }
         },
         "zh-Hans" : {
@@ -7793,8 +7793,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "24-word passphrase (locally created on your device) serves as your account login details. This passphrase is the only way to access your account."
+            "state" : "translated",
+            "value" : "La contraseña de 24 palabras (creada localmente en su dispositivo) sirve como los datos de inicio de sesión de tu cuenta. Esta contraseña es la única manera de acceder."
           }
         },
         "fa" : {
@@ -7859,8 +7859,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "24-word passphrase (locally created on your device) serves as your account login details. This passphrase is the only way to access your account."
+            "state" : "translated",
+            "value" : "Cụm từ khóa 24 từ (được tạo trên thiết bị của bạn) là thông tin đăng nhập tài khoản của bạn. Cụm từ khóa này là cách duy nhất để truy cập tài khoản của bạn."
           }
         },
         "zh-Hans" : {
@@ -7894,8 +7894,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your 24-word NymVPN passphrase"
+            "state" : "translated",
+            "value" : "Tu frase de acceso de 24 palabras de NymVPN"
           }
         },
         "fa" : {
@@ -7960,8 +7960,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your 24-word NymVPN passphrase"
+            "state" : "translated",
+            "value" : "Cụm từ khóa NymVPN 24 từ của bạn"
           }
         },
         "zh-Hans" : {
@@ -7995,8 +7995,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For your privacy, we’ve eliminated:"
+            "state" : "translated",
+            "value" : "Por tu privacidad, hemos eliminado:"
           }
         },
         "fa" : {
@@ -8061,8 +8061,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For your privacy, we’ve eliminated:"
+            "state" : "translated",
+            "value" : "Để bảo vệ quyền riêng tư của bạn, chúng tôi đã loại bỏ:"
           }
         },
         "zh-Hans" : {
@@ -9576,8 +9576,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "VPN API failed with code:"
+            "state" : "translated",
+            "value" : "VPN API xảy ra lỗi với mã:"
           }
         },
         "zh-Hans" : {
@@ -9677,8 +9677,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "VPN API timeout"
+            "state" : "translated",
+            "value" : "Hết thời gian chờ API VPN"
           }
         },
         "zh-Hans" : {
@@ -9879,8 +9879,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No data allowance remaining. Please upgrade your account plan."
+            "state" : "translated",
+            "value" : "Đã vượt quá băng thông hàng tháng. Vui lòng nâng cấp gói tài khoản của bạn."
           }
         },
         "zh-Hans" : {
@@ -9914,8 +9914,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to create credential storage."
+            "state" : "translated",
+            "value" : "Error al crear almacenamiento de credenciales."
           }
         },
         "fa" : {
@@ -9980,8 +9980,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to create credential storage."
+            "state" : "translated",
+            "value" : "Không thể tạo bộ lưu trữ thông tin xác thực."
           }
         },
         "zh-Hans" : {
@@ -10081,8 +10081,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+            "state" : "translated",
+            "value" : "\"Thời gian thiết bị không đồng bộ. Vui lòng đồng bộ hóa thời gian của thiết bị với internet.\""
           }
         },
         "zh-Hans" : {
@@ -10419,8 +10419,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account registration failed. Please try again."
+            "state" : "translated",
+            "value" : "Registro de cuenta fallido. Por favor, inténtalo de nuevo."
           }
         },
         "fa" : {
@@ -10485,8 +10485,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account registration failed. Please try again."
+            "state" : "translated",
+            "value" : "Đăng ký tài khoản không thành công. Vui lòng thử lại."
           }
         },
         "zh-Hans" : {
@@ -11899,8 +11899,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to start local DNS proxy. Please try again."
+            "state" : "translated",
+            "value" : "Không thể khởi động proxy DNS cục bộ. Vui lòng thử lại."
           }
         },
         "zh-Hans" : {
@@ -13313,8 +13313,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Expand servers"
+            "state" : "translated",
+            "value" : "Mở rộng máy chủ"
           }
         },
         "zh-Hans" : {
@@ -13515,8 +13515,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Off"
+            "state" : "translated",
+            "value" : "Tắt"
           }
         },
         "zh-Hans" : {
@@ -13550,8 +13550,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "On"
+            "state" : "translated",
+            "value" : "Encendido"
           }
         },
         "fa" : {
@@ -13616,8 +13616,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "On"
+            "state" : "translated",
+            "value" : "Bật"
           }
         },
         "zh-Hans" : {
@@ -17757,8 +17757,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Attempt"
+            "state" : "translated",
+            "value" : "Lần thử"
           }
         },
         "zh-Hans" : {
@@ -18196,8 +18196,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Comenzar"
           }
         },
         "fa" : {
@@ -18256,14 +18256,14 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Почати"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Bắt đầu"
           }
         },
         "zh-Hans" : {
@@ -22201,8 +22201,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Please try reconnecting."
+            "state" : "translated",
+            "value" : "Vui lòng thử kết nối lại."
           }
         },
         "zh-Hans" : {
@@ -22302,8 +22302,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "The NymVPN connection has failed."
+            "state" : "translated",
+            "value" : "Kết nối NymVPN thất bại."
           }
         },
         "zh-Hans" : {
@@ -22539,8 +22539,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start using NymVPN"
+            "state" : "translated",
+            "value" : "Empezar a usar NymVPN"
           }
         },
         "fa" : {
@@ -22605,8 +22605,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start using NymVPN"
+            "state" : "translated",
+            "value" : "Bắt đầu sử dụng NymVPN"
           }
         },
         "zh-Hans" : {
@@ -22640,8 +22640,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
+            "state" : "translated",
+            "value" : "Tu conexión es privada."
           }
         },
         "fa" : {
@@ -22706,8 +22706,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
+            "state" : "translated",
+            "value" : "Kết nối của bạn là riêng tư."
           }
         },
         "zh-Hans" : {
@@ -22741,8 +22741,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
+            "state" : "translated",
+            "value" : "Tu identidad sigue siendo tuya."
           }
         },
         "fa" : {
@@ -22807,8 +22807,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
+            "state" : "translated",
+            "value" : "Danh tính của bạn vẫn thuộc về bạn."
           }
         },
         "zh-Hans" : {
@@ -22842,8 +22842,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
+            "state" : "translated",
+            "value" : "Plan activado"
           }
         },
         "fa" : {
@@ -22908,8 +22908,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
+            "state" : "translated",
+            "value" : "Gói đã được kích hoạt"
           }
         },
         "zh-Hans" : {
@@ -22943,8 +22943,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Succesfully"
+            "state" : "translated",
+            "value" : "Con éxito"
           }
         },
         "fa" : {
@@ -23009,8 +23009,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Succesfully"
+            "state" : "translated",
+            "value" : "Thành công"
           }
         },
         "zh-Hans" : {
@@ -25938,8 +25938,8 @@
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Contact support"
+            "state" : "translated",
+            "value" : "Liên hệ hỗ trợ"
           }
         },
         "zh-Hans" : {
@@ -25973,8 +25973,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Comenzar"
           }
         },
         "fa" : {
@@ -26033,14 +26033,14 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Почати"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Bắt đầu"
           }
         },
         "zh-Hans" : {
