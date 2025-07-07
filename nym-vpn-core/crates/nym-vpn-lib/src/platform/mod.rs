@@ -497,7 +497,6 @@ pub struct VPNConfig {
     pub config_path: Option<PathBuf>,
     pub credential_data_path: Option<PathBuf>,
     pub tun_status_listener: Option<Arc<dyn TunnelStatusListener>>,
-    pub credential_mode: Option<bool>,
     pub statistics_recipient: Option<String>,
     pub user_agent: UserAgent,
 }
