@@ -133,23 +133,18 @@ async fn connect(mut rpc_client: RpcClient, connect_args: cli::ConnectArgs) -> R
 
     let accepted = rpc_client.connect_tunnel(options).await?;
 
-    if accepted {
-        if connect_args.wait {
-            println!("Waiting until connected or failed");
-            wait_until_connected(rpc_client).await
-        } else {
-            Ok(())
-        }
+    if accepted && connect_args.wait {
+        println!("Waiting until connected or failed");
+        wait_until_connected(rpc_client).await
     } else {
-        println!("Connect is not accepted");
         Ok(())
     }
 }
 
 async fn wait_until_connected(mut rpc_client: RpcClient) -> Result<()> {
     let mut stream = rpc_client.listen_to_tunnel_state().await?;
-    while let Some(new_state) = stream.message().await? {
-        let new_state = TunnelState::try_from(new_state)?;
+    while let Some(new_state) = stream.next().await {
+        let new_state = new_state?;
         println!("{new_state}");
 
         match new_state {
@@ -175,16 +170,10 @@ async fn wait_until_connected(mut rpc_client: RpcClient) -> Result<()> {
 async fn disconnect(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
     let accepted = rpc_client.disconnect_tunnel().await?;
 
-    if accepted {
-        if wait {
-            println!("Successfully sent disconnect command. Waiting until disconnected.");
-            wait_until_disconnected(rpc_client).await
-        } else {
-            println!("Successfully sent disconnect command");
-            Ok(())
-        }
+    if accepted && wait {
+        println!("Waiting until disconnected");
+        wait_until_disconnected(rpc_client).await
     } else {
-        println!("Disconnect command failed");
         Ok(())
     }
 }
