@@ -5252,11 +5252,9 @@ version = "1.13.0-beta"
 dependencies = [
  "anyhow",
  "clap",
- "itertools 0.13.0",
  "nym-bin-common",
  "nym-gateway-directory",
  "nym-http-api-client",
- "nym-ipc",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-proto",
@@ -5264,7 +5262,6 @@ dependencies = [
  "sysinfo",
  "tokio",
  "tokio-stream",
- "tower",
  "vergen-gitcl",
 ]
 

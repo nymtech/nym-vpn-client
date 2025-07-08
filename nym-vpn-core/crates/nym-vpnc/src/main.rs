@@ -6,7 +6,6 @@ mod cli;
 use anyhow::{Context, Result, bail};
 use clap::Parser;
 use cli::Internal;
-use itertools::Itertools;
 use nym_gateway_directory::GatewayType;
 use nym_http_api_client::UserAgent;
 use nym_vpn_lib_types::TunnelState;
@@ -252,8 +251,7 @@ async fn store_account(mut rpc_client: RpcClient, store_args: cli::StoreAccountA
 }
 
 async fn refresh_account_state(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.refresh_account_state().await?;
-    println!("{response:#?}");
+    rpc_client.refresh_account_state().await?;
     Ok(())
 }
 
@@ -322,8 +320,7 @@ async fn get_device_id(mut rpc_client: RpcClient) -> Result<()> {
 }
 
 async fn register_device(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.register_device().await?;
-    println!("{response:#?}");
+    rpc_client.register_device().await?;
     Ok(())
 }
 
@@ -340,26 +337,22 @@ async fn get_active_devices(mut rpc_client: RpcClient) -> Result<()> {
 }
 
 async fn request_zk_nym(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.request_zk_nym().await?;
-    println!("{response:#?}");
+    rpc_client.request_zk_nym().await?;
     Ok(())
 }
 
 async fn get_device_zk_nym(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.get_device_zk_nyms().await?;
-    println!("{response:#?}");
+    rpc_client.get_device_zk_nyms().await?;
     Ok(())
 }
 
 async fn get_zk_nyms_available_for_download(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.get_zk_nyms_available_for_download().await?;
-    println!("{response:#?}");
+    rpc_client.get_zk_nyms_available_for_download().await?;
     Ok(())
 }
 
 async fn get_zk_nym_by_id(mut rpc_client: RpcClient, args: cli::GetZkNymByIdArgs) -> Result<()> {
-    let response = rpc_client.get_zk_nym_by_id(args.id).await?;
-    println!("{response:#?}");
+    rpc_client.get_zk_nym_by_id(args.id).await?;
     Ok(())
 }
 
@@ -367,8 +360,7 @@ async fn confirm_zk_nym_downloaded(
     mut rpc_client: RpcClient,
     args: cli::ConfirmZkNymDownloadedArgs,
 ) -> Result<()> {
-    let response = rpc_client.confirm_zk_nym_downloaded(args.id).await?;
-    println!("{response:#?}");
+    rpc_client.confirm_zk_nym_downloaded(args.id).await?;
     Ok(())
 }
 
@@ -414,7 +406,11 @@ async fn list_countries(
         "Countries for {} ({}): {}",
         gw_type,
         countries.len(),
-        countries.iter().join(", ")
+        countries
+            .iter()
+            .map(|s| s.to_string())
+            .collect::<Vec<String>>()
+            .join(", ")
     );
 
     Ok(())
@@ -422,7 +418,7 @@ async fn list_countries(
 
 fn print_service_info(service_info: VpnServiceInfo) {
     println!("nym-vpnd:");
-    println!("  version:               {}", service_info.version);
+    println!("  version: {}", service_info.version);
     println!(
         "  build_timestamp (utc): {}",
         service_info
@@ -430,13 +426,13 @@ fn print_service_info(service_info: VpnServiceInfo) {
             .map(|s| s.to_string())
             .unwrap_or_default()
     );
-    println!("  triple:                {}", service_info.triple);
-    println!("  platform:              {}", service_info.platform);
-    println!("  git_commit:            {}", service_info.git_commit);
-
-    println!("\nnym_network:");
+    println!("  triple: {}", service_info.triple);
+    println!("  platform: {}", service_info.platform);
+    println!("  git_commit: {}", service_info.git_commit);
+    println!();
+    println!("nym_network:");
     println!(
-        "  network_name:          {}",
+        "  network_name: {}",
         service_info.nym_network.network.network_name
     );
     println!("  chain_details:");
@@ -450,7 +446,7 @@ fn print_service_info(service_info: VpnServiceInfo) {
     );
     println!("    mix_denom:");
     println!(
-        "      base:               {}",
+        "      base: {}",
         service_info
             .nym_network
             .network
@@ -459,7 +455,7 @@ fn print_service_info(service_info: VpnServiceInfo) {
             .base
     );
     println!(
-        "      display:            {}",
+        "      display: {}",
         service_info
             .nym_network
             .network
@@ -468,7 +464,7 @@ fn print_service_info(service_info: VpnServiceInfo) {
             .display
     );
     println!(
-        "      display_exponent:   {}",
+        "      display_exponent: {}",
         service_info
             .nym_network
             .network
@@ -478,7 +474,7 @@ fn print_service_info(service_info: VpnServiceInfo) {
     );
     println!("    stake_denom:");
     println!(
-        "      base:               {}",
+        "      base: {}",
         service_info
             .nym_network
             .network
@@ -487,7 +483,7 @@ fn print_service_info(service_info: VpnServiceInfo) {
             .base
     );
     println!(
-        "      display:            {}",
+        "      display: {}",
         service_info
             .nym_network
             .network
@@ -496,7 +492,7 @@ fn print_service_info(service_info: VpnServiceInfo) {
             .display
     );
     println!(
-        "      display_exponent:   {}",
+        "      display_exponent: {}",
         service_info
             .nym_network
             .network
@@ -507,20 +503,17 @@ fn print_service_info(service_info: VpnServiceInfo) {
 
     println!("  validators:");
     for validator in &service_info.nym_network.network.endpoints {
-        println!("    nyxd_url:              {}", validator.nyxd_url);
+        println!("    nyxd_url: {}", validator.nyxd_url);
+        println!("    api_url: {}", or_not_set(&validator.api_url));
         println!(
-            "    api_url:               {}",
-            or_not_set(&validator.api_url)
-        );
-        println!(
-            "    websocket_url:         {}",
+            "    websocket_url: {}",
             or_not_set(&validator.websocket_url)
         );
     }
 
     println!("  nym_contracts:");
     println!(
-        "    mixnet_contract_address:       {}",
+        "    mixnet_contract_address: {}",
         or_not_set(
             &service_info
                 .nym_network
@@ -530,7 +523,7 @@ fn print_service_info(service_info: VpnServiceInfo) {
         )
     );
     println!(
-        "    vesting_contract_address:      {}",
+        "    vesting_contract_address: {}",
         or_not_set(
             &service_info
                 .nym_network
@@ -540,7 +533,7 @@ fn print_service_info(service_info: VpnServiceInfo) {
         )
     );
     println!(
-        "    ecash_contract_address:        {}",
+        "    ecash_contract_address: {}",
         or_not_set(
             &service_info
                 .nym_network
@@ -550,7 +543,7 @@ fn print_service_info(service_info: VpnServiceInfo) {
         )
     );
     println!(
-        "    group_contract_address:        {}",
+        "    group_contract_address: {}",
         or_not_set(
             &service_info
                 .nym_network
@@ -560,7 +553,7 @@ fn print_service_info(service_info: VpnServiceInfo) {
         )
     );
     println!(
-        "    multisig_contract_address:     {}",
+        "    multisig_contract_address: {}",
         or_not_set(
             &service_info
                 .nym_network
@@ -570,7 +563,7 @@ fn print_service_info(service_info: VpnServiceInfo) {
         )
     );
     println!(
-        "    coconut_dkg_contract_address:  {}",
+        "    coconut_dkg_contract_address: {}",
         or_not_set(
             &service_info
                 .nym_network
@@ -579,8 +572,8 @@ fn print_service_info(service_info: VpnServiceInfo) {
                 .coconut_dkg_contract_address
         )
     );
-
-    println!("\nnym_vpn_network:");
+    println!();
+    println!("nym_vpn_network:");
     println!(
         "  nym_vpn_api_url: {}",
         service_info.nym_vpn_network.nym_vpn_api_url
