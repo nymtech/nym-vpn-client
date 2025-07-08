@@ -114,7 +114,11 @@ async fn main() -> Result<()> {
         return db_command(cmd);
     }
 
-    let sentry_guard = if sentry_enabled { sentry::init() } else { None };
+    let sentry_guard = if sentry_enabled {
+        sentry::init(&os)
+    } else {
+        None
+    };
 
     info!("app version: {}", pkg_info.version);
     info!("Starting tauri app");

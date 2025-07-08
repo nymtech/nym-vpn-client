@@ -1,10 +1,11 @@
 use crate::env::SENTRY_DSN;
+use crate::sys::OsInfo;
 
-use sentry::ClientInitGuard;
+use sentry::{ClientInitGuard, User};
 use std::time::Duration;
 use tracing::{info, warn};
 
-pub fn init() -> Option<ClientInitGuard> {
+pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
     let Some(dsn) = SENTRY_DSN.as_ref() else {
         warn!("failed to init sentry: SENTRY_DSN is not set");
         return None;
@@ -22,5 +23,17 @@ pub fn init() -> Option<ClientInitGuard> {
             ..Default::default()
         },
     ));
+    sentry::configure_scope(|scope| {
+        scope.set_tag("os_version", &os.version);
+        #[cfg(target_os = "linux")]
+        {
+            scope.set_tag("display_server", os.display_server.as_ref());
+            scope.set_tag("gpu", os.gpu.as_ref());
+        }
+        scope.set_user(Some(User {
+            ip_address: None,
+            ..Default::default()
+        }));
+    });
     Some(guard)
 }
