@@ -33,7 +33,7 @@ fn main() -> anyhow::Result<()> {
 fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
     let _sentry_guard = init_sentry();
-    let sentry_enabled = _sentry_guard.is_some_and(|client| client.is_enabled());
+    let sentry_enabled = _sentry_guard.is_some();
 
     let options = logging::Options {
         verbosity_level: args.verbosity_level(),
@@ -54,7 +54,7 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
 fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let args = CliArgs::parse();
     let _sentry_guard = init_sentry();
-    let sentry_enabled = _sentry_guard.is_some_and(|client| client.is_enabled());
+    let sentry_enabled = _sentry_guard.is_some();
     let os = SysInfo::new();
 
     if args.command.install {
