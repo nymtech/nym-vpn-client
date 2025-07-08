@@ -1,5 +1,5 @@
 use anyhow::Result;
-use nym_vpn_proto as p;
+use nym_vpn_proto::proto as p;
 use time::{Duration, OffsetDateTime};
 use tracing::{error, instrument};
 

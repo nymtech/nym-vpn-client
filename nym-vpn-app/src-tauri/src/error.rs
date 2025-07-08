@@ -3,15 +3,11 @@ use std::{
     fmt::{self, Display},
 };
 
-use nym_vpn_proto::connect_request_error::ConnectRequestErrorType;
-use nym_vpn_proto::set_network_request_error::SetNetworkRequestErrorType;
-use nym_vpn_proto::{ConnectRequestError, SetNetworkRequestError};
 use serde::Serialize;
 use thiserror::Error;
 use ts_rs::TS;
 
-use crate::grpc::client::VpndError;
-use crate::grpc::gateway::GatewayType;
+use crate::grpc::{client::VpndError, gateway::GatewayType};
 
 #[derive(Error, Debug, Serialize, TS, Clone)]
 #[ts(export)]
@@ -114,8 +110,6 @@ impl From<VpndError> for BackendError {
 #[serde(rename_all = "kebab-case")]
 #[ts(export)]
 pub enum ErrorKey {
-    /// Generic unhandled error
-    Unknown,
     /// Any error that is not explicitly handled, and not related
     /// to the application layer
     /// Extra data should be passed along to help specialize the problem
@@ -139,26 +133,6 @@ pub enum ErrorKey {
     GetMixnetEntryCountriesQuery,
     GetMixnetExitCountriesQuery,
     GetWgCountriesQuery,
-    // Forwarded from proto `set_network_request_error::SetNetworkRequestErrorType`
-    InvalidNetworkName,
-}
-
-impl From<ConnectRequestErrorType> for ErrorKey {
-    fn from(error: ConnectRequestErrorType) -> Self {
-        match error {
-            // let's keep this 0brain pattern matching for the sake
-            // of reference and safety in case of future changes
-            ConnectRequestErrorType::Internal | ConnectRequestErrorType::Unspecified => {
-                ErrorKey::Internal
-            }
-        }
-    }
-}
-
-impl From<ConnectRequestError> for BackendError {
-    fn from(error: ConnectRequestError) -> Self {
-        BackendError::new(&error.message, ErrorKey::from(error.kind()))
-    }
 }
 
 impl From<GatewayType> for ErrorKey {
@@ -168,23 +142,6 @@ impl From<GatewayType> for ErrorKey {
             GatewayType::MxExit => ErrorKey::GetMixnetExitCountriesQuery,
             GatewayType::Wg => ErrorKey::GetWgCountriesQuery,
         }
-    }
-}
-
-impl From<SetNetworkRequestErrorType> for ErrorKey {
-    fn from(error: SetNetworkRequestErrorType) -> Self {
-        match error {
-            SetNetworkRequestErrorType::Internal => ErrorKey::Internal,
-            SetNetworkRequestErrorType::InvalidNetworkName => ErrorKey::InvalidNetworkName,
-            SetNetworkRequestErrorType::Unspecified => ErrorKey::Unknown,
-        }
-    }
-}
-
-impl From<SetNetworkRequestError> for BackendError {
-    fn from(error: SetNetworkRequestError) -> Self {
-        let message = error.message.clone();
-        BackendError::new(&message, ErrorKey::from(error.kind()))
     }
 }
 

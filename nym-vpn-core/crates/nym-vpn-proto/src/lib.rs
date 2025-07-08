@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 pub mod proto {
+    pub use prost_types::Timestamp;
+
     tonic::include_proto!("nym_vpn_service");
 }
 

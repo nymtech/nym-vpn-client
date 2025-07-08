@@ -1,6 +1,7 @@
-use nym_vpn_proto::entry_node::EntryNodeEnum;
-use nym_vpn_proto::exit_node::ExitNodeEnum;
-use nym_vpn_proto::{EntryNode, ExitNode, Gateway as ProtoGateway, Location};
+use nym_vpn_proto::proto::{
+    EntryNode, ExitNode, Gateway as ProtoGateway, Location, entry_node::EntryNodeEnum,
+    exit_node::ExitNodeEnum,
+};
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use ts_rs::TS;

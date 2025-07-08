@@ -1,5 +1,5 @@
 use anyhow::Result;
-use nym_vpn_proto::InfoResponse;
+use nym_vpn_proto::proto::InfoResponse;
 use semver::{Version, VersionReq};
 use serde::Serialize;
 use tracing::error;

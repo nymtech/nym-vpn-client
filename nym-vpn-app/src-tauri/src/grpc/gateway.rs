@@ -1,6 +1,6 @@
 use crate::country::Country;
 use anyhow::{Result, anyhow};
-use nym_vpn_proto as p;
+use nym_vpn_proto::proto as p;
 use serde::{Deserialize, Serialize};
 use std::fmt;
 use tracing::{error, instrument, warn};
@@ -97,8 +97,6 @@ impl From<p::GatewayType> for GatewayType {
             p::GatewayType::MixnetEntry => GatewayType::MxEntry,
             p::GatewayType::MixnetExit => GatewayType::MxExit,
             p::GatewayType::Wg => GatewayType::Wg,
-            // this should never happen
-            p::GatewayType::Unspecified => panic!("unspecified gateway type"),
         }
     }
 }
