@@ -131,7 +131,7 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(feature_flags.into()))
     }
 
-    async fn vpn_connect(
+    async fn connect_tunnel(
         &self,
         request: tonic::Request<proto::ConnectRequest>,
     ) -> Result<tonic::Response<bool>, tonic::Status> {
@@ -145,7 +145,7 @@ impl NymVpnd for CommandInterface {
         Ok(tonic::Response::new(status))
     }
 
-    async fn vpn_disconnect(
+    async fn disconnect_tunnel(
         &self,
         _request: tonic::Request<()>,
     ) -> Result<tonic::Response<bool>, tonic::Status> {
@@ -153,7 +153,7 @@ impl NymVpnd for CommandInterface {
             .send_and_wait(VpnServiceCommand::Disconnect, ())
             .await?;
 
-        Ok(tonic::Response::new(status.is_ok()))
+        Ok(tonic::Response::new(status))
     }
 
     async fn get_tunnel_state(
