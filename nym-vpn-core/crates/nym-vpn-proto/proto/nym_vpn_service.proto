@@ -517,6 +517,7 @@ message RequestZkNymSuccess {
   string id = 1;
 }
 
+// Mapped from `nym_vpn_lib_types::RequestZkNymErrorReason`
 message RequestZkNymError {
   oneof outcome {
     bool no_account_stored = 1;
