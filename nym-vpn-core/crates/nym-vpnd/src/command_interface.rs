@@ -18,7 +18,7 @@ use tonic::transport::Server;
 use nym_vpn_lib_types::TunnelEvent;
 use nym_vpn_proto::proto::{
     self,
-    nym_vpnd_server::{NymVpnd, NymVpndServer},
+    nym_vpn_service_server::{NymVpnService, NymVpnServiceServer},
 };
 use nym_vpnd_types::{ConnectArgs, ListCountriesOptions, ListGatewaysOptions};
 
@@ -590,7 +590,7 @@ pub async fn start_command_interface(
         let socket_listener_handle = tokio::spawn(async move {
             let command_interface = CommandInterface::new(vpn_command_tx, tunnel_event_rx);
 
-            let server = Server::builder().add_service(NymVpndServer::new(command_interface));
+            let server = Server::builder().add_service(NymVpnServiceServer::new(command_interface));
 
             match server
                 .serve_with_incoming_shutdown(incoming, incoming_shutdown_token.cancelled_owned())
