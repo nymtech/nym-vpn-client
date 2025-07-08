@@ -12,6 +12,7 @@ use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
     ConnectArgs, ForgetAccountResponse, ListCountriesOptions, ListGatewaysOptions,
     StoreAccountRequest, StoreAccountResponse,
+    account_state::AccountStateSummary,
     gateway::{Country, Gateway},
     log_path::LogPath,
     service::VpnServiceInfo,
@@ -239,14 +240,17 @@ impl RpcClient {
         ParsedAccountLinks::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn get_account_state(&mut self) -> Result<()> {
-        // let response = self
-        //     .0
-        //     .get_account_state(())
-        //     .await
-        //     .map_err(Error::Rpc)?
-        //     .into_inner();
-        Ok(()) // todo!
+    pub async fn get_account_state(&mut self) -> Result<AccountStateSummary> {
+        let response = self
+            .0
+            .get_account_state(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        let account_state = response.account.ok_or(Error::MissingAccountState)?;
+
+        AccountStateSummary::try_from(account_state).map_err(Error::InvalidResponse)
     }
 
     pub async fn refresh_account_state(&mut self) -> Result<()> {
@@ -466,6 +470,9 @@ pub enum Error {
 
     #[error("Failed to parse gRPC response")]
     InvalidResponse(#[source] crate::conversions::ConversionError),
+
+    #[error("Missing account state in response")]
+    MissingAccountState,
 }
 
 pub type Result<T, E = Error> = std::result::Result<T, E>;

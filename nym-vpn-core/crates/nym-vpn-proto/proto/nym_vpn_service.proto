@@ -529,11 +529,6 @@ message RequestZkNymError {
   }
 }
 
-message RequestZkNymBundle {
-  repeated RequestZkNymSuccess successes = 1;
-  repeated RequestZkNymError failures = 2;
-}
-
 // --- Requests and responses ---
 
 message StoreAccountRequest {
@@ -566,10 +561,9 @@ message GetAccountStateResponse {
 
     message AccountSummary {
       enum AccountState {
-        ACCOUNT_STATE_NOT_REGISTERED = 0;
-        ACCOUNT_STATE_INACTIVE = 1;
-        ACCOUNT_STATE_ACTIVE = 2;
-        ACCOUNT_STATE_DELETE_ME = 3;
+        ACCOUNT_STATE_INACTIVE = 0;
+        ACCOUNT_STATE_ACTIVE = 1;
+        ACCOUNT_STATE_DELETE_ME = 2;
       }
 
       enum SubscriptionState {
