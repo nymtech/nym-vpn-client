@@ -12,18 +12,15 @@ license.workspace = true
 [dependencies]
 anyhow.workspace = true
 clap = { workspace = true, features = ["derive", "wrap_help"] }
-itertools.workspace = true
 sysinfo.workspace = true
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
 tokio-stream.workspace = true
-tower.workspace = true
 
 nym-bin-common.workspace = true
 nym-gateway-directory = { workspace = true }
 nym-http-api-client.workspace = true
-nym-ipc.workspace = true
 nym-vpn-network-config = { workspace = true }
-nym-vpn-proto = { workspace = true, features = ["conversions"] }
+nym-vpn-proto = { workspace = true, features = ["conversions", "rpc_client"] }
 nym-vpnd-types = { workspace = true }
 nym-vpn-lib-types = { workspace = true }
 

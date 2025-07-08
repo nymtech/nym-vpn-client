@@ -34,7 +34,7 @@ url = { workspace = true, optional = true }
 tonic-build.workspace = true
 
 [features]
-default = ["rpc_client"]
+default = []
 conversions = [
     "dep:nym-config",
     "dep:nym-gateway-directory",
