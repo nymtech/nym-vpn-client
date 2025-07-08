@@ -1,8 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::ffi::OsString;
-
 #[derive(Debug, thiserror::Error)]
 pub enum ConversionError {
     #[error("generic error: {0}")]
@@ -21,7 +19,7 @@ pub enum ConversionError {
     ParseAddr(&'static str, #[source] std::net::AddrParseError),
 
     #[error("failed to encode string as utf8: {}", _0.display())]
-    Utf8Encoding(OsString),
+    Utf8Encoding(std::ffi::OsString),
 }
 
 impl ConversionError {
