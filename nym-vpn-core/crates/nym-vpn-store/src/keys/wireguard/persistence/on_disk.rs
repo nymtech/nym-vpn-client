@@ -71,6 +71,7 @@ impl WireguardKeyStore for OnDiskKeys {
 
 // all SQL goes here
 impl OnDiskKeys {
+    #[allow(unused)]
     pub async fn init<P: AsRef<Path>>(database_path: P) -> Result<Self, OnDiskKeysError> {
         // ensure the whole directory structure exists
         if let Some(parent_dir) = database_path.as_ref().parent() {
