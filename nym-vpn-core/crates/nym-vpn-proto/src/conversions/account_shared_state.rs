@@ -15,7 +15,7 @@ impl From<MnemonicState>
 {
     fn from(mnemonic: MnemonicState) -> Self {
         match mnemonic {
-            MnemonicState::Stored { .. } => Self::Stored,
+            MnemonicState::Stored => Self::Stored,
             MnemonicState::NotStored => Self::NotStored,
         }
     }
@@ -171,7 +171,7 @@ impl From<AccountSummary>
 {
     fn from(account_summary: AccountSummary) -> Self {
         use proto::get_account_state_response::account_state_summary::account_summary::{
-            AccountState, DeviceSummary, FairUsageState,
+            AccountState, DeviceSummary, FairUsageState, SubscriptionState,
         };
         Self {
             account: AccountState::from(account_summary.account) as i32,
@@ -194,11 +194,11 @@ impl TryFrom<proto::get_account_state_response::account_state_summary::AccountSu
         let subscription = SubscriptionState::from(value.subscription());
         let device_summary = value
             .device_summary
-            .ok_or_else(|| ConversionError::NoValueSet("AccountSummary.device_summary"))
+            .ok_or(ConversionError::NoValueSet("AccountSummary.device_summary"))
             .map(DeviceSummary::from)?;
         let fair_usage = value
             .fair_usage
-            .ok_or_else(|| ConversionError::NoValueSet("AccountSummary.fair_usage"))
+            .ok_or(ConversionError::NoValueSet("AccountSummary.fair_usage"))
             .map(FairUsage::from)?;
 
         Ok(Self {
@@ -264,7 +264,7 @@ impl TryFrom<proto::RegisterDeviceResult> for RegisterDeviceResult {
             proto::register_device_result::RegisterDeviceResultType::Failed => {
                 let error = value
                     .error
-                    .ok_or_else(|| ConversionError::NoValueSet("RegisterDeviceResult.error"))?;
+                    .ok_or(ConversionError::NoValueSet("RegisterDeviceResult.error"))?;
                 Ok(RegisterDeviceResult::Failed(error.try_into()?))
             }
         }
@@ -332,7 +332,7 @@ impl TryFrom<proto::RequestZkNymResult> for RequestZkNymResult {
                     .failures
                     .into_iter()
                     .next()
-                    .ok_or_else(|| ConversionError::NoValueSet("RequestZkNymResult.failures"))
+                    .ok_or(ConversionError::NoValueSet("RequestZkNymResult.failures"))
                     .and_then(RequestZkNymErrorReason::try_from)?;
                 Ok(Self::Error(error))
             }
