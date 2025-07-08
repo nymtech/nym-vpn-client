@@ -16,8 +16,8 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_account_controller::{
-    AccountCommandSender, AccountController, AccountControllerConfig, AccountStateSummary,
-    AvailableTicketbooks, SharedAccountState,
+    AccountCommandSender, AccountController, AccountControllerConfig, AvailableTicketbooks,
+    SharedAccountState,
 };
 use nym_vpn_api_client::{
     NetworkCompatibility,
@@ -39,6 +39,7 @@ use nym_vpn_lib_types::{
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
     ConnectArgs, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
+    account_state::AccountStateSummary,
     gateway::{Country, Gateway},
     log_path::LogPath,
     service::VpnServiceInfo,
@@ -913,7 +914,9 @@ where
     }
 
     async fn handle_get_account_state(&self) -> AccountStateSummary {
-        self.shared_account_state.lock().await.clone()
+        let state = self.shared_account_state.lock().await.clone();
+
+        AccountStateSummary::from(state)
     }
 
     async fn handle_refresh_account_state(&self) {

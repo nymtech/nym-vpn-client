@@ -99,12 +99,6 @@ impl TryFrom<proto::RegisterDeviceError> for RegisterDeviceError {
     }
 }
 
-impl From<proto::RequestZkNymSuccess> for RequestZkNymSuccess {
-    fn from(value: proto::RequestZkNymSuccess) -> Self {
-        Self { id: value.id }
-    }
-}
-
 impl TryFrom<proto::RequestZkNymError> for RequestZkNymErrorReason {
     type Error = ConversionError;
 
@@ -235,6 +229,12 @@ impl From<RequestZkNymSuccess> for proto::RequestZkNymSuccess {
     }
 }
 
+impl From<proto::RequestZkNymSuccess> for RequestZkNymSuccess {
+    fn from(value: proto::RequestZkNymSuccess) -> Self {
+        Self { id: value.id }
+    }
+}
+
 impl From<RequestZkNymErrorReason> for proto::RequestZkNymError {
     fn from(error: RequestZkNymErrorReason) -> Self {
         let outcome = match error {
@@ -266,7 +266,14 @@ impl From<RequestZkNymErrorReason> for proto::RequestZkNymError {
 
 impl From<RequestZkNymError> for proto::RequestZkNymError {
     fn from(error: RequestZkNymError) -> Self {
-        RequestZkNymErrorReason::from(error).into()
+        // RequestZkNymErrorReason::from(error).into()
+        todo!()
+    }
+}
+
+impl From<proto::RequestZkNymError> for RequestZkNymError {
+    fn from(error: proto::RequestZkNymError) -> Self {
+        todo!()
     }
 }
 
