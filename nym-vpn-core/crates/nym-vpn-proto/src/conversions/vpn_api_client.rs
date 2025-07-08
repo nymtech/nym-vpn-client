@@ -20,6 +20,21 @@ impl From<NymVpnUsage> for proto::get_account_usage_response::AccountUsage {
     }
 }
 
+impl From<proto::get_account_usage_response::AccountUsage> for NymVpnUsage {
+    fn from(usage: proto::get_account_usage_response::AccountUsage) -> Self {
+        Self {
+            created_on_utc: usage.created_on_utc,
+            last_updated_utc: usage.last_updated_utc,
+            id: usage.id,
+            subscription_id: usage.subscription_id,
+            valid_until_utc: usage.valid_until_utc,
+            valid_from_utc: usage.valid_from_utc,
+            bandwidth_allowance_gb: usage.bandwidth_allowance_gb,
+            bandwidth_used_gb: usage.bandwidth_used_gb,
+        }
+    }
+}
+
 impl From<Vec<NymVpnUsage>> for proto::get_account_usage_response::AccountUsages {
     fn from(usage: Vec<NymVpnUsage>) -> Self {
         Self {
@@ -28,6 +43,16 @@ impl From<Vec<NymVpnUsage>> for proto::get_account_usage_response::AccountUsages
                 .map(proto::get_account_usage_response::AccountUsage::from)
                 .collect(),
         }
+    }
+}
+
+impl From<proto::get_account_usage_response::AccountUsages> for Vec<NymVpnUsage> {
+    fn from(usage: proto::get_account_usage_response::AccountUsages) -> Self {
+        usage
+            .account_usages
+            .into_iter()
+            .map(NymVpnUsage::from)
+            .collect()
     }
 }
 

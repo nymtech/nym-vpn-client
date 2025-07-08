@@ -14,10 +14,3 @@ pub struct VpnServiceInfo {
     pub nym_network: NymNetwork,
     pub nym_vpn_network: NymVpnNetwork,
 }
-
-// Failure to initiate the disconnect
-#[derive(Clone, Debug, thiserror::Error)]
-pub enum VpnServiceDisconnectError {
-    #[error("internal error: {0}")]
-    Internal(String),
-}

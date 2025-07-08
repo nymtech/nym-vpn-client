@@ -3,7 +3,10 @@
 
 use std::path::PathBuf;
 
-use nym_vpn_api_client::{NetworkCompatibility, response::NymVpnDevice};
+use nym_vpn_api_client::{
+    NetworkCompatibility,
+    response::{NymVpnDevice, NymVpnUsage},
+};
 use nym_vpn_lib_types::{AvailableTickets, TunnelEvent, TunnelState};
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
@@ -86,12 +89,11 @@ impl RpcClient {
     }
 
     pub async fn connect_tunnel(&mut self, request: ConnectArgs) -> Result<bool> {
-        let connect_req =
-            proto::ConnectRequest::try_from(request).map_err(Error::InvalidRequest)?;
+        let request = proto::ConnectRequest::try_from(request).map_err(Error::InvalidRequest)?;
 
         let is_accepted = self
             .0
-            .vpn_connect(connect_req)
+            .connect_tunnel(request)
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)?;
@@ -101,7 +103,7 @@ impl RpcClient {
 
     pub async fn disconnect_tunnel(&mut self) -> Result<bool> {
         self.0
-            .vpn_disconnect(())
+            .disconnect_tunnel(())
             .await
             .map(|v| v.into_inner())
             .map_err(Error::Rpc)
@@ -256,7 +258,7 @@ impl RpcClient {
             .into_inner())
     }
 
-    pub async fn get_account_usage(&mut self) -> Result<()> {
+    pub async fn get_account_usage(&mut self) -> Result<Vec<NymVpnUsage>> {
         let response = self
             .0
             .get_account_usage(())
@@ -264,7 +266,12 @@ impl RpcClient {
             .map_err(Error::Rpc)?
             .into_inner();
 
-        Ok(()) // todo!
+        let usages = response
+            .account_usages
+            .map(|account_usages| Vec::from(account_usages))
+            .unwrap_or_default();
+
+        Ok(usages)
     }
 
     pub async fn reset_device_identity(&mut self, seed: Option<Vec<u8>>) -> Result<()> {

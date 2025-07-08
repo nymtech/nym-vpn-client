@@ -41,7 +41,7 @@ use nym_vpnd_types::{
     ConnectArgs, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
     gateway::{Country, Gateway},
     log_path::LogPath,
-    service::{VpnServiceDisconnectError, VpnServiceInfo},
+    service::VpnServiceInfo,
 };
 use std::time::Duration;
 
@@ -76,7 +76,7 @@ pub enum VpnServiceCommand {
         ListCountriesOptions,
     ),
     Connect(oneshot::Sender<bool>, ConnectArgs),
-    Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
+    Disconnect(oneshot::Sender<bool>, ()),
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
     SubscribeToTunnelState(oneshot::Sender<watch::Receiver<TunnelState>>, ()),
     StoreAccount(
@@ -741,13 +741,8 @@ where
         }
     }
 
-    async fn handle_disconnect(&mut self) -> Result<(), VpnServiceDisconnectError> {
-        self.command_sender
-            .send(TunnelCommand::Disconnect)
-            .map_err(|e| {
-                tracing::error!("Failed to send command to disconnect: {}", e);
-                VpnServiceDisconnectError::Internal("failed to send disconnect command".to_owned())
-            })
+    async fn handle_disconnect(&mut self) -> bool {
+        self.command_sender.send(TunnelCommand::Disconnect).is_ok()
     }
 
     fn handle_get_tunnel_state(&self) -> TunnelState {

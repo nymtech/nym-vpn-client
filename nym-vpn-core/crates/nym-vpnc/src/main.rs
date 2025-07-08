@@ -217,7 +217,7 @@ async fn status(mut rpc_client: RpcClient, listen: bool) -> Result<()> {
 
 async fn info(mut rpc_client: RpcClient) -> Result<()> {
     let service_info = rpc_client.get_info().await?;
-    println!("{service_info:?}");
+    print_service_info(service_info);
     Ok(())
 }
 

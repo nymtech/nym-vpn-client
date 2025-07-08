@@ -748,11 +748,11 @@ service NymVpnd {
   // List the feature flags fetched from the nym-vpn-api
   rpc GetFeatureFlags (google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
 
-  // Start the tunnel and connect
-  rpc VpnConnect (ConnectRequest) returns (google.protobuf.BoolValue) {}
+  // Connect the tunnel
+  rpc ConnectTunnel (ConnectRequest) returns (google.protobuf.BoolValue) {}
 
-  // Disconnect and stop the tunnel
-  rpc VpnDisconnect (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+  // Disconnect the tunnel
+  rpc DisconnectTunnel (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Get the current tunnel state
   rpc GetTunnelState (google.protobuf.Empty) returns (TunnelState) {}
