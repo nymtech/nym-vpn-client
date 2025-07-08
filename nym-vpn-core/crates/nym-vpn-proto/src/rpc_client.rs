@@ -46,12 +46,12 @@ impl RpcClient {
     }
 
     pub async fn set_network(&mut self, network: String) -> Result<()> {
-        Ok(self
-            .0
+        self.0
             .set_network(network)
             .await
             .map_err(Error::Rpc)?
-            .into_inner())
+            .into_inner();
+        Ok(())
     }
 
     pub async fn get_system_messages(&mut self) -> Result<SystemMessages> {
@@ -164,10 +164,10 @@ impl RpcClient {
             .map(|v| v.into_inner().gateways)
             .map_err(Error::Rpc)?;
 
-        Ok(gateways
+        gateways
             .into_iter()
             .map(|gateway| Gateway::try_from(gateway).map_err(Error::InvalidResponse))
-            .collect::<Result<Vec<_>>>()?)
+            .collect::<Result<Vec<_>>>()
     }
 
     pub async fn list_countries(&mut self, options: ListCountriesOptions) -> Result<Vec<Country>> {
@@ -227,9 +227,7 @@ impl RpcClient {
     }
 
     pub async fn get_account_links(&mut self, locale: String) -> Result<ParsedAccountLinks> {
-        let request = proto::GetAccountLinksRequest {
-            locale: locale.into(),
-        };
+        let request = proto::GetAccountLinksRequest { locale };
         let response = self
             .0
             .get_account_links(request)
@@ -254,12 +252,12 @@ impl RpcClient {
     }
 
     pub async fn refresh_account_state(&mut self) -> Result<()> {
-        Ok(self
-            .0
+        self.0
             .refresh_account_state(())
             .await
             .map_err(Error::Rpc)?
-            .into_inner())
+            .into_inner();
+        Ok(())
     }
 
     pub async fn get_account_usage(&mut self) -> Result<Vec<NymVpnUsage>> {
@@ -270,12 +268,7 @@ impl RpcClient {
             .map_err(Error::Rpc)?
             .into_inner();
 
-        let usages = response
-            .account_usages
-            .map(|account_usages| Vec::from(account_usages))
-            .unwrap_or_default();
-
-        Ok(usages)
+        Ok(response.account_usages.map(Vec::from).unwrap_or_default())
     }
 
     pub async fn reset_device_identity(&mut self, seed: Option<Vec<u8>>) -> Result<()> {
@@ -348,41 +341,41 @@ impl RpcClient {
     }
 
     pub async fn request_zk_nym(&mut self) -> Result<()> {
-        Ok(self
-            .0
+        self.0
             .request_zk_nym(())
             .await
             .map_err(Error::Rpc)?
-            .into_inner())
+            .into_inner();
+        Ok(())
     }
 
     pub async fn get_device_zk_nyms(&mut self) -> Result<()> {
-        Ok(self
-            .0
+        self.0
             .get_device_zk_nyms(())
             .await
             .map_err(Error::Rpc)?
-            .into_inner())
+            .into_inner();
+        Ok(())
     }
 
     pub async fn get_zk_nym_by_id(&mut self, id: String) -> Result<()> {
         let request = proto::GetZkNymByIdRequest { id };
-        Ok(self
-            .0
+        self.0
             .get_zk_nym_by_id(request)
             .await
             .map_err(Error::Rpc)?
-            .into_inner())
+            .into_inner();
+        Ok(())
     }
 
     pub async fn confirm_zk_nym_downloaded(&mut self, id: String) -> Result<()> {
         let request = proto::ConfirmZkNymDownloadedRequest { id };
-        Ok(self
-            .0
+        self.0
             .confirm_zk_nym_downloaded(request)
             .await
             .map_err(Error::Rpc)?
-            .into_inner())
+            .into_inner();
+        Ok(())
     }
 
     pub async fn get_available_tickets(&mut self) -> Result<AvailableTickets> {
@@ -397,12 +390,12 @@ impl RpcClient {
     }
 
     pub async fn get_zk_nyms_available_for_download(&mut self) -> Result<()> {
-        Ok(self
-            .0
+        self.0
             .get_zk_nyms_available_for_download(())
             .await
             .map_err(Error::Rpc)?
-            .into_inner())
+            .into_inner();
+        Ok(())
     }
 
     pub async fn get_log_path(&mut self) -> Result<LogPath> {

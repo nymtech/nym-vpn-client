@@ -381,7 +381,7 @@ impl TryFrom<ConnectArgs> for proto::ConnectRequest {
             disable_poisson_rate: value.options.disable_poisson_rate,
             disable_background_cover_traffic: value.options.disable_background_cover_traffic,
             enable_credentials_mode: value.options.enable_credentials_mode,
-            user_agent: value.options.user_agent.map(|s| proto::UserAgent::from(s)),
+            user_agent: value.options.user_agent.map(proto::UserAgent::from),
             entry,
             exit,
         })

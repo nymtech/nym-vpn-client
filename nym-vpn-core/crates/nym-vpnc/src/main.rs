@@ -9,7 +9,6 @@ use cli::Internal;
 use nym_gateway_directory::GatewayType;
 use nym_http_api_client::UserAgent;
 use nym_vpn_lib_types::TunnelState;
-use nym_vpn_network_config::ParsedAccountLinks;
 use nym_vpn_proto::rpc_client::RpcClient;
 use nym_vpnd_types::{
     ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
@@ -205,7 +204,7 @@ async fn status(mut rpc_client: RpcClient, listen: bool) -> Result<()> {
             println!("{new_state}");
         }
     } else {
-        let new_state = TunnelState::try_from(rpc_client.get_tunnel_state().await?)?;
+        let new_state = rpc_client.get_tunnel_state().await?;
         println!("{new_state}");
     }
 
@@ -291,8 +290,7 @@ async fn get_account_links(
     mut rpc_client: RpcClient,
     args: cli::GetAccountLinksArgs,
 ) -> Result<()> {
-    let response = rpc_client.get_account_links(args.locale).await?;
-    let links = ParsedAccountLinks::try_from(response)?;
+    let links = rpc_client.get_account_links(args.locale).await?;
     println!("{links}");
 
     Ok(())
