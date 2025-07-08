@@ -21,26 +21,22 @@ use tokio_stream::StreamExt;
 
 use crate::cli::Command;
 
-#[derive(Clone, Debug)]
-struct CliOptions {
-    verbose: bool,
-    user_agent: Option<UserAgent>,
-}
-
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = cli::CliArgs::parse();
-    let opts = CliOptions {
-        verbose: args.verbose,
-        user_agent: args.user_agent,
-    };
-
-    let rpc_client = RpcClient::new()
+    let mut rpc_client = RpcClient::new()
         .await
         .context("Failed to create RPC client")?;
 
+    let user_agent = if let Some(user_agent) = args.user_agent {
+        user_agent
+    } else {
+        let daemon_info = rpc_client.get_info().await?;
+        construct_user_agent(daemon_info)
+    };
+
     match args.command {
-        Command::Connect(connect_args) => connect(rpc_client, connect_args).await?,
+        Command::Connect(connect_args) => connect(rpc_client, connect_args, user_agent).await?,
         Command::Disconnect { wait } => disconnect(rpc_client, wait).await?,
         Command::Status { listen } => status(rpc_client, listen).await?,
         Command::Info => info(rpc_client).await?,
@@ -51,12 +47,22 @@ async fn main() -> Result<()> {
         Command::GetAccountId => get_account_id(rpc_client).await?,
         Command::GetAccountLinks(args) => get_account_links(rpc_client, args).await?,
         Command::GetAccountState => get_account_state(rpc_client).await?,
-        Command::ListEntryGateways => list_gateways(rpc_client, GatewayType::MixnetEntry).await?,
-        Command::ListExitGateways => list_gateways(rpc_client, GatewayType::MixnetExit).await?,
-        Command::ListVpnGateways => list_gateways(rpc_client, GatewayType::Wg).await?,
-        Command::ListEntryCountries => list_countries(rpc_client, GatewayType::MixnetEntry).await?,
-        Command::ListExitCountries => list_countries(rpc_client, GatewayType::MixnetExit).await?,
-        Command::ListVpnCountries => list_countries(rpc_client, GatewayType::Wg).await?,
+        Command::ListEntryGateways => {
+            list_gateways(rpc_client, GatewayType::MixnetEntry, user_agent).await?
+        }
+        Command::ListExitGateways => {
+            list_gateways(rpc_client, GatewayType::MixnetExit, user_agent).await?
+        }
+        Command::ListVpnGateways => list_gateways(rpc_client, GatewayType::Wg, user_agent).await?,
+        Command::ListEntryCountries => {
+            list_countries(rpc_client, GatewayType::MixnetEntry, user_agent).await?
+        }
+        Command::ListExitCountries => {
+            list_countries(rpc_client, GatewayType::MixnetExit, user_agent).await?
+        }
+        Command::ListVpnCountries => {
+            list_countries(rpc_client, GatewayType::Wg, user_agent).await?
+        }
         Command::GetDeviceId => get_device_id(rpc_client).await?,
         Command::Internal(internal) => match internal {
             Internal::GetSystemMessages => get_system_messages(rpc_client).await?,
@@ -82,13 +88,6 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-fn setup_user_agent(opts: &CliOptions, daemon_info: VpnServiceInfo) -> UserAgent {
-    opts.user_agent
-        .clone()
-        .map(UserAgent::from)
-        .unwrap_or_else(|| construct_user_agent(daemon_info))
-}
-
 fn construct_user_agent(daemon_info: VpnServiceInfo) -> UserAgent {
     let bin_info = nym_bin_common::bin_info_local_vergen!();
     let version = format!("{} ({})", bin_info.build_version, daemon_info.version);
@@ -108,15 +107,14 @@ fn construct_user_agent(daemon_info: VpnServiceInfo) -> UserAgent {
     }
 }
 
-async fn connect(mut rpc_client: RpcClient, connect_args: cli::ConnectArgs) -> Result<()> {
-    let entry = cli::parse_entry_point(&connect_args)?;
-    let exit = cli::parse_exit_point(&connect_args)?;
-
-    let user_agent = None; // todo!
-
+async fn connect(
+    mut rpc_client: RpcClient,
+    connect_args: cli::ConnectArgs,
+    user_agent: UserAgent,
+) -> Result<()> {
     let options = ConnectArgs {
-        entry,
-        exit,
+        entry: connect_args.entry_point()?,
+        exit: connect_args.exit_point()?,
         options: ConnectOptions {
             dns: connect_args.dns,
             enable_two_hop: connect_args.enable_two_hop,
@@ -127,7 +125,7 @@ async fn connect(mut rpc_client: RpcClient, connect_args: cli::ConnectArgs) -> R
             min_gateway_mixnet_performance: None,
             min_mixnode_performance: None,
             min_gateway_vpn_performance: None,
-            user_agent,
+            user_agent: Some(user_agent),
         },
     };
 
@@ -380,13 +378,15 @@ async fn get_available_tickets(mut rpc_client: RpcClient) -> Result<()> {
     Ok(())
 }
 
-async fn list_gateways(mut rpc_client: RpcClient, gw_type: GatewayType) -> Result<()> {
-    let user_agent = None; // todo!
-
+async fn list_gateways(
+    mut rpc_client: RpcClient,
+    gw_type: GatewayType,
+    user_agent: UserAgent,
+) -> Result<()> {
     let gateways = rpc_client
         .list_gateways(ListGatewaysOptions {
             gw_type,
-            user_agent,
+            user_agent: Some(user_agent),
         })
         .await?;
 
@@ -398,13 +398,15 @@ async fn list_gateways(mut rpc_client: RpcClient, gw_type: GatewayType) -> Resul
     Ok(())
 }
 
-async fn list_countries(mut rpc_client: RpcClient, gw_type: GatewayType) -> Result<()> {
-    let user_agent = None; // todo!
-
+async fn list_countries(
+    mut rpc_client: RpcClient,
+    gw_type: GatewayType,
+    user_agent: UserAgent,
+) -> Result<()> {
     let countries = rpc_client
         .list_countries(ListCountriesOptions {
             gw_type,
-            user_agent,
+            user_agent: Some(user_agent),
         })
         .await?;
 
