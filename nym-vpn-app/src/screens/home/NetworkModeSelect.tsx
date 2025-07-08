@@ -35,8 +35,6 @@ function NetworkModeSelect() {
         } else {
           fetch('wg');
         }
-      } catch (e) {
-        console.warn(e);
       } finally {
         setLoading(false);
       }

@@ -41,9 +41,7 @@ function Display() {
           hexColor: theme === 'dark' ? ColorMainBgDark : ColorMainBgLight,
         });
         console.log('updated webview window background color');
-      } catch (e) {
-        console.error('failed to set the webview window background color', e);
-      }
+      } catch {}
     }
   };
 

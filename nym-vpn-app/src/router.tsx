@@ -1,6 +1,5 @@
 import { lazy } from 'react';
 import { createBrowserRouter } from 'react-router';
-import * as Sentry from '@sentry/react';
 import {
   Appearance,
   AppearanceRouteIndex,
@@ -45,12 +44,9 @@ export const routes = {
   welcome: '/hideout/welcome',
 } as const;
 
-// Even if Sentry is not instantiated, wrapping the router seems OK
-const createRouterFn = Sentry.wrapCreateBrowserRouterV7(createBrowserRouter);
-
 // ⚠ router instance creation must remain outside of React
 // tree with routes statically defined
-const router = createRouterFn([
+const router = createBrowserRouter([
   {
     path: routes.root,
     element: <MainLayout />,

@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router';
 import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useAutostart, useDesktopNotifications } from '../../hooks';
-import { kvSet } from '../../kvStore';
 import { routes } from '../../router';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
@@ -38,9 +37,7 @@ function Settings() {
       try {
         const stored = await invoke<boolean | undefined>('is_account_stored');
         dispatch({ type: 'set-account', stored: stored || false });
-      } catch (e) {
-        console.warn('error checking stored account:', e);
-      }
+      } catch {}
     };
 
     if (daemonStatus !== 'down') {
@@ -69,11 +66,17 @@ function Settings() {
     });
   };
 
-  const handleMonitoringChanged = () => {
+  const handleMonitoringChanged = async () => {
     const isChecked = !monitoring;
     showMonitoringAlert();
     dispatch({ type: 'set-monitoring', monitoring: isChecked });
-    kvSet('monitoring', isChecked);
+    try {
+      if (isChecked) {
+        await invoke('enable_sentry');
+      } else {
+        await invoke('disable_sentry');
+      }
+    } catch {}
   };
 
   return (

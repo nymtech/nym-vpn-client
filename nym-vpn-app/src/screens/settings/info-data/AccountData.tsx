@@ -27,8 +27,7 @@ function AccountData() {
       const id = await invoke<string | null>('get_account_id');
       setAccountId(id);
       CCache.set('cache-account-id', id, IdsTimeToLive);
-    } catch (e) {
-      console.warn('failed to get account id', e);
+    } catch {
       setAccountId(null);
     }
   };
@@ -43,8 +42,7 @@ function AccountData() {
       const id = await invoke<string | null>('get_device_id');
       setDeviceId(id);
       await CCache.set('cache-device-id', id, IdsTimeToLive);
-    } catch (e) {
-      console.warn('failed to get device id', e);
+    } catch {
       setDeviceId(null);
     }
   };

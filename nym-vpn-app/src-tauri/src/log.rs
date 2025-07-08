@@ -83,8 +83,8 @@ pub async fn setup_tracing(cli: &Cli, sentry_enabled: bool) -> Result<Option<Wor
     if sentry_enabled {
         let layer = sentry_tracing::layer().event_filter(|md| match md.level() {
             &Level::ERROR | &Level::WARN => sentry_tracing::EventFilter::Event,
-            &Level::TRACE => sentry_tracing::EventFilter::Ignore,
-            _ => sentry_tracing::EventFilter::Breadcrumb,
+            &Level::INFO => sentry_tracing::EventFilter::Breadcrumb,
+            _ => sentry_tracing::EventFilter::Ignore,
         });
         layers.push(layer.boxed());
     }

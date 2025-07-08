@@ -39,7 +39,7 @@ pub async fn set_background_color(
         BackendError::internal("failed to parse color", None)
     })?;
     webview.set_background_color(Some(color)).map_err(|e| {
-        error!("failed to get `main` window visibility: {}", e);
+        error!("failed to set webview background color: {}", e);
         BackendError::internal("failed to set webview background color", None)
     })?;
     Ok(())

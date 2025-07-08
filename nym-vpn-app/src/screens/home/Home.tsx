@@ -53,7 +53,6 @@ function Home() {
           console.log(result);
         })
         .catch((e: unknown) => {
-          console.warn('backend error:', e);
           dispatch({ type: 'set-error', error: e as BackendError });
         });
     } else if (state === 'Disconnected') {
@@ -65,7 +64,6 @@ function Home() {
           console.log(result);
         })
         .catch((e: unknown) => {
-          console.warn('backend error:', e);
           dispatch({ type: 'set-error', error: e as BackendError });
         });
     }

@@ -7,7 +7,6 @@ type routerErrorType = {
 
 export default function Error() {
   const error = useRouteError() as routerErrorType;
-  console.error(error);
 
   return (
     <div id="error-page">

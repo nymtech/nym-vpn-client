@@ -29,7 +29,6 @@ function NetworkEnvSelect({ current }: Props) {
       await invoke<void>('set_network', { network });
     } catch (e: unknown) {
       const error = e as BackendError;
-      console.warn('failed to set network', error);
       setError(`Failed to set network: ${error.key} - ${error.message}`);
     }
   };
