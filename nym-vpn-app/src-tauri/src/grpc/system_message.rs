@@ -10,8 +10,8 @@ pub struct SystemMessage {
     pub properties: HashMap<String, String>,
 }
 
-impl From<&nym_vpn_proto::SystemMessage> for SystemMessage {
-    fn from(msg: &nym_vpn_proto::SystemMessage) -> Self {
+impl From<&nym_vpn_proto::proto::SystemMessage> for SystemMessage {
+    fn from(msg: &nym_vpn_proto::proto::SystemMessage) -> Self {
         SystemMessage {
             name: msg.name.clone(),
             message: msg.message.clone(),

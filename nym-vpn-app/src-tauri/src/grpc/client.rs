@@ -1,33 +1,40 @@
-use std::env::consts::{ARCH, OS};
-use std::path::PathBuf;
+use std::{
+    env::consts::{ARCH, OS},
+    path::PathBuf,
+};
 
 use anyhow::{Result, anyhow};
-use nym_vpn_proto::{
-    ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest, Location, SetNetworkRequest,
+use nym_vpn_proto::proto::{
+    ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest, Location,
     StoreAccountRequest, UserAgent, nym_vpnd_client::NymVpndClient, tunnel_event::Event,
 };
 use tauri::{AppHandle, Manager, PackageInfo};
 use tokio::sync::mpsc;
-use tonic::transport::Endpoint as TonicEndpoint;
-use tonic::{Request, transport::Channel};
+use tonic::{
+    Request,
+    transport::{Channel, Endpoint as TonicEndpoint},
+};
 use tracing::{debug, error, info, instrument, trace, warn};
 
-pub use super::account_links::AccountLinks;
-pub use super::error::VpndError;
-use super::events::MixnetEvent;
-pub use super::feature_flags::FeatureFlags;
-use super::gateway::{Gateway, GatewayType};
-pub use super::node::NodeConnect;
-pub use super::system_message::SystemMessage;
-use super::tunnel::TunnelState;
-pub use super::vpnd_status::{VersionCheck, VpndInfo, VpndStatus};
+pub use super::{
+    account_links::AccountLinks,
+    error::VpndError,
+    feature_flags::FeatureFlags,
+    node::NodeConnect,
+    system_message::SystemMessage,
+    vpnd_status::{VersionCheck, VpndInfo, VpndStatus},
+};
+use super::{
+    events::MixnetEvent,
+    gateway::{Gateway, GatewayType},
+    tunnel::TunnelState,
+};
 pub use crate::grpc::network::NetworkCompatVersions;
 
-use crate::cli::Cli;
-use crate::country::Country;
-use crate::error::BackendError;
-use crate::fs::config::AppConfig;
-use crate::{events::AppHandleEventEmitter, state::SharedAppState};
+use crate::{
+    cli::Cli, country::Country, error::BackendError, events::AppHandleEventEmitter,
+    fs::config::AppConfig, state::SharedAppState,
+};
 
 #[cfg(target_os = "linux")]
 const DEFAULT_SOCKET_PATH: &str = "/run/nym-vpn.sock";
@@ -134,7 +141,7 @@ impl GrpcClient {
             .into_inner();
 
         debug!("vpnd log path: {:?}", response);
-        Ok(response.path)
+        Ok(response.dir)
     }
 
     /// Get the current tunnel state and update the app state
@@ -222,7 +229,7 @@ impl GrpcClient {
     #[instrument(skip_all)]
     async fn handle_tunnel_update(
         app: &AppHandle,
-        tun_state: nym_vpn_proto::TunnelState,
+        tun_state: nym_vpn_proto::proto::TunnelState,
     ) -> Result<()> {
         if let Some(s) = tun_state.state {
             let tunnel = TunnelState::from_proto(s).map_err(|e| {
@@ -268,7 +275,7 @@ impl GrpcClient {
             user_agent: Some(self.user_agent.clone()),
         });
         let response = vpnd
-            .vpn_connect(request)
+            .connect_tunnel(request)
             .await
             .map_err(|e| {
                 error!("grpc: {}", e);
@@ -276,19 +283,7 @@ impl GrpcClient {
             })?
             .into_inner();
         debug!("grpc response: {:?}", response);
-        if response.success {
-            return Ok(());
-        }
-        Err(VpndError::Response(
-            response
-                .error
-                .inspect(|e| error!("vpn connect error: {:?}", e))
-                .map(BackendError::from)
-                .ok_or_else(|| {
-                    error!("connect bad response: no ConnectRequestError");
-                    VpndError::internal("connect bad response: no ConnectRequestError")
-                })?,
-        ))
+        Ok(())
     }
 
     /// Disconnect from the VPN
@@ -297,13 +292,13 @@ impl GrpcClient {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(());
-        let response = vpnd.vpn_disconnect(request).await.map_err(|e| {
+        let response = vpnd.disconnect_tunnel(request).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;
         debug!("grpc response: {:?}", response);
 
-        Ok(response.into_inner().success)
+        Ok(response.into_inner())
     }
 
     /// Store an account
@@ -311,7 +306,7 @@ impl GrpcClient {
     pub async fn store_account(&self, mnemonic: String) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(StoreAccountRequest { mnemonic, nonce: 0 });
+        let request = Request::new(StoreAccountRequest { mnemonic });
         let response = vpnd.store_account(request).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
@@ -353,9 +348,9 @@ impl GrpcClient {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;
-        let response = response.into_inner();
-        debug!("grpc response: {:?}", response);
-        Ok(response.is_stored)
+        let is_stored = response.into_inner();
+        debug!("grpc response: {:?}", is_stored);
+        Ok(is_stored)
     }
 
     /// Get the account identity \
@@ -419,7 +414,7 @@ impl GrpcClient {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(ListGatewaysRequest {
-            kind: nym_vpn_proto::GatewayType::from(gw_type) as i32,
+            kind: nym_vpn_proto::proto::GatewayType::from(gw_type) as i32,
             user_agent: Some(self.user_agent.clone()),
         });
         let response = vpnd.list_gateways(request).await.map_err(|e| {
@@ -469,22 +464,11 @@ impl GrpcClient {
     pub async fn set_network(&self, network: &str) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(SetNetworkRequest {
-            network: network.to_owned(),
-        });
-        let response = vpnd
-            .set_network(request)
-            .await
-            .map_err(|e| {
-                error!("grpc: {}", e);
-                VpndError::GrpcError(e)
-            })?
-            .into_inner();
-        debug!("grpc response: {:?}", response);
-        if let Some(e) = response.error {
-            error!("set network env error: {:?}", e);
-            return Err(VpndError::Response(e.into()));
-        }
+        vpnd.set_network(network.to_owned()).await.map_err(|e| {
+            error!("grpc: {}", e);
+            VpndError::GrpcError(e)
+        })?;
+
         Ok(())
     }
 
@@ -531,7 +515,7 @@ impl GrpcClient {
         debug!("grpc response: {:?}", response);
         response
             .into_inner()
-            .messages
+            .network_compatibility
             .map(NetworkCompatVersions::from)
             .ok_or_else(|| {
                 error!("no network compatibility data");
