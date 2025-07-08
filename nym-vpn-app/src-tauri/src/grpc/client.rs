@@ -6,7 +6,8 @@ use std::{
 use anyhow::{Result, anyhow};
 use nym_vpn_proto::proto::{
     ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest, Location,
-    StoreAccountRequest, UserAgent, nym_vpnd_client::NymVpndClient, tunnel_event::Event,
+    StoreAccountRequest, UserAgent, nym_vpn_service_client::NymVpnServiceClient,
+    tunnel_event::Event,
 };
 use tauri::{AppHandle, Manager, PackageInfo};
 use tokio::sync::mpsc;
@@ -91,12 +92,12 @@ impl GrpcClient {
 
     /// Get the Vpnd service client
     #[instrument(skip_all)]
-    pub async fn vpnd(&self) -> Result<NymVpndClient<Channel>, VpndError> {
+    pub async fn vpnd(&self) -> Result<NymVpnServiceClient<Channel>, VpndError> {
         let channel = get_channel(self.socket.clone()).await.map_err(|e| {
             warn!("failed to connect to the daemon: {}", e);
             VpndError::FailedToConnectIpc(e)
         })?;
-        Ok(NymVpndClient::new(channel))
+        Ok(NymVpnServiceClient::new(channel))
     }
 
     /// Get daemon info

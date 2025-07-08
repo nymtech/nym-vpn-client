@@ -61,7 +61,7 @@ impl CommandInterface {
 }
 
 #[tonic::async_trait]
-impl NymVpnd for CommandInterface {
+impl NymVpnService for CommandInterface {
     async fn info(
         &self,
         _request: tonic::Request<()>,

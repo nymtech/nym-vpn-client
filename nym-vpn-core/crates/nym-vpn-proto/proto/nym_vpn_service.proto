@@ -726,7 +726,7 @@ message DeleteLogFileResponse {
   DeleteLogFileError error = 2;
 }
 
-service NymVpnd {
+service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
 
