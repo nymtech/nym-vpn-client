@@ -27263,6 +27263,17 @@
         }
       }
     },
+    "tryAgain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
+          }
+        }
+      }
+    },
     "tunnel" : {
       "extractionState" : "manual",
       "localizations" : {

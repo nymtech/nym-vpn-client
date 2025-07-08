@@ -25,8 +25,8 @@ public final class PurchasesManager: ObservableObject {
         }
     }
 
-    public func purchase(with product: Product, token: String?) async throws -> Bool {
-        guard let token, let newToken = UUID(uuidString: token) else { return false }
+    public func purchase(with product: Product, token: String) async throws -> Bool {
+        guard let newToken = UUID(uuidString: token) else { return false }
         let result = try await product.purchase(options: [.appAccountToken(newToken)])
 
         switch result {

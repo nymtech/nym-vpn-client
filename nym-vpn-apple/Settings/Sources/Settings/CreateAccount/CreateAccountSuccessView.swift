@@ -29,30 +29,7 @@ public struct CreateAccountSuccessView: View {
 
             VStack(spacing: 0) {
                 HStack {
-                    VStack(alignment: .leading, spacing: 0) {
-                        StepView(stepCount: 3, currentStep: 2)
-                        Spacer()
-                            .frame(height: 40)
-                        accountCreateSuccessfully
-                        Spacer()
-                            .frame(height: 24)
-                        continueTitle
-                        Spacer()
-                            .frame(height: 24)
-
-                        successItem(
-                            title: "createAccount.success.fastAnonymousModeTitle".localizedString,
-                            subtitle: "createAccount.success.fastAnonymousModeSubtitle".localizedString
-                        )
-
-                        successItem(
-                            title: "createAccount.success.globalCoverageTitle".localizedString,
-                            subtitle: "createAccount.success.globalCoverageSubtitle".localizedString
-                        )
-                        Spacer()
-                        selectPlanButton
-                        skipPlanSelect
-                    }
+                    content
                     Spacer()
                 }
                 .padding(.horizontal, 16)
@@ -79,6 +56,33 @@ public struct CreateAccountSuccessView: View {
 }
 
 private extension CreateAccountSuccessView {
+    var content: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            StepView(stepCount: 3, currentStep: 2)
+            Spacer()
+                .frame(height: 40)
+            accountCreateSuccessfully
+            Spacer()
+                .frame(height: 24)
+            continueTitle
+            Spacer()
+                .frame(height: 24)
+
+            successItem(
+                title: "createAccount.success.fastAnonymousModeTitle".localizedString,
+                subtitle: "createAccount.success.fastAnonymousModeSubtitle".localizedString
+            )
+
+            successItem(
+                title: "createAccount.success.globalCoverageTitle".localizedString,
+                subtitle: "createAccount.success.globalCoverageSubtitle".localizedString
+            )
+            Spacer()
+            selectPlanButton
+            skipPlanSelect
+        }
+    }
+
     var navbar: some View {
         CustomNavBar(useElevationBackground: true)
     }
@@ -192,9 +196,14 @@ private extension CreateAccountSuccessView {
         ImpactGenerator.shared.impact()
 #endif
         do {
+            guard let token = credentialsManager.accountToken
+            else {
+                try await credentialsManager.registerAccount()
+                return
+            }
             let didPurchaseSuccesfully = try await purchasesManager.purchase(
                 with: plan,
-                token: credentialsManager.accountToken
+                token: token
             )
             guard didPurchaseSuccesfully else { return }
             navigateToDidPurchaseSuccessfully()
