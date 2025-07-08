@@ -34,7 +34,7 @@ pub enum DisplayServer {
 
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
 fn get_display_server() -> DisplayServer {
-    match std::env::var("XDG_SESSION_TYPE")
+    match env::var("XDG_SESSION_TYPE")
         .inspect_err(|e| warn!("XDG_SESSION_TYPE not set or not valid: {e}"))
         .map(|s| s.to_lowercase())
     {

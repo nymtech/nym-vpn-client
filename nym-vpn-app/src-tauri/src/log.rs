@@ -4,7 +4,8 @@ use std::io::{self, IsTerminal};
 use std::{fs, path::PathBuf};
 
 use anyhow::{Result, anyhow};
-use tracing::{debug, info};
+use sentry::integrations::tracing as sentry_tracing;
+use tracing::{Level, debug, info};
 use tracing_appender::{non_blocking::WorkerGuard, rolling};
 use tracing_subscriber::filter::LevelFilter;
 use tracing_subscriber::layer::SubscriberExt;
@@ -30,7 +31,7 @@ fn rotate_log_file(log_dir: PathBuf) -> Result<Option<PathBuf>> {
     Ok(None)
 }
 
-pub async fn setup_tracing(cli: &Cli) -> Result<Option<WorkerGuard>> {
+pub async fn setup_tracing(cli: &Cli, sentry_enabled: bool) -> Result<Option<WorkerGuard>> {
     let mut filter = EnvFilter::builder()
         .with_default_directive(LevelFilter::INFO.into())
         .from_env()?
@@ -77,6 +78,15 @@ pub async fn setup_tracing(cli: &Cli) -> Result<Option<WorkerGuard>> {
         }
     } else {
         layers.push(stdout_layer.boxed());
+    }
+
+    if sentry_enabled {
+        let layer = sentry_tracing::layer().event_filter(|md| match md.level() {
+            &Level::ERROR | &Level::WARN => sentry_tracing::EventFilter::Event,
+            &Level::TRACE => sentry_tracing::EventFilter::Ignore,
+            _ => sentry_tracing::EventFilter::Breadcrumb,
+        });
+        layers.push(layer.boxed());
     }
 
     tracing_subscriber::registry()

@@ -7,7 +7,7 @@ use super::util::{check_dir, check_file};
 
 #[derive(Debug, Clone)]
 #[allow(dead_code)]
-pub struct AppStorage<T>
+pub struct AppFs<T>
 where
     T: Serialize + DeserializeOwned + Default + fmt::Debug,
 {
@@ -17,7 +17,7 @@ where
     pub full_path: PathBuf,
 }
 
-impl<T> AppStorage<T>
+impl<T> AppFs<T>
 where
     T: Serialize + DeserializeOwned + Default + fmt::Debug,
 {
