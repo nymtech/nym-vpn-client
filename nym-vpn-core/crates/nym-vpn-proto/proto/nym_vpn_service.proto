@@ -433,8 +433,7 @@ message MixnetEvent {
 }
 
 message GetLogPathResponse {
-  // directory path
-  string path = 1;
+  string dir = 1;
   string filename = 2;
 }
 

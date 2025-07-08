@@ -293,19 +293,25 @@ impl From<VpnServiceInfo> for proto::InfoResponse {
 impl From<proto::GetLogPathResponse> for nym_vpnd_types::log_path::LogPath {
     fn from(value: proto::GetLogPathResponse) -> Self {
         Self {
-            dir: PathBuf::from(value.path),
+            dir: PathBuf::from(value.dir),
             filename: value.filename,
         }
     }
 }
 
-impl From<LogPath> for proto::GetLogPathResponse {
-    fn from(value: nym_vpnd_types::log_path::LogPath) -> Self {
-        Self {
+impl TryFrom<LogPath> for proto::GetLogPathResponse {
+    type Error = ConversionError;
+
+    fn try_from(value: LogPath) -> Result<Self, Self::Error> {
+        Ok(Self {
             // todo: consider TryFrom instead to raise encoding issues
-            path: value.dir.to_string_lossy().into_owned(),
+            dir: value
+                .dir
+                .into_os_string()
+                .into_string()
+                .map_err(ConversionError::Utf8Encoding)?,
             filename: value.filename,
-        }
+        })
     }
 }
 
