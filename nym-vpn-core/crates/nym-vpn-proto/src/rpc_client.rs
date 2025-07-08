@@ -21,9 +21,9 @@ use tokio_stream::{Stream, StreamExt};
 use tonic::transport::{Endpoint, Uri};
 use tower::service_fn;
 
-use crate::proto::{self, nym_vpnd_client::NymVpndClient};
+use crate::proto::{self, nym_vpn_service_client::NymVpnServiceClient};
 
-type ServiceClient = NymVpndClient<tonic::transport::Channel>;
+type ServiceClient = NymVpnServiceClient<tonic::transport::Channel>;
 
 #[derive(Debug, Clone)]
 pub struct RpcClient(ServiceClient);
