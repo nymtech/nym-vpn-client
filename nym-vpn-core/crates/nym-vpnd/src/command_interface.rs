@@ -535,7 +535,9 @@ impl NymVpnd for CommandInterface {
             .await?
             .unwrap_or(crate::logging::default_log_path());
 
-        Ok(tonic::Response::new(log_path.into()))
+        Ok(tonic::Response::new(log_path.try_into().map_err(
+            |err| tonic::Status::internal(format!("Failed to obtain log path: {err}")),
+        )?))
     }
 
     async fn is_sentry_enabled(&self, _: tonic::Request<()>) -> Result<tonic::Response<bool>> {
