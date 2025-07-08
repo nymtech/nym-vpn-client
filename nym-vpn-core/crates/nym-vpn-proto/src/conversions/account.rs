@@ -4,9 +4,9 @@
 use std::sync::Arc;
 
 use nym_vpn_lib_types::{
-    AvailableTickets, ForgetAccountError, RegisterDeviceError, RequestZkNymError,
-    RequestZkNymErrorReason, RequestZkNymSuccess, StoreAccountError, SyncAccountError,
-    SyncDeviceError, VpnApiError, VpnApiErrorResponse,
+    AvailableTickets, ForgetAccountError, RegisterDeviceError, RequestZkNymErrorReason,
+    RequestZkNymSuccess, StoreAccountError, SyncAccountError, SyncDeviceError, VpnApiError,
+    VpnApiErrorResponse,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -95,30 +95,6 @@ impl TryFrom<proto::RegisterDeviceError> for RegisterDeviceError {
             }
             proto::register_device_error::ErrorDetail::Offline(_) => Self::Offline,
             proto::register_device_error::ErrorDetail::Internal(err) => Self::Internal(err),
-        })
-    }
-}
-
-impl TryFrom<proto::RequestZkNymError> for RequestZkNymErrorReason {
-    type Error = ConversionError;
-
-    fn try_from(value: proto::RequestZkNymError) -> Result<Self, Self::Error> {
-        let error_outcome = value
-            .outcome
-            .ok_or(ConversionError::NoValueSet("RequestZkNymError.outcome"))?;
-
-        Ok(match error_outcome {
-            proto::request_zk_nym_error::Outcome::NoAccountStored(_) => Self::NoAccountStored,
-            proto::request_zk_nym_error::Outcome::NoDeviceStored(_) => Self::NoDeviceStored,
-            proto::request_zk_nym_error::Outcome::VpnApi(vpn_api) => {
-                Self::VpnApi(vpn_api.try_into()?)
-            }
-            proto::request_zk_nym_error::Outcome::UnexpectedVpnApiResponse(message) => {
-                Self::UnexpectedVpnApiResponse(message)
-            }
-            proto::request_zk_nym_error::Outcome::Storage(message) => Self::Storage(message),
-            proto::request_zk_nym_error::Outcome::Offline(_) => Self::Offline,
-            proto::request_zk_nym_error::Outcome::Internal(message) => Self::Internal(message),
         })
     }
 }
@@ -264,16 +240,27 @@ impl From<RequestZkNymErrorReason> for proto::RequestZkNymError {
     }
 }
 
-impl From<RequestZkNymError> for proto::RequestZkNymError {
-    fn from(error: RequestZkNymError) -> Self {
-        // RequestZkNymErrorReason::from(error).into()
-        todo!()
-    }
-}
+impl TryFrom<proto::RequestZkNymError> for RequestZkNymErrorReason {
+    type Error = ConversionError;
 
-impl From<proto::RequestZkNymError> for RequestZkNymError {
-    fn from(error: proto::RequestZkNymError) -> Self {
-        todo!()
+    fn try_from(value: proto::RequestZkNymError) -> Result<Self, Self::Error> {
+        let error_outcome = value
+            .outcome
+            .ok_or(ConversionError::NoValueSet("RequestZkNymError.outcome"))?;
+
+        Ok(match error_outcome {
+            proto::request_zk_nym_error::Outcome::NoAccountStored(_) => Self::NoAccountStored,
+            proto::request_zk_nym_error::Outcome::NoDeviceStored(_) => Self::NoDeviceStored,
+            proto::request_zk_nym_error::Outcome::VpnApi(vpn_api) => {
+                Self::VpnApi(vpn_api.try_into()?)
+            }
+            proto::request_zk_nym_error::Outcome::UnexpectedVpnApiResponse(message) => {
+                Self::UnexpectedVpnApiResponse(message)
+            }
+            proto::request_zk_nym_error::Outcome::Storage(message) => Self::Storage(message),
+            proto::request_zk_nym_error::Outcome::Offline(_) => Self::Offline,
+            proto::request_zk_nym_error::Outcome::Internal(message) => Self::Internal(message),
+        })
     }
 }
 

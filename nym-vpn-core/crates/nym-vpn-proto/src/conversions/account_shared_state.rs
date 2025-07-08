@@ -1,11 +1,11 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess};
+use nym_vpn_lib_types::RequestZkNymSuccess;
 use nym_vpnd_types::account_state::{
     AccountRegistered, AccountState, AccountStateSummary, AccountSummary, DeviceState,
-    DeviceSummary, FairUsage, MnemonicState, RegisterDeviceResult, RequestZkNymResult,
-    SubscriptionState,
+    DeviceSummary, FairUsage, MnemonicState, RegisterDeviceResult, RequestZkNymErrorReason,
+    RequestZkNymResult, SubscriptionState,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -319,8 +319,8 @@ impl TryFrom<proto::RequestZkNymResult> for RequestZkNymResult {
                 let failures = value
                     .failures
                     .into_iter()
-                    .map(RequestZkNymError::from)
-                    .collect();
+                    .map(RequestZkNymErrorReason::try_from)
+                    .collect::<Result<Vec<_>, ConversionError>>()?;
 
                 Ok(Self::Done {
                     successes,
@@ -333,7 +333,7 @@ impl TryFrom<proto::RequestZkNymResult> for RequestZkNymResult {
                     .into_iter()
                     .next()
                     .ok_or_else(|| ConversionError::NoValueSet("RequestZkNymResult.failures"))
-                    .map(RequestZkNymError::from)?;
+                    .and_then(RequestZkNymErrorReason::try_from)?;
                 Ok(Self::Error(error))
             }
         }
