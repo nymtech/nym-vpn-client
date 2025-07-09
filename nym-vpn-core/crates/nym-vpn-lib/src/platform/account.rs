@@ -13,7 +13,7 @@ use nym_vpn_api_client::{
 };
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
-    keys::KeyStore,
+    keys::device::DeviceKeyStore,
     mnemonic::{Mnemonic, MnemonicStorage},
 };
 use tokio::task::JoinHandle;

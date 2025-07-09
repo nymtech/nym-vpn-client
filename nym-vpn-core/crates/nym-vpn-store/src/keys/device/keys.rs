@@ -7,7 +7,7 @@ use nym_crypto::asymmetric::ed25519;
 use rand::{CryptoRng, RngCore};
 use zeroize::ZeroizeOnDrop;
 
-use super::key_store::KeyStore;
+use super::key_store::DeviceKeyStore;
 
 #[derive(Clone)]
 pub struct DeviceKeys {
@@ -30,11 +30,11 @@ impl DeviceKeys {
         }
     }
 
-    pub async fn load_keys<S: KeyStore>(store: &S) -> Result<Self, S::StorageError> {
+    pub async fn load_keys<S: DeviceKeyStore>(store: &S) -> Result<Self, S::StorageError> {
         store.load_keys().await
     }
 
-    pub async fn persist_keys<S: KeyStore>(&self, store: &S) -> Result<(), S::StorageError> {
+    pub async fn persist_keys<S: DeviceKeyStore>(&self, store: &S) -> Result<(), S::StorageError> {
         store.store_keys(self).await
     }
 

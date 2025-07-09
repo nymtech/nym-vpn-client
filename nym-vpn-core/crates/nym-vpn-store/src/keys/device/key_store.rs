@@ -3,10 +3,10 @@
 
 use std::error::Error;
 
-use super::DeviceKeys;
+use super::keys::DeviceKeys;
 
 #[async_trait::async_trait]
-pub trait KeyStore {
+pub trait DeviceKeyStore {
     type StorageError: Error + Send + Sync + 'static;
 
     async fn load_keys(&self) -> Result<DeviceKeys, Self::StorageError>;

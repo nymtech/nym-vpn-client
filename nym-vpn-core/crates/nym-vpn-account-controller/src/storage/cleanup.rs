@@ -11,7 +11,7 @@ use tokio_stream::wrappers::ReadDirStream;
 
 use nym_common::trace_err_chain;
 use nym_sdk::mixnet::StoragePaths;
-use nym_vpn_store::keys::persistence::{
+use nym_vpn_store::keys::device::{
     DEFAULT_PRIVATE_DEVICE_KEY_FILENAME, DEFAULT_PUBLIC_DEVICE_KEY_FILENAME,
 };
 use nym_wg_gateway_client::{
