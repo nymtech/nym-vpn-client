@@ -122,14 +122,18 @@ impl MixnetProcessor {
         let (tun_device_sink, mut tun_device_stream) = self.device.into_framed().split();
 
         tracing::debug!("Split mixnet sender");
-        let mixnet_client_guard = self.mixnet_client.lock().await;
+        let (mixnet_sender, lane_queue_lengths) = {
+            let mixnet_client_guard = self.mixnet_client.lock().await;
 
-        let shared_mixnet_client = mixnet_client_guard
-            .as_ref()
-            .ok_or(MixnetError::ClientAlreadyDisposed)?;
+            let shared_mixnet_client = mixnet_client_guard
+                .as_ref()
+                .ok_or(MixnetError::ClientAlreadyDisposed)?;
 
-        let mixnet_sender = shared_mixnet_client.split_sender();
-        let lane_queue_lengths = shared_mixnet_client.shared_lane_queue_lengths();
+            (
+                shared_mixnet_client.split_sender(),
+                shared_mixnet_client.shared_lane_queue_lengths(),
+            )
+        };
 
         let message_creator = MessageCreator::new(self.ip_packet_router_address.into());
 
