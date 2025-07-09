@@ -17,10 +17,10 @@ pub static UPDATER_ENABLED: Lazy<bool> = Lazy::new(|| {
         .map(|v| v == "1" || v.to_lowercase() == "true")
         .unwrap_or(false)
 });
-pub static SENTRY_DSN: Lazy<Option<String>> = Lazy::new(|| {
-    env::var("SENTRY_DSN")
+pub static APP_SENTRY_DSN: Lazy<Option<String>> = Lazy::new(|| {
+    env::var("APP_SENTRY_DSN")
         .ok()
-        .or_else(|| option_env!("SENTRY_DSN").map(|s| s.to_string()))
+        .or_else(|| option_env!("APP_SENTRY_DSN").map(|s| s.to_string()))
 });
 
 /// Check if an environment variable is truthy, e.g. set to "1" | "true" | "TRUE"

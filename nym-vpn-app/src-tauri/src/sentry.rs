@@ -1,4 +1,4 @@
-use crate::env::SENTRY_DSN;
+use crate::env::APP_SENTRY_DSN;
 use crate::sys::OsInfo;
 
 use sentry::{ClientInitGuard, User};
@@ -6,8 +6,8 @@ use std::time::Duration;
 use tracing::{info, warn};
 
 pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
-    let Some(dsn) = SENTRY_DSN.as_ref() else {
-        warn!("failed to init sentry: SENTRY_DSN is not set");
+    let Some(dsn) = APP_SENTRY_DSN.as_ref() else {
+        warn!("failed to init sentry: APP_SENTRY_DSN is not set");
         return None;
     };
     info!("⚠ sentry monitoring enabled ⚠");
