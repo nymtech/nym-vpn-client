@@ -53,17 +53,13 @@ export function useTauriEvents(
               'is_account_stored',
             );
             dispatch({ type: 'set-account', stored: stored || false });
-          } catch (e: unknown) {
-            console.error('failed to refresh daemon info', e);
-          }
+          } catch {}
           try {
             const links = await invoke<AccountLinks>('account_links', {
               locale: i18n.language,
             });
             dispatch({ type: 'set-account-links', links });
-          } catch (e: unknown) {
-            console.warn('failed to get account links', e);
-          }
+          } catch {}
         }
       },
     );

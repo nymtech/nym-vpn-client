@@ -13,7 +13,6 @@ export type Cli = {
 export type NetworkEnv = 'mainnet' | 'canary' | 'qa' | 'sandbox';
 
 export type DbKey =
-  | 'monitoring'
   | 'ui-theme'
   | 'ui-root-font-size'
   | 'ui-language'

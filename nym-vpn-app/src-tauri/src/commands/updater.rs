@@ -66,6 +66,8 @@ pub async fn install_update(
         return Err(BackendError::internal("updater is disabled", None));
     }
     let Some(update) = pending_update.0.lock().await.take() else {
+        // calling this function without a pending update is an error
+        error!("no update available");
         return Err(BackendError::internal("no update available", None));
     };
 
@@ -91,6 +93,7 @@ pub async fn install_update(
                 let _ = on_event.send(DownloadUpdateEvent::Finished);
             },
         )
-        .await?;
+        .await
+        .inspect_err(|e| error!("download and install failed: {}", e))?;
     Ok(())
 }

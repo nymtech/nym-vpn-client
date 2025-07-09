@@ -25,7 +25,6 @@ pub type JsonValue = Value;
 #[serde(rename_all = "kebab-case")]
 #[ts(export)]
 pub enum Key {
-    Monitoring,
     UiTheme,
     UiRootFontSize,
     UiLanguage,
@@ -178,7 +177,8 @@ impl Db {
         })?;
         let res = self
             .db
-            .insert(key, json_value)?
+            .insert(key, json_value)
+            .inspect_err(|e| error!("failed to insert key [{key}]: {e}"))?
             .map(|v| serde_json::from_slice::<Value>(&v))
             .transpose()
             .map_err(|e| {
@@ -204,7 +204,8 @@ impl Db {
     pub fn remove(&self, key: &str) -> Result<Option<JsonValue>, DbError> {
         let res = self
             .db
-            .remove(key)?
+            .remove(key)
+            .inspect_err(|e| error!("failed to remove key [{key}]: {e}"))?
             .map(|v| serde_json::from_slice::<Value>(&v))
             .transpose()
             .map_err(|e| {

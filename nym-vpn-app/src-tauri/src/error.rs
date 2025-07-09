@@ -193,3 +193,9 @@ impl From<tauri_plugin_updater::Error> for BackendError {
         BackendError::internal("internal updater error", None)
     }
 }
+
+impl From<anyhow::Error> for BackendError {
+    fn from(_: anyhow::Error) -> Self {
+        BackendError::internal("internal error", None)
+    }
+}

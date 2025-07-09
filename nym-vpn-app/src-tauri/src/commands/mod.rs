@@ -6,6 +6,7 @@ pub mod dev;
 pub mod fs;
 pub mod gateway;
 pub mod log;
+pub mod sentry;
 pub mod sys;
 pub mod tunnel;
 #[cfg(windows)]

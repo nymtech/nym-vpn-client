@@ -34,7 +34,7 @@ pub enum DisplayServer {
 
 #[cfg(any(target_os = "linux", target_os = "openbsd"))]
 fn get_display_server() -> DisplayServer {
-    match std::env::var("XDG_SESSION_TYPE")
+    match env::var("XDG_SESSION_TYPE")
         .inspect_err(|e| warn!("XDG_SESSION_TYPE not set or not valid: {e}"))
         .map(|s| s.to_lowercase())
     {
@@ -52,7 +52,8 @@ fn get_display_server() -> DisplayServer {
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct OsInfo {
-    pub name: String,
+    /// long version
+    pub version: String,
     pub kernel: Option<String>,
     pub arch: String,
     #[cfg(any(target_os = "linux", target_os = "openbsd"))]
@@ -64,7 +65,7 @@ pub struct OsInfo {
 impl OsInfo {
     pub fn new() -> Self {
         Self {
-            name: System::long_os_version().unwrap_or_else(|| env::consts::OS.into()),
+            version: System::long_os_version().unwrap_or_else(|| env::consts::OS.into()),
             kernel: System::kernel_version(),
             arch: env::consts::ARCH.to_string(),
             #[cfg(any(target_os = "linux", target_os = "openbsd"))]
@@ -125,7 +126,7 @@ impl std::fmt::Display for OsInfo {
         write!(
             f,
             "{} {} {}",
-            self.name,
+            self.version,
             self.kernel.as_deref().unwrap_or("unknown"),
             self.arch
         )

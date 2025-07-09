@@ -10,9 +10,7 @@ import { DbKey } from '../types';
 export async function kvGet<V>(k: DbKey): Promise<V | undefined> {
   try {
     return await invoke<V>('db_get', { key: k });
-  } catch (e) {
-    console.warn(e);
-  }
+  } catch {}
 }
 
 /**
@@ -25,9 +23,7 @@ export async function kvGet<V>(k: DbKey): Promise<V | undefined> {
 export async function kvSet<V>(k: DbKey, v: V): Promise<V | undefined> {
   try {
     return await invoke<V>('db_set', { key: k, value: v });
-  } catch (e) {
-    console.warn(e);
-  }
+  } catch {}
 }
 
 /**
@@ -39,9 +35,7 @@ export async function kvSet<V>(k: DbKey, v: V): Promise<V | undefined> {
 export async function kvDel<V>(k: DbKey): Promise<V | undefined> {
   try {
     return await invoke<V>('db_del', { key: k });
-  } catch (e) {
-    console.warn(e);
-  }
+  } catch {}
 }
 
 /**
@@ -54,7 +48,5 @@ export async function kvDel<V>(k: DbKey): Promise<V | undefined> {
 export async function kvFlush(): Promise<number | undefined> {
   try {
     return await invoke<number>('db_flush');
-  } catch (e) {
-    console.warn(e);
-  }
+  } catch {}
 }

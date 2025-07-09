@@ -32,10 +32,9 @@ pub async fn connect(
     {
         let mut app_state = state.lock().await;
         if app_state.tunnel != TunnelState::Disconnected {
-            return Err(BackendError::internal(
-                &format!("cannot connect from state {:?}", app_state.tunnel),
-                None,
-            ));
+            let msg = format!("cannot connect from state {:?}", app_state.tunnel);
+            warn!(msg);
+            return Err(BackendError::internal(&msg, None));
         };
 
         // manually switch to "Connecting" state
@@ -121,10 +120,9 @@ pub async fn disconnect(
         app_state.tunnel,
         TunnelState::Disconnected | TunnelState::Disconnecting(_)
     ) {
-        return Err(BackendError::internal(
-            &format!("cannot disconnect from state {}", app_state.tunnel),
-            None,
-        ));
+        let msg = format!("cannot connect from state {:?}", app_state.tunnel);
+        warn!(msg);
+        return Err(BackendError::internal(&msg, None));
     };
     app_state.tunnel = TunnelState::Disconnecting(None);
     debug!("update connection state [Disconnecting]");

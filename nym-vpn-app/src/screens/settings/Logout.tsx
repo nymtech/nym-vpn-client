@@ -41,7 +41,6 @@ function Logout() {
       dispatch({ type: 'reset-error' });
     } catch (e) {
       hasFailed = true;
-      console.warn('failed to logout', e);
       push({
         message: `${t('logout.error', { ns: 'notifications' })}: ${tE((e as BackendError).key || 'unknown')}`,
       });

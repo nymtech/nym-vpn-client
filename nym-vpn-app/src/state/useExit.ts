@@ -29,8 +29,7 @@ export function useExit() {
           console.log(result);
           await processExit(0);
         })
-        .catch(async (e: unknown) => {
-          console.warn('backend error:', e);
+        .catch(async () => {
           await processExit(1);
         });
     } else {

@@ -1,6 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import React, { useEffect, useReducer } from 'react';
-import { BackendError, SystemMessage } from '../../types';
+import { SystemMessage } from '../../types';
 import { initFirstBatch, initSecondBatch } from '../../state/init';
 import { useTauriEvents } from '../../state/useTauriEvents';
 import { S_STATE } from '../../static';
@@ -71,13 +71,7 @@ function MainStateProvider({ children }: Props) {
             type: 'warn',
           });
         }
-      } catch (e) {
-        if ((e as BackendError).key === 'not-connected-to-daemon') {
-          console.log('failed to query system messages:', e);
-          return;
-        }
-        console.warn('failed to query system messages:', e);
-      }
+      } catch {}
     };
     querySystemMessages();
   }, [push, state.daemonStatus]);

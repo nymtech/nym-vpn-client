@@ -5,7 +5,7 @@ import { DialogTitle } from '@headlessui/react';
 import { useTranslation } from 'react-i18next';
 import { type } from '@tauri-apps/plugin-os';
 import { Button, ButtonText, Dialog, MsIcon, Progress } from '../../ui';
-import { BackendError, DownloadUpdateEvent, UpdateMetadata } from '../../types';
+import { DownloadUpdateEvent, UpdateMetadata } from '../../types';
 
 const updaterEnabled = window._APP.updaterEnabled;
 const os = type();
@@ -29,12 +29,7 @@ function UpdateDialog() {
         setUpdate(metadata);
         setIsOpen(true);
       }
-    } catch (error) {
-      console.warn(
-        'error checking for updates:',
-        (error as BackendError).message,
-      );
-    }
+    } catch {}
   };
 
   useEffect(() => {
@@ -86,8 +81,7 @@ function UpdateDialog() {
     onEvent.onmessage = onProgress;
     try {
       await invoke('install_update', { onEvent });
-    } catch (error) {
-      console.error('error during update:', (error as BackendError).message);
+    } catch {
       setIsOpen(false);
       setIsUpdating(false);
     }

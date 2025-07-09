@@ -1,5 +1,6 @@
 use anyhow::Result;
 use semver::Version;
+use sentry::ClientInitGuard;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Manager};
 use tracing::{debug, error, info, instrument, warn};
@@ -37,6 +38,10 @@ pub struct NetworkCompat {
     tauri: Option<bool>,
 }
 
+// wrapper needed for Debug trait implem
+#[derive(Default)]
+pub struct SentryClient(pub Option<ClientInitGuard>);
+
 #[derive(Debug, Default)]
 pub struct AppState {
     pub os_info: OsInfo,
@@ -47,10 +52,17 @@ pub struct AppState {
     pub dns_server: Option<String>,
     pub credentials_mode: bool,
     pub network_compat: Option<NetworkCompat>,
+    pub sentry_client: SentryClient,
 }
 
 impl AppState {
-    pub fn new(db: &Db, config: &AppConfig, cli: &Cli, os_info: OsInfo) -> Self {
+    pub fn new(
+        db: &Db,
+        config: &AppConfig,
+        cli: &Cli,
+        os_info: OsInfo,
+        sentry_guard: Option<ClientInitGuard>,
+    ) -> Self {
         let vpn_mode = db
             .get_typed::<VpnMode>(Key::VpnMode.as_ref())
             .inspect_err(|e| error!("failed to retrieve vpn mode from db: {e}"))
@@ -65,6 +77,7 @@ impl AppState {
             dns_server,
             credentials_mode: cli.dev_mode,
             os_info,
+            sentry_client: SentryClient(sentry_guard),
             ..Default::default()
         }
     }
@@ -183,5 +196,15 @@ fn log_compat(local: &str, network: &str, is_compat: Option<bool>, comp_name: &s
         Some(false) => warn!(
             "{comp_name} version is not compatible with the network, local version: [{local}], network version: [{network}]"
         ),
+    }
+}
+
+impl std::fmt::Debug for SentryClient {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.0.is_some() {
+            write!(f, "SentryClient(Some)")
+        } else {
+            write!(f, "SentryClient(None)")
+        }
     }
 }

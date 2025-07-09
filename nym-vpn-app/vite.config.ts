@@ -40,7 +40,6 @@ export default defineConfig(() => ({
             '@tauri-apps/plugin-window-state',
           ],
           motion: ['motion'],
-          sentry: ['@sentry/react'],
           i18next: ['i18next', 'i18next-browser-languagedetector'],
           ui: [
             '@headlessui/react',

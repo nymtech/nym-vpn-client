@@ -8,7 +8,6 @@ import duration from 'dayjs/plugin/duration';
 import App from './App';
 import { mockTauriIPC } from './dev/setup';
 import { kvGet } from './kvStore';
-import initSentry from './sentry';
 import { VpnMode, VpndStatus } from './types';
 import { StartupError } from './screens';
 import { init } from './log';
@@ -82,12 +81,6 @@ dayjs.extend(duration);
       </React.StrictMode>,
     );
     return;
-  }
-
-  const monitoring = await kvGet<boolean>('monitoring');
-
-  if (monitoring) {
-    await initSentry();
   }
 
   ReactDOM.createRoot(document.getElementById('root')!).render(

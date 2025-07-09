@@ -9,7 +9,7 @@ use crate::window::AppWindow;
 use crate::{
     cli::Cli,
     db::Db,
-    fs::{config::AppConfig, storage::AppStorage},
+    fs::{app::AppFs, config::AppConfig},
     grpc::client::GrpcClient,
 };
 
@@ -25,6 +25,7 @@ use commands::dev as cmd_dev;
 use commands::fs as cmd_fs;
 use commands::gateway as cmd_gw;
 use commands::log as cmd_log;
+use commands::sentry as cmd_sentry;
 use commands::sys as cmd_sys;
 #[cfg(windows)]
 use commands::updater as cmd_updater;
@@ -47,6 +48,7 @@ mod events;
 mod fs;
 mod grpc;
 mod log;
+mod sentry;
 mod startup_error;
 mod state;
 mod sys;
@@ -79,7 +81,10 @@ async fn main() -> Result<()> {
         fs::util::clean_local_files();
         return Ok(());
     }
-    let _guard = log::setup_tracing(&cli).await?;
+    let sentry_enabled = AppConfig::read()
+        .ok()
+        .is_some_and(|cfg| cfg.sentry_monitoring);
+    let _guard = log::setup_tracing(&cli, sentry_enabled).await?;
     trace!("cli args: {:#?}", cli);
 
     let os = sys::OsInfo::new();
@@ -108,6 +113,12 @@ async fn main() -> Result<()> {
     if let Some(Commands::Db { command: Some(cmd) }) = &cli.command {
         return db_command(cmd);
     }
+
+    let sentry_guard = if sentry_enabled {
+        sentry::init(&os)
+    } else {
+        None
+    };
 
     info!("app version: {}", pkg_info.version);
     info!("Starting tauri app");
@@ -166,24 +177,21 @@ async fn main() -> Result<()> {
             app_window.set_bg_color(&db).ok();
             app_window.set_max_size().ok();
 
-            let app_config_store = {
+            let fs_config = {
                 let path = APP_CONFIG_DIR
                     .clone()
                     .ok_or(anyhow!("failed to get app config dir"))?;
-                AppStorage::<AppConfig>::new(path, APP_CONFIG_FILE, None)
+                AppFs::<AppConfig>::new(path, APP_CONFIG_FILE, None)
                     .inspect_err(|e| error!("Failed to init app config store: {e}"))?
             };
-            debug!(
-                "app_config_store: {}",
-                &app_config_store.full_path.display()
-            );
+            debug!("app_config_store: {}", &fs_config.full_path.display());
 
-            let app_config = match app_config_store.read() {
+            let app_config = match fs_config.read() {
                 Ok(cfg) => cfg,
                 Err(e) => {
                     warn!("failed to read app config: {e}, falling back to default (empty) config");
                     debug!("clearing the config file");
-                    app_config_store
+                    fs_config
                         .clear()
                         .inspect_err(|e| error!("failed to clear the config file: {e}"))
                         .ok();
@@ -192,13 +200,13 @@ async fn main() -> Result<()> {
             };
             debug!("app_config: {app_config:?}");
 
-            let app_state = AppState::new(&db, &app_config, &cli, os);
+            let app_state = AppState::new(&db, &app_config, &cli, os, sentry_guard);
             app.manage(Mutex::new(app_state));
 
             let pkg_info = app.package_info().clone();
             let grpc = GrpcClient::new(&app_config, &cli, &pkg_info);
 
-            app.manage(app_config);
+            app.manage(Mutex::new(fs_config));
             app.manage(grpc.clone());
 
             tray::setup(app.handle())?;
@@ -256,6 +264,9 @@ async fn main() -> Result<()> {
             cmd_daemon::vpnd_log_dir,
             cmd_fs::log_dir,
             cmd_sys::os_info,
+            cmd_sentry::enable_sentry,
+            cmd_sentry::disable_sentry,
+            cmd_sentry::sentry_enabled,
             #[cfg(windows)]
             cmd_updater::fetch_update,
             #[cfg(windows)]

@@ -166,9 +166,9 @@ export async function initFirstBatch(dispatch: StateDispatch) {
 
   const getMonitoringRq: TauriReq<() => Promise<boolean | undefined>> = {
     name: 'getMonitoring',
-    request: () => kvGet<boolean>('monitoring'),
-    onFulfilled: (monitoring) => {
-      dispatch({ type: 'set-monitoring', monitoring: monitoring || false });
+    request: () => invoke<boolean>('sentry_enabled'),
+    onFulfilled: (enabled) => {
+      dispatch({ type: 'set-monitoring', monitoring: enabled || false });
     },
   };
 

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Trans, useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router';
+import { invoke } from '@tauri-apps/api/core';
 import { PrivacyPolicyUrl, SentryHomePage, ToSUrl } from '../constants';
 import { useMainDispatch } from '../contexts';
 import { kvSet } from '../kvStore';
@@ -23,11 +24,17 @@ function Welcome() {
     });
   };
 
-  const handleMonitoringChanged = () => {
+  const handleMonitoringChanged = async () => {
     const isChecked = !monitoring;
     setMonitoring(isChecked);
     dispatch({ type: 'set-monitoring', monitoring: isChecked });
-    kvSet('monitoring', isChecked);
+    try {
+      if (isChecked) {
+        await invoke('enable_sentry');
+      } else {
+        await invoke('disable_sentry');
+      }
+    } catch {}
   };
 
   return (

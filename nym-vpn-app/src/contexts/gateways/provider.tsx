@@ -74,7 +74,6 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
           });
           await CCache.set(cacheKey, gateways, GatewaysCacheDuration);
         } catch (e) {
-          console.warn(`Failed to fetch ${nodeType} gateways:`, e);
           if (nodeType === 'mx-entry') {
             // this also reset loading state
             dispatch({

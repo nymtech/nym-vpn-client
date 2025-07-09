@@ -71,18 +71,14 @@ function Node({ node }: { node: NodeHop }) {
       return;
     }
 
-    try {
-      await kvSet(
-        node === 'entry' ? 'entry-node' : 'exit-node',
-        uiNodeToRaw(selected),
-      );
-      dispatch({
-        type: 'set-node',
-        payload: { hop: node, node: selected },
-      });
-    } catch (e) {
-      console.warn(e);
-    }
+    await kvSet(
+      node === 'entry' ? 'entry-node' : 'exit-node',
+      uiNodeToRaw(selected),
+    );
+    dispatch({
+      type: 'set-node',
+      payload: { hop: node, node: selected },
+    });
     navigate(routes.root);
   };
 
