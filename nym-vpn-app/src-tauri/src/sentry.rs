@@ -1,10 +1,13 @@
-use crate::env::APP_SENTRY_DSN;
-use crate::sys::OsInfo;
-
+use anyhow::Result;
 use sentry::{ClientInitGuard, User};
 use std::time::Duration;
-use tracing::{info, warn};
+use tracing::{error, info, instrument, warn};
 
+use crate::env::APP_SENTRY_DSN;
+use crate::grpc::client::GrpcClient;
+use crate::sys::OsInfo;
+
+#[instrument(skip_all)]
 pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
     let Some(dsn) = APP_SENTRY_DSN.as_ref() else {
         warn!("failed to init sentry: APP_SENTRY_DSN is not set");
@@ -36,4 +39,29 @@ pub fn init(os: &OsInfo) -> Option<ClientInitGuard> {
         }));
     });
     Some(guard)
+}
+
+// Check the state of sentry monitoring at daemon level and
+// sync it with the app state if needed (as shown to the user in UI)
+#[instrument(skip(grpc))]
+pub async fn vpnd_check(sentry_enabled: bool, grpc: &GrpcClient) -> Result<()> {
+    let vpnd_enabled = grpc.sentry_enabled().await.inspect_err(|e| {
+        error!("failed to check sentry state: {:?}", e);
+    })?;
+    if vpnd_enabled == sentry_enabled {
+        // all good
+        return Ok(());
+    }
+    warn!(
+        "sentry state mismatch: app sentry enabled: {}, vpnd sentry enabled: {}",
+        sentry_enabled, vpnd_enabled
+    );
+    if sentry_enabled {
+        info!("enabling vpnd sentry monitoring");
+        grpc.enable_sentry().await?;
+    } else {
+        info!("disabling vpnd sentry monitoring");
+        grpc.disable_sentry().await?;
+    }
+    Ok(())
 }

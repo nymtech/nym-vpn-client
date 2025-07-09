@@ -538,6 +538,76 @@ impl GrpcClient {
                 VpndError::internal("no network compatibility data")
             })
     }
+
+    /// Is sentry enabled at daemon level
+    #[instrument(skip_all)]
+    pub async fn sentry_enabled(&self) -> Result<bool, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(());
+        let response = vpnd
+            .is_sentry_enabled(request)
+            .await
+            .map_err(|e| {
+                error!("grpc: {}", e);
+                VpndError::GrpcError(e)
+            })?
+            .into_inner();
+
+        debug!("vpnd sentry enabled: {}", response.enabled);
+        if response.enabled {
+            info!("⚠ vpnd sentry monitoring is enabled ⚠");
+        }
+        Ok(response.enabled)
+    }
+
+    /// Enable sentry at daemon level
+    #[instrument(skip_all)]
+    pub async fn enable_sentry(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(());
+        let response = vpnd
+            .enable_sentry(request)
+            .await
+            .map_err(|e| {
+                error!("grpc: {}", e);
+                VpndError::GrpcError(e)
+            })?
+            .into_inner();
+
+        debug!("vpnd sentry enabled: {}", response.success);
+        if !response.success {
+            error!("failed to enable sentry");
+            return Err(VpndError::internal("failed to enable sentry"));
+        }
+        info!("restart vpnd (service) required for the change to take effect");
+        Ok(())
+    }
+
+    /// Disable sentry at daemon level
+    #[instrument(skip_all)]
+    pub async fn disable_sentry(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let request = Request::new(());
+        let response = vpnd
+            .disable_sentry(request)
+            .await
+            .map_err(|e| {
+                error!("grpc: {}", e);
+                VpndError::GrpcError(e)
+            })?
+            .into_inner();
+
+        debug!("vpnd sentry disabled: {}", response.success);
+        if !response.success {
+            error!("failed to disable sentry");
+            return Err(VpndError::internal("failed to disable sentry"));
+        }
+        info!("restart vpnd (service) recommended");
+        Ok(())
+    }
 }
 
 async fn get_channel(socket_path: PathBuf) -> Result<Channel> {
