@@ -217,10 +217,16 @@ async fn main() -> Result<()> {
                 info!("starting vpnd spy");
                 loop {
                     if let Ok(info) = c_grpc.vpnd_info().await {
+                        // connected to the daemon
+
                         c_grpc.update_vpnd_state(info, &handle).await.ok();
                         // initialize tunnel state
                         c_grpc.tunnel_state(&handle).await.ok();
                         info!("watching vpn tunnel events");
+                        // vpnd sentry check
+                        sentry::vpnd_check(sentry_enabled, &c_grpc).await.ok();
+                        // start watching tunnel events, this is a blocking call
+                        // and will keep the task alive as long as vpnd is running
                         c_grpc.watch_tunnel_events(&handle).await.ok();
                         // if the tunnel stream cuts off, that means vpnd is down
                         AppState::vpnd_down(&handle).await;

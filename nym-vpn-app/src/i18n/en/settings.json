@@ -10,7 +10,7 @@
   "notifications": {
     "title": "Desktop notifications"
   },
-  "monitoring-alert": "You must restart the app for the change to take effect.",
+  "monitoring-alert": "You should restart the app and daemon service for the change to take effect.",
   "support": {
     "title": "Support & feedback",
     "faq": "Check the FAQ",

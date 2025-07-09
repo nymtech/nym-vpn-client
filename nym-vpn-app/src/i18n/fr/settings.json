@@ -10,7 +10,7 @@
   "notifications": {
     "title": "Notifications sur le bureau"
   },
-  "monitoring-alert": "Redémarrez l'application pour que le changement s'applique.",
+  "monitoring-alert": "Redémarrez l'application et le service du daemon pour que le changement s'applique.",
   "support": {
     "title": "Support et commentaire",
     "faq": "Consulter la FAQ",
