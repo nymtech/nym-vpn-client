@@ -29,7 +29,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@"
           }
         },
@@ -2755,8 +2755,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to"
+            "state" : "translated",
+            "value" : "Bienvenue sur"
           }
         },
         "hi" : {
@@ -4270,8 +4270,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Acts as your login"
+            "state" : "translated",
+            "value" : "Utilise vos identifiants"
           }
         },
         "hi" : {
@@ -4371,8 +4371,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Already have account?"
+            "state" : "translated",
+            "value" : "Vous possédez déjà un compte ?"
           }
         },
         "hi" : {
@@ -4472,8 +4472,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Is anonymous by design"
+            "state" : "translated",
+            "value" : "Anonymat intégré à la conception"
           }
         },
         "hi" : {
@@ -4573,8 +4573,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous mixnet technology"
+            "state" : "translated",
+            "value" : "Technologie d'anonymisation mixnet"
           }
         },
         "hi" : {
@@ -4674,8 +4674,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "Continuer"
           }
         },
         "hi" : {
@@ -4775,8 +4775,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "50+ countries worldwide"
+            "state" : "translated",
+            "value" : "Plus de 50 pays dans le monde"
           }
         },
         "hi" : {
@@ -4876,8 +4876,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start protecting my privacy"
+            "state" : "translated",
+            "value" : "Commencer à protéger ma vie privée"
           }
         },
         "hi" : {
@@ -4977,8 +4977,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create an account"
+            "state" : "translated",
+            "value" : "Créer un compte"
           }
         },
         "hi" : {
@@ -5078,8 +5078,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create my 24-word passphrase"
+            "state" : "translated",
+            "value" : "Créer ma phrase de passe à 24 mots"
           }
         },
         "hi" : {
@@ -5179,8 +5179,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Save it in a trusted password manager or write down your passphrase and store it securely."
+            "state" : "translated",
+            "value" : "Enregistrez-la dans un gestionnaire de mots de passe fiable ou notez votre phrase secrète et conservez-la en lieu sûr."
           }
         },
         "hi" : {
@@ -5280,8 +5280,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t Lose Your Passphrase"
+            "state" : "translated",
+            "value" : "Ne perdez pas votre phrase secrète"
           }
         },
         "hi" : {
@@ -5381,8 +5381,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Never share it—not even with Nym Support team."
+            "state" : "translated",
+            "value" : "Ne partagez jamais cela—même pas avec l'équipe de support Nym."
           }
         },
         "hi" : {
@@ -5482,8 +5482,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t share!"
+            "state" : "translated",
+            "value" : "Ne la partagez pas !"
           }
         },
         "hi" : {
@@ -5583,8 +5583,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Email usage"
+            "state" : "translated",
+            "value" : "Utilisation de l'adresse mail"
           }
         },
         "hi" : {
@@ -5684,8 +5684,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enables self-custody"
+            "state" : "translated",
+            "value" : "Activer l'autodétention"
           }
         },
         "hi" : {
@@ -5785,8 +5785,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How to keep your NymVPN passphrase safe?"
+            "state" : "translated",
+            "value" : "Comment garder votre phrase de passe NymVPN en sécurité ?"
           }
         },
         "hi" : {
@@ -5886,8 +5886,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "state" : "translated",
+            "value" : "Au lieu de cela, vous créez un compte protégé par une phrase secrète de 24 mots."
           }
         },
         "hi" : {
@@ -5987,8 +5987,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Log in"
+            "state" : "translated",
+            "value" : "Se connecter"
           }
         },
         "hi" : {
@@ -6088,8 +6088,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I understand: no passphrase, no access."
+            "state" : "translated",
+            "value" : "Je comprends : pas de phrase de passe, pas d'accès."
           }
         },
         "hi" : {
@@ -6189,8 +6189,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open source & Swiss privacy laws"
+            "state" : "translated",
+            "value" : "Sources ouvertes et lois suisses sur la vie privée"
           }
         },
         "hi" : {
@@ -6290,8 +6290,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Password creation"
+            "state" : "translated",
+            "value" : "Création de mot de passe"
           }
         },
         "hi" : {
@@ -6391,8 +6391,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
+            "state" : "translated",
+            "value" : "J'ai enregistré ma phrase de passe"
           }
         },
         "hi" : {
@@ -6492,8 +6492,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account Created Successfully"
+            "state" : "translated",
+            "value" : "Compte créé avec succès"
           }
         },
         "hi" : {
@@ -6593,8 +6593,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose your NymVPN plan"
+            "state" : "translated",
+            "value" : "Choisissez votre plan NymVPN"
           }
         },
         "hi" : {
@@ -6694,8 +6694,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Instant, secure connections without compromising your privacy."
+            "state" : "translated",
+            "value" : "Connexions instantanées et sécurisées sans compromettre votre vie privée."
           }
         },
         "hi" : {
@@ -6795,8 +6795,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Fast & Anonymous Mode"
+            "state" : "translated",
+            "value" : "Mode rapide et anonyme"
           }
         },
         "hi" : {
@@ -6896,8 +6896,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+            "state" : "translated",
+            "value" : "Accédez à des serveurs dans plus de 85 pays — profitez de la liberté et de la confidentialité sans frontières."
           }
         },
         "hi" : {
@@ -6997,8 +6997,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Global Coverage"
+            "state" : "translated",
+            "value" : "Couverture mondiale"
           }
         },
         "hi" : {
@@ -7098,8 +7098,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Maybe later"
+            "state" : "translated",
+            "value" : "Peut-être plus tard"
           }
         },
         "hi" : {
@@ -7199,8 +7199,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select plan"
+            "state" : "translated",
+            "value" : "Sélectionnez le plan"
           }
         },
         "hi" : {
@@ -7300,8 +7300,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Skip for now"
+            "state" : "translated",
+            "value" : "Ignorer pour le moment"
           }
         },
         "hi" : {
@@ -7401,8 +7401,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+            "state" : "translated",
+            "value" : "Pour continuer, sélectionnez un plan pour débloquer le plein potentiel de NymVPN et bénéficier de :"
           }
         },
         "hi" : {
@@ -7502,8 +7502,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Third-party trust"
+            "state" : "translated",
+            "value" : "Confiance accordée aux tierces parties"
           }
         },
         "hi" : {
@@ -7603,8 +7603,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Payments and activity stay unlinked"
+            "state" : "translated",
+            "value" : "Les paiements et l'activité restent non liés"
           }
         },
         "hi" : {
@@ -7704,8 +7704,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "What is a 24-word passphrase?"
+            "state" : "translated",
+            "value" : "Qu'est-ce qu'une phrase de passe de 24 mots ?"
           }
         },
         "hi" : {
@@ -7805,8 +7805,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "24-word passphrase (locally created on your device) serves as your account login details. This passphrase is the only way to access your account."
+            "state" : "translated",
+            "value" : "La phrase de passe de 24 mots (créée localement sur votre appareil) sert de détails de connexion pour votre compte. Cette phrase de passe est le seul moyen d'accéder à votre compte."
           }
         },
         "hi" : {
@@ -7906,8 +7906,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your 24-word NymVPN passphrase"
+            "state" : "translated",
+            "value" : "Votre phrase de passe NymVPN de 24 mots"
           }
         },
         "hi" : {
@@ -8007,8 +8007,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For your privacy, we’ve eliminated:"
+            "state" : "translated",
+            "value" : "Pour votre confidentialité, nous avons supprimé :"
           }
         },
         "hi" : {
@@ -9926,8 +9926,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to create credential storage."
+            "state" : "translated",
+            "value" : "Échec de la création du stockage des informations d'identification."
           }
         },
         "hi" : {
@@ -10431,8 +10431,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account registration failed. Please try again."
+            "state" : "translated",
+            "value" : "Échec de la création du compte. Veuillez réessayer."
           }
         },
         "hi" : {
@@ -18208,8 +18208,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Commencer"
           }
         },
         "hi" : {
@@ -18238,8 +18238,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Começar"
           }
         },
         "ru" : {
@@ -22551,8 +22551,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start using NymVPN"
+            "state" : "translated",
+            "value" : "Commencer à utiliser NymVPN"
           }
         },
         "hi" : {
@@ -22652,8 +22652,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
+            "state" : "translated",
+            "value" : "Votre connexion est privée."
           }
         },
         "hi" : {
@@ -22753,8 +22753,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
+            "state" : "translated",
+            "value" : "Votre identité vous appartient."
           }
         },
         "hi" : {
@@ -22854,8 +22854,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
+            "state" : "translated",
+            "value" : "Abonnement activé"
           }
         },
         "hi" : {
@@ -22955,8 +22955,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Succesfully"
+            "state" : "translated",
+            "value" : "Avec succès"
           }
         },
         "hi" : {
@@ -25985,8 +25985,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Commencer"
           }
         },
         "hi" : {
@@ -26015,8 +26015,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Começar"
           }
         },
         "ru" : {
@@ -27266,9 +27266,99 @@
     "tryAgain" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Try again"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Try again"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+            "value" : "Try again"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inténtalo de nuevo"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Try again"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Réessayer"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Try again"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Try again"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Try again"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Try again"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tente novamente"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Try again"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Try again"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Спробувати ще раз"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Try again"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
             "value" : "Try again"
           }
         }
