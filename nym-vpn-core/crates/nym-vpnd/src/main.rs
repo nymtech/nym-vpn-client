@@ -44,6 +44,9 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
     let logging_setup = logging::setup_logging(options);
     let global_config_file = setup_global_config(args.network.as_deref())?;
 
+    if sentry_enabled {
+        tracing::info!("⚠ sentry monitoring enabled ⚠");
+    }
     let os = SysInfo::new();
     os.display(true);
 
@@ -88,6 +91,10 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             enable_stdout_log: false,
             sentry: sentry_enabled,
         });
+        if sentry_enabled {
+            tracing::info!("⚠ sentry monitoring enabled ⚠");
+        }
+        os.display(true);
         let worker_guard = service::windows_service::start(
             service::windows_service::ServiceNetworkConfig {
                 network: args.network.to_owned(),
@@ -96,7 +103,6 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
             logging_setup,
             sentry_enabled,
         )?;
-        os.display(true);
         Ok(worker_guard)
     } else {
         let options = logging::Options {
@@ -108,6 +114,9 @@ fn run() -> anyhow::Result<Option<WorkerGuard>> {
         let logging_setup = logging::setup_logging(options);
         let global_config_file = setup_global_config(args.network.as_deref())?;
 
+        if sentry_enabled {
+            tracing::info!("⚠ sentry monitoring enabled ⚠");
+        }
         os.display(true);
         run_inner(args, global_config_file, logging_setup, sentry_enabled)
     }
