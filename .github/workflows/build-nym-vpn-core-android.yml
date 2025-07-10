@@ -35,7 +35,7 @@ jobs:
         uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ vars.REQUIRED_RUSTC_VERSION }}
-          targets: aarch64-linux-android 
+          targets: aarch64-linux-android
 
       - name: Setup NDK
         uses: nttld/setup-ndk@v1
@@ -84,6 +84,7 @@ jobs:
         working-directory: nym-vpn-core/crates/nym-vpn-lib
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --release
           ls -la ../target/aarch64-linux-android/release/ || true

@@ -42,12 +42,12 @@ on:
         type: string
 
 jobs:
-  build-nym-vpn-app-linux:
+  build-linux:
     uses: ./.github/workflows/build-nym-vpn-app-linux.yml
     with:
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true }}
     secrets: inherit
-  build-nym-vpn-app-windows:
+  build-windows:
     uses: ./.github/workflows/build-nym-vpn-app-windows.yml
     with:
       dev_mode: ${{ github.event_name == 'schedule' || contains(github.ref_name, 'dev') || contains(github.ref_name, 'nightly') || inputs.dev_mode == true  }}
@@ -60,15 +60,15 @@ jobs:
 
   generate-build-info-nym-vpn-app:
     uses: ./.github/workflows/generate-build-info-nym-vpn-app.yml
-    needs: build-nym-vpn-app-linux
+    needs: build-linux
     with:
       build-profile: release
-      rust-version: ${{ needs.build-nym-vpn-app-linux.outputs.RUST_VERSION }}
+      rust-version: ${{ needs.build-linux.outputs.RUST_VERSION }}
 
   publish:
     needs:
-      - build-nym-vpn-app-linux
-      - build-nym-vpn-app-windows
+      - build-linux
+      - build-windows
       - generate-build-info-nym-vpn-app
     runs-on: ubuntu-22.04
     outputs:
@@ -83,9 +83,9 @@ jobs:
       # GH needed for gh cli
       GH_REPO: ${{ github.repository }}
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      PKG_VERSION: ${{ needs.build-nym-vpn-app-linux.outputs.PKG_VERSION }}
-      UPLOAD_DIR_UBUNTU_22: ${{ needs.build-nym-vpn-app-linux.outputs.UPLOAD_DIR_LINUX }}
-      UPLOAD_DIR_WINDOWS: ${{ needs.build-nym-vpn-app-windows.outputs.UPLOAD_DIR_WINDOWS }}
+      PKG_VERSION: ${{ needs.build-linux.outputs.PKG_VERSION }}
+      UPLOAD_DIR_UBUNTU_22: ${{ needs.build-linux.outputs.UPLOAD_DIR_LINUX }}
+      UPLOAD_DIR_WINDOWS: ${{ needs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
       UPDATER_ENABLED: ${{ inputs.updater == true || inputs.release_type == 'stable' }}
     permissions: write-all
     steps:
@@ -327,11 +327,15 @@ jobs:
           echo "TOPIC=$topic" >> "$GITHUB_ENV"
 
       - name: Set vpn-core link
+        env:
+          CORE_BUILD_URL: ${{ needs.build-windows.outputs.core_build_url }}
         run: |
           if [[ -n "${{ inputs.core_release_tag }}" ]]; then
             url=https://github.com/nymtech/nym-vpn-client/releases/tag/${{ inputs.core_release_tag }}
           elif [[ -n "${{ inputs.core_artifact_url }}" ]]; then
             url="$(dirname ${{ inputs.core_artifact_url }})/"
+          elif [[ -n "$CORE_BUILD_URL" ]]; then
+            url="$CORE_BUILD_URL"
           else
             url="https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core/develop/"
           fi

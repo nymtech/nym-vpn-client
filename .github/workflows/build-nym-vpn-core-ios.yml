@@ -67,6 +67,8 @@ jobs:
 
       - name: Build nym-vpn-lib
         working-directory: nym-vpn-core/crates/nym-vpn-lib
+        env:
+          VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo swift package -p ios -n NymVpnLib --target aarch64-apple-ios --accept-all --release
 

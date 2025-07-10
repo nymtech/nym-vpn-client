@@ -68,6 +68,8 @@ jobs:
 
       - name: Build nym-vpn-core debian packages
         working-directory: nym-vpn-core
+        env:
+          SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
           cargo deb -p nym-vpnd
           cargo deb -p nym-vpnc
