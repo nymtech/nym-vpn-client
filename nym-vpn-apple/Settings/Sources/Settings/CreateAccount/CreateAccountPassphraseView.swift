@@ -1,4 +1,5 @@
 import SwiftUI
+import Keychain
 #if os(iOS)
 import ImpactGenerator
 #endif
@@ -6,7 +7,8 @@ import Theme
 import UIComponents
 
 public struct CreateAccountPassphraseView: View {
-    @State private var displayCopiedOverlay = false
+    @State private var messageOverlayText: String?
+    @State private var displayMessageOverlay = false
     @Binding private var isAnimating: Bool
     @Binding private var isPassphraseSaved: Bool
     @Binding private var mnemonic: String?
@@ -95,6 +97,23 @@ private extension CreateAccountPassphraseView {
     var exportSection: some View {
         HStack(spacing: 0) {
             Spacer()
+            GenericImage(systemImageName: "key.horizontal")
+                .frame(width: 24, height: 24)
+                .foregroundStyle(NymColor.primary)
+                .onTapGesture {
+                    Task {
+                        await storeInKeychain()
+                    }
+                }
+                .accessibilityAction {
+                    Task {
+                        await storeInKeychain()
+                    }
+                }
+
+            Spacer()
+                .frame(width: 16)
+
             GenericImage(imageName: "copy")
                 .frame(width: 24, height: 24)
                 .foregroundStyle(NymColor.primary)
@@ -106,10 +125,10 @@ private extension CreateAccountPassphraseView {
                 }
         }
         .overlay {
-            if displayCopiedOverlay {
+            if displayMessageOverlay, let messageOverlayText {
                 HStack {
                     Spacer()
-                    Text("settings.copiedToPasteboard".localizedString)
+                    Text(messageOverlayText)
                         .padding(8)
                         .background(NymColor.elevation)
                         .foregroundColor(NymColor.gray1)
@@ -117,7 +136,7 @@ private extension CreateAccountPassphraseView {
                         .transition(.opacity)
                         .padding(.trailing, 0)
                 }
-                .animation(.easeInOut, value: displayCopiedOverlay)
+                .animation(.easeInOut, value: displayMessageOverlay)
             }
         }
     }
@@ -243,11 +262,34 @@ private extension CreateAccountPassphraseView {
         NSPasteboard.general.setString(mnemonic, forType: .string)
 #endif
         withAnimation {
-            displayCopiedOverlay = true
-            Task { @MainActor in
-                try? await Task.sleep(for: .seconds(3))
-                displayCopiedOverlay = false
-            }
+            messageOverlayText = "settings.copiedToPasteboard".localizedString
+            displayMessageOverlay = true
+            shcheduleMessageOverlayDismissal()
+        }
+    }
+
+    func storeInKeychain() async {
+        do {
+            guard let mnemonic else { return }
+            try await Keychain.addInternetPassword(with: mnemonic)
+        } catch {
+            messageOverlayText = error.localizedDescription
+            displayMessageOverlay = true
+            shcheduleMessageOverlayDismissal()
+            return
+        }
+
+        withAnimation {
+            messageOverlayText = "settings.savedInKeychain".localizedString
+            displayMessageOverlay = true
+            shcheduleMessageOverlayDismissal()
+        }
+    }
+
+    func shcheduleMessageOverlayDismissal() {
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(3))
+            displayMessageOverlay = false
         }
     }
 }

@@ -26960,6 +26960,17 @@
         }
       }
     },
+    "settings.savedInKeychain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saved in Keychain"
+          }
+        }
+      }
+    },
     "settings.support.resetVpnProfile" : {
       "extractionState" : "manual",
       "localizations" : {
