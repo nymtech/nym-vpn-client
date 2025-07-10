@@ -166,8 +166,8 @@ jobs:
         run: |
           $latest = Invoke-WebRequest -Uri "${{ env.VPN_CORE_BUILDS_URL }}/develop" | Select-String -Pattern '<a href="(\d+)/"' -AllMatches | ForEach-Object {$_.Matches} | ForEach-Object {$_.Groups[1].Value} | Sort-Object -Descending | Select-Object -First 1
           $latest_url = "${{ env.VPN_CORE_BUILDS_URL }}/develop/$latest"
-          Write-Output "$latest_url"
-          "latest_dev_url=$latest_url" >> $env:GITHUB_OUTPUT
+          Write-Output "$latest_url/"
+          "latest_dev_url=$latest_url/" >> $env:GITHUB_OUTPUT
           $artifact = Invoke-WebRequest -Uri "$latest_url" | Select-String -Pattern '<a href="(nym-vpn-core-v.+_windows_x86_64\.zip)"' -AllMatches | ForEach-Object {$_.Matches.Groups[1].Value}
           $artifact_url = "$latest_url/$artifact"
           Write-Output "$artifact_url"
