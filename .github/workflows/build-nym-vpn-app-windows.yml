@@ -78,6 +78,9 @@ on:
     outputs:
       UPLOAD_DIR_WINDOWS:
         value: ${{ jobs.build-windows.outputs.UPLOAD_DIR_WINDOWS }}
+      core_build_url:
+        description: "Core build URL that has been bundled"
+        value: ${{ jobs.build-windows.outputs.core_build_url }}
 
 env:
   CARGO_TERM_COLOR: always
@@ -94,6 +97,7 @@ jobs:
       UPDATER_URL_DEV: https://raw.githubusercontent.com/nymtech/nym-vpn-client/refs/heads/develop/.pkg/tauri-updater/dev.json
     outputs:
       UPLOAD_DIR_WINDOWS: ${{ env.UPLOAD_DIR_WINDOWS }}
+      core_build_url: ${{ steps.get_dev_url.outputs.latest_dev_url }}
 
     steps:
       - name: "Cleanup working directory"
@@ -158,9 +162,12 @@ jobs:
 
       - name: Get nym-vpn-core artifact url (latest dev)
         if: ${{ !inputs.core_release_tag && !inputs.core_artifact_url && inputs.dev_mode }}
+        id: get_dev_url
         run: |
           $latest = Invoke-WebRequest -Uri "${{ env.VPN_CORE_BUILDS_URL }}/develop" | Select-String -Pattern '<a href="(\d+)/"' -AllMatches | ForEach-Object {$_.Matches} | ForEach-Object {$_.Groups[1].Value} | Sort-Object -Descending | Select-Object -First 1
           $latest_url = "${{ env.VPN_CORE_BUILDS_URL }}/develop/$latest"
+          Write-Output "$latest_url/"
+          "latest_dev_url=$latest_url/" >> $env:GITHUB_OUTPUT
           $artifact = Invoke-WebRequest -Uri "$latest_url" | Select-String -Pattern '<a href="(nym-vpn-core-v.+_windows_x86_64\.zip)"' -AllMatches | ForEach-Object {$_.Matches.Groups[1].Value}
           $artifact_url = "$latest_url/$artifact"
           Write-Output "$artifact_url"
