@@ -20,8 +20,10 @@ let package = Package(
         .target(
             name: "Theme",
             resources: [
+                .copy("Resources/Fonts/LabGrotesque-Bold.ttf"),
                 .copy("Resources/Fonts/LabGrotesque-Regular.ttf"),
                 .copy("Resources/Fonts/LabGrotesqueMono-Regular.ttf"),
+                .copy("Resources/Fonts/LabGrotesqueMono-Bold.ttf"),
                 .process("Resources/Colors.xcassets")
             ]
         ),
