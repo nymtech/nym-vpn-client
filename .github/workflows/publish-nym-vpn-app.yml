@@ -77,6 +77,7 @@ jobs:
       version: ${{ steps.cargo-get.outputs.metadata }}
       win_updater_exe: ${{ steps.win_updater.outputs.exe }}
       win_updater_sig: ${{ steps.win_updater.outputs.sig }}
+      core_build_url_path: ${{ needs.build-windows.outputs.core_build_url_path }}
     env:
       # stable | nightly | dev
       RELEASE_TYPE: ${{ inputs.release_type || (github.event_name == 'schedule' && 'nightly' || 'dev') }}
@@ -328,16 +329,17 @@ jobs:
 
       - name: Set vpn-core link
         env:
-          CORE_BUILD_URL: ${{ needs.build-windows.outputs.core_build_url }}
+          NYM_BUILDS_URL: "https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core"
+          CORE_BUILD_URL_PATH: "${{ needs.publish.outputs.core_build_url_path }}"
         run: |
           if [[ -n "${{ inputs.core_release_tag }}" ]]; then
             url=https://github.com/nymtech/nym-vpn-client/releases/tag/${{ inputs.core_release_tag }}
           elif [[ -n "${{ inputs.core_artifact_url }}" ]]; then
             url="$(dirname ${{ inputs.core_artifact_url }})/"
-          elif [[ -n "$CORE_BUILD_URL" ]]; then
-            url="$CORE_BUILD_URL"
+          elif [[ -n "$CORE_BUILD_URL_PATH" ]]; then
+            url="${{ env.NYM_BUILDS_URL }}${{ env.CORE_BUILD_URL_PATH }}/"
           else
-            url="https://${{ secrets.CI_WWW_REMOTE_HOST }}/nym-vpn-client/nym-vpn-core/develop/"
+            url="${{ env.NYM_BUILDS_URL }}/develop/"
           fi
           echo $url
           echo "CORE_LINK=$url" >> "$GITHUB_ENV"
