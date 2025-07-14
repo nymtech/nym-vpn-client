@@ -91,6 +91,8 @@ fn set_file_permission_owner_rw<P: AsRef<Path>>(path: P) -> Result<(), std::io::
     return set_file_permission_owner_rw_unix(path);
 
     // Windows permission is set on the parent folder, nothing to do
+    #[cfg(windows)]
+    return Ok(());
 
     #[cfg(not(any(unix, windows)))]
     {
