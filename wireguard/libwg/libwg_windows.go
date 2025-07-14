@@ -13,7 +13,6 @@ import "C"
 import (
 	"bufio"
 	"strings"
-	"sync"
 	"unsafe"
 
 	"golang.org/x/sys/windows"
@@ -72,17 +71,7 @@ func wgTurnOn(cIfaceName *C.char, cRequestedGUID *C.char, cWintunTunnelType *C.c
 
 	logger.Verbosef("Creating interface %s (guid: %s, tunnel-type: %s) and mtu %d", ifaceName, networkId, wintunTunnelType, mtu)
 
-	// WORKAROUND: wrap CreateTUNWithRequestedGUID() into go routine to avoid a panic saying: "runtime: stack split at bad time"
-	// See: https://github.com/golang/go/issues/68285
-	var wintun tun.Device
-	var wg sync.WaitGroup
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		wintun, err = tun.CreateTUNWithRequestedGUID(ifaceName, &networkId, mtu)
-	}()
-	wg.Wait()
-
+	wintun, err := tun.CreateTUNWithRequestedGUID(ifaceName, &networkId, mtu)
 	if err != nil {
 		logger.Errorf("Failed to create tunnel: %s\n", err)
 		return ERROR_INTERMITTENT_FAILURE
