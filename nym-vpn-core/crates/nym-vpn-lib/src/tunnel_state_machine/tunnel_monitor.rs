@@ -651,12 +651,34 @@ impl TunnelMonitor {
             .map_err(Box::new)?;
         let assigned_addresses = connected_tunnel.assigned_addresses();
 
-        let mtu: u16 = self
+        let mtu = if let Some(mtu) = self
             .tunnel_parameters
             .tunnel_settings
             .mixnet_tunnel_options
             .mtu
-            .unwrap_or(DEFAULT_TUN_MTU);
+        {
+            mtu
+        } else {
+            #[cfg(any(target_os = "linux", target_os = "windows"))]
+            {
+                use nym_common::ErrorExt;
+                self.route_handler
+                    .get_mtu_for_route(assigned_addresses.entry_mixnet_gateway_ip)
+                    .await
+                    .inspect_err(|e| {
+                        tracing::warn!(
+                            "{}",
+                            e.display_chain_with_msg("Failed to detect mtu for route")
+                        );
+                    })
+                    .unwrap_or(DEFAULT_TUN_MTU)
+            }
+
+            #[cfg(not(any(target_os = "linux", target_os = "windows")))]
+            {
+                DEFAULT_TUN_MTU
+            }
+        };
 
         #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
         let tun_device = Self::create_mixnet_device(assigned_addresses.interface_addresses, mtu)?;
@@ -703,6 +725,7 @@ impl TunnelMonitor {
         {
             let routing_config = RoutingConfig::Mixnet {
                 tun_name: tun_name.clone(),
+                tun_mtu: mtu,
                 #[cfg(not(target_os = "linux"))]
                 entry_gateway_address: assigned_addresses.entry_mixnet_gateway_ip,
             };
@@ -721,6 +744,7 @@ impl TunnelMonitor {
 
         let tunnel_metadata = TunnelMetadata {
             interface: tun_name,
+            mtu,
             ips: vec![
                 IpAddr::V4(assigned_addresses.interface_addresses.ipv4),
                 IpAddr::V6(assigned_addresses.interface_addresses.ipv6),
@@ -757,19 +781,21 @@ impl TunnelMonitor {
             .map_err(Box::new)?;
         let conn_data = connected_tunnel.connection_data();
 
+        let exit_tun_mtu = connected_tunnel.exit_mtu();
         let exit_tun = Self::create_wireguard_device(
             IpPair {
                 ipv4: conn_data.exit.private_ipv4,
                 ipv6: conn_data.exit.private_ipv6,
             },
             Some(conn_data.entry.private_ipv4),
-            connected_tunnel.exit_mtu(),
+            exit_tun_mtu,
         )?;
         let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
         tracing::info!("Created exit tun device: {}", exit_tun_name);
 
         let routing_config = RoutingConfig::WireguardNetstack {
             exit_tun_name: exit_tun_name.clone(),
+            exit_tun_mtu,
             #[cfg(not(target_os = "linux"))]
             entry_gateway_address: conn_data.entry.endpoint.ip(),
         };
@@ -798,6 +824,7 @@ impl TunnelMonitor {
 
         let tunnel_metadata = TunnelMetadata {
             interface: exit_tun_name,
+            mtu: exit_tun_mtu,
             ips: vec![
                 IpAddr::V4(conn_data.exit.private_ipv4),
                 IpAddr::V6(conn_data.exit.private_ipv6),
@@ -834,6 +861,7 @@ impl TunnelMonitor {
             .map_err(Box::new)?;
         let conn_data = connected_tunnel.connection_data();
         let entry_gateway_address = conn_data.entry.endpoint.ip();
+        let exit_mtu = connected_tunnel.exit_mtu();
 
         let exit_adapter_config = WintunAdapterConfig {
             interface_ipv4: conn_data.exit.private_ipv4,
@@ -843,6 +871,7 @@ impl TunnelMonitor {
         };
         let mut tunnel_metadata = TunnelMetadata {
             interface: "".to_owned(),
+            mtu: exit_mtu,
             ips: vec![
                 IpAddr::V4(conn_data.exit.private_ipv4),
                 IpAddr::V6(conn_data.exit.private_ipv6),
@@ -888,6 +917,7 @@ impl TunnelMonitor {
 
         let routing_config = RoutingConfig::WireguardNetstack {
             exit_tun_name: wintun_exit_interface.name.clone(),
+            exit_tun_mtu: exit_mtu,
             entry_gateway_address,
         };
         // todo: make sure to shutdown tunnel_handle on failure!
@@ -917,13 +947,14 @@ impl TunnelMonitor {
             .map_err(Box::new)?;
         let conn_data = connected_tunnel.connection_data();
 
+        let entry_mtu = connected_tunnel.entry_mtu();
         let entry_tun = Self::create_wireguard_device(
             IpPair {
                 ipv4: conn_data.entry.private_ipv4,
                 ipv6: conn_data.entry.private_ipv6,
             },
             None,
-            connected_tunnel.entry_mtu(),
+            entry_mtu,
         )?;
         let entry_tun_name = entry_tun
             .get_ref()
@@ -933,6 +964,7 @@ impl TunnelMonitor {
 
         let entry_tunnel_metadata = TunnelMetadata {
             interface: entry_tun_name,
+            mtu: entry_mtu,
             ips: vec![
                 IpAddr::V4(conn_data.entry.private_ipv4),
                 IpAddr::V6(conn_data.entry.private_ipv6),
@@ -941,6 +973,7 @@ impl TunnelMonitor {
             ipv6_gateway: None,
         };
 
+        let exit_mtu = connected_tunnel.exit_mtu();
         let exit_tun = Self::create_wireguard_device(
             IpPair {
                 ipv4: conn_data.exit.private_ipv4,
@@ -948,13 +981,14 @@ impl TunnelMonitor {
             },
             // todo: this needs to be able to set both destinations?
             Some(conn_data.entry.private_ipv4),
-            connected_tunnel.exit_mtu(),
+            exit_mtu,
         )?;
         let exit_tun_name = exit_tun.get_ref().name().map_err(Error::GetTunDeviceName)?;
         tracing::info!("Created exit tun device: {}", exit_tun_name);
 
         let exit_tunnel_metadata = TunnelMetadata {
             interface: exit_tun_name.clone(),
+            mtu: exit_mtu,
             ips: vec![
                 IpAddr::V4(conn_data.exit.private_ipv4),
                 IpAddr::V6(conn_data.exit.private_ipv6),
@@ -966,6 +1000,8 @@ impl TunnelMonitor {
         let routing_config = RoutingConfig::Wireguard {
             entry_tun_name: entry_tunnel_metadata.interface.clone(),
             exit_tun_name: exit_tunnel_metadata.interface.clone(),
+            entry_tun_mtu: entry_mtu,
+            exit_tun_mtu: exit_mtu,
             #[cfg(not(target_os = "linux"))]
             entry_gateway_address: conn_data.entry.endpoint.ip(),
             exit_gateway_address: conn_data.exit.endpoint.ip(),
@@ -1023,6 +1059,8 @@ impl TunnelMonitor {
             .await
             .map_err(Box::new)?;
         let conn_data = connected_tunnel.connection_data();
+        let entry_tun_mtu = connected_tunnel.entry_mtu();
+        let exit_tun_mtu = connected_tunnel.exit_mtu();
 
         let entry_gateway_address = conn_data.entry.endpoint.ip();
         let exit_gateway_address = conn_data.exit.endpoint.ip();
@@ -1035,6 +1073,7 @@ impl TunnelMonitor {
         };
         let mut entry_tunnel_metadata = TunnelMetadata {
             interface: "".to_owned(),
+            mtu: entry_tun_mtu,
             ips: vec![
                 IpAddr::V4(conn_data.entry.private_ipv4),
                 IpAddr::V6(conn_data.entry.private_ipv6),
@@ -1051,6 +1090,7 @@ impl TunnelMonitor {
         };
         let mut exit_tunnel_metadata = TunnelMetadata {
             interface: "".to_owned(),
+            mtu: exit_tun_mtu,
             ips: vec![
                 IpAddr::V4(conn_data.exit.private_ipv4),
                 IpAddr::V6(conn_data.exit.private_ipv6),
@@ -1116,6 +1156,8 @@ impl TunnelMonitor {
         let routing_config = RoutingConfig::Wireguard {
             entry_tun_name: wintun_entry_interface.name.clone(),
             exit_tun_name: wintun_exit_interface.name.clone(),
+            entry_tun_mtu,
+            exit_tun_mtu,
             entry_gateway_address,
             exit_gateway_address,
         };
@@ -1142,6 +1184,7 @@ impl TunnelMonitor {
             .await
             .map_err(Box::new)?;
 
+        let mtu = connected_tunnel.exit_mtu();
         let conn_data = connected_tunnel.connection_data();
 
         let packet_tunnel_settings = tunnel_provider::tunnel_settings::TunnelSettings {
@@ -1156,7 +1199,7 @@ impl TunnelMonitor {
                 IpNetwork::V6(Ipv6Network::from(conn_data.exit.private_ipv6)),
             ],
             remote_addresses: vec![conn_data.entry.endpoint.ip()],
-            mtu: connected_tunnel.exit_mtu(),
+            mtu,
         };
 
         let tun_device = self.create_tun_device(packet_tunnel_settings).await?;
@@ -1164,6 +1207,7 @@ impl TunnelMonitor {
         let interface = tun_name::get_tun_name(&tun_fd).map_err(Error::GetTunDeviceName)?;
         let tunnel_metadata = TunnelMetadata {
             interface,
+            mtu,
             ips: vec![
                 IpAddr::V4(conn_data.exit.private_ipv4),
                 IpAddr::V6(conn_data.exit.private_ipv6),
