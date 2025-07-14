@@ -39,7 +39,7 @@ use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::{
-    CachingGatewayClient, Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, Recipient,
+    CachingGatewayClient, Config as GatewayDirectoryConfig, EntryPoint, ExitPoint,
 };
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
@@ -92,9 +92,6 @@ enum NextTunnelState {
 pub struct TunnelSettings {
     /// Type of tunnel.
     pub tunnel_type: TunnelType,
-
-    /// The (optional) recipient to send statistics to.
-    pub statistics_recipient: Option<Box<Recipient>>,
 
     /// Mixnet tunnel options.
     pub mixnet_tunnel_options: MixnetTunnelOptions,
@@ -206,7 +203,6 @@ impl Default for TunnelSettings {
     fn default() -> Self {
         Self {
             tunnel_type: TunnelType::Wireguard,
-            statistics_recipient: None,
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
             mixnet_client_config: None,
             wireguard_tunnel_options: WireguardTunnelOptions::default(),
