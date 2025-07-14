@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- sqlx-pool-guard public interface issue (https://github.com/nymtech/nym-vpn-client/pull/2925)
+- Wait for sqlite database to close before exiting the daemon to prevent database corruption (https://github.com/nymtech/nym-vpn-client/pull/2925)
 - Unblock mixnet client because of a deadlock (https://github.com/nymtech/nym-vpn-client/pull/3039)
 - Apply patch to h2 crate so hickory-dns DoH connections consider server go-away close as valid preventing spurious warn logging (https://github.com/nymtech/nym-vpn-client/pull/3053)
 - Fix tunnel connectivity issues by applying route MTU for multihop tunnel (https://github.com/nymtech/nym-vpn-client/pull/3051)
