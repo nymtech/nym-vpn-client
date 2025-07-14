@@ -51,7 +51,7 @@ use super::{
     config::{DEFAULT_CONFIG_FILE, NetworkEnvironments, NymVpnServiceConfig},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
-        Result, SetNetworkError, StatisticsControllerError, VpnServiceDeleteLogFileError,
+        Result, SetNetworkError, VpnServiceDeleteLogFileError,
     },
 };
 use crate::{config::GlobalConfigFile, logging::LogPath};
