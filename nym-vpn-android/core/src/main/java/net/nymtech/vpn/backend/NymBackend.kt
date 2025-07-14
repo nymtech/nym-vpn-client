@@ -171,7 +171,7 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 
 	private suspend fun configureLib(credentialMode: Boolean?) {
 		withContext(ioDispatcher) {
-			nym_vpn_lib.configureLib(storagePath, credentialMode, false)
+			nym_vpn_lib.configureLib(storagePath, credentialMode, false, false) // TODO : pipe statistics enabled here
 		}
 	}
 
