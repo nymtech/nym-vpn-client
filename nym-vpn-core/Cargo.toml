@@ -211,29 +211,29 @@ nym-wg-go = { path = "crates/nym-wg-go" }
 nym-windows = { path = "crates/nym-windows" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
 
-nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-client-core = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-config = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie", default-features = false }
-nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-credentials = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-crypto = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-sdk = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-task = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-topology = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
-sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "am/backport-close-sqlite-pool-brie" }
+nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-bandwidth-controller = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-bin-common = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-client-core = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-compact-ecash = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-config = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-contracts-common = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-credential-proxy-requests = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar", default-features = false }
+nym-credential-storage = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-credentials = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-credentials-interface = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-crypto = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-ecash-time = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-http-api-client = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-ip-packet-requests = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-node-requests = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-pemstore = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-service-provider-requests-common = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-sdk = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-statistics-common = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-task = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-topology = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-validator-client = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+nym-wireguard-types = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
+sqlx-pool-guard = { git = "https://github.com/nymtech/nym", branch = "bogdan/backport-close-sqlite-pool-cheddar" }
