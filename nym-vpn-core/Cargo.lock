@@ -4856,6 +4856,7 @@ dependencies = [
 name = "nym-statistics"
 version = "1.12.0-beta"
 dependencies = [
+ "futures",
  "nym-bin-common",
  "nym-sdk",
  "nym-statistics-api-client",

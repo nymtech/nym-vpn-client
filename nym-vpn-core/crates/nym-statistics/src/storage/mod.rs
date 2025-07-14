@@ -39,9 +39,10 @@ impl StatsStorage {
                 .await?,
         );
 
-        sqlx::migrate!("./migrations")
-            .run(&*connection_pool)
-            .await?;
+        if let Err(e) = sqlx::migrate!("./migrations").run(&*connection_pool).await {
+            connection_pool.close().await;
+            return Err(e.into());
+        }
 
         tracing::debug!("Setting file permissions on the database file");
         set_file_permission_owner_rw(&database_path)
@@ -57,6 +58,10 @@ impl StatsStorage {
         Ok(Self {
             storage_manager: SqliteStatsStorageManager::new(connection_pool),
         })
+    }
+
+    pub(crate) async fn close(&self) {
+        self.storage_manager.close().await
     }
 
     pub(crate) async fn maybe_init_and_load_seed(&self) -> Result<String, StatsStorageError> {
