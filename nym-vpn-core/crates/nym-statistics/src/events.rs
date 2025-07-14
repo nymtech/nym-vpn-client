@@ -3,6 +3,7 @@
 
 use std::time::Instant;
 
+use nym_vpn_lib_types::TunnelState;
 use tokio::sync::mpsc::UnboundedSender;
 use tokio_util::sync::CancellationToken;
 
@@ -72,6 +73,17 @@ impl StatisticsEvent {
             instant: Instant::now(),
             error: error.to_string(),
         })
+    }
+
+    pub fn new_from_state(state: TunnelState) -> Option<Self> {
+        match state {
+            TunnelState::Disconnected => Some(Self::new_disconnected()),
+            TunnelState::Connecting { .. } => None, // We don't want an event from that as it can fire multiple times when connecting.
+            TunnelState::Connected { .. } => Some(Self::new_connected()),
+            TunnelState::Disconnecting { .. } => Some(Self::new_disconnecting()),
+            TunnelState::Error(client_error_reason) => Some(Self::new_error(client_error_reason)),
+            TunnelState::Offline { .. } => None,
+        }
     }
 
     pub fn reset_seed() -> Self {
