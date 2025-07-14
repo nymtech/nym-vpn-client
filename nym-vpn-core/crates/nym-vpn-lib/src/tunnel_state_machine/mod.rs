@@ -28,6 +28,7 @@ use std::{
 };
 
 use nym_offline_monitor::ConnectivityHandle;
+use nym_statistics::{StatisticsSender, events::StatisticsEvent};
 use nym_vpn_account_controller::AccountCommandSender;
 use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
@@ -39,7 +40,7 @@ use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_firewall::{Firewall, FirewallArguments, InitialFirewallState};
 use nym_gateway_directory::{
-    CachingGatewayClient, Config as GatewayDirectoryConfig, EntryPoint, ExitPoint, Recipient,
+    CachingGatewayClient, Config as GatewayDirectoryConfig, EntryPoint, ExitPoint,
 };
 use nym_sdk::UserAgent;
 use nym_vpn_lib_types::{
@@ -92,9 +93,6 @@ enum NextTunnelState {
 pub struct TunnelSettings {
     /// Type of tunnel.
     pub tunnel_type: TunnelType,
-
-    /// The (optional) recipient to send statistics to.
-    pub statistics_recipient: Option<Box<Recipient>>,
 
     /// Mixnet tunnel options.
     pub mixnet_tunnel_options: MixnetTunnelOptions,
@@ -206,7 +204,6 @@ impl Default for TunnelSettings {
     fn default() -> Self {
         Self {
             tunnel_type: TunnelType::Wireguard,
-            statistics_recipient: None,
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
             mixnet_client_config: None,
             wireguard_tunnel_options: WireguardTunnelOptions::default(),
@@ -386,6 +383,7 @@ pub struct SharedState {
     #[cfg(target_os = "android")]
     tun_provider: Arc<dyn AndroidTunProvider>,
     account_command_tx: AccountCommandSender,
+    statistics_event_sender: StatisticsSender,
     gateway_directory: CachingGatewayClient,
     topology_provider: VpnTopologyProvider,
 }
@@ -419,6 +417,7 @@ impl TunnelStateMachine {
         nym_config: NymConfig,
         tunnel_settings: TunnelSettings,
         account_command_tx: AccountCommandSender,
+        statistics_event_sender: StatisticsSender,
         gateway_directory: CachingGatewayClient,
         topology_provider: VpnTopologyProvider,
         connectivity_handle: ConnectivityHandle,
@@ -479,6 +478,7 @@ impl TunnelStateMachine {
             #[cfg(any(target_os = "ios", target_os = "android"))]
             tun_provider,
             account_command_tx,
+            statistics_event_sender,
             gateway_directory,
             topology_provider,
         };
@@ -534,9 +534,11 @@ impl TunnelStateMachine {
             match next_state {
                 NextTunnelState::NewState((new_state_handler, new_state)) => {
                     self.current_state_handler = new_state_handler;
-
                     let state = TunnelState::from(new_state);
                     tracing::info!("New tunnel state: {}", state);
+                    if let Some(event) = StatisticsEvent::new_from_state(state.clone()) {
+                        self.shared_state.statistics_event_sender.report(event)
+                    }
                     let _ = self.event_sender.send(TunnelEvent::NewState(state));
                 }
                 NextTunnelState::SameState(same_state) => {

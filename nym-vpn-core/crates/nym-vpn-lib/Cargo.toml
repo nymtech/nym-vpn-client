@@ -64,6 +64,7 @@ nym-gateway-directory.workspace = true
 nym-ip-packet-client.workspace = true
 nym-macos.workspace = true
 nym-offline-monitor.workspace = true
+nym-statistics.workspace = true
 nym-vpn-account-controller.workspace = true
 nym-vpn-api-client.workspace = true
 nym-vpn-lib-types = { workspace = true, features = ["nym-type-conversions"] }

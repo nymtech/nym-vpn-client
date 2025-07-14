@@ -4,6 +4,10 @@
 use std::{net::IpAddr, path::PathBuf, sync::Arc, time::Instant};
 
 use bip39::Mnemonic;
+use nym_statistics::{
+    StatisticsController, StatisticsControllerConfig,
+    events::{StatisticsEvent, StatisticsSender},
+};
 use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
@@ -22,7 +26,7 @@ use nym_vpn_api_client::{
     types::{Percent, ScoreThresholds},
 };
 use nym_vpn_lib::{
-    MixnetClientConfig, Recipient, UserAgent, VpnTopologyProvider,
+    MixnetClientConfig, UserAgent, VpnTopologyProvider,
     gateway_directory::{
         self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient, GatewayType,
     },
@@ -210,6 +214,7 @@ where
 
     // Account controller handle
     account_controller_handle: JoinHandle<()>,
+    statistics_controller_handle: JoinHandle<()>,
 
     // Command channel for state machine
     command_sender: mpsc::UnboundedSender<TunnelCommand>,
@@ -220,14 +225,14 @@ where
     // Service shutdown token.
     shutdown_token: CancellationToken,
 
-    // The (optional) recipient to send statistics to
-    statistics_recipient: Option<Recipient>,
-
     // Gateway directory client
     gateway_directory_client: CachingGatewayClient,
 
     // Sentry client has been initialized and is enabled
     sentry_enabled: bool,
+
+    // The statistics channel sender
+    statistics_event_sender: StatisticsSender,
 }
 
 impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
@@ -239,6 +244,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         shutdown_token: CancellationToken,
         network_env: Network,
         user_agent: UserAgent,
+        stats_id_seed: Option<String>,
         log_path: Option<LogPath>,
         sentry_enabled: bool,
     ) -> JoinHandle<()> {
@@ -251,6 +257,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
                 shutdown_token,
                 network_env,
                 user_agent,
+                stats_id_seed,
                 log_path,
                 sentry_enabled,
             )
@@ -275,6 +282,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         })
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub async fn new(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
@@ -282,6 +290,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         shutdown_token: CancellationToken,
         network_env: Network,
         user_agent: UserAgent,
+        stats_id_seed: Option<String>,
         log_path: Option<LogPath>,
         sentry_enabled: bool,
     ) -> Result<Self> {
@@ -299,10 +308,10 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // Make sure the data dir exists
         super::config::create_data_dir(&data_dir, &network_name).map_err(Error::ConfigSetup)?;
 
-        let statistics_recipient = network_env
+        let statistics_api = network_env
             .system_configuration
             .as_ref()
-            .and_then(|config| config.statistics_recipient);
+            .and_then(|config| config.statistics_api.clone());
 
         let account_controller_config = AccountControllerConfig {
             data_dir: network_data_dir.clone(),
@@ -341,6 +350,22 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let shared_account_state = account_controller.get_shared_state();
         let account_command_tx = account_controller.get_command_sender();
         let account_controller_handle = tokio::task::spawn(account_controller.run());
+
+        // Statistics collection setup
+        let statistics_controller_config =
+            StatisticsControllerConfig::new(statistics_api, user_agent.clone())
+                .with_stats_id_seed(stats_id_seed);
+
+        // Statistics collection can technically fail, but if it's the case, we just disable it as it is not operation critical.
+        let statistics_controller = StatisticsController::new(
+            statistics_controller_config,
+            network_data_dir.clone(),
+            shutdown_token.child_token(),
+        )
+        .await;
+
+        let statistics_event_sender = statistics_controller.get_statistics_sender();
+        let statistics_controller_handle = tokio::task::spawn(statistics_controller.run());
 
         // These used to interact with the tunnel state machine
         let (command_sender, command_receiver) = mpsc::unbounded_channel();
@@ -404,6 +429,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             nym_config,
             tunnel_settings,
             account_command_tx.clone(),
+            statistics_event_sender.clone(),
             gateway_directory_client.clone(),
             topology_provider,
             connectivity_handle,
@@ -429,12 +455,13 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             tunnel_state: watch::Sender::new(TunnelState::Disconnected),
             state_machine_handle,
             account_controller_handle,
+            statistics_controller_handle,
             command_sender,
             event_receiver,
             shutdown_token,
-            statistics_recipient,
             gateway_directory_client,
             sentry_enabled,
+            statistics_event_sender,
         })
     }
 }
@@ -475,6 +502,10 @@ where
 
         if let Err(e) = self.account_controller_handle.await {
             tracing::error!("Failed to join on account controller handle: {}", e);
+        }
+
+        if let Err(e) = self.statistics_controller_handle.await {
+            tracing::error!("Failed to join on statistics controller handle: {}", e);
         }
 
         if let Err(e) = self.state_machine_handle.await {
@@ -658,6 +689,9 @@ where
             mut options,
         } = connect_args;
 
+        self.statistics_event_sender
+            .report(StatisticsEvent::new_connecting(options.enable_two_hop)); // desktop "Connect" event
+
         // Get feature flag
         let enable_credentials_mode = self
             .network_env
@@ -697,11 +731,6 @@ where
                 .map(|x| x.round_to_integer()),
         };
 
-        tracing::info!(
-            "Using statistics recipient: {:?}",
-            self.statistics_recipient
-        );
-
         let mixnet_client_config = MixnetClientConfig {
             disable_poisson_rate: options.disable_poisson_rate,
             disable_background_cover_traffic: options.disable_background_cover_traffic,
@@ -726,7 +755,6 @@ where
 
         let tunnel_settings = TunnelSettings {
             tunnel_type,
-            statistics_recipient: self.statistics_recipient.map(Box::new),
             mixnet_tunnel_options: MixnetTunnelOptions {
                 mtu: None,
                 enable_credentials_mode,
@@ -914,6 +942,9 @@ where
             data_dir.display()
         );
 
+        self.statistics_event_sender
+            .report(StatisticsEvent::remove_seed());
+
         self.account_command_tx.forget_account().await
     }
 
@@ -967,6 +998,9 @@ where
             .reset_keys(seed)
             .await
             .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
+
+        self.statistics_event_sender
+            .report(StatisticsEvent::reset_seed());
 
         self.account_command_tx.background_sync_account_state();
 

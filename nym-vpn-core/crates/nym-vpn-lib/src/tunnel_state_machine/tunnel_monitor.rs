@@ -400,12 +400,6 @@ impl TunnelMonitor {
                 .tunnel_settings
                 .mixnet_tunnel_options
                 .enable_credentials_mode,
-            stats_recipient_address: self
-                .tunnel_parameters
-                .tunnel_settings
-                .statistics_recipient
-                .as_deref()
-                .copied(),
             selected_gateways: selected_gateways.clone(),
             user_agent: None, // todo: provide user-agent
             custom_topology_provider: self.custom_topology_provider.clone(),

@@ -29,6 +29,10 @@ pub struct CliArgs {
     #[arg(long, value_parser = parse_user_agent)]
     pub user_agent: Option<nym_vpn_lib::UserAgent>,
 
+    /// Override the otherwise random statistics_id_seed
+    #[arg(long, hide = true)]
+    pub stats_id_seed: Option<String>,
+
     #[command(flatten)]
     pub command: Command,
 }

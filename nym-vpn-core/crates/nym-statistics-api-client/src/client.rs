@@ -1,0 +1,62 @@
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use std::{fmt, time::Duration};
+
+use nym_http_api_client::{ApiClient, HttpClientError, NO_PARAMS, UserAgent};
+use serde::{Serialize, de::DeserializeOwned};
+use url::Url;
+
+use crate::{
+    error::{Result, StatisticsApiClientError},
+    routes,
+};
+
+// requests can unfortunately take a long time over the mixnet
+pub(crate) const NYM_STATISTICS_API_TIMEOUT: Duration = Duration::from_secs(60);
+
+#[derive(Clone, Debug)]
+pub struct StatisticsApiClient {
+    inner: nym_http_api_client::Client,
+}
+
+impl StatisticsApiClient {
+    pub fn new(base_url: Url, user_agent: UserAgent) -> Result<Self> {
+        nym_http_api_client::Client::builder(base_url.clone())
+            .and_then(|builder| {
+                builder
+                    .with_user_agent(user_agent)
+                    .with_timeout(NYM_STATISTICS_API_TIMEOUT)
+                    .build()
+            })
+            .map(|c| Self { inner: c })
+            .map_err(StatisticsApiClientError::VpnApiClientCreation)
+    }
+
+    async fn post_query<T, B, E>(
+        &self,
+        path: &str,
+        json_body: &B,
+    ) -> std::result::Result<T, HttpClientError<E>>
+    where
+        T: DeserializeOwned,
+        B: Serialize,
+        E: fmt::Display + DeserializeOwned,
+    {
+        let request = self.inner.create_post_request(path, NO_PARAMS, json_body);
+
+        let response = request.send().await?;
+
+        //SW parse_response currently can't handle empty response without throwing an error because it will try to deserialize it anyway
+        nym_http_api_client::parse_response(response, false).await
+    }
+
+    pub async fn post_stats_report<B>(&self, body: B) -> Result<()>
+    where
+        B: Serialize,
+    {
+        self.post_query(routes::REPORT_ROUTE, &body)
+            .await
+            .map_err(StatisticsApiClientError::ReportSending)
+    }
+}
