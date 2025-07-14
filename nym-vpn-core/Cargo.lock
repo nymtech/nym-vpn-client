@@ -5282,6 +5282,7 @@ dependencies = [
  "nym-ipc",
  "nym-offline-monitor",
  "nym-platform-metadata",
+ "nym-statistics",
  "nym-task",
  "nym-validator-client",
  "nym-vpn-account-controller",
