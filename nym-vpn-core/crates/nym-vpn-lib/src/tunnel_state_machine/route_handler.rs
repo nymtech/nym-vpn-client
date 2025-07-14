@@ -117,16 +117,7 @@ impl RouteHandler {
                     IpNetwork::from(entry_gateway_address),
                     NetNode::DefaultNode,
                 ));
-
-                routes.insert(RequiredRoute::new(
-                    "0.0.0.0/0".parse().unwrap(),
-                    Node::device(tun_name.to_owned()),
-                ));
-
-                routes.insert(RequiredRoute::new(
-                    "::0/0".parse().unwrap(),
-                    Node::device(tun_name.to_owned()),
-                ));
+                routes.extend(Self::get_wildcard_routes(tun_name));
             }
             RoutingConfig::Wireguard {
                 entry_tun_name,
@@ -140,21 +131,8 @@ impl RouteHandler {
                     IpNetwork::from(entry_gateway_address),
                     NetNode::DefaultNode,
                 ));
-
-                routes.insert(RequiredRoute::new(
-                    IpNetwork::from(exit_gateway_address),
-                    Node::device(entry_tun_name.to_owned()),
-                ));
-
-                routes.insert(RequiredRoute::new(
-                    "0.0.0.0/0".parse().unwrap(),
-                    Node::device(exit_tun_name.to_owned()),
-                ));
-
-                routes.insert(RequiredRoute::new(
-                    "::0/0".parse().unwrap(),
-                    Node::device(exit_tun_name.to_owned()),
-                ));
+                routes.insert(Self::get_exit_route(exit_gateway_address, entry_tun_name));
+                routes.extend(Self::get_wildcard_routes(exit_tun_name));
             }
             RoutingConfig::WireguardNetstack {
                 exit_tun_name,
@@ -166,28 +144,46 @@ impl RouteHandler {
                     IpNetwork::from(entry_gateway_address),
                     NetNode::DefaultNode,
                 ));
-
-                routes.insert(RequiredRoute::new(
-                    "0.0.0.0/0".parse().unwrap(),
-                    Node::device(exit_tun_name.to_owned()),
-                ));
-
-                routes.insert(RequiredRoute::new(
-                    "::0/0".parse().unwrap(),
-                    Node::device(exit_tun_name.to_owned()),
-                ));
+                routes.extend(Self::get_wildcard_routes(exit_tun_name));
             }
         }
 
+        routes
+    }
+
+    fn get_exit_route(ip_addr: IpAddr, iface: String) -> RequiredRoute {
+        let route = RequiredRoute::new(IpNetwork::from(ip_addr), Node::device(iface));
+
         #[cfg(target_os = "linux")]
         {
-            routes = routes
-                .into_iter()
-                .map(|r| r.use_main_table(false))
-                .collect();
+            route.use_main_table(false)
         }
 
-        routes
+        #[cfg(not(target_os = "linux"))]
+        {
+            route
+        }
+    }
+
+    fn get_wildcard_routes(iface: String) -> Vec<RequiredRoute> {
+        let ipv4_route =
+            RequiredRoute::new("0.0.0.0/0".parse().unwrap(), Node::device(iface.to_owned()));
+        let ipv6_route = RequiredRoute::new("::0/0".parse().unwrap(), Node::device(iface));
+
+        let routes = vec![ipv4_route, ipv6_route];
+
+        #[cfg(target_os = "linux")]
+        {
+            routes
+                .into_iter()
+                .map(|r| r.use_main_table(false))
+                .collect()
+        }
+
+        #[cfg(not(target_os = "linux"))]
+        {
+            routes
+        }
     }
 }
 
