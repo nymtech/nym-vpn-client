@@ -334,6 +334,7 @@ pub struct TunnelMetadata {
     ips: Vec<IpAddr>,
     ipv4_gateway: Option<Ipv4Addr>,
     ipv6_gateway: Option<Ipv6Addr>,
+    #[allow(unused)]
     mtu: u16,
 }
 

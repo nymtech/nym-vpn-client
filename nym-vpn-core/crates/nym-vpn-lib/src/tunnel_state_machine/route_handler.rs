@@ -186,7 +186,7 @@ impl RouteHandler {
         route
     }
 
-    fn get_default_routes(iface: String, mtu: u16) -> Vec<RequiredRoute> {
+    fn get_default_routes(iface: String, _mtu: u16) -> Vec<RequiredRoute> {
         let ipv4_route =
             RequiredRoute::new("0.0.0.0/0".parse().unwrap(), Node::device(iface.to_owned()));
         let ipv6_route = RequiredRoute::new("::0/0".parse().unwrap(), Node::device(iface));
@@ -204,7 +204,7 @@ impl RouteHandler {
 
         #[cfg(any(target_os = "linux", target_os = "macos"))]
         {
-            routes = routes.into_iter().map(|r| r.mtu(mtu)).collect();
+            routes = routes.into_iter().map(|r| r.mtu(_mtu)).collect();
         }
 
         routes
