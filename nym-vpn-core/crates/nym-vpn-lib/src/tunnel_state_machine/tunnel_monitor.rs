@@ -41,7 +41,9 @@ use tun::Device;
 use nym_ip_packet_requests::IpPair;
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use super::route_handler::RouteHandler;
+use super::route_handler::{RouteHandler, RoutingConfig};
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+use super::tun_ipv6;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 use super::tun_name;
 use super::{
@@ -50,8 +52,6 @@ use super::{
         self, AnyTunnelHandle, ConnectedMixnet, MixnetConnectOptions, SelectedGateways, Tombstone,
     },
 };
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
-use super::{route_handler::RoutingConfig, tun_ipv6};
 use nym_common::trace_err_chain;
 use nym_vpn_lib_types::{
     ConnectionData, ErrorStateReason, Gateway, MixnetConnectionData, MixnetEvent, NymAddress,
@@ -1298,10 +1298,16 @@ impl TunnelMonitor {
             .name()
             .map_err(Error::GetTunDeviceName)?;
 
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
         tun_ipv6::set_ipv6_addr(&tun_name, interface_addresses.ipv6)
             .map_err(Error::SetTunDeviceIpv6Addr)?;
+
         #[cfg(windows)]
-        wintun::initialize_interfaces_with_alias(&tun_name, Some(mtu), Some(mtu))?;
+        {
+            let interface_luid = wintun::get_interface_luid_for_alias(&tun_name)?;
+            wintun::add_ipv6_address(interface_luid, interface_addresses.ipv6)?;
+            wintun::initialize_interfaces(interface_luid, Some(mtu), Some(mtu))?;
+        }
 
         Ok(tun_device)
     }

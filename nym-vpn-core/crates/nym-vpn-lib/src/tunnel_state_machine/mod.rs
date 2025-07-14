@@ -11,7 +11,7 @@ mod resolver;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 mod route_handler;
 mod states;
-#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+#[cfg(any(target_os = "linux", target_os = "macos"))]
 mod tun_ipv6;
 #[cfg(any(target_os = "ios", target_os = "android"))]
 mod tun_name;

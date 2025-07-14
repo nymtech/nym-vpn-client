@@ -72,6 +72,15 @@ pub fn setup_wintun_adapter(
     Ok(())
 }
 
+/// Set IPv6 address only on network interface
+pub fn add_ipv6_address(
+    luid: NET_LUID_LH,
+    interface_ipv6: Ipv6Addr,
+) -> Result<(), SetupWintunAdapterError> {
+    wnet::add_ip_address_for_interface(luid, IpAddr::V6(interface_ipv6))
+        .map_err(SetupWintunAdapterError::SetIpv6Addr)
+}
+
 /// Sets MTU, metric, and disables unnecessary features for the IP interfaces
 /// on the specified network interface (identified by `luid`).
 pub fn initialize_interfaces(
@@ -114,17 +123,10 @@ pub fn initialize_interfaces(
     Ok(())
 }
 
-/// Does all the same as `initialize_interfaces` using interface alias.
-pub fn initialize_interfaces_with_alias(
+/// Returns interface LUID for alias upon success, otherwise error.
+pub fn get_interface_luid_for_alias(
     interface_alias: &str,
-    ipv4_mtu: Option<u16>,
-    ipv6_mtu: Option<u16>,
-) -> Result<(), SetupWintunAdapterError> {
-    let luid = wnet::luid_from_alias(interface_alias)
-        .map_err(SetupWintunAdapterError::GetInterfaceLuidFromAlias)?;
-    tracing::debug!(
-        "Converted interface alias {interface_alias} to luid: {}",
-        unsafe { luid.Value }
-    );
-    initialize_interfaces(luid, ipv4_mtu, ipv6_mtu)
+) -> Result<NET_LUID_LH, SetupWintunAdapterError> {
+    wnet::luid_from_alias(interface_alias)
+        .map_err(SetupWintunAdapterError::GetInterfaceLuidFromAlias)
 }
