@@ -9,11 +9,11 @@ It is forked from (https://github.com/mullvad/mullvadvpn-app) which maintains co
 
 ### All platforms
 
-- Install the latest Go 1.22 from https://go.dev/dl/
+- Install the latest Go from https://go.dev/dl/
 
 ### Windows
 
-- Install Visual Studio and VC build tools (x64 + arm64) via Command Prompt:
+- Install Visual Studio and VC build tools (x64 + arm64) via Command Prompt or manually from [the official website](https://visualstudio.microsoft.com/downloads/):
   ```sh
   winget install --id Microsoft.VisualStudio.2022.Community --override "--wait --add Microsoft.VisualStudio.Workload.VCTools;includeRecommended --add Microsoft.VisualStudio.Component.VC.Tools.ARM64"
   ```
@@ -25,10 +25,33 @@ It is forked from (https://github.com/mullvad/mullvadvpn-app) which maintains co
   pacman -S mingw-w64-x86_64-clang
   pacman -S mingw-w64-clang-aarch64-clang
   ```
+- Download `make` via winget:
+  ```sh
+  winget install -e --id GnuWin32.Make
+  ```
 
 ## Building
 
 ### Windows
+
+#### Automatic build
+
+Open terminal and run the following command to build `libwg` (`wireguard-go`), download `wintun` and compile `winfw`:
+
+```sh
+cd nym-vpn-core
+make -f Windows.mk
+```
+
+If you wish to perform individual action, pass one of the following commands to:
+
+```sh
+make -f Windows.mk <COMMAND>
+```
+
+Replace `<COMMAND>` with `libwg`, `wintun` or `winfw`.
+
+#### Manual build
 
 - Choose the right shell, use "msys2 mingw64" for x64 builds and "msys2 clangarm64" for arm64 builds.
 - Navigate to the `wireguard` directory in the nym-vpn-client repository checkout, i.e:
