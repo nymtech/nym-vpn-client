@@ -914,6 +914,11 @@ impl TunnelMonitor {
         tracing::info!("Created wintun device: {}", wintun_exit_interface.name);
 
         wintun::setup_wintun_adapter(wintun_exit_interface.windows_luid(), exit_adapter_config)?;
+        wintun::initialize_interfaces(
+            wintun_exit_interface.windows_luid(),
+            Some(exit_mtu),
+            Some(exit_mtu),
+        )?;
 
         let routing_config = RoutingConfig::WireguardNetstack {
             exit_tun_name: wintun_exit_interface.name.clone(),
@@ -1144,6 +1149,17 @@ impl TunnelMonitor {
         wintun::setup_wintun_adapter(wintun_entry_interface.windows_luid(), entry_adapter_config)?;
         wintun::setup_wintun_adapter(wintun_exit_interface.windows_luid(), exit_adapter_config)?;
 
+        wintun::initialize_interfaces(
+            wintun_entry_interface.windows_luid(),
+            Some(entry_tun_mtu),
+            Some(entry_tun_mtu),
+        )?;
+        wintun::initialize_interfaces(
+            wintun_exit_interface.windows_luid(),
+            Some(exit_tun_mtu),
+            Some(exit_tun_mtu),
+        )?;
+
         // Update interface names in tunnel metadata
         entry_tunnel_metadata.interface = wintun_entry_interface.name.clone();
         exit_tunnel_metadata.interface = wintun_exit_interface.name.clone();
@@ -1284,6 +1300,8 @@ impl TunnelMonitor {
 
         tun_ipv6::set_ipv6_addr(&tun_name, interface_addresses.ipv6)
             .map_err(Error::SetTunDeviceIpv6Addr)?;
+        #[cfg(windows)]
+        wintun::initialize_interfaces_with_alias(&tun_name, Some(mtu), Some(mtu))?;
 
         Ok(tun_device)
     }

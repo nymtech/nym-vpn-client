@@ -1,10 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_windows::net as wnet;
+use nym_windows::net::{self as wnet, AddressFamily};
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr};
 
-use windows::Win32::NetworkManagement::Ndis::NET_LUID_LH;
+use windows::Win32::{
+    Foundation::ERROR_NOT_FOUND, NetworkManagement::Ndis::NET_LUID_LH,
+    Networking::WinSock::RouterDiscoveryDisabled,
+};
 
 /// Wintun adapter configuration error.
 #[derive(Debug, thiserror::Error)]
@@ -20,6 +23,15 @@ pub enum SetupWintunAdapterError {
 
     #[error("failed to set wintun adapter ipv6 gateway address")]
     SetIpv6Gateway(#[source] nym_windows::net::Error),
+
+    #[error("failed to set interface mtu")]
+    SetMtu(#[source] windows::core::Error),
+
+    #[error("failed to set ip interface entry")]
+    SetIpInterfaceEntry(#[source] windows::core::Error),
+
+    #[error("failed to obtain interface luid from alias")]
+    GetInterfaceLuidFromAlias(#[source] std::io::Error),
 }
 
 /// Struct holding wintun adapter IP configuration.
@@ -58,4 +70,61 @@ pub fn setup_wintun_adapter(
     }
 
     Ok(())
+}
+
+/// Sets MTU, metric, and disables unnecessary features for the IP interfaces
+/// on the specified network interface (identified by `luid`).
+pub fn initialize_interfaces(
+    luid: NET_LUID_LH,
+    ipv4_mtu: Option<u16>,
+    ipv6_mtu: Option<u16>,
+) -> Result<(), SetupWintunAdapterError> {
+    for (family, mtu) in &[
+        (AddressFamily::Ipv4, ipv4_mtu),
+        (AddressFamily::Ipv6, ipv6_mtu),
+    ] {
+        let mut row = match wnet::get_ip_interface_entry(*family, &luid) {
+            Ok(row) => row,
+            Err(error) if error.code() == ERROR_NOT_FOUND.into() => {
+                tracing::warn!("Interface not found for {family}");
+                continue;
+            }
+            Err(error) => return Err(SetupWintunAdapterError::SetMtu(error)),
+        };
+
+        if let Some(mtu) = mtu {
+            row.NlMtu = u32::from(*mtu);
+        }
+
+        // Disable DAD, DHCP, and router discovery
+        row.SitePrefixLength = 0;
+        row.RouterDiscoveryBehavior = RouterDiscoveryDisabled;
+        row.DadTransmits = 0;
+        row.ManagedAddressConfigurationSupported = false;
+        row.OtherStatefulConfigurationSupported = false;
+
+        // Ensure lowest interface metric
+        row.Metric = 1;
+        row.UseAutomaticMetric = false;
+
+        wnet::set_ip_interface_entry(&mut row)
+            .map_err(SetupWintunAdapterError::SetIpInterfaceEntry)?;
+    }
+
+    Ok(())
+}
+
+/// Does all the same as `initialize_interfaces` using interface alias.
+pub fn initialize_interfaces_with_alias(
+    interface_alias: &str,
+    ipv4_mtu: Option<u16>,
+    ipv6_mtu: Option<u16>,
+) -> Result<(), SetupWintunAdapterError> {
+    let luid = wnet::luid_from_alias(interface_alias)
+        .map_err(SetupWintunAdapterError::GetInterfaceLuidFromAlias)?;
+    tracing::debug!(
+        "Converted interface alias {interface_alias} to luid: {}",
+        unsafe { luid.Value }
+    );
+    initialize_interfaces(luid, ipv4_mtu, ipv6_mtu)
 }
