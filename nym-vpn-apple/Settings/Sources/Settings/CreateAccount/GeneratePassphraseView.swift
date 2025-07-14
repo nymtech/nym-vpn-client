@@ -99,12 +99,14 @@ private extension GeneratePassphraseView {
             }
         } catch {
             Task { @MainActor in
+#if os(iOS)
                 if let lastVPNError = error as? VpnError {
                     alertTitle = VPNErrorReason(with: lastVPNError).errorDescription ?? ""
                 } else {
                     alertTitle = error.localizedDescription
                 }
                 isAlertDisplayed = true
+#endif
             }
             return
         }
