@@ -31,12 +31,12 @@ struct SettingsFlowCoordinator<Content: View>: View {
             AddCredentialsView(viewModel: AddCredentialsViewModel(path: $flowState.path))
         case .createAccountWelcome:
             CreateAccountWelcomeView(path: $flowState.path)
-        case .createAccount:
-            CreateAccountView(path: $flowState.path)
-        case .createAccountSuccess:
-            CreateAccountSuccessView(path: $flowState.path)
-        case .planPurchaseSuccess:
-            PlanPurchaseSuccessView(path: $flowState.path)
+        case .generatePassphrase:
+            GeneratePassphraseView(path: $flowState.path)
+        case .planPurchase:
+            PurchasePlanView(path: $flowState.path)
+        case .processingAccount:
+            ProcessingAccountView(path: $flowState.path)
         case .logs:
             LogsView(viewModel: LogsViewModel(path: $flowState.path, logFileManager: logFileManager))
         case .acknowledgments:

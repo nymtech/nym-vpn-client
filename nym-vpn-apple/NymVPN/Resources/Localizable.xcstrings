@@ -5857,19 +5857,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "es" : {
@@ -5881,7 +5881,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "fr" : {
@@ -5893,25 +5893,25 @@
         "hi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "pt-BR" : {
@@ -5922,14 +5922,24 @@
         },
         "ru" : {
           "stringUnit" : {
+<<<<<<< HEAD
             "state" : "translated",
             "value" : "Вместо этого вы создаёте аккаунт, защищённый фразой из 24 слов."
+=======
+            "state" : "new",
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "tr" : {
           "stringUnit" : {
+<<<<<<< HEAD
             "state" : "translated",
             "value" : "Bunun yerine, 24 kelimelik gizli ifade ile korunan bir hesap oluşturuyorsunuz."
+=======
+            "state" : "new",
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "uk" : {
@@ -5947,7 +5957,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         }
       }
@@ -6558,103 +6568,779 @@
         }
       }
     },
+<<<<<<< HEAD
     "createAccount.success.selectPlan" : {
+=======
+    "createAccount.success.fastAnonymousModeSubtitle" : {
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
           "stringUnit" : {
             "state" : "new",
+<<<<<<< HEAD
             "value" : "Select plan"
+=======
+            "value" : "Instant, secure connections without compromising your privacy."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
+<<<<<<< HEAD
             "value" : "Select plan"
+=======
+            "value" : "Instant, secure connections without compromising your privacy."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
+<<<<<<< HEAD
             "value" : "Select plan"
+=======
+            "value" : "Instant, secure connections without compromising your privacy."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
+<<<<<<< HEAD
             "value" : "Selecciona el plan"
+=======
+            "value" : "Conexiones instantáneas y seguras sin comprometer tu privacidad."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
+<<<<<<< HEAD
             "value" : "Select plan"
+=======
+            "value" : "Instant, secure connections without compromising your privacy."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
+<<<<<<< HEAD
             "value" : "Sélectionnez le plan"
+=======
+            "value" : "Connexions instantanées et sécurisées sans compromettre votre vie privée."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "new",
+<<<<<<< HEAD
             "value" : "Select plan"
+=======
+            "value" : "Instant, secure connections without compromising your privacy."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
+<<<<<<< HEAD
             "value" : "Select plan"
+=======
+            "value" : "Instant, secure connections without compromising your privacy."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "new",
+<<<<<<< HEAD
             "value" : "Select plan"
+=======
+            "value" : "Instant, secure connections without compromising your privacy."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "new",
+<<<<<<< HEAD
             "value" : "Select plan"
+=======
+            "value" : "Instant, secure connections without compromising your privacy."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
+<<<<<<< HEAD
             "value" : "Selecione o plano"
+=======
+            "value" : "Conexões instantâneas e seguras sem comprometer sua privacidade."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "ru" : {
           "stringUnit" : {
+<<<<<<< HEAD
             "state" : "translated",
             "value" : "Выберите тарифный план"
+=======
+            "state" : "new",
+            "value" : "Instant, secure connections without compromising your privacy."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "tr" : {
           "stringUnit" : {
+<<<<<<< HEAD
             "state" : "translated",
             "value" : "Plan seçin"
+=======
+            "state" : "new",
+            "value" : "Instant, secure connections without compromising your privacy."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "uk" : {
           "stringUnit" : {
             "state" : "translated",
+<<<<<<< HEAD
             "value" : "Виберіть план"
+=======
+            "value" : "Миттєві, захищені з'єднання без компромісів для вашої приватності."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "translated",
+<<<<<<< HEAD
             "value" : "Chọn gói"
+=======
+            "value" : "Kết nối tức thì, an toàn mà không làm lộ thông tin cá nhân của bạn."
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "new",
+<<<<<<< HEAD
             "value" : "Select plan"
+=======
+            "value" : "Instant, secure connections without compromising your privacy."
+          }
+        }
+      }
+    },
+    "createAccount.success.fastAnonymousModeTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fast & Anonymous Mode"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fast & Anonymous Mode"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fast & Anonymous Mode"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo Rápido & Anónimo"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fast & Anonymous Mode"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Mode rapide et anonyme"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fast & Anonymous Mode"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fast & Anonymous Mode"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fast & Anonymous Mode"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fast & Anonymous Mode"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Modo Rápido e Anônimo"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fast & Anonymous Mode"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fast & Anonymous Mode"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Швидкий та анонімний режим"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chế độ Nhanh & chế độ Ẩn danh"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fast & Anonymous Mode"
+          }
+        }
+      }
+    },
+    "createAccount.success.globalCoverageSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acceda a servidores en más de 85 países: disfrute de la libertad y la privacidad sin fronteras."
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accédez à des serveurs dans plus de 85 pays — profitez de la liberté et de la confidentialité sans frontières."
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acesse servidores em mais de 85 países — desfrute de liberdade e privacidade sem fronteiras."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Доступ до серверів у більш ніж 85 країнах — насолоджуйтеся свободою та конфіденційністю без кордонів."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Truy cập các máy chủ tại hơn 85 quốc gia - tận hưởng tự do và quyền riêng tư không biên giới."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+          }
+        }
+      }
+    },
+    "createAccount.success.globalCoverageTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Global Coverage"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Global Coverage"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Global Coverage"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cobertura Global"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Global Coverage"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couverture mondiale"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Global Coverage"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Global Coverage"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Global Coverage"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Global Coverage"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cobertura Global"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Global Coverage"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Global Coverage"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Глобальне покриття"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phạm vi Toàn cầu"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Global Coverage"
+          }
+        }
+      }
+    },
+    "createAccount.success.maybeLater" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Maybe later"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Maybe later"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Maybe later"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quizás más tarde"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Maybe later"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Peut-être plus tard"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Maybe later"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Maybe later"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Maybe later"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Maybe later"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Talvez mais tarde"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Maybe later"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Maybe later"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Можливо пізніше"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Có lẽ để sau"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Maybe later"
+          }
+        }
+      }
+    },
+    "createAccount.success.skipForNow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Skip for now"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Skip for now"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip for now"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saltar por ahora"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Skip for now"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ignorer pour le moment"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Skip for now"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Skip for now"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Skip for now"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Skip for now"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pular por enquanto"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Skip for now"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Skip for now"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Поки що пропустити"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bỏ qua bây giờ"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Skip for now"
+          }
+        }
+      }
+    },
+    "createAccount.success.toContinueTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para continuar, selecciona un plan para desbloquear todo el potencial de NymVPN y beneficiarte de:"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pour continuer, sélectionnez un plan pour débloquer le plein potentiel de NymVPN et bénéficier de :"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Para continuar, selecione um plano para desbloquear todo o potencial do NymVPN e beneficie-se de:"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Щоб продовжити, виберіть план для розблокування повного потенціалу NymVPN і скористайтеся перевагами:"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Để tiếp tục, hãy chọn một gói để mở khóa toàn bộ tiềm năng của NymVPN và hưởng lợi từ:"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
           }
         }
       }
@@ -13426,6 +14112,72 @@
         }
       }
     },
+    "generatePassphrase.subtitle1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Creating keys that never leave your device"
+          }
+        }
+      }
+    },
+    "generatePassphrase.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Establishing anonymous network credentials"
+          }
+        }
+      }
+    },
+    "generatePassphrase.subtitle3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Encrypting credentials with your device key. Only you can unlock them"
+          }
+        }
+      }
+    },
+    "generatePassphrase.title1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Generating cryptographic keypairs..."
+          }
+        }
+      }
+    },
+    "generatePassphrase.title2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Creating your anonymous identity..."
+          }
+        }
+      }
+    },
+    "generatePassphrase.title3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Securing your credentials locally..."
+          }
+        }
+      }
+    },
     "getewaySelector.close" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14240,19 +14992,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "es" : {
@@ -14282,7 +15034,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "ja" : {
@@ -14294,7 +15046,7 @@
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt-BR" : {
@@ -21708,6 +22460,111 @@
         }
       }
     },
+<<<<<<< HEAD
+=======
+    "processingAccount.subtitle1" : {
+      "extractionState" : "manual"
+    },
+    "processingAccount.subtitle2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "We’re verifying your subscription—no personal details are ever tied to your identity"
+          }
+        }
+      }
+    },
+    "processingAccount.subtitle3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "These zero-knowledge credentials prove you have access without revealing who you are"
+          }
+        }
+      }
+    },
+    "processingAccount.subtitle4" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your anonymous access credentials are now safely stored, private, encrypted, and in your control"
+          }
+        }
+      }
+    },
+    "processingAccount.subtitle5" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're now fully protected"
+          }
+        }
+      }
+    },
+    "processingAccount.title1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Payment confirmed"
+          }
+        }
+      }
+    },
+    "processingAccount.title2" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Processing your payment securely..."
+          }
+        }
+      }
+    },
+    "processingAccount.title3" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Retrieving your anonymous account credentials (zk-nyms)..."
+          }
+        }
+      }
+    },
+    "processingAccount.title4" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Saving your zk-nyms on the device..."
+          }
+        }
+      }
+    },
+    "processingAccount.title5" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Welcome to true privacy 🎉"
+          }
+        }
+      }
+    },
+>>>>>>> bc82541d1 (APPLE: update In App Purchases generate account flow (#3052))
     "purchasePlan.selectPlan" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -22141,6 +22998,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Your secure NymVPN account is ready🎉"
+          }
+        }
+      }
+    },
+    "purchasePlan.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your secure NymVPN  account is ready 🎉"
           }
         }
       }
