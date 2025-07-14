@@ -237,6 +237,7 @@ async fn run_service_inner() -> anyhow::Result<()> {
         shutdown_token.child_token(),
         network_env,
         user_agent,
+        None,
         log_path,
         sentry_enabled,
     );
