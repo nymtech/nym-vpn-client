@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Register with locally generated mnemonic (https://github.com/nymtech/nym-vpn-client/pull/2926)
+- Probe sends zk-nyms (https://github.com/nymtech/nym-vpn-client/pull/3011)
+- Two keypairs per gateway (first part) (https://github.com/nymtech/nym-vpn-client/pull/3035)
+
+### Changed
+
+- Use nym cheddar fork (https://github.com/nymtech/nym-vpn-client/pull/3048)
+
+### Removed
+- Remove a shutdown timeout for tonic server (https://github.com/nymtech/nym-vpn-client/pull/2938)
+- Remove shared mixnet client (https://github.com/nymtech/nym-vpn-client/pull/2967)
+- Remove wireguard credential mode flag (https://github.com/nymtech/nym-vpn-client/pull/3021)
+
+### Fixed
+
+- sqlx-pool-guard public interface issue (https://github.com/nymtech/nym-vpn-client/pull/2925)
+- Unblock mixnet client because of a deadlock (https://github.com/nymtech/nym-vpn-client/pull/3039)
+
+
 ## [1.11.0] - 2025-06-18
 
 ### Fixed
