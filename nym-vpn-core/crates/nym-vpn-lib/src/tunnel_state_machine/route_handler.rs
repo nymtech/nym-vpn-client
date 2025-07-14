@@ -169,7 +169,7 @@ impl RouteHandler {
         routes
     }
 
-    fn get_multihop_exit_route(ip_addr: IpAddr, iface: String, mtu: u16) -> RequiredRoute {
+    fn get_multihop_exit_route(ip_addr: IpAddr, iface: String, _mtu: u16) -> RequiredRoute {
         #[allow(unused_mut)]
         let mut route = RequiredRoute::new(IpNetwork::from(ip_addr), Node::device(iface));
 
@@ -180,7 +180,7 @@ impl RouteHandler {
 
         #[cfg(any(target_os = "linux", target_os = "macos"))]
         {
-            route = route.mtu(mtu);
+            route = route.mtu(_mtu);
         }
 
         route
