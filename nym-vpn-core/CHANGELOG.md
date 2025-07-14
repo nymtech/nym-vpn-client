@@ -15,14 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Update to uniffi 0.29 (https://github.com/nymtech/nym-vpn-client/pull/2928)
-- Update tonic to 0.13.1 (https://github.com/nymtech/nym-vpn-client/pull/2937)
-- Update duct to 1.0 (https://github.com/nymtech/nym-vpn-client/pull/2950)
 - Refactor management interface (https://github.com/nymtech/nym-vpn-client/pull/3018)
 - Move vpnd types to nym-vpnd-types (https://github.com/nymtech/nym-vpn-client/pull/3020)
 - Use nym cheddar fork (https://github.com/nymtech/nym-vpn-client/pull/3048)
-
-### Deprecated
 
 ### Removed
 - Remove shared mixnet client (https://github.com/nymtech/nym-vpn-client/pull/2967)
@@ -34,7 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove a shutdown timeout for tonic server (https://github.com/nymtech/nym-vpn-client/pull/2938)
 - Unblock mixnet client because of a deadlock (https://github.com/nymtech/nym-vpn-client/pull/3039)
 
-### Security
 
 ## [1.11.0] - 2025-06-18
 
