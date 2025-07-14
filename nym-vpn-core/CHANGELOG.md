@@ -15,18 +15,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Refactor management interface (https://github.com/nymtech/nym-vpn-client/pull/3018)
-- Move vpnd types to nym-vpnd-types (https://github.com/nymtech/nym-vpn-client/pull/3020)
 - Use nym cheddar fork (https://github.com/nymtech/nym-vpn-client/pull/3048)
 
 ### Removed
+- Remove a shutdown timeout for tonic server (https://github.com/nymtech/nym-vpn-client/pull/2938)
 - Remove shared mixnet client (https://github.com/nymtech/nym-vpn-client/pull/2967)
 - Remove wireguard credential mode flag (https://github.com/nymtech/nym-vpn-client/pull/3021)
 
 ### Fixed
 
 - sqlx-pool-guard public interface issue (https://github.com/nymtech/nym-vpn-client/pull/2925)
-- Remove a shutdown timeout for tonic server (https://github.com/nymtech/nym-vpn-client/pull/2938)
 - Unblock mixnet client because of a deadlock (https://github.com/nymtech/nym-vpn-client/pull/3039)
 
 
