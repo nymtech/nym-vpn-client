@@ -6,7 +6,6 @@ use std::{path::Path, pin::Pin, time::Duration};
 use crate::{
     api_client::StatisticsControllerApiClient,
     config::StatisticsControllerConfig,
-    error::Error,
     events::{StatisticsEvent, StatisticsReceiver, StatisticsSender},
     handler::StatisticsHandler,
     storage::StatsStorage,
@@ -25,7 +24,7 @@ pub struct StatisticsController {
     config: StatisticsControllerConfig,
 
     /// Keep store the different types of metrics collectors
-    handler: StatisticsHandler,
+    handler: Option<StatisticsHandler>,
 
     /// Api client to send statistics
     stats_api_client: Option<StatisticsControllerApiClient>,
@@ -47,21 +46,21 @@ impl StatisticsController {
         base_storage_path: P,
         cancel_token: CancellationToken,
         tunnel_state: watch::Receiver<TunnelState>,
-    ) -> Result<Self, Error> {
+    ) -> Self {
         let (stats_tx, stats_rx) = tokio::sync::mpsc::unbounded_channel();
 
-        let stats_storage = StatsStorage::init(base_storage_path).await?;
-        let stats_api_client = StatisticsControllerApiClient::new(&config)?;
+        let stats_storage = StatsStorage::init(base_storage_path).await.inspect_err(|e| tracing::error!("Failed to initialize stats storage. Statistics collection will be disabled : {e}")).ok();
+        let stats_api_client = StatisticsControllerApiClient::new(&config).inspect_err(|e| tracing::error!(" Failed to build Statistics API client. Statistics collection will be disabled : {e}")).ok().flatten();
 
-        Ok(StatisticsController {
-            handler: StatisticsHandler::new(stats_storage, config.clone()),
+        StatisticsController {
+            handler: stats_storage.map(|s| StatisticsHandler::new(s, config.clone())),
             stats_api_client,
             stats_rx,
             stats_tx,
             tunnel_state,
             config,
             cancel_token,
-        })
+        }
     }
 
     /// Get the command channel used to send commands to the controller.
@@ -71,7 +70,7 @@ impl StatisticsController {
 
     pub async fn run(self) {
         tracing::debug!("StatisticsController initialized successfully");
-        if self.config.enabled && self.config.stats_collector_url.is_some() {
+        if self.config.enabled && self.stats_api_client.is_some() && self.handler.is_some() {
             tracing::debug!("Statistics reporting is enabled");
             self.enabled_loop().await
         } else {
@@ -100,9 +99,9 @@ impl StatisticsController {
         }
     }
     async fn enabled_loop(mut self) {
-        if !self.config.enabled || self.stats_api_client.is_none() {
+        if !self.config.enabled || self.stats_api_client.is_none() || self.handler.is_none() {
             tracing::error!(
-                "StatisticsController : Enabled loop with disabled collection or missing api client. This should never happen."
+                "StatisticsController : Enabled loop with disabled collection, missing api client or missing handler. This should never happen."
             );
             return;
         }
@@ -110,6 +109,10 @@ impl StatisticsController {
         // Safety : We just checked that self.stats_api_client wasn't None
         #[allow(clippy::unwrap_used)]
         let stats_api_client = self.stats_api_client.unwrap();
+
+        // Safety : We just checked that self.handler wasn't None
+        #[allow(clippy::unwrap_used)]
+        let mut stats_handler = self.handler.unwrap();
 
         let mut send_timer: Option<Pin<Box<Sleep>>> = None;
 
@@ -121,7 +124,7 @@ impl StatisticsController {
                     break;
                 },
                 stats_event = self.stats_rx.recv() => match stats_event {
-                    Some(stats_event) => self.handler.handle_event(stats_event).await,
+                    Some(stats_event) => stats_handler.handle_event(stats_event).await,
                     None => {
                         tracing::trace!("StatisticsController: shutting down due to closed stats channel");
                         break;
@@ -163,7 +166,7 @@ impl StatisticsController {
                 _ = wait_on_maybe_timer(&mut send_timer) => { //SW can't find a way to make that work differently for now
                     if matches!(*self.tunnel_state.borrow(), TunnelState::Connected { .. }) {
                         tracing::debug!("Send timer fired and connected, sending stuff");
-                        match self.handler.get_report().await {
+                        match stats_handler.get_report().await {
                             Ok(report) => {
                                 if let Err(e) = stats_api_client.post_report(report).await {
                                     tracing::warn!("Failed to send statistics report : {e}");
