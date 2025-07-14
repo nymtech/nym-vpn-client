@@ -334,8 +334,6 @@ pub struct TunnelMetadata {
     ips: Vec<IpAddr>,
     ipv4_gateway: Option<Ipv4Addr>,
     ipv6_gateway: Option<Ipv6Addr>,
-    #[allow(unused)]
-    mtu: u16,
 }
 
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]

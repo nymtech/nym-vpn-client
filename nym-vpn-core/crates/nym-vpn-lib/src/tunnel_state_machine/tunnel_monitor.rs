@@ -744,7 +744,6 @@ impl TunnelMonitor {
 
         let tunnel_metadata = TunnelMetadata {
             interface: tun_name,
-            mtu,
             ips: vec![
                 IpAddr::V4(assigned_addresses.interface_addresses.ipv4),
                 IpAddr::V6(assigned_addresses.interface_addresses.ipv6),
@@ -824,7 +823,6 @@ impl TunnelMonitor {
 
         let tunnel_metadata = TunnelMetadata {
             interface: exit_tun_name,
-            mtu: exit_tun_mtu,
             ips: vec![
                 IpAddr::V4(conn_data.exit.private_ipv4),
                 IpAddr::V6(conn_data.exit.private_ipv6),
@@ -871,7 +869,6 @@ impl TunnelMonitor {
         };
         let mut tunnel_metadata = TunnelMetadata {
             interface: "".to_owned(),
-            mtu: exit_mtu,
             ips: vec![
                 IpAddr::V4(conn_data.exit.private_ipv4),
                 IpAddr::V6(conn_data.exit.private_ipv6),
@@ -969,7 +966,6 @@ impl TunnelMonitor {
 
         let entry_tunnel_metadata = TunnelMetadata {
             interface: entry_tun_name,
-            mtu: entry_mtu,
             ips: vec![
                 IpAddr::V4(conn_data.entry.private_ipv4),
                 IpAddr::V6(conn_data.entry.private_ipv6),
@@ -993,7 +989,6 @@ impl TunnelMonitor {
 
         let exit_tunnel_metadata = TunnelMetadata {
             interface: exit_tun_name.clone(),
-            mtu: exit_mtu,
             ips: vec![
                 IpAddr::V4(conn_data.exit.private_ipv4),
                 IpAddr::V6(conn_data.exit.private_ipv6),
@@ -1078,7 +1073,6 @@ impl TunnelMonitor {
         };
         let mut entry_tunnel_metadata = TunnelMetadata {
             interface: "".to_owned(),
-            mtu: entry_tun_mtu,
             ips: vec![
                 IpAddr::V4(conn_data.entry.private_ipv4),
                 IpAddr::V6(conn_data.entry.private_ipv6),
@@ -1095,7 +1089,6 @@ impl TunnelMonitor {
         };
         let mut exit_tunnel_metadata = TunnelMetadata {
             interface: "".to_owned(),
-            mtu: exit_tun_mtu,
             ips: vec![
                 IpAddr::V4(conn_data.exit.private_ipv4),
                 IpAddr::V6(conn_data.exit.private_ipv6),
@@ -1223,7 +1216,6 @@ impl TunnelMonitor {
         let interface = tun_name::get_tun_name(&tun_fd).map_err(Error::GetTunDeviceName)?;
         let tunnel_metadata = TunnelMetadata {
             interface,
-            mtu,
             ips: vec![
                 IpAddr::V4(conn_data.exit.private_ipv4),
                 IpAddr::V6(conn_data.exit.private_ipv6),
