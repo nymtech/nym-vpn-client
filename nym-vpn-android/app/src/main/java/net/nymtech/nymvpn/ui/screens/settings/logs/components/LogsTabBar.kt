@@ -14,15 +14,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LogsTabBar(
-	selectedTab: Int,
-	onTabSelected: (Int) -> Unit
-) {
+fun LogsTabBar(selectedTab: Int, onTabSelected: (Int) -> Unit) {
 	Box(
 		modifier = Modifier
 			.fillMaxWidth()
 			.padding(vertical = 8.dp),
-		contentAlignment = Alignment.Center
+		contentAlignment = Alignment.Center,
 	) {
 		Surface(
 			tonalElevation = 4.dp,
@@ -34,7 +31,7 @@ fun LogsTabBar(
 				modifier = Modifier
 					.height(40.dp)
 					.padding(horizontal = 8.dp),
-				verticalAlignment = Alignment.CenterVertically
+				verticalAlignment = Alignment.CenterVertically,
 			) {
 				LogsTabButton("Android Logs", isSelected = selectedTab == 0) { onTabSelected(0) }
 				LogsTabButton("NymVPN Logs", isSelected = selectedTab == 1) { onTabSelected(1) }

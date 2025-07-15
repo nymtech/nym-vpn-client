@@ -13,11 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun LogsTabButton(
-	label: String,
-	isSelected: Boolean,
-	onClick: () -> Unit
-) {
+fun LogsTabButton(label: String, isSelected: Boolean, onClick: () -> Unit) {
 	val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface
 	val contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
 
@@ -29,17 +25,17 @@ fun LogsTabButton(
 		color = backgroundColor,
 		tonalElevation = if (isSelected) 2.dp else 0.dp,
 		shadowElevation = if (isSelected) 2.dp else 0.dp,
-		onClick = onClick
+		onClick = onClick,
 	) {
 		Box(
 			modifier = Modifier
 				.padding(horizontal = 16.dp),
-			contentAlignment = Alignment.Center
+			contentAlignment = Alignment.Center,
 		) {
 			Text(
 				text = label,
 				color = contentColor,
-				style = MaterialTheme.typography.labelMedium
+				style = MaterialTheme.typography.labelMedium,
 			)
 		}
 	}

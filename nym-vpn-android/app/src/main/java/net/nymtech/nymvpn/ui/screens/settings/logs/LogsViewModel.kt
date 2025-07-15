@@ -1,7 +1,6 @@
 package net.nymtech.nymvpn.ui.screens.settings.logs
 
 import android.content.Context
-import androidx.compose.runtime.mutableStateListOf
 import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
