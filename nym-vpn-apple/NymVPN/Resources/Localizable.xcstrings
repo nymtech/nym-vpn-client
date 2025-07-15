@@ -27043,8 +27043,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saved in Keychain"
+            "state" : "translated",
+            "value" : "Збережено в Keychain"
           }
         },
         "vi" : {
