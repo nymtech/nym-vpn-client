@@ -1,39 +1,39 @@
 package net.nymtech.nymvpn.ui.screens.settings.logs
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import net.nymtech.nymvpn.ui.screens.settings.logs.components.AutoScrollEffect
-import net.nymtech.nymvpn.ui.screens.settings.logs.components.DeleteLogsModal
-import net.nymtech.nymvpn.ui.screens.settings.logs.components.LogsBottomBar
-import net.nymtech.nymvpn.ui.screens.settings.logs.components.LogsList
-import net.nymtech.nymvpn.ui.screens.settings.logs.components.ScrollToBottomFab
+import net.nymtech.nymvpn.ui.screens.settings.logs.components.*
 
 @Composable
 fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
-	val lazyColumnListState = rememberLazyListState()
+	var selectedTab by remember { mutableIntStateOf(0) }
+
+	val nativeScrollState = rememberLazyListState()
+	val vpnScrollState = rememberLazyListState()
+
 	var isAutoScrolling by remember { mutableStateOf(true) }
-	var showModal by remember { mutableStateOf(false) }
 	var lastScrollPosition by remember { mutableIntStateOf(0) }
+	var showModal by remember { mutableStateOf(false) }
 
 	val context = LocalContext.current
 
-	val logs = viewModel.logs
+	val nativeLogs by viewModel.nativeLogs.collectAsState()
+	val vpnLogs by viewModel.vpnLogs.collectAsState()
+
+	val currentLogs = if (selectedTab == 0) nativeLogs else vpnLogs
+	val currentScrollState = if (selectedTab == 0) nativeScrollState else vpnScrollState
 
 	AutoScrollEffect(
-		logsSize = logs.size,
-		lazyColumnListState = lazyColumnListState,
+		logsSize = currentLogs.size,
+		lazyColumnListState = currentScrollState,
 		isAutoScrolling = isAutoScrolling,
 		onAutoScrollingChange = { isAutoScrolling = it },
 		lastScrollPosition = lastScrollPosition,
@@ -46,15 +46,21 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 		},
 		contentWindowInsets = WindowInsets(0.dp),
 		bottomBar = {
-			LogsBottomBar(
-				onShareClick = { viewModel.shareLogs(context) },
-				onDeleteClick = { showModal = true },
-			)
+			Column {
+				LogsTabBar(
+					selectedTab = selectedTab,
+					onSelectTab = { selectedTab = it },
+				)
+				LogsBottomBar(
+					onShareClick = { viewModel.shareLogs(context) },
+					onDeleteClick = { showModal = true },
+				)
+			}
 		},
 	) { paddingValues ->
 		LogsList(
-			logs = logs,
-			lazyColumnListState = lazyColumnListState,
+			logs = currentLogs,
+			lazyColumnListState = currentScrollState,
 			modifier = Modifier.padding(paddingValues),
 		)
 	}

@@ -8,6 +8,6 @@ interface LogReader {
 	fun stop()
 	fun zipLogFiles(path: String)
 	suspend fun deleteAndClearLogs()
-	val bufferedLogs: Flow<LogMessage>
-	val liveLogs: Flow<LogMessage>
+	val bufferedLogsNative: Flow<LogMessage>
+	val bufferedLogsVPN: Flow<LogMessage>
 }
