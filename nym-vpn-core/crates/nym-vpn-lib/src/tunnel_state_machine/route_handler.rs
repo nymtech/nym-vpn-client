@@ -20,18 +20,22 @@ pub const TUNNEL_FWMARK: u32 = 0x14d;
 pub enum RoutingConfig {
     Mixnet {
         tun_name: String,
+        tun_mtu: u16,
         #[cfg(not(target_os = "linux"))]
         entry_gateway_address: IpAddr,
     },
     Wireguard {
         entry_tun_name: String,
         exit_tun_name: String,
+        entry_tun_mtu: u16,
+        exit_tun_mtu: u16,
         #[cfg(not(target_os = "linux"))]
         entry_gateway_address: IpAddr,
         exit_gateway_address: IpAddr,
     },
     WireguardNetstack {
         exit_tun_name: String,
+        exit_tun_mtu: u16,
         #[cfg(not(target_os = "linux"))]
         entry_gateway_address: IpAddr,
     },
@@ -83,15 +87,20 @@ impl RouteHandler {
         }
     }
 
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    pub async fn get_mtu_for_route(&mut self, ip_addr: IpAddr) -> Result<u16> {
+        Ok(self.route_manager.get_mtu_for_route(ip_addr).await?)
+    }
+
     #[cfg(windows)]
     pub async fn add_default_route_listener(
         &mut self,
         event_handler: Callback,
     ) -> Result<CallbackHandle> {
-        self.route_manager
+        Ok(self
+            .route_manager
             .add_default_route_change_callback(event_handler)
-            .await
-            .map_err(Error::from)
+            .await?)
     }
 
     pub async fn stop(self) {
@@ -109,6 +118,7 @@ impl RouteHandler {
         match routing_config {
             RoutingConfig::Mixnet {
                 tun_name,
+                tun_mtu,
                 #[cfg(not(target_os = "linux"))]
                 entry_gateway_address,
             } => {
@@ -117,20 +127,13 @@ impl RouteHandler {
                     IpNetwork::from(entry_gateway_address),
                     NetNode::DefaultNode,
                 ));
-
-                routes.insert(RequiredRoute::new(
-                    "0.0.0.0/0".parse().unwrap(),
-                    Node::device(tun_name.to_owned()),
-                ));
-
-                routes.insert(RequiredRoute::new(
-                    "::0/0".parse().unwrap(),
-                    Node::device(tun_name.to_owned()),
-                ));
+                routes.extend(Self::get_default_routes(tun_name, tun_mtu));
             }
             RoutingConfig::Wireguard {
                 entry_tun_name,
                 exit_tun_name,
+                entry_tun_mtu,
+                exit_tun_mtu,
                 #[cfg(not(target_os = "linux"))]
                 entry_gateway_address,
                 exit_gateway_address,
@@ -141,23 +144,16 @@ impl RouteHandler {
                     NetNode::DefaultNode,
                 ));
 
-                routes.insert(RequiredRoute::new(
-                    IpNetwork::from(exit_gateway_address),
-                    Node::device(entry_tun_name.to_owned()),
+                routes.insert(Self::get_multihop_exit_route(
+                    exit_gateway_address,
+                    entry_tun_name,
+                    entry_tun_mtu,
                 ));
-
-                routes.insert(RequiredRoute::new(
-                    "0.0.0.0/0".parse().unwrap(),
-                    Node::device(exit_tun_name.to_owned()),
-                ));
-
-                routes.insert(RequiredRoute::new(
-                    "::0/0".parse().unwrap(),
-                    Node::device(exit_tun_name.to_owned()),
-                ));
+                routes.extend(Self::get_default_routes(exit_tun_name, exit_tun_mtu));
             }
             RoutingConfig::WireguardNetstack {
                 exit_tun_name,
+                exit_tun_mtu,
                 #[cfg(not(target_os = "linux"))]
                 entry_gateway_address,
             } => {
@@ -166,18 +162,37 @@ impl RouteHandler {
                     IpNetwork::from(entry_gateway_address),
                     NetNode::DefaultNode,
                 ));
-
-                routes.insert(RequiredRoute::new(
-                    "0.0.0.0/0".parse().unwrap(),
-                    Node::device(exit_tun_name.to_owned()),
-                ));
-
-                routes.insert(RequiredRoute::new(
-                    "::0/0".parse().unwrap(),
-                    Node::device(exit_tun_name.to_owned()),
-                ));
+                routes.extend(Self::get_default_routes(exit_tun_name, exit_tun_mtu));
             }
         }
+
+        routes
+    }
+
+    fn get_multihop_exit_route(ip_addr: IpAddr, iface: String, _mtu: u16) -> RequiredRoute {
+        #[allow(unused_mut)]
+        let mut route = RequiredRoute::new(IpNetwork::from(ip_addr), Node::device(iface));
+
+        #[cfg(target_os = "linux")]
+        {
+            route = route.use_main_table(false);
+        }
+
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
+        {
+            route = route.mtu(_mtu);
+        }
+
+        route
+    }
+
+    fn get_default_routes(iface: String, _mtu: u16) -> Vec<RequiredRoute> {
+        let ipv4_route =
+            RequiredRoute::new("0.0.0.0/0".parse().unwrap(), Node::device(iface.to_owned()));
+        let ipv6_route = RequiredRoute::new("::0/0".parse().unwrap(), Node::device(iface));
+
+        #[allow(unused_mut)]
+        let mut routes = vec![ipv4_route, ipv6_route];
 
         #[cfg(target_os = "linux")]
         {
@@ -185,6 +200,11 @@ impl RouteHandler {
                 .into_iter()
                 .map(|r| r.use_main_table(false))
                 .collect();
+        }
+
+        #[cfg(any(target_os = "linux", target_os = "macos"))]
+        {
+            routes = routes.into_iter().map(|r| r.mtu(_mtu)).collect();
         }
 
         routes
