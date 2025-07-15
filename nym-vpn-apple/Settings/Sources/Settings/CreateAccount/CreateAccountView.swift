@@ -23,7 +23,7 @@ public struct CreateAccountView: View {
             navbar
             Spacer()
                 .frame(height: 40)
-            HStack {
+            HStack(spacing: 0) {
                 VStack(alignment: .leading, spacing: 0) {
                     StepView(stepCount: 3, currentStep: 1)
                     Spacer()
@@ -82,9 +82,13 @@ private extension CreateAccountView {
     }
 
     var createAccountTitle: some View {
-        Text("createAccount.createAnAccount".localizedString)
-            .textStyle(.Headline.Medium.regular)
-            .foregroundStyle(.primary)
+        HStack {
+            Spacer()
+            Text("createAccount.createAnAccount".localizedString)
+                .textStyle(.Headline.Medium.regular)
+                .foregroundStyle(.primary)
+            Spacer()
+        }
     }
 }
 // MARK: - Helpers -

@@ -7,8 +7,7 @@ extension GRPCManager {
     public func connect(
         entryGateway: EntryGateway,
         exitRouter: ExitRouter,
-        isTwoHopEnabled: Bool,
-        isZknymEnabled: Bool?
+        isTwoHopEnabled: Bool
     ) async throws {
         logger.log(level: .info, "Connecting")
 
@@ -21,7 +20,6 @@ extension GRPCManager {
 
             request.enableTwoHop = isTwoHopEnabled
             request.disableBackgroundCoverTraffic = false
-            request.enableCredentialsMode = isZknymEnabled ?? false
 
             let call = client.vpnConnect(request, callOptions: nil)
 
