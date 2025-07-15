@@ -87,7 +87,7 @@ VIAddVersionKey "FileVersion" "${VERSION}"
 VIAddVersionKey "ProductVersion" "${VERSION}"
 
 # additional plugins
-# !addplugindir "${ADDITIONALPLUGINSPATH}"
+!addplugindir "${ADDITIONALPLUGINSPATH}"
 
 ; Uninstaller signing command
 !if "${UNINSTALLERSIGNCOMMAND}" != ""
@@ -630,7 +630,7 @@ Section Install
     !insertmacro NSIS_HOOK_PREINSTALL
   !endif
 
-  !insertmacro CheckIfAppIsRunning
+  !insertmacro CheckIfAppIsRunning "${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
 
   ; Copy main executable
   File "${MAINBINARYSRCPATH}"
@@ -777,7 +777,7 @@ Section Uninstall
     !insertmacro NSIS_HOOK_PREUNINSTALL
   !endif
 
-  !insertmacro CheckIfAppIsRunning
+  !insertmacro CheckIfAppIsRunning "${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
 
   ; vpnd cleanup
   ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
