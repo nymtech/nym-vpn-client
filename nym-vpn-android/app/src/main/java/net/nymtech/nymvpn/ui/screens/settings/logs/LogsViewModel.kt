@@ -8,6 +8,10 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.logcatutil.LogReader
@@ -31,20 +35,34 @@ class LogsViewModel @Inject constructor(
 	@MainDispatcher private val mainDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-	val logs = mutableStateListOf<LogMessage>()
+	private val _nativeLogs = MutableStateFlow<List<LogMessage>>(emptyList())
+	val nativeLogs: StateFlow<List<LogMessage>> = _nativeLogs.asStateFlow()
+
+	private val _vpnLogs = MutableStateFlow<List<LogMessage>>(emptyList())
+	val vpnLogs: StateFlow<List<LogMessage>> = _vpnLogs.asStateFlow()
 
 	init {
 		viewModelScope.launch(ioDispatcher) {
-			logReader.bufferedLogs.chunked(500, Duration.ofSeconds(1)).collect {
-				withContext(mainDispatcher) {
-					logs.addAll(it)
-				}
-				if (logs.size > Constants.LOG_BUFFER_SIZE) {
+			logReader.bufferedLogsNative
+				.chunked(200, Duration.ofMillis(500))
+				.collectLatest { logsChunk ->
 					withContext(mainDispatcher) {
-						logs.removeRange(0, (logs.size - Constants.LOG_BUFFER_SIZE).toInt())
+						val updated = (_nativeLogs.value + logsChunk)
+							.takeLast(Constants.LOG_BUFFER_SIZE.toInt())
+						_nativeLogs.value = updated
 					}
 				}
-			}
+		}
+		viewModelScope.launch(ioDispatcher) {
+			logReader.bufferedLogsVPN
+				.chunked(200, Duration.ofMillis(500))
+				.collectLatest { logsChunk ->
+					withContext(mainDispatcher) {
+						val updated = (_vpnLogs.value + logsChunk)
+							.takeLast(Constants.LOG_BUFFER_SIZE.toInt())
+						_vpnLogs.value = updated
+					}
+				}
 		}
 	}
 
@@ -66,6 +84,7 @@ class LogsViewModel @Inject constructor(
 
 	fun deleteLogs() = viewModelScope.launch {
 		logReader.deleteAndClearLogs()
-		logs.clear()
+		_nativeLogs.value = emptyList()
+		_vpnLogs.value = emptyList()
 	}
 }

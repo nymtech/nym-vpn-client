@@ -27,17 +27,18 @@ class LogcatManager(
 	private var logJob: Job? = null
 	private var isStarted = false
 
-	private val _bufferedLogs = MutableSharedFlow<LogMessage>(
+	private val _bufferedLogsNative = MutableSharedFlow<LogMessage>(
 		replay = 10_000,
 		onBufferOverflow = BufferOverflow.DROP_OLDEST,
 	)
-	private val _liveLogs = MutableSharedFlow<LogMessage>(
-		replay = 1,
+
+	private val _bufferedLogsVPN = MutableSharedFlow<LogMessage>(
+		replay = 10_000,
 		onBufferOverflow = BufferOverflow.DROP_OLDEST,
 	)
 
-	override val bufferedLogs: Flow<LogMessage> = _bufferedLogs.asSharedFlow()
-	override val liveLogs: Flow<LogMessage> = _liveLogs.asSharedFlow()
+	override val bufferedLogsNative: Flow<LogMessage> = _bufferedLogsNative.asSharedFlow()
+	override val bufferedLogsVPN: Flow<LogMessage> = _bufferedLogsVPN.asSharedFlow()
 
 	override fun onCreate(owner: LifecycleOwner) {
 		// for auto start
@@ -54,8 +55,11 @@ class LogcatManager(
 		stop()
 		logJob = logScope.launch {
 			logcatReader.readLogs().collect { logMessage ->
-				_bufferedLogs.emit(logMessage)
-				_liveLogs.emit(logMessage)
+				if (logMessage.tag.contains("libnymvpn")) {
+					_bufferedLogsVPN.emit(logMessage)
+				} else {
+					_bufferedLogsNative.emit(logMessage)
+				}
 			}
 		}
 		isStarted = true
@@ -85,7 +89,8 @@ class LogcatManager(
 	override suspend fun deleteAndClearLogs() {
 		val wasStarted = isStarted
 		stop()
-		_bufferedLogs.resetReplayCache()
+		_bufferedLogsVPN.resetReplayCache()
+		_bufferedLogsNative.resetReplayCache()
 		fileManager.deleteAllLogs()
 		if (wasStarted) start()
 	}
