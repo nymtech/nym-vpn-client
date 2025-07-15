@@ -19,8 +19,7 @@ public struct PlanPurchaseSuccessView: View {
                         StepView(stepCount: 3, currentStep: 3)
                         Spacer()
                         planActivatedSuccessTitle
-                            .padding(.horizontal, 30)
-                        planActivatedSuccessSubtitle
+                            .padding(.horizontal, 16)
                         Spacer()
                             .frame(height: 24)
                         planActivatedSuccessfullyConnectionPrivate
@@ -60,13 +59,8 @@ private extension PlanPurchaseSuccessView {
     var planActivatedSuccessTitle: some View {
         Text("purchasePlan.success.planActivated".localizedString)
             .foregroundStyle(NymColor.primary)
-            .textStyle(.Headline.Large.bold)
-    }
-
-    var planActivatedSuccessSubtitle: some View {
-        Text("purchasePlan.success.successfully".localizedString)
-            .foregroundStyle(NymColor.primary)
-            .textStyle(.Headline.Large.bold)
+            .textStyle(.Headline.Large.regular)
+            .multilineTextAlignment(.center)
     }
 
     var planActivatedSuccessfullyConnectionPrivate: some View {

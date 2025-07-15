@@ -82,7 +82,6 @@ extension ConnectionManager {
                 exitRouter: exitRouter,
                 credentialsDataPath: credentialURL.path(),
                 configPath: configURL.path(),
-                isZknymEnabled: appSettings.isZknymEnabled
             )
 
             switch connectionType {
@@ -92,8 +91,7 @@ extension ConnectionManager {
                     exitRouter: exitRouter,
                     credentialsDataPath: credentialURL.path(),
                     configPath: configURL.path(),
-                    isTwoHopEnabled: false,
-                    isZknymEnabled: appSettings.isZknymEnabled
+                    isTwoHopEnabled: false
                 )
             case .wireguard:
                 config = MixnetConfig(
@@ -101,8 +99,7 @@ extension ConnectionManager {
                     exitRouter: exitRouter,
                     credentialsDataPath: credentialURL.path(),
                     configPath: configURL.path(),
-                    isTwoHopEnabled: true,
-                    isZknymEnabled: appSettings.isZknymEnabled
+                    isTwoHopEnabled: true
                 )
             }
             return config
@@ -203,6 +200,7 @@ extension ConnectionManager {
                 if shouldDisconnectActiveTunnel() {
                     isDisconnecting = true
                     disconnectActiveTunnel()
+                    lastError = nil
                 } else {
                     try await connect(with: config)
                 }
