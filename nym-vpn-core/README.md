@@ -32,7 +32,35 @@ sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
 - Install Libclang for x86 or x64 via winget:
 
   ```
+  
   winget install -e --id=LLVM.LLVM
+  ```
+
+- Install MSYS2 (default `C:\msys64`)
+
+  ```pwsh
+  winget install -e --id MSYS2.MSYS2
+  ```
+
+- Then, in **MSYS2 MinGW 64-bit** shell:
+  ```bash
+  pacman -S --needed mingw-w64-x86_64-binutils mingw-w64-x86_64-gcc
+  ```
+
+- Install the Protocol Buffers compiler (**protoc**)
+  1. Download `protoc-<version>-win64.zip`
+  2. Unzip to `C:\protoc`.
+  3. Add to environment:
+     ```bat
+     setx PROTOC "C:\protoc\bin\protoc.exe" /M
+     setx PATH "%PATH%;C:\protoc\bin" /M
+     ```
+
+- Verify tools:
+  ```cmd
+  gcc --version
+  windres --version
+  protoc --version
   ```
 
   If you are on ARM64, head to https://github.com/llvm/llvm-project/releases and download the latest release with "woa64" suffix.
