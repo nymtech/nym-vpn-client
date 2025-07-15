@@ -530,7 +530,7 @@ impl GrpcClient {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(());
-        let response = vpnd
+        let enabled = vpnd
             .is_sentry_enabled(request)
             .await
             .map_err(|e| {
@@ -539,11 +539,11 @@ impl GrpcClient {
             })?
             .into_inner();
 
-        debug!("vpnd sentry enabled: {}", response.enabled);
-        if response.enabled {
+        debug!("vpnd sentry enabled: {}", enabled);
+        if enabled {
             info!("⚠ vpnd sentry monitoring is enabled ⚠");
         }
-        Ok(response.enabled)
+        Ok(enabled)
     }
 
     /// Enable sentry at daemon level
@@ -552,20 +552,12 @@ impl GrpcClient {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(());
-        let response = vpnd
-            .enable_sentry(request)
-            .await
-            .map_err(|e| {
-                error!("grpc: {}", e);
-                VpndError::GrpcError(e)
-            })?
-            .into_inner();
+        vpnd.enable_sentry(request).await.map_err(|e| {
+            error!("failed to enable sentry: {}", e);
+            VpndError::GrpcError(e)
+        })?;
 
-        debug!("vpnd sentry enabled: {}", response.success);
-        if !response.success {
-            error!("failed to enable sentry");
-            return Err(VpndError::internal("failed to enable sentry"));
-        }
+        debug!("vpnd sentry enabled");
         info!("restart vpnd (service) required for the change to take effect");
         Ok(())
     }
@@ -576,20 +568,12 @@ impl GrpcClient {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(());
-        let response = vpnd
-            .disable_sentry(request)
-            .await
-            .map_err(|e| {
-                error!("grpc: {}", e);
-                VpndError::GrpcError(e)
-            })?
-            .into_inner();
+        vpnd.disable_sentry(request).await.map_err(|e| {
+            error!("failed to disable sentry: {}", e);
+            VpndError::GrpcError(e)
+        })?;
 
-        debug!("vpnd sentry disabled: {}", response.success);
-        if !response.success {
-            error!("failed to disable sentry");
-            return Err(VpndError::internal("failed to disable sentry"));
-        }
+        debug!("vpnd sentry disabled");
         info!("restart vpnd (service) recommended");
         Ok(())
     }
