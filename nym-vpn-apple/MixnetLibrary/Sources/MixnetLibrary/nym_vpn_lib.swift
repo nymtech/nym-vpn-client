@@ -3543,13 +3543,12 @@ public struct VpnConfig {
     public var configPath: PathBuf?
     public var credentialDataPath: PathBuf?
     public var tunStatusListener: TunnelStatusListener?
-    public var credentialMode: Bool?
     public var statisticsRecipient: String?
     public var userAgent: UserAgent
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, configPath: PathBuf?, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?, credentialMode: Bool?, statisticsRecipient: String?, userAgent: UserAgent) {
+    public init(entryGateway: EntryPoint, exitRouter: ExitPoint, enableTwoHop: Bool, tunProvider: OsTunProvider, configPath: PathBuf?, credentialDataPath: PathBuf?, tunStatusListener: TunnelStatusListener?, statisticsRecipient: String?, userAgent: UserAgent) {
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
         self.enableTwoHop = enableTwoHop
@@ -3557,7 +3556,6 @@ public struct VpnConfig {
         self.configPath = configPath
         self.credentialDataPath = credentialDataPath
         self.tunStatusListener = tunStatusListener
-        self.credentialMode = credentialMode
         self.statisticsRecipient = statisticsRecipient
         self.userAgent = userAgent
     }
@@ -3583,7 +3581,6 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
                 configPath: FfiConverterOptionTypePathBuf.read(from: &buf), 
                 credentialDataPath: FfiConverterOptionTypePathBuf.read(from: &buf), 
                 tunStatusListener: FfiConverterOptionTypeTunnelStatusListener.read(from: &buf), 
-                credentialMode: FfiConverterOptionBool.read(from: &buf), 
                 statisticsRecipient: FfiConverterOptionString.read(from: &buf), 
                 userAgent: FfiConverterTypeUserAgent.read(from: &buf)
         )
@@ -3597,7 +3594,6 @@ public struct FfiConverterTypeVPNConfig: FfiConverterRustBuffer {
         FfiConverterOptionTypePathBuf.write(value.configPath, into: &buf)
         FfiConverterOptionTypePathBuf.write(value.credentialDataPath, into: &buf)
         FfiConverterOptionTypeTunnelStatusListener.write(value.tunStatusListener, into: &buf)
-        FfiConverterOptionBool.write(value.credentialMode, into: &buf)
         FfiConverterOptionString.write(value.statisticsRecipient, into: &buf)
         FfiConverterTypeUserAgent.write(value.userAgent, into: &buf)
     }
@@ -8939,10 +8935,12 @@ public func uniffiForeignFutureHandleCountNymVpnLib() -> Int {
 /**
  * Setup the library with the given data directory and optionally enable credential mode.
  */
-public func configureLib(dataDir: String, credentialMode: Bool?)throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
+public func configureLib(dataDir: String, credentialMode: Bool?, sentryMonitoring: Bool, statisticsEnabled: Bool)throws   {try rustCallWithError(FfiConverterTypeVpnError_lift) {
     uniffi_nym_vpn_lib_fn_func_configurelib(
         FfiConverterString.lower(dataDir),
-        FfiConverterOptionBool.lower(credentialMode),$0
+        FfiConverterOptionBool.lower(credentialMode),
+        FfiConverterBool.lower(sentryMonitoring),
+        FfiConverterBool.lower(statisticsEnabled),$0
     )
 }
 }
@@ -9161,15 +9159,23 @@ public func initFallbackMainnetEnvironment()throws   {try rustCallWithError(FfiC
 }
 }
 /**
- * Additional extra function for when only only want to set the logger without initializing the
- * library. Thus it's only needed when `configureLib` is not used.
+ * Additional extra function for when only want to set the logger without initializing the
+ * library. Thus, it's only needed when `configureLib` is not used.
  */
-public func initLogger(path: PathBuf?, debugLevel: String?)  {try! rustCall() {
-    uniffi_nym_vpn_lib_fn_func_initlogger(
-        FfiConverterOptionTypePathBuf.lower(path),
-        FfiConverterOptionString.lower(debugLevel),$0
-    )
-}
+public func initLogger(path: PathBuf?, debugLevel: String?, sentryMonitoring: Bool)async   {
+    return
+        try!  await uniffiRustCallAsync(
+            rustFutureFunc: {
+                uniffi_nym_vpn_lib_fn_func_initlogger(FfiConverterOptionTypePathBuf.lower(path),FfiConverterOptionString.lower(debugLevel),FfiConverterBool.lower(sentryMonitoring)
+                )
+            },
+            pollFunc: ffi_nym_vpn_lib_rust_future_poll_void,
+            completeFunc: ffi_nym_vpn_lib_rust_future_complete_void,
+            freeFunc: ffi_nym_vpn_lib_rust_future_free_void,
+            liftFunc: { $0 },
+            errorHandler: nil
+            
+        )
 }
 /**
  * Check if the account mnemonic is stored
@@ -9464,7 +9470,7 @@ private let initializationResult: InitializationResult = {
     if bindings_contract_version != scaffolding_contract_version {
         return InitializationResult.contractVersionMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_configurelib() != 2570) {
+    if (uniffi_nym_vpn_lib_checksum_func_configurelib() != 58704) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_createaccount() != 10575) {
@@ -9530,7 +9536,7 @@ private let initializationResult: InitializationResult = {
     if (uniffi_nym_vpn_lib_checksum_func_initfallbackmainnetenvironment() != 43903) {
         return InitializationResult.apiChecksumMismatch
     }
-    if (uniffi_nym_vpn_lib_checksum_func_initlogger() != 11993) {
+    if (uniffi_nym_vpn_lib_checksum_func_initlogger() != 1816) {
         return InitializationResult.apiChecksumMismatch
     }
     if (uniffi_nym_vpn_lib_checksum_func_isaccountmnemonicstored() != 43744) {
