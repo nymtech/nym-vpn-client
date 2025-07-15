@@ -144,6 +144,10 @@ public final class CredentialsManager: ObservableObject {
     public func cacheFolderURL() throws -> URL {
         try dataFolderURL().appendingPathComponent("Cache")
     }
+
+    public func configFolderURL() throws -> URL {
+        try dataFolderURL().appendingPathComponent("Config")
+    }
 }
 
 private extension CredentialsManager {
