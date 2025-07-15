@@ -49,7 +49,7 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 			Column {
 				LogsTabBar(
 					selectedTab = selectedTab,
-					onTabSelected = { selectedTab = it },
+					onSelectTab = { selectedTab = it },
 				)
 				LogsBottomBar(
 					onShareClick = { viewModel.shareLogs(context) },
