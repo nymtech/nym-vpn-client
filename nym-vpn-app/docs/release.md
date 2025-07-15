@@ -65,7 +65,6 @@ and click on the _Run workflow_ button
    **NOTE** refer to the [types of releases](#types-of-releases) section
 
 3. select the release type
-
    - **stable** for a stable public release
    - **dev** for a development release, like RC, beta etc
    - **nightly** for a nightly build (not really used)
@@ -75,7 +74,6 @@ and click on the _Run workflow_ button
 5. check _Enable updater_ if you want to enable the in-app updater (Windows only) \
    this is recommended for stable releases \
    if you check this:
-
    - the app will check for updates on startup, and if there is one available, it will prompt the user to update
    - it will create a PR to bump the updater JSON metadata
    - at build time, it will generate the bundle signature
