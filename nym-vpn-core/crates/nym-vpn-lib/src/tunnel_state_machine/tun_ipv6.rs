@@ -1,28 +1,27 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{io, net::Ipv6Addr};
+use std::{io, net::Ipv6Addr, process::Command};
 
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-use std::process::Command;
-
-pub fn set_ipv6_addr(_device_name: &str, _ipv6_addr: Ipv6Addr) -> io::Result<()> {
-    #[cfg(target_os = "linux")]
+#[cfg(target_os = "linux")]
+pub fn set_ipv6_addr(device_name: &str, ipv6_addr: Ipv6Addr) -> io::Result<()> {
     Command::new("ip")
         .args([
             "-6",
             "addr",
             "add",
-            &_ipv6_addr.to_string(),
+            &ipv6_addr.to_string(),
             "dev",
-            _device_name,
+            device_name,
         ])
         .output()?;
+    Ok(())
+}
 
-    #[cfg(target_os = "macos")]
+#[cfg(target_os = "macos")]
+pub fn set_ipv6_addr(device_name: &str, ipv6_addr: Ipv6Addr) -> io::Result<()> {
     Command::new("ifconfig")
-        .args([_device_name, "inet6", "add", &_ipv6_addr.to_string()])
+        .args([device_name, "inet6", "add", &ipv6_addr.to_string()])
         .output()?;
-
     Ok(())
 }
