@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use futures::{FutureExt, future::Fuse};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use nym_sdk::UserAgent;
@@ -488,7 +489,7 @@ impl TunnelMonitor {
 
         // todo: do initial ping
 
-        let (discovery_refresher_handle, background_error_rx) = self
+        let (discovery_refresher_handle, mut background_error_rx) = self
             .tunnel_parameters
             .nym_config
             .config_path
@@ -505,6 +506,10 @@ impl TunnelMonitor {
                 (discovery_refresher_handle, background_error_rx)
             })
             .unzip();
+        let fused_background_error = background_error_rx
+            .as_mut()
+            .map(|r| r.recv().fuse())
+            .unwrap_or(Fuse::terminated());
 
         let connection_data = ConnectionData {
             connected_at: Some(OffsetDateTime::now_utc()),
@@ -515,7 +520,7 @@ impl TunnelMonitor {
             connection_data: Box::new(connection_data),
         });
 
-        self.recv_error(&mut tunnel_handle, background_error_rx)
+        self.recv_error(&mut tunnel_handle, fused_background_error)
             .await;
 
         tracing::info!("Wait for tunnel to exit");
@@ -548,7 +553,7 @@ impl TunnelMonitor {
     async fn recv_error(
         &self,
         tunnel_handle: &mut AnyTunnelHandle,
-        background_error_rx: Option<tokio::sync::mpsc::Receiver<()>>,
+        background_error_rx: Fuse<impl Future<Output = Option<()>>>,
     ) {
         tokio::select! {
             _ = self.shutdown_token.cancelled() => {}
@@ -562,7 +567,7 @@ impl TunnelMonitor {
                     }
                 }
             }
-            ret = recv_error(background_error_rx) => {
+            ret = background_error_rx => {
                 if ret.is_some() {
                     tracing::error!("Background task errored out");
                 } else {
@@ -1323,14 +1328,6 @@ fn wait_delay(retry_attempt: u32) -> Duration {
     let multiplier = retry_attempt.saturating_mul(DELAY_MULTIPLIER);
     let delay = INITIAL_WAIT_DELAY.saturating_mul(multiplier);
     cmp::min(delay, MAX_WAIT_DELAY)
-}
-
-async fn recv_error(background_error_rx: Option<tokio::sync::mpsc::Receiver<()>>) -> Option<()> {
-    if let Some(mut background_error_rx) = background_error_rx {
-        background_error_rx.recv().await
-    } else {
-        std::future::pending::<Option<()>>().await
-    }
 }
 
 pub struct StartTunnelResult {
