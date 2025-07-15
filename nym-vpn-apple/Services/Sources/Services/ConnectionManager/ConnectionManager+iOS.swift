@@ -76,10 +76,12 @@ extension ConnectionManager {
     func generateConfig() throws -> MixnetConfig {
         do {
             let credentialURL = try credentialsManager.dataFolderURL()
+            let configURL = try credentialsManager.configFolderURL()
             var config = MixnetConfig(
                 entryGateway: entryGateway,
                 exitRouter: exitRouter,
                 credentialsDataPath: credentialURL.path(),
+                configPath: configURL.path(),
                 isZknymEnabled: appSettings.isZknymEnabled
             )
 
@@ -89,6 +91,7 @@ extension ConnectionManager {
                     entryGateway: entryGateway,
                     exitRouter: exitRouter,
                     credentialsDataPath: credentialURL.path(),
+                    configPath: configURL.path(),
                     isTwoHopEnabled: false,
                     isZknymEnabled: appSettings.isZknymEnabled
                 )
@@ -97,6 +100,7 @@ extension ConnectionManager {
                     entryGateway: entryGateway,
                     exitRouter: exitRouter,
                     credentialsDataPath: credentialURL.path(),
+                    configPath: configURL.path(),
                     isTwoHopEnabled: true,
                     isZknymEnabled: appSettings.isZknymEnabled
                 )
