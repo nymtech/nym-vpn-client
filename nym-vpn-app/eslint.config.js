@@ -59,6 +59,7 @@ export default [
       'no-empty': 0,
       'import/no-unresolved': 0,
       'react/react-in-jsx-scope': 0,
+      'import/no-named-as-default': 0,
       '@typescript-eslint/no-floating-promises': 0,
       '@typescript-eslint/prefer-nullish-coalescing': 0,
       '@typescript-eslint/no-deprecated': 'warn',
