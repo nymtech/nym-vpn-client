@@ -67,9 +67,6 @@ public final class AppSettings: ObservableObject {
     )
     public var currentEnv: String = "mainnet"
 
-    @AppStorage(AppSettingKey.isZknymEnabled.rawValue)
-    public var isZknymEnabled: Bool?
-
     @AppStorage(AppSettingKey.accountToken.rawValue)
     public var accountToken: String?
 
@@ -113,6 +110,5 @@ public enum AppSettingKey: String {
     case gatewayStore
     case santaEntryGateways
     case santaExitGateways
-    case isZknymEnabled
     case accountToken
 }

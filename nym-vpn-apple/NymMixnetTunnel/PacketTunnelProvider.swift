@@ -13,11 +13,7 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
     lazy var logger = Logger(label: "MixnetTunnel")
 
     override init() {
-        let logURL = LogFileManager.logFileURL(logFileType: .library)?.path()
-        initLogger(
-            path: logURL,
-            debugLevel: ConfigurationManager.shared.debugLevel
-        )
+        Self.configureLogger()
         LoggingSystem.bootstrap { label in
             let fileLogHandler = FileLogHandler(label: label, logFileManager: LogFileManager(logFileType: .tunnel))
 #if DEBUG
@@ -80,7 +76,12 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
 
     func startNymVpn(credentialDataPath: String, vpnConfig: VpnConfig) async throws {
         do {
-            try configureLib(dataDir: credentialDataPath, credentialMode: nil)
+            try configureLib(
+                dataDir: credentialDataPath,
+                credentialMode: nil,
+                sentryMonitoring: false,
+                statisticsEnabled: false
+            )
             try startVpn(config: vpnConfig)
         } catch {
             logger.error("Failed to start vpn: \(error)")
@@ -108,6 +109,19 @@ extension PacketTunnelProvider {
             try await ConfigurationManager.shared.setup()
         } catch {
             self.logger.error("Failed to set environment: \(error)")
+        }
+    }
+
+    static func configureLogger() {
+        let logPath = LogFileManager.logFileURL(logFileType: .library)?.path()
+        let logLevel = ConfigurationManager.shared.debugLevel
+
+        Task.detached {
+            await initLogger(
+                path: logPath,
+                debugLevel: logLevel,
+                sentryMonitoring: true
+            )
         }
     }
 }

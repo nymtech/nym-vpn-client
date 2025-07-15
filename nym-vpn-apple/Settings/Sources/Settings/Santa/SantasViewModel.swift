@@ -58,8 +58,6 @@ public final class SantasViewModel: ObservableObject {
         _path = path
         self.appSettings = appSettings
         self.configurationManager = configurationManager
-        self.isZknymEnabled = appSettings.isZknymEnabled ?? false
-        setupObservers()
     }
 #elseif os(macOS)
     init(
@@ -72,8 +70,6 @@ public final class SantasViewModel: ObservableObject {
         self.appSettings = appSettings
         self.grpcManager = grpcManager
         self.configurationManager = configurationManager
-        self.isZknymEnabled = appSettings.isZknymEnabled ?? false
-        setupObservers()
     }
 #endif
 
@@ -96,16 +92,4 @@ public final class SantasViewModel: ObservableObject {
         }
     }
 #endif
-}
-
-private extension SantasViewModel {
-    func setupObservers() {
-        $isZknymEnabled
-            .sink { [weak self] newValue in
-                Task { @MainActor in
-                    self?.appSettings.isZknymEnabled = newValue == true ? true : nil
-                }
-            }
-            .store(in: &cancellables)
-    }
 }

@@ -53,14 +53,10 @@ private extension CreateAccountNoPassphraseView {
     }
 
     var eliminatedList: some View {
-        HStack(alignment: .center, spacing: 20) {
-            Spacer()
+        HStack(alignment: .center, spacing: 10) {
             listItem(with: "createAccount.thirdPartyTrust")
-            Spacer()
             listItem(with: "createAccount.emailUsage")
-            Spacer()
             listItem(with: "createAccount.passwordCreation")
-            Spacer()
         }
     }
 
@@ -72,13 +68,9 @@ private extension CreateAccountNoPassphraseView {
 
     var enablesList: some View {
         HStack(alignment: .center, spacing: 10) {
-            Spacer()
             listItem(with: "createAccount.enablesSelfCustody")
-            Spacer()
             listItem(with: "createAccount.anonymousByDesign")
-            Spacer()
             listItem(with: "createAccount.actsAsLogin")
-            Spacer()
         }
     }
 
@@ -128,10 +120,10 @@ private extension CreateAccountNoPassphraseView {
                 .padding(.bottom, 8)
 
             Text(title.localizedString)
-                .lineLimit(3, reservesSpace: true)
                 .multilineTextAlignment(.center)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.primary)
+            Spacer()
         }
         .accessibilityLabel(title)
     }
