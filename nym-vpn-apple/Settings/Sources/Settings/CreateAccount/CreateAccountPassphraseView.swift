@@ -62,15 +62,17 @@ private extension CreateAccountPassphraseView {
     }
 
     var yourPassphraseTitle: some View {
-        Text("createAccount.yourPassphrase".localizedString)
-            .textStyle(.Headline.Small.regular)
-            .foregroundStyle(NymColor.primary)
+        HStack {
+            Text("createAccount.yourPassphrase".localizedString)
+                .textStyle(.Headline.Small.regular)
+                .foregroundStyle(NymColor.primary)
+            Spacer()
+        }
     }
 
     var passphrase: some View {
         VStack(alignment: .center, spacing: 12) {
             HStack {
-                Spacer()
                 if isAnimating {
                     AnimationView(animationName: "createAccountAnimation", isAnimating: $isAnimating)
                 } else {
@@ -80,10 +82,8 @@ private extension CreateAccountPassphraseView {
                             .textStyle(.Body.Large.regular)
                     }
                 }
-                Spacer()
             }
         }
-        .frame(height: 120)
         .padding(12)
         .background(NymColor.white)
         .clipShape(RoundedRectangle(cornerRadius: 8))
@@ -205,7 +205,7 @@ private extension CreateAccountPassphraseView {
                     Spacer()
                 }
                 .padding(8)
-                .background(NymColor.elevation)
+                .background(Color(red: 0.57, green: 0.54, blue: 1).opacity(0.15))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
                 .onTapGesture {
                     isPassphraseSavedToggle()

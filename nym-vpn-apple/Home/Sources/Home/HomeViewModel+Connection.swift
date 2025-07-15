@@ -16,7 +16,6 @@ public extension HomeViewModel {
         }
 #endif
         Task {
-            lastError = nil
             resetStatusInfoState()
 #if os(macOS)
             guard !helperManager.isInstallNeeded()
@@ -36,6 +35,7 @@ public extension HomeViewModel {
 
             do {
                 try await connectionManager.connectDisconnect()
+                resetLastError()
             } catch let error {
                 updateStatusInfoState(with: .error(message: error.localizedDescription))
 #if os(iOS)

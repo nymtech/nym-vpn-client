@@ -19,7 +19,6 @@ public struct MixnetConfig: Codable, Equatable {
     public let entryGateway: EntryGateway
     public let exitRouter: ExitRouter
     public let isTwoHopEnabled: Bool
-    public let isZknymEnabled: Bool?
 
     public var name = "NymVPN Mixnet"
 #if os(iOS)
@@ -29,7 +28,6 @@ public struct MixnetConfig: Codable, Equatable {
         credentialsDataPath: String,
         configPath: String,
         isTwoHopEnabled: Bool = false,
-        isZknymEnabled: Bool?,
         name: String = "NymVPN Mixnet"
     ) {
         self.entryGateway = entryGateway
@@ -38,7 +36,6 @@ public struct MixnetConfig: Codable, Equatable {
         self.configPath = configPath
         self.isTwoHopEnabled = isTwoHopEnabled
         self.name = name
-        self.isZknymEnabled = isZknymEnabled
     }
 #endif
 
@@ -46,13 +43,11 @@ public struct MixnetConfig: Codable, Equatable {
     public init(
         entryGateway: EntryGateway,
         exitRouter: ExitRouter,
-        isTwoHopEnabled: Bool = false,
-        isZknymEnabled: Bool?
+        isTwoHopEnabled: Bool = false
     ) {
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
         self.isTwoHopEnabled = isTwoHopEnabled
-        self.isZknymEnabled = isZknymEnabled
     }
 #endif
 }
@@ -69,7 +64,6 @@ extension MixnetConfig {
             configPath: configPath,
             credentialDataPath: credentialsDataPath,
             tunStatusListener: tunStatusListener,
-            credentialMode: isZknymEnabled,
             statisticsRecipient: nil,
             userAgent: UserAgent(
                 application: AppVersionProvider.app,

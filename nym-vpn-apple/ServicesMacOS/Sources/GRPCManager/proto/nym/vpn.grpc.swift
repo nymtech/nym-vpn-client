@@ -182,6 +182,21 @@ internal protocol Nym_Vpn_NymVpndClientProtocol: GRPCClient {
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
   ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_DeleteLogFileResponse>
+
+  func isSentryEnabled(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_IsSentryEnabledResponse>
+
+  func enableSentry(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_EnableSentryResponse>
+
+  func disableSentry(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_DisableSentryResponse>
 }
 
 extension Nym_Vpn_NymVpndClientProtocol {
@@ -791,6 +806,60 @@ extension Nym_Vpn_NymVpndClientProtocol {
       interceptors: self.interceptors?.makeDeleteLogFileInterceptors() ?? []
     )
   }
+
+  /// Check if Sentry error monitoring is enabled
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to IsSentryEnabled.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func isSentryEnabled(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_IsSentryEnabledResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.isSentryEnabled.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeIsSentryEnabledInterceptors() ?? []
+    )
+  }
+
+  /// Enable Sentry error monitoring
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to EnableSentry.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func enableSentry(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_EnableSentryResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.enableSentry.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeEnableSentryInterceptors() ?? []
+    )
+  }
+
+  /// Disable Sentry error monitoring
+  ///
+  /// - Parameters:
+  ///   - request: Request to send to DisableSentry.
+  ///   - callOptions: Call options.
+  /// - Returns: A `UnaryCall` with futures for the metadata, status and response.
+  internal func disableSentry(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) -> UnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_DisableSentryResponse> {
+    return self.makeUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.disableSentry.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeDisableSentryInterceptors() ?? []
+    )
+  }
 }
 
 @available(*, deprecated)
@@ -1019,6 +1088,21 @@ internal protocol Nym_Vpn_NymVpndAsyncClientProtocol: GRPCClient {
     _ request: SwiftProtobuf.Google_Protobuf_Empty,
     callOptions: CallOptions?
   ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_DeleteLogFileResponse>
+
+  func makeIsSentryEnabledCall(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_IsSentryEnabledResponse>
+
+  func makeEnableSentryCall(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_EnableSentryResponse>
+
+  func makeDisableSentryCall(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions?
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_DisableSentryResponse>
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1426,6 +1510,42 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       interceptors: self.interceptors?.makeDeleteLogFileInterceptors() ?? []
     )
   }
+
+  internal func makeIsSentryEnabledCall(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_IsSentryEnabledResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.isSentryEnabled.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeIsSentryEnabledInterceptors() ?? []
+    )
+  }
+
+  internal func makeEnableSentryCall(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_EnableSentryResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.enableSentry.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeEnableSentryInterceptors() ?? []
+    )
+  }
+
+  internal func makeDisableSentryCall(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) -> GRPCAsyncUnaryCall<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_DisableSentryResponse> {
+    return self.makeAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.disableSentry.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeDisableSentryInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1825,6 +1945,42 @@ extension Nym_Vpn_NymVpndAsyncClientProtocol {
       interceptors: self.interceptors?.makeDeleteLogFileInterceptors() ?? []
     )
   }
+
+  internal func isSentryEnabled(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_IsSentryEnabledResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.isSentryEnabled.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeIsSentryEnabledInterceptors() ?? []
+    )
+  }
+
+  internal func enableSentry(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_EnableSentryResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.enableSentry.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeEnableSentryInterceptors() ?? []
+    )
+  }
+
+  internal func disableSentry(
+    _ request: SwiftProtobuf.Google_Protobuf_Empty,
+    callOptions: CallOptions? = nil
+  ) async throws -> Nym_Vpn_DisableSentryResponse {
+    return try await self.performAsyncUnaryCall(
+      path: Nym_Vpn_NymVpndClientMetadata.Methods.disableSentry.path,
+      request: request,
+      callOptions: callOptions ?? self.defaultCallOptions,
+      interceptors: self.interceptors?.makeDisableSentryInterceptors() ?? []
+    )
+  }
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -1944,6 +2100,15 @@ internal protocol Nym_Vpn_NymVpndClientInterceptorFactoryProtocol: Sendable {
 
   /// - Returns: Interceptors to use when invoking 'deleteLogFile'.
   func makeDeleteLogFileInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_DeleteLogFileResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'isSentryEnabled'.
+  func makeIsSentryEnabledInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_IsSentryEnabledResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'enableSentry'.
+  func makeEnableSentryInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_EnableSentryResponse>]
+
+  /// - Returns: Interceptors to use when invoking 'disableSentry'.
+  func makeDisableSentryInterceptors() -> [ClientInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_DisableSentryResponse>]
 }
 
 internal enum Nym_Vpn_NymVpndClientMetadata {
@@ -1984,6 +2149,9 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       Nym_Vpn_NymVpndClientMetadata.Methods.getAvailableTickets,
       Nym_Vpn_NymVpndClientMetadata.Methods.getLogPath,
       Nym_Vpn_NymVpndClientMetadata.Methods.deleteLogFile,
+      Nym_Vpn_NymVpndClientMetadata.Methods.isSentryEnabled,
+      Nym_Vpn_NymVpndClientMetadata.Methods.enableSentry,
+      Nym_Vpn_NymVpndClientMetadata.Methods.disableSentry,
     ]
   )
 
@@ -2185,6 +2353,24 @@ internal enum Nym_Vpn_NymVpndClientMetadata {
       path: "/nym.vpn.NymVpnd/DeleteLogFile",
       type: GRPCCallType.unary
     )
+
+    internal static let isSentryEnabled = GRPCMethodDescriptor(
+      name: "IsSentryEnabled",
+      path: "/nym.vpn.NymVpnd/IsSentryEnabled",
+      type: GRPCCallType.unary
+    )
+
+    internal static let enableSentry = GRPCMethodDescriptor(
+      name: "EnableSentry",
+      path: "/nym.vpn.NymVpnd/EnableSentry",
+      type: GRPCCallType.unary
+    )
+
+    internal static let disableSentry = GRPCMethodDescriptor(
+      name: "DisableSentry",
+      path: "/nym.vpn.NymVpnd/DisableSentry",
+      type: GRPCCallType.unary
+    )
   }
 }
 
@@ -2293,6 +2479,15 @@ internal protocol Nym_Vpn_NymVpndProvider: CallHandlerProvider {
 
   /// Delete the log file
   func deleteLogFile(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_DeleteLogFileResponse>
+
+  /// Check if Sentry error monitoring is enabled
+  func isSentryEnabled(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_IsSentryEnabledResponse>
+
+  /// Enable Sentry error monitoring
+  func enableSentry(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_EnableSentryResponse>
+
+  /// Disable Sentry error monitoring
+  func disableSentry(request: SwiftProtobuf.Google_Protobuf_Empty, context: StatusOnlyCallContext) -> EventLoopFuture<Nym_Vpn_DisableSentryResponse>
 }
 
 extension Nym_Vpn_NymVpndProvider {
@@ -2604,6 +2799,33 @@ extension Nym_Vpn_NymVpndProvider {
         userFunction: self.deleteLogFile(request:context:)
       )
 
+    case "IsSentryEnabled":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_IsSentryEnabledResponse>(),
+        interceptors: self.interceptors?.makeIsSentryEnabledInterceptors() ?? [],
+        userFunction: self.isSentryEnabled(request:context:)
+      )
+
+    case "EnableSentry":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_EnableSentryResponse>(),
+        interceptors: self.interceptors?.makeEnableSentryInterceptors() ?? [],
+        userFunction: self.enableSentry(request:context:)
+      )
+
+    case "DisableSentry":
+      return UnaryServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_DisableSentryResponse>(),
+        interceptors: self.interceptors?.makeDisableSentryInterceptors() ?? [],
+        userFunction: self.disableSentry(request:context:)
+      )
+
     default:
       return nil
     }
@@ -2818,6 +3040,24 @@ internal protocol Nym_Vpn_NymVpndAsyncProvider: CallHandlerProvider, Sendable {
     request: SwiftProtobuf.Google_Protobuf_Empty,
     context: GRPCAsyncServerCallContext
   ) async throws -> Nym_Vpn_DeleteLogFileResponse
+
+  /// Check if Sentry error monitoring is enabled
+  func isSentryEnabled(
+    request: SwiftProtobuf.Google_Protobuf_Empty,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_IsSentryEnabledResponse
+
+  /// Enable Sentry error monitoring
+  func enableSentry(
+    request: SwiftProtobuf.Google_Protobuf_Empty,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_EnableSentryResponse
+
+  /// Disable Sentry error monitoring
+  func disableSentry(
+    request: SwiftProtobuf.Google_Protobuf_Empty,
+    context: GRPCAsyncServerCallContext
+  ) async throws -> Nym_Vpn_DisableSentryResponse
 }
 
 @available(macOS 10.15, iOS 13, tvOS 13, watchOS 6, *)
@@ -3136,6 +3376,33 @@ extension Nym_Vpn_NymVpndAsyncProvider {
         wrapping: { try await self.deleteLogFile(request: $0, context: $1) }
       )
 
+    case "IsSentryEnabled":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_IsSentryEnabledResponse>(),
+        interceptors: self.interceptors?.makeIsSentryEnabledInterceptors() ?? [],
+        wrapping: { try await self.isSentryEnabled(request: $0, context: $1) }
+      )
+
+    case "EnableSentry":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_EnableSentryResponse>(),
+        interceptors: self.interceptors?.makeEnableSentryInterceptors() ?? [],
+        wrapping: { try await self.enableSentry(request: $0, context: $1) }
+      )
+
+    case "DisableSentry":
+      return GRPCAsyncServerHandler(
+        context: context,
+        requestDeserializer: ProtobufDeserializer<SwiftProtobuf.Google_Protobuf_Empty>(),
+        responseSerializer: ProtobufSerializer<Nym_Vpn_DisableSentryResponse>(),
+        interceptors: self.interceptors?.makeDisableSentryInterceptors() ?? [],
+        wrapping: { try await self.disableSentry(request: $0, context: $1) }
+      )
+
     default:
       return nil
     }
@@ -3275,6 +3542,18 @@ internal protocol Nym_Vpn_NymVpndServerInterceptorFactoryProtocol: Sendable {
   /// - Returns: Interceptors to use when handling 'deleteLogFile'.
   ///   Defaults to calling `self.makeInterceptors()`.
   func makeDeleteLogFileInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_DeleteLogFileResponse>]
+
+  /// - Returns: Interceptors to use when handling 'isSentryEnabled'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeIsSentryEnabledInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_IsSentryEnabledResponse>]
+
+  /// - Returns: Interceptors to use when handling 'enableSentry'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeEnableSentryInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_EnableSentryResponse>]
+
+  /// - Returns: Interceptors to use when handling 'disableSentry'.
+  ///   Defaults to calling `self.makeInterceptors()`.
+  func makeDisableSentryInterceptors() -> [ServerInterceptor<SwiftProtobuf.Google_Protobuf_Empty, Nym_Vpn_DisableSentryResponse>]
 }
 
 internal enum Nym_Vpn_NymVpndServerMetadata {
@@ -3315,6 +3594,9 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
       Nym_Vpn_NymVpndServerMetadata.Methods.getAvailableTickets,
       Nym_Vpn_NymVpndServerMetadata.Methods.getLogPath,
       Nym_Vpn_NymVpndServerMetadata.Methods.deleteLogFile,
+      Nym_Vpn_NymVpndServerMetadata.Methods.isSentryEnabled,
+      Nym_Vpn_NymVpndServerMetadata.Methods.enableSentry,
+      Nym_Vpn_NymVpndServerMetadata.Methods.disableSentry,
     ]
   )
 
@@ -3514,6 +3796,24 @@ internal enum Nym_Vpn_NymVpndServerMetadata {
     internal static let deleteLogFile = GRPCMethodDescriptor(
       name: "DeleteLogFile",
       path: "/nym.vpn.NymVpnd/DeleteLogFile",
+      type: GRPCCallType.unary
+    )
+
+    internal static let isSentryEnabled = GRPCMethodDescriptor(
+      name: "IsSentryEnabled",
+      path: "/nym.vpn.NymVpnd/IsSentryEnabled",
+      type: GRPCCallType.unary
+    )
+
+    internal static let enableSentry = GRPCMethodDescriptor(
+      name: "EnableSentry",
+      path: "/nym.vpn.NymVpnd/EnableSentry",
+      type: GRPCCallType.unary
+    )
+
+    internal static let disableSentry = GRPCMethodDescriptor(
+      name: "DisableSentry",
+      path: "/nym.vpn.NymVpnd/DisableSentry",
       type: GRPCCallType.unary
     )
   }
