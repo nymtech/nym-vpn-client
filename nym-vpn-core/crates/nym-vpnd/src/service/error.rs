@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_lib::{
-    gateway_directory::GatewayType, tunnel_state_machine::Error as TunnelStateMachineError,
+    MixnetError, gateway_directory::GatewayType,
+    tunnel_state_machine::Error as TunnelStateMachineError,
 };
 use tracing::error;
 
@@ -55,6 +56,9 @@ pub enum Error {
 
     #[error("state machine error")]
     StateMachine(#[source] TunnelStateMachineError),
+
+    #[error("mixnet setup error")]
+    MixnetSetup(#[from] MixnetError),
 }
 
 #[derive(Clone, Debug, thiserror::Error)]

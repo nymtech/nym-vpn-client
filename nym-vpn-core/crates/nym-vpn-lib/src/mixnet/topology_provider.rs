@@ -4,10 +4,13 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use tokio::sync::{
-    RwLock,
-    mpsc::{UnboundedReceiver, UnboundedSender},
-    oneshot,
+use tokio::{
+    sync::{
+        Mutex, RwLock,
+        mpsc::{UnboundedReceiver, UnboundedSender},
+        oneshot,
+    },
+    task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
 use url::Url;
@@ -123,6 +126,7 @@ struct CachedNymTopology {
 #[derive(Debug, Clone)]
 pub struct VpnTopologyProvider {
     cached_topology: Arc<RwLock<CachedNymTopology>>,
+    in_progress_fetch: Arc<Mutex<Option<JoinHandle<()>>>>,
     command_tx: UnboundedSender<FetcherCommand>,
 }
 
@@ -142,12 +146,22 @@ impl VpnTopologyProvider {
                 latest_topology: None,
                 use_network,
             })),
+            in_progress_fetch: Arc::new(Mutex::new(None)),
             command_tx,
         }
     }
 
-    /// Get topology from network, regardless of the set value of use_network
+    /// Get topology from network asynchronously, regardless of the set value of use_network
     pub async fn fetch(&self) {
+        let mut in_progress_fetch = self.in_progress_fetch.lock().await;
+
+        // Make sure we consume previous handle, if it's already finished
+        in_progress_fetch.take_if(|handle| handle.is_finished());
+
+        if in_progress_fetch.is_some() {
+            return;
+        }
+
         let (signal_finished_tx, signal_finished_rx) = oneshot::channel();
         if self
             .command_tx
@@ -159,10 +173,20 @@ impl VpnTopologyProvider {
             tracing::debug!("Fetcher terminated");
             return;
         }
-        if let Ok(latest_topology) = signal_finished_rx.await {
-            self.cached_topology.write().await.latest_topology = latest_topology;
-        } else {
-            tracing::warn!("Could not fetch topology from network");
+        let cached_topology = self.cached_topology.clone();
+        let handle = tokio::spawn(async move {
+            if let Ok(latest_topology) = signal_finished_rx.await {
+                cached_topology.write().await.latest_topology = latest_topology;
+            } else {
+                tracing::warn!("Could not fetch topology from network");
+            }
+        });
+        *in_progress_fetch = Some(handle);
+    }
+
+    pub async fn maybe_wait_on_fetch(&self) {
+        if let Some(handle) = self.in_progress_fetch.lock().await.take() {
+            handle.await;
         }
     }
 
@@ -198,8 +222,11 @@ impl VpnTopologyProvider {
 impl TopologyProvider for VpnTopologyProvider {
     async fn get_new_topology(&mut self) -> Option<NymTopology> {
         let cached_topology = self.cached_topology.read().await.clone();
-        if cached_topology.use_network {
+        if cached_topology.use_network || cached_topology.latest_topology.is_none() {
             self.fetch().await;
+            // wait for the fetch to complete in cache
+            self.maybe_wait_on_fetch().await;
+
             self.cached_topology.read().await.latest_topology.clone()
         } else {
             cached_topology.latest_topology
