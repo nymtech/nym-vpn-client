@@ -29,6 +29,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Apply patch to h2 crate so hickory-dns DoH connections consider server go-away close as valid preventing spurious warn logging (https://github.com/nymtech/nym-vpn-client/pull/3053)
 - Fix task manager dropping immediately on config path not being specified (https://github.com/nymtech/nym-vpn-client/pull/3054)
 - Fix tunnel connectivity issues by applying route MTU for multihop tunnel (https://github.com/nymtech/nym-vpn-client/pull/3051)
+- Fix prefetching topology not working at no network daemon boot (https://github.com/nymtech/nym-vpn-client/pull/3072)
 
 
 ## [1.11.0] - 2025-06-18
