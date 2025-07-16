@@ -198,7 +198,7 @@ impl VpnTopologyProvider {
 impl TopologyProvider for VpnTopologyProvider {
     async fn get_new_topology(&mut self) -> Option<NymTopology> {
         let cached_topology = self.cached_topology.read().await.clone();
-        if cached_topology.use_network {
+        if cached_topology.use_network || cached_topology.latest_topology.is_none() {
             self.fetch().await;
             self.cached_topology.read().await.latest_topology.clone()
         } else {
