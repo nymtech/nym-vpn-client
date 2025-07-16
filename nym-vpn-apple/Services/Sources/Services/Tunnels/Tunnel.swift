@@ -26,7 +26,7 @@ public final class Tunnel: NSObject, ObservableObject {
         self.logger = Logger(label: "Tunnel \(name)")
         super.init()
 
-        if status == .connected {
+        if status != .disconnected {
             startPollingTunnelStatus()
         }
     }
