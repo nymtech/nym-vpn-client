@@ -65,13 +65,13 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@"
           }
         },
@@ -2791,14 +2791,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to"
+            "state" : "translated",
+            "value" : "Добро пожаловать в"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to"
+            "state" : "translated",
+            "value" : "Hoş geldiniz"
           }
         },
         "uk" : {
@@ -4306,14 +4306,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Acts as your login"
+            "state" : "translated",
+            "value" : "Используется как ваш логин"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Acts as your login"
+            "state" : "translated",
+            "value" : "Giriş bilgileriniz olarak kullanılır"
           }
         },
         "uk" : {
@@ -4407,14 +4407,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Already have account?"
+            "state" : "translated",
+            "value" : "Уже есть аккаунт?"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Already have account?"
+            "state" : "translated",
+            "value" : "Zaten bir hesabınız mı var?"
           }
         },
         "uk" : {
@@ -4508,14 +4508,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Is anonymous by design"
+            "state" : "translated",
+            "value" : "Анонимность заложена в основу конструкции"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Is anonymous by design"
+            "state" : "translated",
+            "value" : "Tasarım gereği anonimdir"
           }
         },
         "uk" : {
@@ -4609,14 +4609,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous mixnet technology"
+            "state" : "translated",
+            "value" : "Анонимная технология микснета"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous mixnet technology"
+            "state" : "translated",
+            "value" : "Anonim mixnet teknolojisi"
           }
         },
         "uk" : {
@@ -4710,14 +4710,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "Продолжить"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "Devam et"
           }
         },
         "uk" : {
@@ -4811,14 +4811,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "50+ countries worldwide"
+            "state" : "translated",
+            "value" : "Более 50 стран по всему миру"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "50+ countries worldwide"
+            "state" : "translated",
+            "value" : "Dünya genelinde 50’den fazla ülke"
           }
         },
         "uk" : {
@@ -4912,14 +4912,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start protecting my privacy"
+            "state" : "translated",
+            "value" : "Начните защищать свою конфиденциальность"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start protecting my privacy"
+            "state" : "translated",
+            "value" : "Gizliliğimi korumaya başla"
           }
         },
         "uk" : {
@@ -5013,14 +5013,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create an account"
+            "state" : "translated",
+            "value" : "Получите код доступа"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create an account"
+            "state" : "translated",
+            "value" : "Hesap oluştur"
           }
         },
         "uk" : {
@@ -5114,14 +5114,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create my 24-word passphrase"
+            "state" : "translated",
+            "value" : "Создать мою 24‑словную секретную фразу"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create my 24-word passphrase"
+            "state" : "translated",
+            "value" : "24 kelimelik gizli ifademi oluştur"
           }
         },
         "uk" : {
@@ -5215,14 +5215,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Save it in a trusted password manager or write down your passphrase and store it securely."
+            "state" : "translated",
+            "value" : "Сохраните её в надёжном менеджере паролей или запишите и храните в безопасном месте."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Save it in a trusted password manager or write down your passphrase and store it securely."
+            "state" : "translated",
+            "value" : "Gizli ifadenizi güvenilir bir şifre yöneticisine kaydedin ya da yazıp güvenli bir yerde saklayın."
           }
         },
         "uk" : {
@@ -5316,14 +5316,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t Lose Your Passphrase"
+            "state" : "translated",
+            "value" : "Не потеряйте вашу секретную фразу"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t Lose Your Passphrase"
+            "state" : "translated",
+            "value" : "Gizli İfadenizi Kaybetmeyin"
           }
         },
         "uk" : {
@@ -5417,14 +5417,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Never share it—not even with Nym Support team."
+            "state" : "translated",
+            "value" : "Никогда не делитесь ею — даже с командой поддержки Nym."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Never share it—not even with Nym Support team."
+            "state" : "translated",
+            "value" : "Gizli ifadenizi kesinlikle başkalarıyla, hatta Nym destek ekibiyle bile paylaşmayın."
           }
         },
         "uk" : {
@@ -5518,14 +5518,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t share!"
+            "state" : "translated",
+            "value" : "Не делитесь!"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t share!"
+            "state" : "translated",
+            "value" : "Paylaşmayın!"
           }
         },
         "uk" : {
@@ -5619,14 +5619,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Email usage"
+            "state" : "translated",
+            "value" : "Использование электронной почты"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Email usage"
+            "state" : "translated",
+            "value" : "E-posta kullanımı"
           }
         },
         "uk" : {
@@ -5720,14 +5720,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enables self-custody"
+            "state" : "translated",
+            "value" : "Обеспечивает самостоятельное хранение"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enables self-custody"
+            "state" : "translated",
+            "value" : "Kendi kendine kontrolü sağlar"
           }
         },
         "uk" : {
@@ -5821,14 +5821,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How to keep your NymVPN passphrase safe?"
+            "state" : "translated",
+            "value" : "Как сохранить вашу секретную фразу NymVPN в безопасности?"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How to keep your NymVPN passphrase safe?"
+            "state" : "translated",
+            "value" : "NymVPN şifrenizi güvende tutmanın yolları nelerdir?"
           }
         },
         "uk" : {
@@ -5922,14 +5922,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "state" : "translated",
+            "value" : "Вместо этого вы создаёте аккаунт, защищённый фразой из 24 слов."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "state" : "translated",
+            "value" : "Bunun yerine, 24 kelimelik gizli ifade ile korunan bir hesap oluşturuyorsunuz."
           }
         },
         "uk" : {
@@ -6023,14 +6023,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Log in"
+            "state" : "translated",
+            "value" : "Войти"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Log in"
+            "state" : "translated",
+            "value" : "Giriş yap"
           }
         },
         "uk" : {
@@ -6124,14 +6124,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I understand: no passphrase, no access."
+            "state" : "translated",
+            "value" : "Я понимаю: нет пароля, нет доступа."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I understand: no passphrase, no access."
+            "state" : "translated",
+            "value" : "Anlıyorum: gizli ifade olmadan erişim mümkün değil."
           }
         },
         "uk" : {
@@ -6190,7 +6190,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sources ouvertes et lois suisses sur la vie privée"
+            "value" : "Logiciel open source et protection des données en Suisse"
           }
         },
         "hi" : {
@@ -6225,14 +6225,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open source & Swiss privacy laws"
+            "state" : "translated",
+            "value" : "Открытый исходный код и швейцарские законы о конфиденциальности"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open source & Swiss privacy laws"
+            "state" : "translated",
+            "value" : "Açık kaynak ve İsviçre gizlilik yasaları"
           }
         },
         "uk" : {
@@ -6326,14 +6326,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Password creation"
+            "state" : "translated",
+            "value" : "Создание пароля"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Password creation"
+            "state" : "translated",
+            "value" : "Şifre oluşturma"
           }
         },
         "uk" : {
@@ -6427,14 +6427,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
+            "state" : "translated",
+            "value" : "Я сохранил свою секретную фразу"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
+            "state" : "translated",
+            "value" : "Gizli ifademi kaydettim"
           }
         },
         "uk" : {
@@ -6528,14 +6528,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account Created Successfully"
+            "state" : "translated",
+            "value" : "Учетная запись успешно создана"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account Created Successfully"
+            "state" : "translated",
+            "value" : "Hesap Başarıyla Oluşturuldu"
           }
         },
         "uk" : {
@@ -6629,14 +6629,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose your NymVPN plan"
+            "state" : "translated",
+            "value" : "Выберите свой тариф NymVPN"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose your NymVPN plan"
+            "state" : "translated",
+            "value" : "NymVPN planınızı seçin"
           }
         },
         "uk" : {
@@ -6730,14 +6730,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Instant, secure connections without compromising your privacy."
+            "state" : "translated",
+            "value" : "Мгновенные и безопасные подключения без ущерба для вашей конфиденциальности."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Instant, secure connections without compromising your privacy."
+            "state" : "translated",
+            "value" : "Gizliliğinizden ödün vermeden anında ve güvenli bağlantılar"
           }
         },
         "uk" : {
@@ -6831,14 +6831,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Fast & Anonymous Mode"
+            "state" : "translated",
+            "value" : "Быстрый и Анонимный режимы"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Fast & Anonymous Mode"
+            "state" : "translated",
+            "value" : "Hızlı ve Anonim Mod"
           }
         },
         "uk" : {
@@ -6932,14 +6932,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+            "state" : "translated",
+            "value" : "Получите доступ к серверам в более чем 85 странах — наслаждайтесь свободой и конфиденциальностью без границ."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Access servers in 85+ countries — enjoy freedom and privacy without borders."
+            "state" : "translated",
+            "value" : "85’ten fazla ülkedeki sunuculara erişin — sınır tanımayan özgürlük ve gizliliğin keyfini çıkarın."
           }
         },
         "uk" : {
@@ -7033,14 +7033,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Global Coverage"
+            "state" : "translated",
+            "value" : "Глобальное покрытие"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Global Coverage"
+            "state" : "translated",
+            "value" : "Global Kapsama"
           }
         },
         "uk" : {
@@ -7134,14 +7134,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Maybe later"
+            "state" : "translated",
+            "value" : "Может быть позже"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Maybe later"
+            "state" : "translated",
+            "value" : "Belki daha sonra"
           }
         },
         "uk" : {
@@ -7235,14 +7235,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select plan"
+            "state" : "translated",
+            "value" : "Выберите тарифный план"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select plan"
+            "state" : "translated",
+            "value" : "Plan seçin"
           }
         },
         "uk" : {
@@ -7336,14 +7336,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Skip for now"
+            "state" : "translated",
+            "value" : "Пропустить"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Skip for now"
+            "state" : "translated",
+            "value" : "Şimdilik atla"
           }
         },
         "uk" : {
@@ -7437,14 +7437,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+            "state" : "translated",
+            "value" : "Чтобы продолжить, выберите план, чтобы разблокировать полный потенциал NymVPN и получить выгоду от:"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "To continue, select a plan to unlock the full potential of NymVPN and benefit from:"
+            "state" : "translated",
+            "value" : "Devam etmek için, NymVPN’in tüm özelliklerinin kilidini açmak ve aşağıdaki avantajlardan yararlanmak için bir plan seçin:"
           }
         },
         "uk" : {
@@ -7538,14 +7538,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Third-party trust"
+            "state" : "translated",
+            "value" : "Доверие третьих сторон"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Third-party trust"
+            "state" : "translated",
+            "value" : "Üçüncü taraf güvencesi"
           }
         },
         "uk" : {
@@ -7639,14 +7639,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Payments and activity stay unlinked"
+            "state" : "translated",
+            "value" : "Платежи и активность не связаны"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Payments and activity stay unlinked"
+            "state" : "translated",
+            "value" : "Ödemeler ve faaliyetler birbiriyle ilişkilendirilemez"
           }
         },
         "uk" : {
@@ -7740,14 +7740,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "What is a 24-word passphrase?"
+            "state" : "translated",
+            "value" : "Что такое секретная фраза из 24 слов?"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "What is a 24-word passphrase?"
+            "state" : "translated",
+            "value" : "24 kelimelik gizli ifade nedir?"
           }
         },
         "uk" : {
@@ -7841,14 +7841,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "24-word passphrase (locally created on your device) serves as your account login details. This passphrase is the only way to access your account."
+            "state" : "translated",
+            "value" : "Секретная фраза из 24 слов (создаваемая локально на вашем устройстве) служит данными для входа в ваш аккаунт. Эта фраза — единственный способ получить доступ к вашему аккаунту."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "24-word passphrase (locally created on your device) serves as your account login details. This passphrase is the only way to access your account."
+            "state" : "translated",
+            "value" : "24 kelimelik gizli ifade (cihazınızda yerel olarak oluşturulur), hesap giriş bilgileriniz olarak kullanılır. Bu ifade, hesabınıza erişmenin tek yoludur."
           }
         },
         "uk" : {
@@ -7942,14 +7942,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your 24-word NymVPN passphrase"
+            "state" : "translated",
+            "value" : "Ваша 24‑словная секретная фраза NymVPN"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your 24-word NymVPN passphrase"
+            "state" : "translated",
+            "value" : "24 kelimelik NymVPN gizli ifadeniz"
           }
         },
         "uk" : {
@@ -8043,14 +8043,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For your privacy, we’ve eliminated:"
+            "state" : "translated",
+            "value" : "Ради вашей конфиденциальности мы исключили:"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For your privacy, we’ve eliminated:"
+            "state" : "translated",
+            "value" : "Gizliliğiniz için, şunları ortadan kaldırdık:"
           }
         },
         "uk" : {
@@ -9968,8 +9968,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to create credential storage."
+            "state" : "translated",
+            "value" : "Kimlik bilgileri depolama yapılamadı."
           }
         },
         "uk" : {
@@ -10467,14 +10467,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account registration failed. Please try again."
+            "state" : "translated",
+            "value" : "Регистрация аккаунта не удалась. Пожалуйста, попробуйте ещё раз."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account registration failed. Please try again."
+            "state" : "translated",
+            "value" : "Hesap kaydı başarısız oldu. Lütfen tekrar deneyin."
           }
         },
         "uk" : {
@@ -18244,14 +18244,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Начало работы"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Başlayın"
           }
         },
         "uk" : {
@@ -22587,14 +22587,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start using NymVPN"
+            "state" : "translated",
+            "value" : "Начать использовать NymVPN"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start using NymVPN"
+            "state" : "translated",
+            "value" : "NymVPN kullanmaya başlayın"
           }
         },
         "uk" : {
@@ -22688,14 +22688,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
+            "state" : "translated",
+            "value" : "Ваше соединение защищено."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
+            "state" : "translated",
+            "value" : "Bağlantınız gizli."
           }
         },
         "uk" : {
@@ -22789,14 +22789,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
+            "state" : "translated",
+            "value" : "Ваша личность остается вашей."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
+            "state" : "translated",
+            "value" : "Kimliğiniz sadece size ait kalır."
           }
         },
         "uk" : {
@@ -22890,14 +22890,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
+            "state" : "translated",
+            "value" : "План активирован"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
+            "state" : "translated",
+            "value" : "Plan Aktif Edildi"
           }
         },
         "uk" : {
@@ -22991,14 +22991,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Succesfully"
+            "state" : "translated",
+            "value" : "Успешно"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Succesfully"
+            "state" : "translated",
+            "value" : "Başarılı"
           }
         },
         "uk" : {
@@ -26021,14 +26021,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Начало работы"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Başlayın"
           }
         },
         "uk" : {
@@ -26995,7 +26995,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Saved in Keychain"
           }
         },
@@ -27031,14 +27031,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saved in Keychain"
+            "state" : "translated",
+            "value" : "Сохранено в Keychain"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saved in Keychain"
+            "state" : "translated",
+            "value" : "Anahtar Zincirine kaydedildi"
           }
         },
         "uk" : {
@@ -27435,14 +27435,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Try again"
+            "state" : "translated",
+            "value" : "Попробовать снова"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Try again"
+            "state" : "translated",
+            "value" : "Tekrar deneyin"
           }
         },
         "uk" : {
