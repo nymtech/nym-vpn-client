@@ -15,7 +15,11 @@ extension HomeViewModel {
         connectButtonState = .noAccount
     }
 
-    func resetStatusInfoState() {
+    @MainActor func resetLastError() {
+        lastError = nil
+    }
+
+    @MainActor func resetStatusInfoState() {
         updateStatusInfoState(with: .unknown)
     }
 
@@ -34,22 +38,35 @@ extension HomeViewModel {
         navigateToAddCredentials()
     }
 
+    @MainActor func navigateToPlanPurchaseIfNeeded(with error: Error?) {
+        guard let errorReason = error as? ErrorReason,
+              errorReason == .subscriptionExpired,
+              (lastError as? ErrorReason) != .subscriptionExpired
+        else {
+            return
+        }
+        navigateToPlanPurchase()
+    }
+
     @MainActor func updateLastError(_ error: Error?) {
         if lastError == nil, let error {
-            lastError = error
             updateStatusInfoState(with: .error(message: error.localizedDescription))
             navigateToAddCredetialsIfNeeded(error: error)
+            navigateToPlanPurchaseIfNeeded(with: error)
+            lastError = error
         } else {
             guard let lastNsError = lastError as? NSError,
-                  let error = error as? NSError,
-                  lastNsError.domain != error.domain,
-                  lastNsError.code != error.code
+                  let nsError = error as? NSError,
+                  lastNsError.domain != nsError.domain,
+                  lastNsError.code != nsError.code
             else {
                 return
             }
-            lastError = error
-            updateStatusInfoState(with: .error(message: error.localizedDescription))
+
+            updateStatusInfoState(with: .error(message: nsError.localizedDescription))
             navigateToAddCredetialsIfNeeded(error: error)
+            navigateToPlanPurchaseIfNeeded(with: error)
+            lastError = error
         }
     }
 

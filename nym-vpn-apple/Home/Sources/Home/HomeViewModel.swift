@@ -180,6 +180,11 @@ public extension HomeViewModel {
         #endif
     }
 
+    @MainActor func navigateToPlanPurchase() {
+        path.append(HomeLink.settings)
+        path.append(SettingLink.createAccountSuccess)
+    }
+
 #if os(macOS)
     @MainActor func navigateToInstallHelper() {
         let action = HelperAfterInstallAction { [weak self] in

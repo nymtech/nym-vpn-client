@@ -7,8 +7,7 @@ extension ConnectionManager {
     func generateConfig() -> MixnetConfig {
         var config = MixnetConfig(
             entryGateway: entryGateway,
-            exitRouter: exitRouter,
-            isZknymEnabled: appSettings.isZknymEnabled
+            exitRouter: exitRouter
         )
 
         switch connectionType {
@@ -16,15 +15,13 @@ extension ConnectionManager {
             config = MixnetConfig(
                 entryGateway: entryGateway,
                 exitRouter: exitRouter,
-                isTwoHopEnabled: false,
-                isZknymEnabled: appSettings.isZknymEnabled
+                isTwoHopEnabled: false
             )
         case .wireguard:
             config = MixnetConfig(
                 entryGateway: entryGateway,
                 exitRouter: exitRouter,
-                isTwoHopEnabled: true,
-                isZknymEnabled: appSettings.isZknymEnabled
+                isTwoHopEnabled: true
             )
         }
         return config
@@ -35,8 +32,7 @@ extension ConnectionManager {
         try await grpcManager.connect(
             entryGateway: config.entryGateway,
             exitRouter: config.exitRouter,
-            isTwoHopEnabled: config.isTwoHopEnabled,
-            isZknymEnabled: appSettings.isZknymEnabled
+            isTwoHopEnabled: config.isTwoHopEnabled
         )
     }
 
