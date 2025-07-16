@@ -29,12 +29,7 @@ sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
   winget install -e --id=GnuWin32.Make
   ```
 
-- Install Libclang for x86 or x64 via winget:
 
-  ```
-  
-  winget install -e --id=LLVM.LLVM
-  ```
 
 - Install MSYS2 (default `C:\msys64`)
 
@@ -62,7 +57,12 @@ sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
   windres --version
   protoc --version
   ```
+- Install Libclang for x86 or x64 via winget:
 
+  ```
+  
+  winget install -e --id=LLVM.LLVM
+  ```
   If you are on ARM64, head to https://github.com/llvm/llvm-project/releases and download the latest release with "woa64" suffix.
 
   Update your environment with `LIBCLANG_PATH` set to `C:\Program Files\LLVM\bin`.
