@@ -29,19 +29,6 @@ sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
   winget install -e --id=GnuWin32.Make
   ```
 
-
-
-- Install MSYS2 (default `C:\msys64`)
-
-  ```pwsh
-  winget install -e --id MSYS2.MSYS2
-  ```
-
-- Then, in **MSYS2 MinGW 64-bit** shell:
-  ```bash
-  pacman -S --needed mingw-w64-x86_64-binutils mingw-w64-x86_64-gcc
-  ```
-
 - Install the Protocol Buffers compiler (**protoc**)
   1. Download `protoc-<version>-win64.zip`
   2. Unzip to `C:\protoc`.
@@ -53,8 +40,6 @@ sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
 
 - Verify tools:
   ```cmd
-  gcc --version
-  windres --version
   protoc --version
   ```
 - Install Libclang for x86 or x64 via winget:
