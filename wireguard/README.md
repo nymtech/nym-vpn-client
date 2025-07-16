@@ -22,6 +22,7 @@ It is forked from (https://github.com/mullvad/mullvadvpn-app) which maintains co
 - In the appeared msys2 console, type in the following commands to update installed components and install clang for x64 and arm64:
   ```sh
   pacman -Suy
+  pacman -S --needed mingw-w64-x86_64-binutils mingw-w64-x86_64-gcc
   pacman -S mingw-w64-x86_64-clang
   pacman -S mingw-w64-clang-aarch64-clang
   ```
