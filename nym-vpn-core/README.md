@@ -29,12 +29,24 @@ sudo apt install libdbus-1-dev libmnl-dev libnftnl-dev protobuf-compiler
   winget install -e --id=GnuWin32.Make
   ```
 
+- Install the Protocol Buffers compiler (**protoc**)
+  1. Download `protoc-<version>-win64.zip`
+  2. Unzip to `C:\protoc`.
+  3. Add to environment:
+     ```bat
+     setx PROTOC "C:\protoc\bin\protoc.exe" /M
+     setx PATH "%PATH%;C:\protoc\bin" /M
+     ```
+
+- Verify tools:
+  ```cmd
+  protoc --version
+  ```
 - Install Libclang for x86 or x64 via winget:
 
   ```
   winget install -e --id=LLVM.LLVM
   ```
-
   If you are on ARM64, head to https://github.com/llvm/llvm-project/releases and download the latest release with "woa64" suffix.
 
   Update your environment with `LIBCLANG_PATH` set to `C:\Program Files\LLVM\bin`.
