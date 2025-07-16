@@ -61,25 +61,15 @@ private extension CreateAccountSuccessView {
             StepView(stepCount: 3, currentStep: 2)
             Spacer()
                 .frame(height: 40)
-            accountCreateSuccessfully
+            checkmarkImage
             Spacer()
-                .frame(height: 24)
-            continueTitle
-            Spacer()
-                .frame(height: 24)
-
-            successItem(
-                title: "createAccount.success.fastAnonymousModeTitle".localizedString,
-                subtitle: "createAccount.success.fastAnonymousModeSubtitle".localizedString
-            )
-
-            successItem(
-                title: "createAccount.success.globalCoverageTitle".localizedString,
-                subtitle: "createAccount.success.globalCoverageSubtitle".localizedString
-            )
+                .frame(height: 12)
+            titleSubtitleView
             Spacer()
             selectPlanButton
-            skipPlanSelect
+            Spacer()
+                .frame(height: 8)
+            Spacer()
         }
     }
 
@@ -87,84 +77,27 @@ private extension CreateAccountSuccessView {
         CustomNavBar(useElevationBackground: true)
     }
 
-    var accountCreateSuccessfully: some View {
-        Text("createAccount.success.accountCreateSuccessfully".localizedString)
-            .textStyle(.Headline.Medium.regular)
-            .foregroundStyle(NymColor.primary)
-    }
+    var checkmarkImage: some View {
+        HStack {
+            Spacer()
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(red: 0.07, green: 0.77, blue: 0.37).opacity(0.15))
+                    .frame(width: 68, height: 68)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color(red: 0.08, green: 0.91, blue: 0.44).opacity(0.25), lineWidth: 1)
+                    )
 
-    var continueTitle: some View {
-        Text("createAccount.success.toContinueTitle".localizedString)
-            .textStyle(.Headline.Small.regular)
-            .foregroundStyle(NymColor.primary)
-    }
-
-    var selectPlanButton: some View {
-        GenericButton(title: "createAccount.success.selectPlan".localizedString)
-            .padding(.bottom, 16)
-            .onTapGesture {
-                selectPlanAction()
+                GenericImage(imageName: "checkmarkCircle")
+                    .frame(width: 46, height: 46)
             }
-            .accessibilityAction {
-                selectPlanAction()
-            }
-            .confirmationDialog(
-                "createAccount.success.choosePlan".localizedString,
-                isPresented: $isPlanAlertDisplayed,
-                titleVisibility: .visible
-            ) {
-                ForEach(purchasesManager.products, id: \.id) { plan in
-                    Button("\(plan.displayName) (\(plan.displayPrice))") {
-                        Task {
-                            await purchasePlanAction(with: plan)
-                        }
-                    }
-                }
-                Button("cancel".localizedString, role: .cancel) {}
-            }
-    }
-
-    @ViewBuilder var skipPlanSelect: some View {
-        if let skipPlanSelectAttributedString = skipPlanSelectAttributedString() {
-            HStack {
-                Spacer()
-                Text(skipPlanSelectAttributedString)
-                    .tint(NymColor.accent)
-                    .textStyle(.Headline.Small.regular)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(NymColor.gray1)
-                    .padding(.bottom, 24)
-                    .environment(\.openURL, OpenURLAction { url in
-                        guard url.absoluteString == "skip" else { return .discarded }
-                        navigateHome()
-                        return .handled
-                    })
-                Spacer()
-            }
+            Spacer()
         }
     }
 }
 
 private extension CreateAccountSuccessView {
-    func successItem(title: String, subtitle: String) -> some View {
-        HStack(alignment: .top, spacing: 0) {
-            GenericImage(systemImageName: "checkmark.circle.fill")
-                .frame(width: 24, height: 24)
-                .foregroundStyle(NymColor.accent)
-                .padding(.trailing, 10)
-
-            VStack(alignment: .leading, spacing: 0) {
-                Text(title)
-                    .foregroundStyle(NymColor.primary)
-                    .textStyle(.Body.Medium.regular)
-                Text(subtitle)
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Small.regular)
-            }
-        }
-        .padding(.bottom, 16)
-    }
-
     func skipPlanSelectAttributedString() -> AttributedString? {
         let maybeLater = "createAccount.success.maybeLater".localizedString
         let skip = "createAccount.success.skipForNow".localizedString
@@ -175,10 +108,6 @@ private extension CreateAccountSuccessView {
 
 // MARK: - Actions -
 private extension CreateAccountSuccessView {
-    func navigateBack() {
-        if !path.isEmpty { path.removeLast() }
-    }
-
     func navigateHome() {
         path = .init()
     }

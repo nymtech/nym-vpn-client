@@ -19,8 +19,7 @@ extension HomeViewModel {
 
     func setupConnectionErrorObservers() {
         connectionManager.$lastError
-            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.global(qos: .background))
-            .receive(on: DispatchQueue.main)
+            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
             .sink { [weak self] error in
                 MainActor.assumeIsolated {
                     self?.updateLastError(error)
