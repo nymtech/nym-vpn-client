@@ -12,8 +12,7 @@ use tokio::sync::{
 use tokio_util::sync::CancellationToken;
 use url::Url;
 
-use nym_client_core::NymTopology;
-use nym_client_core::client::topology_control::nym_api_provider::Config;
+use nym_client_core::{NymTopology, client::topology_control::nym_api_provider::Config};
 use nym_sdk::{NymApiTopologyProvider, TopologyProvider, UserAgent};
 
 enum FetcherCommand {

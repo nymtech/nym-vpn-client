@@ -3,8 +3,7 @@
 
 use serde::Serialize;
 
-use crate::config::StatisticsControllerConfig;
-use crate::error::Error;
+use crate::{config::StatisticsControllerConfig, error::Error};
 
 #[derive(Clone, Debug)]
 pub(crate) struct StatisticsControllerApiClient {
