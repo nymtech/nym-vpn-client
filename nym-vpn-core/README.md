@@ -1,5 +1,25 @@
 # Nym VPN Core
 
+## Code formatting
+
+We use some of nightly features of rustfmt to format the codebase. Please install the nightly rust with rustfmt:
+
+```sh
+rustup toolchain install nightly -c rustfmt
+```
+
+Format the code using the following command:
+
+```sh
+cargo +nightly fmt
+```
+
+If you use VSCode and automatic formatting, configure rust-analyzer to use nightly rustfmt:
+
+```json
+"rust-analyzer.rustfmt.extraArgs": ["+nightly"],
+```
+
 ## Prerequisites
 
 ### Linux 
