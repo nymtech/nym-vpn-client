@@ -76,8 +76,8 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Vec<Country>, ListGatewaysError>>,
         ListCountriesOptions,
     ),
-    Connect(oneshot::Sender<bool>, ConnectArgs),
-    Disconnect(oneshot::Sender<bool>, ()),
+    Connect(oneshot::Sender<()>, ConnectArgs),
+    Disconnect(oneshot::Sender<()>, ()),
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
     SubscribeToTunnelState(oneshot::Sender<watch::Receiver<TunnelState>>, ()),
     StoreAccount(
@@ -121,7 +121,7 @@ pub enum VpnServiceCommand {
         (),
     ),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
-    DeleteLogFile(oneshot::Sender<bool>, ()),
+    DeleteLogFile(oneshot::Sender<()>, ()),
     IsSentryEnabled(oneshot::Sender<bool>, ()),
     ToggleSentry(oneshot::Sender<Result<(), GlobalConfigError>>, bool),
 }
@@ -147,7 +147,7 @@ where
     tunnel_event_tx: broadcast::Sender<TunnelEvent>,
 
     // Send command to delete and recreate logging file
-    file_logging_event_tx: mpsc::Sender<()>,
+    file_logging_event_tx: mpsc::UnboundedSender<()>,
 
     // Send commands to the account controller
     account_command_tx: AccountCommandSender,
@@ -198,7 +198,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     pub fn spawn(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
-        file_logging_event_tx: mpsc::Sender<()>,
+        file_logging_event_tx: mpsc::UnboundedSender<()>,
         shutdown_token: CancellationToken,
         network_env: Network,
         user_agent: UserAgent,
@@ -244,7 +244,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     pub async fn new(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
-        file_logging_event_tx: mpsc::Sender<()>,
+        file_logging_event_tx: mpsc::UnboundedSender<()>,
         shutdown_token: CancellationToken,
         network_env: Network,
         user_agent: UserAgent,
@@ -515,12 +515,12 @@ where
                 self.handle_list_countries(options, tx)
             }
             VpnServiceCommand::Connect(tx, connect_args) => {
-                let result = self.handle_connect(connect_args).await;
-                let _ = tx.send(result.is_ok());
+                self.handle_connect(connect_args).await.ok();
+                let _ = tx.send(());
             }
             VpnServiceCommand::Disconnect(tx, ()) => {
-                let result = self.handle_disconnect().await;
-                let _ = tx.send(result);
+                self.handle_disconnect().await;
+                let _ = tx.send(());
             }
             VpnServiceCommand::GetTunnelState(tx, ()) => {
                 let result = self.handle_get_tunnel_state();
@@ -594,7 +594,8 @@ where
                 let _ = tx.send(self.log_path.clone());
             }
             VpnServiceCommand::DeleteLogFile(tx, ()) => {
-                let _ = tx.send(self.handle_delete_log_file().await);
+                self.handle_delete_log_file().await;
+                let _ = tx.send(());
             }
             VpnServiceCommand::IsSentryEnabled(tx, ()) => {
                 let _ = tx.send(self.handle_is_sentry_enabled().await);
@@ -742,8 +743,8 @@ where
         }
     }
 
-    async fn handle_disconnect(&mut self) -> bool {
-        self.command_sender.send(TunnelCommand::Disconnect).is_ok()
+    async fn handle_disconnect(&mut self) {
+        self.command_sender.send(TunnelCommand::Disconnect).ok();
     }
 
     fn handle_get_tunnel_state(&self) -> TunnelState {
@@ -997,18 +998,8 @@ where
         self.account_command_tx.get_available_tickets().await
     }
 
-    async fn handle_delete_log_file(&self) -> bool {
-        match self.file_logging_event_tx.try_send(()) {
-            Ok(_) => true,
-            Err(mpsc::error::TrySendError::Full(_)) => {
-                tracing::debug!("Already trying to delete file");
-                true
-            }
-            Err(mpsc::error::TrySendError::Closed(_)) => {
-                tracing::error!("Failed to send command to delete log file: channel is closed");
-                false
-            }
-        }
+    async fn handle_delete_log_file(&self) {
+        self.file_logging_event_tx.send(()).ok();
     }
 
     async fn handle_is_sentry_enabled(&self) -> bool {

@@ -743,10 +743,10 @@ service NymVpnService {
   rpc GetFeatureFlags (google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
 
   // Connect the tunnel
-  rpc ConnectTunnel (ConnectRequest) returns (google.protobuf.BoolValue) {}
+  rpc ConnectTunnel (ConnectRequest) returns (google.protobuf.Empty) {}
 
   // Disconnect the tunnel
-  rpc DisconnectTunnel (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+  rpc DisconnectTunnel (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get the current tunnel state
   rpc GetTunnelState (google.protobuf.Empty) returns (TunnelState) {}
@@ -831,7 +831,7 @@ service NymVpnService {
   rpc GetLogPath (google.protobuf.Empty) returns (GetLogPathResponse) {}
 
   // Delete the log file
-  rpc DeleteLogFile (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+  rpc DeleteLogFile (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Check if Sentry error monitoring is enabled
   rpc IsSentryEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}

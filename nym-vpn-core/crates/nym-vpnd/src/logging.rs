@@ -97,19 +97,19 @@ impl FileAppender {
 }
 
 pub(crate) struct LogFileRemover {
-    tunnel_event_rx: mpsc::Receiver<()>,
+    command_rx: mpsc::UnboundedReceiver<()>,
     logging_setup: LoggingSetup,
     shutdown_token: CancellationToken,
 }
 
 impl LogFileRemover {
     pub(crate) fn new(
-        tunnel_event_rx: mpsc::Receiver<()>,
+        tunnel_event_rx: mpsc::UnboundedReceiver<()>,
         logging_setup: LoggingSetup,
         shutdown_token: CancellationToken,
     ) -> Self {
         Self {
-            tunnel_event_rx,
+            command_rx: tunnel_event_rx,
             logging_setup,
             shutdown_token,
         }
@@ -118,7 +118,7 @@ impl LogFileRemover {
     pub(crate) async fn run(mut self) -> WorkerGuard {
         loop {
             tokio::select! {
-                Some(_) = self.tunnel_event_rx.recv() => {
+                Some(_) = self.command_rx.recv() => {
                     tracing::debug!("Received command to delete log file");
                     self.handle_delete_log_file().await;
                 }

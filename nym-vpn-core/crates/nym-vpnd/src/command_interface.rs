@@ -133,26 +133,21 @@ impl NymVpnService for CommandInterface {
     async fn connect_tunnel(
         &self,
         request: tonic::Request<proto::ConnectRequest>,
-    ) -> Result<tonic::Response<bool>> {
+    ) -> Result<tonic::Response<()>> {
         let connect_args = ConnectArgs::try_from(request.into_inner())
             .map_err(|err| tonic::Status::invalid_argument(err.to_string()))?;
 
-        let status = self
-            .send_and_wait(VpnServiceCommand::Connect, connect_args)
+        self.send_and_wait(VpnServiceCommand::Connect, connect_args)
             .await?;
 
-        Ok(tonic::Response::new(status))
+        Ok(tonic::Response::new(()))
     }
 
-    async fn disconnect_tunnel(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<bool>> {
-        let status = self
-            .send_and_wait(VpnServiceCommand::Disconnect, ())
+    async fn disconnect_tunnel(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
+        self.send_and_wait(VpnServiceCommand::Disconnect, ())
             .await?;
 
-        Ok(tonic::Response::new(status))
+        Ok(tonic::Response::new(()))
     }
 
     async fn get_tunnel_state(
@@ -518,12 +513,11 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(response))
     }
 
-    async fn delete_log_file(&self, _request: tonic::Request<()>) -> Result<tonic::Response<bool>> {
-        let success = self
-            .send_and_wait(VpnServiceCommand::DeleteLogFile, ())
+    async fn delete_log_file(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
+        self.send_and_wait(VpnServiceCommand::DeleteLogFile, ())
             .await?;
 
-        Ok(tonic::Response::new(success))
+        Ok(tonic::Response::new(()))
     }
 
     async fn get_log_path(

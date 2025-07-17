@@ -155,7 +155,7 @@ async fn run_inner_async(
         .as_ref()
         .map(|logging_setup| logging_setup.log_path.clone());
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
-    let (file_logging_event_tx, file_logging_event_rx) = mpsc::channel(1);
+    let (file_logging_event_tx, file_logging_event_rx) = mpsc::unbounded_channel();
     let shutdown_token = CancellationToken::new();
 
     let file_logging_handle = logging_setup.map(|logging_setup| {

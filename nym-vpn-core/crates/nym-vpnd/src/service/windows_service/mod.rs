@@ -209,7 +209,7 @@ async fn run_service_inner() -> anyhow::Result<()> {
     };
 
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
-    let (file_logging_event_tx, file_logging_event_rx) = mpsc::channel(1);
+    let (file_logging_event_tx, file_logging_event_rx) = mpsc::unbounded_channel();
 
     let file_logging_handle = logging_setup.map(|logging_setup| {
         tokio::spawn(

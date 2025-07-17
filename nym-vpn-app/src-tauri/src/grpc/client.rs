@@ -275,31 +275,25 @@ impl GrpcClient {
             dns,
             user_agent: Some(self.user_agent.clone()),
         });
-        let response = vpnd
-            .connect_tunnel(request)
-            .await
-            .map_err(|e| {
-                error!("grpc: {}", e);
-                VpndError::GrpcError(e)
-            })?
-            .into_inner();
-        debug!("grpc response: {:?}", response);
+        vpnd.connect_tunnel(request).await.map_err(|e| {
+            error!("grpc: {}", e);
+            VpndError::GrpcError(e)
+        })?;
         Ok(())
     }
 
     /// Disconnect from the VPN
     #[instrument(skip_all)]
-    pub async fn vpn_disconnect(&self) -> Result<bool, VpndError> {
+    pub async fn vpn_disconnect(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
         let request = Request::new(());
-        let response = vpnd.disconnect_tunnel(request).await.map_err(|e| {
+        vpnd.disconnect_tunnel(request).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;
-        debug!("grpc response: {:?}", response);
 
-        Ok(response.into_inner())
+        Ok(())
     }
 
     /// Store an account

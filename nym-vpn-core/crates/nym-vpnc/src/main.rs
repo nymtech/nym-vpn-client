@@ -127,9 +127,9 @@ async fn connect(
         },
     };
 
-    let accepted = rpc_client.connect_tunnel(options).await?;
+    rpc_client.connect_tunnel(options).await?;
 
-    if accepted && connect_args.wait {
+    if connect_args.wait {
         println!("Waiting until connected or failed");
         wait_until_connected(rpc_client).await
     } else {
@@ -164,9 +164,9 @@ async fn wait_until_connected(mut rpc_client: RpcClient) -> Result<()> {
 }
 
 async fn disconnect(mut rpc_client: RpcClient, wait: bool) -> Result<()> {
-    let accepted = rpc_client.disconnect_tunnel().await?;
+    rpc_client.disconnect_tunnel().await?;
 
-    if accepted && wait {
+    if wait {
         println!("Waiting until disconnected");
         wait_until_disconnected(rpc_client).await
     } else {

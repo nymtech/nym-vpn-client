@@ -89,20 +89,17 @@ impl RpcClient {
         Ok(FeatureFlags::from(response))
     }
 
-    pub async fn connect_tunnel(&mut self, request: ConnectArgs) -> Result<bool> {
+    pub async fn connect_tunnel(&mut self, request: ConnectArgs) -> Result<()> {
         let request = proto::ConnectRequest::try_from(request).map_err(Error::InvalidRequest)?;
 
-        let is_accepted = self
-            .0
+        self.0
             .connect_tunnel(request)
             .await
             .map(|v| v.into_inner())
-            .map_err(Error::Rpc)?;
-
-        Ok(is_accepted)
+            .map_err(Error::Rpc)
     }
 
-    pub async fn disconnect_tunnel(&mut self) -> Result<bool> {
+    pub async fn disconnect_tunnel(&mut self) -> Result<()> {
         self.0
             .disconnect_tunnel(())
             .await
@@ -409,7 +406,7 @@ impl RpcClient {
         Ok(LogPath::from(response))
     }
 
-    pub async fn delete_log_file(&mut self) -> Result<bool> {
+    pub async fn delete_log_file(&mut self) -> Result<()> {
         self.0
             .delete_log_file(())
             .await
