@@ -421,7 +421,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             false,
             shutdown_token.child_token(),
         );
-        topology_provider.fetch().await?;
+        topology_provider.fetch().await;
 
         let state_machine_handle = TunnelStateMachine::spawn(
             command_receiver,

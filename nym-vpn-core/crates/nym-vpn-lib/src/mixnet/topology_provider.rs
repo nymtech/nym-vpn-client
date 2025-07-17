@@ -186,7 +186,7 @@ impl VpnTopologyProvider {
 
     pub async fn maybe_wait_on_fetch(&self) {
         if let Some(handle) = self.in_progress_fetch.lock().await.take() {
-            handle.await;
+            let _ = handle.await;
         }
     }
 

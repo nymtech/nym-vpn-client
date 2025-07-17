@@ -131,12 +131,7 @@ pub(super) async fn start_state_machine(
         false,
         shutdown_token.child_token(),
     );
-    topology_provider
-        .fetch()
-        .await
-        .map_err(|err| VpnError::InternalError {
-            details: err.to_string(),
-        })?;
+    topology_provider.fetch().await;
 
     let state_machine_handle = TunnelStateMachine::spawn(
         command_receiver,
