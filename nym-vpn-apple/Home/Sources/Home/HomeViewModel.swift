@@ -190,7 +190,9 @@ public extension HomeViewModel {
 #if os(macOS)
     @MainActor func navigateToInstallHelper() {
         let action = HelperAfterInstallAction { [weak self] in
-            self?.connectDisconnect()
+            Task {
+                await self?.connectDisconnect()
+            }
         }
         path.append(HomeLink.installHelper(afterInstallAction: action))
     }
