@@ -17769,6 +17769,17 @@
         }
       }
     },
+    "home.killswitchEnabled.purchaseAlertTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Killswitch is enabled for your protection\nTo continue to the plan selection, please disconnect. Would you like to disconnect now?"
+          }
+        }
+      }
+    },
     "home.modal.noInternetConnection.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -26686,6 +26697,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "隧道"
+          }
+        }
+      }
+    },
+    "unprotectedBanner.actionTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get started"
+          }
+        }
+      }
+    },
+    "unprotectedBanner.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Get anonymous browsing now"
+          }
+        }
+      }
+    },
+    "unprotectedBanner.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your privacy is unprotected "
           }
         }
       }

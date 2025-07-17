@@ -38,21 +38,20 @@ extension HomeViewModel {
         navigateToAddCredentials()
     }
 
-    @MainActor func navigateToPlanPurchaseIfNeeded(with error: Error?) {
+    @MainActor func displayUnsecureBannerIfNeeded(with error: Error?) {
         guard let errorReason = error as? ErrorReason,
-              errorReason == .subscriptionExpired,
-              (lastError as? ErrorReason) != .subscriptionExpired
+              errorReason == .subscriptionExpired
         else {
             return
         }
-        navigateToPlanPurchase()
+        isBannerDisplayed = true
     }
 
     @MainActor func updateLastError(_ error: Error?) {
         if lastError == nil, let error {
             updateStatusInfoState(with: .error(message: error.localizedDescription))
             navigateToAddCredetialsIfNeeded(error: error)
-            navigateToPlanPurchaseIfNeeded(with: error)
+            displayUnsecureBannerIfNeeded(with: error)
             lastError = error
         } else {
             guard let lastNsError = lastError as? NSError,
@@ -65,9 +64,13 @@ extension HomeViewModel {
 
             updateStatusInfoState(with: .error(message: nsError.localizedDescription))
             navigateToAddCredetialsIfNeeded(error: error)
-            navigateToPlanPurchaseIfNeeded(with: error)
+            displayUnsecureBannerIfNeeded(with: error)
             lastError = error
         }
+    }
+
+    @MainActor func resetBannerDisplay() {
+        isBannerDisplayed = false
     }
 
     func offlineState(with hasInternet: Bool) {
