@@ -21708,6 +21708,17 @@
         }
       }
     },
+    "purchasePlan.selectPlan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose my NymVPN plan"
+          }
+        }
+      }
+    },
     "purchasePlan.startUsing" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -21805,6 +21816,17 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Start using NymVPN"
+          }
+        }
+      }
+    },
+    "purchasePlan.subtile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
           }
         }
       }
@@ -22108,6 +22130,17 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Plan Activated"
+          }
+        }
+      }
+    },
+    "purchasePlan.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your secure NymVPN account is ready🎉"
           }
         }
       }

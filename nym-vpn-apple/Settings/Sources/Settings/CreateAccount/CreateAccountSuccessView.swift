@@ -19,6 +19,7 @@ public struct CreateAccountSuccessView: View {
 
     @State private var isPlanAlertDisplayed = false
     @State private var isDisplayingAlert = false
+    @State private var isPurchasing = false
     @State private var alertTitle = ""
 
     public var body: some View {
@@ -27,20 +28,12 @@ public struct CreateAccountSuccessView: View {
             Spacer()
                 .frame(height: 40)
 
-            VStack(spacing: 0) {
-                HStack {
-                    content
-                    Spacer()
-                }
+            content
+                .frame(maxWidth: MagicNumbers.moreMaxWidth)
                 .padding(.horizontal, 16)
                 .alert(alertTitle, isPresented: $isDisplayingAlert) {
                     Button("ok".localizedString, role: .cancel) {}
                 }
-
-                Spacer()
-                    .frame(height: 16)
-            }
-            .frame(maxWidth: MagicNumbers.moreMaxWidth)
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -60,21 +53,22 @@ private extension CreateAccountSuccessView {
         VStack(alignment: .leading, spacing: 0) {
             StepView(stepCount: 3, currentStep: 2)
             Spacer()
-                .frame(height: 40)
+
             checkmarkImage
             Spacer()
                 .frame(height: 12)
             titleSubtitleView
             Spacer()
             selectPlanButton
-            Spacer()
-                .frame(height: 8)
-            Spacer()
+                .padding(.bottom, 16)
         }
     }
 
     var navbar: some View {
-        CustomNavBar(useElevationBackground: true)
+        CustomNavBar(
+            useElevationBackground: true,
+            leftButton: CustomNavBarButton(type: .back, action: { navigateHome() })
+        )
     }
 
     var checkmarkImage: some View {
@@ -94,6 +88,47 @@ private extension CreateAccountSuccessView {
             }
             Spacer()
         }
+    }
+
+    var titleSubtitleView: some View {
+        VStack {
+            Text("purchasePlan.title".localizedString)
+                .textStyle(.Headline.Large.regular)
+                .foregroundStyle(NymColor.primary)
+                .multilineTextAlignment(.center)
+
+            Spacer()
+                .frame(height: 24)
+
+            Text("purchasePlan.subtile".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(NymColor.gray1)
+                .multilineTextAlignment(.center)
+        }
+    }
+
+    var selectPlanButton: some View {
+        GenericButton(title: "purchasePlan.selectPlan".localizedString, isLoading: $isPurchasing)
+            .onTapGesture {
+                selectPlanAction()
+            }
+            .accessibilityAction {
+                selectPlanAction()
+            }
+            .confirmationDialog(
+                "createAccount.success.choosePlan".localizedString,
+                isPresented: $isPlanAlertDisplayed,
+                titleVisibility: .visible
+            ) {
+                ForEach(purchasesManager.products, id: \.id) { plan in
+                    Button("\(plan.displayName) (\(plan.displayPrice))") {
+                        Task {
+                            await purchasePlanAction(with: plan)
+                        }
+                    }
+                }
+                Button("cancel".localizedString, role: .cancel) {}
+            }
     }
 }
 
@@ -121,6 +156,10 @@ private extension CreateAccountSuccessView {
     }
 
     func purchasePlanAction(with plan: Product) async {
+        defer {
+            isPurchasing = false
+        }
+        isPurchasing = true
 #if os(iOS)
         ImpactGenerator.shared.impact()
 #endif
