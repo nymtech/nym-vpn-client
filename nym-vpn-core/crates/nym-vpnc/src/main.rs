@@ -115,6 +115,7 @@ async fn connect(
         exit: connect_args.exit_point()?,
         options: ConnectOptions {
             dns: connect_args.dns,
+            disable_ipv6: connect_args.disable_ipv6,
             enable_two_hop: connect_args.enable_two_hop,
             netstack: connect_args.netstack,
             disable_poisson_rate: connect_args.disable_poisson_rate,

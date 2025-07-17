@@ -40,7 +40,7 @@ pub struct WintunAdapterConfig {
     pub interface_ipv4: Ipv4Addr,
 
     /// Interface IPv6 address.
-    pub interface_ipv6: Ipv6Addr,
+    pub interface_ipv6: Option<Ipv6Addr>,
 
     /// Default IPv4 gateway.
     pub gateway_ipv4: Option<Ipv4Addr>,
@@ -56,8 +56,11 @@ pub fn setup_wintun_adapter(
 ) -> Result<(), SetupWintunAdapterError> {
     wnet::add_ip_address_for_interface(luid, IpAddr::V4(adapter_config.interface_ipv4))
         .map_err(SetupWintunAdapterError::SetIpv4Addr)?;
-    wnet::add_ip_address_for_interface(luid, IpAddr::V6(adapter_config.interface_ipv6))
-        .map_err(SetupWintunAdapterError::SetIpv6Addr)?;
+
+    if let Some(interface_ipv6) = adapter_config.interface_ipv6 {
+        wnet::add_ip_address_for_interface(luid, IpAddr::V6(interface_ipv6))
+            .map_err(SetupWintunAdapterError::SetIpv6Addr)?;
+    }
 
     if let Some(gateway_ipv4) = adapter_config.gateway_ipv4 {
         wnet::add_default_ipv4_gateway_for_interface(luid, gateway_ipv4)

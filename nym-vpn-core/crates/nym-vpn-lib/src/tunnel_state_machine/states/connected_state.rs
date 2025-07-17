@@ -136,12 +136,7 @@ impl ConnectedState {
             peer_endpoints.push(allowed_endpoint);
         }
 
-        let dns_config = shared_state.tunnel_settings.dns.to_dns_config().resolve(
-            &crate::DEFAULT_DNS_SERVERS,
-            #[cfg(target_os = "macos")]
-            53,
-        );
-
+        let dns_config = shared_state.tunnel_settings.resolved_dns_config();
         let policy = FirewallPolicy::Connected {
             peer_endpoints,
             tunnel: nym_firewall::TunnelInterface::from(self.tunnel_interface.clone()),
@@ -163,12 +158,7 @@ impl ConnectedState {
 
     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
     async fn set_dns(&self, shared_state: &mut SharedState) -> Result<()> {
-        let dns_config = shared_state.tunnel_settings.dns.to_dns_config().resolve(
-            &crate::DEFAULT_DNS_SERVERS,
-            #[cfg(target_os = "macos")]
-            53,
-        );
-
+        let dns_config = shared_state.tunnel_settings.resolved_dns_config();
         let tunnel_metadata = self.tunnel_interface.exit_tunnel_metadata();
 
         #[cfg(any(target_os = "linux", target_os = "windows"))]

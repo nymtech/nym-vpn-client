@@ -144,6 +144,9 @@ impl ConnectingState {
                 entry_gateway
                     .ips
                     .iter()
+                    .filter(|ip| {
+                        ip.is_ipv4() || (ip.is_ipv6() && shared_state.tunnel_settings.enable_ipv6)
+                    })
                     .map(|ip| {
                         AllowedEndpoint::new(
                             Endpoint::new(*ip, ws_port, TransportProtocol::Tcp),
@@ -168,15 +171,18 @@ impl ConnectingState {
             peer_endpoints.push(allowed_endpoint);
         }
         // Set non-tunnel DNS to allow api client to use those DNS servers.
-        let dns_config = DnsConfig::from_addresses(&[], &crate::DEFAULT_DNS_SERVERS).resolve(
-            // pass empty because we already override the config with non-tunnel addresses.
-            &[],
-            #[cfg(target_os = "macos")]
-            53,
-        );
+        let dns_config =
+            DnsConfig::from_addresses(&[], &shared_state.tunnel_settings.default_dns_ips())
+                .resolve(
+                    // pass empty because we already override the config with non-tunnel addresses.
+                    &[],
+                    #[cfg(target_os = "macos")]
+                    53,
+                );
 
         let allowed_endpoints = resolved_gateway_addresses
             .iter()
+            .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && shared_state.tunnel_settings.enable_ipv6))
             .map(|addr| {
                 AllowedEndpoint::new(
                     Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),

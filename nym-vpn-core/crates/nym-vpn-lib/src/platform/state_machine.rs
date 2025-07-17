@@ -80,6 +80,7 @@ pub(super) async fn start_state_machine(
     let user_agent = nym_sdk::UserAgent::from(config.user_agent.clone());
 
     let tunnel_settings = TunnelSettings {
+        enable_ipv6: true,
         tunnel_type,
         mixnet_tunnel_options: MixnetTunnelOptions::default(),
         wireguard_tunnel_options: WireguardTunnelOptions::default(),

@@ -216,6 +216,9 @@ pub enum ErrorStateReason {
     /// If the time is not synced, the device will not be able to connect to the entry gateways.
     DeviceTimeOutOfSync,
 
+    /// IPv6 is disabled in the system.
+    Ipv6Unavailable,
+
     /// Program errors that must not happen.
     Internal(String),
 }
@@ -242,6 +245,7 @@ pub enum ClientErrorReason {
     Api(Option<String>),
     DeviceTimeOutOfSync,
     CreateMixnetStorage,
+    Ipv6Unavailable,
     Internal(Option<String>),
 }
 
@@ -278,6 +282,7 @@ impl From<ErrorStateReason> for ClientErrorReason {
             ErrorStateReason::StartLocalDnsResolver => Self::Dns(Some(value.to_string())),
             ErrorStateReason::SetDns => Self::Dns(Some(value.to_string())),
             ErrorStateReason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
+            ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,
         }
     }
 }

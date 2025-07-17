@@ -152,6 +152,10 @@ pub struct ConnectArgs {
     #[arg(long)]
     pub dns: Option<IpAddr>,
 
+    /// Disable IPv6 support
+    #[arg(long)]
+    pub disable_ipv6: bool,
+
     /// Enable two-hop wireguard traffic. This means that traffic jumps directly from entry gateway to
     /// exit gateway using Wireguard protocol.
     #[arg(long)]

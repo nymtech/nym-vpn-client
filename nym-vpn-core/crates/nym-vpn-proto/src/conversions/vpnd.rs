@@ -376,6 +376,7 @@ impl TryFrom<ConnectArgs> for proto::ConnectRequest {
                 .options
                 .dns
                 .map(|ip| proto::Dns { ip: ip.to_string() }),
+            disable_ipv6: value.options.disable_ipv6,
             enable_two_hop: value.options.enable_two_hop,
             netstack: value.options.netstack,
             disable_poisson_rate: value.options.disable_poisson_rate,
@@ -403,6 +404,7 @@ impl TryFrom<proto::ConnectRequest> for ConnectOptions {
 
         Ok(Self {
             dns,
+            disable_ipv6: value.disable_ipv6,
             enable_two_hop: value.enable_two_hop,
             netstack: value.netstack,
             disable_poisson_rate: value.disable_poisson_rate,

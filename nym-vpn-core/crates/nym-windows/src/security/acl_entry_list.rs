@@ -35,7 +35,7 @@ impl AclEntryList<'_> {
     }
 
     /// Return a view into explicit access structs.
-    pub fn as_vec(&self) -> Vec<BorrowedExplicitAccess> {
+    pub fn as_vec(&self) -> Vec<BorrowedExplicitAccess<'_>> {
         (0..self.num_entries)
             .map(|i| {
                 // Safety: cast to isize should be fine as number of entries is likely limited.

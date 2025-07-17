@@ -77,6 +77,7 @@ impl ConnectedTunnel {
         connection_monitor.start(
             mixnet_client_sender,
             self.assigned_addresses.mixnet_client_address,
+            // todo: not fully possible to disable IPv6 because IpPair is passed.
             self.assigned_addresses.interface_addresses,
             self.assigned_addresses.exit_mix_addresses.into(),
             &self.task_manager,

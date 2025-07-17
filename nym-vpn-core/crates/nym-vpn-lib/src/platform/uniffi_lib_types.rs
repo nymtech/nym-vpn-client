@@ -240,6 +240,7 @@ pub enum ErrorStateReason {
     Api(Option<String>),
     DeviceTimeOutOfSync,
     CreateMixnetStorage,
+    Ipv6Unavailable,
     Internal(Option<String>),
 }
 
@@ -591,6 +592,7 @@ impl From<ClientErrorReason> for ErrorStateReason {
             ClientErrorReason::Api(message) => Self::Api(message),
             ClientErrorReason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
             ClientErrorReason::CreateMixnetStorage => Self::CreateMixnetStorage,
+            ClientErrorReason::Ipv6Unavailable => Self::Ipv6Unavailable,
             ClientErrorReason::Internal(message) => Self::Internal(message),
         }
     }
@@ -686,7 +688,7 @@ pub struct MixnetConnectionData {
     pub nym_address: NymAddress,
     pub exit_ipr: NymAddress,
     pub ipv4: Ipv4Addr,
-    pub ipv6: Ipv6Addr,
+    pub ipv6: Option<Ipv6Addr>,
 }
 
 #[derive(uniffi::Record)]
@@ -700,7 +702,7 @@ pub struct WireguardNode {
     pub endpoint: SocketAddr,
     pub public_key: String,
     pub private_ipv4: Ipv4Addr,
-    pub private_ipv6: Ipv6Addr,
+    pub private_ipv6: Option<Ipv6Addr>,
 }
 
 impl From<CoreWireguardNode> for WireguardNode {

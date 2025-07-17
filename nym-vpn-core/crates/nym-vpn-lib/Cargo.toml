@@ -94,6 +94,7 @@ nix = { workspace = true, features = [
 
 [target.'cfg(windows)'.dependencies]
 windows = { workspace = true, features = ["Win32_NetworkManagement_Ndis"] }
+winreg.workspace = true
 nym-windows.workspace = true
 nym-routing.workspace = true
 nym-dns.workspace = true
