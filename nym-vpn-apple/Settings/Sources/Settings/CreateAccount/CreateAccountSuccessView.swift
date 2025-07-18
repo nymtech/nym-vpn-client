@@ -19,6 +19,7 @@ public struct CreateAccountSuccessView: View {
 
     @State private var isPlanAlertDisplayed = false
     @State private var isDisplayingAlert = false
+    @State private var isPurchasing = false
     @State private var alertTitle = ""
 
     public var body: some View {
@@ -27,20 +28,12 @@ public struct CreateAccountSuccessView: View {
             Spacer()
                 .frame(height: 40)
 
-            VStack(spacing: 0) {
-                HStack {
-                    content
-                    Spacer()
-                }
+            content
+                .frame(maxWidth: MagicNumbers.moreMaxWidth)
                 .padding(.horizontal, 16)
                 .alert(alertTitle, isPresented: $isDisplayingAlert) {
                     Button("ok".localizedString, role: .cancel) {}
                 }
-
-                Spacer()
-                    .frame(height: 16)
-            }
-            .frame(maxWidth: MagicNumbers.moreMaxWidth)
         }
         .navigationBarBackButtonHidden(true)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -60,48 +53,62 @@ private extension CreateAccountSuccessView {
         VStack(alignment: .leading, spacing: 0) {
             StepView(stepCount: 3, currentStep: 2)
             Spacer()
-                .frame(height: 40)
-            accountCreateSuccessfully
-            Spacer()
-                .frame(height: 24)
-            continueTitle
-            Spacer()
-                .frame(height: 24)
 
-            successItem(
-                title: "createAccount.success.fastAnonymousModeTitle".localizedString,
-                subtitle: "createAccount.success.fastAnonymousModeSubtitle".localizedString
-            )
-
-            successItem(
-                title: "createAccount.success.globalCoverageTitle".localizedString,
-                subtitle: "createAccount.success.globalCoverageSubtitle".localizedString
-            )
+            checkmarkImage
+            Spacer()
+                .frame(height: 12)
+            titleSubtitleView
             Spacer()
             selectPlanButton
-            skipPlanSelect
+                .padding(.bottom, 16)
         }
     }
 
     var navbar: some View {
-        CustomNavBar(useElevationBackground: true)
+        CustomNavBar(
+            useElevationBackground: true,
+            leftButton: CustomNavBarButton(type: .back, action: { navigateHome() })
+        )
     }
 
-    var accountCreateSuccessfully: some View {
-        Text("createAccount.success.accountCreateSuccessfully".localizedString)
-            .textStyle(.Headline.Medium.regular)
-            .foregroundStyle(NymColor.primary)
+    var checkmarkImage: some View {
+        HStack {
+            Spacer()
+            ZStack {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color(red: 0.07, green: 0.77, blue: 0.37).opacity(0.15))
+                    .frame(width: 68, height: 68)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 8)
+                            .stroke(Color(red: 0.08, green: 0.91, blue: 0.44).opacity(0.25), lineWidth: 1)
+                    )
+
+                GenericImage(imageName: "checkmarkCircle")
+                    .frame(width: 46, height: 46)
+            }
+            Spacer()
+        }
     }
 
-    var continueTitle: some View {
-        Text("createAccount.success.toContinueTitle".localizedString)
-            .textStyle(.Headline.Small.regular)
-            .foregroundStyle(NymColor.primary)
+    var titleSubtitleView: some View {
+        VStack {
+            Text("purchasePlan.title".localizedString)
+                .textStyle(.Headline.Large.regular)
+                .foregroundStyle(NymColor.primary)
+                .multilineTextAlignment(.center)
+
+            Spacer()
+                .frame(height: 24)
+
+            Text("purchasePlan.subtile".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(NymColor.gray1)
+                .multilineTextAlignment(.center)
+        }
     }
 
     var selectPlanButton: some View {
-        GenericButton(title: "createAccount.success.selectPlan".localizedString)
-            .padding(.bottom, 16)
+        GenericButton(title: "purchasePlan.selectPlan".localizedString, isLoading: $isPurchasing)
             .onTapGesture {
                 selectPlanAction()
             }
@@ -123,48 +130,9 @@ private extension CreateAccountSuccessView {
                 Button("cancel".localizedString, role: .cancel) {}
             }
     }
-
-    @ViewBuilder var skipPlanSelect: some View {
-        if let skipPlanSelectAttributedString = skipPlanSelectAttributedString() {
-            HStack {
-                Spacer()
-                Text(skipPlanSelectAttributedString)
-                    .tint(NymColor.accent)
-                    .textStyle(.Headline.Small.regular)
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(NymColor.gray1)
-                    .padding(.bottom, 24)
-                    .environment(\.openURL, OpenURLAction { url in
-                        guard url.absoluteString == "skip" else { return .discarded }
-                        navigateHome()
-                        return .handled
-                    })
-                Spacer()
-            }
-        }
-    }
 }
 
 private extension CreateAccountSuccessView {
-    func successItem(title: String, subtitle: String) -> some View {
-        HStack(alignment: .top, spacing: 0) {
-            GenericImage(systemImageName: "checkmark.circle.fill")
-                .frame(width: 24, height: 24)
-                .foregroundStyle(NymColor.accent)
-                .padding(.trailing, 10)
-
-            VStack(alignment: .leading, spacing: 0) {
-                Text(title)
-                    .foregroundStyle(NymColor.primary)
-                    .textStyle(.Body.Medium.regular)
-                Text(subtitle)
-                    .foregroundStyle(NymColor.gray1)
-                    .textStyle(.Body.Small.regular)
-            }
-        }
-        .padding(.bottom, 16)
-    }
-
     func skipPlanSelectAttributedString() -> AttributedString? {
         let maybeLater = "createAccount.success.maybeLater".localizedString
         let skip = "createAccount.success.skipForNow".localizedString
@@ -175,10 +143,6 @@ private extension CreateAccountSuccessView {
 
 // MARK: - Actions -
 private extension CreateAccountSuccessView {
-    func navigateBack() {
-        if !path.isEmpty { path.removeLast() }
-    }
-
     func navigateHome() {
         path = .init()
     }
@@ -192,6 +156,10 @@ private extension CreateAccountSuccessView {
     }
 
     func purchasePlanAction(with plan: Product) async {
+        defer {
+            isPurchasing = false
+        }
+        isPurchasing = true
 #if os(iOS)
         ImpactGenerator.shared.impact()
 #endif
