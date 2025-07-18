@@ -296,9 +296,9 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
-          GIT_BRANCH: 'tauri_postrel_${{ inputs.version }}'
-          COMMIT_MSG: 'tauri: bump linux installer and update flatpak metainfo v${{ inputs.version }}'
-          PR_TITLE: "tauri: post release update v${{ inputs.version }}"
+          GIT_BRANCH: 'tauri_postrel_${{ needs.publish.outputs.version }}'
+          COMMIT_MSG: 'tauri: bump linux installer and update flatpak metainfo v${{ needs.publish.outputs.version }}'
+          PR_TITLE: "tauri: post release update v${{ needs.publish.outputs.version }}"
           PR_BODY: |
             - bump Linux installer script
             - update flatpak package metainfo.xml
