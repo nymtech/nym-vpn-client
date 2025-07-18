@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Probe sends zk-nyms (https://github.com/nymtech/nym-vpn-client/pull/3011)
 - Two keypairs per gateway (first part) (https://github.com/nymtech/nym-vpn-client/pull/3035)
 - Don't wait on topology fetch from network on state machine start (https://github.com/nymtech/nym-vpn-client/pull/3072)
+- Add setting to toggle IPv6 support.
 
 ### Changed
 

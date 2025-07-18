@@ -6,6 +6,7 @@ mod account;
 mod android_connectivity_adapter;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 mod dns_handler;
+mod ipv6_availability;
 #[cfg(target_os = "macos")]
 mod resolver;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -27,6 +28,8 @@ use std::{
     path::PathBuf,
 };
 
+#[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+use nym_dns::ResolvedDnsConfig;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_statistics::{StatisticsSender, events::StatisticsEvent};
 use nym_vpn_account_controller::AccountCommandSender;
@@ -91,6 +94,9 @@ enum NextTunnelState {
 
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct TunnelSettings {
+    /// Whether to enable support for IPv6.
+    pub enable_ipv6: bool,
+
     /// Type of tunnel.
     pub tunnel_type: TunnelType,
 
@@ -118,6 +124,27 @@ pub struct TunnelSettings {
 
     /// The user agent used for HTTP requests.
     pub user_agent: Option<UserAgent>,
+}
+
+impl TunnelSettings {
+    #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
+    /// Returns resolved DNS config resolved against default DNS IPs.
+    pub fn resolved_dns_config(&self) -> ResolvedDnsConfig {
+        self.dns.to_dns_config().resolve(
+            &self.default_dns_ips(),
+            #[cfg(target_os = "macos")]
+            53,
+        )
+    }
+
+    /// Returns DNS IPs filtering out IPv6 addresses when IPv6 is disabled.
+    pub fn default_dns_ips(&self) -> Vec<IpAddr> {
+        crate::DEFAULT_DNS_SERVERS
+            .iter()
+            .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && self.enable_ipv6))
+            .copied()
+            .collect()
+    }
 }
 
 #[derive(Debug, Default, Clone, Copy, Eq, PartialEq)]
@@ -203,6 +230,7 @@ impl DnsOptions {
 impl Default for TunnelSettings {
     fn default() -> Self {
         Self {
+            enable_ipv6: true,
             tunnel_type: TunnelType::Wireguard,
             mixnet_tunnel_options: MixnetTunnelOptions::default(),
             mixnet_client_config: None,
@@ -634,6 +662,9 @@ pub enum Error {
 
     #[error("device time not synced")]
     DeviceTimeOutOfSync,
+
+    #[error("ipv6 is disabled in the system")]
+    Ipv6Unavailable,
 }
 
 impl Error {
@@ -666,6 +697,7 @@ impl Error {
             Self::GetRouteHandle(e) => ErrorStateReason::Internal(e.to_string()),
             Self::Account(err) => err.error_state_reason()?,
             Self::DeviceTimeOutOfSync => ErrorStateReason::DeviceTimeOutOfSync,
+            Self::Ipv6Unavailable => ErrorStateReason::Ipv6Unavailable,
         })
     }
 }

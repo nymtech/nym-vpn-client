@@ -58,11 +58,15 @@ impl RouteHandler {
         Ok(Self { route_manager })
     }
 
-    pub async fn add_routes(&mut self, routing_config: RoutingConfig) -> Result<()> {
-        let routes = Self::get_routes(routing_config);
+    pub async fn add_routes(
+        &mut self,
+        routing_config: RoutingConfig,
+        enable_ipv6: bool,
+    ) -> Result<()> {
+        let routes = Self::get_routes(routing_config, enable_ipv6);
 
         #[cfg(target_os = "linux")]
-        self.route_manager.create_routing_rules().await?;
+        self.route_manager.create_routing_rules(enable_ipv6).await?;
 
         self.route_manager.add_routes(routes).await?;
 
@@ -112,7 +116,7 @@ impl RouteHandler {
         self.route_manager.clone()
     }
 
-    fn get_routes(routing_config: RoutingConfig) -> HashSet<RequiredRoute> {
+    fn get_routes(routing_config: RoutingConfig, enable_ipv6: bool) -> HashSet<RequiredRoute> {
         let mut routes = HashSet::new();
 
         match routing_config {
@@ -127,7 +131,7 @@ impl RouteHandler {
                     IpNetwork::from(entry_gateway_address),
                     NetNode::DefaultNode,
                 ));
-                routes.extend(Self::get_default_routes(tun_name, tun_mtu));
+                routes.extend(Self::get_default_routes(tun_name, tun_mtu, enable_ipv6));
             }
             RoutingConfig::Wireguard {
                 entry_tun_name,
@@ -149,7 +153,11 @@ impl RouteHandler {
                     entry_tun_name,
                     entry_tun_mtu,
                 ));
-                routes.extend(Self::get_default_routes(exit_tun_name, exit_tun_mtu));
+                routes.extend(Self::get_default_routes(
+                    exit_tun_name,
+                    exit_tun_mtu,
+                    enable_ipv6,
+                ));
             }
             RoutingConfig::WireguardNetstack {
                 exit_tun_name,
@@ -162,7 +170,11 @@ impl RouteHandler {
                     IpNetwork::from(entry_gateway_address),
                     NetNode::DefaultNode,
                 ));
-                routes.extend(Self::get_default_routes(exit_tun_name, exit_tun_mtu));
+                routes.extend(Self::get_default_routes(
+                    exit_tun_name,
+                    exit_tun_mtu,
+                    enable_ipv6,
+                ));
             }
         }
 
@@ -186,13 +198,20 @@ impl RouteHandler {
         route
     }
 
-    fn get_default_routes(iface: String, _mtu: u16) -> Vec<RequiredRoute> {
-        let ipv4_route =
-            RequiredRoute::new("0.0.0.0/0".parse().unwrap(), Node::device(iface.to_owned()));
-        let ipv6_route = RequiredRoute::new("::0/0".parse().unwrap(), Node::device(iface));
+    fn get_default_routes(iface: String, _mtu: u16, enable_ipv6: bool) -> Vec<RequiredRoute> {
+        let mut routes = Vec::new();
 
-        #[allow(unused_mut)]
-        let mut routes = vec![ipv4_route, ipv6_route];
+        routes.push(RequiredRoute::new(
+            "0.0.0.0/0".parse().unwrap(),
+            Node::device(iface.to_owned()),
+        ));
+
+        if enable_ipv6 {
+            routes.push(RequiredRoute::new(
+                "::0/0".parse().unwrap(),
+                Node::device(iface),
+            ));
+        }
 
         #[cfg(target_os = "linux")]
         {

@@ -107,7 +107,7 @@ pub struct MixnetConnectionData {
     pub entry_ip: IpAddr,
     pub exit_ip: IpAddr,
     pub ipv4: Ipv4Addr,
-    pub ipv6: Ipv6Addr,
+    pub ipv6: Option<Ipv6Addr>,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
@@ -121,7 +121,7 @@ pub struct WireguardNode {
     pub endpoint: SocketAddr,
     pub public_key: String,
     pub private_ipv4: Ipv4Addr,
-    pub private_ipv6: Ipv6Addr,
+    pub private_ipv6: Option<Ipv6Addr>,
 }
 
 #[cfg(feature = "nym-type-conversions")]
@@ -131,7 +131,7 @@ impl From<nym_wg_gateway_client::GatewayData> for WireguardNode {
             endpoint: value.endpoint,
             public_key: value.public_key.to_base64(),
             private_ipv4: value.private_ipv4,
-            private_ipv6: value.private_ipv6,
+            private_ipv6: Some(value.private_ipv6),
         }
     }
 }

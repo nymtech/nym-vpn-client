@@ -33,7 +33,7 @@ impl BorrowedAcl<'_> {
     }
 
     /// Get ACL entries.
-    pub fn get_entries(&self) -> Result<AclEntryList> {
+    pub fn get_entries(&self) -> Result<AclEntryList<'_>> {
         let mut num_entries = 0;
         let mut entries: *mut EXPLICIT_ACCESS_W = std::ptr::null_mut();
 

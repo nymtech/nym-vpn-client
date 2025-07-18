@@ -55,6 +55,9 @@ impl From<proto::tunnel_state::Error> for ClientErrorReason {
             proto::tunnel_state::ErrorStateReason::CreateMixnetStorage => {
                 ClientErrorReason::CreateMixnetStorage
             }
+            proto::tunnel_state::ErrorStateReason::Ipv6Unavailable => {
+                ClientErrorReason::Ipv6Unavailable
+            }
             proto::tunnel_state::ErrorStateReason::Internal => {
                 ClientErrorReason::Internal(value.detail)
             }
@@ -111,6 +114,10 @@ impl From<ClientErrorReason> for proto::tunnel_state::Error {
             },
             ClientErrorReason::CreateMixnetStorage => proto::tunnel_state::Error {
                 reason: proto::tunnel_state::ErrorStateReason::CreateMixnetStorage.into(),
+                detail: None,
+            },
+            ClientErrorReason::Ipv6Unavailable => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::Ipv6Unavailable.into(),
                 detail: None,
             },
             ClientErrorReason::Internal(detail) => proto::tunnel_state::Error {
@@ -280,8 +287,14 @@ impl TryFrom<proto::MixnetConnectionData> for MixnetConnectionData {
                 .map_err(|e| ConversionError::ParseAddr("MixnetConnectionData.exit_ip", e))?,
             ipv4: Ipv4Addr::from_str(&value.ipv4)
                 .map_err(|e| ConversionError::ParseAddr("MixnetConnectionData.ipv4", e))?,
-            ipv6: Ipv6Addr::from_str(&value.ipv6)
-                .map_err(|e| ConversionError::ParseAddr("MixnetConnectionData.ipv6", e))?,
+            ipv6: value
+                .ipv6
+                .as_deref()
+                .map(|ipv6| {
+                    Ipv6Addr::from_str(ipv6)
+                        .map_err(|e| ConversionError::ParseAddr("MixnetConnectionData.ipv6", e))
+                })
+                .transpose()?,
         })
     }
 }
@@ -300,7 +313,7 @@ impl From<MixnetConnectionData> for proto::MixnetConnectionData {
             entry_ip: value.entry_ip.to_string(),
             exit_ip: value.exit_ip.to_string(),
             ipv4: value.ipv4.to_string(),
-            ipv6: value.ipv6.to_string(),
+            ipv6: value.ipv6.map(|ipv6| ipv6.to_string()),
         }
     }
 }
@@ -343,8 +356,14 @@ impl TryFrom<proto::WireguardNode> for WireguardNode {
             public_key: value.public_key,
             private_ipv4: Ipv4Addr::from_str(&value.private_ipv4)
                 .map_err(|e| ConversionError::ParseAddr("WireguardNode.private_ipv4", e))?,
-            private_ipv6: Ipv6Addr::from_str(&value.private_ipv6)
-                .map_err(|e| ConversionError::ParseAddr("WireguardNode.private_ipv6", e))?,
+            private_ipv6: value
+                .private_ipv6
+                .as_deref()
+                .map(|private_ipv6| {
+                    Ipv6Addr::from_str(private_ipv6)
+                        .map_err(|e| ConversionError::ParseAddr("WireguardNode.private_ipv6", e))
+                })
+                .transpose()?,
         })
     }
 }
@@ -355,7 +374,10 @@ impl From<WireguardNode> for proto::WireguardNode {
             public_key: value.public_key,
             endpoint: value.endpoint.to_string(),
             private_ipv4: value.private_ipv4.to_string(),
-            private_ipv6: value.private_ipv6.to_string(),
+            private_ipv6: value
+                .private_ipv6
+                .as_ref()
+                .map(|private_ipv6| private_ipv6.to_string()),
         }
     }
 }

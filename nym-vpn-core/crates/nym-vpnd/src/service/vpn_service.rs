@@ -708,6 +708,7 @@ where
             .unwrap_or(DnsOptions::default());
 
         let tunnel_settings = TunnelSettings {
+            enable_ipv6: !options.disable_ipv6,
             tunnel_type,
             mixnet_tunnel_options: MixnetTunnelOptions {
                 mtu: None,
