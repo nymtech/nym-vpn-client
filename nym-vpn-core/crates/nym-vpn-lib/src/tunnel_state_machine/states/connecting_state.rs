@@ -145,7 +145,7 @@ impl ConnectingState {
                     .ips
                     .iter()
                     .filter(|ip| {
-                        ip.is_ipv4() || (ip.is_ipv6() && shared_state.tunnel_settings.enable_ipv6)
+                        ip.is_ipv4() || (shared_state.tunnel_settings.enable_ipv6 && ip.is_ipv6())
                     })
                     .map(|ip| {
                         AllowedEndpoint::new(
@@ -182,7 +182,7 @@ impl ConnectingState {
 
         let allowed_endpoints = resolved_gateway_addresses
             .iter()
-            .filter(|ip| ip.is_ipv4() || (ip.is_ipv6() && shared_state.tunnel_settings.enable_ipv6))
+            .filter(|ip| ip.is_ipv4() || (shared_state.tunnel_settings.enable_ipv6 && ip.is_ipv6()))
             .map(|addr| {
                 AllowedEndpoint::new(
                     Endpoint::from_socket_address(*addr, TransportProtocol::Tcp),
