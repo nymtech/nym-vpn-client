@@ -253,6 +253,7 @@ impl GrpcClient {
 
     /// Connect to the VPN
     #[instrument(skip_all)]
+    #[allow(clippy::too_many_arguments)]
     pub async fn vpn_connect(
         &self,
         entry_node: NodeConnect,
