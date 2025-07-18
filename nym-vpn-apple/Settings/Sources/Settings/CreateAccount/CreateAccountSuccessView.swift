@@ -19,8 +19,9 @@ public struct CreateAccountSuccessView: View {
 
     @State private var isPlanAlertDisplayed = false
     @State private var isDisplayingAlert = false
-    @State private var isPurchasing = false
+    @State private var isLoading = false
     @State private var alertTitle = ""
+    @State private var retryAfter = 5.0
 
     public var body: some View {
         VStack(spacing: 0) {
@@ -40,6 +41,9 @@ public struct CreateAccountSuccessView: View {
         .background {
             NymColor.background
                 .ignoresSafeArea()
+        }
+        .task {
+            await loadProductsIfEmpty()
         }
     }
 
@@ -108,7 +112,7 @@ private extension CreateAccountSuccessView {
     }
 
     var selectPlanButton: some View {
-        GenericButton(title: "purchasePlan.selectPlan".localizedString, isLoading: $isPurchasing)
+        GenericButton(title: "purchasePlan.selectPlan".localizedString, isLoading: $isLoading)
             .onTapGesture {
                 selectPlanAction()
             }
@@ -152,14 +156,15 @@ private extension CreateAccountSuccessView {
     }
 
     func selectPlanAction() {
+        // TODO: 
         isPlanAlertDisplayed = true
     }
 
     func purchasePlanAction(with plan: Product) async {
         defer {
-            isPurchasing = false
+            isLoading = false
         }
-        isPurchasing = true
+        isLoading = true
 #if os(iOS)
         ImpactGenerator.shared.impact()
 #endif
@@ -186,6 +191,23 @@ private extension CreateAccountSuccessView {
                 isDisplayingAlert = true
 #endif
             }
+        }
+    }
+
+    func loadProductsIfEmpty() async {
+        guard purchasesManager.products.isEmpty else { return }
+        isLoading = true
+        do {
+            try await purchasesManager.loadProducts()
+            isLoading = false
+        } catch {
+            Task { @MainActor in
+                alertTitle = error.localizedDescription
+                isDisplayingAlert = true
+            }
+            try? await Task.sleep(for: .seconds(retryAfter))
+            retryAfter *= 2
+            isLoading = true
         }
     }
 }
