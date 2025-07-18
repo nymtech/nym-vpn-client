@@ -6,7 +6,6 @@ use std::{
     str::FromStr,
 };
 
-use nym_http_api_client::Client;
 use nym_vpn_lib_types::{
     ActionAfterDisconnect, ClientErrorReason, ConnectionData, Gateway, MixnetConnectionData,
     NymAddress, TunnelConnectionData, TunnelState, WireguardConnectionData, WireguardNode,
