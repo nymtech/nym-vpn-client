@@ -7,6 +7,10 @@
     "title": "Anonymous error reports",
     "desc": "applies on app restart"
   },
+  "ipv6-support": {
+    "title": "IPv6 traffic tunneling",
+    "desc": "Disable to only use IPv4"
+  },
   "notifications": {
     "title": "Desktop notifications"
   },

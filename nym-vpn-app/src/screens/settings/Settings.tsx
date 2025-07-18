@@ -5,6 +5,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { useAutostart, useDesktopNotifications } from '../../hooks';
 import { routes } from '../../router';
+import { kvSet } from '../../kvStore';
 import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
@@ -21,6 +22,7 @@ function Settings() {
     account,
     desktopNotifications,
     accountLinks,
+    ipv6Support,
   } = useMainState();
 
   const navigate = useNavigate();
@@ -77,6 +79,12 @@ function Settings() {
         await invoke('disable_sentry');
       }
     } catch {}
+  };
+
+  const handleIpv6Support = async () => {
+    const switched = !ipv6Support;
+    dispatch({ type: 'set-ipv6-support', enabled: switched });
+    await kvSet('disable-ipv6', !switched);
   };
 
   return (
@@ -143,6 +151,15 @@ function Settings() {
                 checked={autostartEnabled}
                 onChange={handleAutostartChanged}
               />
+            ),
+          },
+          {
+            title: t('ipv6-support.title'),
+            desc: t('ipv6-support.desc'),
+            leadingIcon: 'linear_scale',
+            onClick: handleIpv6Support,
+            trailing: (
+              <Switch checked={ipv6Support} onChange={handleIpv6Support} />
             ),
           },
           {

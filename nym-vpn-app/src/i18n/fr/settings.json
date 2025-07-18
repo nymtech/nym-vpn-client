@@ -7,6 +7,10 @@
     "title": "Rapports d'erreur anonymes",
     "desc": "s'applique au redémarrage de l'application"
   },
+  "ipv6-support": {
+    "title": "IPv6 traffic tunneling",
+    "desc": "Désactiver pour basculer en IPv4"
+  },
   "notifications": {
     "title": "Notifications sur le bureau"
   },

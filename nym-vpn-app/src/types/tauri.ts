@@ -26,7 +26,8 @@ export type DbKey =
   | 'cache-mx-exit-gateways'
   | 'cache-wg-gateways'
   | 'cache-account-id'
-  | 'cache-device-id';
+  | 'cache-device-id'
+  | 'disable-ipv6';
 
 /*
  * Enum of the possible specialized errors emitted by the daemon or from the

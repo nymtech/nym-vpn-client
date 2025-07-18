@@ -55,6 +55,7 @@ export type AppState = {
   themeMode: ThemeMode;
   autostart: boolean;
   autoConnect: boolean;
+  // error monitoring
   monitoring: boolean;
   desktopNotifications: boolean;
   entryNode: Country | Gateway;
@@ -66,6 +67,7 @@ export type AppState = {
   account: boolean;
   accountLinks?: AccountLinks | null;
   networkCompat?: NetworkCompat | null;
+  ipv6Support: boolean;
 };
 
 export type ConnectProgressMsg = 'Initializing' | 'InitDone' | 'Canceling';

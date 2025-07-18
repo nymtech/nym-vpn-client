@@ -49,6 +49,8 @@ function useI18nError() {
             return fmtErr(t('tunnel.subscription-expired'), error.data);
           case 'device-time-out-of-sync':
             return fmtErr(t('tunnel.device-time-out-of-sync'), error.data);
+          case 'ipv6-unavailable':
+            return fmtErr(t('tunnel.ipv6-unavailable'), error.data);
         }
       }
       // no tunnel errors
