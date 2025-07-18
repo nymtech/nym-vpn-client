@@ -237,6 +237,7 @@ jobs:
       pkgrel: 1
       publish_aur: true
       commit_msg: "v${{ needs.publish.outputs.version }}"
+    secrets: inherit
 
   update-aur-vpnd:
     uses: ./.github/workflows/publish-aur-nym-vpnd.yml
@@ -247,6 +248,7 @@ jobs:
       pkgrel: 1
       publish_aur: true
       commit_msg: "release ${{ inputs.core_release_tag }}"
+    secrets: inherit
 
   post-release:
     runs-on: ubuntu-latest
