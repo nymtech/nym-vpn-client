@@ -4,13 +4,11 @@
 #[derive(Clone, Copy, Debug)]
 pub enum Platform {
     Apple,
-    Unspecified,
 }
 impl Platform {
     pub fn api_path_component(&self) -> &'static str {
         match self {
             Platform::Apple => crate::routes::APPLE,
-            Platform::Unspecified => "",
         }
     }
 }

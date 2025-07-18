@@ -250,7 +250,9 @@ pub(super) async fn register_account() -> Result<RegisterAccountResponse, VpnErr
     let platform = if cfg!(target_os = "ios") {
         Platform::Apple
     } else {
-        Platform::Unspecified
+        return Err(VpnError::InternalError {
+            details: "only iOS supported for now".to_string(),
+        });
     };
     get_command_sender()
         .await?
@@ -345,7 +347,9 @@ pub(crate) mod raw {
         let platform = if cfg!(target_os = "ios") {
             Platform::Apple
         } else {
-            Platform::Unspecified
+            return Err(VpnError::InternalError {
+                details: "only iOS supported for now".to_string(),
+            });
         };
         let storage = setup_account_storage(path).await?;
         let mnemonic = storage
