@@ -48,6 +48,7 @@ private extension CreateAccountNoPassphraseView {
             Text("createAccount.yourPrivacyEliminated".localizedString)
                 .textStyle(.Headline.Small.regular)
                 .foregroundStyle(NymColor.primary)
+                .multilineTextAlignment(.leading)
             Spacer()
         }
     }
@@ -61,9 +62,12 @@ private extension CreateAccountNoPassphraseView {
     }
 
     var insteadText: some View {
-        Text("createAccount.insteadCreatePassphrase".localizedString)
-            .textStyle(.Body.Large.regular)
-            .foregroundStyle(NymColor.primary)
+        HStack {
+            Text("createAccount.insteadCreatePassphrase".localizedString)
+                .textStyle(.Body.Large.regular)
+                .foregroundStyle(NymColor.primary)
+            Spacer()
+        }
     }
 
     var enablesList: some View {
@@ -126,5 +130,6 @@ private extension CreateAccountNoPassphraseView {
             Spacer()
         }
         .accessibilityLabel(title)
+        .frame(maxWidth: .infinity)
     }
 }

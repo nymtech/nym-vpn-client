@@ -87,6 +87,7 @@ private extension CreateAccountView {
             Text("createAccount.createAnAccount".localizedString)
                 .textStyle(.Headline.Medium.regular)
                 .foregroundStyle(.primary)
+                .multilineTextAlignment(.center)
             Spacer()
         }
     }

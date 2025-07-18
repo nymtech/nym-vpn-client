@@ -26,6 +26,9 @@ private extension HomeView {
         VStack {
             navbar()
             VStack {
+                if viewModel.isBannerDisplayed {
+                    GenericBannerView(config: viewModel.unprotectedBannerConfig)
+                }
                 Spacer()
                 statusAreaSection()
                 Spacer()
@@ -192,10 +195,27 @@ private extension HomeView {
             .padding(.horizontal, 16)
             .frame(maxWidth: MagicNumbers.maxWidth)
             .onTapGesture {
-                viewModel.connectDisconnect()
+                Task {
+                    await viewModel.connectDisconnect()
+                }
             }
             .accessibilityAction {
-                viewModel.connectDisconnect()
+                Task {
+                    await viewModel.connectDisconnect()
+                }
+            }
+            .confirmationDialog(
+                "home.killswitchEnabled.purchaseAlertTitle".localizedString,
+                isPresented: $viewModel.isKillSwitchDisableAlertDisplayed,
+                titleVisibility: .visible
+            ) {
+                Button("disconnect".localizedString, role: .destructive) {
+                    Task {
+                        await viewModel.connectDisconnect()
+                        viewModel.navigateToPlanPurchase()
+                    }
+                }
+                Button("cancel".localizedString, role: .cancel) {}
             }
         Spacer()
             .frame(height: viewModel.appSettings.isSmallScreen || Device.isMacOS ? 24 : 8)
