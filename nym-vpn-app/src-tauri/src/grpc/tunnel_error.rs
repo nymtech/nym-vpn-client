@@ -20,6 +20,7 @@ pub enum TunnelError {
     BandwidthExceeded(Option<String>),
     SubscriptionExpired(Option<String>),
     DeviceTimeOutOfSync(Option<String>),
+    Ipv6Unavailable(Option<String>),
 }
 
 impl From<ProtoTunnelError> for TunnelError {
@@ -44,6 +45,7 @@ impl From<ProtoTunnelError> for TunnelError {
             ErrorStateReason::Api => TunnelError::Api(error.detail),
             ErrorStateReason::DeviceTimeOutOfSync => TunnelError::DeviceTimeOutOfSync(error.detail),
             ErrorStateReason::CreateMixnetStorage => TunnelError::Internal(error.detail),
+            ErrorStateReason::Ipv6Unavailable => TunnelError::Ipv6Unavailable(error.detail),
         }
     }
 }

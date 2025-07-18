@@ -27,6 +27,7 @@ pub async fn connect(
     app: tauri::AppHandle,
     state: State<'_, SharedAppState>,
     grpc: State<'_, GrpcClient>,
+    db: State<'_, Db>,
     entry: NodeConnect,
     exit: NodeConnect,
 ) -> Result<TunnelState, BackendError> {
@@ -74,6 +75,11 @@ pub async fn connect(
 
     let use_netstack_wireguard = false;
 
+    let disable_ipv6 = db
+        .get_typed::<bool>(Key::DisableIpv6.as_ref())
+        .unwrap_or(None)
+        .unwrap_or(false);
+
     app.emit_connection_progress(ConnectProgressMsg::InitDone);
     match grpc
         .vpn_connect(
@@ -83,6 +89,7 @@ pub async fn connect(
             credentials_mode,
             use_netstack_wireguard,
             dns,
+            disable_ipv6,
         )
         .await
     {

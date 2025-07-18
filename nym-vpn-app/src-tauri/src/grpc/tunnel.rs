@@ -22,7 +22,7 @@ pub struct WgNode {
     pub endpoint: String,
     pub public_key: String,
     pub private_ipv4: String,
-    pub private_ipv6: String,
+    pub private_ipv6: Option<String>,
 }
 
 #[derive(Serialize, Clone, Debug, PartialEq, TS)]
@@ -32,7 +32,7 @@ pub struct MixnetData {
     pub nym_address: Option<Address>,
     pub exit_ipr: Option<Address>,
     pub ipv4: String,
-    pub ipv6: String,
+    pub ipv6: Option<String>,
     pub entry_ip: String,
     pub exit_ip: String,
 }

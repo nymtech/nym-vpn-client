@@ -261,6 +261,7 @@ impl GrpcClient {
         credentials_mode: bool,
         netstack: bool,
         dns: Option<Dns>,
+        disable_ipv6: bool,
     ) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
@@ -274,6 +275,7 @@ impl GrpcClient {
             enable_credentials_mode: credentials_mode,
             dns,
             user_agent: Some(self.user_agent.clone()),
+            disable_ipv6,
         });
         vpnd.connect_tunnel(request).await.map_err(|e| {
             error!("grpc: {}", e);

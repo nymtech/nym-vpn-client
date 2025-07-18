@@ -40,6 +40,7 @@ pub enum Key {
     CacheWgGateways,
     CacheAccountId,
     CacheDeviceId,
+    DisableIpv6,
 }
 
 impl Display for Key {
