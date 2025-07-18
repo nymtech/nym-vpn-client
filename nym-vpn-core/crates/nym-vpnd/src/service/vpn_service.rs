@@ -1,14 +1,13 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::IpAddr, path::PathBuf, sync::Arc, time::Instant};
+use std::{path::PathBuf, sync::Arc, time::Instant};
 
 use bip39::Mnemonic;
 use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
 };
-use serde::{Deserialize, Serialize};
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
     sync::{broadcast, mpsc, oneshot, watch},
@@ -17,19 +16,17 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_account_controller::{
-    AccountCommandSender, AccountController, AccountControllerConfig, AccountStateSummary,
-    AvailableTicketbooks, SharedAccountState,
+    AccountCommandSender, AccountController, AccountControllerConfig, AvailableTicketbooks,
+    SharedAccountState,
 };
 use nym_vpn_api_client::{
     NetworkCompatibility,
     response::{NymVpnDevice, NymVpnUsage},
-    types::{Percent, ScoreThresholds},
+    types::ScoreThresholds,
 };
 use nym_vpn_lib::{
     MixnetClientConfig, UserAgent, VpnTopologyProvider,
-    gateway_directory::{
-        self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient, GatewayType,
-    },
+    gateway_directory::{self, CachingGatewayClient, EntryPoint, ExitPoint, GatewayClient},
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
@@ -41,20 +38,22 @@ use nym_vpn_lib_types::{
 };
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
+    ConnectArgs, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
+    account_state::AccountStateSummary,
     gateway::{Country, Gateway},
-    service::{VpnServiceConnectError, VpnServiceDisconnectError, VpnServiceInfo},
+    log_path::LogPath,
+    service::VpnServiceInfo,
 };
 use std::time::Duration;
-use zeroize::Zeroizing;
 
 use super::{
     config::{DEFAULT_CONFIG_FILE, NetworkEnvironments, NymVpnServiceConfig},
     error::{
         AccountControllerError, AccountLinksError, Error, GlobalConfigError, ListGatewaysError,
-        Result, SetNetworkError, VpnServiceDeleteLogFileError,
+        Result, SetNetworkError,
     },
 };
-use crate::{config::GlobalConfigFile, logging::LogPath};
+use crate::config::GlobalConfigFile;
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -77,16 +76,13 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Vec<Country>, ListGatewaysError>>,
         ListCountriesOptions,
     ),
-    Connect(
-        oneshot::Sender<Result<(), VpnServiceConnectError>>,
-        ConnectArgs,
-    ),
-    Disconnect(oneshot::Sender<Result<(), VpnServiceDisconnectError>>, ()),
+    Connect(oneshot::Sender<()>, ConnectArgs),
+    Disconnect(oneshot::Sender<()>, ()),
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
     SubscribeToTunnelState(oneshot::Sender<watch::Receiver<TunnelState>>, ()),
     StoreAccount(
         oneshot::Sender<Result<(), StoreAccountError>>,
-        Zeroizing<String>,
+        StoreAccountRequest,
     ),
     IsAccountStored(oneshot::Sender<bool>, ()),
     ForgetAccount(oneshot::Sender<Result<(), ForgetAccountError>>, ()),
@@ -125,47 +121,9 @@ pub enum VpnServiceCommand {
         (),
     ),
     GetLogPath(oneshot::Sender<Option<LogPath>>, ()),
-    DeleteLogFile(
-        oneshot::Sender<Result<(), VpnServiceDeleteLogFileError>>,
-        (),
-    ),
+    DeleteLogFile(oneshot::Sender<()>, ()),
     IsSentryEnabled(oneshot::Sender<bool>, ()),
     ToggleSentry(oneshot::Sender<Result<(), GlobalConfigError>>, bool),
-}
-
-#[derive(Debug)]
-pub struct ListGatewaysOptions {
-    pub gw_type: GatewayType,
-    #[allow(unused)]
-    pub user_agent: Option<UserAgent>,
-}
-
-#[derive(Debug)]
-pub struct ListCountriesOptions {
-    pub gw_type: GatewayType,
-    #[allow(unused)]
-    pub user_agent: Option<UserAgent>,
-}
-
-#[derive(Debug)]
-pub struct ConnectArgs {
-    pub entry: Option<gateway_directory::EntryPoint>,
-    pub exit: Option<gateway_directory::ExitPoint>,
-    pub options: ConnectOptions,
-}
-
-#[derive(Default, Debug, Clone, Serialize, Deserialize)]
-pub struct ConnectOptions {
-    pub dns: Option<IpAddr>,
-    pub enable_two_hop: bool,
-    pub netstack: bool,
-    pub disable_poisson_rate: bool,
-    pub disable_background_cover_traffic: bool,
-    pub enable_credentials_mode: bool,
-    pub min_mixnode_performance: Option<Percent>,
-    pub min_gateway_mixnet_performance: Option<Percent>,
-    pub min_gateway_vpn_performance: Option<Percent>,
-    pub user_agent: Option<UserAgent>,
 }
 
 pub struct NymVpnService<S>
@@ -189,7 +147,7 @@ where
     tunnel_event_tx: broadcast::Sender<TunnelEvent>,
 
     // Send command to delete and recreate logging file
-    file_logging_event_tx: mpsc::Sender<()>,
+    file_logging_event_tx: mpsc::UnboundedSender<()>,
 
     // Send commands to the account controller
     account_command_tx: AccountCommandSender,
@@ -240,7 +198,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     pub fn spawn(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
-        file_logging_event_tx: mpsc::Sender<()>,
+        file_logging_event_tx: mpsc::UnboundedSender<()>,
         shutdown_token: CancellationToken,
         network_env: Network,
         user_agent: UserAgent,
@@ -286,7 +244,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     pub async fn new(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
-        file_logging_event_tx: mpsc::Sender<()>,
+        file_logging_event_tx: mpsc::UnboundedSender<()>,
         shutdown_token: CancellationToken,
         network_env: Network,
         user_agent: UserAgent,
@@ -557,12 +515,12 @@ where
                 self.handle_list_countries(options, tx)
             }
             VpnServiceCommand::Connect(tx, connect_args) => {
-                let result = self.handle_connect(connect_args).await;
-                let _ = tx.send(result);
+                self.handle_connect(connect_args).await.ok();
+                let _ = tx.send(());
             }
             VpnServiceCommand::Disconnect(tx, ()) => {
-                let result = self.handle_disconnect().await;
-                let _ = tx.send(result);
+                self.handle_disconnect().await;
+                let _ = tx.send(());
             }
             VpnServiceCommand::GetTunnelState(tx, ()) => {
                 let result = self.handle_get_tunnel_state();
@@ -636,7 +594,8 @@ where
                 let _ = tx.send(self.log_path.clone());
             }
             VpnServiceCommand::DeleteLogFile(tx, ()) => {
-                let _ = tx.send(self.handle_delete_log_file().await);
+                self.handle_delete_log_file().await;
+                let _ = tx.send(());
             }
             VpnServiceCommand::IsSentryEnabled(tx, ()) => {
                 let _ = tx.send(self.handle_is_sentry_enabled().await);
@@ -679,10 +638,7 @@ where
         Ok(config)
     }
 
-    async fn handle_connect(
-        &mut self,
-        connect_args: ConnectArgs,
-    ) -> Result<(), VpnServiceConnectError> {
+    async fn handle_connect(&mut self, connect_args: ConnectArgs) -> Result<()> {
         let ConnectArgs {
             entry,
             exit,
@@ -717,9 +673,7 @@ where
         );
         tracing::debug!("Using options: {:?}", options);
 
-        let config = self
-            .try_setup_config(entry, exit)
-            .map_err(|err| VpnServiceConnectError::Internal(err.to_string()))?;
+        let config = self.try_setup_config(entry, exit)?;
         tracing::info!("Using config: {}", config);
 
         let gateway_options = GatewayPerformanceOptions {
@@ -778,29 +732,19 @@ where
             .command_sender
             .send(TunnelCommand::SetTunnelSettings(tunnel_settings))
         {
-            Ok(()) => self
-                .command_sender
-                .send(TunnelCommand::Connect)
-                .map_err(|e| {
-                    tracing::error!("Failed to send command to connect: {}", e);
-                    VpnServiceConnectError::Internal("failed to send command to connect".to_owned())
-                }),
+            Ok(()) => {
+                self.command_sender.send(TunnelCommand::Connect).ok();
+                Ok(())
+            }
             Err(e) => {
                 tracing::error!("Failed to send command to set tunnel options: {}", e);
-                Err(VpnServiceConnectError::Internal(
-                    "failed to send command to set tunnel options".to_owned(),
-                ))
+                Ok(())
             }
         }
     }
 
-    async fn handle_disconnect(&mut self) -> Result<(), VpnServiceDisconnectError> {
-        self.command_sender
-            .send(TunnelCommand::Disconnect)
-            .map_err(|e| {
-                tracing::error!("Failed to send command to disconnect: {}", e);
-                VpnServiceDisconnectError::Internal("failed to send disconnect command".to_owned())
-            })
+    async fn handle_disconnect(&mut self) {
+        self.command_sender.send(TunnelCommand::Disconnect).ok();
     }
 
     fn handle_get_tunnel_state(&self) -> TunnelState {
@@ -918,9 +862,9 @@ where
 
     async fn handle_store_account(
         &mut self,
-        account: Zeroizing<String>,
+        store_request: StoreAccountRequest,
     ) -> Result<(), StoreAccountError> {
-        let mnemonic = Mnemonic::parse::<&str>(account.as_ref())
+        let mnemonic = Mnemonic::parse::<&str>(store_request.mnemonic.as_str())
             .map_err(|err| StoreAccountError::InvalidMnemonic(err.to_string()))?;
         self.account_command_tx.store_account(mnemonic).await
     }
@@ -971,7 +915,9 @@ where
     }
 
     async fn handle_get_account_state(&self) -> AccountStateSummary {
-        self.shared_account_state.lock().await.clone()
+        let state = self.shared_account_state.lock().await.clone();
+
+        AccountStateSummary::from(state)
     }
 
     async fn handle_refresh_account_state(&self) {
@@ -1052,20 +998,8 @@ where
         self.account_command_tx.get_available_tickets().await
     }
 
-    async fn handle_delete_log_file(&self) -> Result<(), VpnServiceDeleteLogFileError> {
-        match self.file_logging_event_tx.try_send(()) {
-            Ok(_) => {}
-            Err(mpsc::error::TrySendError::Full(_)) => {
-                tracing::debug!("Already trying to delete file");
-            }
-            Err(mpsc::error::TrySendError::Closed(_)) => {
-                tracing::error!("Failed to send command to delete log file: channel is closed");
-                return Err(VpnServiceDeleteLogFileError::Internal(
-                    "failed to send delete log command".to_owned(),
-                ));
-            }
-        }
-        Ok(())
+    async fn handle_delete_log_file(&self) {
+        self.file_logging_event_tx.send(()).ok();
     }
 
     async fn handle_is_sentry_enabled(&self) -> bool {

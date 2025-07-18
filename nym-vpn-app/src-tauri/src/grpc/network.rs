@@ -4,8 +4,8 @@ pub struct NetworkCompatVersions {
     pub tauri: String,
 }
 
-impl From<nym_vpn_proto::NetworkCompatibility> for NetworkCompatVersions {
-    fn from(compat: nym_vpn_proto::NetworkCompatibility) -> Self {
+impl From<nym_vpn_proto::proto::NetworkCompatibility> for NetworkCompatVersions {
+    fn from(compat: nym_vpn_proto::proto::NetworkCompatibility) -> Self {
         NetworkCompatVersions {
             core: compat.core,
             tauri: compat.tauri,

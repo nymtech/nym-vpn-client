@@ -5207,6 +5207,7 @@ dependencies = [
  "nym-config",
  "nym-gateway-directory",
  "nym-http-api-client",
+ "nym-ipc",
  "nym-sdk",
  "nym-vpn-account-controller",
  "nym-vpn-api-client",
@@ -5217,8 +5218,11 @@ dependencies = [
  "prost-types",
  "thiserror 2.0.12",
  "time",
+ "tokio",
+ "tokio-stream",
  "tonic",
  "tonic-build",
+ "tower",
  "url",
 ]
 
@@ -5248,19 +5252,16 @@ version = "1.13.0-beta"
 dependencies = [
  "anyhow",
  "clap",
- "itertools 0.13.0",
  "nym-bin-common",
  "nym-gateway-directory",
  "nym-http-api-client",
- "nym-ipc",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-proto",
  "nym-vpnd-types",
  "sysinfo",
  "tokio",
- "tonic",
- "tower",
+ "tokio-stream",
  "vergen-gitcl",
 ]
 
@@ -5321,11 +5322,14 @@ name = "nym-vpnd-types"
 version = "1.13.0-beta"
 dependencies = [
  "nym-validator-client",
+ "nym-vpn-account-controller",
  "nym-vpn-lib",
+ "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "serde",
  "thiserror 2.0.12",
  "time",
+ "zeroize",
 ]
 
 [[package]]

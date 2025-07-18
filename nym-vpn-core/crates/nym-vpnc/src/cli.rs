@@ -11,9 +11,6 @@ use nym_http_api_client::UserAgent;
 #[derive(Parser)]
 #[clap(author = "Nymtech", version, about)]
 pub struct CliArgs {
-    #[arg(long)]
-    pub verbose: bool,
-
     /// Override the default user agent string.
     #[arg(long, value_parser = parse_user_agent)]
     pub user_agent: Option<UserAgent>,
@@ -22,8 +19,8 @@ pub struct CliArgs {
     pub command: Command,
 }
 
-fn parse_user_agent(user_agent: &str) -> Result<UserAgent, String> {
-    UserAgent::try_from(user_agent).map_err(|err| err.to_string())
+fn parse_user_agent(user_agent: &str) -> Result<UserAgent> {
+    Ok(UserAgent::try_from(user_agent)?)
 }
 
 #[derive(Subcommand)]
@@ -74,22 +71,22 @@ pub enum Command {
     GetDeviceId,
 
     /// List the set of entry gateways for mixnet mode.
-    ListEntryGateways(ListGatewaysArgs),
+    ListEntryGateways,
 
     /// List the set of exit gateways for mixnet mode.
-    ListExitGateways(ListGatewaysArgs),
+    ListExitGateways,
 
     /// List the set of entry and exit gateways for dVPN mode.
-    ListVpnGateways(ListGatewaysArgs),
+    ListVpnGateways,
 
     /// List the set of countries with available entry gateways for mixnet mode.
-    ListEntryCountries(ListCountriesArgs),
+    ListEntryCountries,
 
     /// List the set of countries with available exit gateways for mixnet mode.
-    ListExitCountries(ListCountriesArgs),
+    ListExitCountries,
 
     /// List the set of countries with available entry and exit gateways for dVPN mode.
-    ListVpnCountries(ListCountriesArgs),
+    ListVpnCountries,
 
     /// Internal commands for development and debugging.
     #[clap(subcommand, hide = true)]
@@ -181,6 +178,49 @@ pub struct ConnectArgs {
     pub enable_credentials_mode: bool,
 }
 
+impl ConnectArgs {
+    pub fn entry_point(&self) -> Result<Option<EntryPoint>> {
+        if let Some(ref entry_gateway_id) = self.entry.entry_id {
+            Ok(Some(EntryPoint::Gateway {
+                identity: NodeIdentity::from_base58_string(entry_gateway_id)
+                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
+            }))
+        } else if let Some(ref entry_gateway_country) = self.entry.entry_country {
+            Ok(Some(EntryPoint::Location {
+                location: entry_gateway_country.clone(),
+            }))
+        } else if self.entry.entry_random {
+            Ok(Some(EntryPoint::Random))
+        } else {
+            Ok(None)
+        }
+    }
+
+    pub fn exit_point(&self) -> Result<Option<ExitPoint>> {
+        if let Some(ref exit_router_address) = self.exit.exit_ipr_address {
+            Ok(Some(ExitPoint::Address {
+                address: Box::new(
+                    Recipient::try_from_base58_string(exit_router_address)
+                        .map_err(|_| anyhow!("Failed to parse exit node address"))?,
+                ),
+            }))
+        } else if let Some(ref exit_router_id) = self.exit.exit_id {
+            Ok(Some(ExitPoint::Gateway {
+                identity: NodeIdentity::from_base58_string(exit_router_id.clone())
+                    .map_err(|_| anyhow!("Failed to parse gateway id"))?,
+            }))
+        } else if let Some(ref exit_gateway_country) = self.exit.exit_country {
+            Ok(Some(ExitPoint::Location {
+                location: exit_gateway_country.clone(),
+            }))
+        } else if self.exit.exit_random {
+            Ok(Some(ExitPoint::Random))
+        } else {
+            Ok(None)
+        }
+    }
+}
+
 #[derive(Args)]
 #[group(multiple = false)]
 pub struct CliEntry {
@@ -239,13 +279,6 @@ pub struct GetAccountLinksArgs {
 }
 
 #[derive(Args)]
-pub struct ListGatewaysArgs {
-    /// Display additional information about the gateways.
-    #[arg(long, short)]
-    pub verbose: bool,
-}
-
-#[derive(Args)]
 pub struct ListCountriesArgs {}
 
 #[derive(Args)]
@@ -267,45 +300,4 @@ pub struct ConfirmZkNymDownloadedArgs {
     /// The ID of the ZK Nym to confirm.
     #[arg(short, long)]
     pub id: String,
-}
-
-pub fn parse_entry_point(args: &ConnectArgs) -> Result<Option<EntryPoint>> {
-    if let Some(ref entry_gateway_id) = args.entry.entry_id {
-        Ok(Some(EntryPoint::Gateway {
-            identity: NodeIdentity::from_base58_string(entry_gateway_id.clone())
-                .map_err(|_| anyhow!("Failed to parse gateway id"))?,
-        }))
-    } else if let Some(ref entry_gateway_country) = args.entry.entry_country {
-        Ok(Some(EntryPoint::Location {
-            location: entry_gateway_country.clone(),
-        }))
-    } else if args.entry.entry_random {
-        Ok(Some(EntryPoint::Random))
-    } else {
-        Ok(None)
-    }
-}
-
-pub fn parse_exit_point(args: &ConnectArgs) -> Result<Option<ExitPoint>> {
-    if let Some(ref exit_router_address) = args.exit.exit_ipr_address {
-        Ok(Some(ExitPoint::Address {
-            address: Box::new(
-                Recipient::try_from_base58_string(exit_router_address.clone())
-                    .map_err(|_| anyhow!("Failed to parse exit node address"))?,
-            ),
-        }))
-    } else if let Some(ref exit_router_id) = args.exit.exit_id {
-        Ok(Some(ExitPoint::Gateway {
-            identity: NodeIdentity::from_base58_string(exit_router_id.clone())
-                .map_err(|_| anyhow!("Failed to parse gateway id"))?,
-        }))
-    } else if let Some(ref exit_gateway_country) = args.exit.exit_country {
-        Ok(Some(ExitPoint::Location {
-            location: exit_gateway_country.clone(),
-        }))
-    } else if args.exit.exit_random {
-        Ok(Some(ExitPoint::Random))
-    } else {
-        Ok(None)
-    }
 }

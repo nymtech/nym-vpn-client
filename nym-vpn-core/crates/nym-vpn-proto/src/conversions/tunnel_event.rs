@@ -1,0 +1,231 @@
+// Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use nym_vpn_lib_types::{
+    BandwidthEvent, ConnectionEvent, ConnectionStatisticsEvent, MixnetEvent, SphinxPacketRates,
+    TunnelEvent, TunnelState,
+};
+
+use crate::{conversions::ConversionError, proto};
+
+impl TryFrom<proto::TunnelEvent> for TunnelEvent {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::TunnelEvent) -> Result<Self, Self::Error> {
+        let event = value
+            .event
+            .ok_or(ConversionError::NoValueSet("TunnelEvent.event"))?;
+
+        Ok(match event {
+            proto::tunnel_event::Event::TunnelState(tunnel_state) => {
+                TunnelEvent::NewState(TunnelState::try_from(tunnel_state)?)
+            }
+            proto::tunnel_event::Event::MixnetEvent(mixnet_event) => {
+                TunnelEvent::MixnetState(MixnetEvent::try_from(mixnet_event)?)
+            }
+        })
+    }
+}
+
+impl From<TunnelEvent> for proto::TunnelEvent {
+    fn from(value: TunnelEvent) -> Self {
+        let event = match value {
+            TunnelEvent::NewState(tunnel_state) => {
+                proto::tunnel_event::Event::TunnelState(proto::TunnelState::from(tunnel_state))
+            }
+            TunnelEvent::MixnetState(mixnet_event) => {
+                proto::tunnel_event::Event::MixnetEvent(proto::MixnetEvent::from(mixnet_event))
+            }
+        };
+        Self { event: Some(event) }
+    }
+}
+
+impl TryFrom<proto::MixnetEvent> for MixnetEvent {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::MixnetEvent) -> Result<Self, Self::Error> {
+        let event = value
+            .event
+            .ok_or(ConversionError::NoValueSet("MixnetEvent.event"))?;
+
+        Ok(match event {
+            proto::mixnet_event::Event::BandwidthEvent(bandwidth_event) => {
+                Self::Bandwidth(BandwidthEvent::try_from(bandwidth_event)?)
+            }
+            proto::mixnet_event::Event::ConnectionEvent(connection_event) => {
+                let proto_connection_event =
+                    proto::mixnet_event::ConnectionEvent::try_from(connection_event)
+                        .map_err(|e| ConversionError::Decode("ConnectionEvent", e))?;
+                Self::Connection(ConnectionEvent::from(proto_connection_event))
+            }
+            proto::mixnet_event::Event::ConnectionStatisticsEvent(connection_statistics_event) => {
+                Self::ConnectionStatistics(ConnectionStatisticsEvent::try_from(
+                    connection_statistics_event,
+                )?)
+            }
+        })
+    }
+}
+
+impl From<MixnetEvent> for proto::MixnetEvent {
+    fn from(value: MixnetEvent) -> Self {
+        let event = match value {
+            MixnetEvent::Bandwidth(e) => proto::mixnet_event::Event::BandwidthEvent(
+                proto::mixnet_event::BandwidthEvent::from(e),
+            ),
+            MixnetEvent::Connection(e) => proto::mixnet_event::Event::ConnectionEvent(
+                proto::mixnet_event::ConnectionEvent::from(e) as i32,
+            ),
+            MixnetEvent::ConnectionStatistics(e) => {
+                proto::mixnet_event::Event::ConnectionStatisticsEvent(
+                    proto::mixnet_event::ConnectionStatisticsEvent::from(e),
+                )
+            }
+        };
+
+        Self { event: Some(event) }
+    }
+}
+
+impl From<proto::mixnet_event::ConnectionEvent> for ConnectionEvent {
+    fn from(value: proto::mixnet_event::ConnectionEvent) -> Self {
+        match value {
+            proto::mixnet_event::ConnectionEvent::EntryGatewayDown => Self::EntryGatewayDown,
+            proto::mixnet_event::ConnectionEvent::ExitGatewayDownIpv4 => Self::ExitGatewayDownIpv4,
+            proto::mixnet_event::ConnectionEvent::ExitGatewayDownIpv6 => Self::ExitGatewayDownIpv6,
+            proto::mixnet_event::ConnectionEvent::ExitGatewayRoutingErrorIpv4 => {
+                Self::ExitGatewayRoutingErrorIpv4
+            }
+            proto::mixnet_event::ConnectionEvent::ExitGatewayRoutingErrorIpv6 => {
+                Self::ExitGatewayRoutingErrorIpv6
+            }
+            proto::mixnet_event::ConnectionEvent::ConnectedIpv4 => Self::ConnectedIpv4,
+            proto::mixnet_event::ConnectionEvent::ConnectedIpv6 => Self::ConnectedIpv6,
+        }
+    }
+}
+
+impl From<ConnectionEvent> for proto::mixnet_event::ConnectionEvent {
+    fn from(value: ConnectionEvent) -> Self {
+        match value {
+            ConnectionEvent::EntryGatewayDown => Self::EntryGatewayDown,
+            ConnectionEvent::ExitGatewayDownIpv4 => Self::ExitGatewayDownIpv4,
+            ConnectionEvent::ExitGatewayDownIpv6 => Self::ExitGatewayDownIpv6,
+            ConnectionEvent::ExitGatewayRoutingErrorIpv4 => Self::ExitGatewayRoutingErrorIpv4,
+            ConnectionEvent::ExitGatewayRoutingErrorIpv6 => Self::ExitGatewayRoutingErrorIpv6,
+            ConnectionEvent::ConnectedIpv4 => Self::ConnectedIpv4,
+            ConnectionEvent::ConnectedIpv6 => Self::ConnectedIpv6,
+        }
+    }
+}
+
+impl TryFrom<proto::mixnet_event::BandwidthEvent> for BandwidthEvent {
+    type Error = ConversionError;
+
+    fn try_from(value: proto::mixnet_event::BandwidthEvent) -> Result<Self, Self::Error> {
+        let event = value
+            .event
+            .ok_or(ConversionError::NoValueSet("BandwidthEvent.event"))?;
+
+        Ok(match event {
+            proto::mixnet_event::bandwidth_event::Event::NoBandwidth(
+                proto::mixnet_event::bandwidth_event::NoBandwidth {},
+            ) => Self::NoBandwidth,
+            proto::mixnet_event::bandwidth_event::Event::RemainingBandwidth(
+                proto::mixnet_event::bandwidth_event::RemainingBandwidth { value },
+            ) => Self::RemainingBandwidth(value),
+        })
+    }
+}
+
+impl From<BandwidthEvent> for proto::mixnet_event::BandwidthEvent {
+    fn from(value: BandwidthEvent) -> Self {
+        let event = match value {
+            BandwidthEvent::NoBandwidth => {
+                proto::mixnet_event::bandwidth_event::Event::NoBandwidth(
+                    proto::mixnet_event::bandwidth_event::NoBandwidth {},
+                )
+            }
+            BandwidthEvent::RemainingBandwidth(value) => {
+                proto::mixnet_event::bandwidth_event::Event::RemainingBandwidth(
+                    proto::mixnet_event::bandwidth_event::RemainingBandwidth { value },
+                )
+            }
+        };
+        Self { event: Some(event) }
+    }
+}
+
+impl TryFrom<proto::mixnet_event::ConnectionStatisticsEvent> for ConnectionStatisticsEvent {
+    type Error = ConversionError;
+
+    fn try_from(
+        value: proto::mixnet_event::ConnectionStatisticsEvent,
+    ) -> Result<Self, Self::Error> {
+        let rates = value.rates.ok_or(ConversionError::NoValueSet(
+            "ConnectionStatisticsEvent.rates",
+        ))?;
+        Ok(Self {
+            rates: SphinxPacketRates::from(rates),
+        })
+    }
+}
+
+impl From<ConnectionStatisticsEvent> for proto::mixnet_event::ConnectionStatisticsEvent {
+    fn from(value: ConnectionStatisticsEvent) -> Self {
+        Self {
+            rates: Some(proto::mixnet_event::SphinxPacketRates::from(value.rates)),
+        }
+    }
+}
+
+impl From<proto::mixnet_event::SphinxPacketRates> for SphinxPacketRates {
+    fn from(value: proto::mixnet_event::SphinxPacketRates) -> Self {
+        Self {
+            real_packets_sent: value.real_packets_sent,
+            real_packets_sent_size: value.real_packets_sent_size,
+            cover_packets_sent: value.cover_packets_sent,
+            cover_packets_sent_size: value.cover_packets_sent_size,
+            real_packets_received: value.real_packets_received,
+            real_packets_received_size: value.real_packets_received_size,
+            cover_packets_received: value.cover_packets_received,
+            cover_packets_received_size: value.cover_packets_received_size,
+            total_acks_received: value.total_acks_received,
+            total_acks_received_size: value.total_acks_received_size,
+            real_acks_received: value.real_acks_received,
+            real_acks_received_size: value.real_acks_received_size,
+            cover_acks_received: value.cover_acks_received,
+            cover_acks_received_size: value.cover_acks_received_size,
+            real_packets_queued: value.real_packets_queued,
+            retransmissions_queued: value.retransmissions_queued,
+            reply_surbs_queued: value.reply_surbs_queued,
+            additional_reply_surbs_queued: value.additional_reply_surbs_queued,
+        }
+    }
+}
+
+impl From<SphinxPacketRates> for proto::mixnet_event::SphinxPacketRates {
+    fn from(value: SphinxPacketRates) -> Self {
+        Self {
+            real_packets_sent: value.real_packets_sent,
+            real_packets_sent_size: value.real_packets_sent_size,
+            cover_packets_sent: value.cover_packets_sent,
+            cover_packets_sent_size: value.cover_packets_sent_size,
+            real_packets_received: value.real_packets_received,
+            real_packets_received_size: value.real_packets_received_size,
+            cover_packets_received: value.cover_packets_received,
+            cover_packets_received_size: value.cover_packets_received_size,
+            total_acks_received: value.total_acks_received,
+            total_acks_received_size: value.total_acks_received_size,
+            real_acks_received: value.real_acks_received,
+            real_acks_received_size: value.real_acks_received_size,
+            cover_acks_received: value.cover_acks_received,
+            cover_acks_received_size: value.cover_acks_received_size,
+            real_packets_queued: value.real_packets_queued,
+            retransmissions_queued: value.retransmissions_queued,
+            reply_surbs_queued: value.reply_surbs_queued,
+            additional_reply_surbs_queued: value.additional_reply_surbs_queued,
+        }
+    }
+}

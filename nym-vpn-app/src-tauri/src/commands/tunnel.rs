@@ -1,10 +1,11 @@
-use crate::db::{Db, Key};
-use crate::error::ErrorKey;
-use crate::grpc::client::{GrpcClient, NodeConnect, VpndError};
-use crate::grpc::tunnel::{ConnectingState, TunnelState};
 use crate::{
-    error::BackendError,
+    db::{Db, Key},
+    error::{BackendError, ErrorKey},
     events::{AppHandleEventEmitter, ConnectProgressMsg},
+    grpc::{
+        client::{GrpcClient, NodeConnect, VpndError},
+        tunnel::{ConnectingState, TunnelState},
+    },
     state::{SharedAppState, app::VpnMode},
 };
 use tauri::State;
@@ -51,7 +52,7 @@ pub async fn connect(
     let dns = app_state
         .dns_server
         .clone()
-        .map(|ip| nym_vpn_proto::Dns { ip });
+        .map(|ip| nym_vpn_proto::proto::Dns { ip });
     let credentials_mode = app_state.credentials_mode;
     // release the lock
     drop(app_state);

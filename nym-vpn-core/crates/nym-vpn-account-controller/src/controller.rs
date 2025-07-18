@@ -855,7 +855,6 @@ where
     }
 
     async fn handle_command(&mut self, command: AccountCommand) {
-        tracing::info!("← {}", command);
         match command {
             AccountCommand::CreateAccount(result_tx) => {
                 result_tx.send(self.handle_create_account().await);

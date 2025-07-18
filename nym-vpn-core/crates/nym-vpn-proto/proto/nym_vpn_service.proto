@@ -1,11 +1,10 @@
 syntax = "proto3";
 
-package nym.vpn;
+package nym_vpn_service;
 
 import "google/protobuf/empty.proto";
 import "google/protobuf/timestamp.proto";
-
-import "account.proto";
+import "google/protobuf/wrappers.proto";
 
 // Represents the identity of a gateway
 message Gateway {
@@ -150,31 +149,6 @@ message InfoResponse {
   NymVpnNetworkDetails nym_vpn_network = 7;
 }
 
-message SetNetworkRequest {
-  string network = 1;
-}
-
-message SetNetworkResponse {
-  SetNetworkRequestError error = 1;
-}
-
-message SetNetworkRequestError {
-  enum SetNetworkRequestErrorType {
-    SET_NETWORK_REQUEST_ERROR_TYPE_UNSPECIFIED = 0;
-
-    // Unspecified internal error
-    INTERNAL = 1;
-
-    // The network name provided is not valid
-    INVALID_NETWORK_NAME = 2;
-  }
-
-  SetNetworkRequestErrorType kind = 1;
-
-  // Internal message for logging and debugging
-  string message = 2;
-}
-
 message SystemMessage {
   string name = 1;
   string message = 2;
@@ -194,7 +168,7 @@ message GetSystemMessagesResponse {
 }
 
 message GetNetworkCompatibilityResponse {
-  optional NetworkCompatibility messages = 1;
+  optional NetworkCompatibility network_compatibility = 1;
 }
 
 message GetFeatureFlagsResponse {
@@ -210,20 +184,6 @@ message Threshold {
   uint32 min_performance = 1;
 }
 
-message ConnectRequestError {
-  enum ConnectRequestErrorType {
-    CONNECT_REQUEST_ERROR_TYPE_UNSPECIFIED = 0;
-
-    // Unspecified internal error
-    INTERNAL = 1;
-  }
-
-  ConnectRequestErrorType kind = 1;
-
-  // Internal message for logging and debugging
-  string message = 2;
-}
-
 message ConnectRequest {
   EntryNode entry = 1;
   ExitNode exit = 2;
@@ -234,15 +194,6 @@ message ConnectRequest {
   bool disable_background_cover_traffic = 7;
   bool enable_credentials_mode = 8;
   UserAgent user_agent = 12;
-}
-
-message ConnectResponse {
-  bool success = 1;
-  ConnectRequestError error = 2;
-}
-
-message DisconnectResponse {
-  bool success = 1;
 }
 
 message AsEntry {
@@ -294,10 +245,9 @@ enum Score {
 }
 
 enum GatewayType {
-  GATEWAY_TYPE_UNSPECIFIED = 0;
-  MIXNET_ENTRY = 1;
-  MIXNET_EXIT = 2;
-  WG = 3;
+  MIXNET_ENTRY = 0;
+  MIXNET_EXIT = 1;
+  WG = 2;
 }
 
 message ListGatewaysRequest {
@@ -483,29 +433,305 @@ message MixnetEvent {
 }
 
 message GetLogPathResponse {
-  // directory path
-  string path = 1;
+  string dir = 1;
   string filename = 2;
 }
 
-message IsSentryEnabledResponse {
-  bool enabled = 1;
+
+message StoreAccountError {
+  oneof error_detail {
+    string invalid_mnemonic = 5;
+    string storage_error = 1;
+    VpnApiError vpn_api = 2;
+    string unexpected_response = 3;
+    string internal = 4;
+  }
 }
 
-message EnableSentryResponse {
+message SyncAccountError {
+  oneof error_detail {
+    bool no_account_stored = 1;
+    VpnApiError vpn_api = 2;
+    string unexpected_response = 3;
+    bool offline = 5;
+    string internal = 4;
+  }
+}
+
+message SyncDeviceError {
+  oneof error_detail {
+    bool no_account_stored = 1;
+    bool no_device_stored = 2;
+    VpnApiError vpn_api = 3;
+    string unexpected_response = 4;
+    bool offline = 6;
+    string internal = 5;
+  }
+}
+
+message RegisterDeviceError {
+  oneof error_detail {
+    bool no_account_stored = 1;
+    bool no_device_stored = 2;
+    VpnApiError vpn_api = 3;
+    string unexpected_response = 4;
+    bool offline = 6;
+    string internal = 5;
+  }
+}
+
+message ForgetAccountError {
+  oneof error_detail {
+    bool registration_in_progress = 1;
+    VpnApiError vpn_api = 2;
+    string unexpected_response = 3;
+    string remove_account = 4;
+    string remove_device_keys = 5;
+    string reset_credential_store = 6;
+    string remove_account_files = 7;
+    string init_device_keys = 8;
+    string internal = 9;
+  }
+}
+
+message DeleteLogFileError {
+  string message = 1;
+}
+
+message VpnApiError {
+  oneof error_detail {
+    bool timeout = 1;
+    uint32 status_code = 2;
+    VpnApiErrorResponse response = 3;
+  }
+}
+
+message VpnApiErrorResponse {
+  string message = 1;
+  optional string message_id = 2;
+  optional string code_reference_id = 3;
+}
+
+message RequestZkNymSuccess {
+  string id = 1;
+}
+
+// Mapped from `nym_vpn_lib_types::RequestZkNymErrorReason`
+message RequestZkNymError {
+  oneof outcome {
+    bool no_account_stored = 1;
+    bool no_device_stored = 2;
+    VpnApiError vpn_api = 3;
+    string unexpected_vpn_api_response = 4;
+    string storage = 5;
+    bool offline = 7;
+    string internal = 6;
+  }
+}
+
+// --- Requests and responses ---
+
+message StoreAccountRequest {
+  string mnemonic = 1;
+}
+
+message StoreAccountResponse {
+  StoreAccountError error = 2;
+}
+
+message ForgetAccountResponse {
+  ForgetAccountError error = 2;
+}
+
+message GetAccountIdentityResponse {
+  optional string account_identity = 1;
+}
+
+message GetAccountStateResponse {
+  message AccountStateSummary {
+    enum MnemonicState {
+      MNEMONIC_STATE_NOT_STORED = 0;
+      MNEMONIC_STATE_STORED = 1;
+    }
+
+    enum AccountRegistered {
+      ACCOUNT_REGISTERED = 0;
+      ACCOUNT_NOT_REGISTERED = 1;
+    }
+
+    message AccountSummary {
+      enum AccountState {
+        ACCOUNT_STATE_INACTIVE = 0;
+        ACCOUNT_STATE_ACTIVE = 1;
+        ACCOUNT_STATE_DELETE_ME = 2;
+      }
+
+      enum SubscriptionState {
+        SUBSCRIPTION_STATE_NOT_REGISTERED = 0;
+        SUBSCRIPTION_STATE_PENDING = 1;
+        SUBSCRIPTION_STATE_ACTIVE = 2;
+        SUBSCRIPTION_STATE_COMPLETE = 3;
+      }
+
+      message DeviceSummary {
+        uint64 active = 1;
+        uint64 max = 2;
+        uint64 remaining = 3;
+      }
+
+      message FairUsageState {
+        uint64 limit_gb = 1;
+        uint64 used_gb = 2;
+        optional string resets_on_utc = 3;
+      }
+
+      AccountState account = 1;
+      SubscriptionState subscription = 2;
+      DeviceSummary device_summary = 3;
+      FairUsageState fair_usage = 4;
+    }
+
+    enum DeviceState {
+      DEVICE_STATE_NOT_REGISTERED = 0;
+      DEVICE_STATE_INACTIVE = 1;
+      DEVICE_STATE_ACTIVE = 2;
+      DEVICE_STATE_DELETE_ME = 3;
+    }
+
+    optional MnemonicState mnemonic = 1;
+    optional AccountRegistered account_registered = 2;
+    optional AccountSummary account_summary = 3;
+    optional DeviceState device = 4;
+    optional RegisterDeviceResult register_device_result = 5;
+    optional RequestZkNymResult request_zk_nym_result = 7;
+  }
+
+  AccountStateSummary account = 1;
+}
+
+message RegisterDeviceResult {
+  enum RegisterDeviceResultType {
+    IN_PROGRESS = 0;
+    SUCCESS = 1;
+    FAILED = 2;
+  }
+
+  RegisterDeviceResultType kind = 1;
+  optional RegisterDeviceError error = 2;
+}
+
+// The status of a zk-nym request. A request can have multiple successes
+// and failures, depending on how many ticket types were requested.
+message RequestZkNymResult {
+  enum RequestZkNymResultType {
+    IN_PROGRESS = 0;
+    DONE = 1;
+    ERROR = 2;
+  }
+
+  RequestZkNymResultType kind = 1;
+  repeated RequestZkNymSuccess successes = 2;
+  repeated RequestZkNymError failures = 3;
+}
+
+message GetAccountUsageResponse {
+  message AccountUsages {
+    repeated AccountUsage account_usages = 1;
+  }
+
+  message AccountUsage {
+    string created_on_utc = 1;
+    string last_updated_utc = 2;
+    string id = 3;
+    string subscription_id = 4;
+    string valid_until_utc = 5;
+    string valid_from_utc = 6;
+    double bandwidth_allowance_gb = 7;
+    double bandwidth_used_gb = 8;
+  }
+
+  AccountUsages account_usages = 1;
+}
+
+message ResetDeviceIdentityRequest {
+  // 32 byte seed, [u8; 32]
+  optional bytes seed = 1;
+}
+
+message GetDeviceIdentityResponse {
+  string device_identity = 1;
+}
+
+message GetDevicesResponse {
+  message Device {
+    enum DeviceStatus {
+      ACTIVE = 0;
+      INACTIVE = 1;
+      DELETE_ME = 2;
+    }
+
+    string created_on_utc = 1;
+    string last_updated_utc = 2;
+    string device_identity_key = 3;
+    DeviceStatus status = 4;
+  }
+
+  message Devices {
+    repeated Device devices = 1;
+  }
+
+  Devices devices = 1;
+}
+
+message GetZkNymByIdRequest {
+  string id = 1;
+}
+
+message ConfirmZkNymDownloadedRequest {
+  string id = 1;
+}
+
+message AvailableTickets {
+  // Remaining number of mixnet entry tickets
+  uint64 mixnet_entry_tickets = 1;
+  // Remaining mixnet entry data in bytes
+  uint64 mixnet_entry_data = 2;
+  // Remaining mixnet entry data formatted to a string using SI units
+  string mixnet_entry_data_si = 3;
+
+  // Remaining number of mixnet exit tickets
+  uint64 mixnet_exit_tickets = 4;
+  // Remaining mixnet exit data in bytes
+  uint64 mixnet_exit_data = 5;
+  // Remaining mixnet exit data formatted to a string using SI units
+  string mixnet_exit_data_si = 6;
+
+  // Remaining number of vpn entry tickets
+  uint64 vpn_entry_tickets = 7;
+  // Remaining vpn entry data in bytes
+  uint64 vpn_entry_data = 8;
+  // Remaining vpn entry data formatted to a string using SI units
+  string vpn_entry_data_si = 9;
+
+  // Remaining number of vpn exit tickets
+  uint64 vpn_exit_tickets = 10;
+  // Remaining vpn exit data in bytes
+  uint64 vpn_exit_data = 11;
+  // Remaining vpn exit data formatted to a string using SI units
+  string vpn_exit_data_si = 12;
+}
+
+message DeleteLogFileResponse {
   bool success = 1;
+  DeleteLogFileError error = 2;
 }
 
-message DisableSentryResponse {
-  bool success = 1;
-}
-
-service NymVpnd {
+service NymVpnService {
   // Get info regarding the nym-vpnd in general, like version etc.
   rpc Info (google.protobuf.Empty) returns (InfoResponse) {}
 
   // Set the network. This requires a restart to take effect
-  rpc SetNetwork (SetNetworkRequest) returns (SetNetworkResponse) {}
+  rpc SetNetwork (google.protobuf.StringValue) returns (google.protobuf.Empty) {}
 
   // List messages fetched from nym-vpn-api
   rpc GetSystemMessages (google.protobuf.Empty) returns (GetSystemMessagesResponse) {}
@@ -516,11 +742,11 @@ service NymVpnd {
   // List the feature flags fetched from the nym-vpn-api
   rpc GetFeatureFlags (google.protobuf.Empty) returns (GetFeatureFlagsResponse) {}
 
-  // Start the tunnel and connect
-  rpc VpnConnect (ConnectRequest) returns (ConnectResponse) {}
+  // Connect the tunnel
+  rpc ConnectTunnel (ConnectRequest) returns (google.protobuf.Empty) {}
 
-  // Disconnect and stop the tunnel
-  rpc VpnDisconnect (google.protobuf.Empty) returns (DisconnectResponse) {}
+  // Disconnect the tunnel
+  rpc DisconnectTunnel (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get the current tunnel state
   rpc GetTunnelState (google.protobuf.Empty) returns (TunnelState) {}
@@ -545,7 +771,7 @@ service NymVpnd {
   rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
 
   // Check if the recovery phrase is stored
-  rpc IsAccountStored (google.protobuf.Empty) returns (IsAccountStoredResponse) {}
+  rpc IsAccountStored (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Removes everything related to the account, including the device identity,
   // credential storage, mixnet keys, gateway registrations.
@@ -563,19 +789,19 @@ service NymVpnd {
 
   // The vpn client will periodically refresh the account state in the
   // background. This command triggers a manual refresh.
-  rpc RefreshAccountState (google.protobuf.Empty) returns (RefreshAccountStateResponse) {}
+  rpc RefreshAccountState (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get the account usage from the nym-vpn-api
   rpc GetAccountUsage (google.protobuf.Empty) returns (GetAccountUsageResponse) {}
 
   // Reset the device identity
-  rpc ResetDeviceIdentity (ResetDeviceIdentityRequest) returns (ResetDeviceIdentityResponse) {}
+  rpc ResetDeviceIdentity (ResetDeviceIdentityRequest) returns (google.protobuf.Empty) {}
 
   // Get the device identity
   rpc GetDeviceIdentity (google.protobuf.Empty) returns (GetDeviceIdentityResponse) {}
 
   // Try to register the local device with the nym-vpn-api
-  rpc RegisterDevice (google.protobuf.Empty) returns (RegisterDeviceResponse) {}
+  rpc RegisterDevice (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get the list of devices associated with this account from the nym-vpn-api
   rpc GetDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
@@ -584,19 +810,19 @@ service NymVpnd {
   rpc GetActiveDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
 
   // Request new zk-nyms (ticketbooks) from the nym-vpn-api
-  rpc RequestZkNym (google.protobuf.Empty) returns (RequestZkNymResponse) {}
+  rpc RequestZkNym (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // List the zk-nyms associated with this device from the nym-vpn-api
-  rpc GetDeviceZkNyms (google.protobuf.Empty) returns (GetDeviceZkNymsResponse) {}
+  rpc GetDeviceZkNyms (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // List the zk-nyms available for download from the nym-vpn-api
-  rpc GetZkNymsAvailableForDownload (google.protobuf.Empty) returns (GetZkNymsAvailableForDownloadResponse) {}
+  rpc GetZkNymsAvailableForDownload (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Get a zk-nym by its id from the nym-vpn-api
-  rpc GetZkNymById (GetZkNymByIdRequest) returns (GetZkNymByIdResponse) {}
+  rpc GetZkNymById (GetZkNymByIdRequest) returns (google.protobuf.Empty) {}
 
   // Confirm that a zk-nym has been downloaded from the nym-vpn-api
-  rpc ConfirmZkNymDownloaded (ConfirmZkNymDownloadedRequest) returns (ConfirmZkNymDownloadedResponse) {}
+  rpc ConfirmZkNymDownloaded (ConfirmZkNymDownloadedRequest) returns (google.protobuf.Empty) {}
 
   // Get the available tickets in the local credential store
   rpc GetAvailableTickets (google.protobuf.Empty) returns (AvailableTickets) {}
@@ -605,15 +831,14 @@ service NymVpnd {
   rpc GetLogPath (google.protobuf.Empty) returns (GetLogPathResponse) {}
 
   // Delete the log file
-  rpc DeleteLogFile (google.protobuf.Empty) returns (DeleteLogFileResponse) {}
+  rpc DeleteLogFile (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Check if Sentry error monitoring is enabled
-  rpc IsSentryEnabled (google.protobuf.Empty) returns (IsSentryEnabledResponse) {}
+  rpc IsSentryEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Enable Sentry error monitoring
-  rpc EnableSentry (google.protobuf.Empty) returns (EnableSentryResponse) {}
+  rpc EnableSentry (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
   // Disable Sentry error monitoring
-  rpc DisableSentry (google.protobuf.Empty) returns (DisableSentryResponse) {}
+  rpc DisableSentry (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
-

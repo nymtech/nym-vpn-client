@@ -1,7 +1,7 @@
 use serde::Serialize;
 use ts_rs::TS;
 
-use nym_vpn_proto as p;
+use nym_vpn_proto::proto as p;
 use p::mixnet_event::{
     BandwidthEvent, ConnectionEvent, Event, bandwidth_event::Event as BandwidthEventEvent,
 };

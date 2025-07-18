@@ -1,8 +1,10 @@
 use crate::error::{BackendError, ErrorKey};
-use nym_vpn_proto::forget_account_error::ErrorDetail as ForgetError;
-use nym_vpn_proto::store_account_error::ErrorDetail as StoreError;
-use nym_vpn_proto::vpn_api_error::ErrorDetail as VpnApiErrorDetail;
-use nym_vpn_proto::{ForgetAccountError, StoreAccountError, VpnApiError, VpnApiErrorResponse};
+use nym_vpn_proto::proto::{
+    ForgetAccountError, StoreAccountError, VpnApiError, VpnApiErrorResponse,
+    forget_account_error::ErrorDetail as ForgetError,
+    store_account_error::ErrorDetail as StoreError,
+    vpn_api_error::ErrorDetail as VpnApiErrorDetail,
+};
 use tracing::error;
 
 impl From<VpnApiError> for BackendError {

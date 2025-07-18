@@ -1,4 +1,4 @@
-use nym_vpn_proto as p;
+use nym_vpn_proto::proto as p;
 use p::tunnel_state::{Error as ProtoTunnelError, ErrorStateReason};
 use serde::Serialize;
 use ts_rs::TS;
