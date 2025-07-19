@@ -106,12 +106,18 @@ public class SettingsViewModel: SettingsFlowState {
             navigateToInstallHelper()
             return
         }
-#endif
+        if credentialsManager.isValidCredentialImported {
+            navigateToAccount()
+        } else {
+            path.append(SettingLink.addCredentials)
+        }
+#elseif os(iOS)
         if credentialsManager.isValidCredentialImported {
             navigateToAccount()
         } else {
             path.append(SettingLink.createAccountWelcome)
         }
+#endif
     }
 
     @MainActor func navigateToSantasMenu() {
