@@ -194,6 +194,16 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     },
   };
 
+  const getIpv6SupportRq: TauriReq<() => Promise<boolean | undefined>> = {
+    name: 'getIpv6Support',
+    request: () => kvGet<boolean>('disable-ipv6'),
+    onFulfilled: (disabled) => {
+      if (disabled) {
+        dispatch({ type: 'set-ipv6-support', enabled: false });
+      }
+    },
+  };
+
   let requests: TauriReq<never>[] = [
     getVpnModeRq,
     getEntryNodeRq,
@@ -205,6 +215,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     getDepsRustRq,
     getDepsJsRq,
     getDesktopNotificationsRq,
+    getIpv6SupportRq,
   ];
 
   if (S_STATE.vpnd !== 'down') {

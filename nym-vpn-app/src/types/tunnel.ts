@@ -92,7 +92,11 @@ export type TunnelError =
       data: string | null;
     }
   | { key: 'subscription-expired'; data: string | null }
-  | { key: 'device-time-out-of-sync'; data: string | null };
+  | {
+      key: 'device-time-out-of-sync';
+      data: string | null;
+    }
+  | { key: 'ipv6-unavailable'; data: string | null };
 
 export type TunnelStateEvent = {
   state: TunnelState;
@@ -107,7 +111,7 @@ export type MixnetData = {
   nymAddress: MxAddress | null;
   exitIpr: MxAddress | null;
   ipv4: string;
-  ipv6: string;
+  ipv6: string | null;
   entryIp: string;
   exitIp: string;
 };
@@ -118,7 +122,7 @@ export type WgNode = {
   endpoint: string;
   publicKey: string;
   privateIpv4: string;
-  privateIpv6: string;
+  privateIpv6: string | null;
 };
 
 export type RemainingBandwidth = {

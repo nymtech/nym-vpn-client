@@ -63,7 +63,8 @@ export type StateAction =
   | { type: 'set-autostart'; enabled: boolean }
   | { type: 'set-account'; stored: boolean }
   | { type: 'set-account-links'; links: AccountLinks | null }
-  | { type: 'set-network-compat'; compat: NetworkCompat | null };
+  | { type: 'set-network-compat'; compat: NetworkCompat | null }
+  | { type: 'set-ipv6-support'; enabled: boolean };
 
 export const initialState: AppState = {
   initialized: false,
@@ -88,6 +89,7 @@ export const initialState: AppState = {
   codeDepsJs: [],
   account: false,
   retryAttempt: 0,
+  ipv6Support: true,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -133,6 +135,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         monitoring: action.monitoring,
+      };
+    case 'set-ipv6-support':
+      return {
+        ...state,
+        ipv6Support: action.enabled,
       };
     case 'set-desktop-notifications':
       return {
