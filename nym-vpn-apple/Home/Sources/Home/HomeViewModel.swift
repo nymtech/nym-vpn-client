@@ -59,8 +59,6 @@ public class HomeViewModel: HomeFlowState {
     @MainActor @Published var isModeInfoOverlayDisplayed = false
     @MainActor @Published var isOfflineOverlayDisplayed = false
     @MainActor @Published var isUpdateAvailableOverlayDisplayed = false
-    @MainActor @Published var isBannerDisplayed = false
-    @MainActor @Published var isKillSwitchDisableAlertDisplayed = false
     @MainActor @Published var snackBarMessage = ""
     @MainActor @Published var isSnackBarDisplayed = false {
         didSet {
@@ -199,29 +197,6 @@ public extension HomeViewModel {
 #endif
 }
 
-public extension HomeViewModel {
-    var unprotectedBannerConfig: GenericBannerViewConfig {
-        GenericBannerViewConfig(
-            title: "unprotectedBanner.title".localizedString,
-            subtitle: "unprotectedBanner.subtitle".localizedString,
-            actionTitle: "unprotectedBanner.actionTitle".localizedString,
-            action: { [weak self] in
-                guard let self
-                else {
-                    self?.isOfflineOverlayDisplayed = true
-                    return
-                }
-
-                if connectionManager.currentTunnelStatus == .error {
-                    isKillSwitchDisableAlertDisplayed = true
-                } else {
-                    navigateToPlanPurchase()
-                }
-            }
-        )
-    }
-}
-
 // MARK: - Configuration -
 private extension HomeViewModel {
     func setup() {
@@ -338,7 +313,8 @@ extension HomeViewModel {
             guard let self else { return }
             statusButtonConfig = StatusButtonConfig(
                 tunnelStatus: newStatus,
-                hasInternet: networkMonitor.isAvailable
+                hasInternet: networkMonitor.isAvailable,
+                subscriptionDidExpire: isLastErrorSubscriptionExpired()
             )
             connectButtonState = ConnectButtonState(tunnelStatus: newStatus)
 

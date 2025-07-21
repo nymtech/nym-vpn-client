@@ -10,10 +10,15 @@ public enum StatusButtonConfig: String {
     case noInternet
     case noInternetReconnect
     case error
+    case subscriptionExpired
 
-    public init(tunnelStatus: TunnelStatus, hasInternet: Bool) {
+    public init(tunnelStatus: TunnelStatus, hasInternet: Bool, subscriptionDidExpire: Bool = false) {
         if !hasInternet {
             self = .noInternet
+            return
+        }
+        if subscriptionDidExpire {
+            self = .subscriptionExpired
             return
         }
         switch tunnelStatus {
@@ -46,7 +51,7 @@ public enum StatusButtonConfig: String {
             NymColor.primary
         case .disconnected:
             NymColor.gray1
-        case .error:
+        case .error, .subscriptionExpired:
             NymColor.black
         }
     }
@@ -57,7 +62,7 @@ public enum StatusButtonConfig: String {
             NymColor.action.opacity(0.1)
         case .connecting, .disconnecting, .disconnected:
             NymColor.backgroundHover
-        case .noInternet, .noInternetReconnect, .error:
+        case .noInternet, .noInternetReconnect, .error, .subscriptionExpired:
             NymColor.error
         }
     }
