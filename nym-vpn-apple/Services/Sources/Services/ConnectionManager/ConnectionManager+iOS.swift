@@ -1,6 +1,7 @@
 #if os(iOS)
 import NetworkExtension
 import AppSettings
+import Constants
 import MixnetLibrary
 import TunnelMixnet
 import Tunnels
@@ -110,10 +111,19 @@ extension ConnectionManager {
 
     @MainActor func connect(with config: MixnetConfig) async throws {
         do {
+            if tunnelsManager.tunnels.isEmpty {
+                try await tunnelsManager.loadTunnels()
+            }
+            try await tunnelsManager.addUpdate(tunnelConfiguration: config, isOndemandEnabled: true)
+            // BUG: tunnel does not get loaded after saving. Timeout required or loading twice.
             try await tunnelsManager.loadTunnels()
-            let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config, isOndemandEnabled: true)
-            activeTunnel = tunnel
-            try await tunnelsManager.connect(tunnel: tunnel)
+            try await tunnelsManager.loadTunnels()
+            activeTunnel = tunnelsManager.activeTunnel
+            guard let activeTunnel
+            else {
+                throw GeneralNymError.tunnelNotFound
+            }
+            try await tunnelsManager.connect(tunnel: activeTunnel)
         } catch {
             throw error
         }
@@ -143,12 +153,11 @@ extension ConnectionManager {
         else {
             return
         }
-        activeTunnel.tunnel.isOnDemandEnabled = false
-        activeTunnel.tunnel.saveToPreferences()
-        tunnelsManager.disconnect(tunnel: activeTunnel)
-        Task {
-            try await tunnelsManager.loadTunnels()
+        if !isReconnecting {
+            activeTunnel.tunnel.isOnDemandEnabled = false
+            activeTunnel.tunnel.saveToPreferences()
         }
+        tunnelsManager.disconnect(tunnel: activeTunnel)
     }
 
     func shouldDisconnectActiveTunnel() -> Bool {

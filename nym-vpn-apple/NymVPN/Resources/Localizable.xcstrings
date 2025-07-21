@@ -13426,6 +13426,17 @@
         }
       }
     },
+    "generalNymError.tunnelNotFound" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tunnel not found. Please try again."
+          }
+        }
+      }
+    },
     "getewaySelector.close" : {
       "extractionState" : "manual",
       "localizations" : {
