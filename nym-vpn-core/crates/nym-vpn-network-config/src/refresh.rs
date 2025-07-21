@@ -109,7 +109,6 @@ impl FileRefresher {
 }
 
 // Ideally we only refresh the discovery file when the tunnel is up
-#[allow(unused)]
 pub fn start_background_file_refresh(
     config_path: PathBuf,
     network: Network,
