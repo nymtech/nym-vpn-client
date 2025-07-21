@@ -33,7 +33,7 @@ pub struct SetupMixnetClientOptions {
     pub connection_fd_callback: Arc<dyn Fn(RawFd) + Send + Sync>,
 }
 
-/// Setup and configure the mixnet client.
+/// Setup and connect the mixnet client.
 ///
 /// Ephermeral storage is used when `mixnet_client_key_storage_path` is `None`.
 pub async fn setup_mixnet_client(
