@@ -37,7 +37,7 @@ import net.nymtech.nymvpn.ui.common.snackbar.SnackbarController
 import net.nymtech.nymvpn.ui.screens.settings.login.components.LoginHeader
 import net.nymtech.nymvpn.ui.screens.settings.login.components.LoginInputSection
 import net.nymtech.nymvpn.ui.screens.settings.login.components.MaxDevicesModal
-import net.nymtech.nymvpn.util.extensions.navigateAndForget
+import net.nymtech.nymvpn.util.extensions.replaceCurrentWith
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 
@@ -70,7 +70,7 @@ fun LoginScreen(appUiState: AppUiState, viewModel: LoginViewModel = hiltViewMode
 
 	LaunchedEffect(success) {
 		loading = false
-		if (success == true) navController.navigateAndForget(Route.Main())
+		if (success == true) navController.replaceCurrentWith(Route.Main())
 		if (success == false && showMaxDevicesModal == true) showModal = true
 	}
 

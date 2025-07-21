@@ -53,6 +53,19 @@ fun NavController.navigateAndForget(route: Route) {
 	}
 }
 
+fun NavController.replaceCurrentWith(route: Route) {
+	val currentRoute = currentBackStackEntry?.destination?.route ?: return
+	try {
+		navigate(route) {
+			popUpTo(currentRoute) { inclusive = true }
+			launchSingleTop = true
+		}
+	} catch (e: Exception) {
+		Timber.e("Navigation failed: ${e.message}")
+		goFromRoot(Route.Main())
+	}
+}
+
 @SuppressLint("RestrictedApi")
 fun <T : Route> NavBackStackEntry?.isCurrentRoute(cls: KClass<T>): Boolean {
 	return this?.destination?.hierarchy?.any {
@@ -101,6 +114,7 @@ fun ErrorStateReason.toUserMessage(context: Context): String {
 		ErrorStateReason.SubscriptionExpired -> context.getString(R.string.subscription_expired_error)
 		ErrorStateReason.DeviceTimeOutOfSync -> context.getString(R.string.device_time_out_of_sync)
 		ErrorStateReason.CreateMixnetStorage -> context.getString(R.string.create_mixnet_storage)
+		ErrorStateReason.Ipv6Unavailable -> context.getString(R.string.ipv6_unavailable)
 	}
 }
 
