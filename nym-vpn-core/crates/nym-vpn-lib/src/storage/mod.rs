@@ -4,9 +4,7 @@
 use std::path::Path;
 
 use nym_vpn_store::{
-    keys::device::{
-        DeviceKeyStore, DeviceKeys, {DeviceKeysPaths, OnDiskKeysError},
-    },
+    keys::device::{DeviceKeyStore, DeviceKeys, DeviceKeysPaths, OnDiskKeysError},
     mnemonic::{Mnemonic, MnemonicStorage, on_disk::OnDiskMnemonicStorageError},
 };
 
