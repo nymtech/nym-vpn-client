@@ -174,19 +174,23 @@ pub async fn connect_mixnet(
         }
     };
 
+    let setup_mixnet_options = crate::mixnet::SetupMixnetClientOptions {
+        network_env: network_env.clone(),
+        mixnet_entry_gateway: options.selected_gateways.entry.identity(),
+        enable_credentials_mode: options.enable_credentials_mode,
+        two_hop_mode: options.tunnel_type == TunnelType::Wireguard,
+        custom_topology_provider: options.custom_topology_provider.clone(),
+        #[cfg(unix)]
+        connection_fd_callback,
+    };
+
     let connect_fut = tokio::time::timeout(
         MIXNET_CLIENT_STARTUP_TIMEOUT,
         crate::mixnet::setup_mixnet_client(
-            network_env,
-            options.selected_gateways.entry.identity(),
             &options.data_path,
-            task_client,
             mixnet_client_config,
-            options.enable_credentials_mode,
-            options.tunnel_type == TunnelType::Wireguard,
-            options.custom_topology_provider.clone(),
-            #[cfg(unix)]
-            connection_fd_callback,
+            setup_mixnet_options,
+            task_client,
         ),
     );
 

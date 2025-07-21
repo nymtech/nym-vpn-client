@@ -45,6 +45,7 @@ pub use crate::{
     mixnet::{MixnetError, VpnTopologyProvider},
 };
 
+/// Default DNS servers.
 static DEFAULT_DNS_SERVERS_CONFIG: LazyLock<NameServerConfigGroup> = LazyLock::new(|| {
     let mut name_servers = NameServerConfigGroup::quad9_tls();
     name_servers.merge(NameServerConfigGroup::quad9_https());
@@ -53,7 +54,8 @@ static DEFAULT_DNS_SERVERS_CONFIG: LazyLock<NameServerConfigGroup> = LazyLock::n
     name_servers
 });
 
-pub static DEFAULT_DNS_SERVERS: LazyLock<Vec<IpAddr>> = LazyLock::new(|| {
+/// Default DNS server IP addresses.
+pub(crate) static DEFAULT_DNS_SERVERS: LazyLock<Vec<IpAddr>> = LazyLock::new(|| {
     DEFAULT_DNS_SERVERS_CONFIG
         .iter()
         .map(|ns| ns.socket_addr.ip())

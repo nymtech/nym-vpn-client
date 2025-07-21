@@ -23,13 +23,13 @@ use tun::{AsyncDevice, Device};
 use super::{MixnetError, SharedMixnetClient, backpressure::MixnetBackpressureMonitor};
 
 #[derive(Debug)]
-pub(crate) struct MixnetProcessorConfig {
-    pub(crate) ip_packet_router_address: IpPacketRouterAddress,
-    our_ips: IpPair,
+pub struct MixnetProcessorConfig {
+    pub ip_packet_router_address: IpPacketRouterAddress,
+    pub our_ips: IpPair,
 }
 
 impl MixnetProcessorConfig {
-    pub(crate) fn new(ip_packet_router_address: IpPacketRouterAddress, our_ips: IpPair) -> Self {
+    pub fn new(ip_packet_router_address: IpPacketRouterAddress, our_ips: IpPair) -> Self {
         MixnetProcessorConfig {
             ip_packet_router_address,
             our_ips,
@@ -366,7 +366,7 @@ impl MixnetMessageSinkTranslator for ToIprDataRequest {
     }
 }
 
-pub(crate) async fn start_processor(
+pub async fn start_processor(
     config: MixnetProcessorConfig,
     dev: AsyncDevice,
     mixnet_client: SharedMixnetClient,
