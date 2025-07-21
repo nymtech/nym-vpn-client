@@ -28,7 +28,7 @@ export async function fireRequests(requests: TauriReq<any>[]) {
 
   promises.forEach((res, index) => {
     if (res.status === 'rejected') {
-      console.warn(`command [${requests[index].name}] failed with error`);
+      console.info(`command [${requests[index].name}] failed with error`);
     }
     if (res.status === 'fulfilled') {
       requests[index].onFulfilled(res.value as never);

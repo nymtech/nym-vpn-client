@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Add an option in the settings allowing to disable IPv6 support
+
 ## [1.12.0] - 2025-07-18
 
 ### Added
