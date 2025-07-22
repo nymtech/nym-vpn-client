@@ -8,14 +8,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
+import net.nymtech.nymvpn.R
 import net.nymtech.nymvpn.util.extensions.scaledWidth
 import nym_vpn_lib.ConnectionData
 import nym_vpn_lib.TunnelConnectionData
 
 @Composable
 fun ConnectionDataDisplay(connectionData: ConnectionData) {
+	val context = LocalContext.current
 	val clipboard = LocalClipboardManager.current
 	connectionData.let {
 		Column(modifier = Modifier.padding(end = 10.dp.scaledWidth())) {
@@ -43,11 +46,18 @@ fun ConnectionDataDisplay(connectionData: ConnectionData) {
 						style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
 						modifier = Modifier.clickable { clipboard.setText(AnnotatedString(details.v1.ipv4)) },
 					)
-					Text(
-						"Ipv6: ${details.v1.ipv6}",
-						style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
-						modifier = Modifier.clickable { clipboard.setText(AnnotatedString(details.v1.ipv6)) },
-					)
+					if (details.v1.ipv6 != null) {
+						Text(
+							"Ipv6: ${details.v1.ipv6}",
+							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+							modifier = Modifier.clickable { clipboard.setText(AnnotatedString(details.v1.ipv6!!)) },
+						)
+					} else {
+						Text(
+							context.getString(R.string.ipv6_unavailable),
+							style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
+						)
+					}
 					Text(
 						"Exit IPR: ${details.v1.exitIpr}",
 						style = MaterialTheme.typography.bodyMedium.copy(MaterialTheme.colorScheme.outline),
