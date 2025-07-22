@@ -838,9 +838,18 @@ service NymVpnService {
   // Check if Sentry error monitoring is enabled
   rpc IsSentryEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
-  // Enable Sentry error monitoring
+  // Enable Sentry error monitoring (requires daemon restart)
   rpc EnableSentry (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
-  // Disable Sentry error monitoring
+  // Disable Sentry error monitoring (requires daemon restart)
   rpc DisableSentry (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  // Check if network statistics collection is enabled
+  rpc IsCollectNetworkStatsEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
+
+  // Enable network statistics collection (requires daemon restart)
+  rpc EnableCollectNetworkStats (google.protobuf.Empty) returns (google.protobuf.Empty) {}
+
+  // Disable network statistics collection (requires daemon restart)
+  rpc DisableCollectNetworkStats (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }

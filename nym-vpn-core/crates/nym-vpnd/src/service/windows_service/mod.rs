@@ -170,9 +170,10 @@ async fn run_service_inner() -> anyhow::Result<()> {
     let sentry_enabled = *SENTRY_ENABLED.lock().await;
     let log_path = logging_setup.as_ref().map(|setup| setup.log_path.clone());
     let cloned_network_config = network_config.clone();
+    let global_config_file = crate::setup_global_config(cloned_network_config.network.as_deref())?;
+    let netstats_enabled = global_config_file.collect_network_statistics;
+
     let network_env_result = tokio::task::spawn(async move {
-        let global_config_file =
-            crate::setup_global_config(cloned_network_config.network.as_deref())?;
         crate::environment::setup_environment(
             &global_config_file,
             cloned_network_config.config_env_file.as_deref(),
@@ -240,6 +241,7 @@ async fn run_service_inner() -> anyhow::Result<()> {
         None,
         log_path,
         sentry_enabled,
+        netstats_enabled,
     );
 
     tracing::info!("Service has started");
