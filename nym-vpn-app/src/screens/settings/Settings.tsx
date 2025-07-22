@@ -6,7 +6,7 @@ import { openUrl } from '@tauri-apps/plugin-opener';
 import { useAutostart, useDesktopNotifications } from '../../hooks';
 import { routes } from '../../router';
 import { kvSet } from '../../kvStore';
-import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
+import { useMainDispatch, useMainState } from '../../contexts';
 import { useExit } from '../../state';
 import { StateDispatch } from '../../types';
 import { Button, MsIcon, PageAnim, SettingsMenuCard, Switch } from '../../ui';
@@ -17,7 +17,6 @@ import Logout from './Logout';
 
 function Settings() {
   const {
-    monitoring,
     daemonStatus,
     account,
     desktopNotifications,
@@ -29,7 +28,6 @@ function Settings() {
   const dispatch = useMainDispatch() as StateDispatch;
   const { t } = useTranslation('settings');
   const { exit } = useExit();
-  const { push } = useInAppNotify();
   const { enabled: autostartEnabled, toggle: toggleAutostart } = useAutostart();
   const toggleDNotifications = useDesktopNotifications();
   const accountLoginUrl = accountLinks?.signIn;
@@ -55,30 +53,6 @@ function Settings() {
     if (accountLoginUrl) {
       openUrl(accountLoginUrl);
     }
-  };
-
-  // notify the user at most once per every 10s when he toggles monitoring
-  const showMonitoringAlert = () => {
-    push({
-      id: 'monitoring-alert',
-      message: t('monitoring-alert'),
-      close: true,
-      type: 'warn',
-      throttle: 10,
-    });
-  };
-
-  const handleMonitoringChanged = async () => {
-    const isChecked = !monitoring;
-    showMonitoringAlert();
-    dispatch({ type: 'set-monitoring', monitoring: isChecked });
-    try {
-      if (isChecked) {
-        await invoke('enable_sentry');
-      } else {
-        await invoke('disable_sentry');
-      }
-    } catch {}
   };
 
   const handleIpv6Support = async () => {
@@ -121,21 +95,10 @@ function Settings() {
             trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
           },
           {
-            title: t('error-monitoring.title'),
-            desc: (
-              <span>
-                {`(${t('via', { ns: 'glossary' })} `}
-                <span className="text-malachite-moss dark:text-malachite">
-                  {t('sentry', { ns: 'common' })}
-                </span>
-                {`), ${t('error-monitoring.desc', { ns: 'settings' })}`}
-              </span>
-            ),
-            leadingIcon: 'bug_report',
-            onClick: handleMonitoringChanged,
-            trailing: (
-              <Switch checked={monitoring} onChange={handleMonitoringChanged} />
-            ),
+            title: t('data-privacy', { ns: 'common' }),
+            leadingIcon: 'encrypted',
+            onClick: () => navigate(routes.dataPrivacy),
+            trailing: <MsIcon icon="arrow_right" className="dark:text-white" />,
           },
         ]}
       />

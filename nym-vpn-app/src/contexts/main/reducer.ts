@@ -64,7 +64,8 @@ export type StateAction =
   | { type: 'set-account'; stored: boolean }
   | { type: 'set-account-links'; links: AccountLinks | null }
   | { type: 'set-network-compat'; compat: NetworkCompat | null }
-  | { type: 'set-ipv6-support'; enabled: boolean };
+  | { type: 'set-ipv6-support'; enabled: boolean }
+  | { type: 'set-network-stats'; enabled: boolean };
 
 export const initialState: AppState = {
   initialized: false,
@@ -90,6 +91,7 @@ export const initialState: AppState = {
   account: false,
   retryAttempt: 0,
   ipv6Support: true,
+  networkStats: false,
 };
 
 export function reducer(state: AppState, action: StateAction): AppState {
@@ -274,6 +276,11 @@ export function reducer(state: AppState, action: StateAction): AppState {
       return {
         ...state,
         networkCompat: action.compat,
+      };
+    case 'set-network-stats':
+      return {
+        ...state,
+        networkStats: action.enabled,
       };
 
     case 'reset':

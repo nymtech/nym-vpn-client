@@ -3,6 +3,7 @@ import { createBrowserRouter } from 'react-router';
 import {
   Appearance,
   AppearanceRouteIndex,
+  DataAndPrivacy,
   Dev,
   Display,
   Error,
@@ -32,6 +33,7 @@ export const routes = {
   display: '/settings/appearance/display',
   lang: '/settings/appearance/lang',
   logs: '/settings/logs',
+  dataPrivacy: '/settings/data-privacy',
   support: '/settings/support',
   legal: '/settings/legal',
   licensesRust: '/settings/legal/licenses-rust',
@@ -97,6 +99,11 @@ const router = createBrowserRouter([
                 errorElement: <Error />,
               },
             ],
+          },
+          {
+            path: routes.dataPrivacy,
+            element: <DataAndPrivacy />,
+            errorElement: <Error />,
           },
           {
             path: routes.logs,

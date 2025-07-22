@@ -27,7 +27,8 @@ export type DbKey =
   | 'cache-wg-gateways'
   | 'cache-account-id'
   | 'cache-device-id'
-  | 'disable-ipv6';
+  | 'disable-ipv6'
+  | 'network-stats-enabled';
 
 /*
  * Enum of the possible specialized errors emitted by the daemon or from the

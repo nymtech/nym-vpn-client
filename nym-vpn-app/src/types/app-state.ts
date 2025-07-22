@@ -68,6 +68,7 @@ export type AppState = {
   accountLinks?: AccountLinks | null;
   networkCompat?: NetworkCompat | null;
   ipv6Support: boolean;
+  networkStats: boolean;
 };
 
 export type ConnectProgressMsg = 'Initializing' | 'InitDone' | 'Canceling';
