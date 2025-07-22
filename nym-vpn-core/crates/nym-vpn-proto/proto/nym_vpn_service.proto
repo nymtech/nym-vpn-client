@@ -844,12 +844,12 @@ service NymVpnService {
   // Disable Sentry error monitoring (requires daemon restart)
   rpc DisableSentry (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
-  // Check if collect network statistics is enabled
+  // Check if network statistics collection is enabled
   rpc IsCollectNetworkStatsEnabled (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
-  // Enable collect network statistics (requires daemon restart)
+  // Enable network statistics collection (requires daemon restart)
   rpc EnableCollectNetworkStats (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 
-  // Disable collect network statistics (requires daemon restart)
+  // Disable network statistics collection (requires daemon restart)
   rpc DisableCollectNetworkStats (google.protobuf.Empty) returns (google.protobuf.Empty) {}
 }
