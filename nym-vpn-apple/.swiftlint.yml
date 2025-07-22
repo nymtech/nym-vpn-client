@@ -149,3 +149,5 @@ excluded:
   - "MixnetLibrary/Sources/MixnetLibrary/**"
   - "ServicesMacOS/Sources/GRPCManager/proto/nym/**"
   - "ServicesMacOS/Sources/GRPCManager/proto/grpc/**"
+  - "**/.build/**"
+  - "**/DerivedData/**"
