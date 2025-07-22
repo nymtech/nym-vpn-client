@@ -128,6 +128,17 @@ fn setup_global_config(network: Option<&str>) -> anyhow::Result<GlobalConfigFile
         global_config_file.network_name = network.to_owned();
         global_config_file.write_to_file()?;
     }
+    let cfg_dir = crate::service::config_dir();
+    let vpn_cfg_path = cfg_dir
+        .join(&global_config_file.network_name)
+        .join(crate::service::config::DEFAULT_CONFIG_FILE);
+
+    if let Err(e) = config::migrate_toml_to_json(
+        &cfg_dir.join(crate::service::DEFAULT_GLOBAL_CONFIG_FILE),
+        &vpn_cfg_path,
+    ) {
+        eprintln!("config migration failed: {e}");
+    }
     Ok(global_config_file)
 }
 
