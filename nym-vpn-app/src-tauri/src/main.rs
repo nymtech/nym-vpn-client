@@ -273,6 +273,8 @@ async fn main() -> Result<()> {
             cmd_sentry::enable_sentry,
             cmd_sentry::disable_sentry,
             cmd_sentry::sentry_enabled,
+            commands::network_stats::enable_netstats,
+            commands::network_stats::disable_netstats,
             #[cfg(windows)]
             cmd_updater::fetch_update,
             #[cfg(windows)]

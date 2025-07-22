@@ -6,6 +6,7 @@ pub mod dev;
 pub mod fs;
 pub mod gateway;
 pub mod log;
+pub mod network_stats;
 pub mod sentry;
 pub mod sys;
 pub mod tunnel;

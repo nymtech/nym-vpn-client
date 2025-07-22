@@ -1,0 +1,27 @@
+use crate::db::{Db, Key};
+use crate::error::BackendError;
+use crate::grpc::client::GrpcClient;
+use tauri::State;
+use tracing::instrument;
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn enable_netstats(
+    db: State<'_, Db>,
+    grpc: State<'_, GrpcClient>,
+) -> Result<(), BackendError> {
+    grpc.enable_netstats().await?;
+    db.insert(Key::NetworkStatsEnabled.as_ref(), true)?;
+    Ok(())
+}
+
+#[instrument(skip_all)]
+#[tauri::command]
+pub async fn disable_netstats(
+    db: State<'_, Db>,
+    grpc: State<'_, GrpcClient>,
+) -> Result<(), BackendError> {
+    grpc.disable_netstats().await?;
+    db.insert(Key::NetworkStatsEnabled.as_ref(), false)?;
+    Ok(())
+}

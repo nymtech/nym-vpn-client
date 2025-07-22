@@ -41,6 +41,7 @@ pub enum Key {
     CacheAccountId,
     CacheDeviceId,
     DisableIpv6,
+    NetworkStatsEnabled,
 }
 
 impl Display for Key {
