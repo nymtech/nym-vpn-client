@@ -11121,30 +11121,30 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Subscription has expired. Please purchase a plan for your account."
+            "value" : "Kill switch protects you. Tap Stop and renew your plan."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "La suscripción ha caducado. Por favor, compra un plan para tu cuenta."
           }
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "اشتراک شما منقضی شده است. لطفاً برای حساب کاربری خود یک طرح خریداری کنید."
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Votre abonnement a expiré. Veuillez souscrire à un nouvel abonnement dans votre compte."
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "सब्सक्रिप्शन समाप्त हो गई है। कृपया अपने खाते के लिए एक प्लान खरीदें।"
           }
         },
@@ -11156,7 +11156,7 @@
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "サブスクリプションの有効期限が切れています。アカウントのプランを購入してください。"
           }
         },
@@ -11168,37 +11168,37 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "A assinatura expirou. Adquira um plano para sua conta."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Срок подписки истёк. Пожалуйста, приобретите новый план для вашего аккаунта."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Aboneliğinizin süresi doldu. Lütfen hesabınız için bir plan satın alın."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Термін дії підписки закінчився. Будь ласка, придбайте план для твого облікового запису."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Gói đăng ký của bạn đã hết hạn. Vui lòng mua một gói dịch vụ mới cho tài khoản của bạn."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "订阅已过期。请为您的帐户购买套餐。"
           }
         }
@@ -17765,17 +17765,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "错误：安装并授权守护程序失败"
-          }
-        }
-      }
-    },
-    "home.killswitchEnabled.purchaseAlertTitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Killswitch is enabled for your protection\nTo continue to the plan selection, please disconnect. Would you like to disconnect now?"
           }
         }
       }
@@ -26495,6 +26484,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "停止"
+          }
+        }
+      }
+    },
+    "subscriptionExpired" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscription expired"
           }
         }
       }

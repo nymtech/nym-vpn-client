@@ -43,7 +43,7 @@ extension HomeViewModel {
     func configureTunnelStatusObservation(with tunnel: Tunnel) {
         tunnelStatusUpdateCancellable = tunnel.$status
             .removeDuplicates()
-            .receive(on: DispatchQueue.main)
+            .debounce(for: .seconds(0.3), scheduler: DispatchQueue.main)
             .sink { [weak self] status in
                 MainActor.assumeIsolated {
                     self?.updateUI(with: status)
