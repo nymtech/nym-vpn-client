@@ -65,6 +65,8 @@ private extension CreateAccountSuccessView {
             Spacer()
             selectPlanButton
                 .padding(.bottom, 16)
+            privacyPolicy
+                .padding(.bottom, 16)
         }
     }
 
@@ -133,6 +135,23 @@ private extension CreateAccountSuccessView {
                 }
                 Button("cancel".localizedString, role: .cancel) {}
             }
+    }
+
+    var privacyPolicy: some View {
+        HStack(spacing: 8) {
+            Spacer()
+            Text("[Terms of use](https://nym.com/vpn-terms)")
+                .tint(NymColor.accent)
+                .foregroundStyle(NymColor.gray1)
+                .textStyle(.Body.Small.regular)
+
+            Text("[Privacy policy](https://nym.com/vpn-privacy-statement)")
+                .tint(NymColor.accent)
+                .foregroundStyle(NymColor.gray1)
+                .textStyle(.Body.Small.regular)
+            Spacer()
+        }
+        .padding(.horizontal, 16)
     }
 }
 
