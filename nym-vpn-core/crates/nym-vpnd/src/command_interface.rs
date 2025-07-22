@@ -560,6 +560,42 @@ impl NymVpnService for CommandInterface {
             })?;
         Ok(tonic::Response::new(()))
     }
+
+    async fn is_collect_network_stats_enabled(
+        &self,
+        _: tonic::Request<()>,
+    ) -> std::result::Result<tonic::Response<bool>, tonic::Status> {
+        let result = self
+            .send_and_wait(VpnServiceCommand::IsCollectNetStatsEnabled, ())
+            .await?;
+        Ok(tonic::Response::new(result))
+    }
+
+    async fn enable_collect_network_stats(
+        &self,
+        _: tonic::Request<()>,
+    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+        self.send_and_wait(VpnServiceCommand::ToggleCollectNetStats, true)
+            .await?
+            .map_err(|err| {
+                tracing::error!("Failed to enable collect network stats: {err}");
+                tonic::Status::internal("failed to enable collect network stats")
+            })?;
+        Ok(tonic::Response::new(()))
+    }
+
+    async fn disable_collect_network_stats(
+        &self,
+        _: tonic::Request<()>,
+    ) -> std::result::Result<tonic::Response<()>, tonic::Status> {
+        self.send_and_wait(VpnServiceCommand::ToggleCollectNetStats, false)
+            .await?
+            .map_err(|err| {
+                tracing::error!("Failed to disable collect network stats: {err}");
+                tonic::Status::internal("failed to disable collect network stats")
+            })?;
+        Ok(tonic::Response::new(()))
+    }
 }
 
 pub async fn start_command_interface(

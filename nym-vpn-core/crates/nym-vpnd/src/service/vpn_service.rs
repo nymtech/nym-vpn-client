@@ -124,6 +124,8 @@ pub enum VpnServiceCommand {
     DeleteLogFile(oneshot::Sender<()>, ()),
     IsSentryEnabled(oneshot::Sender<bool>, ()),
     ToggleSentry(oneshot::Sender<Result<(), GlobalConfigError>>, bool),
+    IsCollectNetStatsEnabled(oneshot::Sender<bool>, ()),
+    ToggleCollectNetStats(oneshot::Sender<Result<(), GlobalConfigError>>, bool),
 }
 
 pub struct NymVpnService<S>
@@ -189,6 +191,9 @@ where
     // Sentry client has been initialized and is enabled
     sentry_enabled: bool,
 
+    // Whether network statistics reporting is enabled
+    network_statistics_enabled: bool,
+
     // The statistics channel sender
     statistics_event_sender: StatisticsSender,
 }
@@ -205,6 +210,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         stats_id_seed: Option<String>,
         log_path: Option<LogPath>,
         sentry_enabled: bool,
+        netstats_enabled: bool,
     ) -> JoinHandle<()> {
         tracing::trace!("Starting VPN service");
         tokio::spawn(async move {
@@ -218,6 +224,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
                 stats_id_seed,
                 log_path,
                 sentry_enabled,
+                netstats_enabled,
             )
             .await
             {
@@ -251,6 +258,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         stats_id_seed: Option<String>,
         log_path: Option<LogPath>,
         sentry_enabled: bool,
+        netstats_enabled: bool,
     ) -> Result<Self> {
         let network_name = network_env.nym_network_details().network_name.clone();
 
@@ -312,7 +320,8 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // Statistics collection setup
         let statistics_controller_config =
             StatisticsControllerConfig::new(statistics_api, user_agent.clone())
-                .with_stats_id_seed(stats_id_seed);
+                .with_stats_id_seed(stats_id_seed)
+                .with_enabled(netstats_enabled);
 
         // Statistics collection can technically fail, but if it's the case, we just disable it as it is not operation critical.
         let statistics_controller = StatisticsController::new(
@@ -419,6 +428,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             shutdown_token,
             gateway_directory_client,
             sentry_enabled,
+            network_statistics_enabled: netstats_enabled,
             statistics_event_sender,
         })
     }
@@ -602,6 +612,12 @@ where
             }
             VpnServiceCommand::ToggleSentry(tx, enable) => {
                 let _ = tx.send(self.handle_toggle_sentry(enable).await);
+            }
+            VpnServiceCommand::IsCollectNetStatsEnabled(tx, ()) => {
+                let _ = tx.send(self.handle_is_collect_network_stats_enabled().await);
+            }
+            VpnServiceCommand::ToggleCollectNetStats(tx, enable) => {
+                let _ = tx.send(self.handle_toggle_collect_network_stats(enable).await);
             }
         }
     }
@@ -1029,6 +1045,28 @@ where
         }
         GlobalConfigFile::write_to_file(&config)
             .map_err(|e| GlobalConfigError::WriteConfig(e.to_string()))?;
+        Ok(())
+    }
+
+    async fn handle_is_collect_network_stats_enabled(&self) -> bool {
+        self.network_statistics_enabled
+    }
+
+    async fn handle_toggle_collect_network_stats(
+        &mut self,
+        enable: bool,
+    ) -> Result<(), GlobalConfigError> {
+        let mut config = GlobalConfigFile::read_from_file()
+            .map_err(|e| GlobalConfigError::ReadConfig(e.to_string()))?;
+        config.collect_network_statistics = enable;
+        if enable {
+            tracing::info!("Collect network statistics enabled, daemon needs to be restarted");
+        } else {
+            tracing::info!("Collect network statistics disabled, daemon needs to be restarted");
+        }
+        GlobalConfigFile::write_to_file(&config)
+            .map_err(|e| GlobalConfigError::WriteConfig(e.to_string()))?;
+        self.network_statistics_enabled = enable;
         Ok(())
     }
 }

@@ -8,6 +8,8 @@ pub struct GlobalConfigFile {
     pub network_name: String,
     #[serde(default)]
     pub sentry_monitoring: bool,
+    #[serde(default)]
+    pub collect_network_statistics: bool,
 }
 
 impl Default for GlobalConfigFile {
@@ -15,6 +17,7 @@ impl Default for GlobalConfigFile {
         Self {
             network_name: NymNetworkDetails::default().network_name,
             sentry_monitoring: false,
+            collect_network_statistics: false,
         }
     }
 }

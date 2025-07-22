@@ -141,7 +141,14 @@ fn run_inner(
         let network_env =
             environment::setup_environment(&global_config_file, args.config_env_file.as_deref())
                 .await?;
-        run_inner_async(args, network_env, logging_setup, sentry_enabled).await
+        run_inner_async(
+            args,
+            network_env,
+            logging_setup,
+            sentry_enabled,
+            global_config_file.collect_network_statistics,
+        )
+        .await
     })
 }
 
@@ -150,6 +157,7 @@ async fn run_inner_async(
     network_env: Network,
     logging_setup: Option<LoggingSetup>,
     sentry_enabled: bool,
+    netstats_enabled: bool,
 ) -> anyhow::Result<Option<WorkerGuard>> {
     let log_path = logging_setup
         .as_ref()
@@ -188,6 +196,7 @@ async fn run_inner_async(
         args.stats_id_seed,
         log_path,
         sentry_enabled,
+        netstats_enabled,
     );
 
     let mut shutdown_join_set = shutdown_handler::install(shutdown_token);
