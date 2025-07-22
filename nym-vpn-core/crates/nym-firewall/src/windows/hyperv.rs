@@ -12,16 +12,16 @@ use windows::{
 use wmi::result_enumerator::IWbemClassWrapper;
 
 /// Name of the blocking Hyper-V rule.
-const BLOCK_OUTBOUND_RULE_ELEMENT_NAME: &str = "Mullvad VPN outbound block-all rule";
+const BLOCK_OUTBOUND_RULE_ELEMENT_NAME: &str = "Nym VPN outbound block-all rule";
 
 /// Name of the blocking Hyper-V rule.
-const BLOCK_INBOUND_RULE_ELEMENT_NAME: &str = "Mullvad VPN inbound block-all rule";
+const BLOCK_INBOUND_RULE_ELEMENT_NAME: &str = "Nym VPN inbound block-all rule";
 
 /// Unique instance ID identifying the outbound blocking Hyper-V rule.
-const BLOCK_OUTBOUND_RULE_UUID: &str = "{319400cb-0445-4c1b-a081-1cbc57cdbcb8}";
+const BLOCK_OUTBOUND_RULE_UUID: &str = "{ed7dee72-7ca3-4728-ad16-e6ee5c465c98}";
 
 /// Unique instance ID identifying the inbound blocking Hyper-V rule.
-const BLOCK_INBOUND_RULE_UUID: &str = "{95a5e2c6-ebd5-45e5-9495-12c5d807cd91}";
+const BLOCK_INBOUND_RULE_UUID: &str = "{27cf4143-6670-4e33-9d9c-cb6ce685b58e}";
 
 const WMI_NAMESPACE: &str = "root\\standardcimv2";
 
