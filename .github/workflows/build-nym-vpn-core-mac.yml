@@ -126,31 +126,26 @@ jobs:
           lipo -create -output ${{ env.UPLOAD_DIR_MAC }}/nym-vpnd ${{ env.SRC_NATIVE_BINARY }}/nym-vpnd ${{ env.SRC_X86_64_BINARY }}/nym-vpnd
 
       - name: Compile protobuf for swift (vpn)
-        working-directory: proto/nym
+        working-directory: nym-vpn-core/crates/nym-vpn-proto/proto
         run: |
-          protoc --swift_out=. vpn.proto account.proto
-          protoc --grpc-swift_out=. vpn.proto account.proto
+          protoc --swift_out=. nym_vpn_service.proto
+          protoc --grpc-swift_out=. nym_vpn_service.proto
 
       - name: Upload generated protobuf files for swift
         uses: actions/upload-artifact@v4
         with:
           name: swift-proto-files
           path: |
-            proto/nym/vpn.grpc.swift
-            proto/nym/vpn.pb.swift
-            proto/nym/account.grpc.swift
-            proto/nym/account.pb.swift
+            nym-vpn-core/crates/nym-vpn-proto/proto/nym_vpn_service.grpc.swift
+            nym-vpn-core/crates/nym-vpn-proto/proto/nym_vpn_service.pb.swift
           if-no-files-found: error
           retention-days: 3
 
       - name: Include generated proto files for swift in the bundled upload
         run: |
           mkdir -p ${{ env.UPLOAD_DIR_MAC }}/proto/nym
-          mkdir -p ${{ env.UPLOAD_DIR_MAC }}/proto/grpc
-          cp -v proto/nym/vpn.grpc.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
-          cp -v proto/nym/vpn.pb.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
-          #cp -v proto/nym/account.grpc.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
-          cp -v proto/nym/account.pb.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
+          cp -v nym-vpn-core/crates/nym-vpn-proto/proto/nym_vpn_service.grpc.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
+          cp -v nym-vpn-core/crates/nym-vpn-proto/proto/nym_vpn_service.pb.swift ${{ env.UPLOAD_DIR_MAC }}/proto/nym
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
