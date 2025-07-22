@@ -21,7 +21,6 @@ public struct StatusButton: View {
         .padding(.vertical, appSettings.isSmallScreen ? 12 : 16)
         .background(config.backgroundColor)
         .transition(.opacity)
-        .animation(.easeInOut, value: config.backgroundColor)
         .cornerRadius(50)
     }
 }
