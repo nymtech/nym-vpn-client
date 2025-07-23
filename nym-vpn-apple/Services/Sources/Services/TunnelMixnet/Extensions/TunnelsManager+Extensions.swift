@@ -25,8 +25,8 @@ extension TunnelsManager {
         tunnelProviderManager.isOnDemandEnabled = isOndemandEnabled
 
         do {
-            try await tunnelProviderManager.saveToPreferences()
-            try await tunnelProviderManager.loadFromPreferences()
+            try await tunnelProviderManager.saveToPreferencesAndLoadTunnels()
+
             if !tunnels.contains(where: { $0.name == tunnelConfiguration.name }) {
                 tunnels.append(tunnel)
             }

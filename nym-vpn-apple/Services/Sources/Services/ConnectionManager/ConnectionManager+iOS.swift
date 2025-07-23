@@ -146,8 +146,7 @@ extension ConnectionManager {
         }
         if !isReconnecting {
             activeTunnel.tunnel.isOnDemandEnabled = false
-            try await activeTunnel.tunnel.saveToPreferences()
-            try await activeTunnel.tunnel.loadFromPreferences()
+            try await activeTunnel.saveToPreferences()
         }
         tunnelsManager.disconnect(tunnel: activeTunnel)
     }
@@ -218,11 +217,9 @@ extension ConnectionManager {
             return
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            Task { @MainActor in
-                self?.isReconnecting = false
-                try? await self?.connectDisconnect()
-            }
+        Task { @MainActor in
+            isReconnecting = false
+            try? await connectDisconnect()
         }
     }
 
