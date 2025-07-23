@@ -110,23 +110,17 @@ extension ConnectionManager {
     }
 
     @MainActor func connect(with config: MixnetConfig) async throws {
-        do {
-            if tunnelsManager.tunnels.isEmpty {
+        try await Task { @MainActor in
+            do {
                 try await tunnelsManager.loadTunnels()
+                let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config, isOndemandEnabled: true)
+                try? await Task.sleep(for: .seconds(0.3))
+                activeTunnel = tunnel
+                try await tunnelsManager.connect(tunnel: tunnel)
+            } catch {
+                throw error
             }
-            try await tunnelsManager.addUpdate(tunnelConfiguration: config, isOndemandEnabled: true)
-            // BUG: tunnel does not get loaded after saving. Timeout required or loading twice.
-            try await tunnelsManager.loadTunnels()
-            try await tunnelsManager.loadTunnels()
-            activeTunnel = tunnelsManager.activeTunnel
-            guard let activeTunnel
-            else {
-                throw GeneralNymError.tunnelNotFound
-            }
-            try await tunnelsManager.connect(tunnel: activeTunnel)
-        } catch {
-            throw error
-        }
+        }.value
     }
 
     /// Sends connect command to lib if entry/exit gateways changed while connected,
@@ -134,7 +128,7 @@ extension ConnectionManager {
     @MainActor func reconnectIfNeeded() async {
         do {
             let newConfig = try generateConfig()
-            guard currentTunnelStatus == .connected,
+            guard currentTunnelStatus == .connected || currentTunnelStatus == .connecting,
                   let tunnelProviderProtocol = activeTunnel?.tunnel.protocolConfiguration as? NETunnelProviderProtocol,
                   let mixnetConfig = tunnelProviderProtocol.asMixnetConfig(),
                   newConfig.toJson() != mixnetConfig.toJson()
@@ -147,7 +141,7 @@ extension ConnectionManager {
         }
     }
 
-    func disconnectActiveTunnel() {
+    func disconnectActiveTunnel() async throws {
         guard let activeTunnel,
               shouldDisconnectActiveTunnel()
         else {
@@ -155,7 +149,9 @@ extension ConnectionManager {
         }
         if !isReconnecting {
             activeTunnel.tunnel.isOnDemandEnabled = false
-            activeTunnel.tunnel.saveToPreferences()
+            try await activeTunnel.tunnel.saveToPreferences()
+            try await activeTunnel.tunnel.loadFromPreferences()
+
         }
         tunnelsManager.disconnect(tunnel: activeTunnel)
     }
@@ -202,13 +198,13 @@ extension ConnectionManager {
             isReconnecting = isReconnecting(newConfig: config)
             if isReconnecting {
                 // Reconnecting after change of country, 5hop...
-                disconnectActiveTunnel()
+                try await disconnectActiveTunnel()
             } else {
                 // User "Connect" button actions
                 guard !isAutoConnect else { return }
                 if shouldDisconnectActiveTunnel() {
                     isDisconnecting = true
-                    disconnectActiveTunnel()
+                    try await disconnectActiveTunnel()
                     lastError = nil
                 } else {
                     try await connect(with: config)
@@ -225,9 +221,10 @@ extension ConnectionManager {
         else {
             return
         }
-        isReconnecting = false
+
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            Task {
+            Task { @MainActor in
+                self?.isReconnecting = false
                 try? await self?.connectDisconnect()
             }
         }
