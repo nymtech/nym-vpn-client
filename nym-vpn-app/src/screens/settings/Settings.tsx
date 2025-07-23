@@ -62,7 +62,7 @@ function Settings() {
   };
 
   return (
-    <PageAnim className="h-full flex flex-col mt-2 gap-6">
+    <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6">
       {account ? (
         <SettingsMenuCard
           title={capFirst(t('account', { ns: 'glossary' }))}
