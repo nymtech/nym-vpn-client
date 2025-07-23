@@ -110,17 +110,14 @@ extension ConnectionManager {
     }
 
     @MainActor func connect(with config: MixnetConfig) async throws {
-        try await Task { @MainActor in
-            do {
-                try await tunnelsManager.loadTunnels()
-                let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config, isOndemandEnabled: true)
-                try? await Task.sleep(for: .seconds(0.3))
-                activeTunnel = tunnel
-                try await tunnelsManager.connect(tunnel: tunnel)
-            } catch {
-                throw error
-            }
-        }.value
+        do {
+            try await tunnelsManager.loadTunnels()
+            let tunnel = try await tunnelsManager.addUpdate(tunnelConfiguration: config, isOndemandEnabled: true)
+            activeTunnel = tunnel
+            try await tunnelsManager.connect(tunnel: tunnel)
+        } catch {
+            throw error
+        }
     }
 
     /// Sends connect command to lib if entry/exit gateways changed while connected,
@@ -151,7 +148,6 @@ extension ConnectionManager {
             activeTunnel.tunnel.isOnDemandEnabled = false
             try await activeTunnel.tunnel.saveToPreferences()
             try await activeTunnel.tunnel.loadFromPreferences()
-
         }
         tunnelsManager.disconnect(tunnel: activeTunnel)
     }
