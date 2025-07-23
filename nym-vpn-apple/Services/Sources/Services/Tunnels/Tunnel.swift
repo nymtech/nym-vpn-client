@@ -116,6 +116,12 @@ public final class Tunnel: NSObject, ObservableObject {
     }
 }
 
+extension Tunnel {
+    public func saveToPreferencesAndLoadTunnels() async throws {
+        try await tunnel.saveToPreferencesAndLoadTunnels()
+    }
+}
+
 private extension Tunnel {
     func startPollingTunnelStatus() {
         isPolling = true
