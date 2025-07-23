@@ -10,3 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - In App Purchases functionality
+
+### Fixed
+
+- iOS: reconnect after changing mode or gateway/country

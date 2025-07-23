@@ -188,7 +188,7 @@ public extension HomeViewModel {
 #if os(macOS)
     @MainActor func navigateToInstallHelper() {
         let action = HelperAfterInstallAction { [weak self] in
-            Task {
+            Task { @MainActor in
                 await self?.connectDisconnect()
             }
         }

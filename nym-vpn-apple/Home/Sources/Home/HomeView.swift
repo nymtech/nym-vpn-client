@@ -192,12 +192,12 @@ private extension HomeView {
             .padding(.horizontal, 16)
             .frame(maxWidth: MagicNumbers.maxWidth)
             .onTapGesture {
-                Task {
+                Task { @MainActor in
                     await viewModel.connectDisconnect()
                 }
             }
             .accessibilityAction {
-                Task {
+                Task { @MainActor in
                     await viewModel.connectDisconnect()
                 }
             }
