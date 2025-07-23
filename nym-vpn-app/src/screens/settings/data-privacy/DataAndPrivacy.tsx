@@ -7,6 +7,7 @@ import {
   AnonNetworkStatsUrl,
   SentryPrivacyPolicyUrl,
 } from '../../../constants';
+import { kvSet } from '../../../kvStore';
 
 function DataAndPrivacy() {
   const { monitoring, networkStats } = useMainState();
@@ -17,6 +18,7 @@ function DataAndPrivacy() {
 
   const onNetStatsChange = async () => {
     const isChecked = !networkStats;
+    await kvSet('network-stats-enabled', isChecked);
     dispatch({ type: 'set-network-stats', enabled: isChecked });
     try {
       if (isChecked) {
@@ -40,10 +42,7 @@ function DataAndPrivacy() {
   };
 
   return (
-    <PageAnim
-      className="xs:max-w-lg h-full flex flex-col mt-2 gap-6"
-      data-testid="logs-page"
-    >
+    <PageAnim className="xs:max-w-lg h-full flex flex-col mt-2 gap-6">
       <SettingsMenuCardBig
         header={
           <CardSwitch
