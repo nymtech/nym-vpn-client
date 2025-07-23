@@ -2,10 +2,10 @@ import NetworkExtension
 import Tunnels
 
 extension TunnelsManager {
-    public func addUpdate(
+    @MainActor public func addUpdate(
         tunnelConfiguration: MixnetConfig,
         isOndemandEnabled: Bool
-    ) async throws {
+    ) async throws -> Tunnel {
         let tunnelProviderManager: NETunnelProviderManager
         let tunnel: Tunnel
         if let existingTunnel = tunnels.first(where: { $0.name == tunnelConfiguration.name }) {
@@ -30,6 +30,7 @@ extension TunnelsManager {
             if !tunnels.contains(where: { $0.name == tunnelConfiguration.name }) {
                 tunnels.append(tunnel)
             }
+            return tunnel
         } catch {
             logger.log(level: .error, "Saving configuration failed: \(error)")
             let protocolConfiguration = tunnelProviderManager.protocolConfiguration as? NETunnelProviderProtocol

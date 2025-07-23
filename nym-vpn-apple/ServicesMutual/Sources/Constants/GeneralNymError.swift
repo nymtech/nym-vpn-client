@@ -11,7 +11,6 @@ public enum GeneralNymError: Error, Equatable {
     case noEnv
     case somethingWentWrong
     case authorizationDenied
-    case tunnelNotFound
 }
 
 extension GeneralNymError: LocalizedError {
@@ -35,8 +34,6 @@ extension GeneralNymError: LocalizedError {
             "generalNymError.somethingWentWrong".localizedString
         case .authorizationDenied:
             "generalNymError.authorizationDenied".localizedString
-        case .tunnelNotFound:
-            "generalNymError.tunnelNotFound".localizedString
         }
     }
 }
