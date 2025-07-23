@@ -7,6 +7,7 @@ type LinkProps = {
   text: string;
   url: string;
   icon?: boolean | string;
+  color?: 'malachite' | 'iron';
   className?: string;
   textClassName?: string;
   'data-testid'?: string;
@@ -16,6 +17,7 @@ function Link({
   text,
   url,
   icon,
+  color = 'malachite',
   className,
   textClassName,
   ...rest
@@ -28,7 +30,9 @@ function Link({
       as="a"
       className={clsx([
         'focus:outline-hidden select-none cursor-default',
-        'inline-flex flex-row items-center gap-1 text-malachite-moss dark:text-malachite',
+        'inline-flex flex-row items-center gap-1',
+        color === 'malachite' && 'text-malachite-moss dark:text-malachite',
+        color === 'iron' && 'text-iron dark:text-bombay',
         className && className,
       ])}
       onClick={() => openUrl(url)}

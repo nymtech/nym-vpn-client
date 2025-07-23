@@ -15,6 +15,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme {
+  --breakpoint-xs: 30rem;
   /* override default color palette */
   --color-*: initial;
   /*****************/
@@ -45,6 +46,7 @@
   --color-malachite-moss: #0b8a42;
   --color-aphrodisiac: #ed5060;
   --color-king-nacho: #ffc700;
+  --color-cheddar: #d97706;
   --color-cornflower: #9189ff;
 
   /* daemon dot (dev mode) */

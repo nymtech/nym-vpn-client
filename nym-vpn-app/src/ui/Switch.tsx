@@ -5,10 +5,17 @@ export type SwitchProps = {
   checked: boolean;
   onChange: (value: boolean) => void;
   disabled?: boolean;
+  className?: string;
   'data-testid'?: string;
 };
 
-function Switch({ checked, onChange, disabled, ...rest }: SwitchProps) {
+function Switch({
+  checked,
+  onChange,
+  disabled,
+  className,
+  ...rest
+}: SwitchProps) {
   const testId = rest['data-testid'] || 'switch';
 
   return (
@@ -18,6 +25,7 @@ function Switch({ checked, onChange, disabled, ...rest }: SwitchProps) {
       className={clsx([
         checked ? 'bg-malachite' : 'bg-bombay/60 dark:bg-iron',
         'relative inline-flex h-7 w-11 min-w-11 items-center rounded-full cursor-default',
+        className,
       ])}
       disabled={disabled}
       data-testid={testId}

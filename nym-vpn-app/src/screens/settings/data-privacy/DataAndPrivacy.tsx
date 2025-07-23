@@ -1,35 +1,34 @@
 import { invoke } from '@tauri-apps/api/core';
 import { useTranslation } from 'react-i18next';
-import { PageAnim, SettingsMenuCard } from '../../../ui';
-import {
-  useInAppNotify,
-  useMainDispatch,
-  useMainState,
-} from '../../../contexts';
+import { CardSwitch, Link, PageAnim, SettingsMenuCardBig } from '../../../ui';
+import { useMainDispatch, useMainState } from '../../../contexts';
 import { StateDispatch } from '../../../types';
+import {
+  AnonNetworkStatsUrl,
+  SentryPrivacyPolicyUrl,
+} from '../../../constants';
 
 function DataAndPrivacy() {
   const { monitoring, networkStats } = useMainState();
 
   const dispatch = useMainDispatch() as StateDispatch;
-  const { push } = useInAppNotify();
 
   const { t } = useTranslation('settings');
 
-  // notify the user at most once per every 10s when he toggles monitoring
-  const showMonitoringAlert = () => {
-    push({
-      id: 'monitoring-alert',
-      message: t('monitoring-alert'),
-      close: true,
-      type: 'warn',
-      throttle: 10,
-    });
+  const onNetStatsChange = async () => {
+    const isChecked = !networkStats;
+    dispatch({ type: 'set-network-stats', enabled: isChecked });
+    try {
+      if (isChecked) {
+        await invoke('enable_netstats');
+      } else {
+        await invoke('disable_netstats');
+      }
+    } catch {}
   };
 
-  const handleMonitoringChanged = async () => {
+  const onMonitoringChange = async () => {
     const isChecked = !monitoring;
-    showMonitoringAlert();
     dispatch({ type: 'set-monitoring', monitoring: isChecked });
     try {
       if (isChecked) {
@@ -42,16 +41,58 @@ function DataAndPrivacy() {
 
   return (
     <PageAnim
-      className="h-full flex flex-col mt-2 gap-6"
+      className="xs:max-w-lg h-full flex flex-col mt-2 gap-6"
       data-testid="logs-page"
     >
-      <SettingsMenuCard
-        title={t('ERROR MONITORING')}
-        leadingIcon="sort"
-        onClick={handleMonitoringChanged}
-        trailingIcon="open_in_new"
-        data-testid="daemon-logs-button"
-      />
+      <SettingsMenuCardBig
+        header={
+          <CardSwitch
+            header={t('privacy.network-stats.label')}
+            subheader={t('privacy.network-stats.sublabel')}
+            subheaderColor="king-nacho"
+            checked={networkStats}
+            onClick={onNetStatsChange}
+          />
+        }
+      >
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-iron dark:text-bombay">
+            {t('privacy.network-stats.desc1')}
+          </p>
+          <p className="text-sm text-iron dark:text-bombay">
+            {t('privacy.network-stats.desc2')}
+          </p>
+          <Link
+            className="w-fit text-sm text-iron dark:text-bombay"
+            text={t('privacy.network-stats.link')}
+            url={AnonNetworkStatsUrl}
+            color="iron"
+          />
+        </div>
+      </SettingsMenuCardBig>
+      <SettingsMenuCardBig
+        header={
+          <CardSwitch
+            header={t('privacy.error-monitoring.label')}
+            subheader={t('privacy.error-monitoring.sublabel')}
+            subheaderColor="king-nacho"
+            checked={monitoring}
+            onClick={onMonitoringChange}
+          />
+        }
+      >
+        <div className="flex flex-col gap-2">
+          <p className="text-sm text-iron dark:text-bombay">
+            {t('privacy.error-monitoring.desc')}
+          </p>
+          <Link
+            className="w-fit text-sm text-iron dark:text-bombay"
+            text={t('privacy.error-monitoring.link')}
+            url={SentryPrivacyPolicyUrl}
+            color="iron"
+          />
+        </div>
+      </SettingsMenuCardBig>
     </PageAnim>
   );
 }
