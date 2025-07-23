@@ -155,11 +155,6 @@ private extension ConfigurationManager {
     func configure() async throws {
 #if os(iOS)
         do {
-            if isTestFlight {
-                currentEnv = .sandbox
-            } else {
-                currentEnv = .mainnet
-            }
             try await setEnvVariables()
         } catch {
             guard currentEnv == .mainnet else { return }

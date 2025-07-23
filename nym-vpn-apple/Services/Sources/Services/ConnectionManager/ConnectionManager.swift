@@ -133,7 +133,7 @@ public final class ConnectionManager: ObservableObject {
     public func disconnectBeforeLogout() async {
         guard currentTunnelStatus != .disconnected else { return }
 #if os(iOS)
-        disconnectActiveTunnel()
+        try? await disconnectActiveTunnel()
         await waitForTunnelStatus(with: .disconnected)
         resetVpnProfile()
 #elseif os(macOS)

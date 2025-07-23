@@ -1,6 +1,7 @@
 #if os(iOS)
 import NetworkExtension
 import AppSettings
+import Constants
 import MixnetLibrary
 import TunnelMixnet
 import Tunnels
@@ -124,7 +125,7 @@ extension ConnectionManager {
     @MainActor func reconnectIfNeeded() async {
         do {
             let newConfig = try generateConfig()
-            guard currentTunnelStatus == .connected,
+            guard currentTunnelStatus == .connected || currentTunnelStatus == .connecting,
                   let tunnelProviderProtocol = activeTunnel?.tunnel.protocolConfiguration as? NETunnelProviderProtocol,
                   let mixnetConfig = tunnelProviderProtocol.asMixnetConfig(),
                   newConfig.toJson() != mixnetConfig.toJson()
@@ -137,18 +138,17 @@ extension ConnectionManager {
         }
     }
 
-    func disconnectActiveTunnel() {
+    func disconnectActiveTunnel() async throws {
         guard let activeTunnel,
               shouldDisconnectActiveTunnel()
         else {
             return
         }
-        activeTunnel.tunnel.isOnDemandEnabled = false
-        activeTunnel.tunnel.saveToPreferences()
-        tunnelsManager.disconnect(tunnel: activeTunnel)
-        Task {
-            try await tunnelsManager.loadTunnels()
+        if !isReconnecting {
+            activeTunnel.tunnel.isOnDemandEnabled = false
+            try await activeTunnel.saveToPreferencesAndLoadTunnels()
         }
+        tunnelsManager.disconnect(tunnel: activeTunnel)
     }
 
     func shouldDisconnectActiveTunnel() -> Bool {
@@ -193,13 +193,13 @@ extension ConnectionManager {
             isReconnecting = isReconnecting(newConfig: config)
             if isReconnecting {
                 // Reconnecting after change of country, 5hop...
-                disconnectActiveTunnel()
+                try await disconnectActiveTunnel()
             } else {
                 // User "Connect" button actions
                 guard !isAutoConnect else { return }
                 if shouldDisconnectActiveTunnel() {
                     isDisconnecting = true
-                    disconnectActiveTunnel()
+                    try await disconnectActiveTunnel()
                     lastError = nil
                 } else {
                     try await connect(with: config)
@@ -216,11 +216,10 @@ extension ConnectionManager {
         else {
             return
         }
-        isReconnecting = false
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            Task {
-                try? await self?.connectDisconnect()
-            }
+
+        Task { @MainActor in
+            isReconnecting = false
+            try? await connectDisconnect()
         }
     }
 

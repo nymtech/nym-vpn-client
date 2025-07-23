@@ -1,5 +1,5 @@
 public extension HomeViewModel {
-    func connectDisconnect() async {
+    @MainActor func connectDisconnect() async {
         guard connectionManager.currentTunnelStatus != .disconnecting
         else {
             return
