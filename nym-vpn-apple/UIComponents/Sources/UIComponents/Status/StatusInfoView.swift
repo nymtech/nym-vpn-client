@@ -50,11 +50,13 @@ private extension StatusInfoView {
                 Text(timeConnectedString)
                     .foregroundStyle(NymColor.primary)
                     .textStyle(.Body.Medium.regular)
+                    .monospacedDigit()
                     .transition(.opacity)
                     .animation(.easeInOut, value: timeConnectedString)
             }
         } else {
             Text(" ")
+                .frame(maxWidth: .infinity)
         }
     }
 }
