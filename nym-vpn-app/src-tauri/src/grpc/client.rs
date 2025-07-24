@@ -47,7 +47,7 @@ const DUMMY_HTTP_ENDPOINT: &str = "http://[::1]:53181";
 
 // simple flag to save that "failed to connect to daemon"
 // warning has been logged once when vpnd is down
-pub static VPND_DOWN_LOGGED: AtomicBool = AtomicBool::new(false);
+static VPND_DOWN_LOGGED: AtomicBool = AtomicBool::new(false);
 
 #[derive(Debug, Clone)]
 pub struct GrpcClient {
