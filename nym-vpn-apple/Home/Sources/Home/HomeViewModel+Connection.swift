@@ -1,5 +1,5 @@
 public extension HomeViewModel {
-    func connectDisconnect() async {
+    @MainActor func connectDisconnect() async {
         guard connectionManager.currentTunnelStatus != .disconnecting
         else {
             return
@@ -7,15 +7,11 @@ public extension HomeViewModel {
 
 #if os(iOS)
         impactGenerator.impact()
-        if connectionManager.currentTunnelStatus == .disconnected {
-            if !networkMonitor.isAvailable {
-                Task { @MainActor in
-                    isOfflineOverlayDisplayed = true
-                }
-                return
-            } else {
-                resetBannerDisplay()
+        if connectionManager.currentTunnelStatus == .disconnected, !networkMonitor.isAvailable {
+            Task { @MainActor in
+                isOfflineOverlayDisplayed = true
             }
+            return
         }
 #endif
         resetStatusInfoState()
@@ -43,6 +39,7 @@ public extension HomeViewModel {
             impactGenerator.error()
 #endif
         }
+        navigateToPlanPurchaseIfNeeded()
         clearLastErrorIfNeeded()
     }
 
@@ -50,6 +47,16 @@ public extension HomeViewModel {
         switch connectionManager.currentTunnelStatus {
         case .disconnecting, .disconnected, .error:
             resetLastError()
+        default:
+            break
+        }
+    }
+
+    func navigateToPlanPurchaseIfNeeded() {
+        guard isLastErrorSubscriptionExpired() else { return }
+        switch connectionManager.currentTunnelStatus {
+        case .error:
+            navigateToPlanPurchase()
         default:
             break
         }

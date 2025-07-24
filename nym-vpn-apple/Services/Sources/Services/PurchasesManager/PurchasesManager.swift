@@ -21,6 +21,7 @@ public final class PurchasesManager: ObservableObject {
         guard !self.productsLoaded else { return }
         Task { @MainActor in
             products = try await Product.products(for: productIds)
+            guard !products.isEmpty else { return }
             productsLoaded = true
         }
     }
@@ -54,8 +55,9 @@ private extension PurchasesManager {
             try? await loadProducts()
         }
     }
-    private func observeTransactionUpdates() -> Task<Void, Never> {
-        Task(priority: .background) { [unowned self] in
+
+    func observeTransactionUpdates() -> Task<Void, Never> {
+        Task(priority: .background) { 
             for await _ in Transaction.updates {}
         }
     }

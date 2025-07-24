@@ -97,6 +97,39 @@ public class Keychain {
         return ref as? Data
     }
 
+    public static func updateReferenceOrCreateNew(called name: String, with value: String) -> Data? {
+        guard var bundleIdentifier = Bundle.main.bundleIdentifier
+        else {
+            logger.error("Missing bundle identifier")
+            return nil
+        }
+        if bundleIdentifier.hasSuffix(".network-extension") {
+            bundleIdentifier.removeLast(".network-extension".count)
+        }
+        let itemLabel = "WireGuard Tunnel: \(name)"
+
+        var result: CFTypeRef?
+        let findQuery: [CFString: Any] = [
+            kSecClass: kSecClassGenericPassword,
+            kSecAttrService: bundleIdentifier,
+            kSecAttrLabel: itemLabel,
+            kSecMatchLimit: kSecMatchLimitOne,
+            kSecReturnPersistentRef: true
+        ]
+        let copyStatus = SecItemCopyMatching(findQuery as CFDictionary, &result)
+
+        if copyStatus == errSecSuccess, let reference = result as? Data {
+            let updateQuery: [CFString: Any] = [kSecValuePersistentRef: reference]
+            let attributes: [CFString: Any] = [kSecValueData: value.data(using: .utf8) as Any]
+
+            let updateStatus = SecItemUpdate(updateQuery as CFDictionary, attributes as CFDictionary)
+            if updateStatus == errSecSuccess {
+                return reference
+            }
+        }
+        return makeReference(containing: value, called: name, previouslyReferencedBy: nil)
+    }
+
     public static func deleteReference(called ref: Data) {
         let ret = SecItemDelete([kSecValuePersistentRef: ref] as CFDictionary)
         if ret != errSecSuccess {

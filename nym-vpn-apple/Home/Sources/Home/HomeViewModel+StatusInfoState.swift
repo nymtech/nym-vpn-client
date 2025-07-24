@@ -38,20 +38,19 @@ extension HomeViewModel {
         navigateToAddCredentials()
     }
 
-    @MainActor func displayUnsecureBannerIfNeeded(with error: Error?) {
-        guard let errorReason = error as? ErrorReason,
+    func isLastErrorSubscriptionExpired() -> Bool {
+        guard let errorReason = lastError as? ErrorReason,
               errorReason == .subscriptionExpired
         else {
-            return
+            return false
         }
-        isBannerDisplayed = true
+        return true
     }
 
     @MainActor func updateLastError(_ error: Error?) {
         if lastError == nil, let error {
             updateStatusInfoState(with: .error(message: error.localizedDescription))
             navigateToAddCredetialsIfNeeded(error: error)
-            displayUnsecureBannerIfNeeded(with: error)
             lastError = error
         } else {
             guard let lastNsError = lastError as? NSError,
@@ -64,13 +63,8 @@ extension HomeViewModel {
 
             updateStatusInfoState(with: .error(message: nsError.localizedDescription))
             navigateToAddCredetialsIfNeeded(error: error)
-            displayUnsecureBannerIfNeeded(with: error)
             lastError = error
         }
-    }
-
-    @MainActor func resetBannerDisplay() {
-        isBannerDisplayed = false
     }
 
     func offlineState(with hasInternet: Bool) {

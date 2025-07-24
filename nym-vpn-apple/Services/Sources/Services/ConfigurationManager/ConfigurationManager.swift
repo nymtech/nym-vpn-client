@@ -153,8 +153,6 @@ public final class ConfigurationManager: ObservableObject {
 
 private extension ConfigurationManager {
     func configure() async throws {
-        logger.info("🛜 env: \(currentEnv.rawValue)")
-        print("🛜 env: \(currentEnv.rawValue)")
 #if os(iOS)
         do {
             try await setEnvVariables()
@@ -167,6 +165,8 @@ private extension ConfigurationManager {
 #endif
         updateAccountLinks()
         updateCompatibilityVersions()
+
+        logger.info("🛜 env: \(currentEnv.rawValue)")
     }
 
     func updateCompatibilityVersions() {

@@ -13,8 +13,7 @@ extension NETunnelProviderProtocol {
 
         providerBundleIdentifier = "\(appId).network-extension"
         serverAddress = "127.0.0.1"
-        passwordReference = Keychain.makeReference(containing: configString, called: mixnetConfiguration.name)
-
+        passwordReference = Keychain.updateReferenceOrCreateNew(called: mixnetConfiguration.name, with: configString)
         if passwordReference == nil {
             return nil
         }
