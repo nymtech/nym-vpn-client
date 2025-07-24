@@ -3,11 +3,11 @@ use std::{
     fmt::{self, Display},
 };
 
+use crate::db::DbError;
+use crate::grpc::{client::VpndError, gateway::GatewayType};
 use serde::Serialize;
 use thiserror::Error;
 use ts_rs::TS;
-
-use crate::grpc::{client::VpndError, gateway::GatewayType};
 
 #[derive(Error, Debug, Serialize, TS, Clone)]
 #[ts(export)]
@@ -154,5 +154,11 @@ impl From<tauri_plugin_updater::Error> for BackendError {
 impl From<anyhow::Error> for BackendError {
     fn from(_: anyhow::Error) -> Self {
         BackendError::internal("internal error", None)
+    }
+}
+
+impl From<DbError> for BackendError {
+    fn from(_: DbError) -> Self {
+        BackendError::internal("db error", None)
     }
 }

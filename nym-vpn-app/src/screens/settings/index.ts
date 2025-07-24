@@ -5,3 +5,4 @@ export * from './logs';
 export * from './legal';
 export * from './support';
 export * from './dev';
+export * from './data-privacy';

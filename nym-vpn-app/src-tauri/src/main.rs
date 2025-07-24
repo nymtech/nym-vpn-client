@@ -48,6 +48,7 @@ mod events;
 mod fs;
 mod grpc;
 mod log;
+mod misc;
 mod sentry;
 mod startup_error;
 mod state;
@@ -223,8 +224,8 @@ async fn main() -> Result<()> {
                         // initialize tunnel state
                         c_grpc.tunnel_state(&handle).await.ok();
                         info!("watching vpn tunnel events");
-                        // vpnd sentry check
                         sentry::vpnd_check(sentry_enabled, &c_grpc).await.ok();
+                        misc::netstats_check(&db, &c_grpc).await.ok();
                         // start watching tunnel events, this is a blocking call
                         // and will keep the task alive as long as vpnd is running
                         c_grpc.watch_tunnel_events(&handle).await.ok();
@@ -273,6 +274,8 @@ async fn main() -> Result<()> {
             cmd_sentry::enable_sentry,
             cmd_sentry::disable_sentry,
             cmd_sentry::sentry_enabled,
+            commands::network_stats::enable_netstats,
+            commands::network_stats::disable_netstats,
             #[cfg(windows)]
             cmd_updater::fetch_update,
             #[cfg(windows)]

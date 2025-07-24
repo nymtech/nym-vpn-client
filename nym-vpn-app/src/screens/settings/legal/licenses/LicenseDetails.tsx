@@ -36,7 +36,7 @@ function LicenseDetails() {
 
   return (
     <PageAnim
-      className="h-full flex flex-col"
+      className="xs:max-w-lg h-full flex flex-col"
       data-testid="license-details-page"
     >
       {license ? (

@@ -107,6 +107,13 @@ export default function TopBar() {
           navigate(-1);
         },
       },
+      '/settings/data-privacy': {
+        title: t('data-privacy'),
+        leftIcon: 'arrow_back',
+        handleLeftNav: () => {
+          navigate(-1);
+        },
+      },
       '/settings/logs': {
         title: t('logs'),
         leftIcon: 'arrow_back',

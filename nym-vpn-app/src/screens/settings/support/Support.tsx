@@ -21,7 +21,7 @@ function Support() {
 
   return (
     <PageAnim
-      className="h-full flex flex-col mt-2 gap-6"
+      className="xs:max-w-lg h-full flex flex-col mt-2 gap-6"
       data-testid="support-page"
     >
       <SettingsMenuCard

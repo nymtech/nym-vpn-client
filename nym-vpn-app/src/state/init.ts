@@ -204,6 +204,16 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     },
   };
 
+  const getNetworkStatsRq: TauriReq<() => Promise<boolean | undefined>> = {
+    name: 'getNetworkStats',
+    request: () => kvGet<boolean>('network-stats-enabled'),
+    onFulfilled: (enabled) => {
+      if (enabled !== undefined) {
+        dispatch({ type: 'set-network-stats', enabled });
+      }
+    },
+  };
+
   let requests: TauriReq<never>[] = [
     getVpnModeRq,
     getEntryNodeRq,
@@ -216,6 +226,7 @@ export async function initFirstBatch(dispatch: StateDispatch) {
     getDepsJsRq,
     getDesktopNotificationsRq,
     getIpv6SupportRq,
+    getNetworkStatsRq,
   ];
 
   if (S_STATE.vpnd !== 'down') {

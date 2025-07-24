@@ -105,9 +105,8 @@ impl GrpcClient {
     pub async fn vpnd_info(&mut self) -> Result<VpndInfo, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
         let response = vpnd
-            .info(request)
+            .info(())
             .await
             .map_err(|e| {
                 error!("grpc: {}", e);
@@ -131,9 +130,8 @@ impl GrpcClient {
     pub async fn vpnd_log_path(&self) -> Result<String, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
         let response = vpnd
-            .get_log_path(request)
+            .get_log_path(())
             .await
             .map_err(|e| {
                 error!("grpc: {}", e);
@@ -150,8 +148,7 @@ impl GrpcClient {
     pub async fn tunnel_state(&self, app: &AppHandle) -> Result<TunnelState, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
-        let res = vpnd.get_tunnel_state(request).await?;
+        let res = vpnd.get_tunnel_state(()).await?;
         let Some(tun_state) = res.into_inner().state else {
             error!("no tunnel state data");
             return Err(VpndError::internal("no tunnel state data"));
@@ -176,9 +173,8 @@ impl GrpcClient {
     pub async fn watch_tunnel_events(&self, app: &AppHandle) -> Result<()> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
         let mut stream = vpnd
-            .listen_to_events(request)
+            .listen_to_events(())
             .await
             .inspect_err(|e| {
                 error!("listen_to_tunnel_state_changes failed: {}", e);
@@ -290,8 +286,7 @@ impl GrpcClient {
     pub async fn vpn_disconnect(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
-        vpnd.disconnect_tunnel(request).await.map_err(|e| {
+        vpnd.disconnect_tunnel(()).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;
@@ -323,8 +318,7 @@ impl GrpcClient {
     pub async fn forget_account(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
-        let response = vpnd.forget_account(request).await.map_err(|e| {
+        let response = vpnd.forget_account(()).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;
@@ -341,8 +335,7 @@ impl GrpcClient {
     pub async fn is_account_stored(&self) -> Result<bool, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
-        let response = vpnd.is_account_stored(request).await.map_err(|e| {
+        let response = vpnd.is_account_stored(()).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;
@@ -357,9 +350,8 @@ impl GrpcClient {
     pub async fn account_id(&self) -> Result<Option<String>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
         let response = vpnd
-            .get_account_identity(request)
+            .get_account_identity(())
             .await
             .map_err(|e| {
                 error!("grpc: {}", e);
@@ -375,9 +367,8 @@ impl GrpcClient {
     pub async fn device_id(&self) -> Result<String, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
         let response = vpnd
-            .get_device_identity(request)
+            .get_device_identity(())
             .await
             .map_err(|e| {
                 error!("grpc: {}", e);
@@ -475,8 +466,7 @@ impl GrpcClient {
     pub async fn system_messages(&self) -> Result<Vec<SystemMessage>, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
-        let response = vpnd.get_system_messages(request).await.map_err(|e| {
+        let response = vpnd.get_system_messages(()).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;
@@ -490,8 +480,7 @@ impl GrpcClient {
     pub async fn feature_flags(&self) -> Result<FeatureFlags, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
-        let response = vpnd.get_feature_flags(request).await.map_err(|e| {
+        let response = vpnd.get_feature_flags(()).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;
@@ -505,8 +494,7 @@ impl GrpcClient {
     pub async fn network_compat(&self) -> Result<NetworkCompatVersions, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
-        let response = vpnd.get_network_compatibility(request).await.map_err(|e| {
+        let response = vpnd.get_network_compatibility(()).await.map_err(|e| {
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;
@@ -526,9 +514,8 @@ impl GrpcClient {
     pub async fn sentry_enabled(&self) -> Result<bool, VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
         let enabled = vpnd
-            .is_sentry_enabled(request)
+            .is_sentry_enabled(())
             .await
             .map_err(|e| {
                 error!("grpc: {}", e);
@@ -548,13 +535,12 @@ impl GrpcClient {
     pub async fn enable_sentry(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
-        vpnd.enable_sentry(request).await.map_err(|e| {
+        vpnd.enable_sentry(()).await.map_err(|e| {
             error!("failed to enable sentry: {}", e);
             VpndError::GrpcError(e)
         })?;
 
-        debug!("vpnd sentry enabled");
+        debug!("enabled vpnd sentry");
         info!("restart vpnd (service) required for the change to take effect");
         Ok(())
     }
@@ -564,14 +550,64 @@ impl GrpcClient {
     pub async fn disable_sentry(&self) -> Result<(), VpndError> {
         let mut vpnd = self.vpnd().await?;
 
-        let request = Request::new(());
-        vpnd.disable_sentry(request).await.map_err(|e| {
+        vpnd.disable_sentry(()).await.map_err(|e| {
             error!("failed to disable sentry: {}", e);
             VpndError::GrpcError(e)
         })?;
 
-        debug!("vpnd sentry disabled");
+        debug!("disabled vpnd sentry");
         info!("restart vpnd (service) recommended");
+        Ok(())
+    }
+
+    /// Is network statistics collection enabled at daemon level
+    #[instrument(skip_all)]
+    pub async fn netstats_enabled(&self) -> Result<bool, VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        let enabled = vpnd
+            .is_collect_network_stats_enabled(())
+            .await
+            .map_err(|e| {
+                error!("grpc: {}", e);
+                VpndError::GrpcError(e)
+            })?
+            .into_inner();
+
+        debug!("vpnd network statistics collection enabled: {}", enabled);
+        if enabled {
+            info!("⚠ vpnd network statistics collection enabled ⚠");
+        }
+        Ok(enabled)
+    }
+
+    /// Enable network statistics collection at daemon level
+    #[instrument(skip_all)]
+    pub async fn enable_netstats(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.enable_collect_network_stats(()).await.map_err(|e| {
+            error!("failed to enable network statistics collection: {}", e);
+            VpndError::GrpcError(e)
+        })?;
+
+        debug!("enabled vpnd network statistics collection");
+        info!("restart vpnd (service) required for the change to take effect");
+        Ok(())
+    }
+
+    /// Disable network statistics collection at daemon level
+    #[instrument(skip_all)]
+    pub async fn disable_netstats(&self) -> Result<(), VpndError> {
+        let mut vpnd = self.vpnd().await?;
+
+        vpnd.disable_collect_network_stats(()).await.map_err(|e| {
+            error!("failed to disable network statistics collection: {}", e);
+            VpndError::GrpcError(e)
+        })?;
+
+        debug!("disabled vpnd network statistics collection");
+        info!("restart vpnd (service) required for the change to take effect");
         Ok(())
     }
 }

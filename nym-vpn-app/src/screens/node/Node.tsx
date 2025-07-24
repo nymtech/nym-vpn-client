@@ -90,7 +90,7 @@ function Node({ node }: { node: NodeHop }) {
   if (error) {
     return (
       <PageAnim
-        className="h-full flex flex-col"
+        className="xs:max-w-lg h-full flex flex-col"
         data-testid="node-error-container"
       >
         <div
@@ -124,7 +124,7 @@ function Node({ node }: { node: NodeHop }) {
         onClose={() => close('location-info')}
       />
       <PageAnim
-        className="h-full flex flex-col"
+        className="xs:max-w-lg h-full flex flex-col"
         data-testid={`node-container-${node}`}
       >
         <div

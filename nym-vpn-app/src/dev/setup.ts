@@ -61,6 +61,11 @@ export function mockTauriIPC() {
     platform: 'linux',
     family: 'unix',
   };
+  window.__TAURI_EVENT_PLUGIN_INTERNALS__ = {
+    unregisterListener: () => {
+      /**/
+    },
+  };
 
   mockIPC((async (cmd, args) => {
     console.debug(`IPC call mocked "${cmd}"`);
