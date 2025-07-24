@@ -163,7 +163,7 @@ impl AppState {
         let app_state = app.state::<SharedAppState>();
         let mut state = app_state.lock().await;
         if state.vpnd_status != VpndStatus::Down {
-            warn!("vpnd DOWN");
+            info!("vpnd DOWN");
             state.vpnd_status = VpndStatus::Down;
             app.emit_vpnd_status(state.vpnd_status.clone());
         }
