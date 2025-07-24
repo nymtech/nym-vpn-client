@@ -1,13 +1,13 @@
-use std::{
-    env::consts::{ARCH, OS},
-    path::PathBuf,
-};
-
 use anyhow::{Result, anyhow};
 use nym_vpn_proto::proto::{
     ConnectRequest, Dns, GetAccountLinksRequest, ListGatewaysRequest, Location,
     StoreAccountRequest, UserAgent, nym_vpn_service_client::NymVpnServiceClient,
     tunnel_event::Event,
+};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::{
+    env::consts::{ARCH, OS},
+    path::PathBuf,
 };
 use tauri::{AppHandle, Manager, PackageInfo};
 use tokio::sync::mpsc;
@@ -44,6 +44,10 @@ const DEFAULT_SOCKET_PATH: &str = "/var/run/nym-vpn.sock";
 #[cfg(windows)]
 const DEFAULT_SOCKET_PATH: &str = r"\\.\pipe\nym-vpn";
 const DUMMY_HTTP_ENDPOINT: &str = "http://[::1]:53181";
+
+// simple flag to save that "failed to connect to daemon"
+// warning has been logged once when vpnd is down
+pub static VPND_DOWN_LOGGED: AtomicBool = AtomicBool::new(false);
 
 #[derive(Debug, Clone)]
 pub struct GrpcClient {
@@ -94,9 +98,16 @@ impl GrpcClient {
     #[instrument(skip_all)]
     pub async fn vpnd(&self) -> Result<NymVpnServiceClient<Channel>, VpndError> {
         let channel = get_channel(self.socket.clone()).await.map_err(|e| {
-            warn!("failed to connect to the daemon: {}", e);
+            let logged = VPND_DOWN_LOGGED.load(Ordering::Relaxed);
+            if !logged {
+                warn!("failed to connect to the daemon: {}", e);
+                VPND_DOWN_LOGGED.store(true, Ordering::Relaxed);
+            } else {
+                debug!("failed to connect to the daemon: {}", e);
+            }
             VpndError::FailedToConnectIpc(e)
         })?;
+        VPND_DOWN_LOGGED.store(false, Ordering::Relaxed);
         Ok(NymVpnServiceClient::new(channel))
     }
 
@@ -189,7 +200,8 @@ impl GrpcClient {
                         tx.send(update).await.unwrap();
                     }
                     Ok(None) => {
-                        warn!("listen tunnel state stream closed by the server");
+                        warn!("vpnd DOWN: tunnel state stream closed");
+                        VPND_DOWN_LOGGED.store(true, Ordering::Relaxed);
                         return;
                     }
                     Err(e) => {

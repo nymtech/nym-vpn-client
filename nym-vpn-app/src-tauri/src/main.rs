@@ -4,7 +4,10 @@
 use std::time::Duration;
 
 use crate::cli::{Commands, db_command};
+use crate::fs::path::APP_CONFIG_DIR;
 use crate::startup_error::{ErrorKey, StartupError};
+#[cfg(windows)]
+use crate::updater::PendingUpdate;
 use crate::window::AppWindow;
 use crate::{
     cli::Cli,
@@ -12,10 +15,6 @@ use crate::{
     fs::{app::AppFs, config::AppConfig},
     grpc::client::GrpcClient,
 };
-
-use crate::fs::path::APP_CONFIG_DIR;
-#[cfg(windows)]
-use crate::updater::PendingUpdate;
 
 use anyhow::{Result, anyhow};
 use clap::Parser;
@@ -48,7 +47,6 @@ mod events;
 mod fs;
 mod grpc;
 mod log;
-mod misc;
 mod sentry;
 mod startup_error;
 mod state;
@@ -56,6 +54,7 @@ mod sys;
 mod tray;
 #[cfg(windows)]
 mod updater;
+mod vpnd;
 mod window;
 
 pub const APP_NAME: &str = "NymVPN";
@@ -224,8 +223,8 @@ async fn main() -> Result<()> {
                         // initialize tunnel state
                         c_grpc.tunnel_state(&handle).await.ok();
                         info!("watching vpn tunnel events");
-                        sentry::vpnd_check(sentry_enabled, &c_grpc).await.ok();
-                        misc::netstats_check(&db, &c_grpc).await.ok();
+                        vpnd::sentry_check(sentry_enabled, &c_grpc).await.ok();
+                        vpnd::netstats_check(&db, &c_grpc).await.ok();
                         // start watching tunnel events, this is a blocking call
                         // and will keep the task alive as long as vpnd is running
                         c_grpc.watch_tunnel_events(&handle).await.ok();
