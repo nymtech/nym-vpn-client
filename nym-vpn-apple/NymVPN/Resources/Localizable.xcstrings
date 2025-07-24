@@ -65,13 +65,13 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@"
           }
         },
@@ -89,7 +89,7 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "%@"
           }
         }
@@ -694,8 +694,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Dimmed"
+            "state" : "translated",
+            "value" : "渐暗"
           }
         }
       }
@@ -795,8 +795,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Double-tap to copy"
+            "state" : "translated",
+            "value" : "双击复制"
           }
         }
       }
@@ -896,8 +896,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Double-tap to open external link"
+            "state" : "translated",
+            "value" : "双击以打开外部链接"
           }
         }
       }
@@ -997,8 +997,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Double-tap to toggle"
+            "state" : "translated",
+            "value" : "双击唤醒"
           }
         }
       }
@@ -2791,14 +2791,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to"
+            "state" : "translated",
+            "value" : "Добро пожаловать в"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to"
+            "state" : "translated",
+            "value" : "Hoş geldiniz"
           }
         },
         "uk" : {
@@ -2815,8 +2815,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to"
+            "state" : "translated",
+            "value" : "欢迎来到"
           }
         }
       }
@@ -4300,8 +4300,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Belongs only to you(self-custody)"
+            "state" : "translated",
+            "value" : "Pertence apenas a você (auto-custódia)"
           }
         },
         "ru" : {
@@ -4407,14 +4407,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Already have account?"
+            "state" : "translated",
+            "value" : "Уже есть аккаунт?"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Already have account?"
+            "state" : "translated",
+            "value" : "Zaten bir hesabınız mı var?"
           }
         },
         "uk" : {
@@ -4431,8 +4431,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Already have account?"
+            "state" : "translated",
+            "value" : "已经有账户了？"
           }
         }
       }
@@ -4502,8 +4502,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Keeps you anonymous"
+            "state" : "translated",
+            "value" : "Mantém você anônimo"
           }
         },
         "ru" : {
@@ -4609,14 +4609,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous mixnet technology"
+            "state" : "translated",
+            "value" : "Анонимная технология микснета"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous mixnet technology"
+            "state" : "translated",
+            "value" : "Anonim mixnet teknolojisi"
           }
         },
         "uk" : {
@@ -4633,8 +4633,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Anonymous mixnet technology"
+            "state" : "translated",
+            "value" : "匿名混合网络技术"
           }
         }
       }
@@ -4710,14 +4710,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "Продолжить"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "Devam et"
           }
         },
         "uk" : {
@@ -4734,8 +4734,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Continue"
+            "state" : "translated",
+            "value" : "继续"
           }
         }
       }
@@ -4811,14 +4811,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "50+ countries worldwide"
+            "state" : "translated",
+            "value" : "Более 50 стран по всему миру"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "50+ countries worldwide"
+            "state" : "translated",
+            "value" : "Dünya genelinde 50’den fazla ülke"
           }
         },
         "uk" : {
@@ -4835,8 +4835,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "50+ countries worldwide"
+            "state" : "translated",
+            "value" : "全世界50多个国家"
           }
         }
       }
@@ -4912,14 +4912,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start protecting my privacy"
+            "state" : "translated",
+            "value" : "Начните защищать свою конфиденциальность"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start protecting my privacy"
+            "state" : "translated",
+            "value" : "Gizliliğimi korumaya başla"
           }
         },
         "uk" : {
@@ -4936,8 +4936,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start protecting my privacy"
+            "state" : "translated",
+            "value" : "开始保护我的隐私"
           }
         }
       }
@@ -4960,12 +4960,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Set up your private NymVPN access"
+            "value" : "Create an account"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Crear cuenta"
           }
         },
@@ -4977,7 +4977,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Créer un compte"
           }
         },
@@ -5007,38 +5007,38 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Criar uma conta"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create an account"
+            "state" : "translated",
+            "value" : "Получите код доступа"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create an account"
+            "state" : "translated",
+            "value" : "Hesap oluştur"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Створити акаунт"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Tạo tài khoản"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create an account"
+            "state" : "translated",
+            "value" : "创建账户"
           }
         }
       }
@@ -5114,14 +5114,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create my 24-word passphrase"
+            "state" : "translated",
+            "value" : "Создать мою 24‑словную секретную фразу"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create my 24-word passphrase"
+            "state" : "translated",
+            "value" : "24 kelimelik gizli ifademi oluştur"
           }
         },
         "uk" : {
@@ -5138,8 +5138,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Create my 24-word passphrase"
+            "state" : "translated",
+            "value" : "创建我的24助记词"
           }
         }
       }
@@ -5162,12 +5162,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Save it in a password manager or secure location. We can’t recover it for you."
+            "value" : "Save it in a trusted password manager or write down your passphrase and store it securely."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Guárdalo en un administrador de contraseñas de confianza o anota tu frase de contraseña y guárdala de forma segura."
           }
         },
@@ -5179,7 +5179,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Enregistrez-la dans un gestionnaire de mots de passe fiable ou notez votre phrase secrète et conservez-la en lieu sûr."
           }
         },
@@ -5209,38 +5209,38 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Salve em um gerenciador de senhas confiável ou anote sua frase secreta e armazene-a com segurança."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Save it in a trusted password manager or write down your passphrase and store it securely."
+            "state" : "translated",
+            "value" : "Сохраните её в надёжном менеджере паролей или запишите и храните в безопасном месте."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Save it in a trusted password manager or write down your passphrase and store it securely."
+            "state" : "translated",
+            "value" : "Gizli ifadenizi güvenilir bir şifre yöneticisine kaydedin ya da yazıp güvenli bir yerde saklayın."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Зберігайте його в надійному менеджері паролів або запишіть фразу і безпечно зберігайте його."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Lưu nó trong trình quản lý mật khẩu đáng tin cậy hoặc ghi lại cụm từ mật khẩu của bạn và lưu trữ một cách an toàn."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Save it in a trusted password manager or write down your passphrase and store it securely."
+            "state" : "translated",
+            "value" : "将其保存在受信任的密码管理器中，或将您的密码短语写下并安全存储。"
           }
         }
       }
@@ -5263,12 +5263,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Don’t Lose it"
+            "value" : "Don’t Lose Your Passphrase"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "No pierdas tu frase de contraseña"
           }
         },
@@ -5280,7 +5280,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Ne perdez pas votre phrase secrète"
           }
         },
@@ -5310,38 +5310,38 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Não perca sua frase secreta"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t Lose Your Passphrase"
+            "state" : "translated",
+            "value" : "Не потеряйте вашу секретную фразу"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t Lose Your Passphrase"
+            "state" : "translated",
+            "value" : "Gizli İfadenizi Kaybetmeyin"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Не втрачайте свій пароль"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Đừng để mất cụm từ khóa của bạn"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t Lose Your Passphrase"
+            "state" : "translated",
+            "value" : "请勿丢失您的密码短语"
           }
         }
       }
@@ -5364,12 +5364,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "It gives full access to your account. Never share it—not even with Nym support."
+            "value" : "Never share it—not even with Nym Support team."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Nunca la compartas—ni siquiera con el equipo de soporte de Nym."
           }
         },
@@ -5381,7 +5381,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Ne partagez jamais cela—même pas avec l'équipe de support Nym."
           }
         },
@@ -5411,38 +5411,38 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Nunca compartilhe—nem mesmo com a equipe de suporte da Nym."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Never share it—not even with Nym Support team."
+            "state" : "translated",
+            "value" : "Никогда не делитесь ею — даже с командой поддержки Nym."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Never share it—not even with Nym Support team."
+            "state" : "translated",
+            "value" : "Gizli ifadenizi kesinlikle başkalarıyla, hatta Nym destek ekibiyle bile paylaşmayın."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Ніколи не діліться цим—навіть з командою підтримки Nym."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Không chia sẻ nó - ngay cả với đội ngũ hỗ trợ Nym."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Never share it—not even with Nym Support team."
+            "state" : "translated",
+            "value" : "永远不要分享，甚至连Nym支持团队也不要共享。"
           }
         }
       }
@@ -5465,12 +5465,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Don’t share it"
+            "value" : "Don’t share!"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "¡No la compartas!"
           }
         },
@@ -5482,7 +5482,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Ne la partagez pas !"
           }
         },
@@ -5512,38 +5512,38 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Não compartilhe!"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t share!"
+            "state" : "translated",
+            "value" : "Не делитесь!"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t share!"
+            "state" : "translated",
+            "value" : "Paylaşmayın!"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Не діліться!"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Đừng chia sẻ!"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Don’t share!"
+            "state" : "translated",
+            "value" : "不要分享！"
           }
         }
       }
@@ -5613,8 +5613,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Personal data-based logins"
+            "state" : "translated",
+            "value" : "Logins baseados em dados pessoais"
           }
         },
         "ru" : {
@@ -5714,8 +5714,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Works as your secure login"
+            "state" : "translated",
+            "value" : "Funciona como seu login seguro"
           }
         },
         "ru" : {
@@ -5821,14 +5821,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How to keep your NymVPN passphrase safe?"
+            "state" : "translated",
+            "value" : "Как сохранить вашу секретную фразу NymVPN в безопасности?"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How to keep your NymVPN passphrase safe?"
+            "state" : "translated",
+            "value" : "NymVPN şifrenizi güvende tutmanın yolları nelerdir?"
           }
         },
         "uk" : {
@@ -5845,8 +5845,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "How to keep your NymVPN passphrase safe?"
+            "state" : "translated",
+            "value" : "如何确保您的 NymVPN 密码短语安全?"
           }
         }
       }
@@ -5922,14 +5922,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "state" : "translated",
+            "value" : "Вместо этого вы создаёте аккаунт, защищённый фразой из 24 слов."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "state" : "translated",
+            "value" : "Bunun yerine, 24 kelimelik gizli ifade ile korunan bir hesap oluşturuyorsunuz."
           }
         },
         "uk" : {
@@ -5946,8 +5946,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
+            "state" : "translated",
+            "value" : "相反，您正在创建一个由 24 个单词的密码短语保护的帐户。"
           }
         }
       }
@@ -6023,14 +6023,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Log in"
+            "state" : "translated",
+            "value" : "Войти"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Log in"
+            "state" : "translated",
+            "value" : "Giriş yap"
           }
         },
         "uk" : {
@@ -6047,8 +6047,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Log in"
+            "state" : "translated",
+            "value" : "登录"
           }
         }
       }
@@ -6071,12 +6071,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "I understand I can’t recover it if lost."
+            "value" : "I understand: no passphrase, no access."
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Lo entiendo: sin frase de acceso no podré acceder."
           }
         },
@@ -6088,7 +6088,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Je comprends : pas de phrase de passe, pas d'accès."
           }
         },
@@ -6118,38 +6118,38 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Entendo: sem frase de acesso, sem acesso."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I understand: no passphrase, no access."
+            "state" : "translated",
+            "value" : "Я понимаю: нет пароля, нет доступа."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I understand: no passphrase, no access."
+            "state" : "translated",
+            "value" : "Anlıyorum: gizli ifade olmadan erişim mümkün değil."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Я розумію: немає парольної фрази — немає доступу."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Tôi hiểu: không có cụm từ khóa, không có quyền truy cập."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I understand: no passphrase, no access."
+            "state" : "translated",
+            "value" : "我理解：没有密码，没有访问权限。"
           }
         }
       }
@@ -6190,7 +6190,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Sources ouvertes et lois suisses sur la vie privée"
+            "value" : "Logiciel open source et protection des données en Suisse"
           }
         },
         "hi" : {
@@ -6225,14 +6225,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open source & Swiss privacy laws"
+            "state" : "translated",
+            "value" : "Открытый исходный код и швейцарские законы о конфиденциальности"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open source & Swiss privacy laws"
+            "state" : "translated",
+            "value" : "Açık kaynak ve İsviçre gizlilik yasaları"
           }
         },
         "uk" : {
@@ -6249,8 +6249,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Open source & Swiss privacy laws"
+            "state" : "translated",
+            "value" : "开源与瑞士隐私法"
           }
         }
       }
@@ -6320,8 +6320,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Admin-controlled access resets"
+            "state" : "translated",
+            "value" : "Reinicializações de acesso controladas pelo administrador"
           }
         },
         "ru" : {
@@ -6427,14 +6427,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
+            "state" : "translated",
+            "value" : "Я сохранил свою секретную фразу"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
+            "state" : "translated",
+            "value" : "Gizli ifademi kaydettim"
           }
         },
         "uk" : {
@@ -6451,8 +6451,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
+            "state" : "translated",
+            "value" : "我已保存我的密码"
           }
         }
       }
@@ -6528,14 +6528,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose your NymVPN plan"
+            "state" : "translated",
+            "value" : "Выберите свой тариф NymVPN"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose your NymVPN plan"
+            "state" : "translated",
+            "value" : "NymVPN planınızı seçin"
           }
         },
         "uk" : {
@@ -6552,8 +6552,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose your NymVPN plan"
+            "state" : "translated",
+            "value" : "选择您的 NymVPN 计划"
           }
         }
       }
@@ -6629,14 +6629,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select plan"
+            "state" : "translated",
+            "value" : "Выберите тарифный план"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select plan"
+            "state" : "translated",
+            "value" : "Plan seçin"
           }
         },
         "uk" : {
@@ -6653,8 +6653,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select plan"
+            "state" : "translated",
+            "value" : "选择计划"
           }
         }
       }
@@ -6724,8 +6724,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Centrally-stored accounts"
+            "state" : "translated",
+            "value" : "Contas armazenadas centralmente"
           }
         },
         "ru" : {
@@ -6831,14 +6831,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Payments and activity stay unlinked"
+            "state" : "translated",
+            "value" : "Платежи и активность не связаны"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Payments and activity stay unlinked"
+            "state" : "translated",
+            "value" : "Ödemeler ve faaliyetler birbiriyle ilişkilendirilemez"
           }
         },
         "uk" : {
@@ -6855,8 +6855,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Payments and activity stay unlinked"
+            "state" : "translated",
+            "value" : "付款和活动没有链接"
           }
         }
       }
@@ -6932,14 +6932,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "What is a 24-word passphrase?"
+            "state" : "translated",
+            "value" : "Что такое секретная фраза из 24 слов?"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "What is a 24-word passphrase?"
+            "state" : "translated",
+            "value" : "24 kelimelik gizli ifade nedir?"
           }
         },
         "uk" : {
@@ -6956,8 +6956,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "What is a 24-word passphrase?"
+            "state" : "translated",
+            "value" : "什么是24字密码短语？"
           }
         }
       }
@@ -7033,14 +7033,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "24-word passphrase (locally created on your device) serves as your account login details. This passphrase is the only way to access your account."
+            "state" : "translated",
+            "value" : "Секретная фраза из 24 слов (создаваемая локально на вашем устройстве) служит данными для входа в ваш аккаунт. Эта фраза — единственный способ получить доступ к вашему аккаунту."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "24-word passphrase (locally created on your device) serves as your account login details. This passphrase is the only way to access your account."
+            "state" : "translated",
+            "value" : "24 kelimelik gizli ifade (cihazınızda yerel olarak oluşturulur), hesap giriş bilgileriniz olarak kullanılır. Bu ifade, hesabınıza erişmenin tek yoludur."
           }
         },
         "uk" : {
@@ -7057,8 +7057,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "24-word passphrase (locally created on your device) serves as your account login details. This passphrase is the only way to access your account."
+            "state" : "translated",
+            "value" : "24个单词的密码短语（在您的设备上本地创建）作为您的账户登录详情。这个密码短语是访问您账户的唯一方式。"
           }
         }
       }
@@ -7081,12 +7081,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your 24-word passphrase:"
+            "value" : "Your 24-word NymVPN passphrase"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Tu frase de acceso de 24 palabras de NymVPN"
           }
         },
@@ -7098,7 +7098,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Votre phrase de passe NymVPN de 24 mots"
           }
         },
@@ -7128,38 +7128,38 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Sua frase secreta do NymVPN de 24 palavras"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your 24-word NymVPN passphrase"
+            "state" : "translated",
+            "value" : "Ваша 24‑словная секретная фраза NymVPN"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your 24-word NymVPN passphrase"
+            "state" : "translated",
+            "value" : "24 kelimelik NymVPN gizli ifadeniz"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Ваш 24-слівний пароль NymVPN"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "Cụm từ khóa NymVPN 24 từ của bạn"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your 24-word NymVPN passphrase"
+            "state" : "translated",
+            "value" : "您的 24 字词 NymVPN 密码短语"
           }
         }
       }
@@ -7235,14 +7235,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For your privacy, we’ve eliminated:"
+            "state" : "translated",
+            "value" : "Ради вашей конфиденциальности мы исключили:"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For your privacy, we’ve eliminated:"
+            "state" : "translated",
+            "value" : "Gizliliğiniz için, şunları ortadan kaldırdık:"
           }
         },
         "uk" : {
@@ -7259,8 +7259,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "For your privacy, we’ve eliminated:"
+            "state" : "translated",
+            "value" : "为了您的隐私，我们已删除："
           }
         }
       }
@@ -8774,8 +8774,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "VPN API failed with code:"
+            "state" : "translated",
+            "value" : "VPN API失败，错误代码："
           }
         }
       }
@@ -8875,8 +8875,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "VPN API timeout"
+            "state" : "translated",
+            "value" : "VPN API 超时"
           }
         }
       }
@@ -9077,8 +9077,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "No data allowance remaining. Please upgrade your account plan."
+            "state" : "translated",
+            "value" : "已超出每月带宽。请升级您的账户计划。"
           }
         }
       }
@@ -9160,8 +9160,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to create credential storage."
+            "state" : "translated",
+            "value" : "Kimlik bilgileri depolama yapılamadı."
           }
         },
         "uk" : {
@@ -9178,8 +9178,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to create credential storage."
+            "state" : "translated",
+            "value" : "创建凭据存储失败."
           }
         }
       }
@@ -9279,8 +9279,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "\"Device time is out of sync. Please synchronize your device's time with the internet.\""
+            "state" : "translated",
+            "value" : "设备时间不同步。请将您的设备时间与互联网同步。"
           }
         }
       }
@@ -9659,14 +9659,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account registration failed. Please try again."
+            "state" : "translated",
+            "value" : "Регистрация аккаунта не удалась. Пожалуйста, попробуйте ещё раз."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account registration failed. Please try again."
+            "state" : "translated",
+            "value" : "Hesap kaydı başarısız oldu. Lütfen tekrar deneyin."
           }
         },
         "uk" : {
@@ -9683,8 +9683,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Account registration failed. Please try again."
+            "state" : "translated",
+            "value" : "帐户注册失败。请重试。"
           }
         }
       }
@@ -11097,8 +11097,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Failed to start local DNS proxy. Please try again."
+            "state" : "translated",
+            "value" : "启动本地dns代理失败。请重试。"
           }
         }
       }
@@ -11109,13 +11109,13 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Subscription has expired. Please purchase a plan for your account."
+            "value" : "Kill switch protects you. Tap Stop and renew your plan."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Subscription has expired. Please purchase a plan for your account."
+            "value" : "Kill switch protects you. Tap Stop and renew your plan."
           }
         },
         "en" : {
@@ -11132,8 +11132,8 @@
         },
         "fa" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "اشتراک شما منقضی شده است. لطفاً برای حساب کاربری خود یک طرح خریداری کنید."
+            "state" : "new",
+            "value" : "Kill switch protects you. Tap Stop and renew your plan."
           }
         },
         "fr" : {
@@ -11144,62 +11144,62 @@
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "needs_review",
+            "state" : "translated",
             "value" : "सब्सक्रिप्शन समाप्त हो गई है। कृपया अपने खाते के लिए एक प्लान खरीदें।"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Subscription has expired. Please purchase a plan for your account."
+            "value" : "Kill switch protects you. Tap Stop and renew your plan."
           }
         },
         "ja" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "サブスクリプションの有効期限が切れています。アカウントのプランを購入してください。"
+            "state" : "new",
+            "value" : "Kill switch protects you. Tap Stop and renew your plan."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Subscription has expired. Please purchase a plan for your account."
+            "value" : "Kill switch protects you. Tap Stop and renew your plan."
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "A assinatura expirou. Adquira um plano para sua conta."
+            "state" : "translated",
+            "value" : "O Kill switch protege você. Toque em Parar e renovar seu plano."
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Срок подписки истёк. Пожалуйста, приобретите новый план для вашего аккаунта."
+            "state" : "new",
+            "value" : "Kill switch protects you. Tap Stop and renew your plan."
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Aboneliğinizin süresi doldu. Lütfen hesabınız için bir plan satın alın."
+            "state" : "new",
+            "value" : "Kill switch protects you. Tap Stop and renew your plan."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Термін дії підписки закінчився. Будь ласка, придбайте план для твого облікового запису."
+            "state" : "new",
+            "value" : "Kill switch protects you. Tap Stop and renew your plan."
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "Gói đăng ký của bạn đã hết hạn. Vui lòng mua một gói dịch vụ mới cho tài khoản của bạn."
+            "state" : "new",
+            "value" : "Kill switch protects you. Tap Stop and renew your plan."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "needs_review",
-            "value" : "订阅已过期。请为您的帐户购买套餐。"
+            "state" : "new",
+            "value" : "Kill switch protects you. Tap Stop and renew your plan."
           }
         }
       }
@@ -12511,8 +12511,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Expand servers"
+            "state" : "translated",
+            "value" : "扩展服务器"
           }
         }
       }
@@ -12713,8 +12713,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Off"
+            "state" : "translated",
+            "value" : "关闭"
           }
         }
       }
@@ -12814,8 +12814,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "On"
+            "state" : "translated",
+            "value" : "打开"
           }
         }
       }
@@ -16955,8 +16955,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Attempt"
+            "state" : "translated",
+            "value" : "尝试"
           }
         }
       }
@@ -17436,14 +17436,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Начало работы"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Başlayın"
           }
         },
         "uk" : {
@@ -17460,8 +17460,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "开始"
           }
         }
       }
@@ -21399,8 +21399,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Please try reconnecting."
+            "state" : "translated",
+            "value" : "请尝试重新连接。"
           }
         }
       }
@@ -21500,8 +21500,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "The NymVPN connection has failed."
+            "state" : "translated",
+            "value" : "NymVPN 连接失败。"
           }
         }
       }
@@ -21773,8 +21773,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You're now fully protected"
+            "state" : "translated",
+            "value" : "Agora você está totalmente protegido"
           }
         },
         "ru" : {
@@ -21812,6 +21812,18 @@
     "purchasePlan.selectPlan" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Choose my NymVPN plan"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Choose my NymVPN plan"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -21862,8 +21874,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose my NymVPN plan"
+            "state" : "translated",
+            "value" : "Escolha seu plano NymVPN"
           }
         },
         "ru" : {
@@ -21969,14 +21981,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start using NymVPN"
+            "state" : "translated",
+            "value" : "Начать использовать NymVPN"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start using NymVPN"
+            "state" : "translated",
+            "value" : "NymVPN kullanmaya başlayın"
           }
         },
         "uk" : {
@@ -21993,8 +22005,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Start using NymVPN"
+            "state" : "translated",
+            "value" : "开始使用 NymVPN"
           }
         }
       }
@@ -22064,8 +22076,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select a plan now to activate your protection"
+            "state" : "translated",
+            "value" : "Selecione um plano agora para ativar sua proteção"
           }
         },
         "ru" : {
@@ -22103,6 +22115,18 @@
     "purchasePlan.subtile2" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -22153,8 +22177,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
+            "state" : "translated",
+            "value" : "Seu próximo pagamento não pode ser vinculado à sua futura atividade de navegação"
           }
         },
         "ru" : {
@@ -22254,8 +22278,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose your protection level 🛡️"
+            "state" : "translated",
+            "value" : "Escolha seu nível de proteção 🛡️"
           }
         },
         "ru" : {
@@ -22355,8 +22379,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to true privacy 🎉"
+            "state" : "translated",
+            "value" : "Bem-vindo à verdadeira privacidade 🎉"
           }
         },
         "ru" : {
@@ -25314,8 +25338,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Contact support"
+            "state" : "translated",
+            "value" : "联系支持"
           }
         }
       }
@@ -25391,14 +25415,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Начало работы"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Başlayın"
           }
         },
         "uk" : {
@@ -25415,8 +25439,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "开始"
           }
         }
       }
@@ -26365,7 +26389,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Saved in Keychain"
           }
         },
@@ -26395,20 +26419,20 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saved in Keychain"
+            "state" : "translated",
+            "value" : "Salvo no Keychain"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saved in Keychain"
+            "state" : "translated",
+            "value" : "Сохранено в Keychain"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saved in Keychain"
+            "state" : "translated",
+            "value" : "Anahtar Zincirine kaydedildi"
           }
         },
         "uk" : {
@@ -26425,8 +26449,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saved in Keychain"
+            "state" : "translated",
+            "value" : "保存在钥匙串中"
           }
         }
       }
@@ -26737,6 +26761,18 @@
     "subscriptionExpired" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Subscription expired"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Subscription expired"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -26787,8 +26823,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Subscription expired"
+            "state" : "translated",
+            "value" : "Assinatura expirada"
           }
         },
         "ru" : {
@@ -26894,14 +26930,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Try again"
+            "state" : "translated",
+            "value" : "Попробовать снова"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Try again"
+            "state" : "translated",
+            "value" : "Tekrar deneyin"
           }
         },
         "uk" : {
@@ -26918,8 +26954,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Try again"
+            "state" : "translated",
+            "value" : "再试一次"
           }
         }
       }
@@ -27028,6 +27064,18 @@
     "unprotectedBanner.actionTitle" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Get started"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Get started"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27078,8 +27126,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Começar"
           }
         },
         "ru" : {
@@ -27117,6 +27165,18 @@
     "unprotectedBanner.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Get anonymous browsing now"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Get anonymous browsing now"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27167,8 +27227,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get anonymous browsing now"
+            "state" : "translated",
+            "value" : "Navegue anonimamente agora"
           }
         },
         "ru" : {
@@ -27206,6 +27266,18 @@
     "unprotectedBanner.title" : {
       "extractionState" : "manual",
       "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your privacy is unprotected "
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Your privacy is unprotected "
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
@@ -27256,8 +27328,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your privacy is unprotected "
+            "state" : "translated",
+            "value" : "Sua privacidade não está protegida "
           }
         },
         "ru" : {
