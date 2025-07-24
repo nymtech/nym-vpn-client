@@ -153,6 +153,10 @@ private extension SettingsViewModel {
         try? externalLinkManager.openExternalURL(urlString: configurationManager.accountLinks?.account)
     }
 
+    @MainActor func navigateToPassphrase() {
+        path.append(SettingLink.passphrase)
+    }
+
 #if os(macOS)
     @MainActor func navigateToInstallHelper() {
         let action = HelperAfterInstallAction { [weak self] in
@@ -230,6 +234,16 @@ private extension SettingsViewModel {
                     action: { [weak self] in
                         Task { @MainActor in
                             self?.navigateToAccount()
+                        }
+                    }
+                ),
+                SettingsListItemViewModel(
+                    accessory: .arrow,
+                    title: "settings.passphrase".localizedString,
+                    imageName: "key",
+                    action: { [weak self] in
+                        Task { @MainActor in
+                            self?.navigateToPassphrase()
                         }
                     }
                 )

@@ -25968,6 +25968,17 @@
         }
       }
     },
+    "settings.passphrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passphrase"
+          }
+        }
+      }
+    },
     "settings.resetVpnProfileSubtitle" : {
       "extractionState" : "manual",
       "localizations" : {
