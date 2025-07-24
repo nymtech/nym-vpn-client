@@ -182,7 +182,7 @@ public extension HomeViewModel {
 
     @MainActor func navigateToPlanPurchase() {
         path.append(HomeLink.settings)
-        path.append(SettingLink.createAccountSuccess)
+        path.append(SettingLink.planPurchase)
     }
 
 #if os(macOS)
