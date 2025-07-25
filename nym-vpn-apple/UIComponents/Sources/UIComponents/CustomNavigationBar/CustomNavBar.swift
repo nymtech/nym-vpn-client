@@ -21,8 +21,8 @@ public struct CustomNavBar: View {
         self.title = title
         self.useElevationBackground = useElevationBackground
         self.isLogoImageHidden = isLogoImageHidden
-        self.leftButton = leftButton
-        self.rightButton = rightButton
+        _leftButton = State(initialValue: leftButton)
+        _rightButton = State(initialValue: rightButton)
     }
 
     public var body: some View {
