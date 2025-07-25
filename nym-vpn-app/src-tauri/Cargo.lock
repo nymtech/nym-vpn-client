@@ -3340,7 +3340,7 @@ dependencies = [
 
 [[package]]
 name = "nym-ipc"
-version = "1.13.0-beta"
+version = "1.14.0-beta"
 dependencies = [
  "async-stream",
  "hyper-util",
@@ -3354,7 +3354,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.13.0-dev"
+version = "1.14.0-dev"
 dependencies = [
  "anyhow",
  "build-info",
@@ -3402,7 +3402,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-proto"
-version = "1.13.0-beta"
+version = "1.14.0-beta"
 dependencies = [
  "prost",
  "prost-types",
@@ -3412,7 +3412,7 @@ dependencies = [
 
 [[package]]
 name = "nym-windows"
-version = "1.13.0-beta"
+version = "1.14.0-beta"
 dependencies = [
  "bitflags 2.9.0",
  "futures",
