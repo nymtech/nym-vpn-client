@@ -4253,12 +4253,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Acts as your login"
+            "value" : "Belongs only to you(self-custody)"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Actúa como tu usuario"
           }
         },
@@ -4270,7 +4270,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Utilise vos identifiants"
           }
         },
@@ -4300,37 +4300,37 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Atua como seu login"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Используется как ваш логин"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Giriş bilgileriniz olarak kullanılır"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Діє як ваш логін"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Đóng vai trò như là hành động đăng nhập của bạn"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "作为您的登录"
           }
         }
@@ -4455,12 +4455,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Is anonymous by design"
+            "value" : "Keeps you anonymous"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Es anónimo por diseño"
           }
         },
@@ -4472,7 +4472,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Anonymat intégré à la conception"
           }
         },
@@ -4502,37 +4502,37 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "É anônimo por design"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Анонимность заложена в основу конструкции"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Tasarım gereği anonimdir"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Анонімне оформлення"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Ẩn danh theo thiết kế"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "是匿名设计的"
           }
         }
@@ -5566,12 +5566,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Email usage"
+            "value" : "Personal data-based logins"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Uso del correo electrónico"
           }
         },
@@ -5583,7 +5583,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Utilisation de l'adresse mail"
           }
         },
@@ -5613,37 +5613,37 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Uso de e-mail"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Использование электронной почты"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "E-posta kullanımı"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Використання електронної пошти"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Sử dụng email"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "电子邮件使用情况"
           }
         }
@@ -5667,12 +5667,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enables self-custody"
+            "value" : "Works as your secure login"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Habilita la autocustodia"
           }
         },
@@ -5684,7 +5684,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Activer l'autodétention"
           }
         },
@@ -5714,37 +5714,37 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Permite a autocustódia"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Обеспечивает самостоятельное хранение"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Kendi kendine kontrolü sağlar"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Дозволяє самостійно зберігати активи"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Cho phép tự lưu ký"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "启用自我保管"
           }
         }
@@ -5857,19 +5857,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "es" : {
@@ -5881,7 +5881,7 @@
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "fr" : {
@@ -5893,25 +5893,25 @@
         "hi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Instead, you’re creating an account secured \u2028by a 24-word passphrase."
+            "value" : "Instead, you’re creating an account secured  by a 24-word passphrase."
           }
         },
         "pt-BR" : {
@@ -6273,12 +6273,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Password creation"
+            "value" : "Admin-controlled access resets"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Creación de contraseña"
           }
         },
@@ -6290,7 +6290,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Création de mot de passe"
           }
         },
@@ -6320,37 +6320,37 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Criação de senha"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Создание пароля"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Şifre oluşturma"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Створити пароль"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Tạo mật khẩu"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "创建密码"
           }
         }
@@ -6677,12 +6677,12 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Third-party trust"
+            "value" : "Centrally-stored accounts"
           }
         },
         "es" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Confianza de terceros"
           }
         },
@@ -6694,7 +6694,7 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Confiance accordée aux tierces parties"
           }
         },
@@ -6724,37 +6724,37 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Confiança de terceiros"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Доверие третьих сторон"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Üçüncü taraf güvencesi"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Стороння довіра"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "Tin cậy vào bên thứ ba"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
+            "state" : "needs_review",
             "value" : "第三方信任"
           }
         }
@@ -14240,19 +14240,19 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "es" : {
@@ -14282,7 +14282,7 @@
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "ja" : {
@@ -14294,7 +14294,7 @@
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "NymVPN runs a background service (daemon) \u2028to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
+            "value" : "NymVPN runs a background service (daemon)  to keep your connection secure. It handles encryption and routing, protecting your activity even when the app is closed.\n\nFollow the steps below to install the daemon."
           }
         },
         "pt-BR" : {
