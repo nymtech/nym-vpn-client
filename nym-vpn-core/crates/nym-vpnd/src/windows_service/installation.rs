@@ -47,7 +47,7 @@ pub fn install_service() -> anyhow::Result<()> {
         {
             service_manager
                 .create_service(&service_info, service_access)
-                .with_context(|| "Failed to open service")?
+                .with_context(|| "Failed to create service")?
         }
         Err(e) => Err(e).with_context(|| "Failed to open service")?,
     };

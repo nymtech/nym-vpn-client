@@ -39,27 +39,20 @@ fn main() -> anyhow::Result<()> {
         #[cfg(windows)]
         Command::InstallService => {
             println!(
-                "Processing request to install {} as a service...",
+                "Installing {} as a service...",
                 windows_service::SERVICE_NAME
             );
-            windows_service::installation::install_service()?;
-            Ok(())
+            windows_service::installation::install_service()
         }
         #[cfg(windows)]
         Command::UninstallService => {
-            println!(
-                "Processing request to uninstall {} as a service...",
-                windows_service::SERVICE_NAME
-            );
+            println!("Uninstalling {} service...", windows_service::SERVICE_NAME);
             windows_service::installation::uninstall_service()?;
             Ok(())
         }
         #[cfg(windows)]
         Command::StartService => {
-            println!(
-                "Processing request to start service {}...",
-                windows_service::SERVICE_NAME
-            );
+            println!("Starting {} service...", windows_service::SERVICE_NAME);
             windows_service::installation::start_service()?;
             Ok(())
         }
