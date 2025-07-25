@@ -13,16 +13,14 @@ mod user_agent;
 #[cfg(windows)]
 mod windows_service;
 
-#[cfg(windows)]
-use std::path::PathBuf;
-use std::time::Duration;
+use std::{path::PathBuf, time::Duration};
 
 use clap::Parser;
 use sentry::ClientInitGuard;
 use tokio::sync::{broadcast, mpsc};
 use tokio_util::sync::CancellationToken;
 
-use nym_vpn_lib::{SysInfo, UserAgent};
+use nym_vpn_lib::UserAgent;
 use nym_vpn_network_config::Network;
 
 use crate::{
@@ -39,7 +37,7 @@ fn main() -> anyhow::Result<()> {
 
     match args.command.unwrap_or_default() {
         #[cfg(windows)]
-        Command::Install => {
+        Command::InstallService => {
             println!(
                 "Processing request to install {} as a service...",
                 windows_service::SERVICE_NAME
@@ -48,7 +46,7 @@ fn main() -> anyhow::Result<()> {
             Ok(())
         }
         #[cfg(windows)]
-        Command::Uninstall => {
+        Command::UninstallService => {
             println!(
                 "Processing request to uninstall {} as a service...",
                 windows_service::SERVICE_NAME
@@ -57,7 +55,7 @@ fn main() -> anyhow::Result<()> {
             Ok(())
         }
         #[cfg(windows)]
-        Command::Start => {
+        Command::StartService => {
             println!(
                 "Processing request to start service {}...",
                 windows_service::SERVICE_NAME

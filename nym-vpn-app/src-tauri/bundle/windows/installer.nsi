@@ -369,7 +369,7 @@ Function PageLeaveReinstall
 FunctionEnd
 
 Function VpndUninstall
-  ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
+  ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service'
 FunctionEnd
 
 ; 5. Choose install directory page
@@ -713,8 +713,8 @@ Section Install
   !endif
 
   ; Install NymVPN service
-  ExecWait '"$INSTDIR\nym-vpnd.exe" --install'
-  ExecWait '"$INSTDIR\nym-vpnd.exe" --start'
+  ExecWait '"$INSTDIR\nym-vpnd.exe" install-service'
+  ExecWait '"$INSTDIR\nym-vpnd.exe" start-service'
 
   ; Create start menu shortcut
   !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
@@ -780,7 +780,7 @@ Section Uninstall
   !insertmacro CheckIfAppIsRunning "${MAINBINARYNAME}.exe" "${PRODUCTNAME}"
 
   ; vpnd cleanup
-  ExecWait '"$INSTDIR\nym-vpnd.exe" --uninstall'
+  ExecWait '"$INSTDIR\nym-vpnd.exe" uninstall-service'
   Delete "$INSTDIR\nym-vpnd.exe"
   Delete "$INSTDIR\libwg.dll"
   Delete "$INSTDIR\wintun.dll"

@@ -52,21 +52,22 @@ impl CliArgs {
 pub enum Command {
     #[cfg(windows)]
     /// Install windows service
-    Install,
+    InstallService,
 
     #[cfg(windows)]
     /// Uninstall windows service
-    Uninstall,
+    UninstallService,
 
     #[cfg(windows)]
     /// Start windows service
-    Start,
+    StartService,
 
     /// Run daemon as a service
     RunAsService,
 
     /// Run daemon standalone
     #[default]
+    #[clap(skip)]
     RunStandalone,
 }
 
