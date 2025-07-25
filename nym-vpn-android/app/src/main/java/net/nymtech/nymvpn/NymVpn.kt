@@ -14,6 +14,8 @@ import io.sentry.SentryOptions
 import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import net.nymtech.logcatutil.LogReader
@@ -57,7 +59,7 @@ class NymVpn : Application() {
 	override fun onCreate() {
 		super.onCreate()
 		instance = this
-		ProcessLifecycleOwner.get().lifecycle.addObserver(AppLifecycleObserver())
+		AppLifecycleObserver.init()
 		if (BuildConfig.DEBUG) {
 			Timber.plant(DebugTree())
 			val builder = StrictMode.VmPolicy.Builder()
@@ -119,25 +121,24 @@ class NymVpn : Application() {
 		}
 	}
 
-	class AppLifecycleObserver : DefaultLifecycleObserver {
+	object AppLifecycleObserver : DefaultLifecycleObserver {
+		private val _isInForeground = MutableStateFlow(false)
+		val isInForeground: StateFlow<Boolean> get() = _isInForeground
 
 		override fun onStart(owner: LifecycleOwner) {
-			Timber.d("Application entered foreground")
-			foreground = true
+			_isInForeground.value = true
 		}
 
-		override fun onPause(owner: LifecycleOwner) {
-			Timber.d("Application entered background")
-			foreground = false
+		override fun onStop(owner: LifecycleOwner) {
+			_isInForeground.value = false
+		}
+
+		fun init() {
+			ProcessLifecycleOwner.get().lifecycle.addObserver(this)
 		}
 	}
 
 	companion object {
-		private var foreground = false
-
-		fun isForeground(): Boolean {
-			return foreground
-		}
 
 		lateinit var instance: NymVpn
 			private set

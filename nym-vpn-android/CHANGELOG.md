@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Crash related to playing animation in background (https://github.com/nymtech/nym-vpn-client/pull/3125)
+- Clear backstack after login (https://github.com/nymtech/nym-vpn-client/pull/3102)
+- Minor UI and routing fixes
+
 ## [1.7.0] - 2025-07-18
 
 ### Added
