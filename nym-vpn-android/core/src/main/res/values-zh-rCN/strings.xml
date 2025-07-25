@@ -3,6 +3,9 @@
 	<string name="vpn_notification_title">NymVPN</string>
 	<string name="channel_name">NymVPN 频道</string>
 	<string name="channel_description">VPN 相关通知的通道。</string>
-	<string name="vpn_notification_text">运行中</string>
-	<string name="failed">失败</string>
+	<string name="disconnect">断开</string>
+	<string name="state_connected">已连接</string>
+	<string name="state_disconnected">未连接</string>
+	<string name="state_initializing">初始化客户端…</string>
+	<string name="state_establishing">正在建立连接……</string>
 </resources>

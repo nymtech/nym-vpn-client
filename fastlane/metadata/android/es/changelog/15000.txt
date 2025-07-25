@@ -1,0 +1,6 @@
+Novedades:
+- Actualizaciones y mejoras menores en la interfaz de usuario
+- Corrección para la apertura adecuada de URL's 
+- Mejores mensajes de error en conectividad baja
+- Avisos cuando la hora del dispositivo no está sincronizada
+- Mejoras de conectividad

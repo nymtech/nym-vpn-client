@@ -108,6 +108,7 @@
     <string name="notifications">Notificaciones</string>
     <string name="allow_permissions">Permitir permisos</string>
     <string name="notification_permission_message">Necesario para mantener los servicios VPN en funcionamiento mientras la aplicación está cerrada.</string>
+    <string name="notification_permission_required">Por favor, habilita el permiso de notificación para el correcto funcionamiento de la aplicación</string>
     <string name="error_gateway_lookup">Error en la búsqueda de gateways de Ni. Comprueba tu conexión de red e inténtelo de nuevo.</string>
     <string name="error_bad_peer_cert">"El gateway seleccionado tiene un certificado peer incorrecto. Inténtalo de nuevo para conectarte a un gateway diferente. "</string>
     <string name="error_no_hostname_address">Falta la dirección del nombre de host del gateway. Por favor, inténtalo de nuevo para conectarte a un gateway diferente.</string>
@@ -246,4 +247,11 @@
     <string name="telegram_url">https://nym.com/go/telegram</string>
     <string name="join_telegram">Únete a nuestro Telegram</string>
     <string name="device_time_out_of_sync">El tiempo del dispositivo no está sincronizado</string>
+    <string name="create_mixnet_storage">Error al crear almacenamiento de credenciales</string>
+    <string name="ipv6_unavailable">Ipv6 no disponible</string>
+    <string name="battery_opt_title">Para una mejor conexión</string>
+    <string name="battery_opt_descr">Desactiva las optimizaciones de batería de NymVPN para conexiones VPN más estables.</string>
+    <string name="skip">Saltar</string>
+    <string name="battery_opt">Optimización de la batería</string>
+    <string name="battery_opt_settings_text">La configuración de optimización de la batería se puede cambiar en cualquier momento en los ajustes de la aplicación.</string>
 </resources>

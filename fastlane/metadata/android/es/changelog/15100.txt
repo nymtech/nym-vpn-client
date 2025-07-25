@@ -1,0 +1,2 @@
+Novedades:
+- Mejoras y correcciones en la navegación

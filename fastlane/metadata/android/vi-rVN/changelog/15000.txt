@@ -1,0 +1,6 @@
+Có gì mới:
+- Cập nhật và cải tiến giao diện nhỏ
+- Sửa lỗi mở đúng các URL 
+- Cải thiện thông báo lỗi khi kết nối yếu
+- Thông báo khi thời gian của thiết bị không đồng bộ
+- Cải thiện kết nối

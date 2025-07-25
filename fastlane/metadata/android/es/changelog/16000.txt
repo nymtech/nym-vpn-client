@@ -1,0 +1,8 @@
+Novedades:
+- Mejoras y correcciones en la navegación
+- Mejoras en la exportación de registros
+- Rendimiento de la aplicación más estable
+- Mejoras en la interfaz y la experiencia de usuario
+- Actualización de mensajes de error e información
+- Mejora en el manejo de notificaciones
+- Se implementaron comprobaciones de permisos de ejecución adecuados

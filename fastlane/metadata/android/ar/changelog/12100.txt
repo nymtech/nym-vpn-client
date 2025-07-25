@@ -1,0 +1,5 @@
+What's new:
+- Gateway selection details
+- Data usage optimizations
+- Tile sync fixes
+- Other bug fixes and improvements

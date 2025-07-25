@@ -3,6 +3,9 @@
 	<string name="vpn_notification_title">NymVPN</string>
 	<string name="channel_name">Canal NymVPN</string>
 	<string name="channel_description">Um canal para notificações relacionadas a VPN.</string>
-	<string name="vpn_notification_text">Executando</string>
-	<string name="failed">Failed</string>
+	<string name="disconnect">Від\'єднати</string>
+	<string name="state_connected">Підключено</string>
+	<string name="state_disconnected">Від\'єднано</string>
+	<string name="state_initializing">Ініціалізація клієнта…</string>
+	<string name="state_establishing">Встановлення з\'єднання…</string>
 </resources>

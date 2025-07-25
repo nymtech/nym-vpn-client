@@ -3,6 +3,9 @@
 	<string name="vpn_notification_title">NymVPN</string>
 	<string name="channel_name">Kênh NymVPN</string>
 	<string name="channel_description">Kênh thông báo liên quan đến VPN.</string>
-	<string name="vpn_notification_text">Đang chạy</string>
-	<string name="failed">Không thành công</string>
+	<string name="disconnect">Ngắt kết nối</string>
+	<string name="state_connected">Đã kết nối</string>
+	<string name="state_disconnected">Đã ngắt kết nối</string>
+	<string name="state_initializing">Đang khởi tạo máy khách…</string>
+	<string name="state_establishing">Đang thiết lập kết nối…</string>
 </resources>

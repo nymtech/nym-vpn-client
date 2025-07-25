@@ -108,6 +108,7 @@
     <string name="notifications">Notifications</string>
     <string name="allow_permissions">Accorder les permissions</string>
     <string name="notification_permission_message">Nécessaire pour que les services VPN continuent de fonctionner lorsque l\'application est fermée.</string>
+    <string name="notification_permission_required">Merci d\'autoriser l\'envoi de notification pour le bon fonctionnement de l\'application</string>
     <string name="error_gateway_lookup">Échec de la recherche des passerelles (gateways). Vérifiez votre connexion et réessayez.</string>
     <string name="error_bad_peer_cert">"La passerelle (gateway) sélectionnée a un certificat invalide. Essayez de vous connecter à une autre passerelle. "</string>
     <string name="error_no_hostname_address">L\'adresse du nom d\'hôte de la passerelle est manquante. Veuillez réessayer de vous connecter à une autre passerelle.</string>
@@ -220,7 +221,7 @@
     <string name="log_out_title">Êtes-vous sûr de vouloir vous déconnecter ?</string>
     <string name="log_out_body">Vous aurez besoin de votre phrase de récupération pour vous reconnecter.</string>
     <string name="cancel">Abandonner</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
+    <string name="subscription_expired_error">L\'abonnement à ce compte a expiré. Mettez à niveau votre abonnement pour continuer à l\'utiliser.</string>
     <string name="remove_device">Retirez un appareil de votre compte et réessayez.</string>
     <string name="gateway_score">Score de la passerelle</string>
     <string name="info">Infos</string>
@@ -245,5 +246,12 @@
     <string name="get_help">Obtenir de l\'aide</string>
     <string name="telegram_url">https://nym.com/go/telegram</string>
     <string name="join_telegram">Rejoignez-nous sur Telegram</string>
-    <string name="device_time_out_of_sync">Device time out of sync</string>
+    <string name="device_time_out_of_sync">L\'heure de l\'appareil n\'est pas synchronisée</string>
+    <string name="create_mixnet_storage">Échec de la création du stockage des informations d\'identification</string>
+    <string name="ipv6_unavailable">Ipv6 Unavailable</string>
+    <string name="battery_opt_title">Pour une meilleure connexion</string>
+    <string name="battery_opt_descr">Désactiver les optimisations de batterie pour NymVPN afin de permettre des connexions VPN plus stables.</string>
+    <string name="skip">Ignorer</string>
+    <string name="battery_opt">Optimisation de la batterie</string>
+    <string name="battery_opt_settings_text">Le paramètre d\'optimisation de la batterie peut être changé à tout moment dans les paramètres de l\'application.</string>
 </resources>

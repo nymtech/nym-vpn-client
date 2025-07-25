@@ -1,0 +1,5 @@
+Quoi de neuf :
+- Délai d'expiration des identifiants
+- Numérisation du code QR pour les identifiants
+- Lien du bouton Tuer
+- Améliorations de l'interface utilisateur

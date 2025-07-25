@@ -1,0 +1,7 @@
+Có gì mới:
+- Cải thiện hiệu suất API
+- Thêm các phím tắt ứng dụng cơ bản
+- Mở rộng giao diện người dùng
+- Sửa lỗi kiểm tra hạn thông tin đăng nhập
+Sửa lỗi đồng bộ giao diện kết nối
+Cải thiện ô đồng bộ nhanh

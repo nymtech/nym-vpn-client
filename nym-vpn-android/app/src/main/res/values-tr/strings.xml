@@ -108,6 +108,7 @@
     <string name="notifications">Bildirimler</string>
     <string name="allow_permissions">İzinleri kabul et</string>
     <string name="notification_permission_message">Uygulama kapalıyken VPN hizmetlerinin çalışması sağlanmalıdır.</string>
+    <string name="notification_permission_required">Uygulamanın düzgün çalışması için bildirim izinlerini  etkinleştirin</string>
     <string name="error_gateway_lookup">Nym gateway\'leri bulunamadı. Lütfen ağ bağlantınızı kontrol edip yeniden deneyin.</string>
     <string name="error_bad_peer_cert">"Seçilen gateway'in kötü bir peer sertifikası var. Lütfen başka bir gateway'e yeniden bağlanmayı deneyin "</string>
     <string name="error_no_hostname_address">Gateway\'in hostname\'i eksik. Lütfen farklı bir gateway\'e yeniden bağlanmayı deneyin.</string>
@@ -218,7 +219,7 @@
     <string name="log_out_title">Çıkış yapmak istediğinizden emin misiniz?</string>
     <string name="log_out_body">Tekrar giriş yapabilmek için kurtarma cümlenize ihtiyacınız olacak.</string>
     <string name="cancel">Iptal et</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
+    <string name="subscription_expired_error">Bu hesabın aboneliği sona erdi. Kullanıma devam etmek için aboneliğinizi yükseltin.</string>
     <string name="remove_device">Hesabınızdan bir cihazı kaldırın ve tekrar deneyin.</string>
     <string name="gateway_score">Gateway skoru</string>
     <string name="info">Bilgi</string>
@@ -244,4 +245,11 @@
     <string name="telegram_url">https://nym.com/go/telegram</string>
     <string name="join_telegram">Telegram\'da bize katılın</string>
     <string name="device_time_out_of_sync">Cihaz saati senkronize değil</string>
+    <string name="create_mixnet_storage">Kimlik bilgileri depolama yapılamadı</string>
+    <string name="ipv6_unavailable">Ipv6 Kullanılamıyor</string>
+    <string name="battery_opt_title">En iyi bağlantı için</string>
+    <string name="battery_opt_descr">Daha kararlı VPN bağlantıları için NymVPN’in pil optimizasyonlarını devre dışı bırakın.</string>
+    <string name="skip">Atla</string>
+    <string name="battery_opt">Pil optimizasyonu</string>
+    <string name="battery_opt_settings_text">Pil optimizasyonu ayarı, uygulama ayarlarından istediğiniz zaman değiştirilebilir.</string>
 </resources>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">NymVPN</string>
+    <string name="app_name">NymVPNmo</string>
     <string name="settings">सेटिंग्स</string>
     <string name="connected">कनेक्शन सफल हुआ</string>
     <string name="disconnected">डिस्कनेक्टेड</string>
@@ -108,6 +108,7 @@
     <string name="notifications">सूचनाएँ</string>
     <string name="allow_permissions">अनुमतियाँ अनुमति दें</string>
     <string name="notification_permission_message">ऐप बंद होने के दौरान VPN सेवाओं को चालू रखने के लिए आवश्यक है।</string>
+    <string name="notification_permission_required">Please enable notification permission for proper app functionality</string>
     <string name="error_gateway_lookup">Nym गेटवे की खोज करने में विफल। कृपया अपने नेटवर्क कनेक्शन की जाँच करें और फिर से प्रयास करें।</string>
     <string name="error_bad_peer_cert">"चयनित गेटवे का पीयर सर्टिफिकेट खराब है। कृपया एक अलग गेटवे से कनेक्ट करने का प्रयास करें। "</string>
     <string name="error_no_hostname_address">गेटवे का होस्टनेम पता गायब है। कृपया एक अलग गेटवे से कनेक्ट करने का प्रयास करें।</string>
@@ -201,7 +202,7 @@
     <string name="two_hop_explanation">सबसे अधिक गति का लाभ 2-सर्वर से पाएं। यह मोड AmneziaWG का उपयोग करता है, जो WireGuard का सेंसरशिप-प्रतिरोधी संस्करण है - जो तेज़ ब्राउज़िंग, स्ट्रीमिंग और फ़ाइल साझाकरण के लिए आदर्श है।</string>
     <string name="two_hop_title">तेज़ (WireGuard<small>*</small>)</string>
     <string name="disabled_while_connecting">VPN से जुड़ते समय अक्षम</string>
-    <string name="exit">बाहर निकलें</string>
+    <string name="exit">आखरी स्थान</string>
     <string name="entry">उद्भव स्थान</string>
     <string name="no_results_found">कोई परिणाम नहीं मिला।</string>
     <string name="how_to_run_gateway">गेटवे को कैसे चलाएँ।</string>
@@ -218,7 +219,7 @@
     <string name="log_out_title">क्या आप सुनिश्चित हैं कि आप लॉग आउट करना चाहते हैं?</string>
     <string name="log_out_body">आपको फिर से लॉग इन करने के लिए अपनी रिकवरी फ़्रेज़ की आवश्यकता होगी।</string>
     <string name="cancel">कैंसल</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
+    <string name="subscription_expired_error">इस खाते की सदस्यता समाप्त हो गई है। NymVPN इस्तेमाल जारी रखने के लिए अपनी सदस्यता अपग्रेड करें।</string>
     <string name="remove_device">अपने खाते से एक उपकरण हटा दें और फिर से प्रयास करें।</string>
     <string name="gateway_score">गेटवे स्कोर</string>
     <string name="info">सूचना</string>
@@ -243,5 +244,12 @@
     <string name="get_help">मदद् लें</string>
     <string name="telegram_url">https://nym.com/go/telegram</string>
     <string name="join_telegram">Telegram पर हमसे जुड़ें</string>
-    <string name="device_time_out_of_sync">Device time out of sync</string>
+    <string name="device_time_out_of_sync">डिवाइस समय समन्वयित नहीं है</string>
+    <string name="create_mixnet_storage">Failed to create credential storage</string>
+    <string name="ipv6_unavailable">Ipv6 Unavailable</string>
+    <string name="battery_opt_title">For best connection</string>
+    <string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
+    <string name="skip">Skip</string>
+    <string name="battery_opt">Battery optimization</string>
+    <string name="battery_opt_settings_text">Battery optimization setting can be changed anytime in app settings.</string>
 </resources>

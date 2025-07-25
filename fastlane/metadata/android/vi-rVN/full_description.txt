@@ -1,0 +1,33 @@
+Bạn lo lắng về quyền riêng tư trực tuyến của mình? Bạn cần truy cập thông tin bị chặn? VPN phi tập trung của Nym chính là giải pháp. Với NymVPN trên Android, bạn có thể duyệt web riêng tư, vượt qua kiểm duyệt và bảo vệ các giao dịch tiền điện tử của mình.
+
+
+NymVPN là VPN đầu tiên dành cho người dùng phổ thông chạy trên một mạng lưới phi tập trung. Thay vì dùng các máy chủ tập trung tâm như VPN truyền thống, ứng dụng định tuyến lưu lượng truy cập của bạn qua nhiều node độc lập, kết hợp mã hóa mạnh mẽ và lớp nhiễu bảo vệ để giữ cho bạn ẩn danh trên mạng.
+
+
+Chọn mức độ riêng tư phù hợp:
+- Chế độ Nhanh với các biện pháp bảo vệ phi tập trung 2 bước nhảy với AmneziaWG
+- Chế độ Ẩn danh: định tuyến 5 bước nhảy với công nghệ mixnet và nhiễu
+
+Không thể ghi nhật ký mạng:
+Trong khi các VPN khác chỉ hứa không lưu nhật ký, mạng lưới Nym được thiết kế để không thể ghi nhật ký tập trung. Không có điểm nào trên mạng có thể liên kết địa chỉ IP của bạn với hoạt động trực tuyến của bạn. Quyền riêng tư của bạn được đảm bảo theo mặc định.
+
+Thanh toán không thể liên kết:
+Không cần thông tin cá nhân để đăng ký NymVPN, ngay cả tên của bạn. Thanh toán an toàn bằng zero-knowledge proof, đảm bảo bạn không thể bị liên kết với việc sử dụng ứng dụng và mạng.
+
+Chống kiểm duyệt:
+Vượt qua rào cản truy cập thông tin bằng cách chọn cổng vào và thoát cho lưu lượng truy cập của bạn. AmneziaWG (một nhánh của giao thức WireGuard) ở chế độ Nhanh bảo vệ khỏi các nỗ lực theo dõi nhắm vào việc sử dụng VPN.
+
+Các tính năng bổ sung của NymVPN:
+- Thanh toán tiền điện tử, bao gồm Zcash và Monero
+- Thanh toán bằng tiền mặt để bảo mật tối đa
+- Không quảng cáo
+- Hỗ trợ tối đa 10 thiết bị
+- Lựa chọn cổng
+- Bảo vệ IP đa bước nhảy
+- Killswitch (gốc Android)
+
+Các tính năng sắp ra mắt trong năm 2025:
+- Split tunneling
+- Khả năng chống kiểm duyệt tiên tiến
+- Mật mã hậu lượng tử
+- Địa chỉ IP dân cư

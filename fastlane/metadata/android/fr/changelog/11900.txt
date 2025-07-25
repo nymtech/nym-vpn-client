@@ -1,0 +1,3 @@
+Quoi de neuf :
+- Détection hors ligne
+- Corrections de bugs

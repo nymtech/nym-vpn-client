@@ -1,0 +1,33 @@
+Worried about your privacy online? Need to access blocked information? Nym’s decentralized VPN is here to help. With NymVPN for Android, you can browse the web privately, get around censorship restrictions, and protect your crypto transactions.
+
+
+NymVPN is the first VPN for everyday users that runs on a decentralized network. Instead of using central servers like traditional VPNs, it sends your traffic through multiple independent nodes, adding strong encryption and protective noise to keep you private.
+
+
+Choose your level of privacy:
+- The Fast mode’s 2-hop decentralized protections with AmneziaWG
+- The Anonymous mode’s 5-hop routing with mixnet technology and added noise
+
+Can’t log network:
+While other VPNs promise not to keep logs, the Nym network is designed so centralized logs are not possible. No point on the decentralized network can connect your IP address with what you do online. Your privacy is guaranteed by default.
+
+Unlinkable payments:
+No personal information is required to subscribe to NymVPN, not even your name. Pay securely with zero-knowledge proofs that ensure you can never be linked to your use of the app and network.
+
+Censorship resistance:
+Bypass barriers to accessing the information you need by selecting the entry and exit gateways for your traffic. AmneziaWG (a fork of the WireGuard protocol) on the Fast mode protects against surveillance targeting VPN use.
+
+Additional NymVPN features:
+- Crypto payments, including Zcash and Monero
+- Cash payments for maximal privacy
+- No-ads
+- Up to 10 devices
+- Gateway selection
+- Multi-hop IP protections
+- Killswitch (Android native)
+
+Coming features in 2025:
+- Split tunneling
+- Advanced censorship resistance
+- Post-quantum cryptography
+- Residential IPs

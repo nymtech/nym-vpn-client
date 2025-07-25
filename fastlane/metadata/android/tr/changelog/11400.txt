@@ -1,0 +1,6 @@
+Yenilikler:
+- Anonim giriş bilgileri eklendi
+- Tünel güvenilirliği iyileştirmeleri
+- Kullanıcı arayüzü güncellemeleri
+- Ağ değişikliği yönetimi iyileştirmeleri
+- Diğer düzeltmeler ve iyileştirmeler

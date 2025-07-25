@@ -1,0 +1,5 @@
+Quais as novidades:
+- Detalhes da seleção do Gateway
+- Otimizações de uso de dados
+- Correções de sincronização de blocos
+- Outras correções de erros e melhorias

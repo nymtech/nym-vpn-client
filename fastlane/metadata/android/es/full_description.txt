@@ -1,0 +1,33 @@
+¿Preocupado por tu privacidad en línea? ¿Necesitas acceder a información bloqueada? La VPN descentralizada de Nym está aquí para ayudar. Con NymVPN para Android, puedes navegar por la web de forma privada, eludir las restricciones de censura y proteger tus transacciones en criptomonedas.
+
+
+NymVPN es la primera VPN para uso diario que se ejecuta en una red descentralizada. En lugar de usar servidores centrales como las VPN tradicionales, envía tu tráfico a través de múltiples nodos independientes, agregando encriptación fuerte y ruido protector para mantener tu privacidad.
+
+
+Elige tu nivel de privacidad:
+- Protección descentralizada con 2 saltos del modo Rápido con AmneziaWG
+- Enrutamiento en modo anónimo de 5 saltos con tecnología mixnet y ruido añadido
+
+No se puede registrar la red:
+Mientras que otras VPN prometen no mantener registros, la red Nym está diseñada para que no sea posible tener registros centralizados. Ningún punto de la red descentralizada puede conectar tu dirección IP con lo que haces en línea. Tu privacidad está garantizada por defecto.
+
+Pagos no vinculables:
+No se requiere información personal para suscribirse a NymVPN, ni siquiera tu nombre. Pagua de forma segura con pruebas de conocimiento cero que garantizan que el pago nunca pueda ser vinculado al uso de la aplicación y de la red.
+
+Resistencia a la censura:
+Elimina las barreras para acceder a la información que necesitas, puedes hcerlo seleccionando los gateways   de entrada y salida para tu tráfico. AmneziaWG (un fork del protocolo WireGuard) en modo Rápido protege contra la vigilancia dirigida al uso de VPN.
+
+Funcionalidades adicionales de NymVPN:
+- Pagos con criptomonedas, incluyendo Zcash y Monero
+- Pagos en efectivo para máxima privacidad
+- Sin anuncios
+- Hasta 10 dispositivos
+- Selección de gateway
+- Protección IP multisalto
+- Killswitch (Android nativo)
+
+Funcionalidades que llegarán en 2025:
+- Split tunneling
+- Resistencia avanzada a la censura
+- Criptografía post-cuántica
+- IPs residenciales

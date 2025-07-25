@@ -108,6 +108,7 @@
     <string name="notifications">Сповіщення</string>
     <string name="allow_permissions">Дозволити доступ</string>
     <string name="notification_permission_message">Потрібно для того, щоб VPN-сервіси працювали, коли програма закрита.</string>
+    <string name="notification_permission_required">Будь ласка, увімкніть дозвіл на сповіщення для правильної роботи програми</string>
     <string name="error_gateway_lookup">Не вдалося знайти шлюзи Nym. Будь ласка, перевірте підключення до мережі та спробуйте ще раз.</string>
     <string name="error_bad_peer_cert">"Вибраний шлюз має поганий сертифікат. Будь ласка, спробуйте підключитися до іншого шлюзу. "</string>
     <string name="error_no_hostname_address">Шлюзу не вистачає адреси хоста. Будь ласка, спробуйте підключитися до іншого шлюзу.</string>
@@ -218,7 +219,7 @@
     <string name="log_out_title">Ви впевнені, що хочете вийти з системи?</string>
     <string name="log_out_body">Для повторного входу вам знадобиться фраза відновлення.</string>
     <string name="cancel">Скасувати</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
+    <string name="subscription_expired_error">Підписка для цього облікового запису закінчилася. Оновіть свою підписку, щоб продовжити використання.</string>
     <string name="remove_device">Видаліть пристрій зі свого акаунта і спробуйте ще раз.</string>
     <string name="gateway_score">Оцінка шлюзу</string>
     <string name="info">Інформація</string>
@@ -244,4 +245,11 @@
     <string name="telegram_url">https://nym.com/go/telegram</string>
     <string name="join_telegram">Приєднуйтесь до нас у Telegram</string>
     <string name="device_time_out_of_sync">Час пристрою не синхронізовано</string>
+    <string name="create_mixnet_storage">Не вдалося створити базу даних облікових даних</string>
+    <string name="ipv6_unavailable">Ipv6 недоступний</string>
+    <string name="battery_opt_title">Для кращого з\'єднання</string>
+    <string name="battery_opt_descr">Вимкніть оптимізацію заряду батареї NymVPN для більш стабільних VPN-з\'єднань.</string>
+    <string name="skip">Пропустити</string>
+    <string name="battery_opt">Оптимізація батареї</string>
+    <string name="battery_opt_settings_text">Налаштування оптимізації батареї можна змінювати в будь-який час у налаштуваннях програми.</string>
 </resources>

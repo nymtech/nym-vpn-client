@@ -1,0 +1,5 @@
+Yenilikler:
+Uygulamanın çökmesine ve yanıtsız kalmasına neden olan hatalar giderildi
+Pil tasarrufu için optimizasyon önerisi eklendi
+Kayıtlar artık ayrı sekmelerde görüntülenebiliyor
+VPN bağlantısının kararlılığı artırıldı

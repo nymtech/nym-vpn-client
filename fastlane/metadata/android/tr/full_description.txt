@@ -1,0 +1,34 @@
+Çevrimiçi gizliliğiniz konusunda endişeli misiniz?  Engellenen içeriklere erişmek mi istiyorsunuz?  Nym’in merkeziyetsiz VPN’i size yardımcı olabilir.  Android için NymVPN ile internette gizli şekilde gezinebilir, sansür engellerini aşabilir ve kripto işlemlerinizi güvenle koruyabilirsiniz.
+
+
+NymVPN, günlük kullanıcılar için merkeziyetsiz bir ağ üzerinde çalışan ilk VPN’dir.  Geleneksel VPN’lerin aksine, trafiğinizi tek bir merkezi sunucu yerine birçok bağımsız node üzerinden gönderir. Böylece, güçlü şifreleme ve ek koruyucu önlemlerle gizliliğiniz tam anlamıyla sağlanır.
+
+
+Gizlilik seviyenizi seçebilirsiniz:
+- Hızlı Mod: AmneziaWG ile 2 aşamalı merkeziyetsiz koruma
+- Anonim Mod: Mixnet teknolojisi ve ek gizlilik katmanlarıyla 5 aşamalı yönlendirme
+
+Kayıt tutmama garantisi:
+Diğer VPN’ler “kayıt tutmuyoruz” derken, Nym ağı merkezi bir kayıt tutmayı tamamen engelleyecek şekilde tasarlanmıştır.  Ağdaki hiçbir nokta IP adresiniz ile yaptığınız işlemleri bağdaştıramaz.  Gizliliğiniz varsayılan olarak korunur.
+
+Bağlantısız ödemeler:
+NymVPN’e abone olmak için adınız gibi kişisel bilgiler gerekmez.  Sıfır bilgi kanıtı sayesinde, ödeme yaptığınızda kullanımınız asla sizinle ilişkilendirilemez.
+
+Sansüre karşı güçlü koruma:
+
+Trafiğinizin giriş ve çıkış noktalarını kendiniz seçerek, engellenen içeriklere kolayca ulaşabilirsiniz.  Hızlı Mod’da kullanılan AmneziaWG (WireGuard protokolünün geliştirilmiş hali) VPN kullanımını tespit etmeye yönelik gözetlemelere karşı sizi korur.
+
+NymVPN’in diğer özellikleri:
+- Zcash ve Monero gibi kripto para ile ödeme imkanı
+- Maksimum gizlilik için nakit ödeme seçeneği
+- Reklam içermez
+- Aynı anda 10 cihaza kadar destek
+- Giriş ve çıkış gateway seçimi
+- Çok katmanlı IP gizleme
+- Android için yerel Killswitch özelliği
+
+2025’te gelecek yenilikler:
+- Bölünmüş tünelleme (Split tunneling)
+- Gelişmiş sansür engelleme
+- Post-kuantum kriptografi ile ekstra güvenlik
+- Yerleşik IP adresleri (Residential IPs)

@@ -1,0 +1,6 @@
+What's new:
+- Minor UI updates and improvements
+- Fix for proper URL's opening 
+- Better error messages in low connectivity
+- Prompts when device time is out of sync
+- Connectivity improvements

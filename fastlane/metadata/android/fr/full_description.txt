@@ -1,0 +1,33 @@
+Vous vous demandez si votre vie privée est protégée sur internet ? Besoin d'accéder à des contenus restreints ? Le VPN décentralisé Nym est là pour vous aider. Avec NymVPN pour Android, vous pouvez naviguer sur le web de manière privée, contourner la censure et protéger vos transactions.
+
+
+NymVPN est le premier VPN pour les utilisateurs lambdas qui fonctionne sur un réseau décentralisé. Au lieu d'utiliser des serveurs centraux comme les VPN traditionnels, Nym fait passer votre trafic par plusieurs nœuds indépendants, ajoutant un chiffrement fort et du bruit à votre trafic pour garantir votre confidentialité.
+
+
+Choisissez votre niveau de protection :
+- Les protections décentralisées à 2 sauts du mode Rapide avec AmneziaWG
+- Le mode anonyme avec un routage à 5 sauts utilisant la technologie mixnet et du bruit ajouté
+
+Réseau sans capacité de journalisation :
+Alors que d'autres VPNs promettent de ne pas conserver de journaux, le réseau Nym est conçu de manière que la création de journaux centralisés ne soit pas possible. Aucun nœud du réseau décentralisé ne peut relier votre adresse IP à ce que vous faites en ligne. Votre vie privée est garantie dès la conception.
+
+Paiements reliables :
+Aucune information personnelle n'est requise pour s'abonner à NymVPN, même pas votre nom. Payez en toute sécurité avec des preuves à connaissance nulle qui garantissent que vous ne pouvez jamais être lié à votre utilisation de l'application et du réseau.
+
+Résistance à la censure :
+Contournez les barrières pour accéder aux informations dont vous avez besoin en sélectionnant les passerelles d'entrée et de sortie pour votre trafic. AmneziaWG (un fork du protocole WireGuard) en mode rapide protège contre la surveillance ciblant l'utilisation de VPN.
+
+Fonctionnalités additionnelles de NymVPN :
+- Paiements en crypto, y compris Zcash et Monero
+- Paiements en espèces pour une confidentialité maximale
+- Pas de publicités
+- Jusqu'à 10 appareils
+- Sélection des passerelles
+- Protections IP multi-sauts
+-  Killswitch (Interrupteur d'arrêt d'urgence, natif Android)
+
+Fonctionnalités à venir en 2025 :
+- Séparation des flux réseaux
+- Résistance à la censure avancée
+- Cryptographie post-quantique
+- IPs résidentielles

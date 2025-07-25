@@ -1,0 +1,4 @@
+Có gì mới:
+- Lựa chọn cổng riêng lẻ
+- Sửa lỗi
+- Cải thiện tối ưu hóa

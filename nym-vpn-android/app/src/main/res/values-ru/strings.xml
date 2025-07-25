@@ -108,6 +108,7 @@
     <string name="notifications">Уведомления</string>
     <string name="allow_permissions">Дать разрешения</string>
     <string name="notification_permission_message">Требуется для обеспечения работы VPN-сервиса даже при закрытом приложении.</string>
+    <string name="notification_permission_required">Пожалуйста, разрешите отправку уведомлений для корректной работы приложения</string>
     <string name="error_gateway_lookup">Не удалось найти шлюзы Nym. Пожалуйста, проверьте свое сетевое подключение и повторите попытку.</string>
     <string name="error_bad_peer_cert">"Выбранный шлюз имеет неверный одноранговый сертификат. Пожалуйста, повторите попытку подключения к другому шлюзу. "</string>
     <string name="error_no_hostname_address">У шлюза отсутствует адрес с именем хоста. Пожалуйста, повторите попытку подключения к другому шлюзу.</string>
@@ -189,7 +190,7 @@
     <string name="get_access_code">Получить Код Доступа</string>
     <string name="access_code">Кодовая фраза из 24 слов</string>
     <string name="support_and_feedback"><![CDATA[Поддержка и отзывы]]></string>
-    <string name="get_in_touch">Связаться с нами</string>
+    <string name="get_in_touch">Связаться с поддержкой</string>
     <string name="same_entry_exit_message">NymVPN обеспечивает конфиденциальность, разделяя шлюзы для входа и выхода. Переподключитесь или выберите другие локации.</string>
     <string name="device_id">ID устройства:</string>
     <string name="unexpected_error">Произошла непредвиденная ошибка:</string>
@@ -220,7 +221,7 @@
     <string name="log_out_title">Вы уверены, что хотите выйти?</string>
     <string name="log_out_body">Для повторного входа вам понадобится ваша фраза восстановления.</string>
     <string name="cancel">Отмена</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
+    <string name="subscription_expired_error">Подписка на этот аккаунт истекла. Обновите подписку, чтобы продолжить использование.</string>
     <string name="remove_device">Удалите устройство из вашего аккаунта и попробуйте снова.</string>
     <string name="gateway_score">Оценка шлюза</string>
     <string name="info">Информация</string>
@@ -245,5 +246,12 @@
     <string name="get_help">Получить помощь</string>
     <string name="telegram_url">https://nym.com/go/telegram</string>
     <string name="join_telegram">Присоединяйтесь к нам в Telegram</string>
-    <string name="device_time_out_of_sync">Время устройства не синхронизировано</string>
+    <string name="device_time_out_of_sync">Время на устройстве не синхронизировано</string>
+    <string name="create_mixnet_storage">Не удалось создать хранилище учетных данных</string>
+    <string name="ipv6_unavailable">Ipv6 недоступен</string>
+    <string name="battery_opt_title">Для лучшего соединения</string>
+    <string name="battery_opt_descr">Отключите оптимизацию энергопотребления для NymVPN, чтобы обеспечить более стабильное подключение VPN.</string>
+    <string name="skip">Пропустить</string>
+    <string name="battery_opt">Экономия заряда батареи</string>
+    <string name="battery_opt_settings_text">Настройки оптимизации батареи можно изменить в любое время в настройках приложения.</string>
 </resources>

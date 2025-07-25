@@ -108,6 +108,7 @@
     <string name="notifications">Thông báo</string>
     <string name="allow_permissions">Cấp quyền</string>
     <string name="notification_permission_message">Cần thiết để duy trì dịch vụ VPN hoạt động ngay cả khi ứng dụng bị đóng.</string>
+    <string name="notification_permission_required">Vui lòng bật quyền thông báo để ứng dụng hoạt động bình thường</string>
     <string name="error_gateway_lookup">Không thể tra cứu các gateway của Nym. Vui lòng kiểm tra kết nối mạng của bạn và thử lại.</string>
     <string name="error_bad_peer_cert">"Cổng đã chọn có chứng chỉ ngang hàng không hợp lệ. Vui lòng thử kết nối với một cổng khác. "</string>
     <string name="error_no_hostname_address">Cổng thiếu địa chỉ tên miền. Vui lòng thử kết nối với một cổng khác.</string>
@@ -219,7 +220,7 @@ không phải Ví Nym.</string>
     <string name="log_out_title">Bạn có chắc chắn muốn đăng xuất?</string>
     <string name="log_out_body">Bạn sẽ cần cụm từ khôi phục của mình để đăng nhập lại.</string>
     <string name="cancel">Hủy</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
+    <string name="subscription_expired_error">Thời gian sử dụng đăng ký cho tài khoản này đã hết. Nâng cấp đăng ký của bạn để tiếp tục sử dụng.</string>
     <string name="remove_device">Xóa một thiết bị khỏi tài khoản của bạn và thử lại.</string>
     <string name="gateway_score">Điểm của cổng</string>
     <string name="info">Thông tin</string>
@@ -245,4 +246,11 @@ không phải Ví Nym.</string>
     <string name="telegram_url">https://nym.com/go/telegram</string>
     <string name="join_telegram">Tham gia Telegram của chúng tôi</string>
     <string name="device_time_out_of_sync">Thời gian thiết bị không đồng bộ</string>
+    <string name="create_mixnet_storage">Không thể tạo bộ lưu trữ thông tin xác thực</string>
+    <string name="ipv6_unavailable">Ipv6 Unavailable</string>
+    <string name="battery_opt_title">For best connection</string>
+    <string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
+    <string name="skip">Skip</string>
+    <string name="battery_opt">Battery optimization</string>
+    <string name="battery_opt_settings_text">Battery optimization setting can be changed anytime in app settings.</string>
 </resources>

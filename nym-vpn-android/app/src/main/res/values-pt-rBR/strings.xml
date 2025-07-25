@@ -108,6 +108,7 @@
     <string name="notifications">Notificações</string>
     <string name="allow_permissions">Permitir permissões</string>
     <string name="notification_permission_message">Necessário para manter os serviços de VPN em funcionamento enquanto o aplicativo está fechado.</string>
+    <string name="notification_permission_required">Ative a permissão de notificação para a funcionalidade adequada do aplicativo</string>
     <string name="error_gateway_lookup">Falha ao buscar os gateways da Nym. Por favor, verifique sua conexão de rede e tente novamente.</string>
     <string name="error_bad_peer_cert">"O gateway selecionado tem um certificado de par ruim. Tente se conectar novamente a um gateway diferente. "</string>
     <string name="error_no_hostname_address">O gateway está sem o endereço do hostname. Por favor, tente novamente conectando-se a um gateway diferente.</string>
@@ -153,7 +154,7 @@
     <string name="vpn_alerts_channel_id">Canal de alertas da NymVPN</string>
     <string name="vpn_alerts_channel_description">Um canal para notificações de alerta relacionadas ao aplicativo.</string>
     <string name="bandwidth_alert">Alerta Largura da banda</string>
-    <string name="no_bandwidth">Sem largura de banda restante.</string>
+    <string name="no_bandwidth">Sem permissão de dados restante</string>
     <string name="connection_failed">Falha na conexão</string>
     <string name="low_bandwidth">"Pouca largura de banda! Banda restante: "</string>
     <string name="vpn_permission_missing">A permissão Vpn não foi aceita ou está sendo usada por outro aplicativo.</string>
@@ -189,7 +190,7 @@
     <string name="get_access_code">Obter Código de Acesso</string>
     <string name="access_code">Código de acesso de 24 palavras</string>
     <string name="support_and_feedback"><![CDATA[Suporte e feedback]]></string>
-    <string name="get_in_touch">Entre em contato</string>
+    <string name="get_in_touch">Entre em contato com o suporte</string>
     <string name="same_entry_exit_message">Para fins de privacidade, o NymVPN não usará o mesmo gateway para entrada e saída. Reconecte-se ou escolha locais diferentes.</string>
     <string name="device_id">ID do dispositivo:</string>
     <string name="unexpected_error">Ocorreu um erro inesperado:</string>
@@ -220,7 +221,7 @@
     <string name="log_out_title">Você tem certeza que deseja sair?</string>
     <string name="log_out_body">Você precisará da sua frase de recuperação para iniciar a sessão novamente.</string>
     <string name="cancel">Cancelar</string>
-    <string name="subscription_expired_error">The subscription for this account has expired. Upgrade your subscription to continue use.</string>
+    <string name="subscription_expired_error">A assinatura desta conta expirou. Atualize sua assinatura para continuar usando.</string>
     <string name="remove_device">Remova um dispositivo da sua conta e tente novamente.</string>
     <string name="gateway_score">Pontuação do gateway</string>
     <string name="info">Informação</string>
@@ -246,4 +247,11 @@
     <string name="telegram_url">https://nym.com/br/go/telegram</string>
     <string name="join_telegram">Junte-se a nós no Telegram</string>
     <string name="device_time_out_of_sync">Hora do dispositivo fora de sincronia</string>
+    <string name="create_mixnet_storage">Falha ao criar o armazenamento de credenciais</string>
+    <string name="ipv6_unavailable">Ipv6 Unavailable</string>
+    <string name="battery_opt_title">Para melhor conexão</string>
+    <string name="battery_opt_descr">Desative as otimizações de bateria do NymVPN para conexões VPN mais estáveis.</string>
+    <string name="skip">Pular</string>
+    <string name="battery_opt">Otimização de bateria</string>
+    <string name="battery_opt_settings_text">A configuração de otimização da bateria pode ser alterada a qualquer momento nas configurações do aplicativo.</string>
 </resources>

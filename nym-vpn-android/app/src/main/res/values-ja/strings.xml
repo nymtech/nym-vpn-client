@@ -108,6 +108,7 @@
     <string name="notifications">通知</string>
     <string name="allow_permissions">権限を許可</string>
     <string name="notification_permission_message">アプリを閉じている間もVPNサービスを継続的に動作させるために必要です。</string>
+    <string name="notification_permission_required">Please enable notification permission for proper app functionality</string>
     <string name="error_gateway_lookup">Nym gatewayの検索に失敗しました。ネットワーク接続を確認し、もう一度お試しください。</string>
     <string name="error_bad_peer_cert">"選択したgatewayのピア証明書に問題があります。別のgatewayに再接続してください。 "</string>
     <string name="error_no_hostname_address">gatewayにホスト名アドレスが欠けています。別のgatewayに再接続してください。</string>
@@ -244,4 +245,11 @@
     <string name="telegram_url">https://t.me/nymjapanese</string>
     <string name="join_telegram">Telegramに参加</string>
     <string name="device_time_out_of_sync">デバイスの時間が同期していません</string>
+    <string name="create_mixnet_storage">Failed to create credential storage</string>
+    <string name="ipv6_unavailable">Ipv6 Unavailable</string>
+    <string name="battery_opt_title">For best connection</string>
+    <string name="battery_opt_descr">Disable NymVPN battery optimizations for more stable VPN connections.</string>
+    <string name="skip">Skip</string>
+    <string name="battery_opt">Battery optimization</string>
+    <string name="battery_opt_settings_text">Battery optimization setting can be changed anytime in app settings.</string>
 </resources>

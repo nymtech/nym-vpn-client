@@ -1,0 +1,3 @@
+Yenilikler:
+- Giriş bilgisi kontrolü eklendi
+- Giriş bilgileri için şifreli depolama eklendi
