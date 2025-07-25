@@ -192,11 +192,7 @@ jobs:
           ${{ env.BUILD_INFO }}
           ```
 
-          SHA256 checksums
-
-          ```
-          ${{ env.SHA256SUMS }}
-          ```
+          [CHANGELOG](https://github.com/nymtech/nym-vpn-client/blob/develop/nym-vpn-app/CHANGELOG.md)
           '
             echo EOF
           } >> "$GITHUB_ENV"
