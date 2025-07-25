@@ -4253,7 +4253,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Belongs only to you \n(self-custody)"
+            "value" : "Belongs only to you(self-custody)"
           }
         },
         "es" : {
@@ -4306,14 +4306,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Acts as your login"
+            "state" : "needs_review",
+            "value" : "Используется как ваш логин"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Acts as your login"
+            "state" : "needs_review",
+            "value" : "Giriş bilgileriniz olarak kullanılır"
           }
         },
         "uk" : {
@@ -4330,8 +4330,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Acts as your login"
+            "state" : "needs_review",
+            "value" : "作为您的登录"
           }
         }
       }
@@ -4508,14 +4508,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Is anonymous by design"
+            "state" : "needs_review",
+            "value" : "Анонимность заложена в основу конструкции"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Is anonymous by design"
+            "state" : "needs_review",
+            "value" : "Tasarım gereği anonimdir"
           }
         },
         "uk" : {
@@ -4532,8 +4532,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Is anonymous by design"
+            "state" : "needs_review",
+            "value" : "是匿名设计的"
           }
         }
       }
@@ -5619,14 +5619,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Email usage"
+            "state" : "needs_review",
+            "value" : "Использование электронной почты"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Email usage"
+            "state" : "needs_review",
+            "value" : "E-posta kullanımı"
           }
         },
         "uk" : {
@@ -5643,8 +5643,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Email usage"
+            "state" : "needs_review",
+            "value" : "电子邮件使用情况"
           }
         }
       }
@@ -5720,14 +5720,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enables self-custody"
+            "state" : "needs_review",
+            "value" : "Обеспечивает самостоятельное хранение"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enables self-custody"
+            "state" : "needs_review",
+            "value" : "Kendi kendine kontrolü sağlar"
           }
         },
         "uk" : {
@@ -5744,8 +5744,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Enables self-custody"
+            "state" : "needs_review",
+            "value" : "启用自我保管"
           }
         }
       }
@@ -6326,14 +6326,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Password creation"
+            "state" : "needs_review",
+            "value" : "Создание пароля"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Password creation"
+            "state" : "needs_review",
+            "value" : "Şifre oluşturma"
           }
         },
         "uk" : {
@@ -6350,8 +6350,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Password creation"
+            "state" : "needs_review",
+            "value" : "创建密码"
           }
         }
       }
@@ -6730,14 +6730,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Third-party trust"
+            "state" : "needs_review",
+            "value" : "Доверие третьих сторон"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Third-party trust"
+            "state" : "needs_review",
+            "value" : "Üçüncü taraf güvencesi"
           }
         },
         "uk" : {
@@ -6754,8 +6754,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Third-party trust"
+            "state" : "needs_review",
+            "value" : "第三方信任"
           }
         }
       }
