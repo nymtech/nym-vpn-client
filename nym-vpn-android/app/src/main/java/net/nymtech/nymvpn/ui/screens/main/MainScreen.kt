@@ -103,6 +103,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 	var showCompatibilityDialog by remember { mutableStateOf(false) }
 	val connectionTime by viewModel.connectionTime.collectAsState()
 	var showBatteryDialog by remember { mutableStateOf(false) }
+	val isAppInForeground by viewModel.isAppInForeground.collectAsState()
 
 	with(appUiState.managerState) {
 		LaunchedEffect(tunnelState, connectionData?.connectedAt) {
@@ -183,6 +184,7 @@ fun MainScreen(appUiState: AppUiState, autoStart: Boolean, viewModel: MainViewMo
 			stateMessage = uiState.stateMessage,
 			connectionTime = connectionTime,
 			theme = appUiState.settings.theme ?: Theme.AUTOMATIC,
+			isAppInForeground = isAppInForeground,
 		)
 		Spacer(modifier = Modifier.weight(1f))
 		Column(

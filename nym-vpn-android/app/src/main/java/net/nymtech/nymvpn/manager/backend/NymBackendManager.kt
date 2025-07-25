@@ -63,6 +63,7 @@ class NymBackendManager @Inject constructor(
 
 	private val backend = CompletableDeferred<Backend>()
 
+	private val isAppInForeground = NymVpn.AppLifecycleObserver.isInForeground.value
 	private val _state = MutableStateFlow(TunnelManagerState())
 	override val stateFlow: Flow<TunnelManagerState> = _state
 		.stateIn(applicationScope.plus(ioDispatcher), SharingStarted.Eagerly, TunnelManagerState())
@@ -288,13 +289,17 @@ class NymBackendManager @Inject constructor(
 	}
 
 	private fun launchVpnPermissionNotification() {
-		if (!NymVpn.isForeground()) {
-			notificationService.showNotification(
-				title = context.getString(R.string.permission_required),
-				description = context.getString(R.string.vpn_permission_missing),
-			)
-		} else {
-			SnackbarController.showMessage(StringValue.StringResource(R.string.vpn_permission_missing))
+		try {
+			if (!isAppInForeground) {
+				notificationService.showNotification(
+					title = context.getString(R.string.permission_required),
+					description = context.getString(R.string.vpn_permission_missing),
+				)
+			} else {
+				SnackbarController.showMessage(StringValue.StringResource(R.string.vpn_permission_missing))
+			}
+		} catch (ex: Exception) {
+			Timber.e(ex)
 		}
 	}
 
