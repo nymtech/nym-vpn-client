@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.data.SettingsRepository
 import net.nymtech.nymvpn.manager.backend.BackendManager
 import net.nymtech.nymvpn.util.extensions.convertSecondsToTimeString
@@ -25,6 +26,8 @@ constructor(
 
 	private val _connectionTime = MutableStateFlow<String?>(null)
 	val connectionTime: StateFlow<String?> = _connectionTime.asStateFlow()
+
+	val isAppInForeground = NymVpn.AppLifecycleObserver.isInForeground
 
 	private var timerJob: Job? = null
 
