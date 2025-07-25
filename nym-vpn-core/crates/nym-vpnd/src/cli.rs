@@ -3,7 +3,7 @@
 
 use std::{path::PathBuf, sync::OnceLock};
 
-use clap::{Args, Parser};
+use clap::{Parser, Subcommand};
 
 // Helper for passing LONG_VERSION to clap
 fn pretty_build_info_static() -> &'static str {
@@ -11,7 +11,7 @@ fn pretty_build_info_static() -> &'static str {
     PRETTY_BUILD_INFORMATION.get_or_init(|| nym_bin_common::bin_info_local_vergen!().pretty_print())
 }
 
-#[derive(Parser, Clone, Debug)]
+#[derive(Parser, Debug)]
 #[clap(author = "Nymtech", version, about, long_version = pretty_build_info_static())]
 pub struct CliArgs {
     /// Logging verbosity.
@@ -33,8 +33,9 @@ pub struct CliArgs {
     #[arg(long, hide = true)]
     pub stats_id_seed: Option<String>,
 
-    #[command(flatten)]
-    pub command: Command,
+    /// Subcommand to execute
+    #[command(subcommand)]
+    pub command: Option<Command>,
 }
 
 impl CliArgs {
@@ -47,32 +48,35 @@ impl CliArgs {
     }
 }
 
-#[derive(Args, Debug, Clone)]
-#[group(multiple = false)]
-pub struct Command {
+#[derive(Debug, Clone, Default, Subcommand)]
+pub enum Command {
     #[cfg(windows)]
-    #[arg(long)]
-    pub install: bool,
+    /// Install windows service
+    Install,
 
     #[cfg(windows)]
-    #[arg(long)]
-    pub uninstall: bool,
+    /// Uninstall windows service
+    Uninstall,
 
     #[cfg(windows)]
-    #[arg(long)]
-    pub start: bool,
+    /// Start windows service
+    Start,
 
-    #[arg(long)]
-    pub run_as_service: bool,
+    /// Run daemon as a service
+    RunAsService,
+
+    /// Run daemon standalone
+    #[default]
+    RunStandalone,
 }
 
 fn check_path(path: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(path);
     if !path.exists() {
-        return Err(format!("Path {path:?} does not exist"));
+        return Err(format!("Path {} does not exist", path.display()));
     }
     if !path.is_file() {
-        return Err(format!("Path {path:?} is not a file"));
+        return Err(format!("Path {} is not a file", path.display()));
     }
     Ok(path)
 }

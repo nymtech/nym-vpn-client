@@ -14,7 +14,6 @@ use std::{
 use anyhow::Context;
 use tokio::sync::{Mutex, broadcast, mpsc, oneshot};
 use tokio_util::sync::CancellationToken;
-use tracing_appender::non_blocking::WorkerGuard;
 use windows::Win32::Foundation::ERROR_SERVICE_DOES_NOT_EXIST;
 use windows_service::{
     Error as ServiceError,
@@ -40,7 +39,6 @@ windows_service::define_windows_service!(ffi_service_main, service_main);
 
 pub static SERVICE_NAME: &str = "nym-vpnd";
 pub static SERVICE_DISPLAY_NAME: &str = "NymVPN Service";
-
 pub static SERVICE_DESCRIPTION: &str = "A service that creates and runs tunnels to the Nym network";
 static SERVICE_TYPE: ServiceType = ServiceType::OWN_PROCESS;
 
@@ -70,10 +68,6 @@ static SERVICE_NETWORK_CONFIG: LazyLock<Mutex<ServiceNetworkConfig>> =
 
 /// Logging setup passed from `main()` and used later to interact with logging.
 static LOGGING_SETUP: LazyLock<Mutex<Option<LoggingSetup>>> = LazyLock::new(|| Mutex::new(None));
-
-/// Network configuration passed from `main()` and used later to fetch network environment.
-static LOGGING_WORKER_GUARD: LazyLock<Mutex<Option<WorkerGuard>>> =
-    LazyLock::new(|| Mutex::new(None));
 
 /// Whether a sentry client has been initialized, passed from `main()` and used later by the vpn service.
 static SENTRY_ENABLED: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(false));
@@ -228,7 +222,7 @@ async fn run_service_inner() -> anyhow::Result<()> {
         command_interface::start_command_interface(tunnel_event_rx, shutdown_token.child_token())
             .await?;
 
-    let user_agent = crate::util::construct_user_agent();
+    let user_agent = crate::user_agent::construct_user_agent();
 
     // Start the VPN service that wraps the actual VPN
     let vpn_handle = NymVpnService::spawn(
@@ -255,15 +249,12 @@ async fn run_service_inner() -> anyhow::Result<()> {
         tracing::error!("Failed to join on command interface: {}", e);
     }
 
-    let worker_guard = if let Some(file_logging_handle) = file_logging_handle {
-        file_logging_handle
+    if let Some(file_logging_handle) = file_logging_handle {
+        let _worker_guard = file_logging_handle
             .await
             .inspect_err(|e| tracing::error!("Failed to join on file logging: {}", e))
-            .ok()
-    } else {
-        None
-    };
-    *LOGGING_WORKER_GUARD.lock().await = worker_guard;
+            .ok();
+    }
 
     tracing::info!("Service is stopping!");
     persistent_status.set_stopped(ServiceExitCode::NO_ERROR)?;
@@ -298,7 +289,7 @@ pub fn start(
     service_network_config: ServiceNetworkConfig,
     logging_setup: Option<LoggingSetup>,
     sentry_enabled: bool,
-) -> Result<Option<WorkerGuard>, windows_service::Error> {
+) -> Result<(), windows_service::Error> {
     // Important: release mutex lock before starting service dispatcher to avoid deadlock.
     *SERVICE_NETWORK_CONFIG.blocking_lock() = service_network_config;
     *LOGGING_SETUP.blocking_lock() = logging_setup;
@@ -306,10 +297,7 @@ pub fn start(
 
     // Register generated `ffi_service_main` with the system and start the service, blocking
     // this thread until the service is stopped.
-    service_dispatcher::start(SERVICE_NAME, ffi_service_main)?;
-
-    let worker_guard = (*LOGGING_WORKER_GUARD.blocking_lock()).take();
-    Ok(worker_guard)
+    service_dispatcher::start(SERVICE_NAME, ffi_service_main)
 }
 
 pub fn install_service() -> anyhow::Result<()> {

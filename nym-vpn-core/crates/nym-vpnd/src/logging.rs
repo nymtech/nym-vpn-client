@@ -18,13 +18,6 @@ use nym_vpnd_types::log_path::LogPath;
 
 use crate::service;
 
-pub struct Options {
-    pub verbosity_level: Level,
-    pub enable_file_log: bool,
-    pub enable_stdout_log: bool,
-    pub sentry: bool,
-}
-
 static INFO_CRATES: &[&str; 12] = &[
     "hyper",
     "netlink_proto",
@@ -42,15 +35,22 @@ static INFO_CRATES: &[&str; 12] = &[
 
 static WARN_CRATES: &[&str; 1] = &["hickory_server"];
 
+pub struct Options {
+    pub verbosity_level: Level,
+    pub enable_file_log: bool,
+    pub enable_stdout_log: bool,
+    pub sentry: bool,
+}
+
 #[derive(Clone, Debug)]
-pub(crate) struct FileAppender {
+pub struct FileAppender {
     inner: Arc<Mutex<Option<RollingFileAppender>>>,
     log_dir: PathBuf,
     log_file: String,
 }
 
 impl FileAppender {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         let log_dir = service::log_dir();
         let log_file = service::DEFAULT_LOG_FILE.to_string();
 
@@ -78,7 +78,7 @@ impl FileAppender {
         }
     }
 
-    pub(crate) async fn refresh(&mut self) {
+    pub async fn refresh(&mut self) {
         let mut file_path = self.log_dir.clone();
         file_path.push(&self.log_file);
         let mut file_lock = self.inner.lock().await;
@@ -96,14 +96,14 @@ impl FileAppender {
     }
 }
 
-pub(crate) struct LogFileRemover {
+pub struct LogFileRemover {
     command_rx: mpsc::UnboundedReceiver<()>,
     logging_setup: LoggingSetup,
     shutdown_token: CancellationToken,
 }
 
 impl LogFileRemover {
-    pub(crate) fn new(
+    pub fn new(
         tunnel_event_rx: mpsc::UnboundedReceiver<()>,
         logging_setup: LoggingSetup,
         shutdown_token: CancellationToken,
@@ -115,7 +115,7 @@ impl LogFileRemover {
         }
     }
 
-    pub(crate) async fn run(mut self) -> WorkerGuard {
+    pub async fn run(mut self) -> WorkerGuard {
         loop {
             tokio::select! {
                 Some(_) = self.command_rx.recv() => {
@@ -135,7 +135,7 @@ impl LogFileRemover {
         self.logging_setup.worker_guard
     }
 
-    pub(crate) async fn handle_delete_log_file(&mut self) {
+    pub async fn handle_delete_log_file(&mut self) {
         self.logging_setup.file_appender.refresh().await
     }
 }
