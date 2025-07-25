@@ -103,12 +103,6 @@ fn run_windows_service(
 ) -> anyhow::Result<()> {
     let sentry_enabled = options.sentry;
     let logging_setup = logging::setup_logging(options);
-    if sentry_enabled {
-        tracing::info!("Sentry monitoring enabled");
-    }
-
-    let os = SysInfo::new();
-    os.display(true);
 
     windows_service::start(
         windows_service::ServiceNetworkConfig {
@@ -134,9 +128,6 @@ fn run_standalone(
     if sentry_enabled {
         tracing::info!("Sentry monitoring enabled");
     }
-
-    let os = SysInfo::new();
-    os.display(true);
 
     runtime::new_runtime().block_on(async {
         let network_env =

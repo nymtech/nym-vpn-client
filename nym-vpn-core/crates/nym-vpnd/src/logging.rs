@@ -269,7 +269,12 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         .init();
 
     log_panics::init();
+    log_header();
 
+    worker_guard
+}
+
+fn log_header() {
     let build_info = nym_bin_common::bin_info_local_vergen!();
     tracing::info!(
         "{} {} ({})",
@@ -277,5 +282,7 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         build_info.build_version,
         build_info.commit_sha
     );
-    worker_guard
+
+    let os = nym_vpn_lib::SysInfo::new();
+    os.display(true);
 }
