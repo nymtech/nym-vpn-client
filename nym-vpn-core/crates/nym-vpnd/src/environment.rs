@@ -12,8 +12,8 @@ pub async fn setup_environment(
     global_config_file: &GlobalConfigFile,
     config_env_file: Option<&Path>,
 ) -> anyhow::Result<Network> {
-    let network_env = if let Some(ref env) = config_env_file {
-        nym_vpn_lib::nym_config::defaults::setup_env(Some(env));
+    let network_env = if config_env_file.is_some() {
+        nym_vpn_lib::nym_config::defaults::setup_env(config_env_file);
         let network_details = NymNetworkDetails::new_from_env();
         // resolve_nym_network_details(&mut network_details);
         nym_vpn_network_config::manual_env(&network_details)?

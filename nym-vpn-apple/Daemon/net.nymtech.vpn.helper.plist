@@ -8,7 +8,7 @@
 	<array>
 		<string>Contents/MacOS/net.nymtech.vpn.helper</string>
 		<string>-v</string>
-		<string>--run-as-service</string>
+		<string>run-as-service</string>
 	</array>
 	<key>KeepAlive</key>
 	<true/>

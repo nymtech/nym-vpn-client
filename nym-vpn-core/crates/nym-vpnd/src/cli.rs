@@ -48,7 +48,7 @@ impl CliArgs {
     }
 }
 
-#[derive(Debug, Clone, Default, Subcommand)]
+#[derive(Debug, Copy, Clone, Default, Subcommand)]
 pub enum Command {
     #[cfg(windows)]
     /// Install windows service

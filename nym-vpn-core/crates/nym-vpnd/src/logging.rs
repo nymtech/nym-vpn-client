@@ -143,7 +143,7 @@ impl LogFileRemover {
 pub struct LoggingSetup {
     worker_guard: WorkerGuard,
     file_appender: FileAppender,
-    pub log_path: LogPath,
+    log_path: LogPath,
 }
 
 impl LoggingSetup {
@@ -157,6 +157,10 @@ impl LoggingSetup {
             file_appender,
             log_path,
         }
+    }
+
+    pub fn log_path(&self) -> &LogPath {
+        &self.log_path
     }
 }
 

@@ -13,34 +13,38 @@ mod user_agent;
 #[cfg(windows)]
 mod windows_service;
 
-use clap::Parser;
-use logging::{LogFileRemover, LoggingSetup};
-use nym_vpn_lib::SysInfo;
-use nym_vpn_network_config::Network;
-use sentry::ClientInitGuard;
-use service::NymVpnService;
+#[cfg(windows)]
+use std::path::PathBuf;
 use std::time::Duration;
+
+use clap::Parser;
+use sentry::ClientInitGuard;
 use tokio::sync::{broadcast, mpsc};
 use tokio_util::sync::CancellationToken;
+
+use nym_vpn_lib::{SysInfo, UserAgent};
+use nym_vpn_network_config::Network;
 
 use crate::{
     cli::{CliArgs, Command},
     config::GlobalConfigFile,
 };
+use logging::{LogFileRemover, LoggingSetup};
+use service::{NymVpnService, NymVpnServiceParameters};
 
 fn main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
     let _sentry_guard = init_sentry();
     let sentry_enabled = _sentry_guard.is_some();
 
-    match args.command.clone().unwrap_or_default() {
+    match args.command.unwrap_or_default() {
         #[cfg(windows)]
         Command::Install => {
             println!(
                 "Processing request to install {} as a service...",
                 windows_service::SERVICE_NAME
             );
-            windows_service::install_service()?;
+            windows_service::installation::install_service()?;
             Ok(())
         }
         #[cfg(windows)]
@@ -49,7 +53,7 @@ fn main() -> anyhow::Result<()> {
                 "Processing request to uninstall {} as a service...",
                 windows_service::SERVICE_NAME
             );
-            windows_service::uninstall_service()?;
+            windows_service::installation::uninstall_service()?;
             Ok(())
         }
         #[cfg(windows)]
@@ -58,7 +62,7 @@ fn main() -> anyhow::Result<()> {
                 "Processing request to start service {}...",
                 windows_service::SERVICE_NAME
             );
-            windows_service::start_service()?;
+            windows_service::installation::start_service()?;
             Ok(())
         }
         Command::RunAsService => {
@@ -71,12 +75,12 @@ fn main() -> anyhow::Result<()> {
 
             #[cfg(windows)]
             {
-                run_windows_service(args, options, sentry_enabled)
+                run_windows_service(args.network, args.config_env_file, options)
             }
 
             #[cfg(not(windows))]
             {
-                run_standalone(args, options)
+                run_standalone(args.network, args.config_env_file, options)
             }
         }
         Command::RunStandalone => {
@@ -86,17 +90,18 @@ fn main() -> anyhow::Result<()> {
                 enable_stdout_log: true,
                 sentry: sentry_enabled,
             };
-            run_standalone(args, options, sentry_enabled)
+            run_standalone(args.network, args.config_env_file, options)
         }
     }
 }
 
 #[cfg(windows)]
 fn run_windows_service(
-    args: CliArgs,
+    network: Option<String>,
+    config_env_file: Option<PathBuf>,
     options: logging::Options,
-    sentry_enabled: bool,
 ) -> anyhow::Result<()> {
+    let sentry_enabled = options.sentry;
     let logging_setup = logging::setup_logging(options);
     if sentry_enabled {
         tracing::info!("Sentry monitoring enabled");
@@ -107,8 +112,8 @@ fn run_windows_service(
 
     windows_service::start(
         windows_service::ServiceNetworkConfig {
-            network: args.network.to_owned(),
-            config_env_file: args.config_env_file.to_owned(),
+            network,
+            config_env_file,
         },
         logging_setup,
         sentry_enabled,
@@ -118,12 +123,13 @@ fn run_windows_service(
 }
 
 fn run_standalone(
-    args: CliArgs,
+    network: Option<String>,
+    config_env_file: Option<PathBuf>,
     options: logging::Options,
-    sentry_enabled: bool,
 ) -> anyhow::Result<()> {
+    let sentry_enabled = options.sentry;
     let logging_setup = logging::setup_logging(options);
-    let global_config_file = setup_global_config(args.network.as_deref())?;
+    let global_config_file = setup_global_config(network)?;
 
     if sentry_enabled {
         tracing::info!("Sentry monitoring enabled");
@@ -134,32 +140,39 @@ fn run_standalone(
 
     runtime::new_runtime().block_on(async {
         let network_env =
-            environment::setup_environment(&global_config_file, args.config_env_file.as_deref())
-                .await?;
-        run_standalone_async(
-            args,
+            environment::setup_environment(&global_config_file, config_env_file.as_deref()).await?;
+        let shutdown_token = CancellationToken::new();
+
+        let standalone_config = RunStandaloneParameters {
             network_env,
-            logging_setup,
             sentry_enabled,
-            global_config_file.collect_network_statistics,
-        )
-        .await
+            netstats_enabled: global_config_file.collect_network_statistics,
+            stats_id_seed: None,
+            user_agent: None,
+        };
+
+        run_standalone_async(standalone_config, logging_setup, shutdown_token).await
     })
 }
 
+struct RunStandaloneParameters {
+    pub network_env: Network,
+    pub sentry_enabled: bool,
+    pub netstats_enabled: bool,
+    pub stats_id_seed: Option<String>,
+    pub user_agent: Option<UserAgent>,
+}
+
 async fn run_standalone_async(
-    args: CliArgs,
-    network_env: Network,
+    config: RunStandaloneParameters,
     logging_setup: Option<LoggingSetup>,
-    sentry_enabled: bool,
-    netstats_enabled: bool,
+    shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
     let log_path = logging_setup
         .as_ref()
-        .map(|logging_setup| logging_setup.log_path.clone());
+        .map(|logging_setup| logging_setup.log_path().clone());
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
     let (file_logging_event_tx, file_logging_event_rx) = mpsc::unbounded_channel();
-    let shutdown_token = CancellationToken::new();
 
     let file_logging_handle = logging_setup.map(|logging_setup| {
         tokio::spawn(
@@ -179,21 +192,25 @@ async fn run_standalone_async(
     // The user agent can be overridden by the user, but if it's not, we'll construct it
     // based on the current system information and it will be for "nym-vpnd". A number of the rpc
     // calls also provide a user-agent field so that the app can identity itself properly.
-    let user_agent = args
+    let user_agent = config
         .user_agent
         .unwrap_or_else(user_agent::construct_user_agent);
+
+    let parameters = NymVpnServiceParameters {
+        network_env: config.network_env,
+        stats_id_seed: config.stats_id_seed,
+        log_path,
+        sentry_enabled: config.sentry_enabled,
+        netstats_enabled: config.netstats_enabled,
+        user_agent,
+    };
 
     let vpn_service_handle = NymVpnService::spawn(
         vpn_command_rx,
         tunnel_event_tx,
         file_logging_event_tx,
+        parameters,
         shutdown_token.child_token(),
-        network_env,
-        user_agent,
-        args.stats_id_seed,
-        log_path,
-        sentry_enabled,
-        netstats_enabled,
     );
 
     let mut shutdown_join_set = shutdown_handler::install(shutdown_token);
@@ -243,10 +260,10 @@ fn init_sentry() -> Option<ClientInitGuard> {
     }
 }
 
-fn setup_global_config(network: Option<&str>) -> anyhow::Result<GlobalConfigFile> {
+fn setup_global_config(network: Option<String>) -> anyhow::Result<GlobalConfigFile> {
     let mut global_config_file = GlobalConfigFile::read_from_file()?;
     if let Some(network) = network {
-        global_config_file.network_name = network.to_owned();
+        global_config_file.network_name = network;
         global_config_file.write_to_file()?;
     }
     Ok(global_config_file)

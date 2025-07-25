@@ -10,4 +10,4 @@ pub use config::{
     create_config_file, log_dir, read_config_file, write_config_file,
 };
 pub use error::SetNetworkError;
-pub use vpn_service::{NymVpnService, VpnServiceCommand};
+pub use vpn_service::{NymVpnService, NymVpnServiceParameters, VpnServiceCommand};

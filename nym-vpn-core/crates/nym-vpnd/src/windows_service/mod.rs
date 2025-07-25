@@ -1,37 +1,25 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+pub mod installation;
 mod persistent_service_status;
 
-use std::{
-    env,
-    ffi::OsString,
-    path::PathBuf,
-    sync::LazyLock,
-    time::{Duration, Instant},
-};
+use std::{ffi::OsString, path::PathBuf, sync::LazyLock, time::Duration};
 
 use anyhow::Context;
 use tokio::sync::{Mutex, broadcast, mpsc, oneshot};
 use tokio_util::sync::CancellationToken;
-use windows::Win32::Foundation::ERROR_SERVICE_DOES_NOT_EXIST;
 use windows_service::{
-    Error as ServiceError,
-    service::{
-        ServiceAccess, ServiceAction, ServiceActionType, ServiceControl, ServiceDependency,
-        ServiceErrorControl, ServiceExitCode, ServiceFailureActions, ServiceFailureResetPeriod,
-        ServiceInfo, ServiceStartType, ServiceState, ServiceType,
-    },
+    service::{ServiceControl, ServiceExitCode, ServiceType},
     service_control_handler::{self, ServiceControlHandlerResult},
     service_dispatcher,
-    service_manager::{ServiceManager, ServiceManagerAccess},
 };
 
 use crate::{
     command_interface,
     logging::{LogFileRemover, LoggingSetup},
     runtime,
-    service::NymVpnService,
+    service::{NymVpnService, NymVpnServiceParameters},
 };
 use persistent_service_status::PersistentServiceStatus;
 
@@ -42,13 +30,24 @@ pub static SERVICE_DISPLAY_NAME: &str = "NymVPN Service";
 pub static SERVICE_DESCRIPTION: &str = "A service that creates and runs tunnels to the Nym network";
 static SERVICE_TYPE: ServiceType = ServiceType::OWN_PROCESS;
 
+static SHARED_SERVICE_STATE: LazyLock<Mutex<SharedServiceState>> =
+    LazyLock::new(|| Mutex::new(SharedServiceState::default()));
+
 /// Exit codes used by Nym windows service.
 #[repr(u32)]
 pub enum ServiceSpecificExitCode {
-    /// Failure to perform network fetch
-    NetworkFetch = 1,
-    /// Failure to join on network fetch task
-    JoinNetworkFetch = 2,
+    /// Failure to fetch network environment
+    FetchNetworkEnvironment = 1,
+}
+
+impl From<ServiceSpecificExitCode> for ServiceExitCode {
+    fn from(value: ServiceSpecificExitCode) -> Self {
+        match value {
+            ServiceSpecificExitCode::FetchNetworkEnvironment => {
+                ServiceExitCode::ServiceSpecific(value as u32)
+            }
+        }
+    }
 }
 
 enum ServiceEvent {
@@ -62,27 +61,39 @@ pub struct ServiceNetworkConfig {
     pub config_env_file: Option<PathBuf>,
 }
 
-/// Network configuration passed from `main()` and used later to fetch network environment.
-static SERVICE_NETWORK_CONFIG: LazyLock<Mutex<ServiceNetworkConfig>> =
-    LazyLock::new(|| Mutex::new(ServiceNetworkConfig::default()));
+#[derive(Default)]
+struct SharedServiceState {
+    network_config: ServiceNetworkConfig,
+    logging_setup: Option<LoggingSetup>,
+    sentry_enabled: bool,
+}
 
-/// Logging setup passed from `main()` and used later to interact with logging.
-static LOGGING_SETUP: LazyLock<Mutex<Option<LoggingSetup>>> = LazyLock::new(|| Mutex::new(None));
+pub fn start(
+    network_config: ServiceNetworkConfig,
+    logging_setup: Option<LoggingSetup>,
+    sentry_enabled: bool,
+) -> Result<(), windows_service::Error> {
+    // Important: release mutex lock before starting service dispatcher to avoid deadlock.
+    *SHARED_SERVICE_STATE.blocking_lock() = SharedServiceState {
+        network_config,
+        logging_setup,
+        sentry_enabled,
+    };
 
-/// Whether a sentry client has been initialized, passed from `main()` and used later by the vpn service.
-static SENTRY_ENABLED: LazyLock<Mutex<bool>> = LazyLock::new(|| Mutex::new(false));
+    // Register generated `ffi_service_main` with the system and start the service, blocking
+    // this thread until the service is stopped.
+    service_dispatcher::start(SERVICE_NAME, ffi_service_main)
+}
 
-fn service_main(arguments: Vec<OsString>) {
-    if let Err(err) = run_service(arguments) {
+fn service_main(_arguments: Vec<OsString>) {
+    let rt = runtime::new_runtime();
+
+    if let Err(err) = rt.block_on(run_service()) {
         tracing::error!("service_main: {:?}", err);
     }
 }
 
-fn run_service(_args: Vec<OsString>) -> anyhow::Result<()> {
-    runtime::new_runtime().block_on(run_service_inner())
-}
-
-async fn run_service_inner() -> anyhow::Result<()> {
+async fn run_service() -> anyhow::Result<()> {
     tracing::info!("Setting up event handler");
 
     let (service_event_tx, mut service_event_rx) = mpsc::unbounded_channel();
@@ -102,7 +113,6 @@ async fn run_service_inner() -> anyhow::Result<()> {
                 }
                 ServiceControlHandlerResult::NoError
             }
-
             ServiceControl::Preshutdown => {
                 let (completion_tx, completion_rx) = oneshot::channel();
                 if service_event_tx
@@ -116,7 +126,6 @@ async fn run_service_inner() -> anyhow::Result<()> {
                 }
                 ServiceControlHandlerResult::NoError
             }
-
             ServiceControl::Interrogate => ServiceControlHandlerResult::NoError,
             _ => ServiceControlHandlerResult::NotImplemented,
         }
@@ -159,30 +168,30 @@ async fn run_service_inner() -> anyhow::Result<()> {
     tracing::info!("Service is starting...");
     persistent_status.set_pending_start(Duration::from_secs(20))?;
 
-    let network_config = (*SERVICE_NETWORK_CONFIG.lock().await).clone();
-    let logging_setup = (*LOGGING_SETUP.lock().await).take();
-    let sentry_enabled = *SENTRY_ENABLED.lock().await;
-    let log_path = logging_setup.as_ref().map(|setup| setup.log_path.clone());
-    let cloned_network_config = network_config.clone();
-    let global_config_file = crate::setup_global_config(cloned_network_config.network.as_deref())?;
+    let mut shared_service_state = SHARED_SERVICE_STATE.lock().await;
+    let network_config = shared_service_state.network_config.clone();
+    let logging_setup = shared_service_state.logging_setup.take();
+    let sentry_enabled = shared_service_state.sentry_enabled;
+    let log_path = shared_service_state
+        .logging_setup
+        .as_ref()
+        .map(|setup| setup.log_path().clone());
+    // explicitly release mutex lock
+    _ = shared_service_state;
+
+    let global_config_file = crate::setup_global_config(network_config.network.clone())?;
     let netstats_enabled = global_config_file.collect_network_statistics;
 
-    let network_env_result = tokio::task::spawn(async move {
-        crate::environment::setup_environment(
-            &global_config_file,
-            cloned_network_config.config_env_file.as_deref(),
-        )
-        .await
-    })
-    .await;
-    let network_env = match network_env_result {
-        Ok(Ok(network_env)) => {
-            network_env.export_to_env();
-            network_env
-        }
-        Ok(Err(err)) => {
-            persistent_status.set_stopped(ServiceExitCode::ServiceSpecific(
-                ServiceSpecificExitCode::NetworkFetch as u32,
+    let network_env = match crate::environment::setup_environment(
+        &global_config_file,
+        network_config.config_env_file.as_deref(),
+    )
+    .await
+    {
+        Ok(network_env) => network_env,
+        Err(err) => {
+            persistent_status.set_stopped(ServiceExitCode::from(
+                ServiceSpecificExitCode::FetchNetworkEnvironment,
             ))?;
 
             tracing::error!(
@@ -192,14 +201,6 @@ async fn run_service_inner() -> anyhow::Result<()> {
             );
 
             return Err(err).with_context(|| "Failed to fetch network environment");
-        }
-        Err(err) => {
-            persistent_status.set_stopped(ServiceExitCode::ServiceSpecific(
-                ServiceSpecificExitCode::JoinNetworkFetch as u32,
-            ))?;
-
-            tracing::error!("Failed to join on network fetch task: {}", err);
-            return Err(err).with_context(|| "Failed to join on network fetch task");
         }
     };
 
@@ -217,31 +218,31 @@ async fn run_service_inner() -> anyhow::Result<()> {
         )
     });
 
-    // Start the command interface that listens for commands from the outside
     let (command_handle, vpn_command_rx) =
         command_interface::start_command_interface(tunnel_event_rx, shutdown_token.child_token())
             .await?;
 
     let user_agent = crate::user_agent::construct_user_agent();
-
-    // Start the VPN service that wraps the actual VPN
-    let vpn_handle = NymVpnService::spawn(
+    let parameters = NymVpnServiceParameters {
+        network_env,
+        sentry_enabled,
+        netstats_enabled,
+        stats_id_seed: None,
+        log_path,
+        user_agent,
+    };
+    let service_handle = NymVpnService::spawn(
         vpn_command_rx,
         tunnel_event_tx,
         file_logging_event_tx,
+        parameters,
         shutdown_token.child_token(),
-        network_env,
-        user_agent,
-        None,
-        log_path,
-        sentry_enabled,
-        netstats_enabled,
     );
 
     tracing::info!("Service has started");
     persistent_status.set_running()?;
 
-    if let Err(e) = vpn_handle.await {
+    if let Err(e) = service_handle.await {
         tracing::error!("Failed to join on vpn service: {}", e);
     }
 
@@ -249,173 +250,19 @@ async fn run_service_inner() -> anyhow::Result<()> {
         tracing::error!("Failed to join on command interface: {}", e);
     }
 
-    if let Some(file_logging_handle) = file_logging_handle {
-        let _worker_guard = file_logging_handle
+    let _worker_guard = if let Some(file_logging_handle) = file_logging_handle {
+        file_logging_handle
             .await
             .inspect_err(|e| tracing::error!("Failed to join on file logging: {}", e))
-            .ok();
-    }
+            .ok()
+    } else {
+        None
+    };
 
     tracing::info!("Service is stopping!");
     persistent_status.set_stopped(ServiceExitCode::NO_ERROR)?;
 
     tracing::info!("Service has stopped!");
 
-    Ok(())
-}
-
-pub(super) fn get_service_info() -> ServiceInfo {
-    ServiceInfo {
-        name: OsString::from(SERVICE_NAME),
-        display_name: OsString::from(SERVICE_DISPLAY_NAME),
-        service_type: SERVICE_TYPE,
-        start_type: ServiceStartType::AutoStart,
-        error_control: ServiceErrorControl::Normal,
-        executable_path: env::current_exe().unwrap(),
-        launch_arguments: vec![OsString::from("-v"), OsString::from("--run-as-service")],
-        dependencies: vec![
-            // Base Filter Engine
-            ServiceDependency::Service(OsString::from("BFE")),
-            // Network Store Interface Service
-            // This service delivers network notifications (e.g. interface addition/deleting etc).
-            ServiceDependency::Service(OsString::from("NSI")),
-        ],
-        account_name: None, // run as System
-        account_password: None,
-    }
-}
-
-pub fn start(
-    service_network_config: ServiceNetworkConfig,
-    logging_setup: Option<LoggingSetup>,
-    sentry_enabled: bool,
-) -> Result<(), windows_service::Error> {
-    // Important: release mutex lock before starting service dispatcher to avoid deadlock.
-    *SERVICE_NETWORK_CONFIG.blocking_lock() = service_network_config;
-    *LOGGING_SETUP.blocking_lock() = logging_setup;
-    *SENTRY_ENABLED.blocking_lock() = sentry_enabled;
-
-    // Register generated `ffi_service_main` with the system and start the service, blocking
-    // this thread until the service is stopped.
-    service_dispatcher::start(SERVICE_NAME, ffi_service_main)
-}
-
-pub fn install_service() -> anyhow::Result<()> {
-    let manager_access = ServiceManagerAccess::CONNECT | ServiceManagerAccess::CREATE_SERVICE;
-    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
-
-    println!("Registering event logger {SERVICE_DISPLAY_NAME}...");
-    eventlog::register(SERVICE_DISPLAY_NAME).unwrap();
-
-    println!("Registering {SERVICE_NAME} service...");
-
-    let service_access = ServiceAccess::QUERY_CONFIG
-        | ServiceAccess::QUERY_STATUS
-        | ServiceAccess::CHANGE_CONFIG
-        | ServiceAccess::START;
-    let service_info = get_service_info();
-    let service = match service_manager.open_service(SERVICE_NAME, service_access) {
-        Ok(service) => {
-            service
-                .change_config(&service_info)
-                .with_context(|| "Failed to change service config")?;
-            service
-        }
-        Err(ServiceError::Winapi(io_error))
-            // Safety: i32 cast cannot fail because `ERROR_SERVICE_DOES_NOT_EXIST` is within i32 boundaries
-            if io_error.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32) =>
-        {
-            service_manager
-                .create_service(&service_info, service_access)
-                .with_context(|| "Failed to open service")?
-        }
-        Err(e) => Err(e).with_context(|| "Failed to open service")?,
-    };
-
-    let recovery_actions = vec![
-        ServiceAction {
-            action_type: ServiceActionType::Restart,
-            delay: Duration::from_secs(3),
-        },
-        ServiceAction {
-            action_type: ServiceActionType::Restart,
-            delay: Duration::from_secs(30),
-        },
-        ServiceAction {
-            action_type: ServiceActionType::Restart,
-            delay: Duration::from_secs(60 * 10),
-        },
-    ];
-
-    let failure_actions = ServiceFailureActions {
-        reset_period: ServiceFailureResetPeriod::After(Duration::from_secs(60 * 15)),
-        reboot_msg: None,
-        command: None,
-        actions: Some(recovery_actions),
-    };
-
-    service
-        .update_failure_actions(failure_actions)
-        .with_context(|| "Failed to update failure actions")?;
-    service
-        .set_failure_actions_on_non_crash_failures(true)
-        .with_context(|| "Failed to set failure actions on non-crash failures")?;
-    service
-        .set_description(SERVICE_DESCRIPTION)
-        .with_context(|| "Failed to set service description")?;
-
-    println!("{SERVICE_NAME} service has been registered.");
-
-    Ok(())
-}
-
-pub fn uninstall_service() -> windows_service::Result<()> {
-    let manager_access = ServiceManagerAccess::CONNECT;
-    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
-
-    let service_access = ServiceAccess::QUERY_STATUS | ServiceAccess::STOP | ServiceAccess::DELETE;
-    let service = service_manager.open_service(SERVICE_NAME, service_access)?;
-
-    // The service will be marked for deletion as long as this function call succeeds.
-    // However, it will not be deleted from the database until it is stopped and all open handles to it are closed.
-    service.delete()?;
-    // Our handle to it is not closed yet. So we can still query it.
-    if service.query_status()?.current_state != ServiceState::Stopped {
-        // If the service cannot be stopped, it will be deleted when the system restarts.
-        service.stop()?;
-    }
-    // Explicitly close our open handle to the service. This is automatically called when `service` goes out of scope.
-    drop(service);
-
-    // Win32 API does not give us a way to wait for service deletion.
-    // To check if the service is deleted from the database, we have to poll it ourselves.
-    let start = Instant::now();
-    let timeout = Duration::from_secs(5);
-    while start.elapsed() < timeout {
-        if let Err(windows_service::Error::Winapi(e)) =
-            service_manager.open_service(SERVICE_NAME, ServiceAccess::QUERY_STATUS)
-        {
-            if e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32) {
-                println!("{SERVICE_NAME} is deleted.");
-                return Ok(());
-            }
-        }
-        std::thread::sleep(Duration::from_secs(1));
-    }
-    println!("{SERVICE_NAME} is marked for deletion.");
-
-    Ok(())
-}
-
-pub fn start_service() -> windows_service::Result<()> {
-    let manager_access = ServiceManagerAccess::CONNECT;
-    let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
-
-    let service_access = ServiceAccess::QUERY_STATUS | ServiceAccess::START;
-    let service = service_manager.open_service(SERVICE_NAME, service_access)?;
-
-    if service.query_status()?.current_state != ServiceState::Running {
-        service.start(&[] as &[&std::ffi::OsStr])?;
-    }
     Ok(())
 }

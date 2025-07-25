@@ -198,19 +198,22 @@ where
     statistics_event_sender: StatisticsSender,
 }
 
+pub struct NymVpnServiceParameters {
+    pub network_env: Network,
+    pub sentry_enabled: bool,
+    pub netstats_enabled: bool,
+    pub stats_id_seed: Option<String>,
+    pub log_path: Option<LogPath>,
+    pub user_agent: UserAgent,
+}
+
 impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
-    #![allow(clippy::too_many_arguments)]
     pub fn spawn(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
         file_logging_event_tx: mpsc::UnboundedSender<()>,
+        parameters: NymVpnServiceParameters,
         shutdown_token: CancellationToken,
-        network_env: Network,
-        user_agent: UserAgent,
-        stats_id_seed: Option<String>,
-        log_path: Option<LogPath>,
-        sentry_enabled: bool,
-        netstats_enabled: bool,
     ) -> JoinHandle<()> {
         tracing::trace!("Starting VPN service");
         tokio::spawn(async move {
@@ -218,13 +221,8 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
                 vpn_command_rx,
                 tunnel_event_tx,
                 file_logging_event_tx,
+                parameters,
                 shutdown_token,
-                network_env,
-                user_agent,
-                stats_id_seed,
-                log_path,
-                sentry_enabled,
-                netstats_enabled,
             )
             .await
             {
@@ -247,20 +245,18 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         })
     }
 
-    #[allow(clippy::too_many_arguments)]
     pub async fn new(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
         file_logging_event_tx: mpsc::UnboundedSender<()>,
+        parameters: NymVpnServiceParameters,
         shutdown_token: CancellationToken,
-        network_env: Network,
-        user_agent: UserAgent,
-        stats_id_seed: Option<String>,
-        log_path: Option<LogPath>,
-        sentry_enabled: bool,
-        netstats_enabled: bool,
     ) -> Result<Self> {
-        let network_name = network_env.nym_network_details().network_name.clone();
+        let network_name = parameters
+            .network_env
+            .nym_network_details()
+            .network_name
+            .clone();
 
         let config_dir = super::config::config_dir().join(&network_name);
         let config_file = config_dir.join(DEFAULT_CONFIG_FILE);
@@ -274,16 +270,17 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // Make sure the data dir exists
         super::config::create_data_dir(&data_dir, &network_name).map_err(Error::ConfigSetup)?;
 
-        let statistics_api = network_env
+        let statistics_api = parameters
+            .network_env
             .system_configuration
             .as_ref()
             .and_then(|config| config.statistics_api.clone());
 
         let account_controller_config = AccountControllerConfig {
             data_dir: network_data_dir.clone(),
-            user_agent: user_agent.clone(),
+            user_agent: parameters.user_agent.clone(),
             credentials_mode: None,
-            network_env: network_env.clone(),
+            network_env: parameters.network_env.clone(),
         };
 
         let route_handler = nym_vpn_lib::tunnel_state_machine::RouteHandler::new()
@@ -319,9 +316,9 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
 
         // Statistics collection setup
         let statistics_controller_config =
-            StatisticsControllerConfig::new(statistics_api, user_agent.clone())
-                .with_stats_id_seed(stats_id_seed)
-                .with_enabled(netstats_enabled);
+            StatisticsControllerConfig::new(statistics_api, parameters.user_agent.clone())
+                .with_stats_id_seed(parameters.stats_id_seed)
+                .with_enabled(parameters.netstats_enabled);
 
         // Statistics collection can technically fail, but if it's the case, we just disable it as it is not operation critical.
         let statistics_controller = StatisticsController::new(
@@ -339,32 +336,32 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let (event_sender, event_receiver) = mpsc::unbounded_channel();
 
         let tunnel_settings = TunnelSettings::default();
-        let nyxd_url = network_env.nyxd_url();
-        let api_url = network_env.api_url();
+        let nyxd_url = parameters.network_env.nyxd_url();
+        let api_url = parameters.network_env.api_url();
 
-        let mix_score_thresholds =
-            network_env
-                .system_configuration
-                .as_ref()
-                .map(|sc| ScoreThresholds {
-                    high: sc.mix_thresholds.high,
-                    medium: sc.mix_thresholds.medium,
-                    low: sc.mix_thresholds.low,
-                });
-        let wg_score_thresholds =
-            network_env
-                .system_configuration
-                .as_ref()
-                .map(|sc| ScoreThresholds {
-                    high: sc.wg_thresholds.high,
-                    medium: sc.wg_thresholds.medium,
-                    low: sc.wg_thresholds.low,
-                });
+        let mix_score_thresholds = parameters
+            .network_env
+            .system_configuration
+            .as_ref()
+            .map(|sc| ScoreThresholds {
+                high: sc.mix_thresholds.high,
+                medium: sc.mix_thresholds.medium,
+                low: sc.mix_thresholds.low,
+            });
+        let wg_score_thresholds = parameters
+            .network_env
+            .system_configuration
+            .as_ref()
+            .map(|sc| ScoreThresholds {
+                high: sc.wg_thresholds.high,
+                medium: sc.wg_thresholds.medium,
+                low: sc.wg_thresholds.low,
+            });
 
         let gateway_config = gateway_directory::Config {
             nyxd_url,
             api_url,
-            nym_vpn_api_url: Some(network_env.vpn_api_url()),
+            nym_vpn_api_url: Some(parameters.network_env.vpn_api_url()),
             min_gateway_performance: None,
             mix_score_thresholds,
             wg_score_thresholds,
@@ -373,18 +370,18 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             config_path: Some(config_dir),
             data_path: Some(network_data_dir.clone()),
             gateway_config: gateway_config.clone(),
-            network_env: network_env.clone(),
+            network_env: parameters.network_env.clone(),
         };
 
         let gateway_directory_client =
-            GatewayClient::new(gateway_config, user_agent.clone()).unwrap();
+            GatewayClient::new(gateway_config, parameters.user_agent.clone()).unwrap();
         let gateway_directory_client =
             CachingGatewayClient::new(gateway_directory_client, Some(connectivity_handle.clone()));
         gateway_directory_client.refresh_all().await;
 
         let topology_provider = VpnTopologyProvider::new(
-            network_env.api_url(),
-            Some(user_agent.clone()),
+            parameters.network_env.api_url(),
+            Some(parameters.user_agent.clone()),
             false,
             shutdown_token.child_token(),
         );
@@ -408,8 +405,8 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         .map_err(Error::StateMachine)?;
 
         Ok(Self {
-            network_env,
-            user_agent,
+            network_env: parameters.network_env,
+            user_agent: parameters.user_agent,
             shared_account_state,
             vpn_command_rx,
             tunnel_event_tx,
@@ -417,7 +414,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             account_command_tx,
             config_file,
             data_dir: network_data_dir,
-            log_path,
+            log_path: parameters.log_path,
             storage,
             tunnel_state: watch::Sender::new(TunnelState::Disconnected),
             state_machine_handle,
@@ -427,8 +424,8 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             event_receiver,
             shutdown_token,
             gateway_directory_client,
-            sentry_enabled,
-            network_statistics_enabled: netstats_enabled,
+            sentry_enabled: parameters.sentry_enabled,
+            network_statistics_enabled: parameters.netstats_enabled,
             statistics_event_sender,
         })
     }
