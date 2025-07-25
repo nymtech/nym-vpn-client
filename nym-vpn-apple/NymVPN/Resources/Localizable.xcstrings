@@ -21708,6 +21708,17 @@
         }
       }
     },
+    "purchasePlan.fullyProtected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're now fully protected"
+          }
+        }
+      }
+    },
     "purchasePlan.selectPlan" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -21820,7 +21831,18 @@
         }
       }
     },
-    "purchasePlan.subtile" : {
+    "purchasePlan.subtile1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a plan now to activate your protection"
+          }
+        }
+      }
+    },
+    "purchasePlan.subtile2" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
@@ -21831,209 +21853,18 @@
         }
       }
     },
-    "purchasePlan.success.connectionPrivate" : {
+    "purchasePlan.title" : {
       "extractionState" : "manual",
       "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your connection is private."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu conexión es privada."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre connexion est privée."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sua conexão é privada."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваше з'єднання захищене."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kết nối của bạn là riêng tư."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
+            "value" : "Choose your protection level 🛡️"
           }
         }
       }
     },
-    "purchasePlan.success.itentityYours" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu identidad sigue siendo tuya."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre identité vous appartient."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sua identidade continua sendo sua."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваша особистість залишається Вашою."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Danh tính của bạn vẫn thuộc về bạn."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        }
-      }
-    },
-    "purchasePlan.success.planActivated" : {
+    "purchasePlan.welcomToTruePrivacy" : {
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
@@ -22051,7 +21882,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Welcome to true privacy 🎉 You're now fully protected"
+            "value" : "Welcome to true privacy 🎉"
           }
         },
         "es" : {
@@ -22104,14 +21935,14 @@
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
+            "state" : "needs_review",
+            "value" : "План активирован"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
+            "state" : "needs_review",
+            "value" : "Plan Aktif Edildi"
           }
         },
         "uk" : {
@@ -22128,19 +21959,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
-          }
-        }
-      }
-    },
-    "purchasePlan.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "state" : "needs_review",
+            "value" : "已激活计划"
           }
         }
       }

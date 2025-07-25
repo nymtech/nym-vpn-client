@@ -18,12 +18,11 @@ public struct PlanPurchaseSuccessView: View {
                     VStack(alignment: .center, spacing: 0) {
                         StepView(stepCount: 3, currentStep: 3)
                         Spacer()
-                        planActivatedSuccessTitle
+                        welcomeToTruePrivacyTitle
                             .padding(.horizontal, 16)
                         Spacer()
                             .frame(height: 24)
                         planActivatedSuccessfullyConnectionPrivate
-                        planActivatedSuccessfullyIdentityYours
                         Spacer()
                         startUsingVPNButton
                     }
@@ -56,21 +55,15 @@ private extension PlanPurchaseSuccessView {
         CustomNavBar(useElevationBackground: true)
     }
 
-    var planActivatedSuccessTitle: some View {
-        Text("purchasePlan.success.planActivated".localizedString)
+    var welcomeToTruePrivacyTitle: some View {
+        Text("purchasePlan.welcomToTruePrivacy".localizedString)
             .foregroundStyle(NymColor.primary)
             .textStyle(.Headline.Large.regular)
             .multilineTextAlignment(.center)
     }
 
     var planActivatedSuccessfullyConnectionPrivate: some View {
-        Text("purchasePlan.success.connectionPrivate".localizedString)
-            .foregroundStyle(NymColor.primary)
-            .textStyle(.Headline.Small.regular)
-    }
-
-    var planActivatedSuccessfullyIdentityYours: some View {
-        Text("purchasePlan.success.itentityYours".localizedString)
+        Text("purchasePlan.fullyProtected".localizedString)
             .foregroundStyle(NymColor.primary)
             .textStyle(.Headline.Small.regular)
     }
