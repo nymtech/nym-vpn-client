@@ -106,11 +106,20 @@ private extension CreateAccountSuccessView {
             Spacer()
                 .frame(height: 24)
 
-            Text("purchasePlan.subtile".localizedString)
+            Text("purchasePlan.subtile1".localizedString)
+                .textStyle(.Body.Medium.regular)
+                .foregroundStyle(NymColor.gray1)
+                .multilineTextAlignment(.center)
+
+            Spacer()
+                .frame(height: 16)
+
+            Text("purchasePlan.subtile2".localizedString)
                 .textStyle(.Body.Medium.regular)
                 .foregroundStyle(NymColor.gray1)
                 .multilineTextAlignment(.center)
         }
+        .padding(32)
     }
 
     var selectPlanButton: some View {
