@@ -40,6 +40,7 @@ fun ConnectionStatus(
 	connectionTime: String?,
 	theme: Theme,
 	modifier: Modifier = Modifier,
+	isAppInForeground: Boolean,
 ) {
 	val isDarkMode = isSystemInDarkTheme()
 	val animation by remember(theme) {
@@ -53,17 +54,16 @@ fun ConnectionStatus(
 		mutableStateOf(asset)
 	}
 	val composition = rememberLottieComposition(LottieCompositionSpec.RawRes(animation))
-
 	Column(
 		verticalArrangement = Arrangement.spacedBy(8.dp.scaledHeight()),
 		horizontalAlignment = Alignment.CenterHorizontally,
 		modifier = modifier.padding(top = 56.dp.scaledHeight()),
 	) {
-		AnimatedVisibility(visible = connectionState == ConnectionState.Connected) {
+		AnimatedVisibility(visible = connectionState == ConnectionState.Connected && isAppInForeground) {
 			val logoAnimationState = animateLottieCompositionAsState(
 				composition = composition.value,
 				speed = 1f,
-				isPlaying = connectionState == ConnectionState.Connected,
+				isPlaying = connectionState == ConnectionState.Connected && isAppInForeground,
 				iterations = LottieConstants.IterateForever,
 				cancellationBehavior = LottieCancellationBehavior.Immediately,
 			)
