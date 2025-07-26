@@ -16,13 +16,12 @@ mod windows_service;
 use std::{path::PathBuf, time::Duration};
 
 use clap::Parser;
-use nym_vpnd_types::log_path::LogPath;
 use sentry::ClientInitGuard;
 use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_lib::UserAgent;
-use nym_vpn_network_config::Network;
+use nym_vpnd_types::log_path::LogPath;
 
 use crate::{
     cli::{CliArgs, Command},
@@ -75,6 +74,9 @@ async fn async_main() -> anyhow::Result<()> {
 
             log_sentry_enabled(sentry_enabled);
 
+            let user_agent = args
+                .user_agent
+                .unwrap_or_else(user_agent::construct_user_agent);
             let log_path = logging_setup_with_remover
                 .as_ref()
                 .map(|s| s.log_path.clone());
@@ -82,27 +84,20 @@ async fn async_main() -> anyhow::Result<()> {
                 .as_ref()
                 .map(|s| s.remove_log_file_handle.clone());
 
-            #[cfg(windows)]
-            run_windows_service(
+            let run_parameters = RunParameters {
                 log_path,
-                args.network,
-                args.config_env_file,
+                network: args.network,
+                config_env_file: args.config_env_file,
                 sentry_enabled,
-                remove_log_file_handle,
-                shutdown_token,
-            )
-            .await?;
+                stats_id_seed: args.stats_id_seed,
+                user_agent,
+            };
+
+            #[cfg(windows)]
+            windows_service::start(run_parameters, remove_log_file_handle, shutdown_token).await?;
 
             #[cfg(not(windows))]
-            run_standalone(
-                log_path,
-                args.network,
-                args.config_env_file,
-                sentry_enabled,
-                remove_log_file_handle,
-                shutdown_token,
-            )
-            .await?;
+            run_standalone(run_parameters, remove_log_file_handle, shutdown_token).await?;
 
             if let Some(setup) = logging_setup_with_remover {
                 if setup.file_remover_handle.await.is_err() {
@@ -125,6 +120,9 @@ async fn async_main() -> anyhow::Result<()> {
 
             log_sentry_enabled(sentry_enabled);
 
+            let user_agent = args
+                .user_agent
+                .unwrap_or_else(user_agent::construct_user_agent);
             let log_path = logging_setup_with_remover
                 .as_ref()
                 .map(|s| s.log_path.clone());
@@ -132,15 +130,16 @@ async fn async_main() -> anyhow::Result<()> {
                 .as_ref()
                 .map(|s| s.remove_log_file_handle.clone());
 
-            run_standalone(
+            let run_parameters = RunParameters {
                 log_path,
-                args.network,
-                args.config_env_file,
+                network: args.network,
+                config_env_file: args.config_env_file,
                 sentry_enabled,
-                remove_log_file_handle,
-                shutdown_token,
-            )
-            .await?;
+                stats_id_seed: args.stats_id_seed,
+                user_agent,
+            };
+
+            run_standalone(run_parameters, remove_log_file_handle, shutdown_token).await?;
 
             if let Some(setup) = logging_setup_with_remover {
                 if setup.file_remover_handle.await.is_err() {
@@ -153,74 +152,56 @@ async fn async_main() -> anyhow::Result<()> {
     }
 }
 
-#[cfg(windows)]
-async fn run_windows_service(
+#[derive(Debug, Clone)]
+struct RunParameters {
     log_path: Option<LogPath>,
     network: Option<String>,
     config_env_file: Option<PathBuf>,
     sentry_enabled: bool,
-    remove_log_file_handle: Option<RemoveLogFileHandle>,
-    shutdown_token: CancellationToken,
-) -> anyhow::Result<()> {
-    windows_service::start(
-        log_path,
-        network,
-        config_env_file,
-        sentry_enabled,
-        remove_log_file_handle,
-        shutdown_token,
-        tokio::runtime::Handle::current(),
-    )
-    .await
+    stats_id_seed: Option<String>,
+    user_agent: UserAgent,
 }
 
 async fn run_standalone(
-    log_path: Option<LogPath>,
-    network: Option<String>,
-    config_env_file: Option<PathBuf>,
-    sentry_enabled: bool,
+    parameters: RunParameters,
     remove_log_file_handle: Option<RemoveLogFileHandle>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
-    let global_config_file = setup_global_config(network)?;
+    let global_config_file = setup_global_config(parameters.network)?;
     let network_env =
-        environment::setup_environment(&global_config_file, config_env_file.as_deref()).await?;
+        environment::setup_environment(&global_config_file, parameters.config_env_file.as_deref())
+            .await?;
 
-    let parameters = VpnServiceSetupParameters {
-        log_path,
+    let vpn_service_params = NymVpnServiceParameters {
+        log_path: parameters.log_path,
         network_env,
-        sentry_enabled,
+        sentry_enabled: parameters.sentry_enabled,
         netstats_enabled: global_config_file.collect_network_statistics,
-        stats_id_seed: None,
-        user_agent: None,
+        stats_id_seed: parameters.stats_id_seed,
+        user_agent: parameters.user_agent,
     };
 
     let shutdown_child_token = shutdown_token.child_token();
     let mut shutdown_join_set = shutdown_handler::install(shutdown_token);
-    let vpn_service_runtime =
-        setup_vpn_service(parameters, remove_log_file_handle, shutdown_child_token).await?;
+    let vpn_service_handle = setup_vpn_service(
+        vpn_service_params,
+        remove_log_file_handle,
+        shutdown_child_token,
+    )
+    .await?;
 
-    vpn_service_runtime.wait_until_shutdown().await;
+    vpn_service_handle.wait_until_shutdown().await;
     shutdown_join_set.shutdown().await;
 
     Ok(())
 }
 
-struct VpnServiceSetupParameters {
-    pub log_path: Option<LogPath>,
-    pub network_env: Network,
-    pub sentry_enabled: bool,
-    pub netstats_enabled: bool,
-    pub stats_id_seed: Option<String>,
-    pub user_agent: Option<UserAgent>,
-}
-
-struct VpnServiceRuntime {
+struct VpnServiceHandle {
     vpn_service_handle: JoinHandle<()>,
     command_handle: JoinHandle<()>,
 }
 
-impl VpnServiceRuntime {
+impl VpnServiceHandle {
     pub fn new(vpn_service_handle: JoinHandle<()>, command_handle: JoinHandle<()>) -> Self {
         Self {
             vpn_service_handle,
@@ -239,39 +220,16 @@ impl VpnServiceRuntime {
     }
 }
 
-#[derive(thiserror::Error, Debug)]
-enum SetupServiceError {
-    #[error("failed to start command")]
-    StartCommandInterface(#[source] std::io::Error),
-}
-
 async fn setup_vpn_service(
-    parameters: VpnServiceSetupParameters,
+    parameters: NymVpnServiceParameters,
     remove_log_file_handle: Option<RemoveLogFileHandle>,
     shutdown_token: CancellationToken,
-) -> Result<VpnServiceRuntime, SetupServiceError> {
+) -> anyhow::Result<VpnServiceHandle> {
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
 
     let (command_handle, vpn_command_rx) =
         command_interface::start_command_interface(tunnel_event_rx, shutdown_token.child_token())
-            .await
-            .map_err(SetupServiceError::StartCommandInterface)?;
-
-    // The user agent can be overridden by the user, but if it's not, we'll construct it
-    // based on the current system information and it will be for "nym-vpnd". A number of the rpc
-    // calls also provide a user-agent field so that the app can identity itself properly.
-    let user_agent = parameters
-        .user_agent
-        .unwrap_or_else(user_agent::construct_user_agent);
-
-    let parameters = NymVpnServiceParameters {
-        log_path: parameters.log_path,
-        network_env: parameters.network_env,
-        stats_id_seed: parameters.stats_id_seed,
-        sentry_enabled: parameters.sentry_enabled,
-        netstats_enabled: parameters.netstats_enabled,
-        user_agent,
-    };
+            .await?;
 
     let vpn_service_handle = NymVpnService::spawn(
         vpn_command_rx,
@@ -281,7 +239,7 @@ async fn setup_vpn_service(
         shutdown_token.child_token(),
     );
 
-    Ok(VpnServiceRuntime::new(vpn_service_handle, command_handle))
+    Ok(VpnServiceHandle::new(vpn_service_handle, command_handle))
 }
 
 fn setup_global_config(network: Option<String>) -> anyhow::Result<GlobalConfigFile> {
