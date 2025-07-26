@@ -18,7 +18,7 @@ use windows_service::{
     service_dispatcher,
 };
 
-use crate::{RunParameters, logging::RemoveLogFileHandle, service::NymVpnServiceParameters};
+use crate::{RunParameters, logging::RemoveLogFileSignal, service::NymVpnServiceParameters};
 use persistent_service_status::PersistentServiceStatus;
 
 windows_service::define_windows_service!(ffi_service_main, service_main);
@@ -55,19 +55,19 @@ enum ServiceEvent {
 struct SharedServiceState {
     runtime_handle: tokio::runtime::Handle,
     run_parameters: RunParameters,
-    remove_log_file_handle: Option<RemoveLogFileHandle>,
+    remove_log_file_signal: Option<RemoveLogFileSignal>,
     shutdown_token: CancellationToken,
 }
 
 pub async fn start(
     run_parameters: RunParameters,
-    remove_log_file_handle: Option<RemoveLogFileHandle>,
+    remove_log_file_signal: Option<RemoveLogFileSignal>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
     let initial_state = SharedServiceState {
         runtime_handle: tokio::runtime::Handle::current(),
         run_parameters,
-        remove_log_file_handle,
+        remove_log_file_signal,
         shutdown_token,
     };
 
@@ -152,7 +152,7 @@ async fn run_service() -> anyhow::Result<()> {
 
     match crate::setup_vpn_service(
         vpn_service_params,
-        service_state.remove_log_file_handle,
+        service_state.remove_log_file_signal,
         shutdown_token,
     )
     .await

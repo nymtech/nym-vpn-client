@@ -26,7 +26,7 @@ use nym_vpnd_types::log_path::LogPath;
 use crate::{
     cli::{CliArgs, Command},
     config::GlobalConfigFile,
-    logging::RemoveLogFileHandle,
+    logging::RemoveLogFileSignal,
 };
 use service::{NymVpnService, NymVpnServiceParameters};
 
@@ -76,31 +76,30 @@ async fn run_vpn_service(args: CliArgs, sentry_enabled: bool) -> anyhow::Result<
         enable_stdout_log: !run_as_service,
         sentry: sentry_enabled,
     };
-    let logging_setup_with_remover =
+    let logging_setup =
         logging::setup_logging_with_file_remover(options, shutdown_token.child_token());
-    let log_path = logging_setup_with_remover
+    let log_path = logging_setup.as_ref().map(|s| s.log_path.clone());
+    let remove_log_file_signal = logging_setup
         .as_ref()
-        .map(|s| s.log_path.clone());
-    let remove_log_file_handle = logging_setup_with_remover
-        .as_ref()
-        .map(|s| s.remove_log_file_handle.clone());
+        .map(|s| s.remove_log_file_signal.clone());
     let run_parameters = RunParameters::new_with_cli_args(args, log_path, sentry_enabled);
 
+    log_software_and_os_version();
     if sentry_enabled {
         tracing::info!("Sentry monitoring enabled");
     }
 
     #[cfg(windows)]
     if run_as_service {
-        windows_service::start(run_parameters, remove_log_file_handle, shutdown_token).await?;
+        windows_service::start(run_parameters, remove_log_file_signal, shutdown_token).await?;
     } else {
-        run_standalone(run_parameters, remove_log_file_handle, shutdown_token).await?;
+        run_standalone(run_parameters, remove_log_file_signal, shutdown_token).await?;
     }
 
     #[cfg(not(windows))]
-    run_standalone(run_parameters, remove_log_file_handle, shutdown_token).await?;
+    run_standalone(run_parameters, remove_log_file_signal, shutdown_token).await?;
 
-    let _worker_guard = if let Some(setup) = logging_setup_with_remover {
+    let _worker_guard = if let Some(setup) = logging_setup {
         if setup.file_remover_handle.await.is_err() {
             tracing::error!("Failed to join on file logging handle");
         }
@@ -139,9 +138,10 @@ impl RunParameters {
     }
 }
 
+/// Run vpn service as a standalone process.
 async fn run_standalone(
     parameters: RunParameters,
-    remove_log_file_handle: Option<RemoveLogFileHandle>,
+    remove_log_file_signal: Option<RemoveLogFileSignal>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
     let global_config_file = setup_global_config(parameters.network)?;
@@ -158,15 +158,14 @@ async fn run_standalone(
         user_agent: parameters.user_agent,
     };
 
-    let shutdown_child_token = shutdown_token.child_token();
-    let mut shutdown_join_set = shutdown_handler::install(shutdown_token);
     let vpn_service_handle = setup_vpn_service(
         vpn_service_params,
-        remove_log_file_handle,
-        shutdown_child_token,
+        remove_log_file_signal,
+        shutdown_token.child_token(),
     )
     .await?;
 
+    let mut shutdown_join_set = shutdown_handler::install(shutdown_token);
     vpn_service_handle.wait_until_shutdown().await;
     shutdown_join_set.shutdown().await;
 
@@ -200,7 +199,7 @@ impl VpnServiceHandle {
 
 async fn setup_vpn_service(
     parameters: NymVpnServiceParameters,
-    remove_log_file_handle: Option<RemoveLogFileHandle>,
+    remove_log_file_signal: Option<RemoveLogFileSignal>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<VpnServiceHandle> {
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
@@ -212,7 +211,7 @@ async fn setup_vpn_service(
     let vpn_service_handle = NymVpnService::spawn(
         vpn_command_rx,
         tunnel_event_tx,
-        remove_log_file_handle,
+        remove_log_file_signal,
         parameters,
         shutdown_token.child_token(),
     );
@@ -253,4 +252,17 @@ fn init_sentry() -> Option<ClientInitGuard> {
         },
     ));
     Some(guard)
+}
+
+fn log_software_and_os_version() {
+    let build_info = nym_bin_common::bin_info_local_vergen!();
+    tracing::info!(
+        "{} {} ({})",
+        build_info.binary_name,
+        build_info.build_version,
+        build_info.commit_sha
+    );
+
+    let os = nym_vpn_lib::SysInfo::new();
+    os.display(true);
 }

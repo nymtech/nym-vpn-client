@@ -109,7 +109,7 @@ impl LogFileRemover {
     pub fn spawn(
         file_appender: FileAppender,
         shutdown_handle: CancellationToken,
-    ) -> (RemoveLogFileHandle, JoinHandle<()>) {
+    ) -> (RemoveLogFileSignal, JoinHandle<()>) {
         let (tx, rx) = mpsc::unbounded_channel();
         let file_remover = Self {
             command_rx: rx,
@@ -117,7 +117,7 @@ impl LogFileRemover {
             shutdown_handle,
         };
         let join_handle = tokio::spawn(file_remover.run());
-        let remove_file_handle = RemoveLogFileHandle { tx };
+        let remove_file_handle = RemoveLogFileSignal { tx };
         (remove_file_handle, join_handle)
     }
 
@@ -137,13 +137,14 @@ impl LogFileRemover {
     }
 }
 
+/// Interface for signaling when active log file should be removed.
 #[derive(Clone)]
-pub struct RemoveLogFileHandle {
+pub struct RemoveLogFileSignal {
     tx: mpsc::UnboundedSender<()>,
 }
 
-impl RemoveLogFileHandle {
-    pub fn remove_file(&self) {
+impl RemoveLogFileSignal {
+    pub fn remove_log_file(&self) {
         if self.tx.send(()).is_err() {
             tracing::warn!("Log file remover channel is already closed");
         }
@@ -172,32 +173,13 @@ impl LoggingSetup {
 
 pub struct LoggingSetupWithFileRemover {
     /// Handle for removing the log file
-    pub remove_log_file_handle: RemoveLogFileHandle,
+    pub remove_log_file_signal: RemoveLogFileSignal,
     /// Join handle for the file remover worker
     pub file_remover_handle: JoinHandle<()>,
     pub log_path: LogPath,
     /// A guard that flushes the log file when dropped.
     /// This worker guard should be retained for the lifetime of application.
     pub worker_guard: WorkerGuard,
-}
-
-pub fn setup_logging_with_file_remover(
-    options: Options,
-    shutdown_token: CancellationToken,
-) -> Option<LoggingSetupWithFileRemover> {
-    let logging_setup = setup_logging(options);
-
-    logging_setup.map(|logging_setup| {
-        let (remove_log_file_handle, join_handle) =
-            LogFileRemover::spawn(logging_setup.file_appender, shutdown_token);
-
-        LoggingSetupWithFileRemover {
-            remove_log_file_handle,
-            file_remover_handle: join_handle,
-            log_path: logging_setup.log_path,
-            worker_guard: logging_setup.worker_guard,
-        }
-    })
 }
 
 pub fn default_log_path() -> LogPath {
@@ -305,20 +287,24 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         .init();
 
     log_panics::init();
-    log_software_os_version_header();
-
     worker_guard
 }
 
-fn log_software_os_version_header() {
-    let build_info = nym_bin_common::bin_info_local_vergen!();
-    tracing::info!(
-        "{} {} ({})",
-        build_info.binary_name,
-        build_info.build_version,
-        build_info.commit_sha
-    );
+pub fn setup_logging_with_file_remover(
+    options: Options,
+    shutdown_token: CancellationToken,
+) -> Option<LoggingSetupWithFileRemover> {
+    let logging_setup = setup_logging(options);
 
-    let os = nym_vpn_lib::SysInfo::new();
-    os.display(true);
+    logging_setup.map(|logging_setup| {
+        let (remove_log_file_handle, join_handle) =
+            LogFileRemover::spawn(logging_setup.file_appender, shutdown_token);
+
+        LoggingSetupWithFileRemover {
+            remove_log_file_signal: remove_log_file_handle,
+            file_remover_handle: join_handle,
+            log_path: logging_setup.log_path,
+            worker_guard: logging_setup.worker_guard,
+        }
+    })
 }
