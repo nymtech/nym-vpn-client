@@ -53,7 +53,7 @@ use super::{
         Result, SetNetworkError,
     },
 };
-use crate::config::GlobalConfigFile;
+use crate::{config::GlobalConfigFile, logging::RemoveLogFileHandle};
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -149,7 +149,7 @@ where
     tunnel_event_tx: broadcast::Sender<TunnelEvent>,
 
     // Send command to delete and recreate logging file
-    file_logging_event_tx: mpsc::UnboundedSender<()>,
+    remove_log_file_handle: Option<RemoveLogFileHandle>,
 
     // Send commands to the account controller
     account_command_tx: AccountCommandSender,
@@ -199,11 +199,11 @@ where
 }
 
 pub struct NymVpnServiceParameters {
+    pub log_path: Option<LogPath>,
     pub network_env: Network,
     pub sentry_enabled: bool,
     pub netstats_enabled: bool,
     pub stats_id_seed: Option<String>,
-    pub log_path: Option<LogPath>,
     pub user_agent: UserAgent,
 }
 
@@ -211,7 +211,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     pub fn spawn(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
-        file_logging_event_tx: mpsc::UnboundedSender<()>,
+        remove_log_file_handle: Option<RemoveLogFileHandle>,
         parameters: NymVpnServiceParameters,
         shutdown_token: CancellationToken,
     ) -> JoinHandle<()> {
@@ -220,7 +220,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             match NymVpnService::new(
                 vpn_command_rx,
                 tunnel_event_tx,
-                file_logging_event_tx,
+                remove_log_file_handle,
                 parameters,
                 shutdown_token,
             )
@@ -248,7 +248,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     pub async fn new(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
-        file_logging_event_tx: mpsc::UnboundedSender<()>,
+        remove_log_file_handle: Option<RemoveLogFileHandle>,
         parameters: NymVpnServiceParameters,
         shutdown_token: CancellationToken,
     ) -> Result<Self> {
@@ -410,7 +410,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             shared_account_state,
             vpn_command_rx,
             tunnel_event_tx,
-            file_logging_event_tx,
+            remove_log_file_handle,
             account_command_tx,
             config_file,
             data_dir: network_data_dir,
@@ -1013,7 +1013,9 @@ where
     }
 
     async fn handle_delete_log_file(&self) {
-        self.file_logging_event_tx.send(()).ok();
+        if let Some(remove_log_file_handle) = self.remove_log_file_handle.as_ref() {
+            remove_log_file_handle.remove_file();
+        }
     }
 
     async fn handle_is_sentry_enabled(&self) -> bool {

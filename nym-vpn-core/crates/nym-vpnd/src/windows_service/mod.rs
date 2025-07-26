@@ -8,19 +8,19 @@ use std::{ffi::OsString, path::PathBuf, sync::LazyLock, time::Duration};
 
 use anyhow::Context;
 use nym_common::trace_err_chain;
+use nym_vpnd_types::log_path::LogPath;
 use tokio::{
     sync::{Mutex, mpsc, oneshot},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
-use tracing_appender::non_blocking::WorkerGuard;
 use windows_service::{
     service::{ServiceControl, ServiceExitCode, ServiceType},
     service_control_handler::{self, ServiceControlHandlerResult, ServiceStatusHandle},
     service_dispatcher,
 };
 
-use crate::{logging::LoggingSetup, runtime};
+use crate::logging::RemoveLogFileHandle;
 use persistent_service_status::PersistentServiceStatus;
 
 windows_service::define_windows_service!(ffi_service_main, service_main);
@@ -69,34 +69,46 @@ pub struct ServiceNetworkConfig {
 
 #[derive(Default)]
 struct SharedServiceState {
+    log_path: Option<LogPath>,
     network_config: ServiceNetworkConfig,
-    logging_setup: Option<LoggingSetup>,
-    worker_guard: Option<WorkerGuard>,
+    remove_log_file_handle: Option<RemoveLogFileHandle>,
     sentry_enabled: bool,
+    shutdown_token: CancellationToken,
+    runtime_handle: Option<tokio::runtime::Handle>,
 }
 
-pub fn start(
+pub async fn start(
+    log_path: Option<LogPath>,
     network_config: ServiceNetworkConfig,
-    logging_setup: Option<LoggingSetup>,
     sentry_enabled: bool,
-) -> Result<Option<WorkerGuard>, windows_service::Error> {
-    *SHARED_SERVICE_STATE.blocking_lock() = SharedServiceState {
+    remove_log_file_handle: Option<RemoveLogFileHandle>,
+    shutdown_token: CancellationToken,
+    runtime_handle: tokio::runtime::Handle,
+) -> anyhow::Result<()> {
+    *SHARED_SERVICE_STATE.lock().await = SharedServiceState {
+        log_path,
         network_config,
-        logging_setup,
-        worker_guard: None,
+        remove_log_file_handle,
         sentry_enabled,
+        shutdown_token,
+        runtime_handle: Some(runtime_handle),
     };
 
     // Register generated `ffi_service_main` with the system and start the service, blocking
     // this thread until the service is stopped.
-    service_dispatcher::start(SERVICE_NAME, ffi_service_main)?;
-
-    let worker_guard = (*SHARED_SERVICE_STATE).blocking_lock().worker_guard.take();
-    Ok(worker_guard)
+    tokio::task::spawn_blocking(|| service_dispatcher::start(SERVICE_NAME, ffi_service_main))
+        .await
+        .with_context(|| "failed to join on service dispatcher task")??;
+    Ok(())
 }
 
 fn service_main(_arguments: Vec<OsString>) {
-    let rt = runtime::new_runtime();
+    let rt = SHARED_SERVICE_STATE
+        .blocking_lock()
+        .runtime_handle
+        .as_ref()
+        .expect("runtime must be set prior to the call to service_main()")
+        .clone();
 
     if let Err(err) = rt.block_on(run_service()) {
         tracing::error!("service_main: {:?}", err);
@@ -106,7 +118,7 @@ fn service_main(_arguments: Vec<OsString>) {
 async fn run_service() -> anyhow::Result<()> {
     tracing::info!("Setting up event handler");
 
-    let shutdown_token = CancellationToken::new();
+    let shutdown_token = SHARED_SERVICE_STATE.lock().await.shutdown_token.clone();
     let (service_event_tx, service_event_rx) = mpsc::unbounded_channel();
     let status_handle = register_service_event_handler(service_event_tx)?;
     let mut persistent_status = PersistentServiceStatus::new(SERVICE_TYPE, status_handle);
@@ -119,9 +131,10 @@ async fn run_service() -> anyhow::Result<()> {
     tracing::info!("Service is starting...");
     persistent_status.set_pending_start(Duration::from_secs(20))?;
 
-    let mut shared_service_state = SHARED_SERVICE_STATE.lock().await;
+    let shared_service_state = SHARED_SERVICE_STATE.lock().await;
+    let log_path = shared_service_state.log_path.clone();
+    let remove_log_file_handle = shared_service_state.remove_log_file_handle.clone();
     let network_config = shared_service_state.network_config.clone();
-    let logging_setup = shared_service_state.logging_setup.take();
     let sentry_enabled = shared_service_state.sentry_enabled;
     // explicitly release mutex lock
     _ = shared_service_state;
@@ -152,6 +165,7 @@ async fn run_service() -> anyhow::Result<()> {
     };
 
     let vpn_service_run_config = crate::VpnServiceSetupParameters {
+        log_path,
         network_env,
         sentry_enabled,
         netstats_enabled,
@@ -159,35 +173,36 @@ async fn run_service() -> anyhow::Result<()> {
         user_agent: None,
     };
 
-    let worker_guard =
-        match crate::setup_vpn_service(vpn_service_run_config, logging_setup, shutdown_token).await
-        {
-            Ok(vpn_service_runtime) => {
-                tracing::info!("Service has started");
-                persistent_status.set_running()?;
+    match crate::setup_vpn_service(
+        vpn_service_run_config,
+        remove_log_file_handle,
+        shutdown_token,
+    )
+    .await
+    {
+        Ok(vpn_service_runtime) => {
+            tracing::info!("Service has started");
+            persistent_status.set_running()?;
 
-                let worker_guard = vpn_service_runtime.wait_until_shutdown().await;
+            vpn_service_runtime.wait_until_shutdown().await;
 
-                tracing::info!("Service is stopping!");
-                persistent_status.set_stopped(ServiceExitCode::NO_ERROR)?;
+            tracing::info!("Service is stopping!");
+            persistent_status.set_stopped(ServiceExitCode::NO_ERROR)?;
 
-                tracing::info!("Service has stopped!");
-                worker_guard
-            }
-            Err(err) => {
-                trace_err_chain!(err, "failed to setup vpn service");
+            tracing::info!("Service has stopped!");
 
-                persistent_status.set_stopped(ServiceExitCode::from(
-                    ServiceSpecificExitCode::StartCommandInterface,
-                ))?;
+            Ok(())
+        }
+        Err(err) => {
+            trace_err_chain!(err, "failed to setup vpn service");
 
-                todo!()
-            }
-        };
+            persistent_status.set_stopped(ServiceExitCode::from(
+                ServiceSpecificExitCode::StartCommandInterface,
+            ))?;
 
-    (*SHARED_SERVICE_STATE).lock().await.worker_guard = worker_guard;
-
-    Ok(())
+            Err(anyhow::Error::new(err))
+        }
+    }
 }
 
 fn register_service_event_handler(

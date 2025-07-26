@@ -16,6 +16,7 @@ mod windows_service;
 use std::{path::PathBuf, time::Duration};
 
 use clap::Parser;
+use nym_vpnd_types::log_path::LogPath;
 use sentry::ClientInitGuard;
 use tokio::{
     sync::{broadcast, mpsc},
@@ -30,11 +31,17 @@ use tracing_appender::non_blocking::WorkerGuard;
 use crate::{
     cli::{CliArgs, Command},
     config::GlobalConfigFile,
+    logging::RemoveLogFileHandle,
 };
-use logging::{LogFileRemover, LoggingSetup};
+use logging::LogFileRemover;
 use service::{NymVpnService, NymVpnServiceParameters};
 
 fn main() -> anyhow::Result<()> {
+    let rt = runtime::new_runtime();
+    rt.block_on(async_main())
+}
+
+async fn async_main() -> anyhow::Result<()> {
     let args = CliArgs::parse();
     let _sentry_guard = init_sentry();
     let sentry_enabled = _sentry_guard.is_some();
@@ -61,6 +68,7 @@ fn main() -> anyhow::Result<()> {
             Ok(())
         }
         Command::RunAsService => {
+            let shutdown_token = CancellationToken::new();
             let options = logging::Options {
                 verbosity_level: args.verbosity_level(),
                 enable_file_log: true,
@@ -69,21 +77,26 @@ fn main() -> anyhow::Result<()> {
             };
 
             #[cfg(windows)]
-            let _worker_guard = run_windows_service(args.network, args.config_env_file, options)?;
+            let _worker_guard =
+                run_windows_service(args.network, args.config_env_file, options, shutdown_token)
+                    .await?;
 
             #[cfg(not(windows))]
-            let _worker_guard = run_standalone(args.network, args.config_env_file, options)?;
+            let _worker_guard =
+                run_standalone(args.network, args.config_env_file, options, shutdown_token).await?;
 
             Ok(())
         }
         Command::RunStandalone => {
+            let shutdown_token = CancellationToken::new();
             let options = logging::Options {
                 verbosity_level: args.verbosity_level(),
                 enable_file_log: false,
                 enable_stdout_log: true,
                 sentry: sentry_enabled,
             };
-            let _worker_guard = run_standalone(args.network, args.config_env_file, options)?;
+            let _worker_guard =
+                run_standalone(args.network, args.config_env_file, options, shutdown_token).await?;
 
             Ok(())
         }
@@ -91,57 +104,111 @@ fn main() -> anyhow::Result<()> {
 }
 
 #[cfg(windows)]
-fn run_windows_service(
+async fn run_windows_service(
     network: Option<String>,
     config_env_file: Option<PathBuf>,
     options: logging::Options,
+    shutdown_token: CancellationToken,
 ) -> anyhow::Result<Option<WorkerGuard>> {
     let sentry_enabled = options.sentry;
     let logging_setup = logging::setup_logging(options);
 
-    let worker_guard = windows_service::start(
+    let (remove_file_log_handle, file_logging_handle, log_path, worker_guard) =
+        if let Some(logging_setup) = logging_setup {
+            let (remove_file_handle, join_handle) =
+                LogFileRemover::spawn(logging_setup.file_appender, shutdown_token.child_token());
+            (
+                Some(remove_file_handle),
+                Some(join_handle),
+                Some(logging_setup.log_path),
+                Some(logging_setup.worker_guard),
+            )
+        } else {
+            (None, None, None, None)
+        };
+
+    windows_service::start(
+        log_path,
         windows_service::ServiceNetworkConfig {
             network,
             config_env_file,
         },
-        logging_setup,
         sentry_enabled,
-    )?;
+        remove_file_log_handle,
+        shutdown_token,
+        tokio::runtime::Handle::current(),
+    )
+    .await?;
+
+    if let Some(file_logging_handle) = file_logging_handle {
+        if file_logging_handle.await.is_err() {
+            tracing::error!("Failed to join on file logging handle");
+        }
+    }
 
     Ok(worker_guard)
 }
 
-fn run_standalone(
+async fn run_standalone(
     network: Option<String>,
     config_env_file: Option<PathBuf>,
     options: logging::Options,
+    shutdown_token: CancellationToken,
 ) -> anyhow::Result<Option<WorkerGuard>> {
     let sentry_enabled = options.sentry;
     let logging_setup = logging::setup_logging(options);
     let global_config_file = setup_global_config(network)?;
 
+    let (remove_file_log_handle, file_logging_handle, log_path, worker_guard) =
+        if let Some(logging_setup) = logging_setup {
+            let (remove_file_handle, join_handle) =
+                LogFileRemover::spawn(logging_setup.file_appender, shutdown_token.child_token());
+            (
+                Some(remove_file_handle),
+                Some(join_handle),
+                Some(logging_setup.log_path),
+                Some(logging_setup.worker_guard),
+            )
+        } else {
+            (None, None, None, None)
+        };
+
     if sentry_enabled {
         tracing::info!("Sentry monitoring enabled");
     }
 
-    runtime::new_runtime().block_on(async {
-        let network_env =
-            environment::setup_environment(&global_config_file, config_env_file.as_deref()).await?;
-        let shutdown_token = CancellationToken::new();
+    let network_env =
+        environment::setup_environment(&global_config_file, config_env_file.as_deref()).await?;
 
-        let parameters = VpnServiceSetupParameters {
-            network_env,
-            sentry_enabled,
-            netstats_enabled: global_config_file.collect_network_statistics,
-            stats_id_seed: None,
-            user_agent: None,
-        };
+    let parameters = VpnServiceSetupParameters {
+        log_path,
+        network_env,
+        sentry_enabled,
+        netstats_enabled: global_config_file.collect_network_statistics,
+        stats_id_seed: None,
+        user_agent: None,
+    };
 
-        Ok(run_standalone_async(parameters, logging_setup, shutdown_token).await?)
-    })
+    let shutdown_child_token = shutdown_token.child_token();
+    let mut shutdown_join_set = shutdown_handler::install(shutdown_token);
+    let vpn_service_runtime =
+        setup_vpn_service(parameters, remove_file_log_handle, shutdown_child_token).await?;
+
+    vpn_service_runtime.wait_until_shutdown().await;
+    shutdown_join_set.shutdown().await;
+
+    if let Some(file_logging_handle) = file_logging_handle {
+        file_logging_handle
+            .await
+            .inspect_err(|e| tracing::error!("Failed to join on file logging handle: {}", e))
+            .ok();
+    }
+
+    Ok(worker_guard)
 }
 
 struct VpnServiceSetupParameters {
+    pub log_path: Option<LogPath>,
     pub network_env: Network,
     pub sentry_enabled: bool,
     pub netstats_enabled: bool,
@@ -152,23 +219,17 @@ struct VpnServiceSetupParameters {
 struct VpnServiceRuntime {
     vpn_service_handle: JoinHandle<()>,
     command_handle: JoinHandle<()>,
-    file_logging_handle: Option<JoinHandle<WorkerGuard>>,
 }
 
 impl VpnServiceRuntime {
-    pub fn new(
-        vpn_service_handle: JoinHandle<()>,
-        command_handle: JoinHandle<()>,
-        file_logging_handle: Option<JoinHandle<WorkerGuard>>,
-    ) -> Self {
+    pub fn new(vpn_service_handle: JoinHandle<()>, command_handle: JoinHandle<()>) -> Self {
         Self {
             vpn_service_handle,
             command_handle,
-            file_logging_handle,
         }
     }
 
-    pub async fn wait_until_shutdown(self) -> Option<WorkerGuard> {
+    pub async fn wait_until_shutdown(self) {
         if let Err(e) = self.vpn_service_handle.await {
             tracing::error!("Failed to join on vpn service: {}", e);
         }
@@ -176,32 +237,7 @@ impl VpnServiceRuntime {
         if let Err(e) = self.command_handle.await {
             tracing::error!("Failed to join on command interface: {}", e);
         }
-
-        if let Some(file_logging_handle) = self.file_logging_handle {
-            file_logging_handle
-                .await
-                .inspect_err(|e| tracing::error!("Failed to join on file logging: {}", e))
-                .ok()
-        } else {
-            None
-        }
     }
-}
-
-async fn run_standalone_async(
-    parameters: VpnServiceSetupParameters,
-    logging_setup: Option<LoggingSetup>,
-    shutdown_token: CancellationToken,
-) -> Result<Option<WorkerGuard>, SetupServiceError> {
-    let shutdown_child_token = shutdown_token.child_token();
-    let mut shutdown_join_set = shutdown_handler::install(shutdown_token);
-    let vpn_service_runtime =
-        setup_vpn_service(parameters, logging_setup, shutdown_child_token).await?;
-
-    let worker_guard = vpn_service_runtime.wait_until_shutdown().await;
-    shutdown_join_set.shutdown().await;
-
-    Ok(worker_guard)
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -212,25 +248,10 @@ enum SetupServiceError {
 
 async fn setup_vpn_service(
     parameters: VpnServiceSetupParameters,
-    logging_setup: Option<LoggingSetup>,
+    remove_file_log_handle: Option<RemoveLogFileHandle>,
     shutdown_token: CancellationToken,
 ) -> Result<VpnServiceRuntime, SetupServiceError> {
-    let log_path = logging_setup
-        .as_ref()
-        .map(|logging_setup| logging_setup.log_path().clone());
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
-    let (file_logging_event_tx, file_logging_event_rx) = mpsc::unbounded_channel();
-
-    let file_logging_handle = logging_setup.map(|logging_setup| {
-        tokio::spawn(
-            LogFileRemover::new(
-                file_logging_event_rx,
-                logging_setup,
-                shutdown_token.child_token(),
-            )
-            .run(),
-        )
-    });
 
     let (command_handle, vpn_command_rx) =
         command_interface::start_command_interface(tunnel_event_rx, shutdown_token.child_token())
@@ -245,9 +266,9 @@ async fn setup_vpn_service(
         .unwrap_or_else(user_agent::construct_user_agent);
 
     let parameters = NymVpnServiceParameters {
+        log_path: parameters.log_path,
         network_env: parameters.network_env,
         stats_id_seed: parameters.stats_id_seed,
-        log_path,
         sentry_enabled: parameters.sentry_enabled,
         netstats_enabled: parameters.netstats_enabled,
         user_agent,
@@ -256,16 +277,12 @@ async fn setup_vpn_service(
     let vpn_service_handle = NymVpnService::spawn(
         vpn_command_rx,
         tunnel_event_tx,
-        file_logging_event_tx,
+        remove_file_log_handle,
         parameters,
         shutdown_token.child_token(),
     );
 
-    Ok(VpnServiceRuntime::new(
-        vpn_service_handle,
-        command_handle,
-        file_logging_handle,
-    ))
+    Ok(VpnServiceRuntime::new(vpn_service_handle, command_handle))
 }
 
 fn setup_global_config(network: Option<String>) -> anyhow::Result<GlobalConfigFile> {
