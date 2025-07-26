@@ -117,8 +117,6 @@ async fn run_service() -> anyhow::Result<()> {
     persistent_status.set_pending_start(Duration::from_secs(20))?;
 
     let global_config_file = crate::setup_global_config(run_params.network.clone())?;
-    let netstats_enabled = global_config_file.collect_network_statistics;
-
     let network_env = match crate::environment::setup_environment(
         &global_config_file,
         run_params.config_env_file.as_deref(),
@@ -145,7 +143,7 @@ async fn run_service() -> anyhow::Result<()> {
         log_path: run_params.log_path,
         network_env,
         sentry_enabled: run_params.sentry_enabled,
-        netstats_enabled,
+        netstats_enabled: global_config_file.collect_network_statistics,
         stats_id_seed: run_params.stats_id_seed,
         user_agent: run_params.user_agent,
     };
