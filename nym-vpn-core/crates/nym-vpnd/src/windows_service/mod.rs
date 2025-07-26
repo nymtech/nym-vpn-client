@@ -8,12 +8,15 @@ use std::{ffi::OsString, path::PathBuf, sync::LazyLock, time::Duration};
 
 use anyhow::Context;
 use nym_common::trace_err_chain;
-use tokio::sync::{Mutex, mpsc, oneshot};
+use tokio::{
+    sync::{Mutex, mpsc, oneshot},
+    task::JoinHandle,
+};
 use tokio_util::sync::CancellationToken;
 use tracing_appender::non_blocking::WorkerGuard;
 use windows_service::{
     service::{ServiceControl, ServiceExitCode, ServiceType},
-    service_control_handler::{self, ServiceControlHandlerResult},
+    service_control_handler::{self, ServiceControlHandlerResult, ServiceStatusHandle},
     service_dispatcher,
 };
 
@@ -103,74 +106,15 @@ fn service_main(_arguments: Vec<OsString>) {
 async fn run_service() -> anyhow::Result<()> {
     tracing::info!("Setting up event handler");
 
-    let (service_event_tx, mut service_event_rx) = mpsc::unbounded_channel();
-
-    let event_handler = move |control_event| -> ServiceControlHandlerResult {
-        match control_event {
-            ServiceControl::Stop => {
-                let (completion_tx, completion_rx) = oneshot::channel();
-                if service_event_tx
-                    .send(ServiceEvent::Stop { completion_tx })
-                    .inspect_err(|e| {
-                        tracing::error!("Failed to send stop: {}", e);
-                    })
-                    .is_ok()
-                {
-                    let _ = completion_rx.blocking_recv();
-                }
-                ServiceControlHandlerResult::NoError
-            }
-            ServiceControl::Preshutdown => {
-                let (completion_tx, completion_rx) = oneshot::channel();
-                if service_event_tx
-                    .send(ServiceEvent::PreShutdown { completion_tx })
-                    .inspect_err(|e| {
-                        tracing::error!("Failed to send preshutdown: {}", e);
-                    })
-                    .is_ok()
-                {
-                    let _ = completion_rx.blocking_recv();
-                }
-                ServiceControlHandlerResult::NoError
-            }
-            ServiceControl::Interrogate => ServiceControlHandlerResult::NoError,
-            _ => ServiceControlHandlerResult::NotImplemented,
-        }
-    };
-
-    // Register system service event handler
-    let status_handle = service_control_handler::register(SERVICE_NAME, event_handler)?;
-    let mut persistent_status = PersistentServiceStatus::new(SERVICE_TYPE, status_handle);
-
     let shutdown_token = CancellationToken::new();
-    let cloned_shutdown_token = shutdown_token.clone();
-    let mut cloned_persistent_status = persistent_status.clone();
-    tokio::spawn(async move {
-        while let Some(service_event) = service_event_rx.recv().await {
-            match service_event {
-                ServiceEvent::Stop { completion_tx } => {
-                    tracing::info!("Received stop.");
-
-                    if !cloned_shutdown_token.is_cancelled() {
-                        if let Err(e) =
-                            cloned_persistent_status.set_pending_stop(Duration::from_secs(20))
-                        {
-                            tracing::error!("Failed to set pending stop: {}", e);
-                        }
-                        cloned_shutdown_token.cancel();
-                    }
-
-                    _ = completion_tx.send(());
-                }
-                ServiceEvent::PreShutdown { completion_tx } => {
-                    tracing::info!("Received shutdown.");
-                    // todo: lock firewall and initiate shutdown
-                    _ = completion_tx.send(());
-                }
-            }
-        }
-        tracing::debug!("Exiting service event handler.");
-    });
+    let (service_event_tx, service_event_rx) = mpsc::unbounded_channel();
+    let status_handle = register_service_event_handler(service_event_tx)?;
+    let mut persistent_status = PersistentServiceStatus::new(SERVICE_TYPE, status_handle);
+    let _event_processor_handle = start_service_event_processor(
+        service_event_rx,
+        persistent_status.clone(),
+        shutdown_token.clone(),
+    );
 
     tracing::info!("Service is starting...");
     persistent_status.set_pending_start(Duration::from_secs(20))?;
@@ -244,4 +188,76 @@ async fn run_service() -> anyhow::Result<()> {
     (*SHARED_SERVICE_STATE).lock().await.worker_guard = worker_guard;
 
     Ok(())
+}
+
+fn register_service_event_handler(
+    service_event_tx: mpsc::UnboundedSender<ServiceEvent>,
+) -> windows_service::Result<ServiceStatusHandle> {
+    service_control_handler::register(
+        SERVICE_NAME,
+        move |control_event| -> ServiceControlHandlerResult {
+            match control_event {
+                ServiceControl::Stop => {
+                    let (completion_tx, completion_rx) = oneshot::channel();
+                    if service_event_tx
+                        .send(ServiceEvent::Stop { completion_tx })
+                        .inspect_err(|e| {
+                            tracing::error!("Failed to send stop: {}", e);
+                        })
+                        .is_ok()
+                    {
+                        let _ = completion_rx.blocking_recv();
+                    }
+                    ServiceControlHandlerResult::NoError
+                }
+                ServiceControl::Preshutdown => {
+                    let (completion_tx, completion_rx) = oneshot::channel();
+                    if service_event_tx
+                        .send(ServiceEvent::PreShutdown { completion_tx })
+                        .inspect_err(|e| {
+                            tracing::error!("Failed to send preshutdown: {}", e);
+                        })
+                        .is_ok()
+                    {
+                        let _ = completion_rx.blocking_recv();
+                    }
+                    ServiceControlHandlerResult::NoError
+                }
+                ServiceControl::Interrogate => ServiceControlHandlerResult::NoError,
+                _ => ServiceControlHandlerResult::NotImplemented,
+            }
+        },
+    )
+}
+
+fn start_service_event_processor(
+    mut service_event_rx: mpsc::UnboundedReceiver<ServiceEvent>,
+    mut persistent_status: PersistentServiceStatus,
+    shutdown_token: CancellationToken,
+) -> JoinHandle<()> {
+    tokio::spawn(async move {
+        while let Some(service_event) = service_event_rx.recv().await {
+            match service_event {
+                ServiceEvent::Stop { completion_tx } => {
+                    tracing::info!("Received stop.");
+
+                    if !shutdown_token.is_cancelled() {
+                        if let Err(e) = persistent_status.set_pending_stop(Duration::from_secs(20))
+                        {
+                            tracing::error!("Failed to set pending stop: {}", e);
+                        }
+                        shutdown_token.cancel();
+                    }
+
+                    _ = completion_tx.send(());
+                }
+                ServiceEvent::PreShutdown { completion_tx } => {
+                    tracing::info!("Received shutdown.");
+                    // todo: lock firewall and initiate shutdown
+                    _ = completion_tx.send(());
+                }
+            }
+        }
+        tracing::debug!("Exiting service event handler.");
+    })
 }
