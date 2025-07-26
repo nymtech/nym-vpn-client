@@ -133,7 +133,7 @@ where
     S: nym_vpn_store::VpnStorage,
 {
     // The network environment
-    network_env: Network,
+    network_env: Box<Network>,
 
     // The user agent used for HTTP request
     user_agent: UserAgent,
@@ -200,7 +200,7 @@ where
 
 pub struct NymVpnServiceParameters {
     pub log_path: Option<LogPath>,
-    pub network_env: Network,
+    pub network_env: Box<Network>,
     pub sentry_enabled: bool,
     pub netstats_enabled: bool,
     pub stats_id_seed: Option<String>,
@@ -280,7 +280,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             data_dir: network_data_dir.clone(),
             user_agent: parameters.user_agent.clone(),
             credentials_mode: None,
-            network_env: parameters.network_env.clone(),
+            network_env: *parameters.network_env.clone(),
         };
 
         let route_handler = nym_vpn_lib::tunnel_state_machine::RouteHandler::new()
@@ -370,7 +370,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             config_path: Some(config_dir),
             data_path: Some(network_data_dir.clone()),
             gateway_config: gateway_config.clone(),
-            network_env: parameters.network_env.clone(),
+            network_env: *parameters.network_env.clone(),
         };
 
         let gateway_directory_client =

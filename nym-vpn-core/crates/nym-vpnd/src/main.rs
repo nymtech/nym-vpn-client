@@ -151,7 +151,7 @@ async fn run_standalone(
 
     let vpn_service_params = NymVpnServiceParameters {
         log_path: parameters.log_path,
-        network_env,
+        network_env: Box::new(network_env),
         sentry_enabled: parameters.sentry_enabled,
         netstats_enabled: global_config_file.collect_network_statistics,
         stats_id_seed: parameters.stats_id_seed,
