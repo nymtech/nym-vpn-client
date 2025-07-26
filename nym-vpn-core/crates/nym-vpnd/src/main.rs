@@ -52,7 +52,7 @@ async fn async_main() -> anyhow::Result<()> {
         #[cfg(windows)]
         Command::UninstallService => {
             println!("Uninstalling {} service...", windows_service::SERVICE_NAME);
-            windows_service::installation::uninstall_service()?;
+            windows_service::installation::uninstall_service().await?;
             Ok(())
         }
         #[cfg(windows)]

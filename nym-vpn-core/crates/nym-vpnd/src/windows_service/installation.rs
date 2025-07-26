@@ -89,7 +89,7 @@ pub fn install_service() -> anyhow::Result<()> {
     Ok(())
 }
 
-pub fn uninstall_service() -> windows_service::Result<()> {
+pub async fn uninstall_service() -> windows_service::Result<()> {
     let manager_access = ServiceManagerAccess::CONNECT;
     let service_manager = ServiceManager::local_computer(None::<&str>, manager_access)?;
 
@@ -116,7 +116,7 @@ pub fn uninstall_service() -> windows_service::Result<()> {
                 return Ok(());
             }
         }
-        std::thread::sleep(Duration::from_secs(1));
+        tokio::time::sleep(Duration::from_secs(1)).await;
     }
     println!("{SERVICE_NAME} is marked for deletion.");
 

@@ -75,12 +75,6 @@ pub enum Command {
     RunStandalone,
 }
 
-impl Command {
-    pub fn is_run_as_service(&self) -> bool {
-        matches!(self, Command::RunAsService)
-    }
-}
-
 fn check_path(path: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(path);
     if !path.exists() {
