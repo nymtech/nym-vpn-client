@@ -13,7 +13,7 @@ mod user_agent;
 #[cfg(windows)]
 mod windows_service;
 
-use std::{path::PathBuf, time::Duration};
+use std::{path::PathBuf, sync::Arc, time::Duration};
 
 use clap::Parser;
 use sentry::ClientInitGuard;
@@ -31,11 +31,11 @@ use crate::{
 use service::{NymVpnService, NymVpnServiceParameters};
 
 fn main() -> anyhow::Result<()> {
-    let rt = runtime::new_runtime();
-    rt.block_on(async_main())
+    let rt = Arc::new(runtime::new_runtime());
+    rt.block_on(async_main(rt.clone()))
 }
 
-async fn async_main() -> anyhow::Result<()> {
+async fn async_main(rt: Arc<tokio::runtime::Runtime>) -> anyhow::Result<()> {
     let args = CliArgs::parse();
     let _sentry_guard = init_sentry();
     let sentry_enabled = _sentry_guard.is_some();
@@ -62,12 +62,16 @@ async fn async_main() -> anyhow::Result<()> {
             Ok(())
         }
         Command::RunAsService | Command::RunStandalone => {
-            run_vpn_service(args, sentry_enabled).await
+            run_vpn_service(rt, args, sentry_enabled).await
         }
     }
 }
 
-async fn run_vpn_service(args: CliArgs, sentry_enabled: bool) -> anyhow::Result<()> {
+async fn run_vpn_service(
+    rt: Arc<tokio::runtime::Runtime>,
+    args: CliArgs,
+    sentry_enabled: bool,
+) -> anyhow::Result<()> {
     let shutdown_token = CancellationToken::new();
     let run_as_service = args.is_run_as_service();
     let options = logging::Options {
@@ -91,7 +95,7 @@ async fn run_vpn_service(args: CliArgs, sentry_enabled: bool) -> anyhow::Result<
 
     #[cfg(windows)]
     if run_as_service {
-        windows_service::start(run_parameters, remove_log_file_signal, shutdown_token).await?;
+        windows_service::start(rt, run_parameters, remove_log_file_signal, shutdown_token).await?;
     } else {
         run_standalone(run_parameters, remove_log_file_signal, shutdown_token).await?;
     }

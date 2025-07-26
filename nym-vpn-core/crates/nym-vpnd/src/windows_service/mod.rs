@@ -4,7 +4,11 @@
 pub mod installation;
 mod persistent_service_status;
 
-use std::{ffi::OsString, sync::LazyLock, time::Duration};
+use std::{
+    ffi::OsString,
+    sync::{Arc, LazyLock},
+    time::Duration,
+};
 
 use anyhow::Context;
 use tokio::{
@@ -53,19 +57,20 @@ enum ServiceEvent {
 
 #[derive(Clone)]
 struct SharedServiceState {
-    runtime_handle: tokio::runtime::Handle,
+    runtime_handle: Arc<tokio::runtime::Runtime>,
     run_parameters: RunParameters,
     remove_log_file_signal: Option<RemoveLogFileSignal>,
     shutdown_token: CancellationToken,
 }
 
 pub async fn start(
+    runtime: Arc<tokio::runtime::Runtime>,
     run_parameters: RunParameters,
     remove_log_file_signal: Option<RemoveLogFileSignal>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
     let initial_state = SharedServiceState {
-        runtime_handle: tokio::runtime::Handle::current(),
+        runtime_handle: runtime,
         run_parameters,
         remove_log_file_signal,
         shutdown_token,
