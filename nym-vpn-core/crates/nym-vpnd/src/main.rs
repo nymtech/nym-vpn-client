@@ -18,22 +18,17 @@ use std::{path::PathBuf, time::Duration};
 use clap::Parser;
 use nym_vpnd_types::log_path::LogPath;
 use sentry::ClientInitGuard;
-use tokio::{
-    sync::{broadcast, mpsc},
-    task::JoinHandle,
-};
+use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_lib::UserAgent;
 use nym_vpn_network_config::Network;
-use tracing_appender::non_blocking::WorkerGuard;
 
 use crate::{
     cli::{CliArgs, Command},
     config::GlobalConfigFile,
     logging::RemoveLogFileHandle,
 };
-use logging::LogFileRemover;
 use service::{NymVpnService, NymVpnServiceParameters};
 
 fn main() -> anyhow::Result<()> {
@@ -75,15 +70,45 @@ async fn async_main() -> anyhow::Result<()> {
                 enable_stdout_log: false,
                 sentry: sentry_enabled,
             };
+            let logging_setup_with_remover =
+                logging::setup_logging_with_file_remover(options, shutdown_token.child_token());
+
+            log_sentry_enabled(sentry_enabled);
+
+            let log_path = logging_setup_with_remover
+                .as_ref()
+                .map(|s| s.log_path.clone());
+            let remove_log_file_handle = logging_setup_with_remover
+                .as_ref()
+                .map(|s| s.remove_log_file_handle.clone());
 
             #[cfg(windows)]
-            let _worker_guard =
-                run_windows_service(args.network, args.config_env_file, options, shutdown_token)
-                    .await?;
+            run_windows_service(
+                log_path,
+                args.network,
+                args.config_env_file,
+                sentry_enabled,
+                remove_log_file_handle,
+                shutdown_token,
+            )
+            .await?;
 
             #[cfg(not(windows))]
-            let _worker_guard =
-                run_standalone(args.network, args.config_env_file, options, shutdown_token).await?;
+            run_standalone(
+                log_path,
+                args.network,
+                args.config_env_file,
+                sentry_enabled,
+                remove_log_file_handle,
+                shutdown_token,
+            )
+            .await?;
+
+            if let Some(setup) = logging_setup_with_remover {
+                if setup.file_remover_handle.await.is_err() {
+                    tracing::error!("Failed to join on file logging handle");
+                }
+            }
 
             Ok(())
         }
@@ -95,8 +120,33 @@ async fn async_main() -> anyhow::Result<()> {
                 enable_stdout_log: true,
                 sentry: sentry_enabled,
             };
-            let _worker_guard =
-                run_standalone(args.network, args.config_env_file, options, shutdown_token).await?;
+            let logging_setup_with_remover =
+                logging::setup_logging_with_file_remover(options, shutdown_token.child_token());
+
+            log_sentry_enabled(sentry_enabled);
+
+            let log_path = logging_setup_with_remover
+                .as_ref()
+                .map(|s| s.log_path.clone());
+            let remove_log_file_handle = logging_setup_with_remover
+                .as_ref()
+                .map(|s| s.remove_log_file_handle.clone());
+
+            run_standalone(
+                log_path,
+                args.network,
+                args.config_env_file,
+                sentry_enabled,
+                remove_log_file_handle,
+                shutdown_token,
+            )
+            .await?;
+
+            if let Some(setup) = logging_setup_with_remover {
+                if setup.file_remover_handle.await.is_err() {
+                    tracing::error!("Failed to join on file logging handle");
+                }
+            }
 
             Ok(())
         }
@@ -105,78 +155,34 @@ async fn async_main() -> anyhow::Result<()> {
 
 #[cfg(windows)]
 async fn run_windows_service(
+    log_path: Option<LogPath>,
     network: Option<String>,
     config_env_file: Option<PathBuf>,
-    options: logging::Options,
+    sentry_enabled: bool,
+    remove_log_file_handle: Option<RemoveLogFileHandle>,
     shutdown_token: CancellationToken,
-) -> anyhow::Result<Option<WorkerGuard>> {
-    let sentry_enabled = options.sentry;
-    let logging_setup = logging::setup_logging(options);
-
-    let (remove_file_log_handle, file_logging_handle, log_path, worker_guard) =
-        if let Some(logging_setup) = logging_setup {
-            let (remove_file_handle, join_handle) =
-                LogFileRemover::spawn(logging_setup.file_appender, shutdown_token.child_token());
-            (
-                Some(remove_file_handle),
-                Some(join_handle),
-                Some(logging_setup.log_path),
-                Some(logging_setup.worker_guard),
-            )
-        } else {
-            (None, None, None, None)
-        };
-
+) -> anyhow::Result<()> {
     windows_service::start(
         log_path,
-        windows_service::ServiceNetworkConfig {
-            network,
-            config_env_file,
-        },
+        network,
+        config_env_file,
         sentry_enabled,
-        remove_file_log_handle,
+        remove_log_file_handle,
         shutdown_token,
         tokio::runtime::Handle::current(),
     )
-    .await?;
-
-    if let Some(file_logging_handle) = file_logging_handle {
-        if file_logging_handle.await.is_err() {
-            tracing::error!("Failed to join on file logging handle");
-        }
-    }
-
-    Ok(worker_guard)
+    .await
 }
 
 async fn run_standalone(
+    log_path: Option<LogPath>,
     network: Option<String>,
     config_env_file: Option<PathBuf>,
-    options: logging::Options,
+    sentry_enabled: bool,
+    remove_log_file_handle: Option<RemoveLogFileHandle>,
     shutdown_token: CancellationToken,
-) -> anyhow::Result<Option<WorkerGuard>> {
-    let sentry_enabled = options.sentry;
-    let logging_setup = logging::setup_logging(options);
+) -> anyhow::Result<()> {
     let global_config_file = setup_global_config(network)?;
-
-    let (remove_file_log_handle, file_logging_handle, log_path, worker_guard) =
-        if let Some(logging_setup) = logging_setup {
-            let (remove_file_handle, join_handle) =
-                LogFileRemover::spawn(logging_setup.file_appender, shutdown_token.child_token());
-            (
-                Some(remove_file_handle),
-                Some(join_handle),
-                Some(logging_setup.log_path),
-                Some(logging_setup.worker_guard),
-            )
-        } else {
-            (None, None, None, None)
-        };
-
-    if sentry_enabled {
-        tracing::info!("Sentry monitoring enabled");
-    }
-
     let network_env =
         environment::setup_environment(&global_config_file, config_env_file.as_deref()).await?;
 
@@ -192,19 +198,12 @@ async fn run_standalone(
     let shutdown_child_token = shutdown_token.child_token();
     let mut shutdown_join_set = shutdown_handler::install(shutdown_token);
     let vpn_service_runtime =
-        setup_vpn_service(parameters, remove_file_log_handle, shutdown_child_token).await?;
+        setup_vpn_service(parameters, remove_log_file_handle, shutdown_child_token).await?;
 
     vpn_service_runtime.wait_until_shutdown().await;
     shutdown_join_set.shutdown().await;
 
-    if let Some(file_logging_handle) = file_logging_handle {
-        file_logging_handle
-            .await
-            .inspect_err(|e| tracing::error!("Failed to join on file logging handle: {}", e))
-            .ok();
-    }
-
-    Ok(worker_guard)
+    Ok(())
 }
 
 struct VpnServiceSetupParameters {
@@ -248,7 +247,7 @@ enum SetupServiceError {
 
 async fn setup_vpn_service(
     parameters: VpnServiceSetupParameters,
-    remove_file_log_handle: Option<RemoveLogFileHandle>,
+    remove_log_file_handle: Option<RemoveLogFileHandle>,
     shutdown_token: CancellationToken,
 ) -> Result<VpnServiceRuntime, SetupServiceError> {
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
@@ -277,7 +276,7 @@ async fn setup_vpn_service(
     let vpn_service_handle = NymVpnService::spawn(
         vpn_command_rx,
         tunnel_event_tx,
-        remove_file_log_handle,
+        remove_log_file_handle,
         parameters,
         shutdown_token.child_token(),
     );
@@ -298,23 +297,30 @@ fn init_sentry() -> Option<ClientInitGuard> {
     if !GlobalConfigFile::sentry_enabled() {
         return None;
     }
-    if let Some(dsn) = environment::sentry_dsn() {
-        println!("Sentry monitoring enabled");
-        let guard = sentry::init((
-            dsn,
-            sentry::ClientOptions {
-                release: sentry::release_name!(),
-                send_default_pii: false,
-                sample_rate: 1.0,
-                traces_sample_rate: 1.0,
-                enable_logs: true,
-                shutdown_timeout: Duration::from_secs(2),
-                ..Default::default()
-            },
-        ));
-        Some(guard)
-    } else {
+
+    let Some(dsn) = environment::sentry_dsn() else {
         eprintln!("failed to init sentry: SENTRY_DSN is not set");
-        None
+        return None;
+    };
+
+    println!("Sentry monitoring enabled");
+    let guard = sentry::init((
+        dsn,
+        sentry::ClientOptions {
+            release: sentry::release_name!(),
+            send_default_pii: false,
+            sample_rate: 1.0,
+            traces_sample_rate: 1.0,
+            enable_logs: true,
+            shutdown_timeout: Duration::from_secs(2),
+            ..Default::default()
+        },
+    ));
+    Some(guard)
+}
+
+fn log_sentry_enabled(sentry_enabled: bool) {
+    if sentry_enabled {
+        tracing::info!("Sentry monitoring enabled");
     }
 }

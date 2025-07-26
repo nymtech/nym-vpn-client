@@ -99,19 +99,6 @@ impl FileAppender {
     }
 }
 
-#[derive(Clone)]
-pub struct RemoveLogFileHandle {
-    tx: mpsc::UnboundedSender<()>,
-}
-
-impl RemoveLogFileHandle {
-    pub fn remove_file(&self) {
-        if self.tx.send(()).is_err() {
-            tracing::warn!("Channel for removing log file is already closed");
-        }
-    }
-}
-
 pub struct LogFileRemover {
     command_rx: mpsc::UnboundedReceiver<()>,
     file_appender: FileAppender,
@@ -150,6 +137,19 @@ impl LogFileRemover {
     }
 }
 
+#[derive(Clone)]
+pub struct RemoveLogFileHandle {
+    tx: mpsc::UnboundedSender<()>,
+}
+
+impl RemoveLogFileHandle {
+    pub fn remove_file(&self) {
+        if self.tx.send(()).is_err() {
+            tracing::warn!("Log file remover channel is already closed");
+        }
+    }
+}
+
 pub struct LoggingSetup {
     pub worker_guard: WorkerGuard,
     pub file_appender: FileAppender,
@@ -168,6 +168,36 @@ impl LoggingSetup {
             log_path,
         }
     }
+}
+
+pub struct LoggingSetupWithFileRemover {
+    /// Handle for removing the log file
+    pub remove_log_file_handle: RemoveLogFileHandle,
+    /// Join handle for the file remover worker
+    pub file_remover_handle: JoinHandle<()>,
+    pub log_path: LogPath,
+    /// A guard that flushes the log file when dropped.
+    /// This worker guard should be retained for the lifetime of application.
+    pub _worker_guard: WorkerGuard,
+}
+
+pub fn setup_logging_with_file_remover(
+    options: Options,
+    shutdown_token: CancellationToken,
+) -> Option<LoggingSetupWithFileRemover> {
+    let logging_setup = setup_logging(options);
+
+    logging_setup.map(|logging_setup| {
+        let (remove_log_file_handle, join_handle) =
+            LogFileRemover::spawn(logging_setup.file_appender, shutdown_token);
+
+        LoggingSetupWithFileRemover {
+            remove_log_file_handle,
+            file_remover_handle: join_handle,
+            log_path: logging_setup.log_path,
+            _worker_guard: logging_setup.worker_guard,
+        }
+    })
 }
 
 pub fn default_log_path() -> LogPath {

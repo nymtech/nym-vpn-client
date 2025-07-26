@@ -61,16 +61,11 @@ enum ServiceEvent {
     PreShutdown { completion_tx: oneshot::Sender<()> },
 }
 
-#[derive(Debug, Clone, Default)]
-pub struct ServiceNetworkConfig {
-    pub network: Option<String>,
-    pub config_env_file: Option<PathBuf>,
-}
-
 #[derive(Default)]
 struct SharedServiceState {
     log_path: Option<LogPath>,
-    network_config: ServiceNetworkConfig,
+    network: Option<String>,
+    config_env_file: Option<PathBuf>,
     remove_log_file_handle: Option<RemoveLogFileHandle>,
     sentry_enabled: bool,
     shutdown_token: CancellationToken,
@@ -79,7 +74,8 @@ struct SharedServiceState {
 
 pub async fn start(
     log_path: Option<LogPath>,
-    network_config: ServiceNetworkConfig,
+    network: Option<String>,
+    config_env_file: Option<PathBuf>,
     sentry_enabled: bool,
     remove_log_file_handle: Option<RemoveLogFileHandle>,
     shutdown_token: CancellationToken,
@@ -87,7 +83,8 @@ pub async fn start(
 ) -> anyhow::Result<()> {
     *SHARED_SERVICE_STATE.lock().await = SharedServiceState {
         log_path,
-        network_config,
+        network,
+        config_env_file,
         remove_log_file_handle,
         sentry_enabled,
         shutdown_token,
@@ -134,25 +131,26 @@ async fn run_service() -> anyhow::Result<()> {
     let shared_service_state = SHARED_SERVICE_STATE.lock().await;
     let log_path = shared_service_state.log_path.clone();
     let remove_log_file_handle = shared_service_state.remove_log_file_handle.clone();
-    let network_config = shared_service_state.network_config.clone();
+    let network = shared_service_state.network.clone();
+    let config_env_file = shared_service_state.config_env_file.clone();
     let sentry_enabled = shared_service_state.sentry_enabled;
     // explicitly release mutex lock
     _ = shared_service_state;
 
-    let global_config_file = crate::setup_global_config(network_config.network.clone())?;
+    let global_config_file = crate::setup_global_config(network.clone())?;
     let netstats_enabled = global_config_file.collect_network_statistics;
 
     let network_env = match crate::environment::setup_environment(
         &global_config_file,
-        network_config.config_env_file.as_deref(),
+        config_env_file.as_deref(),
     )
     .await
     {
         Ok(network_env) => network_env,
         Err(err) => {
             tracing::error!(
-                "Failed to fetch network environment for '{}': {}",
-                network_config.network.as_deref().unwrap_or("mainnet"),
+                "Failed to fetch network environment for {}: {}",
+                network.as_deref().unwrap_or("mainnet"),
                 err
             );
 
