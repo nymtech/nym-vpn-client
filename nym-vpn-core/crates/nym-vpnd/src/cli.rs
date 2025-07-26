@@ -46,6 +46,10 @@ impl CliArgs {
             _ => tracing::Level::TRACE,
         }
     }
+
+    pub fn is_run_as_service(&self) -> bool {
+        matches!(self.command, Some(Command::RunAsService))
+    }
 }
 
 #[derive(Debug, Copy, Clone, Default, Subcommand)]
@@ -62,13 +66,19 @@ pub enum Command {
     /// Start windows service
     StartService,
 
-    /// Run daemon as a service
+    /// Run daemon as a system service
     RunAsService,
 
     /// Run daemon standalone
     #[default]
     #[clap(skip)]
     RunStandalone,
+}
+
+impl Command {
+    pub fn is_run_as_service(&self) -> bool {
+        matches!(self, Command::RunAsService)
+    }
 }
 
 fn check_path(path: &str) -> Result<PathBuf, String> {

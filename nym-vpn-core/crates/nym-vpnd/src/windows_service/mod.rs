@@ -73,8 +73,7 @@ pub async fn start(
 
     *SHARED_SERVICE_STATE.lock().await = Some(initial_state);
 
-    // Register generated `ffi_service_main` with the system and start the service, blocking
-    // this thread until the service is stopped.
+    // Start service dispatcher blocking this thread until the service is stopped.
     tokio::task::spawn_blocking(|| service_dispatcher::start(SERVICE_NAME, ffi_service_main))
         .await
         .with_context(|| "failed to join on service dispatcher task")??;

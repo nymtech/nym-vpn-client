@@ -61,95 +61,55 @@ async fn async_main() -> anyhow::Result<()> {
             windows_service::installation::start_service()?;
             Ok(())
         }
-        Command::RunAsService => {
-            let shutdown_token = CancellationToken::new();
-            let options = logging::Options {
-                verbosity_level: args.verbosity_level(),
-                enable_file_log: true,
-                enable_stdout_log: false,
-                sentry: sentry_enabled,
-            };
-            let logging_setup_with_remover =
-                logging::setup_logging_with_file_remover(options, shutdown_token.child_token());
-
-            log_sentry_enabled(sentry_enabled);
-
-            let user_agent = args
-                .user_agent
-                .unwrap_or_else(user_agent::construct_user_agent);
-            let log_path = logging_setup_with_remover
-                .as_ref()
-                .map(|s| s.log_path.clone());
-            let remove_log_file_handle = logging_setup_with_remover
-                .as_ref()
-                .map(|s| s.remove_log_file_handle.clone());
-
-            let run_parameters = RunParameters {
-                log_path,
-                network: args.network,
-                config_env_file: args.config_env_file,
-                sentry_enabled,
-                stats_id_seed: args.stats_id_seed,
-                user_agent,
-            };
-
-            #[cfg(windows)]
-            windows_service::start(run_parameters, remove_log_file_handle, shutdown_token).await?;
-
-            #[cfg(not(windows))]
-            run_standalone(run_parameters, remove_log_file_handle, shutdown_token).await?;
-
-            if let Some(setup) = logging_setup_with_remover {
-                if setup.file_remover_handle.await.is_err() {
-                    tracing::error!("Failed to join on file logging handle");
-                }
-            }
-
-            Ok(())
-        }
-        Command::RunStandalone => {
-            let shutdown_token = CancellationToken::new();
-            let options = logging::Options {
-                verbosity_level: args.verbosity_level(),
-                enable_file_log: false,
-                enable_stdout_log: true,
-                sentry: sentry_enabled,
-            };
-            let logging_setup_with_remover =
-                logging::setup_logging_with_file_remover(options, shutdown_token.child_token());
-
-            log_sentry_enabled(sentry_enabled);
-
-            let user_agent = args
-                .user_agent
-                .unwrap_or_else(user_agent::construct_user_agent);
-            let log_path = logging_setup_with_remover
-                .as_ref()
-                .map(|s| s.log_path.clone());
-            let remove_log_file_handle = logging_setup_with_remover
-                .as_ref()
-                .map(|s| s.remove_log_file_handle.clone());
-
-            let run_parameters = RunParameters {
-                log_path,
-                network: args.network,
-                config_env_file: args.config_env_file,
-                sentry_enabled,
-                stats_id_seed: args.stats_id_seed,
-                user_agent,
-            };
-
-            run_standalone(run_parameters, remove_log_file_handle, shutdown_token).await?;
-
-            if let Some(setup) = logging_setup_with_remover {
-                if setup.file_remover_handle.await.is_err() {
-                    tracing::error!("Failed to join on file logging handle");
-                }
-            }
-
-            Ok(())
+        Command::RunAsService | Command::RunStandalone => {
+            run_vpn_service(args, sentry_enabled).await
         }
     }
+}
+
+async fn run_vpn_service(args: CliArgs, sentry_enabled: bool) -> anyhow::Result<()> {
+    let shutdown_token = CancellationToken::new();
+    let run_as_service = args.is_run_as_service();
+    let options = logging::Options {
+        verbosity_level: args.verbosity_level(),
+        enable_file_log: run_as_service,
+        enable_stdout_log: !run_as_service,
+        sentry: sentry_enabled,
+    };
+    let logging_setup_with_remover =
+        logging::setup_logging_with_file_remover(options, shutdown_token.child_token());
+    let log_path = logging_setup_with_remover
+        .as_ref()
+        .map(|s| s.log_path.clone());
+    let remove_log_file_handle = logging_setup_with_remover
+        .as_ref()
+        .map(|s| s.remove_log_file_handle.clone());
+    let run_parameters = RunParameters::new_with_cli_args(args, log_path, sentry_enabled);
+
+    if sentry_enabled {
+        tracing::info!("Sentry monitoring enabled");
+    }
+
+    #[cfg(windows)]
+    if run_as_service {
+        windows_service::start(run_parameters, remove_log_file_handle, shutdown_token).await?;
+    } else {
+        run_standalone(run_parameters, remove_log_file_handle, shutdown_token).await?;
+    }
+
+    #[cfg(not(windows))]
+    run_standalone(run_parameters, remove_log_file_handle, shutdown_token).await?;
+
+    let _worker_guard = if let Some(setup) = logging_setup_with_remover {
+        if setup.file_remover_handle.await.is_err() {
+            tracing::error!("Failed to join on file logging handle");
+        }
+        Some(setup.worker_guard)
+    } else {
+        None
+    };
+
+    Ok(())
 }
 
 #[derive(Debug, Clone)]
@@ -160,6 +120,23 @@ struct RunParameters {
     sentry_enabled: bool,
     stats_id_seed: Option<String>,
     user_agent: UserAgent,
+}
+
+impl RunParameters {
+    fn new_with_cli_args(args: CliArgs, log_path: Option<LogPath>, sentry_enabled: bool) -> Self {
+        let user_agent = args
+            .user_agent
+            .unwrap_or_else(user_agent::construct_user_agent);
+
+        Self {
+            log_path,
+            network: args.network,
+            config_env_file: args.config_env_file,
+            sentry_enabled,
+            stats_id_seed: args.stats_id_seed,
+            user_agent,
+        }
+    }
 }
 
 async fn run_standalone(
@@ -196,6 +173,7 @@ async fn run_standalone(
     Ok(())
 }
 
+/// Provides a way to wait for vpn service and command interface termination.
 struct VpnServiceHandle {
     vpn_service_handle: JoinHandle<()>,
     command_handle: JoinHandle<()>,
@@ -275,10 +253,4 @@ fn init_sentry() -> Option<ClientInitGuard> {
         },
     ));
     Some(guard)
-}
-
-fn log_sentry_enabled(sentry_enabled: bool) {
-    if sentry_enabled {
-        tracing::info!("Sentry monitoring enabled");
-    }
 }

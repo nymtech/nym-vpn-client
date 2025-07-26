@@ -178,7 +178,7 @@ pub struct LoggingSetupWithFileRemover {
     pub log_path: LogPath,
     /// A guard that flushes the log file when dropped.
     /// This worker guard should be retained for the lifetime of application.
-    pub _worker_guard: WorkerGuard,
+    pub worker_guard: WorkerGuard,
 }
 
 pub fn setup_logging_with_file_remover(
@@ -195,7 +195,7 @@ pub fn setup_logging_with_file_remover(
             remove_log_file_handle,
             file_remover_handle: join_handle,
             log_path: logging_setup.log_path,
-            _worker_guard: logging_setup.worker_guard,
+            worker_guard: logging_setup.worker_guard,
         }
     })
 }
