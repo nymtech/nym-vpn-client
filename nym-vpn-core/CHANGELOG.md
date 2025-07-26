@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add setting to toggle IPv6 support.
 - vpnd: Add support to toggle network statistics collection.
 
+### Fixed
+
+- Box too large futures to fix stackoverflow on Windows (https://github.com/nymtech/nym-vpn-client/pull/3139)
+
 ## [1.12.0] - 2025-07-18
 
 ### Added

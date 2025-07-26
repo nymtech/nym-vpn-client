@@ -94,11 +94,23 @@ pub async fn setup_mixnet_client(
             .map_err(|err| MixnetError::CreateMixnetClientWithDefaultStorage(Box::new(err)))?;
 
         let builder = MixnetClientBuilder::new_with_storage(storage);
-        build_and_connect_mixnet_client(builder, setup_options, debug_config, task_client).await?
+        Box::pin(build_and_connect_mixnet_client(
+            builder,
+            setup_options,
+            debug_config,
+            task_client,
+        ))
+        .await?
     } else {
         tracing::debug!("Using ephemeral key storage");
         let builder = MixnetClientBuilder::new_ephemeral();
-        build_and_connect_mixnet_client(builder, setup_options, debug_config, task_client).await?
+        Box::pin(build_and_connect_mixnet_client(
+            builder,
+            setup_options,
+            debug_config,
+            task_client,
+        ))
+        .await?
     };
 
     Ok(Arc::new(Mutex::new(Some(mixnet_client))))

@@ -266,7 +266,7 @@ impl TunnelMonitor {
     }
 
     async fn run(mut self) -> Tombstone {
-        let (tombstone, reason) = match self.run_inner().await {
+        let (tombstone, reason) = match Box::pin(self.run_inner()).await {
             Ok(tombstone) => (tombstone, None),
             Err(e) => {
                 trace_err_chain!(e, "Tunnel monitor exited with error");
@@ -426,14 +426,14 @@ impl TunnelMonitor {
                 }
             }
         };
-        let mut connected_mixnet = tunnel::connect_mixnet(
+        let mut connected_mixnet = Box::pin(tunnel::connect_mixnet(
             connect_options,
             &self.tunnel_parameters.nym_config.network_env,
             self.gateway_directory_client.clone(),
             self.shutdown_token.child_token(),
             #[cfg(unix)]
             Arc::new(connection_fd_callback),
-        )
+        ))
         .await
         .map_err(Box::new)?;
 
