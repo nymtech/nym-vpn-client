@@ -246,16 +246,16 @@ impl Display for TunnelState {
             TunnelState::Connecting(_) => write!(f, "connecting"),
             TunnelState::Disconnecting(a) => {
                 if let Some(action) = a {
-                    write!(f, "disconnecting - next action ({})", action)
+                    write!(f, "disconnecting - next action ({action})")
                 } else {
                     write!(f, "disconnecting")
                 }
             }
             TunnelState::Error(e) => {
-                write!(f, "error - {}", e)
+                write!(f, "error - {e}")
             }
             TunnelState::Offline { reconnect } => {
-                write!(f, "offline - reconnect ({})", reconnect)
+                write!(f, "offline - reconnect ({reconnect})")
             }
         }
     }

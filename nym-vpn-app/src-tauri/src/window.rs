@@ -50,7 +50,7 @@ pub struct WindowInitEnv {
 
 impl AppWindow {
     fn init_js(json: String) -> String {
-        format!("window._APP = JSON.parse('{}');", json)
+        format!("window._APP = JSON.parse('{json}');")
     }
 
     #[instrument(skip(app))]
