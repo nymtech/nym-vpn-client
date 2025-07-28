@@ -653,9 +653,6 @@ pub enum Error {
     #[error(transparent)]
     Account(#[from] account::Error),
 
-    #[error("device time not synced")]
-    DeviceTimeOutOfSync,
-
     #[error("ipv6 is disabled in the system")]
     Ipv6Unavailable,
 }
@@ -689,7 +686,6 @@ impl Error {
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             Self::GetRouteHandle(e) => ErrorStateReason::Internal(e.to_string()),
             Self::Account(err) => err.error_state_reason()?,
-            Self::DeviceTimeOutOfSync => ErrorStateReason::DeviceTimeOutOfSync,
             Self::Ipv6Unavailable => ErrorStateReason::Ipv6Unavailable,
         })
     }
