@@ -59,6 +59,7 @@ impl AccountControllerVpnApiClient {
         Ok(())
     }
 
+    // SW how does that fit in the running AC flow, when it's actually running?
     pub(crate) async fn register_account(
         &self,
         account: &VpnApiAccount,
