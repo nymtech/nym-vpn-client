@@ -4241,97 +4241,97 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Acts as your login"
+            "value" : "Belongs only to you(self-custody)"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Acts as your login"
+            "value" : "Belongs only to you(self-custody)"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Acts as your login"
+            "value" : "Belongs only to you(self-custody)"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Actúa como tu usuario"
+            "value" : "Sólo para ti (autocustodia)"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Acts as your login"
+            "value" : "Belongs only to you(self-custody)"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utilise vos identifiants"
+            "value" : "Vous appartient (auto-géré)"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Acts as your login"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Acts as your login"
+            "value" : "Belongs only to you(self-custody)"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Acts as your login"
+            "value" : "Belongs only to you(self-custody)"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Acts as your login"
+            "value" : "Belongs only to you(self-custody)"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Atua como seu login"
+            "value" : "Pertence apenas a você (auto-custódia)"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Используется как ваш логин"
+            "state" : "new",
+            "value" : "Belongs only to you(self-custody)"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Giriş bilgileriniz olarak kullanılır"
+            "state" : "new",
+            "value" : "Belongs only to you(self-custody)"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Діє як ваш логін"
+            "state" : "new",
+            "value" : "Belongs only to you(self-custody)"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Đóng vai trò như là hành động đăng nhập của bạn"
+            "state" : "new",
+            "value" : "Belongs only to you(self-custody)"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "作为您的登录"
+            "state" : "new",
+            "value" : "Belongs only to you(self-custody)"
           }
         }
       }
@@ -4443,97 +4443,97 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Is anonymous by design"
+            "value" : "Keeps you anonymous"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Is anonymous by design"
+            "value" : "Keeps you anonymous"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Is anonymous by design"
+            "value" : "Keeps you anonymous"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Es anónimo por diseño"
+            "value" : "Te mantiene anónimo"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Is anonymous by design"
+            "value" : "Keeps you anonymous"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Anonymat intégré à la conception"
+            "value" : "Vous garde anonyme"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Is anonymous by design"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Is anonymous by design"
+            "value" : "Keeps you anonymous"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Is anonymous by design"
+            "value" : "Keeps you anonymous"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Is anonymous by design"
+            "value" : "Keeps you anonymous"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "É anônimo por design"
+            "value" : "Mantém você anônimo"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Анонимность заложена в основу конструкции"
+            "state" : "new",
+            "value" : "Keeps you anonymous"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tasarım gereği anonimdir"
+            "state" : "new",
+            "value" : "Keeps you anonymous"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Анонімне оформлення"
+            "state" : "new",
+            "value" : "Keeps you anonymous"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ẩn danh theo thiết kế"
+            "state" : "new",
+            "value" : "Keeps you anonymous"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "是匿名设计的"
+            "state" : "new",
+            "value" : "Keeps you anonymous"
           }
         }
       }
@@ -5554,97 +5554,97 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Email usage"
+            "value" : "Personal data-based logins"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Email usage"
+            "value" : "Personal data-based logins"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Email usage"
+            "value" : "Personal data-based logins"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uso del correo electrónico"
+            "value" : "Inicios de sesión basados en datos personales"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Email usage"
+            "value" : "Personal data-based logins"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Utilisation de l'adresse mail"
+            "value" : "Identifiants contenant des données personnelles"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Email usage"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Email usage"
+            "value" : "Personal data-based logins"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Email usage"
+            "value" : "Personal data-based logins"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Email usage"
+            "value" : "Personal data-based logins"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uso de e-mail"
+            "value" : "Logins baseados em dados pessoais"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Использование электронной почты"
+            "state" : "new",
+            "value" : "Personal data-based logins"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "E-posta kullanımı"
+            "state" : "new",
+            "value" : "Personal data-based logins"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Використання електронної пошти"
+            "state" : "new",
+            "value" : "Personal data-based logins"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sử dụng email"
+            "state" : "new",
+            "value" : "Personal data-based logins"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "电子邮件使用情况"
+            "state" : "new",
+            "value" : "Personal data-based logins"
           }
         }
       }
@@ -5655,97 +5655,97 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Enables self-custody"
+            "value" : "Works as your secure login"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Enables self-custody"
+            "value" : "Works as your secure login"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Enables self-custody"
+            "value" : "Works as your secure login"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Habilita la autocustodia"
+            "value" : "Funciona como tu inicio de sesión seguro"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Enables self-custody"
+            "value" : "Works as your secure login"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Activer l'autodétention"
+            "value" : "Sert de moyen d'accès sécurisé"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Enables self-custody"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Enables self-custody"
+            "value" : "Works as your secure login"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Enables self-custody"
+            "value" : "Works as your secure login"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Enables self-custody"
+            "value" : "Works as your secure login"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Permite a autocustódia"
+            "value" : "Funciona como seu login seguro"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Обеспечивает самостоятельное хранение"
+            "state" : "new",
+            "value" : "Works as your secure login"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kendi kendine kontrolü sağlar"
+            "state" : "new",
+            "value" : "Works as your secure login"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Дозволяє самостійно зберігати активи"
+            "state" : "new",
+            "value" : "Works as your secure login"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Cho phép tự lưu ký"
+            "state" : "new",
+            "value" : "Works as your secure login"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "启用自我保管"
+            "state" : "new",
+            "value" : "Works as your secure login"
           }
         }
       }
@@ -6261,97 +6261,97 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Password creation"
+            "value" : "Admin-controlled access resets"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Password creation"
+            "value" : "Admin-controlled access resets"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Password creation"
+            "value" : "Admin-controlled access resets"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Creación de contraseña"
+            "value" : "Restablecimientos de acceso controlados por el administrador"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Password creation"
+            "value" : "Admin-controlled access resets"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Création de mot de passe"
+            "value" : "Accès gérés à distance"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Password creation"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Password creation"
+            "value" : "Admin-controlled access resets"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Password creation"
+            "value" : "Admin-controlled access resets"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Password creation"
+            "value" : "Admin-controlled access resets"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Criação de senha"
+            "value" : "Reinicializações de acesso controladas pelo administrador"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Создание пароля"
+            "state" : "new",
+            "value" : "Admin-controlled access resets"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Şifre oluşturma"
+            "state" : "new",
+            "value" : "Admin-controlled access resets"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Створити пароль"
+            "state" : "new",
+            "value" : "Admin-controlled access resets"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tạo mật khẩu"
+            "state" : "new",
+            "value" : "Admin-controlled access resets"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "创建密码"
+            "state" : "new",
+            "value" : "Admin-controlled access resets"
           }
         }
       }
@@ -6665,97 +6665,97 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Third-party trust"
+            "value" : "Centrally-stored accounts"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Third-party trust"
+            "value" : "Centrally-stored accounts"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Third-party trust"
+            "value" : "Centrally-stored accounts"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confianza de terceros"
+            "value" : "Cuentas almacenadas centralmente"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Third-party trust"
+            "value" : "Centrally-stored accounts"
           }
         },
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confiance accordée aux tierces parties"
+            "value" : "Comptes centralisés"
           }
         },
         "hi" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Third-party trust"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Third-party trust"
+            "value" : "Centrally-stored accounts"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Third-party trust"
+            "value" : "Centrally-stored accounts"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Third-party trust"
+            "value" : "Centrally-stored accounts"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Confiança de terceiros"
+            "value" : "Contas armazenadas centralmente"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Доверие третьих сторон"
+            "state" : "new",
+            "value" : "Centrally-stored accounts"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Üçüncü taraf güvencesi"
+            "state" : "new",
+            "value" : "Centrally-stored accounts"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Стороння довіра"
+            "state" : "new",
+            "value" : "Centrally-stored accounts"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tin cậy vào bên thứ ba"
+            "state" : "new",
+            "value" : "Centrally-stored accounts"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "第三方信任"
+            "state" : "new",
+            "value" : "Centrally-stored accounts"
           }
         }
       }
@@ -11126,8 +11126,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Kill switch protects you. Tap Stop and renew your plan."
+            "state" : "translated",
+            "value" : "El kill switch te protege. Toca Detener y renueva tu plan."
           }
         },
         "fa" : {
@@ -11138,8 +11138,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Kill switch protects you. Tap Stop and renew your plan."
+            "state" : "translated",
+            "value" : "L'arrêt d'urgence vous protège. Cliquez sur Stop et renouvellez votre abonnement."
           }
         },
         "hi" : {
@@ -11168,8 +11168,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Kill switch protects you. Tap Stop and renew your plan."
+            "state" : "translated",
+            "value" : "O Kill switch protege você. Toque em Parar e renovar seu plano."
           }
         },
         "ru" : {
@@ -21708,6 +21708,107 @@
         }
       }
     },
+    "purchasePlan.fullyProtected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You're now fully protected"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You're now fully protected"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're now fully protected"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ahora estás completamente protegido"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You're now fully protected"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Vous êtes protégés"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You're now fully protected"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You're now fully protected"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You're now fully protected"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You're now fully protected"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Agora você está totalmente protegido"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You're now fully protected"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You're now fully protected"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You're now fully protected"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You're now fully protected"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "You're now fully protected"
+          }
+        }
+      }
+    },
     "purchasePlan.selectPlan" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -21743,8 +21844,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose my NymVPN plan"
+            "state" : "translated",
+            "value" : "Choisir mon abonnement NymVPN"
           }
         },
         "hi" : {
@@ -21773,8 +21874,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose my NymVPN plan"
+            "state" : "translated",
+            "value" : "Escolha seu plano NymVPN"
           }
         },
         "ru" : {
@@ -21910,7 +22011,108 @@
         }
       }
     },
-    "purchasePlan.subtile" : {
+    "purchasePlan.subtile1" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Select a plan now to activate your protection"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Select a plan now to activate your protection"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select a plan now to activate your protection"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecciona un plan ahora para activar tu protección"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Select a plan now to activate your protection"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choisissez un plan pour être protégé"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Select a plan now to activate your protection"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Select a plan now to activate your protection"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Select a plan now to activate your protection"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Select a plan now to activate your protection"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selecione um plano agora para ativar sua proteção"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Select a plan now to activate your protection"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Select a plan now to activate your protection"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Select a plan now to activate your protection"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Select a plan now to activate your protection"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Select a plan now to activate your protection"
+          }
+        }
+      }
+    },
+    "purchasePlan.subtile2" : {
       "extractionState" : "manual",
       "localizations" : {
         "ar" : {
@@ -21945,8 +22147,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
+            "state" : "translated",
+            "value" : "Votre paiement ne pourra être lié à vos activités en ligne"
           }
         },
         "hi" : {
@@ -21975,341 +22177,38 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
+            "state" : "translated",
+            "value" : "Seu próximo pagamento não pode ser vinculado à sua futura atividade de navegação"
           }
         },
         "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваш предстоящий платеж не может быть связан с вашей будущей активностью в сети"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ödemeniz, gelecekteki internet kullanımınızla ilişkilendirilmez"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваш майбутній платіж не може бути пов'язаний з вашою майбутньою активністю в Інтернеті"
-          }
-        },
-        "vi" : {
           "stringUnit" : {
             "state" : "new",
             "value" : "Your upcoming payment cannot be linked to your future browsing activity"
           }
         },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "您即将支付的款项无法链接到您未来的浏览活动"
-          }
-        }
-      }
-    },
-    "purchasePlan.success.connectionPrivate" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your connection is private."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu conexión es privada."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre connexion est privée."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your connection is private."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sua conexão é privada."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваше соединение защищено."
-          }
-        },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bağlantınız gizli."
+            "state" : "new",
+            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваше з'єднання захищене."
+            "state" : "new",
+            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
           }
         },
         "vi" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kết nối của bạn là riêng tư."
+            "state" : "new",
+            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "您的连接是隐私的。"
-          }
-        }
-      }
-    },
-    "purchasePlan.success.itentityYours" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
             "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tu identidad sigue siendo tuya."
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Votre identité vous appartient."
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Your identity stays yours."
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sua identidade continua sendo sua."
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваша личность остается вашей."
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Kimliğiniz sadece size ait kalır."
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваша особистість залишається Вашою."
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Danh tính của bạn vẫn thuộc về bạn."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "您的身份仍然是您的。"
-          }
-        }
-      }
-    },
-    "purchasePlan.success.planActivated" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plan Activated"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plan activado"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Abonnement activé"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Plan Activated"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plano ativado"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "План активирован"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Plan Aktif Edildi"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "План активовано"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gói đã được kích hoạt"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已激活计划"
+            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
           }
         }
       }
@@ -22320,97 +22219,198 @@
         "ar" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "value" : "Choose your protection level 🛡️"
           }
         },
         "de" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "value" : "Choose your protection level 🛡️"
           }
         },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "value" : "Choose your protection level 🛡️"
           }
         },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Tu cuenta segura de NymVPN está lista🎉"
+            "value" : "Elige tu nivel de protección 🛡️"
           }
         },
         "fa" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "value" : "Choose your protection level 🛡️"
           }
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "state" : "translated",
+            "value" : "Choisissez votre abonnement 🛡️"
           }
         },
         "hi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "value" : "Choose your protection level 🛡️"
           }
         },
         "it" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "value" : "Choose your protection level 🛡️"
           }
         },
         "ja" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "value" : "Choose your protection level 🛡️"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "value" : "Choose your protection level 🛡️"
           }
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "state" : "translated",
+            "value" : "Escolha seu nível de proteção 🛡️"
           }
         },
         "ru" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваш защищённый аккаунт NymVPN готов 🎉"
+            "state" : "new",
+            "value" : "Choose your protection level 🛡️"
           }
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "NymVPN hesabınız güvenli şekilde oluşturuldu 🎉"
+            "state" : "new",
+            "value" : "Choose your protection level 🛡️"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ваш захищений NymVPN акаунт готовий🎉."
+            "state" : "new",
+            "value" : "Choose your protection level 🛡️"
           }
         },
         "vi" : {
           "stringUnit" : {
             "state" : "new",
-            "value" : "Your secure NymVPN account is ready🎉"
+            "value" : "Choose your protection level 🛡️"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
+            "state" : "new",
+            "value" : "Choose your protection level 🛡️"
+          }
+        }
+      }
+    },
+    "purchasePlan.welcomToTruePrivacy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ar" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Welcome to true privacy 🎉"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Welcome to true privacy 🎉"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
             "state" : "translated",
-            "value" : "您的安全 NymVPN 账户已准备好🎉"
+            "value" : "Welcome to true privacy 🎉"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bienvenido a la verdadera privacidad 🎉"
+          }
+        },
+        "fa" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Welcome to true privacy 🎉"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "La confidentialité est à vous 🎉"
+          }
+        },
+        "hi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plan Activated"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Welcome to true privacy 🎉"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Welcome to true privacy 🎉"
+          }
+        },
+        "pt" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Welcome to true privacy 🎉"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bem-vindo à verdadeira privacidade 🎉"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Welcome to true privacy 🎉"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Welcome to true privacy 🎉"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Welcome to true privacy 🎉"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Welcome to true privacy 🎉"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Welcome to true privacy 🎉"
           }
         }
       }
@@ -26419,8 +26419,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saved in Keychain"
+            "state" : "translated",
+            "value" : "Salvo no Keychain"
           }
         },
         "ru" : {
@@ -26781,8 +26781,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Subscription expired"
+            "state" : "translated",
+            "value" : "La suscripción ha expirado"
           }
         },
         "fa" : {
@@ -26823,8 +26823,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Subscription expired"
+            "state" : "translated",
+            "value" : "Assinatura expirada"
           }
         },
         "ru" : {
@@ -27096,8 +27096,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Démarrer"
           }
         },
         "hi" : {
@@ -27126,8 +27126,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Começar"
           }
         },
         "ru" : {
@@ -27197,8 +27197,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get anonymous browsing now"
+            "state" : "translated",
+            "value" : "Anonymiser ma navigation maintenant "
           }
         },
         "hi" : {
@@ -27227,8 +27227,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get anonymous browsing now"
+            "state" : "translated",
+            "value" : "Navegue anonimamente agora"
           }
         },
         "ru" : {
@@ -27298,8 +27298,8 @@
         },
         "fr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your privacy is unprotected "
+            "state" : "translated",
+            "value" : "Votre confidentialité n'est pas protégée"
           }
         },
         "hi" : {
@@ -27328,8 +27328,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your privacy is unprotected "
+            "state" : "translated",
+            "value" : "Sua privacidade não está protegida "
           }
         },
         "ru" : {

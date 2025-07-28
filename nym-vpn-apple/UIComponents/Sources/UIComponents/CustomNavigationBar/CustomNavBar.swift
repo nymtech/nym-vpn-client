@@ -6,8 +6,8 @@ public struct CustomNavBar: View {
     private let title: String?
     private let useElevationBackground: Bool
     private let isLogoImageHidden: Bool
-    private let leftButton: CustomNavBarButton?
-    private let rightButton: CustomNavBarButton?
+    @State private var leftButton: CustomNavBarButton?
+    @State private var rightButton: CustomNavBarButton?
 
     @EnvironmentObject private var appSettings: AppSettings
 
@@ -21,8 +21,8 @@ public struct CustomNavBar: View {
         self.title = title
         self.useElevationBackground = useElevationBackground
         self.isLogoImageHidden = isLogoImageHidden
-        self.leftButton = leftButton
-        self.rightButton = rightButton
+        _leftButton = State(initialValue: leftButton)
+        _rightButton = State(initialValue: rightButton)
     }
 
     public var body: some View {
