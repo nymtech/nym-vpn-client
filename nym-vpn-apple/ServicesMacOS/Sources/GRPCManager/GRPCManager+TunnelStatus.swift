@@ -6,26 +6,36 @@ import ErrorReason
 
 extension GRPCManager {
     func setupListenToTunnelStateChangesObserver() {
-        let call = client.listenToTunnelState(Google_Protobuf_Empty()) { [weak self] tunnelState in
-            self?.updateTunnelStatus(with: tunnelState)
-        }
+        var iterator = client.listenToTunnelState(Google_Protobuf_Empty()).makeAsyncIterator()
 
-        call.status.whenComplete { [weak self] result in
-            switch result {
-            case let .success(status):
-                print("Stream completed with status: \(status)")
-                self?.setup()
-                self?.tunnelStatus = .unknown
-                self?.isServing = false
-            case let .failure(error):
-                print("Stream failed with error: \(error)")
+        Task {
+            do {
+                while let tunnelState = try await iterator.next() {
+                    await MainActor.run {
+                        self.updateTunnelStatus(with: tunnelState)
+                    }
+                }
+                await MainActor.run {
+                    resetTunnelStateChangeObserver()
+                }
+            } catch {
+                await MainActor.run {
+                    logger.error("Listening to tunnel state failed: \(error)")
+                    resetTunnelStateChangeObserver()
+                }
             }
         }
+    }
+
+    func resetTunnelStateChangeObserver() {
+        setup()
+        tunnelStatus = .unknown
+        isServing = false
     }
 }
 
 extension GRPCManager {
-    func updateTunnelStatus(with state: Nym_Vpn_TunnelState) {
+    func updateTunnelStatus(with state: NymVpnService_TunnelState) {
         switch state.state {
         case let .connected(details):
             connectedDate = Date(timeIntervalSince1970: details.connectionData.connectedAt.timeIntervalSince1970)
@@ -65,7 +75,7 @@ extension GRPCManager {
 }
 
 extension GRPCManager {
-    func resolveError(with tunnelStateError: Nym_Vpn_TunnelState.Error) -> Error? {
+    func resolveError(with tunnelStateError: NymVpnService_TunnelState.Error) -> Error? {
         switch tunnelStateError.reason {
         case .firewall:
             ErrorReason.firewall
@@ -95,6 +105,8 @@ extension GRPCManager {
             ErrorReason.deviceTimeOutOfSync
         case .createMixnetStorage:
             ErrorReason.createMixnetStorage
+        case .ipv6Unavailable:
+            ErrorReason.ipv6Unavailable
         }
     }
 }
