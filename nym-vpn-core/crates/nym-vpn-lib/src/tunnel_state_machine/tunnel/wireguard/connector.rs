@@ -53,7 +53,7 @@ impl Connector {
         data_path: Option<PathBuf>,
         cancel_token: CancellationToken,
     ) -> Result<ConnectedTunnel, ConnectorError> {
-        let result = Self::connect_inner(
+        let result = Box::pin(Self::connect_inner(
             &self.task_manager,
             network,
             self.mixnet_client.clone(),
@@ -61,7 +61,7 @@ impl Connector {
             selected_gateways,
             data_path,
             cancel_token,
-        )
+        ))
         .await;
 
         match result {
@@ -131,68 +131,70 @@ impl Connector {
         );
 
         let shutdown = task_manager.subscribe_named("bandwidth_controller");
-        let (connection_data, bandwidth_controller_handle) =
-            if let Some(data_path) = data_path.as_ref() {
-                let paths = StoragePaths::new_from_dir(data_path)
-                    .map_err(|err| Error::SetupStoragePaths(Box::new(err)))?;
-                let storage = paths
-                    .persistent_credential_storage()
-                    .await
-                    .map_err(|err| Error::SetupStoragePaths(Box::new(err)))?;
-                let bw = BandwidthController::new(
-                    storage,
-                    network,
-                    wg_entry_gateway_client.light_client(),
-                    wg_exit_gateway_client.light_client(),
-                    shutdown,
-                )?;
-                let entry_fut = bw.get_initial_bandwidth(
+        let (connection_data, bandwidth_controller_handle) = if let Some(data_path) =
+            data_path.as_ref()
+        {
+            let paths = StoragePaths::new_from_dir(data_path)
+                .map_err(|err| Error::SetupStoragePaths(Box::new(err)))?;
+            let storage = paths
+                .persistent_credential_storage()
+                .await
+                .map_err(|err| Error::SetupStoragePaths(Box::new(err)))?;
+            let bw = BandwidthController::new(
+                storage,
+                network,
+                wg_entry_gateway_client.light_client(),
+                wg_exit_gateway_client.light_client(),
+                shutdown,
+            )?;
+            let entry_fut = bw.get_initial_bandwidth(
+                TicketType::V1WireguardEntry,
+                gateway_directory_client.clone(),
+                &mut wg_entry_gateway_client,
+            );
+            let exit_fut = bw.get_initial_bandwidth(
+                TicketType::V1WireguardExit,
+                gateway_directory_client.clone(),
+                &mut wg_exit_gateway_client,
+            );
+
+            let (entry, exit) = Box::pin(
+                cancel_token.run_until_cancelled(async { tokio::try_join!(entry_fut, exit_fut) }),
+            )
+            .await
+            .ok_or(tunnel::Error::Cancelled)??;
+
+            let bandwidth_controller_handle = tokio::spawn(bw.run());
+
+            (ConnectionData { entry, exit }, bandwidth_controller_handle)
+        } else {
+            let storage = EphemeralCredentialStorage::default();
+            let bw = BandwidthController::new(
+                storage,
+                network,
+                wg_entry_gateway_client.light_client(),
+                wg_exit_gateway_client.light_client(),
+                shutdown,
+            )?;
+            let entry = bw
+                .get_initial_bandwidth(
                     TicketType::V1WireguardEntry,
                     gateway_directory_client.clone(),
                     &mut wg_entry_gateway_client,
-                );
-                let exit_fut = bw.get_initial_bandwidth(
+                )
+                .await?;
+            let exit = bw
+                .get_initial_bandwidth(
                     TicketType::V1WireguardExit,
-                    gateway_directory_client.clone(),
+                    gateway_directory_client,
                     &mut wg_exit_gateway_client,
-                );
+                )
+                .await?;
 
-                let (entry, exit) = cancel_token
-                    .run_until_cancelled(async { tokio::try_join!(entry_fut, exit_fut) })
-                    .await
-                    .ok_or(tunnel::Error::Cancelled)??;
+            let bandwidth_controller_handle = tokio::spawn(bw.run());
 
-                let bandwidth_controller_handle = tokio::spawn(bw.run());
-
-                (ConnectionData { entry, exit }, bandwidth_controller_handle)
-            } else {
-                let storage = EphemeralCredentialStorage::default();
-                let bw = BandwidthController::new(
-                    storage,
-                    network,
-                    wg_entry_gateway_client.light_client(),
-                    wg_exit_gateway_client.light_client(),
-                    shutdown,
-                )?;
-                let entry = bw
-                    .get_initial_bandwidth(
-                        TicketType::V1WireguardEntry,
-                        gateway_directory_client.clone(),
-                        &mut wg_entry_gateway_client,
-                    )
-                    .await?;
-                let exit = bw
-                    .get_initial_bandwidth(
-                        TicketType::V1WireguardExit,
-                        gateway_directory_client,
-                        &mut wg_exit_gateway_client,
-                    )
-                    .await?;
-
-                let bandwidth_controller_handle = tokio::spawn(bw.run());
-
-                (ConnectionData { entry, exit }, bandwidth_controller_handle)
-            };
+            (ConnectionData { entry, exit }, bandwidth_controller_handle)
+        };
 
         if let Some(exit_country_code) = selected_gateways.exit.two_letter_iso_country_code() {
             auth_client.send_stats_event(
