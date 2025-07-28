@@ -111,7 +111,7 @@ impl SyncingState {
                     .account_summary
                     .fair_usage
                     .limitGB
-                    == account_summary_with_device
+                    != account_summary_with_device
                         .account_summary
                         .fair_usage
                         .usedGB;
