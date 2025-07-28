@@ -53,7 +53,7 @@ use super::{
         Result, SetNetworkError,
     },
 };
-use crate::{config::GlobalConfigFile, logging::RemoveLogFileSignal};
+use crate::{config::GlobalConfigFile, logging::LogFileRemoverHandle};
 
 // Seed used to generate device identity keys
 type Seed = [u8; 32];
@@ -149,7 +149,7 @@ where
     tunnel_event_tx: broadcast::Sender<TunnelEvent>,
 
     // Send command to delete and recreate logging file
-    remove_log_file_signal: Option<RemoveLogFileSignal>,
+    log_file_remover_handle: Option<LogFileRemoverHandle>,
 
     // Send commands to the account controller
     account_command_tx: AccountCommandSender,
@@ -211,7 +211,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     pub fn spawn(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
-        remove_log_file_signal: Option<RemoveLogFileSignal>,
+        log_file_remover_handle: Option<LogFileRemoverHandle>,
         parameters: NymVpnServiceParameters,
         shutdown_token: CancellationToken,
     ) -> JoinHandle<()> {
@@ -220,7 +220,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             match NymVpnService::new(
                 vpn_command_rx,
                 tunnel_event_tx,
-                remove_log_file_signal,
+                log_file_remover_handle,
                 parameters,
                 shutdown_token,
             )
@@ -248,7 +248,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
     pub async fn new(
         vpn_command_rx: mpsc::UnboundedReceiver<VpnServiceCommand>,
         tunnel_event_tx: broadcast::Sender<TunnelEvent>,
-        remove_log_file_signal: Option<RemoveLogFileSignal>,
+        log_file_remover_handle: Option<LogFileRemoverHandle>,
         parameters: NymVpnServiceParameters,
         shutdown_token: CancellationToken,
     ) -> Result<Self> {
@@ -410,7 +410,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             shared_account_state,
             vpn_command_rx,
             tunnel_event_tx,
-            remove_log_file_signal,
+            log_file_remover_handle,
             account_command_tx,
             config_file,
             data_dir: network_data_dir,
@@ -1013,7 +1013,7 @@ where
     }
 
     async fn handle_delete_log_file(&self) {
-        if let Some(remove_log_file_handle) = self.remove_log_file_signal.as_ref() {
+        if let Some(remove_log_file_handle) = self.log_file_remover_handle.as_ref() {
             remove_log_file_handle.remove_log_file();
         }
     }

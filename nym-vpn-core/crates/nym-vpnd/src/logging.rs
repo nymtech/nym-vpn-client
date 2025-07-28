@@ -109,7 +109,7 @@ impl LogFileRemover {
     pub fn spawn(
         file_appender: FileAppender,
         shutdown_handle: CancellationToken,
-    ) -> (RemoveLogFileSignal, JoinHandle<()>) {
+    ) -> (LogFileRemoverHandle, JoinHandle<()>) {
         let (tx, rx) = mpsc::unbounded_channel();
         let file_remover = Self {
             command_rx: rx,
@@ -117,7 +117,7 @@ impl LogFileRemover {
             shutdown_handle,
         };
         let join_handle = tokio::spawn(file_remover.run());
-        let remove_file_handle = RemoveLogFileSignal { tx };
+        let remove_file_handle = LogFileRemoverHandle { tx };
         (remove_file_handle, join_handle)
     }
 
@@ -137,13 +137,13 @@ impl LogFileRemover {
     }
 }
 
-/// Interface for signaling when active log file should be removed.
+/// Interface for interacting with the log file remover.
 #[derive(Clone)]
-pub struct RemoveLogFileSignal {
+pub struct LogFileRemoverHandle {
     tx: mpsc::UnboundedSender<()>,
 }
 
-impl RemoveLogFileSignal {
+impl LogFileRemoverHandle {
     pub fn remove_log_file(&self) {
         if self.tx.send(()).is_err() {
             tracing::warn!("Log file remover channel is already closed");
@@ -173,9 +173,9 @@ impl LoggingSetup {
 
 pub struct LoggingSetupWithFileRemover {
     /// Handle for removing the log file
-    pub remove_log_file_signal: RemoveLogFileSignal,
+    pub log_file_remover_handle: LogFileRemoverHandle,
     /// Join handle for the file remover worker
-    pub file_remover_handle: JoinHandle<()>,
+    pub log_file_remover_join_handle: JoinHandle<()>,
     pub log_path: LogPath,
     /// A guard that flushes the log file when dropped.
     /// This worker guard should be retained for the lifetime of application.
@@ -297,12 +297,12 @@ pub fn setup_logging_with_file_remover(
     let logging_setup = setup_logging(options);
 
     logging_setup.map(|logging_setup| {
-        let (remove_log_file_handle, join_handle) =
+        let (log_file_remover_handle, log_file_remover_join_handle) =
             LogFileRemover::spawn(logging_setup.file_appender, shutdown_token);
 
         LoggingSetupWithFileRemover {
-            remove_log_file_signal: remove_log_file_handle,
-            file_remover_handle: join_handle,
+            log_file_remover_handle,
+            log_file_remover_join_handle,
             log_path: logging_setup.log_path,
             worker_guard: logging_setup.worker_guard,
         }

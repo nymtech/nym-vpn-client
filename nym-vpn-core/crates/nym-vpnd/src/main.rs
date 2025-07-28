@@ -26,7 +26,7 @@ use nym_vpnd_types::log_path::LogPath;
 use crate::{
     cli::{CliArgs, Command},
     config::GlobalConfigFile,
-    logging::RemoveLogFileSignal,
+    logging::LogFileRemoverHandle,
 };
 use service::{NymVpnService, NymVpnServiceParameters};
 
@@ -81,7 +81,7 @@ async fn run_vpn_service(args: CliArgs, sentry_enabled: bool) -> anyhow::Result<
     let log_path = logging_setup.as_ref().map(|s| s.log_path.clone());
     let remove_log_file_signal = logging_setup
         .as_ref()
-        .map(|s| s.remove_log_file_signal.clone());
+        .map(|s| s.log_file_remover_handle.clone());
     let run_parameters = RunParameters::new_with_cli_args(args, log_path, sentry_enabled);
 
     log_software_and_os_version();
@@ -100,7 +100,7 @@ async fn run_vpn_service(args: CliArgs, sentry_enabled: bool) -> anyhow::Result<
     run_standalone(run_parameters, remove_log_file_signal, shutdown_token).await?;
 
     let _worker_guard = if let Some(setup) = logging_setup {
-        if setup.file_remover_handle.await.is_err() {
+        if setup.log_file_remover_join_handle.await.is_err() {
             tracing::error!("Failed to join on file logging handle");
         }
         Some(setup.worker_guard)
@@ -141,7 +141,7 @@ impl RunParameters {
 /// Run vpn service as a standalone process.
 async fn run_standalone(
     parameters: RunParameters,
-    remove_log_file_signal: Option<RemoveLogFileSignal>,
+    log_file_remover_handle: Option<LogFileRemoverHandle>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<()> {
     let global_config_file = setup_global_config(parameters.network)?;
@@ -160,7 +160,7 @@ async fn run_standalone(
 
     let vpn_service_handle = setup_vpn_service(
         vpn_service_params,
-        remove_log_file_signal,
+        log_file_remover_handle,
         shutdown_token.child_token(),
     )
     .await?;
@@ -199,7 +199,7 @@ impl VpnServiceHandle {
 
 async fn setup_vpn_service(
     parameters: NymVpnServiceParameters,
-    remove_log_file_signal: Option<RemoveLogFileSignal>,
+    log_file_remover_handle: Option<LogFileRemoverHandle>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<VpnServiceHandle> {
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
@@ -211,7 +211,7 @@ async fn setup_vpn_service(
     let vpn_service_handle = NymVpnService::spawn(
         vpn_command_rx,
         tunnel_event_tx,
-        remove_log_file_signal,
+        log_file_remover_handle,
         parameters,
         shutdown_token.child_token(),
     );
