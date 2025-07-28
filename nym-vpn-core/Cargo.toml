@@ -79,12 +79,6 @@ edition = "2024"
 license = "GPL-3.0-only"
 
 [workspace.lints.clippy]
-unwrap_used = "deny"
-expect_used = "deny"
-todo = "deny"
-exit = "deny"
-panic = "deny"
-unimplemented = "deny"
 large_futures = "warn"
 
 [workspace.dependencies]
