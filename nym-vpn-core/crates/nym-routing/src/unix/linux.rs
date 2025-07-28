@@ -279,11 +279,10 @@ impl RouteManagerImpl {
         let mut response = self.handle.request(req).map_err(Error::Netlink)?;
 
         while let Some(message) = response.next().await {
-            if let NetlinkPayload::Error(error) = message.payload {
-                if error.to_io().kind() != io::ErrorKind::NotFound {
+            if let NetlinkPayload::Error(error) = message.payload
+                && error.to_io().kind() != io::ErrorKind::NotFound {
                     return Err(Error::Netlink(rtnetlink::Error::NetlinkError(error)));
                 }
-            }
         }
         Ok(())
     }
@@ -561,11 +560,10 @@ impl RouteManagerImpl {
 
     async fn delete_route_if_exists(&self, route: &Route) -> Result<()> {
         if let Err(error) = self.delete_route(route).await {
-            if let Error::Netlink(rtnetlink::Error::NetlinkError(msg)) = &error {
-                if msg.code == NonZeroI32::new(-libc::ESRCH) {
+            if let Error::Netlink(rtnetlink::Error::NetlinkError(msg)) = &error
+                && msg.code == NonZeroI32::new(-libc::ESRCH) {
                     return Ok(());
                 }
-            }
             Err(error)
         } else {
             Ok(())
@@ -617,13 +615,12 @@ impl RouteManagerImpl {
                 .push(RouteAttribute::Table(route.table_id));
         }
 
-        if let Some(interface_name) = route.node.get_device() {
-            if let Some(iface_idx) = self.find_iface_idx(interface_name) {
+        if let Some(interface_name) = route.node.get_device()
+            && let Some(iface_idx) = self.find_iface_idx(interface_name) {
                 route_message
                     .attributes
                     .push(RouteAttribute::Oif(iface_idx));
             }
-        }
 
         if let Some(gateway) = route.node.get_address() {
             let gateway_attr = if route.node.get_device().is_some() {
@@ -662,11 +659,10 @@ impl RouteManagerImpl {
                     message_builder = message_builder.gateway(node_address);
                 }
 
-                if let Some(interface_name) = route.node.get_device() {
-                    if let Some(iface_idx) = self.find_iface_idx(interface_name) {
+                if let Some(interface_name) = route.node.get_device()
+                    && let Some(iface_idx) = self.find_iface_idx(interface_name) {
                         message_builder = message_builder.output_interface(iface_idx);
                     }
-                }
 
                 message_builder.build()
             }
@@ -682,11 +678,10 @@ impl RouteManagerImpl {
                     message_builder = message_builder.gateway(node_address);
                 }
 
-                if let Some(interface_name) = route.node.get_device() {
-                    if let Some(iface_idx) = self.find_iface_idx(interface_name) {
+                if let Some(interface_name) = route.node.get_device()
+                    && let Some(iface_idx) = self.find_iface_idx(interface_name) {
                         message_builder = message_builder.output_interface(iface_idx);
                     }
-                }
 
                 message_builder.build()
             }
@@ -799,8 +794,8 @@ impl RouteManagerImpl {
         let target_device = LinkAttribute::IfName(device);
         while let Some(msg) = links.try_next().await.map_err(|_| Error::LinkNotFound)? {
             let found = msg.attributes.contains(&target_device);
-            if found {
-                if let Some(LinkAttribute::Mtu(mtu)) = msg
+            if found
+                && let Some(LinkAttribute::Mtu(mtu)) = msg
                     .attributes
                     .into_iter()
                     .find(|e| matches!(e, LinkAttribute::Mtu(_)))
@@ -809,7 +804,6 @@ impl RouteManagerImpl {
                         u16::try_from(mtu).expect("MTU returned by device does not fit into a u16")
                     );
                 }
-            }
         }
         Err(Error::LinkNotFound)
     }
