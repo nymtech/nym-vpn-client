@@ -77,7 +77,7 @@ pub(crate) async fn handle_forget_account(
         .await
         .map_err(|source| {
             tracing::error!("Failed to reset credential storage: {source:?}");
-            AccountCommandError::ResetCredentialStorage(source.to_string())
+            AccountCommandError::Storage(source.to_string())
         })?;
 
     // Purge all files in the data directory that we are not explicitly deleting through it's
@@ -101,7 +101,7 @@ pub(crate) async fn handle_forget_account(
         .map_err(AccountCommandError::internal)? // Handling channel error
         .map_err(|source| {
             tracing::error!("Failed to remove account: {source:?}");
-            AccountCommandError::RemoveAccount(source.to_string())
+            AccountCommandError::Storage(source.to_string())
         })?; // Handling account removal error
 
     // Once we have removed or reset all storage, we need to reset the account state
@@ -109,7 +109,7 @@ pub(crate) async fn handle_forget_account(
     shared_state.device = None;
 
     if let Err(err) = remove_files_result {
-        return Err(AccountCommandError::RemoveAccountFiles(format!(
+        return Err(AccountCommandError::Storage(format!(
             "Failed to remove files for account: {err}"
         )));
     }
@@ -139,7 +139,7 @@ pub(crate) async fn handle_unregister_device(
         .await
         .map_err(|err| {
             VpnApiError::try_from(err)
-                .map(AccountCommandError::UpdateDeviceErrorResponse)
+                .map(AccountCommandError::VpnApi)
                 .unwrap_or_else(AccountCommandError::unexpected_response)
         })?;
     Ok(())

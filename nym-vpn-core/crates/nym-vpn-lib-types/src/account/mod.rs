@@ -47,30 +47,8 @@ pub enum AccountCommandError {
     #[error("failed to request zk nym:")]
     RequestZkNym(#[from] request_zknym::RequestZkNymError),
 
-    // SW Adding this just temporarily, let's see what we want to keep
-    #[error("get account")]
-    GetAccountEndpointFailure(VpnApiError),
-
-    #[error("failed to remove account: {0}")]
-    RemoveAccount(String),
-
-    #[error("failed to remove device keys: {0}")]
-    RemoveDeviceKeys(String),
-
-    #[error("failed to reset credential storage: {0}")]
-    ResetCredentialStorage(String),
-
-    #[error("failed to remove account files: {0}")]
-    RemoveAccountFiles(String),
-
-    #[error("update device on vpn-api")]
-    UpdateDeviceErrorResponse(VpnApiError),
-
     #[error("invalid mnemonic: {0}")]
     InvalidMnemonic(String),
-
-    #[error("register account")]
-    RegisterAccountEndpointFailure(VpnApiError),
 }
 
 impl AccountCommandError {
