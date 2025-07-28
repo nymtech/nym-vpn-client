@@ -516,18 +516,16 @@ message VpnApiErrorResponse {
 
 message RequestZkNymSuccess {
   string id = 1;
+  string ticketbook_type = 2;
 }
 
 // Mapped from `nym_vpn_lib_types::RequestZkNymErrorReason`
 message RequestZkNymError {
   oneof outcome {
-    bool no_account_stored = 1;
-    bool no_device_stored = 2;
-    VpnApiError vpn_api = 3;
-    string unexpected_vpn_api_response = 4;
-    string storage = 5;
-    bool offline = 7;
-    string internal = 6;
+    VpnApiError vpn_api = 1;
+    string unexpected_vpn_api_response = 2;
+    string storage = 3;
+    string internal = 4;
   }
 }
 

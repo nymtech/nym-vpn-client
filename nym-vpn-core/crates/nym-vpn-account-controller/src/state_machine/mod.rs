@@ -1,6 +1,8 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::time::Duration;
+
 use nym_vpn_lib_types::AccountControllerState;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -20,13 +22,8 @@ pub use offline_state::OfflineState;
 pub(crate) use ready_state::ReadyState;
 pub(crate) use syncing_state::SyncingState;
 
-// The interval at which we automatically request zk-nyms
-// SW Will be used eventually
-//const ZK_NYM_AUTOMATIC_REQUEST_INTERVAL: Duration = Duration::from_secs(60);
-
 // The interval at which we update the account state
-// SW Will be used eventually
-//const ACCOUNT_UPDATE_INTERVAL: Duration = Duration::from_secs(5 * 60);
+const ACCOUNT_UPDATE_INTERVAL: Duration = Duration::from_secs(2 * 60);
 
 #[async_trait::async_trait]
 pub(crate) trait AccountControllerStateHandler: Send {

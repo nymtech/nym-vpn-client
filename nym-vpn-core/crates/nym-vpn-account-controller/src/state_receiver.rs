@@ -16,6 +16,7 @@ impl AccountStateReceiver {
     }
 
     pub async fn wait_for_account_ready_to_connect(&mut self) -> Result<(), AccountCommandError> {
+        // SW straight up new error type
         //Make sure we're not stuck there
         self.inner.mark_changed();
 

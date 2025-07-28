@@ -40,7 +40,7 @@ impl AccountControllerStateHandler for LoggedOutState {
                 match command {
                     AccountCommand::CreateAccount(return_sender) => {
                         return_sender.send(handler::handle_create_account(shared_state).await);
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
+                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                     }
                     AccountCommand::StoreAccount(return_sender, mnemonic) => {
                         if let Err(e) = handler::handle_store_account(shared_state, mnemonic, false).await{
@@ -48,7 +48,7 @@ impl AccountControllerStateHandler for LoggedOutState {
                             return NextAccountControllerState::SameState(self);
                         } else {
                             return_sender.send(Ok(()));
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                         }
                     },
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(RegisterAccountError::internal("No account stored"))), // SW better error than that

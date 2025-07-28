@@ -205,9 +205,6 @@ where
             }
         });
 
-        // ADD, On a timer, refresh sync and request ZK nym
-        // SW ADD THAT IN THE STATES
-
         loop {
             let next_state = self
                 .current_state_handler
