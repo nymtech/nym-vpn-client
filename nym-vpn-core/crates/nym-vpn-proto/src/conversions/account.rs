@@ -4,31 +4,35 @@
 use std::sync::Arc;
 
 use nym_vpn_lib_types::{
-    AvailableTickets, ForgetAccountError, RegisterDeviceError, RequestZkNymErrorReason,
-    RequestZkNymSuccess, StoreAccountError, VpnApiError, VpnApiErrorResponse,
+    AccountCommandError, AvailableTickets, RegisterDeviceError, RequestZkNymErrorReason,
+    RequestZkNymSuccess, VpnApiError, VpnApiErrorResponse,
 };
 
 use crate::{conversions::ConversionError, proto};
 
-impl TryFrom<proto::StoreAccountError> for StoreAccountError {
+impl TryFrom<proto::AccountCommandError> for AccountCommandError {
     type Error = ConversionError;
 
-    fn try_from(value: proto::StoreAccountError) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::AccountCommandError) -> Result<Self, Self::Error> {
         let error_detail = value.error_detail.ok_or(ConversionError::NoValueSet(
             "StoreAccountError.error_detail",
         ))?;
         Ok(match error_detail {
-            proto::store_account_error::ErrorDetail::InvalidMnemonic(message) => {
+            proto::account_command_error::ErrorDetail::StorageError(err) => Self::Storage(err),
+            proto::account_command_error::ErrorDetail::Internal(err) => Self::Internal(err),
+            proto::account_command_error::ErrorDetail::VpnApi(vpn_api) => {
+                Self::VpnApi(vpn_api.try_into()?)
+            }
+            proto::account_command_error::ErrorDetail::UnexpectedResponse(err) => {
+                Self::UnexpectedVpnApiResponse(err)
+            }
+            proto::account_command_error::ErrorDetail::NoAccountStored(_) => Self::NoAccountStored,
+            proto::account_command_error::ErrorDetail::NoDeviceStored(_) => Self::NoDeviceStored,
+            proto::account_command_error::ErrorDetail::ExistingAccount(_) => Self::ExistingAccount,
+            proto::account_command_error::ErrorDetail::Offline(_) => Self::Offline,
+            proto::account_command_error::ErrorDetail::InvalidMnemonic(message) => {
                 Self::InvalidMnemonic(message)
             }
-            proto::store_account_error::ErrorDetail::StorageError(err) => Self::Storage(err),
-            proto::store_account_error::ErrorDetail::VpnApi(vpn_api) => {
-                Self::GetAccountEndpointFailure(vpn_api.try_into()?)
-            }
-            proto::store_account_error::ErrorDetail::UnexpectedResponse(err) => {
-                Self::UnexpectedResponse(err)
-            }
-            proto::store_account_error::ErrorDetail::Internal(err) => Self::Internal(err),
         })
     }
 }
@@ -51,43 +55,6 @@ impl TryFrom<proto::RegisterDeviceError> for RegisterDeviceError {
             }
             proto::register_device_error::ErrorDetail::Offline(_) => Self::Offline,
             proto::register_device_error::ErrorDetail::Internal(err) => Self::Internal(err),
-        })
-    }
-}
-
-impl TryFrom<proto::ForgetAccountError> for ForgetAccountError {
-    type Error = ConversionError;
-
-    fn try_from(value: proto::ForgetAccountError) -> Result<Self, Self::Error> {
-        let error_detail = value.error_detail.ok_or(ConversionError::NoValueSet(
-            "ForgetAccountError.error_detail",
-        ))?;
-        Ok(match error_detail {
-            proto::forget_account_error::ErrorDetail::RegistrationInProgress(_) => {
-                Self::RegistrationInProgress
-            }
-            proto::forget_account_error::ErrorDetail::VpnApi(vpn_api) => {
-                Self::UpdateDeviceErrorResponse(vpn_api.try_into()?)
-            }
-            proto::forget_account_error::ErrorDetail::UnexpectedResponse(err) => {
-                Self::UnexpectedResponse(err)
-            }
-            proto::forget_account_error::ErrorDetail::RemoveAccount(err) => {
-                Self::RemoveAccount(err)
-            }
-            proto::forget_account_error::ErrorDetail::RemoveDeviceKeys(err) => {
-                Self::RemoveDeviceKeys(err)
-            }
-            proto::forget_account_error::ErrorDetail::ResetCredentialStore(err) => {
-                Self::ResetCredentialStorage(err)
-            }
-            proto::forget_account_error::ErrorDetail::RemoveAccountFiles(err) => {
-                Self::RemoveAccountFiles(err)
-            }
-            proto::forget_account_error::ErrorDetail::InitDeviceKeys(err) => {
-                Self::InitDeviceKeys(err)
-            }
-            proto::forget_account_error::ErrorDetail::Internal(err) => Self::Internal(err),
         })
     }
 }
@@ -127,29 +94,47 @@ impl From<proto::VpnApiErrorResponse> for VpnApiErrorResponse {
     }
 }
 
-impl From<StoreAccountError> for proto::StoreAccountError {
-    fn from(value: StoreAccountError) -> Self {
+impl From<AccountCommandError> for proto::AccountCommandError {
+    fn from(value: AccountCommandError) -> Self {
         match value {
-            StoreAccountError::InvalidMnemonic(err) => proto::StoreAccountError {
-                error_detail: Some(proto::store_account_error::ErrorDetail::InvalidMnemonic(
+            AccountCommandError::Internal(err) => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::Internal(err)),
+            },
+            AccountCommandError::Storage(err) => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::StorageError(err)),
+            },
+            AccountCommandError::VpnApi(vpn_api_error) => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::VpnApi(
+                    vpn_api_error.into(),
+                )),
+            },
+            AccountCommandError::UnexpectedVpnApiResponse(err) => proto::AccountCommandError {
+                error_detail: Some(
+                    proto::account_command_error::ErrorDetail::UnexpectedResponse(err),
+                ),
+            },
+            AccountCommandError::NoAccountStored => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::NoAccountStored(
+                    true,
+                )),
+            },
+            AccountCommandError::NoDeviceStored => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::NoDeviceStored(
+                    true,
+                )),
+            },
+            AccountCommandError::ExistingAccount => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::ExistingAccount(
+                    true,
+                )),
+            },
+            AccountCommandError::Offline => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::Offline(true)),
+            },
+            AccountCommandError::InvalidMnemonic(err) => proto::AccountCommandError {
+                error_detail: Some(proto::account_command_error::ErrorDetail::InvalidMnemonic(
                     err,
                 )),
-            },
-            StoreAccountError::Storage(err) => proto::StoreAccountError {
-                error_detail: Some(proto::store_account_error::ErrorDetail::StorageError(err)),
-            },
-            StoreAccountError::GetAccountEndpointFailure(vpn_api) => proto::StoreAccountError {
-                error_detail: Some(proto::store_account_error::ErrorDetail::VpnApi(
-                    vpn_api.into(),
-                )),
-            },
-            StoreAccountError::UnexpectedResponse(err) => proto::StoreAccountError {
-                error_detail: Some(proto::store_account_error::ErrorDetail::UnexpectedResponse(
-                    err,
-                )),
-            },
-            StoreAccountError::Internal(err) => proto::StoreAccountError {
-                error_detail: Some(proto::store_account_error::ErrorDetail::Internal(err)),
             },
         }
     }
@@ -284,54 +269,6 @@ impl From<RegisterDeviceError> for proto::RegisterDeviceError {
             },
             RegisterDeviceError::Internal(err) => proto::RegisterDeviceError {
                 error_detail: Some(proto::register_device_error::ErrorDetail::Internal(err)),
-            },
-        }
-    }
-}
-
-impl From<ForgetAccountError> for proto::ForgetAccountError {
-    fn from(value: ForgetAccountError) -> Self {
-        match value {
-            ForgetAccountError::RegistrationInProgress => Self {
-                error_detail: Some(
-                    proto::forget_account_error::ErrorDetail::RegistrationInProgress(true),
-                ),
-            },
-            ForgetAccountError::UpdateDeviceErrorResponse(vpn_api) => Self {
-                error_detail: Some(proto::forget_account_error::ErrorDetail::VpnApi(
-                    vpn_api.into(),
-                )),
-            },
-            ForgetAccountError::UnexpectedResponse(err) => Self {
-                error_detail: Some(
-                    proto::forget_account_error::ErrorDetail::UnexpectedResponse(err),
-                ),
-            },
-            ForgetAccountError::RemoveAccount(err) => Self {
-                error_detail: Some(proto::forget_account_error::ErrorDetail::RemoveAccount(err)),
-            },
-            ForgetAccountError::RemoveDeviceKeys(err) => Self {
-                error_detail: Some(proto::forget_account_error::ErrorDetail::RemoveDeviceKeys(
-                    err,
-                )),
-            },
-            ForgetAccountError::ResetCredentialStorage(err) => Self {
-                error_detail: Some(
-                    proto::forget_account_error::ErrorDetail::ResetCredentialStore(err),
-                ),
-            },
-            ForgetAccountError::RemoveAccountFiles(err) => Self {
-                error_detail: Some(
-                    proto::forget_account_error::ErrorDetail::RemoveAccountFiles(err),
-                ),
-            },
-            ForgetAccountError::InitDeviceKeys(err) => Self {
-                error_detail: Some(proto::forget_account_error::ErrorDetail::InitDeviceKeys(
-                    err,
-                )),
-            },
-            ForgetAccountError::Internal(err) => Self {
-                error_detail: Some(proto::forget_account_error::ErrorDetail::Internal(err)),
             },
         }
     }

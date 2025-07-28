@@ -252,7 +252,6 @@ impl AccountControllerStateHandler for RequestingZkNymsState {
     }
 }
 
-// SW Add conversion from this to Error Reason
 #[derive(Debug)]
 enum ZkNymError {
     Storage,

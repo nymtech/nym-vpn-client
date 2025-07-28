@@ -10,8 +10,8 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{AvailableTickets, TunnelEvent, TunnelState};
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
-    ConnectArgs, ForgetAccountResponse, ListCountriesOptions, ListGatewaysOptions,
-    StoreAccountRequest, StoreAccountResponse,
+    AccountCommandResponse, ConnectArgs, ListCountriesOptions, ListGatewaysOptions,
+    StoreAccountRequest,
     account_state::AccountStateSummary,
     gateway::{Country, Gateway},
     log_path::LogPath,
@@ -184,7 +184,7 @@ impl RpcClient {
     pub async fn store_account(
         &mut self,
         store_request: StoreAccountRequest,
-    ) -> Result<StoreAccountResponse> {
+    ) -> Result<AccountCommandResponse> {
         let request = proto::StoreAccountRequest::from(store_request);
         let response = self
             .0
@@ -193,7 +193,7 @@ impl RpcClient {
             .map_err(Error::Rpc)?
             .into_inner();
 
-        StoreAccountResponse::try_from(response).map_err(Error::InvalidResponse)
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
     pub async fn is_account_stored(&mut self) -> Result<bool> {
@@ -204,7 +204,7 @@ impl RpcClient {
             .map_err(Error::Rpc)
     }
 
-    pub async fn forget_account(&mut self) -> Result<ForgetAccountResponse> {
+    pub async fn forget_account(&mut self) -> Result<AccountCommandResponse> {
         let response = self
             .0
             .forget_account(())
@@ -212,7 +212,7 @@ impl RpcClient {
             .map_err(Error::Rpc)?
             .into_inner();
 
-        ForgetAccountResponse::try_from(response).map_err(Error::InvalidResponse)
+        AccountCommandResponse::try_from(response).map_err(Error::InvalidResponse)
     }
 
     pub async fn get_account_identity(&mut self) -> Result<Option<String>> {

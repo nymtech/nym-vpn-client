@@ -6,10 +6,8 @@ use std::{fmt::Debug, sync::Arc};
 pub mod controller_error;
 pub mod controller_event;
 pub mod controller_state;
-pub mod forget_account; // SW TO DELETE
 pub mod register_device; // SW TO DELETE
 pub mod request_zknym;
-pub mod store_account; // SW TO DELETE
 pub mod ticketbooks;
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
@@ -38,9 +36,6 @@ pub enum AccountCommandError {
 
     #[error("no connectivity")]
     Offline,
-
-    #[error("failed to request zk nym:")]
-    RequestZkNym(#[from] request_zknym::RequestZkNymError),
 
     #[error("invalid mnemonic: {0}")]
     InvalidMnemonic(String),
