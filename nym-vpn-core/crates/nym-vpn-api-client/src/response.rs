@@ -36,7 +36,7 @@ pub struct NymVpnAccountResponse {
     pub status: NymVpnAccountStatusResponse,
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, strum_macros::Display)]
 #[serde(rename_all = "snake_case")]
 pub enum NymVpnAccountStatusResponse {
     Active,

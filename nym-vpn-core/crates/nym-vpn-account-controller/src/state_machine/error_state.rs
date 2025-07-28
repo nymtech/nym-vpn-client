@@ -3,7 +3,7 @@
 
 use std::pin::Pin;
 
-use nym_vpn_lib_types::AccountCommandError;
+use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use tokio::{sync::mpsc, time::Sleep};
 use tokio_util::sync::CancellationToken;
 
@@ -22,17 +22,16 @@ pub struct ErrorState {
 
 impl ErrorState {
     pub fn enter(
-        reason: impl ToString,
+        reason: AccountControllerErrorStateReason,
     ) -> (
         Box<dyn AccountControllerStateHandler>,
         PrivateAccountControllerState,
     ) {
-        println!("Entering error state with reason : {}", reason.to_string());
         let refresh_timer = Box::pin(tokio::time::sleep(ACCOUNT_UPDATE_INTERVAL));
 
         (
             Box::new(Self { refresh_timer }),
-            PrivateAccountControllerState::Error,
+            PrivateAccountControllerState::Error(reason),
         )
     }
 }
@@ -53,7 +52,7 @@ impl AccountControllerStateHandler for ErrorState {
                 match command {
                     AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
                     AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
-                    AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)), // SW do we try to register here?
                     AccountCommand::ForgetAccount(return_sender) => {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();

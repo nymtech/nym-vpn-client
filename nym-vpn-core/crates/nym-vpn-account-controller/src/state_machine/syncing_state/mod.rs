@@ -7,7 +7,7 @@ use nym_vpn_api_client::{
     response::NymVpnAccountStatusResponse,
     types::{Device, VpnApiAccount},
 };
-use nym_vpn_lib_types::AccountCommandError;
+use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -25,6 +25,7 @@ use requesting_zknym_state::RequestingZkNymsState;
 mod requesting_zknym_state;
 
 const MAX_SYNCING_ATTEMPTS: u32 = 10;
+const SYNCING_STATE_CONTEXT: &str = "SYNCING_STATE";
 
 pub struct SyncingState {
     syncing_state_handle: JoinHandle<Result<bool, SyncError>>,
@@ -43,7 +44,9 @@ impl SyncingState {
             return LoggedOutState::enter();
         };
         let Some(device) = shared_state.device.clone() else {
-            return ErrorState::enter("Logged in, but no device keys, this shouldn't happen");
+            return ErrorState::enter(
+                SyncError::Internal("Logged in, but no device keys".into()).into(),
+            );
         };
 
         let vpn_api_client = shared_state.vpn_api_client.clone();
@@ -86,7 +89,13 @@ impl SyncingState {
                 if account_summary_with_device.account_summary.account.status
                     != NymVpnAccountStatusResponse::Active
                 {
-                    return Err(SyncError::InactiveAccount);
+                    return Err(SyncError::InactiveAccount(
+                        account_summary_with_device
+                            .account_summary
+                            .account
+                            .status
+                            .to_string(),
+                    ));
                 }
 
                 // that there is an active subscription
@@ -136,8 +145,9 @@ impl SyncingState {
                             && error.message == "Account not found"
                         {
                             // Request was fine, but account is unregistered
+                            // Later down the line we can maybe register it here
                             // SW Use UUID when it will be available
-                            SyncingState::register_account(vpn_api_client, vpn_api_account).await
+                            Err(SyncError::UnregisteredAccount)
                         } else {
                             Err(SyncError::ApiResponseError {
                                 code_reference_id: error.code_reference_id,
@@ -152,15 +162,6 @@ impl SyncingState {
                 }
             }
         }
-    }
-
-    async fn register_account(
-        _vpn_api_client: &AccountControllerVpnApiClient,
-        _vpn_api_account: &VpnApiAccount,
-    ) -> Result<bool, SyncError> {
-        // Unimplemented for now
-        // SW Do we want to register account automatically here or not?
-        Err(SyncError::UnregisteredAccount)
     }
 
     async fn register_device(
@@ -190,25 +191,23 @@ impl AccountControllerStateHandler for SyncingState {
                         match result {
                             // SW better error handling
                             Ok(fair_usage) => { NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts, fair_usage))},
-                            Err(SyncError::UnregisteredAccount) => {NextAccountControllerState::NewState(ErrorState::enter("no account"))},
-                            Err(SyncError::InactiveAccount) => {NextAccountControllerState::NewState(ErrorState::enter("inactive account"))},
-                            Err(SyncError::InactiveSubscription) => {NextAccountControllerState::NewState(ErrorState::enter("inactive sub"))},
-                            Err(SyncError::MaxDeviceReached)=> {NextAccountControllerState::NewState(ErrorState::enter("max device reached"))},
                             Err(SyncError::ApiRequestError) => {
                                 if self.attempts > MAX_SYNCING_ATTEMPTS {
-                                    NextAccountControllerState::NewState(ErrorState::enter("Api failure : Max attempts reached"))
+                                    NextAccountControllerState::NewState(ErrorState::enter(SyncError::ApiRequestError.into()))
                                 } else {
                                     NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts + 1))
                                 }
                             },
-                            Err(SyncError::ApiResponseError { code_reference_id }) => {NextAccountControllerState::NewState(ErrorState::enter(format!("api error : {code_reference_id:?}")))},
-                            Err(SyncError::FairUsageDepleted) => {NextAccountControllerState::NewState(ErrorState::enter("fair usage depleted"))},
-                            Err(SyncError::DeviceTimeDesynced) => {NextAccountControllerState::NewState(ErrorState::enter("Device time desynced"))}
+                            Err(e) => {NextAccountControllerState::NewState(ErrorState::enter(e.into()))},
                         }
                     }
                     Err(e) => {
                         tracing::error!("Failed to join on the syncing task : {e}");
-                        NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts + 1))
+                        if self.attempts > MAX_SYNCING_ATTEMPTS {
+                            NextAccountControllerState::NewState(ErrorState::enter(SyncError::Internal("Failed to join on the syncing task".into()).into()))
+                        } else {
+                            NextAccountControllerState::NewState(SyncingState::enter(shared_state, self.attempts + 1))
+                        }
                     }
                 }
             },
@@ -263,7 +262,8 @@ impl AccountControllerStateHandler for SyncingState {
 // SW Add conversion from this to Error Reason
 #[derive(Debug)]
 enum SyncError {
-    InactiveAccount,
+    Internal(String),
+    InactiveAccount(String),
     UnregisteredAccount,
     InactiveSubscription,
     ApiRequestError,
@@ -280,6 +280,36 @@ impl From<VpnApiClientError> for SyncError {
                 code_reference_id: e.code_reference_id,
             },
             None => SyncError::ApiRequestError,
+        }
+    }
+}
+
+impl From<SyncError> for AccountControllerErrorStateReason {
+    fn from(value: SyncError) -> Self {
+        use SyncError::*;
+        match value {
+            Internal(details) => Self::Internal {
+                context: SYNCING_STATE_CONTEXT.into(),
+                details,
+            },
+            InactiveAccount(status) => Self::AccountStatusNotActive { status },
+            UnregisteredAccount => Self::AccountStatusNotActive {
+                status: "unregistered".into(),
+            },
+            InactiveSubscription => Self::InactiveSubscription,
+            ApiRequestError => Self::ApiFailure {
+                context: SYNCING_STATE_CONTEXT.into(),
+                details: "".into(),
+            },
+            ApiResponseError { code_reference_id } => Self::ApiFailure {
+                context: SYNCING_STATE_CONTEXT.into(),
+                details: code_reference_id.unwrap_or("No code reference id".into()),
+            },
+            DeviceTimeDesynced => Self::DeviceTimeDesynced,
+            MaxDeviceReached => Self::MaxDeviceReached,
+            FairUsageDepleted => Self::BandwidthExceeded {
+                context: SYNCING_STATE_CONTEXT.into(),
+            },
         }
     }
 }
