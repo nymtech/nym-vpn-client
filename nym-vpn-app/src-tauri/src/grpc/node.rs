@@ -79,8 +79,8 @@ impl From<NodeConnect> for ExitNode {
 impl fmt::Display for NodeConnect {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            NodeConnect::Country(country) => write!(f, "country {}", country),
-            NodeConnect::Gateway(gateway) => write!(f, "gateway {}", gateway),
+            NodeConnect::Country(country) => write!(f, "country {country}"),
+            NodeConnect::Gateway(gateway) => write!(f, "gateway {gateway}"),
         }
     }
 }

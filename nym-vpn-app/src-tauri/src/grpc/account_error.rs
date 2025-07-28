@@ -28,10 +28,10 @@ impl From<VpnApiErrorResponse> for BackendError {
     fn from(error: VpnApiErrorResponse) -> Self {
         let mut detail = format!("VPN API response error: {}", error.message);
         if let Some(code) = error.message_id {
-            detail.push_str(&format!(" (id: {})", code));
+            detail.push_str(&format!(" (id: {code})"));
         }
         if let Some(id) = error.code_reference_id {
-            detail.push_str(&format!(" (code: {})", id));
+            detail.push_str(&format!(" (code: {id})"));
         }
         BackendError::internal_with_detail("VPN API response error", detail)
     }
@@ -50,16 +50,16 @@ impl From<StoreAccountError> for BackendError {
             StoreError::InvalidMnemonic(data) => BackendError::with_detail(
                 "invalid mnemonic",
                 ErrorKey::AccountInvalidMnemonic,
-                format!("invalid mnemonic: {}", data),
+                format!("invalid mnemonic: {data}"),
             ),
             StoreError::StorageError(data) => BackendError::internal_with_detail(
                 "storage error",
-                format!("storage error: {}", data),
+                format!("storage error: {data}"),
             ),
             StoreError::VpnApi(error) => error.into(),
             StoreError::UnexpectedResponse(data) => BackendError::internal_with_detail(
                 "unexpected response",
-                format!("unexpected response: {}", data),
+                format!("unexpected response: {data}"),
             ),
             StoreError::Internal(data) => {
                 BackendError::internal_with_detail("internal error", data)
@@ -92,27 +92,27 @@ impl From<ForgetAccountError> for BackendError {
             ForgetError::VpnApi(error) => error.into(),
             ForgetError::UnexpectedResponse(data) => BackendError::internal_with_detail(
                 "unexpected response",
-                format!("unexpected response: {}", data),
+                format!("unexpected response: {data}"),
             ),
             ForgetError::RemoveAccount(data) => BackendError::internal_with_detail(
                 "remove account",
-                format!("remove account: {}", data),
+                format!("remove account: {data}"),
             ),
             ForgetError::RemoveDeviceKeys(data) => BackendError::internal_with_detail(
                 "remove device keys",
-                format!("remove device keys: {}", data),
+                format!("remove device keys: {data}"),
             ),
             ForgetError::ResetCredentialStore(data) => BackendError::internal_with_detail(
                 "reset credential store",
-                format!("reset credential store: {}", data),
+                format!("reset credential store: {data}"),
             ),
             ForgetError::RemoveAccountFiles(data) => BackendError::internal_with_detail(
                 "remove account files",
-                format!("remove account files: {}", data),
+                format!("remove account files: {data}"),
             ),
             ForgetError::InitDeviceKeys(data) => BackendError::internal_with_detail(
                 "init device keys",
-                format!("init device keys: {}", data),
+                format!("init device keys: {data}"),
             ),
             ForgetError::Internal(data) => {
                 BackendError::internal_with_detail("internal error", data)
