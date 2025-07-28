@@ -565,9 +565,10 @@ impl NetworkManager {
         }
 
         if let Some(wg_config) = settings.get_mut("wireguard")
-            && !wg_config.contains_key("fwmark") {
-                tracing::error!("WireGuard config doesn't contain the firewall mark");
-            }
+            && !wg_config.contains_key("fwmark")
+        {
+            tracing::error!("WireGuard config doesn't contain the firewall mark");
+        }
 
         self.reapply_settings(&device_path, settings, version_id)?;
         Ok(settings_backup)

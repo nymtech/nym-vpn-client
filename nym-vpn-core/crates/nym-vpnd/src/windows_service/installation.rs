@@ -110,10 +110,11 @@ pub async fn uninstall_service() -> windows_service::Result<()> {
     while start.elapsed() < timeout {
         if let Err(windows_service::Error::Winapi(e)) =
             service_manager.open_service(SERVICE_NAME, ServiceAccess::QUERY_STATUS)
-            && e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32) {
-                println!("{SERVICE_NAME} is deleted.");
-                return Ok(());
-            }
+            && e.raw_os_error() == Some(ERROR_SERVICE_DOES_NOT_EXIST.0 as i32)
+        {
+            println!("{SERVICE_NAME} is deleted.");
+            return Ok(());
+        }
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
     println!("{SERVICE_NAME} is marked for deletion.");

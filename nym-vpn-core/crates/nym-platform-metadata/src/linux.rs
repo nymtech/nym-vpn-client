@@ -36,9 +36,10 @@ fn read_os_release_file_short() -> Option<String> {
 
     if let Some(os_name) = os_name
         && os_name != "NixOS"
-            && let Some(os_version_id) = os_version_id {
-                return Some(format!("{os_name} {os_version_id}"));
-            }
+        && let Some(os_version_id) = os_version_id
+    {
+        return Some(format!("{os_name} {os_version_id}"));
+    }
 
     os_release_info.remove("PRETTY_NAME")
 }

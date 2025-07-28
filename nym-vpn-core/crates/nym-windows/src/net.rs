@@ -258,10 +258,12 @@ pub async fn wait_for_interfaces(luid: NET_LUID_LH, ipv4: bool, ipv6: bool) -> i
                 AF_INET6 => found_ipv6 = true,
                 _ => (),
             }
-            if found_ipv4 && found_ipv6
-                && let Some(tx) = tx.take() {
-                    let _ = tx.send(());
-                }
+            if found_ipv4
+                && found_ipv6
+                && let Some(tx) = tx.take()
+            {
+                let _ = tx.send(());
+            }
         },
         None,
     )?;
