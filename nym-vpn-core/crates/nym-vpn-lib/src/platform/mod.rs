@@ -81,10 +81,10 @@ use crate::{
 };
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
-    AccountLinks, AccountStateSummary, EntryPoint, ExitPoint, GatewayInfo, GatewayType, Location,
-    NetworkEnvironment, RegisterAccountResponse, SystemMessage, UserAgent,
+    AccountLinks, EntryPoint, ExitPoint, GatewayInfo, GatewayType, Location, NetworkEnvironment,
+    RegisterAccountResponse, SystemMessage, UserAgent,
 };
-use uniffi_lib_types::TunnelEvent;
+use uniffi_lib_types::{AccountControllerState, TunnelEvent};
 
 lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
@@ -372,7 +372,7 @@ pub fn updateAccountState() -> Result<(), VpnError> {
 /// Get the account state
 #[allow(non_snake_case)]
 #[uniffi::export]
-pub fn getAccountState() -> Result<AccountStateSummary, VpnError> {
+pub fn getAccountState() -> Result<AccountControllerState, VpnError> {
     RUNTIME.block_on(account::get_account_state())
 }
 

@@ -6,7 +6,6 @@ use std::{fmt::Debug, sync::Arc};
 pub mod controller_error;
 pub mod controller_event;
 pub mod controller_state;
-pub mod register_device; // SW TO DELETE
 pub mod request_zknym;
 pub mod ticketbooks;
 

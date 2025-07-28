@@ -25,7 +25,6 @@ pub use config::AccountControllerConfig;
 pub use controller::AccountController;
 pub use error::Error;
 pub use register_account::RegisterAccountResponse;
-pub use shared_state::AccountStateSummary;
 pub(crate) use shared_state::SharedAccountState;
 pub use state_receiver::AccountStateReceiver;
 pub use storage::remove_files_for_account;

@@ -7,6 +7,8 @@ use std::net::{Ipv4Addr, Ipv6Addr, SocketAddr};
 
 use nym_vpn_api_client::response::NymErrorResponse;
 use nym_vpn_lib_types::{
+    AccountControllerErrorStateReason as CoreAccountControllerErrorStateReason,
+    AccountControllerState as CoreAccountControllerState,
     ActionAfterDisconnect as CoreActionAfterDisconnect, BandwidthEvent as CoreBandwidthEvent,
     ClientErrorReason, ConnectionData as CoreConnectionData,
     ConnectionEvent as CoreConnectionEvent,
@@ -467,6 +469,66 @@ impl From<CoreWireguardNode> for WireguardNode {
             public_key: value.public_key,
             private_ipv4: value.private_ipv4,
             private_ipv6: value.private_ipv6,
+        }
+    }
+}
+
+#[derive(uniffi::Enum, Debug, Clone, PartialEq)]
+pub enum AccountControllerState {
+    Offline,
+    Syncing,
+    LoggedOut,
+    ReadyToConnect,
+    Error(AccountControllerErrorStateReason),
+}
+
+impl From<CoreAccountControllerState> for AccountControllerState {
+    fn from(value: CoreAccountControllerState) -> Self {
+        match value {
+            CoreAccountControllerState::Offline => AccountControllerState::Offline,
+            CoreAccountControllerState::Syncing => Self::Syncing,
+            CoreAccountControllerState::LoggedOut => Self::LoggedOut,
+            CoreAccountControllerState::ReadyToConnect => Self::ReadyToConnect,
+            CoreAccountControllerState::Error(error_state_reason) => {
+                Self::Error(error_state_reason.into())
+            }
+        }
+    }
+}
+
+#[derive(uniffi::Enum, Debug, Clone, PartialEq)]
+pub enum AccountControllerErrorStateReason {
+    Storage { context: String },
+    ApiFailure { context: String, details: String },
+    Internal { context: String, details: String },
+    BandwidthExceeded { context: String },
+    AccountStatusNotActive { status: String },
+    InactiveSubscription,
+    MaxDeviceReached,
+    DeviceTimeDesynced,
+}
+
+impl From<CoreAccountControllerErrorStateReason> for AccountControllerErrorStateReason {
+    fn from(value: CoreAccountControllerErrorStateReason) -> Self {
+        match value {
+            CoreAccountControllerErrorStateReason::Storage { context } => Self::Storage { context },
+            CoreAccountControllerErrorStateReason::ApiFailure { context, details } => {
+                Self::ApiFailure { context, details }
+            }
+            CoreAccountControllerErrorStateReason::Internal { context, details } => {
+                Self::Internal { context, details }
+            }
+            CoreAccountControllerErrorStateReason::BandwidthExceeded { context } => {
+                Self::BandwidthExceeded { context }
+            }
+            CoreAccountControllerErrorStateReason::AccountStatusNotActive { status } => {
+                Self::AccountStatusNotActive { status }
+            }
+            CoreAccountControllerErrorStateReason::InactiveSubscription => {
+                Self::InactiveSubscription
+            }
+            CoreAccountControllerErrorStateReason::MaxDeviceReached => Self::MaxDeviceReached,
+            CoreAccountControllerErrorStateReason::DeviceTimeDesynced => Self::DeviceTimeDesynced,
         }
     }
 }

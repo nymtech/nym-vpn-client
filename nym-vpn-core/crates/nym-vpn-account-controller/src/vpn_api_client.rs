@@ -3,12 +3,6 @@
 
 use std::ops::Deref;
 
-use nym_vpn_api_client::{
-    response::NymVpnRegisterAccountStatusResponse,
-    types::{Platform, VpnApiAccount},
-};
-use nym_vpn_lib_types::{AccountCommandError, VpnApiError};
-
 use crate::{AccountControllerConfig, Error};
 
 #[derive(Clone, Debug)]
@@ -32,26 +26,6 @@ impl AccountControllerVpnApiClient {
 
     pub(crate) fn swap_inner_client(&mut self, new_client: nym_vpn_api_client::VpnApiClient) {
         self.inner = new_client;
-    }
-
-    // SW how does that fit in the running AC flow, when it's actually running?
-    pub(crate) async fn register_account(
-        &self,
-        account: &VpnApiAccount,
-        platform: Platform,
-    ) -> Result<String, AccountCommandError> {
-        let account = self
-            .inner
-            .post_account(account, platform)
-            .await
-            .map_err(|e| {
-                VpnApiError::try_from(e)
-                    .map(AccountCommandError::VpnApi)
-                    .unwrap_or_else(AccountCommandError::unexpected_response)
-            })?;
-        match account.status {
-            NymVpnRegisterAccountStatusResponse::Active => Ok(account.account_token),
-        }
     }
 }
 
