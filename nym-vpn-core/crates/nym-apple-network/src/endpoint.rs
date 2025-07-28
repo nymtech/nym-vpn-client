@@ -236,7 +236,7 @@ impl AddressEndpoint {
 
         Self {
             inner: unsafe { Retained::retain(nw_endpoint_ref.as_ptr()) }
-                .expect("failed ot retain address endpoint"),
+                .expect("failed to retain address endpoint"),
         }
     }
 
@@ -278,7 +278,7 @@ impl UrlEndpoint {
 
         Self {
             inner: unsafe { Retained::retain(nw_endpoint_ref.as_ptr()) }
-                .expect("failed ot retain url endpoint"),
+                .expect("failed to retain url endpoint"),
         }
     }
 
@@ -324,7 +324,7 @@ impl BonjourServiceEndpoint {
 
         Self {
             inner: unsafe { Retained::retain(nw_endpoint_ref.as_ptr()) }
-                .expect("failed ot retain bonjour service endpoint"),
+                .expect("failed to retain bonjour service endpoint"),
         }
     }
 
