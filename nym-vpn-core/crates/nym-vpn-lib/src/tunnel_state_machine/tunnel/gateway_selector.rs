@@ -28,13 +28,11 @@ pub async fn select_gateways(
             identity: exit_identity,
         },
     ) = (entry_point.as_ref(), &exit_point.as_ref())
-    {
-        if entry_identity == exit_identity {
+        && entry_identity == exit_identity {
             return Err(GatewayDirectoryError::SameEntryAndExitGateway {
                 identity: entry_identity.to_string(),
             });
-        }
-    };
+        };
 
     let (mut entry_gateways, exit_gateways) = match tunnel_type {
         TunnelType::Wireguard => {

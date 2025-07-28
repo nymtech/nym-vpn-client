@@ -43,13 +43,11 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) {
     let mut layers = Vec::new();
     let file_layer = path.as_ref().and_then(|path| {
         // Ensure log directory exists
-        if let Some(parent) = path.parent() {
-            if !parent.exists() {
-                if let Err(e) = std::fs::create_dir_all(parent) {
+        if let Some(parent) = path.parent()
+            && !parent.exists()
+                && let Err(e) = std::fs::create_dir_all(parent) {
                     eprintln!("Failed to create log directory {}: {e}", parent.display());
                 }
-            }
-        }
 
         // Attempting to get the tracing_appending solution to work was not successful.
         // Falling back to a more basic solution that does not support log rotation, for now.
