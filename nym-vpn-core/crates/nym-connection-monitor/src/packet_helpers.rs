@@ -137,24 +137,22 @@ pub(crate) fn compute_ipv4_checksum(header: &Ipv4Packet) -> u16 {
 }
 
 pub(crate) fn is_icmp_echo_reply(packet: &Bytes) -> Option<(u16, Ipv4Addr, Ipv4Addr)> {
-    if let Some(ipv4_packet) = Ipv4Packet::new(packet) {
-        if let Some(icmp_packet) = IcmpPacket::new(ipv4_packet.payload()) {
-            if let Some(echo_reply) = EchoReplyPacket::new(icmp_packet.packet()) {
+    if let Some(ipv4_packet) = Ipv4Packet::new(packet)
+        && let Some(icmp_packet) = IcmpPacket::new(ipv4_packet.payload())
+            && let Some(echo_reply) = EchoReplyPacket::new(icmp_packet.packet()) {
                 return Some((
                     echo_reply.get_identifier(),
                     ipv4_packet.get_source(),
                     ipv4_packet.get_destination(),
                 ));
             }
-        }
-    }
     None
 }
 
 pub(crate) fn is_icmp_v6_echo_reply(packet: &Bytes) -> Option<(u16, Ipv6Addr, Ipv6Addr)> {
-    if let Some(ipv6_packet) = Ipv6Packet::new(packet) {
-        if let Some(icmp_packet) = IcmpPacket::new(ipv6_packet.payload()) {
-            if let Some(echo_reply) =
+    if let Some(ipv6_packet) = Ipv6Packet::new(packet)
+        && let Some(icmp_packet) = IcmpPacket::new(ipv6_packet.payload())
+            && let Some(echo_reply) =
                 pnet_packet::icmpv6::echo_reply::EchoReplyPacket::new(icmp_packet.packet())
             {
                 return Some((
@@ -163,7 +161,5 @@ pub(crate) fn is_icmp_v6_echo_reply(packet: &Bytes) -> Option<(u16, Ipv6Addr, Ip
                     ipv6_packet.get_destination(),
                 ));
             }
-        }
-    }
     None
 }
