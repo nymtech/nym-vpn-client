@@ -110,11 +110,10 @@ pub fn create_hidden_window<F: (Fn(HWND, u32, WPARAM, LPARAM) -> LRESULT) + Send
             }
 
             if msg.hwnd.is_invalid() {
-                if msg.message == REQUEST_THREAD_SHUTDOWN {
-                    if let Err(e) = unsafe { DestroyWindow(dummy_window) } {
+                if msg.message == REQUEST_THREAD_SHUTDOWN
+                    && let Err(e) = unsafe { DestroyWindow(dummy_window) } {
                         tracing::error!("Failed to destroy window: {}", e);
                     }
-                }
             } else {
                 unsafe {
                     _ = TranslateMessage(&msg);
@@ -191,15 +190,13 @@ impl PowerManagementListener {
         let (tx, rx) = tokio::sync::broadcast::channel(16);
 
         let power_broadcast_callback = move |window, message, wparam, lparam: LPARAM| {
-            if message == WM_POWERBROADCAST {
-                if let Some(event) = PowerManagementEvent::try_from_winevent(wparam) {
-                    if tx.send(event).is_err() {
+            if message == WM_POWERBROADCAST
+                && let Some(event) = PowerManagementEvent::try_from_winevent(wparam)
+                    && tx.send(event).is_err() {
                         tracing::error!("Stopping power management event monitor");
                         unsafe { PostQuitMessage(0) };
                         return LRESULT::default();
                     }
-                }
-            }
             unsafe { DefWindowProcW(window, message, wparam, lparam) }
         };
 
