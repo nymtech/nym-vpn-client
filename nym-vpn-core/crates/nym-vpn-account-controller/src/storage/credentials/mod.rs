@@ -9,10 +9,7 @@ pub use pending_credential_requests::{
 
 use pending_credential_requests::PendingCredentialRequestsStorage;
 
-use std::{
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use std::path::{Path, PathBuf};
 
 use nym_common::trace_err_chain;
 use nym_compact_ecash::VerificationKeyAuth;
@@ -29,7 +26,7 @@ use time::Date;
 
 use crate::{AvailableTicketbooks, error::Error};
 
-pub type SharedVpnCredentialStorage = Arc<tokio::sync::Mutex<VpnCredentialStorage>>;
+//pub type SharedVpnCredentialStorage = Arc<tokio::sync::Mutex<VpnCredentialStorage>>;
 
 #[derive(Clone)]
 pub(crate) struct VpnCredentialStorage {

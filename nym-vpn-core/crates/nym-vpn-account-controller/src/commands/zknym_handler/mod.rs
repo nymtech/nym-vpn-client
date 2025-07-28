@@ -7,4 +7,4 @@ mod request;
 
 pub use handler::RequestZkNymSummary;
 
-pub(crate) use handler::{WaitingRequestZkNymCommandHandler, ZkNymId};
+pub(crate) use handler::{RequestZkNymCommandHandler, ZkNymId};

@@ -1,20 +1,50 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{fmt, sync::Arc};
+use std::fmt;
 
-use nym_vpn_api_client::response::{
-    NymVpnAccountResponse, NymVpnAccountStatusResponse, NymVpnAccountSummaryDevices,
-    NymVpnAccountSummaryFairUsage, NymVpnAccountSummaryResponse, NymVpnAccountSummarySubscription,
-    NymVpnDeviceStatus, NymVpnSubscriptionStatus,
+use nym_offline_monitor::ConnectivityHandle;
+use nym_vpn_api_client::{
+    response::{
+        NymVpnAccountResponse, NymVpnAccountStatusResponse, NymVpnAccountSummaryDevices,
+        NymVpnAccountSummaryFairUsage, NymVpnAccountSummaryResponse,
+        NymVpnAccountSummarySubscription, NymVpnDeviceStatus, NymVpnSubscriptionStatus,
+    },
+    types::{Device, VpnApiAccount},
 };
 use nym_vpn_lib_types::{RegisterDeviceError, RequestZkNymError, RequestZkNymSuccess};
 use serde::Serialize;
-use tokio::sync::MutexGuard;
+use tokio::sync::mpsc;
+use zeroize::{Zeroize, ZeroizeOnDrop};
 
-#[derive(Clone)]
-pub struct SharedAccountState {
-    inner: Arc<tokio::sync::Mutex<AccountStateSummary>>,
+use crate::{
+    AccountControllerConfig,
+    storage::{AccountStorageOp, VpnCredentialStorage},
+    vpn_api_client::AccountControllerVpnApiClient,
+};
+
+#[derive(Zeroize, ZeroizeOnDrop)]
+pub(crate) struct SharedAccountState {
+    //SW add tunnel state? Yes, to remove some conditions on forget account and reset device id
+    #[zeroize(skip)]
+    pub connectivity_handle: ConnectivityHandle,
+
+    #[zeroize(skip)]
+    pub config: AccountControllerConfig,
+
+    #[zeroize(skip)]
+    pub(crate) credential_storage: VpnCredentialStorage,
+
+    #[zeroize(skip)]
+    pub(crate) vpn_api_client: AccountControllerVpnApiClient,
+
+    pub(crate) vpn_api_account: Option<VpnApiAccount>,
+
+    #[zeroize(skip)]
+    pub(crate) device: Option<Device>,
+
+    #[zeroize(skip)]
+    pub(crate) storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -84,130 +114,24 @@ impl fmt::Display for ReadyToRequestZkNym {
 }
 
 impl SharedAccountState {
-    pub(crate) fn new(state: MnemonicState) -> Self {
-        let mut summary = AccountStateSummary::default();
-        tracing::debug!("Initial mnemonic state: {state}");
-        summary.mnemonic = Some(state);
+    pub(crate) async fn new(
+        connectivity_handle: ConnectivityHandle,
+        config: AccountControllerConfig,
+        credential_storage: VpnCredentialStorage,
+        vpn_api_client: AccountControllerVpnApiClient,
+        vpn_api_account: Option<VpnApiAccount>,
+        device: Option<Device>,
+        storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
+    ) -> Self {
         SharedAccountState {
-            inner: Arc::new(tokio::sync::Mutex::new(summary)),
+            connectivity_handle,
+            config,
+            credential_storage,
+            vpn_api_client,
+            vpn_api_account,
+            device,
+            storage_op_sender,
         }
-    }
-
-    pub async fn lock(&self) -> MutexGuard<'_, AccountStateSummary> {
-        self.inner.lock().await
-    }
-
-    pub async fn reset(&self) {
-        tracing::trace!("Resetting account state");
-        let mut guard = self.inner.lock().await;
-        *guard = AccountStateSummary::default();
-    }
-
-    pub async fn reset_to(&self, state: MnemonicState) {
-        tracing::trace!("Resetting account state to {state:?}");
-        let mut guard = self.inner.lock().await;
-        if guard.mnemonic.as_ref() != Some(&state) {
-            tracing::info!("Setting mnemonic state to {state:?}");
-        }
-        *guard = AccountStateSummary {
-            mnemonic: Some(state),
-            ..Default::default()
-        };
-    }
-
-    pub(crate) async fn set_mnemonic(&self, state: MnemonicState) {
-        let mut guard = self.inner.lock().await;
-        if guard.mnemonic.as_ref() != Some(&state) {
-            tracing::info!("Setting mnemonic state to {:?}", state);
-        }
-        guard.mnemonic = Some(state);
-    }
-
-    // Set the account status. We can only promote the status to a more active state, not downgrade
-    pub(crate) async fn promote_account_registered(&self, active: AccountRegistered) {
-        let mut guard = self.inner.lock().await;
-
-        match guard.account_registered {
-            // If the account is already registered, we don't want to change it
-            Some(AccountRegistered::Registered) => (),
-
-            // Log only if we are making a change
-            Some(ref current) if current != &active => {
-                tracing::info!("Setting account to {:?}", active);
-                guard.account_registered = Some(active);
-            }
-
-            // If there is no change, we don't want to log anything
-            Some(_) => (),
-
-            // If there is no existing status set, we can set it
-            None => {
-                tracing::info!("Setting account to {:?}", active);
-                guard.account_registered = Some(active);
-            }
-        }
-    }
-
-    pub(crate) async fn set_account_summary(&self, summary: AccountSummary) {
-        let mut guard = self.inner.lock().await;
-        if guard.account_summary.as_ref() != Some(&summary) {
-            tracing::info!("Setting account summary to {:?}", summary);
-        }
-        guard.account_summary = Some(summary);
-    }
-
-    pub(crate) async fn set_device(&self, state: DeviceState) {
-        let mut guard = self.inner.lock().await;
-        if guard.device.as_ref() != Some(&state) {
-            tracing::info!("Setting device state to {:?}", state);
-        }
-        guard.device = Some(state);
-    }
-
-    pub(crate) async fn set_device_registration(&self, registration: RegisterDeviceResult) {
-        let mut guard = self.inner.lock().await;
-        if guard.register_device_result.as_ref() != Some(&registration) {
-            tracing::debug!("Setting device registration result to {:?}", registration);
-        }
-        guard.register_device_result = Some(registration);
-    }
-
-    pub(crate) async fn set_zk_nym_request(&self, request: RequestZkNymResult) {
-        let mut guard = self.inner.lock().await;
-        if guard.request_zk_nym_result.as_ref() != Some(&request) {
-            tracing::debug!("Setting zk-nym request result to {request:?}");
-        }
-        guard.request_zk_nym_result = Some(request);
-    }
-
-    pub(crate) async fn is_zk_nym_request_in_progress(&self) -> bool {
-        self.lock()
-            .await
-            .request_zk_nym_result
-            .as_ref()
-            .map(|r| matches!(r, RequestZkNymResult::InProgress))
-            .unwrap_or(false)
-    }
-
-    pub async fn is_account_stored(&self) -> bool {
-        self.lock()
-            .await
-            .mnemonic
-            .clone()
-            .map(|m| m.is_stored())
-            .unwrap_or(false)
-    }
-
-    pub async fn get_account_id(&self) -> Option<String> {
-        self.lock().await.mnemonic.clone().and_then(|m| m.id())
-    }
-
-    pub(crate) async fn ready_to_register_device(&self) -> ReadyToRegisterDevice {
-        self.lock().await.ready_to_register_device()
-    }
-
-    pub(crate) async fn ready_to_request_zk_nym(&self) -> ReadyToRequestZkNym {
-        self.lock().await.ready_to_request_zk_nym()
     }
 }
 
@@ -377,105 +301,6 @@ impl From<Vec<Result<RequestZkNymSuccess, RequestZkNymError>>> for RequestZkNymR
 impl From<RequestZkNymError> for RequestZkNymResult {
     fn from(err: RequestZkNymError) -> Self {
         RequestZkNymResult::Error(err)
-    }
-}
-
-impl AccountStateSummary {
-    pub(crate) fn ready_to_register_device(&self) -> ReadyToRegisterDevice {
-        match self.device {
-            Some(DeviceState::NotRegistered) => {}
-            Some(DeviceState::Inactive) => {}
-            Some(DeviceState::Active) => return ReadyToRegisterDevice::DeviceAlreadyRegistered,
-            Some(DeviceState::DeleteMe) => {}
-            None => return ReadyToRegisterDevice::DeviceStateNotSynced,
-        }
-
-        match self.register_device_result {
-            Some(RegisterDeviceResult::InProgress) => return ReadyToRegisterDevice::InProgress,
-            Some(RegisterDeviceResult::Success) => {}
-            Some(RegisterDeviceResult::Failed { .. }) => {}
-            None => {}
-        }
-
-        match self.mnemonic {
-            Some(MnemonicState::NotStored) => return ReadyToRegisterDevice::NoMnemonicStored,
-            Some(MnemonicState::Stored { .. }) => {}
-            None => return ReadyToRegisterDevice::NoMnemonicStored,
-        }
-
-        match self.account_registered {
-            Some(AccountRegistered::Registered) => {}
-            Some(AccountRegistered::NotRegistered) => {
-                return ReadyToRegisterDevice::AccountNotRegistered;
-            }
-            None => return ReadyToRegisterDevice::AccountNotSynced,
-        }
-
-        if let Some(ref account_summary) = self.account_summary {
-            match account_summary.account {
-                AccountState::Inactive => return ReadyToRegisterDevice::AccountNotActive,
-                AccountState::DeleteMe => return ReadyToRegisterDevice::AccountNotActive,
-                AccountState::Active => {}
-            }
-
-            if account_summary.device_summary.remaining == 0 {
-                return ReadyToRegisterDevice::MaxDevicesReached(
-                    account_summary.device_summary.max,
-                );
-            }
-
-            // We ignore the subscription state, as the device registration is not dependent on it
-        }
-
-        ReadyToRegisterDevice::Ready
-    }
-
-    pub(crate) fn ready_to_request_zk_nym(&self) -> ReadyToRequestZkNym {
-        match self.request_zk_nym_result {
-            Some(RequestZkNymResult::InProgress) => return ReadyToRequestZkNym::InProgress,
-            Some(RequestZkNymResult::Done { .. }) => {}
-            Some(RequestZkNymResult::Error(_)) => {}
-            None => {}
-        }
-
-        match self.mnemonic {
-            Some(MnemonicState::NotStored) => return ReadyToRequestZkNym::NoMnemonicStored,
-            Some(MnemonicState::Stored { .. }) => {}
-            None => return ReadyToRequestZkNym::NoMnemonicStored,
-        }
-
-        match self.account_registered {
-            Some(AccountRegistered::Registered) => {}
-            Some(AccountRegistered::NotRegistered) => {
-                return ReadyToRequestZkNym::AccountNotRegistered;
-            }
-            None => return ReadyToRequestZkNym::AccountNotSynced,
-        }
-
-        if let Some(ref account_summary) = self.account_summary {
-            match account_summary.account {
-                AccountState::Inactive => return ReadyToRequestZkNym::AccountNotActive,
-                AccountState::DeleteMe => return ReadyToRequestZkNym::AccountNotActive,
-                AccountState::Active => {}
-            }
-
-            match account_summary.subscription {
-                SubscriptionState::NotActive => return ReadyToRequestZkNym::NoActiveSubscription,
-                SubscriptionState::Pending => return ReadyToRequestZkNym::NoActiveSubscription,
-                SubscriptionState::Complete => return ReadyToRequestZkNym::NoActiveSubscription,
-                SubscriptionState::Active => {}
-            }
-        }
-
-        match self.device {
-            Some(DeviceState::Active) => {}
-            Some(DeviceState::NotRegistered) => return ReadyToRequestZkNym::DeviceNotRegistered,
-            Some(DeviceState::Inactive) => return ReadyToRequestZkNym::DeviceNotActive,
-            Some(DeviceState::DeleteMe) => return ReadyToRequestZkNym::DeviceNotActive,
-            None => return ReadyToRequestZkNym::DeviceNotSynced,
-        }
-
-        ReadyToRequestZkNym::Ready
     }
 }
 

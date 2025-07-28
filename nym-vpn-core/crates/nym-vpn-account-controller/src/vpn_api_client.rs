@@ -34,6 +34,7 @@ impl AccountControllerVpnApiClient {
         self.inner = new_client;
     }
 
+    // SW check that
     pub(crate) async fn check_account_exists_on_api(
         &self,
         account: &VpnApiAccount,
