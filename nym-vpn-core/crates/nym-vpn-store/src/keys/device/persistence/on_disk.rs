@@ -54,7 +54,7 @@ impl DeviceKeysPaths {
     }
 
     pub fn exists(&self) -> bool {
-        self.private_device_key_file.exists()
+        self.private_device_key_file.exists() && self.public_device_key_file.exists()
     }
 
     pub fn device_key_pair_path(&self) -> nym_pemstore::KeyPairPath {
@@ -78,9 +78,17 @@ impl OnDiskKeys {
         OnDiskKeys { paths }
     }
 
-    fn load_device_keypair(&self) -> Result<ed25519::KeyPair, OnDiskKeysError> {
+    fn load_device_keypair(&self) -> Result<Option<ed25519::KeyPair>, OnDiskKeysError> {
         let device_paths = self.paths.device_key_pair_path();
-        self.load_keypair(device_paths, "device")
+        match self.load_keypair(device_paths, "device") {
+            Ok(keys) => Ok(Some(keys)),
+            Err(OnDiskKeysError::UnableToLoadKeys { error, .. })
+                if error.kind() == std::io::ErrorKind::NotFound =>
+            {
+                Ok(None)
+            }
+            Err(e) => Err(e),
+        }
     }
 
     fn load_keypair<T: PemStorableKeyPair>(
@@ -123,9 +131,9 @@ impl OnDiskKeys {
             .map_err(|error| OnDiskKeysError::UnableToRemoveKeys { paths, error })
     }
 
-    fn load_keys(&self) -> Result<DeviceKeys, OnDiskKeysError> {
+    fn load_keys(&self) -> Result<Option<DeviceKeys>, OnDiskKeysError> {
         let device_keypair = self.load_device_keypair()?;
-        Ok(DeviceKeys::from_keys(device_keypair))
+        Ok(device_keypair.map(DeviceKeys::from_keys))
     }
 
     fn store_keys(&self, keys: &DeviceKeys) -> Result<(), OnDiskKeysError> {
@@ -163,7 +171,7 @@ impl OnDiskKeys {
 impl DeviceKeyStore for OnDiskKeys {
     type StorageError = OnDiskKeysError;
 
-    async fn load_keys(&self) -> Result<DeviceKeys, OnDiskKeysError> {
+    async fn load_keys(&self) -> Result<Option<DeviceKeys>, OnDiskKeysError> {
         self.load_keys()
     }
 

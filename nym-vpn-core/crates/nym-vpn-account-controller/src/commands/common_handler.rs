@@ -51,7 +51,7 @@ pub(crate) async fn handle_common_command(
 // This goes into storage each time, to trigger platform's unlocking mechanism if secure storage is used
 pub(crate) async fn handle_get_stored_mnemonic(
     shared_state: &mut SharedAccountState,
-) -> Result<Mnemonic, AccountCommandError> {
+) -> Result<Option<Mnemonic>, AccountCommandError> {
     let (tx, rx) = ReturnSender::new();
     shared_state
         .storage_op_sender
@@ -60,7 +60,6 @@ pub(crate) async fn handle_get_stored_mnemonic(
     rx.await
         .map_err(AccountCommandError::internal)? // Channel error
         .map_err(AccountCommandError::storage) // Storage error
-    // SW better error handling
 }
 
 pub(crate) fn handle_get_account_identity(

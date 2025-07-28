@@ -34,7 +34,7 @@ pub enum KeyStoreError {
 #[allow(unused)]
 pub async fn load_device_keys<P: AsRef<Path> + Clone>(
     path: P,
-) -> Result<DeviceKeys, KeyStoreError> {
+) -> Result<Option<DeviceKeys>, KeyStoreError> {
     VpnClientOnDiskStorage::new(path.clone())
         .load_keys()
         .await
