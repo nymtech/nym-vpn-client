@@ -33,9 +33,10 @@ impl StatisticsSender {
     pub fn report(&self, event: StatisticsEvent) {
         if let Some(tx) = &self.stats_tx
             && let Err(err) = tx.send(event)
-                && !self.cancel_token.is_cancelled() {
-                    tracing::error!("Failed to send stats event: {err}");
-                }
+            && !self.cancel_token.is_cancelled()
+        {
+            tracing::error!("Failed to send stats event: {err}");
+        }
     }
 }
 

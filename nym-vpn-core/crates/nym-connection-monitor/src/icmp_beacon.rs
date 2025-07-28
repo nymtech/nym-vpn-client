@@ -204,13 +204,15 @@ pub fn is_icmp_beacon_reply(
     destination: Ipv4Addr,
 ) -> Option<IcmpBeaconReply> {
     if let Some((reply_identifier, reply_source, reply_destination)) = is_icmp_echo_reply(packet)
-        && reply_identifier == identifier && reply_destination == destination {
-            if reply_source == NYM_TUN_DEVICE_ADDRESS_V4 {
-                return Some(IcmpBeaconReply::TunDeviceReply);
-            } else if reply_source == ICMP_IPR_TUN_EXTERNAL_PING_V4 {
-                return Some(IcmpBeaconReply::ExternalPingReply(reply_source));
-            }
+        && reply_identifier == identifier
+        && reply_destination == destination
+    {
+        if reply_source == NYM_TUN_DEVICE_ADDRESS_V4 {
+            return Some(IcmpBeaconReply::TunDeviceReply);
+        } else if reply_source == ICMP_IPR_TUN_EXTERNAL_PING_V4 {
+            return Some(IcmpBeaconReply::ExternalPingReply(reply_source));
         }
+    }
     None
 }
 
@@ -220,13 +222,15 @@ pub fn is_icmp_v6_beacon_reply(
     destination: Ipv6Addr,
 ) -> Option<Icmpv6BeaconReply> {
     if let Some((reply_identifier, reply_source, reply_destination)) = is_icmp_v6_echo_reply(packet)
-        && reply_identifier == identifier && reply_destination == destination {
-            if reply_source == NYM_TUN_DEVICE_ADDRESS_V6 {
-                return Some(Icmpv6BeaconReply::TunDeviceReply);
-            } else if reply_source == ICMP_IPR_TUN_EXTERNAL_PING_V6 {
-                return Some(Icmpv6BeaconReply::ExternalPingReply(reply_source));
-            }
+        && reply_identifier == identifier
+        && reply_destination == destination
+    {
+        if reply_source == NYM_TUN_DEVICE_ADDRESS_V6 {
+            return Some(Icmpv6BeaconReply::TunDeviceReply);
+        } else if reply_source == ICMP_IPR_TUN_EXTERNAL_PING_V6 {
+            return Some(Icmpv6BeaconReply::ExternalPingReply(reply_source));
         }
+    }
     None
 }
 

@@ -306,13 +306,13 @@ impl RouteManagerImpl {
                 .gateway()
                 .and_then(|gateway| gateway.as_link_addr())
                 .and_then(|addr| addr.addr())
-            {
-                let mac_address = MacAddress::from(gateway);
-                return Some(Gateway {
-                    ip_address: gateway_ip,
-                    mac_address,
-                });
-            }
+        {
+            let mac_address = MacAddress::from(gateway);
+            return Some(Gateway {
+                ip_address: gateway_ip,
+                mac_address,
+            });
+        }
         None
     }
 

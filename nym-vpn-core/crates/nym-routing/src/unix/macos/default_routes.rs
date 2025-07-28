@@ -195,9 +195,10 @@ impl DefaultRouteMonitor {
 
         self.current_route.set(family, new_route.clone());
         if let Some(tx) = self.route_tx.get(family)
-            && tx.send(new_route).is_err() {
-                self.route_tx.remove(family);
-            }
+            && tx.send(new_route).is_err()
+        {
+            self.route_tx.remove(family);
+        }
     }
 }
 

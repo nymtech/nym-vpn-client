@@ -114,9 +114,10 @@ impl CachingGatewayClientInner {
 
     async fn check_offline(&self) -> bool {
         if let Some(connectivity_handle) = &self.connectivity_handle
-            && connectivity_handle.connectivity().await.is_offline() {
-                return true;
-            }
+            && connectivity_handle.connectivity().await.is_offline()
+        {
+            return true;
+        }
         false
     }
 
@@ -231,9 +232,10 @@ impl CachingGatewayClientInner {
 
     async fn refresh_countries(&mut self, gw_type: GatewayType) -> Result<Vec<Country>> {
         if let Some((countries, last_updated)) = self.cached_countries.get(&gw_type)
-            && last_updated.elapsed() < Self::MAX_CACHE_AGE {
-                return Ok(countries.clone());
-            }
+            && last_updated.elapsed() < Self::MAX_CACHE_AGE
+        {
+            return Ok(countries.clone());
+        }
         self.force_refresh_countries(gw_type).await
     }
 
@@ -250,9 +252,10 @@ impl CachingGatewayClientInner {
 
     async fn refresh_gateways(&mut self, gw_type: GatewayType) -> Result<GatewayList> {
         if let Some((gw_list, last_updated)) = self.cached_gateways.get(&gw_type)
-            && last_updated.elapsed() < Self::MAX_CACHE_AGE {
-                return Ok(gw_list.clone());
-            }
+            && last_updated.elapsed() < Self::MAX_CACHE_AGE
+        {
+            return Ok(gw_list.clone());
+        }
         self.force_refresh_gateways(gw_type).await
     }
 

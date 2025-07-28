@@ -583,9 +583,10 @@ impl TunnelMonitor {
 
     fn send_event(&mut self, event: TunnelMonitorEvent) {
         if let Err(e) = self.monitor_event_sender.send(event)
-            && !self.shutdown_token.is_cancelled() {
-                tracing::error!("Failed to send monitor event: {}", e);
-            }
+            && !self.shutdown_token.is_cancelled()
+        {
+            tracing::error!("Failed to send monitor event: {}", e);
+        }
     }
 
     async fn setup_account(&mut self) -> Result<()> {

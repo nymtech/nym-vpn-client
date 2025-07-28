@@ -432,15 +432,16 @@ fn filter_on_mixnet_min_performance(
     min_gateway_performance: &Option<GatewayMinPerformance>,
 ) {
     if let Some(min_performance) = min_gateway_performance
-        && let Some(mixnet_min_performance) = min_performance.mixnet_min_performance {
-            tracing::debug!(
-                "Filtering gateways based on mixnet_min_performance: {:?}",
-                min_performance
-            );
-            gateways.retain(|gateway| {
-                gateway.mixnet_performance.unwrap_or_default() >= mixnet_min_performance
-            });
-        }
+        && let Some(mixnet_min_performance) = min_performance.mixnet_min_performance
+    {
+        tracing::debug!(
+            "Filtering gateways based on mixnet_min_performance: {:?}",
+            min_performance
+        );
+        gateways.retain(|gateway| {
+            gateway.mixnet_performance.unwrap_or_default() >= mixnet_min_performance
+        });
+    }
 }
 
 #[cfg(test)]
