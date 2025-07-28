@@ -649,14 +649,6 @@ message GetDevicesResponse {
   Devices devices = 1;
 }
 
-message GetZkNymByIdRequest {
-  string id = 1;
-}
-
-message ConfirmZkNymDownloadedRequest {
-  string id = 1;
-}
-
 message AvailableTickets {
   // Remaining number of mixnet entry tickets
   uint64 mixnet_entry_tickets = 1;
@@ -766,30 +758,11 @@ service NymVpnService {
   // Get the device identity
   rpc GetDeviceIdentity (google.protobuf.Empty) returns (GetDeviceIdentityResponse) {}
 
-  // Try to register the local device with the nym-vpn-api
-  rpc RegisterDevice (google.protobuf.Empty) returns (google.protobuf.Empty) {}
-
   // Get the list of devices associated with this account from the nym-vpn-api
   rpc GetDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
 
   // Get the list of active devices associated with this account from the nym-vpn-api
   rpc GetActiveDevices (google.protobuf.Empty) returns (GetDevicesResponse) {}
-
-  // Request new zk-nyms (ticketbooks) from the nym-vpn-api
-  rpc RequestZkNym (google.protobuf.Empty) returns (google.protobuf.Empty) {}
-
-  // List the zk-nyms associated with this device from the nym-vpn-api
-  rpc GetDeviceZkNyms (google.protobuf.Empty) returns (google.protobuf.Empty) {}
-
-  // List the zk-nyms available for download from the nym-vpn-api
-  rpc GetZkNymsAvailableForDownload (google.protobuf.Empty) returns (google.protobuf.Empty) {}
-
-  // Get a zk-nym by its id from the nym-vpn-api
-  rpc GetZkNymById (GetZkNymByIdRequest) returns (google.protobuf.Empty) {}
-
-  // Confirm that a zk-nym has been downloaded from the nym-vpn-api
-  rpc ConfirmZkNymDownloaded (ConfirmZkNymDownloadedRequest) returns (google.protobuf.Empty) {}
-
   // Get the available tickets in the local credential store
   rpc GetAvailableTickets (google.protobuf.Empty) returns (AvailableTickets) {}
 
