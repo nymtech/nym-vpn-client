@@ -94,7 +94,7 @@ impl VpnApiClient {
     }
 
     pub fn current_url(&self) -> &Url {
-        self.inner.current_url()
+        self.inner.current_url().as_ref()
     }
 
     pub async fn get_remote_time(&self) -> Result<VpnApiTime> {

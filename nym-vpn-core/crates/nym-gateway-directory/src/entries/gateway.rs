@@ -330,7 +330,7 @@ impl TryFrom<nym_validator_client::models::NymNodeDescription> for Gateway {
         };
 
         let gateway =
-            RoutingNode::try_from(&node_description.to_skimmed_node(role, Default::default()))
+            RoutingNode::try_from(&node_description.to_skimmed_node(0, role, Default::default()))
                 .map_err(|_| Error::MalformedGateway)?;
 
         let host = gateway.ws_entry_address(false);
