@@ -148,11 +148,10 @@ impl Firewall {
     fn apply_kernel_config(policy: &FirewallPolicy) {
         if *DONT_SET_SRC_VALID_MARK {
             tracing::debug!("Not setting src_valid_mark");
-        } else if let FirewallPolicy::Connecting { .. } = policy {
-            if let Err(err) = set_src_valid_mark_sysctl() {
+        } else if let FirewallPolicy::Connecting { .. } = policy
+            && let Err(err) = set_src_valid_mark_sysctl() {
                 tracing::error!("Failed to apply src_valid_mark: {}", err);
             }
-        }
 
         // When we have a tunnel with an IP configured, we configure the system
         // to not reply to arp requests for this tunnel IP *on other interfaces*.
@@ -166,11 +165,9 @@ impl Firewall {
         if *DONT_SET_ARP_IGNORE {
             tracing::debug!("Not setting arp_ignore");
         } else if let FirewallPolicy::Connecting { .. } | FirewallPolicy::Connected { .. } = policy
-        {
-            if let Err(err) = lock_down_arp_ignore_sysctl() {
+            && let Err(err) = lock_down_arp_ignore_sysctl() {
                 tracing::error!("Failed to apply arp_ignore: {}", err);
             }
-        }
     }
 
     fn send_and_process(batch: &FinalizedBatch) -> Result<()> {
