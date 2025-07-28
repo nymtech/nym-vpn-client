@@ -8,9 +8,7 @@ use std::{
 
 use nym_sdk::UserAgent;
 use nym_validator_client::{
-    NymApiClient,
-    models::NymNodeDescription,
-    nym_nodes::{SkimmedNode, SkimmedNodesWithMetadata},
+    NymApiClient, models::NymNodeDescription, nym_nodes::SkimmedNodesWithMetadata,
 };
 use nym_vpn_api_client::types::{GatewayMinPerformance, Percent, ScoreThresholds};
 use rand::{prelude::SliceRandom, thread_rng};
