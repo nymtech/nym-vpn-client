@@ -172,7 +172,7 @@ where
     //     }
     // }
 
-    //SW Figure out a way to make that work without breaking everything?
+    // SW Figure out a way to make that work without breaking everything?
     fn print_info(&self) {
         let account_id = self
             .account_state

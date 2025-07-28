@@ -40,7 +40,7 @@ impl SyncingState {
         }
         // SW Check time sync before and retries
 
-        //SW Handle these unwraps properly
+        // SW Handle these unwraps properly
         #[allow(clippy::unwrap_used)]
         let vpn_api_account = shared_state.vpn_api_account.clone().unwrap();
         #[allow(clippy::unwrap_used)]
@@ -158,9 +158,9 @@ impl AccountControllerStateHandler for SyncingState {
             },
             Some(command) = command_rx.recv() => {
                 match command {
-                    AccountCommand::CreateAccount(return_sender) => {return_sender.send(Err(CreateAccountError::internal("An account already exists")));}, //SW Improve error handling
-                    AccountCommand::StoreAccount(return_sender, _) => {return_sender.send(Err(StoreAccountError::internal("An account already exists")));}, //SW Improve error handling
-                    AccountCommand::RegisterAccount(return_sender, _, _) => {return_sender.send(Err(RegisterAccountError::internal("An account already exists")));}, //SW Improve error handling
+                    AccountCommand::CreateAccount(return_sender) => {return_sender.send(Err(CreateAccountError::internal("An account already exists")));}, // SW Improve error handling
+                    AccountCommand::StoreAccount(return_sender, _) => {return_sender.send(Err(StoreAccountError::internal("An account already exists")));}, // SW Improve error handling
+                    AccountCommand::RegisterAccount(return_sender, _, _) => {return_sender.send(Err(RegisterAccountError::internal("An account already exists")));}, // SW Improve error handling
                     AccountCommand::ForgetAccount(return_sender) => {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();

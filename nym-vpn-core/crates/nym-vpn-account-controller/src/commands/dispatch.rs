@@ -28,7 +28,7 @@ pub enum AccountCommand {
         Platform,
     ),
     ForgetAccount(ReturnSender<(), ForgetAccountError>),
-    ResetDeviceIdentity(ReturnSender<(), AccountCommandError>, Option<[u8; 32]>), //SW maybe new error type?
+    ResetDeviceIdentity(ReturnSender<(), AccountCommandError>, Option<[u8; 32]>), // SW maybe new error type?
 
     RefreshAccountState(ReturnSender<(), SyncAccountError>), // SW Rename error
     // SW To add
