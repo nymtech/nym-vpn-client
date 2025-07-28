@@ -19,7 +19,8 @@
     "max-devices-reached": "Hesap cihaz limitiniz aşıldı. Bağlanmadan önce hesabınızdan bir cihazı kaldırın.",
     "bandwidth-exceeded": "Aylık bant genişliği limiti aşıldı. Lütfen hesap planınızı yükseltin.",
     "subscription-expired": "Aboneliğinizin süresi doldu. Lütfen hesabınız için bir plan satın alın.",
-    "device-time-out-of-sync": "Cihaz saatiniz senkronize edilmemiş. Lütfen cihazınızın saatini internet ile senkronize edin."
+    "device-time-out-of-sync": "Cihaz saatiniz senkronize edilmemiş. Lütfen cihazınızın saatini internet ile senkronize edin.",
+    "ipv6-unavailable": "Sistemde IPv6 desteklenmiyor. IPv4 kullanmak için ayarlardan IPv6’yı devre dışı bırakın."
   },
   "account": {
     "invalid-recovery-phrase": "Geçersiz erişim kodu",

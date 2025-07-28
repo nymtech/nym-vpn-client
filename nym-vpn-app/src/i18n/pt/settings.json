@@ -3,9 +3,9 @@
     "title": "Conexão automática",
     "desc": "Conectar automaticamente na inicialização do aplicativo"
   },
-  "error-monitoring": {
-    "title": "Relatórios de erros anônimos",
-    "desc": "aplica-se ao reiniciar o aplicativo"
+  "ipv6-support": {
+    "title": "tunelamento de tráfego IPv6",
+    "desc": "Desativar para usar apenas IPv4"
   },
   "notifications": {
     "title": "Notificações na área de trabalho"
@@ -58,5 +58,20 @@
   "killswitch": {
     "title": "Killswitch",
     "desc": "Desconectar se a internet cair"
+  },
+  "privacy": {
+    "error-monitoring": {
+      "label": "Relatórios de erro e falha",
+      "sublabel": "As alterações serão aplicadas após a reinicialização do aplicativo e do daemon.",
+      "desc": "Envie informações sobre falhas para nos ajudar a corrigir bugs mais rapidamente. Os relatórios passam pelo sistema seguro do Sentry e incluem apenas dados técnicos de depuração.",
+      "link": "Ver a Política de Privacidade do Sentry"
+    },
+    "network-stats": {
+      "label": "Estatísticas de rede anônimas",
+      "sublabel": "As alterações serão aplicadas após a reinicialização do daemon.",
+      "desc1": "Ajude-nos a construir uma rede mais rápida compartilhando dados de desempenho anônimos da sua região. Usamos isso para otimizar velocidades, reduzir desconexões e direcionar a cobertura do servidor onde é mais necessária.",
+      "desc2": "Somente dados de desempenho da rede são compartilhados - nunca sua atividade de navegação ou dados pessoais.",
+      "link": "Saiba exatamente o que é compartilhado"
+    }
   }
 }

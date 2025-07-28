@@ -3,9 +3,9 @@
     "title": "Tự động kết nối",
     "desc": "Tự động kết nối khi khởi động ứng dụng"
   },
-  "error-monitoring": {
-    "title": "Báo cáo lỗi ẩn danh",
-    "desc": "áp dụng khi khởi động lại"
+  "ipv6-support": {
+    "title": "IPv6 traffic tunneling",
+    "desc": "Disable to only use IPv4"
   },
   "notifications": {
     "title": "Thông báo trên máy tính"
@@ -14,7 +14,7 @@
   "support": {
     "title": "Hỗ trợ & phản hồi",
     "faq": "Đọc các câu hỏi thường gặp",
-    "contact": "Contact support",
+    "contact": "Liên hệ hỗ trợ",
     "telegram": "Trò chuyện trên Telegram",
     "github": "Mở một issue trên GitHub",
     "matrix": "Tham gia Matrix của chúng tôi",
@@ -58,5 +58,20 @@
   "killswitch": {
     "title": "Killswitch",
     "desc": "Ngắt kết nối nếu internet bị rớt"
+  },
+  "privacy": {
+    "error-monitoring": {
+      "label": "Error & crash reports",
+      "sublabel": "Changes will apply after app and daemon restart.",
+      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
+      "link": "View Sentry Privacy Policy"
+    },
+    "network-stats": {
+      "label": "Anonymous network stats",
+      "sublabel": "Changes will apply after daemon restart.",
+      "desc1": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.",
+      "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
+      "link": "Learn exactly what's shared"
+    }
   }
 }
