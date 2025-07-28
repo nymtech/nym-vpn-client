@@ -9,52 +9,39 @@ extension GRPCManager {
         exitRouter: ExitRouter,
         isTwoHopEnabled: Bool
     ) async throws {
-        logger.log(level: .info, "Connecting")
+        var request = NymVpnService_ConnectRequest()
+        request.userAgent = userAgent
 
-        return try await withCheckedThrowingContinuation { continuation in
-            var request = Nym_Vpn_ConnectRequest()
-            request.userAgent = userAgent
+        request.entry = entryNode(from: entryGateway)
+        request.exit = exitNode(from: exitRouter)
 
-            request.entry = entryNode(from: entryGateway)
-            request.exit = exitNode(from: exitRouter)
+        request.enableTwoHop = isTwoHopEnabled
+        request.disableBackgroundCoverTraffic = false
 
-            request.enableTwoHop = isTwoHopEnabled
-            request.disableBackgroundCoverTraffic = false
+        _ = try await client.connectTunnel(request)
+    }
 
-            let call = client.vpnConnect(request, callOptions: nil)
-
-            call.response.whenComplete { [weak self] result in
-                switch result {
-                case .success(let response):
-                    if response.hasError {
-                        continuation.resume(throwing: GeneralNymError.library(message: response.error.message))
-                    } else {
-                        continuation.resume()
-                    }
-                case .failure(let error):
-                    self?.logger.log(level: .info, "Failed to connect to VPN: \(error)")
-                }
-            }
-        }
+    public func disconnect() async throws {
+        _ = try await client.disconnectTunnel(Google_Protobuf_Empty())
     }
 }
 
 private extension GRPCManager {
     // TODO: add lowLatencyCountry support
-    func entryNode(from entryGateway: EntryGateway) -> Nym_Vpn_EntryNode {
-        var entryNode = Nym_Vpn_EntryNode()
+    func entryNode(from entryGateway: EntryGateway) -> NymVpnService_EntryNode {
+        var entryNode = NymVpnService_EntryNode()
         switch entryGateway {
         case let .country(country):
-            var location = Nym_Vpn_Location()
+            var location = NymVpnService_Location()
             location.twoLetterIsoCountryCode = country.code
             entryNode.location = location
         case let .lowLatencyCountry(country):
             print("Add .lowLatencyCountry support")
-            var location = Nym_Vpn_Location()
+            var location = NymVpnService_Location()
             location.twoLetterIsoCountryCode = country.code
             entryNode.location = location
         case let .gateway(node):
-            var gateway = Nym_Vpn_Gateway()
+            var gateway = NymVpnService_Gateway()
             gateway.id = node.id
             entryNode.gateway = gateway
         case .random:
@@ -63,15 +50,15 @@ private extension GRPCManager {
         return entryNode
     }
 
-    func exitNode(from exitRouter: ExitRouter) -> Nym_Vpn_ExitNode {
-        var exitNode = Nym_Vpn_ExitNode()
+    func exitNode(from exitRouter: ExitRouter) -> NymVpnService_ExitNode {
+        var exitNode = NymVpnService_ExitNode()
         switch exitRouter {
         case let .country(country):
-            var location = Nym_Vpn_Location()
+            var location = NymVpnService_Location()
             location.twoLetterIsoCountryCode = country.code
             exitNode.location = location
         case let .gateway(node):
-            var gateway = Nym_Vpn_Gateway()
+            var gateway = NymVpnService_Gateway()
             gateway.id = node.id
             exitNode.gateway = gateway
         }

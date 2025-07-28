@@ -55,7 +55,7 @@ extension ConnectionManager {
 
         switch grpcManager.tunnelStatus {
         case .connected, .connecting, .offlineReconnect, .error:
-            grpcManager.disconnect()
+            try await grpcManager.disconnect()
         case .disconnected, .disconnecting, .reasserting, .restarting, .offline, .unknown:
             try await connect(with: config)
         }

@@ -1,7 +1,7 @@
 import CountriesManagerTypes
 
 extension GatewayNodeScore {
-    init(with score: Nym_Vpn_Score) {
+    init(with score: NymVpnService_Score) {
         switch score {
         case .none:
             self = .noScore

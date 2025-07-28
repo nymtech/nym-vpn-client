@@ -17,11 +17,11 @@ public final class GRPCManager: ObservableObject {
     private let channel: GRPCChannel
     private let unixDomainSocket = "/var/run/nym-vpn.sock"
 
-    let client: Nym_Vpn_NymVpndClientProtocol
+    let client: NymVpnService_NymVpnServiceAsyncClient
     let logger = Logger(label: "GRPC Manager")
 
-    var userAgent: Nym_Vpn_UserAgent {
-        var agent = Nym_Vpn_UserAgent()
+    var userAgent: NymVpnService_UserAgent {
+        var agent = NymVpnService_UserAgent()
         agent.application = AppVersionProvider.app
         agent.version = "\(AppVersionProvider.appVersion()) (\(daemonVersion))"
         agent.platform = AppVersionProvider.platform
@@ -68,7 +68,8 @@ public final class GRPCManager: ObservableObject {
                         eventLoopGroup: group
                     )
         )
-        client = Nym_Vpn_NymVpndNIOClient(channel: channel)
+
+        client = NymVpnService_NymVpnServiceAsyncClient(channel: channel)
         setup()
     }
 
@@ -81,29 +82,6 @@ public final class GRPCManager: ObservableObject {
         setupListenToTunnelStateChangesObserver()
         Task {
             try? await version()
-        }
-    }
-
-    // MARK: - Connection -
-
-    public func disconnect() {
-        logger.log(level: .info, "Disconnecting")
-
-        let call = client.vpnDisconnect(Google_Protobuf_Empty())
-
-        call.response.whenComplete { result in
-            switch result {
-            case .success(let response):
-                print("Disconnected from VPN: \(response.success)")
-            case .failure(let error):
-                print("Failed to disconnect from VPN: \(error)")
-            }
-        }
-
-        do {
-            _ = try call.status.wait()
-        } catch {
-            print("Error waiting for call status: \(error)")
         }
     }
 }
