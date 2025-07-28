@@ -1,7 +1,7 @@
 import CountriesManagerTypes
 
 extension NodeType {
-    func convertToGatewayType() -> Nym_Vpn_GatewayType {
+    func convertToGatewayType() -> NymVpnService_GatewayType {
         switch self {
         case .entry:
             .mixnetEntry

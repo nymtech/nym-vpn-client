@@ -28,6 +28,7 @@ public enum ErrorReason: LocalizedError, Codable {
     case internalError(String)
     case deviceTimeOutOfSync
     case createMixnetStorage
+    case ipv6Unavailable
     case unknown
 
     private static let somethingWentWrong = "generalNymError.somethingWentWrong".localizedString
@@ -63,6 +64,8 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .deviceTimeOutOfSync
         case .createMixnetStorage:
             self = .createMixnetStorage
+        case .ipv6Unavailable:
+            self = .ipv6Unavailable
         }
     }
 #endif
@@ -120,6 +123,8 @@ public enum ErrorReason: LocalizedError, Codable {
             self = .apiResponse(nsError.userInfo["details"] as? String ?? Self.somethingWentWrong)
         case .createMixnetStorage:
             self = .createMixnetStorage
+        case .ipv6Unavailable:
+            self = .ipv6Unavailable
         }
     }
 
@@ -192,6 +197,8 @@ private extension ErrorReason {
             message
         case .createMixnetStorage:
             "errorReason.createMixnetStorage".localizedString
+        case .ipv6Unavailable:
+            "errorReason.ipv6Unavailable".localizedString
         }
     }
 }
@@ -225,6 +232,7 @@ enum ErrorReasonCode: Int, RawRepresentable {
     case registrationInProgress
     case deviceTimeOutOfSync
     case createMixnetStorage
+    case ipv6Unavailable
 
     init?(errorReason: ErrorReason) {
         switch errorReason {
@@ -272,6 +280,8 @@ enum ErrorReasonCode: Int, RawRepresentable {
             self = .apiResponse
         case .createMixnetStorage:
             self = .createMixnetStorage
+        case .ipv6Unavailable:
+            self = .ipv6Unavailable
         }
     }
 }
