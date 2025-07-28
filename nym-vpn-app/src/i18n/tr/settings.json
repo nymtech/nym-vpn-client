@@ -3,9 +3,9 @@
     "title": "Otomatik bağlan",
     "desc": "Uygulama başlangıcında otomatik bağlan"
   },
-  "error-monitoring": {
-    "title": "Anonim hata raporları",
-    "desc": "uygulama yeniden başlatıldığında geçerlidir"
+  "ipv6-support": {
+    "title": "IPv6 trafiğini tünelleme",
+    "desc": "Sadece IPv4 kullanımına zorlamak için devre dışı bırak"
   },
   "notifications": {
     "title": "Bilgisayar masaüstü bildirimleri"
@@ -58,5 +58,20 @@
   "killswitch": {
     "title": "Killswitch",
     "desc": "İnternet kesilirse bağlantıyı kesin"
+  },
+  "privacy": {
+    "error-monitoring": {
+      "label": "Error & crash reports",
+      "sublabel": "Changes will apply after app and daemon restart.",
+      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
+      "link": "View Sentry Privacy Policy"
+    },
+    "network-stats": {
+      "label": "Anonymous network stats",
+      "sublabel": "Changes will apply after daemon restart.",
+      "desc1": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.",
+      "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
+      "link": "Learn exactly what's shared"
+    }
   }
 }

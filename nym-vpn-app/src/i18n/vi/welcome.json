@@ -3,5 +3,6 @@
   "description": "Hãy giúp chúng tôi cải thiện ứng dụng bằng cách xác định và khắc phục các vấn đề. Chọn tham gia để theo dõi lỗi ẩn danh (qua <sentryLink />) và phân tích, bạn có thể hủy tham gia bất kỳ lúc nào. Cảm ơn sự hỗ trợ của bạn!",
   "anon-toggle-desc": "Áp dụng khi khởi động lại ứng dụng",
   "tos-notice": "Bằng cách tiếp tục, bạn đồng ý với <tosLink /> của NymVPN và xác nhận rằng bạn đã hiểu <privacyLink /> của NymVPN.",
-  "continue-button": "Tiếp tục"
+  "continue-button": "Tiếp tục",
+  "error-monitoring-label": "Anonymous error reports"
 }

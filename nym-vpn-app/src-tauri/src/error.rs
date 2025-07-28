@@ -93,7 +93,7 @@ impl From<VpndError> for BackendError {
     fn from(error: VpndError) -> Self {
         match error {
             VpndError::GrpcError(s) => {
-                BackendError::new(&format!("grpc error: {}", s), ErrorKey::Grpc)
+                BackendError::new(&format!("grpc error: {s}"), ErrorKey::Grpc)
             }
             VpndError::FailedToConnectIpc(_) => BackendError::new(
                 "not connected to the daemon",

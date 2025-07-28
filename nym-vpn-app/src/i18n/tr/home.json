@@ -51,16 +51,16 @@
     "button-update": "Güncelle"
   },
   "app-update-available": {
-    "title": "Update available",
-    "description": "Version {{version}} is ready with performance improvements and new features.",
-    "restart-note": "The app will restart after the update.",
-    "button-update": "Update NymVPN",
-    "button-close": "Close"
+    "title": "Güncelleme mevcut",
+    "description": "{{version}} sürümü performans iyileştirmeleri ve yeni özelliklerle hazır.\n",
+    "restart-note": "Güncellemeden sonra uygulama yeniden başlatılacaktır.",
+    "button-update": "NymVPN'i güncelle",
+    "button-close": "Kapat"
   },
   "app-update-progress": {
-    "title": "Updating to Version {{version}}…",
-    "description": "Installing updates - please don't close the app.",
-    "restart-note": "The app will restart after the update.",
-    "bar-label": "Download progress"
+    "title": "Sürüm {{version}}…e güncelleniyor…",
+    "description": "Güncellemeler yükleniyor — lütfen uygulamayı kapatmayın.",
+    "restart-note": "Güncelleme tamamlandıktan sonra uygulama yeniden başlayacaktır.",
+    "bar-label": "İndirme durumu"
   }
 }

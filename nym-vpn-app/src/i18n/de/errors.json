@@ -19,7 +19,8 @@
     "max-devices-reached": "Account device limit exceeded. Please remove a device from your account before connecting.",
     "bandwidth-exceeded": "Monthly bandwidth exceeded. Please upgrade your account plan.",
     "subscription-expired": "Subscription has expired. Please purchase a plan for your account.",
-    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet."
+    "device-time-out-of-sync": "Device time is out of sync. Please synchronize your device's time with the internet.",
+    "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4"
   },
   "account": {
     "invalid-recovery-phrase": "ungültiger Wiederherstellungsphrase",

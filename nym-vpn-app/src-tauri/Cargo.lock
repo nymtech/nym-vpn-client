@@ -3354,7 +3354,7 @@ dependencies = [
 
 [[package]]
 name = "nym-vpn-app"
-version = "1.13.0-zucchini-rc0"
+version = "1.13.0-zucchini-rc1"
 dependencies = [
  "anyhow",
  "build-info",

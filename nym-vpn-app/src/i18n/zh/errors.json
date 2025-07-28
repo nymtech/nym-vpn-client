@@ -19,7 +19,8 @@
     "max-devices-reached": "超过账户限制。请在连接之前从您的账户中删除设备。",
     "bandwidth-exceeded": "超过月带宽。请升级您的帐户计划。",
     "subscription-expired": "订阅已过期。请为您的帐户购买计划。",
-    "device-time-out-of-sync": "设备时间不同步。请将您的设备时间与互联网同步。"
+    "device-time-out-of-sync": "设备时间不同步。请将您的设备时间与互联网同步。",
+    "ipv6-unavailable": "IPv6在系统中不可用。请在设置中禁用以使用IPv4"
   },
   "account": {
     "invalid-recovery-phrase": "访问代码无效",
@@ -31,7 +32,7 @@
     "exit": "获取可用的退出节点国家失败",
     "fast-mode": "获取可用国家失败"
   },
-  "no-bandwidth": "No data allowance remaining",
+  "no-bandwidth": "无剩余带宽。",
   "entry-gateway-down": "入口网关已关闭",
   "exit-gateway-down": {
     "ipv4": "退出网关已经关闭 (IPv4)",

@@ -50,7 +50,7 @@ jobs:
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
             libwebkit2gtk-4.1-dev build-essential curl wget libssl-dev jq \
             libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make libfuse2 unzip librsvg2-dev file \
-            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev
+            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev desktop-file-utils
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
@@ -141,6 +141,23 @@ jobs:
           cp -vpr ${{ env.SRC_DEB }} ${{ env.UPLOAD_DIR_LINUX }}
           echo "Copy plain binary"
           cp -vpr ${{ env.SRC_BIN }} ${{ env.UPLOAD_DIR_LINUX }}/${{ env.DST_BIN }}
+
+      # Repack AppImage using appimagetool to drop libfuse2 dependency (EOL)
+      - name: Repack AppImage
+        env:
+          APP_IMAGE: NymVPN_${{ steps.package-version.outputs.metadata }}_x64.AppImage
+          REPACK_DIR: ${{ github.workspace }}/appimage_repack
+        run: |
+          mkdir ${{ env.REPACK_DIR }}
+          mv ${{ env.UPLOAD_DIR_LINUX }}/${{ env.APP_IMAGE }} ${{ env.REPACK_DIR }}/
+          cd ${{ env.REPACK_DIR }} || exit 1
+          curl -SsfLo appimagetool.AppImage https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x ./appimagetool.AppImage
+          ./${{ env.APP_IMAGE }} --appimage-extract && rm -f ${{ env.APP_IMAGE }}
+          ./appimagetool.AppImage --comp zstd --mksquashfs-opt -Xcompression-level --mksquashfs-opt 20 \
+            -n ./squashfs-root ${{ env.APP_IMAGE }}
+          mv ${{ env.APP_IMAGE }} ${{ github.workspace }}/${{ env.UPLOAD_DIR_LINUX }}/${{ env.APP_IMAGE }}
+          rm -rf ${{ env.REPACK_DIR }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
