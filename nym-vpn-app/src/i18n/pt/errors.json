@@ -19,7 +19,8 @@
     "max-devices-reached": "O limite de dispositivos da conta excedido. Remova um dispositivo da sua conta antes de conectar.",
     "bandwidth-exceeded": "Largura de banda mensal excedida. Por favor, atualize seu plano de conta.",
     "subscription-expired": "A assinatura expirou. Compre um plano para sua conta.",
-    "device-time-out-of-sync": "O tempo do dispositivo está fora de sincronia. Por favor, sincronize o horário do seu dispositivo com a internet."
+    "device-time-out-of-sync": "O tempo do dispositivo está fora de sincronia. Por favor, sincronize o horário do seu dispositivo com a internet.",
+    "ipv6-unavailable": "O IPv6 não está disponível no sistema. Desative nas configurações para usar IPv4"
   },
   "account": {
     "invalid-recovery-phrase": "Código de acesso inválido",

@@ -3,9 +3,9 @@
     "title": "自动连接",
     "desc": "应用启动时自动连接"
   },
-  "error-monitoring": {
-    "title": "匿名错误报告",
-    "desc": "重启时响应"
+  "ipv6-support": {
+    "title": "IPv6流量隧道",
+    "desc": "禁用只能使用IPv4"
   },
   "notifications": {
     "title": "桌面通知"
@@ -14,7 +14,7 @@
   "support": {
     "title": "支持&反馈",
     "faq": "查看常见问题",
-    "contact": "Contact support",
+    "contact": "联系支持",
     "telegram": "在 Telegram 上聊天",
     "github": "打开 GitHub 问题",
     "matrix": "加入Matrix",
@@ -58,5 +58,20 @@
   "killswitch": {
     "title": "Killswitch",
     "desc": "如果互联网断开，断开连接"
+  },
+  "privacy": {
+    "error-monitoring": {
+      "label": "Error & crash reports",
+      "sublabel": "Changes will apply after app and daemon restart.",
+      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
+      "link": "View Sentry Privacy Policy"
+    },
+    "network-stats": {
+      "label": "Anonymous network stats",
+      "sublabel": "Changes will apply after daemon restart.",
+      "desc1": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.",
+      "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
+      "link": "Learn exactly what's shared"
+    }
   }
 }

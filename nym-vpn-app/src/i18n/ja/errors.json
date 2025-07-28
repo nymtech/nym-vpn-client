@@ -19,7 +19,8 @@
     "max-devices-reached": "アカウントデバイスの上限を超えました。接続する前にアカウントからデバイスを削除してください。",
     "bandwidth-exceeded": "月間の帯域幅を超えています。アカウントのプランをアップグレードしてください。",
     "subscription-expired": "サブスクリプションの有効期限が切れています。アカウントのプランを購入してください。",
-    "device-time-out-of-sync": "デバイスの時刻が同期していません。デバイスの時刻をインターネットと同期してください。"
+    "device-time-out-of-sync": "デバイスの時刻が同期していません。デバイスの時刻をインターネットと同期してください。",
+    "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4"
   },
   "account": {
     "invalid-recovery-phrase": "無効なアクセスコード",

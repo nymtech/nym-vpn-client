@@ -19,7 +19,8 @@
     "max-devices-reached": "Đã vượt quá giới hạn thiết bị của tài khoản. Vui lòng xóa một thiết bị khỏi tài khoản của bạn trước khi kết nối.",
     "bandwidth-exceeded": "Đã vượt quá băng thông hàng tháng. Vui lòng nâng cấp gói tài khoản của bạn.",
     "subscription-expired": "Gói đăng ký của bạn đã hết hạn. Vui lòng mua một gói dịch vụ mới cho tài khoản của bạn.",
-    "device-time-out-of-sync": "Thời gian thiết bị không đồng bộ. Vui lòng đồng bộ hóa thời gian của thiết bị với internet."
+    "device-time-out-of-sync": "Thời gian thiết bị không đồng bộ. Vui lòng đồng bộ hóa thời gian của thiết bị với internet.",
+    "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4"
   },
   "account": {
     "invalid-recovery-phrase": "Mã truy cập không hợp lệ",
@@ -31,7 +32,7 @@
     "exit": "Không thể tìm thấy các quốc gia có node thoát khả dụng",
     "fast-mode": "Không thể tìm thấy các quốc gia khả dụng"
   },
-  "no-bandwidth": "No data allowance remaining",
+  "no-bandwidth": "Không còn băng thông",
   "entry-gateway-down": "Cổng vào đã ngừng hoạt động",
   "exit-gateway-down": {
     "ipv4": "Cổng thoát đã ngừng hoạt động (IPv4)",

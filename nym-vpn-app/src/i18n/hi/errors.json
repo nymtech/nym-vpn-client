@@ -19,7 +19,8 @@
     "max-devices-reached": "खाता उपकरण सीमा पार हो गई। कृपया कनेक्ट करने से पहले अपने खाते से एक उपकरण हटाएं।",
     "bandwidth-exceeded": "मासिक बैंडविड्थ सीमा पार कर गई है। कृपया अपना खाता योजना अपडेट करें।",
     "subscription-expired": "सब्सक्रिप्शन समाप्त हो गई है। कृपया अपने खाते के लिए एक प्लान खरीदें।",
-    "device-time-out-of-sync": "डिवाइस का समय असंगत है। कृपया अपने डिवाइस के समय को इंटरनेट के साथ समन्वयित करें।"
+    "device-time-out-of-sync": "डिवाइस का समय असंगत है। कृपया अपने डिवाइस के समय को इंटरनेट के साथ समन्वयित करें।",
+    "ipv6-unavailable": "IPv6 is not available in the system. Disable in the settings to use IPv4"
   },
   "account": {
     "invalid-recovery-phrase": "अमान्य रिकवरी फ्रेज़",
