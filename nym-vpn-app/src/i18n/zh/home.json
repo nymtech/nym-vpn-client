@@ -51,16 +51,16 @@
     "button-update": "更新"
   },
   "app-update-available": {
-    "title": "Update available",
-    "description": "Version {{version}} is ready with performance improvements and new features.",
-    "restart-note": "The app will restart after the update.",
-    "button-update": "Update NymVPN",
-    "button-close": "Close"
+    "title": "软件升级",
+    "description": "版本 {{version}} 已准备好，带来性能提升和新功能。",
+    "restart-note": "应用程序将在更新后重新启动。",
+    "button-update": "更新 NymVPN",
+    "button-close": "关闭"
   },
   "app-update-progress": {
-    "title": "Updating to Version {{version}}…",
-    "description": "Installing updates - please don't close the app.",
-    "restart-note": "The app will restart after the update.",
-    "bar-label": "Download progress"
+    "title": "正在更新到版本 {{version}}…",
+    "description": "安装更新 - 请不要关闭应用程序。",
+    "restart-note": "更新后应用程序将重新启动。",
+    "bar-label": "下载进度"
   }
 }

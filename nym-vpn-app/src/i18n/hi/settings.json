@@ -3,9 +3,9 @@
     "title": "ऑटो-कनेक्ट",
     "desc": "ऐप शुरू होने पर स्वयं कनेक्ट करें"
   },
-  "error-monitoring": {
-    "title": "अनाम त्रुटि रिपोर्ट",
-    "desc": "ऐप अगली बार शुरू होने पर लागू होगा"
+  "ipv6-support": {
+    "title": "IPv6 traffic tunneling",
+    "desc": "Disable to only use IPv4"
   },
   "notifications": {
     "title": "डेस्कटॉप सूचनाएँ"
@@ -58,5 +58,20 @@
   "killswitch": {
     "title": "किल स्विच",
     "desc": "यदि इंटरनेट कट गया है तो डिस्कनेक्ट करें"
+  },
+  "privacy": {
+    "error-monitoring": {
+      "label": "Error & crash reports",
+      "sublabel": "Changes will apply after app and daemon restart.",
+      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
+      "link": "View Sentry Privacy Policy"
+    },
+    "network-stats": {
+      "label": "Anonymous network stats",
+      "sublabel": "Changes will apply after daemon restart.",
+      "desc1": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.",
+      "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
+      "link": "Learn exactly what's shared"
+    }
   }
 }

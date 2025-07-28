@@ -51,16 +51,16 @@
     "button-update": "Cập nhật"
   },
   "app-update-available": {
-    "title": "Update available",
-    "description": "Version {{version}} is ready with performance improvements and new features.",
-    "restart-note": "The app will restart after the update.",
-    "button-update": "Update NymVPN",
-    "button-close": "Close"
+    "title": "Đã có bản cập nhật",
+    "description": "Phiên bản {{version}} đã sẵn sàng với các cải tiến hiệu suất và tính năng mới.",
+    "restart-note": "Ứng dụng sẽ khởi động lại sau khi cập nhật.",
+    "button-update": "Cập nhật NymVPN",
+    "button-close": "Đóng"
   },
   "app-update-progress": {
-    "title": "Updating to Version {{version}}…",
-    "description": "Installing updates - please don't close the app.",
-    "restart-note": "The app will restart after the update.",
-    "bar-label": "Download progress"
+    "title": "Đang cập nhật lên Phiên bản {{version}}…",
+    "description": "Đang cài đặt các bản cập nhật - vui lòng đừng đóng ứng dụng.",
+    "restart-note": "Ứng dụng sẽ khởi động lại sau khi cập nhật.",
+    "bar-label": "Tiến độ tải xuống"
   }
 }

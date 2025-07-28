@@ -4,6 +4,6 @@
     "InitDone": "Nym VPN 客户端已初始化",
     "Canceling": "正在取消···"
   },
-  "connection-attempt_one": "retrying… attempt {{count}}",
-  "connection-attempt_other": "retrying… attempts {{count}}"
+  "connection-attempt_one": "重试中… 尝试 {{count}}",
+  "connection-attempt_other": "重试… 尝试 {{count}}"
 }

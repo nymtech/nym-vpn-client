@@ -51,16 +51,16 @@
     "button-update": "Actualización"
   },
   "app-update-available": {
-    "title": "Update available",
-    "description": "Version {{version}} is ready with performance improvements and new features.",
-    "restart-note": "The app will restart after the update.",
-    "button-update": "Update NymVPN",
-    "button-close": "Close"
+    "title": "Actualización disponible",
+    "description": "La versión {{version}} está lista con mejoras de rendimiento y nuevas funciones.",
+    "restart-note": "La aplicación se reiniciará después de la actualización.",
+    "button-update": "Actualización NymVPN",
+    "button-close": "Cerrar"
   },
   "app-update-progress": {
-    "title": "Updating to Version {{version}}…",
-    "description": "Installing updates - please don't close the app.",
-    "restart-note": "The app will restart after the update.",
-    "bar-label": "Download progress"
+    "title": "Actualizando a la versión {{version}}…",
+    "description": "Instalando actualizaciones - por favor no cierres la aplicación.",
+    "restart-note": "La aplicación se reiniciará después de la actualización.",
+    "bar-label": "Progreso de descarga"
   }
 }

@@ -4,6 +4,6 @@
     "InitDone": "Đã khởi tạo máy khách Nym VPN",
     "Canceling": "Đang hủy…"
   },
-  "connection-attempt_one": "retrying… attempt {{count}}",
-  "connection-attempt_other": "retrying… attempts {{count}}"
+  "connection-attempt_one": "đang thử lại… lần thử {{count}}",
+  "connection-attempt_other": "đang thử lại… lần thử {{count}}"
 }
