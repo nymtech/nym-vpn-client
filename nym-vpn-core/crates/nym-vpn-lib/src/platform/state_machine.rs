@@ -10,6 +10,7 @@ use tokio_util::sync::CancellationToken;
 use super::TunnelEvent as PlatformTunnelEvent;
 use crate::{
     VpnTopologyProvider,
+    platform::offline_monitor,
     tunnel_state_machine::{
         DnsOptions, GatewayPerformanceOptions, MixnetTunnelOptions, NymConfig, TunnelCommand,
         TunnelSettings, TunnelStateMachine, WireguardTunnelOptions,
@@ -106,19 +107,9 @@ pub(super) async fn start_state_machine(
     });
 
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    let route_handler = crate::tunnel_state_machine::RouteHandler::new()
-        .await
-        .map_err(crate::tunnel_state_machine::Error::CreateRouteHandler)?;
+    let route_handler = offline_monitor::get_route_handler().await?;
 
-    let connectivity_handle = nym_offline_monitor::spawn_monitor(
-        #[cfg(not(any(target_os = "android", target_os = "ios")))]
-        route_handler.inner_handle(),
-        #[cfg(target_os = "android")]
-        crate::tunnel_state_machine::AndroidConnectivityAdapter::new(config.tun_provider.clone()),
-        #[cfg(target_os = "linux")]
-        Some(crate::tunnel_state_machine::TUNNEL_FWMARK),
-    )
-    .await;
+    let connectivity_handle = offline_monitor::get_connectivity_handle().await?;
 
     gateway_directory_client
         .set_connectivity_handle(connectivity_handle.clone())

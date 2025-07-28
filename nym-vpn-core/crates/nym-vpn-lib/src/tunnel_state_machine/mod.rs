@@ -37,7 +37,6 @@ use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
-use nym_common::trace_err_chain;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use nym_dns::DnsConfig;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
@@ -468,15 +467,6 @@ impl TunnelStateMachine {
             dns_handler_shutdown_token.child_token(),
         )
         .map_err(Error::CreateDnsHandler)?;
-
-        let offline_watch = connectivity_handle.clone();
-        account_command_tx
-            .register_offline_monitor(offline_watch)
-            .await
-            .inspect_err(|err| {
-                trace_err_chain!(err, "Failed to register offline watch");
-            })
-            .ok();
 
         let (mixnet_event_sender, mixnet_event_receiver) = mpsc::unbounded_channel();
 
