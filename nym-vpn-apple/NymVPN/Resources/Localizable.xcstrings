@@ -4300,8 +4300,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Belongs only to you(self-custody)"
+            "state" : "translated",
+            "value" : "Pertence apenas a você (auto-custódia)"
           }
         },
         "ru" : {
@@ -4502,8 +4502,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Keeps you anonymous"
+            "state" : "translated",
+            "value" : "Mantém você anônimo"
           }
         },
         "ru" : {
@@ -5613,8 +5613,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Personal data-based logins"
+            "state" : "translated",
+            "value" : "Logins baseados em dados pessoais"
           }
         },
         "ru" : {
@@ -5714,8 +5714,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Works as your secure login"
+            "state" : "translated",
+            "value" : "Funciona como seu login seguro"
           }
         },
         "ru" : {
@@ -6320,8 +6320,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Admin-controlled access resets"
+            "state" : "translated",
+            "value" : "Reinicializações de acesso controladas pelo administrador"
           }
         },
         "ru" : {
@@ -6724,8 +6724,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Centrally-stored accounts"
+            "state" : "translated",
+            "value" : "Contas armazenadas centralmente"
           }
         },
         "ru" : {
@@ -11168,8 +11168,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Kill switch protects you. Tap Stop and renew your plan."
+            "state" : "translated",
+            "value" : "O Kill switch protege você. Toque em Parar e renovar seu plano."
           }
         },
         "ru" : {
@@ -21773,8 +21773,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You're now fully protected"
+            "state" : "translated",
+            "value" : "Agora você está totalmente protegido"
           }
         },
         "ru" : {
@@ -21874,8 +21874,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose my NymVPN plan"
+            "state" : "translated",
+            "value" : "Escolha seu plano NymVPN"
           }
         },
         "ru" : {
@@ -22076,8 +22076,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select a plan now to activate your protection"
+            "state" : "translated",
+            "value" : "Selecione um plano agora para ativar sua proteção"
           }
         },
         "ru" : {
@@ -22177,8 +22177,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
+            "state" : "translated",
+            "value" : "Seu próximo pagamento não pode ser vinculado à sua futura atividade de navegação"
           }
         },
         "ru" : {
@@ -22278,8 +22278,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose your protection level 🛡️"
+            "state" : "translated",
+            "value" : "Escolha seu nível de proteção 🛡️"
           }
         },
         "ru" : {
@@ -22379,8 +22379,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to true privacy 🎉"
+            "state" : "translated",
+            "value" : "Bem-vindo à verdadeira privacidade 🎉"
           }
         },
         "ru" : {
@@ -26419,8 +26419,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Saved in Keychain"
+            "state" : "translated",
+            "value" : "Salvo no Keychain"
           }
         },
         "ru" : {
@@ -26823,8 +26823,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Subscription expired"
+            "state" : "translated",
+            "value" : "Assinatura expirada"
           }
         },
         "ru" : {
@@ -27126,8 +27126,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get started"
+            "state" : "translated",
+            "value" : "Começar"
           }
         },
         "ru" : {
@@ -27227,8 +27227,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Get anonymous browsing now"
+            "state" : "translated",
+            "value" : "Navegue anonimamente agora"
           }
         },
         "ru" : {
@@ -27328,8 +27328,8 @@
         },
         "pt-BR" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your privacy is unprotected "
+            "state" : "translated",
+            "value" : "Sua privacidade não está protegida "
           }
         },
         "ru" : {
