@@ -865,7 +865,7 @@ fn route_address_to_ip(route_addr: RouteAddress) -> Result<IpAddr> {
     match route_addr {
         RouteAddress::Inet(ipv4) => Ok(IpAddr::V4(ipv4)),
         RouteAddress::Inet6(ipv6) => Ok(IpAddr::V6(ipv6)),
-        other => Err(Error::ConvertRouteAddrToIp(format!("{:?}", other))),
+        other => Err(Error::ConvertRouteAddrToIp(format!("{other:?}"))),
     }
 }
 
@@ -880,7 +880,7 @@ fn route_via_to_ip(via: RouteVia) -> Result<IpAddr> {
     match via {
         RouteVia::Inet(ipv4) => Ok(IpAddr::V4(ipv4)),
         RouteVia::Inet6(ipv6) => Ok(IpAddr::V6(ipv6)),
-        other => Err(Error::ConvertRouteViaToIp(format!("{:?}", other))),
+        other => Err(Error::ConvertRouteViaToIp(format!("{other:?}"))),
     }
 }
 
