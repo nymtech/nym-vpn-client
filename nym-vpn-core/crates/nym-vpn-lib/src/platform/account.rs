@@ -173,10 +173,7 @@ pub(super) async fn update_account_state() -> Result<(), VpnError> {
         .await?
         .background_refresh_account_state()
         .await
-        .map_err(|err| VpnError::SyncAccount {
-            details: err.into(),
-        })
-        .map(|_| ())
+        .map_err(VpnError::from)
 }
 
 async fn parse_mnemonic(mnemonic: &str) -> Result<Mnemonic, VpnError> {
@@ -187,7 +184,7 @@ async fn parse_mnemonic(mnemonic: &str) -> Result<Mnemonic, VpnError> {
 
 pub(super) async fn login(mnemonic: &str) -> Result<(), VpnError> {
     let mnemonic = parse_mnemonic(mnemonic).await?;
-    get_command_sender().await?.login(mnemonic).await?;
+    get_command_sender().await?.store_account(mnemonic).await?;
     Ok(())
 }
 
@@ -214,7 +211,7 @@ pub(super) async fn register_account() -> Result<RegisterAccountResponse, VpnErr
     };
     get_command_sender()
         .await?
-        .register_account_command(mnemonic, platform)
+        .register_account(mnemonic, platform)
         .await
         .map(RegisterAccountResponse::from)
         .map_err(VpnError::from)

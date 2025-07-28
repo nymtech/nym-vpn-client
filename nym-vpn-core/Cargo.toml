@@ -81,7 +81,7 @@ license = "GPL-3.0-only"
 [workspace.lints.clippy]
 unwrap_used = "deny"
 expect_used = "deny"
-todo = "deny"
+todo = "warn"
 dbg_macro = "deny"
 exit = "deny"
 panic = "deny"

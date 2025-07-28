@@ -3,17 +3,18 @@
 
 use std::{fmt::Debug, sync::Arc};
 
+pub mod controller_error;
 pub mod controller_event;
 pub mod controller_state;
-pub mod create_account;
-pub mod forget_account;
-pub mod get_mnemonic;
-pub mod register_account;
-pub mod register_device;
+pub mod create_account; // SW TO DELETE
+pub mod forget_account; // SW TO DELETE
+pub mod get_mnemonic; // SW TO DELETE
+pub mod register_account; // SW TO DELETE
+pub mod register_device; // SW TO DELETE
 pub mod request_zknym;
-pub mod store_account;
-pub mod sync_account;
-pub mod sync_device;
+pub mod store_account; // SW TO DELETE
+pub mod sync_account; // SW TO DELETE
+pub mod sync_device; // SW TO DELETE
 pub mod ticketbooks;
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
@@ -37,44 +38,39 @@ pub enum AccountCommandError {
     #[error("no device stored")]
     NoDeviceStored,
 
+    #[error("an account is already stored")]
+    ExistingAccount,
+
     #[error("no connectivity")]
     Offline,
-
-    //
-    // --- Error cases for specific commands ---
-    //
-    #[error("failed to create account")]
-    CreateAccount(#[from] create_account::CreateAccountError),
-
-    #[error("failed to get mnemonic")]
-    GetMnemonic(#[from] get_mnemonic::GetMnemonicError),
-
-    #[error("failed to store account")]
-    StoreAccount(#[from] store_account::StoreAccountError),
-
-    #[error("failed to register account")]
-    RegisterAccount(#[from] register_account::RegisterAccountError),
-
-    #[error("failed to sync account state")]
-    SyncAccount(#[from] sync_account::SyncAccountError),
-
-    #[error("failed to sync device state")]
-    SyncDevice(#[from] sync_device::SyncDeviceError),
-
-    #[error("failed to register device")]
-    RegisterDevice(#[from] register_device::RegisterDeviceError),
 
     #[error("failed to request zk nym:")]
     RequestZkNym(#[from] request_zknym::RequestZkNymError),
 
-    #[error("failed to request zk nym")]
-    RequestZkNymBundle {
-        successes: Vec<request_zknym::RequestZkNymSuccess>,
-        failed: Vec<request_zknym::RequestZkNymError>,
-    },
+    // SW Adding this just temporarily, let's see what we want to keep
+    #[error("get account")]
+    GetAccountEndpointFailure(VpnApiError),
 
-    #[error("failed to forget account")]
-    ForgetAccount(#[from] forget_account::ForgetAccountError),
+    #[error("failed to remove account: {0}")]
+    RemoveAccount(String),
+
+    #[error("failed to remove device keys: {0}")]
+    RemoveDeviceKeys(String),
+
+    #[error("failed to reset credential storage: {0}")]
+    ResetCredentialStorage(String),
+
+    #[error("failed to remove account files: {0}")]
+    RemoveAccountFiles(String),
+
+    #[error("update device on vpn-api")]
+    UpdateDeviceErrorResponse(VpnApiError),
+
+    #[error("invalid mnemonic: {0}")]
+    InvalidMnemonic(String),
+
+    #[error("register account")]
+    RegisterAccountEndpointFailure(VpnApiError),
 }
 
 impl AccountCommandError {
@@ -88,19 +84,6 @@ impl AccountCommandError {
 
     pub fn unexpected_response(message: impl Debug) -> Self {
         AccountCommandError::UnexpectedVpnApiResponse(format!("{message:?}"))
-    }
-}
-
-// Local alias for syntactic simplification
-type RequestZkNymVec =
-    Vec<Result<request_zknym::RequestZkNymSuccess, request_zknym::RequestZkNymError>>;
-
-impl From<RequestZkNymVec> for AccountCommandError {
-    fn from(summary: RequestZkNymVec) -> Self {
-        let (successes, failed): (Vec<_>, Vec<_>) = summary.into_iter().partition(Result::is_ok);
-        let successes = successes.into_iter().map(Result::unwrap).collect();
-        let failed = failed.into_iter().map(Result::unwrap_err).collect();
-        Self::RequestZkNymBundle { successes, failed }
     }
 }
 

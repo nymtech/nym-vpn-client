@@ -685,10 +685,7 @@ impl From<nym_vpn_account_controller::shared_state::DeviceState> for DeviceState
 pub enum RegisterDeviceResult {
     InProgress,
     Success,
-    Failed {
-        message: String,
-        message_id: Option<String>,
-    },
+    Failed { message: String },
 }
 
 impl From<nym_vpn_account_controller::shared_state::RegisterDeviceResult> for RegisterDeviceResult {
@@ -702,8 +699,7 @@ impl From<nym_vpn_account_controller::shared_state::RegisterDeviceResult> for Re
             }
             nym_vpn_account_controller::shared_state::RegisterDeviceResult::Failed(err) => {
                 RegisterDeviceResult::Failed {
-                    message: err.message(),
-                    message_id: err.message_id(),
+                    message: err.to_string(),
                 }
             }
         }

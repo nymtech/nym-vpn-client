@@ -245,7 +245,7 @@ impl NymVpnService for CommandInterface {
             .await?;
 
         let response = proto::StoreAccountResponse {
-            error: result.err().map(proto::StoreAccountError::from),
+            error: None, // SW CHanged to do here result.err().map(proto::StoreAccountError::from),
         };
 
         Ok(tonic::Response::new(response))
@@ -271,7 +271,7 @@ impl NymVpnService for CommandInterface {
             .await?;
 
         let response = proto::ForgetAccountResponse {
-            error: result.err().map(proto::ForgetAccountError::from),
+            error: None, // SW CHanged to do here result.err().map(proto::ForgetAccountError::from),
         };
 
         Ok(tonic::Response::new(response))

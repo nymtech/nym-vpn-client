@@ -1,10 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib_types::{
-    AccountCommandError, CreateAccountError, ForgetAccountError, GetMnemonicError,
-    RegisterAccountError, StoreAccountError, SyncAccountError,
-};
+use nym_vpn_lib_types::AccountCommandError;
 use nym_vpn_store::mnemonic::Mnemonic;
 
 use std::net::SocketAddr;
@@ -19,18 +16,18 @@ use crate::{AvailableTicketbooks, RegisterAccountResponse};
 
 #[derive(Debug, strum::Display)]
 pub enum AccountCommand {
-    CreateAccount(ReturnSender<(), CreateAccountError>), // Generate a mnemonic and store it
-    StoreAccount(ReturnSender<(), StoreAccountError>, Mnemonic), // Store the given mnemonic (optional API check)
+    CreateAccount(ReturnSender<(), AccountCommandError>), // Generate a mnemonic and store it
+    StoreAccount(ReturnSender<(), AccountCommandError>, Mnemonic), // Store the given mnemonic (optional API check)
     RegisterAccount(
         // Register the given mnemnonic (meant to take the sotred mnemonic). DOES NOT STORE IT
-        ReturnSender<RegisterAccountResponse, RegisterAccountError>,
+        ReturnSender<RegisterAccountResponse, AccountCommandError>,
         Mnemonic,
         Platform,
     ),
-    ForgetAccount(ReturnSender<(), ForgetAccountError>),
+    ForgetAccount(ReturnSender<(), AccountCommandError>),
     ResetDeviceIdentity(ReturnSender<(), AccountCommandError>, Option<[u8; 32]>), // SW maybe new error type?
 
-    RefreshAccountState(ReturnSender<(), SyncAccountError>), // SW Rename error
+    RefreshAccountState(ReturnSender<(), AccountCommandError>), // SW Rename error
 
     Common(CommonCommand),
 }
@@ -38,7 +35,7 @@ pub enum AccountCommand {
 /// These commands have no impact on the state. Handling can be grouped in some cases
 #[derive(Debug, strum::Display)]
 pub enum CommonCommand {
-    GetStoredMnemonic(ReturnSender<Mnemonic, GetMnemonicError>),
+    GetStoredMnemonic(ReturnSender<Mnemonic, AccountCommandError>),
     GetAccountIdentity(ReturnSender<Option<String>, AccountCommandError>),
     GetDeviceIdentity(ReturnSender<String, AccountCommandError>),
     GetUsage(ReturnSender<Vec<NymVpnUsage>, AccountCommandError>),

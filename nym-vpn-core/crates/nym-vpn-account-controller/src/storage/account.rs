@@ -14,7 +14,6 @@ where
     storage: S,
 }
 
-// SW we might not need that mutex in the end
 impl<S> AccountStorage<S>
 where
     S: VpnStorage,

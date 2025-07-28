@@ -10,18 +10,14 @@ use nym_vpn_lib_types::{
     ActionAfterDisconnect as CoreActionAfterDisconnect, BandwidthEvent as CoreBandwidthEvent,
     ClientErrorReason, ConnectionData as CoreConnectionData,
     ConnectionEvent as CoreConnectionEvent,
-    ConnectionStatisticsEvent as CoreConnectionStatisticsEvent,
-    CreateAccountError as CoreCreateAccountError, ForgetAccountError as CoreForgetAccountError,
-    Gateway as CoreGateway, GetMnemonicError as CoreGetMnemonicError,
+    ConnectionStatisticsEvent as CoreConnectionStatisticsEvent, Gateway as CoreGateway,
     MixnetConnectionData as CoreMixnetConnectionData, MixnetEvent as CoreMixnetEvent,
-    NymAddress as CoreNymAddress, RegisterAccountError as CoreRegisterAccountError,
-    RegisterDeviceError as CoreRegisterDeviceError, RequestZkNymError as CoreRequestZkNymError,
+    NymAddress as CoreNymAddress, RequestZkNymError as CoreRequestZkNymError,
     RequestZkNymErrorReason as CoreRequestZkNymErrorReason,
     RequestZkNymSuccess as CoreRequestZkNymSuccess, SphinxPacketRates as CoreSphinxPacketRates,
-    StoreAccountError as CoreStoreAccountError, SyncAccountError as CoreSyncAccountError,
-    SyncDeviceError as CoreSyncDeviceError, TunnelConnectionData as CoreTunnelConnectionData,
-    TunnelEvent as CoreTunnelEvent, TunnelState as CoreTunnelState,
-    VpnApiError as CoreVpnApiErrorResponseTop, VpnApiErrorResponse as CoreVpnApiErrorResponse,
+    TunnelConnectionData as CoreTunnelConnectionData, TunnelEvent as CoreTunnelEvent,
+    TunnelState as CoreTunnelState, VpnApiError as CoreVpnApiErrorResponseTop,
+    VpnApiErrorResponse as CoreVpnApiErrorResponse,
     WireguardConnectionData as CoreWireguardConnectionData, WireguardNode as CoreWireguardNode,
 };
 use time::OffsetDateTime;
@@ -244,194 +240,6 @@ pub enum ErrorStateReason {
     Internal(Option<String>),
 }
 
-#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
-pub enum GetMnemonicError {
-    #[error("storage: {0}")]
-    Storage(String),
-    #[error("internal error: {0}")]
-    Internal(String),
-}
-
-impl From<CoreGetMnemonicError> for GetMnemonicError {
-    fn from(value: CoreGetMnemonicError) -> Self {
-        match value {
-            CoreGetMnemonicError::Storage(err) => Self::Storage(err),
-            CoreGetMnemonicError::Internal(err) => Self::Internal(err),
-        }
-    }
-}
-
-#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
-pub enum CreateAccountError {
-    #[error("storage: {0}")]
-    Storage(String),
-    #[error("internal error: {0}")]
-    Internal(String),
-}
-
-impl From<CoreCreateAccountError> for CreateAccountError {
-    fn from(value: CoreCreateAccountError) -> Self {
-        match value {
-            CoreCreateAccountError::Storage(err) => Self::Storage(err),
-            CoreCreateAccountError::Internal(err) => Self::Internal(err),
-        }
-    }
-}
-
-#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
-pub enum StoreAccountError {
-    #[error("invalid mnemonic: {0}")]
-    InvalidMnemonic(String),
-    #[error("storage: {0}")]
-    Storage(String),
-    #[error("vpn api endpoint failure: {0}")]
-    GetAccountEndpointFailure(VpnApiError),
-    #[error("unexpected response: {0}")]
-    UnexpectedResponse(String),
-    #[error("internal error: {0}")]
-    Internal(String),
-}
-
-impl From<CoreStoreAccountError> for StoreAccountError {
-    fn from(value: CoreStoreAccountError) -> Self {
-        match value {
-            CoreStoreAccountError::InvalidMnemonic(message) => Self::InvalidMnemonic(message),
-            CoreStoreAccountError::Storage(err) => Self::Storage(err),
-            CoreStoreAccountError::GetAccountEndpointFailure(failure) => {
-                Self::GetAccountEndpointFailure(failure.into())
-            }
-            CoreStoreAccountError::UnexpectedResponse(response) => {
-                Self::UnexpectedResponse(response)
-            }
-            CoreStoreAccountError::Internal(err) => Self::Internal(err),
-        }
-    }
-}
-
-#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
-pub enum RegisterAccountError {
-    #[error("offline")]
-    Offline,
-    #[error("storage: {0}")]
-    Storage(String),
-    #[error("vpn api endpoint failure: {0}")]
-    GetAccountEndpointFailure(VpnApiError),
-    #[error("unexpected response: {0}")]
-    UnexpectedResponse(String),
-    #[error("internal error: {0}")]
-    Internal(String),
-}
-
-impl From<CoreRegisterAccountError> for RegisterAccountError {
-    fn from(value: CoreRegisterAccountError) -> Self {
-        match value {
-            CoreRegisterAccountError::Offline => Self::Offline,
-            CoreRegisterAccountError::Storage(err) => Self::Storage(err),
-            CoreRegisterAccountError::RegisterAccountEndpointFailure(failure) => {
-                Self::GetAccountEndpointFailure(failure.into())
-            }
-            CoreRegisterAccountError::UnexpectedResponse(response) => {
-                Self::UnexpectedResponse(response)
-            }
-            CoreRegisterAccountError::Internal(err) => Self::Internal(err),
-        }
-    }
-}
-
-#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
-pub enum SyncAccountError {
-    #[error("no account stored")]
-    NoAccountStored,
-    #[error("vpn api endpoint failure: {0}")]
-    ErrorResponse(VpnApiError),
-    #[error("unexpected response: {0}")]
-    UnexpectedResponse(String),
-    #[error("no connectivity")]
-    Offline,
-    #[error("internal error: {0}")]
-    Internal(String),
-}
-
-impl From<CoreSyncAccountError> for SyncAccountError {
-    fn from(value: CoreSyncAccountError) -> Self {
-        match value {
-            CoreSyncAccountError::NoAccountStored => Self::NoAccountStored,
-            CoreSyncAccountError::SyncAccountEndpointFailure(failure) => {
-                Self::ErrorResponse(failure.into())
-            }
-            CoreSyncAccountError::UnexpectedResponse(response) => {
-                Self::UnexpectedResponse(response)
-            }
-            CoreSyncAccountError::Offline => Self::Offline,
-            CoreSyncAccountError::Internal(err) => Self::Internal(err),
-        }
-    }
-}
-
-#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
-pub enum SyncDeviceError {
-    #[error("no account stored")]
-    NoAccountStored,
-    #[error("no device stored")]
-    NoDeviceStored,
-    #[error("vpn api endpoint failure: {0}")]
-    ErrorResponse(VpnApiError),
-    #[error("unexpected response: {0}")]
-    UnexpectedResponse(String),
-    #[error("no connectivity")]
-    Offline,
-    #[error("internal error: {0}")]
-    Internal(String),
-}
-
-impl From<CoreSyncDeviceError> for SyncDeviceError {
-    fn from(value: CoreSyncDeviceError) -> Self {
-        match value {
-            CoreSyncDeviceError::NoAccountStored => Self::NoAccountStored,
-            CoreSyncDeviceError::NoDeviceStored => Self::NoDeviceStored,
-            CoreSyncDeviceError::SyncDeviceEndpointFailure(failure) => {
-                Self::ErrorResponse(failure.into())
-            }
-            CoreSyncDeviceError::UnexpectedResponse(response) => Self::UnexpectedResponse(response),
-            CoreSyncDeviceError::Offline => Self::Offline,
-            CoreSyncDeviceError::Internal(err) => Self::Internal(err),
-        }
-    }
-}
-
-#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
-pub enum RegisterDeviceError {
-    #[error("no account stored")]
-    NoAccountStored,
-    #[error("no device stored")]
-    NoDeviceStored,
-    #[error("vpn api endpoint failure: {0}")]
-    ErrorResponse(VpnApiError),
-    #[error("unexpected response: {0}")]
-    UnexpectedResponse(String),
-    #[error("no connectivity")]
-    Offline,
-    #[error("internal error: {0}")]
-    Internal(String),
-}
-
-impl From<CoreRegisterDeviceError> for RegisterDeviceError {
-    fn from(value: CoreRegisterDeviceError) -> Self {
-        match value {
-            CoreRegisterDeviceError::NoAccountStored => Self::NoAccountStored,
-            CoreRegisterDeviceError::NoDeviceStored => Self::NoDeviceStored,
-            CoreRegisterDeviceError::RegisterDeviceEndpointFailure(failure) => {
-                Self::ErrorResponse(failure.into())
-            }
-            CoreRegisterDeviceError::UnexpectedResponse(response) => {
-                Self::UnexpectedResponse(response)
-            }
-            CoreRegisterDeviceError::Offline => Self::Offline,
-            CoreRegisterDeviceError::Internal(err) => Self::Internal(err),
-        }
-    }
-}
-
 #[derive(uniffi::Record, Clone, Debug, PartialEq, Eq)]
 pub struct RequestZkNymSuccess {
     pub id: String,
@@ -477,50 +285,6 @@ impl From<CoreRequestZkNymErrorReason> for RequestZkNymError {
 impl From<CoreRequestZkNymError> for RequestZkNymError {
     fn from(error: CoreRequestZkNymError) -> Self {
         CoreRequestZkNymErrorReason::from(error).into()
-    }
-}
-
-#[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq, Eq)]
-pub enum ForgetAccountError {
-    #[error("registration is in progress")]
-    RegistrationInProgress,
-    #[error("failed to remove device from nym vpn api: {0}")]
-    UpdateDeviceErrorResponse(VpnApiError),
-    #[error("unexpected response: {0}")]
-    UnexpectedResponse(String),
-    #[error("failed to remove account: {0}")]
-    RemoveAccount(String),
-    #[error("failed to remove device keys: {0}")]
-    RemoveDeviceKeys(String),
-    #[error("failed to reset credential storage: {0}")]
-    ResetCredentialStorage(String),
-    #[error("failed to remove account files: {0}")]
-    RemoveAccountFiles(String),
-    #[error("failed to init device keys: {0}")]
-    InitDeviceKeys(String),
-    #[error("internal error: {0}")]
-    Internal(String),
-}
-
-impl From<CoreForgetAccountError> for ForgetAccountError {
-    fn from(value: CoreForgetAccountError) -> Self {
-        match value {
-            CoreForgetAccountError::RegistrationInProgress => Self::RegistrationInProgress,
-            CoreForgetAccountError::UpdateDeviceErrorResponse(failure) => {
-                Self::UpdateDeviceErrorResponse(failure.into())
-            }
-            CoreForgetAccountError::UnexpectedResponse(response) => {
-                Self::UnexpectedResponse(response)
-            }
-            CoreForgetAccountError::RemoveAccount(err) => Self::RemoveAccount(err),
-            CoreForgetAccountError::RemoveDeviceKeys(err) => Self::RemoveDeviceKeys(err),
-            CoreForgetAccountError::ResetCredentialStorage(err) => {
-                Self::ResetCredentialStorage(err)
-            }
-            CoreForgetAccountError::RemoveAccountFiles(err) => Self::RemoveAccountFiles(err),
-            CoreForgetAccountError::InitDeviceKeys(err) => Self::InitDeviceKeys(err),
-            CoreForgetAccountError::Internal(err) => Self::Internal(err),
-        }
     }
 }
 

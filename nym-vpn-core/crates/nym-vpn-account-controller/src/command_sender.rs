@@ -7,10 +7,7 @@ use nym_vpn_api_client::{
     response::{NymVpnDevice, NymVpnUsage},
     types::Platform,
 };
-use nym_vpn_lib_types::{
-    AccountCommandError, CreateAccountError, ForgetAccountError, GetMnemonicError,
-    RegisterAccountError, StoreAccountError, SyncAccountError,
-};
+use nym_vpn_lib_types::AccountCommandError;
 use nym_vpn_store::mnemonic::Mnemonic;
 use tokio::sync::mpsc::UnboundedSender;
 
@@ -31,59 +28,41 @@ impl AccountCommandSender {
         Self { command_tx }
     }
 
-    pub async fn store_account(&self, mnemonic: Mnemonic) -> Result<(), StoreAccountError> {
+    pub async fn store_account(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::StoreAccount(tx, mnemonic))
-            .map_err(StoreAccountError::internal)?;
-        rx.await.map_err(StoreAccountError::internal)?
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
     }
 
     pub async fn register_account(
         &self,
         mnemonic: Mnemonic,
         platform: Platform,
-    ) -> Result<RegisterAccountResponse, RegisterAccountError> {
+    ) -> Result<RegisterAccountResponse, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::RegisterAccount(tx, mnemonic, platform))
-            .map_err(RegisterAccountError::internal)?;
-        rx.await.map_err(RegisterAccountError::internal)?
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn login(&self, mnemonic: Mnemonic) -> Result<(), AccountCommandError> {
-        self.store_account(mnemonic).await?;
-        // self.ensure_update_account().await?;
-        // self.ensure_update_device().await?;
-        Ok(())
-    }
-
-    pub async fn get_stored_mnemonic(&self) -> Result<Mnemonic, GetMnemonicError> {
+    pub async fn get_stored_mnemonic(&self) -> Result<Mnemonic, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetStoredMnemonic(tx)))
-            .map_err(GetMnemonicError::internal)?;
-        rx.await.map_err(GetMnemonicError::internal)?
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
     }
 
     pub async fn create_account_command(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::CreateAccount(tx))
-            .map_err(CreateAccountError::internal)?;
-        rx.await.map_err(CreateAccountError::internal)??;
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)??;
         Ok(())
-    }
-
-    pub async fn register_account_command(
-        &self,
-        mnemonic: Mnemonic,
-        platform: Platform,
-    ) -> Result<RegisterAccountResponse, AccountCommandError> {
-        let response = self.register_account(mnemonic, platform).await?;
-        // self.ensure_update_account().await?;
-        // self.ensure_update_device().await?;
-        Ok(response)
     }
 
     pub async fn get_stored_mnemonic_command(&self) -> Result<Mnemonic, AccountCommandError> {
@@ -101,20 +80,20 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn forget_account(&self) -> Result<(), ForgetAccountError> {
+    pub async fn forget_account(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::ForgetAccount(tx))
-            .map_err(ForgetAccountError::internal)?;
-        rx.await.map_err(ForgetAccountError::internal)?
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn background_refresh_account_state(&self) -> Result<(), SyncAccountError> {
+    pub async fn background_refresh_account_state(&self) -> Result<(), AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::RefreshAccountState(tx))
-            .map_err(SyncAccountError::internal)?;
-        rx.await.map_err(SyncAccountError::internal)?
+            .map_err(AccountCommandError::internal)?;
+        rx.await.map_err(AccountCommandError::internal)?
     }
 
     pub async fn reset_device_identity(
