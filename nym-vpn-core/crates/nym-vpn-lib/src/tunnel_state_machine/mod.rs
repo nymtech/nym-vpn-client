@@ -755,7 +755,6 @@ impl account::Error {
     fn error_state_reason(self) -> Option<ErrorStateReason> {
         match self {
             Self::Command(e) => Some(ErrorStateReason::Internal(e.to_string())),
-            Self::ErrorStateReason(e) => Some(e.into()),
             Self::Cancelled => None,
         }
     }

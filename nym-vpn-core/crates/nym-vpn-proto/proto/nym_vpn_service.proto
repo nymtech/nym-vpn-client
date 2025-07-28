@@ -450,27 +450,6 @@ message StoreAccountError {
   }
 }
 
-message SyncAccountError {
-  oneof error_detail {
-    bool no_account_stored = 1;
-    VpnApiError vpn_api = 2;
-    string unexpected_response = 3;
-    bool offline = 5;
-    string internal = 4;
-  }
-}
-
-message SyncDeviceError {
-  oneof error_detail {
-    bool no_account_stored = 1;
-    bool no_device_stored = 2;
-    VpnApiError vpn_api = 3;
-    string unexpected_response = 4;
-    bool offline = 6;
-    string internal = 5;
-  }
-}
-
 message RegisterDeviceError {
   oneof error_detail {
     bool no_account_stored = 1;
