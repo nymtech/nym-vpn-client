@@ -431,8 +431,8 @@ fn filter_on_mixnet_min_performance(
     gateways: &mut Vec<Gateway>,
     min_gateway_performance: &Option<GatewayMinPerformance>,
 ) {
-    if let Some(min_performance) = min_gateway_performance {
-        if let Some(mixnet_min_performance) = min_performance.mixnet_min_performance {
+    if let Some(min_performance) = min_gateway_performance
+        && let Some(mixnet_min_performance) = min_performance.mixnet_min_performance {
             tracing::debug!(
                 "Filtering gateways based on mixnet_min_performance: {:?}",
                 min_performance
@@ -441,7 +441,6 @@ fn filter_on_mixnet_min_performance(
                 gateway.mixnet_performance.unwrap_or_default() >= mixnet_min_performance
             });
         }
-    }
 }
 
 #[cfg(test)]
