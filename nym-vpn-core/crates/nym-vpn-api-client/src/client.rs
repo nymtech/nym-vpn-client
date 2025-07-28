@@ -178,24 +178,20 @@ impl VpnApiClient {
         match self.get_query::<T, E>(path, account, device, None).await {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { status: _, error } = &err {
-                    if jwt_error(&error.to_string()) {
-                        tracing::warn!(
-                            "Encountered possible JWT error: {error}. Retrying query with remote time"
-                        );
-                        if let Ok(Some(jwt)) =
-                            self.sync_with_remote_time().await.inspect_err(|err| {
-                                tracing::error!(
-                                    "Failed to get remote time: {err}. Not retring anymore"
-                                )
-                            })
-                        {
-                            // retry with remote vpn api time, and return that only if it succeeds,
-                            // otherwise return the initial error
-                            let res = self.get_query(path, account, device, Some(jwt)).await;
-                            if res.is_ok() {
-                                return res;
-                            }
+                if let HttpClientError::EndpointFailure { status: _, error } = &err
+                    && jwt_error(&error.to_string())
+                {
+                    tracing::warn!(
+                        "Encountered possible JWT error: {error}. Retrying query with remote time"
+                    );
+                    if let Ok(Some(jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
+                        tracing::error!("Failed to get remote time: {err}. Not retring anymore")
+                    }) {
+                        // retry with remote vpn api time, and return that only if it succeeds,
+                        // otherwise return the initial error
+                        let res = self.get_query(path, account, device, Some(jwt)).await;
+                        if res.is_ok() {
+                            return res;
                         }
                     }
                 }
@@ -351,26 +347,22 @@ impl VpnApiClient {
         {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { status: _, error } = &err {
-                    if jwt_error(&error.to_string()) {
-                        tracing::warn!(
-                            "Encountered possible JWT error: {error}. Retrying query with remote time"
-                        );
-                        if let Ok(Some(jwt)) =
-                            self.sync_with_remote_time().await.inspect_err(|err| {
-                                tracing::error!(
-                                    "Failed to get remote time: {err}. Not retring anymore"
-                                )
-                            })
-                        {
-                            // retry with remote vpn api time, and return that only if it succeeds,
-                            // otherwise return the initial error
-                            let res = self
-                                .post_query(path, json_body, account, device, Some(jwt))
-                                .await;
-                            if res.is_ok() {
-                                return res;
-                            }
+                if let HttpClientError::EndpointFailure { status: _, error } = &err
+                    && jwt_error(&error.to_string())
+                {
+                    tracing::warn!(
+                        "Encountered possible JWT error: {error}. Retrying query with remote time"
+                    );
+                    if let Ok(Some(jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
+                        tracing::error!("Failed to get remote time: {err}. Not retring anymore")
+                    }) {
+                        // retry with remote vpn api time, and return that only if it succeeds,
+                        // otherwise return the initial error
+                        let res = self
+                            .post_query(path, json_body, account, device, Some(jwt))
+                            .await;
+                        if res.is_ok() {
+                            return res;
                         }
                     }
                 }
@@ -419,24 +411,20 @@ impl VpnApiClient {
         match self.delete_query::<T, E>(path, account, device, None).await {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { status: _, error } = &err {
-                    if jwt_error(&error.to_string()) {
-                        tracing::warn!(
-                            "Encountered possible JWT error: {error}. Retrying query with remote time"
-                        );
-                        if let Ok(Some(jwt)) =
-                            self.sync_with_remote_time().await.inspect_err(|err| {
-                                tracing::error!(
-                                    "Failed to get remote time: {err}. Not retring anymore"
-                                )
-                            })
-                        {
-                            // retry with remote vpn api time, and return that only if it succeeds,
-                            // otherwise return the initial error
-                            let res = self.delete_query(path, account, device, Some(jwt)).await;
-                            if res.is_ok() {
-                                return res;
-                            }
+                if let HttpClientError::EndpointFailure { status: _, error } = &err
+                    && jwt_error(&error.to_string())
+                {
+                    tracing::warn!(
+                        "Encountered possible JWT error: {error}. Retrying query with remote time"
+                    );
+                    if let Ok(Some(jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
+                        tracing::error!("Failed to get remote time: {err}. Not retring anymore")
+                    }) {
+                        // retry with remote vpn api time, and return that only if it succeeds,
+                        // otherwise return the initial error
+                        let res = self.delete_query(path, account, device, Some(jwt)).await;
+                        if res.is_ok() {
+                            return res;
                         }
                     }
                 }
@@ -492,26 +480,22 @@ impl VpnApiClient {
         {
             Ok(response) => Ok(response),
             Err(err) => {
-                if let HttpClientError::EndpointFailure { status: _, error } = &err {
-                    if jwt_error(&error.to_string()) {
-                        tracing::warn!(
-                            "Encountered possible JWT error: {error}. Retrying query with remote time"
-                        );
-                        if let Ok(Some(jwt)) =
-                            self.sync_with_remote_time().await.inspect_err(|err| {
-                                tracing::error!(
-                                    "Failed to get remote time: {err}. Not retring anymore"
-                                )
-                            })
-                        {
-                            // retry with remote vpn api time, and return that only if it succeeds,
-                            // otherwise return the initial error
-                            let res = self
-                                .patch_query(path, json_body, account, device, Some(jwt))
-                                .await;
-                            if res.is_ok() {
-                                return res;
-                            }
+                if let HttpClientError::EndpointFailure { status: _, error } = &err
+                    && jwt_error(&error.to_string())
+                {
+                    tracing::warn!(
+                        "Encountered possible JWT error: {error}. Retrying query with remote time"
+                    );
+                    if let Ok(Some(jwt)) = self.sync_with_remote_time().await.inspect_err(|err| {
+                        tracing::error!("Failed to get remote time: {err}. Not retring anymore")
+                    }) {
+                        // retry with remote vpn api time, and return that only if it succeeds,
+                        // otherwise return the initial error
+                        let res = self
+                            .patch_query(path, json_body, account, device, Some(jwt))
+                            .await;
+                        if res.is_ok() {
+                            return res;
                         }
                     }
                 }

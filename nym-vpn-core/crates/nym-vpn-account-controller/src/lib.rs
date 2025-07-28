@@ -1,6 +1,8 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+#![allow(clippy::collapsible_if)]
+
 // The account controller is responsible for
 // 1. checking if the account exists
 // 2. register the device
