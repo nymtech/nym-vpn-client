@@ -55,7 +55,7 @@ impl AccountControllerStateHandler for ReadyState {
                         let error = res.is_err();
                         return_sender.send(res);
                         if error {
-                            return NextAccountControllerState::SameState(self); // SW we might be in an intermediate state here, double check that
+                            return NextAccountControllerState::SameState(self);
                         } else {
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }

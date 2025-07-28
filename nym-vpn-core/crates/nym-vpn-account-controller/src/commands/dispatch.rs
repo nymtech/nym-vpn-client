@@ -25,9 +25,9 @@ pub enum AccountCommand {
         Platform,
     ),
     ForgetAccount(ReturnSender<(), AccountCommandError>),
-    ResetDeviceIdentity(ReturnSender<(), AccountCommandError>, Option<[u8; 32]>), // SW maybe new error type?
+    ResetDeviceIdentity(ReturnSender<(), AccountCommandError>, Option<[u8; 32]>),
 
-    RefreshAccountState(ReturnSender<(), AccountCommandError>), // SW Rename error
+    RefreshAccountState(ReturnSender<(), AccountCommandError>),
 
     Common(CommonCommand),
 }

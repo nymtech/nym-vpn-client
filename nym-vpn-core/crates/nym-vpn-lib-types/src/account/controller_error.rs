@@ -29,3 +29,18 @@ pub enum ErrorStateReason {
     /// Device time is off by too much, Zk-nyms use will fail
     DeviceTimeDesynced,
 }
+
+#[derive(Debug, Clone, Eq, PartialEq, thiserror::Error)]
+pub enum AccountControllerError {
+    #[error("Account controller is offline")]
+    Offline,
+
+    #[error("Account controller has no account stored")]
+    NoAccountStored,
+
+    #[error("Internal error : {0}")]
+    Internal(String),
+
+    #[error("Account controller is in error state. Reason : {0}")]
+    ErrorState(ErrorStateReason),
+}

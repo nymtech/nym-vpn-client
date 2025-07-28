@@ -53,7 +53,7 @@ impl RequestingZkNymsState {
 
         let vpn_api_client = shared_state.vpn_api_client.clone();
 
-        // SW can we make that unique to that state?
+        // can we make that unique to that state?
         let storage = shared_state.credential_storage.clone();
         let credential_mode = shared_state.config.credentials_mode();
         let zk_nym_fetching_handle = tokio::spawn(async move {

@@ -837,7 +837,6 @@ impl NymVpnService {
         &mut self,
         store_request: StoreAccountRequest,
     ) -> Result<(), AccountCommandError> {
-        // SW Parsing mnemonic here and once again later?
         let mnemonic = Mnemonic::parse::<&str>(store_request.mnemonic.as_str())
             .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
         self.account_command_tx.store_account(mnemonic).await
@@ -877,7 +876,7 @@ impl NymVpnService {
         let account_id = self
             .handle_get_account_identity()
             .await
-            .map_err(|_| AccountLinksError::FailedToParseAccountLinks)?; // SW better error management
+            .map_err(|_| AccountLinksError::FailedToParseAccountLinks)?;
 
         self.network_env
             .nym_vpn_network
