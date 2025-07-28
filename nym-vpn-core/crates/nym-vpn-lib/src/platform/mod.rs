@@ -499,8 +499,8 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
     let network_env = environment::current_environment_details().await?;
 
     let account_controller_tx = account::get_command_sender().await?;
+    let account_controller_state = account::get_state_receiver().await?;
 
-    // SW Get a stats reporting channel here and give it to the state_machine
     let statistics_event_sender = stats::get_events_sender().await?;
 
     // Once we have established that the account is ready, we can start the state machine.
@@ -508,6 +508,7 @@ async fn start_vpn_inner(config: VPNConfig) -> Result<(), VpnError> {
         config,
         network_env,
         account_controller_tx,
+        account_controller_state,
         statistics_event_sender,
     )
     .await
