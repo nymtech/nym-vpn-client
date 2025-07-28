@@ -57,29 +57,19 @@ impl VpnApiClient {
                     .with_user_agent(user_agent)
                     .with_timeout(NYM_VPN_API_TIMEOUT);
 
-                if let Some(domain) = base_url.domain() {
-                    match static_addresses {
-                        Some(static_addresses) if !static_addresses.is_empty() => {
-                            tracing::info!(
-                                "Enabling DNS resolver overrides: {:?}", static_addresses
-                            );
-                            builder = builder.resolve_to_addrs(domain, static_addresses);
-                        }
-                        Some(_) => {
-                            tracing::warn!(
-                                "Not enabling DNS resolver overrides because static addresses are empty"
-                            );
-                        }
-                        None => {
-                            tracing::info!(
-                                "Not enabling DNS resolver overrides because static addresses are not set"
-                            );
-                        }
-                    }
-                } else {
+                if let Some(domain) = base_url.domain()
+                    && let Some(static_addresses) = static_addresses
+                    && !static_addresses.is_empty()
+                {
                     tracing::info!(
-                        "Not enabling DNS resolver overrides because domain is not present in base URL"
+                        "Enable DNS resolver overrides: {}",
+                        static_addresses
+                            .iter()
+                            .map(|sockaddr| sockaddr.to_string())
+                            .collect::<Vec<String>>()
+                            .join(", ")
                     );
+                    builder = builder.resolve_to_addrs(domain, static_addresses);
                 }
 
                 builder
