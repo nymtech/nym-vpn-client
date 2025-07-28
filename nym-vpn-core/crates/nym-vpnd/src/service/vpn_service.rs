@@ -849,7 +849,11 @@ impl NymVpnService {
     }
 
     async fn handle_is_account_stored(&self) -> bool {
-        todo!() // SW
+        self.account_command_tx
+            .get_account_id()
+            .await
+            .map(|id| id.is_some())
+            .unwrap_or(false)
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountCommandError> {
