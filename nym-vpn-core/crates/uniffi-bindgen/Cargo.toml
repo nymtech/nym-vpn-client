@@ -8,5 +8,8 @@ documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 uniffi = { workspace = true, features = ["cli"] }

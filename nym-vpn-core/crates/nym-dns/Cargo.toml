@@ -11,6 +11,9 @@ license.workspace = true
 [lib]
 crate-type = ["cdylib", "lib", "staticlib"]
 
+[lints]
+workspace = true
+
 [dependencies]
 nix = { workspace = true, features = ["net"] }
 thiserror.workspace = true
