@@ -82,9 +82,6 @@ pub async fn setup_mixnet_client(
             }
         }
 
-        // We want fresh SURB sender tags on each session
-        debug_config.reply_surbs.fresh_sender_tags = true;
-
         let key_storage_path = StoragePaths::new_from_dir(path)
             .map_err(|err| MixnetError::SetupMixnetStoragePaths(Box::new(err)))?;
 

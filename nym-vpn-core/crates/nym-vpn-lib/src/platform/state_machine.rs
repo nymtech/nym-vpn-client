@@ -126,9 +126,10 @@ pub(super) async fn start_state_machine(
 
     let shutdown_token = CancellationToken::new();
 
+    let validator_client = nym_validator_client::NymApiClient::new(network_env.api_url());
     let topology_provider = VpnTopologyProvider::new(
         network_env.api_url(),
-        Some(user_agent.clone()),
+        validator_client,
         false,
         shutdown_token.child_token(),
     );
