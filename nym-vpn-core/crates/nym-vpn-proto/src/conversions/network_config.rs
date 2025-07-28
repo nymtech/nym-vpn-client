@@ -61,10 +61,29 @@ impl From<proto::NymContracts> for nym_config::defaults::NymContracts {
         Self {
             mixnet_contract_address: contracts.mixnet_contract_address,
             vesting_contract_address: contracts.vesting_contract_address,
+            performance_contract_address: contracts.performance_contract_address,
             ecash_contract_address: contracts.ecash_contract_address,
             group_contract_address: contracts.group_contract_address,
             multisig_contract_address: contracts.multisig_contract_address,
             coconut_dkg_contract_address: contracts.coconut_dkg_contract_address,
+        }
+    }
+}
+
+impl From<proto::ApiUrl> for nym_config::defaults::ApiUrl {
+    fn from(value: proto::ApiUrl) -> Self {
+        Self {
+            url: value.url,
+            front_hosts: Some(value.front_hosts),
+        }
+    }
+}
+
+impl From<nym_config::defaults::ApiUrl> for proto::ApiUrl {
+    fn from(value: nym_config::defaults::ApiUrl) -> Self {
+        Self {
+            url: value.url,
+            front_hosts: value.front_hosts.unwrap_or_default(),
         }
     }
 }
@@ -89,14 +108,25 @@ impl TryFrom<proto::NymNetworkDetails> for nym_config::defaults::NymNetworkDetai
             .clone()
             .map(nym_config::defaults::NymContracts::from)
             .ok_or_else(|| ConversionError::Generic("missing contracts".to_string()))?;
+        let nym_api_urls = details
+            .nym_api_urls
+            .into_iter()
+            .map(nym_config::defaults::ApiUrl::from)
+            .collect();
+        let nym_vpn_api_urls = details
+            .nym_vpn_api_urls
+            .into_iter()
+            .map(nym_config::defaults::ApiUrl::from)
+            .collect();
 
         Ok(Self {
             network_name: details.network_name,
             chain_details,
             endpoints,
             contracts,
-            explorer_api: None,
-            nym_vpn_api_url: None,
+            nym_vpn_api_url: details.nym_vpn_api_url,
+            nym_api_urls: Some(nym_api_urls),
+            nym_vpn_api_urls: Some(nym_vpn_api_urls),
         })
     }
 }
@@ -182,6 +212,7 @@ impl From<nym_config::defaults::NymContracts> for proto::NymContracts {
         proto::NymContracts {
             mixnet_contract_address: contracts.mixnet_contract_address,
             vesting_contract_address: contracts.vesting_contract_address,
+            performance_contract_address: contracts.performance_contract_address,
             ecash_contract_address: contracts.ecash_contract_address,
             group_contract_address: contracts.group_contract_address,
             multisig_contract_address: contracts.multisig_contract_address,
@@ -205,16 +236,35 @@ impl From<nym_config::defaults::ValidatorDetails> for proto::ValidatorDetails {
 
 impl From<nym_vpn_network_config::NymNetwork> for proto::NymNetworkDetails {
     fn from(nym_network: nym_vpn_network_config::NymNetwork) -> Self {
+        let endpoints = nym_network
+            .network
+            .endpoints
+            .into_iter()
+            .map(proto::ValidatorDetails::from)
+            .collect();
+        let nym_api_urls = nym_network
+            .network
+            .nym_api_urls
+            .unwrap_or_default()
+            .into_iter()
+            .map(proto::ApiUrl::from)
+            .collect();
+        let nym_vpn_api_urls = nym_network
+            .network
+            .nym_vpn_api_urls
+            .unwrap_or_default()
+            .into_iter()
+            .map(proto::ApiUrl::from)
+            .collect();
+
         proto::NymNetworkDetails {
             network_name: nym_network.network.network_name,
             chain_details: Some(nym_network.network.chain_details.into()),
-            endpoints: nym_network
-                .network
-                .endpoints
-                .into_iter()
-                .map(proto::ValidatorDetails::from)
-                .collect(),
+            endpoints,
             contracts: Some(nym_network.network.contracts.into()),
+            nym_vpn_api_url: nym_network.network.nym_vpn_api_url,
+            nym_api_urls,
+            nym_vpn_api_urls,
         }
     }
 }

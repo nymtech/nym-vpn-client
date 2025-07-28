@@ -16,7 +16,7 @@ use tokio_util::sync::CancellationToken;
 use url::Url;
 
 use nym_client_core::{NymTopology, client::topology_control::nym_api_provider::Config};
-use nym_sdk::{NymApiTopologyProvider, TopologyProvider, UserAgent};
+use nym_sdk::{NymApiTopologyProvider, TopologyProvider};
 
 enum FetcherCommand {
     Fetch {
@@ -32,7 +32,7 @@ enum FetcherCommand {
 struct Fetcher {
     topology_provider: NymApiTopologyProvider,
     nym_api_urls: Vec<Url>,
-    user_agent: Option<UserAgent>,
+    validator_client: nym_validator_client::NymApiClient,
     command_rx: UnboundedReceiver<FetcherCommand>,
     cancel_token: CancellationToken,
 }
@@ -47,7 +47,7 @@ impl Fetcher {
 
     fn new(
         nym_api_urls: Vec<Url>,
-        user_agent: Option<UserAgent>,
+        validator_client: nym_validator_client::NymApiClient,
         command_rx: UnboundedReceiver<FetcherCommand>,
         cancel_token: CancellationToken,
     ) -> Self {
@@ -55,10 +55,10 @@ impl Fetcher {
             topology_provider: NymApiTopologyProvider::new(
                 Self::DEFAULT_CONFIG,
                 nym_api_urls.clone(),
-                user_agent.clone(),
+                validator_client.clone(),
             ),
             nym_api_urls,
-            user_agent,
+            validator_client,
             command_rx,
             cancel_token,
         }
@@ -80,8 +80,11 @@ impl Fetcher {
         if let Some(min_gateway_performance) = min_gateway_performance {
             config.min_gateway_performance = min_gateway_performance;
         }
-        self.topology_provider =
-            NymApiTopologyProvider::new(config, self.nym_api_urls.clone(), self.user_agent.clone());
+        self.topology_provider = NymApiTopologyProvider::new(
+            config,
+            self.nym_api_urls.clone(),
+            self.validator_client.clone(),
+        );
     }
 
     async fn handle_command(&mut self, cmd: FetcherCommand) {
@@ -132,12 +135,17 @@ pub struct VpnTopologyProvider {
 impl VpnTopologyProvider {
     pub fn new(
         nym_api_url: Url,
-        user_agent: Option<UserAgent>,
+        validator_client: nym_validator_client::NymApiClient,
         use_network: bool,
         cancel_token: CancellationToken,
     ) -> Self {
         let (command_tx, command_rx) = tokio::sync::mpsc::unbounded_channel();
-        let refresher = Fetcher::new(vec![nym_api_url], user_agent, command_rx, cancel_token);
+        let refresher = Fetcher::new(
+            vec![nym_api_url],
+            validator_client,
+            command_rx,
+            cancel_token,
+        );
         tokio::spawn(refresher.run());
 
         Self {

@@ -360,7 +360,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
 
         let gateway_config = gateway_directory::Config {
             nyxd_url,
-            api_url,
+            api_url: api_url.clone(),
             nym_vpn_api_url: Some(parameters.network_env.vpn_api_url()),
             min_gateway_performance: None,
             mix_score_thresholds,
@@ -379,9 +379,13 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             CachingGatewayClient::new(gateway_directory_client, Some(connectivity_handle.clone()));
         gateway_directory_client.refresh_all().await;
 
+        let validator_client = nym_validator_client::NymApiClient::new_with_user_agent(
+            api_url,
+            parameters.user_agent.clone(),
+        );
         let topology_provider = VpnTopologyProvider::new(
             parameters.network_env.api_url(),
-            Some(parameters.user_agent.clone()),
+            validator_client,
             false,
             shutdown_token.child_token(),
         );

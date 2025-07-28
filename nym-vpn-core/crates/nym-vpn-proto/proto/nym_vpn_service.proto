@@ -67,6 +67,11 @@ message Url {
   string url = 1;
 }
 
+message ApiUrl {
+  string url = 1;
+  repeated string front_hosts = 2;
+}
+
 // Inspired by
 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/User-Agent
 // Forward slashes '/' are not valid
@@ -110,10 +115,11 @@ message ChainDetails {
 message NymContracts {
   optional string mixnet_contract_address = 1;
   optional string vesting_contract_address = 2;
-  optional string ecash_contract_address = 3;
-  optional string group_contract_address = 4;
-  optional string multisig_contract_address = 5;
-  optional string coconut_dkg_contract_address = 6;
+  optional string performance_contract_address = 3;
+  optional string ecash_contract_address = 4;
+  optional string group_contract_address = 5;
+  optional string multisig_contract_address = 6;
+  optional string coconut_dkg_contract_address = 7;
 }
 
 message NymNetworkDetails {
@@ -121,6 +127,9 @@ message NymNetworkDetails {
   ChainDetails chain_details = 2;
   repeated ValidatorDetails endpoints = 3;
   NymContracts contracts = 4;
+  optional string nym_vpn_api_url = 5;
+  repeated ApiUrl nym_api_urls = 6;
+  repeated ApiUrl nym_vpn_api_urls = 7;
 }
 
 message NymVpnNetworkDetails {
