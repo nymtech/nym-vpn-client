@@ -4,7 +4,10 @@
 use std::{path::PathBuf, sync::Arc};
 
 use sentry::integrations::tracing as sentry_tracing;
-use tokio::sync::{Mutex, mpsc};
+use tokio::{
+    sync::{Mutex, mpsc},
+    task::JoinHandle,
+};
 use tokio_util::sync::CancellationToken;
 use tracing::Level;
 use tracing_appender::{non_blocking::WorkerGuard, rolling::RollingFileAppender};
@@ -17,13 +20,6 @@ use tracing_subscriber::{
 use nym_vpnd_types::log_path::LogPath;
 
 use crate::service;
-
-pub struct Options {
-    pub verbosity_level: Level,
-    pub enable_file_log: bool,
-    pub enable_stdout_log: bool,
-    pub sentry: bool,
-}
 
 static INFO_CRATES: &[&str; 12] = &[
     "hyper",
@@ -42,15 +38,22 @@ static INFO_CRATES: &[&str; 12] = &[
 
 static WARN_CRATES: &[&str; 1] = &["hickory_server"];
 
+pub struct Options {
+    pub verbosity_level: Level,
+    pub enable_file_log: bool,
+    pub enable_stdout_log: bool,
+    pub sentry: bool,
+}
+
 #[derive(Clone, Debug)]
-pub(crate) struct FileAppender {
+pub struct FileAppender {
     inner: Arc<Mutex<Option<RollingFileAppender>>>,
     log_dir: PathBuf,
     log_file: String,
 }
 
 impl FileAppender {
-    pub(crate) fn new() -> Self {
+    pub fn new() -> Self {
         let log_dir = service::log_dir();
         let log_file = service::DEFAULT_LOG_FILE.to_string();
 
@@ -78,7 +81,7 @@ impl FileAppender {
         }
     }
 
-    pub(crate) async fn refresh(&mut self) {
+    pub async fn refresh(&mut self) {
         let mut file_path = self.log_dir.clone();
         file_path.push(&self.log_file);
         let mut file_lock = self.inner.lock().await;
@@ -96,53 +99,61 @@ impl FileAppender {
     }
 }
 
-pub(crate) struct LogFileRemover {
+pub struct LogFileRemover {
     command_rx: mpsc::UnboundedReceiver<()>,
-    logging_setup: LoggingSetup,
-    shutdown_token: CancellationToken,
+    file_appender: FileAppender,
+    shutdown_handle: CancellationToken,
 }
 
 impl LogFileRemover {
-    pub(crate) fn new(
-        tunnel_event_rx: mpsc::UnboundedReceiver<()>,
-        logging_setup: LoggingSetup,
-        shutdown_token: CancellationToken,
-    ) -> Self {
-        Self {
-            command_rx: tunnel_event_rx,
-            logging_setup,
-            shutdown_token,
-        }
+    pub fn spawn(
+        file_appender: FileAppender,
+        shutdown_handle: CancellationToken,
+    ) -> (LogFileRemoverHandle, JoinHandle<()>) {
+        let (tx, rx) = mpsc::unbounded_channel();
+        let file_remover = Self {
+            command_rx: rx,
+            file_appender,
+            shutdown_handle,
+        };
+        let join_handle = tokio::spawn(file_remover.run());
+        let remove_file_handle = LogFileRemoverHandle { tx };
+        (remove_file_handle, join_handle)
     }
 
-    pub(crate) async fn run(mut self) -> WorkerGuard {
+    async fn run(mut self) {
         loop {
             tokio::select! {
                 Some(_) = self.command_rx.recv() => {
                     tracing::debug!("Received command to delete log file");
-                    self.handle_delete_log_file().await;
+                    self.file_appender.refresh().await
                 }
-                _ = self.shutdown_token.cancelled() => {
-                    tracing::debug!("Received shutdown signal");
-                    break;
-                }
-                else => {
-                    tracing::warn!("Event loop is interrupted");
+                _ = self.shutdown_handle.cancelled() => {
+                    tracing::warn!("Exiting log file remover event loop");
                     break;
                 }
             }
         }
-        self.logging_setup.worker_guard
     }
+}
 
-    pub(crate) async fn handle_delete_log_file(&mut self) {
-        self.logging_setup.file_appender.refresh().await
+/// Interface for interacting with the log file remover.
+#[derive(Clone)]
+pub struct LogFileRemoverHandle {
+    tx: mpsc::UnboundedSender<()>,
+}
+
+impl LogFileRemoverHandle {
+    pub fn remove_log_file(&self) {
+        if self.tx.send(()).is_err() {
+            tracing::warn!("Log file remover channel is already closed");
+        }
     }
 }
 
 pub struct LoggingSetup {
-    worker_guard: WorkerGuard,
-    file_appender: FileAppender,
+    pub worker_guard: WorkerGuard,
+    pub file_appender: FileAppender,
     pub log_path: LogPath,
 }
 
@@ -158,6 +169,17 @@ impl LoggingSetup {
             log_path,
         }
     }
+}
+
+pub struct LoggingSetupWithFileRemover {
+    /// Handle for removing the log file
+    pub log_file_remover_handle: LogFileRemoverHandle,
+    /// Join handle for the file remover worker
+    pub log_file_remover_join_handle: JoinHandle<()>,
+    pub log_path: LogPath,
+    /// A guard that flushes the log file when dropped.
+    /// This worker guard should be retained for the lifetime of application.
+    pub worker_guard: WorkerGuard,
 }
 
 pub fn default_log_path() -> LogPath {
@@ -265,13 +287,24 @@ pub fn setup_logging(options: Options) -> Option<LoggingSetup> {
         .init();
 
     log_panics::init();
-
-    let build_info = nym_bin_common::bin_info_local_vergen!();
-    tracing::info!(
-        "{} {} ({})",
-        build_info.binary_name,
-        build_info.build_version,
-        build_info.commit_sha
-    );
     worker_guard
+}
+
+pub fn setup_logging_with_file_remover(
+    options: Options,
+    shutdown_token: CancellationToken,
+) -> Option<LoggingSetupWithFileRemover> {
+    let logging_setup = setup_logging(options);
+
+    logging_setup.map(|logging_setup| {
+        let (log_file_remover_handle, log_file_remover_join_handle) =
+            LogFileRemover::spawn(logging_setup.file_appender, shutdown_token);
+
+        LoggingSetupWithFileRemover {
+            log_file_remover_handle,
+            log_file_remover_join_handle,
+            log_path: logging_setup.log_path,
+            worker_guard: logging_setup.worker_guard,
+        }
+    })
 }
