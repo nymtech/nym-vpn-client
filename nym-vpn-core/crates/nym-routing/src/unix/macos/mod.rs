@@ -301,8 +301,8 @@ impl RouteManagerImpl {
     async fn get_gateway_link_address(&mut self, gateway_ip: IpAddr) -> Option<Gateway> {
         let gateway_msg = RouteMessage::new_route(Destination::Host(gateway_ip));
 
-        if let Ok(Some(msg)) = self.routing_table.get_route(&gateway_msg).await {
-            if let Some(gateway) = msg
+        if let Ok(Some(msg)) = self.routing_table.get_route(&gateway_msg).await
+            && let Some(gateway) = msg
                 .gateway()
                 .and_then(|gateway| gateway.as_link_addr())
                 .and_then(|addr| addr.addr())
@@ -313,7 +313,6 @@ impl RouteManagerImpl {
                     mac_address,
                 });
             }
-        }
         None
     }
 

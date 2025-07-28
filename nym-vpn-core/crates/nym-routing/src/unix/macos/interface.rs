@@ -262,8 +262,8 @@ impl PrimaryInterfaceMonitor {
         let index = u16::try_from(index).unwrap();
 
         let mut router_ip = service.router_ip;
-        if let IpAddr::V6(addr) = &mut router_ip {
-            if is_link_local_v6(addr) {
+        if let IpAddr::V6(addr) = &mut router_ip
+            && is_link_local_v6(addr) {
                 // The second pair of octets should be set to the scope id
                 // See getaddr() in route.c:
                 // https://opensource.apple.com/source/network_cmds/network_cmds-396.6/route.tproj/route.c.auto.html
@@ -276,7 +276,6 @@ impl PrimaryInterfaceMonitor {
 
                 *addr = Ipv6Addr::from(octets);
             }
-        }
 
         Some(DefaultRoute {
             interface: service.interface_name.clone(),
