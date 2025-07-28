@@ -3,8 +3,6 @@
 
 pub use nym_contracts_common::Percent;
 
-use crate::VpnApiClientError;
-
 #[derive(Clone, Copy, Default, Debug)]
 pub struct GatewayMinPerformance {
     pub mixnet_min_performance: Option<Percent>,
@@ -15,15 +13,13 @@ impl GatewayMinPerformance {
     pub fn from_percentage_values(
         mixnet_min_performance: Option<u64>,
         vpn_min_performance: Option<u64>,
-    ) -> Result<Self, VpnApiClientError> {
+    ) -> Result<Self, nym_contracts_common::ContractsCommonError> {
         let mixnet_min_performance = mixnet_min_performance
             .map(Percent::from_percentage_value)
-            .transpose()
-            .map_err(VpnApiClientError::InvalidPercentValue)?;
+            .transpose()?;
         let vpn_min_performance = vpn_min_performance
             .map(Percent::from_percentage_value)
-            .transpose()
-            .map_err(VpnApiClientError::InvalidPercentValue)?;
+            .transpose()?;
         Ok(Self {
             mixnet_min_performance,
             vpn_min_performance,
