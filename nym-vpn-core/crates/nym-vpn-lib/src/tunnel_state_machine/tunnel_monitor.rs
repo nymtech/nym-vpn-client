@@ -24,8 +24,6 @@ use std::{
 };
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-use tokio_util::task;
 
 #[cfg(windows)]
 use super::wintun::{self, WintunAdapterConfig};
@@ -812,7 +810,7 @@ impl TunnelMonitor {
 
         let tunnel_handle = AnyTunnelHandle::from(
             connected_tunnel
-                .run(task_manager, tunnel_options)
+                .run(tunnel_options)
                 .await
                 .map_err(Box::new)?,
         );
@@ -1013,7 +1011,7 @@ impl TunnelMonitor {
 
         let tunnel_handle = AnyTunnelHandle::from(
             connected_tunnel
-                .run(task_manager, tunnel_options)
+                .run(tunnel_options)
                 .await
                 .map_err(Box::new)?,
         );
