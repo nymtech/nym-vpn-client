@@ -263,21 +263,13 @@ impl TunnelMonitor {
 
     async fn run(mut self) -> Tombstone {
         let mut task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMEOUT_SECS);
-        let shared_mixnet_client = SharedMixnetClient::default();
-
-        let (tombstone, reason) =
-            match Box::pin(self.run_inner(&mut task_manager, shared_mixnet_client.clone())).await {
-                Ok(tombstone) => (tombstone, None),
-                Err(e) => {
-                    trace_err_chain!(e, "Tunnel monitor exited with error");
-                    (Tombstone::default(), e.error_state_reason())
-                }
-            };
-
-        if let Some(mixnet_client) = shared_mixnet_client.lock().await.take() {
-            tracing::debug!("Drop mixnet client");
-            mixnet_client.disconnect().await;
-        }
+        let (tombstone, reason) = match Box::pin(self.run_inner(&mut task_manager)).await {
+            Ok(tombstone) => (tombstone, None),
+            Err(e) => {
+                trace_err_chain!(e, "Tunnel monitor exited with error");
+                (Tombstone::default(), e.error_state_reason())
+            }
+        };
 
         tracing::debug!("Waiting for task manager to shutdown");
         if task_manager.signal_shutdown().is_err() {
@@ -298,11 +290,7 @@ impl TunnelMonitor {
         tombstone
     }
 
-    async fn run_inner(
-        &mut self,
-        task_manager: &mut TaskManager,
-        shared_mixnet_client: SharedMixnetClient,
-    ) -> Result<Tombstone> {
+    async fn run_inner(&mut self, task_manager: &mut TaskManager) -> Result<Tombstone> {
         if self.tunnel_parameters.retry_attempt > 0 {
             let delay = wait_delay(self.tunnel_parameters.retry_attempt);
             tracing::debug!("Waiting for {}s before connecting.", delay.as_secs());
@@ -447,7 +435,6 @@ impl TunnelMonitor {
         };
         let mut connected_mixnet = Box::pin(tunnel::connect_mixnet(
             task_manager,
-            shared_mixnet_client,
             connect_options,
             &self.tunnel_parameters.nym_config.network_env,
             self.gateway_directory_client.clone(),
