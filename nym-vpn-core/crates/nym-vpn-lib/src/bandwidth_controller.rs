@@ -3,8 +3,8 @@
 
 use std::time::Duration;
 
-use nym_vpn_network_config::Network;
 use tokio_stream::{StreamExt, wrappers::IntervalStream};
+use tokio_util::sync::CancellationToken;
 
 use nym_common::ErrorExt;
 use nym_credentials_interface::TicketType;
@@ -17,6 +17,7 @@ use nym_validator_client::{
     QueryHttpRpcNyxdClient,
     nyxd::{Config as NyxdClientConfig, NyxdClient},
 };
+use nym_vpn_network_config::Network;
 use nym_wg_gateway_client::{
     ErrorMessage, GatewayData, TICKETS_TO_SPEND, WgGatewayClient, WgGatewayLightClient,
 };
@@ -167,7 +168,8 @@ pub(crate) struct BandwidthController<St> {
     exit_depletion_rate: DepletionRate,
     entry_previous_empty_query: bool,
     exit_previous_empty_query: bool,
-    shutdown: TaskClient,
+    task_client: TaskClient,
+    shutdown_token: CancellationToken,
 }
 
 impl<St: Storage> BandwidthController<St> {
@@ -176,7 +178,8 @@ impl<St: Storage> BandwidthController<St> {
         network: &Network,
         wg_entry_gateway_client: WgGatewayLightClient,
         wg_exit_gateway_client: WgGatewayLightClient,
-        shutdown: TaskClient,
+        task_client: TaskClient,
+        shutdown_token: CancellationToken,
     ) -> Result<Self> {
         let client = get_nyxd_client(network)?;
         let inner = nym_bandwidth_controller::BandwidthController::new(storage, client);
@@ -192,7 +195,8 @@ impl<St: Storage> BandwidthController<St> {
             exit_depletion_rate: Default::default(),
             entry_previous_empty_query: false,
             exit_previous_empty_query: false,
-            shutdown,
+            task_client,
+            shutdown_token,
         })
     }
 
@@ -276,7 +280,10 @@ impl<St: Storage> BandwidthController<St> {
         };
 
         tokio::select! {
-            _ = self.shutdown.recv() => {
+            _ = self.shutdown_token.cancelled() => {
+                tracing::trace!("BandwidthController: Received shutdown");
+            }
+            _ = self.task_client.recv() => {
                 tracing::trace!("BandwidthController: Received shutdown");
             }
             ret = wg_gateway_client.query_bandwidth() => {
@@ -308,7 +315,7 @@ impl<St: Storage> BandwidthController<St> {
                                 {
                                     tracing::warn!("Error topping up with more bandwidth {:?}", e);
                                     // TODO: try to return this error in the JoinHandle instead
-                                    self.shutdown
+                                    self.task_client
                                         .send_we_stopped(Box::new(ErrorMessage::OutOfBandwidth {
                                             gateway_id: Box::new(
                                                 wg_gateway_client.auth_recipient().gateway(),
@@ -323,7 +330,7 @@ impl<St: Storage> BandwidthController<St> {
                     }
                     Ok(None) => {
                         if (entry && self.entry_previous_empty_query) || (!entry && self.exit_previous_empty_query) {
-                            self.shutdown
+                            self.task_client
                             .send_we_stopped(Box::new(ErrorMessage::DisconnectedByGateway {
                                 gateway_id: Box::new(
                                     wg_gateway_client.auth_recipient().gateway(),
@@ -356,9 +363,12 @@ impl<St: Storage> BandwidthController<St> {
     {
         // Skip the first, immediate tick
         self.timeout_check_interval.next().await;
-        while !self.shutdown.is_shutdown() {
+        while !self.task_client.is_shutdown() {
             tokio::select! {
-                _ = self.shutdown.recv() => {
+                _ = self.shutdown_token.cancelled() => {
+                    tracing::trace!("BandwidthController: Received shutdown");
+                }
+                _ = self.task_client.recv() => {
                     tracing::trace!("BandwidthController: Received shutdown");
                 }
                 _ = self.timeout_check_interval.next() => {
