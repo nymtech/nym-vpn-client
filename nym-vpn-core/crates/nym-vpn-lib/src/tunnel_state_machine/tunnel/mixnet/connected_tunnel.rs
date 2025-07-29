@@ -1,7 +1,7 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{error::Error as StdError, time::Duration};
+use std::time::Duration;
 
 use nym_task::TaskManager;
 use tokio::{
@@ -125,7 +125,7 @@ impl TunnelHandle {
     }
 
     /// Wait until the tunnel finished execution.
-    pub async fn wait(mut self) -> Result<Result<Tombstone, MixnetError>, JoinError> {
+    pub async fn wait(self) -> Result<Result<Tombstone, MixnetError>, JoinError> {
         tracing::trace!("Waiting for mixnet processor handle");
         self.processor_handle
             .await
