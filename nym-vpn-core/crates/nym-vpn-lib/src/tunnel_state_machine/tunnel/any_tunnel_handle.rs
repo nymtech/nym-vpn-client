@@ -38,15 +38,6 @@ impl AnyTunnelHandle {
         }
     }
 
-    pub async fn recv_error(
-        &mut self,
-    ) -> Option<Box<dyn std::error::Error + 'static + Send + Sync>> {
-        match self {
-            Self::Mixnet(handle) => handle.recv_error().await,
-            Self::Wireguard(handle) => handle.recv_error().await,
-        }
-    }
-
     pub async fn wait(self) -> Result<Tombstone> {
         match self {
             Self::Mixnet(handle) => match handle.wait().await {

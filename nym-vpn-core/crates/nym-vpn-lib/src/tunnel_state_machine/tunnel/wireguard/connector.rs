@@ -29,32 +29,31 @@ pub struct ConnectionData {
 }
 
 pub struct Connector {
-    task_manager: TaskManager,
     mixnet_client: SharedMixnetClient,
     gateway_directory_client: CachingGatewayClient,
 }
 
 impl Connector {
     pub fn new(
-        task_manager: TaskManager,
         mixnet_client: SharedMixnetClient,
         gateway_directory_client: CachingGatewayClient,
     ) -> Self {
         Self {
-            task_manager,
             mixnet_client,
             gateway_directory_client,
         }
     }
+
     pub async fn connect(
         self,
+        task_manager: &TaskManager,
         network: &Network,
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
         cancel_token: CancellationToken,
     ) -> Result<ConnectedTunnel, ConnectorError> {
-        let result = Box::pin(Self::connect_inner(
-            &self.task_manager,
+        let connect_result = Box::pin(Self::connect_inner(
+            task_manager,
             network,
             self.mixnet_client.clone(),
             self.gateway_directory_client.clone(),
@@ -62,26 +61,24 @@ impl Connector {
             data_path,
             cancel_token,
         ))
-        .await;
-
-        match result {
-            Ok(connect_result) => Ok(ConnectedTunnel::new(
-                self.task_manager,
-                connect_result.entry_gateway_client,
-                connect_result.exit_gateway_client,
-                connect_result.connection_data,
-                connect_result.bandwidth_controller_handle,
-                connect_result.auth_client_mixnet_listener_handle,
-            )),
-            Err(e) => Err(ConnectorError::new(
+        .await
+        .map_err(|e| {
+            ConnectorError::new(
                 e,
                 AnyConnector::Wireguard(Self::new(
-                    self.task_manager,
                     self.mixnet_client,
                     self.gateway_directory_client,
                 )),
-            )),
-        }
+            )
+        })?;
+
+        Ok(ConnectedTunnel::new(
+            connect_result.entry_gateway_client,
+            connect_result.exit_gateway_client,
+            connect_result.connection_data,
+            connect_result.bandwidth_controller_handle,
+            connect_result.auth_client_mixnet_listener_handle,
+        ))
     }
 
     #[allow(clippy::too_many_arguments)]
@@ -222,12 +219,6 @@ impl Connector {
             entry_authenticator_address,
             exit_authenticator_address,
         ))
-    }
-
-    /// Gracefully shutdown task manager and mixnet client, and consume the struct.
-    pub async fn dispose(self) {
-        tracing::debug!("Shutting down mixnet client");
-        tunnel::shutdown_mixnet_client(self.task_manager, self.mixnet_client).await;
     }
 }
 
