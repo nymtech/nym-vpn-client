@@ -21,7 +21,6 @@ use crate::{
 
 /// Type representing a connected mixnet tunnel.
 pub struct ConnectedTunnel {
-    task_manager: TaskManager,
     mixnet_client: SharedMixnetClient,
     assigned_addresses: AssignedAddresses,
     cancel_token: CancellationToken,
@@ -29,13 +28,11 @@ pub struct ConnectedTunnel {
 
 impl ConnectedTunnel {
     pub fn new(
-        task_manager: TaskManager,
         mixnet_client: SharedMixnetClient,
         assigned_addresses: AssignedAddresses,
         cancel_token: CancellationToken,
     ) -> Self {
         Self {
-            task_manager,
             mixnet_client,
             assigned_addresses,
             cancel_token,
@@ -46,7 +43,11 @@ impl ConnectedTunnel {
         &self.assigned_addresses
     }
 
-    pub async fn run(self, tun_device: AsyncDevice) -> Result<TunnelHandle> {
+    pub async fn run(
+        self,
+        task_manager: &TaskManager,
+        tun_device: AsyncDevice,
+    ) -> Result<TunnelHandle> {
         let connection_monitor = ConnectionMonitorTask::setup();
 
         let processor_config = MixnetProcessorConfig::new(
@@ -60,7 +61,7 @@ impl ConnectedTunnel {
             processor_config,
             tun_device,
             self.mixnet_client.clone(),
-            &self.task_manager,
+            task_manager,
             &connection_monitor,
             self.cancel_token.clone(),
             ipr_disconnect_tx,
@@ -80,11 +81,10 @@ impl ConnectedTunnel {
             // todo: not fully possible to disable IPv6 because IpPair is passed.
             self.assigned_addresses.interface_addresses,
             self.assigned_addresses.exit_mix_addresses.into(),
-            &self.task_manager,
+            task_manager,
         );
 
         Ok(TunnelHandle {
-            task_manager: self.task_manager,
             processor_handle,
             processor_disconnected: Some(ipr_disconnect_rx),
         })
@@ -95,7 +95,6 @@ pub type ProcessorHandle = JoinHandle<Result<AsyncDevice, MixnetError>>;
 
 /// Type providing a back channel for tunnel errors and a way to wait for tunnel to finish execution.
 pub struct TunnelHandle {
-    task_manager: TaskManager,
     processor_handle: ProcessorHandle,
     processor_disconnected: Option<oneshot::Receiver<()>>,
 }
@@ -104,10 +103,6 @@ impl TunnelHandle {
     /// Cancel tunnel execution.
     pub async fn cancel(&mut self) {
         self.wait_for_processor_disconnect().await;
-
-        if let Err(e) = self.task_manager.signal_shutdown() {
-            tracing::error!("Failed to signal task manager shutdown: {}", e);
-        }
     }
 
     async fn wait_for_processor_disconnect(&mut self) {
@@ -129,20 +124,8 @@ impl TunnelHandle {
         }
     }
 
-    /// Wait for the next error.
-    ///
-    /// This method is cancel safe.
-    /// Returns `None` if the underlying channel has been closed.
-    pub async fn recv_error(&mut self) -> Option<Box<dyn StdError + 'static + Send + Sync>> {
-        self.task_manager.wait_for_error().await
-    }
-
     /// Wait until the tunnel finished execution.
     pub async fn wait(mut self) -> Result<Result<Tombstone, MixnetError>, JoinError> {
-        // First we need to wait for all the mixnet tasks to finish
-        tracing::trace!("Waiting for task manager shutdown");
-        self.task_manager.wait_for_graceful_shutdown().await;
-
         tracing::trace!("Waiting for mixnet processor handle");
         self.processor_handle
             .await
