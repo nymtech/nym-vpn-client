@@ -18588,6 +18588,9 @@
         }
       }
     },
+    "Key" : {
+      "extractionState" : "manual"
+    },
     "lastHopSelection" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -25452,6 +25455,28 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "开始"
+          }
+        }
+      }
+    },
+    "settings.ipv6.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Disable to only use IPv4"
+          }
+        }
+      }
+    },
+    "settings.ipv6.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "IPv6 traffic tunneling"
           }
         }
       }

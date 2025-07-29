@@ -309,17 +309,35 @@ private extension SettingsViewModel {
     }
 
     func killswitchSection() -> SettingsSection {
-        .killSwitch(
-            viewModels: [
-                SettingsListItemViewModel(
-                    accessory: .toggle(viewModel: ToggleViewModel(isOn: true, isDisabled: true)),
-                    title: "settings.killswitch.title".localizedString,
-                    subtitle: "settings.killswitch.subtitle".localizedString,
-                    systemImageName: "power",
-                    action: {}
-                )
-            ]
+        var viewModels = [SettingsListItemViewModel]()
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .toggle(viewModel: ToggleViewModel(isOn: true, isDisabled: true)),
+                title: "settings.killswitch.title".localizedString,
+                subtitle: "settings.killswitch.subtitle".localizedString,
+                systemImageName: "power",
+                action: {}
+            )
         )
+#if os(macOS)
+        viewModels.append(
+            SettingsListItemViewModel(
+                accessory: .toggle(
+                    viewModel: ToggleViewModel(
+                        isOn: appSettings.isIPv6TrafficEnabled,
+                        action: { [weak self] isOn in
+                            self?.appSettings.isIPv6TrafficEnabled = isOn
+                        }
+                    )
+                ),
+                title: "settings.ipv6.title".localizedString,
+                subtitle: "settings.ipv6.subtitle".localizedString,
+                systemImageName: "key",
+                action: {}
+            )
+        )
+#endif
+        return .killSwitch(viewModels: viewModels)
     }
 
     func legalSection() -> SettingsSection {

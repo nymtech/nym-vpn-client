@@ -32,7 +32,8 @@ extension ConnectionManager {
         try await grpcManager.connect(
             entryGateway: config.entryGateway,
             exitRouter: config.exitRouter,
-            isTwoHopEnabled: config.isTwoHopEnabled
+            isTwoHopEnabled: config.isTwoHopEnabled,
+            disableIPv6: !appSettings.isIPv6TrafficEnabled
         )
     }
 
