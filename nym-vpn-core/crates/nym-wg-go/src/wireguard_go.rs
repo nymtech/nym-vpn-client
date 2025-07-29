@@ -317,13 +317,35 @@ unsafe extern "C" {
 /// Do not call this method directly.
 #[doc(hidden)]
 pub unsafe extern "system" fn wg_logger_callback(
-    _log_level: u32,
+    log_level: u32,
     msg: *const c_char,
     _ctx: *mut c_void,
 ) {
-    if !msg.is_null() {
+    if let Some(wg_log_level) = WgLogLevel::from_u32(log_level)
+        && !msg.is_null()
+    {
         let str = unsafe { CStr::from_ptr(msg).to_string_lossy() };
         let trimmed_str = str.trim_end();
-        tracing::debug!("{}", trimmed_str);
+
+        match wg_log_level {
+            WgLogLevel::Error => tracing::error!("{trimmed_str}"),
+            WgLogLevel::Verbose => tracing::trace!("{trimmed_str}"),
+        }
+    }
+}
+
+#[repr(u32)]
+enum WgLogLevel {
+    Error = 1,
+    Verbose = 2,
+}
+
+impl WgLogLevel {
+    fn from_u32(value: u32) -> Option<Self> {
+        match value {
+            x if x == WgLogLevel::Error as u32 => Some(WgLogLevel::Error),
+            x if x == WgLogLevel::Verbose as u32 => Some(WgLogLevel::Verbose),
+            _ => None,
+        }
     }
 }
