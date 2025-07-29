@@ -7,11 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- macOS: IPv6 toggle in settings
+
 ### Fixed
 
 - Connection time jumping
 
-## [2.7.0] - 2025-07-xx
+## [2.7.0] - 2025-07-28
 
 ### Added
 
