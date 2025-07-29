@@ -4312,14 +4312,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Belongs only to you(self-custody)"
+            "state" : "translated",
+            "value" : "Sadece sizin kontrolünüzdedir (kişisel saklama)"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Belongs only to you(self-custody)"
+            "state" : "translated",
+            "value" : "Належить тільки вам (самоконтроль)"
           }
         },
         "vi" : {
@@ -4514,14 +4514,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Keeps you anonymous"
+            "state" : "translated",
+            "value" : "Anonim kalmanı sağlar"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Keeps you anonymous"
+            "state" : "translated",
+            "value" : "Зберігає вашу анонімність"
           }
         },
         "vi" : {
@@ -5625,14 +5625,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Personal data-based logins"
+            "state" : "translated",
+            "value" : "Kişisel verilere dayalı girişler"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Personal data-based logins"
+            "state" : "translated",
+            "value" : "Логіни на основі особистих даних"
           }
         },
         "vi" : {
@@ -5726,14 +5726,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Works as your secure login"
+            "state" : "translated",
+            "value" : "Güvenli girişiniz olarak çalışır"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Works as your secure login"
+            "state" : "translated",
+            "value" : "Працює як ваш безпечний вхід"
           }
         },
         "vi" : {
@@ -6332,14 +6332,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Admin-controlled access resets"
+            "state" : "translated",
+            "value" : "Yönetici kontrollü erişim sıfırlamaları"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Admin-controlled access resets"
+            "state" : "translated",
+            "value" : "Скиди доступу під контролем адміністратора"
           }
         },
         "vi" : {
@@ -6736,14 +6736,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Centrally-stored accounts"
+            "state" : "translated",
+            "value" : "Merkezi olarak saklanan hesaplar"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Centrally-stored accounts"
+            "state" : "translated",
+            "value" : "Централізовано зберігаються облікові записи"
           }
         },
         "vi" : {
@@ -11180,14 +11180,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Kill switch protects you. Tap Stop and renew your plan."
+            "state" : "translated",
+            "value" : "Kill switch seni korur. Durdur’a dokun ve planını yenile."
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Kill switch protects you. Tap Stop and renew your plan."
+            "state" : "translated",
+            "value" : "Kill switch захищає вас. Торкніться \"Зупинити\" і поновіть свій план."
           }
         },
         "vi" : {
@@ -21785,14 +21785,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You're now fully protected"
+            "state" : "translated",
+            "value" : "Artık tamamen güvendesiniz"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "You're now fully protected"
+            "state" : "translated",
+            "value" : "Тепер ви повністю захищені"
           }
         },
         "vi" : {
@@ -22088,14 +22088,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select a plan now to activate your protection"
+            "state" : "translated",
+            "value" : "Güvenliğinizi başlatmak için şimdi bir plan seçin"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Select a plan now to activate your protection"
+            "state" : "translated",
+            "value" : "Виберіть тарифний план зараз для активації вашого захисту"
           }
         },
         "vi" : {
@@ -22189,14 +22189,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
+            "state" : "translated",
+            "value" : "Ödemeniz, gelecekteki internet kullanımınızla ilişkilendirilmez"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Your upcoming payment cannot be linked to your future browsing activity"
+            "state" : "translated",
+            "value" : "Ваш майбутній платіж не може бути пов'язаний з вашою майбутньою активністю в Інтернеті"
           }
         },
         "vi" : {
@@ -22290,14 +22290,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose your protection level 🛡️"
+            "state" : "translated",
+            "value" : "Güvenlik seviyeni belirle 🛡️"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Choose your protection level 🛡️"
+            "state" : "translated",
+            "value" : "Оберіть рівень захисту 🛡️"
           }
         },
         "vi" : {
@@ -22391,14 +22391,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to true privacy 🎉"
+            "state" : "translated",
+            "value" : "Gerçek gizliliğe hoş geldiniz 🎉"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Welcome to true privacy 🎉"
+            "state" : "translated",
+            "value" : "Ласкаво просимо до справжнього конфіденційності 🎉"
           }
         },
         "vi" : {
@@ -26835,14 +26835,14 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Subscription expired"
+            "state" : "translated",
+            "value" : "Abonelik sona erdi"
           }
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Subscription expired"
+            "state" : "translated",
+            "value" : "Термін підписки закінчився"
           }
         },
         "vi" : {
