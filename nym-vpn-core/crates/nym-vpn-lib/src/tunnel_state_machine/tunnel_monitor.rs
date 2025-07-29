@@ -5,6 +5,7 @@ use futures::{FutureExt, future::Fuse};
 #[cfg(target_os = "linux")]
 use nix::sys::socket::{SetSockOpt, sockopt::Mark};
 use nym_sdk::UserAgent;
+use nym_task::TaskManager;
 use nym_vpn_network_config::start_background_file_refresh;
 #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
 use std::net::{Ipv4Addr, Ipv6Addr};
@@ -22,6 +23,8 @@ use std::{
 };
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+use tokio_util::task;
 
 #[cfg(windows)]
 use super::wintun::{self, WintunAdapterConfig};
@@ -70,6 +73,7 @@ use crate::tunnel_provider::ios::OSTunProvider;
 use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 use crate::{
     VpnTopologyProvider,
+    mixnet::SharedMixnetClient,
     tunnel_state_machine::{WireguardMultihopMode, account, ipv6_availability},
 };
 
@@ -121,6 +125,9 @@ const MAX_WAIT_DELAY: Duration = Duration::from_secs(15);
 
 /// Timeout when waiting for reply from the event handler.
 const REPLY_TIMEOUT: Duration = Duration::from_secs(5);
+
+/// Task manager shutdown timeout in seconds.
+const TASK_MANAGER_SHUTDOWN_TIMEOUT_SECS: u64 = 10;
 
 #[derive(Debug)]
 pub enum TunnelMonitorEvent {
@@ -266,13 +273,29 @@ impl TunnelMonitor {
     }
 
     async fn run(mut self) -> Tombstone {
-        let (tombstone, reason) = match Box::pin(self.run_inner()).await {
-            Ok(tombstone) => (tombstone, None),
-            Err(e) => {
-                trace_err_chain!(e, "Tunnel monitor exited with error");
-                (Tombstone::default(), e.error_state_reason())
-            }
-        };
+        let mut task_manager = TaskManager::new(TASK_MANAGER_SHUTDOWN_TIMEOUT_SECS);
+        let shared_mixnet_client = SharedMixnetClient::default();
+
+        let (tombstone, reason) =
+            match Box::pin(self.run_inner(&mut task_manager, shared_mixnet_client.clone())).await {
+                Ok(tombstone) => (tombstone, None),
+                Err(e) => {
+                    trace_err_chain!(e, "Tunnel monitor exited with error");
+                    (Tombstone::default(), e.error_state_reason())
+                }
+            };
+
+        if let Some(mixnet_client) = shared_mixnet_client.lock().await.take() {
+            tracing::debug!("Drop mixnet client");
+            mixnet_client.disconnect().await;
+        }
+
+        tracing::debug!("Waiting for task manager to shutdown");
+        if task_manager.signal_shutdown().is_err() {
+            tracing::error!("Failed to signal task manager shutdown");
+        }
+        task_manager.wait_for_graceful_shutdown().await;
+        tracing::debug!("Task manager shutdown complete");
 
         let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
         self.send_event(TunnelMonitorEvent::Down {
@@ -286,7 +309,11 @@ impl TunnelMonitor {
         tombstone
     }
 
-    async fn run_inner(&mut self) -> Result<Tombstone> {
+    async fn run_inner(
+        &mut self,
+        task_manager: &mut TaskManager,
+        shared_mixnet_client: SharedMixnetClient,
+    ) -> Result<Tombstone> {
         if self.tunnel_parameters.retry_attempt > 0 {
             let delay = wait_delay(self.tunnel_parameters.retry_attempt);
             tracing::debug!("Waiting for {}s before connecting.", delay.as_secs());
@@ -427,6 +454,8 @@ impl TunnelMonitor {
             }
         };
         let mut connected_mixnet = Box::pin(tunnel::connect_mixnet(
+            task_manager,
+            shared_mixnet_client,
             connect_options,
             &self.tunnel_parameters.nym_config.network_env,
             self.gateway_directory_client.clone(),
@@ -439,6 +468,7 @@ impl TunnelMonitor {
 
         let status_listener_handle = connected_mixnet
             .start_event_listener(
+                task_manager,
                 self.mixnet_event_sender.clone(),
                 self.shutdown_token.child_token(),
             )
@@ -450,7 +480,10 @@ impl TunnelMonitor {
             tunnel_conn_data,
             mut tunnel_handle,
         } = match self.tunnel_parameters.tunnel_settings.tunnel_type {
-            TunnelType::Mixnet => self.start_mixnet_tunnel(connected_mixnet).await?,
+            TunnelType::Mixnet => {
+                self.start_mixnet_tunnel(task_manager, connected_mixnet)
+                    .await?
+            }
             TunnelType::Wireguard => {
                 match self
                     .tunnel_parameters
@@ -460,10 +493,11 @@ impl TunnelMonitor {
                 {
                     #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
                     WireguardMultihopMode::TunTun => {
-                        self.start_wireguard_tunnel(connected_mixnet).await?
+                        self.start_wireguard_tunnel(task_manager, connected_mixnet)
+                            .await?
                     }
                     WireguardMultihopMode::Netstack => {
-                        self.start_wireguard_netstack_tunnel(connected_mixnet)
+                        self.start_wireguard_netstack_tunnel(task_manager, connected_mixnet)
                             .await?
                     }
                 }
@@ -521,8 +555,7 @@ impl TunnelMonitor {
             connection_data: Box::new(connection_data),
         });
 
-        self.recv_error(&mut tunnel_handle, fused_background_error)
-            .await;
+        self.recv_error(task_manager, fused_background_error).await;
 
         tracing::info!("Wait for tunnel to exit");
         tunnel_handle.cancel().await;
@@ -553,12 +586,12 @@ impl TunnelMonitor {
 
     async fn recv_error(
         &self,
-        tunnel_handle: &mut AnyTunnelHandle,
+        task_manager: &mut TaskManager,
         background_error_rx: Fuse<impl Future<Output = Option<()>>>,
     ) {
         tokio::select! {
             _ = self.shutdown_token.cancelled() => {}
-            task_error = tunnel_handle.recv_error() => {
+            task_error = task_manager.wait_for_error() => {
                 match task_error {
                     Some(task_error) => {
                         tracing::error!("Task manager quit with error: {}", task_error);
@@ -650,6 +683,7 @@ impl TunnelMonitor {
 
     async fn start_mixnet_tunnel(
         &mut self,
+        task_manager: &TaskManager,
         connected_mixnet: ConnectedMixnet,
     ) -> Result<StartTunnelResult> {
         let connected_tunnel = connected_mixnet
@@ -773,7 +807,7 @@ impl TunnelMonitor {
 
         let tunnel_handle = AnyTunnelHandle::from(
             connected_tunnel
-                .run(tun_device)
+                .run(task_manager, tun_device)
                 .await
                 .map_err(|e| Error::Tunnel(Box::new(e)))?,
         );
@@ -788,10 +822,12 @@ impl TunnelMonitor {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     async fn start_wireguard_netstack_tunnel(
         &mut self,
+        task_manager: &TaskManager,
         connected_mixnet: ConnectedMixnet,
     ) -> Result<StartTunnelResult> {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
+                task_manager,
                 &self.tunnel_parameters.nym_config.network_env,
                 self.shutdown_token.child_token(),
             )
@@ -953,10 +989,12 @@ impl TunnelMonitor {
     #[cfg(any(target_os = "linux", target_os = "macos"))]
     async fn start_wireguard_tunnel(
         &mut self,
+        task_manager: &TaskManager,
         connected_mixnet: ConnectedMixnet,
     ) -> Result<StartTunnelResult> {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
+                task_manager,
                 &self.tunnel_parameters.nym_config.network_env,
                 self.shutdown_token.child_token(),
             )
@@ -1058,10 +1096,12 @@ impl TunnelMonitor {
     #[cfg(windows)]
     async fn start_wireguard_tunnel(
         &mut self,
+        task_manager: &TaskManager,
         connected_mixnet: ConnectedMixnet,
     ) -> Result<StartTunnelResult> {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
+                task_manager,
                 &self.tunnel_parameters.nym_config.network_env,
                 self.shutdown_token.child_token(),
             )
@@ -1194,10 +1234,12 @@ impl TunnelMonitor {
     #[cfg(any(target_os = "ios", target_os = "android"))]
     async fn start_wireguard_netstack_tunnel(
         &self,
+        task_manager: &TaskManager,
         connected_mixnet: ConnectedMixnet,
     ) -> Result<StartTunnelResult> {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
+                task_manager,
                 &self.tunnel_parameters.nym_config.network_env,
                 self.shutdown_token.child_token(),
             )
