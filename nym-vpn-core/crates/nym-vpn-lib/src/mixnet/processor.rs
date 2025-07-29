@@ -81,9 +81,6 @@ struct MixnetProcessor {
 
     // Listen for when we should disconnect from the IPR and being shutting down
     cancel_token: CancellationToken,
-
-    // Once we've disconnected from the IPR, we need to notify the connection monitor
-    notify_disconnected: oneshot::Sender<()>,
 }
 
 impl MixnetProcessor {
@@ -94,7 +91,6 @@ impl MixnetProcessor {
         ip_packet_router_address: IpPacketRouterAddress,
         our_ips: IpPair,
         cancel_token: CancellationToken,
-        notify_disconnected: oneshot::Sender<()>,
     ) -> Self {
         MixnetProcessor {
             device,
@@ -104,7 +100,6 @@ impl MixnetProcessor {
             our_ips,
             icmp_beacon_identifier: connection_monitor.icmp_beacon_identifier(),
             cancel_token,
-            notify_disconnected,
         }
     }
 
@@ -279,20 +274,6 @@ impl MixnetProcessor {
         tracing::info!("Waiting for mixnet listener to finish");
         let tun_device_sink = mixnet_listener_handle.await.unwrap();
 
-        // Notify the tunnel monitor that we are disconnected from the IPR, and don't need the
-        // mixnet connection anymore. The tunnel monitor will in turn call on the TaskManager to
-        // signal shutdown for the mixnet client.
-        if self.notify_disconnected.send(()).is_err() {
-            tracing::error!("Failed to notify that the IPR is disconnected");
-        } else {
-            // After we've notified that we are disconnected, wait until the TaskManager has signelled
-            // shutdown before we return.
-            // Possibly we don't need this, but it seems like the correct thing to do. The footgun here
-            // is that we don't want to drop the mixnet client before the task manager has signalled
-            // shutdown.
-            task_client_mix_processor.recv_timeout().await;
-        }
-
         tracing::debug!("MixnetProcessor: Exiting");
         Ok(tun_device_sink
             .reunite(tun_device_stream)
@@ -373,7 +354,6 @@ pub async fn start_processor(
     task_manager: &TaskManager,
     connection_monitor: &ConnectionMonitorTask,
     cancel_token: CancellationToken,
-    notify_disconnected: oneshot::Sender<()>,
 ) -> JoinHandle<Result<AsyncDevice, MixnetError>> {
     tracing::info!("Creating mixnet processor");
     let processor = MixnetProcessor::new(
@@ -383,7 +363,6 @@ pub async fn start_processor(
         config.ip_packet_router_address,
         config.our_ips,
         cancel_token,
-        notify_disconnected,
     );
 
     let task_client_mix_processor = task_manager.subscribe_named("mixnet_processor");
