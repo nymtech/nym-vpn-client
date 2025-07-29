@@ -18,9 +18,7 @@ use super::connected_tunnel::ConnectedTunnel;
 use crate::{
     bandwidth_controller::BandwidthController,
     mixnet::SharedMixnetClient,
-    tunnel_state_machine::tunnel::{
-        self, AnyConnector, ConnectorError, Error, Result, gateway_selector::SelectedGateways,
-    },
+    tunnel_state_machine::tunnel::{self, Error, Result, gateway_selector::SelectedGateways},
 };
 
 pub struct ConnectionData {
@@ -51,7 +49,7 @@ impl Connector {
         selected_gateways: SelectedGateways,
         data_path: Option<PathBuf>,
         cancel_token: CancellationToken,
-    ) -> Result<ConnectedTunnel, ConnectorError> {
+    ) -> Result<ConnectedTunnel> {
         let connect_result = Box::pin(Self::connect_inner(
             task_manager,
             network,
@@ -61,16 +59,7 @@ impl Connector {
             data_path,
             cancel_token,
         ))
-        .await
-        .map_err(|e| {
-            ConnectorError::new(
-                e,
-                AnyConnector::Wireguard(Self::new(
-                    self.mixnet_client,
-                    self.gateway_directory_client,
-                )),
-            )
-        })?;
+        .await?;
 
         Ok(ConnectedTunnel::new(
             connect_result.entry_gateway_client,

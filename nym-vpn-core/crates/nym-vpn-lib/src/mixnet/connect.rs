@@ -15,9 +15,8 @@ use nym_sdk::{
 };
 use nym_vpn_network_config::Network;
 use nym_vpn_store::mnemonic::MnemonicStorage as _;
-use tokio::sync::Mutex;
 
-use super::{MixnetError, SharedMixnetClient, topology_provider::VpnTopologyProvider};
+use super::{MixnetError, topology_provider::VpnTopologyProvider};
 use crate::{MixnetClientConfig, storage::VpnClientOnDiskStorage};
 
 const VPN_AVERAGE_PACKET_DELAY: Duration = Duration::from_millis(15);
