@@ -188,16 +188,16 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	override suspend fun getAccountLinks(): AccountLinks {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			nym_vpn_lib.getAccountLinks(getCurrentLocaleCountryCode())
+			nym_vpn_lib.getAccountLinks(getCurrentLocaleLanguageCode())
 		}
 	}
 
-	private fun getCurrentLocaleCountryCode(): String {
- 		return try {
+	private fun getCurrentLocaleLanguageCode(): String {
+		return try {
 			Locale.getDefault().language.lowercase()
- 		} catch (_: Exception) {
- 			DEFAULT_LOCALE
- 		}
+		} catch (_: Exception) {
+			DEFAULT_LOCALE
+		}
 	}
 
 	@Throws(VpnException::class)
