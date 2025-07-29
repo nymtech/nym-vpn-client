@@ -390,7 +390,11 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             GatewayClient::new(gateway_config, parameters.user_agent.clone()).unwrap();
         let gateway_directory_client =
             CachingGatewayClient::new(gateway_directory_client, Some(connectivity_handle.clone()));
-        gateway_directory_client.refresh_all().await;
+
+        // todo: we must not block service initialization
+        shutdown_token
+            .run_until_cancelled(gateway_directory_client.refresh_all())
+            .await;
 
         let validator_client = nym_validator_client::NymApiClient::new_with_user_agent(
             api_url,
