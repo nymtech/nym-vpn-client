@@ -252,7 +252,7 @@ impl Probe {
             bw_client.acquire().await?;
         }
 
-        let mixnet_client = Box::pin(disconnected_mixnet_client.connect_to_mixnet().await);
+        let mixnet_client = Box::pin(disconnected_mixnet_client.connect_to_mixnet()).await;
 
         let mixnet_client = match mixnet_client {
             Ok(mixnet_client) => mixnet_client,
