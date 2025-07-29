@@ -468,7 +468,7 @@ impl TunnelHandle {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
 
-        let _ = self.auth_client_mixnet_listener_handle.disconnect().await;
+        let _ = self.auth_client_mixnet_listener_handle.wait().await;
 
         self.event_handler_task.await
     }

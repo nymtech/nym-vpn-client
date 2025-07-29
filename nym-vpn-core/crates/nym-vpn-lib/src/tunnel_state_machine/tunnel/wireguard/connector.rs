@@ -94,9 +94,9 @@ impl Connector {
 
         // Start the auth client mixnet listener, which will listen for incoming messages from the
         // mixnet and rebroadcast them to the auth clients.
-        let mixnet_listener = AuthClientMixnetListener::new(mixnet_client.clone())
-            .with_external_cancel_token(cancel_token.clone())
-            .start();
+        let mixnet_listener =
+            AuthClientMixnetListener::new(mixnet_client.clone(), cancel_token.child_token())
+                .start();
 
         let auth_client = mixnet_listener
             .new_auth_client()
@@ -132,6 +132,7 @@ impl Connector {
                 wg_entry_gateway_client.light_client(),
                 wg_exit_gateway_client.light_client(),
                 shutdown,
+                cancel_token.clone(),
             )?;
             let entry_fut = bw.get_initial_bandwidth(
                 TicketType::V1WireguardEntry,
@@ -161,6 +162,7 @@ impl Connector {
                 wg_entry_gateway_client.light_client(),
                 wg_exit_gateway_client.light_client(),
                 shutdown,
+                cancel_token.clone(),
             )?;
             let entry = bw
                 .get_initial_bandwidth(
