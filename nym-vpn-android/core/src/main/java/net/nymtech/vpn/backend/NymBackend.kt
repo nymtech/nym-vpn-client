@@ -46,6 +46,7 @@ import nym_vpn_lib.startVpn
 import nym_vpn_lib.stopVpn
 import org.semver4j.Semver
 import timber.log.Timber
+import java.util.Locale
 
 class NymBackend private constructor(private val context: Context) : Backend, TunnelStatusListener, LifecycleObserver {
 
@@ -187,18 +188,16 @@ class NymBackend private constructor(private val context: Context) : Backend, Tu
 	override suspend fun getAccountLinks(): AccountLinks {
 		return withContext(ioDispatcher) {
 			initialized.await()
-			nym_vpn_lib.getAccountLinks(getCurrentLocaleCountryCode())
+			nym_vpn_lib.getAccountLinks(getCurrentLocaleLanguageCode())
 		}
 	}
 
-	private fun getCurrentLocaleCountryCode(): String {
-// TODO disable for now
-// 		return try {
-// 			context.resources.configuration.locales.get(0).country.lowercase()
-// 		} catch (_: Exception) {
-// 			DEFAULT_LOCALE
-// 		}
-		return DEFAULT_LOCALE
+	private fun getCurrentLocaleLanguageCode(): String {
+		return try {
+			Locale.getDefault().language.lowercase()
+		} catch (_: Exception) {
+			DEFAULT_LOCALE
+		}
 	}
 
 	@Throws(VpnException::class)
