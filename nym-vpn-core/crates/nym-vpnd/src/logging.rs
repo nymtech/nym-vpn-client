@@ -21,7 +21,7 @@ use nym_vpnd_types::log_path::LogPath;
 
 use crate::service;
 
-static INFO_CRATES: &[&str; 12] = &[
+static INFO_CRATES: &[&str; 13] = &[
     "hyper",
     "netlink_proto",
     "hickory_proto",
@@ -34,6 +34,7 @@ static INFO_CRATES: &[&str; 12] = &[
     "nym_sphinx::preparer",
     "nym_task::manager",
     "nym_client_core::client::real_messages_control",
+    "nym_client_core::client::received_buffer",
 ];
 
 static WARN_CRATES: &[&str; 1] = &["hickory_server"];
