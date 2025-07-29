@@ -7,7 +7,8 @@ extension GRPCManager {
     public func connect(
         entryGateway: EntryGateway,
         exitRouter: ExitRouter,
-        isTwoHopEnabled: Bool
+        isTwoHopEnabled: Bool,
+        disableIPv6: Bool
     ) async throws {
         var request = NymVpnService_ConnectRequest()
         request.userAgent = userAgent
@@ -17,6 +18,7 @@ extension GRPCManager {
 
         request.enableTwoHop = isTwoHopEnabled
         request.disableBackgroundCoverTraffic = false
+        request.disableIpv6 = disableIPv6
 
         _ = try await client.connectTunnel(request)
     }
