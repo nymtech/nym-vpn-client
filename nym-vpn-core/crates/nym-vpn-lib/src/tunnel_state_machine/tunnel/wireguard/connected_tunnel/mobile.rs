@@ -1,11 +1,11 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::net::IpAddr;
 #[cfg(target_os = "android")]
 use std::sync::Arc;
 #[cfg(target_os = "ios")]
 use std::time::Duration;
-use std::{error::Error as StdError, net::IpAddr};
 
 #[cfg(target_os = "ios")]
 use dispatch2::{DispatchQueue, DispatchQueueAttr};
@@ -22,7 +22,6 @@ use tun::AsyncDevice;
 
 #[cfg(target_os = "ios")]
 use nym_apple_network::PathMonitor;
-use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 use nym_wg_go::{netstack, wireguard_go};
 
@@ -47,7 +46,6 @@ use crate::{
 const DEFAULT_PATH_DEBOUNCE: Duration = Duration::from_millis(250);
 
 pub struct ConnectedTunnel {
-    task_manager: TaskManager,
     entry_gateway_client: WgGatewayClient,
     exit_gateway_client: WgGatewayClient,
     connection_data: ConnectionData,
@@ -57,7 +55,6 @@ pub struct ConnectedTunnel {
 
 impl ConnectedTunnel {
     pub fn new(
-        task_manager: TaskManager,
         entry_gateway_client: WgGatewayClient,
         exit_gateway_client: WgGatewayClient,
         connection_data: ConnectionData,
@@ -65,7 +62,6 @@ impl ConnectedTunnel {
         auth_client_mixnet_listener_handle: AuthClientMixnetListenerHandle,
     ) -> Self {
         Self {
-            task_manager,
             entry_gateway_client,
             exit_gateway_client,
             connection_data,
@@ -229,7 +225,6 @@ impl ConnectedTunnel {
         });
 
         Ok(TunnelHandle {
-            task_manager: self.task_manager,
             shutdown_token,
             event_loop_handle,
             bandwidth_controller_handle: self.bandwidth_controller_handle,
@@ -239,7 +234,6 @@ impl ConnectedTunnel {
 }
 
 pub struct TunnelHandle {
-    task_manager: TaskManager,
     shutdown_token: CancellationToken,
     event_loop_handle: JoinHandle<Tombstone>,
     bandwidth_controller_handle: JoinHandle<()>,
@@ -250,18 +244,6 @@ impl TunnelHandle {
     /// Close entry and exit WireGuard tunnels and signal mixnet facilities shutdown.
     pub fn cancel(&mut self) {
         self.shutdown_token.cancel();
-
-        if let Err(e) = self.task_manager.signal_shutdown() {
-            tracing::error!("Failed to signal task manager shutdown: {}", e);
-        }
-    }
-
-    /// Wait for the next mixnet error.
-    ///
-    /// This method is cancel safe.
-    /// Returns `None` if the underlying channel has been closed.
-    pub async fn recv_error(&mut self) -> Option<Box<dyn StdError + 'static + Send + Sync>> {
-        self.task_manager.wait_for_error().await
     }
 
     /// Wait until the tunnel finished execution.

@@ -14,7 +14,6 @@ use tun::AsyncDevice;
 
 #[cfg(windows)]
 use nym_routing::{Callback, CallbackHandle, EventType};
-use nym_task::TaskManager;
 use nym_wg_gateway_client::WgGatewayClient;
 #[cfg(windows)]
 use nym_wg_go::wireguard_go::WintunInterface;
