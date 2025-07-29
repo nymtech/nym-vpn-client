@@ -2,6 +2,14 @@
     "network_name": "canary",
     "nym_api_url": "https://canary-api.performance.nymte.ch/api/",
     "nym_vpn_api_url": "https://nym-vpn-api-git-deploy-canary-nyx-network-staging.vercel.app/api/",
+    "account_management": {
+        "url": "https://nymcom-git-deploy-canary-nyx-network-staging.vercel.app/",
+        "paths": {
+            "account": "{locale}/account/{account_id}",
+            "sign_up": "{locale}/account/create",
+            "sign_in": "{locale}/account/login"
+        }
+    },
     "feature_flags": {
         "zkNyms": {
             "credentialMode": "false"
