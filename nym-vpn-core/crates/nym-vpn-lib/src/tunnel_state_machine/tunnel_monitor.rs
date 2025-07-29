@@ -71,7 +71,6 @@ use crate::tunnel_provider::ios::OSTunProvider;
 use crate::tunnel_state_machine::route_handler::TUNNEL_FWMARK;
 use crate::{
     VpnTopologyProvider,
-    mixnet::SharedMixnetClient,
     tunnel_state_machine::{WireguardMultihopMode, account, ipv6_availability},
 };
 
