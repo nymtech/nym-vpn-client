@@ -2,8 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 #[cfg(unix)]
-use std::os::fd::RawFd;
-use std::{path::PathBuf, result::Result, sync::Arc, time::Duration};
+use std::{os::fd::RawFd, sync::Arc};
+use std::{path::PathBuf, result::Result, time::Duration};
 
 use nym_client_core::config::RememberMe;
 use nym_sdk::{
