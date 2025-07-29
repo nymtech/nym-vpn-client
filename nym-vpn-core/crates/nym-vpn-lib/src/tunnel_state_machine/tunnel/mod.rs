@@ -8,9 +8,9 @@ mod status_listener;
 mod tombstone;
 pub mod wireguard;
 
-use std::{error::Error as StdError, fmt, path::PathBuf, time::Duration};
 #[cfg(unix)]
 use std::{os::fd::RawFd, sync::Arc};
+use std::{path::PathBuf, time::Duration};
 
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint};
@@ -71,7 +71,6 @@ impl ConnectedMixnet {
         connector
             .connect(self.selected_gateways, cancel_token)
             .await
-            .map_err(|connector_error| connector_error.error)
     }
 
     /// Creates a tunnel over WireGuard.
@@ -93,7 +92,6 @@ impl ConnectedMixnet {
                 cancel_token,
             )
             .await
-            .map_err(|connector_error| connector_error.error)
     }
 }
 
@@ -261,39 +259,4 @@ pub type Result<T, E = Error> = std::result::Result<T, E>;
 pub enum AnyConnector {
     Mixnet(mixnet::connector::Connector),
     Wireguard(wireguard::connector::Connector),
-}
-
-/// Error returned when connector is unable to connect the tunnel.
-pub struct ConnectorError {
-    /// The error returned during the attempt to connect the tunnel.
-    pub error: Error,
-
-    /// The source connector.
-    pub connector: AnyConnector,
-}
-
-impl ConnectorError {
-    fn new(error: Error, connector: AnyConnector) -> Self {
-        Self { error, connector }
-    }
-}
-
-impl StdError for ConnectorError {
-    fn source(&self) -> Option<&(dyn StdError + 'static)> {
-        Some(&self.error)
-    }
-}
-
-impl fmt::Debug for ConnectorError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.debug_struct("ConnectorError")
-            .field("error", &self.error)
-            .finish_non_exhaustive()
-    }
-}
-
-impl fmt::Display for ConnectorError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        self.error.fmt(f)
-    }
 }
