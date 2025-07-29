@@ -9,8 +9,8 @@ mod tombstone;
 pub mod wireguard;
 
 #[cfg(unix)]
-use std::{os::fd::RawFd, sync::Arc};
-use std::{path::PathBuf, time::Duration};
+use std::os::fd::RawFd;
+use std::{path::PathBuf, sync::Arc, time::Duration};
 
 pub use gateway_selector::SelectedGateways;
 use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint};
