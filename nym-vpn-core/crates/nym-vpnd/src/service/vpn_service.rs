@@ -381,7 +381,8 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // todo: we must not block service initialization
         shutdown_token
             .run_until_cancelled(gateway_directory_client.refresh_all())
-            .await;
+            .await
+            .ok_or(Error::CancelledInitialization)?;
 
         let topology_provider = VpnTopologyProvider::new(
             parameters.network_env.api_url(),
