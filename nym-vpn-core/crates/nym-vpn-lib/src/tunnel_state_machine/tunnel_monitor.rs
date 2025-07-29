@@ -877,7 +877,7 @@ impl TunnelMonitor {
 
         let tunnel_handle = AnyTunnelHandle::from(
             connected_tunnel
-                .run(tunnel_options)
+                .run(task_manager, tunnel_options)
                 .await
                 .map_err(Box::new)?,
         );
@@ -1078,7 +1078,7 @@ impl TunnelMonitor {
 
         let tunnel_handle = AnyTunnelHandle::from(
             connected_tunnel
-                .run(tunnel_options)
+                .run(task_manager, tunnel_options)
                 .await
                 .map_err(Box::new)?,
         );

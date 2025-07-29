@@ -12,7 +12,7 @@ use tokio_util::sync::CancellationToken;
 use crate::{
     mixnet::SharedMixnetClient,
     tunnel_state_machine::tunnel::{
-        self, AnyConnector, ConnectorError, Error, Result, gateway_selector::SelectedGateways,
+        self, Error, Result, gateway_selector::SelectedGateways,
         mixnet::connected_tunnel::ConnectedTunnel,
     },
 };
@@ -47,23 +47,14 @@ impl Connector {
         self,
         selected_gateways: SelectedGateways,
         cancel_token: CancellationToken,
-    ) -> Result<ConnectedTunnel, ConnectorError> {
+    ) -> Result<ConnectedTunnel> {
         let assigned_addresses = Self::connect_inner(
             selected_gateways,
             self.mixnet_client.clone(),
             self.gateway_directory_client.clone(),
             cancel_token.clone(),
         )
-        .await
-        .map_err(|e| {
-            ConnectorError::new(
-                e,
-                AnyConnector::Mixnet(Self::new(
-                    self.mixnet_client.clone(),
-                    self.gateway_directory_client,
-                )),
-            )
-        })?;
+        .await?;
 
         Ok(ConnectedTunnel::new(
             self.mixnet_client,
