@@ -7,7 +7,6 @@ use nym_gateway_directory::{CachingGatewayClient, IpPacketRouterAddress, Recipie
 use nym_ip_packet_client::IprClientConnect;
 use nym_ip_packet_requests::IpPair;
 use nym_sdk::mixnet::ConnectionStatsEvent;
-use nym_task::TaskManager;
 use tokio_util::sync::CancellationToken;
 
 use crate::{
@@ -29,19 +28,16 @@ pub struct AssignedAddresses {
 
 /// Type responsible for connecting the mixnet tunnel.
 pub struct Connector {
-    task_manager: TaskManager,
     mixnet_client: SharedMixnetClient,
     gateway_directory_client: CachingGatewayClient,
 }
 
 impl Connector {
     pub fn new(
-        task_manager: TaskManager,
         mixnet_client: SharedMixnetClient,
         gateway_directory_client: CachingGatewayClient,
     ) -> Self {
         Self {
-            task_manager,
             mixnet_client,
             gateway_directory_client,
         }
@@ -52,30 +48,28 @@ impl Connector {
         selected_gateways: SelectedGateways,
         cancel_token: CancellationToken,
     ) -> Result<ConnectedTunnel, ConnectorError> {
-        let result = Self::connect_inner(
+        let assigned_addresses = Self::connect_inner(
             selected_gateways,
             self.mixnet_client.clone(),
             self.gateway_directory_client.clone(),
             cancel_token.clone(),
         )
-        .await;
-
-        match result {
-            Ok(assigned_addresses) => Ok(ConnectedTunnel::new(
-                self.task_manager,
-                self.mixnet_client,
-                assigned_addresses,
-                cancel_token,
-            )),
-            Err(e) => Err(ConnectorError::new(
+        .await
+        .map_err(|e| {
+            ConnectorError::new(
                 e,
                 AnyConnector::Mixnet(Self::new(
-                    self.task_manager,
-                    self.mixnet_client,
+                    self.mixnet_client.clone(),
                     self.gateway_directory_client,
                 )),
-            )),
-        }
+            )
+        })?;
+
+        Ok(ConnectedTunnel::new(
+            self.mixnet_client,
+            assigned_addresses,
+            cancel_token,
+        ))
     }
 
     async fn connect_inner(
@@ -138,11 +132,5 @@ impl Connector {
             exit_mix_addresses,
             interface_addresses,
         })
-    }
-
-    /// Gracefully shutdown task manager and mixnet client, and consume the struct.
-    pub async fn dispose(self) {
-        tracing::debug!("Shutting down mixnet client");
-        tunnel::shutdown_mixnet_client(self.task_manager, self.mixnet_client).await;
     }
 }
