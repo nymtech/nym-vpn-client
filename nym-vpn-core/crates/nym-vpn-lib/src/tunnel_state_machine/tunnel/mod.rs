@@ -17,7 +17,10 @@ use nym_gateway_directory::{CachingGatewayClient, EntryPoint, ExitPoint};
 use nym_sdk::UserAgent;
 use nym_task::{TaskManager, TaskStatus};
 use nym_vpn_network_config::Network;
-use tokio::{sync::mpsc, task::JoinHandle};
+use tokio::{
+    sync::{Mutex, mpsc},
+    task::JoinHandle,
+};
 use tokio_util::sync::CancellationToken;
 
 #[cfg(windows)]
@@ -130,7 +133,6 @@ pub async fn select_gateways(
 
 pub async fn connect_mixnet(
     task_manager: &TaskManager,
-    shared_mixnet_client: SharedMixnetClient,
     options: MixnetConnectOptions,
     network_env: &Network,
     gateway_directory_client: CachingGatewayClient,
@@ -179,13 +181,11 @@ pub async fn connect_mixnet(
                 .and_then(|x| x.map_err(Error::MixnetClient))
         })?;
 
-    *shared_mixnet_client.lock().await = Some(mixnet_client);
-
     Ok(ConnectedMixnet {
         selected_gateways: options.selected_gateways,
         data_path: options.data_path,
         gateway_directory_client,
-        mixnet_client: shared_mixnet_client,
+        mixnet_client: Arc::new(Mutex::new(Some(mixnet_client))),
     })
 }
 
