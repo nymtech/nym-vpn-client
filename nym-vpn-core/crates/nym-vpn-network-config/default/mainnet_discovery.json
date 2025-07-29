@@ -5,9 +5,9 @@
     "account_management": {
         "url": "https://nym.com/",
         "paths": {
-            "account": "/account",
-            "signup": "/account/create",
-            "login": "/account/login"
+            "account": "{locale}/account/{account_id}",
+            "signup": "{locale}/account/create",
+            "login": "{locale}/account/login"
         }
     },
     "feature_flags": {
