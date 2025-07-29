@@ -305,8 +305,11 @@ impl Probe {
         let wg_outcome = if let (Some(authenticator), Some(ip_address)) =
             (node_info.authenticator_address, node_info.ip_address)
         {
+            let cancel_token = CancellationToken::new();
             // Start the mixnet listener that the auth clients use to receive messages.
-            let mixnet_listener_task = AuthClientMixnetListener::new(shared_client.clone()).start();
+            let mixnet_listener_task =
+                AuthClientMixnetListener::new(shared_client.clone(), cancel_token.child_token())
+                    .start();
             let auth_client = mixnet_listener_task
                 .new_auth_client()
                 .await
@@ -343,7 +346,8 @@ impl Probe {
             .await
             .unwrap_or_default();
 
-            let _ = mixnet_listener_task.disconnect().await;
+            cancel_token.cancel();
+            mixnet_listener_task.wait().await;
 
             outcome
         } else {
