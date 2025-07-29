@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add setting to toggle IPv6 support.
 - vpnd: Add support to toggle network statistics collection.
 
+### Changed
+
+- Reduce noisiness of WireGuard logs (https://github.com/nymtech/nym-vpn-client/pull/3169)
+
 ## [1.12.0] - 2025-07-18
 
 ### Added
@@ -26,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Use nym cheddar fork (https://github.com/nymtech/nym-vpn-client/pull/3048)
 
 ### Removed
+
 - Remove a shutdown timeout for tonic server (https://github.com/nymtech/nym-vpn-client/pull/2938)
 - Remove shared mixnet client (https://github.com/nymtech/nym-vpn-client/pull/2967)
 - Remove wireguard credential mode flag (https://github.com/nymtech/nym-vpn-client/pull/3021)
