@@ -890,10 +890,12 @@ impl TunnelMonitor {
     #[cfg(windows)]
     async fn start_wireguard_netstack_tunnel(
         &mut self,
+        task_manager: &TaskManager,
         connected_mixnet: ConnectedMixnet,
     ) -> Result<StartTunnelResult> {
         let connected_tunnel = connected_mixnet
             .connect_wireguard_tunnel(
+                task_manager,
                 &self.tunnel_parameters.nym_config.network_env,
                 self.shutdown_token.child_token(),
             )
