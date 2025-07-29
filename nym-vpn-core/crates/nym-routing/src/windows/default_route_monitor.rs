@@ -143,7 +143,7 @@ impl Drop for NotifyChangeHandle {
         if let Err(e) = unsafe { CancelMibChangeNotify2(self.0) }.ok() {
             // If this callback is called after we free the context that could result in UB, in
             // order to avoid that we panic.
-            panic!("Could not cancel change notification callback: {}", e)
+            panic!("Could not cancel change notification callback: {e}")
         }
     }
 }
