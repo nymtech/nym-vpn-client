@@ -468,10 +468,7 @@ impl TunnelHandle {
             tracing::error!("Failed to join on bandwidth controller: {}", e);
         }
 
-        // No need to call cancel on auth_clients_mixnet_listener_handle as its external
-        // cancel_token should already be cancelled by the time we reach this point.
-        // We just need to wait for the task to finish.
-        self.auth_client_mixnet_listener_handle.wait().await;
+        let _ = self.auth_client_mixnet_listener_handle.disconnect().await;
 
         self.event_handler_task.await
     }
