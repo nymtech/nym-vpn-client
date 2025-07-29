@@ -41,7 +41,7 @@ pub async fn setup_mixnet_client(
     mixnet_client_config: MixnetClientConfig,
     setup_options: SetupMixnetClientOptions,
     mut task_client: nym_task::TaskClient,
-) -> Result<SharedMixnetClient, MixnetError> {
+) -> Result<MixnetClient, MixnetError> {
     let mut debug_config = nym_client_core::config::DebugConfig::default();
     debug_config.traffic.average_packet_delay = VPN_AVERAGE_PACKET_DELAY;
     if setup_options.two_hop_mode {
@@ -110,7 +110,7 @@ pub async fn setup_mixnet_client(
         .await?
     };
 
-    Ok(Arc::new(Mutex::new(Some(mixnet_client))))
+    Ok(mixnet_client)
 }
 
 async fn build_and_connect_mixnet_client<S>(
