@@ -2319,11 +2319,11 @@ public struct MixnetConnectionData {
     public var nymAddress: NymAddress
     public var exitIpr: NymAddress
     public var ipv4: Ipv4Addr
-    public var ipv6: Ipv6Addr
+    public var ipv6: Ipv6Addr?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(nymAddress: NymAddress, exitIpr: NymAddress, ipv4: Ipv4Addr, ipv6: Ipv6Addr) {
+    public init(nymAddress: NymAddress, exitIpr: NymAddress, ipv4: Ipv4Addr, ipv6: Ipv6Addr?) {
         self.nymAddress = nymAddress
         self.exitIpr = exitIpr
         self.ipv4 = ipv4
@@ -2373,7 +2373,7 @@ public struct FfiConverterTypeMixnetConnectionData: FfiConverterRustBuffer {
                 nymAddress: FfiConverterTypeNymAddress.read(from: &buf), 
                 exitIpr: FfiConverterTypeNymAddress.read(from: &buf), 
                 ipv4: FfiConverterTypeIpv4Addr.read(from: &buf), 
-                ipv6: FfiConverterTypeIpv6Addr.read(from: &buf)
+                ipv6: FfiConverterOptionTypeIpv6Addr.read(from: &buf)
         )
     }
 
@@ -2381,7 +2381,7 @@ public struct FfiConverterTypeMixnetConnectionData: FfiConverterRustBuffer {
         FfiConverterTypeNymAddress.write(value.nymAddress, into: &buf)
         FfiConverterTypeNymAddress.write(value.exitIpr, into: &buf)
         FfiConverterTypeIpv4Addr.write(value.ipv4, into: &buf)
-        FfiConverterTypeIpv6Addr.write(value.ipv6, into: &buf)
+        FfiConverterOptionTypeIpv6Addr.write(value.ipv6, into: &buf)
     }
 }
 
@@ -3845,11 +3845,11 @@ public struct WireguardNode {
     public var endpoint: SocketAddr
     public var publicKey: String
     public var privateIpv4: Ipv4Addr
-    public var privateIpv6: Ipv6Addr
+    public var privateIpv6: Ipv6Addr?
 
     // Default memberwise initializers are never public by default, so we
     // declare one manually.
-    public init(endpoint: SocketAddr, publicKey: String, privateIpv4: Ipv4Addr, privateIpv6: Ipv6Addr) {
+    public init(endpoint: SocketAddr, publicKey: String, privateIpv4: Ipv4Addr, privateIpv6: Ipv6Addr?) {
         self.endpoint = endpoint
         self.publicKey = publicKey
         self.privateIpv4 = privateIpv4
@@ -3899,7 +3899,7 @@ public struct FfiConverterTypeWireguardNode: FfiConverterRustBuffer {
                 endpoint: FfiConverterTypeSocketAddr.read(from: &buf), 
                 publicKey: FfiConverterString.read(from: &buf), 
                 privateIpv4: FfiConverterTypeIpv4Addr.read(from: &buf), 
-                privateIpv6: FfiConverterTypeIpv6Addr.read(from: &buf)
+                privateIpv6: FfiConverterOptionTypeIpv6Addr.read(from: &buf)
         )
     }
 
@@ -3907,7 +3907,7 @@ public struct FfiConverterTypeWireguardNode: FfiConverterRustBuffer {
         FfiConverterTypeSocketAddr.write(value.endpoint, into: &buf)
         FfiConverterString.write(value.publicKey, into: &buf)
         FfiConverterTypeIpv4Addr.write(value.privateIpv4, into: &buf)
-        FfiConverterTypeIpv6Addr.write(value.privateIpv6, into: &buf)
+        FfiConverterOptionTypeIpv6Addr.write(value.privateIpv6, into: &buf)
     }
 }
 
@@ -4607,6 +4607,7 @@ public enum ErrorStateReason {
     )
     case deviceTimeOutOfSync
     case createMixnetStorage
+    case ipv6Unavailable
     case `internal`(String?
     )
 }
@@ -4652,7 +4653,9 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
         
         case 12: return .createMixnetStorage
         
-        case 13: return .`internal`(try FfiConverterOptionString.read(from: &buf)
+        case 13: return .ipv6Unavailable
+        
+        case 14: return .`internal`(try FfiConverterOptionString.read(from: &buf)
         )
         
         default: throw UniffiInternalError.unexpectedEnumCase
@@ -4713,8 +4716,12 @@ public struct FfiConverterTypeErrorStateReason: FfiConverterRustBuffer {
             writeInt(&buf, Int32(12))
         
         
-        case let .`internal`(v1):
+        case .ipv6Unavailable:
             writeInt(&buf, Int32(13))
+        
+        
+        case let .`internal`(v1):
+            writeInt(&buf, Int32(14))
             FfiConverterOptionString.write(v1, into: &buf)
             
         }

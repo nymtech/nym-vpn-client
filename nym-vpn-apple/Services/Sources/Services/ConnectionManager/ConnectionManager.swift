@@ -137,7 +137,7 @@ public final class ConnectionManager: ObservableObject {
         await waitForTunnelStatus(with: .disconnected)
         resetVpnProfile()
 #elseif os(macOS)
-        grpcManager.disconnect()
+        try? await grpcManager.disconnect()
         await waitForTunnelStatus(with: .disconnected)
 #endif
     }

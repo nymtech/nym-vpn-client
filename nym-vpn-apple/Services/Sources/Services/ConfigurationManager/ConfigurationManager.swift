@@ -161,7 +161,7 @@ private extension ConfigurationManager {
             try await setFallbackEnvVariables()
         }
 #elseif os(macOS)
-        try setDaemonEnvironmentVariables()
+        try await setDaemonEnvironmentVariables()
 #endif
         updateAccountLinks()
         updateCompatibilityVersions()
@@ -200,8 +200,8 @@ private extension ConfigurationManager {
         }.value
     }
 #elseif os(macOS)
-    func setDaemonEnvironmentVariables() throws {
-        try grpcManager.switchEnvironment(to: currentEnv.rawValue)
+    func setDaemonEnvironmentVariables() async throws {
+        try await grpcManager.switchEnvironment(to: currentEnv.rawValue)
     }
 #endif
 }
