@@ -394,7 +394,8 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // todo: we must not block service initialization
         shutdown_token
             .run_until_cancelled(gateway_directory_client.refresh_all())
-            .await;
+            .await
+            .ok_or(Error::CancelledInitialization)?;
 
         let validator_client = nym_validator_client::NymApiClient::new_with_user_agent(
             api_url,
