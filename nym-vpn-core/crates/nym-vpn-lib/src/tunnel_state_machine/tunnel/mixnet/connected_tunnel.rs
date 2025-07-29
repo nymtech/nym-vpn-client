@@ -55,8 +55,6 @@ impl ConnectedTunnel {
             self.assigned_addresses.interface_addresses,
         );
 
-        let (ipr_disconnect_tx, ipr_disconnect_rx) = oneshot::channel();
-
         let processor_handle = crate::mixnet::start_processor(
             processor_config,
             tun_device,
@@ -64,7 +62,6 @@ impl ConnectedTunnel {
             task_manager,
             &connection_monitor,
             self.cancel_token.clone(),
-            ipr_disconnect_tx,
         )
         .await;
 
@@ -86,7 +83,7 @@ impl ConnectedTunnel {
 
         Ok(TunnelHandle {
             processor_handle,
-            processor_disconnected: Some(ipr_disconnect_rx),
+            cancel_token: self.cancel_token,
         })
     }
 }
@@ -96,36 +93,17 @@ pub type ProcessorHandle = JoinHandle<Result<AsyncDevice, MixnetError>>;
 /// Type providing a back channel for tunnel errors and a way to wait for tunnel to finish execution.
 pub struct TunnelHandle {
     processor_handle: ProcessorHandle,
-    processor_disconnected: Option<oneshot::Receiver<()>>,
+    cancel_token: CancellationToken,
 }
 
 impl TunnelHandle {
     /// Cancel tunnel execution.
-    pub async fn cancel(&mut self) {
-        self.wait_for_processor_disconnect().await;
-    }
-
-    async fn wait_for_processor_disconnect(&mut self) {
-        tracing::info!("Waiting for the mixnet processor to disconnect");
-        if let Some(processor_disconnected) = self.processor_disconnected.take() {
-            tokio::time::timeout(Duration::from_secs(10), processor_disconnected)
-                .await
-                .unwrap_or_else(|_| {
-                    tracing::error!(
-                        "Timed out waiting for processor to disconnect. Forcing shutdown."
-                    );
-                    Ok(())
-                })
-                .unwrap_or_else(|e| {
-                    tracing::error!("Failed to wait for processor to disconnect: {e}");
-                });
-        } else {
-            tracing::error!("Processor has already disconnected");
-        }
+    pub fn cancel(&self) {
+        self.cancel_token.cancel();
     }
 
     /// Wait until the tunnel finished execution.
-    pub async fn wait(self) -> Result<Result<Tombstone, MixnetError>, JoinError> {
+    pub async fn wait(mut self) -> Result<Result<Tombstone, MixnetError>, JoinError> {
         tracing::trace!("Waiting for mixnet processor handle");
         self.processor_handle
             .await

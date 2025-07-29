@@ -536,7 +536,7 @@ impl TunnelMonitor {
         self.recv_error(task_manager, fused_background_error).await;
 
         tracing::info!("Wait for tunnel to exit");
-        tunnel_handle.cancel().await;
+        tunnel_handle.cancel();
 
         let tun_devices = tunnel_handle
             .wait()
