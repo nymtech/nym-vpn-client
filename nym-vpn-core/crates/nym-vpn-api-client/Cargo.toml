@@ -8,6 +8,9 @@ documentation.workspace = true
 edition.workspace = true
 license.workspace = true
 
+[lints]
+workspace = true
+
 [dependencies]
 backon.workspace = true
 base64-url.workspace = true

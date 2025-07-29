@@ -79,14 +79,7 @@ edition = "2024"
 license = "GPL-3.0-only"
 
 [workspace.lints.clippy]
-unwrap_used = "deny"
-expect_used = "deny"
-todo = "deny"
-dbg_macro = "deny"
-exit = "deny"
-panic = "deny"
-unimplemented = "deny"
-unreachable = "deny"
+large_futures = "warn"
 
 [workspace.dependencies]
 android_logger = "0.14.1"

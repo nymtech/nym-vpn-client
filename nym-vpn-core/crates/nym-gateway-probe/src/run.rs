@@ -130,13 +130,12 @@ pub(crate) async fn run() -> anyhow::Result<ProbeResult> {
     if let Some(awg_args) = args.amnezia_args {
         trial.with_amnezia(&awg_args);
     }
-    trial
-        .probe(
-            gateway_config,
-            args.ignore_egress_epoch_role,
-            args.only_wireguard,
-        )
-        .await
+    Box::pin(trial.probe(
+        gateway_config,
+        args.ignore_egress_epoch_role,
+        args.only_wireguard,
+    ))
+    .await
 }
 
 async fn fetch_random_gateway_with_ipr(
