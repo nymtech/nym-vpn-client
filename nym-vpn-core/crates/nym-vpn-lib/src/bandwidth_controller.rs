@@ -367,6 +367,7 @@ impl<St: Storage> BandwidthController<St> {
             tokio::select! {
                 _ = self.shutdown_token.cancelled() => {
                     tracing::trace!("BandwidthController: Received shutdown");
+                    break;
                 }
                 _ = self.task_client.recv() => {
                     tracing::trace!("BandwidthController: Received shutdown");
