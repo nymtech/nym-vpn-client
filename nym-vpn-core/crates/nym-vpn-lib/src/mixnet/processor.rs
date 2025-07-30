@@ -1,10 +1,10 @@
 // Copyright 2023 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::result::Result;
+use std::{result::Result, time::Duration};
 
 use bytes::{Bytes, BytesMut};
-use futures::{StreamExt, channel::mpsc};
+use futures::{FutureExt, StreamExt, channel::mpsc, future::Fuse, pin_mut};
 use nym_connection_monitor::{ConnectionMonitorTask, ConnectionStatusEvent};
 use nym_gateway_directory::IpPacketRouterAddress;
 use nym_ip_packet_requests::{
@@ -21,6 +21,9 @@ use tokio_util::{codec::Encoder, sync::CancellationToken};
 use tun::{AsyncDevice, Device};
 
 use super::{MixnetError, SharedMixnetClient, backpressure::MixnetBackpressureMonitor};
+
+/// How much time to wait for ipr disconnect before proceeding to shutdown.
+const IPR_DISCONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 
 #[derive(Debug)]
 pub struct MixnetProcessorConfig {
@@ -153,6 +156,13 @@ impl MixnetProcessor {
         // times
         let mut has_sent_ipr_disconnect = false;
 
+        // Keeps track of whether ipr disconnect timeout has been activated.
+        let mut is_disconnect_timeout_active = false;
+
+        // Ipr disconnect timeout future set upon cancellation
+        let ipr_disconnect_timeout = Fuse::terminated();
+        pin_mut!(ipr_disconnect_timeout);
+
         let mut payload_topup_interval =
             tokio::time::interval(nym_ip_packet_requests::codec::BUFFER_TIMEOUT);
 
@@ -180,6 +190,12 @@ impl MixnetProcessor {
                 // running until the mixnet listener receives the disconnect response, so we can
                 // make sure we've fully disconnected before we return.
                 _ = self.cancel_token.cancelled(), if !has_sent_ipr_disconnect => {
+                    // Start disconnect timeout upon receiving cancellation in the very first time.
+                    if !is_disconnect_timeout_active {
+                        is_disconnect_timeout_active = true;
+                        ipr_disconnect_timeout.set(tokio::time::sleep(IPR_DISCONNECT_TIMEOUT).fuse());
+                    }
+
                     tracing::debug!("MixnetProcessor: cancel token triggered, sending disconnect message");
                     let input_message = match message_creator.create_disconnect_message() {
                         Ok(input_message) => input_message,
@@ -194,16 +210,18 @@ impl MixnetProcessor {
                     }
                     has_sent_ipr_disconnect = true;
                 }
+                _ = &mut ipr_disconnect_timeout => {
+                    tracing::warn!("Timed out waiting for ipr disconnect");
+                    break;
+                }
                 // When the mixnet listener receives the disconnect response, it will notify us
                 // that it's done. This means we can now stop
                 _ = &mut mixnet_listener_done => {
                     tracing::debug!("MixnetProcessor: mixnet listener has finished");
                     break;
                 }
-                // In the tunnel monitor, if it times out waiting to hear that we have
-                // disconnected, it will call on the TaskManager to signal shutdown anyway. This is
-                // captured here.
-                _ = task_client_mix_processor.recv_with_delay() => {
+                // Handle task manager shutdown
+                _ = task_client_mix_processor.recv() => {
                     tracing::debug!("MixnetProcessor: Received shutdown");
                     break;
                 }
@@ -224,7 +242,7 @@ impl MixnetProcessor {
                                     tracing::error!("Failed to send IP packet to the mixnet");
                                 }
                             }
-                            _ = task_client_mix_processor.recv_with_delay() => {
+                            _ = task_client_mix_processor.recv() => {
                                 tracing::debug!("MixnetProcessor: Received shutdown while sending.");
                                 break;
                             }
@@ -259,7 +277,7 @@ impl MixnetProcessor {
                                 tracing::error!("Failed to flush the multi IP packet sink");
                             }
                         }
-                        _ = task_client_mix_processor.recv_with_delay() => {
+                        _ = task_client_mix_processor.recv() => {
                             tracing::debug!("MixnetProcessor: Received shutdown while flushing");
                             break;
                         }
