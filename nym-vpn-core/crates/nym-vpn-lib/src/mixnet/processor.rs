@@ -186,6 +186,10 @@ impl MixnetProcessor {
 
             tokio::select! {
                 biased;
+                _ = &mut ipr_disconnect_timeout => {
+                    tracing::warn!("Timed out waiting for ipr disconnect");
+                    break;
+                }
                 // When we get the cancel token, send a disconnect message to the IPR. We keep
                 // running until the mixnet listener receives the disconnect response, so we can
                 // make sure we've fully disconnected before we return.
@@ -209,10 +213,6 @@ impl MixnetProcessor {
                         continue;
                     }
                     has_sent_ipr_disconnect = true;
-                }
-                _ = &mut ipr_disconnect_timeout => {
-                    tracing::warn!("Timed out waiting for ipr disconnect");
-                    break;
                 }
                 // When the mixnet listener receives the disconnect response, it will notify us
                 // that it's done. This means we can now stop
