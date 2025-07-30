@@ -270,12 +270,13 @@ impl TunnelMonitor {
             }
         };
 
-        tracing::debug!("Waiting for task manager to shutdown");
+        // Repeat task manager shutdown in case of early return from run_inner()
         if task_manager.signal_shutdown().is_err() {
             tracing::error!("Failed to signal task manager shutdown");
         }
+
+        tracing::debug!("Waiting for task manager shutdown");
         task_manager.wait_for_graceful_shutdown().await;
-        tracing::debug!("Task manager shutdown complete");
 
         let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
         self.send_event(TunnelMonitorEvent::Down {
@@ -586,6 +587,11 @@ impl TunnelMonitor {
                     tracing::debug!("Background task finished");
                 }
             }
+        }
+
+        // Signal task manager to shutdown to stop detached tasks
+        if task_manager.signal_shutdown().is_err() {
+            tracing::error!("Failed to signal task manager shutdown");
         }
 
         // Trigger cancellation since many other tasks depend on shutdown token
