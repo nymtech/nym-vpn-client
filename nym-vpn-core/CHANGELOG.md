@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.1] - 2025-07-30
+
+### Changed
+
+- Update pre-bundled discovery to include account links (https://github.com/nymtech/nym-vpn-client/pull/3167)
+- Reduce noisiness of WireGuard logs (https://github.com/nymtech/nym-vpn-client/pull/3169)
+
 ## [1.13.0] - 2025-07-29
 
 ### Added
@@ -17,10 +24,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Box too large futures to fix stackoverflow on Windows (https://github.com/nymtech/nym-vpn-client/pull/3139)
-
-### Changed
-
-- Reduce noisiness of WireGuard logs (https://github.com/nymtech/nym-vpn-client/pull/3169)
 
 ## [1.12.0] - 2025-07-18
 
