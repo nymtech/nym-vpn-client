@@ -286,6 +286,7 @@ impl TunnelMonitor {
 
         tracing::debug!("Waiting for task manager shutdown");
         task_manager.wait_for_graceful_shutdown().await;
+        tracing::debug!("Task manager is down!!!");
 
         let (reply_tx, reply_rx) = tokio::sync::oneshot::channel();
         self.send_event(TunnelMonitorEvent::Down {
