@@ -25,6 +25,9 @@ use super::{MixnetError, SharedMixnetClient, backpressure::MixnetBackpressureMon
 /// How much time to wait for ipr disconnect before proceeding to shutdown.
 const IPR_DISCONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 
+/// Interval between attempts to send ipr disconnect
+const IPR_DISCONNECT_RETRY_DELAY: Duration = Duration::from_millis(500);
+
 #[derive(Debug)]
 pub struct MixnetProcessorConfig {
     pub ip_packet_router_address: IpPacketRouterAddress,
@@ -205,11 +208,13 @@ impl MixnetProcessor {
                         Ok(input_message) => input_message,
                         Err(err) => {
                             tracing::error!("Failed to create disconnect message: {err}");
+                            tokio::time::sleep(IPR_DISCONNECT_RETRY_DELAY).await;
                             continue;
                         }
                     };
                     if let Err(err) = mixnet_sender.send(input_message).await {
                         tracing::error!("Failed to send disconnect message: {err}");
+                        tokio::time::sleep(IPR_DISCONNECT_RETRY_DELAY).await;
                         continue;
                     }
                     has_sent_ipr_disconnect = true;
