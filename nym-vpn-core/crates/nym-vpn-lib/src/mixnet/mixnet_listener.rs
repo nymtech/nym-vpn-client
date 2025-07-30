@@ -81,7 +81,7 @@ impl MixnetListener {
 
         while !self.task_client.is_shutdown() {
             tokio::select! {
-                _ = self.task_client.recv_with_delay() => {
+                _ = self.task_client.recv() => {
                     tracing::debug!("Mixnet listener: Received shutdown");
                     break;
                 }
