@@ -132,14 +132,13 @@ async fn get_list_of_corrupted_files(data_dir: &Path) -> Result<Vec<PathBuf>, Er
     // Delete files of the form `base_name._[0-9]*.corrupted`
     let mut corrupted_files = vec![];
     while let Some(entry_result) = dir_stream.next().await {
-        if let Ok(entry) = entry_result {
-            if entry
+        if let Ok(entry) = entry_result
+            && entry
                 .file_name()
                 .to_str()
                 .is_some_and(|s| s.starts_with(starts_with) || s.ends_with(".corrupted"))
-            {
-                corrupted_files.push(entry.path());
-            }
+        {
+            corrupted_files.push(entry.path());
         }
     }
     Ok(corrupted_files)
