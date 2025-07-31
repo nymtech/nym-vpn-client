@@ -289,7 +289,7 @@ async fn get_account_links(
 
 async fn get_account_state(mut rpc_client: RpcClient) -> Result<()> {
     let response = rpc_client.get_account_state().await?;
-    println!("{response:#?}");
+    println!("{response}");
     Ok(())
 }
 
