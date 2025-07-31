@@ -259,7 +259,6 @@ impl AccountControllerStateHandler for SyncingState {
     }
 }
 
-// SW Add conversion from this to Error Reason
 #[derive(Debug)]
 enum SyncError {
     Internal(String),
