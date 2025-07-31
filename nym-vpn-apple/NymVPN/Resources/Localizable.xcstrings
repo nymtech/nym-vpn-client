@@ -18695,8 +18695,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Key"
+            "state" : "translated",
+            "value" : "Clave"
           }
         },
         "fa" : {
@@ -18755,8 +18755,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Key"
+            "state" : "translated",
+            "value" : "Ключ"
           }
         },
         "vi" : {
@@ -25664,8 +25664,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Disable to only use IPv4"
+            "state" : "translated",
+            "value" : "Desactivar para usar solo IPv4"
           }
         },
         "fa" : {
@@ -25724,8 +25724,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Disable to only use IPv4"
+            "state" : "translated",
+            "value" : "Вимкнути, щоб використовувати тільки IPv4"
           }
         },
         "vi" : {
@@ -25765,8 +25765,8 @@
         },
         "es" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "IPv6 traffic tunneling"
+            "state" : "translated",
+            "value" : "Túnel de tráfico IPv6"
           }
         },
         "fa" : {
@@ -25825,8 +25825,8 @@
         },
         "uk" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "IPv6 traffic tunneling"
+            "state" : "translated",
+            "value" : "Тунелювання трафіку IPv6"
           }
         },
         "vi" : {
