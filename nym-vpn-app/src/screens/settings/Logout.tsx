@@ -22,7 +22,7 @@ function Logout() {
   const logoutCopy = capFirst(t('logout', { ns: 'glossary' }));
 
   const logout = async () => {
-    if (state !== 'Disconnected') {
+    if (state !== 'disconnected') {
       console.warn(`cannot logout while tunnel state is ${state}`);
       push({
         message: t('logout.from-state', { ns: 'notifications', state }),
@@ -71,7 +71,7 @@ function Logout() {
       <SettingsMenuCard
         title={logoutCopy}
         onClick={() => setIsOpen(true)}
-        disabled={daemonStatus === 'down' || state !== 'Disconnected'}
+        disabled={daemonStatus === 'down' || state !== 'disconnected'}
         data-testid="logout-button"
       />
       <Dialog

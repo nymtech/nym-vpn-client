@@ -69,7 +69,7 @@ export type StateAction =
 
 export const initialState: AppState = {
   initialized: false,
-  state: 'Disconnected',
+  state: 'disconnected',
   tunnel: null,
   tunnelError: null,
   daemonStatus: 'down',
@@ -102,9 +102,26 @@ export function reducer(state: AppState, action: StateAction): AppState {
         initialized: true,
       };
     case 'set-daemon-status':
+      if (action.status === 'down') {
+        return {
+          ...state,
+          daemonStatus: action.status,
+          state: 'unknown',
+          tunnel: null,
+          progressMessages: [],
+          tunnelConnectedAt: null,
+          tunnelError: null,
+          retryAttempt: 0,
+          error: {
+            key: 'not-connected-to-daemon',
+            message: 'Not connected to the daemon',
+          },
+        };
+      }
       return {
         ...state,
         daemonStatus: action.status,
+        error: null,
       };
     case 'set-daemon-info':
       return {
@@ -159,9 +176,9 @@ export function reducer(state: AppState, action: StateAction): AppState {
         tunnelError: action.error,
       };
     case 'connect':
-      return { ...state, state: 'Connecting' };
+      return { ...state, state: 'connecting' };
     case 'disconnect':
-      return { ...state, state: 'Disconnecting' };
+      return { ...state, state: 'disconnecting' };
     case 'set-version':
       return {
         ...state,
@@ -170,7 +187,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
     case 'set-tunnel-connected':
       return {
         ...state,
-        state: 'Connected',
+        state: 'connected',
         tunnel: action.tunnel,
         progressMessages: [],
         tunnelConnectedAt: action.tunnel.connectedAt
@@ -183,7 +200,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
     case 'set-tunnel-disconnected':
       return {
         ...state,
-        state: 'Disconnected',
+        state: 'disconnected',
         tunnel: null,
         progressMessages: [],
         tunnelConnectedAt: null,
@@ -193,7 +210,7 @@ export function reducer(state: AppState, action: StateAction): AppState {
     case 'set-tunnel-connecting':
       return {
         ...state,
-        state: 'Connecting',
+        state: 'connecting',
         tunnel: action.payload.tunnel,
         retryAttempt: action.payload.retryAttempt || 0,
         tunnelError: null,
@@ -201,21 +218,21 @@ export function reducer(state: AppState, action: StateAction): AppState {
     case 'set-tunnel-disconnecting':
       return {
         ...state,
-        state: 'Disconnecting',
+        state: 'disconnecting',
         tunnel: null,
         tunnelError: null,
       };
     case 'set-tunnel-offline':
       return {
         ...state,
-        state: action.reconnect ? 'OfflineAutoReconnect' : 'Offline',
+        state: action.reconnect ? 'offline-auto-reconnect' : 'offline',
         tunnel: null,
         tunnelError: null,
       };
     case 'set-tunnel-inerror':
       return {
         ...state,
-        state: 'Error',
+        state: 'error',
         tunnelError: action.error,
       };
     case 'set-account':

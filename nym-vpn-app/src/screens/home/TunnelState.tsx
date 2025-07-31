@@ -12,12 +12,12 @@ function TunnelState() {
   const state = useMainState();
   const [showBadge, setShowBadge] = useState(true);
   const loading =
-    state.state === 'Connecting' || state.state === 'Disconnecting';
+    state.state === 'connecting' || state.state === 'disconnecting';
   const isError = state.tunnelError || state.error;
   const isOffline =
-    state.state === 'Offline' || state.state === 'OfflineAutoReconnect';
+    state.state === 'offline' || state.state === 'offline-auto-reconnect';
   const showRetryAttempt =
-    state.state === 'Connecting' && !state.error && state.retryAttempt > 0;
+    state.state === 'connecting' && !state.error && state.retryAttempt > 0;
   const showProgressMsg =
     loading &&
     state.progressMessages.length > 0 &&
@@ -100,13 +100,13 @@ function TunnelState() {
           !isError &&
           InfoMessage(
             t(
-              state.state === 'Offline'
+              state.state === 'offline'
                 ? 'offline-message'
                 : 'offline-reconnect-message',
               { ns: 'home' },
             ),
           )}
-        {state.state === 'Connected' && <ConnectionTimer />}
+        {state.state === 'connected' && <ConnectionTimer />}
         {isError && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, translateX: -8 }}

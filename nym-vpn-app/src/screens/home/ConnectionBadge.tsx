@@ -9,34 +9,36 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
 
   const getBadgeStyle = (state: TunnelState) => {
     switch (state) {
-      case 'Connected':
+      case 'connected':
         return ['text-malachite-moss dark:text-malachite bg-malachite/10!'];
-      case 'Disconnected':
+      case 'disconnected':
         return ['text-iron dark:text-bombay'];
-      case 'Connecting':
-      case 'Disconnecting':
+      case 'connecting':
+      case 'disconnecting':
         return ['text-baltic-sea dark:text-white'];
-      case 'Error':
-      case 'Offline':
-      case 'OfflineAutoReconnect':
+      case 'error':
+      case 'offline':
+      case 'offline-auto-reconnect':
+      case 'unknown':
         return ['text-baltic-sea bg-aphrodisiac!'];
     }
   };
 
   const getStatusText = (state: TunnelState) => {
     switch (state) {
-      case 'Connected':
+      case 'connected':
         return t('status.connected');
-      case 'Disconnected':
+      case 'disconnected':
+      case 'unknown':
         return t('status.disconnected');
-      case 'Connecting':
+      case 'connecting':
         return t('status.connecting');
-      case 'Disconnecting':
+      case 'disconnecting':
         return t('status.disconnecting');
-      case 'Error':
+      case 'error':
         return t('status.error');
-      case 'Offline':
-      case 'OfflineAutoReconnect':
+      case 'offline':
+      case 'offline-auto-reconnect':
         return t('status.offline');
     }
   };
@@ -56,7 +58,7 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
       data-status={state}
     >
       <span data-testid="connection-status-text">{getStatusText(state)}</span>
-      {(state === 'Connecting' || state === 'Disconnecting') && (
+      {(state === 'connecting' || state === 'disconnecting') && (
         <PulseDot color="cornflower" data-testid="connection-pulse-dot" />
       )}
     </motion.div>

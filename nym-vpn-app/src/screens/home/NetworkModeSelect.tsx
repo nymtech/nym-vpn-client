@@ -23,7 +23,7 @@ function NetworkModeSelect() {
   const { t } = useTranslation('home');
 
   const handleNetworkModeChange = async (value: VpnMode) => {
-    if (state === 'Disconnected' && value !== vpnMode) {
+    if (state === 'disconnected' && value !== vpnMode) {
       setLoading(true);
       try {
         await invoke<void>('set_vpn_mode', { mode: value });
@@ -42,7 +42,7 @@ function NetworkModeSelect() {
   };
 
   const handleDisabledState = () => {
-    if (state !== 'Disconnected') {
+    if (state !== 'disconnected') {
       toast();
     }
   };
@@ -61,7 +61,7 @@ function NetworkModeSelect() {
         key: 'wg',
         label: t('fast-mode.title'),
         desc: t('fast-mode.desc'),
-        disabled: state !== 'Disconnected' || loading,
+        disabled: state !== 'disconnected' || loading,
         icon: (checked) => (
           <span
             className={iconStyle(checked)}
@@ -76,7 +76,7 @@ function NetworkModeSelect() {
         key: 'mixnet',
         label: t('privacy-mode.title'),
         desc: t('privacy-mode.desc'),
-        disabled: state !== 'Disconnected' || loading,
+        disabled: state !== 'disconnected' || loading,
         icon: (checked) => (
           <span
             className={iconStyle(checked)}

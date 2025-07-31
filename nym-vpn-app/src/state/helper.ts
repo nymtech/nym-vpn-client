@@ -72,7 +72,6 @@ export function daemonStatusUpdate(
       close: true,
       duration: 6000,
       type: 'error',
-      throttle: 10,
     });
   }
 }

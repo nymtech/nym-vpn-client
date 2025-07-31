@@ -12,10 +12,10 @@ export function useExit() {
   const exit = async () => {
     console.info('app exit');
     if (
-      state.state === 'Connected' ||
-      state.state === 'Error' ||
-      state.state === 'Connecting' ||
-      state.state === 'OfflineAutoReconnect'
+      state.state === 'connected' ||
+      state.state === 'error' ||
+      state.state === 'connecting' ||
+      state.state === 'offline-auto-reconnect'
     ) {
       // TODO add a timeout to prevent the app from hanging
       // in bad disconnect scenarios

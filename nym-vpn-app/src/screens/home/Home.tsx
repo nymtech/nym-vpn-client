@@ -4,7 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
 import clsx from 'clsx';
 import { motion } from 'motion/react';
-import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
+import { useMainDispatch, useMainState } from '../../contexts';
 import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { S_STATE } from '../../static';
@@ -25,27 +25,26 @@ function Home() {
     useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
-  const { push } = useInAppNotify();
   const { t } = useTranslation('home');
-  const loading = state === 'Disconnecting';
-  const hopSelectDisabled = daemonStatus === 'down' || state !== 'Disconnected';
+  const loading = state === 'disconnecting';
+  const hopSelectDisabled = daemonStatus === 'down' || state !== 'disconnected';
 
   const [isDialogUpdateOpen, setIsDialogUpdateOpen] = useState(false);
 
   const handleClick = () => {
-    if (state === 'Disconnected' && !account) {
+    if (state === 'disconnected' && !account) {
       navigate(routes.login);
       return;
     }
     dispatch({ type: 'disconnect' });
     if (
-      state === 'Connected' ||
-      state === 'Connecting' ||
-      state === 'OfflineAutoReconnect' ||
-      state === 'Error'
+      state === 'connected' ||
+      state === 'connecting' ||
+      state === 'offline-auto-reconnect' ||
+      state === 'error'
     ) {
       console.info('disconnect');
-      if (state === 'Connecting') {
+      if (state === 'connecting') {
         dispatch({ type: 'new-progress-message', message: 'Canceling' });
       }
       invoke('disconnect')
@@ -55,7 +54,7 @@ function Home() {
         .catch((e: unknown) => {
           dispatch({ type: 'set-error', error: e as BackendError });
         });
-    } else if (state === 'Disconnected') {
+    } else if (state === 'disconnected') {
       console.info('connect');
       dispatch({ type: 'reset-error' });
       dispatch({ type: 'connect' });
@@ -89,53 +88,41 @@ function Home() {
     }
   }, [navigate]);
 
-  useEffect(() => {
-    if (daemonStatus === 'down') {
-      push({
-        id: 'daemon-not-connected',
-        message: t('daemon-not-connected', {
-          ns: 'notifications',
-        }),
-        close: true,
-        duration: 2000,
-        type: 'error',
-        throttle: 5,
-      });
-    }
-  }, [push, t, daemonStatus]);
-
   const getButtonText = useCallback(() => {
     const stop = capFirst(t('stop', { ns: 'glossary' }));
     const cancel = capFirst(t('cancel', { ns: 'glossary' }));
     switch (state) {
-      case 'Connected':
+      case 'connected':
         return t('disconnect');
-      case 'Disconnected':
+      case 'disconnected':
+      case 'unknown':
         return t('connect');
-      case 'Connecting':
+      case 'connecting':
         return stop;
-      case 'Disconnecting':
+      case 'disconnecting':
         return null;
-      case 'Offline':
+      case 'offline':
         return t('connect');
-      case 'OfflineAutoReconnect':
+      case 'offline-auto-reconnect':
         return stop;
-      case 'Error':
+      case 'error':
         return cancel;
     }
   }, [state, t]);
 
   const getButtonColor = () => {
     switch (state) {
-      case 'Disconnected':
-      case 'Offline':
+      case 'disconnected':
+      case 'offline':
         return 'malachite';
-      case 'Connected':
-      case 'Connecting':
-      case 'OfflineAutoReconnect':
-      case 'Disconnecting':
-      case 'Error':
+      case 'connected':
+      case 'connecting':
+      case 'offline-auto-reconnect':
+      case 'disconnecting':
+      case 'error':
         return 'red';
+      case 'unknown':
+        return 'gray';
     }
   };
 
@@ -198,7 +185,7 @@ function Home() {
           <Button
             onClick={handleClick}
             color={getButtonColor()}
-            disabled={loading || daemonStatus === 'down' || state === 'Offline'}
+            disabled={loading || daemonStatus === 'down' || state === 'offline'}
             spinner={loading}
             className={clsx(['h-14', loading && 'data-disabled:opacity-80'])}
             data-testid="home-connection-button"

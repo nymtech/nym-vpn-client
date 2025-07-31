@@ -222,9 +222,9 @@ async fn main() -> Result<()> {
                         c_grpc.update_vpnd_state(info, &handle).await.ok();
                         // initialize tunnel state
                         c_grpc.tunnel_state(&handle).await.ok();
-                        info!("watching vpn tunnel events");
                         vpnd::sentry_check(sentry_enabled, &c_grpc).await.ok();
                         vpnd::netstats_check(&db, &c_grpc).await.ok();
+                        info!("watching vpn tunnel events");
                         // start watching tunnel events, this is a blocking call
                         // and will keep the task alive as long as vpnd is running
                         c_grpc.watch_tunnel_events(&handle).await.ok();
