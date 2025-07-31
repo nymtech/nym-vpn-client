@@ -84,7 +84,7 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
               payload: {
                 type: nodeType,
                 error: {
-                  message: formatBackendError(backendError, nodeType),
+                  message: formatBackendError(backendError),
                   key: backendError.key,
                   data: backendError.data || null,
                 },

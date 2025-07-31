@@ -8,8 +8,8 @@ export type BackendError = {
 
 // Since Javascript in the browser does not have a way to format BackendError objects
 // I created that helper to format the error message
-export function formatBackendError(error: BackendError, context: string): string {
-  let message = `${context}: ${error.message}`;
+export function formatBackendError(error: BackendError): string {
+  let message = `${error.message}`;
 
   if (error.data) {
     const dataEntries = Object.entries(error.data);
