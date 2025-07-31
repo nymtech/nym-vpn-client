@@ -15,7 +15,7 @@ fn main() {
 
     let build_dir = PathBuf::from(manifest_path).join("../../../build/winfw");
 
-    // .canonicalize will fail if the build directory does not exist
+    // canonicalize() will fail if the build directory does not exist
     if !build_dir.exists() {
         fs::create_dir(&build_dir).expect("failed to create build dir");
     }
@@ -23,6 +23,7 @@ fn main() {
     let build_dir = build_dir
         .canonicalize()
         .expect("failed to canonicalize build dir path");
+
     let cpp_arch = match arch.as_str() {
         "x86_64" => "x64",
         "aarch64" => "ARM64",

@@ -10,7 +10,7 @@ fn main() {
 
     let build_dir = PathBuf::from(manifest_path).join("../../../build/lib");
 
-    // .canonicalize will fail if the build directory does not exist
+    // canonicalize() will fail if the build directory does not exist
     if !build_dir.exists() {
         fs::create_dir(&build_dir)
             .expect("failed to create build dir");
