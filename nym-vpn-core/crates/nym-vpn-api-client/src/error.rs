@@ -20,6 +20,9 @@ pub enum VpnApiClientError {
     #[error("failed to get account summary")]
     GetAccountSummary(#[source] HttpClientError<NymErrorResponse>),
 
+    #[error("failed to get account summary with device")]
+    GetAccountSummaryWithDevice(#[source] HttpClientError<NymErrorResponse>),
+
     #[error("failed to get devices")]
     GetDevices(#[source] HttpClientError<NymErrorResponse>),
 
