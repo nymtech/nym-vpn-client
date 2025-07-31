@@ -31,7 +31,7 @@ where
     account_storage: AccountStorage<S>,
 
     // The current state of the account
-    account_state: SharedAccountState,
+    shared_state: SharedAccountState,
 
     // Receiver channel used to receive commands from the outside.
     command_channel: (
@@ -89,7 +89,7 @@ where
         // Client to query the VPN API
         let vpn_api_client = AccountControllerVpnApiClient::new(&config)?;
 
-        let account_state = init::create_initial_shared_state(
+        let shared_state = init::create_initial_shared_state(
             connectivity_handle,
             config,
             &account_storage,
@@ -99,7 +99,7 @@ where
         )
         .await?;
 
-        let (current_state_handler, initial_state) = if account_state
+        let (current_state_handler, initial_state) = if shared_state
             .connectivity_handle
             .connectivity()
             .await
@@ -107,7 +107,7 @@ where
         {
             OfflineState::enter()
         } else {
-            SyncingState::enter(&account_state)
+            SyncingState::enter(&shared_state, 0)
         };
 
         let public_initial_state = AccountControllerState::from(initial_state);
@@ -116,7 +116,7 @@ where
 
         Ok(AccountController {
             account_storage,
-            account_state,
+            shared_state,
             command_channel,
             state_channel,
             event_channel,
@@ -175,14 +175,14 @@ where
     // SW Figure out a way to make that work without breaking everything?
     fn print_info(&self) {
         let account_id = self
-            .account_state
+            .shared_state
             .vpn_api_account
             .as_ref()
             .map(|account| account.id())
             .unwrap_or_else(|| "(unset)");
 
         let device_id = self
-            .account_state
+            .shared_state
             .device
             .as_ref()
             .map(|d| d.identity_key().to_base58_string())
@@ -214,7 +214,7 @@ where
                 .handle_event(
                     &self.cancel_token,
                     &mut self.command_channel.1,
-                    &mut self.account_state,
+                    &mut self.shared_state,
                 )
                 .await;
 
@@ -237,7 +237,7 @@ where
             }
         }
         // SW do that better
-        self.account_state.credential_storage.close().await;
+        self.shared_state.credential_storage.close().await;
         tracing::debug!("Account controller state machine is exiting...");
     }
 }
