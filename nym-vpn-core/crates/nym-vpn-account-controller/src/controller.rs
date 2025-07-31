@@ -93,9 +93,8 @@ where
         let credential_storage =
             VpnCredentialStorage::setup_from_path(config.data_dir.clone()).await?;
 
-        // SW maybe handle errors here? What kind of errors are we talking about?
-        let vpn_api_account = account_storage.load_account().await.ok();
-        let device_keys = Some(account_storage.load_device_keys().await?);
+        let vpn_api_account = account_storage.load_account().await?;
+        let device_keys = account_storage.load_device_keys().await?;
 
         // Shared_state
         let shared_state = SharedAccountState::new(

@@ -79,15 +79,7 @@ impl From<AccountCommandError> for VpnError {
             },
             AccountCommandError::RequestZkNym(e) => Self::RequestZkNym { details: e.into() },
 
-            AccountCommandError::ExistingAccount => todo!(),
-            AccountCommandError::GetAccountEndpointFailure(vpn_api_error) => todo!(),
-            AccountCommandError::RemoveAccount(_) => todo!(),
-            AccountCommandError::RemoveDeviceKeys(_) => todo!(),
-            AccountCommandError::ResetCredentialStorage(_) => todo!(),
-            AccountCommandError::RemoveAccountFiles(_) => todo!(),
-            AccountCommandError::UpdateDeviceErrorResponse(vpn_api_error) => todo!(),
-            AccountCommandError::InvalidMnemonic(_) => todo!(),
-            AccountCommandError::RegisterAccountEndpointFailure(vpn_api_error) => todo!(),
+            _ => todo!(), // SW
         }
     }
 }
