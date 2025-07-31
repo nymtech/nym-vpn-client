@@ -12,13 +12,13 @@ import {
 import { Tunnel, TunnelError } from './tunnel';
 
 export type TunnelState =
-  | 'Connected'
-  | 'Disconnected'
-  | 'Connecting'
-  | 'Disconnecting'
-  | 'Error'
-  | 'Offline'
-  | 'OfflineAutoReconnect';
+  | 'connected'
+  | 'disconnected'
+  | 'connecting'
+  | 'disconnecting'
+  | 'error'
+  | 'offline'
+  | 'offline-auto-reconnect';
 
 export type VpnMode = 'wg' | 'mixnet';
 

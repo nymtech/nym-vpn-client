@@ -11,20 +11,20 @@ export function useActionToast(action: 'node-select' | 'mode-select') {
     (throttle = 2) => {
       let text = null;
       switch (state) {
-        case 'Connected':
+        case 'connected':
           text = t('snackbar-disabled-message.connected');
           break;
-        case 'Connecting':
+        case 'connecting':
           text = t('snackbar-disabled-message.connecting');
           break;
-        case 'Disconnecting':
+        case 'disconnecting':
           text = t('snackbar-disabled-message.disconnecting');
           break;
-        case 'Offline':
-        case 'OfflineAutoReconnect':
+        case 'offline':
+        case 'offline-auto-reconnect':
           text = t('snackbar-disabled-message.offline');
           break;
-        case 'Error':
+        case 'error':
           text = t('snackbar-disabled-message.error');
           break;
       }

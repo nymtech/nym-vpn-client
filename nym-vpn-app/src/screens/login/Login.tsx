@@ -42,7 +42,7 @@ function Login() {
       return;
     }
     // kinda overkill but who knows?
-    if (state !== 'Disconnected') {
+    if (state !== 'disconnected') {
       console.warn(`cannot login while tunnel state is ${state}`);
       return;
     }
@@ -126,7 +126,7 @@ function Login() {
         <div className="w-full flex flex-col justify-center items-center gap-6 mb-2">
           <Button
             onClick={handleClick}
-            disabled={daemonStatus === 'down' || state !== 'Disconnected'}
+            disabled={daemonStatus === 'down' || state !== 'disconnected'}
             className={clsx(
               'h-14',
               daemonStatus === 'down' &&
