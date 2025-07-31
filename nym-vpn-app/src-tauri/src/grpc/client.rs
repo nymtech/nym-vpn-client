@@ -179,6 +179,7 @@ impl GrpcClient {
         Ok(tunnel)
     }
 
+    // TODO change logging level to info
     /// Watch tunnel state updates and mixnet events
     #[instrument(skip_all)]
     pub async fn watch_tunnel_events(&self, app: &AppHandle) -> Result<()> {
@@ -188,7 +189,7 @@ impl GrpcClient {
             .listen_to_events(())
             .await
             .inspect_err(|e| {
-                error!("listen_to_tunnel_state_changes failed: {}", e);
+                warn!("listen_to_tunnel_state_changes failed: {}", e); // changed level from error to warning
             })?
             .into_inner();
 
@@ -401,6 +402,7 @@ impl GrpcClient {
             locale: "en".to_string(),
         });
         let response = vpnd.get_account_links(request).await.map_err(|e| {
+            // TODO change logging level to info
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;
