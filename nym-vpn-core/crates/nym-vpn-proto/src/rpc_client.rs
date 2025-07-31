@@ -120,7 +120,7 @@ impl RpcClient {
 
     pub async fn listen_to_tunnel_state(
         &mut self,
-    ) -> Result<impl Stream<Item = Result<TunnelState>>> {
+    ) -> Result<impl Stream<Item = Result<TunnelState>> + 'static> {
         let listener = self
             .0
             .listen_to_tunnel_state(())
@@ -135,7 +135,9 @@ impl RpcClient {
         }))
     }
 
-    pub async fn listen_to_events(&mut self) -> Result<impl Stream<Item = Result<TunnelEvent>>> {
+    pub async fn listen_to_events(
+        &mut self,
+    ) -> Result<impl Stream<Item = Result<TunnelEvent>> + 'static> {
         let listener = self
             .0
             .listen_to_events(())
