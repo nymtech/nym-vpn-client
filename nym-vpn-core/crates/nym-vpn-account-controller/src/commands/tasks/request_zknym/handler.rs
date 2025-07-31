@@ -218,7 +218,7 @@ impl RequestZkNymCommandHandler {
             .check_zk_nyms_possible_to_resume()
             .await
             .inspect_err(|err| {
-                tracing::error!("Failed to check zk-nyms possible to resume: {:?}", err);
+                tracing::debug!("Failed to check zk-nyms possible to resume: {:?}", err);
             })
             .unwrap_or_default();
         self.resume_request_zk_nyms_for_ids(to_resume).await
