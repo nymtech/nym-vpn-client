@@ -8,7 +8,4 @@ pub enum Error {
 
     #[error(transparent)]
     Command(#[from] nym_vpn_lib_types::AccountCommandError),
-
-    #[error(transparent)]
-    ErrorStateReason(#[from] nym_vpn_lib_types::AccountControllerErrorStateReason),
 }

@@ -5,8 +5,7 @@ use std::sync::Arc;
 
 use nym_vpn_lib_types::{
     AvailableTickets, ForgetAccountError, RegisterDeviceError, RequestZkNymErrorReason,
-    RequestZkNymSuccess, StoreAccountError, SyncAccountError, SyncDeviceError, VpnApiError,
-    VpnApiErrorResponse,
+    RequestZkNymSuccess, StoreAccountError, VpnApiError, VpnApiErrorResponse,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -30,49 +29,6 @@ impl TryFrom<proto::StoreAccountError> for StoreAccountError {
                 Self::UnexpectedResponse(err)
             }
             proto::store_account_error::ErrorDetail::Internal(err) => Self::Internal(err),
-        })
-    }
-}
-
-impl TryFrom<proto::SyncAccountError> for SyncAccountError {
-    type Error = ConversionError;
-
-    fn try_from(value: proto::SyncAccountError) -> Result<Self, Self::Error> {
-        let error_detail = value
-            .error_detail
-            .ok_or(ConversionError::NoValueSet("SyncAccountError.error_detail"))?;
-        Ok(match error_detail {
-            proto::sync_account_error::ErrorDetail::NoAccountStored(_) => Self::NoAccountStored,
-            proto::sync_account_error::ErrorDetail::VpnApi(vpn_api) => {
-                Self::SyncAccountEndpointFailure(vpn_api.try_into()?)
-            }
-            proto::sync_account_error::ErrorDetail::UnexpectedResponse(err) => {
-                Self::UnexpectedResponse(err)
-            }
-            proto::sync_account_error::ErrorDetail::Offline(_) => Self::Offline,
-            proto::sync_account_error::ErrorDetail::Internal(err) => Self::Internal(err),
-        })
-    }
-}
-
-impl TryFrom<proto::SyncDeviceError> for SyncDeviceError {
-    type Error = ConversionError;
-
-    fn try_from(value: proto::SyncDeviceError) -> Result<Self, Self::Error> {
-        let error_detail = value
-            .error_detail
-            .ok_or(ConversionError::NoValueSet("SyncDeviceError.error_detail"))?;
-        Ok(match error_detail {
-            proto::sync_device_error::ErrorDetail::NoAccountStored(_) => Self::NoAccountStored,
-            proto::sync_device_error::ErrorDetail::NoDeviceStored(_) => Self::NoDeviceStored,
-            proto::sync_device_error::ErrorDetail::VpnApi(vpn_api) => {
-                Self::SyncDeviceEndpointFailure(vpn_api.try_into()?)
-            }
-            proto::sync_device_error::ErrorDetail::UnexpectedResponse(err) => {
-                Self::UnexpectedResponse(err)
-            }
-            proto::sync_device_error::ErrorDetail::Offline(_) => Self::Offline,
-            proto::sync_device_error::ErrorDetail::Internal(err) => Self::Internal(err),
         })
     }
 }
@@ -294,63 +250,6 @@ impl From<proto::AvailableTickets> for AvailableTickets {
             vpn_exit_tickets: ticketbooks.vpn_exit_tickets,
             vpn_exit_data: ticketbooks.vpn_exit_data,
             vpn_exit_data_si: ticketbooks.vpn_exit_data_si,
-        }
-    }
-}
-
-impl From<SyncAccountError> for proto::SyncAccountError {
-    fn from(value: SyncAccountError) -> Self {
-        match value {
-            SyncAccountError::NoAccountStored => proto::SyncAccountError {
-                error_detail: Some(proto::sync_account_error::ErrorDetail::NoAccountStored(
-                    true,
-                )),
-            },
-            SyncAccountError::SyncAccountEndpointFailure(vpn_api) => proto::SyncAccountError {
-                error_detail: Some(proto::sync_account_error::ErrorDetail::VpnApi(
-                    vpn_api.into(),
-                )),
-            },
-            SyncAccountError::UnexpectedResponse(err) => proto::SyncAccountError {
-                error_detail: Some(proto::sync_account_error::ErrorDetail::UnexpectedResponse(
-                    err,
-                )),
-            },
-            SyncAccountError::Offline => proto::SyncAccountError {
-                error_detail: Some(proto::sync_account_error::ErrorDetail::Offline(true)),
-            },
-            SyncAccountError::Internal(err) => proto::SyncAccountError {
-                error_detail: Some(proto::sync_account_error::ErrorDetail::Internal(err)),
-            },
-        }
-    }
-}
-
-impl From<SyncDeviceError> for proto::SyncDeviceError {
-    fn from(value: SyncDeviceError) -> Self {
-        match value {
-            SyncDeviceError::NoAccountStored => proto::SyncDeviceError {
-                error_detail: Some(proto::sync_device_error::ErrorDetail::NoAccountStored(true)),
-            },
-            SyncDeviceError::NoDeviceStored => proto::SyncDeviceError {
-                error_detail: Some(proto::sync_device_error::ErrorDetail::NoDeviceStored(true)),
-            },
-            SyncDeviceError::SyncDeviceEndpointFailure(vpn_api) => proto::SyncDeviceError {
-                error_detail: Some(proto::sync_device_error::ErrorDetail::VpnApi(
-                    vpn_api.into(),
-                )),
-            },
-            SyncDeviceError::UnexpectedResponse(err) => proto::SyncDeviceError {
-                error_detail: Some(proto::sync_device_error::ErrorDetail::UnexpectedResponse(
-                    err,
-                )),
-            },
-            SyncDeviceError::Offline => proto::SyncDeviceError {
-                error_detail: Some(proto::sync_device_error::ErrorDetail::Offline(true)),
-            },
-            SyncDeviceError::Internal(err) => proto::SyncDeviceError {
-                error_detail: Some(proto::sync_device_error::ErrorDetail::Internal(err)),
-            },
         }
     }
 }
