@@ -12,20 +12,11 @@ use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageO
 pub(crate) async fn handle_store_account(
     shared_state: &mut SharedAccountState,
     mnemonic: Mnemonic,
-    offline_mode: bool,
 ) -> Result<(), AccountCommandError> {
     let vpn_account = VpnApiAccount::try_from(mnemonic.clone())
         .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
 
-    // SW This looks so bad tbh
-    if !offline_mode {
-        shared_state
-            .vpn_api_client
-            .check_account_exists_on_api(&vpn_account)
-            .await?;
-    } else {
-        tracing::warn!("Not checking if account exists on vpn-api as we are offline");
-    }
+    // We don't check the account status here. The check was bypassed when offline anyway. We defer that job to the syncing state
 
     // at this point, we know the mnemonic is valid
     let (tx, rx) = ReturnSender::new();
@@ -37,7 +28,6 @@ pub(crate) async fn handle_store_account(
         .await
         .map_err(AccountCommandError::internal)? // Channel error
         .map_err(AccountCommandError::storage)?; // Storage error
-    // SW better error handling
 
     shared_state.vpn_api_account = Some(vpn_account);
     shared_state.device = Some(device);
@@ -60,8 +50,6 @@ pub(crate) async fn handle_create_account(
         .await
         .map_err(AccountCommandError::internal)? // Channel error
         .map_err(AccountCommandError::storage)?; // Storage error
-
-    // SW better error handling
 
     shared_state.vpn_api_account = Some(vpn_account);
     shared_state.device = Some(device);
@@ -164,7 +152,6 @@ pub(crate) async fn handle_reset_device_identity(
     tracing::info!("Resetting device key");
 
     // Reset keys in storage
-    // SW Better error handling
     let (tx, rx) = ReturnSender::new();
     shared_state
         .storage_op_sender

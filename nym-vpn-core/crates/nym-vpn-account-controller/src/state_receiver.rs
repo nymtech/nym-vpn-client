@@ -21,15 +21,15 @@ impl AccountStateReceiver {
         self.inner.mark_changed();
 
         while (self.inner.changed().await).is_ok() {
-            match *self.inner.borrow() {
+            match self.inner.borrow().clone() {
                 AccountControllerState::Offline => {
                     return Err(AccountCommandError::Offline);
                 }
                 AccountControllerState::LoggedOut => {
                     return Err(AccountCommandError::NoAccountStored);
                 }
-                AccountControllerState::Error => {
-                    return Err(AccountCommandError::Internal("Error state".into())); // SW better error
+                AccountControllerState::Error(reason) => {
+                    return Err(AccountCommandError::Internal(reason.to_string())); // SW better error
                 }
                 AccountControllerState::Syncing => {
                     tracing::debug!("Account controller is syncing, waiting for the next state");

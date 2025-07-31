@@ -3,8 +3,10 @@
 
 use std::fmt;
 
+use crate::AccountControllerErrorStateReason;
+
 // Public enum describing the tunnel state
-#[derive(Copy, Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum AccountControllerState {
     /// We don't have network
     Offline,
@@ -19,7 +21,7 @@ pub enum AccountControllerState {
     ReadyToConnect,
 
     /// Logged in, error during sync, can't proceed
-    Error,
+    Error(AccountControllerErrorStateReason),
 }
 
 impl fmt::Display for AccountControllerState {
@@ -37,7 +39,7 @@ impl fmt::Display for AccountControllerState {
             Self::ReadyToConnect => {
                 write!(f, "Ready to connect")
             }
-            Self::Error => write!(f, "Error"),
+            Self::Error(reason) => write!(f, "Error : {reason}"),
         }
     }
 }

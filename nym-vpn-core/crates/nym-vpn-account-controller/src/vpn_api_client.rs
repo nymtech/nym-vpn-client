@@ -4,7 +4,7 @@
 use std::ops::Deref;
 
 use nym_vpn_api_client::{
-    response::{NymVpnAccountStatusResponse, NymVpnRegisterAccountStatusResponse},
+    response::NymVpnRegisterAccountStatusResponse,
     types::{Platform, VpnApiAccount},
 };
 use nym_vpn_lib_types::{AccountCommandError, VpnApiError};
@@ -32,31 +32,6 @@ impl AccountControllerVpnApiClient {
 
     pub(crate) fn swap_inner_client(&mut self, new_client: nym_vpn_api_client::VpnApiClient) {
         self.inner = new_client;
-    }
-
-    // SW check that
-    pub(crate) async fn check_account_exists_on_api(
-        &self,
-        account: &VpnApiAccount,
-    ) -> Result<(), AccountCommandError> {
-        let account = self.inner.get_account(account).await.map_err(|e| {
-            VpnApiError::try_from(e)
-                .map(AccountCommandError::GetAccountEndpointFailure)
-                .unwrap_or_else(AccountCommandError::unexpected_response)
-        })?;
-        // TODO: handle these cases
-        // The logic below replicates the previous behaviour, but we should extend it to also
-        // handle where the account exists, but is not active or soft-deleted.
-        match account.status {
-            NymVpnAccountStatusResponse::Active => {}
-            NymVpnAccountStatusResponse::Inactive => {
-                tracing::warn!("Account is inactive - proceeding anyway");
-            }
-            NymVpnAccountStatusResponse::DeleteMe => {
-                tracing::warn!("Account is marked for deletion - proceeding anyway");
-            }
-        }
-        Ok(())
     }
 
     // SW how does that fit in the running AC flow, when it's actually running?
