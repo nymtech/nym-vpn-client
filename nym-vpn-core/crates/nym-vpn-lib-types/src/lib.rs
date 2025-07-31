@@ -14,7 +14,6 @@ pub use account::{
     controller_error::ErrorStateReason as AccountControllerErrorStateReason,
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,
-    register_device::RegisterDeviceError,
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
     ticketbooks::AvailableTickets,
 };

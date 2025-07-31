@@ -314,16 +314,13 @@ impl NymVpnService for CommandInterface {
     async fn get_account_state(
         &self,
         _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::GetAccountStateResponse>> {
-        let account_state_summary = self
+    ) -> Result<tonic::Response<proto::AccountControllerState>> {
+        let account_controller_state = self
             .send_and_wait(VpnServiceCommand::GetAccountState, ())
-            .await?;
+            .await
+            .map(proto::AccountControllerState::from)?;
 
-        Ok(tonic::Response::new(proto::GetAccountStateResponse {
-            account: Some(
-                proto::get_account_state_response::AccountStateSummary::from(account_state_summary),
-            ),
-        }))
+        Ok(tonic::Response::new(account_controller_state))
     }
 
     async fn refresh_account_state(

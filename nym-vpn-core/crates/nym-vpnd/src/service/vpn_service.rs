@@ -16,7 +16,8 @@ use tokio::{
 use tokio_util::sync::CancellationToken;
 
 use nym_vpn_account_controller::{
-    AccountCommandSender, AccountController, AccountControllerConfig, AvailableTicketbooks,
+    AccountCommandSender, AccountController, AccountControllerConfig, AccountStateReceiver,
+    AvailableTicketbooks,
 };
 use nym_vpn_api_client::{
     NetworkCompatibility,
@@ -31,11 +32,12 @@ use nym_vpn_lib::{
         TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
     },
 };
-use nym_vpn_lib_types::{AccountCommandError, TunnelEvent, TunnelState, TunnelType};
+use nym_vpn_lib_types::{
+    AccountCommandError, AccountControllerState, TunnelEvent, TunnelState, TunnelType,
+};
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
     ConnectArgs, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
-    account_state::AccountStateSummary,
     gateway::{Country, Gateway},
     log_path::LogPath,
     service::VpnServiceInfo,
@@ -90,7 +92,7 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<ParsedAccountLinks, AccountLinksError>>,
         Locale,
     ),
-    GetAccountState(oneshot::Sender<AccountStateSummary>, ()),
+    GetAccountState(oneshot::Sender<AccountControllerState>, ()),
     RefreshAccountState(oneshot::Sender<()>, ()),
     GetAccountUsage(
         oneshot::Sender<Result<Vec<NymVpnUsage>, AccountCommandError>>,
@@ -137,6 +139,9 @@ pub struct NymVpnService {
 
     // Send commands to the account controller
     account_command_tx: AccountCommandSender,
+
+    // Receive state from account controller,
+    account_state_rx: AccountStateReceiver,
 
     // Path to the main config file
     config_file: PathBuf,
@@ -280,6 +285,7 @@ impl NymVpnService {
         };
 
         let account_controller = AccountController::new(
+            // vpn_api_client, // SW inject API client here for easier mocking
             account_controller_config,
             storage,
             connectivity_handle.clone(),
@@ -381,7 +387,7 @@ impl NymVpnService {
             nym_config,
             tunnel_settings,
             account_command_tx.clone(),
-            account_state_rx,
+            account_state_rx.clone(),
             statistics_event_sender.clone(),
             gateway_directory_client.clone(),
             topology_provider,
@@ -400,6 +406,7 @@ impl NymVpnService {
             tunnel_event_tx,
             log_file_remover_handle,
             account_command_tx,
+            account_state_rx,
             config_file,
             data_dir: network_data_dir,
             log_path: parameters.log_path,
@@ -893,9 +900,8 @@ impl NymVpnService {
             })
     }
 
-    async fn handle_get_account_state(&self) -> AccountStateSummary {
-        // SW todo
-        todo!()
+    async fn handle_get_account_state(&self) -> AccountControllerState {
+        self.account_state_rx.get_state()
     }
 
     async fn handle_refresh_account_state(&self) {

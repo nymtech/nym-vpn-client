@@ -7,12 +7,11 @@ use nym_vpn_api_client::{
     NetworkCompatibility,
     response::{NymVpnDevice, NymVpnUsage},
 };
-use nym_vpn_lib_types::{AvailableTickets, TunnelEvent, TunnelState};
+use nym_vpn_lib_types::{AccountControllerState, AvailableTickets, TunnelEvent, TunnelState};
 use nym_vpn_network_config::{FeatureFlags, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
     AccountCommandResponse, ConnectArgs, ListCountriesOptions, ListGatewaysOptions,
     StoreAccountRequest,
-    account_state::AccountStateSummary,
     gateway::{Country, Gateway},
     log_path::LogPath,
     service::VpnServiceInfo,
@@ -235,17 +234,15 @@ impl RpcClient {
         ParsedAccountLinks::try_from(response).map_err(Error::InvalidResponse)
     }
 
-    pub async fn get_account_state(&mut self) -> Result<AccountStateSummary> {
-        let response = self
+    pub async fn get_account_state(&mut self) -> Result<AccountControllerState> {
+        let state = self
             .0
             .get_account_state(())
             .await
             .map_err(Error::Rpc)?
             .into_inner();
 
-        let account_state = response.account.ok_or(Error::MissingAccountState)?;
-
-        AccountStateSummary::try_from(account_state).map_err(Error::InvalidResponse)
+        AccountControllerState::try_from(state).map_err(Error::InvalidResponse)
     }
 
     pub async fn refresh_account_state(&mut self) -> Result<()> {
