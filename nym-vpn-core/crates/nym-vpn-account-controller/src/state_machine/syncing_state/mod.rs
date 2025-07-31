@@ -7,7 +7,7 @@ use nym_vpn_api_client::{
     response::NymVpnAccountStatusResponse,
     types::{Device, VpnApiAccount},
 };
-use nym_vpn_lib_types::{CreateAccountError, RegisterAccountError, StoreAccountError};
+use nym_vpn_lib_types::AccountCommandError;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -80,7 +80,7 @@ impl SyncingState {
             .await
         {
             Ok(account_summary_with_device) => {
-                println!("{account_summary_with_device:#?}");
+                tracing::debug!("{account_summary_with_device:#?}");
 
                 // Checking that the account is active
                 if account_summary_with_device.account_summary.account.status
@@ -214,9 +214,9 @@ impl AccountControllerStateHandler for SyncingState {
             },
             Some(command) = command_rx.recv() => {
                 match command {
-                    AccountCommand::CreateAccount(return_sender) => {return_sender.send(Err(CreateAccountError::internal("An account already exists")));}, // SW Improve error handling
-                    AccountCommand::StoreAccount(return_sender, _) => {return_sender.send(Err(StoreAccountError::internal("An account already exists")));}, // SW Improve error handling
-                    AccountCommand::RegisterAccount(return_sender, _, _) => {return_sender.send(Err(RegisterAccountError::internal("An account already exists")));}, // SW Improve error handling
+                    AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
                     AccountCommand::ForgetAccount(return_sender) => {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();

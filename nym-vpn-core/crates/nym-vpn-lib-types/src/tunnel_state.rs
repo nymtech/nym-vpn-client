@@ -4,14 +4,12 @@
 use std::fmt;
 
 use crate::{
-    RequestZkNymError, RequestZkNymErrorReason, VpnApiErrorResponse, account::VpnApiError,
+    AccountControllerErrorStateReason, RequestZkNymError, RequestZkNymErrorReason,
+    VpnApiErrorResponse, account::VpnApiError,
 };
 
 use super::{
-    account::{
-        register_device::RegisterDeviceError, request_zknym::RequestZkNymSuccess,
-        sync_account::SyncAccountError, sync_device::SyncDeviceError,
-    },
+    account::request_zknym::RequestZkNymSuccess,
     connection_data::{ConnectionData, TunnelConnectionData},
 };
 
@@ -191,15 +189,6 @@ pub enum ErrorStateReason {
     /// Failure to duplicate tunnel file descriptor.
     DuplicateTunFd,
 
-    /// Failure to sync account with the VPN API.
-    SyncAccount(SyncAccountError),
-
-    /// Failure to sync device with the VPN API.
-    SyncDevice(SyncDeviceError),
-
-    /// Failure to register device with the VPN API.
-    RegisterDevice(RegisterDeviceError),
-
     /// Failure to request a zknym from the VPN API.
     RequestZkNym(RequestZkNymErrorReason),
 
@@ -221,6 +210,9 @@ pub enum ErrorStateReason {
 
     /// Program errors that must not happen.
     Internal(String),
+
+    /// Account controller is in error state.
+    AccountControllerError(AccountControllerErrorStateReason),
 }
 
 impl ErrorStateReason {
@@ -257,9 +249,6 @@ impl From<ErrorStateReason> for ClientErrorReason {
             ErrorStateReason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
             ErrorStateReason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
             ErrorStateReason::BadBandwidthIncrease => Self::Api(Some(value.to_string())),
-            ErrorStateReason::SyncAccount(err) => err.into(),
-            ErrorStateReason::SyncDevice(err) => err.into(),
-            ErrorStateReason::RegisterDevice(err) => err.into(),
             ErrorStateReason::RequestZkNym(err) => err.into(),
             ErrorStateReason::RequestZkNymBundle {
                 successes: _,
@@ -283,6 +272,7 @@ impl From<ErrorStateReason> for ClientErrorReason {
             ErrorStateReason::SetDns => Self::Dns(Some(value.to_string())),
             ErrorStateReason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
             ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,
+            ErrorStateReason::AccountControllerError(err) => err.into(),
         }
     }
 }
@@ -323,63 +313,22 @@ impl From<VpnApiErrorResponse> for ClientErrorReason {
     }
 }
 
-impl From<RegisterDeviceError> for ClientErrorReason {
-    fn from(value: RegisterDeviceError) -> Self {
-        if value
-            .message_id()
-            .is_some_and(|id| id.contains(MAX_DEVICES_REACHED_MESSAGE_ID))
-        {
-            Self::MaxDevicesReached
-        } else {
-            Self::Api(Some(value.to_string()))
-        }
-    }
-}
-
-impl From<SyncAccountError> for ClientErrorReason {
-    fn from(value: SyncAccountError) -> Self {
-        match value {
-            SyncAccountError::NoAccountStored => Self::Internal(Some(value.to_string())),
-            SyncAccountError::SyncAccountEndpointFailure(response) => response.into(),
-            SyncAccountError::UnexpectedResponse(message) => Self::Internal(Some(message)),
-            SyncAccountError::Offline => Self::Internal(Some(value.to_string())),
-            SyncAccountError::Internal(message) => Self::Internal(Some(message)),
-        }
-    }
-}
-impl From<SyncDeviceError> for ClientErrorReason {
-    fn from(value: SyncDeviceError) -> Self {
-        match value {
-            SyncDeviceError::NoAccountStored => Self::Internal(Some(value.to_string())),
-            SyncDeviceError::NoDeviceStored => Self::Internal(Some(value.to_string())),
-            SyncDeviceError::SyncDeviceEndpointFailure(response) => response.into(),
-            SyncDeviceError::UnexpectedResponse(message) => Self::Internal(Some(message)),
-            SyncDeviceError::Offline => Self::Internal(Some(value.to_string())),
-            SyncDeviceError::Internal(message) => Self::Internal(Some(message)),
-        }
-    }
-}
-
-impl From<SyncAccountError> for ErrorStateReason {
-    fn from(value: SyncAccountError) -> Self {
-        ErrorStateReason::SyncAccount(value)
-    }
-}
-
-impl From<SyncDeviceError> for ErrorStateReason {
-    fn from(value: SyncDeviceError) -> Self {
-        ErrorStateReason::SyncDevice(value)
-    }
-}
-
-impl From<RegisterDeviceError> for ErrorStateReason {
-    fn from(value: RegisterDeviceError) -> Self {
-        ErrorStateReason::RegisterDevice(value)
-    }
-}
-
 impl From<RequestZkNymError> for ErrorStateReason {
     fn from(value: RequestZkNymError) -> Self {
         ErrorStateReason::RequestZkNym(value.into())
+    }
+}
+
+impl From<AccountControllerErrorStateReason> for ClientErrorReason {
+    fn from(error: AccountControllerErrorStateReason) -> Self {
+        // SW
+        todo!()
+    }
+}
+
+impl From<AccountControllerErrorStateReason> for ErrorStateReason {
+    fn from(value: AccountControllerErrorStateReason) -> Self {
+        // SW
+        todo!()
     }
 }

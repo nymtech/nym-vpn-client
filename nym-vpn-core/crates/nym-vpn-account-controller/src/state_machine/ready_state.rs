@@ -3,13 +3,13 @@
 
 use std::pin::Pin;
 
-use nym_vpn_lib_types::{CreateAccountError, RegisterAccountError, StoreAccountError};
+use nym_vpn_lib_types::AccountCommandError;
 use tokio::{sync::mpsc, time::Sleep};
 use tokio_util::sync::CancellationToken;
 
 use crate::{
     SharedAccountState,
-    commands::{AccountCommand, common_handler, handler},
+    commands::{AccountCommand, ReturnSender, common_handler, handler},
     state_machine::{
         ACCOUNT_UPDATE_INTERVAL, AccountControllerStateHandler, LoggedOutState,
         NextAccountControllerState, OfflineState, PrivateAccountControllerState, SyncingState,
@@ -48,9 +48,8 @@ impl AccountControllerStateHandler for ReadyState {
             },
             Some(command) = command_rx.recv() => {
                 match command {
-                    AccountCommand::CreateAccount(return_sender) => {return_sender.send(Err(CreateAccountError::internal("An account already exists")));}, // SW Improve error handling
-                    AccountCommand::StoreAccount(return_sender, _) => {return_sender.send(Err(StoreAccountError::internal("An account already exists")));}, // SW Improve error handling
-                    AccountCommand::RegisterAccount(return_sender, _, _) => {return_sender.send(Err(RegisterAccountError::internal("An account already exists")));}, // SW Improve error handling
+                    AccountCommand::CreateAccount(return_sender) |  AccountCommand::StoreAccount(return_sender, _) => return_existing_account(return_sender),
+                    AccountCommand::RegisterAccount(return_sender, _, _) => return_existing_account(return_sender),
                     AccountCommand::ForgetAccount(return_sender) => {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();
@@ -92,4 +91,11 @@ impl AccountControllerStateHandler for ReadyState {
             }
         }
     }
+}
+
+fn return_existing_account<S>(result_tx: ReturnSender<S, AccountCommandError>)
+where
+    S: std::fmt::Debug + std::marker::Send,
+{
+    result_tx.send(Err(AccountCommandError::ExistingAccount))
 }

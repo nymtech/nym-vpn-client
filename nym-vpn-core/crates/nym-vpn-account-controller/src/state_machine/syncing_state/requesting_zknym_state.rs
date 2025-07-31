@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_api_client::types::{Device, VpnApiAccount};
-use nym_vpn_lib_types::RequestZkNymErrorReason;
+use nym_vpn_lib_types::{AccountCommandError, RequestZkNymErrorReason};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -200,9 +200,9 @@ impl AccountControllerStateHandler for RequestingZkNymsState {
             },
         Some(command) = command_rx.recv() => {
                 match command {
-                    AccountCommand::CreateAccount(_) => {}, // SW Implement this along better error handling
-                    AccountCommand::StoreAccount(_, _) => {}, // SW Implement this along better error handling
-                    AccountCommand::RegisterAccount(_, _, _) => {}, // SW Implement this along better error handling
+                    AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
                     AccountCommand::ForgetAccount(return_sender) => {
                         self.zk_nym_fetching_handle.abort();
                         let res = handler::handle_forget_account(shared_state).await;

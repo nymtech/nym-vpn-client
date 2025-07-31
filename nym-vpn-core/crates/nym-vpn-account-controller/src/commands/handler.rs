@@ -2,9 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_api_client::types::{DeviceStatus, VpnApiAccount};
-use nym_vpn_lib_types::{
-    AccountCommandError, CreateAccountError, ForgetAccountError, StoreAccountError, VpnApiError,
-};
+use nym_vpn_lib_types::{AccountCommandError, VpnApiError};
 use nym_vpn_store::mnemonic::Mnemonic;
 
 use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
@@ -15,9 +13,9 @@ pub(crate) async fn handle_store_account(
     shared_state: &mut SharedAccountState,
     mnemonic: Mnemonic,
     offline_mode: bool,
-) -> Result<(), StoreAccountError> {
+) -> Result<(), AccountCommandError> {
     let vpn_account = VpnApiAccount::try_from(mnemonic.clone())
-        .map_err(|e| StoreAccountError::InvalidMnemonic(e.to_string()))?;
+        .map_err(|e| AccountCommandError::InvalidMnemonic(e.to_string()))?;
 
     // SW This looks so bad tbh
     if !offline_mode {
@@ -34,11 +32,11 @@ pub(crate) async fn handle_store_account(
     shared_state
         .storage_op_sender
         .send(AccountStorageOp::StoreAccount(tx, mnemonic.clone()))
-        .map_err(StoreAccountError::internal)?;
+        .map_err(AccountCommandError::internal)?;
     let device = rx
         .await
-        .map_err(StoreAccountError::internal)? // Channel error
-        .map_err(StoreAccountError::storage)?; // Storage error
+        .map_err(AccountCommandError::internal)? // Channel error
+        .map_err(AccountCommandError::storage)?; // Storage error
     // SW better error handling
 
     shared_state.vpn_api_account = Some(vpn_account);
@@ -50,18 +48,18 @@ pub(crate) async fn handle_store_account(
 
 pub(crate) async fn handle_create_account(
     shared_state: &mut SharedAccountState,
-) -> Result<(), CreateAccountError> {
-    let (vpn_account, mnemonic) = VpnApiAccount::random().map_err(CreateAccountError::internal)?;
+) -> Result<(), AccountCommandError> {
+    let (vpn_account, mnemonic) = VpnApiAccount::random().map_err(AccountCommandError::internal)?;
 
     let (tx, rx) = ReturnSender::new();
     shared_state
         .storage_op_sender
         .send(AccountStorageOp::StoreAccount(tx, mnemonic.clone()))
-        .map_err(CreateAccountError::internal)?;
+        .map_err(AccountCommandError::internal)?;
     let device = rx
         .await
-        .map_err(CreateAccountError::internal)? // Channel error
-        .map_err(CreateAccountError::storage)?; // Storage error
+        .map_err(AccountCommandError::internal)? // Channel error
+        .map_err(AccountCommandError::storage)?; // Storage error
 
     // SW better error handling
 
@@ -74,7 +72,7 @@ pub(crate) async fn handle_create_account(
 
 pub(crate) async fn handle_forget_account(
     shared_state: &mut SharedAccountState,
-) -> Result<(), ForgetAccountError> {
+) -> Result<(), AccountCommandError> {
     tracing::info!("REMOVING ACCOUNT AND ALL ASSOCIATED DATA");
 
     // Tunnel state is checked before sending the command here. We're in Disconnected state
@@ -91,7 +89,7 @@ pub(crate) async fn handle_forget_account(
         .await
         .map_err(|source| {
             tracing::error!("Failed to reset credential storage: {source:?}");
-            ForgetAccountError::ResetCredentialStorage(source.to_string())
+            AccountCommandError::ResetCredentialStorage(source.to_string())
         })?;
 
     // Purge all files in the data directory that we are not explicitly deleting through it's
@@ -109,13 +107,13 @@ pub(crate) async fn handle_forget_account(
     shared_state
         .storage_op_sender
         .send(AccountStorageOp::ForgetAccount(tx))
-        .map_err(ForgetAccountError::internal)?;
+        .map_err(AccountCommandError::internal)?;
 
     rx.await
-        .map_err(ForgetAccountError::internal)? // Handling channel error
+        .map_err(AccountCommandError::internal)? // Handling channel error
         .map_err(|source| {
             tracing::error!("Failed to remove account: {source:?}");
-            ForgetAccountError::RemoveAccount(source.to_string())
+            AccountCommandError::RemoveAccount(source.to_string())
         })?; // Handling account removal error
 
     // Once we have removed or reset all storage, we need to reset the account state
@@ -123,7 +121,7 @@ pub(crate) async fn handle_forget_account(
     shared_state.device = None;
 
     if let Err(err) = remove_files_result {
-        return Err(ForgetAccountError::RemoveAccountFiles(format!(
+        return Err(AccountCommandError::RemoveAccountFiles(format!(
             "Failed to remove files for account: {err}"
         )));
     }
@@ -153,8 +151,8 @@ pub(crate) async fn handle_unregister_device(
         .await
         .map_err(|err| {
             VpnApiError::try_from(err)
-                .map(ForgetAccountError::UpdateDeviceErrorResponse)
-                .unwrap_or_else(ForgetAccountError::unexpected_response)
+                .map(AccountCommandError::UpdateDeviceErrorResponse)
+                .unwrap_or_else(AccountCommandError::unexpected_response)
         })?;
     Ok(())
 }

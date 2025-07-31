@@ -754,12 +754,8 @@ impl tunnel::Error {
 impl account::Error {
     fn error_state_reason(self) -> Option<ErrorStateReason> {
         match self {
-            Self::SyncAccount(e) => Some(e.into()),
-            Self::SyncDevice(e) => Some(e.into()),
-            Self::RegisterDevice(e) => Some(e.into()),
-            Self::RequestZkNym(e) => Some(e.into()),
             Self::Command(e) => Some(ErrorStateReason::Internal(e.to_string())),
-            Self::DeviceTimeOutOfSync => Some(ErrorStateReason::DeviceTimeOutOfSync),
+            Self::ErrorStateReason(e) => Some(e.into()),
             Self::Cancelled => None,
         }
     }
