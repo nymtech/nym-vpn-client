@@ -1,13 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{
-    sync::{
-        Arc,
-        atomic::{AtomicU32, Ordering},
-    },
-    time::Duration,
-};
+use std::{sync::Arc, time::Duration};
 
 use nym_credentials_interface::TicketType;
 use nym_vpn_api_client::{
@@ -17,147 +11,48 @@ use nym_vpn_api_client::{
 use nym_vpn_lib_types::{RequestZkNymError, RequestZkNymSuccess, VpnApiError};
 use tokio::task::JoinSet;
 
-use crate::{
-    SharedAccountState, commands::AccountCommandResult, connectivity::OfflineWatch,
-    shared_state::RequestZkNymResult, storage::VpnCredentialStorage,
-};
+use crate::storage::VpnCredentialStorage;
 
 use super::{cached_data::CachedData, request::RequestZkNymTask};
 
 // The maximum number of zk-nym requests that can fail in a row before we disable background
 // refresh
-const ZK_NYM_MAX_FAILS: u32 = 10;
+//const ZK_NYM_MAX_FAILS: u32 = 10; // SW use this when adding retries and error handling
 
 pub(crate) type ZkNymId = String;
 
 pub type RequestZkNymSummary = Vec<Result<RequestZkNymSuccess, RequestZkNymError>>;
 
-pub(crate) struct WaitingRequestZkNymCommandHandler {
-    credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
-    account_state: SharedAccountState,
-    vpn_api_client: VpnApiClient,
-    offline_watch: OfflineWatch,
-    zk_nym_fails_in_a_row: Arc<AtomicU32>,
-
-    // Cache some of the data used to import zk-nyms between requests, to speed things up. Consider
-    // persisting this to storage
-    cached_data: CachedData,
-}
-
-impl WaitingRequestZkNymCommandHandler {
-    pub(crate) fn new(
-        credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
-        account_state: SharedAccountState,
-        vpn_api_client: nym_vpn_api_client::VpnApiClient,
-        offline_watch: OfflineWatch,
-    ) -> Self {
-        let cached_data = CachedData::new(vpn_api_client.clone(), offline_watch.clone());
-        WaitingRequestZkNymCommandHandler {
-            credential_storage,
-            account_state,
-            vpn_api_client,
-            offline_watch,
-            zk_nym_fails_in_a_row: Default::default(),
-            cached_data,
-        }
-    }
-
-    pub(crate) fn build(
-        &self,
-        account: VpnApiAccount,
-        device: Device,
-    ) -> RequestZkNymCommandHandler {
-        let id = uuid::Uuid::new_v4();
-        tracing::debug!("Created new zk-nym request command handler: {}", id);
-        RequestZkNymCommandHandler {
-            id,
-            account,
-            device,
-            credential_storage: self.credential_storage.clone(),
-            account_state: self.account_state.clone(),
-            vpn_api_client: self.vpn_api_client.clone(),
-            offline_watch: self.offline_watch.clone(),
-            zk_nym_fails_in_a_row: self.zk_nym_fails_in_a_row.clone(),
-            cached_data: self.cached_data.clone(),
-        }
-    }
-
-    pub(crate) fn reset(&self) {
-        self.zk_nym_fails_in_a_row.store(0, Ordering::Relaxed);
-    }
-
-    pub(crate) async fn max_fails_reached(&self) -> bool {
-        self.zk_nym_fails_in_a_row.load(Ordering::Relaxed) >= ZK_NYM_MAX_FAILS
-    }
-
-    pub(crate) fn update_vpn_api_client(&mut self, vpn_api_client: VpnApiClient) {
-        self.vpn_api_client
-            .swap_inner_client(vpn_api_client.clone());
-        self.cached_data.update_vpn_api_client(vpn_api_client);
-    }
-}
-
 pub(crate) struct RequestZkNymCommandHandler {
-    id: uuid::Uuid,
     account: VpnApiAccount,
     device: Device,
     credential_storage: Arc<tokio::sync::Mutex<VpnCredentialStorage>>,
-    account_state: SharedAccountState,
     vpn_api_client: VpnApiClient,
-    offline_watch: OfflineWatch,
-
-    zk_nym_fails_in_a_row: Arc<AtomicU32>,
     cached_data: CachedData,
 }
 
 impl RequestZkNymCommandHandler {
-    fn id_str(&self) -> String {
-        format!("{:.8}", self.id.to_string())
-    }
-
-    pub(crate) async fn run(self) -> AccountCommandResult {
-        AccountCommandResult::RequestZkNym(self.request_zk_nyms_outer().await)
-    }
-
-    async fn request_zk_nyms_outer(self) -> Result<RequestZkNymSummary, RequestZkNymError> {
-        tracing::debug!("Running zk-nym request command handler: {}", self.id);
-
-        // Defensive check for something that should not be possible
-        if self.account_state.is_zk_nym_request_in_progress().await {
-            return Err(RequestZkNymError::internal(
-                "duplicate zk-nym request command",
-            ));
-        }
-
-        self.account_state
-            .set_zk_nym_request(RequestZkNymResult::InProgress)
-            .await;
-
-        match self.request_zk_nyms().await {
-            Ok(success) => {
-                self.account_state
-                    .set_zk_nym_request(RequestZkNymResult::from(success.clone()))
-                    .await;
-                Ok(success)
-            }
-            Err(err) => {
-                self.account_state
-                    .set_zk_nym_request(RequestZkNymResult::from(err.clone()))
-                    .await;
-                Err(err)
-            }
+    pub(crate) fn new(
+        account: VpnApiAccount,
+        device: Device,
+        storage: VpnCredentialStorage,
+        vpn_api_client: VpnApiClient,
+    ) -> RequestZkNymCommandHandler {
+        RequestZkNymCommandHandler {
+            account,
+            device,
+            credential_storage: Arc::new(tokio::sync::Mutex::new(storage)),
+            vpn_api_client: vpn_api_client.clone(),
+            cached_data: CachedData::new(vpn_api_client),
         }
     }
 
-    #[tracing::instrument(
-        skip(self),
-        fields(id = %self.id_str()),
-        ret,
-        err,
-    )]
+    pub(crate) async fn run(self) -> Result<RequestZkNymSummary, RequestZkNymError> {
+        self.request_zk_nyms().await
+    }
+
+    #[tracing::instrument(skip(self), ret, err)]
     async fn request_zk_nyms(&self) -> Result<RequestZkNymSummary, RequestZkNymError> {
-        tracing::debug!("Running zk-nym request command handler: {}", self.id);
-
         // If we have pending zk-nym ticketbooks, try those first
         let resumed_requests = self.resume_request_zk_nyms().await;
 
@@ -169,11 +64,6 @@ impl RequestZkNymCommandHandler {
         } else {
             Vec::new()
         };
-
-        let zk_nym_fails_in_a_row = self.zk_nym_fails_in_a_row.load(Ordering::Relaxed);
-        if zk_nym_fails_in_a_row > 0 {
-            tracing::warn!("We have reached {zk_nym_fails_in_a_row} zk-nym fails in a row",);
-        }
 
         let result = resumed_requests
             .into_iter()
@@ -205,7 +95,6 @@ impl RequestZkNymCommandHandler {
                 self.device.clone(),
                 self.vpn_api_client.clone(),
                 self.credential_storage.clone(),
-                self.offline_watch.clone(),
                 self.cached_data.clone(),
             );
             join_set.spawn(async move { task.request_zk_nym_ticketbook(ticket_type).await });
@@ -256,9 +145,6 @@ impl RequestZkNymCommandHandler {
     }
 
     async fn get_zk_nyms_available_for_download(&self) -> Result<Vec<ZkNymId>, RequestZkNymError> {
-        if self.offline_watch.is_offline() {
-            return Err(RequestZkNymError::Offline);
-        }
         self.vpn_api_client
             .get_zk_nyms_available_for_download(&self.account, &self.device)
             .await
@@ -288,7 +174,6 @@ impl RequestZkNymCommandHandler {
                 self.device.clone(),
                 self.vpn_api_client.clone(),
                 self.credential_storage.clone(),
-                self.offline_watch.clone(),
                 self.cached_data.clone(),
             );
             join_set

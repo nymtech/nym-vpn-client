@@ -1,31 +1,25 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{net::SocketAddr, sync::Arc, time::Duration};
+use nym_offline_monitor::ConnectivityHandle;
 
-use nym_offline_monitor::{Connectivity, ConnectivityHandle};
-use nym_vpn_api_client::{
-    response::{NymVpnDevice, NymVpnUsage},
-    types::{DeviceStatus, Platform, VpnApiAccount, VpnApiTimeSynced},
-};
-use nym_vpn_lib_types::{
-    AccountCommandError, CreateAccountError, ForgetAccountError, GetMnemonicError,
-    RegisterAccountError, StoreAccountError, VpnApiError,
-};
-use nym_vpn_store::{VpnStorage, mnemonic::Mnemonic};
-use tokio::{
-    sync::mpsc::{UnboundedReceiver, UnboundedSender},
-    task::JoinError,
+use nym_vpn_lib_types::{AccountControllerEvent, AccountControllerState};
+use nym_vpn_store::VpnStorage;
+use tokio::sync::{
+    mpsc::{self, UnboundedReceiver, UnboundedSender},
+    watch,
 };
 use tokio_util::sync::CancellationToken;
 
 use crate::{
-    AccountCommandSender, AccountControllerConfig, AvailableTicketbooks, RegisterAccountResponse,
-    commands::{AccountCommand, AccountCommandHandler, AccountCommandResult},
-    connectivity::OfflineWatch,
+    AccountCommandSender, AccountControllerConfig, AccountStateReceiver,
+    commands::AccountCommand,
     error::Error,
-    shared_state::{MnemonicState, ReadyToRegisterDevice, ReadyToRequestZkNym, SharedAccountState},
-    storage::{AccountStorage, SharedVpnCredentialStorage, VpnCredentialStorage},
+    shared_state::SharedAccountState,
+    state_machine::{
+        AccountControllerStateHandler, NextAccountControllerState, OfflineState, SyncingState,
+    },
+    storage::{AccountStorage, AccountStorageOp, VpnCredentialStorage},
     vpn_api_client::AccountControllerVpnApiClient,
 };
 
@@ -33,20 +27,11 @@ pub struct AccountController<S>
 where
     S: VpnStorage,
 {
-    // The configuration that was used to create the controller.
-    config: AccountControllerConfig,
-
     // The storage used for the account and device keys
     account_storage: AccountStorage<S>,
 
-    // Storage used for credentials.
-    credential_storage: SharedVpnCredentialStorage,
-
     // The current state of the account
     account_state: SharedAccountState,
-
-    // The API client used to interact with the nym-vpn-api
-    vpn_api_client: AccountControllerVpnApiClient,
 
     // Receiver channel used to receive commands from the outside.
     command_channel: (
@@ -54,11 +39,23 @@ where
         UnboundedReceiver<AccountCommand>,
     ),
 
-    // Manage the commands that the controller is currently running
-    command_handler: AccountCommandHandler,
+    // State broadcast channels
+    state_channel: (
+        watch::Sender<AccountControllerState>,
+        watch::Receiver<AccountControllerState>,
+    ),
 
-    // Keep track of offline state
-    offline_watch: OfflineWatch,
+    // Channel to transmit event to the outside world
+    event_channel: (
+        UnboundedSender<AccountControllerEvent>,
+        UnboundedReceiver<AccountControllerEvent>,
+    ),
+
+    // Channel to received and execute storage operation
+    storage_op_receiver: mpsc::UnboundedReceiver<AccountStorageOp>,
+
+    // Current state machine state
+    current_state_handler: Box<dyn AccountControllerStateHandler>,
 
     // Listen for cancellation signals
     cancel_token: CancellationToken,
@@ -66,18 +63,12 @@ where
 
 impl<S> AccountController<S>
 where
-    S: VpnStorage,
+    S: VpnStorage + Send + Sync + 'static,
 {
-    // The interval at which we automatically request zk-nyms
-    const ZK_NYM_AUTOMATIC_REQUEST_INTERVAL: Duration = Duration::from_secs(60);
-
-    // The interval at which we update the account state
-    const ACCOUNT_UPDATE_INTERVAL: Duration = Duration::from_secs(5 * 60);
-
     pub async fn new(
         config: AccountControllerConfig,
-        storage: Arc<tokio::sync::Mutex<S>>,
-        connectivity_handle: Option<ConnectivityHandle>,
+        storage: S,
+        connectivity_handle: ConnectivityHandle,
         cancel_token: CancellationToken,
     ) -> Result<Self, Error> {
         tracing::info!(
@@ -88,1011 +79,186 @@ where
         // Setup up the storage. We have both the account storage as well as the credential storage
         let (account_storage, credential_storage) = init::create_storage(&config, storage).await?;
 
+        // Channels for the account storage
+        let (storage_op_sender, storage_op_receiver) = tokio::sync::mpsc::unbounded_channel();
+
+        // Channels to communicate with the account controller
+        let event_channel = mpsc::unbounded_channel();
+        let command_channel = mpsc::unbounded_channel();
+
         // Client to query the VPN API
         let vpn_api_client = AccountControllerVpnApiClient::new(&config)?;
 
-        // We expose the account state as a shared object that can be queried without having to ask
-        // the controller
-        let account_state = init::create_initial_shared_state(&account_storage).await;
+        let account_state = init::create_initial_shared_state(
+            connectivity_handle,
+            config,
+            &account_storage,
+            credential_storage.clone(),
+            vpn_api_client.clone(),
+            storage_op_sender,
+        )
+        .await?;
 
-        // The channels used to communicate with the controller
-        let command_channel = tokio::sync::mpsc::unbounded_channel();
-
-        let initial_state = if let Some(connectivity_handle) = connectivity_handle.as_ref() {
-            connectivity_handle.connectivity().await
+        let (current_state_handler, initial_state) = if account_state
+            .connectivity_handle
+            .connectivity()
+            .await
+            .is_offline()
+        {
+            OfflineState::enter()
         } else {
-            // Since the offline monitor is only started later, together with the state machine. Assume
-            // online.
-            // TODO: the whole mobile API should be refactored to start the state machine on init.
-            Connectivity::PresumeOnline
+            SyncingState::enter(&account_state)
         };
 
-        // The offline watch is used to keep track of the current connectivity state, since we
-        // don't want to do certain operations when we are offline
-        let offline_watch = OfflineWatch::new(
-            connectivity_handle,
-            AccountCommandSender::new(command_channel.0.clone(), account_state.clone()),
-            initial_state,
-        );
-
-        // Keep track of the commands that are currently running
-        let command_handler = AccountCommandHandler::new(
-            account_state.clone(),
-            vpn_api_client.inner().clone(),
-            credential_storage.clone(),
-            offline_watch.clone(),
-        );
+        let public_initial_state = AccountControllerState::from(initial_state);
+        tracing::info!("Initial account controller state: {}", public_initial_state);
+        let state_channel = watch::channel(public_initial_state);
 
         Ok(AccountController {
-            config,
             account_storage,
-            credential_storage,
-            vpn_api_client,
             account_state,
             command_channel,
-            command_handler,
+            state_channel,
+            event_channel,
+            storage_op_receiver,
+            current_state_handler,
             cancel_token,
-            offline_watch,
         })
-    }
-
-    /// Get the current state of the account. This is a shared object that can be queried without
-    /// having to ask the controller.
-    pub fn get_shared_state(&self) -> SharedAccountState {
-        self.account_state.clone()
     }
 
     /// Get the command channel used to send commands to the controller.
     pub fn get_command_sender(&self) -> AccountCommandSender {
-        AccountCommandSender::new(self.command_channel.0.clone(), self.account_state.clone())
+        AccountCommandSender::new(self.command_channel.0.clone())
     }
 
-    // Check if the controller is allowed to request zk-nyms in the background.
-    async fn is_background_zk_nym_refresh_active(&self) -> bool {
-        self.config.background_zk_nym_refresh()
-            && !self.command_handler.max_zknym_request_fails_reached().await
+    /// Get the command channel used to send commands to the controller.
+    pub fn get_state_receiver(&self) -> AccountStateReceiver {
+        AccountStateReceiver::new(self.state_channel.1.clone())
     }
 
-    // Check if all ticket types are above the soft threshold. This is used to determine if we
-    // should request more zk-nyms.
-    async fn is_all_ticket_types_above_soft_threshold(&self) -> Result<bool, AccountCommandError> {
-        self.credential_storage
-            .lock()
-            .await
-            .is_all_ticket_types_above_soft_threshold()
-            .await
-            .map_err(AccountCommandError::internal)
-    }
-
-    async fn update_mnemonic_state(&self) -> Result<VpnApiAccount, Error> {
-        let account = self.account_storage.load_account().await;
-        match account {
-            Ok(ref account) => {
-                tracing::debug!("Our account id: {}", account.id());
-                self.account_state
-                    .set_mnemonic(MnemonicState::Stored {
-                        id: account.id().to_string(),
-                    })
-                    .await;
-            }
-            Err(ref err) => {
-                tracing::debug!("No account stored: {err}");
-                self.account_state.reset_to(MnemonicState::NotStored).await;
-            }
-        }
-        account
-    }
-
-    async fn register_device_if_ready(&self) {
-        if self.offline_watch.is_offline() {
-            tracing::info!("Not registering device as we are offline");
-            return;
-        }
-
-        match self.get_shared_state().ready_to_register_device().await {
-            ReadyToRegisterDevice::Ready => {
-                self.get_command_sender().background_register_device();
-            }
-            not_ready => {
-                tracing::debug!("Not trying to register device: {not_ready}");
-            }
-        }
-    }
-
-    async fn request_zk_nym_if_ready(&self) {
-        if self.offline_watch.is_offline() {
-            tracing::info!("Not requesting zk-nym as we are offline");
-            return;
-        }
-
-        if !self.is_background_zk_nym_refresh_active().await {
-            return;
-        }
-
-        match self.is_all_ticket_types_above_soft_threshold().await {
-            Ok(false) => (),
-            Ok(true) => {
-                tracing::debug!("All ticket types are above soft threshold, not requesting zk-nym");
-                return;
-            }
-            Err(err) => {
-                // Be conservative, it might be wasteful to request zknyms if we can't store them
-                // locally anyway.
-                tracing::error!(
-                    "Failed to lookup current tickets, not requesting more zk-nyms: {err}"
-                );
-                return;
-            }
-        }
-
-        match self.get_shared_state().ready_to_request_zk_nym().await {
-            ReadyToRequestZkNym::Ready => {
-                self.get_command_sender().background_request_zk_nyms();
-            }
-            not_ready => {
-                tracing::debug!("Not ready to try to request zk-nym: {not_ready}");
-            }
-        }
-    }
-
-    async fn unregister_device_from_api(&self) -> Result<NymVpnDevice, AccountCommandError> {
-        tracing::info!("Unregistering device from API");
-        if self.get_shared_state().ready_to_register_device().await
-            == ReadyToRegisterDevice::InProgress
-        {
-            return Err(ForgetAccountError::RegistrationInProgress.into());
-        }
-
-        let device = self
-            .account_storage
-            .load_device_keys()
-            .await
-            .map_err(|_err| AccountCommandError::NoDeviceStored)?;
-
-        let account = self
-            .account_storage
-            .load_account()
-            .await
-            .map_err(|_err| AccountCommandError::NoAccountStored)?;
-
-        self.vpn_api_client
-            .update_device(&account, &device, DeviceStatus::DeleteMe)
-            .await
-            .map_err(|err| {
-                VpnApiError::try_from(err)
-                    .map(ForgetAccountError::UpdateDeviceErrorResponse)
-                    .unwrap_or_else(ForgetAccountError::unexpected_response)
-                    .into()
-            })
-    }
-
-    async fn handle_create_account(&self) -> Result<(), CreateAccountError> {
-        let (_, mnemonic) = VpnApiAccount::random().map_err(CreateAccountError::internal)?;
-
-        self.account_storage
-            .store_account(mnemonic.clone())
-            .await
-            .map_err(CreateAccountError::storage)?;
-
-        self.update_mnemonic_state()
-            .await
-            .map_err(CreateAccountError::internal)?;
-
-        Ok(())
-    }
-
-    async fn handle_get_stored_mnemonic(&self) -> Result<Mnemonic, GetMnemonicError> {
-        let mnemonic = self
-            .account_storage
-            .load_mnemonic()
-            .await
-            .map_err(GetMnemonicError::storage)?;
-        Ok(mnemonic)
-    }
-
-    async fn handle_store_account(&self, mnemonic: Mnemonic) -> Result<(), StoreAccountError> {
-        if self.offline_watch.is_online() {
-            self.vpn_api_client
-                .check_account_exists_on_api(
-                    &VpnApiAccount::try_from(mnemonic.clone())
-                        .map_err(StoreAccountError::internal)?,
-                )
-                .await?;
-        } else {
-            tracing::info!("Not checking if account exists on vpn-api as we are offline");
-        }
-
-        self.account_storage
-            .store_account(mnemonic)
-            .await
-            .map_err(StoreAccountError::storage)?;
-
-        self.update_mnemonic_state()
-            .await
-            .map_err(StoreAccountError::internal)?;
-
-        if self.offline_watch.is_online() {
-            // We don't need to wait for the sync to finish, so queue it up and return
-            self.get_command_sender().background_sync_account_state();
-            self.get_command_sender().background_sync_device_state();
-        }
-
-        Ok(())
-    }
-
-    async fn handle_register_account(
-        &self,
-        mnemonic: Mnemonic,
-        platform: Platform,
-    ) -> Result<RegisterAccountResponse, RegisterAccountError> {
-        let account = VpnApiAccount::try_from(mnemonic).map_err(RegisterAccountError::internal)?;
-
-        let account_token = if self.offline_watch.is_online() {
-            self.vpn_api_client
-                .register_account(&account, platform)
-                .await?
-        } else {
-            tracing::error!("Can't register account with vpn-api as we are offline");
-            return Err(RegisterAccountError::Offline);
-        };
-
-        if self.offline_watch.is_online() {
-            // We don't need to wait for the sync to finish, so queue it up and return
-            self.get_command_sender().background_sync_account_state();
-            self.get_command_sender().background_sync_device_state();
-        }
-
-        Ok(RegisterAccountResponse { account_token })
-    }
-
-    async fn handle_forget_account(&mut self) -> Result<(), ForgetAccountError> {
-        tracing::info!("REMOVING ACCOUNT AND ALL ASSOCIATED DATA");
-
-        // TODO: here we should put the controller in some sort of idle state, and wait for all
-        // currently running operations to finish before proceeding with the reset
-
-        if self.offline_watch.is_online() {
-            if let Err(err) = self.unregister_device_from_api().await {
-                tracing::error!("Failed to unregister device: {err}");
-            } else {
-                tracing::info!("Device has been unregistered");
-            }
-        } else {
-            tracing::info!("Not unregistering device as we are offline");
-        }
-
-        self.account_storage
-            .remove_account()
-            .await
-            .map_err(|source| {
-                tracing::error!("Failed to remove account: {source:?}");
-                ForgetAccountError::RemoveAccount(source.to_string())
-            })?;
-
-        self.account_storage
-            .remove_device_keys()
-            .await
-            .map_err(|source| {
-                tracing::error!("Failed to remove device identity: {source:?}");
-                ForgetAccountError::RemoveDeviceKeys(source.to_string())
-            })?;
-
-        self.credential_storage
-            .lock()
-            .await
-            .reset()
-            .await
-            .map_err(|source| {
-                tracing::error!("Failed to reset credential storage: {source:?}");
-                ForgetAccountError::ResetCredentialStorage(source.to_string())
-            })?;
-
-        // Purge all files in the data directory that we are not explicitly deleting through it's
-        // owner. Ideally we should strive for this to be removed.
-        // If this fails, we still need to continue with the remaining steps
-        let remove_files_result = crate::storage::remove_files_for_account(&self.config.data_dir)
-            .await
-            .inspect_err(|err| {
-                tracing::error!("Failed to remove files for account: {err:?}");
-            });
-
-        // Once we have removed or reset all storage, we need to reset the account state
-        self.command_handler.reset();
-        self.account_state.reset().await;
-
-        // And now we are ready to start reconstructing
-        let reinit_keys_result = self
-            .account_storage
-            .init_keys()
-            .await
-            .inspect_err(|source| {
-                tracing::error!("Failed to reinitialize device keys: {source:?}");
-            });
-
-        // And conclude by syncing with the remote state
-        if self.offline_watch.is_online() {
-            self.handle_sync_account_state(AccountCommand::SyncAccountState(None))
-                .await;
-        }
-
-        if let Err(err) = remove_files_result {
-            return Err(ForgetAccountError::RemoveAccountFiles(format!(
-                "Failed to remove files for account: {err}"
-            )));
-        }
-
-        if let Err(err) = reinit_keys_result {
-            return Err(ForgetAccountError::InitDeviceKeys(format!(
-                "Failed to reinitialize device keys: {err}"
-            )));
-        }
-
-        Ok(())
-    }
-
-    async fn handle_sync_account_state(&mut self, command: AccountCommand) {
-        let account = match self.update_mnemonic_state().await {
-            Ok(account) => account,
-            Err(err) => {
-                command.return_no_account(err);
-                return;
-            }
-        };
-
-        if self.offline_watch.is_offline() {
-            tracing::info!("Not syncing account state as we are offline");
-            command.return_no_connectivity();
-            return;
-        }
-
-        self.command_handler
-            .sync_account_state(command, account)
-            .await;
-    }
-
-    async fn handle_sync_device_state(&mut self, command: AccountCommand) {
-        let account = match self.update_mnemonic_state().await {
-            Ok(account) => account,
-            Err(err) => {
-                command.return_no_account(err);
-                return;
-            }
-        };
-
-        let device = match self.account_storage.load_device_keys().await {
-            Ok(device) => device,
-            Err(err) => {
-                command.return_no_device(err);
-                return;
-            }
-        };
-
-        if self.offline_watch.is_offline() {
-            tracing::info!("Not syncing device state as we are offline");
-            command.return_no_connectivity();
-            return;
-        }
-
-        self.command_handler
-            .sync_device_state(command, account, device)
-            .await;
-    }
-
-    async fn handle_get_usage(&self) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
-        let account = self
-            .account_storage
-            .load_account()
-            .await
-            .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
-        if self.offline_watch.is_offline() {
-            tracing::error!("Unable to get usage as we are offline");
-            return Err(AccountCommandError::Offline);
-        }
-
-        let usage = self
-            .vpn_api_client
-            .get_usage(&account)
-            .await
-            .map_err(|err| {
-                VpnApiError::try_from(err)
-                    .map(AccountCommandError::from)
-                    .unwrap_or_else(AccountCommandError::internal)
-            })?;
-        tracing::info!("Usage: {:#?}", usage);
-        Ok(usage.items)
-    }
-
-    async fn handle_get_device_identity(&self) -> Result<String, AccountCommandError> {
-        let device = self
-            .account_storage
-            .load_device_id()
-            .await
-            .map_err(|_err| AccountCommandError::NoDeviceStored)?;
-
-        tracing::info!("Device identity: {device:?}");
-        Ok(device)
-    }
-
-    async fn handle_register_device(&mut self, command: AccountCommand) {
-        let account = match self.update_mnemonic_state().await {
-            Ok(account) => account,
-            Err(err) => {
-                command.return_no_account(err);
-                return;
-            }
-        };
-
-        let device = match self.account_storage.load_device_keys().await {
-            Ok(device) => device,
-            Err(err) => {
-                command.return_no_device(err);
-                return;
-            }
-        };
-
-        if self.offline_watch.is_offline() {
-            tracing::info!("Not registering device as we are offline");
-            command.return_no_connectivity();
-            return;
-        }
-
-        self.command_handler
-            .register_device(
-                command,
-                account,
-                device,
-                self.account_state.clone(),
-                self.vpn_api_client.inner().clone(),
-            )
-            .await;
-    }
-
-    async fn handle_get_devices(&mut self) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
-        tracing::info!("Getting devices from API");
-
-        let account = self
-            .account_storage
-            .load_account()
-            .await
-            .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
-
-        if self.offline_watch.is_offline() {
-            tracing::error!("Unable to get devices as we are offline");
-            return Err(AccountCommandError::Offline);
-        }
-
-        let devices = self
-            .vpn_api_client
-            .get_devices(&account)
-            .await
-            .map_err(|err| {
-                VpnApiError::try_from(err)
-                    .map(AccountCommandError::from)
-                    .unwrap_or_else(AccountCommandError::internal)
-            })?;
-
-        tracing::info!("The account has the following devices associated to it:");
-        // TODO: pagination
-        for device in &devices.items {
-            tracing::info!("{:?}", device);
-        }
-        Ok(devices.items)
-    }
-
-    async fn handle_get_active_devices(
-        &mut self,
-    ) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
-        tracing::info!("Getting active devices from API");
-
-        let account = self
-            .account_storage
-            .load_account()
-            .await
-            .map_err(AccountCommandError::storage)?;
-
-        if self.offline_watch.is_offline() {
-            tracing::error!("Unable to get active devices as we are offline");
-            return Err(AccountCommandError::Offline);
-        }
-
-        let devices = self
-            .vpn_api_client
-            .get_active_devices(&account)
-            .await
-            .map_err(|err| {
-                VpnApiError::try_from(err)
-                    .map(AccountCommandError::from)
-                    .unwrap_or_else(AccountCommandError::internal)
-            })?;
-
-        tracing::info!("The account has the following active devices associated to it:");
-        // TODO: pagination
-        for device in &devices.items {
-            tracing::info!("{:?}", device);
-        }
-        Ok(devices.items)
-    }
-
-    async fn handle_request_zk_nym(&mut self, command: AccountCommand) {
-        let account = match self.update_mnemonic_state().await {
-            Ok(account) => account,
-            Err(err) => {
-                command.return_no_account(err);
-                return;
-            }
-        };
-
-        let device = match self.account_storage.load_device_keys().await {
-            Ok(device) => device,
-            Err(err) => {
-                command.return_no_device(err);
-                return;
-            }
-        };
-
-        if self.offline_watch.is_offline() {
-            tracing::info!("Not requesting zknyms as we are offline");
-            command.return_no_connectivity();
-            return;
-        }
-
-        self.command_handler
-            .request_zk_nym(command, account, device)
-            .await;
-    }
-
-    async fn handle_get_device_zk_nym(&mut self) -> Result<(), AccountCommandError> {
-        tracing::info!("Getting device zk-nym from API");
-
-        let account = self
-            .account_storage
-            .load_account()
-            .await
-            .map_err(AccountCommandError::storage)?;
-
-        let device = self
-            .account_storage
-            .load_device_keys()
-            .await
-            .map_err(AccountCommandError::storage)?;
-
-        if self.offline_watch.is_offline() {
-            tracing::error!("Unable to get device zknyms as we are offline");
-            return Err(AccountCommandError::Offline);
-        }
-
-        let reported_device_zk_nyms = self
-            .vpn_api_client
-            .get_device_zk_nyms(&account, &device)
-            .await
-            .map_err(|err| {
-                VpnApiError::try_from(err)
-                    .map(AccountCommandError::from)
-                    .unwrap_or_else(AccountCommandError::internal)
-            })?;
-
-        tracing::info!("The device as the following zk-nyms associated to it on the account:");
-        // TODO: pagination
-        for zk_nym in &reported_device_zk_nyms.items {
-            tracing::info!("{:?}", zk_nym);
-        }
-        Ok(())
-    }
-
-    async fn handle_get_zk_nyms_available_for_download(&self) -> Result<(), AccountCommandError> {
-        tracing::info!("Getting zk-nyms available for download from API");
-
-        let account = self
-            .account_storage
-            .load_account()
-            .await
-            .map_err(AccountCommandError::storage)?;
-
-        let device = self
-            .account_storage
-            .load_device_keys()
-            .await
-            .map_err(AccountCommandError::storage)?;
-
-        if self.offline_watch.is_offline() {
-            tracing::error!("Unable to get zknyms available for download as we are offline");
-            return Err(AccountCommandError::Offline);
-        }
-
-        let reported_device_zk_nyms = self
-            .vpn_api_client
-            .get_zk_nyms_available_for_download(&account, &device)
-            .await
-            .map_err(|err| {
-                VpnApiError::try_from(err)
-                    .map(AccountCommandError::from)
-                    .unwrap_or_else(AccountCommandError::internal)
-            })?;
-
-        tracing::info!("The device as the following zk-nyms available to download:");
-        // TODO: pagination
-        for zk_nym in &reported_device_zk_nyms.items {
-            tracing::info!("{:?}", zk_nym);
-        }
-
-        Ok(())
-    }
-
-    async fn handle_get_zk_nym_by_id(&self, id: &str) -> Result<(), AccountCommandError> {
-        tracing::info!("Getting zk-nym by id from API");
-
-        let account = self
-            .account_storage
-            .load_account()
-            .await
-            .map_err(AccountCommandError::storage)?;
-
-        let device = self
-            .account_storage
-            .load_device_keys()
-            .await
-            .map_err(AccountCommandError::storage)?;
-
-        if self.offline_watch.is_offline() {
-            tracing::error!("Unable to get zknym by id as we are offline");
-            return Err(AccountCommandError::Offline);
-        }
-
-        let reported_device_zk_nyms = self
-            .vpn_api_client
-            .get_zk_nym_by_id(&account, &device, id)
-            .await
-            .map_err(|err| {
-                VpnApiError::try_from(err)
-                    .map(AccountCommandError::from)
-                    .unwrap_or_else(AccountCommandError::internal)
-            })?;
-
-        tracing::info!(
-            "The device as the following zk-nym available to download: {:#?}",
-            reported_device_zk_nyms
-        );
-
-        Ok(())
-    }
-
-    async fn handle_confirm_zk_nym_downloaded(
-        &self,
-        id: String,
-    ) -> Result<(), AccountCommandError> {
-        tracing::info!("Confirming zk-nym downloaded: {}", id);
-
-        let account = self
-            .account_storage
-            .load_account()
-            .await
-            .map_err(AccountCommandError::storage)?;
-
-        let device = self
-            .account_storage
-            .load_device_keys()
-            .await
-            .map_err(AccountCommandError::storage)?;
-
-        if self.offline_watch.is_offline() {
-            tracing::error!("Unable to confirm zknym downloaded as we are offline");
-            return Err(AccountCommandError::Offline);
-        }
-
-        let response = self
-            .vpn_api_client
-            .confirm_zk_nym_download_by_id(&account, &device, &id)
-            .await
-            .map_err(|err| {
-                VpnApiError::try_from(err)
-                    .map(AccountCommandError::from)
-                    .unwrap_or_else(AccountCommandError::internal)
-            })?;
-
-        tracing::info!("Confirmed zk-nym downloaded: {response:?}");
-
-        Ok(())
-    }
-
-    async fn handle_get_available_tickets(
-        &self,
-    ) -> Result<AvailableTicketbooks, AccountCommandError> {
-        tracing::debug!("Getting available tickets from local credential storage");
-        let guard = self.credential_storage.lock().await;
-        guard
-            .print_info()
-            .await
-            .map_err(|err| AccountCommandError::Storage(err.to_string()))?;
-        guard
-            .get_available_ticketbooks()
-            .await
-            .map_err(|err| AccountCommandError::Storage(err.to_string()))
-    }
-
-    fn handle_set_static_api_addresses(
-        &mut self,
-        static_api_addresses: Option<Vec<SocketAddr>>,
-    ) -> Result<(), AccountCommandError> {
-        nym_vpn_api_client::VpnApiClient::new_with_resolver_overrides(
-            self.vpn_api_client.current_url().clone(),
-            self.config.user_agent.clone(),
-            static_api_addresses.as_deref(),
-        )
-        .map(|new_vpn_api_client| {
-            self.vpn_api_client
-                .swap_inner_client(new_vpn_api_client.clone());
-            self.command_handler
-                .update_vpn_api_client(new_vpn_api_client);
-        })
-        .map_err(|e| AccountCommandError::internal(format!("Failed to set static addresses: {e}")))
-    }
-
-    async fn handle_register_offline_monitor(
-        &mut self,
-        offline_monitor: ConnectivityHandle,
-    ) -> Result<(), AccountCommandError> {
-        self.offline_watch
-            .register_offline_monitor(offline_monitor)
-            .await;
-        Ok(())
-    }
-
-    async fn handle_check_device_time_sync(&self) -> Result<VpnApiTimeSynced, AccountCommandError> {
-        if self.offline_watch.is_offline() {
-            tracing::error!("Unable to check remote time as we are offline");
-            return Err(AccountCommandError::Offline);
-        }
-
-        self.vpn_api_client
-            .get_remote_time()
-            .await
-            .map_err(|err| {
-                VpnApiError::try_from(err)
-                    .map(AccountCommandError::from)
-                    .unwrap_or_else(AccountCommandError::unexpected_response)
-            })
-            .map(|vpn_api_time| vpn_api_time.is_synced())
-    }
-
-    async fn handle_command(&mut self, command: AccountCommand) {
-        match command {
-            AccountCommand::CreateAccount(result_tx) => {
-                result_tx.send(self.handle_create_account().await);
-            }
-            AccountCommand::StoreAccount(result_tx, mnemonic) => {
-                result_tx.send(self.handle_store_account(mnemonic).await);
-            }
-            AccountCommand::GetStoredMnemonic(result_tx) => {
-                result_tx.send(self.handle_get_stored_mnemonic().await);
-            }
-            AccountCommand::RegisterAccount(result_tx, mnemonic, platform) => {
-                result_tx.send(self.handle_register_account(mnemonic, platform).await);
-            }
-            AccountCommand::ForgetAccount(result_tx) => {
-                result_tx.send(self.handle_forget_account().await);
-            }
-            AccountCommand::SyncAccountState(_) => {
-                self.handle_sync_account_state(command).await;
-            }
-            AccountCommand::SyncDeviceState(_) => {
-                self.handle_sync_device_state(command).await;
-            }
-            AccountCommand::GetUsage(result_tx) => {
-                result_tx.send(self.handle_get_usage().await);
-            }
-            AccountCommand::GetDeviceIdentity(result_tx) => {
-                result_tx.send(self.handle_get_device_identity().await);
-            }
-            AccountCommand::RegisterDevice(_) => {
-                self.handle_register_device(command).await;
-            }
-            AccountCommand::GetDevices(result_tx) => {
-                result_tx.send(self.handle_get_devices().await);
-            }
-            AccountCommand::GetActiveDevices(result_tx) => {
-                result_tx.send(self.handle_get_active_devices().await);
-            }
-            AccountCommand::RequestZkNym(_) => {
-                self.handle_request_zk_nym(command).await;
-            }
-            AccountCommand::GetDeviceZkNym => {
-                self.handle_get_device_zk_nym()
-                    .await
-                    .inspect_err(|err| tracing::error!("Failed to get device zk-nym: {err:#?}"))
-                    .ok();
-            }
-            AccountCommand::GetZkNymsAvailableForDownload => {
-                self.handle_get_zk_nyms_available_for_download()
-                    .await
-                    .inspect_err(|err| {
-                        tracing::error!("Failed to get zk-nyms available for download: {err:#?}")
-                    })
-                    .ok();
-            }
-            AccountCommand::GetZkNymById(id) => {
-                self.handle_get_zk_nym_by_id(&id)
-                    .await
-                    .inspect_err(|err| tracing::error!("Failed to get zk-nym by id: {err:#?}"))
-                    .ok();
-            }
-            AccountCommand::ConfirmZkNymIdDownloaded(id) => {
-                self.handle_confirm_zk_nym_downloaded(id)
-                    .await
-                    .inspect_err(|err| {
-                        tracing::error!("Failed to confirm zk-nym downloaded: {err:#?}")
-                    })
-                    .ok();
-            }
-            AccountCommand::GetAvailableTickets(result_tx) => {
-                result_tx.send(self.handle_get_available_tickets().await);
-            }
-            AccountCommand::SetStaticApiAddresses(result_tx, static_api_addresses) => {
-                result_tx.send(self.handle_set_static_api_addresses(static_api_addresses));
-            }
-            AccountCommand::RegisterOfflineMonitor(result_tx, offline_monitor) => {
-                result_tx.send(self.handle_register_offline_monitor(offline_monitor).await);
-            }
-            AccountCommand::CheckDeviceTimeSync(result_tx) => {
-                result_tx.send(self.handle_check_device_time_sync().await);
-            }
-        };
-    }
-
-    async fn handle_command_result(&self, result: Result<AccountCommandResult, JoinError>) {
-        // WIP: this can be a problem. We need to remove the commands from the running_commands for
-        // this error case
-        let Ok(result) = result else {
-            tracing::error!("Joining task failed: {result:?}");
-            return;
-        };
-
-        match result {
-            AccountCommandResult::SyncAccountState(r) => {
-                tracing::debug!("Account sync task: {r:?}");
-                self.command_handler.finish_sync_account_state(&r).await;
-                if r.is_ok() {
-                    self.register_device_if_ready().await;
-                    self.request_zk_nym_if_ready().await;
-                }
-            }
-            AccountCommandResult::SyncDeviceState(r) => {
-                tracing::debug!("Device sync task: {r:?}");
-                self.command_handler.finish_sync_device_state(&r).await;
-                if r.is_ok() {
-                    self.register_device_if_ready().await;
-                    self.request_zk_nym_if_ready().await;
-                }
-            }
-            AccountCommandResult::RegisterDevice(r) => {
-                tracing::debug!("Device register task: {r:?}");
-                self.command_handler.finish_register_device(&r).await;
-                if r.is_ok() {
-                    self.get_command_sender().background_sync_account_state();
-                    self.request_zk_nym_if_ready().await;
-                }
-            }
-            AccountCommandResult::RequestZkNym(r) => {
-                tracing::debug!("Request zk-nym task: {r:?}");
-                self.command_handler.finish_request_zk_nym(r).await;
-            }
-        }
-    }
-
-    async fn cleanup(mut self) {
-        let timeout = tokio::time::sleep(Duration::from_secs(5));
-        tokio::pin!(timeout);
-        while self.command_handler.is_command_running() {
-            tokio::select! {
-                _ = &mut timeout => {
-                    tracing::warn!("Timeout waiting for polling tasks to finish, pending zk-nym's not imported into local credential store!");
-                    break;
-                },
-                Some(result) = self.command_handler.join_next() => {
-                    self.handle_command_result(result).await
-                },
-            }
-        }
-
-        // Important: ensure to close credential storage before drop to avoid issues with sqlx
-        self.credential_storage.lock().await.close().await;
-    }
-
-    async fn print_info(&self) {
+    // async fn request_zk_nym_if_ready(&self) {
+    //     if self.offline_watch.is_offline() {
+    //         tracing::info!("Not requesting zk-nym as we are offline");
+    //         return;
+    //     }
+
+    //     // if !self.is_background_zk_nym_refresh_active().await {
+    //     //     return;
+    //     // }
+
+    //     match self.is_all_ticket_types_above_soft_threshold().await {
+    //         Ok(false) => (),
+    //         Ok(true) => {
+    //             tracing::debug!("All ticket types are above soft threshold, not requesting zk-nym");
+    //             return;
+    //         }
+    //         Err(err) => {
+    //             // Be conservative, it might be wasteful to request zknyms if we can't store them
+    //             // locally anyway.
+    //             tracing::error!(
+    //                 "Failed to lookup current tickets, not requesting more zk-nyms: {err}"
+    //             );
+    //             return;
+    //         }
+    //     }
+
+    //     match self.get_shared_state().ready_to_request_zk_nym().await {
+    //         ReadyToRequestZkNym::Ready => {
+    //             self.get_command_sender().background_request_zk_nyms();
+    //         }
+    //         not_ready => {
+    //             tracing::debug!("Not ready to try to request zk-nym: {not_ready}");
+    //         }
+    //     }
+    // }
+
+    //SW Figure out a way to make that work without breaking everything?
+    fn print_info(&self) {
         let account_id = self
-            .account_storage
-            .load_account_id()
-            .await
-            .ok()
-            .unwrap_or_else(|| "(unset)".to_string());
+            .account_state
+            .vpn_api_account
+            .as_ref()
+            .map(|account| account.id())
+            .unwrap_or_else(|| "(unset)");
+
         let device_id = self
-            .account_storage
-            .load_device_id()
-            .await
-            .ok()
+            .account_state
+            .device
+            .as_ref()
+            .map(|d| d.identity_key().to_base58_string())
             .unwrap_or_else(|| "(unset)".to_string());
 
         tracing::info!("Account id: {}", account_id);
         tracing::info!("Device id: {}", device_id);
-
-        if let Err(err) = self.credential_storage.lock().await.print_info().await {
-            tracing::error!("Failed to print credential storage info: {:#?}", err);
-        }
     }
 
     pub async fn run(mut self) {
         tracing::debug!("Account controller initialized successfully");
-        self.print_info().await;
+        self.print_info();
 
-        // Timer to check if any command tasks have finished. This just needs to be something small
-        // so that we periodically check the results without interfering with other tasks
-        let mut command_finish_timer = tokio::time::interval(Duration::from_millis(500));
+        let storage = self.account_storage;
 
-        // Timer to periodically sync the remote account state.
-        let mut sync_account_state_timer = tokio::time::interval(Self::ACCOUNT_UPDATE_INTERVAL);
+        // Loop to handle storage event
+        tokio::spawn(async move {
+            while let Some(storage_op) = self.storage_op_receiver.recv().await {
+                storage.handle_storage_op(storage_op).await
+            }
+        });
 
-        // Timer to periodically check if we need to request more zk-nyms
-        let mut update_zk_nym_timer =
-            tokio::time::interval(Self::ZK_NYM_AUTOMATIC_REQUEST_INTERVAL);
+        // ADD, On a timer, refresh sync and request ZK nym
+        // SW ADD THAT IN THE STATES
 
         loop {
-            tokio::select! {
-                // Handle incoming commands
-                Some(command) = self.command_channel.1.recv() => {
-                    self.handle_command(command).await;
+            let next_state = self
+                .current_state_handler
+                .handle_event(
+                    &self.cancel_token,
+                    &mut self.command_channel.1,
+                    &mut self.account_state,
+                )
+                .await;
+
+            match next_state {
+                NextAccountControllerState::NewState((new_state_handler, new_state)) => {
+                    self.current_state_handler = new_state_handler;
+
+                    let state = AccountControllerState::from(new_state);
+                    tracing::info!("New AccountController state: {}", state);
+                    let _ = self
+                        .event_channel
+                        .0
+                        .send(AccountControllerEvent::NewState(state));
+                    let _ = self.state_channel.0.send_replace(state);
                 }
-                // Check the results of finished tasks
-                _ = command_finish_timer.tick() => {
-                    while let Some(result) = self.command_handler.try_join_next() {
-                        self.handle_command_result(result).await;
-                    }
+                NextAccountControllerState::SameState(same_state) => {
+                    self.current_state_handler = same_state;
                 }
-                // On a timer we want to sync the account and device state
-                _ = sync_account_state_timer.tick() => {
-                    if self.offline_watch.is_online() {
-                        tracing::info!("Timed sync of account and device state");
-                        self.get_command_sender().background_sync_account_state();
-                        self.get_command_sender().background_sync_device_state();
-                    }
-                }
-                // On a timer to check if we need to request more zk-nyms
-                _ = update_zk_nym_timer.tick() => {
-                    self.request_zk_nym_if_ready().await;
-                }
-                _ = self.cancel_token.cancelled() => {
-                    tracing::trace!("Received cancellation signal");
-                    break;
-                }
-                Some(connectivity) = self.offline_watch.next() => {
-                    self.offline_watch.handle_changed_connectivity(connectivity).await;
-                }
-                else => {
-                    tracing::debug!("Account controller channel closed");
-                    break;
-                }
+                NextAccountControllerState::Finished => break,
             }
         }
-
-        self.cleanup().await;
-
-        tracing::debug!("Account controller is exiting");
+        // SW do that better
+        self.account_state.credential_storage.close().await;
+        tracing::debug!("Account controller state machine is exiting...");
     }
 }
 
 mod init {
-    use std::sync::Arc;
 
+    use nym_offline_monitor::ConnectivityHandle;
     use nym_vpn_store::VpnStorage;
+    use tokio::sync::mpsc;
 
-    use crate::{Error, SharedAccountState, shared_state::MnemonicState};
-
-    use super::{
-        AccountControllerConfig, AccountStorage, SharedVpnCredentialStorage, VpnCredentialStorage,
+    use crate::{
+        Error, controller::SharedAccountState, storage::AccountStorageOp,
+        vpn_api_client::AccountControllerVpnApiClient,
     };
+
+    use super::{AccountControllerConfig, AccountStorage, VpnCredentialStorage};
 
     pub(super) async fn create_storage<S>(
         config: &AccountControllerConfig,
-        storage: Arc<tokio::sync::Mutex<S>>,
-    ) -> Result<(AccountStorage<S>, SharedVpnCredentialStorage), Error>
+        storage: S,
+    ) -> Result<(AccountStorage<S>, VpnCredentialStorage), Error>
     where
         S: VpnStorage,
     {
@@ -1103,26 +269,35 @@ mod init {
         account_storage.init_keys().await?;
 
         // Setup the credential storage, which is used to store the ticketbooks
-        let credential_storage = Arc::new(tokio::sync::Mutex::new(
-            VpnCredentialStorage::setup_from_path(config.data_dir.clone()).await?,
-        ));
+        let credential_storage =
+            VpnCredentialStorage::setup_from_path(config.data_dir.clone()).await?;
 
         Ok((account_storage, credential_storage))
     }
 
     pub(super) async fn create_initial_shared_state<S>(
+        connectivity_handle: ConnectivityHandle,
+        config: AccountControllerConfig,
         account_storage: &AccountStorage<S>,
-    ) -> SharedAccountState
+        credential_storage: VpnCredentialStorage,
+        vpn_api_client: AccountControllerVpnApiClient,
+        storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
+    ) -> Result<SharedAccountState, Error>
     where
         S: VpnStorage,
     {
-        // Load the account id if we have one stored
-        let mnemonic_state = account_storage
-            .load_account_id()
-            .await
-            .map(|id| MnemonicState::Stored { id })
-            .unwrap_or(MnemonicState::NotStored);
-
-        SharedAccountState::new(mnemonic_state)
+        // SW maybe handle errors here? What kind of errors are we talking about?
+        let vpn_api_account = account_storage.load_account().await.ok();
+        let device_keys = account_storage.load_device_keys().await.ok();
+        Ok(SharedAccountState::new(
+            connectivity_handle,
+            config,
+            credential_storage,
+            vpn_api_client,
+            vpn_api_account,
+            device_keys,
+            storage_op_sender,
+        )
+        .await)
     }
 }
