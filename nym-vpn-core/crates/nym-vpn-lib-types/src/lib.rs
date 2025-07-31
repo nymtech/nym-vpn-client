@@ -10,6 +10,8 @@ mod tunnel_state;
 
 pub use account::{
     AccountCommandError, VpnApiError, VpnApiErrorResponse,
+    controller_event::AccountControllerEvent,
+    controller_state::AccountControllerState,
     create_account::CreateAccountError,
     forget_account::ForgetAccountError,
     get_mnemonic::GetMnemonicError,

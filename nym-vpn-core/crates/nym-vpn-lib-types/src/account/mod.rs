@@ -3,6 +3,8 @@
 
 use std::{fmt::Debug, sync::Arc};
 
+pub mod controller_event;
+pub mod controller_state;
 pub mod create_account;
 pub mod forget_account;
 pub mod get_mnemonic;
