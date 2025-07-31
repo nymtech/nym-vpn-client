@@ -54,6 +54,7 @@ pub async fn fetch_update(
     }
 }
 
+// TODO: Downgrad log level to info
 // Based on https://v2.tauri.app/plugin/updater/#checking-for-updates
 #[tauri::command]
 #[instrument(skip_all)]
@@ -62,12 +63,12 @@ pub async fn install_update(
     on_event: Channel<DownloadUpdateEvent>,
 ) -> Result<(), BackendError> {
     if !*UPDATER_ENABLED {
-        error!("updater is disabled for this build");
+        info!("updater is disabled for this build");
         return Err(BackendError::internal("updater is disabled", None));
     }
     let Some(update) = pending_update.0.lock().await.take() else {
         // calling this function without a pending update is an error
-        error!("no update available");
+        info!("no update available");
         return Err(BackendError::internal("no update available", None));
     };
 
@@ -94,6 +95,6 @@ pub async fn install_update(
             },
         )
         .await
-        .inspect_err(|e| error!("download and install failed: {}", e))?;
+        .inspect_err(|e| warn!("Update download and install failed: {}", e))?;
     Ok(())
 }
