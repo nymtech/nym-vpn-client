@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useReducer } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import {
   BackendError,
-  formatBackendError,
   GatewayType,
   GatewaysByCountry,
   StateDispatch,
@@ -77,20 +76,20 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
           await CCache.set(cacheKey, gateways, GatewaysCacheDuration);
         } catch (e) {
           const backendError = e as BackendError;
-          if (nodeType === 'mx-entry') {
+          // if (nodeType === 'mx-entry') {
             // this also reset loading state
             dispatch({
               type: 'set-gateways-error',
               payload: {
                 type: nodeType,
                 error: {
-                  message: formatBackendError(backendError),
+                  message: backendError.message,
                   key: backendError.key,
                   data: backendError.data || null,
                 },
               },
             });
-          }
+          // }
         }
       }
       if (!gateways) {

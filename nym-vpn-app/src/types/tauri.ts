@@ -7,21 +7,14 @@ export type BackendError = {
 };
 
 // Since Javascript in the browser does not have a way to format BackendError objects
-// I created that helper to format the error message
-export function formatBackendError(error: BackendError): string {
-  let message = `${error.message}`;
-
-  if (error.data) {
-    const dataEntries = Object.entries(error.data);
-    if (dataEntries.length > 0) {
-      const dataString = dataEntries
-        .map(([key, value]) => `${key}: ${value}`)
-        .join(', ');
-      message += ` (${dataString})`;
-    }
+export function formatBackendErrorData(error: BackendError): string | null {
+  if (error.data === null) {
+    return null;
   }
 
-  return message;
+  return Object.entries(error.data)
+    .map(([key, value]) => `${key}: ${value}`)
+    .join(', ');
 }
 
 export type Cli = {
