@@ -28,7 +28,7 @@ impl ErrorState {
         PrivateAccountControllerState,
     ) {
         let refresh_timer = Box::pin(tokio::time::sleep(ACCOUNT_UPDATE_INTERVAL));
-
+        tracing::error!("Account Controller entering error state : {reason:#?}");
         (
             Box::new(Self { refresh_timer }),
             PrivateAccountControllerState::Error(reason),
