@@ -4,6 +4,7 @@
 use std::{path::PathBuf, str::FromStr, sync::Arc, time::Duration};
 
 use nym_common::trace_err_chain;
+use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::{
     AccountCommandSender, SharedAccountState, shared_state::DeviceState,
 };
@@ -16,8 +17,10 @@ use nym_vpn_store::{
     keys::device::DeviceKeyStore,
     mnemonic::{Mnemonic, MnemonicStorage},
 };
-use tokio::task::JoinHandle;
+use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
+
+use crate::platform::offline_monitor;
 
 use super::uniffi_custom_impls::{AccountStateSummary, RegisterAccountResponse};
 
@@ -31,8 +34,13 @@ pub(super) async fn init_account_controller(
     let mut guard = ACCOUNT_CONTROLLER_HANDLE.lock().await;
 
     if guard.is_none() {
-        let account_controller_handle =
-            start_account_controller(data_dir, credential_mode, network).await?;
+        let account_controller_handle = start_account_controller(
+            data_dir,
+            credential_mode,
+            network,
+            offline_monitor::get_connectivity_handle().await?,
+        )
+        .await?;
         *guard = Some(account_controller_handle);
         Ok(())
     } else {
@@ -60,6 +68,7 @@ async fn start_account_controller(
     data_dir: PathBuf,
     credential_mode: Option<bool>,
     network_env: Network,
+    connectivity_handle: ConnectivityHandle,
 ) -> Result<AccountControllerHandle, VpnError> {
     let storage = Arc::new(tokio::sync::Mutex::new(
         crate::storage::VpnClientOnDiskStorage::new(data_dir.clone()),
@@ -75,10 +84,13 @@ async fn start_account_controller(
         network_env,
     };
 
+    let (event_sender, _event_receiver) = mpsc::unbounded_channel();
+
     let account_controller = nym_vpn_account_controller::AccountController::new(
         account_controller_config,
         Arc::clone(&storage),
-        None,
+        connectivity_handle,
+        event_sender,
         shutdown_token.child_token(),
     )
     .await
