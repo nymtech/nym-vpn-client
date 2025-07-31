@@ -5,9 +5,7 @@ use std::error::Error;
 
 pub use nym_http_api_client::HttpClientError;
 
-use nym_http_api_client::StatusCode;
-
-use crate::response::{ErrorMessage, NymErrorResponse, UnexpectedError};
+use crate::response::{NymErrorResponse, UnexpectedError};
 
 #[derive(Debug, thiserror::Error)]
 pub enum VpnApiClientError {
@@ -54,7 +52,7 @@ pub enum VpnApiClientError {
     ConfirmZkNymDownloadById(#[source] HttpClientError<NymErrorResponse>),
 
     #[error("failed to get free passes")]
-    GetFreePasses(#[source] HttpClientError<ErrorMessage>),
+    GetFreePasses(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to apply free pass")]
     ApplyFreepass(#[source] HttpClientError<NymErrorResponse>),
@@ -93,7 +91,7 @@ pub enum VpnApiClientError {
     GetVpnGatewayCountries(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get directory zk-nym ticketbook partial verification keys")]
-    GetDirectoryZkNymsTicketbookPartialVerificationKeys(#[source] HttpClientError<ErrorMessage>),
+    GetDirectoryZkNymsTicketbookPartialVerificationKeys(#[source] HttpClientError<UnexpectedError>),
 
     #[error("failed to get health")]
     GetHealth(#[source] HttpClientError<UnexpectedError>),
@@ -131,19 +129,5 @@ impl VpnApiClientError {
     {
         self.source()
             .and_then(|source| source.downcast_ref::<HttpClientError<T>>())
-    }
-
-    // Workaround before fixing that huge error enum
-    pub fn get_nym_error_response(&self) -> Option<NymErrorResponse> {
-        let a = self.http_client_error::<NymErrorResponse>();
-        match a {
-            Some(HttpClientError::EndpointFailure { status: _, error }) => Some(error.clone()),
-            _ => None,
-        }
-    }
-
-    // Workaround before fixing that huge error enum
-    pub fn get_status_code(&self) -> Option<StatusCode> {
-        self.http_client_error().and_then(|e| e.status_code())
     }
 }

@@ -919,7 +919,6 @@ impl NymVpnService {
         &mut self,
         seed: Option<[u8; 32]>,
     ) -> Result<(), AccountCommandError> {
-        // SW Move that condition in the account controller
         if *self.tunnel_state.borrow() != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to reset device identity while connected",

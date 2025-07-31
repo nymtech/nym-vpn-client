@@ -1,11 +1,17 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_api_client::types::{DeviceStatus, VpnApiAccount};
+use nym_vpn_api_client::{
+    response::NymErrorResponse,
+    types::{DeviceStatus, VpnApiAccount},
+};
 use nym_vpn_lib_types::{AccountCommandError, VpnApiError};
 use nym_vpn_store::mnemonic::Mnemonic;
 
-use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
+use crate::{
+    SharedAccountState, commands::ReturnSender, storage::AccountStorageOp,
+    vpn_api_client::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
+};
 
 // The onus of making sure the conditions are right to call these handlers is on the caller
 
@@ -132,17 +138,25 @@ pub(crate) async fn handle_unregister_device(
         .as_ref()
         .ok_or(AccountCommandError::NoAccountStored)?;
 
-    // SW better error handling if the device didn't exist in the first place
-    shared_state
+    if let Err(e) = shared_state
         .vpn_api_client
         .update_device(account, device, DeviceStatus::DeleteMe)
         .await
-        .map_err(|err| {
-            VpnApiError::try_from(err)
-                .map(AccountCommandError::VpnApi)
-                .unwrap_or_else(AccountCommandError::unexpected_response)
-        })?;
-    Ok(())
+    {
+        match NymErrorResponse::try_from(e) {
+            Ok(nym_error)
+                if nym_error.code_reference_id
+                    == Some(UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID.to_string()) =>
+            {
+                // Device didn't exist in the first place so we're good
+                Ok(())
+            }
+            Ok(nym_error) => Err(VpnApiError::Response(nym_error.into()))?,
+            Err(e) => Err(AccountCommandError::internal(e.to_string())),
+        }
+    } else {
+        Ok(())
+    }
 }
 
 pub(crate) async fn handle_reset_device_identity(

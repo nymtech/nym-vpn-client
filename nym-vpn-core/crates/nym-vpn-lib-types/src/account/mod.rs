@@ -121,6 +121,7 @@ impl VpnApiError {
     }
 }
 
+// That should disappear when reworking those errors
 #[cfg(feature = "nym-type-conversions")]
 impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
     type Error = nym_vpn_api_client::VpnApiClientError;
@@ -151,6 +152,18 @@ impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
     }
 }
 
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_vpn_api_client::VpnApiClientError> for AccountCommandError {
+    fn from(err: nym_vpn_api_client::VpnApiClientError) -> Self {
+        use nym_vpn_api_client::response::NymErrorResponse;
+
+        match NymErrorResponse::try_from(err) {
+            Ok(e) => AccountCommandError::VpnApi(VpnApiError::Response(e.into())),
+            Err(e) => AccountCommandError::Internal(e.to_string()),
+        }
+    }
+}
+
 #[derive(thiserror::Error, Debug, Clone, PartialEq, Eq)]
 #[error("{message}, message_id: {message_id:?}, code_reference_id: {code_reference_id:?}")]
 pub struct VpnApiErrorResponse {
@@ -164,10 +177,17 @@ impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiErrorResponse {
     type Error = nym_vpn_api_client::VpnApiClientError;
 
     fn try_from(err: nym_vpn_api_client::VpnApiClientError) -> Result<Self, Self::Error> {
-        nym_vpn_api_client::response::NymErrorResponse::try_from(err).map(|res| Self {
-            message: res.message,
-            message_id: res.message_id,
-            code_reference_id: res.code_reference_id,
-        })
+        nym_vpn_api_client::response::NymErrorResponse::try_from(err).map(Into::into)
+    }
+}
+
+#[cfg(feature = "nym-type-conversions")]
+impl From<nym_vpn_api_client::response::NymErrorResponse> for VpnApiErrorResponse {
+    fn from(err: nym_vpn_api_client::response::NymErrorResponse) -> Self {
+        Self {
+            message: err.message,
+            message_id: err.message_id,
+            code_reference_id: err.code_reference_id,
+        }
     }
 }

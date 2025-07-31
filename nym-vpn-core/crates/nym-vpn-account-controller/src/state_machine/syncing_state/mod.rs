@@ -1,10 +1,9 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_http_api_client::StatusCode;
 use nym_vpn_api_client::{
     VpnApiClientError,
-    response::NymVpnAccountStatusResponse,
+    response::{NymErrorResponse, NymVpnAccountStatusResponse},
     types::{Device, VpnApiAccount},
 };
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerErrorStateReason};
@@ -139,14 +138,12 @@ impl SyncingState {
             }
 
             Err(e) => {
-                match e.get_nym_error_response() {
-                    Some(error) => {
-                        if e.get_status_code() == Some(StatusCode::FORBIDDEN)
-                            && error.message == "Account not found"
-                        {
+                match NymErrorResponse::try_from(e) {
+                    Ok(error) => {
+                        // SW Use UUID when it will be available
+                        if error.status == "access_denied" && error.message == "Account not found" {
                             // Request was fine, but account is unregistered
                             // Later down the line we can maybe register it here
-                            // SW Use UUID when it will be available
                             Err(SyncError::UnregisteredAccount)
                         } else {
                             Err(SyncError::ApiResponseError {
@@ -155,7 +152,7 @@ impl SyncingState {
                         }
                     }
 
-                    None => {
+                    Err(e) => {
                         tracing::error!("Error trying to get account summary : {e}");
                         Err(SyncError::ApiRequestError)
                     }
@@ -273,11 +270,11 @@ enum SyncError {
 
 impl From<VpnApiClientError> for SyncError {
     fn from(value: VpnApiClientError) -> Self {
-        match value.get_nym_error_response() {
-            Some(e) => SyncError::ApiResponseError {
+        match NymErrorResponse::try_from(value) {
+            Ok(e) => SyncError::ApiResponseError {
                 code_reference_id: e.code_reference_id,
             },
-            None => SyncError::ApiRequestError,
+            Err(_) => SyncError::ApiRequestError,
         }
     }
 }
