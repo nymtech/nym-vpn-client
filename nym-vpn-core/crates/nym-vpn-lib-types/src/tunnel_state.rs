@@ -4,21 +4,11 @@
 use std::fmt;
 
 use crate::{
-    AccountControllerErrorStateReason, RequestZkNymError, RequestZkNymErrorReason,
-    VpnApiErrorResponse, account::VpnApiError,
+    AccountControllerErrorStateReason, RequestZkNymErrorReason, VpnApiErrorResponse,
+    account::VpnApiError,
 };
 
-use super::{
-    account::request_zknym::RequestZkNymSuccess,
-    connection_data::{ConnectionData, TunnelConnectionData},
-};
-
-const MAX_DEVICES_REACHED_MESSAGE_ID: &str =
-    "nym-vpn-website.public-api.register-device.max-devices-exceeded";
-const SUBSCRIPTION_EXPIRED_MESSAGE_ID: &str =
-    "nym-vpn-website.public-api.device.zk-nym.request_failed.no_active_subscription";
-const BANDWIDTH_LIMIT_REACHED_MESSAGE_ID: &str =
-    "nym-vpn-website.public-api.device.zk-nym.request_failed.fair_usage_used_for_month";
+use super::connection_data::{ConnectionData, TunnelConnectionData};
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub enum TunnelType {
@@ -189,21 +179,8 @@ pub enum ErrorStateReason {
     /// Failure to duplicate tunnel file descriptor.
     DuplicateTunFd,
 
-    /// Failure to request a zknym from the VPN API.
-    RequestZkNym(RequestZkNymErrorReason),
-
-    /// Zknym ticketbooks were requested, some succeeded and some failed.
-    RequestZkNymBundle {
-        successes: Vec<RequestZkNymSuccess>,
-        failed: Vec<RequestZkNymErrorReason>,
-    },
-
     /// Failure to create mixnet storage.
     CreateMixnetStorage,
-
-    /// The device time is not synced with the server time.
-    /// If the time is not synced, the device will not be able to connect to the entry gateways.
-    DeviceTimeOutOfSync,
 
     /// IPv6 is disabled in the system.
     Ipv6Unavailable,
@@ -236,12 +213,8 @@ pub enum ClientErrorReason {
     SameEntryAndExitGateway,
     InvalidEntryGatewayCountry,
     InvalidExitGatewayCountry,
-    MaxDevicesReached,
-    BandwidthExceeded,
-    SubscriptionExpired,
     Dns(Option<String>),
     Api(Option<String>),
-    DeviceTimeOutOfSync,
     CreateMixnetStorage,
     Ipv6Unavailable,
     Internal(Option<String>),
@@ -256,18 +229,6 @@ impl From<ErrorStateReason> for ClientErrorReason {
             ErrorStateReason::InvalidEntryGatewayCountry => Self::InvalidEntryGatewayCountry,
             ErrorStateReason::InvalidExitGatewayCountry => Self::InvalidExitGatewayCountry,
             ErrorStateReason::BadBandwidthIncrease => Self::Api(Some(value.to_string())),
-            ErrorStateReason::RequestZkNym(err) => err.into(),
-            ErrorStateReason::RequestZkNymBundle {
-                successes: _,
-                failed,
-            } => {
-                // Return the first error if it exists, otherwise return a default error
-                if let Some(first_error) = failed.first() {
-                    ClientErrorReason::from(first_error.clone())
-                } else {
-                    Self::Api(Some("Empty failure list in RequestZkNymBundle".to_string()))
-                }
-            }
             ErrorStateReason::Firewall => Self::Firewall,
             ErrorStateReason::TunDevice
             | ErrorStateReason::TunnelProvider
@@ -277,7 +238,6 @@ impl From<ErrorStateReason> for ClientErrorReason {
             ErrorStateReason::ResolveGatewayAddrs => Self::Dns(Some(value.to_string())),
             ErrorStateReason::StartLocalDnsResolver => Self::Dns(Some(value.to_string())),
             ErrorStateReason::SetDns => Self::Dns(Some(value.to_string())),
-            ErrorStateReason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
             ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,
             ErrorStateReason::AccountControllerError(reason) => {
                 Self::AccountControl(Some(reason.to_string()))
@@ -314,22 +274,10 @@ impl From<VpnApiError> for ClientErrorReason {
 
 impl From<VpnApiErrorResponse> for ClientErrorReason {
     fn from(error: VpnApiErrorResponse) -> Self {
-        match error.message_id.as_ref() {
-            Some(id) if id.contains(BANDWIDTH_LIMIT_REACHED_MESSAGE_ID) => Self::BandwidthExceeded,
-            Some(id) if id.contains(SUBSCRIPTION_EXPIRED_MESSAGE_ID) => Self::SubscriptionExpired,
-            _ => {
-                let message = match error.message_id {
-                    None => error.message,
-                    Some(id) => format!("{}, ID [{}]", error.message, id),
-                };
-                Self::Api(Some(message))
-            }
-        }
-    }
-}
-
-impl From<RequestZkNymError> for ErrorStateReason {
-    fn from(value: RequestZkNymError) -> Self {
-        ErrorStateReason::RequestZkNym(value.into())
+        let message = match error.message_id {
+            None => error.message,
+            Some(id) => format!("{}, ID [{}]", error.message, id),
+        };
+        Self::Api(Some(message))
     }
 }
