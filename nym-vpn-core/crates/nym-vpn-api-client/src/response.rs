@@ -536,17 +536,6 @@ impl fmt::Display for NymErrorResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ErrorMessage {
-    message: String,
-}
-
-impl fmt::Display for ErrorMessage {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.message)
-    }
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UnexpectedError {
     pub message: String,
