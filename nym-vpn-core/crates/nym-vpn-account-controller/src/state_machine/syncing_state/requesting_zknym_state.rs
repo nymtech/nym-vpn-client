@@ -18,12 +18,11 @@ use crate::{
         OfflineState, PrivateAccountControllerState, ReadyState, SyncingState,
     },
     storage::VpnCredentialStorage,
-    vpn_api_client::AccountControllerVpnApiClient,
+    vpn_api_client::{AccountControllerVpnApiClient, FAIR_USAGE_DEPLETED_CODE_ID},
 };
 
 // The maximum number of zk-nym requests that can fail in a row
 const ZK_NYM_MAX_FAILS: u32 = 10;
-const FAIR_USAGE_DEPLETED_CODE_ID: &str = "e0b78604-bb9b-4524-add1-f50fe26144c6";
 const ZK_NYM_STATE_CONTEXT: &str = "ZK_NYM_STATE";
 
 pub(super) struct RequestingZkNymsState {

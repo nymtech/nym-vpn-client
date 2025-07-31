@@ -5,6 +5,9 @@ use std::ops::Deref;
 
 use crate::{AccountControllerConfig, Error};
 
+// Error code id to allow error catching
+pub(crate) const FAIR_USAGE_DEPLETED_CODE_ID: &str = "e0b78604-bb9b-4524-add1-f50fe26144c6";
+
 #[derive(Clone, Debug)]
 pub(crate) struct AccountControllerVpnApiClient {
     inner: nym_vpn_api_client::VpnApiClient,
