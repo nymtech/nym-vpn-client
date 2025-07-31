@@ -170,8 +170,11 @@ impl NymVpnService for CommandInterface {
         let rx = self
             .send_and_wait(VpnServiceCommand::SubscribeToTunnelState, ())
             .await?;
-        let stream = tokio_stream::wrappers::WatchStream::new(rx)
-            .map(|new_state| Ok(proto::TunnelState::from(new_state)));
+        let stream = tokio_stream::wrappers::BroadcastStream::new(rx).map(|new_state| {
+            new_state
+                .map(proto::TunnelState::from)
+                .map_err(|_| tonic::Status::internal("Failed to receive tunnel state"))
+        });
         Ok(tonic::Response::new(
             Box::pin(stream) as Self::ListenToTunnelStateStream
         ))

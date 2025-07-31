@@ -4,13 +4,14 @@
 use std::{path::PathBuf, sync::Arc, time::Instant};
 
 use bip39::Mnemonic;
+use futures::{FutureExt, pin_mut};
 use nym_statistics::{
     StatisticsController, StatisticsControllerConfig,
     events::{StatisticsEvent, StatisticsSender},
 };
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
-    sync::{broadcast, mpsc, oneshot, watch},
+    sync::{broadcast, mpsc, oneshot},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
@@ -79,7 +80,7 @@ pub enum VpnServiceCommand {
     Connect(oneshot::Sender<()>, ConnectArgs),
     Disconnect(oneshot::Sender<()>, ()),
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
-    SubscribeToTunnelState(oneshot::Sender<watch::Receiver<TunnelState>>, ()),
+    SubscribeToTunnelState(oneshot::Sender<broadcast::Receiver<TunnelState>>, ()),
     StoreAccount(
         oneshot::Sender<Result<(), StoreAccountError>>,
         StoreAccountRequest,
@@ -128,6 +129,15 @@ pub enum VpnServiceCommand {
     ToggleCollectNetStats(oneshot::Sender<Result<(), GlobalConfigError>>, bool),
 }
 
+pub struct NymVpnServiceParameters {
+    pub log_path: Option<LogPath>,
+    pub network_env: Box<Network>,
+    pub sentry_enabled: bool,
+    pub netstats_enabled: bool,
+    pub stats_id_seed: Option<String>,
+    pub user_agent: UserAgent,
+}
+
 pub struct NymVpnService<S>
 where
     S: nym_vpn_store::VpnStorage,
@@ -166,11 +176,14 @@ where
     // Storage backend
     storage: Arc<tokio::sync::Mutex<S>>,
 
-    // Last known tunnel state wrapped in a `watch::Sender` that can be used to track tunnel state individually
-    tunnel_state: watch::Sender<TunnelState>,
+    // Channel used for propagating tunnel state to consumers
+    tunnel_state_sender: broadcast::Sender<TunnelState>,
+
+    // Last known tunnel state
+    tunnel_state: TunnelState,
 
     // Tunnel state machine handle
-    state_machine_handle: JoinHandle<()>,
+    state_machine_handle: Option<JoinHandle<()>>,
 
     // Account controller handle
     account_controller_handle: JoinHandle<()>,
@@ -182,8 +195,14 @@ where
     // Event channel for receiving events from state machine
     event_receiver: mpsc::UnboundedReceiver<TunnelEvent>,
 
-    // Service shutdown token.
+    // VPN service shutdown token.
     shutdown_token: CancellationToken,
+
+    // Shutdown token used by state machine
+    state_machine_shutdown_token: CancellationToken,
+
+    // Shutdown token used for account and statistics controllers and other services that are safe to exit altogether.
+    services_shutdown_token: CancellationToken,
 
     // Gateway directory client
     gateway_directory_client: CachingGatewayClient,
@@ -196,15 +215,6 @@ where
 
     // The statistics channel sender
     statistics_event_sender: StatisticsSender,
-}
-
-pub struct NymVpnServiceParameters {
-    pub log_path: Option<LogPath>,
-    pub network_env: Box<Network>,
-    pub sentry_enabled: bool,
-    pub netstats_enabled: bool,
-    pub stats_id_seed: Option<String>,
-    pub user_agent: UserAgent,
 }
 
 impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
@@ -270,6 +280,9 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         // Make sure the data dir exists
         super::config::create_data_dir(&data_dir, &network_name).map_err(Error::ConfigSetup)?;
 
+        let state_machine_shutdown_token = CancellationToken::new();
+        let services_shutdown_token = CancellationToken::new();
+
         let statistics_api = parameters
             .network_env
             .system_configuration
@@ -299,7 +312,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             account_controller_config,
             Arc::clone(&storage),
             Some(connectivity_handle.clone()),
-            shutdown_token.child_token(),
+            services_shutdown_token.child_token(),
         )
         .await
         .map_err(|err| {
@@ -324,7 +337,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
         let statistics_controller = StatisticsController::new(
             statistics_controller_config,
             network_data_dir.clone(),
-            shutdown_token.child_token(),
+            services_shutdown_token.child_token(),
         )
         .await;
 
@@ -387,7 +400,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             parameters.network_env.api_url(),
             validator_client,
             false,
-            shutdown_token.child_token(),
+            services_shutdown_token.child_token(),
         );
         topology_provider.fetch().await;
 
@@ -403,7 +416,7 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             connectivity_handle,
             #[cfg(any(target_os = "linux", target_os = "macos", target_os = "windows"))]
             route_handler,
-            shutdown_token.child_token(),
+            state_machine_shutdown_token.child_token(),
         )
         .await
         .map_err(Error::StateMachine)?;
@@ -420,13 +433,16 @@ impl NymVpnService<nym_vpn_lib::storage::VpnClientOnDiskStorage> {
             data_dir: network_data_dir,
             log_path: parameters.log_path,
             storage,
-            tunnel_state: watch::Sender::new(TunnelState::Disconnected),
-            state_machine_handle,
+            tunnel_state: TunnelState::Disconnected,
+            tunnel_state_sender: broadcast::Sender::new(10),
+            state_machine_handle: Some(state_machine_handle),
             account_controller_handle,
             statistics_controller_handle,
             command_sender,
             event_receiver,
             shutdown_token,
+            services_shutdown_token,
+            state_machine_shutdown_token,
             gateway_directory_client,
             sentry_enabled: parameters.sentry_enabled,
             network_statistics_enabled: parameters.netstats_enabled,
@@ -446,28 +462,44 @@ where
                     self.handle_service_command_timed(command).await;
                 }
                 Some(event) = self.event_receiver.recv() => {
-                    if let Err(e) = self.tunnel_event_tx.send(event.clone()) {
-                        tracing::error!("Failed to send tunnel event: {}", e);
-                    }
-
-                    match event {
-                        TunnelEvent::NewState(new_state) => {
-                            // Replace value even when there are no receivers.
-                            let _ = self.tunnel_state.send_replace(new_state.clone());
-                        }
-                        TunnelEvent::MixnetState(_) => {}
-                    }
+                    self.handle_tunnel_event(event);
                 }
                 _ = self.shutdown_token.cancelled() => {
                     tracing::info!("Received shutdown signal");
                     break;
                 }
-                else => {
-                    tracing::warn!("Event loop is interrupted");
-                    break;
+            }
+        }
+
+        // Cancel state machine first and wait for it to complete
+        self.state_machine_shutdown_token.cancel();
+
+        if let Some(state_machine_handle) = self.state_machine_handle.take() {
+            // Drain tunnel events channel and wait for the tunnel state machine to quit
+            let fused_state_machine_handle = state_machine_handle.fuse();
+            pin_mut!(fused_state_machine_handle);
+
+            loop {
+                tokio::select! {
+                    result = &mut fused_state_machine_handle => {
+                        if let Err(e) = result {
+                            tracing::error!("Failed to join on state machine handle: {}", e);
+                        }
+                        // The loop will continue until `event_receiver` is fully drained
+                        self.event_receiver.close();
+                    }
+                    event = self.event_receiver.recv() => {
+                        match event {
+                            Some(event) => self.handle_tunnel_event(event),
+                            None => break,
+                        }
+                    }
                 }
             }
         }
+
+        // Cancel all other services and wait for them to complete
+        self.services_shutdown_token.cancel();
 
         if let Err(e) = self.account_controller_handle.await {
             tracing::error!("Failed to join on account controller handle: {}", e);
@@ -477,13 +509,23 @@ where
             tracing::error!("Failed to join on statistics controller handle: {}", e);
         }
 
-        if let Err(e) = self.state_machine_handle.await {
-            tracing::error!("Failed to join on state machine handle: {}", e);
-        }
-
         tracing::info!("Exiting vpn service run loop");
 
         Ok(())
+    }
+
+    fn handle_tunnel_event(&mut self, event: TunnelEvent) {
+        if self.tunnel_event_tx.send(event.clone()).is_err() {
+            tracing::error!("Failed to send tunnel event");
+        }
+
+        match event {
+            TunnelEvent::NewState(new_state) => {
+                self.tunnel_state = new_state.clone();
+                let _ = self.tunnel_state_sender.send(new_state);
+            }
+            TunnelEvent::MixnetState(_) => {}
+        }
     }
 
     // Wrap handle_service_command in timing code to log long-running commands
@@ -766,11 +808,11 @@ where
     }
 
     fn handle_get_tunnel_state(&self) -> TunnelState {
-        self.tunnel_state.borrow().to_owned()
+        self.tunnel_state.clone()
     }
 
-    fn handle_subscribe_to_tunnel_state(&self) -> watch::Receiver<TunnelState> {
-        self.tunnel_state.subscribe()
+    fn handle_subscribe_to_tunnel_state(&self) -> broadcast::Receiver<TunnelState> {
+        self.tunnel_state_sender.subscribe()
     }
 
     async fn handle_info(&self) -> VpnServiceInfo {
@@ -892,7 +934,7 @@ where
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), ForgetAccountError> {
-        if *self.tunnel_state.borrow() != TunnelState::Disconnected {
+        if self.tunnel_state != TunnelState::Disconnected {
             return Err(ForgetAccountError::internal(
                 "Unable to forget account while connected",
             ));
@@ -950,7 +992,7 @@ where
         &mut self,
         seed: Option<[u8; 32]>,
     ) -> Result<(), AccountCommandError> {
-        if *self.tunnel_state.borrow() != TunnelState::Disconnected {
+        if self.tunnel_state != TunnelState::Disconnected {
             return Err(AccountCommandError::internal(
                 "Unable to reset device identity while connected",
             ));

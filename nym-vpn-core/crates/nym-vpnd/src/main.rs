@@ -176,13 +176,21 @@ async fn run_standalone(
 struct VpnServiceHandle {
     vpn_service_handle: JoinHandle<()>,
     command_handle: JoinHandle<()>,
+    command_shutdown_token: CancellationToken,
 }
 
 impl VpnServiceHandle {
-    pub fn new(vpn_service_handle: JoinHandle<()>, command_handle: JoinHandle<()>) -> Self {
+    /// Initialize with vpn service handle and command handle.
+    /// `command_shutdown_token` must propagate cancellation to `command_handle`.
+    pub fn new(
+        vpn_service_handle: JoinHandle<()>,
+        command_handle: JoinHandle<()>,
+        command_shutdown_token: CancellationToken,
+    ) -> Self {
         Self {
             vpn_service_handle,
             command_handle,
+            command_shutdown_token,
         }
     }
 
@@ -190,6 +198,8 @@ impl VpnServiceHandle {
         if let Err(e) = self.vpn_service_handle.await {
             tracing::error!("Failed to join on vpn service: {}", e);
         }
+
+        self.command_shutdown_token.cancel();
 
         if let Err(e) = self.command_handle.await {
             tracing::error!("Failed to join on command interface: {}", e);
@@ -202,11 +212,13 @@ async fn setup_vpn_service(
     log_file_remover_handle: Option<LogFileRemoverHandle>,
     shutdown_token: CancellationToken,
 ) -> anyhow::Result<VpnServiceHandle> {
+    let command_shutdown_token = CancellationToken::new();
     let (tunnel_event_tx, tunnel_event_rx) = broadcast::channel(10);
-
-    let (command_handle, vpn_command_rx) =
-        command_interface::start_command_interface(tunnel_event_rx, shutdown_token.child_token())
-            .await?;
+    let (command_handle, vpn_command_rx) = command_interface::start_command_interface(
+        tunnel_event_rx,
+        command_shutdown_token.child_token(),
+    )
+    .await?;
 
     let vpn_service_handle = NymVpnService::spawn(
         vpn_command_rx,
@@ -216,7 +228,11 @@ async fn setup_vpn_service(
         shutdown_token.child_token(),
     );
 
-    Ok(VpnServiceHandle::new(vpn_service_handle, command_handle))
+    Ok(VpnServiceHandle::new(
+        vpn_service_handle,
+        command_handle,
+        command_shutdown_token,
+    ))
 }
 
 fn setup_global_config(network: Option<String>) -> anyhow::Result<GlobalConfigFile> {

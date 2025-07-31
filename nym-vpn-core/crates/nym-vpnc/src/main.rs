@@ -197,6 +197,9 @@ async fn wait_until_disconnected(mut rpc_client: RpcClient) -> Result<()> {
 }
 
 async fn status(mut rpc_client: RpcClient, listen: bool) -> Result<()> {
+    let new_state = rpc_client.get_tunnel_state().await?;
+    println!("{new_state}");
+
     if listen {
         let mut stream = rpc_client.listen_to_tunnel_state().await?;
 
@@ -204,9 +207,6 @@ async fn status(mut rpc_client: RpcClient, listen: bool) -> Result<()> {
             let new_state = new_state?;
             println!("{new_state}");
         }
-    } else {
-        let new_state = rpc_client.get_tunnel_state().await?;
-        println!("{new_state}");
     }
 
     Ok(())
