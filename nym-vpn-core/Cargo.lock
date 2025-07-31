@@ -39,6 +39,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "aes-gcm"
+version = "0.10.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "831010a0f742e1209b3bcea8fab6a8e149051ba6099432c8cb2cc117dec3ead1"
+dependencies = [
+ "aead",
+ "aes",
+ "cipher",
+ "ctr",
+ "ghash",
+ "subtle 2.6.1",
+]
+
+[[package]]
 name = "aes-gcm-siv"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -60,7 +74,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a15f179cd60c4584b8a8c596927aadc462e27f2ca70c04e0071964a73ba7a75"
 dependencies = [
  "cfg-if",
- "getrandom 0.3.3",
  "once_cell",
  "version_check",
  "zerocopy",
@@ -183,6 +196,12 @@ name = "anyhow"
 version = "1.0.98"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e16d2d3311acee920a9eb8d33b8cbc1787ce4a264e85f964c2404b969bdcd487"
+
+[[package]]
+name = "arc-swap"
+version = "1.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69f7f8c3906b62b754cd5326047894316021dcfe5a194c8ea52bdd94934a3457"
 
 [[package]]
 name = "ark-bls12-381"
@@ -678,6 +697,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "blake2"
+version = "0.10.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "46502ad458c9a52b69d4d4d32775c788b7a1b85e8bc9d482d92250fc0e3f8efe"
+dependencies = [
+ "digest 0.10.7",
+]
+
+[[package]]
 name = "blake3"
 version = "1.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1069,6 +1097,15 @@ checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
 dependencies = [
  "lazy_static",
  "windows-sys 0.59.0",
+]
+
+[[package]]
+name = "concurrent-queue"
+version = "2.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ca0197aee26d1ae37445ee532fefce43251d24cc7c166799f4d46817f1d3973"
+dependencies = [
+ "crossbeam-utils",
 ]
 
 [[package]]
@@ -1917,9 +1954,14 @@ dependencies = [
 
 [[package]]
 name = "event-listener"
-version = "2.5.3"
+version = "5.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
+checksum = "3492acde4c3fc54c845eaab3eed8bd00c7a7d881f78bfc801e43a93dec1331ae"
+dependencies = [
+ "concurrent-queue",
+ "parking",
+ "pin-project-lite",
+]
 
 [[package]]
 name = "eventlog"
@@ -2009,6 +2051,12 @@ name = "fnv"
 version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
+
+[[package]]
+name = "foldhash"
+version = "0.1.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
 
 [[package]]
 name = "form_urlencoded"
@@ -2209,6 +2257,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "ghash"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f0d8a4362ccb29cb0b265253fb0a2728f592895ee6854fd9bc13f2ffda266ff1"
+dependencies = [
+ "opaque-debug 0.3.1",
+ "polyval",
+]
+
+[[package]]
 name = "gimli"
 version = "0.31.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2370,14 +2428,19 @@ name = "hashbrown"
 version = "0.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5971ac85611da7067dbfcabef3c70ebb5606018acd9e2a3903a0da507521e0d5"
+dependencies = [
+ "allocator-api2",
+ "equivalent",
+ "foldhash",
+]
 
 [[package]]
 name = "hashlink"
-version = "0.8.4"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e8094feaf31ff591f651a2664fb9cfd92bba7a60ce3197265e9482ebe753c8f7"
+checksum = "7382cf6263419f2d8df38c55d7da83da5c18aef87fc7a7fc1fb1e344edfe14c1"
 dependencies = [
- "hashbrown 0.14.5",
+ "hashbrown 0.15.4",
 ]
 
 [[package]]
@@ -2385,9 +2448,6 @@ name = "heck"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "95505c38b4572b2d910cecb0281560f54b440a19336cbbcb27bf6ce6adc6f5a8"
-dependencies = [
- "unicode-segmentation",
-]
 
 [[package]]
 name = "heck"
@@ -2745,7 +2805,7 @@ dependencies = [
  "js-sys",
  "log",
  "wasm-bindgen",
- "windows-core 0.61.2",
+ "windows-core 0.58.0",
 ]
 
 [[package]]
@@ -3105,9 +3165,9 @@ dependencies = [
 
 [[package]]
 name = "libsqlite3-sys"
-version = "0.27.0"
+version = "0.30.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf4e226dcd58b4be396f7bd3c20da8fdee2911400705297ba7d2d7cc2c30f716"
+checksum = "2e99fb7a497b1e3339bc746195567ed8d3e24945ecd636e3619d20b9de9e9149"
 dependencies = [
  "cc",
  "pkg-config",
@@ -3127,7 +3187,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4ae926706ba42c425c9457121178330d75e273df2e82e28b758faf3de3a9acb9"
 dependencies = [
  "arrayref",
- "blake2",
+ "blake2 0.8.1",
  "chacha",
  "keystream",
 ]
@@ -3528,7 +3588,7 @@ dependencies = [
 [[package]]
 name = "nym-api-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bs58",
  "cosmrs",
@@ -3546,6 +3606,7 @@ dependencies = [
  "nym-mixnet-contract-common",
  "nym-network-defaults",
  "nym-node-requests",
+ "nym-noise-keys",
  "nym-serde-helpers",
  "nym-ticketbooks-merkle",
  "schemars",
@@ -3556,6 +3617,7 @@ dependencies = [
  "tendermint-rpc",
  "thiserror 2.0.12",
  "time",
+ "tracing",
  "utoipa",
 ]
 
@@ -3594,7 +3656,7 @@ dependencies = [
 [[package]]
 name = "nym-authenticator-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "base64 0.22.1",
  "bincode",
@@ -3615,7 +3677,7 @@ dependencies = [
 [[package]]
 name = "nym-bandwidth-controller"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bip39",
  "log",
@@ -3637,7 +3699,7 @@ dependencies = [
 [[package]]
 name = "nym-bin-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "const-str",
  "log",
@@ -3652,7 +3714,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core"
 version = "1.1.15"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -3660,15 +3722,13 @@ dependencies = [
  "futures",
  "gloo-timers",
  "http-body-util",
- "humantime-serde",
+ "humantime",
  "hyper 1.6.0",
  "hyper-util",
- "log",
  "nym-bandwidth-controller",
  "nym-client-core-config-types",
  "nym-client-core-gateways-storage",
  "nym-client-core-surb-storage",
- "nym-config",
  "nym-credential-storage",
  "nym-credentials-interface",
  "nym-crypto",
@@ -3677,7 +3737,6 @@ dependencies = [
  "nym-gateway-requests",
  "nym-http-api-client",
  "nym-id",
- "nym-metrics",
  "nym-mixnet-client",
  "nym-network-defaults",
  "nym-nonexhaustive-delayqueue",
@@ -3711,7 +3770,7 @@ dependencies = [
 [[package]]
 name = "nym-client-core-config-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "humantime-serde",
  "nym-config",
@@ -3727,11 +3786,10 @@ dependencies = [
 [[package]]
 name = "nym-client-core-gateways-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "async-trait",
  "cosmrs",
- "log",
  "nym-crypto",
  "nym-gateway-requests",
  "serde",
@@ -3739,6 +3797,7 @@ dependencies = [
  "thiserror 2.0.12",
  "time",
  "tokio",
+ "tracing",
  "url",
  "zeroize",
 ]
@@ -3746,11 +3805,10 @@ dependencies = [
 [[package]]
 name = "nym-client-core-surb-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "async-trait",
  "dashmap",
- "log",
  "nym-crypto",
  "nym-sphinx",
  "nym-task",
@@ -3759,12 +3817,13 @@ dependencies = [
  "thiserror 2.0.12",
  "time",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
 name = "nym-coconut-dkg-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -3786,7 +3845,7 @@ dependencies = [
 [[package]]
 name = "nym-compact-ecash"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bincode",
  "bls12_381",
@@ -3809,7 +3868,7 @@ dependencies = [
 [[package]]
 name = "nym-config"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "dirs",
  "handlebars",
@@ -3842,7 +3901,7 @@ dependencies = [
 [[package]]
 name = "nym-contracts-common"
 version = "0.5.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -3857,7 +3916,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-proxy-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "async-trait",
  "nym-credentials",
@@ -3876,7 +3935,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-storage"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "async-trait",
  "bincode",
@@ -3895,7 +3954,7 @@ dependencies = [
 [[package]]
 name = "nym-credential-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "log",
  "nym-bandwidth-controller",
@@ -3914,7 +3973,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bincode",
  "bls12_381",
@@ -3937,7 +3996,7 @@ dependencies = [
 [[package]]
 name = "nym-credentials-interface"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bls12_381",
  "nym-compact-ecash",
@@ -3954,7 +4013,7 @@ dependencies = [
 [[package]]
 name = "nym-crypto"
 version = "0.4.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "aead",
  "aes",
@@ -4018,7 +4077,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -4032,7 +4091,7 @@ dependencies = [
 [[package]]
 name = "nym-ecash-time"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "nym-compact-ecash",
  "time",
@@ -4041,7 +4100,7 @@ dependencies = [
 [[package]]
 name = "nym-exit-policy"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "serde",
  "serde_json",
@@ -4074,7 +4133,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "futures",
  "getrandom 0.2.16",
@@ -4177,7 +4236,7 @@ dependencies = [
 [[package]]
 name = "nym-gateway-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bs58",
  "futures",
@@ -4207,7 +4266,7 @@ dependencies = [
 [[package]]
 name = "nym-group-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "cosmwasm-schema",
  "cw-controllers",
@@ -4232,7 +4291,7 @@ dependencies = [
 [[package]]
 name = "nym-http-api-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "async-trait",
  "bincode",
@@ -4240,6 +4299,7 @@ dependencies = [
  "encoding_rs",
  "hickory-resolver",
  "http 1.3.1",
+ "itertools 0.14.0",
  "mime",
  "nym-bin-common",
  "nym-http-api-common",
@@ -4256,17 +4316,18 @@ dependencies = [
 [[package]]
 name = "nym-http-api-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bincode",
  "serde",
+ "serde_json",
  "tracing",
 ]
 
 [[package]]
 name = "nym-id"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "nym-credential-storage",
  "nym-credentials",
@@ -4294,7 +4355,7 @@ dependencies = [
 [[package]]
 name = "nym-ip-packet-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bincode",
  "bytes",
@@ -4335,7 +4396,7 @@ dependencies = [
 [[package]]
 name = "nym-metrics"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "dashmap",
  "lazy_static",
@@ -4346,10 +4407,11 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "dashmap",
  "futures",
+ "nym-noise",
  "nym-sphinx",
  "tokio",
  "tokio-stream",
@@ -4359,7 +4421,7 @@ dependencies = [
 [[package]]
 name = "nym-mixnet-contract-common"
 version = "0.6.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bs58",
  "cosmwasm-schema",
@@ -4371,7 +4433,6 @@ dependencies = [
  "schemars",
  "semver",
  "serde",
- "serde-json-wasm",
  "serde_repr",
  "thiserror 2.0.12",
  "time",
@@ -4381,7 +4442,7 @@ dependencies = [
 [[package]]
 name = "nym-multisig-contract-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -4397,9 +4458,9 @@ dependencies = [
 [[package]]
 name = "nym-network-defaults"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
- "cargo_metadata 0.18.1",
+ "cargo_metadata 0.19.2",
  "dotenvy",
  "log",
  "regex",
@@ -4412,7 +4473,7 @@ dependencies = [
 [[package]]
 name = "nym-node-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "async-trait",
  "celes",
@@ -4422,6 +4483,7 @@ dependencies = [
  "nym-crypto",
  "nym-exit-policy",
  "nym-http-api-client",
+ "nym-noise-keys",
  "nym-wireguard-types",
  "schemars",
  "serde",
@@ -4433,9 +4495,40 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-noise"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
+dependencies = [
+ "arc-swap",
+ "bytes",
+ "futures",
+ "nym-crypto",
+ "nym-noise-keys",
+ "pin-project",
+ "sha2 0.10.9",
+ "snow",
+ "strum",
+ "thiserror 2.0.12",
+ "tokio",
+ "tokio-util",
+ "tracing",
+]
+
+[[package]]
+name = "nym-noise-keys"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
+dependencies = [
+ "nym-crypto",
+ "schemars",
+ "serde",
+ "utoipa",
+]
+
+[[package]]
 name = "nym-nonexhaustive-delayqueue"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "tokio",
  "tokio-stream",
@@ -4465,7 +4558,7 @@ dependencies = [
 [[package]]
 name = "nym-ordered-buffer"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "log",
  "thiserror 2.0.12",
@@ -4474,7 +4567,7 @@ dependencies = [
 [[package]]
 name = "nym-outfox"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "blake3",
  "chacha20",
@@ -4492,10 +4585,25 @@ dependencies = [
 [[package]]
 name = "nym-pemstore"
 version = "0.3.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "pem",
  "tracing",
+ "zeroize",
+]
+
+[[package]]
+name = "nym-performance-contract-common"
+version = "0.1.0"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
+dependencies = [
+ "cosmwasm-schema",
+ "cosmwasm-std",
+ "cw-controllers",
+ "nym-contracts-common",
+ "schemars",
+ "serde",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -4534,7 +4642,7 @@ dependencies = [
 [[package]]
 name = "nym-sdk"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4588,7 +4696,7 @@ dependencies = [
 [[package]]
 name = "nym-serde-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "base64 0.22.1",
  "bs58",
@@ -4600,7 +4708,7 @@ dependencies = [
 [[package]]
 name = "nym-service-provider-requests-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "serde",
  "thiserror 2.0.12",
@@ -4609,7 +4717,7 @@ dependencies = [
 [[package]]
 name = "nym-service-providers-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "async-trait",
  "log",
@@ -4623,7 +4731,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-client-core"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "anyhow",
  "dirs",
@@ -4656,7 +4764,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-proxy-helpers"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bytes",
  "futures",
@@ -4671,7 +4779,7 @@ dependencies = [
 [[package]]
 name = "nym-socks5-requests"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bincode",
  "log",
@@ -4687,7 +4795,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "nym-crypto",
  "nym-metrics",
@@ -4713,7 +4821,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-acknowledgements"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "nym-crypto",
  "nym-pemstore",
@@ -4730,7 +4838,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-addressing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4741,7 +4849,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-anonymous-replies"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bs58",
  "nym-crypto",
@@ -4751,7 +4859,6 @@ dependencies = [
  "nym-sphinx-types",
  "nym-topology",
  "rand 0.8.5",
- "serde",
  "thiserror 2.0.12",
  "tracing",
  "wasm-bindgen",
@@ -4760,7 +4867,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-chunking"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "dashmap",
  "log",
@@ -4778,7 +4885,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-cover"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-acknowledgements",
@@ -4796,10 +4903,10 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-forwarding"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
- "nym-outfox",
  "nym-sphinx-addressing",
+ "nym-sphinx-anonymous-replies",
  "nym-sphinx-params",
  "nym-sphinx-types",
  "thiserror 2.0.12",
@@ -4808,7 +4915,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-framing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "bytes",
  "nym-sphinx-acknowledgements",
@@ -4824,7 +4931,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-params"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "nym-crypto",
  "nym-sphinx-types",
@@ -4835,7 +4942,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-routing"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "nym-sphinx-addressing",
  "nym-sphinx-types",
@@ -4845,7 +4952,7 @@ dependencies = [
 [[package]]
 name = "nym-sphinx-types"
 version = "0.2.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "nym-outfox",
  "sphinx-packet",
@@ -4890,7 +4997,7 @@ dependencies = [
 [[package]]
 name = "nym-statistics-common"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "futures",
  "log",
@@ -4914,7 +5021,7 @@ dependencies = [
 [[package]]
 name = "nym-task"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "cfg-if",
  "futures",
@@ -4931,7 +5038,7 @@ dependencies = [
 [[package]]
 name = "nym-ticketbooks-merkle"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "nym-credentials-interface",
  "nym-serde-helpers",
@@ -4946,28 +5053,27 @@ dependencies = [
 [[package]]
 name = "nym-topology"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "async-trait",
  "nym-api-requests",
- "nym-config",
  "nym-crypto",
  "nym-mixnet-contract-common",
  "nym-sphinx-addressing",
- "nym-sphinx-routing",
  "nym-sphinx-types",
  "rand 0.8.5",
  "reqwest 0.12.20",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
+ "time",
  "tracing",
 ]
 
 [[package]]
 name = "nym-validator-client"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "async-trait",
  "base64 0.22.1",
@@ -4996,6 +5102,7 @@ dependencies = [
  "nym-mixnet-contract-common",
  "nym-multisig-contract-common",
  "nym-network-defaults",
+ "nym-performance-contract-common",
  "nym-serde-helpers",
  "nym-vesting-contract-common",
  "prost",
@@ -5016,7 +5123,7 @@ dependencies = [
 [[package]]
 name = "nym-vesting-contract-common"
 version = "0.7.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "cosmwasm-schema",
  "cosmwasm-std",
@@ -5385,7 +5492,7 @@ dependencies = [
 [[package]]
 name = "nym-wireguard-types"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "base64 0.22.1",
  "log",
@@ -5532,6 +5639,12 @@ checksum = "81fec4625e73cf41ef4bb6846cafa6d44736525f442ba45e407c4a000a13996f"
 dependencies = [
  "group",
 ]
+
+[[package]]
+name = "parking"
+version = "2.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f38d5652c16fde515bb1ecef450ab0f6a219d619a7274976324d5e377f7dceba"
 
 [[package]]
 name = "parking_lot"
@@ -5997,8 +6110,8 @@ version = "0.13.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be769465445e8c1474e9c5dac2018218498557af32d9ed057325ec9a41ae81bf"
 dependencies = [
- "heck 0.5.0",
- "itertools 0.14.0",
+ "heck 0.4.1",
+ "itertools 0.13.0",
  "log",
  "multimap",
  "once_cell",
@@ -6018,7 +6131,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a56d757972c98b346a9b766e3f02746cde6dd1cd1d1d563472929fdd74bec4d"
 dependencies = [
  "anyhow",
- "itertools 0.14.0",
+ "itertools 0.13.0",
  "proc-macro2",
  "quote",
  "syn 2.0.103",
@@ -7157,12 +7270,31 @@ name = "smallvec"
 version = "1.15.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "67b1b7a3b5fe4f1376887184045fcf45c69e92af734b7aaddc05fb777b6fbd03"
+dependencies = [
+ "serde",
+]
 
 [[package]]
 name = "smawk"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b7c388c1b5e93756d0c740965c41e8822f866621d41acbdf6336a6a168f8840c"
+
+[[package]]
+name = "snow"
+version = "0.9.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "850948bee068e713b8ab860fe1adc4d109676ab4c3b621fd8147f06b261f2f85"
+dependencies = [
+ "aes-gcm",
+ "blake2 0.10.6",
+ "chacha20poly1305",
+ "curve25519-dalek",
+ "rand_core 0.6.4",
+ "rustc_version",
+ "sha2 0.10.9",
+ "subtle 2.6.1",
+]
 
 [[package]]
 name = "socket2"
@@ -7182,7 +7314,7 @@ checksum = "c26f0c20d909fdda1c5d0ece3973127ca421984d55b000215df365e93722fc6e"
 dependencies = [
  "aes",
  "arrayref",
- "blake2",
+ "blake2 0.8.1",
  "bs58",
  "byteorder",
  "chacha",
@@ -7220,20 +7352,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "sqlformat"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7bba3a93db0cc4f7bdece8bb09e77e2e785c20bfebf79eb8340ed80708048790"
-dependencies = [
- "nom",
- "unicode_categories",
-]
-
-[[package]]
 name = "sqlx"
-version = "0.7.4"
+version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9a2ccff1a000a5a59cd33da541d9f2fdcd9e6e8229cc200565942bff36d0aaa"
+checksum = "1fefb893899429669dcdd979aff487bd78f4064e5e7907e4269081e0ef7d97dc"
 dependencies = [
  "sqlx-core",
  "sqlx-macros",
@@ -7244,69 +7366,63 @@ dependencies = [
 
 [[package]]
 name = "sqlx-core"
-version = "0.7.4"
+version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "24ba59a9342a3d9bab6c56c118be528b27c9b60e490080e9711a04dccac83ef6"
+checksum = "ee6798b1838b6a0f69c007c133b8df5866302197e404e8b6ee8ed3e3a5e68dc6"
 dependencies = [
- "ahash",
- "atoi",
- "byteorder",
+ "base64 0.22.1",
  "bytes",
  "crc",
  "crossbeam-queue",
  "either",
  "event-listener",
- "futures-channel",
  "futures-core",
  "futures-intrusive",
  "futures-io",
  "futures-util",
+ "hashbrown 0.15.4",
  "hashlink",
- "hex",
  "indexmap 2.9.0",
  "log",
  "memchr",
  "once_cell",
- "paste",
  "percent-encoding",
- "rustls 0.21.12",
- "rustls-pemfile",
+ "rustls 0.23.27",
  "serde",
  "serde_json",
  "sha2 0.10.9",
  "smallvec",
- "sqlformat",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
  "time",
  "tokio",
  "tokio-stream",
  "tracing",
  "url",
- "webpki-roots 0.25.4",
+ "webpki-roots 0.26.11",
 ]
 
 [[package]]
 name = "sqlx-macros"
-version = "0.7.4"
+version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ea40e2345eb2faa9e1e5e326db8c34711317d2b5e08d0d5741619048a803127"
+checksum = "a2d452988ccaacfbf5e0bdbc348fb91d7c8af5bee192173ac3636b5fb6e6715d"
 dependencies = [
  "proc-macro2",
  "quote",
  "sqlx-core",
  "sqlx-macros-core",
- "syn 1.0.109",
+ "syn 2.0.103",
 ]
 
 [[package]]
 name = "sqlx-macros-core"
-version = "0.7.4"
+version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5833ef53aaa16d860e92123292f1f6a3d53c34ba8b1969f152ef1a7bb803f3c8"
+checksum = "19a9c1841124ac5a61741f96e1d9e2ec77424bf323962dd894bdb93f37d5219b"
 dependencies = [
  "dotenvy",
  "either",
- "heck 0.4.1",
+ "heck 0.5.0",
  "hex",
  "once_cell",
  "proc-macro2",
@@ -7318,20 +7434,19 @@ dependencies = [
  "sqlx-mysql",
  "sqlx-postgres",
  "sqlx-sqlite",
- "syn 1.0.109",
- "tempfile",
+ "syn 2.0.103",
  "tokio",
  "url",
 ]
 
 [[package]]
 name = "sqlx-mysql"
-version = "0.7.4"
+version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ed31390216d20e538e447a7a9b959e06ed9fc51c37b514b46eb758016ecd418"
+checksum = "aa003f0038df784eb8fecbbac13affe3da23b45194bd57dba231c8f48199c526"
 dependencies = [
  "atoi",
- "base64 0.21.7",
+ "base64 0.22.1",
  "bitflags 2.9.1",
  "byteorder",
  "bytes",
@@ -7361,7 +7476,7 @@ dependencies = [
  "smallvec",
  "sqlx-core",
  "stringprep",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
  "time",
  "tracing",
  "whoami",
@@ -7370,7 +7485,7 @@ dependencies = [
 [[package]]
 name = "sqlx-pool-guard"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "proc_pidinfo",
  "sqlx",
@@ -7381,12 +7496,12 @@ dependencies = [
 
 [[package]]
 name = "sqlx-postgres"
-version = "0.7.4"
+version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c824eb80b894f926f89a0b9da0c7f435d27cdd35b8c655b114e58223918577e"
+checksum = "db58fcd5a53cf07c184b154801ff91347e4c30d17a3562a635ff028ad5deda46"
 dependencies = [
  "atoi",
- "base64 0.21.7",
+ "base64 0.22.1",
  "bitflags 2.9.1",
  "byteorder",
  "crc",
@@ -7394,7 +7509,6 @@ dependencies = [
  "etcetera",
  "futures-channel",
  "futures-core",
- "futures-io",
  "futures-util",
  "hex",
  "hkdf",
@@ -7412,7 +7526,7 @@ dependencies = [
  "smallvec",
  "sqlx-core",
  "stringprep",
- "thiserror 1.0.69",
+ "thiserror 2.0.12",
  "time",
  "tracing",
  "whoami",
@@ -7420,9 +7534,9 @@ dependencies = [
 
 [[package]]
 name = "sqlx-sqlite"
-version = "0.7.4"
+version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b244ef0a8414da0bed4bb1910426e890b19e5e9bccc27ada6b797d05c55ae0aa"
+checksum = "c2d12fe70b2c1b4401038055f90f151b78208de1f9f89a7dbfd41587a10c3eea"
 dependencies = [
  "atoi",
  "flume",
@@ -7435,11 +7549,12 @@ dependencies = [
  "log",
  "percent-encoding",
  "serde",
+ "serde_urlencoded",
  "sqlx-core",
+ "thiserror 2.0.12",
  "time",
  "tracing",
  "url",
- "urlencoding",
 ]
 
 [[package]]
@@ -8341,22 +8456,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e70f2a8b45122e719eb623c01822704c4e0907e7e426a05927e1a1cfff5b75d0"
 
 [[package]]
-name = "unicode-segmentation"
-version = "1.12.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f6ccf251212114b54433ec949fd6a7841275f9ada20dddd2f29e9ceea4501493"
-
-[[package]]
 name = "unicode-xid"
 version = "0.2.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ebc1c04c71510c7f702b52b7c350734c9ff1295c464a03335b00bb84fc54f853"
-
-[[package]]
-name = "unicode_categories"
-version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "39ec24b3121d976906ece63c9daad25b85969647682eee313cb5779fdd69e14e"
 
 [[package]]
 name = "uniffi"
@@ -8540,12 +8643,6 @@ dependencies = [
  "percent-encoding",
  "serde",
 ]
-
-[[package]]
-name = "urlencoding"
-version = "2.1.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "daf8dba3b7eb870caf1ddeed7bc9d2a049f3cfdfae7cb521b087cc33ae4c49da"
 
 [[package]]
 name = "utf-8"
@@ -8794,7 +8891,7 @@ dependencies = [
 [[package]]
 name = "wasm-utils"
 version = "0.1.0"
-source = "git+https://github.com/nymtech/nym?branch=bogdan%2Fbackport-close-sqlite-pool-cheddar#6bbdb462d051a8ea8efa7f804a2b1a2f56823ee9"
+source = "git+https://github.com/nymtech/nym?branch=release%2F2025.13-emmental#578c9b0567656d86812aa21eb0b4c93b5a7235bd"
 dependencies = [
  "futures",
  "getrandom 0.2.16",

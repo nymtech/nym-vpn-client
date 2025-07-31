@@ -171,8 +171,8 @@ pub struct NymNetworkDetails {
     pub contracts: NymContracts,
 }
 
-impl From<crate::nym_config::defaults::NymNetworkDetails> for NymNetworkDetails {
-    fn from(value: crate::nym_config::defaults::NymNetworkDetails) -> Self {
+impl From<nym_config::defaults::NymNetworkDetails> for NymNetworkDetails {
+    fn from(value: nym_config::defaults::NymNetworkDetails) -> Self {
         NymNetworkDetails {
             network_name: value.network_name,
             chain_details: value.chain_details.into(),
@@ -189,8 +189,8 @@ pub struct ChainDetails {
     pub stake_denom: DenomDetails,
 }
 
-impl From<crate::nym_config::defaults::ChainDetails> for ChainDetails {
-    fn from(value: crate::nym_config::defaults::ChainDetails) -> Self {
+impl From<nym_config::defaults::ChainDetails> for ChainDetails {
+    fn from(value: nym_config::defaults::ChainDetails) -> Self {
         ChainDetails {
             bech32_account_prefix: value.bech32_account_prefix,
             mix_denom: value.mix_denom.into(),
@@ -206,8 +206,8 @@ pub struct DenomDetails {
     pub display_exponent: u32,
 }
 
-impl From<crate::nym_config::defaults::DenomDetailsOwned> for DenomDetails {
-    fn from(value: crate::nym_config::defaults::DenomDetailsOwned) -> Self {
+impl From<nym_config::defaults::DenomDetailsOwned> for DenomDetails {
+    fn from(value: nym_config::defaults::DenomDetailsOwned) -> Self {
         DenomDetails {
             base: value.base,
             display: value.display,
@@ -223,8 +223,8 @@ pub struct ValidatorDetails {
     pub api_url: Option<String>,
 }
 
-impl From<crate::nym_config::defaults::ValidatorDetails> for ValidatorDetails {
-    fn from(value: crate::nym_config::defaults::ValidatorDetails) -> Self {
+impl From<nym_config::defaults::ValidatorDetails> for ValidatorDetails {
+    fn from(value: nym_config::defaults::ValidatorDetails) -> Self {
         ValidatorDetails {
             nyxd_url: value.nyxd_url,
             websocket_url: value.websocket_url,
@@ -243,8 +243,8 @@ pub struct NymContracts {
     pub coconut_dkg_contract_address: Option<String>,
 }
 
-impl From<crate::nym_config::defaults::NymContracts> for NymContracts {
-    fn from(value: crate::nym_config::defaults::NymContracts) -> Self {
+impl From<nym_config::defaults::NymContracts> for NymContracts {
+    fn from(value: nym_config::defaults::NymContracts) -> Self {
         NymContracts {
             mixnet_contract_address: value.mixnet_contract_address,
             vesting_contract_address: value.vesting_contract_address,

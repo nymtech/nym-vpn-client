@@ -7,7 +7,9 @@ use std::{
 };
 
 use nym_sdk::UserAgent;
-use nym_validator_client::{NymApiClient, models::NymNodeDescription, nym_nodes::SkimmedNode};
+use nym_validator_client::{
+    NymApiClient, models::NymNodeDescription, nym_nodes::SkimmedNodesWithMetadata,
+};
 use nym_vpn_api_client::types::{GatewayMinPerformance, Percent, ScoreThresholds};
 use rand::{prelude::SliceRandom, thread_rng};
 use tracing::{debug, error, warn};
@@ -184,18 +186,18 @@ impl GatewayClient {
             .map_err(Error::FailedToLookupDescribedGateways)
     }
 
-    async fn lookup_skimmed_gateways(&self) -> Result<Vec<SkimmedNode>> {
+    async fn lookup_skimmed_gateways(&self) -> Result<SkimmedNodesWithMetadata> {
         debug!("Fetching skimmed entry assigned nodes from nym-api...");
         self.api_client
-            .get_all_basic_entry_assigned_nodes()
+            .get_all_basic_entry_assigned_nodes_with_metadata()
             .await
             .map_err(Error::FailedToLookupSkimmedGateways)
     }
 
-    async fn lookup_skimmed_nodes(&self) -> Result<Vec<SkimmedNode>> {
+    async fn lookup_skimmed_nodes(&self) -> Result<SkimmedNodesWithMetadata> {
         debug!("Fetching skimmed entry assigned nodes from nym-api...");
         self.api_client
-            .get_all_basic_nodes()
+            .get_all_basic_nodes_with_metadata()
             .await
             .map_err(Error::FailedToLookupSkimmedNodes)
     }
@@ -260,7 +262,7 @@ impl GatewayClient {
             })
             .collect::<Vec<_>>();
         let skimmed_gateways = self.lookup_skimmed_gateways().await?;
-        append_performance(&mut gateways, skimmed_gateways);
+        append_performance(&mut gateways, skimmed_gateways.nodes);
         filter_on_mixnet_min_performance(&mut gateways, &self.min_gateway_performance);
         Ok(GatewayList::new(gateways))
     }
@@ -277,7 +279,7 @@ impl GatewayClient {
             })
             .collect::<Vec<_>>();
         let skimmed_nodes = self.lookup_skimmed_nodes().await?;
-        append_performance(&mut nodes, skimmed_nodes);
+        append_performance(&mut nodes, skimmed_nodes.nodes);
         filter_on_mixnet_min_performance(&mut nodes, &self.min_gateway_performance);
         Ok(GatewayList::new(nodes))
     }
