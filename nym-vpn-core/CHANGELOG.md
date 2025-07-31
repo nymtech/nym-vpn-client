@@ -7,16 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Upgrade nym to emmental (https://github.com/nymtech/nym-vpn-client/pull/3155)
+
 ## [1.13.1] - 2025-07-30
 
 ### Changed
 
 - Update pre-bundled discovery to include account links (https://github.com/nymtech/nym-vpn-client/pull/3167)
 - Reduce noisiness of WireGuard logs (https://github.com/nymtech/nym-vpn-client/pull/3169)
-
-### Changed
-
-- Upgrade nym to emmental (https://github.com/nymtech/nym-vpn-client/pull/3155)
 
 
 ## [1.13.0] - 2025-07-29
