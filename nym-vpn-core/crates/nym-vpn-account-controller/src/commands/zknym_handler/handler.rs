@@ -15,10 +15,6 @@ use crate::storage::VpnCredentialStorage;
 
 use super::{cached_data::CachedData, request::RequestZkNymTask};
 
-// The maximum number of zk-nym requests that can fail in a row before we disable background
-// refresh
-//const ZK_NYM_MAX_FAILS: u32 = 10; // SW use this when adding retries and error handling
-
 pub(crate) type ZkNymId = String;
 
 pub type RequestZkNymSummary = Vec<Result<RequestZkNymSuccess, RequestZkNymError>>;
@@ -47,17 +43,13 @@ impl RequestZkNymCommandHandler {
         }
     }
 
-    pub(crate) async fn run(self) -> Result<RequestZkNymSummary, RequestZkNymError> {
-        self.request_zk_nyms().await
-    }
-
-    #[tracing::instrument(skip(self), ret, err)]
-    async fn request_zk_nyms(&self) -> Result<RequestZkNymSummary, RequestZkNymError> {
+    #[tracing::instrument(skip(self), ret)]
+    pub(crate) async fn request_zk_nyms(
+        &self,
+        ticket_types: Vec<TicketType>,
+    ) -> RequestZkNymSummary {
         // If we have pending zk-nym ticketbooks, try those first
         let resumed_requests = self.resume_request_zk_nyms().await;
-
-        let ticket_types = self.get_ticket_types_running_low().await?;
-        tracing::debug!("Ticket types running low: {ticket_types:?}");
 
         let new_requests = if !ticket_types.is_empty() {
             self.request_zk_nyms_for_ticket_types(ticket_types).await
@@ -65,21 +57,10 @@ impl RequestZkNymCommandHandler {
             Vec::new()
         };
 
-        let result = resumed_requests
+        resumed_requests
             .into_iter()
             .chain(new_requests.into_iter())
-            .collect();
-
-        Ok(result)
-    }
-
-    async fn get_ticket_types_running_low(&self) -> Result<Vec<TicketType>, RequestZkNymError> {
-        self.credential_storage
-            .lock()
-            .await
-            .get_ticket_types_running_low()
-            .await
-            .map_err(RequestZkNymError::internal)
+            .collect()
     }
 
     async fn request_zk_nyms_for_ticket_types(
@@ -114,8 +95,6 @@ impl RequestZkNymCommandHandler {
     }
 
     async fn check_zk_nyms_possible_to_resume(&self) -> Result<Vec<ZkNymId>, RequestZkNymError> {
-        let zk_nyms_available_for_download = self.get_zk_nyms_available_for_download().await?;
-
         // Cleaning up stale requests as a tidy task. Calling this here out of convenience but it
         // could just as well be a background task
         self.credential_storage
@@ -136,6 +115,12 @@ impl RequestZkNymCommandHandler {
             .await
             .map_err(RequestZkNymError::internal)?;
 
+        if pending_requests_data.is_empty() {
+            // early return to avoid unnecessary network call
+            return Ok(Vec::new());
+        }
+
+        let zk_nyms_available_for_download = self.get_zk_nyms_available_for_download().await?;
         let zk_nyms_possible_to_resume = zk_nyms_available_for_download
             .into_iter()
             .filter(|zk_nym| pending_requests_data.contains(zk_nym))

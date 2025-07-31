@@ -75,7 +75,7 @@ impl AccountControllerStateHandler for OfflineState {
                 if connectivity.is_offline() {
                     NextAccountControllerState::SameState(self)
                 } else {
-                    NextAccountControllerState::NewState(SyncingState::enter(shared_state))
+                    NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
                 }
             }
             _ = shutdown_token.cancelled() => {

@@ -464,14 +464,11 @@ pub enum RequestZkNymError {
 impl From<CoreRequestZkNymErrorReason> for RequestZkNymError {
     fn from(error: CoreRequestZkNymErrorReason) -> Self {
         match error {
-            CoreRequestZkNymErrorReason::NoAccountStored => Self::NoAccountStored,
-            CoreRequestZkNymErrorReason::NoDeviceStored => Self::NoDeviceStored,
             CoreRequestZkNymErrorReason::VpnApi(err) => Self::VpnApi(err.into()),
             CoreRequestZkNymErrorReason::UnexpectedVpnApiResponse(response) => {
                 Self::UnexpectedVpnApiResponse(response)
             }
             CoreRequestZkNymErrorReason::Storage(err) => Self::Storage(err),
-            CoreRequestZkNymErrorReason::Offline => Self::Offline,
             CoreRequestZkNymErrorReason::Internal(err) => Self::Internal(err),
         }
     }

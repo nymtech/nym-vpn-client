@@ -6,6 +6,7 @@ use std::error::Error;
 pub use nym_http_api_client::HttpClientError;
 
 use nym_contracts_common::ContractsCommonError;
+use nym_http_api_client::StatusCode;
 
 use crate::response::{ErrorMessage, NymErrorResponse, UnexpectedError};
 
@@ -142,5 +143,19 @@ impl VpnApiClientError {
     {
         self.source()
             .and_then(|source| source.downcast_ref::<HttpClientError<T>>())
+    }
+
+    // Workaround before fixing that huge error enum
+    pub fn get_nym_error_response(&self) -> Option<NymErrorResponse> {
+        let a = self.http_client_error::<NymErrorResponse>();
+        match a {
+            Some(HttpClientError::EndpointFailure { status: _, error }) => Some(error.clone()),
+            _ => None,
+        }
+    }
+
+    // Workaround before fixing that huge error enum
+    pub fn get_status_code(&self) -> Option<StatusCode> {
+        self.http_client_error().and_then(|e| e.status_code())
     }
 }
