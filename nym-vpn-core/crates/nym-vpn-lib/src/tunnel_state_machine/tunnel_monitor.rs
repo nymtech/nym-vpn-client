@@ -301,7 +301,7 @@ impl TunnelMonitor {
         self.account_controller_state
             .wait_for_account_ready_to_connect()
             .await
-            .map_err(|e| Error::Account(account::Error::Command(e)))?; // SW Better error handling
+            .map_err(|e| Error::Account(account::Error::ControllerState(e)))?;
 
         self.send_event(TunnelMonitorEvent::SelectingGateways);
 

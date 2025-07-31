@@ -340,6 +340,7 @@ message TunnelState {
     DEVICE_TIME_OUT_OF_SYNC = 11;
     CREATE_MIXNET_STORAGE = 12;
     IPV6_UNAVAILABLE = 13;
+    ACCOUNT_CONTROL = 14;
   }
 
   enum ActionAfterDisconnect {

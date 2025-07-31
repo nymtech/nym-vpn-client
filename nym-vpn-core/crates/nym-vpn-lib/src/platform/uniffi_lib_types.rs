@@ -238,6 +238,7 @@ pub enum ErrorStateReason {
     CreateMixnetStorage,
     Ipv6Unavailable,
     Internal(Option<String>),
+    AccountControl(Option<String>),
 }
 
 #[derive(uniffi::Record, Clone, Debug, PartialEq, Eq)]
@@ -355,6 +356,7 @@ impl From<ClientErrorReason> for ErrorStateReason {
             ClientErrorReason::CreateMixnetStorage => Self::CreateMixnetStorage,
             ClientErrorReason::Ipv6Unavailable => Self::Ipv6Unavailable,
             ClientErrorReason::Internal(message) => Self::Internal(message),
+            ClientErrorReason::AccountControl(message) => Self::AccountControl(message),
         }
     }
 }

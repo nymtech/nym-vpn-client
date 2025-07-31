@@ -61,6 +61,9 @@ impl From<proto::tunnel_state::Error> for ClientErrorReason {
             proto::tunnel_state::ErrorStateReason::Internal => {
                 ClientErrorReason::Internal(value.detail)
             }
+            proto::tunnel_state::ErrorStateReason::AccountControl => {
+                ClientErrorReason::AccountControl(value.detail)
+            }
         }
     }
 }
@@ -122,6 +125,10 @@ impl From<ClientErrorReason> for proto::tunnel_state::Error {
             },
             ClientErrorReason::Internal(detail) => proto::tunnel_state::Error {
                 reason: proto::tunnel_state::ErrorStateReason::Internal.into(),
+                detail,
+            },
+            ClientErrorReason::AccountControl(detail) => proto::tunnel_state::Error {
+                reason: proto::tunnel_state::ErrorStateReason::AccountControl.into(),
                 detail,
             },
         }
