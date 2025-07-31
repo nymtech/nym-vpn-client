@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_statistics::StatisticsSender;
-use nym_vpn_account_controller::AccountCommandSender;
+use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_network_config::Network;
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
@@ -24,6 +24,7 @@ pub(super) async fn init_state_machine(
     config: VPNConfig,
     network_env: Network,
     account_controller_tx: AccountCommandSender,
+    account_controller_state: AccountStateReceiver,
     statistics_event_sender: StatisticsSender,
 ) -> Result<(), VpnError> {
     let mut guard = STATE_MACHINE_HANDLE.lock().await;
@@ -36,6 +37,7 @@ pub(super) async fn init_state_machine(
             config,
             network_env,
             account_controller_tx,
+            account_controller_state,
             statistics_event_sender,
         )
         .await?;
@@ -53,6 +55,7 @@ pub(super) async fn start_state_machine(
     config: VPNConfig,
     network_env: Network,
     account_controller_tx: AccountCommandSender,
+    account_controller_state: AccountStateReceiver,
     statistics_event_sender: StatisticsSender,
 ) -> Result<StateMachineHandle, VpnError> {
     let tunnel_type = if config.enable_two_hop {
@@ -132,6 +135,7 @@ pub(super) async fn start_state_machine(
         nym_config,
         tunnel_settings,
         account_controller_tx,
+        account_controller_state,
         statistics_event_sender,
         gateway_directory_client,
         topology_provider,

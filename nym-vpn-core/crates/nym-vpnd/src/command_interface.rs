@@ -283,7 +283,10 @@ impl NymVpnService for CommandInterface {
     ) -> Result<tonic::Response<proto::GetAccountIdentityResponse>> {
         let account_identity = self
             .send_and_wait(VpnServiceCommand::GetAccountIdentity, ())
-            .await?;
+            .await?
+            .map_err(|err| {
+                tonic::Status::internal(format!("Failed to get account identity: {err}"))
+            })?;
 
         Ok(tonic::Response::new(proto::GetAccountIdentityResponse {
             account_identity,
