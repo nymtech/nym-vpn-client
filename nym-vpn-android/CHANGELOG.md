@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0] - 2025-07-31
+
+### Fixed
+- Clear backstack after login (https://github.com/nymtech/nym-vpn-client/pull/3102)
+- Minor UI and routing fixes
+
 ## [1.7.0] - 2025-07-18
 
 ### Added
@@ -18,9 +24,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - Improved connection stability and reliability (https://github.com/nymtech/nym-vpn-client/pull/3017)
-
-## [1.8.0] - 2025-07-31
-
-### Fixed
-- Clear backstack after login (https://github.com/nymtech/nym-vpn-client/pull/3102)
-- Minor UI and routing fixes
