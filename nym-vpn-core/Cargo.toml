@@ -33,6 +33,9 @@ members = [
     "crates/nym-wg-go",
     "crates/nym-windows",
     "crates/uniffi-bindgen",
+    "crates/nym-vpn-lib-uniffi",
+    "crates/nym-vpn-lib-types-uniffi",
+    "crates/nym-vpn-rpc-uniffi",
 ]
 
 default-members = [
@@ -208,6 +211,7 @@ nym-wg-gateway-client = { path = "crates/nym-wg-gateway-client" }
 nym-wg-go = { path = "crates/nym-wg-go" }
 nym-windows = { path = "crates/nym-windows" }
 nym-platform-metadata = { path = "crates/nym-platform-metadata" }
+nym-vpn-lib-types-uniffi = { path = "crates/nym-vpn-lib-types-uniffi" }
 
 nym-authenticator-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }
 nym-api-requests = { git = "https://github.com/nymtech/nym", branch = "release/2025.13.1-emmental-patched" }

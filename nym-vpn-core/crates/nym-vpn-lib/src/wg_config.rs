@@ -12,9 +12,7 @@ use nym_wg_gateway_client::GatewayData;
 use nym_wg_go::PeerEndpointUpdate;
 #[cfg(feature = "amnezia")]
 use nym_wg_go::amnezia::AmneziaConfig;
-use nym_wg_go::{PeerConfig, PrivateKey, PublicKey, wireguard_go};
-
-use nym_wg_go::netstack;
+use nym_wg_go::{PeerConfig, PrivateKey, PublicKey, netstack, wireguard_go};
 
 #[derive(Debug)]
 pub struct WgNodeConfig {

@@ -5,6 +5,7 @@ import AutoUpdater
 import AutoUpdates
 import ConnectionManager
 import ConfigurationManager
+import CredentialsManager
 import Constants
 import CountriesManager
 import GatewayManager
@@ -40,6 +41,7 @@ struct NymVPNDaemonApp: App {
     @ObservedObject private var connectionManager = ConnectionManager.shared
     @ObservedObject private var countriesManager = CountriesManager.shared
     @ObservedObject private var grpcManager = GRPCManager.shared
+    @ObservedObject private var credentialsManager = CredentialsManager.shared
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
     @StateObject private var welcomeViewModel = WelcomeViewModel()
@@ -54,6 +56,16 @@ struct NymVPNDaemonApp: App {
     init() {
         isMenuBarVisible = AppSettings.shared.appMode == .menubarOnly || AppSettings.shared.appMode == .both
         setup()
+
+        Task {
+            do {
+                let client = try await RpcClient()
+                let tunnelState = try await client.getTunnelState()
+                print("🔥 tunnelState: \(tunnelState)")
+            } catch let error as RpcError {
+                print("🔥 error: \(error.message())")
+            }
+        }
     }
 
     var body: some Scene {

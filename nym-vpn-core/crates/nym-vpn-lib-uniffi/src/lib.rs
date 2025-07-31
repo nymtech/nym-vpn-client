@@ -42,6 +42,8 @@
 //!    This will stop the account controller and clean up any resources, including make sure there
 //!    are no open DB connections.
 
+uniffi::setup_scaffolding!();
+
 #[cfg(target_os = "android")]
 pub mod android;
 pub(crate) mod error;
@@ -55,14 +57,12 @@ mod offline_monitor;
 mod sentry_monitoring;
 mod state_machine;
 mod stats;
-mod uniffi_custom_impls;
-mod uniffi_lib_types;
+mod user_agent;
 
 use std::{env, path::PathBuf, sync::Arc};
 
-use account::AccountControllerHandle;
 use lazy_static::lazy_static;
-use nym_gateway_directory::CachingGatewayClient;
+use nym_gateway_directory::{CachingGatewayClient, GatewayClient};
 use nym_vpn_api_client::types::ScoreThresholds;
 use sentry::ClientInitGuard;
 use tokio::{runtime::Runtime, sync::Mutex};
@@ -73,11 +73,8 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "ios")]
 use crate::tunnel_provider::ios::OSTunProvider;
 use crate::{
-    gateway_directory::GatewayClient,
-    platform::{
-        offline_monitor::OfflineMonitorHandle, stats::StatisticsControllerHandle,
-        uniffi_custom_impls::NetworkCompatibility,
-    },
+    offline_monitor::OfflineMonitorHandle, stats::StatisticsControllerHandle,
+    uniffi_custom_impls::NetworkCompatibility,
 };
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
@@ -85,6 +82,8 @@ use uniffi_custom_impls::{
     RegisterAccountResponse, SystemMessage, UserAgent,
 };
 use uniffi_lib_types::{AccountControllerState, TunnelEvent};
+
+use account::AccountControllerHandle;
 
 lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
@@ -139,7 +138,7 @@ pub fn configureLib(config: NymVpnLibConfig) -> Result<(), VpnError> {
 
 async fn configure_lib(config: NymVpnLibConfig) -> Result<(), VpnError> {
     let network = environment::current_environment_details().await?;
-    let os = crate::SysInfo::new();
+    let os = nym_vpn_lib::SysInfo::new();
     os.raw_display(true);
     if config.sentry_monitoring {
         let mut guard = SENTRY_CLIENT.lock().await;
@@ -168,7 +167,7 @@ async fn init_logger(path: Option<PathBuf>, debug_level: Option<String>, sentry_
     let default_log_level = env::var("RUST_LOG").unwrap_or("info".to_string());
     let log_level = debug_level.unwrap_or(default_log_level);
     tracing::info!("Setting log level: {log_level}, path?: {path:?}");
-    let os = crate::SysInfo::new();
+    let os = nym_vpn_lib::SysInfo::new();
     os.display(true);
     if sentry_monitoring {
         let mut guard = SENTRY_CLIENT.lock().await;

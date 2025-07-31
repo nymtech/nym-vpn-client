@@ -431,6 +431,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-compat"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7bab94bde396a3f7b4962e396fdad640e241ed797d4d8d77fc8c237d14c58fc0"
+dependencies = [
+ "futures-core",
+ "futures-io",
+ "once_cell",
+ "pin-project-lite",
+ "tokio",
+]
+
+[[package]]
 name = "async-compression"
 version = "0.4.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5669,6 +5682,71 @@ dependencies = [
 ]
 
 [[package]]
+name = "nym-vpn-lib-types-uniffi"
+version = "1.14.0-beta"
+dependencies = [
+ "ipnetwork",
+ "nym-bin-common",
+ "nym-common",
+ "nym-config",
+ "nym-gateway-directory",
+ "nym-ip-packet-requests",
+ "nym-offline-monitor",
+ "nym-sdk",
+ "nym-statistics",
+ "nym-validator-client",
+ "nym-vpn-account-controller",
+ "nym-vpn-api-client",
+ "nym-vpn-lib",
+ "nym-vpn-lib-types",
+ "nym-vpn-network-config",
+ "nym-vpn-store",
+ "thiserror 2.0.12",
+ "time",
+ "uniffi",
+ "url",
+]
+
+[[package]]
+name = "nym-vpn-lib-uniffi"
+version = "1.14.0-beta"
+dependencies = [
+ "android_logger",
+ "futures",
+ "ipnetwork",
+ "lazy_static",
+ "nym-bin-common",
+ "nym-common",
+ "nym-config",
+ "nym-gateway-directory",
+ "nym-ip-packet-requests",
+ "nym-offline-monitor",
+ "nym-sdk",
+ "nym-statistics",
+ "nym-validator-client",
+ "nym-vpn-account-controller",
+ "nym-vpn-api-client",
+ "nym-vpn-lib",
+ "nym-vpn-lib-types",
+ "nym-vpn-network-config",
+ "nym-vpn-proto",
+ "nym-vpn-store",
+ "rand 0.8.5",
+ "sentry",
+ "sysinfo",
+ "thiserror 2.0.12",
+ "time",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-oslog",
+ "tracing-subscriber",
+ "uniffi",
+ "url",
+ "vergen-gitcl",
+]
+
+[[package]]
 name = "nym-vpn-network-config"
 version = "1.14.0-beta"
 dependencies = [
@@ -5713,6 +5791,19 @@ dependencies = [
  "tonic-build",
  "tower",
  "url",
+]
+
+[[package]]
+name = "nym-vpn-rpc-uniffi"
+version = "1.14.0-beta"
+dependencies = [
+ "futures",
+ "nym-vpn-lib-types-uniffi",
+ "nym-vpn-proto",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "uniffi",
 ]
 
 [[package]]
@@ -9023,6 +9114,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2d990b553d6b9a7ee9c3ae71134674739913d52350b56152b0e613595bb5a6f"
 dependencies = [
  "anyhow",
+ "async-compat",
  "bytes",
  "once_cell",
  "static_assertions",

@@ -7,6 +7,7 @@ use nym_common::trace_err_chain;
 use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_account_controller::{AccountCommandSender, AccountStateReceiver};
 use nym_vpn_api_client::types::{Platform, VpnApiAccount};
+use nym_vpn_lib::storage::VpnClientOnDiskStorage;
 use nym_vpn_network_config::Network;
 use nym_vpn_store::{
     keys::device::DeviceKeyStore,
@@ -15,12 +16,11 @@ use nym_vpn_store::{
 use tokio::task::JoinHandle;
 use tokio_util::sync::CancellationToken;
 
-use crate::platform::offline_monitor;
-
-use super::uniffi_custom_impls::RegisterAccountResponse;
-use super::uniffi_lib_types::AccountControllerState;
-
-use super::{ACCOUNT_CONTROLLER_HANDLE, error::VpnError};
+use super::{
+    ACCOUNT_CONTROLLER_HANDLE, error::VpnError, uniffi_custom_impls::RegisterAccountResponse,
+    uniffi_lib_types::AccountControllerState,
+};
+use crate::offline_monitor;
 
 pub(super) async fn init_account_controller(
     data_dir: PathBuf,
@@ -66,9 +66,9 @@ async fn start_account_controller(
     network_env: Network,
     connectivity_handle: ConnectivityHandle,
 ) -> Result<AccountControllerHandle, VpnError> {
-    let storage = crate::storage::VpnClientOnDiskStorage::new(data_dir.clone());
+    let storage = VpnClientOnDiskStorage::new(data_dir.clone());
     // TODO: pass in as argument
-    let user_agent = crate::util::construct_user_agent();
+    let user_agent = crate::user_agent::construct_user_agent();
     let shutdown_token = CancellationToken::new();
 
     let nym_vpn_api_client =
@@ -277,9 +277,8 @@ pub(crate) mod raw {
         types::{Device, DeviceStatus},
     };
 
-    use crate::{platform::environment, storage::VpnClientOnDiskStorage};
-
     use super::*;
+    use crate::environment;
 
     async fn setup_account_storage(path: &str) -> Result<VpnClientOnDiskStorage, VpnError> {
         assert_account_controller_not_running().await?;
@@ -391,7 +390,7 @@ pub(crate) mod raw {
 
     async fn create_vpn_api_client() -> Result<VpnApiClient, VpnError> {
         let network_env = environment::current_environment_details().await?;
-        let user_agent = crate::util::construct_user_agent();
+        let user_agent = crate::user_agent::construct_user_agent();
         let vpn_api_client =
             VpnApiClient::new(network_env.vpn_api_url(), user_agent).map_err(VpnError::internal)?;
         Ok(vpn_api_client)

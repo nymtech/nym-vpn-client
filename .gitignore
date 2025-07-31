@@ -28,6 +28,10 @@ wireguard/libwg/exports.def
 wireguard/libwg/libwg.exp
 wireguard/libwg/libwg.h
 
+# uniffi binaries
+nym-vpn-core/crates/*/generated
+nym-vpn-core/crates/nym-vpn-rpc-uniffi/NymVPNRpc
+
 # Visual Studio
 *.vcxproj.user
 .vs/

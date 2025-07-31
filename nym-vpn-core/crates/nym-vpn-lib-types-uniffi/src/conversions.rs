@@ -11,11 +11,12 @@ use std::{
 use ipnetwork::{IpNetwork, Ipv4Network, Ipv6Network};
 use nym_gateway_directory::{EntryPoint as GwEntryPoint, ExitPoint as GwExitPoint};
 use nym_ip_packet_requests::IpPair;
-use nym_sdk::UserAgent as NymUserAgent;
+use nym_sdk::{
+    UserAgent as NymUserAgent,
+    mixnet::{NodeIdentity, Recipient},
+};
 use time::OffsetDateTime;
 use url::Url;
-
-use crate::{NodeIdentity, Recipient, platform::error::VpnError};
 
 uniffi::custom_type!(Ipv4Addr, String, {
     remote,
@@ -125,6 +126,18 @@ uniffi::custom_type!(
         }
     }
 );
+
+#[derive(Debug, thiserror::Error, uniffi::Error)]
+pub enum UniffiConversionError {
+    #[error("invalid byte length")]
+    InvalidByteLength,
+
+    #[error("invalid mixnet min performance percentage")]
+    InvalidMixnetMinPerformancePercentage,
+
+    #[error("invalid vpn min performance percentage")]
+    InvalidVpnMinPerformancePercentage,
+}
 
 /// Represents the nym network environment together with the environment specific to nym-vpn. These
 /// need to be exported to the environment (for now, until it's refactored internally in the nym
@@ -393,27 +406,21 @@ pub struct GatewayMinPerformance {
 }
 
 impl TryFrom<GatewayMinPerformance> for nym_gateway_directory::GatewayMinPerformance {
-    type Error = VpnError;
+    type Error = UniffiConversionError;
 
     fn try_from(value: GatewayMinPerformance) -> Result<Self, Self::Error> {
         let mixnet_min_performance = value
             .mixnet_min_performance
             .map(|p| {
-                nym_gateway_directory::Percent::from_percentage_value(p).map_err(|_| {
-                    VpnError::InternalError {
-                        details: "Invalid mixnet min performance percentage".to_string(),
-                    }
-                })
+                nym_gateway_directory::Percent::from_percentage_value(p)
+                    .map_err(|_| UniffiConversionError::InvalidMixnetMinPerformancePercentage)
             })
             .transpose()?;
         let vpn_min_performance = value
             .vpn_min_performance
             .map(|p| {
-                nym_gateway_directory::Percent::from_percentage_value(p).map_err(|_| {
-                    VpnError::InternalError {
-                        details: "Invalid vpn min performance percentage".to_string(),
-                    }
-                })
+                nym_gateway_directory::Percent::from_percentage_value(p)
+                    .map_err(|_| UniffiConversionError::InvalidVpnMinPerformancePercentage)
             })
             .transpose()?;
         Ok(nym_gateway_directory::GatewayMinPerformance {

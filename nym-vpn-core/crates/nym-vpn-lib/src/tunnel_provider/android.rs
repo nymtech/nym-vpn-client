@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use super::tunnel_settings::TunnelNetworkSettings;
-use crate::platform::error::VpnError;
+use crate::error::VpnError;
 use std::{fmt::Debug, os::fd::RawFd, sync::Arc};
 
 #[uniffi::export(with_foreign)]
