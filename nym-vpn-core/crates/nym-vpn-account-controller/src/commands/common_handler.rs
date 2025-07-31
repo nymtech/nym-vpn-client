@@ -89,30 +89,28 @@ async fn handle_get_usage(
                 .unwrap_or_else(AccountCommandError::internal)
         })?;
     // SW Better error handling?
-    tracing::info!("Usage: {:#?}", usage);
+    tracing::debug!("Usage: {:#?}", usage);
     Ok(usage.items)
 }
 
 pub(crate) fn handle_get_device_identity(
     shared_state: &SharedAccountState,
 ) -> Result<String, AccountCommandError> {
-    // SW Better error handling, or none at all, since it should be there all the time?
-    // SW 2, When logged out, no id is there
     let device = shared_state
         .device
         .as_ref()
-        .ok_or(AccountCommandError::internal("No device identity stored"))?
+        .ok_or(AccountCommandError::NoDeviceStored)?
         .identity_key()
         .to_string();
 
-    tracing::info!("Device identity: {device:?}");
+    tracing::debug!("Device identity: {device:?}");
     Ok(device)
 }
 
 async fn handle_get_devices(
     shared_state: &mut SharedAccountState,
 ) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
-    tracing::info!("Getting devices from API");
+    tracing::debug!("Getting devices from API");
 
     let account = shared_state
         .vpn_api_account
@@ -130,10 +128,10 @@ async fn handle_get_devices(
         })?;
     // SW Better error handling?
 
-    tracing::info!("The account has the following devices associated to it:");
+    tracing::debug!("The account has the following devices associated to it:");
     // TODO: pagination
     for device in &devices.items {
-        tracing::info!("{:?}", device);
+        tracing::debug!("{:?}", device);
     }
     Ok(devices.items)
 }
@@ -141,7 +139,7 @@ async fn handle_get_devices(
 async fn handle_get_active_devices(
     shared_state: &mut SharedAccountState,
 ) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
-    tracing::info!("Getting active devices from API");
+    tracing::debug!("Getting active devices from API");
 
     let account = shared_state
         .vpn_api_account
@@ -159,10 +157,10 @@ async fn handle_get_active_devices(
         })?;
     // SW Better error handling?
 
-    tracing::info!("The account has the following active devices associated to it:");
+    tracing::debug!("The account has the following active devices associated to it:");
     // TODO: pagination
     for device in &devices.items {
-        tracing::info!("{:?}", device);
+        tracing::debug!("{:?}", device);
     }
     Ok(devices.items)
 }
