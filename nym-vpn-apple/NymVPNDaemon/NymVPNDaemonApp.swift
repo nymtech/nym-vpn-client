@@ -38,6 +38,7 @@ struct NymVPNDaemonApp: App {
     @ObservedObject private var appSettings = AppSettings.shared
     @ObservedObject private var connectionManager = ConnectionManager.shared
     @ObservedObject private var countriesManager = CountriesManager.shared
+    @ObservedObject private var credentialsManager = CredentialsManager.shared
     @StateObject private var homeViewModel = HomeViewModel()
     @StateObject private var checkForUpdatesViewModel = CheckForUpdatesViewModel(updater: AutoUpdater.shared.updater)
     @StateObject private var welcomeViewModel = WelcomeViewModel()
@@ -89,6 +90,7 @@ struct NymVPNDaemonApp: App {
             .environmentObject(appSettings)
             .environmentObject(connectionManager)
             .environmentObject(countriesManager)
+            .environmentObject(credentialsManager)
             .environmentObject(nymLogger.logFileManager)
         }
         .onChange(of: appSettings.appMode) { newMode in

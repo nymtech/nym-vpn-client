@@ -4,9 +4,9 @@ public struct NymColor {
     // MARK: - New colors 2025 -
     public static let black = Color(.blackNym)
     public static let white = Color(.whiteNym)
-    public static let primary = Color(.primary)
-    public static let background = Color(.background)
-    public static let backgroundHover = Color(.backgroundHover)
+    public static let primary = Color(.primaryNym)
+    public static let background = Color(.backgroundNym)
+    public static let backgroundHover = Color(.backgroundHoverNym)
     public static let elevation = Color(.elevation)
     public static let elevationHover = Color(.elevationHover)
     public static let accent = Color(.accent)
