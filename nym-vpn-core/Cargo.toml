@@ -172,7 +172,7 @@ uuid = "1.17"
 vergen-gitcl = { version = "1.0.8", default-features = false }
 which = { version = "7.0", default-features = false }
 widestring = "1.0"
-windows = "0.59"
+windows = "0.61"
 windows-service = "0.8.0"
 winreg = "0.55"
 wmi = "0.14"

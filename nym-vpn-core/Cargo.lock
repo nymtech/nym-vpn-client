@@ -3155,7 +3155,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "07033963ba89ebaf1584d767badaa2e8fcec21aedea6b8c0346d487d49c28667"
 dependencies = [
  "cfg-if",
- "windows-targets 0.53.2",
+ "windows-targets 0.48.5",
 ]
 
 [[package]]
@@ -4081,7 +4081,7 @@ dependencies = [
  "tracing",
  "triggered",
  "which",
- "windows 0.59.0",
+ "windows 0.61.3",
  "winreg 0.55.0",
 ]
 
@@ -4137,7 +4137,7 @@ dependencies = [
  "thiserror 2.0.12",
  "tracing",
  "widestring",
- "windows 0.59.0",
+ "windows 0.61.3",
  "wmi",
 ]
 
@@ -4393,7 +4393,7 @@ dependencies = [
  "tokio-stream",
  "tonic",
  "tracing",
- "windows 0.59.0",
+ "windows 0.61.3",
 ]
 
 [[package]]
@@ -4624,7 +4624,7 @@ dependencies = [
  "nym-dbus",
  "objc2-foundation",
  "rs-release",
- "windows 0.59.0",
+ "windows 0.61.3",
 ]
 
 [[package]]
@@ -4647,7 +4647,7 @@ dependencies = [
  "tokio",
  "tracing",
  "widestring",
- "windows 0.59.0",
+ "windows 0.61.3",
 ]
 
 [[package]]
@@ -5275,7 +5275,7 @@ dependencies = [
  "uniffi",
  "url",
  "vergen-gitcl",
- "windows 0.59.0",
+ "windows 0.61.3",
  "winreg 0.55.0",
 ]
 
@@ -5431,7 +5431,7 @@ dependencies = [
  "tracing-oslog",
  "tracing-subscriber",
  "vergen-gitcl",
- "windows 0.59.0",
+ "windows 0.61.3",
  "windows-service",
  "zeroize",
 ]
@@ -5483,7 +5483,7 @@ dependencies = [
  "rand 0.8.5",
  "thiserror 2.0.12",
  "tracing",
- "windows 0.59.0",
+ "windows 0.61.3",
  "x25519-dalek",
  "zeroize",
 ]
@@ -5498,7 +5498,7 @@ dependencies = [
  "thiserror 2.0.12",
  "tokio",
  "tracing",
- "windows 0.59.0",
+ "windows 0.61.3",
 ]
 
 [[package]]
