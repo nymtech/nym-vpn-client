@@ -5,7 +5,6 @@ use std::error::Error;
 
 pub use nym_http_api_client::HttpClientError;
 
-use nym_contracts_common::ContractsCommonError;
 use nym_http_api_client::StatusCode;
 
 use crate::response::{ErrorMessage, NymErrorResponse, UnexpectedError};
@@ -93,14 +92,6 @@ pub enum VpnApiClientError {
     #[error("failed to get vpn gateway countries")]
     GetVpnGatewayCountries(#[source] HttpClientError<UnexpectedError>),
 
-    #[error("invalud percent value")]
-    InvalidPercentValue(#[source] ContractsCommonError),
-
-    #[error("failed to derive from path")]
-    CosmosDeriveFromPath(
-        #[source] nym_validator_client::signing::direct_wallet::DirectSecp256k1HdWalletError,
-    ),
-
     #[error("failed to get directory zk-nym ticketbook partial verification keys")]
     GetDirectoryZkNymsTicketbookPartialVerificationKeys(#[source] HttpClientError<ErrorMessage>),
 
@@ -121,9 +112,6 @@ pub enum VpnApiClientError {
 
     #[error("failed to post account")]
     PostAccount(#[source] HttpClientError<UnexpectedError>),
-
-    #[error("create account")]
-    CreateAccount(#[source] crate::types::AccountError),
 }
 
 pub type Result<T> = std::result::Result<T, VpnApiClientError>;
