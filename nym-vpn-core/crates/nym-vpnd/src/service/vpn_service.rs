@@ -101,7 +101,6 @@ pub enum VpnServiceCommand {
         Option<Seed>,
     ),
     GetDeviceIdentity(oneshot::Sender<Result<String, AccountCommandError>>, ()),
-    RegisterDevice(oneshot::Sender<()>, ()),
     GetDevices(
         oneshot::Sender<Result<Vec<NymVpnDevice>, AccountCommandError>>,
         (),
@@ -110,11 +109,6 @@ pub enum VpnServiceCommand {
         oneshot::Sender<Result<Vec<NymVpnDevice>, AccountCommandError>>,
         (),
     ),
-    RequestZkNym(oneshot::Sender<()>, ()),
-    GetDeviceZkNyms(oneshot::Sender<Result<(), AccountCommandError>>, ()),
-    GetZkNymsAvailableForDownload(oneshot::Sender<Result<(), AccountCommandError>>, ()),
-    GetZkNymById(oneshot::Sender<Result<(), AccountCommandError>>, String),
-    ConfirmZkNymIdDownloaded(oneshot::Sender<Result<(), AccountCommandError>>, String),
     GetAvailableTickets(
         oneshot::Sender<Result<AvailableTicketbooks, AccountCommandError>>,
         (),
@@ -562,26 +556,6 @@ impl NymVpnService {
             }
             VpnServiceCommand::GetActiveDevices(tx, ()) => {
                 let _ = tx.send(self.handle_get_active_devices().await);
-            }
-
-            // SW temporarily still there, cleaning up the RPC will come later
-            VpnServiceCommand::RegisterDevice(tx, ()) => {
-                let _ = tx.send(());
-            }
-            VpnServiceCommand::RequestZkNym(tx, ()) => {
-                let _ = tx.send(());
-            }
-            VpnServiceCommand::GetDeviceZkNyms(tx, ()) => {
-                let _ = tx.send(Err(AccountCommandError::Internal("Not implemented".into())));
-            }
-            VpnServiceCommand::GetZkNymsAvailableForDownload(tx, ()) => {
-                let _ = tx.send(Err(AccountCommandError::Internal("Not implemented".into())));
-            }
-            VpnServiceCommand::GetZkNymById(tx, _) => {
-                let _ = tx.send(Err(AccountCommandError::Internal("Not implemented".into())));
-            }
-            VpnServiceCommand::ConfirmZkNymIdDownloaded(tx, _) => {
-                let _ = tx.send(Err(AccountCommandError::Internal("Not implemented".into())));
             }
             VpnServiceCommand::GetAvailableTickets(tx, ()) => {
                 let _ = tx.send(self.handle_get_available_tickets().await);

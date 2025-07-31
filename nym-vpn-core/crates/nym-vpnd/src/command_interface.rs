@@ -393,12 +393,6 @@ impl NymVpnService for CommandInterface {
         }))
     }
 
-    async fn register_device(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
-        self.send_and_wait(VpnServiceCommand::RegisterDevice, ())
-            .await?;
-        Ok(tonic::Response::new(()))
-    }
-
     async fn get_devices(
         &self,
         _request: tonic::Request<()>,
@@ -428,77 +422,6 @@ impl NymVpnService for CommandInterface {
             devices: Some(proto::get_devices_response::Devices::from(devices)),
         }))
     }
-
-    async fn request_zk_nym(&self, _request: tonic::Request<()>) -> Result<tonic::Response<()>> {
-        self.send_and_wait(VpnServiceCommand::RequestZkNym, ())
-            .await?;
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn get_device_zk_nyms(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<()>> {
-        // Internal command where returning the result is not yet implemented. It's primary
-        // implementation is to trigger the command interface.
-        let _ = self
-            .send_and_wait(VpnServiceCommand::GetDeviceZkNyms, ())
-            .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to get device zk nyms: {err}"))
-            })?;
-
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn get_zk_nyms_available_for_download(
-        &self,
-        _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<()>> {
-        // Internal command where returning the result is not yet implemented. It's primary
-        // purpose is to trigger the command interface.
-        let _ = self
-            .send_and_wait(VpnServiceCommand::GetZkNymsAvailableForDownload, ())
-            .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!(
-                    "Failed to get zknyms available for download: {err}",
-                ))
-            })?;
-
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn get_zk_nym_by_id(
-        &self,
-        request: tonic::Request<proto::GetZkNymByIdRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let id = request.into_inner().id;
-
-        // This is an internal command, and returning the ID is not yet implemented. It's primary
-        // purpose is to trigger the command interface.
-        let _ = self
-            .send_and_wait(VpnServiceCommand::GetZkNymById, id)
-            .await?
-            .map_err(|err| tonic::Status::internal(format!("Failed to get zknym by id: {err}")))?;
-        Ok(tonic::Response::new(()))
-    }
-
-    async fn confirm_zk_nym_downloaded(
-        &self,
-        request: tonic::Request<proto::ConfirmZkNymDownloadedRequest>,
-    ) -> Result<tonic::Response<()>> {
-        let id = request.into_inner().id;
-
-        self.send_and_wait(VpnServiceCommand::ConfirmZkNymIdDownloaded, id)
-            .await?
-            .map_err(|err| {
-                tonic::Status::internal(format!("Failed to confirm zk nym downloaded: {err}"))
-            })?;
-
-        Ok(tonic::Response::new(()))
-    }
-
     async fn get_available_tickets(
         &self,
         _request: tonic::Request<()>,
