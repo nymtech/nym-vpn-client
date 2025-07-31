@@ -132,8 +132,8 @@ where
 }
 
 pub(crate) enum AccountStorageOp {
-    GetStoredMnemonic(ReturnSender<Mnemonic, Error>), //SW Better error handling here
-    StoreAccount(ReturnSender<Device, Error>, Mnemonic), //SW Better error handling here
-    ForgetAccount(ReturnSender<(), Error>),           //SW Better error handling here
-    ResetKeys(ReturnSender<Device, Error>, Option<[u8; 32]>), //SW Better error handling here
+    GetStoredMnemonic(ReturnSender<Mnemonic, Error>), // SW Better error handling here
+    StoreAccount(ReturnSender<Device, Error>, Mnemonic), // SW Better error handling here
+    ForgetAccount(ReturnSender<(), Error>),           // SW Better error handling here
+    ResetKeys(ReturnSender<Device, Error>, Option<[u8; 32]>), // SW Better error handling here
 }

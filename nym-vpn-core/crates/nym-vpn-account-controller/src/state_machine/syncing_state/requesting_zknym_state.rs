@@ -56,7 +56,7 @@ impl RequestingZkNymsState {
         storage: VpnCredentialStorage,
     ) -> Result<RequestZkNymSummary, RequestZkNymError> {
         #[allow(clippy::unwrap_used)]
-        //SW of course we don't, but let's do that later, also, condition that on the credential_enabled flag
+        // SW of course we don't, but let's do that later, also, condition that on the credential_enabled flag
         if !storage
             .is_all_ticket_types_above_soft_threshold()
             .await
