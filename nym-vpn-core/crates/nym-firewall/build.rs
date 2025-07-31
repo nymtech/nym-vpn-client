@@ -17,7 +17,7 @@ fn main() {
 
     // canonicalize() will fail if the build directory does not exist
     if !build_dir.exists() {
-        fs::create_dir(&build_dir).expect("failed to create build dir");
+        fs::create_dir_all(&build_dir).expect("failed to create build dir");
     }
 
     let build_dir = build_dir

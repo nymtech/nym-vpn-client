@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use std::{env, path::PathBuf, fs};
+use std::{env, fs, path::PathBuf};
 
 fn main() {
     let manifest_path = env::var_os("CARGO_MANIFEST_DIR").expect("manifest dir is not set");
@@ -12,8 +12,7 @@ fn main() {
 
     // canonicalize() will fail if the build directory does not exist
     if !build_dir.exists() {
-        fs::create_dir(&build_dir)
-            .expect("failed to create build dir");
+        fs::create_dir_all(&build_dir).expect("failed to create build dir");
     }
 
     let mut build_dir = build_dir
