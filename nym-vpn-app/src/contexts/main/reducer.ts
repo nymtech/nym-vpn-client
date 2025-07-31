@@ -102,9 +102,26 @@ export function reducer(state: AppState, action: StateAction): AppState {
         initialized: true,
       };
     case 'set-daemon-status':
+      if (action.status === 'down') {
+        return {
+          ...state,
+          daemonStatus: action.status,
+          state: 'unknown',
+          tunnel: null,
+          progressMessages: [],
+          tunnelConnectedAt: null,
+          tunnelError: null,
+          retryAttempt: 0,
+          error: {
+            key: 'not-connected-to-daemon',
+            message: 'Not connected to the daemon',
+          },
+        };
+      }
       return {
         ...state,
         daemonStatus: action.status,
+        error: null,
       };
     case 'set-daemon-info':
       return {

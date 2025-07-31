@@ -18,7 +18,9 @@ export type TunnelState =
   | 'disconnecting'
   | 'error'
   | 'offline'
-  | 'offline-auto-reconnect';
+  | 'offline-auto-reconnect'
+  // when not connected to the daemon, the state is unknown
+  | 'unknown';
 
 export type VpnMode = 'wg' | 'mixnet';
 

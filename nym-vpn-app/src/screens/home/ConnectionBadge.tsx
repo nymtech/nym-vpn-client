@@ -19,6 +19,7 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
       case 'error':
       case 'offline':
       case 'offline-auto-reconnect':
+      case 'unknown':
         return ['text-baltic-sea bg-aphrodisiac!'];
     }
   };
@@ -28,6 +29,7 @@ function ConnectionBadge({ state }: { state: TunnelState }) {
       case 'connected':
         return t('status.connected');
       case 'disconnected':
+      case 'unknown':
         return t('status.disconnected');
       case 'connecting':
         return t('status.connecting');

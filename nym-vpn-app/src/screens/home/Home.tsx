@@ -4,7 +4,7 @@ import { invoke } from '@tauri-apps/api/core';
 import { useNavigate } from 'react-router';
 import clsx from 'clsx';
 import { motion } from 'motion/react';
-import { useInAppNotify, useMainDispatch, useMainState } from '../../contexts';
+import { useMainDispatch, useMainState } from '../../contexts';
 import { BackendError, StateDispatch } from '../../types';
 import { routes } from '../../router';
 import { S_STATE } from '../../static';
@@ -25,7 +25,6 @@ function Home() {
     useMainState();
   const dispatch = useMainDispatch() as StateDispatch;
   const navigate = useNavigate();
-  const { push } = useInAppNotify();
   const { t } = useTranslation('home');
   const loading = state === 'disconnecting';
   const hopSelectDisabled = daemonStatus === 'down' || state !== 'disconnected';
@@ -89,21 +88,6 @@ function Home() {
     }
   }, [navigate]);
 
-  useEffect(() => {
-    if (daemonStatus === 'down') {
-      push({
-        id: 'daemon-not-connected',
-        message: t('daemon-not-connected', {
-          ns: 'notifications',
-        }),
-        close: true,
-        duration: 2000,
-        type: 'error',
-        throttle: 5,
-      });
-    }
-  }, [push, t, daemonStatus]);
-
   const getButtonText = useCallback(() => {
     const stop = capFirst(t('stop', { ns: 'glossary' }));
     const cancel = capFirst(t('cancel', { ns: 'glossary' }));
@@ -111,6 +95,7 @@ function Home() {
       case 'connected':
         return t('disconnect');
       case 'disconnected':
+      case 'unknown':
         return t('connect');
       case 'connecting':
         return stop;
@@ -136,6 +121,8 @@ function Home() {
       case 'disconnecting':
       case 'error':
         return 'red';
+      case 'unknown':
+        return 'gray';
     }
   };
 
