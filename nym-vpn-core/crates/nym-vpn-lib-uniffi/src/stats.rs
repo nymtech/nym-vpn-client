@@ -49,7 +49,7 @@ async fn start_statistics_controller(
     enabled: bool,
 ) -> StatisticsControllerHandle {
     // TODO: pass in as argument
-    let user_agent = crate::util::construct_user_agent();
+    let user_agent = crate::user_agent::construct_user_agent();
     let shutdown_token = CancellationToken::new();
 
     let statistics_controller_config = nym_statistics::StatisticsControllerConfig::new(

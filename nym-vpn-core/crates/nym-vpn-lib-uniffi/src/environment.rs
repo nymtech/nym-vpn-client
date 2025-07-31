@@ -3,7 +3,7 @@
 
 use std::path::PathBuf;
 
-use super::uniffi_custom_impls::{
+use nym_vpn_lib_types_uniffi::{
     AccountLinks, NetworkCompatibility, NetworkEnvironment, SystemMessage,
 };
 

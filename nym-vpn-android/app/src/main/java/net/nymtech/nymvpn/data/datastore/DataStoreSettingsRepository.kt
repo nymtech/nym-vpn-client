@@ -11,8 +11,8 @@ import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.util.extensions.asEntryPoint
 import net.nymtech.vpn.util.extensions.asExitPoint
 import net.nymtech.vpn.util.extensions.asString
-import nym_vpn_lib.EntryPoint
-import nym_vpn_lib.ExitPoint
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
 import timber.log.Timber
 
 class DataStoreSettingsRepository(private val dataStoreManager: DataStoreManager) :

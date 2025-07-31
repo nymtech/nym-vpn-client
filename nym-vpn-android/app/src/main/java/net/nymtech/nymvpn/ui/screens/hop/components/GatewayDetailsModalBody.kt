@@ -38,7 +38,7 @@ import net.nymtech.nymvpn.util.extensions.getScoreIcon
 import net.nymtech.nymvpn.util.extensions.scaledHeight
 import net.nymtech.nymvpn.util.extensions.toLocale
 import net.nymtech.vpn.model.NymGateway
-import nym_vpn_lib.GatewayType
+import nym_vpn_lib_types.GatewayType
 
 @Composable
 fun GatewayDetailsModal(gateway: NymGateway, gatewayType: GatewayType, onDismiss: () -> Unit) {

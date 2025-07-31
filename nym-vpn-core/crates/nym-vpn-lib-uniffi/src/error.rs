@@ -1,6 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_vpn_lib::tunnel_state_machine;
 use nym_vpn_lib_types::{AccountCommandError, AccountControllerError};
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
@@ -32,7 +33,7 @@ pub enum VpnError {
     #[error("vpn-api error: {details}")]
     VpnApi {
         #[from]
-        details: super::uniffi_lib_types::VpnApiError,
+        details: nym_vpn_lib_types_uniffi::VpnApiError,
     },
 
     #[error("unexpected response from nym-vpn-api: {details}")]
@@ -53,7 +54,7 @@ pub enum VpnError {
     #[error("failed to request zk nym")]
     RequestZkNym {
         #[from]
-        details: super::uniffi_lib_types::RequestZkNymError,
+        details: nym_vpn_lib_types_uniffi::RequestZkNymError,
     },
 
     #[error("an account is already stored")]
@@ -89,8 +90,8 @@ impl From<AccountCommandError> for VpnError {
     }
 }
 
-impl From<crate::Error> for VpnError {
-    fn from(value: crate::Error) -> Self {
+impl From<tunnel_state_machine::Error> for VpnError {
+    fn from(value: tunnel_state_machine::Error) -> Self {
         Self::InternalError {
             details: value.to_string(),
         }

@@ -1,19 +1,20 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_offline_monitor::ConnectivityHandle;
-
-use crate::platform::{OFFLINE_MONITOR_HANDLE, error::VpnError};
-
-#[cfg(not(any(target_os = "android", target_os = "ios")))]
-use crate::tunnel_state_machine::RouteHandler;
-
-#[cfg(target_os = "android")]
-use crate::tunnel_provider::android::AndroidTunProvider;
 #[cfg(target_os = "android")]
 use std::sync::Arc;
 
-pub(super) async fn init_offline_monitor(
+use crate::{OFFLINE_MONITOR_HANDLE, error::VpnError};
+
+#[cfg(target_os = "android")]
+use crate::tunnel_provider::android::{
+    AndroidTunProvider, ConnectivityObserverInvalidation, ConnectivityReceiver, ConnectivitySender,
+};
+use nym_offline_monitor::ConnectivityHandle;
+#[cfg(not(any(target_os = "android", target_os = "ios")))]
+use nym_vpn_lib::tunnel_state_machine::{self, RouteHandler};
+
+pub async fn init_offline_monitor(
     #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
 ) -> Result<(), VpnError> {
     let mut guard = OFFLINE_MONITOR_HANDLE.lock().await;
@@ -33,21 +34,24 @@ pub(super) async fn init_offline_monitor(
     }
 }
 
-pub(super) async fn start_offline_monitor(
+pub async fn start_offline_monitor(
     #[cfg(target_os = "android")] tun_provider: Arc<dyn AndroidTunProvider>,
 ) -> Result<OfflineMonitorHandle, VpnError> {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
-    let route_handler = crate::tunnel_state_machine::RouteHandler::new()
+    let route_handler = tunnel_state_machine::RouteHandler::new()
         .await
-        .map_err(crate::tunnel_state_machine::Error::CreateRouteHandler)?;
+        .map_err(tunnel_state_machine::Error::CreateRouteHandler)?;
+
+    #[cfg(target_os = "android")]
+    let connectivity_receiver = register_connectivity_observer(tun_provider);
 
     let connectivity_handle = nym_offline_monitor::spawn_monitor(
         #[cfg(not(any(target_os = "android", target_os = "ios")))]
         route_handler.inner_handle(),
         #[cfg(target_os = "android")]
-        crate::tunnel_state_machine::AndroidConnectivityAdapter::new(tun_provider),
+        connectivity_receiver,
         #[cfg(target_os = "linux")]
-        Some(crate::tunnel_state_machine::TUNNEL_FWMARK),
+        Some(tunnel_state_machine::TUNNEL_FWMARK),
     )
     .await;
 
@@ -58,13 +62,30 @@ pub(super) async fn start_offline_monitor(
     })
 }
 
-pub(super) struct OfflineMonitorHandle {
+#[cfg(target_os = "android")]
+fn register_connectivity_observer(
+    tun_provider: Arc<dyn AndroidTunProvider>,
+) -> ConnectivityReceiver {
+    let (connectivity_tx, connectivity_rx) = tokio::sync::mpsc::unbounded_channel();
+    let connectivity_sender = Arc::new(ConnectivitySender::new(connectivity_tx));
+    let connectivity_observer_invalidation = ConnectivityObserverInvalidation::new(
+        Arc::downgrade(&tun_provider),
+        Arc::downgrade(&connectivity_sender),
+    );
+    let connectivity_receiver =
+        ConnectivityReceiver::new(connectivity_rx, connectivity_observer_invalidation);
+
+    tun_provider.add_connectivity_observer(connectivity_sender);
+    connectivity_receiver
+}
+
+pub struct OfflineMonitorHandle {
     connectivity_handle: ConnectivityHandle,
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     route_handler: RouteHandler,
 }
 
-pub(super) async fn get_connectivity_handle() -> Result<ConnectivityHandle, VpnError> {
+pub async fn get_connectivity_handle() -> Result<ConnectivityHandle, VpnError> {
     if let Some(guard) = &*OFFLINE_MONITOR_HANDLE.lock().await {
         Ok(guard.connectivity_handle.clone())
     } else {
@@ -75,7 +96,7 @@ pub(super) async fn get_connectivity_handle() -> Result<ConnectivityHandle, VpnE
 }
 
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
-pub(super) async fn get_route_handler() -> Result<RouteHandler, VpnError> {
+pub async fn get_route_handler() -> Result<RouteHandler, VpnError> {
     if let Some(guard) = &*OFFLINE_MONITOR_HANDLE.lock().await {
         Ok(guard.route_handler.clone())
     } else {

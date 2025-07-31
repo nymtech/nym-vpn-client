@@ -1,0 +1,147 @@
+// Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
+// SPDX-License-Identifier: GPL-3.0-only
+
+use std::{
+    fmt::Debug,
+    os::fd::RawFd,
+    sync::{
+        Arc, Weak,
+        atomic::{AtomicU64, Ordering},
+    },
+};
+
+use super::tunnel_settings::TunnelNetworkSettings;
+use crate::VpnError;
+
+/// Unique sender id used to distinguish between multiple instances of `ConnectivitySender` when used on Android side.
+static CONNECTIVITY_SENDER_ID: AtomicU64 = AtomicU64::new(0);
+
+#[uniffi::export(with_foreign)]
+pub trait ConnectivityObserver: Send + Sync + std::fmt::Debug {
+    /// Returns a unique identifier for this observer.
+    fn id(&self) -> u64;
+
+    /// Called when the network connectivity status changes.
+    fn on_network_change(&self, is_online: bool);
+}
+
+#[uniffi::export(with_foreign)]
+pub trait AndroidTunProvider: Send + Sync + Debug {
+    /// Bypasses the VPN for a given socket.
+    fn bypass(&self, socket: i32);
+
+    /// Configures the VPN tunnel with the given settings returning a file descriptor to tunnel device that can be used to read and write packets.
+    fn configure_tunnel(&self, config: TunnelNetworkSettings) -> Result<RawFd, VpnError>;
+
+    /// Add network connectivity observer.
+    fn add_connectivity_observer(&self, observer: Arc<dyn ConnectivityObserver>);
+
+    /// Remove network connectivity observer.
+    fn remove_connectivity_observer(&self, observer: Arc<dyn ConnectivityObserver>);
+}
+
+/// Adapter type for `nym_vpn_lib::tun_provider::AndroidTunProvider`
+#[derive(Debug, Clone)]
+pub struct AndroidTunProviderImpl {
+    inner: Arc<dyn AndroidTunProvider>,
+}
+
+impl AndroidTunProviderImpl {
+    pub fn new(inner: Arc<dyn AndroidTunProvider>) -> Self {
+        Self { inner }
+    }
+}
+
+impl nym_vpn_lib::tunnel_provider::AndroidTunProvider for AndroidTunProviderImpl {
+    fn bypass(&self, socket: i32) {
+        self.inner.bypass(socket);
+    }
+
+    fn configure_tunnel(
+        &self,
+        config: nym_vpn_lib::tunnel_provider::TunnelSettings,
+    ) -> std::io::Result<RawFd> {
+        self.inner
+            .configure_tunnel(config.into())
+            .map_err(|e| std::io::Error::other(e.to_string()))
+    }
+}
+
+/// Network connectivity status sender compatible with uniffi `AndroidTunProvider`
+#[derive(Debug)]
+pub struct ConnectivitySender {
+    id: u64,
+    tx: tokio::sync::mpsc::UnboundedSender<bool>,
+}
+
+impl ConnectivitySender {
+    pub fn new(tx: tokio::sync::mpsc::UnboundedSender<bool>) -> Self {
+        let id = CONNECTIVITY_SENDER_ID.fetch_add(1, Ordering::Relaxed);
+        Self { id, tx }
+    }
+}
+
+impl ConnectivityObserver for ConnectivitySender {
+    fn id(&self) -> u64 {
+        self.id
+    }
+
+    fn on_network_change(&self, is_online: bool) {
+        if let Err(e) = self.tx.send(is_online) {
+            tracing::warn!("Failed to send network change: {}", e);
+        }
+    }
+}
+
+/// Network connectivity status receiver compatible with `nym_offline_monitor`
+#[derive(Debug)]
+pub struct ConnectivityReceiver {
+    rx: tokio::sync::mpsc::UnboundedReceiver<bool>,
+    /// Invalidation token that should be held while interested in network status changes
+    _invalidation: ConnectivityObserverInvalidation,
+}
+
+impl ConnectivityReceiver {
+    pub fn new(
+        rx: tokio::sync::mpsc::UnboundedReceiver<bool>,
+        _invalidation: ConnectivityObserverInvalidation,
+    ) -> Self {
+        Self { rx, _invalidation }
+    }
+}
+
+#[async_trait::async_trait]
+impl nym_offline_monitor::NativeConnectivityAdapter for ConnectivityReceiver {
+    async fn next_connectivity(&mut self) -> Option<bool> {
+        self.rx.recv().await
+    }
+}
+
+/// Invalidation token cancelling `ConnectivitySender` observation on drop
+#[derive(Debug)]
+pub struct ConnectivityObserverInvalidation {
+    tun_provider: Weak<dyn AndroidTunProvider>,
+    sender: Weak<ConnectivitySender>,
+}
+
+impl ConnectivityObserverInvalidation {
+    pub fn new(
+        tun_provider: Weak<dyn AndroidTunProvider>,
+        sender: Weak<ConnectivitySender>,
+    ) -> Self {
+        Self {
+            tun_provider,
+            sender,
+        }
+    }
+}
+
+impl Drop for ConnectivityObserverInvalidation {
+    fn drop(&mut self) {
+        if let Some(tun_provider) = self.tun_provider.upgrade()
+            && let Some(sender) = self.sender.upgrade()
+        {
+            tun_provider.remove_connectivity_observer(sender);
+        }
+    }
+}

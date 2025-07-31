@@ -15,16 +15,16 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import net.nymtech.nymvpn.NymVpn
 import net.nymtech.nymvpn.ui.Route
-import nym_vpn_lib.ErrorStateReason
-import nym_vpn_lib.VpnException
 import kotlin.reflect.KClass
 import net.nymtech.nymvpn.R
 import net.nymtech.vpn.backend.Tunnel
 import net.nymtech.vpn.model.NymGateway
-import nym_vpn_lib.EntryPoint
-import nym_vpn_lib.ExitPoint
-import nym_vpn_lib.GatewayType
-import nym_vpn_lib.Score
+import nym_vpn_lib_types.EntryPoint
+import nym_vpn_lib_types.ExitPoint
+import nym_vpn_lib_types.GatewayType
+import nym_vpn_lib_types.Score
+import nym_vpn_lib_types.ErrorStateReason
+import nym_vpn_lib.VpnException
 import timber.log.Timber
 import java.util.*
 

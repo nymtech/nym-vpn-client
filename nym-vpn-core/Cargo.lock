@@ -431,6 +431,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "async-compat"
+version = "0.2.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7bab94bde396a3f7b4962e396fdad640e241ed797d4d8d77fc8c237d14c58fc0"
+dependencies = [
+ "futures-core",
+ "futures-io",
+ "once_cell",
+ "pin-project-lite",
+ "tokio",
+]
+
+[[package]]
 name = "async-compression"
 version = "0.4.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5551,7 +5564,6 @@ dependencies = [
  "tokio-stream",
  "tokio-util",
  "tracing",
- "uuid",
  "zeroize",
 ]
 
@@ -5600,7 +5612,6 @@ dependencies = [
  "hickory-server",
  "ipnetwork",
  "itertools 0.13.0",
- "lazy_static",
  "log",
  "nix 0.30.1",
  "nym-apple-network",
@@ -5628,7 +5639,6 @@ dependencies = [
  "nym-task",
  "nym-validator-client",
  "nym-vpn-account-controller",
- "nym-vpn-api-client",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-store",
@@ -5637,8 +5647,6 @@ dependencies = [
  "nym-windows",
  "nym-wireguard-types",
  "rand 0.8.5",
- "sentry",
- "sysinfo",
  "thiserror 2.0.12",
  "time",
  "tokio",
@@ -5646,9 +5654,7 @@ dependencies = [
  "tokio-util",
  "tracing",
  "tracing-oslog",
- "tracing-subscriber",
  "tun",
- "uniffi",
  "url",
  "vergen-gitcl",
  "windows 0.61.3",
@@ -5669,6 +5675,65 @@ dependencies = [
  "strum_macros",
  "thiserror 2.0.12",
  "time",
+]
+
+[[package]]
+name = "nym-vpn-lib-types-uniffi"
+version = "1.14.0-beta"
+dependencies = [
+ "ipnetwork",
+ "nym-config",
+ "nym-gateway-directory",
+ "nym-ip-packet-requests",
+ "nym-sdk",
+ "nym-vpn-account-controller",
+ "nym-vpn-api-client",
+ "nym-vpn-lib-types",
+ "nym-vpn-network-config",
+ "thiserror 2.0.12",
+ "time",
+ "uniffi",
+ "url",
+]
+
+[[package]]
+name = "nym-vpn-lib-uniffi"
+version = "1.14.0-beta"
+dependencies = [
+ "android_logger",
+ "async-trait",
+ "ipnetwork",
+ "itertools 0.13.0",
+ "lazy_static",
+ "log",
+ "nym-bin-common",
+ "nym-common",
+ "nym-gateway-directory",
+ "nym-offline-monitor",
+ "nym-platform-metadata",
+ "nym-sdk",
+ "nym-statistics",
+ "nym-validator-client",
+ "nym-vpn-account-controller",
+ "nym-vpn-api-client",
+ "nym-vpn-lib",
+ "nym-vpn-lib-types",
+ "nym-vpn-lib-types-uniffi",
+ "nym-vpn-network-config",
+ "nym-vpn-proto",
+ "nym-vpn-store",
+ "rand 0.8.5",
+ "sentry",
+ "sysinfo",
+ "thiserror 2.0.12",
+ "time",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "tracing-oslog",
+ "tracing-subscriber",
+ "uniffi",
+ "vergen-gitcl",
 ]
 
 [[package]]
@@ -5716,6 +5781,19 @@ dependencies = [
  "tonic-build",
  "tower",
  "url",
+]
+
+[[package]]
+name = "nym-vpn-rpc-uniffi"
+version = "1.14.0-beta"
+dependencies = [
+ "futures",
+ "nym-vpn-lib-types-uniffi",
+ "nym-vpn-proto",
+ "tokio",
+ "tokio-util",
+ "tracing",
+ "uniffi",
 ]
 
 [[package]]
@@ -5780,7 +5858,6 @@ dependencies = [
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "nym-vpn-proto",
- "nym-vpn-store",
  "nym-vpnd-types",
  "nym-windows",
  "sentry",
@@ -5810,7 +5887,6 @@ dependencies = [
  "nym-gateway-directory",
  "nym-sdk",
  "nym-validator-client",
- "nym-vpn-account-controller",
  "nym-vpn-lib-types",
  "nym-vpn-network-config",
  "serde",
@@ -9026,6 +9102,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c2d990b553d6b9a7ee9c3ae71134674739913d52350b56152b0e613595bb5a6f"
 dependencies = [
  "anyhow",
+ "async-compat",
  "bytes",
  "once_cell",
  "static_assertions",

@@ -81,13 +81,13 @@ jobs:
           path: build/lib/aarch64-linux-android
 
       - name: Build nym-vpn-core for android
-        working-directory: nym-vpn-core/crates/nym-vpn-lib
+        working-directory: nym-vpn-core
         env:
           ANDROID_NDK_HOME: ${{ steps.setup-ndk.outputs.ndk-path }}
           VPNLIB_SENTRY_DSN: ${{ secrets.VPND_SENTRY_DSN }}
         run: |
-          cargo ndk -t arm64-v8a -o ../target/aarch64-linux-android/release build --release
-          ls -la ../target/aarch64-linux-android/release/ || true
+          make -f Android.mk build RELEASE=true
+          make -f Android.mk uniffi RELEASE=true
 
       - name: Get rust version used for build
         id: rust-version
@@ -96,10 +96,11 @@ jobs:
 
       - name: Move things around to prepare for upload
         env:
-          SRC_BINARY: nym-vpn-core/target/aarch64-linux-android/release/
+          BUILD_DIR: nym-vpn-android/core/src/main/jniLibs/arm64-v8a
         run: |
           mkdir ${{ env.UPLOAD_DIR_ANDROID }}
-          cp -vpr ${{ env.SRC_BINARY }}/libnym_vpn_lib.so ${{ env.UPLOAD_DIR_ANDROID }}
+          cp ${{ env.BUILD_DIR }}/libnym_vpn_lib.so ${{ env.UPLOAD_DIR_ANDROID }}
+          cp ${{ env.BUILD_DIR }}/libnym_vpn_lib_types.so ${{ env.UPLOAD_DIR_ANDROID }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

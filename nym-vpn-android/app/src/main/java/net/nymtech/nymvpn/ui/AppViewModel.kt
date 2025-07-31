@@ -23,7 +23,7 @@ import net.nymtech.nymvpn.util.Constants
 import net.nymtech.nymvpn.util.LocaleUtil
 import net.nymtech.nymvpn.util.StringValue
 import net.nymtech.vpn.backend.Tunnel
-import nym_vpn_lib.SystemMessage
+import nym_vpn_lib_types.SystemMessage
 import timber.log.Timber
 import javax.inject.Inject
 
