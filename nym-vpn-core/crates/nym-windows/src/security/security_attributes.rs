@@ -1,7 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use windows::Win32::{Foundation::BOOL, Security::SECURITY_ATTRIBUTES};
+use windows::{Win32::Security::SECURITY_ATTRIBUTES, core::BOOL};
 
 use super::AbsoluteSecurityDescriptor;
 

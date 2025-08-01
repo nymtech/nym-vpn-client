@@ -5,13 +5,13 @@ use std::marker::PhantomData;
 
 use windows::{
     Win32::{
-        Foundation::{BOOL, HLOCAL, LocalFree},
+        Foundation::{HLOCAL, LocalFree},
         Security::{
             GetSecurityDescriptorControl, GetSecurityDescriptorDacl, PSECURITY_DESCRIPTOR,
             SE_SELF_RELATIVE, SECURITY_DESCRIPTOR, SECURITY_DESCRIPTOR_CONTROL,
         },
     },
-    core::Result,
+    core::{BOOL, Result},
 };
 
 use super::BorrowedAcl;

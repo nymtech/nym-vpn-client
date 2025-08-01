@@ -9,7 +9,7 @@ use windows::{
     },
     core::{BSTR, PCWSTR},
 };
-use wmi::result_enumerator::IWbemClassWrapper;
+use wmi::IWbemClassWrapper;
 
 /// Name of the blocking Hyper-V rule.
 const BLOCK_OUTBOUND_RULE_ELEMENT_NAME: &str = "Nym VPN outbound block-all rule";
@@ -55,7 +55,7 @@ pub fn init_wmi() -> Result<wmi::WMIConnection, Error> {
 
     // Test whether the class is available
     let _ = con
-        .get_raw_by_path("MSFT_NetFirewallHyperVRule")
+        .get_object("MSFT_NetFirewallHyperVRule")
         .map_err(Error::ObtainHyperVClass)?;
 
     Ok(con)
@@ -75,7 +75,7 @@ pub fn init_wmi() -> Result<wmi::WMIConnection, Error> {
 /// can be initialized using [`init_wmi`].
 pub fn add_blocking_hyperv_firewall_rules(con: &wmi::WMIConnection) -> Result<(), Error> {
     let class = con
-        .get_raw_by_path("MSFT_NetFirewallHyperVRule")
+        .get_object("MSFT_NetFirewallHyperVRule")
         .map_err(Error::ObtainHyperVClass)?;
 
     add_blocking_rule(

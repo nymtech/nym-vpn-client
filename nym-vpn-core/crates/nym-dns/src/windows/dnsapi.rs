@@ -10,7 +10,8 @@ use std::{
     },
     time::{Duration, Instant},
 };
-use windows::Win32::Foundation::BOOL;
+
+use windows::core::BOOL;
 
 static FLUSH_TIMEOUT: Duration = Duration::from_secs(5);
 static DNSAPI_HANDLE: OnceLock<DnsApi> = OnceLock::new();

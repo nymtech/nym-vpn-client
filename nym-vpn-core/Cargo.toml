@@ -172,10 +172,10 @@ uuid = "1.17"
 vergen-gitcl = { version = "1.0.8", default-features = false }
 which = { version = "7.0", default-features = false }
 widestring = "1.0"
-windows = "0.59"
+windows = "0.61"
 windows-service = "0.8.0"
 winreg = "0.55"
-wmi = "0.14"
+wmi = "0.17.2"
 x25519-dalek = "2.0"
 zeroize = "1.6.0"
 sentry = { version = "0.39.0", default-features = false }
