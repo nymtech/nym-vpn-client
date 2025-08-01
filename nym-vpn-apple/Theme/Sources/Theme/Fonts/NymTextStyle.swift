@@ -63,6 +63,10 @@ extension NymTextStyle {
             public static var regular: NymTextStyle {
                 NymTextStyle(nymFont: .labGrotesque(size: 14, weight: .regular), kerning: 0.28)
             }
+
+            public static var bold: NymTextStyle {
+                NymTextStyle(nymFont: .labGrotesque(size: 14, weight: .bold), kerning: 0.28)
+            }
         }
 
         public struct Small {

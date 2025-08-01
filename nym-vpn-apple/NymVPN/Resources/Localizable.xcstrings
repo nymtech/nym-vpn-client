@@ -21594,6 +21594,17 @@
         }
       }
     },
+    "passphrase.continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        }
+      }
+    },
     "passphrase.copy" : {
       "extractionState" : "manual",
       "localizations" : {
