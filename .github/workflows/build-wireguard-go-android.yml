@@ -12,12 +12,12 @@ env:
 
 jobs:
   build:
-    runs-on: 'ubuntu-22.04'
+    runs-on: arc-ubuntu-24.04
 
     steps:
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
-     
+
       - name: Install Go
         uses: actions/setup-go@v5
         with:

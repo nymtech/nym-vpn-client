@@ -18,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-22.04, custom-macos-15, custom-windows-11]
+        os: [arc-ubuntu-24.04, custom-macos-15, custom-windows-11]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -60,6 +60,9 @@ jobs:
             triplet=x86_64-unknown-linux-gnu
           elif ${{ contains(matrix.os, 'ubuntu-22.04') }}; then
             platform_arch=ubuntu-22.04_x86_64
+            triplet=x86_64-unknown-linux-gnu
+          elif ${{ contains(matrix.os, 'arc-ubuntu-24.04') }}; then
+            platform_arch=ubuntu-24.04_x86_64
             triplet=x86_64-unknown-linux-gnu
           elif ${{ matrix.os == 'macos-12' || matrix.os == 'macos-13' }}; then
             platform_arch=macos_x86_64

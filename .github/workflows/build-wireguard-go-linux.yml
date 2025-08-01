@@ -16,7 +16,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: arc-ubuntu-24.04
 
     steps:
       - name: Install system dependencies
@@ -39,7 +39,7 @@ jobs:
         id: set_artifact_name
         run: |
           if [ -z "${{ inputs.artifact_name }}" ]; then
-            echo "artifact_name=wireguard-go_ubuntu-22.04_x86_64" >> $GITHUB_OUTPUT
+            echo "artifact_name=wireguard-go_ubuntu-24.04_x86_64" >> $GITHUB_OUTPUT
           else
             echo "artifact_name=${{ inputs.artifact_name }}" >> $GITHUB_OUTPUT
           fi

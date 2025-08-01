@@ -63,13 +63,13 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: arc-ubuntu-24.04
     env:
       SIGNING_KEY_ALIAS: ${{ secrets.ANDROID_SIGNING_KEY_ALIAS }}
       SIGNING_KEY_PASSWORD: ${{ secrets.ANDROID_SIGNING_KEY_PASSWORD }}
       SIGNING_STORE_PASSWORD: ${{ secrets.ANDROID_SIGNING_STORE_PASSWORD }}
       SENTRY_DSN: ${{ secrets.ANDROID_SENTRY_DSN }}
-      KEY_STORE_FILE: 'android_keystore.jks'
+      KEY_STORE_FILE: "android_keystore.jks"
       KEY_STORE_LOCATION: ${{ github.workspace }}/nym-vpn-android/app/keystore/
     defaults:
       run:
@@ -83,8 +83,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: "temurin"
+          java-version: "17"
           cache: gradle
 
       - name: Setup Android SDK
@@ -113,7 +113,7 @@ jobs:
           cache-dependency-path: |
             wireguard/libwg/go.sum
             nym-vpn-core/crates/nym-gateway-probe/netstack_ping/go.sum
-      
+
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
         with:
