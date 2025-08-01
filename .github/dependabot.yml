@@ -8,6 +8,8 @@ updates:
       - "Bykow"
   - package-ecosystem: gradle
     directory: /nym-vpn-android
+    assignees:
+      - "mrkiwi"
     schedule:
       interval: weekly
     groups:
