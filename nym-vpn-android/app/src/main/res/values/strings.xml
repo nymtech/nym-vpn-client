@@ -89,7 +89,6 @@
     <string name="two_hop">2-hop</string>
     <string name="error_reporting_alert">Changes to error reporting will not fully take effect until the app has been restarted.</string>
     <string name="feature_in_progress">This feature is still in progress.</string>
-    <string name="logs_saved">Logs saved to downloads folder</string>
     <string name="sentry_url">https://sentry.io</string>
     <string name="anonymous_analytics">Anonymous analytics</string>
     <string name="anonymous_analytics_description">Help us improve NymVPN</string>
@@ -153,11 +152,13 @@
     <string name="vpn_settings">VPN system settings</string>
     <string name="try_again">and try to reconnect</string>
     <string name="share">Share</string>
+    <string name="download">Download</string>
     <string name="delete">Delete</string>
     <string name="delete_logs_title">Are you sure you want to delete all logs?</string>
     <string name="delete_logs_description">Once deleted, the logs will not be recoverable.</string>
     <string name="no">No</string>
     <string name="yes">Yes</string>
+	<string name="logs_saved">Logs saved to your Downloads folder"</string>
     <string name="out_of_bandwidth_error">Credential bandwidth limitation reached.</string>
     <string name="gateway_error">Failed to connect to gateway. Try again or select a new gateway location.</string>
     <string name="network_error">A network connection issue occurred. Please check your network connection and try again.</string>

@@ -1,5 +1,7 @@
 package net.nymtech.logcatutil
 
+import android.content.ContentResolver
+import android.net.Uri
 import androidx.lifecycle.DefaultLifecycleObserver
 import androidx.lifecycle.LifecycleOwner
 import kotlinx.coroutines.CoroutineScope
@@ -14,6 +16,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import net.nymtech.logcatutil.model.LogMessage
+import java.io.File
 
 class LogcatManager(
 	pid: Int,
@@ -93,5 +96,23 @@ class LogcatManager(
 		_bufferedLogsNative.resetReplayCache()
 		fileManager.deleteAllLogs()
 		if (wasStarted) start()
+	}
+
+	override suspend fun downloadFile(resolver: ContentResolver, uri: Uri, temp: File) {
+		logScope.launch {
+			val wasStarted = isStarted
+			stop()
+			fileManager.zipLogs(temp.absolutePath)
+			if (wasStarted) {
+				logcatReader.clearLogs()
+				start()
+			}
+			resolver.openOutputStream(uri).use { outputStream ->
+				if (outputStream == null) throw IllegalStateException("Failed to get output stream")
+				temp.inputStream().use { inputStream ->
+					inputStream.copyTo(outputStream)
+				}
+			}
+		}
 	}
 }
