@@ -5,8 +5,6 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-use nym_vpn_lib::gateway_directory::Score as GwScore;
-
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct Gateway {
     pub identity_key: String,
@@ -121,8 +119,8 @@ impl fmt::Display for Country {
     }
 }
 
-impl From<nym_vpn_lib::gateway_directory::Country> for Country {
-    fn from(country: nym_vpn_lib::gateway_directory::Country) -> Self {
+impl From<nym_gateway_directory::Country> for Country {
+    fn from(country: nym_gateway_directory::Country) -> Self {
         Self {
             iso_code: country.iso_code().to_string(),
         }
@@ -147,8 +145,8 @@ impl From<nym_validator_client::models::NymNodeDescription> for Gateway {
     }
 }
 
-impl From<nym_vpn_lib::gateway_directory::Location> for Location {
-    fn from(location: nym_vpn_lib::gateway_directory::Location) -> Self {
+impl From<nym_gateway_directory::Location> for Location {
+    fn from(location: nym_gateway_directory::Location) -> Self {
         Self {
             two_letter_iso_country_code: location.two_letter_iso_country_code,
             latitude: Some(location.latitude),
@@ -157,19 +155,19 @@ impl From<nym_vpn_lib::gateway_directory::Location> for Location {
     }
 }
 
-impl From<GwScore> for Score {
-    fn from(score: GwScore) -> Self {
+impl From<nym_gateway_directory::Score> for Score {
+    fn from(score: nym_gateway_directory::Score) -> Self {
         match score {
-            GwScore::High(_) => Score::High,
-            GwScore::Medium(_) => Score::Medium,
-            GwScore::Low(_) => Score::Low,
-            GwScore::None => Score::None,
+            nym_gateway_directory::Score::High(_) => Score::High,
+            nym_gateway_directory::Score::Medium(_) => Score::Medium,
+            nym_gateway_directory::Score::Low(_) => Score::Low,
+            nym_gateway_directory::Score::None => Score::None,
         }
     }
 }
 
-impl From<nym_vpn_lib::gateway_directory::Entry> for Entry {
-    fn from(entry: nym_vpn_lib::gateway_directory::Entry) -> Self {
+impl From<nym_gateway_directory::Entry> for Entry {
+    fn from(entry: nym_gateway_directory::Entry) -> Self {
         Self {
             can_connect: entry.can_connect,
             can_route: entry.can_route,
@@ -177,8 +175,8 @@ impl From<nym_vpn_lib::gateway_directory::Entry> for Entry {
     }
 }
 
-impl From<nym_vpn_lib::gateway_directory::Exit> for Exit {
-    fn from(exit: nym_vpn_lib::gateway_directory::Exit) -> Self {
+impl From<nym_gateway_directory::Exit> for Exit {
+    fn from(exit: nym_gateway_directory::Exit) -> Self {
         Self {
             can_connect: exit.can_connect,
             can_route_ip_v4: exit.can_route_ip_v4,
@@ -189,8 +187,8 @@ impl From<nym_vpn_lib::gateway_directory::Exit> for Exit {
     }
 }
 
-impl From<nym_vpn_lib::gateway_directory::ProbeOutcome> for ProbeOutcome {
-    fn from(outcome: nym_vpn_lib::gateway_directory::ProbeOutcome) -> Self {
+impl From<nym_gateway_directory::ProbeOutcome> for ProbeOutcome {
+    fn from(outcome: nym_gateway_directory::ProbeOutcome) -> Self {
         Self {
             as_entry: Entry::from(outcome.as_entry),
             as_exit: outcome.as_exit.map(Exit::from),
@@ -198,8 +196,8 @@ impl From<nym_vpn_lib::gateway_directory::ProbeOutcome> for ProbeOutcome {
     }
 }
 
-impl From<nym_vpn_lib::gateway_directory::Probe> for Probe {
-    fn from(probe: nym_vpn_lib::gateway_directory::Probe) -> Self {
+impl From<nym_gateway_directory::Probe> for Probe {
+    fn from(probe: nym_gateway_directory::Probe) -> Self {
         Self {
             last_updated_utc: probe.last_updated_utc,
             outcome: ProbeOutcome::from(probe.outcome),
@@ -207,8 +205,8 @@ impl From<nym_vpn_lib::gateway_directory::Probe> for Probe {
     }
 }
 
-impl From<nym_vpn_lib::gateway_directory::Gateway> for Gateway {
-    fn from(gateway: nym_vpn_lib::gateway_directory::Gateway) -> Self {
+impl From<nym_gateway_directory::Gateway> for Gateway {
+    fn from(gateway: nym_gateway_directory::Gateway) -> Self {
         Self {
             identity_key: gateway.identity.to_string(),
             moniker: gateway.moniker,

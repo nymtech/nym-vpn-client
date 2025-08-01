@@ -8,10 +8,8 @@ pub mod service;
 
 use std::net::IpAddr;
 
-use nym_vpn_lib::{
-    UserAgent,
-    gateway_directory::{EntryPoint, ExitPoint, GatewayType, Percent},
-};
+use nym_gateway_directory::{EntryPoint, ExitPoint, GatewayType, Percent};
+use nym_sdk::UserAgent;
 
 #[derive(Debug)]
 pub struct ConnectArgs {

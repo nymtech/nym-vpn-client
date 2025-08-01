@@ -17,8 +17,9 @@ time.workspace = true
 thiserror.workspace = true
 zeroize.workspace = true
 
-nym-vpn-lib.workspace = true
 nym-vpn-lib-types.workspace = true
 nym-validator-client.workspace = true
 nym-vpn-network-config.workspace = true
 nym-vpn-account-controller.workspace = true
+nym-gateway-directory.workspace = true
+nym-sdk.workspace = true
