@@ -24,6 +24,8 @@ updates:
       - "rokas-ambrazevicius"
   - package-ecosystem: cargo
     directory: /nym-vpn-core
+    assignees:
+      - "pronebird"
     schedule:
       interval: weekly
     ignore:
