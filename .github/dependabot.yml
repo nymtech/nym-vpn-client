@@ -38,6 +38,18 @@ updates:
           - "*"
         update-types:
           - "patch"
+  - package-ecosystem: cargo
+    directory: /nym-vpn-app/src-tauri
+    assignees:
+      - "doums"
+    schedule:
+      interval: weekly
+    groups:
+      patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
   - package-ecosystem: npm
     directory: /nym-vpn-app
     schedule:
