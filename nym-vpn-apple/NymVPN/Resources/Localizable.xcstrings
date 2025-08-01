@@ -10170,8 +10170,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "IPv6 unavailable. Disable in the settings to use IPv4."
+            "state" : "translated",
+            "value" : "IPv6 kullanılamıyor. IPv4 kullanmak için ayarlardan devre dışı bırakın."
           }
         },
         "uk" : {
@@ -18749,8 +18749,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Key"
+            "state" : "translated",
+            "value" : "Anahtar"
           }
         },
         "uk" : {
@@ -25718,8 +25718,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "Disable to only use IPv4"
+            "state" : "translated",
+            "value" : "Yalnızca IPv4 kullanmak için devre dışı bırakın."
           }
         },
         "uk" : {
@@ -25819,8 +25819,8 @@
         },
         "tr" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : "IPv6 traffic tunneling"
+            "state" : "translated",
+            "value" : "IPv6 trafiğini tünelleme"
           }
         },
         "uk" : {
