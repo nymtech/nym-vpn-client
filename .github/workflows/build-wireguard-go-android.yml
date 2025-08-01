@@ -18,6 +18,9 @@ jobs:
       - name: Checkout nym-vpn-client
         uses: actions/checkout@v4
 
+      - name: Install system dependencies
+        run: sudo apt-get update && sudo apt-get install -y rsync
+
       - name: Install Go
         uses: actions/setup-go@v5
         with:
