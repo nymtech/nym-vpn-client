@@ -87,7 +87,7 @@ function GatewaysProvider({ children }: GatewaysStateProviderProps) {
         }
       }
       if (!gateways) {
-        console.warn(`no gateways found for ${nodeType}`);
+        console.info(`no gateways found for ${nodeType}`);
         gateways = [];
       }
       dispatch({
