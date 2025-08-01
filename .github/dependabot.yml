@@ -42,8 +42,6 @@ updates:
           - "patch"
   - package-ecosystem: cargo
     directory: /nym-vpn-app/src-tauri
-    assignees:
-      - "doums"
     schedule:
       interval: weekly
     groups:
