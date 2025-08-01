@@ -17,7 +17,7 @@ jobs:
     uses: ./.github/workflows/build-wireguard-go-linux.yml
 
   build:
-    runs-on: ubuntu-22.04
+    runs-on: arc-ubuntu-24.04
     needs: build-wireguard-go-linux
 
     steps:
@@ -71,4 +71,3 @@ jobs:
         working-directory: nym-vpn-core
         run: |
           cargo test --verbose --workspace --locked
-
