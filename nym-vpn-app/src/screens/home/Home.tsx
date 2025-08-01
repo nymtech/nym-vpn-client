@@ -53,7 +53,15 @@ function Home() {
           console.log(result);
         })
         .catch((e: unknown) => {
-          dispatch({ type: 'set-error', error: e as BackendError });
+          const backendError = e as BackendError;
+          dispatch({ 
+            type: 'set-error',
+            error: {
+              message: backendError.message,
+              key: backendError.key,
+              data: backendError.data,
+            }
+          });
         });
     } else if (state === 'Disconnected') {
       console.info('connect');
