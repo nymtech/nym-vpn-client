@@ -46,6 +46,21 @@ jobs:
         run: |
           sudo apt install -y xmlstarlet
 
+      - name: Set release date
+        # current date in YYYY-MM-DD format
+        run: |
+          date=$(date -u +'%Y-%m-%d')
+          echo "release date: $date"
+          echo "RELEASE_DATE=$date" >> $GITHUB_ENV
+
+      - name: Update CHANGELOG.md
+        continue-on-error: true
+        working-directory: nym-vpn-app
+        run: |
+          new_entry="## [${{ inputs.version }}] - ${{ env.RELEASE_DATE }}"
+          sed -i "s|^## \[Unreleased\]|## [Unreleased]\n\n$new_entry|" CHANGELOG.md
+          cat CHANGELOG.md
+
       - name: Bump installer script
         continue-on-error: true
         working-directory: .pkg/linux
@@ -54,12 +69,6 @@ jobs:
           CORE_TAG: ${{ inputs.core_release_tag }}
         run: |
           ./bump.sh
-
-      - name: Set release date
-        run: |
-          date=$(date -u +'%Y-%m-%d')
-          echo "release date: $date"
-          echo "RELEASE_DATE=$date" >> $GITHUB_ENV
 
       - name: Update flatpak metainfo
         continue-on-error: true
@@ -86,6 +95,7 @@ jobs:
           git config --global user.name "NYM_bot"
           git config --global user.email "_@_"
           git switch -C ${{ env.GIT_BRANCH }}
+          git add nym-vpn-app/CHANGELOG.md
           git add .pkg/linux
           git add nym-vpn-app/.pkg/flatpak
           git commit -m "${{ env.COMMIT_MSG }}"
