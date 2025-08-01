@@ -1,5 +1,8 @@
 package net.nymtech.nymvpn.ui.screens.settings.logs
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
@@ -10,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.flow.collectLatest
 import net.nymtech.nymvpn.ui.screens.settings.logs.components.*
 
 @Composable
@@ -31,6 +35,14 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 	val currentLogs = if (selectedTab == 0) nativeLogs else vpnLogs
 	val currentScrollState = if (selectedTab == 0) nativeScrollState else vpnScrollState
 
+	val createDocumentLauncher = rememberLauncherForActivityResult(
+		contract = ActivityResultContracts.CreateDocument("application/zip"),
+	) { uri: Uri? ->
+		if (uri != null) {
+			viewModel.saveLogsToUri(context, uri)
+		}
+	}
+
 	AutoScrollEffect(
 		logsSize = currentLogs.size,
 		lazyColumnListState = currentScrollState,
@@ -39,6 +51,12 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 		lastScrollPosition = lastScrollPosition,
 		onLastScrollPositionChange = { lastScrollPosition = it },
 	)
+
+	LaunchedEffect(Unit) {
+		viewModel.requestSaveUri.collectLatest { suggestedFileName ->
+			createDocumentLauncher.launch(suggestedFileName)
+		}
+	}
 
 	Scaffold(
 		floatingActionButton = {
@@ -51,10 +69,13 @@ fun LogsScreen(viewModel: LogsViewModel = hiltViewModel()) {
 					selectedTab = selectedTab,
 					onSelectTab = { selectedTab = it },
 				)
-				LogsBottomBar(
-					onShareClick = { viewModel.shareLogs(context) },
-					onDeleteClick = { showModal = true },
-				)
+				LogsBottomBar { event ->
+					when (event) {
+						LogsBottomBarEvent.Share -> viewModel.shareLogs(context)
+						LogsBottomBarEvent.Download -> viewModel.downloadLogs(context)
+						LogsBottomBarEvent.Delete -> showModal = true
+					}
+				}
 			}
 		},
 	) { paddingValues ->

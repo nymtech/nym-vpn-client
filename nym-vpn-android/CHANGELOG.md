@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Download button for Logs Screen
+
 ## [1.8.0] - 2025-07-31
 
 ### Fixed
