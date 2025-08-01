@@ -1,13 +1,17 @@
 import SwiftUI
+import AppSettings
 import Device
 import BiometricAuthenticator
 import CredentialsManager
+#if os(iOS)
 import ImpactGenerator
+#endif
 import Keychain
 import Theme
 import UIComponents
 
 public struct PassphraseView: View {
+    @EnvironmentObject private var appSettings: AppSettings
     @EnvironmentObject private var credentialsManager: CredentialsManager
     @Binding private var path: NavigationPath
     @State private var isErrorDisplayed = false
@@ -34,23 +38,28 @@ public struct PassphraseView: View {
             navbar
             Spacer()
                 .frame(height: 24)
-            VStack(spacing: 0) {
-                title
-                Spacer()
-                    .frame(height: 16)
-                subtitle
+            ScrollView {
+                VStack(spacing: 0) {
+                    title
+                    Spacer()
+                        .frame(height: 16)
+                    subtitle
+                    Spacer()
+                        .frame(height: 24)
+                    passphraseSquare
+                    Spacer()
+                        .frame(height: 24)
+                    passphraseActionsRow
+                    Spacer()
+                        .frame(height: 24)
+                    exclaimerText
+                    Spacer()
+                    savedConfirmationSection
+                }
+                .frame(maxWidth: MagicNumbers.moreMaxWidth)
                 Spacer()
                     .frame(height: 24)
-                passphraseSquare
-                Spacer()
-                    .frame(height: 24)
-                passphraseActionsRow
-                Spacer()
-                    .frame(height: 24)
-                exclaimerText
             }
-            .frame(maxWidth: MagicNumbers.moreMaxWidth)
-            Spacer()
         }
         .alert(errorMessage, isPresented: $isErrorDisplayed) {
             Button("ok".localizedString, role: .cancel) {}
@@ -83,7 +92,7 @@ private extension PassphraseView {
             title: "settings.passphrase".localizedString,
             useElevationBackground: true,
             isLogoImageHidden: true,
-            leftButton: ((mnemonic?.isEmpty) == nil) ? nil : CustomNavBarButton(type: .back, action: { navigateHome() })
+            leftButton: ((mnemonic?.isEmpty) == nil) ? CustomNavBarButton(type: .back, action: { navigateBack() }) : nil
         )
     }
 
@@ -222,26 +231,83 @@ private extension PassphraseView {
 
     @ViewBuilder var exclaimerText: some View {
         if let mnemonic, !mnemonic.isEmpty {
-            HStack {
-                VStack {
+            HStack(spacing: 0) {
+                VStack(alignment: .leading) {
                     Text("passphrase.loseTitle".localizedString)
                         .foregroundStyle(NymColor.primary)
-                        .textStyle(.Headline.Small.bold)
+                        .textStyle(.Body.Medium.bold)
+                        .multilineTextAlignment(.leading)
                     Spacer()
                         .frame(height: 8)
                     Text("passohrase.loseSubtitle".localizedString)
                         .foregroundStyle(NymColor.primary)
-                        .textStyle(.Headline.Small.regular)
+                        .textStyle(.Body.Medium.regular)
+                        .multilineTextAlignment(.leading)
                 }
                 Spacer()
             }
         }
     }
+
+    @ViewBuilder var savedConfirmationSection: some View {
+        if let mnemonic, !mnemonic.isEmpty {
+            VStack(spacing: 0) {
+                HStack(alignment: .top, spacing: 0) {
+                    GenericImage(systemImageName: appSettings.isPassphraseStored ? "checkmark.square.fill" : "square")
+                        .frame(width: 22, height: 22)
+                        .padding(EdgeInsets(top: 2, leading: 0, bottom: 0, trailing: 8))
+                        .foregroundStyle(NymColor.primary)
+                        .transition(.scale.combined(with: .opacity))
+
+                    savedConfirmationText
+                    Spacer()
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .onTapGesture {
+                    withAnimation(.easeOut) {
+                        toggleIsPassphraseSaved()
+                    }
+                }
+                .accessibilityAction {
+                    withAnimation(.easeOut) {
+                        toggleIsPassphraseSaved()
+                    }
+                }
+
+                savedConfirmationButton
+            }
+        }
+    }
+
+    var savedConfirmationText: some View {
+        Text("passphrase.iHaveSaved".localizedString)
+            .textStyle(.Body.Medium.regular)
+            .foregroundStyle(NymColor.primary)
+            .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
+    }
+
+    @ViewBuilder
+    var savedConfirmationButton: some View {
+        if appSettings.isPassphraseStored {
+            Spacer()
+                .frame(height: 16)
+
+            GenericButton(title: "passphrase.continue".localizedString)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .onTapGesture {
+                    navigateBack()
+                }
+                .accessibilityAction {
+                    navigateBack()
+                }
+        }
+    }
 }
 
 private extension PassphraseView {
-    func navigateHome() {
-        path = .init()
+    func navigateBack() {
+        if !path.isEmpty { path.removeLast() }
     }
 
     func showPassphraseDidTap() {
@@ -277,6 +343,7 @@ private extension PassphraseView {
     }
 
     func copyToPasteboard() {
+        guard let mnemonic else { return }
 #if os(iOS)
         UIPasteboard.general.string = mnemonic
         ImpactGenerator.shared.impact()
@@ -308,5 +375,9 @@ private extension PassphraseView {
                 isErrorDisplayed = true
             }
         }
+    }
+
+    func toggleIsPassphraseSaved() {
+        appSettings.isPassphraseStored.toggle()
     }
 }

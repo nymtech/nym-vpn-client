@@ -70,6 +70,9 @@ public final class AppSettings: ObservableObject {
     @AppStorage(AppSettingKey.accountToken.rawValue)
     public var accountToken: String?
 
+    @AppStorage(AppSettingKey.passphraseStored.rawValue)
+    public var isPassphraseStored: Bool = false
+
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher = false
     @Published public var isCredentialImportedPublisher = false
@@ -111,4 +114,5 @@ public enum AppSettingKey: String {
     case santaEntryGateways
     case santaExitGateways
     case accountToken
+    case passphraseStored
 }

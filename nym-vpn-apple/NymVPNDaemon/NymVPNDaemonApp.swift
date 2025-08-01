@@ -5,6 +5,7 @@ import AutoUpdater
 import AutoUpdates
 import ConnectionManager
 import ConfigurationManager
+import CredentialsManager
 import Constants
 import CountriesManager
 import GatewayManager
