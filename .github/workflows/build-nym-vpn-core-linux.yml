@@ -22,7 +22,7 @@ jobs:
 
   build-linux:
     needs: build-wireguard-go-linux
-    runs-on: ubuntu-22.04
+    runs-on: arc-ubuntu-22.04
     outputs:
       UPLOAD_DIR_LINUX: ${{ env.UPLOAD_DIR_LINUX }}
       RUST_VERSION: ${{ steps.rust-version.outputs.rustc }}
@@ -69,7 +69,7 @@ jobs:
       - name: Download wireguard-go artifacts
         uses: actions/download-artifact@v4
         with:
-          name: wireguard-go_ubuntu-22.04_x86_64
+          name: wireguard-go_ubuntu-24.04_x86_64
           path: build/lib/x86_64-unknown-linux-gnu
 
       - name: Build nym-vpn-core
