@@ -82,7 +82,8 @@ public final class CredentialsManager: ObservableObject {
             return try getStoredMnemonicRaw(path: dataFolderURL.path())
         }.value
 #elseif os(macOS)
-        return ""
+        // TODO: expose mnemonic for mac os in grpc
+        return "// TODO: expose mnemonic for mac os in grpc"
 #endif
     }
 

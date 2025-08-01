@@ -6356,107 +6356,6 @@
         }
       }
     },
-    "createAccount.savedPassphrase" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "ar" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
-          }
-        },
-        "de" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "I’ve saved my passphrase"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "He guardado mi frase de contraseña"
-          }
-        },
-        "fa" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "J'ai enregistré ma phrase de passe"
-          }
-        },
-        "hi" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
-          }
-        },
-        "pt" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
-          }
-        },
-        "pt-BR" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Eu salvei minha frase secreta"
-          }
-        },
-        "ru" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Я сохранил свою секретную фразу"
-          }
-        },
-        "tr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Gizli ifademi kaydettim"
-          }
-        },
-        "uk" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Я зберіг мою фразу-пароль"
-          }
-        },
-        "vi" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tôi đã lưu cụm từ khóa của mình"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "I’ve saved my passphrase"
-          }
-        }
-      }
-    },
     "createAccount.success.choosePlan" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -21673,6 +21572,171 @@
         }
       }
     },
+    "pasphrase.showMyPassphrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show my passphrase"
+          }
+        }
+      }
+    },
+    "passohrase.loseSubtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Never share them with anyone, including Nym Support."
+          }
+        }
+      }
+    },
+    "passphrase.continue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continue"
+          }
+        }
+      }
+    },
+    "passphrase.copy" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Copy passphrase"
+          }
+        }
+      }
+    },
+    "passphrase.faceID" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use Face ID to access the passphrase"
+          }
+        }
+      }
+    },
+    "passphrase.iHaveSaved" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "I have saved these 24 words securely and will never share them"
+          }
+        }
+      }
+    },
+    "passphrase.loseTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "⚠️ Lose these words = lose your account forever."
+          }
+        }
+      }
+    },
+    "passphrase.masterPassphrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "🔒Your master account passphrase: 24 words that let you access your account from any device."
+          }
+        }
+      }
+    },
+    "passphrase.opticID" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use Optic ID to access the passphrase"
+          }
+        }
+      }
+    },
+    "passphrase.passcode" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your passcode to access the passphrase"
+          }
+        }
+      }
+    },
+    "passphrase.password" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your password to access the passphrase"
+          }
+        }
+      }
+    },
+    "passphrase.saveToKeychain" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save to keychain"
+          }
+        }
+      }
+    },
+    "passphrase.showMyPassphrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show my passphrase"
+          }
+        }
+      }
+    },
+    "passphrase.touchID" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Use Touch ID to access the passphrase"
+          }
+        }
+      }
+    },
+    "passphrase.yourPassphrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your account passphrase"
+          }
+        }
+      }
+    },
     "processingAccount.subtitle1" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -25964,6 +26028,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "您是否确定退出登录？"
+          }
+        }
+      }
+    },
+    "settings.passphrase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passphrase"
           }
         }
       }

@@ -7,7 +7,7 @@ public enum SnackbarStyle {
     var backgroundColor: Color {
         switch self {
         case .info:
-            NymColor.gray1
+            NymColor.elevation
         }
     }
 

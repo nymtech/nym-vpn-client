@@ -37,6 +37,8 @@ struct SettingsFlowCoordinator<Content: View>: View {
             PurchasePlanView(path: $flowState.path)
         case .processingAccount:
             ProcessingAccountView(path: $flowState.path)
+        case .passphrase:
+            PassphraseView(path: $flowState.path)
         case .logs:
             LogsView(viewModel: LogsViewModel(path: $flowState.path, logFileManager: logFileManager))
         case .acknowledgments:

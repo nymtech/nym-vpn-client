@@ -9,6 +9,7 @@ public enum SettingLink: Hashable, Identifiable {
     case generatePassphrase
     case planPurchase
     case processingAccount
+    case passphrase
     case appearance
     case displayTheme
     case logs
