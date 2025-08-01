@@ -56,11 +56,11 @@ nym-ipc = { path = "../../nym-vpn-core/crates/nym-ipc" }
 # tauri deps
 tauri-plugin-os = "2.3.0"
 tauri-plugin-notification = "2.3.0"
-tauri-plugin-dialog = "2.3.1"
+tauri-plugin-dialog = "2.3.2"
 tauri-plugin-process = "2.3.0"
 tauri-plugin-clipboard-manager = "2.3.0"
 tauri-plugin-updater = "2.9.0"
-tauri-plugin-single-instance = "2.3.1"
+tauri-plugin-single-instance = "2.3.2"
 tauri-plugin-window-state = "2.4.0"
 tauri-plugin-opener = "2.4.0"
 tauri-plugin-autostart = "2.5.0"
