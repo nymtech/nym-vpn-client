@@ -7,6 +7,10 @@ pub use nym_http_api_client::HttpClientError;
 
 use crate::response::{NymErrorResponse, UnexpectedError};
 
+// Error code id to allow error catching
+pub const UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID: &str = "235ba475-8c64-4c46-8147-d1d523df972c";
+pub const FAIR_USAGE_DEPLETED_CODE_ID: &str = "e0b78604-bb9b-4524-add1-f50fe26144c6";
+
 #[derive(Debug, thiserror::Error)]
 pub enum VpnApiClientError {
     #[error("failed tp create vpn api client")]

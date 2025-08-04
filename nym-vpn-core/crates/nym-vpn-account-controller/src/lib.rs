@@ -1,8 +1,6 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-#![allow(clippy::collapsible_if)]
-
 // The account controller is responsible for
 // 1. checking if the account exists
 // 2. register the device
@@ -20,7 +18,6 @@ mod state_machine;
 mod state_receiver;
 mod storage;
 mod ticketbooks;
-mod vpn_api_client;
 
 pub use command_sender::AccountCommandSender;
 pub use config::AccountControllerConfig;

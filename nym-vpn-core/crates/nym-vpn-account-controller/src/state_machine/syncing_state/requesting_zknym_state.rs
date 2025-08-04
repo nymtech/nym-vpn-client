@@ -1,7 +1,12 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_api_client::types::{Device, VpnApiAccount};
+use nym_vpn_api_client::{
+    VpnApiClient,
+    error::FAIR_USAGE_DEPLETED_CODE_ID,
+    types::{Device, VpnApiAccount},
+};
+
 use nym_vpn_lib_types::{
     AccountCommandError, AccountControllerErrorStateReason, RequestZkNymErrorReason,
 };
@@ -18,7 +23,6 @@ use crate::{
         OfflineState, PrivateAccountControllerState, ReadyState, SyncingState,
     },
     storage::VpnCredentialStorage,
-    vpn_api_client::{AccountControllerVpnApiClient, FAIR_USAGE_DEPLETED_CODE_ID},
 };
 
 // The maximum number of zk-nym requests that can fail in a row
@@ -77,7 +81,7 @@ impl RequestingZkNymsState {
         )
     }
     async fn fetch_zk_nyms(
-        vpn_api_client: AccountControllerVpnApiClient,
+        vpn_api_client: VpnApiClient,
         vpn_api_account: VpnApiAccount,
         device: Device,
         storage: VpnCredentialStorage,
@@ -107,7 +111,7 @@ impl RequestingZkNymsState {
             vpn_api_account,
             device,
             storage,
-            vpn_api_client.inner().clone(),
+            vpn_api_client.clone(),
         );
         for partial_result in request_handler
             .request_zk_nyms(ticket_types_to_request)

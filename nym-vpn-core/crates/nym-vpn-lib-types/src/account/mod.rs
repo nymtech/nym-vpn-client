@@ -123,10 +123,10 @@ impl VpnApiError {
 
 // That should disappear when reworking those errors
 #[cfg(feature = "nym-type-conversions")]
-impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
-    type Error = nym_vpn_api_client::VpnApiClientError;
+impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiError {
+    type Error = nym_vpn_api_client::error::VpnApiClientError;
 
-    fn try_from(err: nym_vpn_api_client::VpnApiClientError) -> Result<Self, Self::Error> {
+    fn try_from(err: nym_vpn_api_client::error::VpnApiClientError) -> Result<Self, Self::Error> {
         let err = match VpnApiErrorResponse::try_from(err) {
             Ok(err) => return Ok(Self::Response(err)),
             Err(err) => err,
@@ -134,14 +134,14 @@ impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
 
         if err
             .http_client_error()
-            .is_some_and(nym_vpn_api_client::HttpClientError::is_timeout)
+            .is_some_and(nym_vpn_api_client::error::HttpClientError::is_timeout)
         {
             return Ok(Self::Timeout(Arc::new(err)));
         }
 
         match err
             .http_client_error()
-            .and_then(nym_vpn_api_client::HttpClientError::status_code)
+            .and_then(nym_vpn_api_client::error::HttpClientError::status_code)
         {
             Some(code) => Ok(Self::StatusCode {
                 code: code.into(),
@@ -153,8 +153,8 @@ impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiError {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl From<nym_vpn_api_client::VpnApiClientError> for AccountCommandError {
-    fn from(err: nym_vpn_api_client::VpnApiClientError) -> Self {
+impl From<nym_vpn_api_client::error::VpnApiClientError> for AccountCommandError {
+    fn from(err: nym_vpn_api_client::error::VpnApiClientError) -> Self {
         use nym_vpn_api_client::response::NymErrorResponse;
 
         match NymErrorResponse::try_from(err) {
@@ -173,10 +173,10 @@ pub struct VpnApiErrorResponse {
 }
 
 #[cfg(feature = "nym-type-conversions")]
-impl TryFrom<nym_vpn_api_client::VpnApiClientError> for VpnApiErrorResponse {
-    type Error = nym_vpn_api_client::VpnApiClientError;
+impl TryFrom<nym_vpn_api_client::error::VpnApiClientError> for VpnApiErrorResponse {
+    type Error = nym_vpn_api_client::error::VpnApiClientError;
 
-    fn try_from(err: nym_vpn_api_client::VpnApiClientError) -> Result<Self, Self::Error> {
+    fn try_from(err: nym_vpn_api_client::error::VpnApiClientError) -> Result<Self, Self::Error> {
         nym_vpn_api_client::response::NymErrorResponse::try_from(err).map(Into::into)
     }
 }

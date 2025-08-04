@@ -163,15 +163,8 @@ pub(crate) fn handle_set_static_api_addresses(
     shared_state: &mut SharedAccountState,
     static_api_addresses: Option<Vec<SocketAddr>>,
 ) -> Result<(), AccountCommandError> {
-    nym_vpn_api_client::VpnApiClient::new_with_resolver_overrides(
-        shared_state.vpn_api_client.current_url().clone(),
-        shared_state.config.user_agent.clone(),
-        static_api_addresses.as_deref(),
-    )
-    .map(|new_vpn_api_client| {
-        shared_state
-            .vpn_api_client
-            .swap_inner_client(new_vpn_api_client.clone());
-    })
-    .map_err(|e| AccountCommandError::internal(format!("Failed to set static addresses: {e}")))
+    shared_state
+        .vpn_api_client
+        .override_resolver(static_api_addresses.as_deref())
+        .map_err(|e| AccountCommandError::internal(format!("Failed to set static addresses: {e}")))
 }

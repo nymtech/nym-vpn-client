@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_offline_monitor::ConnectivityHandle;
+use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_api_client::types::{Device, VpnApiAccount};
 
 use tokio::sync::mpsc;
@@ -9,7 +10,6 @@ use tokio::sync::mpsc;
 use crate::{
     AccountControllerConfig,
     storage::{AccountStorageOp, VpnCredentialStorage},
-    vpn_api_client::AccountControllerVpnApiClient,
 };
 
 pub(crate) struct SharedAccountState {
@@ -21,7 +21,7 @@ pub(crate) struct SharedAccountState {
     // This is bound to live in the bandwidth controller in a near future
     pub(crate) credential_storage: VpnCredentialStorage,
 
-    pub(crate) vpn_api_client: AccountControllerVpnApiClient,
+    pub(crate) vpn_api_client: VpnApiClient,
 
     pub(crate) vpn_api_account: Option<VpnApiAccount>,
 
@@ -35,7 +35,7 @@ impl SharedAccountState {
         connectivity_handle: ConnectivityHandle,
         config: AccountControllerConfig,
         credential_storage: VpnCredentialStorage,
-        vpn_api_client: AccountControllerVpnApiClient,
+        vpn_api_client: VpnApiClient,
         vpn_api_account: Option<VpnApiAccount>,
         device: Option<Device>,
         storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,

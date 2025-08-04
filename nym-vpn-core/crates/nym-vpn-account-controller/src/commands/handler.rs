@@ -2,16 +2,14 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_api_client::{
+    error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
     response::NymErrorResponse,
     types::{DeviceStatus, VpnApiAccount},
 };
 use nym_vpn_lib_types::{AccountCommandError, VpnApiError};
 use nym_vpn_store::mnemonic::Mnemonic;
 
-use crate::{
-    SharedAccountState, commands::ReturnSender, storage::AccountStorageOp,
-    vpn_api_client::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
-};
+use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageOp};
 
 // The onus of making sure the conditions are right to call these handlers is on the caller
 

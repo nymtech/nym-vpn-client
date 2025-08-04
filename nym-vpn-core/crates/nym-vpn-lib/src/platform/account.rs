@@ -71,14 +71,21 @@ async fn start_account_controller(
     let user_agent = crate::util::construct_user_agent();
     let shutdown_token = CancellationToken::new();
 
+    let nym_vpn_api_client =
+        nym_vpn_api_client::VpnApiClient::new(network_env.vpn_api_url(), user_agent).map_err(
+            |err| VpnError::InternalError {
+                details: err.to_string(),
+            },
+        )?;
+
     let account_controller_config = nym_vpn_account_controller::AccountControllerConfig {
         data_dir,
-        user_agent,
         credentials_mode: credential_mode,
         network_env,
     };
 
     let account_controller = nym_vpn_account_controller::AccountController::new(
+        nym_vpn_api_client,
         account_controller_config,
         storage,
         connectivity_handle,

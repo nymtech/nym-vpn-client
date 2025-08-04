@@ -3,6 +3,7 @@
 
 use nym_offline_monitor::ConnectivityHandle;
 
+use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_lib_types::{AccountControllerEvent, AccountControllerState};
 use nym_vpn_store::VpnStorage;
 use tokio::sync::{
@@ -20,7 +21,6 @@ use crate::{
         AccountControllerStateHandler, NextAccountControllerState, OfflineState, SyncingState,
     },
     storage::{AccountStorage, AccountStorageOp, VpnCredentialStorage},
-    vpn_api_client::AccountControllerVpnApiClient,
 };
 
 pub struct AccountController<S>
@@ -66,6 +66,7 @@ where
     S: VpnStorage + Send + Sync + 'static,
 {
     pub async fn new(
+        nym_vpn_api_client: VpnApiClient,
         config: AccountControllerConfig,
         storage: S,
         connectivity_handle: ConnectivityHandle,
@@ -75,9 +76,6 @@ where
             "Initializing account controller: data_dir: {}",
             config.data_dir.display(),
         );
-
-        // Client to query the VPN API
-        let vpn_api_client = AccountControllerVpnApiClient::new(&config)?;
 
         // Channels for the account storage
         let (storage_op_sender, storage_op_receiver) = tokio::sync::mpsc::unbounded_channel();
@@ -101,7 +99,7 @@ where
             connectivity_handle,
             config,
             credential_storage,
-            vpn_api_client,
+            nym_vpn_api_client,
             vpn_api_account,
             device_keys,
             storage_op_sender,

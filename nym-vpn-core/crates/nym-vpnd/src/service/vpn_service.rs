@@ -292,13 +292,23 @@ impl NymVpnService {
 
         let account_controller_config = AccountControllerConfig {
             data_dir: network_data_dir.clone(),
-            user_agent: parameters.user_agent.clone(),
             credentials_mode: None,
             network_env: *parameters.network_env.clone(),
         };
 
+        let nym_vpn_api_client = nym_vpn_api_client::VpnApiClient::new(
+            parameters.network_env.vpn_api_url(),
+            parameters.user_agent.clone(),
+        )
+        .map_err(|err| {
+            tracing::error!("Failed to create NymVPN API client");
+            AccountControllerError::Initialization {
+                reason: err.to_string(),
+            }
+        })?;
+
         let account_controller = AccountController::new(
-            // vpn_api_client, // SW inject API client here for easier mocking
+            nym_vpn_api_client,
             account_controller_config,
             storage,
             connectivity_handle.clone(),

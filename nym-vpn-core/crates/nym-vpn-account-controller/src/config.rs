@@ -3,15 +3,11 @@
 
 use std::path::PathBuf;
 
-use nym_sdk::UserAgent;
 use nym_vpn_network_config::Network;
 
 pub struct AccountControllerConfig {
     // The data directory where we store the account and device keys.
     pub data_dir: PathBuf,
-
-    // User agent used by api client.
-    pub user_agent: UserAgent,
 
     // Credentials mode is a feature flag that determines if we should automatically request
     // zk-nyms.

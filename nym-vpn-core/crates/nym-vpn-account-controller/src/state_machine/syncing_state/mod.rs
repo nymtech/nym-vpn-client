@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_api_client::{
-    VpnApiClientError,
+    VpnApiClient,
+    error::VpnApiClientError,
     response::{NymErrorResponse, NymVpnAccountStatusResponse},
     types::{Device, VpnApiAccount},
 };
@@ -17,7 +18,6 @@ use crate::{
         AccountControllerStateHandler, ErrorState, LoggedOutState, NextAccountControllerState,
         OfflineState, PrivateAccountControllerState,
     },
-    vpn_api_client::AccountControllerVpnApiClient,
 };
 use requesting_zknym_state::RequestingZkNymsState;
 
@@ -64,7 +64,7 @@ impl SyncingState {
     }
 
     async fn syncing_account(
-        vpn_api_client: &AccountControllerVpnApiClient,
+        vpn_api_client: &VpnApiClient,
         vpn_api_account: &VpnApiAccount,
         device: &Device,
     ) -> Result<bool, SyncError> {
@@ -162,7 +162,7 @@ impl SyncingState {
     }
 
     async fn register_device(
-        vpn_api_client: &AccountControllerVpnApiClient,
+        vpn_api_client: &VpnApiClient,
         vpn_api_account: &VpnApiAccount,
         device: &Device,
     ) -> Result<bool, SyncError> {
