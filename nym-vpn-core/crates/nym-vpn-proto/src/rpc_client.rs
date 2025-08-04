@@ -291,14 +291,6 @@ impl RpcClient {
         Ok(response.device_identity)
     }
 
-    pub async fn register_device(&mut self) -> Result<()> {
-        self.0
-            .register_device(())
-            .await
-            .map(|v| v.into_inner())
-            .map_err(Error::Rpc)
-    }
-
     pub async fn get_devices(&mut self) -> Result<Vec<NymVpnDevice>> {
         let response = self
             .0
@@ -338,45 +330,6 @@ impl RpcClient {
 
         Ok(devices)
     }
-
-    pub async fn request_zk_nym(&mut self) -> Result<()> {
-        self.0
-            .request_zk_nym(())
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
-    pub async fn get_device_zk_nyms(&mut self) -> Result<()> {
-        self.0
-            .get_device_zk_nyms(())
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
-    pub async fn get_zk_nym_by_id(&mut self, id: String) -> Result<()> {
-        let request = proto::GetZkNymByIdRequest { id };
-        self.0
-            .get_zk_nym_by_id(request)
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
-    pub async fn confirm_zk_nym_downloaded(&mut self, id: String) -> Result<()> {
-        let request = proto::ConfirmZkNymDownloadedRequest { id };
-        self.0
-            .confirm_zk_nym_downloaded(request)
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
-    }
-
     pub async fn get_available_tickets(&mut self) -> Result<AvailableTickets> {
         let response = self
             .0
@@ -386,15 +339,6 @@ impl RpcClient {
             .into_inner();
 
         Ok(AvailableTickets::from(response))
-    }
-
-    pub async fn get_zk_nyms_available_for_download(&mut self) -> Result<()> {
-        self.0
-            .get_zk_nyms_available_for_download(())
-            .await
-            .map_err(Error::Rpc)?
-            .into_inner();
-        Ok(())
     }
 
     pub async fn get_log_path(&mut self) -> Result<LogPath> {
