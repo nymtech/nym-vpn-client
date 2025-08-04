@@ -199,9 +199,10 @@ pub(super) async fn create_account() -> Result<(), VpnError> {
 pub(super) async fn register_account() -> Result<RegisterAccountResponse, VpnError> {
     let mnemonic = get_command_sender()
         .await?
-        .get_stored_mnemonic_command()
+        .get_stored_mnemonic()
         .await
-        .map_err(VpnError::from)?;
+        .map_err(VpnError::from)?
+        .ok_or(VpnError::NoAccountStored)?;
     let platform = if cfg!(target_os = "ios") {
         Platform::Apple
     } else {
@@ -240,9 +241,10 @@ pub(super) async fn is_account_mnemonic_stored() -> Result<bool, VpnError> {
 pub(super) async fn get_stored_mnemonic() -> Result<String, VpnError> {
     Ok(get_command_sender()
         .await?
-        .get_stored_mnemonic_command()
+        .get_stored_mnemonic()
         .await
         .map_err(VpnError::from)?
+        .ok_or(VpnError::NoAccountStored)?
         .to_string())
 }
 
@@ -314,7 +316,10 @@ pub(crate) mod raw {
         let mnemonic = storage
             .load_mnemonic()
             .await
-            .map_err(|_err| VpnError::NoAccountStored)?;
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
         let account = VpnApiAccount::try_from(mnemonic).map_err(VpnError::internal)?;
         let account_token = register_account_by_account_raw(&account, platform)
             .await?
@@ -329,7 +334,11 @@ pub(crate) mod raw {
 
     pub(crate) async fn get_stored_mnemonic_raw(path: &str) -> Result<String, VpnError> {
         let storage = setup_account_storage(path).await?;
-        Ok(storage.load_mnemonic().await?.to_string())
+        Ok(storage
+            .load_mnemonic()
+            .await?
+            .ok_or(VpnError::NoAccountStored)?
+            .to_string())
     }
 
     pub(crate) async fn get_account_id_raw(path: &str) -> Result<String, VpnError> {
@@ -337,7 +346,10 @@ pub(crate) mod raw {
         let mnemonic = storage
             .load_mnemonic()
             .await
-            .map_err(|_err| VpnError::NoAccountStored)?;
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
         VpnApiAccount::try_from(mnemonic)
             .map_err(VpnError::internal)
             .map(|account| account.id().to_string())
@@ -383,11 +395,14 @@ pub(crate) mod raw {
 
     async fn load_device(path: &str) -> Result<Device, VpnError> {
         let account_storage = setup_account_storage(path).await?;
-        account_storage
+        let device_id = account_storage
             .load_keys()
             .await
-            .map_err(|_| VpnError::NoDeviceIdentity)
-            .map(|d| Device::from(d.device_keypair().clone()))
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoDeviceIdentity)?;
+        Ok(Device::from(device_id.device_keypair().clone()))
     }
 
     async fn unregister_device_raw(path: &str) -> Result<(), VpnError> {
@@ -396,7 +411,10 @@ pub(crate) mod raw {
         let mnemonic = account_storage
             .load_mnemonic()
             .await
-            .map_err(|_| VpnError::NoAccountStored)?;
+            .map_err(|err| VpnError::Storage {
+                details: err.to_string(),
+            })?
+            .ok_or(VpnError::NoAccountStored)?;
         let account = VpnApiAccount::try_from(mnemonic).map_err(VpnError::internal)?;
 
         let vpn_api_client = create_vpn_api_client().await?;
@@ -465,11 +483,12 @@ pub(crate) mod raw {
 
     pub(crate) async fn get_device_id_raw(path: &str) -> Result<String, VpnError> {
         let storage = setup_account_storage(path).await?;
-        storage
+        let device_id = storage
             .load_keys()
             .await
-            .map(|keys| keys.device_keypair().public_key().to_string())
-            .map_err(|_err| VpnError::NoDeviceIdentity)
+            .map_err(|_err| VpnError::NoDeviceIdentity)?
+            .ok_or(VpnError::NoDeviceIdentity)?;
+        Ok(device_id.device_keypair().public_key().to_string())
     }
 
     pub(crate) async fn remove_device_identity_raw(path: &str) -> Result<(), VpnError> {

@@ -48,7 +48,7 @@ impl AccountCommandSender {
         rx.await.map_err(AccountCommandError::internal)?
     }
 
-    pub async fn get_stored_mnemonic(&self) -> Result<Mnemonic, AccountCommandError> {
+    pub async fn get_stored_mnemonic(&self) -> Result<Option<Mnemonic>, AccountCommandError> {
         let (tx, rx) = ReturnSender::new();
         self.command_tx
             .send(AccountCommand::Common(CommonCommand::GetStoredMnemonic(tx)))
@@ -63,11 +63,6 @@ impl AccountCommandSender {
             .map_err(AccountCommandError::internal)?;
         rx.await.map_err(AccountCommandError::internal)??;
         Ok(())
-    }
-
-    pub async fn get_stored_mnemonic_command(&self) -> Result<Mnemonic, AccountCommandError> {
-        let mnemonic = self.get_stored_mnemonic().await?;
-        Ok(mnemonic)
     }
 
     pub async fn get_account_id(&self) -> Result<Option<String>, AccountCommandError> {

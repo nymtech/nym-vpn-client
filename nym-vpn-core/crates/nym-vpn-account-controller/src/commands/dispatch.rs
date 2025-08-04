@@ -35,7 +35,7 @@ pub enum AccountCommand {
 /// These commands have no impact on the state. Handling can be grouped in some cases
 #[derive(Debug, strum::Display)]
 pub enum CommonCommand {
-    GetStoredMnemonic(ReturnSender<Mnemonic, AccountCommandError>),
+    GetStoredMnemonic(ReturnSender<Option<Mnemonic>, AccountCommandError>),
     GetAccountIdentity(ReturnSender<Option<String>, AccountCommandError>),
     GetDeviceIdentity(ReturnSender<String, AccountCommandError>),
     GetUsage(ReturnSender<Vec<NymVpnUsage>, AccountCommandError>),

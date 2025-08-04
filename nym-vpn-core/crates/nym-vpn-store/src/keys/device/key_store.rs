@@ -9,7 +9,7 @@ use super::keys::DeviceKeys;
 pub trait DeviceKeyStore {
     type StorageError: Error + Send + Sync + 'static;
 
-    async fn load_keys(&self) -> Result<DeviceKeys, Self::StorageError>;
+    async fn load_keys(&self) -> Result<Option<DeviceKeys>, Self::StorageError>; // None means no error, but no keys stored
     async fn store_keys(&self, keys: &DeviceKeys) -> Result<(), Self::StorageError>;
     async fn init_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError>;
     async fn reset_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError>;
