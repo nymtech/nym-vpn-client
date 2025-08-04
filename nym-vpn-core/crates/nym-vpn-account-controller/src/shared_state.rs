@@ -47,6 +47,30 @@ pub(crate) struct SharedAccountState {
     pub(crate) storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
 }
 
+impl SharedAccountState {
+    pub(crate) fn new(
+        connectivity_handle: ConnectivityHandle,
+        config: AccountControllerConfig,
+        credential_storage: VpnCredentialStorage,
+        vpn_api_client: AccountControllerVpnApiClient,
+        vpn_api_account: Option<VpnApiAccount>,
+        device: Option<Device>,
+        storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
+    ) -> Self {
+        SharedAccountState {
+            connectivity_handle,
+            config,
+            credential_storage,
+            vpn_api_client,
+            vpn_api_account,
+            device,
+            storage_op_sender,
+        }
+    }
+}
+
+// SW what do we actually need from all that below
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub enum ReadyToRegisterDevice {
     Ready,
@@ -109,28 +133,6 @@ impl fmt::Display for ReadyToRequestZkNym {
             ReadyToRequestZkNym::NoActiveSubscription => write!(f, "no active subscription"),
             ReadyToRequestZkNym::DeviceNotRegistered => write!(f, "device not registered"),
             ReadyToRequestZkNym::DeviceNotActive => write!(f, "device not active"),
-        }
-    }
-}
-
-impl SharedAccountState {
-    pub(crate) async fn new(
-        connectivity_handle: ConnectivityHandle,
-        config: AccountControllerConfig,
-        credential_storage: VpnCredentialStorage,
-        vpn_api_client: AccountControllerVpnApiClient,
-        vpn_api_account: Option<VpnApiAccount>,
-        device: Option<Device>,
-        storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
-    ) -> Self {
-        SharedAccountState {
-            connectivity_handle,
-            config,
-            credential_storage,
-            vpn_api_client,
-            vpn_api_account,
-            device,
-            storage_op_sender,
         }
     }
 }

@@ -1,9 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib_types::{
-    AccountCommandError, GetMnemonicError, RegisterAccountError, SyncAccountError,
-};
+use nym_vpn_lib_types::AccountCommandError;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -37,6 +35,7 @@ impl AccountControllerStateHandler for LoggedOutState {
     ) -> NextAccountControllerState {
         tokio::select! {
         Some(command) = command_rx.recv() => {
+                // Intentionnally no command grouping for clarity
                 match command {
                     AccountCommand::CreateAccount(return_sender) => {
                         return_sender.send(handler::handle_create_account(shared_state).await);
@@ -51,23 +50,23 @@ impl AccountControllerStateHandler for LoggedOutState {
                             return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                         }
                     },
-                    AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(RegisterAccountError::internal("No account stored"))), // SW better error than that
                     AccountCommand::ForgetAccount(return_sender) => return_sender.send(Ok(())),
                     AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Ok(())),
-                    AccountCommand::RefreshAccountState(return_sender) => {
-                        return_sender.send(Err(SyncAccountError::NoAccountStored));
-                    },
+
+                    AccountCommand::RegisterAccount(return_sender, _, _) => return_no_account(return_sender),
+                    AccountCommand::RefreshAccountState(return_sender) => return_no_account(return_sender),
 
                     AccountCommand::Common(common_command) => {
                         match common_command {
-                            CommonCommand::GetUsage(return_sender) => return_no_account(return_sender),
-                            CommonCommand::GetStoredMnemonic(return_sender) => return_sender.send(Err(GetMnemonicError::internal("No account stored"))), // SW better error than that
+                            CommonCommand::SetStaticApiAddresses(return_sender, socket_addrs) => return_sender.send(common_handler::handle_set_static_api_addresses(shared_state,socket_addrs)),
                             CommonCommand::GetAccountIdentity(return_sender) => return_sender.send(Ok(None)),
+
+                            CommonCommand::GetUsage(return_sender) => return_no_account(return_sender),
+                            CommonCommand::GetStoredMnemonic(return_sender) => return_no_account(return_sender),
                             CommonCommand::GetDeviceIdentity(return_sender) => return_no_account(return_sender),
                             CommonCommand::GetDevices(return_sender) => return_no_account(return_sender),
                             CommonCommand::GetActiveDevices(return_sender) => return_no_account(return_sender),
                             CommonCommand::GetAvailableTickets(return_sender) => return_no_account(return_sender),
-                            CommonCommand::SetStaticApiAddresses(return_sender, socket_addrs) => return_sender.send(common_handler::handle_set_static_api_addresses(shared_state,socket_addrs)),
                         }
                     },
                 }

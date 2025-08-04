@@ -3,6 +3,7 @@
 
 use std::pin::Pin;
 
+use nym_vpn_lib_types::AccountCommandError;
 use tokio::{sync::mpsc, time::Sleep};
 use tokio_util::sync::CancellationToken;
 
@@ -50,9 +51,9 @@ impl AccountControllerStateHandler for ErrorState {
             },
             Some(command) = command_rx.recv() => {
                 match command {
-                    AccountCommand::CreateAccount(_) => {}, // SW implement along better error handling
-                    AccountCommand::StoreAccount(_, _) => {}, // SW implement along better error handling
-                    AccountCommand::RegisterAccount(_, _, _) => {}, // SW implement along better error handling
+                    AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
+                    AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
                     AccountCommand::ForgetAccount(return_sender) => {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();

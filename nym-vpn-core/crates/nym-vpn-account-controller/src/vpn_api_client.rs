@@ -7,7 +7,7 @@ use nym_vpn_api_client::{
     response::{NymVpnAccountStatusResponse, NymVpnRegisterAccountStatusResponse},
     types::{Platform, VpnApiAccount},
 };
-use nym_vpn_lib_types::{RegisterAccountError, StoreAccountError, VpnApiError};
+use nym_vpn_lib_types::{AccountCommandError, VpnApiError};
 
 use crate::{AccountControllerConfig, Error};
 
@@ -38,11 +38,11 @@ impl AccountControllerVpnApiClient {
     pub(crate) async fn check_account_exists_on_api(
         &self,
         account: &VpnApiAccount,
-    ) -> Result<(), StoreAccountError> {
+    ) -> Result<(), AccountCommandError> {
         let account = self.inner.get_account(account).await.map_err(|e| {
             VpnApiError::try_from(e)
-                .map(StoreAccountError::GetAccountEndpointFailure)
-                .unwrap_or_else(StoreAccountError::unexpected_response)
+                .map(AccountCommandError::GetAccountEndpointFailure)
+                .unwrap_or_else(AccountCommandError::unexpected_response)
         })?;
         // TODO: handle these cases
         // The logic below replicates the previous behaviour, but we should extend it to also
@@ -64,15 +64,15 @@ impl AccountControllerVpnApiClient {
         &self,
         account: &VpnApiAccount,
         platform: Platform,
-    ) -> Result<String, RegisterAccountError> {
+    ) -> Result<String, AccountCommandError> {
         let account = self
             .inner
             .post_account(account, platform)
             .await
             .map_err(|e| {
                 VpnApiError::try_from(e)
-                    .map(RegisterAccountError::RegisterAccountEndpointFailure)
-                    .unwrap_or_else(RegisterAccountError::unexpected_response)
+                    .map(AccountCommandError::RegisterAccountEndpointFailure)
+                    .unwrap_or_else(AccountCommandError::unexpected_response)
             })?;
         match account.status {
             NymVpnRegisterAccountStatusResponse::Active => Ok(account.account_token),

@@ -10,6 +10,7 @@ mod tunnel_state;
 
 pub use account::{
     AccountCommandError, VpnApiError, VpnApiErrorResponse,
+    controller_error::AccountControllerErrorStateReason,
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,
     create_account::CreateAccountError,

@@ -4,7 +4,7 @@
 use std::net::SocketAddr;
 
 use nym_vpn_api_client::response::{NymVpnDevice, NymVpnUsage};
-use nym_vpn_lib_types::{AccountCommandError, GetMnemonicError, VpnApiError};
+use nym_vpn_lib_types::{AccountCommandError, VpnApiError};
 use nym_vpn_store::mnemonic::Mnemonic;
 
 use crate::{
@@ -51,15 +51,15 @@ pub(crate) async fn handle_common_command(
 // This goes into storage each time, to trigger platform's unlocking mechanism if secure storage is used
 pub(crate) async fn handle_get_stored_mnemonic(
     shared_state: &mut SharedAccountState,
-) -> Result<Mnemonic, GetMnemonicError> {
+) -> Result<Mnemonic, AccountCommandError> {
     let (tx, rx) = ReturnSender::new();
     shared_state
         .storage_op_sender
         .send(AccountStorageOp::GetStoredMnemonic(tx))
-        .map_err(GetMnemonicError::internal)?;
+        .map_err(AccountCommandError::internal)?;
     rx.await
-        .map_err(GetMnemonicError::internal)? // Channel error
-        .map_err(GetMnemonicError::storage) // Storage error
+        .map_err(AccountCommandError::internal)? // Channel error
+        .map_err(AccountCommandError::storage) // Storage error
     // SW better error handling
 }
 

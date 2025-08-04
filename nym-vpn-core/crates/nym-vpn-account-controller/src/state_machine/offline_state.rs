@@ -1,9 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib_types::{
-    AccountCommandError, ForgetAccountError, RegisterAccountError, SyncAccountError,
-};
+use nym_vpn_lib_types::AccountCommandError;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -37,6 +35,7 @@ impl AccountControllerStateHandler for OfflineState {
     ) -> NextAccountControllerState {
         tokio::select! {
             Some(command) = command_rx.recv() => {
+                // Intentionnally no command grouping for clarity
                 match command {
                     AccountCommand::CreateAccount(return_sender) => {
                         return_sender.send(handler::handle_create_account(shared_state).await)
@@ -44,14 +43,12 @@ impl AccountControllerStateHandler for OfflineState {
                     AccountCommand::StoreAccount(return_sender, mnemonic) => {
                         return_sender.send(handler::handle_store_account(shared_state, mnemonic, true).await)
                     },
-                    AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(RegisterAccountError::Offline)),
-                    AccountCommand::ForgetAccount(return_sender) => return_sender.send(Err(ForgetAccountError::internal("offline"))), // this shouldn't happen, as tunnel state is checked before sending the command, still, better error handling needed
+                    AccountCommand::RegisterAccount(return_sender, _, _) => return_no_connectivity(return_sender),
+                    AccountCommand::ForgetAccount(return_sender) => return_no_connectivity(return_sender), // this shouldn't happen, as tunnel state is checked before sending the command, still, better error handling needed
                     // While we can technically do that in offline mode, if we were planning on reconnecting after, trouble ensue
                     // SW maybe check tunnel state to allow offline mode
-                    AccountCommand::ResetDeviceIdentity(return_sender, _) => return_sender.send(Err(AccountCommandError::internal("offline"))), // this shouldn't happen, as tunnel state is checked before sending the command, still, better error handling needed
-                    AccountCommand::RefreshAccountState(return_sender) => {
-                        return_sender.send(Err(SyncAccountError::Offline));
-                    },
+                    AccountCommand::ResetDeviceIdentity(return_sender, _) => return_no_connectivity(return_sender), // this shouldn't happen, as tunnel state is checked before sending the command, still, better error handling needed
+                    AccountCommand::RefreshAccountState(return_sender) => return_no_connectivity(return_sender),
 
 
                     AccountCommand::Common(common_command) => {

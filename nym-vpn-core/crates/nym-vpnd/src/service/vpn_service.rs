@@ -32,10 +32,7 @@ use nym_vpn_lib::{
         TunnelSettings, TunnelStateMachine, WireguardMultihopMode, WireguardTunnelOptions,
     },
 };
-use nym_vpn_lib_types::{
-    AccountCommandError, ForgetAccountError, StoreAccountError, TunnelEvent, TunnelState,
-    TunnelType,
-};
+use nym_vpn_lib_types::{AccountCommandError, TunnelEvent, TunnelState, TunnelType};
 use nym_vpn_network_config::{FeatureFlags, Network, ParsedAccountLinks, SystemMessages};
 use nym_vpnd_types::{
     ConnectArgs, ListCountriesOptions, ListGatewaysOptions, StoreAccountRequest,
@@ -81,11 +78,11 @@ pub enum VpnServiceCommand {
     GetTunnelState(oneshot::Sender<TunnelState>, ()),
     SubscribeToTunnelState(oneshot::Sender<broadcast::Receiver<TunnelState>>, ()),
     StoreAccount(
-        oneshot::Sender<Result<(), StoreAccountError>>,
+        oneshot::Sender<Result<(), AccountCommandError>>,
         StoreAccountRequest,
     ),
     IsAccountStored(oneshot::Sender<bool>, ()),
-    ForgetAccount(oneshot::Sender<Result<(), ForgetAccountError>>, ()),
+    ForgetAccount(oneshot::Sender<Result<(), AccountCommandError>>, ()),
     GetAccountIdentity(
         oneshot::Sender<Result<Option<String>, AccountCommandError>>,
         (),
@@ -914,10 +911,10 @@ impl NymVpnService {
     async fn handle_store_account(
         &mut self,
         store_request: StoreAccountRequest,
-    ) -> Result<(), StoreAccountError> {
+    ) -> Result<(), AccountCommandError> {
         // SW Parsing mnemonic here and once again later?
         let mnemonic = Mnemonic::parse::<&str>(store_request.mnemonic.as_str())
-            .map_err(|err| StoreAccountError::InvalidMnemonic(err.to_string()))?;
+            .map_err(|err| AccountCommandError::InvalidMnemonic(err.to_string()))?;
         self.account_command_tx.store_account(mnemonic).await
     }
 
@@ -925,9 +922,9 @@ impl NymVpnService {
         todo!()
     }
 
-    async fn handle_forget_account(&mut self) -> Result<(), ForgetAccountError> {
+    async fn handle_forget_account(&mut self) -> Result<(), AccountCommandError> {
         if self.tunnel_state != TunnelState::Disconnected {
-            return Err(ForgetAccountError::internal(
+            return Err(AccountCommandError::internal(
                 "Unable to forget account while connected",
             ));
         }
