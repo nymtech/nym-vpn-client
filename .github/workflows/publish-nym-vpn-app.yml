@@ -257,7 +257,7 @@ jobs:
       core_release_tag: ${{ inputs.core_release_tag }}
 
   zulip-notify:
-    runs-on: ubuntu-latest
+    runs-on: arc-ubuntu-22.04
     needs: publish
     continue-on-error: true
     env:

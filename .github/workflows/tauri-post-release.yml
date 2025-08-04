@@ -31,7 +31,7 @@ on:
 
 jobs:
   post-release:
-    runs-on: ubuntu-latest
+    runs-on: arc-ubuntu-22.04
     continue-on-error: true
     permissions:
       contents: write
@@ -86,9 +86,9 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           GIT_BRANCH: "tauri_postrel_${{ inputs.version }}"
-          COMMIT_MSG: "tauri: bump linux installer and update flatpak metainfo v${{ inputs.version }}"
-          PR_TITLE: "tauri: post release update v${{ inputs.version }}"
+          COMMIT_MSG: "tauri: post release v${{ inputs.version }}"
           PR_BODY: |
+            - update CHANGELOG.md
             - bump Linux installer script
             - update flatpak package metainfo.xml
         run: |
@@ -100,4 +100,4 @@ jobs:
           git add nym-vpn-app/.pkg/flatpak
           git commit -m "${{ env.COMMIT_MSG }}"
           git push origin ${{ env.GIT_BRANCH }}
-          gh pr create --title '${{ env.PR_TITLE }}' --body '${{ env.PR_BODY }}' --base develop --reviewer "doums"
+          gh pr create --title '${{ env.COMMIT_MSG }}' --body '${{ env.PR_BODY }}' --base develop --reviewer "doums"
