@@ -25,7 +25,7 @@ use crate::{
 
 #[derive(Zeroize, ZeroizeOnDrop)]
 pub(crate) struct SharedAccountState {
-    //SW add tunnel state? Yes, to remove some conditions on forget account and reset device id
+    // SW add tunnel state? Yes, to remove some conditions on forget account and reset device id
     #[zeroize(skip)]
     pub connectivity_handle: ConnectivityHandle,
 
