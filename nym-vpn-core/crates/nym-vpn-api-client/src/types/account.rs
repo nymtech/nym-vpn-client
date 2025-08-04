@@ -8,7 +8,7 @@ use nym_validator_client::{
     DirectSecp256k1HdWallet, nyxd::bip32::DerivationPath, signing::signer::OfflineSigner as _,
 };
 use time::{Duration, OffsetDateTime};
-use zeroize::{Zeroize, ZeroizeOnDrop};
+use zeroize::Zeroizing;
 
 use crate::jwt::Jwt;
 
@@ -24,17 +24,14 @@ pub enum Error {
     NoAccounts,
 }
 
-#[derive(Clone, Debug, Zeroize, ZeroizeOnDrop)]
+#[derive(Clone, Debug)]
 pub struct VpnApiAccount {
-    wallet: DirectSecp256k1HdWallet,
+    wallet: Zeroizing<DirectSecp256k1HdWallet>,
 
-    #[zeroize(skip)]
     id: String,
 
-    #[zeroize(skip)]
     pub_key: String,
 
-    #[zeroize(skip)]
     signature_base64: String,
 }
 
@@ -58,7 +55,7 @@ impl VpnApiAccount {
         let signature_base64 = base64_url::encode(&signature_bytes);
 
         Ok(Self {
-            wallet,
+            wallet: Zeroizing::new(wallet),
             id,
             pub_key,
             signature_base64,
