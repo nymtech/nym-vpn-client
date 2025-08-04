@@ -53,6 +53,14 @@ pub struct NymVpnAccountSummaryResponse {
     pub fair_usage: NymVpnAccountSummaryFairUsage,
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct NymVpnAccountSummaryWithDeviceResponse {
+    #[serde(flatten)]
+    pub account_summary: NymVpnAccountSummaryResponse,
+    pub active_device: Option<NymVpnDevice>,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct NymVpnAccountSummarySubscription {

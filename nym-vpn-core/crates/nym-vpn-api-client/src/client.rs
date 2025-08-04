@@ -19,10 +19,11 @@ use crate::{
     },
     response::{
         NymDirectoryGatewayCountriesResponse, NymDirectoryGatewaysResponse, NymVpnAccountResponse,
-        NymVpnAccountSummaryResponse, NymVpnDevice, NymVpnDevicesResponse, NymVpnHealthResponse,
-        NymVpnRegisterAccountResponse, NymVpnSubscription, NymVpnSubscriptionResponse,
-        NymVpnSubscriptionsResponse, NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost,
-        NymVpnZkNymResponse, NymWellknownDiscoveryItem, StatusOk,
+        NymVpnAccountSummaryResponse, NymVpnAccountSummaryWithDeviceResponse, NymVpnDevice,
+        NymVpnDevicesResponse, NymVpnHealthResponse, NymVpnRegisterAccountResponse,
+        NymVpnSubscription, NymVpnSubscriptionResponse, NymVpnSubscriptionsResponse,
+        NymVpnUsagesResponse, NymVpnZkNym, NymVpnZkNymPost, NymVpnZkNymResponse,
+        NymWellknownDiscoveryItem, StatusOk,
     },
     routes,
     types::{
@@ -554,6 +555,28 @@ impl VpnApiClient {
         )
         .await
         .map_err(VpnApiClientError::GetAccountSummary)
+    }
+
+    pub async fn get_account_summary_with_device(
+        &self,
+        account: &VpnApiAccount,
+        device: &Device,
+    ) -> Result<NymVpnAccountSummaryWithDeviceResponse> {
+        self.get_authorized(
+            &[
+                routes::PUBLIC,
+                routes::V1,
+                routes::ACCOUNT,
+                account.id(),
+                routes::DEVICE,
+                &device.identity_key().to_string(),
+                routes::SUMMARY,
+            ],
+            account,
+            Some(device),
+        )
+        .await
+        .map_err(VpnApiClientError::GetAccountSummaryWithDevice)
     }
 
     // DEVICES
