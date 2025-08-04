@@ -10,7 +10,7 @@ use nym_validator_client::{
 use time::{Duration, OffsetDateTime};
 use zeroize::{Zeroize, ZeroizeOnDrop};
 
-use crate::{VpnApiClientError, error::Result, jwt::Jwt};
+use crate::jwt::Jwt;
 
 const MAX_ACCEPTABLE_SKEW_SECONDS: i64 = 60;
 const SKEW_SECONDS_CONSIDERED_SAME: i64 = 2;
@@ -39,7 +39,7 @@ pub struct VpnApiAccount {
 }
 
 impl VpnApiAccount {
-    fn derive_from_wallet(wallet: DirectSecp256k1HdWallet) -> std::result::Result<Self, Error> {
+    fn derive_from_wallet(wallet: DirectSecp256k1HdWallet) -> Result<Self, Error> {
         let accounts = wallet.get_accounts()?;
         let address = accounts.first().ok_or(Error::NoAccounts)?.address();
         let id = address.to_string();
@@ -65,10 +65,10 @@ impl VpnApiAccount {
         })
     }
 
-    pub fn random() -> Result<(Self, bip39::Mnemonic)> {
+    pub fn random() -> Result<(Self, bip39::Mnemonic), Error> {
         let mnemonic = bip39::Mnemonic::generate(24).unwrap();
         let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
-        let account = Self::derive_from_wallet(wallet).map_err(VpnApiClientError::CreateAccount)?;
+        let account = Self::derive_from_wallet(wallet)?;
         Ok((account, mnemonic))
     }
 
@@ -91,12 +91,9 @@ impl VpnApiAccount {
         }
     }
 
-    pub fn create_ecash_keypair(&self) -> Result<KeyPairUser> {
+    pub fn create_ecash_keypair(&self) -> Result<KeyPairUser, Error> {
         let hd_path = cosmos_derivation_path();
-        let extended_private_key = self
-            .wallet
-            .derive_extended_private_key(&hd_path)
-            .map_err(VpnApiClientError::CosmosDeriveFromPath)?;
+        let extended_private_key = self.wallet.derive_extended_private_key(&hd_path)?;
         Ok(KeyPairUser::new_seeded(
             extended_private_key.private_key().to_bytes(),
         ))
@@ -108,11 +105,11 @@ impl VpnApiAccount {
 }
 
 impl TryFrom<bip39::Mnemonic> for VpnApiAccount {
-    type Error = VpnApiClientError;
+    type Error = Error;
 
-    fn try_from(mnemonic: bip39::Mnemonic) -> std::result::Result<Self, Self::Error> {
+    fn try_from(mnemonic: bip39::Mnemonic) -> Result<Self, Self::Error> {
         let wallet = DirectSecp256k1HdWallet::from_mnemonic("n", mnemonic.clone());
-        Self::derive_from_wallet(wallet).map_err(VpnApiClientError::CreateAccount)
+        Self::derive_from_wallet(wallet)
     }
 }
 
