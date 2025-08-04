@@ -52,7 +52,7 @@ impl AccountControllerStateHandler for ErrorState {
                 match command {
                     AccountCommand::CreateAccount(return_sender) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
                     AccountCommand::StoreAccount(return_sender, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)),
-                    AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)), // SW do we try to register here?
+                    AccountCommand::RegisterAccount(return_sender, _, _) => return_sender.send(Err(AccountCommandError::ExistingAccount)), // do we try to register here?
                     AccountCommand::ForgetAccount(return_sender) => {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();

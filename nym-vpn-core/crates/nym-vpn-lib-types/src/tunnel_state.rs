@@ -213,6 +213,12 @@ pub enum ErrorStateReason {
 
     /// Account controller is in error state.
     AccountControllerError(AccountControllerErrorStateReason),
+
+    /// Account controller is offline
+    AccountControllerOffline,
+
+    /// Account controller is logged out
+    AccountControolerLoggedOut,
 }
 
 impl ErrorStateReason {
@@ -239,6 +245,7 @@ pub enum ClientErrorReason {
     CreateMixnetStorage,
     Ipv6Unavailable,
     Internal(Option<String>),
+    AccountControl(Option<String>),
 }
 
 impl From<ErrorStateReason> for ClientErrorReason {
@@ -272,7 +279,15 @@ impl From<ErrorStateReason> for ClientErrorReason {
             ErrorStateReason::SetDns => Self::Dns(Some(value.to_string())),
             ErrorStateReason::DeviceTimeOutOfSync => Self::DeviceTimeOutOfSync,
             ErrorStateReason::Ipv6Unavailable => Self::Ipv6Unavailable,
-            ErrorStateReason::AccountControllerError(err) => err.into(),
+            ErrorStateReason::AccountControllerError(reason) => {
+                Self::AccountControl(Some(reason.to_string()))
+            }
+            ErrorStateReason::AccountControllerOffline => {
+                Self::AccountControl(Some("offline".into()))
+            }
+            ErrorStateReason::AccountControolerLoggedOut => {
+                Self::AccountControl(Some("logged out".into()))
+            }
         }
     }
 }
@@ -316,19 +331,5 @@ impl From<VpnApiErrorResponse> for ClientErrorReason {
 impl From<RequestZkNymError> for ErrorStateReason {
     fn from(value: RequestZkNymError) -> Self {
         ErrorStateReason::RequestZkNym(value.into())
-    }
-}
-
-impl From<AccountControllerErrorStateReason> for ClientErrorReason {
-    fn from(error: AccountControllerErrorStateReason) -> Self {
-        // SW
-        todo!()
-    }
-}
-
-impl From<AccountControllerErrorStateReason> for ErrorStateReason {
-    fn from(value: AccountControllerErrorStateReason) -> Self {
-        // SW
-        todo!()
     }
 }

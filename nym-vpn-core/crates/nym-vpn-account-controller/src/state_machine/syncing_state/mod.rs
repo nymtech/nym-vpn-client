@@ -189,7 +189,6 @@ impl AccountControllerStateHandler for SyncingState {
                 match syncing_result {
                     Ok(result) => {
                         match result {
-                            // SW better error handling
                             Ok(fair_usage) => { NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, self.attempts, fair_usage))},
                             Err(SyncError::ApiRequestError) => {
                                 if self.attempts > MAX_SYNCING_ATTEMPTS {

@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_vpn_lib_types::AccountCommandError;
+use nym_vpn_lib_types::{AccountCommandError, AccountControllerError};
 
 #[derive(thiserror::Error, uniffi::Error, Debug, Clone, PartialEq)]
 pub enum VpnError {
@@ -58,6 +58,9 @@ pub enum VpnError {
 
     #[error("an account is already stored")]
     ExistingAccount,
+
+    #[error("account controller error")]
+    AccountControllerError { details: String },
 }
 
 impl VpnError {
@@ -104,6 +107,14 @@ impl From<nym_vpn_store::keys::device::OnDiskKeysError> for VpnError {
 
 impl From<nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorageError> for VpnError {
     fn from(value: nym_vpn_store::mnemonic::on_disk::OnDiskMnemonicStorageError) -> Self {
+        Self::Storage {
+            details: value.to_string(),
+        }
+    }
+}
+
+impl From<AccountControllerError> for VpnError {
+    fn from(value: AccountControllerError) -> Self {
         Self::Storage {
             details: value.to_string(),
         }
