@@ -42,4 +42,8 @@ impl AccountStateReceiver {
             "Account controller state receiver has closed".into(),
         ))
     }
+
+    pub fn get_state(&self) -> AccountControllerState {
+        self.inner.borrow().to_owned()
+    }
 }

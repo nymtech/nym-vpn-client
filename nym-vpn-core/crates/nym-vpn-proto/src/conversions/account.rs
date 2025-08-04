@@ -3,10 +3,7 @@
 
 use std::sync::Arc;
 
-use nym_vpn_lib_types::{
-    AccountCommandError, AvailableTickets, RegisterDeviceError, RequestZkNymErrorReason,
-    RequestZkNymSuccess, VpnApiError, VpnApiErrorResponse,
-};
+use nym_vpn_lib_types::{AccountCommandError, AvailableTickets, VpnApiError, VpnApiErrorResponse};
 
 use crate::{conversions::ConversionError, proto};
 
@@ -33,28 +30,6 @@ impl TryFrom<proto::AccountCommandError> for AccountCommandError {
             proto::account_command_error::ErrorDetail::InvalidMnemonic(message) => {
                 Self::InvalidMnemonic(message)
             }
-        })
-    }
-}
-
-impl TryFrom<proto::RegisterDeviceError> for RegisterDeviceError {
-    type Error = ConversionError;
-
-    fn try_from(value: proto::RegisterDeviceError) -> Result<Self, Self::Error> {
-        let error_detail = value.error_detail.ok_or(ConversionError::NoValueSet(
-            "RegisterDeviceError.error_detail",
-        ))?;
-        Ok(match error_detail {
-            proto::register_device_error::ErrorDetail::NoAccountStored(_) => Self::NoAccountStored,
-            proto::register_device_error::ErrorDetail::NoDeviceStored(_) => Self::NoDeviceStored,
-            proto::register_device_error::ErrorDetail::VpnApi(vpn_api) => {
-                Self::RegisterDeviceEndpointFailure(vpn_api.try_into()?)
-            }
-            proto::register_device_error::ErrorDetail::UnexpectedResponse(err) => {
-                Self::UnexpectedResponse(err)
-            }
-            proto::register_device_error::ErrorDetail::Offline(_) => Self::Offline,
-            proto::register_device_error::ErrorDetail::Internal(err) => Self::Internal(err),
         })
     }
 }
@@ -140,67 +115,6 @@ impl From<AccountCommandError> for proto::AccountCommandError {
     }
 }
 
-impl From<RequestZkNymSuccess> for proto::RequestZkNymSuccess {
-    fn from(value: RequestZkNymSuccess) -> Self {
-        Self {
-            id: value.id,
-            ticketbook_type: value.ticketbook_type,
-        }
-    }
-}
-
-impl From<proto::RequestZkNymSuccess> for RequestZkNymSuccess {
-    fn from(value: proto::RequestZkNymSuccess) -> Self {
-        Self {
-            id: value.id,
-            ticketbook_type: value.ticketbook_type,
-        }
-    }
-}
-
-impl From<RequestZkNymErrorReason> for proto::RequestZkNymError {
-    fn from(error: RequestZkNymErrorReason) -> Self {
-        let outcome = match error {
-            RequestZkNymErrorReason::VpnApi(vpn_api_endpoint_failure) => {
-                proto::request_zk_nym_error::Outcome::VpnApi(vpn_api_endpoint_failure.into())
-            }
-            RequestZkNymErrorReason::UnexpectedVpnApiResponse(err) => {
-                proto::request_zk_nym_error::Outcome::UnexpectedVpnApiResponse(err)
-            }
-            RequestZkNymErrorReason::Storage(err) => {
-                proto::request_zk_nym_error::Outcome::Storage(err)
-            }
-            RequestZkNymErrorReason::Internal(err) => {
-                proto::request_zk_nym_error::Outcome::Internal(err)
-            }
-        };
-        Self {
-            outcome: Some(outcome),
-        }
-    }
-}
-
-impl TryFrom<proto::RequestZkNymError> for RequestZkNymErrorReason {
-    type Error = ConversionError;
-
-    fn try_from(value: proto::RequestZkNymError) -> Result<Self, Self::Error> {
-        let error_outcome = value
-            .outcome
-            .ok_or(ConversionError::NoValueSet("RequestZkNymError.outcome"))?;
-
-        Ok(match error_outcome {
-            proto::request_zk_nym_error::Outcome::VpnApi(vpn_api) => {
-                Self::VpnApi(vpn_api.try_into()?)
-            }
-            proto::request_zk_nym_error::Outcome::UnexpectedVpnApiResponse(message) => {
-                Self::UnexpectedVpnApiResponse(message)
-            }
-            proto::request_zk_nym_error::Outcome::Storage(message) => Self::Storage(message),
-            proto::request_zk_nym_error::Outcome::Internal(message) => Self::Internal(message),
-        })
-    }
-}
-
 impl From<AvailableTickets> for proto::AvailableTickets {
     fn from(ticketbooks: AvailableTickets) -> Self {
         Self {
@@ -235,41 +149,6 @@ impl From<proto::AvailableTickets> for AvailableTickets {
             vpn_exit_tickets: ticketbooks.vpn_exit_tickets,
             vpn_exit_data: ticketbooks.vpn_exit_data,
             vpn_exit_data_si: ticketbooks.vpn_exit_data_si,
-        }
-    }
-}
-
-impl From<RegisterDeviceError> for proto::RegisterDeviceError {
-    fn from(value: RegisterDeviceError) -> Self {
-        match value {
-            RegisterDeviceError::NoAccountStored => proto::RegisterDeviceError {
-                error_detail: Some(proto::register_device_error::ErrorDetail::NoAccountStored(
-                    true,
-                )),
-            },
-            RegisterDeviceError::NoDeviceStored => proto::RegisterDeviceError {
-                error_detail: Some(proto::register_device_error::ErrorDetail::NoDeviceStored(
-                    true,
-                )),
-            },
-            RegisterDeviceError::RegisterDeviceEndpointFailure(vpn_api) => {
-                proto::RegisterDeviceError {
-                    error_detail: Some(proto::register_device_error::ErrorDetail::VpnApi(
-                        vpn_api.into(),
-                    )),
-                }
-            }
-            RegisterDeviceError::UnexpectedResponse(err) => proto::RegisterDeviceError {
-                error_detail: Some(
-                    proto::register_device_error::ErrorDetail::UnexpectedResponse(err),
-                ),
-            },
-            RegisterDeviceError::Offline => proto::RegisterDeviceError {
-                error_detail: Some(proto::register_device_error::ErrorDetail::Offline(true)),
-            },
-            RegisterDeviceError::Internal(err) => proto::RegisterDeviceError {
-                error_detail: Some(proto::register_device_error::ErrorDetail::Internal(err)),
-            },
         }
     }
 }

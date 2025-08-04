@@ -17,7 +17,8 @@ use tokio_util::sync::CancellationToken;
 
 use crate::platform::offline_monitor;
 
-use super::uniffi_custom_impls::{AccountStateSummary, RegisterAccountResponse};
+use super::uniffi_custom_impls::RegisterAccountResponse;
+use super::uniffi_lib_types::AccountControllerState;
 
 use super::{ACCOUNT_CONTROLLER_HANDLE, error::VpnError};
 
@@ -159,13 +160,9 @@ pub(super) async fn wait_for_account_ready_to_connect(timeout: Duration) -> Resu
         .map_err(VpnError::from)
 }
 
-pub(super) async fn get_account_state() -> Result<AccountStateSummary, VpnError> {
-    // let command_sender = get_command_sender().await?;
-    // let account_state_summary = command_sender.get_account_status().await?;
-    // Ok(AccountStateSummary::from(account_state_summary))
-
-    // SW implement this
-    Err(VpnError::NoAccountStored)
+pub(super) async fn get_account_state() -> Result<AccountControllerState, VpnError> {
+    let state_receiver = get_state_receiver().await?;
+    Ok(state_receiver.get_state().into())
 }
 
 pub(super) async fn update_account_state() -> Result<(), VpnError> {
