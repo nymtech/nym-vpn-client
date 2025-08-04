@@ -18,11 +18,8 @@ impl AccountStateReceiver {
     pub async fn wait_for_account_ready_to_connect(
         &mut self,
     ) -> Result<(), AccountControllerError> {
-        //Make sure we're not stuck there
-        self.inner.mark_changed();
-
-        while (self.inner.changed().await).is_ok() {
-            match self.inner.borrow().clone() {
+        loop {
+            match self.get_state() {
                 AccountControllerState::Offline => {
                     return Err(AccountControllerError::Offline);
                 }
@@ -34,13 +31,16 @@ impl AccountStateReceiver {
                 }
                 AccountControllerState::Syncing => {
                     tracing::debug!("Account controller is syncing, waiting for the next state");
+
+                    self.inner.changed().await.map_err(|_| {
+                        AccountControllerError::Internal(
+                            "Account controller state receiver has closed".into(),
+                        )
+                    })?;
                 }
                 AccountControllerState::ReadyToConnect => return Ok(()),
             }
         }
-        Err(AccountControllerError::Internal(
-            "Account controller state receiver has closed".into(),
-        ))
     }
 
     pub fn get_state(&self) -> AccountControllerState {
