@@ -34,7 +34,7 @@ impl AccountControllerStateHandler for LoggedOutState {
         shared_state: &'async_trait mut SharedAccountState,
     ) -> NextAccountControllerState {
         tokio::select! {
-        Some(command) = command_rx.recv() => {
+            Some(command) = command_rx.recv() => {
                 // Intentionnally no command grouping for clarity
                 match command {
                     AccountCommand::CreateAccount(return_sender) => {
