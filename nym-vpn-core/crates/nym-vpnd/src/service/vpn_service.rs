@@ -899,7 +899,7 @@ impl NymVpnService {
     }
 
     async fn handle_is_account_stored(&self) -> bool {
-        todo!()
+        todo!() // SW
     }
 
     async fn handle_forget_account(&mut self) -> Result<(), AccountCommandError> {
