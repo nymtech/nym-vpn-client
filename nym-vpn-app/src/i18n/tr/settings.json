@@ -61,17 +61,17 @@
   },
   "privacy": {
     "error-monitoring": {
-      "label": "Error & crash reports",
-      "sublabel": "Changes will apply after app and daemon restart.",
-      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
-      "link": "View Sentry Privacy Policy"
+      "label": "Hata ve çökme raporları",
+      "sublabel": "Uygulama ve arka plan hizmeti yeniden başlatıldığında değişiklikler geçerli olacaktır.",
+      "desc": "Çökme bilgilerini göndererek hataları daha hızlı düzeltmemize yardımcı olabilirsin. Raporlar, Sentry’nin güvenli sistemi üzerinden iletilir ve yalnızca teknik hata ayıklama verilerini içer",
+      "link": "Sentry Gizlilik Politikasını Görüntüle"
     },
     "network-stats": {
-      "label": "Anonymous network stats",
-      "sublabel": "Changes will apply after daemon restart.",
-      "desc1": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.",
-      "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
-      "link": "Learn exactly what's shared"
+      "label": "Anonim ağ istatistikleri",
+      "sublabel": "Değişiklikler, arka plan hizmeti yeniden başlatıldıktan sonra geçerli olacaktır.",
+      "desc1": "Bölgenizden anonim performans verilerini paylaşarak daha hızlı bir ağ oluşturmamıza yardımcı olun. Bu verileri, hızı optimize etmek, bağlantı kopmalarını azaltmak ve sunucu kapsamını en çok ihtiyaç duyulan yerlere yönlendirmek için kullanıyoruz.",
+      "desc2": "Paylaşılan sadece ağ performans verileridir ve asla tarama etkinliğiniz veya kişisel bilgileriniz paylaşılmaz.",
+      "link": "Paylaşılan verilerin tam olarak neler olduğunu öğrenin"
     }
   }
 }

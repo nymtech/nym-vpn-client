@@ -61,17 +61,17 @@
   },
   "privacy": {
     "error-monitoring": {
-      "label": "Error & crash reports",
-      "sublabel": "Changes will apply after app and daemon restart.",
-      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
-      "link": "View Sentry Privacy Policy"
+      "label": "Отчёты об ошибках и сбоях",
+      "sublabel": "Изменения вступят в силу после перезапуска приложения и демона.",
+      "desc": "Отправить информацию о сбоях, чтобы помочь нам быстрее исправлять ошибки. Отчеты передаются через безопасную систему Sentry и содержат только технические данные для отладки.",
+      "link": "Посмотреть политику конфиденциальности Sentry"
     },
     "network-stats": {
-      "label": "Anonymous network stats",
-      "sublabel": "Changes will apply after daemon restart.",
-      "desc1": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.",
-      "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
-      "link": "Learn exactly what's shared"
+      "label": "Анонимная статистика сети",
+      "sublabel": "Изменения вступят в силу после перезапуска демона.",
+      "desc1": "Помогите нам создать более быструю сеть, делясь анонимными данными о производительности из вашего региона. Мы используем эту информацию для оптимизации скорости, уменьшения разрывов соединения и улучшения покрытия серверов там, где это необходимо больше всего.",
+      "desc2": "Передаются лишь данные о работе сети — при этом ваша активность в интернете и личные данные остаются конфиденциальными.",
+      "link": "Узнайте точно, какие данные передаются"
     }
   }
 }
