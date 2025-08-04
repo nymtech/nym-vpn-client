@@ -44,10 +44,9 @@ impl AccountControllerStateHandler for OfflineState {
                         return_sender.send(handler::handle_store_account(shared_state, mnemonic).await)
                     },
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_no_connectivity(return_sender),
-                    AccountCommand::ForgetAccount(return_sender) => return_no_connectivity(return_sender), // this shouldn't happen, as tunnel state is checked before sending the command, still, better error handling needed
+                    AccountCommand::ForgetAccount(return_sender) => return_no_connectivity(return_sender), // this shouldn't happen, as tunnel state is checked before sending the command
                     // While we can technically do that in offline mode, if we were planning on reconnecting after, trouble ensue
-                    // SW maybe check tunnel state to allow offline mode
-                    AccountCommand::ResetDeviceIdentity(return_sender, _) => return_no_connectivity(return_sender), // this shouldn't happen, as tunnel state is checked before sending the command, still, better error handling needed
+                    AccountCommand::ResetDeviceIdentity(return_sender, _) => return_no_connectivity(return_sender), // this shouldn't happen, as tunnel state is checked before sending the command
                     AccountCommand::RefreshAccountState(return_sender) => return_no_connectivity(return_sender),
 
 

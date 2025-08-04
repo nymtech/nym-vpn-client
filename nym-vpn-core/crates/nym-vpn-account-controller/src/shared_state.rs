@@ -15,13 +15,14 @@ use crate::{
 
 #[derive(Zeroize, ZeroizeOnDrop)]
 pub(crate) struct SharedAccountState {
-    // SW add tunnel state? Yes, to remove some conditions on forget account and reset device id
+    // Ideally, we would have tunnel state here. But it makes circular dependency where tunnel needs AC state and AC needs tunnel state
     #[zeroize(skip)]
     pub connectivity_handle: ConnectivityHandle,
 
     #[zeroize(skip)]
     pub config: AccountControllerConfig,
 
+    // This is bound to live in the bandwidth controller in a near future
     #[zeroize(skip)]
     pub(crate) credential_storage: VpnCredentialStorage,
 
