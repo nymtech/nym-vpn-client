@@ -53,7 +53,11 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
             throw PacketTunnelProviderError.noCredentialDataDir
         }
 
-        try await startNymVpn(credentialDataPath: credentialDataPath, vpnConfig: vpnConfig)
+        try await startNymVpn(
+            credentialDataPath: credentialDataPath,
+            vpnConfig: vpnConfig,
+            isErrorReportingEnabled: mixnetConfig.isErrorReportingEnabled
+        )
     }
 
     override func stopTunnel(with reason: NEProviderStopReason) async {
@@ -74,12 +78,12 @@ class PacketTunnelProvider: NEPacketTunnelProvider {
         await tunnelActor.setTunnelProvider(nil)
     }
 
-    func startNymVpn(credentialDataPath: String, vpnConfig: VpnConfig) async throws {
+    func startNymVpn(credentialDataPath: String, vpnConfig: VpnConfig, isErrorReportingEnabled: Bool) async throws {
         do {
             try configureLib(
                 dataDir: credentialDataPath,
                 credentialMode: nil,
-                sentryMonitoring: false,
+                sentryMonitoring: isErrorReportingEnabled,
                 statisticsEnabled: false
             )
             try startVpn(config: vpnConfig)

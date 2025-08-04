@@ -75,37 +75,29 @@ extension ConnectionManager {
 // MARK: - Connection -
 extension ConnectionManager {
     func generateConfig() throws -> MixnetConfig {
-        do {
-            let credentialURL = try credentialsManager.dataFolderURL()
-            let configURL = try credentialsManager.configFolderURL()
-            var config = MixnetConfig(
+        let isErrorReportingEnabled = appSettings.currentEnv == "sandbox" ? true : appSettings.isErrorReportingOn
+        let credentialURL = try credentialsManager.dataFolderURL()
+        let configURL = try credentialsManager.configFolderURL()
+
+        switch connectionType {
+        case .mixnet5hop:
+            return MixnetConfig(
                 entryGateway: entryGateway,
                 exitRouter: exitRouter,
                 credentialsDataPath: credentialURL.path(),
                 configPath: configURL.path(),
+                isErrorReportingEnabled: isErrorReportingEnabled,
+                isTwoHopEnabled: false
             )
-
-            switch connectionType {
-            case .mixnet5hop:
-                config = MixnetConfig(
-                    entryGateway: entryGateway,
-                    exitRouter: exitRouter,
-                    credentialsDataPath: credentialURL.path(),
-                    configPath: configURL.path(),
-                    isTwoHopEnabled: false
-                )
-            case .wireguard:
-                config = MixnetConfig(
-                    entryGateway: entryGateway,
-                    exitRouter: exitRouter,
-                    credentialsDataPath: credentialURL.path(),
-                    configPath: configURL.path(),
-                    isTwoHopEnabled: true
-                )
-            }
-            return config
-        } catch let error {
-            throw error
+        case .wireguard:
+            return MixnetConfig(
+                entryGateway: entryGateway,
+                exitRouter: exitRouter,
+                credentialsDataPath: credentialURL.path(),
+                configPath: configURL.path(),
+                isErrorReportingEnabled: isErrorReportingEnabled,
+                isTwoHopEnabled: true
+            )
         }
     }
 

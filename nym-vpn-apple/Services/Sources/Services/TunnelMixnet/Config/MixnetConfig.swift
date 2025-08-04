@@ -19,6 +19,7 @@ public struct MixnetConfig: Codable, Equatable {
     public let entryGateway: EntryGateway
     public let exitRouter: ExitRouter
     public let isTwoHopEnabled: Bool
+    public let isErrorReportingEnabled: Bool
 
     public var name = "NymVPN Mixnet"
 #if os(iOS)
@@ -27,6 +28,7 @@ public struct MixnetConfig: Codable, Equatable {
         exitRouter: ExitRouter,
         credentialsDataPath: String,
         configPath: String,
+        isErrorReportingEnabled: Bool,
         isTwoHopEnabled: Bool = false,
         name: String = "NymVPN Mixnet"
     ) {
@@ -34,6 +36,7 @@ public struct MixnetConfig: Codable, Equatable {
         self.exitRouter = exitRouter
         self.credentialsDataPath = credentialsDataPath
         self.configPath = configPath
+        self.isErrorReportingEnabled = isErrorReportingEnabled
         self.isTwoHopEnabled = isTwoHopEnabled
         self.name = name
     }
@@ -43,10 +46,12 @@ public struct MixnetConfig: Codable, Equatable {
     public init(
         entryGateway: EntryGateway,
         exitRouter: ExitRouter,
+        isErrorReportingEnabled: Bool,
         isTwoHopEnabled: Bool = false
     ) {
         self.entryGateway = entryGateway
         self.exitRouter = exitRouter
+        self.isErrorReportingEnabled = isErrorReportingEnabled
         self.isTwoHopEnabled = isTwoHopEnabled
     }
 #endif
