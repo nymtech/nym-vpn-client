@@ -13,15 +13,10 @@ pub use account::{
     controller_error::ErrorStateReason as AccountControllerErrorStateReason,
     controller_event::AccountControllerEvent,
     controller_state::AccountControllerState,
-    create_account::CreateAccountError,
     forget_account::ForgetAccountError,
-    get_mnemonic::GetMnemonicError,
-    register_account::RegisterAccountError,
     register_device::RegisterDeviceError,
     request_zknym::{RequestZkNymError, RequestZkNymErrorReason, RequestZkNymSuccess},
     store_account::StoreAccountError,
-    sync_account::SyncAccountError,
-    sync_device::SyncDeviceError,
     ticketbooks::AvailableTickets,
 };
 pub use connection_data::{
