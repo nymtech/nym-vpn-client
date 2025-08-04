@@ -49,8 +49,9 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y libdbus-1-dev libmnl-dev libnftnl-dev \
             libwebkit2gtk-4.1-dev build-essential curl wget libxdo-dev libssl-dev jq \
-            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make libfuse2 unzip librsvg2-dev file \
-            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev desktop-file-utils xdg-utils
+            libgtk-3-dev squashfs-tools libayatana-appindicator3-dev make unzip librsvg2-dev file \
+            libsoup-3.0-dev libjavascriptcoregtk-4.1-dev desktop-file-utils xdg-utils \
+            libfuse3-3 libfuse2
 
       - name: Install rust toolchain
         uses: dtolnay/rust-toolchain@master
