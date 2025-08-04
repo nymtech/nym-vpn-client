@@ -37,6 +37,7 @@ pub async fn setup_tracing(cli: &Cli, sentry_enabled: bool) -> Result<Option<Wor
         .from_env()?
         .add_directive("hyper::proto=info".parse()?)
         .add_directive("netlink_proto=info".parse()?);
+        .add_directive("sqlx_pool_guard=trace".parse().unwrap());
 
     if let Some(log_level) = cli.log_level.as_ref() {
         filter =

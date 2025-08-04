@@ -6,7 +6,7 @@ use rand::Rng;
 use sqlx::ConnectOptions;
 use sqlx_pool_guard::SqlitePoolGuard;
 use std::path::Path;
-use tracing::log::LevelFilter;
+use tracing::{log::LevelFilter, Instrument};
 
 pub mod error;
 mod sqlite;
@@ -61,7 +61,13 @@ impl StatsStorage {
     }
 
     pub(crate) async fn close(&self) {
-        self.storage_manager.close().await
+        async {
+            tracing::debug!("Closing stats storage");
+            self.storage_manager.close().await;
+            tracing::debug!("Stats storage closed");
+        }
+        .instrument(tracing::debug_span!("close_stats_storage"))
+        .await;
     }
 
     pub(crate) async fn maybe_init_and_load_seed(&self) -> Result<String, StatsStorageError> {
