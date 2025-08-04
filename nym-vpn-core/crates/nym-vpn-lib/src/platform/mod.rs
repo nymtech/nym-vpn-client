@@ -51,6 +51,7 @@ pub mod swift;
 
 mod account;
 mod environment;
+mod offline_monitor;
 mod sentry_monitoring;
 mod state_machine;
 mod stats;
@@ -73,7 +74,10 @@ use crate::tunnel_provider::android::AndroidTunProvider;
 use crate::tunnel_provider::ios::OSTunProvider;
 use crate::{
     gateway_directory::GatewayClient,
-    platform::{stats::StatisticsControllerHandle, uniffi_custom_impls::NetworkCompatibility},
+    platform::{
+        offline_monitor::OfflineMonitorHandle, stats::StatisticsControllerHandle,
+        uniffi_custom_impls::NetworkCompatibility,
+    },
 };
 use state_machine::StateMachineHandle;
 use uniffi_custom_impls::{
@@ -84,6 +88,7 @@ use uniffi_lib_types::TunnelEvent;
 
 lazy_static! {
     static ref RUNTIME: Runtime = Runtime::new().unwrap();
+    static ref OFFLINE_MONITOR_HANDLE: Mutex<Option<OfflineMonitorHandle>> = Mutex::new(None);
     static ref STATE_MACHINE_HANDLE: Mutex<Option<StateMachineHandle>> = Mutex::new(None);
     static ref ACCOUNT_CONTROLLER_HANDLE: Mutex<Option<AccountControllerHandle>> = Mutex::new(None);
     static ref STATISTICS_CONTROLLER_HANDLE: Mutex<Option<StatisticsControllerHandle>> =
@@ -131,12 +136,15 @@ pub fn currentEnvironment() -> Result<NetworkEnvironment, VpnError> {
 pub fn configureLib(
     data_dir: String,
     credential_mode: Option<bool>,
+    _config: VPNConfig,
     sentry_monitoring: bool,
     statistics_enabled: bool,
 ) -> Result<(), VpnError> {
     RUNTIME.block_on(configure_lib(
         data_dir,
         credential_mode,
+        #[cfg(target_os = "android")]
+        _config,
         sentry_monitoring,
         statistics_enabled,
     ))
@@ -145,6 +153,7 @@ pub fn configureLib(
 async fn configure_lib(
     data_dir: String,
     credential_mode: Option<bool>,
+    #[cfg(target_os = "android")] config: VPNConfig,
     sentry_monitoring: bool,
     statistics_enabled: bool,
 ) -> Result<(), VpnError> {
@@ -155,6 +164,11 @@ async fn configure_lib(
         let mut guard = SENTRY_CLIENT.lock().await;
         *guard = sentry_monitoring::init();
     }
+    offline_monitor::init_offline_monitor(
+        #[cfg(target_os = "android")]
+        config,
+    )
+    .await?;
     stats::init_statistics_controller(
         PathBuf::from(data_dir.clone()),
         network.clone(),

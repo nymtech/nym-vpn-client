@@ -5148,6 +5148,7 @@ dependencies = [
 name = "nym-vpn-account-controller"
 version = "1.14.0-beta"
 dependencies = [
+ "async-trait",
  "bincode",
  "futures",
  "nym-common",
@@ -5206,6 +5207,7 @@ dependencies = [
  "tokio",
  "tracing",
  "url",
+ "zeroize",
 ]
 
 [[package]]
