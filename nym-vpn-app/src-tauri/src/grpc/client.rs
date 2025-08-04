@@ -206,7 +206,8 @@ impl GrpcClient {
                         return;
                     }
                     Err(e) => {
-                        warn!("listen tunnel state stream get a grpc error: {}", e);
+                        // changed level from warn to debug to match error nature: transient network error
+                        debug!("listen tunnel state stream get a grpc error: {}", e);
                     }
                 }
             }
