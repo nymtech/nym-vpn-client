@@ -241,14 +241,14 @@ impl NymVpnService for CommandInterface {
     async fn store_account(
         &self,
         request: tonic::Request<proto::StoreAccountRequest>,
-    ) -> Result<tonic::Response<proto::StoreAccountResponse>> {
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
         let store_request = nym_vpnd_types::StoreAccountRequest::from(request.into_inner());
         let result = self
             .send_and_wait(VpnServiceCommand::StoreAccount, store_request)
             .await?;
 
-        let response = proto::StoreAccountResponse {
-            error: None, // SW CHanged to do here result.err().map(proto::StoreAccountError::from),
+        let response = proto::AccountCommandResponse {
+            error: result.err().map(proto::AccountCommandError::from),
         };
 
         Ok(tonic::Response::new(response))
@@ -268,13 +268,13 @@ impl NymVpnService for CommandInterface {
     async fn forget_account(
         &self,
         _request: tonic::Request<()>,
-    ) -> Result<tonic::Response<proto::ForgetAccountResponse>> {
+    ) -> Result<tonic::Response<proto::AccountCommandResponse>> {
         let result = self
             .send_and_wait(VpnServiceCommand::ForgetAccount, ())
             .await?;
 
-        let response = proto::ForgetAccountResponse {
-            error: None, // SW CHanged to do here result.err().map(proto::ForgetAccountError::from),
+        let response = proto::AccountCommandResponse {
+            error: result.err().map(proto::AccountCommandError::from),
         };
 
         Ok(tonic::Response::new(response))

@@ -13,9 +13,8 @@ use nym_vpn_network_config::{
     NymNetwork, NymVpnNetwork, SystemMessage, SystemMessages, system_messages::Properties,
 };
 use nym_vpnd_types::{
-    ConnectArgs, ConnectOptions, ForgetAccountResponse, ListCountriesOptions, ListGatewaysOptions,
-    StoreAccountRequest, StoreAccountResponse, gateway::Score, log_path::LogPath,
-    service::VpnServiceInfo,
+    AccountCommandResponse, ConnectArgs, ConnectOptions, ListCountriesOptions, ListGatewaysOptions,
+    StoreAccountRequest, gateway::Score, log_path::LogPath, service::VpnServiceInfo,
 };
 
 use crate::{conversions::ConversionError, proto};
@@ -615,57 +614,32 @@ impl From<StoreAccountRequest> for proto::StoreAccountRequest {
     }
 }
 
-impl TryFrom<proto::StoreAccountResponse> for nym_vpnd_types::StoreAccountResponse {
+impl TryFrom<proto::AccountCommandResponse> for nym_vpnd_types::AccountCommandResponse {
     type Error = ConversionError;
-    fn try_from(value: proto::StoreAccountResponse) -> Result<Self, Self::Error> {
+    fn try_from(value: proto::AccountCommandResponse) -> Result<Self, Self::Error> {
         let error = value
             .error
-            .map(nym_vpn_lib_types::StoreAccountError::try_from)
+            .map(nym_vpn_lib_types::AccountCommandError::try_from)
             .transpose()
             .map_err(|e| {
-                ConversionError::Generic(format!("failed to parse StoreAccountError: {e}"))
+                ConversionError::Generic(format!("failed to parse AccountCommandError: {e}"))
             })?;
 
         Ok(Self { error })
     }
 }
 
-impl TryFrom<StoreAccountResponse> for proto::StoreAccountResponse {
+impl TryFrom<AccountCommandResponse> for proto::AccountCommandResponse {
     type Error = ConversionError;
 
-    fn try_from(value: StoreAccountResponse) -> Result<Self, Self::Error> {
+    fn try_from(value: AccountCommandResponse) -> Result<Self, Self::Error> {
         let error = value
             .error
-            .map(proto::StoreAccountError::try_from)
+            .map(proto::AccountCommandError::try_from)
             .transpose()
             .map_err(|e| {
-                ConversionError::Generic(format!("failed to parse StoreAccountError: {e}"))
+                ConversionError::Generic(format!("failed to parse AccountCommandError: {e}"))
             })?;
-
-        Ok(Self { error })
-    }
-}
-
-impl TryFrom<proto::ForgetAccountResponse> for nym_vpnd_types::ForgetAccountResponse {
-    type Error = ConversionError;
-    fn try_from(value: proto::ForgetAccountResponse) -> Result<Self, Self::Error> {
-        let error = value
-            .error
-            .map(nym_vpn_lib_types::ForgetAccountError::try_from)
-            .transpose()
-            .map_err(|e| {
-                ConversionError::Generic(format!("failed to parse ForgetAccountError: {e}"))
-            })?;
-
-        Ok(Self { error })
-    }
-}
-
-impl TryFrom<ForgetAccountResponse> for proto::ForgetAccountResponse {
-    type Error = ConversionError;
-
-    fn try_from(value: ForgetAccountResponse) -> Result<Self, Self::Error> {
-        let error = value.error.map(proto::ForgetAccountError::from);
 
         Ok(Self { error })
     }

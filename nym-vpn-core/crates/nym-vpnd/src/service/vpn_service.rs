@@ -563,6 +563,7 @@ impl NymVpnService {
                 self.handle_disconnect().await;
                 let _ = tx.send(());
             }
+            // SW Add this for AC, or bundle it with tunnel state
             VpnServiceCommand::GetTunnelState(tx, ()) => {
                 let result = self.handle_get_tunnel_state();
                 let _ = tx.send(result);

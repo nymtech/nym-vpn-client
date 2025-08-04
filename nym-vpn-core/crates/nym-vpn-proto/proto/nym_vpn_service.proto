@@ -449,13 +449,17 @@ message GetLogPathResponse {
 }
 
 
-message StoreAccountError {
+message AccountCommandError {
   oneof error_detail {
-    string invalid_mnemonic = 5;
-    string storage_error = 1;
-    VpnApiError vpn_api = 2;
-    string unexpected_response = 3;
-    string internal = 4;
+    string internal = 1;
+    string storage_error = 2;
+    VpnApiError vpn_api = 3;
+    string unexpected_response = 4; 
+    bool no_account_stored = 5;
+    bool no_device_stored = 6;
+    bool existing_account = 7;
+    bool offline = 8;
+    string invalid_mnemonic = 10;
   }
 }
 
@@ -467,20 +471,6 @@ message RegisterDeviceError {
     string unexpected_response = 4;
     bool offline = 6;
     string internal = 5;
-  }
-}
-
-message ForgetAccountError {
-  oneof error_detail {
-    bool registration_in_progress = 1;
-    VpnApiError vpn_api = 2;
-    string unexpected_response = 3;
-    string remove_account = 4;
-    string remove_device_keys = 5;
-    string reset_credential_store = 6;
-    string remove_account_files = 7;
-    string init_device_keys = 8;
-    string internal = 9;
   }
 }
 
@@ -523,13 +513,10 @@ message StoreAccountRequest {
   string mnemonic = 1;
 }
 
-message StoreAccountResponse {
-  StoreAccountError error = 2;
+message AccountCommandResponse {
+  AccountCommandError error = 1;
 }
 
-message ForgetAccountResponse {
-  ForgetAccountError error = 2;
-}
 
 message GetAccountIdentityResponse {
   optional string account_identity = 1;
@@ -756,14 +743,14 @@ service NymVpnService {
   // are still being integrated upon and their meaning might change
 
   // Store the recovery phrase, which is also the account identity and authentication
-  rpc StoreAccount (StoreAccountRequest) returns (StoreAccountResponse) {}
+  rpc StoreAccount (StoreAccountRequest) returns (AccountCommandResponse) {}
 
   // Check if the recovery phrase is stored
   rpc IsAccountStored (google.protobuf.Empty) returns (google.protobuf.BoolValue) {}
 
   // Removes everything related to the account, including the device identity,
   // credential storage, mixnet keys, gateway registrations.
-  rpc ForgetAccount (google.protobuf.Empty) returns (ForgetAccountResponse) {}
+  rpc ForgetAccount (google.protobuf.Empty) returns (AccountCommandResponse) {}
 
   // Get the account identity of the locally stored recovery phrase
   rpc GetAccountIdentity (google.protobuf.Empty) returns (GetAccountIdentityResponse) {}

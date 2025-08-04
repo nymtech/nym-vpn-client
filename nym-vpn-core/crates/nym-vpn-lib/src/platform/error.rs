@@ -55,6 +55,9 @@ pub enum VpnError {
         #[from]
         details: super::uniffi_lib_types::RequestZkNymError,
     },
+
+    #[error("an account is already stored")]
+    ExistingAccount,
 }
 
 impl VpnError {
@@ -77,9 +80,8 @@ impl From<AccountCommandError> for VpnError {
             AccountCommandError::Offline => Self::NetworkConnectionError {
                 details: "Unable to proceed with command since we are offline".to_owned(),
             },
-            AccountCommandError::RequestZkNym(e) => Self::RequestZkNym { details: e.into() },
-
-            _ => todo!(), // SW
+            AccountCommandError::ExistingAccount => Self::ExistingAccount,
+            AccountCommandError::InvalidMnemonic(details) => Self::InvalidMnemonic { details },
         }
     }
 }

@@ -60,10 +60,6 @@ impl std::fmt::Debug for StoreAccountRequest {
     }
 }
 
-pub struct StoreAccountResponse {
-    pub error: Option<nym_vpn_lib_types::StoreAccountError>, // SW Changes to do here
-}
-
-pub struct ForgetAccountResponse {
-    pub error: Option<nym_vpn_lib_types::ForgetAccountError>, // SW Changes to do here
+pub struct AccountCommandResponse {
+    pub error: Option<nym_vpn_lib_types::AccountCommandError>,
 }
