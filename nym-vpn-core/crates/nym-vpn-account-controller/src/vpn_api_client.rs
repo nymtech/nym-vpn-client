@@ -46,7 +46,7 @@ impl AccountControllerVpnApiClient {
             .await
             .map_err(|e| {
                 VpnApiError::try_from(e)
-                    .map(AccountCommandError::RegisterAccountEndpointFailure)
+                    .map(AccountCommandError::VpnApi)
                     .unwrap_or_else(AccountCommandError::unexpected_response)
             })?;
         match account.status {
