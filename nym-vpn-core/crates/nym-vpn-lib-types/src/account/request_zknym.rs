@@ -7,12 +7,6 @@ use super::VpnApiError;
 
 #[derive(Clone, Debug, thiserror::Error, PartialEq, Eq)]
 pub enum RequestZkNymError {
-    #[error("no account stored")]
-    NoAccountStored,
-
-    #[error("no device stored")]
-    NoDeviceStored,
-
     #[error(transparent)]
     GetZkNymsAvailableForDownloadEndpointFailure { response: VpnApiError },
 
@@ -21,7 +15,6 @@ pub enum RequestZkNymError {
 
     #[error("failed to construct withdrawal request: {0}")]
     ConstructWithdrawalRequest(String),
-
     #[error("{response}, {ticket_type}")]
     RequestZkNymEndpointFailure {
         ticket_type: String,
@@ -36,9 +29,6 @@ pub enum RequestZkNymError {
 
     #[error(transparent)]
     PollZkNymEndpointFailure { response: VpnApiError },
-
-    #[error("polling task failed")]
-    PollingTaskError,
 
     #[error("timeout polling for zknym {id}")]
     PollingTimeout { id: ZkNymId },
@@ -91,17 +81,11 @@ pub enum RequestZkNymError {
     #[error("missing pending request: {0}")]
     MissingPendingRequest(ZkNymId),
 
-    #[error("failed to remove pending zk-nym request {id}: {error}")]
-    RemovePendingRequest { id: String, error: String },
-
     #[error("credential storage error: {0}")]
     CredentialStorage(String),
 
     #[error("nym-vpn-api: unexpected error response: {0}")]
     UnexpectedErrorResponse(String),
-
-    #[error("no connectivity")]
-    Offline,
 
     #[error("internal error: {0}")]
     Internal(String),
@@ -165,12 +149,6 @@ impl RequestZkNymError {
 // Simplified version of the error enum suitable for app API
 #[derive(thiserror::Error, Debug, PartialEq, Eq, Clone)]
 pub enum RequestZkNymErrorReason {
-    #[error("no account stored")]
-    NoAccountStored,
-
-    #[error("no device stored")]
-    NoDeviceStored,
-
     #[error(transparent)]
     VpnApi(VpnApiError),
 
@@ -180,9 +158,6 @@ pub enum RequestZkNymErrorReason {
     #[error("storage error: {0}")]
     Storage(String),
 
-    #[error("no connectivity")]
-    Offline,
-
     #[error("{0}")]
     Internal(String),
 }
@@ -190,8 +165,6 @@ pub enum RequestZkNymErrorReason {
 impl From<RequestZkNymError> for RequestZkNymErrorReason {
     fn from(err: RequestZkNymError) -> Self {
         match err {
-            RequestZkNymError::NoAccountStored => Self::NoAccountStored,
-            RequestZkNymError::NoDeviceStored => Self::NoDeviceStored,
             RequestZkNymError::GetZkNymsAvailableForDownloadEndpointFailure { response }
             | RequestZkNymError::RequestZkNymEndpointFailure {
                 response,
@@ -209,12 +182,10 @@ impl From<RequestZkNymError> for RequestZkNymErrorReason {
                 Self::UnexpectedVpnApiResponse(message)
             }
             RequestZkNymError::CredentialStorage(message) => Self::Storage(message),
-            RequestZkNymError::Offline => Self::Offline,
             RequestZkNymError::CreateEcashKeyPair(_)
             | RequestZkNymError::ConstructWithdrawalRequest(_)
             | RequestZkNymError::InvalidTicketTypeInResponse(_)
             | RequestZkNymError::TicketTypeMismatch
-            | RequestZkNymError::PollingTaskError
             | RequestZkNymError::PollingTimeout { .. }
             | RequestZkNymError::MissingBlindedShares
             | RequestZkNymError::ResponseHasInvalidMasterVerificationKey(_)
@@ -229,7 +200,6 @@ impl From<RequestZkNymError> for RequestZkNymErrorReason {
             | RequestZkNymError::ImportZkNym { .. }
             | RequestZkNymError::AggregateWallets(_)
             | RequestZkNymError::MissingPendingRequest(_)
-            | RequestZkNymError::RemovePendingRequest { .. }
             | RequestZkNymError::Internal(_) => Self::Internal(err.to_string()),
         }
     }
@@ -240,10 +210,5 @@ pub type ZkNymId = String;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct RequestZkNymSuccess {
     pub id: ZkNymId,
-}
-
-impl RequestZkNymSuccess {
-    pub fn new(id: ZkNymId) -> Self {
-        RequestZkNymSuccess { id }
-    }
+    pub ticketbook_type: String,
 }

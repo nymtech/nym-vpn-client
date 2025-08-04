@@ -1,28 +1,34 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use std::pin::Pin;
+
 use nym_vpn_lib_types::{CreateAccountError, RegisterAccountError, StoreAccountError};
-use tokio::sync::mpsc;
+use tokio::{sync::mpsc, time::Sleep};
 use tokio_util::sync::CancellationToken;
 
 use crate::{
     SharedAccountState,
     commands::{AccountCommand, common_handler, handler},
     state_machine::{
-        AccountControllerStateHandler, LoggedOutState, NextAccountControllerState, OfflineState,
-        PrivateAccountControllerState, SyncingState,
+        ACCOUNT_UPDATE_INTERVAL, AccountControllerStateHandler, LoggedOutState,
+        NextAccountControllerState, OfflineState, PrivateAccountControllerState, SyncingState,
     },
 };
 
-pub struct ReadyState;
+pub struct ReadyState {
+    refresh_timer: Pin<Box<Sleep>>,
+}
 
 impl ReadyState {
     pub fn enter() -> (
         Box<dyn AccountControllerStateHandler>,
         PrivateAccountControllerState,
     ) {
+        let refresh_timer = Box::pin(tokio::time::sleep(ACCOUNT_UPDATE_INTERVAL));
+
         (
-            Box::new(Self),
+            Box::new(Self { refresh_timer }),
             PrivateAccountControllerState::ReadyToConnect,
         )
     }
@@ -37,6 +43,9 @@ impl AccountControllerStateHandler for ReadyState {
         shared_state: &'async_trait mut SharedAccountState,
     ) -> NextAccountControllerState {
         tokio::select! {
+            _ = &mut self.refresh_timer => {
+                NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+            },
             Some(command) = command_rx.recv() => {
                 match command {
                     AccountCommand::CreateAccount(return_sender) => {return_sender.send(Err(CreateAccountError::internal("An account already exists")));}, // SW Improve error handling
@@ -59,12 +68,12 @@ impl AccountControllerStateHandler for ReadyState {
                         if error {
                             return NextAccountControllerState::SameState(self);
                         } else {
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                         }
                     },
                     AccountCommand::RefreshAccountState(return_sender) => {
                         return_sender.send(Ok(()));
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
+                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                     },
 
                     AccountCommand::Common(common_command) => common_handler::handle_common_command(common_command, shared_state).await,

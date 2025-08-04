@@ -31,8 +31,7 @@ pub enum AccountCommand {
     ResetDeviceIdentity(ReturnSender<(), AccountCommandError>, Option<[u8; 32]>), // SW maybe new error type?
 
     RefreshAccountState(ReturnSender<(), SyncAccountError>), // SW Rename error
-    // SW To add
-    //UnregisterDevice,
+
     Common(CommonCommand),
 }
 

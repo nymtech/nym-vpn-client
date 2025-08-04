@@ -219,10 +219,16 @@ impl VpnCredentialStorage {
             .map(|ticketbooks| ticketbooks.ticket_types_running_low())
     }
 
-    pub(crate) async fn is_all_ticket_types_above_soft_threshold(&self) -> Result<bool, Error> {
+    pub(crate) async fn is_all_ticket_types_above_minimal_threshold(&self) -> Result<bool, Error> {
         self.get_available_ticketbooks()
             .await
-            .map(|ticketbooks| ticketbooks.is_all_ticket_types_above_soft_threshold())
+            .map(|ticketbooks| ticketbooks.is_all_ticket_types_above_minimal_threshold())
+    }
+
+    pub(crate) async fn is_all_ticket_types_non_empty(&self) -> Result<bool, Error> {
+        self.get_available_ticketbooks()
+            .await
+            .map(|ticketbooks| ticketbooks.is_all_ticket_types_non_empty())
     }
 
     #[allow(unused)]

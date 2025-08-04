@@ -1,19 +1,23 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use tokio::sync::mpsc;
+use std::pin::Pin;
+
+use tokio::{sync::mpsc, time::Sleep};
 use tokio_util::sync::CancellationToken;
 
 use crate::{
     SharedAccountState,
-    commands::{AccountCommand, handler},
+    commands::{AccountCommand, common_handler, handler},
     state_machine::{
-        AccountControllerStateHandler, LoggedOutState, NextAccountControllerState, OfflineState,
-        PrivateAccountControllerState, SyncingState,
+        ACCOUNT_UPDATE_INTERVAL, AccountControllerStateHandler, LoggedOutState,
+        NextAccountControllerState, OfflineState, PrivateAccountControllerState, SyncingState,
     },
 };
 
-pub struct ErrorState;
+pub struct ErrorState {
+    refresh_timer: Pin<Box<Sleep>>,
+}
 
 impl ErrorState {
     pub fn enter(
@@ -23,7 +27,12 @@ impl ErrorState {
         PrivateAccountControllerState,
     ) {
         println!("Entering error state with reason : {}", reason.to_string());
-        (Box::new(Self), PrivateAccountControllerState::Error)
+        let refresh_timer = Box::pin(tokio::time::sleep(ACCOUNT_UPDATE_INTERVAL));
+
+        (
+            Box::new(Self { refresh_timer }),
+            PrivateAccountControllerState::Error,
+        )
     }
 }
 
@@ -36,17 +45,20 @@ impl AccountControllerStateHandler for ErrorState {
         shared_state: &'async_trait mut SharedAccountState,
     ) -> NextAccountControllerState {
         tokio::select! {
-        Some(command) = command_rx.recv() => {
+        _ = &mut self.refresh_timer => {
+                NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))
+            },
+            Some(command) = command_rx.recv() => {
                 match command {
-                    AccountCommand::CreateAccount(_) => {},
-                    AccountCommand::StoreAccount(_, _) => {},
-                    AccountCommand::RegisterAccount(_, _, _) => {},
+                    AccountCommand::CreateAccount(_) => {}, // SW implement along better error handling
+                    AccountCommand::StoreAccount(_, _) => {}, // SW implement along better error handling
+                    AccountCommand::RegisterAccount(_, _, _) => {}, // SW implement along better error handling
                     AccountCommand::ForgetAccount(return_sender) => {
                         let res = handler::handle_forget_account(shared_state).await;
                         let error = res.is_err();
                         return_sender.send(res);
                         if error {
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state)); // SW we might be in an intermediate state here, double check that
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                         } else {
                             return NextAccountControllerState::NewState(LoggedOutState::enter());
                         }
@@ -58,15 +70,17 @@ impl AccountControllerStateHandler for ErrorState {
                         if error {
                             return NextAccountControllerState::SameState(self);
                         } else {
-                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
+                            return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                         }
                     },
                     AccountCommand::RefreshAccountState(return_sender) => {
                         return_sender.send(Ok(()));
-                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state));
+                        return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                     },
 
-                    AccountCommand::Common(_) => {}, // SW complete that
+                    AccountCommand::Common(common_command) => {
+                        common_handler::handle_common_command(common_command, shared_state).await
+                    },
                 }
                 NextAccountControllerState::SameState(self)
             }

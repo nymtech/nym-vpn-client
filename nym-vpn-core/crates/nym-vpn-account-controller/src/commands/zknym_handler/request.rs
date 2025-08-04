@@ -94,6 +94,7 @@ impl RequestZkNymTask {
         // Poll the nym-vpn-api for the zk-nym ticketbook to be ready. This could take some time,
         // but likely not more than a few seconds.
         let poll_result = self.poll_zk_nym(&id).await?;
+        let ticketbook_type = poll_result.ticketbook_type.clone();
 
         // The result might contain attached keys and signatures. If so, import them.
         self.import_attached_keys_and_signatures(&poll_result, pending_request.expiration_date)
@@ -109,7 +110,10 @@ impl RequestZkNymTask {
         // Remove the pending request from the storage. We no longer need it.
         self.remove_pending_request(&id).await?;
 
-        Ok(RequestZkNymSuccess { id })
+        Ok(RequestZkNymSuccess {
+            id,
+            ticketbook_type,
+        })
     }
 
     fn construct_zk_nym_request_data(

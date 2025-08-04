@@ -24,7 +24,7 @@ pub struct AccountControllerConfig {
 impl AccountControllerConfig {
     // Determine if the credentials mode is enabled. This is determined by the credentials_mode
     // field in the config, if it is set. Else the network environment feature flag is used.
-    pub fn background_zk_nym_refresh(&self) -> bool {
+    pub fn credentials_mode(&self) -> bool {
         self.credentials_mode.unwrap_or_else(|| {
             self.network_env
                 .get_feature_flag_credential_mode()
