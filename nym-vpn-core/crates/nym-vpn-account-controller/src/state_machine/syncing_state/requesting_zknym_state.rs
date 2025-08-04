@@ -2,7 +2,9 @@
 // SPDX-License-Identifier: GPL-3.0-only
 
 use nym_vpn_api_client::types::{Device, VpnApiAccount};
-use nym_vpn_lib_types::{AccountCommandError, RequestZkNymErrorReason};
+use nym_vpn_lib_types::{
+    AccountCommandError, AccountControllerErrorStateReason, RequestZkNymErrorReason,
+};
 use tokio::{sync::mpsc, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
 
@@ -22,6 +24,7 @@ use crate::{
 // The maximum number of zk-nym requests that can fail in a row
 const ZK_NYM_MAX_FAILS: u32 = 10;
 const FAIR_USAGE_DEPLETED_CODE_ID: &str = "e0b78604-bb9b-4524-add1-f50fe26144c6";
+const ZK_NYM_STATE_CONTEXT: &str = "ZK_NYM_STATE";
 
 pub(super) struct RequestingZkNymsState {
     zk_nym_fetching_handle: JoinHandle<Result<(), ZkNymError>>,
@@ -42,7 +45,10 @@ impl RequestingZkNymsState {
             return LoggedOutState::enter();
         };
         let Some(device) = shared_state.device.clone() else {
-            return ErrorState::enter("Logged in, but no device keys, this shouldn't happen");
+            return ErrorState::enter(AccountControllerErrorStateReason::Internal {
+                context: ZK_NYM_STATE_CONTEXT.to_string(),
+                details: "Logged in, but no device keys".into(),
+            });
         };
 
         let vpn_api_client = shared_state.vpn_api_client.clone();
@@ -133,7 +139,7 @@ impl RequestingZkNymsState {
                     }
                     RequestZkNymErrorReason::Internal(e) => {
                         tracing::error!("Internal error trying to request zk-nym : {e}");
-                        return Err(ZkNymError::Internal);
+                        return Err(ZkNymError::Internal(e));
                     }
                 }
             }
@@ -162,7 +168,7 @@ impl AccountControllerStateHandler for RequestingZkNymsState {
                             },
                             Err(zk_nym_error) => {
                                 if self.attempts > ZK_NYM_MAX_FAILS {
-                                    return NextAccountControllerState::NewState(ErrorState::enter("zk_nym_error.into()"));
+                                    return NextAccountControllerState::NewState(ErrorState::enter(zk_nym_error.into()));
                                 }
 
                                 // We have an error, but maybe we still have enough ticketbook to proceed
@@ -171,7 +177,7 @@ impl AccountControllerStateHandler for RequestingZkNymsState {
                                     return NextAccountControllerState::NewState(ReadyState::enter());
                                 }
                                 match zk_nym_error {
-                                    ZkNymError::Storage | ZkNymError::Internal => {
+                                    ZkNymError::Storage | ZkNymError::Internal(_) => {
                                         // Error is on our side, let's give it one last try though
                                         NextAccountControllerState::NewState(RequestingZkNymsState::enter(shared_state, ZK_NYM_MAX_FAILS + 1, self.fair_usage_left))
                                     },
@@ -185,7 +191,7 @@ impl AccountControllerStateHandler for RequestingZkNymsState {
                                             tracing::warn!("We still have some tickets though");
                                             NextAccountControllerState::NewState(ReadyState::enter())
                                         } else {
-                                            NextAccountControllerState::NewState(ErrorState::enter("No tickets left"))
+                                            NextAccountControllerState::NewState(ErrorState::enter(ZkNymError::BandwidthExceeded.into()))
                                         }
                                     },
                                 }
@@ -251,6 +257,28 @@ impl AccountControllerStateHandler for RequestingZkNymsState {
 enum ZkNymError {
     Storage,
     ApiFailure(String),
-    Internal,
+    Internal(String),
     BandwidthExceeded,
+}
+
+impl From<ZkNymError> for AccountControllerErrorStateReason {
+    fn from(value: ZkNymError) -> Self {
+        use ZkNymError::*;
+        match value {
+            Storage => Self::Storage {
+                context: ZK_NYM_STATE_CONTEXT.to_string(),
+            },
+            ApiFailure(details) => Self::ApiFailure {
+                context: ZK_NYM_STATE_CONTEXT.to_string(),
+                details,
+            },
+            Internal(details) => Self::Internal {
+                context: ZK_NYM_STATE_CONTEXT.to_string(),
+                details,
+            },
+            BandwidthExceeded => Self::BandwidthExceeded {
+                context: ZK_NYM_STATE_CONTEXT.to_string(),
+            },
+        }
+    }
 }

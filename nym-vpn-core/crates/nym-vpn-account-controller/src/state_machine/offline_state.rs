@@ -41,7 +41,7 @@ impl AccountControllerStateHandler for OfflineState {
                         return_sender.send(handler::handle_create_account(shared_state).await)
                     },
                     AccountCommand::StoreAccount(return_sender, mnemonic) => {
-                        return_sender.send(handler::handle_store_account(shared_state, mnemonic, true).await)
+                        return_sender.send(handler::handle_store_account(shared_state, mnemonic).await)
                     },
                     AccountCommand::RegisterAccount(return_sender, _, _) => return_no_connectivity(return_sender),
                     AccountCommand::ForgetAccount(return_sender) => return_no_connectivity(return_sender), // this shouldn't happen, as tunnel state is checked before sending the command, still, better error handling needed

@@ -42,7 +42,7 @@ impl AccountControllerStateHandler for LoggedOutState {
                         return NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0));
                     }
                     AccountCommand::StoreAccount(return_sender, mnemonic) => {
-                        if let Err(e) = handler::handle_store_account(shared_state, mnemonic, false).await{
+                        if let Err(e) = handler::handle_store_account(shared_state, mnemonic).await{
                             return_sender.send(Err(e));
                             return NextAccountControllerState::SameState(self);
                         } else {

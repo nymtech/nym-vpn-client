@@ -3,7 +3,7 @@
 
 use std::time::Duration;
 
-use nym_vpn_lib_types::AccountControllerState;
+use nym_vpn_lib_types::{AccountControllerErrorStateReason, AccountControllerState};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
 
@@ -53,7 +53,7 @@ impl From<PrivateAccountControllerState> for AccountControllerState {
             PrivateAccountControllerState::Syncing => Self::Syncing,
             PrivateAccountControllerState::LoggedOut => Self::LoggedOut,
             PrivateAccountControllerState::ReadyToConnect => Self::ReadyToConnect,
-            PrivateAccountControllerState::Error => Self::Error,
+            PrivateAccountControllerState::Error(reason) => Self::Error(reason),
             PrivateAccountControllerState::RequestingZkNyms => Self::Syncing,
         }
     }
@@ -66,6 +66,6 @@ pub(super) enum PrivateAccountControllerState {
     Syncing,
     LoggedOut,
     ReadyToConnect,
-    Error,
+    Error(AccountControllerErrorStateReason),
     RequestingZkNyms,
 }

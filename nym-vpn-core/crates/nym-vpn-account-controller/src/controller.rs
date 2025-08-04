@@ -196,7 +196,7 @@ where
                     let _ = self
                         .event_channel
                         .0
-                        .send(AccountControllerEvent::NewState(state));
+                        .send(AccountControllerEvent::NewState(state.clone()));
                     let _ = self.state_channel.0.send_replace(state);
                 }
                 NextAccountControllerState::SameState(same_state) => {
