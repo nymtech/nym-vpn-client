@@ -128,7 +128,6 @@ struct NymVPNDaemonApp: App {
 
 private extension NymVPNDaemonApp {
     func setup() {
-        Logger(label: "APP").info("SETUP")
         ThemeConfiguration.setup()
         Task {
             // Things dependant on environment beeing set.

@@ -7,6 +7,7 @@ import ConnectionManager
 import CredentialsManager
 import ExternalLinkManager
 #if os(macOS)
+import GRPCManager
 import HelperInstall
 import HelperManager
 #endif
@@ -18,6 +19,7 @@ public class SettingsViewModel: SettingsFlowState {
     private let connectionManager: ConnectionManager
     private let externalLinkManager: ExternalLinkManager
 #if os(macOS)
+    private let grpcManager: GRPCManager
     private let helperManager: HelperManager
 #endif
 
@@ -78,6 +80,7 @@ public class SettingsViewModel: SettingsFlowState {
         connectionManager: ConnectionManager = .shared,
         credentialsManager: CredentialsManager = .shared,
         externalLinkManager: ExternalLinkManager = .shared,
+        grpcManager: GRPCManager = .shared,
         helperManager: HelperManager = .shared
     ) {
         self.appSettings = appSettings
@@ -85,6 +88,7 @@ public class SettingsViewModel: SettingsFlowState {
         self.connectionManager = connectionManager
         self.credentialsManager = credentialsManager
         self.externalLinkManager = externalLinkManager
+        self.grpcManager = grpcManager
         self.helperManager = helperManager
         super.init(path: path)
         setup()
@@ -296,6 +300,11 @@ private extension SettingsViewModel {
                             isOn: appSettings.isErrorReportingOn,
                             action: { [weak self] isOn in
                                 self?.appSettings.isErrorReportingOn = isOn
+#if os(macOS)
+                                Task {
+                                    try? await self?.grpcManager.updateErrorReportingIfNeeded(with: isOn)
+                                }
+#endif
                             }
                         )
                     ),

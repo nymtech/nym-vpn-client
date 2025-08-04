@@ -5,26 +5,24 @@ import NotificationMessages
 
 extension ConnectionManager {
     func generateConfig() -> MixnetConfig {
-        var config = MixnetConfig(
-            entryGateway: entryGateway,
-            exitRouter: exitRouter
-        )
+        let isErrorReportingEnabled = appSettings.currentEnv == "sandbox" ? true : appSettings.isErrorReportingOn
 
         switch connectionType {
         case .mixnet5hop:
-            config = MixnetConfig(
+            return MixnetConfig(
                 entryGateway: entryGateway,
                 exitRouter: exitRouter,
+                isErrorReportingEnabled: isErrorReportingEnabled,
                 isTwoHopEnabled: false
             )
         case .wireguard:
-            config = MixnetConfig(
+            return MixnetConfig(
                 entryGateway: entryGateway,
                 exitRouter: exitRouter,
+                isErrorReportingEnabled: isErrorReportingEnabled,
                 isTwoHopEnabled: true
             )
         }
-        return config
     }
 
     @MainActor func connect(with config: MixnetConfig) async throws {
