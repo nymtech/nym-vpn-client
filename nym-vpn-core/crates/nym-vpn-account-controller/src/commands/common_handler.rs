@@ -4,7 +4,7 @@
 use std::net::SocketAddr;
 
 use nym_vpn_api_client::response::{NymVpnDevice, NymVpnUsage};
-use nym_vpn_lib_types::{AccountCommandError, VpnApiError};
+use nym_vpn_lib_types::AccountCommandError;
 use nym_vpn_store::mnemonic::Mnemonic;
 
 use crate::{
@@ -79,16 +79,8 @@ async fn handle_get_usage(
         .as_ref()
         .ok_or(AccountCommandError::NoAccountStored)?;
 
-    let usage = shared_state
-        .vpn_api_client
-        .get_usage(account)
-        .await
-        .map_err(|err| {
-            VpnApiError::try_from(err)
-                .map(AccountCommandError::from)
-                .unwrap_or_else(AccountCommandError::internal)
-        })?;
-    // SW Better error handling?
+    let usage = shared_state.vpn_api_client.get_usage(account).await?;
+
     tracing::debug!("Usage: {:#?}", usage);
     Ok(usage.items)
 }
@@ -117,16 +109,7 @@ async fn handle_get_devices(
         .as_ref()
         .ok_or(AccountCommandError::NoAccountStored)?;
 
-    let devices = shared_state
-        .vpn_api_client
-        .get_devices(account)
-        .await
-        .map_err(|err| {
-            VpnApiError::try_from(err)
-                .map(AccountCommandError::from)
-                .unwrap_or_else(AccountCommandError::internal)
-        })?;
-    // SW Better error handling?
+    let devices = shared_state.vpn_api_client.get_devices(account).await?;
 
     tracing::debug!("The account has the following devices associated to it:");
     // TODO: pagination
@@ -149,13 +132,7 @@ async fn handle_get_active_devices(
     let devices = shared_state
         .vpn_api_client
         .get_active_devices(account)
-        .await
-        .map_err(|err| {
-            VpnApiError::try_from(err)
-                .map(AccountCommandError::from)
-                .unwrap_or_else(AccountCommandError::internal)
-        })?;
-    // SW Better error handling?
+        .await?;
 
     tracing::debug!("The account has the following active devices associated to it:");
     // TODO: pagination
