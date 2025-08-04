@@ -134,10 +134,10 @@ impl MnemonicStorage for OnDiskMnemonicStorage {
         #[cfg(unix)]
         {
             let permissions = Permissions::from_mode(0o600);
-            if let Err(e) = tokio::fs::set_permissions(&self.path, permissions).await {
-                if e.kind() != std::io::ErrorKind::NotFound {
-                    return Err(OnDiskMnemonicStorageError::FileOpenError(e));
-                }
+            if let Err(e) = tokio::fs::set_permissions(&self.path, permissions).await
+                && e.kind() != std::io::ErrorKind::NotFound
+            {
+                return Err(OnDiskMnemonicStorageError::FileOpenError(e));
             }
         }
         // We still that checks, for non-unix at least
