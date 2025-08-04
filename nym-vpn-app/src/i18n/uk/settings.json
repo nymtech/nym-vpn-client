@@ -61,17 +61,17 @@
   },
   "privacy": {
     "error-monitoring": {
-      "label": "Error & crash reports",
-      "sublabel": "Changes will apply after app and daemon restart.",
-      "desc": "Send crash info to help us fix bugs faster. Reports go through Sentry's secure system and include technical debugging data only.",
-      "link": "View Sentry Privacy Policy"
+      "label": "Звіти про помилки та збої",
+      "sublabel": "Зміни буде застосовано після перезавантаження застосунку.",
+      "desc": "Надсилайте інформацію про збої, щоб допомогти нам швидше виправляти помилки. Звіти проходять через захищену систему Sentry та містять лише технічні дані для налагодження.",
+      "link": "Переглянути політику конфіденційності Sentry"
     },
     "network-stats": {
-      "label": "Anonymous network stats",
-      "sublabel": "Changes will apply after daemon restart.",
-      "desc1": "Help us build a faster network by sharing anonymous performance data from your region. We use this to optimize speeds, reduce disconnections, and steer server coverage where it's needed most.",
-      "desc2": "Only network performance data is shared - never your browsing activity or personal data.",
-      "link": "Learn exactly what's shared"
+      "label": "Анонімна статистика мережі",
+      "sublabel": "Зміни набудуть чинності після перезавантаження daemon.",
+      "desc1": "Допоможіть нам побудувати швидшу мережу, поділившись анонімними даними про продуктивність з вашого регіону. Ми використовуємо це для оптимізації швидкостей, зменшення розривів з'єднання та направлення покриття серверів туди, де це найбільше потрібно.",
+      "desc2": "Тільки дані про продуктивність мережі діляться - ніколи не ваше веб-серфінг або особисті дані.",
+      "link": "Дізнайтеся, чим саме ділились"
     }
   }
 }
