@@ -5,7 +5,6 @@ use nym_offline_monitor::ConnectivityHandle;
 use nym_vpn_api_client::types::{Device, VpnApiAccount};
 
 use tokio::sync::mpsc;
-use zeroize::{Zeroize, ZeroizeOnDrop};
 
 use crate::{
     AccountControllerConfig,
@@ -13,28 +12,21 @@ use crate::{
     vpn_api_client::AccountControllerVpnApiClient,
 };
 
-#[derive(Zeroize, ZeroizeOnDrop)]
 pub(crate) struct SharedAccountState {
     // Ideally, we would have tunnel state here. But it makes circular dependency where tunnel needs AC state and AC needs tunnel state
-    #[zeroize(skip)]
     pub connectivity_handle: ConnectivityHandle,
 
-    #[zeroize(skip)]
     pub config: AccountControllerConfig,
 
     // This is bound to live in the bandwidth controller in a near future
-    #[zeroize(skip)]
     pub(crate) credential_storage: VpnCredentialStorage,
 
-    #[zeroize(skip)]
     pub(crate) vpn_api_client: AccountControllerVpnApiClient,
 
     pub(crate) vpn_api_account: Option<VpnApiAccount>,
 
-    #[zeroize(skip)]
     pub(crate) device: Option<Device>,
 
-    #[zeroize(skip)]
     pub(crate) storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
 }
 
