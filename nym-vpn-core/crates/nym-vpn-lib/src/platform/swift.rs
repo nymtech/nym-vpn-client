@@ -30,9 +30,7 @@ pub fn init_logs(level: String, path: Option<PathBuf>, sentry: bool) {
         .add_directive("tungstenite::proto=warn".parse().unwrap())
         .add_directive("tokio_tungstenite::proto=warn".parse().unwrap())
         .add_directive("handlebars::proto=warn".parse().unwrap())
-        .add_directive("sled::proto=warn".parse().unwrap())
-        .add_directive("sqlx_pool_guard=trace".parse().unwrap());
-    
+        .add_directive("sled::proto=warn".parse().unwrap());
 
     // Also ignore some of the more low level crates from the platform repo
     let filter = filter

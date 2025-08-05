@@ -73,8 +73,7 @@ fn setup_logging() {
         .from_env()
         .unwrap()
         .add_directive("hyper::proto=info".parse().unwrap())
-        .add_directive("netlink_proto=info".parse().unwrap())
-        .add_directive("sqlx_pool_guard=trace".parse().unwrap());
+        .add_directive("netlink_proto=info".parse().unwrap());
 
     tracing_subscriber::fmt()
         .with_env_filter(filter)

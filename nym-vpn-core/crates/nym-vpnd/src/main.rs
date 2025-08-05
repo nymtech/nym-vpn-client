@@ -248,6 +248,14 @@ fn init_sentry() -> Option<ClientInitGuard> {
             traces_sample_rate: 1.0,
             enable_logs: true,
             shutdown_timeout: Duration::from_secs(2),
+            before_send_log: Some(Arc::new(|log| {
+                if log.body.contains("sqlx_pool_guard") || log.bod.contains("close_stats_storage") {
+                    let mut log = log.clone();
+                    log.level = sentry::protocol::Level::Debug;
+                    Some(log)
+                }
+                Some(log)
+            })),
             ..Default::default()
         },
     ));
