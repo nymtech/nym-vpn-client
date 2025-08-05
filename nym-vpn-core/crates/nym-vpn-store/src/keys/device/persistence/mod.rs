@@ -8,3 +8,5 @@ pub use on_disk::{
     DEFAULT_PRIVATE_DEVICE_KEY_FILENAME, DEFAULT_PUBLIC_DEVICE_KEY_FILENAME, DeviceKeysPaths,
     OnDiskKeys, OnDiskKeysError,
 };
+
+pub use ephemeral::InMemEphemeralKeys;

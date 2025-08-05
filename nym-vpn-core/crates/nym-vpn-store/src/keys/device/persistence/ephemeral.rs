@@ -25,7 +25,7 @@ impl DeviceKeyStore for InMemEphemeralKeys {
     }
 
     async fn init_keys(&self, seed: Option<[u8; 32]>) -> Result<(), Self::StorageError> {
-        if self.load_keys().await.is_ok() {
+        if self.load_keys().await?.is_some() {
             return Ok(());
         }
         self.reset_keys(seed).await
