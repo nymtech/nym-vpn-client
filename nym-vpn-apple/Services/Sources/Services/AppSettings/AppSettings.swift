@@ -24,9 +24,7 @@ public final class AppSettings: ObservableObject {
     @AppStorage(AppSettingKey.errorReporting.rawValue)
     public var isErrorReportingOn = false {
         didSet {
-            Task { @MainActor in
-                isErrorReportingOnPublisher = isErrorReportingOn
-            }
+            isErrorReportingOnPublisher = isErrorReportingOn
         }
     }
     @AppStorage(AppSettingKey.credenitalExists.rawValue)
@@ -73,6 +71,9 @@ public final class AppSettings: ObservableObject {
     @AppStorage(AppSettingKey.ipv6TrafficIsEnabled.rawValue)
     public var isIPv6TrafficEnabled = true
 
+    @AppStorage(AppSettingKey.statistics.rawValue)
+    public var isStatisticsEnabled = false
+
     // Observed values for view models
     @Published public var isErrorReportingOnPublisher = false
     @Published public var isCredentialImportedPublisher = false
@@ -115,4 +116,5 @@ public enum AppSettingKey: String {
     case santaExitGateways
     case accountToken
     case ipv6TrafficIsEnabled
+    case statistics
 }

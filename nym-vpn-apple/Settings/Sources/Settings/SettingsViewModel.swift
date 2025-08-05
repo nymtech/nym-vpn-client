@@ -131,11 +131,9 @@ public class SettingsViewModel: SettingsFlowState {
 }
 
 private extension SettingsViewModel {
-#if os(macOS)
-    @MainActor func navigateToAppMode() {
-        path.append(SettingLink.appMode)
+    @MainActor func navigateToPrivacyAndData() {
+        path.append(SettingLink.privacyAndData)
     }
-#endif
 
     @MainActor func navigateToAppearance() {
         path.append(SettingLink.appearance)
@@ -254,20 +252,18 @@ private extension SettingsViewModel {
                 }
             )
         ]
-#if os(macOS)
         viewModels.append(
             SettingsListItemViewModel(
                 accessory: .arrow,
-                title: "settings.appMode".localizedString,
-                systemImageName: "menubar.dock.rectangle",
+                title: "settings.privacyAndData".localizedString,
+                imageName: "privacy",
                 action: { [weak self] in
                     Task { @MainActor in
-                        self?.navigateToAppMode()
+                        self?.navigateToPrivacyAndData()
                     }
                 }
             )
         )
-#endif
         return .theme(viewModels: viewModels)
     }
 
@@ -293,25 +289,6 @@ private extension SettingsViewModel {
                             self?.navigateToLogs()
                         }
                     }
-                ),
-                SettingsListItemViewModel(
-                    accessory: .toggle(
-                        viewModel: ToggleViewModel(
-                            isOn: appSettings.isErrorReportingOn,
-                            action: { [weak self] isOn in
-                                self?.appSettings.isErrorReportingOn = isOn
-#if os(macOS)
-                                Task {
-                                    try? await self?.grpcManager.updateErrorReportingIfNeeded(with: isOn)
-                                }
-#endif
-                            }
-                        )
-                    ),
-                    title: "settings.anonymousErrorReports.title".localizedString,
-                    subtitle: "settings.anonymousErrorReports.subtitle".localizedString,
-                    imageName: "errorReport",
-                    action: {}
                 )
             ]
         )
@@ -321,7 +298,7 @@ private extension SettingsViewModel {
         var viewModels = [SettingsListItemViewModel]()
         viewModels.append(
             SettingsListItemViewModel(
-                accessory: .toggle(viewModel: ToggleViewModel(isOn: true, isDisabled: true)),
+                accessory: .toggle(viewModel: ToggleViewModel(isOn: .constant(true), isDisabled: true)),
                 title: "settings.killswitch.title".localizedString,
                 subtitle: "settings.killswitch.subtitle".localizedString,
                 systemImageName: "power",
@@ -331,14 +308,7 @@ private extension SettingsViewModel {
 #if os(macOS)
         viewModels.append(
             SettingsListItemViewModel(
-                accessory: .toggle(
-                    viewModel: ToggleViewModel(
-                        isOn: appSettings.isIPv6TrafficEnabled,
-                        action: { [weak self] isOn in
-                            self?.appSettings.isIPv6TrafficEnabled = isOn
-                        }
-                    )
-                ),
+                accessory: .toggle(viewModel: ToggleViewModel(isOn: appSettings.$isIPv6TrafficEnabled)),
                 title: "settings.ipv6.title".localizedString,
                 subtitle: "settings.ipv6.subtitle".localizedString,
                 systemImageName: "key",

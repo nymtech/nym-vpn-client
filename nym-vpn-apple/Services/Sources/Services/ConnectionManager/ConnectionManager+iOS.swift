@@ -87,6 +87,7 @@ extension ConnectionManager {
                 credentialsDataPath: credentialURL.path(),
                 configPath: configURL.path(),
                 isErrorReportingEnabled: isErrorReportingEnabled,
+                isStatisticsEnabled: appSettings.isStatisticsEnabled,
                 isTwoHopEnabled: false
             )
         case .wireguard:
@@ -96,6 +97,7 @@ extension ConnectionManager {
                 credentialsDataPath: credentialURL.path(),
                 configPath: configURL.path(),
                 isErrorReportingEnabled: isErrorReportingEnabled,
+                isStatisticsEnabled: appSettings.isStatisticsEnabled,
                 isTwoHopEnabled: true
             )
         }
