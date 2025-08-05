@@ -1,6 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::AccountCommandError;
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -17,8 +18,8 @@ use crate::{
 pub struct LoggedOutState;
 
 impl LoggedOutState {
-    pub fn enter() -> (
-        Box<dyn AccountControllerStateHandler>,
+    pub fn enter<C: ConnectivityMonitor>() -> (
+        Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
         (Box::new(Self), PrivateAccountControllerState::LoggedOut)
@@ -26,13 +27,13 @@ impl LoggedOutState {
 }
 
 #[async_trait::async_trait]
-impl AccountControllerStateHandler for LoggedOutState {
+impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for LoggedOutState {
     async fn handle_event(
         mut self: Box<Self>,
         shutdown_token: &CancellationToken,
         command_rx: &'async_trait mut mpsc::UnboundedReceiver<AccountCommand>,
-        shared_state: &'async_trait mut SharedAccountState,
-    ) -> NextAccountControllerState {
+        shared_state: &'async_trait mut SharedAccountState<C>,
+    ) -> NextAccountControllerState<C> {
         tokio::select! {
             Some(command) = command_rx.recv() => {
                 // Intentionnally no command grouping for clarity

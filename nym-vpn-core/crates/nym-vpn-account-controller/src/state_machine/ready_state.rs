@@ -3,6 +3,7 @@
 
 use std::pin::Pin;
 
+use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::AccountCommandError;
 use tokio::{sync::mpsc, time::Sleep};
 use tokio_util::sync::CancellationToken;
@@ -21,8 +22,8 @@ pub struct ReadyState {
 }
 
 impl ReadyState {
-    pub fn enter() -> (
-        Box<dyn AccountControllerStateHandler>,
+    pub fn enter<C: ConnectivityMonitor>() -> (
+        Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
         let refresh_timer = Box::pin(tokio::time::sleep(ACCOUNT_UPDATE_INTERVAL));
@@ -35,13 +36,13 @@ impl ReadyState {
 }
 
 #[async_trait::async_trait]
-impl AccountControllerStateHandler for ReadyState {
+impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for ReadyState {
     async fn handle_event(
         mut self: Box<Self>,
         shutdown_token: &CancellationToken,
         command_rx: &'async_trait mut mpsc::UnboundedReceiver<AccountCommand>,
-        shared_state: &'async_trait mut SharedAccountState,
-    ) -> NextAccountControllerState {
+        shared_state: &'async_trait mut SharedAccountState<C>,
+    ) -> NextAccountControllerState<C> {
         tokio::select! {
             _ = &mut self.refresh_timer => {
                 NextAccountControllerState::NewState(SyncingState::enter(shared_state, 0))

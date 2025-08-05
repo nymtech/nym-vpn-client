@@ -3,6 +3,7 @@
 
 use std::time::Duration;
 
+use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_lib_types::{AccountControllerErrorStateReason, AccountControllerState};
 use tokio::sync::mpsc;
 use tokio_util::sync::CancellationToken;
@@ -26,23 +27,23 @@ pub(crate) use syncing_state::SyncingState;
 const ACCOUNT_UPDATE_INTERVAL: Duration = Duration::from_secs(2 * 60);
 
 #[async_trait::async_trait]
-pub(crate) trait AccountControllerStateHandler: Send {
+pub(crate) trait AccountControllerStateHandler<C: ConnectivityMonitor>: Send {
     async fn handle_event(
         mut self: Box<Self>,
         shutdown_token: &CancellationToken,
         command_rx: &'async_trait mut mpsc::UnboundedReceiver<AccountCommand>,
-        shared_state: &'async_trait mut SharedAccountState,
-    ) -> NextAccountControllerState;
+        shared_state: &'async_trait mut SharedAccountState<C>,
+    ) -> NextAccountControllerState<C>;
 }
 
-pub(crate) enum NextAccountControllerState {
+pub(crate) enum NextAccountControllerState<C: ConnectivityMonitor> {
     NewState(
         (
-            Box<dyn AccountControllerStateHandler>,
+            Box<dyn AccountControllerStateHandler<C>>,
             PrivateAccountControllerState,
         ),
     ),
-    SameState(Box<dyn AccountControllerStateHandler>),
+    SameState(Box<dyn AccountControllerStateHandler<C>>),
     Finished,
 }
 

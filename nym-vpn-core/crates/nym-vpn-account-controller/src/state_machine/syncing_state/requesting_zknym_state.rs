@@ -1,6 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
     error::FAIR_USAGE_DEPLETED_CODE_ID,
@@ -36,12 +37,12 @@ pub(super) struct RequestingZkNymsState {
 }
 
 impl RequestingZkNymsState {
-    pub(super) fn enter(
-        shared_state: &SharedAccountState,
+    pub(super) fn enter<C: ConnectivityMonitor>(
+        shared_state: &SharedAccountState<C>,
         attempts: u32,
         fair_usage_left: bool, // Syncing state telling us the fair usage state
     ) -> (
-        Box<dyn AccountControllerStateHandler>,
+        Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
         let Some(vpn_api_account) = shared_state.vpn_api_account.clone() else {
@@ -153,13 +154,13 @@ impl RequestingZkNymsState {
 }
 
 #[async_trait::async_trait]
-impl AccountControllerStateHandler for RequestingZkNymsState {
+impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for RequestingZkNymsState {
     async fn handle_event(
         mut self: Box<Self>,
         shutdown_token: &CancellationToken,
         command_rx: &'async_trait mut mpsc::UnboundedReceiver<AccountCommand>,
-        shared_state: &'async_trait mut SharedAccountState,
-    ) -> NextAccountControllerState {
+        shared_state: &'async_trait mut SharedAccountState<C>,
+    ) -> NextAccountControllerState<C> {
         tokio::select! {
             zknym_result = &mut self.zk_nym_fetching_handle => {
                 match zknym_result {

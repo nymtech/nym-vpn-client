@@ -1,6 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     VpnApiClient,
     error::VpnApiClientError,
@@ -32,11 +33,11 @@ pub struct SyncingState {
 }
 
 impl SyncingState {
-    pub fn enter(
-        shared_state: &SharedAccountState,
+    pub fn enter<C: ConnectivityMonitor>(
+        shared_state: &SharedAccountState<C>,
         attempts: u32,
     ) -> (
-        Box<dyn AccountControllerStateHandler>,
+        Box<dyn AccountControllerStateHandler<C>>,
         PrivateAccountControllerState,
     ) {
         let Some(vpn_api_account) = shared_state.vpn_api_account.clone() else {
@@ -174,13 +175,13 @@ impl SyncingState {
 }
 
 #[async_trait::async_trait]
-impl AccountControllerStateHandler for SyncingState {
+impl<C: ConnectivityMonitor> AccountControllerStateHandler<C> for SyncingState {
     async fn handle_event(
         mut self: Box<Self>,
         shutdown_token: &CancellationToken,
         command_rx: &'async_trait mut mpsc::UnboundedReceiver<AccountCommand>,
-        shared_state: &'async_trait mut SharedAccountState,
-    ) -> NextAccountControllerState {
+        shared_state: &'async_trait mut SharedAccountState<C>,
+    ) -> NextAccountControllerState<C> {
         tokio::select! {
             syncing_result = &mut self.syncing_state_handle => {
                 match syncing_result {

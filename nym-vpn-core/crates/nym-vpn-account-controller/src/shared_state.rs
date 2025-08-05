@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_offline_monitor::ConnectivityHandle;
+use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_api_client::types::{Device, VpnApiAccount};
 
@@ -12,9 +12,9 @@ use crate::{
     storage::{AccountStorageOp, VpnCredentialStorage},
 };
 
-pub(crate) struct SharedAccountState {
+pub(crate) struct SharedAccountState<C: ConnectivityMonitor> {
     // Ideally, we would have tunnel state here. But it makes circular dependency where tunnel needs AC state and AC needs tunnel state
-    pub connectivity_handle: ConnectivityHandle,
+    pub connectivity_handle: C,
 
     pub config: AccountControllerConfig,
 
@@ -30,9 +30,9 @@ pub(crate) struct SharedAccountState {
     pub(crate) storage_op_sender: mpsc::UnboundedSender<AccountStorageOp>,
 }
 
-impl SharedAccountState {
+impl<C: ConnectivityMonitor> SharedAccountState<C> {
     pub(crate) fn new(
-        connectivity_handle: ConnectivityHandle,
+        connectivity_handle: C,
         config: AccountControllerConfig,
         credential_storage: VpnCredentialStorage,
         vpn_api_client: VpnApiClient,

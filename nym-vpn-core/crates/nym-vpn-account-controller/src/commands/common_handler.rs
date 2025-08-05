@@ -3,6 +3,7 @@
 
 use std::net::SocketAddr;
 
+use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::response::{NymVpnDevice, NymVpnUsage};
 use nym_vpn_lib_types::AccountCommandError;
 use nym_vpn_store::mnemonic::Mnemonic;
@@ -13,9 +14,9 @@ use crate::{
     storage::AccountStorageOp,
 };
 
-pub(crate) async fn handle_common_command(
+pub(crate) async fn handle_common_command<C: ConnectivityMonitor>(
     command: CommonCommand,
-    shared_state: &mut SharedAccountState,
+    shared_state: &mut SharedAccountState<C>,
 ) {
     match command {
         CommonCommand::GetStoredMnemonic(result_tx) => {
@@ -49,8 +50,8 @@ pub(crate) async fn handle_common_command(
 }
 
 // This goes into storage each time, to trigger platform's unlocking mechanism if secure storage is used
-pub(crate) async fn handle_get_stored_mnemonic(
-    shared_state: &mut SharedAccountState,
+pub(crate) async fn handle_get_stored_mnemonic<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<Mnemonic>, AccountCommandError> {
     let (tx, rx) = ReturnSender::new();
     shared_state
@@ -62,8 +63,8 @@ pub(crate) async fn handle_get_stored_mnemonic(
         .map_err(AccountCommandError::storage) // Storage error
 }
 
-pub(crate) fn handle_get_account_identity(
-    shared_state: &mut SharedAccountState,
+pub(crate) fn handle_get_account_identity<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
 ) -> Result<Option<String>, AccountCommandError> {
     Ok(shared_state
         .vpn_api_account
@@ -71,8 +72,8 @@ pub(crate) fn handle_get_account_identity(
         .map(|account| account.id().into()))
 }
 
-async fn handle_get_usage(
-    shared_state: &mut SharedAccountState,
+async fn handle_get_usage<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
 ) -> Result<Vec<NymVpnUsage>, AccountCommandError> {
     let account = shared_state
         .vpn_api_account
@@ -85,8 +86,8 @@ async fn handle_get_usage(
     Ok(usage.items)
 }
 
-pub(crate) fn handle_get_device_identity(
-    shared_state: &SharedAccountState,
+pub(crate) fn handle_get_device_identity<C: ConnectivityMonitor>(
+    shared_state: &SharedAccountState<C>,
 ) -> Result<String, AccountCommandError> {
     let device = shared_state
         .device
@@ -99,8 +100,8 @@ pub(crate) fn handle_get_device_identity(
     Ok(device)
 }
 
-async fn handle_get_devices(
-    shared_state: &mut SharedAccountState,
+async fn handle_get_devices<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
 ) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
     tracing::debug!("Getting devices from API");
 
@@ -119,8 +120,8 @@ async fn handle_get_devices(
     Ok(devices.items)
 }
 
-async fn handle_get_active_devices(
-    shared_state: &mut SharedAccountState,
+async fn handle_get_active_devices<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
 ) -> Result<Vec<NymVpnDevice>, AccountCommandError> {
     tracing::debug!("Getting active devices from API");
 
@@ -142,8 +143,8 @@ async fn handle_get_active_devices(
     Ok(devices.items)
 }
 
-async fn handle_get_available_tickets(
-    shared_state: &SharedAccountState,
+async fn handle_get_available_tickets<C: ConnectivityMonitor>(
+    shared_state: &SharedAccountState<C>,
 ) -> Result<AvailableTicketbooks, AccountCommandError> {
     tracing::debug!("Getting available tickets from local credential storage");
 
@@ -159,8 +160,8 @@ async fn handle_get_available_tickets(
         .map_err(|err| AccountCommandError::Storage(err.to_string()))
 }
 
-pub(crate) fn handle_set_static_api_addresses(
-    shared_state: &mut SharedAccountState,
+pub(crate) fn handle_set_static_api_addresses<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
     static_api_addresses: Option<Vec<SocketAddr>>,
 ) -> Result<(), AccountCommandError> {
     shared_state

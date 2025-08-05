@@ -1,6 +1,7 @@
 // Copyright 2025 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
+use nym_offline_monitor::ConnectivityMonitor;
 use nym_vpn_api_client::{
     error::UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID,
     response::NymErrorResponse,
@@ -13,8 +14,8 @@ use crate::{SharedAccountState, commands::ReturnSender, storage::AccountStorageO
 
 // The onus of making sure the conditions are right to call these handlers is on the caller
 
-pub(crate) async fn handle_store_account(
-    shared_state: &mut SharedAccountState,
+pub(crate) async fn handle_store_account<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
     mnemonic: Mnemonic,
 ) -> Result<(), AccountCommandError> {
     let vpn_account = VpnApiAccount::try_from(mnemonic.clone())
@@ -40,8 +41,8 @@ pub(crate) async fn handle_store_account(
     Ok(())
 }
 
-pub(crate) async fn handle_create_account(
-    shared_state: &mut SharedAccountState,
+pub(crate) async fn handle_create_account<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
 ) -> Result<(), AccountCommandError> {
     let (vpn_account, mnemonic) = VpnApiAccount::random().map_err(AccountCommandError::internal)?;
 
@@ -62,8 +63,8 @@ pub(crate) async fn handle_create_account(
     Ok(())
 }
 
-pub(crate) async fn handle_forget_account(
-    shared_state: &mut SharedAccountState,
+pub(crate) async fn handle_forget_account<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
 ) -> Result<(), AccountCommandError> {
     tracing::info!("REMOVING ACCOUNT AND ALL ASSOCIATED DATA");
 
@@ -121,8 +122,8 @@ pub(crate) async fn handle_forget_account(
     Ok(())
 }
 
-pub(crate) async fn handle_unregister_device(
-    shared_state: &mut SharedAccountState,
+pub(crate) async fn handle_unregister_device<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
 ) -> Result<(), AccountCommandError> {
     tracing::info!("Unregistering device from API");
 
@@ -157,8 +158,8 @@ pub(crate) async fn handle_unregister_device(
     }
 }
 
-pub(crate) async fn handle_reset_device_identity(
-    shared_state: &mut SharedAccountState,
+pub(crate) async fn handle_reset_device_identity<C: ConnectivityMonitor>(
+    shared_state: &mut SharedAccountState<C>,
     seed: Option<[u8; 32]>,
 ) -> Result<(), AccountCommandError> {
     tracing::info!("Resetting device key");

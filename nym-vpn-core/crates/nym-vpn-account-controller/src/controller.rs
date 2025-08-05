@@ -1,7 +1,7 @@
 // Copyright 2024 - Nym Technologies SA <contact@nymtech.net>
 // SPDX-License-Identifier: GPL-3.0-only
 
-use nym_offline_monitor::ConnectivityHandle;
+use nym_offline_monitor::ConnectivityMonitor;
 
 use nym_vpn_api_client::VpnApiClient;
 use nym_vpn_lib_types::{AccountControllerEvent, AccountControllerState};
@@ -23,15 +23,16 @@ use crate::{
     storage::{AccountStorage, AccountStorageOp, VpnCredentialStorage},
 };
 
-pub struct AccountController<S>
+pub struct AccountController<C, S>
 where
     S: VpnStorage,
+    C: ConnectivityMonitor,
 {
     // The storage used for the account and device keys
     account_storage: AccountStorage<S>,
 
     // The current state of the account
-    shared_state: SharedAccountState,
+    shared_state: SharedAccountState<C>,
 
     // Receiver channel used to receive commands from the outside.
     command_channel: (
@@ -55,21 +56,22 @@ where
     storage_op_receiver: UnboundedReceiver<AccountStorageOp>,
 
     // Current state machine state
-    current_state_handler: Box<dyn AccountControllerStateHandler>,
+    current_state_handler: Box<dyn AccountControllerStateHandler<C>>,
 
     // Listen for cancellation signals
     cancel_token: CancellationToken,
 }
 
-impl<S> AccountController<S>
+impl<C, S> AccountController<C, S>
 where
     S: VpnStorage + Send + Sync + 'static,
+    C: ConnectivityMonitor,
 {
     pub async fn new(
         nym_vpn_api_client: VpnApiClient,
         config: AccountControllerConfig,
         storage: S,
-        connectivity_handle: ConnectivityHandle,
+        connectivity_handle: C,
         cancel_token: CancellationToken,
     ) -> Result<Self, Error> {
         tracing::info!(
