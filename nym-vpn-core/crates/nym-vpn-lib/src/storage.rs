@@ -8,8 +8,6 @@ use nym_vpn_store::{
     mnemonic::{Mnemonic, MnemonicStorage, on_disk::OnDiskMnemonicStorageError},
 };
 
-mod helpers;
-
 const MNEMONIC_FILE_NAME: &str = "mnemonic.json";
 
 pub struct VpnClientOnDiskStorage {

@@ -749,15 +749,17 @@ impl tunnel::Error {
 
 impl account::Error {
     fn error_state_reason(self) -> Option<ErrorStateReason> {
-        use nym_vpn_lib_types::AccountControllerError::*;
+        use nym_vpn_lib_types::AccountControllerError as AcError;
         match self {
             Self::Command(e) => Some(ErrorStateReason::Internal(e.to_string())),
             Self::Cancelled => None,
             Self::ControllerState(e) => match e {
-                Offline => Some(ErrorStateReason::AccountControllerOffline),
-                NoAccountStored => Some(ErrorStateReason::AccountControolerLoggedOut),
-                Internal(e) => Some(ErrorStateReason::Internal(e.to_string())),
-                ErrorState(reason) => Some(ErrorStateReason::AccountControllerError(reason)),
+                AcError::Offline => Some(ErrorStateReason::AccountControllerOffline),
+                AcError::NoAccountStored => Some(ErrorStateReason::AccountControolerLoggedOut),
+                AcError::Internal(e) => Some(ErrorStateReason::Internal(e.to_string())),
+                AcError::ErrorState(reason) => {
+                    Some(ErrorStateReason::AccountControllerError(reason))
+                }
             },
         }
     }

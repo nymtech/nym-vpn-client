@@ -517,7 +517,7 @@ message StoreAccountRequest {
 }
 
 message AccountCommandResponse {
-  AccountCommandError error = 1;
+ optional AccountCommandError error = 1;
 }
 
 
