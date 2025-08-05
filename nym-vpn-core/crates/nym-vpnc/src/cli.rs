@@ -61,8 +61,12 @@ pub enum Command {
     /// Get the account ID.
     GetAccountId,
 
-    /// Get the current account state.
-    GetAccountState,
+    /// Get the current account controller state.
+    GetAccountState {
+        /// Monitor account controller state continuously until ctrl+c.
+        #[arg(long, default_value = "false", action = ArgAction::SetTrue)]
+        listen: bool,
+    },
 
     /// Get URLs for managing your nym-vpn account.
     GetAccountLinks(GetAccountLinksArgs),

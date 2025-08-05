@@ -326,6 +326,21 @@ impl NymVpnService for CommandInterface {
         Ok(tonic::Response::new(account_controller_state))
     }
 
+    type ListenToAccountStateStream = BoxStream<'static, Result<proto::AccountControllerState>>;
+    async fn listen_to_account_state(
+        &self,
+        _request: tonic::Request<()>,
+    ) -> Result<tonic::Response<Self::ListenToAccountStateStream>> {
+        let rx = self
+            .send_and_wait(VpnServiceCommand::SubscribeToAccountControllerState, ())
+            .await?;
+        let stream = tokio_stream::wrappers::WatchStream::new(rx)
+            .map(|new_state| Ok(proto::AccountControllerState::from(new_state)));
+        Ok(tonic::Response::new(
+            Box::pin(stream) as Self::ListenToAccountStateStream
+        ))
+    }
+
     async fn refresh_account_state(
         &self,
         _request: tonic::Request<()>,

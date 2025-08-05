@@ -44,7 +44,7 @@ async fn main() -> Result<()> {
         Command::ForgetAccount => forget_account(rpc_client).await?,
         Command::GetAccountId => get_account_id(rpc_client).await?,
         Command::GetAccountLinks(args) => get_account_links(rpc_client, args).await?,
-        Command::GetAccountState => get_account_state(rpc_client).await?,
+        Command::GetAccountState { listen } => get_account_state(rpc_client, listen).await?,
         Command::ListEntryGateways => {
             list_gateways(rpc_client, GatewayType::MixnetEntry, user_agent).await?
         }
@@ -293,9 +293,25 @@ async fn get_account_links(
     Ok(())
 }
 
-async fn get_account_state(mut rpc_client: RpcClient) -> Result<()> {
-    let response = rpc_client.get_account_state().await?;
-    println!("{response}");
+async fn get_account_state(mut rpc_client: RpcClient, listen: bool) -> Result<()> {
+    if listen {
+        let mut stream = rpc_client.listen_to_account_controller_state().await?;
+
+        let initial_state = tokio::select! {
+            initial_state = rpc_client.get_account_state() => initial_state,
+            Some(initial_state) = stream.next() => initial_state
+        }?;
+        println!("{initial_state}");
+
+        while let Some(new_state) = stream.next().await {
+            let new_state = new_state?;
+            println!("{new_state}");
+        }
+    } else {
+        let response = rpc_client.get_account_state().await?;
+        println!("{response}");
+    }
+
     Ok(())
 }
 

@@ -46,4 +46,8 @@ impl AccountStateReceiver {
     pub fn get_state(&self) -> AccountControllerState {
         self.inner.borrow().to_owned()
     }
+
+    pub fn subscribe(&self) -> watch::Receiver<AccountControllerState> {
+        self.inner.clone()
+    }
 }

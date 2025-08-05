@@ -247,6 +247,23 @@ impl RpcClient {
         AccountControllerState::try_from(state).map_err(Error::InvalidResponse)
     }
 
+    pub async fn listen_to_account_controller_state(
+        &mut self,
+    ) -> Result<impl Stream<Item = Result<AccountControllerState>> + 'static> {
+        let listener = self
+            .0
+            .listen_to_account_state(())
+            .await
+            .map_err(Error::Rpc)?
+            .into_inner();
+
+        Ok(listener.map(|item| {
+            item.map_err(Error::Rpc).and_then(|account_state| {
+                AccountControllerState::try_from(account_state).map_err(Error::InvalidResponse)
+            })
+        }))
+    }
+
     pub async fn refresh_account_state(&mut self) -> Result<()> {
         self.0
             .refresh_account_state(())

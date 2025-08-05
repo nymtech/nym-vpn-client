@@ -11,7 +11,7 @@ use nym_statistics::{
 };
 use time::{OffsetDateTime, format_description::well_known::Rfc3339};
 use tokio::{
-    sync::{broadcast, mpsc, oneshot},
+    sync::{broadcast, mpsc, oneshot, watch},
     task::JoinHandle,
 };
 use tokio_util::sync::CancellationToken;
@@ -94,6 +94,7 @@ pub enum VpnServiceCommand {
         Locale,
     ),
     GetAccountState(oneshot::Sender<AccountControllerState>, ()),
+    SubscribeToAccountControllerState(oneshot::Sender<watch::Receiver<AccountControllerState>>, ()),
     RefreshAccountState(oneshot::Sender<()>, ()),
     GetAccountUsage(
         oneshot::Sender<Result<Vec<NymVpnUsage>, AccountCommandError>>,
@@ -600,6 +601,10 @@ impl NymVpnService {
             VpnServiceCommand::GetAccountState(tx, ()) => {
                 let _ = tx.send(self.handle_get_account_state().await);
             }
+            VpnServiceCommand::SubscribeToAccountControllerState(tx, ()) => {
+                let rx = self.handle_subscribe_to_account_controller_state();
+                let _ = tx.send(rx);
+            }
             VpnServiceCommand::RefreshAccountState(tx, ()) => {
                 self.handle_refresh_account_state().await;
                 let _ = tx.send(());
@@ -962,6 +967,12 @@ impl NymVpnService {
 
     async fn handle_get_account_state(&self) -> AccountControllerState {
         self.account_state_rx.get_state()
+    }
+
+    fn handle_subscribe_to_account_controller_state(
+        &self,
+    ) -> watch::Receiver<AccountControllerState> {
+        self.account_state_rx.subscribe()
     }
 
     async fn handle_refresh_account_state(&self) {

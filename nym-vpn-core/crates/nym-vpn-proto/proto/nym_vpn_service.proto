@@ -670,6 +670,9 @@ service NymVpnService {
   // is known and interpreted by nym-vpnd
   rpc GetAccountState (google.protobuf.Empty) returns (AccountControllerState) {}
 
+  // Listen for current account controller state and subsequent changes to it. Emits current state as the first value.
+  rpc ListenToAccountState (google.protobuf.Empty) returns (stream AccountControllerState) {}
+
   // The vpn client will periodically refresh the account state in the
   // background. This command triggers a manual refresh.
   rpc RefreshAccountState (google.protobuf.Empty) returns (google.protobuf.Empty) {}
