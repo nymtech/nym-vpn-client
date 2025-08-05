@@ -17,7 +17,7 @@ import router from './router';
 import './i18n/config';
 import { RouteLoading, ThemeSetter } from './ui';
 import { GatewaysProvider } from './contexts/gateways';
-import { IntroSplash } from './screens';
+import { IntroAnim } from './screens';
 
 let initialized = false;
 const noSplash = window._APP.noSplash;
@@ -54,7 +54,7 @@ function App() {
 
   return (
     <>
-      {!noSplash && <IntroSplash />}
+      {!noSplash && <IntroAnim />}
       <InAppNotificationProvider>
         <Toast.Provider>
           <MainStateProvider>
