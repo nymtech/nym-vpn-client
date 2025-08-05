@@ -13,9 +13,9 @@
 
 # Powershell on CI does not support the `Expand-Archive` cmdlet. Prefer pwsh instead.
 ifdef PWSH
-	SHELL := $(ProgramW6432)/PowerShell/7/pwsh.exe
+    SHELL := $(ProgramW6432)/PowerShell/7/pwsh.exe
 else
-	SHELL := $(windir)/System32/WindowsPowerShell/v1.0/powershell.exe
+    SHELL := $(windir)/System32/WindowsPowerShell/v1.0/powershell.exe
 endif
 
 WIUNTUN_URL := https://www.wintun.net/builds/wintun-0.14.1.zip
@@ -38,31 +38,31 @@ BUILDTOOLS_MSBUILD_PATH := $(BUILDTOOLS_DIR)/MSBuild/Current/Bin
 # Make on Windows is a 32-bit application
 # Use PROCESSOR_ARCHITEW6432 to get the native CPU architecture
 ifdef PROCESSOR_ARCHITEW6432
-	CPU_ARCH ?= $(PROCESSOR_ARCHITEW6432)
+    CPU_ARCH ?= $(PROCESSOR_ARCHITEW6432)
 else
-	CPU_ARCH ?= $(PROCESSOR_ARCHITECTURE)
+    CPU_ARCH ?= $(PROCESSOR_ARCHITECTURE)
 endif
 
 CPU_ARCH_LOWER := $(shell "$(CPU_ARCH)".ToLower())
 
 ifeq ($(CPU_ARCH_LOWER),amd64)
-	RUST_TARGET := x86_64
-	WINFW_PLATFORM := x64
-	MSVC_PLATFORM := x64
+    RUST_TARGET := x86_64
+    WINFW_PLATFORM := x64
+    MSVC_PLATFORM := x64
 else ifeq ($(CPU_ARCH_LOWER),arm64)
-	RUST_TARGET := aarch64
-	WINFW_PLATFORM := ARM64
-	MSVC_PLATFORM := arm64
+    RUST_TARGET := aarch64
+    WINFW_PLATFORM := ARM64
+    MSVC_PLATFORM := arm64
 else
-	$(error Unsupported CPU architecture: $(CPU_ARCH_LOWER))
+    $(error Unsupported CPU architecture: $(CPU_ARCH_LOWER))
 endif
 
 ifeq ($(RELEASE),1)
-	WINFW_PROFILE := Release
-	TARGET_DIR ?= $(CURDIR)/target/release
+    WINFW_PROFILE := Release
+    TARGET_DIR ?= $(CURDIR)/target/release
 else
-	WINFW_PROFILE := Debug
-	TARGET_DIR ?= $(CURDIR)/target/debug
+    WINFW_PROFILE := Debug
+    TARGET_DIR ?= $(CURDIR)/target/debug
 endif
 
 LIBWG_BUILD_DIR := $(CURDIR)/../build/lib/$(RUST_TARGET)-pc-windows-msvc
