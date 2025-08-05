@@ -1,5 +1,5 @@
 use tauri::State;
-use tracing::{error, info, instrument, warn};
+use tracing::{error, info, instrument, warn, debug};
 
 use crate::grpc::account_links::AccountLinks;
 use crate::grpc::tunnel::TunnelState;
@@ -65,7 +65,7 @@ pub async fn is_account_stored(grpc: State<'_, GrpcClient>) -> Result<bool, Back
     grpc.is_account_stored()
         .await
         .map_err(|e| {
-            error!("failed to check stored account: {e}");
+            debug!("failed to check stored account: {e}");
             e.into()
         })
         .inspect(|stored| {
@@ -80,7 +80,7 @@ pub async fn account_links(
     locale: String,
 ) -> Result<AccountLinks, BackendError> {
     grpc.account_links(&locale).await.map_err(|e| {
-        error!("failed to get account link: {e}");
+        warn!("failed to get account link: {e}");
         e.into()
     })
 }

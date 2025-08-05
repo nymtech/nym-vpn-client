@@ -76,7 +76,7 @@ impl SyncStateCommandHandler {
         name = "sync_account",
         fields(id = %self.id_str()),
         ret,
-        err,
+        err(Debug),
         level = Level::DEBUG,
     )]
     pub(crate) async fn run_inner(self) -> Result<NymVpnAccountSummaryResponse, SyncAccountError> {

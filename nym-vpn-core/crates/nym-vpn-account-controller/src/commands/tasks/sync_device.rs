@@ -85,7 +85,7 @@ impl SyncDeviceStateCommandHandler {
         name = "sync_device",
         fields(id = %self.id_str()),
         ret,
-        err,
+        err(Debug),
         level = Level::DEBUG,
     )]
     async fn run_inner(self) -> Result<DeviceState, SyncDeviceError> {

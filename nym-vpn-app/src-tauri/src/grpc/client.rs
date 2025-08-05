@@ -99,9 +99,13 @@ impl GrpcClient {
     pub async fn vpnd(&self) -> Result<NymVpnServiceClient<Channel>, VpndError> {
         let channel = get_channel(self.socket.clone()).await.map_err(|e| {
             let logged = VPND_DOWN_LOGGED.load(Ordering::Relaxed);
+
             if !logged {
                 warn!("failed to connect to the daemon: {}", e);
                 VPND_DOWN_LOGGED.store(true, Ordering::Relaxed);
+            } else if e.to_string().contains("Unimplemented") {
+                // Unimplemented error is returned when the vpnd service is not running
+                debug!("vpnd service is not running: {}", e);
             } else {
                 debug!("failed to connect to the daemon: {}", e);
             }
@@ -179,7 +183,6 @@ impl GrpcClient {
         Ok(tunnel)
     }
 
-    // TODO change logging level to info
     /// Watch tunnel state updates and mixnet events
     #[instrument(skip_all)]
     pub async fn watch_tunnel_events(&self, app: &AppHandle) -> Result<()> {
@@ -201,7 +204,7 @@ impl GrpcClient {
                         tx.send(update).await.unwrap();
                     }
                     Ok(None) => {
-                        warn!("vpnd DOWN: tunnel state stream closed");
+                        info!("vpnd DOWN: tunnel state stream closed");
                         VPND_DOWN_LOGGED.store(true, Ordering::Relaxed);
                         return;
                     }
