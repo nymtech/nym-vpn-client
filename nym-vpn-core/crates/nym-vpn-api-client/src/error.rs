@@ -7,8 +7,12 @@ pub use nym_http_api_client::HttpClientError;
 
 use crate::response::{NymErrorResponse, UnexpectedError};
 
-// Error code id to allow error catching
+// Error code id to allow error catching. These are emitted by the backend and are unique.
+
+// https://github.com/nymtech/websites/blob/e92383143e195c97c2a3043d93daff06debaab74/www/vpn-api/src/app/api/public/v1/account/%5BaccountId%5D/device/%5BdeviceId%5D/route.ts#L218
 pub const UNREGISTER_NON_EXISTENT_DEVICE_CODE_ID: &str = "235ba475-8c64-4c46-8147-d1d523df972c";
+
+// https://github.com/nymtech/websites/blob/e92383143e195c97c2a3043d93daff06debaab74/www/vpn-api/src/app/api/public/v1/account/%5BaccountId%5D/device/%5BdeviceId%5D/zknym/route.ts#L255
 pub const FAIR_USAGE_DEPLETED_CODE_ID: &str = "e0b78604-bb9b-4524-add1-f50fe26144c6";
 
 #[derive(Debug, thiserror::Error)]

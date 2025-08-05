@@ -52,7 +52,7 @@ where
     ),
 
     // Channel to received and execute storage operation
-    storage_op_receiver: mpsc::UnboundedReceiver<AccountStorageOp>,
+    storage_op_receiver: UnboundedReceiver<AccountStorageOp>,
 
     // Current state machine state
     current_state_handler: Box<dyn AccountControllerStateHandler>,
@@ -137,7 +137,7 @@ where
         AccountCommandSender::new(self.command_channel.0.clone())
     }
 
-    /// Get the command channel used to send commands to the controller.
+    /// Get the channel used to keep track of the controller state.
     pub fn get_state_receiver(&self) -> AccountStateReceiver {
         AccountStateReceiver::new(self.state_channel.1.clone())
     }
