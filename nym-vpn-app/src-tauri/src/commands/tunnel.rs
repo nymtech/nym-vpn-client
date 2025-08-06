@@ -11,10 +11,7 @@ use crate::{
 use tauri::State;
 use tracing::{debug, error, info, instrument, warn};
 
-#[instrument(
-    skip_all,
-    err(Debug)
-)]
+#[instrument(skip_all, err(Debug))]
 #[tauri::command]
 pub async fn get_tunnel_state(
     app: tauri::AppHandle,

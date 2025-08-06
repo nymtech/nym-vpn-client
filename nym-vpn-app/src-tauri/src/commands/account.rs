@@ -1,5 +1,5 @@
 use tauri::State;
-use tracing::{error, info, instrument, warn, debug};
+use tracing::{error, info, instrument, warn};
 
 use crate::grpc::account_links::AccountLinks;
 use crate::grpc::tunnel::TunnelState;
@@ -65,7 +65,15 @@ pub async fn is_account_stored(grpc: State<'_, GrpcClient>) -> Result<bool, Back
     grpc.is_account_stored()
         .await
         .map_err(|e| {
-            debug!("failed to check stored account: {e}");
+            if e.to_string().contains("ConnectionReset")
+                || e.to_string().contains("ConnectionRefused")
+                || e.to_string().contains("Timeout")
+                || e.to_string().contains("NetworkUnreachable")
+            {
+                warn!("account check failed due to transient network issue: {e}");
+            } else {
+                error!("failed to check stored account: {e}");
+            }
             e.into()
         })
         .inspect(|stored| {

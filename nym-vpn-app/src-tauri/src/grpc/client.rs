@@ -403,7 +403,6 @@ impl GrpcClient {
             locale: "en".to_string(),
         });
         let response = vpnd.get_account_links(request).await.map_err(|e| {
-            // TODO change logging level to info
             error!("grpc: {}", e);
             VpndError::GrpcError(e)
         })?;

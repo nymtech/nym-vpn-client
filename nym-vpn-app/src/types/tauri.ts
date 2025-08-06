@@ -6,17 +6,6 @@ export type BackendError = {
   data: Record<string, string> | null;
 };
 
-// Since Javascript in the browser does not have a way to format BackendError objects
-export function formatBackendErrorData(error: BackendError): string | null {
-  if (error.data === null) {
-    return null;
-  }
-
-  return Object.entries(error.data)
-    .map(([key, value]) => `${key}: ${value}`)
-    .join(', ');
-}
-
 export type Cli = {
   nosplash: boolean;
 };
