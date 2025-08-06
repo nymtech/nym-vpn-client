@@ -36,10 +36,6 @@ build-mac: ## Build the Rust workspace suitable for running the daemon
 build-win-cross:
 	$(ALL_IDEMPOTENT_FLAGS) cargo build --target x86_64-pc-windows-gnu --release
 
-build-vpn-lib-swift: ## Rust cargo swift
-	cd crates/nym-vpn-lib; \
-	cargo swift package --platforms ios --name NymVpnLib --release
-
 # -----------------------------------------------------------------------------
 #  Linting targets
 # -----------------------------------------------------------------------------
@@ -64,22 +60,6 @@ build-deb-vpnd:
 
 build-deb-vpnc:
 	cargo deb -p nym-vpnc
-
-# -----------------------------------------------------------------------------
-#  Uniffi
-# -----------------------------------------------------------------------------
-
-generate-uniffi-ios: ## Generate uniffi for ios
-	cargo run --bin uniffi-bindgen generate \
-		--library $(CURDIR)/target/aarch64-apple-ios/release/libnym_vpn_lib.a \
-		--language swift --out-dir crates/nym-vpn-lib/uniffi -n
-
-generate-uniffi-android: ## Generate uniffi for android
-	cargo run --bin uniffi-bindgen generate \
-		--library $(CURDIR)/target/aarch64-linux-android/release/libnym_vpn_lib.so \
-		--language kotlin --out-dir crates/nym-vpn-lib/uniffi -n
-	mv crates/nym-vpn-lib/uniffi/nym_vpn_lib/nym_vpn_lib.kt crates/nym-vpn-lib/uniffi
-	rm -rf crates/nym-vpn-lib/uniffi/nym_vpn_lib/
 
 
 # -----------------------------------------------------------------------------
