@@ -17,9 +17,9 @@ use std::{path::PathBuf, time::Duration};
 
 use clap::Parser;
 use sentry::ClientInitGuard;
+use std::sync::Arc;
 use tokio::{sync::broadcast, task::JoinHandle};
 use tokio_util::sync::CancellationToken;
-use std::sync::Arc;
 
 use nym_vpn_lib::UserAgent;
 use nym_vpnd_types::log_path::LogPath;
@@ -250,7 +250,8 @@ fn init_sentry() -> Option<ClientInitGuard> {
             enable_logs: true,
             shutdown_timeout: Duration::from_secs(2),
             before_send_log: Some(Arc::new(|log| {
-                if log.body.contains("sqlx_pool_guard") || log.body.contains("close_stats_storage") {
+                if log.body.contains("sqlx_pool_guard") || log.body.contains("close_stats_storage")
+                {
                     let mut log = log.clone();
                     log.level = sentry::protocol::LogLevel::Debug;
                     return Some(log);

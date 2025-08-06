@@ -6,7 +6,7 @@ use rand::Rng;
 use sqlx::ConnectOptions;
 use sqlx_pool_guard::SqlitePoolGuard;
 use std::path::Path;
-use tracing::{log::LevelFilter, Instrument};
+use tracing::{Instrument, log::LevelFilter};
 
 pub mod error;
 mod sqlite;

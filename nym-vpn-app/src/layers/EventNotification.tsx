@@ -10,7 +10,6 @@ import {
   isTunnelError,
   isTunnelOffline,
 } from '../types';
-import { data } from 'react-router';
 
 export default function EventNotification({
   children,
@@ -23,15 +22,6 @@ export default function EventNotification({
 
   const registerStateListener = useCallback(() => {
     return listen<TunnelStateEventPayload>(TunnelStateEvent, async (event) => {
-      const serializablePayload = {
-        ...event.payload,
-        error: event.payload.error ? {
-          message: event.payload.error.message || 'Unknown error',
-          key: event.payload.error.key,
-          data: event.payload.error.data || null,
-        } : null
-      };
-      
       if (event.payload.state === 'disconnected') {
         await notify(t('vpn-tunnel-state.disconnected'), {
           locationPath: routes.root,

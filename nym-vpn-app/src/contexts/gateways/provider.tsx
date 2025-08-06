@@ -15,7 +15,6 @@ import { exists, getStateProps, gwTypeToCacheKey } from './util';
 import { GatewaysContext, initialState } from './context';
 import { reducer } from './reducer';
 import { GatewaysState } from './types';
-import { format } from 'path';
 
 let initialized = false;
 
